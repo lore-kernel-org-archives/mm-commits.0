@@ -1,219 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-abstract-compaction-feedback-to-helpers.patch
- added to -mm tree
-Date: Tue, 05 Apr 2016 14:51:25 -0700
-Message-ID: <5704335d.A92XUtdF706Bh9ea%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ lib-uuid-introduce-few-more-generic-helpers-for-uuid.patch removed from -mm tree
+Date: Tue, 05 Apr 2016 14:57:09 -0700
+Message-ID: <570434b5.CzsUCGH2DYkaLGk3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53661 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53832 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760506AbcDEVv1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 17:51:27 -0400
+	with ESMTP id S1760525AbcDEV5L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 17:57:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: Abstract compaction feedback to helpers
-has been added to the -mm tree.  Its filename is
-     mm-compaction-abstract-compaction-feedback-to-helpers.patch
+     Subject: lib/uuid: introduce few more generic helpers for UUID
+has been removed from the -mm tree.  Its filename was
+     lib-uuid-introduce-few-more-generic-helpers-for-uuid.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-abstract-compaction-feedback-to-helpers.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-abstract-compaction-feedback-to-helpers.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, compaction: Abstract compaction feedback to helpers
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/uuid: introduce few more generic helpers for UUID
 
-Compaction can provide a wild variation of feedback to the caller.  Many
-of them are implementation specific and the caller of the compaction
-(especially the page allocator) shouldn't be bound to specifics of the
-current implementation.
+There are new helpers in this patch:
 
-This patch abstracts the feedback into three basic types:
-	- compaction_made_progress - compaction was active and made some
-	  progress.
-	- compaction_failed - compaction failed and further attempts to
-	  invoke it would most probably fail and therefore it is not
-	  worth retrying
-	- compaction_withdrawn - compaction wasn't invoked for an
-          implementation specific reasons. In the current implementation
-          it means that the compaction was deferred, contended or the
-          page scanners met too early without any progress. Retrying is
-          still worthwhile.
+uuid_is_valid		checks if a UUID is valid
+uuid_be_to_bin		converts from string to binary (big endian)
+uuid_le_to_bin		converts from string to binary (little endian)
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+They will be used in future, i.e. in the following patches in the series.
+
+This also moves indices arrays to lib/uuid.c to be shared accross modules.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |   74 +++++++++++++++++++++++++++++++++++
- mm/page_alloc.c            |   25 ++---------
- 2 files changed, 80 insertions(+), 19 deletions(-)
+ include/linux/uuid.h |   13 +++++++
+ lib/uuid.c           |   70 +++++++++++++++++++++++++++++++++++++++++
+ lib/vsprintf.c       |    9 ++---
+ 3 files changed, 87 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-abstract-compaction-feedback-to-helpers include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-abstract-compaction-feedback-to-helpers
-+++ a/include/linux/compaction.h
-@@ -78,6 +78,70 @@ extern void compaction_defer_reset(struc
- 				bool alloc_success);
- extern bool compaction_restarting(struct zone *zone, int order);
+diff -puN include/linux/uuid.h~lib-uuid-introduce-few-more-generic-helpers-for-uuid include/linux/uuid.h
+--- a/include/linux/uuid.h~lib-uuid-introduce-few-more-generic-helpers-for-uuid
++++ a/include/linux/uuid.h
+@@ -22,6 +22,11 @@
  
-+/* Compaction has made some progress and retrying makes sense */
-+static inline bool compaction_made_progress(enum compact_result result)
-+{
-+	/*
-+	 * Even though this might sound confusing this in fact tells us
-+	 * that the compaction successfully isolated and migrated some
-+	 * pageblocks.
-+	 */
-+	if (result == COMPACT_PARTIAL)
-+		return true;
-+
-+	return false;
-+}
-+
-+/* Compaction has failed and it doesn't make much sense to keep retrying. */
-+static inline bool compaction_failed(enum compact_result result)
-+{
-+	/* All zones where scanned completely and still not result. */
-+	if (result == COMPACT_COMPLETE)
-+		return true;
-+
-+	return false;
-+}
-+
+ #include <uapi/linux/uuid.h>
+ 
 +/*
-+ * Compaction  has backed off for some reason. It might be throttling or
-+ * lock contention. Retrying is still worthwhile.
++ * The length of a UUID string ("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
++ * not including trailing NUL.
 + */
-+static inline bool compaction_withdrawn(enum compact_result result)
-+{
-+	/*
-+	 * Compaction backed off due to watermark checks for order-0
-+	 * so the regular reclaim has to try harder and reclaim something.
-+	 */
-+	if (result == COMPACT_SKIPPED)
-+		return true;
-+
-+	/*
-+	 * If compaction is deferred for high-order allocations, it is
-+	 * because sync compaction recently failed. If this is the case
-+	 * and the caller requested a THP allocation, we do not want
-+	 * to heavily disrupt the system, so we fail the allocation
-+	 * instead of entering direct reclaim.
-+	 */
-+	if (result == COMPACT_DEFERRED)
-+		return true;
-+
-+	/*
-+	 * If compaction in async mode encounters contention or blocks higher
-+	 * priority task we back off early rather than cause stalls.
-+	 */
-+	if (result == COMPACT_CONTENDED)
-+		return true;
-+
-+	/*
-+	 * Page scanners have met but we haven't scanned full zones so this
-+	 * is a back off in fact.
-+	 */
-+	if (result == COMPACT_PARTIAL_SKIPPED)
-+		return true;
-+
-+	return false;
-+}
-+
- extern int kcompactd_run(int nid);
- extern void kcompactd_stop(int nid);
- extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx);
-@@ -113,6 +177,16 @@ static inline bool compaction_deferred(s
++#define	UUID_STRING_LEN		36
+ 
+ static inline int uuid_le_cmp(const uuid_le u1, const uuid_le u2)
  {
- 	return true;
+@@ -38,4 +43,12 @@ void generate_random_uuid(unsigned char
+ extern void uuid_le_gen(uuid_le *u);
+ extern void uuid_be_gen(uuid_be *u);
+ 
++int __must_check uuid_is_valid(const char *uuid);
++
++extern const u8 uuid_le_index[16];
++extern const u8 uuid_be_index[16];
++
++int uuid_le_to_bin(const char *uuid, uuid_le *u);
++int uuid_be_to_bin(const char *uuid, uuid_be *u);
++
+ #endif
+diff -puN lib/uuid.c~lib-uuid-introduce-few-more-generic-helpers-for-uuid lib/uuid.c
+--- a/lib/uuid.c~lib-uuid-introduce-few-more-generic-helpers-for-uuid
++++ a/lib/uuid.c
+@@ -19,10 +19,17 @@
+  */
+ 
+ #include <linux/kernel.h>
++#include <linux/ctype.h>
++#include <linux/errno.h>
+ #include <linux/export.h>
+ #include <linux/uuid.h>
+ #include <linux/random.h>
+ 
++const u8 uuid_le_index[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
++EXPORT_SYMBOL(uuid_le_index);
++const u8 uuid_be_index[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
++EXPORT_SYMBOL(uuid_be_index);
++
+ /***************************************************************
+  * Random UUID interface
+  *
+@@ -65,3 +72,66 @@ void uuid_be_gen(uuid_be *bu)
+ 	bu->b[6] = (bu->b[6] & 0x0F) | 0x40;
  }
+ EXPORT_SYMBOL_GPL(uuid_be_gen);
 +
-+static inline bool compaction_made_progress(enum compact_result result)
++/**
++  * uuid_is_valid - checks if UUID string valid
++  * @uuid:	UUID string to check
++  *
++  * Description:
++  * It checks if the UUID string is following the format:
++  *	xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
++  * where x is a hex digit.
++  *
++  * Return: 0 on success, %-EINVAL otherwise.
++  */
++int uuid_is_valid(const char *uuid)
 +{
-+	return false;
++	unsigned int i;
++
++	if (strnlen(uuid, UUID_STRING_LEN) < UUID_STRING_LEN)
++		return -EINVAL;
++
++	for (i = 0; i < UUID_STRING_LEN; i++) {
++		if (i == 8 || i == 13 || i == 18 || i == 23) {
++			if (uuid[i] != '-')
++				return -EINVAL;
++		} else if (!isxdigit(uuid[i])) {
++			return -EINVAL;
++		}
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL(uuid_is_valid);
++
++static int __uuid_to_bin(const char *uuid, __u8 b[16], const u8 ei[16])
++{
++	static const u8 si[16] = {0,2,4,6,9,11,14,16,19,21,24,26,28,30,32,34};
++	unsigned int i;
++	int ret;
++
++	ret = uuid_is_valid(uuid);
++	if (ret)
++		return ret;
++
++	for (i = 0; i < 16; i++) {
++		int hi = hex_to_bin(uuid[si[i]] + 0);
++		int lo = hex_to_bin(uuid[si[i]] + 1);
++
++		b[ei[i]] = (hi << 4) | lo;
++	}
++
++	return 0;
 +}
 +
-+static inline bool compaction_withdrawn(enum compact_result result)
++int uuid_le_to_bin(const char *uuid, uuid_le *u)
 +{
-+	return true;
++	return __uuid_to_bin(uuid, u->b, uuid_le_index);
 +}
- 
- static inline int kcompactd_run(int nid)
++EXPORT_SYMBOL(uuid_le_to_bin);
++
++int uuid_be_to_bin(const char *uuid, uuid_be *u)
++{
++	return __uuid_to_bin(uuid, u->b, uuid_be_index);
++}
++EXPORT_SYMBOL(uuid_be_to_bin);
+diff -puN lib/vsprintf.c~lib-uuid-introduce-few-more-generic-helpers-for-uuid lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-uuid-introduce-few-more-generic-helpers-for-uuid
++++ a/lib/vsprintf.c
+@@ -30,6 +30,7 @@
+ #include <linux/ioport.h>
+ #include <linux/dcache.h>
+ #include <linux/cred.h>
++#include <linux/uuid.h>
+ #include <net/addrconf.h>
+ #ifdef CONFIG_BLOCK
+ #include <linux/blkdev.h>
+@@ -1304,19 +1305,17 @@ static noinline_for_stack
+ char *uuid_string(char *buf, char *end, const u8 *addr,
+ 		  struct printf_spec spec, const char *fmt)
  {
-diff -puN mm/page_alloc.c~mm-compaction-abstract-compaction-feedback-to-helpers mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-abstract-compaction-feedback-to-helpers
-+++ a/mm/page_alloc.c
-@@ -3366,25 +3366,12 @@ retry:
- 	if (page)
- 		goto got_pg;
+-	char uuid[sizeof("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")];
++	char uuid[UUID_STRING_LEN + 1];
+ 	char *p = uuid;
+ 	int i;
+-	static const u8 be[16] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+-	static const u8 le[16] = {3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15};
+-	const u8 *index = be;
++	const u8 *index = uuid_be_index;
+ 	bool uc = false;
  
--	/* Checks for THP-specific high-order allocations */
--	if (is_thp_gfp_mask(gfp_mask)) {
--		/*
--		 * If compaction is deferred for high-order allocations, it is
--		 * because sync compaction recently failed. If this is the case
--		 * and the caller requested a THP allocation, we do not want
--		 * to heavily disrupt the system, so we fail the allocation
--		 * instead of entering direct reclaim.
--		 */
--		if (compact_result == COMPACT_DEFERRED)
--			goto nopage;
--
--		/*
--		 * Compaction is contended so rather back off than cause
--		 * excessive stalls.
--		 */
--		if(compact_result == COMPACT_CONTENDED)
--			goto nopage;
--	}
-+	/*
-+	 * Checks for THP-specific high-order allocations and back off
-+	 * if the the compaction backed off
-+	 */
-+	if (is_thp_gfp_mask(gfp_mask) && compaction_withdrawn(compact_result))
-+		goto nopage;
- 
- 	/*
- 	 * It can become very expensive to allocate transparent hugepages at
+ 	switch (*(++fmt)) {
+ 	case 'L':
+ 		uc = true;		/* fall-through */
+ 	case 'l':
+-		index = le;
++		index = uuid_le_index;
+ 		break;
+ 	case 'B':
+ 		uc = true;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-include-linux-nodemaskh-create-next_node_in-helper-fix.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-compaction-change-compact_-constants-into-enum.patch
-mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
-mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
-mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
-mm-compaction-update-compaction_result-ordering.patch
-mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
-mm-compaction-abstract-compaction-feedback-to-helpers.patch
-mm-oom-protect-costly-allocations-some-more.patch
-mm-consider-compaction-feedback-also-for-costly-allocation.patch
+lib-uuid-remove-fsf-address.patch
+sysctl-drop-away-useless-label.patch
+sysctl-use-generic-uuid-library.patch
+efi-redefine-type-constant-macro-from-generic-code.patch
+efivars-use-generic-uuid-library.patch
 
