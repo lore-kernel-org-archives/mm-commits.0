@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + efi-redefine-type-constant-macro-from-generic-code.patch added
- to -mm tree
-Date: Mon, 04 Apr 2016 16:40:58 -0700
-Message-ID: <5702fb8a.8DqWpkJMCXOap5XH%akpm@linux-foundation.org>
+Subject: + thp-keep-huge-zero-page-pinned-until-tlb-flush.patch added to
+ -mm tree
+Date: Tue, 05 Apr 2016 13:15:44 -0700
+Message-ID: <57041cf0.nrrz0EzNu6ywOwcK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49272 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756821AbcDDXk7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 19:40:59 -0400
+	with ESMTP id S1759922AbcDEUPp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 16:15:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: efi: redefine type, constant, macro from generic code
+     Subject: thp: keep huge zero page pinned until tlb flush
 has been added to the -mm tree.  Its filename is
-     efi-redefine-type-constant-macro-from-generic-code.patch
+     thp-keep-huge-zero-page-pinned-until-tlb-flush.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/efi-redefine-type-constant-macro-from-generic-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-keep-huge-zero-page-pinned-until-tlb-flush.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/efi-redefine-type-constant-macro-from-generic-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-keep-huge-zero-page-pinned-until-tlb-flush.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,74 +39,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: efi: redefine type, constant, macro from generic code
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: keep huge zero page pinned until tlb flush
 
-Generic UUID library defines structure type, macro to define UUID, and the
-length of the UUID string. This patch removes duplicate data structure
-definition, UUID string length constant  as well as macro for UUID handling.
+Andrea has found[1] a race condition on MMU-gather based TLB flush vs
+split_huge_page() or shrinker which frees huge zero under us (patch 1/2
+and 2/2 respectively).
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+With new THP refcounting, we don't need patch 1/2: mmu_gather keeps the
+page pinned until flush is complete and the pin prevents the page from
+being split under us.
+
+We still need patch 2/2.  This is simplified version of Andrea's patch. 
+We don't need fancy encoding.
+
+[1] http://lkml.kernel.org/r/1447938052-22165-1-git-send-email-aarcange@redhat.com
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/efi.h |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ include/linux/huge_mm.h |    5 +++++
+ mm/huge_memory.c        |    6 +++---
+ mm/swap.c               |    5 +++++
+ 3 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/efi.h~efi-redefine-type-constant-macro-from-generic-code include/linux/efi.h
---- a/include/linux/efi.h~efi-redefine-type-constant-macro-from-generic-code
-+++ a/include/linux/efi.h
-@@ -21,6 +21,7 @@
- #include <linux/pfn.h>
- #include <linux/pstore.h>
- #include <linux/reboot.h>
-+#include <linux/uuid.h>
+diff -puN include/linux/huge_mm.h~thp-keep-huge-zero-page-pinned-until-tlb-flush include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~thp-keep-huge-zero-page-pinned-until-tlb-flush
++++ a/include/linux/huge_mm.h
+@@ -152,6 +152,7 @@ static inline bool is_huge_zero_pmd(pmd_
+ }
  
- #include <asm/page.h>
+ struct page *get_huge_zero_page(void);
++void put_huge_zero_page(void);
  
-@@ -43,17 +44,10 @@ typedef u16 efi_char16_t;		/* UNICODE ch
- typedef u64 efi_physical_addr_t;
- typedef void *efi_handle_t;
+ #else /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
+@@ -208,6 +209,10 @@ static inline bool is_huge_zero_page(str
+ 	return false;
+ }
  
--
--typedef struct {
--	u8 b[16];
--} efi_guid_t;
-+typedef uuid_le efi_guid_t;
++static inline void put_huge_zero_page(void)
++{
++	BUILD_BUG();
++}
  
- #define EFI_GUID(a,b,c,d0,d1,d2,d3,d4,d5,d6,d7) \
--((efi_guid_t) \
--{{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
--  (b) & 0xff, ((b) >> 8) & 0xff, \
--  (c) & 0xff, ((c) >> 8) & 0xff, \
--  (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
-+	UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)
+ static inline struct page *follow_devmap_pmd(struct vm_area_struct *vma,
+ 		unsigned long addr, pmd_t *pmd, int flags)
+diff -puN mm/huge_memory.c~thp-keep-huge-zero-page-pinned-until-tlb-flush mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-keep-huge-zero-page-pinned-until-tlb-flush
++++ a/mm/huge_memory.c
+@@ -232,7 +232,7 @@ retry:
+ 	return READ_ONCE(huge_zero_page);
+ }
  
- /*
-  * Generic EFI table header
-@@ -1050,7 +1044,7 @@ efi_reboot(enum reboot_mode reboot_mode,
-  * Length of a GUID string (strlen("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
-  * not including trailing NUL
-  */
--#define EFI_VARIABLE_GUID_LEN 36
-+#define EFI_VARIABLE_GUID_LEN	UUID_STRING_LEN
+-static void put_huge_zero_page(void)
++void put_huge_zero_page(void)
+ {
+ 	/*
+ 	 * Counter should never go to zero here. Only shrinker can put
+@@ -1684,12 +1684,12 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 	if (vma_is_dax(vma)) {
+ 		spin_unlock(ptl);
+ 		if (is_huge_zero_pmd(orig_pmd))
+-			put_huge_zero_page();
++			tlb_remove_page(tlb, pmd_page(orig_pmd));
+ 	} else if (is_huge_zero_pmd(orig_pmd)) {
+ 		pte_free(tlb->mm, pgtable_trans_huge_withdraw(tlb->mm, pmd));
+ 		atomic_long_dec(&tlb->mm->nr_ptes);
+ 		spin_unlock(ptl);
+-		put_huge_zero_page();
++		tlb_remove_page(tlb, pmd_page(orig_pmd));
+ 	} else {
+ 		struct page *page = pmd_page(orig_pmd);
+ 		page_remove_rmap(page, true);
+diff -puN mm/swap.c~thp-keep-huge-zero-page-pinned-until-tlb-flush mm/swap.c
+--- a/mm/swap.c~thp-keep-huge-zero-page-pinned-until-tlb-flush
++++ a/mm/swap.c
+@@ -728,6 +728,11 @@ void release_pages(struct page **pages,
+ 			zone = NULL;
+ 		}
  
- /*
-  * The type of search to perform when calling boottime->locate_handle
++		if (is_huge_zero_page(page)) {
++			put_huge_zero_page();
++			continue;
++		}
++
+ 		page = compound_head(page);
+ 		if (!put_page_testzero(page))
+ 			continue;
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-lib-vsprintf-simplify-uuid-printing.patch
-lib-uuid-move-generate_random_uuid-to-uuidc.patch
-lib-uuid-introduce-few-more-generic-helpers-for-uuid.patch
-lib-uuid-remove-fsf-address.patch
-sysctl-drop-away-useless-label.patch
-sysctl-use-generic-uuid-library.patch
-efi-redefine-type-constant-macro-from-generic-code.patch
-efivars-use-generic-uuid-library.patch
+thp-keep-huge-zero-page-pinned-until-tlb-flush.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
