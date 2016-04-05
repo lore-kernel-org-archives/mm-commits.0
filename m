@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + huge-mm-move_huge_pmd-does-not-need-new_vma.patch added to -mm
- tree
-Date: Tue, 05 Apr 2016 15:53:59 -0700
-Message-ID: <57044207.BmzGaLYr2UNnkLDy%akpm@linux-foundation.org>
+Subject: + tmpfs-preliminary-minor-tidyups.patch added to -mm tree
+Date: Tue, 05 Apr 2016 15:53:53 -0700
+Message-ID: <57044201.3020JQdnYhf5LRNg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56496 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752450AbcDEWyB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:54:01 -0400
+	with ESMTP id S1752476AbcDEWxy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:53:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge mm: move_huge_pmd does not need new_vma
+     Subject: tmpfs: preliminary minor tidyups
 has been added to the -mm tree.  Its filename is
-     huge-mm-move_huge_pmd-does-not-need-new_vma.patch
+     tmpfs-preliminary-minor-tidyups.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/huge-mm-move_huge_pmd-does-not-need-new_vma.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tmpfs-preliminary-minor-tidyups.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/huge-mm-move_huge_pmd-does-not-need-new_vma.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-preliminary-minor-tidyups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +39,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: huge mm: move_huge_pmd does not need new_vma
+Subject: tmpfs: preliminary minor tidyups
 
-Remove move_huge_pmd()'s redundant new_vma arg: all it was used for was a
-VM_NOHUGEPAGE check on new_vma flags, but the new_vma is cloned from the
-old vma, so a trans_huge_pmd in the new_vma will be as acceptable as it
-was in the old vma, alignment and size permitting.
+Make a few cleanups in mm/shmem.c, before going on to complicate it.
+
+shmem_alloc_page() will become more complicated: we can't afford to to
+have that complication duplicated between a CONFIG_NUMA version and a
+!CONFIG_NUMA version, so rearrange the #ifdef'ery there to yield a single
+shmem_swapin() and a single shmem_alloc_page().
+
+Yes, it's a shame to inflict the horrid pseudo-vma on non-NUMA
+configurations, but eliminating it is a larger cleanup: I have an
+alloc_pages_mpol() patchset not yet ready - mpol handling is subtle and
+bug-prone, and changed yet again since my last version.
+
+Move __SetPageLocked, __SetPageSwapBacked from shmem_getpage_gfp() to
+shmem_alloc_page(): that SwapBacked flag will be useful in future, to help
+to distinguish different cases appropriately.
+
+And the SGP_DIRTY variant of SGP_CACHE is hard to understand and of little
+use (IIRC it dates back to when shmem_getpage() returned the page
+unlocked): kill it and do the necessary in shmem_file_read_iter().
+
+But an arm64 build then complained that info may be uninitialized (where
+shmem_getpage_gfp() deletes a freshly alloced page beyond eof), and
+advancing to an "sgp <= SGP_CACHE" test jogged it back to reality.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -54,71 +72,189 @@ Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Yang Shi <yang.shi@linaro.org>
 Cc: Ning Qu <quning@gmail.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    4 +---
- mm/huge_memory.c        |    7 ++-----
- mm/mremap.c             |    5 ++---
- 3 files changed, 5 insertions(+), 11 deletions(-)
+ include/linux/mempolicy.h |    6 +++
+ mm/shmem.c                |   69 +++++++++++++-----------------------
+ 2 files changed, 32 insertions(+), 43 deletions(-)
 
-diff -puN include/linux/huge_mm.h~huge-mm-move_huge_pmd-does-not-need-new_vma include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~huge-mm-move_huge_pmd-does-not-need-new_vma
-+++ a/include/linux/huge_mm.h
-@@ -28,9 +28,7 @@ extern int zap_huge_pmd(struct mmu_gathe
- extern int mincore_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 			unsigned long addr, unsigned long end,
- 			unsigned char *vec);
--extern bool move_huge_pmd(struct vm_area_struct *vma,
--			 struct vm_area_struct *new_vma,
--			 unsigned long old_addr,
-+extern bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
- 			 unsigned long new_addr, unsigned long old_end,
- 			 pmd_t *old_pmd, pmd_t *new_pmd);
- extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
-diff -puN mm/huge_memory.c~huge-mm-move_huge_pmd-does-not-need-new_vma mm/huge_memory.c
---- a/mm/huge_memory.c~huge-mm-move_huge_pmd-does-not-need-new_vma
-+++ a/mm/huge_memory.c
-@@ -1704,20 +1704,17 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 	return 1;
+diff -puN include/linux/mempolicy.h~tmpfs-preliminary-minor-tidyups include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~tmpfs-preliminary-minor-tidyups
++++ a/include/linux/mempolicy.h
+@@ -228,6 +228,12 @@ static inline void mpol_free_shared_poli
+ {
  }
  
--bool move_huge_pmd(struct vm_area_struct *vma, struct vm_area_struct *new_vma,
--		  unsigned long old_addr,
-+bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
- 		  unsigned long new_addr, unsigned long old_end,
- 		  pmd_t *old_pmd, pmd_t *new_pmd)
++static inline struct mempolicy *
++mpol_shared_policy_lookup(struct shared_policy *sp, unsigned long idx)
++{
++	return NULL;
++}
++
+ #define vma_policy(vma) NULL
+ 
+ static inline int
+diff -puN mm/shmem.c~tmpfs-preliminary-minor-tidyups mm/shmem.c
+--- a/mm/shmem.c~tmpfs-preliminary-minor-tidyups
++++ a/mm/shmem.c
+@@ -101,7 +101,6 @@ struct shmem_falloc {
+ enum sgp_type {
+ 	SGP_READ,	/* don't exceed i_size, don't allocate page */
+ 	SGP_CACHE,	/* don't exceed i_size, may allocate page */
+-	SGP_DIRTY,	/* like SGP_CACHE, but set new page dirty */
+ 	SGP_WRITE,	/* may exceed i_size, may allocate !Uptodate page */
+ 	SGP_FALLOC,	/* like SGP_WRITE, but make existing page Uptodate */
+ };
+@@ -169,7 +168,7 @@ static inline int shmem_reacct_size(unsi
+ 
+ /*
+  * ... whereas tmpfs objects are accounted incrementally as
+- * pages are allocated, in order to allow huge sparse files.
++ * pages are allocated, in order to allow large sparse files.
+  * shmem_getpage reports shmem_acct_block failure as -ENOSPC not -ENOMEM,
+  * so that a failure on a sparse tmpfs mapping will give SIGBUS not OOM.
+  */
+@@ -947,8 +946,7 @@ redirty:
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_NUMA
+-#ifdef CONFIG_TMPFS
++#if defined(CONFIG_NUMA) && defined(CONFIG_TMPFS)
+ static void shmem_show_mpol(struct seq_file *seq, struct mempolicy *mpol)
  {
- 	spinlock_t *old_ptl, *new_ptl;
- 	pmd_t pmd;
+ 	char buffer[64];
+@@ -972,7 +970,18 @@ static struct mempolicy *shmem_get_sbmpo
+ 	}
+ 	return mpol;
+ }
+-#endif /* CONFIG_TMPFS */
++#else /* !CONFIG_NUMA || !CONFIG_TMPFS */
++static inline void shmem_show_mpol(struct seq_file *seq, struct mempolicy *mpol)
++{
++}
++static inline struct mempolicy *shmem_get_sbmpol(struct shmem_sb_info *sbinfo)
++{
++	return NULL;
++}
++#endif /* CONFIG_NUMA && CONFIG_TMPFS */
++#ifndef CONFIG_NUMA
++#define vm_policy vm_private_data
++#endif
+ 
+ static struct page *shmem_swapin(swp_entry_t swap, gfp_t gfp,
+ 			struct shmem_inode_info *info, pgoff_t index)
+@@ -1008,39 +1017,17 @@ static struct page *shmem_alloc_page(gfp
+ 	pvma.vm_ops = NULL;
+ 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
+ 
+-	page = alloc_page_vma(gfp, &pvma, 0);
++	page = alloc_pages_vma(gfp, 0, &pvma, 0, numa_node_id(), false);
++	if (page) {
++		__SetPageLocked(page);
++		__SetPageSwapBacked(page);
++	}
+ 
+ 	/* Drop reference taken by mpol_shared_policy_lookup() */
+ 	mpol_cond_put(pvma.vm_policy);
+ 
+ 	return page;
+ }
+-#else /* !CONFIG_NUMA */
+-#ifdef CONFIG_TMPFS
+-static inline void shmem_show_mpol(struct seq_file *seq, struct mempolicy *mpol)
+-{
+-}
+-#endif /* CONFIG_TMPFS */
 -
- 	struct mm_struct *mm = vma->vm_mm;
+-static inline struct page *shmem_swapin(swp_entry_t swap, gfp_t gfp,
+-			struct shmem_inode_info *info, pgoff_t index)
+-{
+-	return swapin_readahead(swap, gfp, NULL, 0);
+-}
+-
+-static inline struct page *shmem_alloc_page(gfp_t gfp,
+-			struct shmem_inode_info *info, pgoff_t index)
+-{
+-	return alloc_page(gfp);
+-}
+-#endif /* CONFIG_NUMA */
+-
+-#if !defined(CONFIG_NUMA) || !defined(CONFIG_TMPFS)
+-static inline struct mempolicy *shmem_get_sbmpol(struct shmem_sb_info *sbinfo)
+-{
+-	return NULL;
+-}
+-#endif
  
- 	if ((old_addr & ~HPAGE_PMD_MASK) ||
- 	    (new_addr & ~HPAGE_PMD_MASK) ||
--	    old_end - old_addr < HPAGE_PMD_SIZE ||
--	    (new_vma->vm_flags & VM_NOHUGEPAGE))
-+	    old_end - old_addr < HPAGE_PMD_SIZE)
- 		return false;
+ /*
+  * When a page is moved from swapcache to shmem filecache (either by the
+@@ -1084,8 +1071,6 @@ static int shmem_replace_page(struct pag
+ 	copy_highpage(newpage, oldpage);
+ 	flush_dcache_page(newpage);
  
- 	/*
-diff -puN mm/mremap.c~huge-mm-move_huge_pmd-does-not-need-new_vma mm/mremap.c
---- a/mm/mremap.c~huge-mm-move_huge_pmd-does-not-need-new_vma
-+++ a/mm/mremap.c
-@@ -198,9 +198,8 @@ unsigned long move_page_tables(struct vm
- 				/* See comment in move_ptes() */
- 				if (need_rmap_locks)
- 					anon_vma_lock_write(vma->anon_vma);
--				moved = move_huge_pmd(vma, new_vma, old_addr,
--						    new_addr, old_end,
--						    old_pmd, new_pmd);
-+				moved = move_huge_pmd(vma, old_addr, new_addr,
-+						    old_end, old_pmd, new_pmd);
- 				if (need_rmap_locks)
- 					anon_vma_unlock_write(vma->anon_vma);
- 				if (moved) {
+-	__SetPageLocked(newpage);
+-	__SetPageSwapBacked(newpage);
+ 	SetPageUptodate(newpage);
+ 	set_page_private(newpage, swap_index);
+ 	SetPageSwapCache(newpage);
+@@ -1155,7 +1140,7 @@ repeat:
+ 		page = NULL;
+ 	}
+ 
+-	if (sgp != SGP_WRITE && sgp != SGP_FALLOC &&
++	if (sgp <= SGP_CACHE &&
+ 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
+ 		error = -EINVAL;
+ 		goto unlock;
+@@ -1275,9 +1260,6 @@ repeat:
+ 			error = -ENOMEM;
+ 			goto decused;
+ 		}
+-
+-		__SetPageLocked(page);
+-		__SetPageSwapBacked(page);
+ 		if (sgp == SGP_WRITE)
+ 			__SetPageReferenced(page);
+ 
+@@ -1321,12 +1303,10 @@ clear:
+ 			flush_dcache_page(page);
+ 			SetPageUptodate(page);
+ 		}
+-		if (sgp == SGP_DIRTY)
+-			set_page_dirty(page);
+ 	}
+ 
+ 	/* Perhaps the file has been truncated since we checked */
+-	if (sgp != SGP_WRITE && sgp != SGP_FALLOC &&
++	if (sgp <= SGP_CACHE &&
+ 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
+ 		if (alloced) {
+ 			ClearPageDirty(page);
+@@ -1633,7 +1613,7 @@ static ssize_t shmem_file_read_iter(stru
+ 	 * and even mark them dirty, so it cannot exceed the max_blocks limit.
+ 	 */
+ 	if (!iter_is_iovec(to))
+-		sgp = SGP_DIRTY;
++		sgp = SGP_CACHE;
+ 
+ 	index = *ppos >> PAGE_SHIFT;
+ 	offset = *ppos & ~PAGE_MASK;
+@@ -1659,8 +1639,11 @@ static ssize_t shmem_file_read_iter(stru
+ 				error = 0;
+ 			break;
+ 		}
+-		if (page)
++		if (page) {
++			if (sgp == SGP_CACHE)
++				set_page_dirty(page);
+ 			unlock_page(page);
++		}
+ 
+ 		/*
+ 		 * We must evaluate after, since reads (unlike writes)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
