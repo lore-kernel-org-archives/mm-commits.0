@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd.patch added
- to -mm tree
-Date: Tue, 05 Apr 2016 16:15:58 -0700
-Message-ID: <5704472e.5HFdBN7yqkutRAN7%akpm@linux-foundation.org>
+Subject: +
+ huge-tmpfs-disband-split-huge-pmds-on-race-or-memory-failure.patch added to -mm tree
+Date: Tue, 05 Apr 2016 16:15:56 -0700
+Message-ID: <5704472c.MTkq4Ugqlu9veXZS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56984 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56972 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752267AbcDEXQA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:16:00 -0400
+	with ESMTP id S1752267AbcDEXP6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:15:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, davem@davemloft.net, kirill.shutemov@linux.intel.com, mingo@kernel.org, quning@gmail.com, ralf@linux-mips.org, rientjes@google.com, schwidefsky@de.ibm.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs: extend get_user_pages_fast to shmem pmd
+     Subject: huge tmpfs: disband split huge pmds on race or memory failure
 has been added to the -mm tree.  Its filename is
-     huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd.patch
+     huge-tmpfs-disband-split-huge-pmds-on-race-or-memory-failure.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-disband-split-huge-pmds-on-race-or-memory-failure.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-disband-split-huge-pmds-on-race-or-memory-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,21 +40,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs: extend get_user_pages_fast to shmem pmd
+Subject: huge tmpfs: disband split huge pmds on race or memory failure
 
-The arch-specific get_user_pages_fast() has a gup_huge_pmd() designed to
-optimize the refcounting on anonymous THP and hugetlbfs pages, with one
-atomic addition to compound head's common refcount.  That optimization
-must be avoided on huge tmpfs team pages, which use normal separate page
-refcounting.  We could combine the PageTeam and PageCompound cases into a
-single simple loop, but would lose the compound optimization that way.
+Andres L-C has pointed out that the single-page unmap_mapping_range()
+fallback in truncate_inode_page() cannot protect against the case when a
+huge page was faulted in after the full-range unmap_mapping_range():
+because page_mapped(page) checks tail page's mapcount, not the head's.
 
-One cannot go through these functions without wondering why some arches
-(x86, mips) like to SetPageReferenced, while the rest do not: an x86
-optimization that missed being propagated to the other architectures?  No,
-see commit 8ee53820edfd ("thp: mmu_notifier_test_young"): it's a KVM GRU
-EPT thing, maybe not useful beyond x86.  I've just followed the
-established practice in each architecture.
+So, there's a danger that hole-punching (and maybe even truncation) can
+free pages while they are mapped into userspace with a huge pmd.  And I
+don't believe that the CVE-2014-4171 protection in shmem_fault() can fully
+protect from this, although it does make it much harder.
+
+Fix that by adding a duplicate single-page unmap_mapping_range() into
+shmem_disband_hugeteam() (called when punching or truncating a PageTeam),
+at the point when we also hold the head's page lock (without which there
+would still be races): which will then split all huge pmd mappings
+covering the page into team pte mappings.
+
+This is also just what's needed to handle memory_failure() correctly:
+provide custom shmem_error_remove_page(), call shmem_disband_hugeteam()
+from that before proceeding to generic_error_remove_page(), then this
+additional unmap_mapping_range() will remap team by ptes as needed.
+
+(There is an unlikely case that we're racing with another disbander, or
+disband didn't get trylock on head page at first: memory_failure() has
+almost finished with the page, so it's safe to unlock and relock before
+retrying.)
+
+But there is one further change needed in hwpoison_user_mappings(): it
+must recognize a hugely mapped team before concluding that the page is not
+mapped.  (And still no support for soft_offline(), which will have to wait
+for page migration of teams.)
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -63,167 +80,98 @@ Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Yang Shi <yang.shi@linaro.org>
 Cc: Ning Qu <quning@gmail.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/gup.c  |   15 ++++++++++++++-
- arch/s390/mm/gup.c  |   19 ++++++++++++++++++-
- arch/sparc/mm/gup.c |   19 ++++++++++++++++++-
- arch/x86/mm/gup.c   |   15 ++++++++++++++-
- mm/gup.c            |   19 ++++++++++++++++++-
- 5 files changed, 82 insertions(+), 5 deletions(-)
+ mm/memory-failure.c |    7 ++++++-
+ mm/shmem.c          |   30 +++++++++++++++++++++++++++++-
+ 2 files changed, 35 insertions(+), 2 deletions(-)
 
-diff -puN arch/mips/mm/gup.c~huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd arch/mips/mm/gup.c
---- a/arch/mips/mm/gup.c~huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd
-+++ a/arch/mips/mm/gup.c
-@@ -81,9 +81,22 @@ static int gup_huge_pmd(pmd_t pmd, unsig
- 	VM_BUG_ON(pte_special(pte));
- 	VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
+diff -puN mm/memory-failure.c~huge-tmpfs-disband-split-huge-pmds-on-race-or-memory-failure mm/memory-failure.c
+--- a/mm/memory-failure.c~huge-tmpfs-disband-split-huge-pmds-on-race-or-memory-failure
++++ a/mm/memory-failure.c
+@@ -45,6 +45,7 @@
+ #include <linux/rmap.h>
+ #include <linux/export.h>
+ #include <linux/pagemap.h>
++#include <linux/pageteam.h>
+ #include <linux/swap.h>
+ #include <linux/backing-dev.h>
+ #include <linux/migrate.h>
+@@ -902,6 +903,7 @@ static int hwpoison_user_mappings(struct
+ 	enum ttu_flags ttu = TTU_UNMAP | TTU_IGNORE_MLOCK | TTU_IGNORE_ACCESS;
+ 	struct address_space *mapping;
+ 	LIST_HEAD(tokill);
++	bool mapped;
+ 	int ret;
+ 	int kill = 1, forcekill;
+ 	struct page *hpage = *hpagep;
+@@ -919,7 +921,10 @@ static int hwpoison_user_mappings(struct
+ 	 * This check implies we don't kill processes if their pages
+ 	 * are in the swap cache early. Those are always late kills.
+ 	 */
+-	if (!page_mapped(hpage))
++	mapped = page_mapped(hpage);
++	if (PageTeam(p) && team_pmd_mapped(team_head(p)))
++		mapped = true;
++	if (!mapped)
+ 		return SWAP_SUCCESS;
  
--	refs = 0;
- 	head = pte_page(pte);
- 	page = head + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-+
-+	if (PageTeam(head)) {
-+		/* Handle a huge tmpfs team with normal refcounting. */
-+		do {
-+			get_page(page);
-+			SetPageReferenced(page);
-+			pages[*nr] = page;
-+			(*nr)++;
-+			page++;
-+		} while (addr += PAGE_SIZE, addr != end);
-+		return 1;
+ 	if (PageKsm(p)) {
+diff -puN mm/shmem.c~huge-tmpfs-disband-split-huge-pmds-on-race-or-memory-failure mm/shmem.c
+--- a/mm/shmem.c~huge-tmpfs-disband-split-huge-pmds-on-race-or-memory-failure
++++ a/mm/shmem.c
+@@ -605,6 +605,19 @@ static void shmem_disband_hugeteam(struc
+ 	}
+ 
+ 	/*
++	 * truncate_inode_page() will unmap page if page_mapped(page),
++	 * but there's a race by which the team could be hugely mapped,
++	 * with page_mapped(page) saying false.  So check here if the
++	 * head is hugely mapped, and if so unmap page to remap team.
++	 * Use a loop because there is no good locking against a
++	 * concurrent remap_team_by_ptes().
++	 */
++	while (team_pmd_mapped(head)) {
++		unmap_mapping_range(page->mapping,
++			(loff_t)page->index << PAGE_SHIFT, PAGE_SIZE, 0);
 +	}
 +
-+	refs = 0;
- 	do {
- 		VM_BUG_ON(compound_head(page) != head);
- 		pages[*nr] = page;
-diff -puN arch/s390/mm/gup.c~huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd arch/s390/mm/gup.c
---- a/arch/s390/mm/gup.c~huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd
-+++ a/arch/s390/mm/gup.c
-@@ -66,9 +66,26 @@ static inline int gup_huge_pmd(pmd_t *pm
- 		return 0;
- 	VM_BUG_ON(!pfn_valid(pmd_val(pmd) >> PAGE_SHIFT));
++	/*
+ 	 * Disable preemption because truncation may end up spinning until a
+ 	 * tail PageTeam has been cleared: we hold the lock as briefly as we
+ 	 * can (splitting disband in two stages), but better not be preempted.
+@@ -1305,6 +1318,21 @@ static int shmem_getattr(struct vfsmount
+ 	return 0;
+ }
  
--	refs = 0;
- 	head = pmd_page(pmd);
- 	page = head + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-+
-+	if (PageTeam(head)) {
-+		/* Handle a huge tmpfs team with normal refcounting. */
-+		do {
-+			if (!page_cache_get_speculative(page))
-+				return 0;
-+			if (unlikely(pmd_val(pmd) != pmd_val(*pmdp))) {
-+				put_page(page);
-+				return 0;
-+			}
-+			pages[*nr] = page;
-+			(*nr)++;
-+			page++;
-+		} while (addr += PAGE_SIZE, addr != end);
-+		return 1;
++static int shmem_error_remove_page(struct address_space *mapping,
++				   struct page *page)
++{
++	if (PageTeam(page)) {
++		shmem_disband_hugeteam(page);
++		while (unlikely(PageTeam(page))) {
++			unlock_page(page);
++			cond_resched();
++			lock_page(page);
++			shmem_disband_hugeteam(page);
++		}
 +	}
++	return generic_error_remove_page(mapping, page);
++}
 +
-+	refs = 0;
- 	do {
- 		VM_BUG_ON(compound_head(page) != head);
- 		pages[*nr] = page;
-diff -puN arch/sparc/mm/gup.c~huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd arch/sparc/mm/gup.c
---- a/arch/sparc/mm/gup.c~huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd
-+++ a/arch/sparc/mm/gup.c
-@@ -77,9 +77,26 @@ static int gup_huge_pmd(pmd_t *pmdp, pmd
- 	if (write && !pmd_write(pmd))
- 		return 0;
+ static int shmem_setattr(struct dentry *dentry, struct iattr *attr)
+ {
+ 	struct inode *inode = d_inode(dentry);
+@@ -4088,7 +4116,7 @@ static const struct address_space_operat
+ #ifdef CONFIG_MIGRATION
+ 	.migratepage	= migrate_page,
+ #endif
+-	.error_remove_page = generic_error_remove_page,
++	.error_remove_page = shmem_error_remove_page,
+ };
  
--	refs = 0;
- 	head = pmd_page(pmd);
- 	page = head + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-+
-+	if (PageTeam(head)) {
-+		/* Handle a huge tmpfs team with normal refcounting. */
-+		do {
-+			if (!page_cache_get_speculative(page))
-+				return 0;
-+			if (unlikely(pmd_val(pmd) != pmd_val(*pmdp))) {
-+				put_page(page);
-+				return 0;
-+			}
-+			pages[*nr] = page;
-+			(*nr)++;
-+			page++;
-+		} while (addr += PAGE_SIZE, addr != end);
-+		return 1;
-+	}
-+
-+	refs = 0;
- 	do {
- 		VM_BUG_ON(compound_head(page) != head);
- 		pages[*nr] = page;
-diff -puN arch/x86/mm/gup.c~huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd arch/x86/mm/gup.c
---- a/arch/x86/mm/gup.c~huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd
-+++ a/arch/x86/mm/gup.c
-@@ -196,9 +196,22 @@ static noinline int gup_huge_pmd(pmd_t p
- 	/* hugepages are never "special" */
- 	VM_BUG_ON(pmd_flags(pmd) & _PAGE_SPECIAL);
- 
--	refs = 0;
- 	head = pmd_page(pmd);
- 	page = head + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-+
-+	if (PageTeam(head)) {
-+		/* Handle a huge tmpfs team with normal refcounting. */
-+		do {
-+			get_page(page);
-+			SetPageReferenced(page);
-+			pages[*nr] = page;
-+			(*nr)++;
-+			page++;
-+		} while (addr += PAGE_SIZE, addr != end);
-+		return 1;
-+	}
-+
-+	refs = 0;
- 	do {
- 		VM_BUG_ON_PAGE(compound_head(page) != head, page);
- 		pages[*nr] = page;
-diff -puN mm/gup.c~huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd mm/gup.c
---- a/mm/gup.c~huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd
-+++ a/mm/gup.c
-@@ -1247,9 +1247,26 @@ static int gup_huge_pmd(pmd_t orig, pmd_
- 	if (write && !pmd_write(orig))
- 		return 0;
- 
--	refs = 0;
- 	head = pmd_page(orig);
- 	page = head + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-+
-+	if (PageTeam(head)) {
-+		/* Handle a huge tmpfs team with normal refcounting. */
-+		do {
-+			if (!page_cache_get_speculative(page))
-+				return 0;
-+			if (unlikely(pmd_val(orig) != pmd_val(*pmdp))) {
-+				put_page(page);
-+				return 0;
-+			}
-+			pages[*nr] = page;
-+			(*nr)++;
-+			page++;
-+		} while (addr += PAGE_SIZE, addr != end);
-+		return 1;
-+	}
-+
-+	refs = 0;
- 	do {
- 		VM_BUG_ON_PAGE(compound_head(page) != head, page);
- 		pages[*nr] = page;
+ static const struct file_operations shmem_file_operations = {
 _
 
 Patches currently in -mm which might be from hughd@google.com are
