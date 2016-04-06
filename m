@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- memory_hotplug-introduce-config_memory_hotplug_default_online.patch added
- to -mm tree
-Date: Wed, 06 Apr 2016 11:54:42 -0700
-Message-ID: <57055b72.VCNOXooDOGBWqYmU%akpm@linux-foundation.org>
+ memory_hotplug-introduce-memhp_default_state=-command-line-parameter.patch
+ added to -mm tree
+Date: Wed, 06 Apr 2016 11:54:46 -0700
+Message-ID: <57055b76.bHCAjGp28WI4rKQA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41097 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41109 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751992AbcDFSyo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2016 14:54:44 -0400
+	with ESMTP id S1752904AbcDFSys (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2016 14:54:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vkuznets@redhat.com, corbet@lwn.net, dan.j.williams@intel.com, david.vrabel@citrix.com, imammedo@redhat.com, kirill.shutemov@linux.intel.com, lennart@poettering.net, mgorman@suse.de, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory_hotplug: introduce CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
+     Subject: memory_hotplug: introduce memhp_default_state= command line parameter
 has been added to the -mm tree.  Its filename is
-     memory_hotplug-introduce-config_memory_hotplug_default_online.patch
+     memory_hotplug-introduce-memhp_default_state=-command-line-parameter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memory_hotplug-introduce-config_memory_hotplug_default_online.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory_hotplug-introduce-memhp_default_state%3D-command-line-parameter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memory_hotplug-introduce-config_memory_hotplug_default_online.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory_hotplug-introduce-memhp_default_state%3D-command-line-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,34 +41,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: memory_hotplug: introduce CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
+Subject: memory_hotplug: introduce memhp_default_state= command line parameter
 
-This patchset continues the work I started with 31bc3858ea3eb
-("memory-hotplug: add automatic onlining policy for the newly added
-memory").
-
-Initially I was going to stop there and bring the policy setting logic to
-userspace. I met two issues on this way:
-
-1) It is possible to have memory hotplugged at boot (e.g. with QEMU). These
-   blocks stay offlined if we turn the onlining policy on by userspace.
-
-2) My attempt to bring this policy setting to systemd failed, systemd
-   maintainers suggest to change the default in kernel or ... to use tmpfiles.d
-   to alter the policy (which looks like a hack to me): 
-   https://github.com/systemd/systemd/pull/2938
-
-Here I suggest to add a config option to set the default value for the
-policy and a kernel command line parameter to make the override.
-
-
-This patch (of 2):
-
-Introduce config option to set the default value for memory hotplug
-onlining policy (/sys/devices/system/memory/auto_online_blocks). The
-reason one would want to turn this option on are to have early onlining
-for hotpluggable memory available at boot and to not require any userspace
-actions to make memory hotplug work.
+CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE specifies the default value for the
+memory hotplug onlining policy.  Add a command line parameter to make it
+possible to override the default.  It may come handy for debug and testing
+purposes.
 
 Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -82,71 +60,49 @@ Cc: Lennart Poettering <lennart@poettering.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory-hotplug.txt |    9 +++++----
- mm/Kconfig                       |   16 ++++++++++++++++
- mm/memory_hotplug.c              |    4 ++++
- 3 files changed, 25 insertions(+), 4 deletions(-)
+ Documentation/kernel-parameters.txt |    8 ++++++++
+ mm/memory_hotplug.c                 |   11 +++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff -puN Documentation/memory-hotplug.txt~memory_hotplug-introduce-config_memory_hotplug_default_online Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~memory_hotplug-introduce-config_memory_hotplug_default_online
-+++ a/Documentation/memory-hotplug.txt
-@@ -261,10 +261,11 @@ it according to the policy which can be
+diff -puN Documentation/kernel-parameters.txt~memory_hotplug-introduce-memhp_default_state=-command-line-parameter Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~memory_hotplug-introduce-memhp_default_state=-command-line-parameter
++++ a/Documentation/kernel-parameters.txt
+@@ -2141,6 +2141,14 @@ bytes respectively. Such letter suffixes
+ 			[KNL,SH] Allow user to override the default size for
+ 			per-device physically contiguous DMA buffers.
  
- % cat /sys/devices/system/memory/auto_online_blocks
- 
--The default is "offline" which means the newly added memory is not in a
--ready-to-use state and you have to "online" the newly added memory blocks
--manually. Automatic onlining can be requested by writing "online" to
--"auto_online_blocks" file:
-+The default depends on the CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE kernel config
-+option. If it is disabled the default is "offline" which means the newly added
-+memory is not in a ready-to-use state and you have to "online" the newly added
-+memory blocks manually. Automatic onlining can be requested by writing "online"
-+to "auto_online_blocks" file:
- 
- % echo online > /sys/devices/system/memory/auto_online_blocks
- 
-diff -puN mm/Kconfig~memory_hotplug-introduce-config_memory_hotplug_default_online mm/Kconfig
---- a/mm/Kconfig~memory_hotplug-introduce-config_memory_hotplug_default_online
-+++ a/mm/Kconfig
-@@ -192,6 +192,22 @@ config MEMORY_HOTPLUG_SPARSE
- 	def_bool y
- 	depends on SPARSEMEM && MEMORY_HOTPLUG
- 
-+config MEMORY_HOTPLUG_DEFAULT_ONLINE
-+        bool "Online the newly added memory blocks by default"
-+        default n
-+        depends on MEMORY_HOTPLUG
-+        help
-+	  This option changes the default policy setting for memory hotplug
-+	  onlining policy (/sys/devices/system/memory/auto_online_blocks) which
-+	  determines what happens to the newly added memory regions. Policy
-+	  setting can always be changed in runtime.
-+	  See Documentation/memory-hotplug.txt for more information.
++        memhp_default_state=online/offline
++			[KNL] Set the initial state for the memory hotplug
++			onlining policy. If not specified, the default value is
++			set according to the
++			CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE kernel config
++			option.
++			See Documentation/memory-hotplug.txt.
 +
-+	  Say Y here if you want all hot-plugged memory blocks to appear in
-+	  'online' state by default.
-+	  Say N here if you want the default policy to keep all hot-plugged
-+	  memory blocks in 'offline' state.
-+
- config MEMORY_HOTREMOVE
- 	bool "Allow for memory hot remove"
- 	select MEMORY_ISOLATION
-diff -puN mm/memory_hotplug.c~memory_hotplug-introduce-config_memory_hotplug_default_online mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory_hotplug-introduce-config_memory_hotplug_default_online
+ 	memmap=exactmap	[KNL,X86] Enable setting of an exact
+ 			E820 memory map, as specified by the user.
+ 			Such memmap=exactmap lines can be constructed based on
+diff -puN mm/memory_hotplug.c~memory_hotplug-introduce-memhp_default_state=-command-line-parameter mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory_hotplug-introduce-memhp_default_state=-command-line-parameter
 +++ a/mm/memory_hotplug.c
-@@ -78,7 +78,11 @@ static struct {
- #define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
- #define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
- 
-+#ifndef CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
- bool memhp_auto_online;
-+#else
-+bool memhp_auto_online = true;
-+#endif
+@@ -85,6 +85,17 @@ bool memhp_auto_online = true;
+ #endif
  EXPORT_SYMBOL_GPL(memhp_auto_online);
  
++static int __init setup_memhp_default_state(char *str)
++{
++	if (!strcmp(str, "online"))
++		memhp_auto_online = true;
++	else if (!strcmp(str, "offline"))
++		memhp_auto_online = false;
++
++	return 1;
++}
++__setup("memhp_default_state=", setup_memhp_default_state);
++
  void get_online_mems(void)
+ {
+ 	might_sleep();
 _
 
 Patches currently in -mm which might be from vkuznets@redhat.com are
