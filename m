@@ -1,87 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- huge-tmpfs-no-kswapd-by-default-on-sync-allocations.patch removed from -mm
- tree
-Date: Wed, 06 Apr 2016 10:44:20 -0700
-Message-ID: <57054af4.hRk011mseJBFSv7k%akpm@linux-foundation.org>
+Subject: +
+ memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+ added to -mm tree
+Date: Wed, 06 Apr 2016 11:54:44 -0700
+Message-ID: <57055b74.Wxz5UFhc560kkg7f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38537 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41102 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751507AbcDFRoW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2016 13:44:22 -0400
+	with ESMTP id S1751992AbcDFSyp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2016 14:54:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreslc@google.com, aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, vkuznets@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs: no kswapd by default on sync allocations
-has been removed from the -mm tree.  Its filename was
-     huge-tmpfs-no-kswapd-by-default-on-sync-allocations.patch
+     Subject: memory_hotplug-introduce-config_memory_hotplug_default_online-fix
+has been added to the -mm tree.  Its filename is
+     memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andres Lagar-Cavilla <andreslc@google.com>
-Subject: huge tmpfs: no kswapd by default on sync allocations
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory_hotplug-introduce-config_memory_hotplug_default_online-fix
 
-This triggers early compaction abort while in process context, to
-ameliorate mmap semaphore stalls.
+tweak Kconfig text
 
-Signed-off-by: Andres Lagar-Cavilla <andreslc@google.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Suggested-by: David Rientjes <rientjes@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Yang Shi <yang.shi@linaro.org>
-Cc: Ning Qu <quning@gmail.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/tmpfs.txt |    5 +++--
- mm/shmem.c                          |    3 ++-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ mm/Kconfig |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/filesystems/tmpfs.txt~huge-tmpfs-no-kswapd-by-default-on-sync-allocations Documentation/filesystems/tmpfs.txt
---- a/Documentation/filesystems/tmpfs.txt~huge-tmpfs-no-kswapd-by-default-on-sync-allocations
-+++ a/Documentation/filesystems/tmpfs.txt
-@@ -194,8 +194,9 @@ to force huge off for all (intended for
+diff -puN mm/Kconfig~memory_hotplug-introduce-config_memory_hotplug_default_online-fix mm/Kconfig
+--- a/mm/Kconfig~memory_hotplug-introduce-config_memory_hotplug_default_online-fix
++++ a/mm/Kconfig
+@@ -197,10 +197,10 @@ config MEMORY_HOTPLUG_DEFAULT_ONLINE
+         default n
+         depends on MEMORY_HOTPLUG
+         help
+-	  This option changes the default policy setting for memory hotplug
++	  This option sets the default policy setting for memory hotplug
+ 	  onlining policy (/sys/devices/system/memory/auto_online_blocks) which
+-	  determines what happens to the newly added memory regions. Policy
+-	  setting can always be changed in runtime.
++	  determines what happens to newly added memory regions. Policy setting
++	  can always be changed at runtime.
+ 	  See Documentation/memory-hotplug.txt for more information.
  
- /proc/sys/vm/shmem_huge_gfpmask (intended for experimentation only):
- 
--Default 38146762, that is 0x24612ca:
--GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE|__GFP_NORETRY.
-+Default 4592330, that is 0x4612ca:
-+GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE|__GFP_NORETRY
-+minus __GFP_KSWAPD_RECLAIM.
- Write a gfpmask built from __GFP flags in include/linux/gfp.h, to experiment
- with better alternatives for the synchronous huge tmpfs allocation used
- when faulting or writing.
-diff -puN mm/shmem.c~huge-tmpfs-no-kswapd-by-default-on-sync-allocations mm/shmem.c
---- a/mm/shmem.c~huge-tmpfs-no-kswapd-by-default-on-sync-allocations
-+++ a/mm/shmem.c
-@@ -324,7 +324,8 @@ int shmem_huge __read_mostly;
- int shmem_huge_recoveries __read_mostly = 8;	/* concurrent recovery limit */
- 
- int shmem_huge_gfpmask __read_mostly =
--	(int)(GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE|__GFP_NORETRY);
-+	(int)(GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE|__GFP_NORETRY) &
-+	~__GFP_KSWAPD_RECLAIM;
- int shmem_recovery_gfpmask __read_mostly =
- 	(int)(GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE);
- 
+ 	  Say Y here if you want all hot-plugged memory blocks to appear in
 _
 
-Patches currently in -mm which might be from andreslc@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch
-kvm-plumb-return-of-hva-when-resolving-page-fault.patch
-kvm-teach-kvm-to-map-page-teams-as-huge-pages.patch
-huge-tmpfs-mem_cgroup-shmem_pmdmapped-accounting.patch
-huge-tmpfs-mem_cgroup-shmem_hugepages-accounting.patch
-huge-tmpfs-show-page-team-flag-in-pageflags.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-compaction-direct-freepage-allocation-for-async-direct-compaction-checkpatch-fixes.patch
+mm-uninline-page_mapped.patch
+mm-uninline-page_mapped-checkpatch-fixes.patch
+memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+exit_thread-remove-empty-bodies-fix.patch
+exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
