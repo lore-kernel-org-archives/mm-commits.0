@@ -1,85 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] do_shared_fault-check-that-mmap_sem-is-held.patch
- removed from -mm tree
-Date: Tue, 05 Apr 2016 17:06:45 -0700
-Message-ID: <57045315.jPVVDz/0uQ89avEu%akpm@linux-foundation.org>
+Subject: + lib-uuid-introduce-few-more-generic-helpers-for-uuid-fix.patch
+ added to -mm tree
+Date: Wed, 06 Apr 2016 10:33:28 -0700
+Message-ID: <57054868.XXGTuZqMvbd9nQvZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59024 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38258 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751742AbcDFAGr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 20:06:47 -0400
+	with ESMTP id S1752353AbcDFRdh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2016 13:33:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, dave.hansen@linux.intel.com, kirill@shutemov.name, lliubbo@gmail.com, matthew.r.wilcox@intel.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, riel@redhat.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: do_shared_fault(): check that mmap_sem is held
-has been removed from the -mm tree.  Its filename was
-     do_shared_fault-check-that-mmap_sem-is-held.patch
+     Subject: lib-uuid-introduce-few-more-generic-helpers-for-uuid fix
+has been added to the -mm tree.  Its filename is
+     lib-uuid-introduce-few-more-generic-helpers-for-uuid-fix.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-uuid-introduce-few-more-generic-helpers-for-uuid-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-uuid-introduce-few-more-generic-helpers-for-uuid-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: do_shared_fault(): check that mmap_sem is held
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib-uuid-introduce-few-more-generic-helpers-for-uuid fix
 
-mmap_sem() is required to protect the vma, which holds ->vm_file, which
-pins fault_page->mapping.
+Fix typo.
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Bob Liu <lliubbo@gmail.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/uuid.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory.c~do_shared_fault-check-that-mmap_sem-is-held mm/memory.c
---- a/mm/memory.c~do_shared_fault-check-that-mmap_sem-is-held
-+++ a/mm/memory.c
-@@ -3083,6 +3083,8 @@ static int do_shared_fault(struct mm_str
- 	int dirtied = 0;
- 	int ret, tmp;
+diff -puN lib/uuid.c~lib-uuid-introduce-few-more-generic-helpers-for-uuid-fix lib/uuid.c
+--- a/lib/uuid.c~lib-uuid-introduce-few-more-generic-helpers-for-uuid-fix
++++ a/lib/uuid.c
+@@ -106,7 +106,7 @@ static int __uuid_to_bin(const char *uui
+ 	static const u8 si[16] = {0,2,4,6,9,11,14,16,19,21,24,26,28,30,32,34};
+ 	unsigned int i;
  
-+	WARN_ON_ONCE(!rwsem_is_locked(&mm->mmap_sem));
-+
- 	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
+-	if (uuid_is_valid(uuid))
++	if (!uuid_is_valid(uuid))
+ 		return -EINVAL;
+ 
+ 	for (i = 0; i < 16; i++) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
-include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-include-linux-nodemaskh-create-next_node_in-helper.patch
-include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
-mm-hugetlbc-use-first_memory_node.patch
-mm-mempolicyc-offset_il_node-document-and-clarify.patch
-mm-compaction-direct-freepage-allocation-for-async-direct-compaction-checkpatch-fixes.patch
-mm-uninline-page_mapped.patch
-mm-uninline-page_mapped-checkpatch-fixes.patch
-exit_thread-remove-empty-bodies-fix.patch
-exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+lib-vsprintf-simplify-uuid-printing.patch
+ima-use-%pu-to-output-uuid-in-printable-format.patch
+lib-uuid-move-generate_random_uuid-to-uuidc.patch
+lib-uuid-introduce-few-more-generic-helpers-for-uuid.patch
+lib-uuid-introduce-few-more-generic-helpers-for-uuid-fix.patch
+lib-uuid-remove-fsf-address.patch
+sysctl-use-generic-uuid-library.patch
+efi-redefine-type-constant-macro-from-generic-code.patch
+efivars-use-generic-uuid-library.patch
+genhd-move-to-use-generic-uuid-library.patch
 
