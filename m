@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix-fix-2.patch
- added to -mm tree
-Date: Wed, 06 Apr 2016 19:31:48 -0700
-Message-ID: <5705c694.IJLH1cdNhFspl95x%akpm@linux-foundation.org>
+Subject: + a.patch added to -mm tree
+Date: Wed, 06 Apr 2016 20:36:07 -0700
+Message-ID: <5705d5a7.c8lkk5z3NV/nwaKa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57161 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58687 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751801AbcDGCbt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2016 22:31:49 -0400
+	with ESMTP id S1752136AbcDGDgK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2016 23:36:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix-fix-2
+     Subject: a
 has been added to the -mm tree.  Its filename is
-     huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix-fix-2.patch
+     a.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/a.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/a.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,30 +39,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix-fix-2
+Subject: a
 
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/open.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/shmem.c~huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix-fix-2 mm/shmem.c
---- a/mm/shmem.c~huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix-fix-2
-+++ a/mm/shmem.c
-@@ -4305,7 +4305,11 @@ unsigned long shmem_get_unmapped_area(st
- 				      unsigned long addr, unsigned long len,
- 				      unsigned long pgoff, unsigned long flags)
- {
-+#ifdef CONFIG_MMU
- 	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
-+#else
-+	return -ENOSYS;
-+#endif
+diff -puN fs/open.c~a fs/open.c
+--- a/fs/open.c~a
++++ a/fs/open.c
+@@ -1147,3 +1147,4 @@ int nonseekable_open(struct inode *inode
  }
  
- void shmem_truncate_range(struct inode *inode, loff_t lstart, loff_t lend)
+ EXPORT_SYMBOL(nonseekable_open);
++Wed Apr  6 20:34:45 PDT 2016
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,4 +82,5 @@ linux-next-rejects.patch
 drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
+a.patch
 
