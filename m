@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
- added to -mm tree
-Date: Wed, 06 Apr 2016 11:58:51 -0700
-Message-ID: <57055c6b.SHfUNUl5b31jEM9F%akpm@linux-foundation.org>
+ huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix.patch added
+ to -mm tree
+Date: Wed, 06 Apr 2016 19:24:49 -0700
+Message-ID: <5705c4f1.9AG8dJOjDnwq0atD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41200 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56965 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751776AbcDFS6x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2016 14:58:53 -0400
+	with ESMTP id S1751559AbcDGCYv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Apr 2016 22:24:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, daniel.vetter@intel.com, mst@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, rmaksudova@parallels.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom_reaper: clear TIF_MEMDIE for all tasks queued for oom_reaper
+     Subject: huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix
 has been added to the -mm tree.  Its filename is
-     mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
+     huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,102 +40,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom_reaper: clear TIF_MEMDIE for all tasks queued for oom_reaper
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix
 
-Right now the oom reaper will clear TIF_MEMDIE only for tasks which were
-successfully reaped.  This is the safest option because we know that such
-an oom victim would only block forward progress of the oom killer without
-a good reason because it is highly unlikely it would release much more
-memory.  Basically most of its memory has been already torn down.
+fix nommu build
 
-We can relax this assumption to catch more corner cases though.
+drivers/char/mem.c: In function 'get_unmapped_area_zero':
+drivers/char/mem.c:683: error: 'struct mm_struct' has no member named 'get_unmapped_area'
 
-The first obvious one is when the oom victim clears its mm and gets stuck
-later on.  oom_reaper would back of on find_lock_task_mm returning NULL. 
-We can safely try to clear TIF_MEMDIE in this case because such a task
-would be ignored by the oom killer anyway.  The flag would be cleared by
-that time already most of the time anyway.
-
-The less obvious one is when the oom reaper fails due to mmap_sem
-contention.  Even if we clear TIF_MEMDIE for this task then it is not very
-likely that we would select another task too easily because we haven't
-reaped the last victim and so it would be still the #1 candidate.  There
-is a rare race condition possible when the current victim terminates
-before the next select_bad_process but considering that oom_reap_task had
-retried several times before giving up then this sounds like a borderline
-thing.
-
-After this patch we should have a guarantee that the OOM killer will not
-be block for unbounded amount of time for most cases.
-
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Daniel Vetter <daniel.vetter@intel.com>
-Cc: Raushaniya Maksudova <rmaksudova@parallels.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Daniel Vetter <daniel.vetter@intel.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/char/mem.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper
-+++ a/mm/oom_kill.c
-@@ -510,14 +510,10 @@ static bool __oom_reap_task(struct task_
- 	up_read(&mm->mmap_sem);
+diff -puN drivers/char/mem.c~huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix drivers/char/mem.c
+--- a/drivers/char/mem.c~huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix
++++ a/drivers/char/mem.c
+@@ -666,9 +666,7 @@ static unsigned long get_unmapped_area_z
+ 				unsigned long addr, unsigned long len,
+ 				unsigned long pgoff, unsigned long flags)
+ {
+-#ifndef CONFIG_MMU
+-	return -ENOSYS;
+-#endif
++#ifdef CONFIG_MMU
+ 	if (flags & MAP_SHARED) {
+ 		/*
+ 		 * mmap_zero() will call shmem_zero_setup() to create a file,
+@@ -681,6 +679,9 @@ static unsigned long get_unmapped_area_z
  
- 	/*
--	 * Clear TIF_MEMDIE because the task shouldn't be sitting on a
--	 * reasonably reclaimable memory anymore. OOM killer can continue
--	 * by selecting other victim if unmapping hasn't led to any
--	 * improvements. This also means that selecting this task doesn't
--	 * make any sense.
-+	 * This task can be safely ignored because we cannot do much more
-+	 * to release its memory.
- 	 */
- 	tsk->signal->oom_score_adj = OOM_SCORE_ADJ_MIN;
--	exit_oom_victim(tsk);
- out:
- 	mmput(mm);
- 	return ret;
-@@ -538,6 +534,14 @@ static void oom_reap_task(struct task_st
- 		debug_show_all_locks();
- 	}
- 
-+	/*
-+	 * Clear TIF_MEMDIE because the task shouldn't be sitting on a
-+	 * reasonably reclaimable memory anymore or it is not a good candidate
-+	 * for the oom victim right now because it cannot release its memory
-+	 * itself nor by the oom reaper.
-+	 */
-+	exit_oom_victim(tsk);
-+
- 	/* Drop a reference taken by wake_oom_reaper */
- 	put_task_struct(tsk);
+ 	/* Otherwise flags & MAP_PRIVATE: with no shmem object beneath it */
+ 	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
++#else
++	return -ENOSYS;
++#endif
  }
+ 
+ static ssize_t write_full(struct file *file, const char __user *buf,
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-include-linux-nodemaskh-create-next_node_in-helper-fix.patch
-mm-oom-move-gfp_nofs-check-to-out_of_memory.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path.patch
-mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-compaction-change-compact_-constants-into-enum.patch
-mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
-mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
-mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
-mm-compaction-update-compaction_result-ordering.patch
-mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
-mm-compaction-abstract-compaction-feedback-to-helpers.patch
-mm-oom-protect-costly-allocations-some-more.patch
-mm-consider-compaction-feedback-also-for-costly-allocation.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-compaction-direct-freepage-allocation-for-async-direct-compaction-checkpatch-fixes.patch
+mm-uninline-page_mapped.patch
+mm-uninline-page_mapped-checkpatch-fixes.patch
+huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix.patch
+memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+exit_thread-remove-empty-bodies-fix.patch
+exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
