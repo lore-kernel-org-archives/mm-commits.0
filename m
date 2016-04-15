@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mailmap-add-frank-rowand.patch added to -mm tree
-Date: Fri, 15 Apr 2016 14:36:06 -0700
-Message-ID: <57115ec6.fA+5deuCj8rDqNS3%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-clean-up-unused-parameter-count-in-o2hb_read_block_input.patch added
+ to -mm tree
+Date: Fri, 15 Apr 2016 15:14:36 -0700
+Message-ID: <571167cc.pQdpziJo0kYreKVL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36975 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39088 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751509AbcDOVgH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 17:36:07 -0400
+	with ESMTP id S1751946AbcDOWOm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 18:14:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: frowand.list@gmail.com, frank.rowand@sonymobile.com, mm-commits@vger.kernel.org
+To: piaojun@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: .mailmap: add Frank Rowand
+     From: Jun Piao <piaojun@huawei.com>
 has been added to the -mm tree.  Its filename is
-     mailmap-add-frank-rowand.patch
+     ocfs2-clean-up-unused-parameter-count-in-o2hb_read_block_input.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-frank-rowand.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-clean-up-unused-parameter-count-in-o2hb_read_block_input.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-frank-rowand.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-clean-up-unused-parameter-count-in-o2hb_read_block_input.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,34 +40,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Frank Rowand <frowand.list@gmail.com>
-Subject: .mailmap: add Frank Rowand
+From: Jun Piao <piaojun@huawei.com>
+Subject: ocfs2: clean up unused parameter 'count' in o2hb_read_block_input()
 
-Set current email address to replace obsolete email addresses.
+Clean up unused parameter 'count' in o2hb_read_block_input().
 
-Signed-off-by: Frank Rowand <frank.rowand@sonymobile.com>
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/cluster/heartbeat.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN .mailmap~mailmap-add-frank-rowand .mailmap
---- a/.mailmap~mailmap-add-frank-rowand
-+++ a/.mailmap
-@@ -48,6 +48,9 @@ Felix Kuhling <fxkuehl@gmx.de>
- Felix Moeller <felix@derklecks.de>
- Filipe Lautert <filipe@icewall.org>
- Franck Bui-Huu <vagabon.xyz@gmail.com>
-+Frank Rowand <frowand.list@gmail.com> <frowand@mvista.com>
-+Frank Rowand <frowand.list@gmail.com> <frank.rowand@am.sony.com>
-+Frank Rowand <frowand.list@gmail.com> <frank.rowand@sonymobile.com>
- Frank Zago <fzago@systemfabricworks.com>
- Greg Kroah-Hartman <greg@echidna.(none)>
- Greg Kroah-Hartman <gregkh@suse.de>
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-clean-up-unused-parameter-count-in-o2hb_read_block_input fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-clean-up-unused-parameter-count-in-o2hb_read_block_input
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -1456,7 +1456,6 @@ static void o2hb_region_release(struct c
+ 
+ static int o2hb_read_block_input(struct o2hb_region *reg,
+ 				 const char *page,
+-				 size_t count,
+ 				 unsigned long *ret_bytes,
+ 				 unsigned int *ret_bits)
+ {
+@@ -1499,8 +1498,8 @@ static ssize_t o2hb_region_block_bytes_s
+ 	if (reg->hr_bdev)
+ 		return -EINVAL;
+ 
+-	status = o2hb_read_block_input(reg, page, count,
+-				       &block_bytes, &block_bits);
++	status = o2hb_read_block_input(reg, page, &block_bytes,
++				       &block_bits);
+ 	if (status)
+ 		return status;
+ 
 _
 
-Patches currently in -mm which might be from frowand.list@gmail.com are
+Patches currently in -mm which might be from piaojun@huawei.com are
 
-mailmap-add-frank-rowand.patch
+ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
+ocfs2-clean-up-unused-parameter-count-in-o2hb_read_block_input.patch
 
