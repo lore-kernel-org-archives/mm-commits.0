@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- huge-tmpfs-try-to-allocate-huge-pages-split-into-a-team-fix.patch added to
- -mm tree
-Date: Fri, 15 Apr 2016 14:11:26 -0700
-Message-ID: <571158fe.InsPauRaII9BjdAM%akpm@linux-foundation.org>
+Subject: + mailmap-add-frank-rowand.patch added to -mm tree
+Date: Fri, 15 Apr 2016 14:36:06 -0700
+Message-ID: <57115ec6.fA+5deuCj8rDqNS3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35825 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36975 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751522AbcDOVL1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 17:11:27 -0400
+	with ESMTP id S1751509AbcDOVgH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 17:36:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, hughd@google.com, mm-commits@vger.kernel.org
+To: frowand.list@gmail.com, frank.rowand@sonymobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs: fix build problem on arm
+     Subject: .mailmap: add Frank Rowand
 has been added to the -mm tree.  Its filename is
-     huge-tmpfs-try-to-allocate-huge-pages-split-into-a-team-fix.patch
+     mailmap-add-frank-rowand.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-try-to-allocate-huge-pages-split-into-a-team-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-frank-rowand.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-try-to-allocate-huge-pages-split-into-a-team-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-frank-rowand.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,35 +38,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: huge tmpfs: fix build problem on arm
+From: Frank Rowand <frowand.list@gmail.com>
+Subject: .mailmap: add Frank Rowand
 
-allocated_huge will never be non-NULL if CONFIG_TRANSPARENT_HUGEPAGE is not.
+Set current email address to replace obsolete email addresses.
 
-Fixes: ab61a0a665d8 ("huge tmpfs: try to allocate huge pages, split into a team")
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Frank Rowand <frank.rowand@sonymobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/shmem.c~huge-tmpfs-try-to-allocate-huge-pages-split-into-a-team-fix mm/shmem.c
---- a/mm/shmem.c~huge-tmpfs-try-to-allocate-huge-pages-split-into-a-team-fix
-+++ a/mm/shmem.c
-@@ -1663,7 +1663,7 @@ unlock:
- 		unlock_page(page);
- 		put_page(page);
- 	}
--	if (alloced_huge) {
-+	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && alloced_huge) {
- 		shmem_disband_hugeteam(alloced_huge);
- 		alloced_huge = NULL;
- 	}
+diff -puN .mailmap~mailmap-add-frank-rowand .mailmap
+--- a/.mailmap~mailmap-add-frank-rowand
++++ a/.mailmap
+@@ -48,6 +48,9 @@ Felix Kuhling <fxkuehl@gmx.de>
+ Felix Moeller <felix@derklecks.de>
+ Filipe Lautert <filipe@icewall.org>
+ Franck Bui-Huu <vagabon.xyz@gmail.com>
++Frank Rowand <frowand.list@gmail.com> <frowand@mvista.com>
++Frank Rowand <frowand.list@gmail.com> <frank.rowand@am.sony.com>
++Frank Rowand <frowand.list@gmail.com> <frank.rowand@sonymobile.com>
+ Frank Zago <fzago@systemfabricworks.com>
+ Greg Kroah-Hartman <greg@echidna.(none)>
+ Greg Kroah-Hartman <gregkh@suse.de>
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from frowand.list@gmail.com are
 
-huge-tmpfs-try-to-allocate-huge-pages-split-into-a-team-fix.patch
+mailmap-add-frank-rowand.patch
 
