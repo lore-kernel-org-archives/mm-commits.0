@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-simplify-last-cpupid-reset.patch added to -mm
- tree
-Date: Fri, 15 Apr 2016 16:12:11 -0700
-Message-ID: <5711754b.N/ev3RBR25z2jReJ%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist.patch added to -mm tree
+Date: Fri, 15 Apr 2016 16:12:05 -0700
+Message-ID: <57117545.zmN9krmY87l1n5cF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42552 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751679AbcDOXMM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 19:12:12 -0400
+	with ESMTP id S1751679AbcDOXMG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 19:12:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: simplify last cpupid reset
+     Subject: mm, page_alloc: remove unnecessary local variable in get_page_from_freelist
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-simplify-last-cpupid-reset.patch
+     mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-simplify-last-cpupid-reset.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-simplify-last-cpupid-reset.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,9 +40,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: simplify last cpupid reset
+Subject: mm, page_alloc: remove unnecessary local variable in get_page_from_freelist
 
-The current reset unnecessarily clears flags and makes pointless calculations.
+zonelist here is a copy of a struct field that is used once. Ditch it.
 
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -50,24 +50,29 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/page_alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-page_alloc-simplify-last-cpupid-reset include/linux/mm.h
---- a/include/linux/mm.h~mm-page_alloc-simplify-last-cpupid-reset
-+++ a/include/linux/mm.h
-@@ -838,10 +838,7 @@ extern int page_cpupid_xchg_last(struct
- 
- static inline void page_cpupid_reset_last(struct page *page)
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist
++++ a/mm/page_alloc.c
+@@ -2703,7 +2703,6 @@ static struct page *
+ get_page_from_freelist(gfp_t gfp_mask, unsigned int order, int alloc_flags,
+ 						const struct alloc_context *ac)
  {
--	int cpupid = (1 << LAST_CPUPID_SHIFT) - 1;
--
--	page->flags &= ~(LAST_CPUPID_MASK << LAST_CPUPID_PGSHIFT);
--	page->flags |= (cpupid & LAST_CPUPID_MASK) << LAST_CPUPID_PGSHIFT;
-+	page->flags |= LAST_CPUPID_MASK << LAST_CPUPID_PGSHIFT;
- }
- #endif /* LAST_CPUPID_NOT_IN_PAGE_FLAGS */
- #else /* !CONFIG_NUMA_BALANCING */
+-	struct zonelist *zonelist = ac->zonelist;
+ 	struct zoneref *z;
+ 	struct page *page = NULL;
+ 	struct zone *zone;
+@@ -2717,7 +2716,7 @@ zonelist_scan:
+ 	 * Scan zonelist, looking for a zone with enough free.
+ 	 * See also __cpuset_node_allowed() comment in kernel/cpuset.c.
+ 	 */
+-	for_each_zone_zonelist_nodemask(zone, z, zonelist, ac->high_zoneidx,
++	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
+ 								ac->nodemask) {
+ 		unsigned long mark;
+ 
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
