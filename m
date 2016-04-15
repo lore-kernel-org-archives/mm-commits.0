@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths.patch added
+ mm-page_alloc-check-multiple-page-fields-with-a-single-branch.patch added
  to -mm tree
-Date: Fri, 15 Apr 2016 16:12:33 -0700
-Message-ID: <57117561.0QPh8MhFHwcqk57W%akpm@linux-foundation.org>
+Date: Fri, 15 Apr 2016 16:12:29 -0700
+Message-ID: <5711755d.X9YJqNlfbfhjEK5W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42611 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42602 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565AbcDOXMe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 19:12:34 -0400
+	with ESMTP id S1751565AbcDOXMb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 19:12:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: inline pageblock lookup in page free fast paths
+     Subject: mm, page_alloc: check multiple page fields with a single branch
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths.patch
+     mm-page_alloc-check-multiple-page-fields-with-a-single-branch.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-check-multiple-page-fields-with-a-single-branch.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-check-multiple-page-fields-with-a-single-branch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,10 +41,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: inline pageblock lookup in page free fast paths
+Subject: mm, page_alloc: check multiple page fields with a single branch
 
-The function call overhead of get_pfnblock_flags_mask() is measurable in
-the page free paths.  This patch uses an inlined version that is faster.
+Every page allocated or freed is checked for sanity to avoid corruptions
+that are difficult to detect later.  A bad page could be due to a number
+of fields.  Instead of using multiple branches, this patch combines
+multiple fields into a single branch.  A detailed check is only necessary
+if that check fails.
+
+                                           4.6.0-rc2                  4.6.0-rc2
+                                      initonce-v1r20            multcheck-v1r20
+Min      alloc-odr0-1               359.00 (  0.00%)           348.00 (  3.06%)
+Min      alloc-odr0-2               260.00 (  0.00%)           254.00 (  2.31%)
+Min      alloc-odr0-4               214.00 (  0.00%)           213.00 (  0.47%)
+Min      alloc-odr0-8               186.00 (  0.00%)           186.00 (  0.00%)
+Min      alloc-odr0-16              173.00 (  0.00%)           173.00 (  0.00%)
+Min      alloc-odr0-32              165.00 (  0.00%)           166.00 ( -0.61%)
+Min      alloc-odr0-64              162.00 (  0.00%)           162.00 (  0.00%)
+Min      alloc-odr0-128             161.00 (  0.00%)           160.00 (  0.62%)
+Min      alloc-odr0-256             170.00 (  0.00%)           169.00 (  0.59%)
+Min      alloc-odr0-512             181.00 (  0.00%)           180.00 (  0.55%)
+Min      alloc-odr0-1024            190.00 (  0.00%)           188.00 (  1.05%)
+Min      alloc-odr0-2048            196.00 (  0.00%)           194.00 (  1.02%)
+Min      alloc-odr0-4096            202.00 (  0.00%)           199.00 (  1.49%)
+Min      alloc-odr0-8192            205.00 (  0.00%)           202.00 (  1.46%)
+Min      alloc-odr0-16384           205.00 (  0.00%)           203.00 (  0.98%)
+
+Again, the benefit is marginal but avoiding excessive branches is
+important.  Ideally the paths would not have to check these conditions at
+all but regrettably abandoning the tests would make use-after-free bugs
+much harder to detect.
 
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -52,258 +78,91 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    7 -
- mm/page_alloc.c        |  188 ++++++++++++++++++++-------------------
- mm/page_owner.c        |    2 
- mm/vmstat.c            |    2 
- 4 files changed, 102 insertions(+), 97 deletions(-)
+ mm/page_alloc.c |   55 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 43 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths
-+++ a/include/linux/mmzone.h
-@@ -85,13 +85,6 @@ extern int page_group_by_mobility_disabl
- 	get_pfnblock_flags_mask(page, page_to_pfn(page),		\
- 			PB_migrate_end, MIGRATETYPE_MASK)
- 
--static inline int get_pfnblock_migratetype(struct page *page, unsigned long pfn)
--{
--	BUILD_BUG_ON(PB_migrate_end - PB_migrate != 2);
--	return get_pfnblock_flags_mask(page, pfn, PB_migrate_end,
--					MIGRATETYPE_MASK);
--}
--
- struct free_area {
- 	struct list_head	free_list[MIGRATE_TYPES];
- 	unsigned long		nr_free;
-diff -puN mm/page_alloc.c~mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths
+diff -puN mm/page_alloc.c~mm-page_alloc-check-multiple-page-fields-with-a-single-branch mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-check-multiple-page-fields-with-a-single-branch
 +++ a/mm/page_alloc.c
-@@ -352,6 +352,106 @@ static inline bool update_defer_init(pg_
+@@ -784,10 +784,42 @@ out:
+ 	zone->free_area[order].nr_free++;
  }
- #endif
  
-+/* Return a pointer to the bitmap storing bits affecting a block of pages */
-+static inline unsigned long *get_pageblock_bitmap(struct page *page,
-+							unsigned long pfn)
-+{
-+#ifdef CONFIG_SPARSEMEM
-+	return __pfn_to_section(pfn)->pageblock_flags;
-+#else
-+	return page_zone(page)->pageblock_flags;
-+#endif /* CONFIG_SPARSEMEM */
-+}
-+
-+static inline int pfn_to_bitidx(struct page *page, unsigned long pfn)
-+{
-+#ifdef CONFIG_SPARSEMEM
-+	pfn &= (PAGES_PER_SECTION-1);
-+	return (pfn >> pageblock_order) * NR_PAGEBLOCK_BITS;
-+#else
-+	pfn = pfn - round_down(page_zone(page)->zone_start_pfn, pageblock_nr_pages);
-+	return (pfn >> pageblock_order) * NR_PAGEBLOCK_BITS;
-+#endif /* CONFIG_SPARSEMEM */
-+}
-+
-+/**
-+ * get_pfnblock_flags_mask - Return the requested group of flags for the pageblock_nr_pages block of pages
-+ * @page: The page within the block of interest
-+ * @pfn: The target page frame number
-+ * @end_bitidx: The last bit of interest to retrieve
-+ * @mask: mask of bits that the caller is interested in
-+ *
-+ * Return: pageblock_bits flags
++/*
++ * A bad page could be due to a number of fields. Instead of multiple branches,
++ * try and check multiple fields with one check. The caller must do a detailed
++ * check if necessary.
 + */
-+static __always_inline unsigned long __get_pfnblock_flags_mask(struct page *page,
-+					unsigned long pfn,
-+					unsigned long end_bitidx,
-+					unsigned long mask)
++static inline bool page_expected_state(struct page *page,
++					unsigned long check_flags)
 +{
-+	unsigned long *bitmap;
-+	unsigned long bitidx, word_bitidx;
-+	unsigned long word;
++	if (unlikely(atomic_read(&page->_mapcount) != -1))
++		return false;
 +
-+	bitmap = get_pageblock_bitmap(page, pfn);
-+	bitidx = pfn_to_bitidx(page, pfn);
-+	word_bitidx = bitidx / BITS_PER_LONG;
-+	bitidx &= (BITS_PER_LONG-1);
++	if (unlikely((unsigned long)page->mapping |
++			page_ref_count(page) |
++#ifdef CONFIG_MEMCG
++			(unsigned long)page->mem_cgroup |
++#endif
++			(page->flags & check_flags)))
++		return false;
 +
-+	word = bitmap[word_bitidx];
-+	bitidx += end_bitidx;
-+	return (word >> (BITS_PER_LONG - bitidx - 1)) & mask;
++	return true;
 +}
 +
-+unsigned long get_pfnblock_flags_mask(struct page *page, unsigned long pfn,
-+					unsigned long end_bitidx,
-+					unsigned long mask)
-+{
-+	return __get_pfnblock_flags_mask(page, pfn, end_bitidx, mask);
-+}
-+
-+static __always_inline int get_pfnblock_migratetype(struct page *page, unsigned long pfn)
-+{
-+	return __get_pfnblock_flags_mask(page, pfn, PB_migrate_end, MIGRATETYPE_MASK);
-+}
-+
-+/**
-+ * set_pfnblock_flags_mask - Set the requested group of flags for a pageblock_nr_pages block of pages
-+ * @page: The page within the block of interest
-+ * @flags: The flags to set
-+ * @pfn: The target page frame number
-+ * @end_bitidx: The last bit of interest
-+ * @mask: mask of bits that the caller is interested in
-+ */
-+void set_pfnblock_flags_mask(struct page *page, unsigned long flags,
-+					unsigned long pfn,
-+					unsigned long end_bitidx,
-+					unsigned long mask)
-+{
-+	unsigned long *bitmap;
-+	unsigned long bitidx, word_bitidx;
-+	unsigned long old_word, word;
-+
-+	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
-+
-+	bitmap = get_pageblock_bitmap(page, pfn);
-+	bitidx = pfn_to_bitidx(page, pfn);
-+	word_bitidx = bitidx / BITS_PER_LONG;
-+	bitidx &= (BITS_PER_LONG-1);
-+
-+	VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn), page);
-+
-+	bitidx += end_bitidx;
-+	mask <<= (BITS_PER_LONG - bitidx - 1);
-+	flags <<= (BITS_PER_LONG - bitidx - 1);
-+
-+	word = READ_ONCE(bitmap[word_bitidx]);
-+	for (;;) {
-+		old_word = cmpxchg(&bitmap[word_bitidx], word, (word & ~mask) | flags);
-+		if (word == old_word)
-+			break;
-+		word = old_word;
-+	}
-+}
- 
- void set_pageblock_migratetype(struct page *page, int migratetype)
+ static inline int free_pages_check(struct page *page)
  {
-@@ -6815,94 +6915,6 @@ void *__init alloc_large_system_hash(con
- 	return table;
+-	const char *bad_reason = NULL;
+-	unsigned long bad_flags = 0;
++	const char *bad_reason;
++	unsigned long bad_flags;
++
++	if (page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE)) {
++		page_cpupid_reset_last(page);
++		page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
++		return 0;
++	}
++
++	/* Something has gone sideways, find it */
++	bad_reason = NULL;
++	bad_flags = 0;
+ 
+ 	if (unlikely(atomic_read(&page->_mapcount) != -1))
+ 		bad_reason = "nonzero mapcount";
+@@ -803,14 +835,8 @@ static inline int free_pages_check(struc
+ 	if (unlikely(page->mem_cgroup))
+ 		bad_reason = "page still charged to cgroup";
+ #endif
+-	if (unlikely(bad_reason)) {
+-		bad_page(page, bad_reason, bad_flags);
+-		return 1;
+-	}
+-	page_cpupid_reset_last(page);
+-	if (page->flags & PAGE_FLAGS_CHECK_AT_PREP)
+-		page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+-	return 0;
++	bad_page(page, bad_reason, bad_flags);
++	return 1;
  }
  
--/* Return a pointer to the bitmap storing bits affecting a block of pages */
--static inline unsigned long *get_pageblock_bitmap(struct page *page,
--							unsigned long pfn)
--{
--#ifdef CONFIG_SPARSEMEM
--	return __pfn_to_section(pfn)->pageblock_flags;
--#else
--	return page_zone(page)->pageblock_flags;
--#endif /* CONFIG_SPARSEMEM */
--}
--
--static inline int pfn_to_bitidx(struct page *page, unsigned long pfn)
--{
--#ifdef CONFIG_SPARSEMEM
--	pfn &= (PAGES_PER_SECTION-1);
--	return (pfn >> pageblock_order) * NR_PAGEBLOCK_BITS;
--#else
--	pfn = pfn - round_down(page_zone(page)->zone_start_pfn, pageblock_nr_pages);
--	return (pfn >> pageblock_order) * NR_PAGEBLOCK_BITS;
--#endif /* CONFIG_SPARSEMEM */
--}
--
--/**
-- * get_pfnblock_flags_mask - Return the requested group of flags for the pageblock_nr_pages block of pages
-- * @page: The page within the block of interest
-- * @pfn: The target page frame number
-- * @end_bitidx: The last bit of interest to retrieve
-- * @mask: mask of bits that the caller is interested in
-- *
-- * Return: pageblock_bits flags
-- */
--unsigned long get_pfnblock_flags_mask(struct page *page, unsigned long pfn,
--					unsigned long end_bitidx,
--					unsigned long mask)
--{
--	unsigned long *bitmap;
--	unsigned long bitidx, word_bitidx;
--	unsigned long word;
--
--	bitmap = get_pageblock_bitmap(page, pfn);
--	bitidx = pfn_to_bitidx(page, pfn);
--	word_bitidx = bitidx / BITS_PER_LONG;
--	bitidx &= (BITS_PER_LONG-1);
--
--	word = bitmap[word_bitidx];
--	bitidx += end_bitidx;
--	return (word >> (BITS_PER_LONG - bitidx - 1)) & mask;
--}
--
--/**
-- * set_pfnblock_flags_mask - Set the requested group of flags for a pageblock_nr_pages block of pages
-- * @page: The page within the block of interest
-- * @flags: The flags to set
-- * @pfn: The target page frame number
-- * @end_bitidx: The last bit of interest
-- * @mask: mask of bits that the caller is interested in
-- */
--void set_pfnblock_flags_mask(struct page *page, unsigned long flags,
--					unsigned long pfn,
--					unsigned long end_bitidx,
--					unsigned long mask)
--{
--	unsigned long *bitmap;
--	unsigned long bitidx, word_bitidx;
--	unsigned long old_word, word;
--
--	BUILD_BUG_ON(NR_PAGEBLOCK_BITS != 4);
--
--	bitmap = get_pageblock_bitmap(page, pfn);
--	bitidx = pfn_to_bitidx(page, pfn);
--	word_bitidx = bitidx / BITS_PER_LONG;
--	bitidx &= (BITS_PER_LONG-1);
--
--	VM_BUG_ON_PAGE(!zone_spans_pfn(page_zone(page), pfn), page);
--
--	bitidx += end_bitidx;
--	mask <<= (BITS_PER_LONG - bitidx - 1);
--	flags <<= (BITS_PER_LONG - bitidx - 1);
--
--	word = READ_ONCE(bitmap[word_bitidx]);
--	for (;;) {
--		old_word = cmpxchg(&bitmap[word_bitidx], word, (word & ~mask) | flags);
--		if (word == old_word)
--			break;
--		word = old_word;
--	}
--}
--
  /*
-  * This function checks whether pageblock includes unmovable pages or not.
-  * If @count is not zero, it is okay to include less @count unmovable pages
-diff -puN mm/page_owner.c~mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths mm/page_owner.c
---- a/mm/page_owner.c~mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths
-+++ a/mm/page_owner.c
-@@ -143,7 +143,7 @@ print_page_owner(char __user *buf, size_
- 		goto err;
+@@ -1491,9 +1517,14 @@ static inline void expand(struct zone *z
+  */
+ static inline int check_new_page(struct page *page)
+ {
+-	const char *bad_reason = NULL;
+-	unsigned long bad_flags = 0;
++	const char *bad_reason;
++	unsigned long bad_flags;
++
++	if (page_expected_state(page, PAGE_FLAGS_CHECK_AT_PREP|__PG_HWPOISON))
++		return 0;
  
- 	/* Print information relevant to grouping pages by mobility */
--	pageblock_mt = get_pfnblock_migratetype(page, pfn);
-+	pageblock_mt = get_pageblock_migratetype(page);
- 	page_mt  = gfpflags_to_migratetype(page_ext->gfp_mask);
- 	ret += snprintf(kbuf + ret, count - ret,
- 			"PFN %lu type %s Block %lu type %s Flags %#lx(%pGp)\n",
-diff -puN mm/vmstat.c~mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths mm/vmstat.c
---- a/mm/vmstat.c~mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths
-+++ a/mm/vmstat.c
-@@ -1046,7 +1046,7 @@ static void pagetypeinfo_showmixedcount_
- 		block_end_pfn = min(block_end_pfn, end_pfn);
- 
- 		page = pfn_to_page(pfn);
--		pageblock_mt = get_pfnblock_migratetype(page, pfn);
-+		pageblock_mt = get_pageblock_migratetype(page);
- 
- 		for (; pfn < block_end_pfn; pfn++) {
- 			if (!pfn_valid_within(pfn))
++	bad_reason = NULL;
++	bad_flags = 0;
+ 	if (unlikely(atomic_read(&page->_mapcount) != -1))
+ 		bad_reason = "nonzero mapcount";
+ 	if (unlikely(page->mapping != NULL))
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
