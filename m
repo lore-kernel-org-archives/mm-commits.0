@@ -1,76 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Fri, 15 Apr 2016 11:26:11 -0700
-Message-ID: <57113243./q+kDGAp5LL37INb%akpm@linux-foundation.org>
+Subject: + mm-thp-correct-split_huge_pages-file-permission.patch added to
+ -mm tree
+Date: Fri, 15 Apr 2016 12:53:33 -0700
+Message-ID: <571146bd.YdcRctqqQmIIXefy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54933 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60160 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752106AbcDOS0N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 14:26:13 -0400
+	with ESMTP id S1751123AbcDOTxe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 15:53:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: yang.shi@linaro.org, aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     Subject: mm: thp: correct split_huge_pages file permission
+has been added to the -mm tree.  Its filename is
+     mm-thp-correct-split_huge_pages-file-permission.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-correct-split_huge_pages-file-permission.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-correct-split_huge_pages-file-permission.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Yang Shi <yang.shi@linaro.org>
+Subject: mm: thp: correct split_huge_pages file permission
 
+split_huge_pages doesn't support get method at all, so the read permission
+sounds confusing, change the permission to write only.
+
+And, add "\n" to the output of set method to make it more readable.
+
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/process.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/mips/kernel/process.c~linux-next-rejects arch/mips/kernel/process.c
---- a/arch/mips/kernel/process.c~linux-next-rejects
-+++ a/arch/mips/kernel/process.c
-@@ -73,10 +73,6 @@ void start_thread(struct pt_regs * regs,
- 	regs->regs[29] = sp;
- }
+diff -puN mm/huge_memory.c~mm-thp-correct-split_huge_pages-file-permission mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-correct-split_huge_pages-file-permission
++++ a/mm/huge_memory.c
+@@ -3452,7 +3452,7 @@ next:
+ 		}
+ 	}
  
--void flush_thread(void)
--{
--}
--
- int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src)
+-	pr_info("%lu of %lu THP split", split, total);
++	pr_info("%lu of %lu THP split\n", split, total);
+ 
+ 	return 0;
+ }
+@@ -3463,7 +3463,7 @@ static int __init split_huge_pages_debug
  {
- 	/*
+ 	void *ret;
+ 
+-	ret = debugfs_create_file("split_huge_pages", 0644, NULL, NULL,
++	ret = debugfs_create_file("split_huge_pages", 0200, NULL, NULL,
+ 			&split_huge_pages_fops);
+ 	if (!ret)
+ 		pr_warn("Failed to create split_huge_pages in debugfs");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yang.shi@linaro.org are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
-include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-include-linux-nodemaskh-create-next_node_in-helper.patch
-include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
-mm-hugetlbc-use-first_memory_node.patch
-mm-mempolicyc-offset_il_node-document-and-clarify.patch
-mm-compaction-direct-freepage-allocation-for-async-direct-compaction-checkpatch-fixes.patch
-mm-uninline-page_mapped.patch
-mm-uninline-page_mapped-checkpatch-fixes.patch
-huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix.patch
-huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page-fix-fix-2.patch
-memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
-exit_thread-remove-empty-bodies-fix.patch
-exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-thp-correct-split_huge_pages-file-permission.patch
 
