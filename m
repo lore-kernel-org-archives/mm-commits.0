@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-shorten-the-page-allocator-fast-path.patch added
- to -mm tree
-Date: Fri, 15 Apr 2016 16:12:19 -0700
-Message-ID: <57117553.uUHvOpMXHeDWlsJi%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch added to
+ -mm tree
+Date: Fri, 15 Apr 2016 16:12:17 -0700
+Message-ID: <57117551.3yCP1f5Ovsc5FJsI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42576 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751050AbcDOXMU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 19:12:20 -0400
+	with ESMTP id S1750773AbcDOXMS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 19:12:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: shorten the page allocator fast path
+     Subject: mm, page_alloc: check once if a zone has isolated pageblocks
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-shorten-the-page-allocator-fast-path.patch
+     mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-shorten-the-page-allocator-fast-path.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-shorten-the-page-allocator-fast-path.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +41,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: shorten the page allocator fast path
+Subject: mm, page_alloc: check once if a zone has isolated pageblocks
 
-The page allocator fast path checks page multiple times unnecessarily. 
-This patch avoids all the slowpath checks if the first allocation attempt
-succeeds.
+When bulk freeing pages from the per-cpu lists the zone is checked for
+isolated pageblocks on every release.  This patch checks it once per
+drain.  Technically this is race-prone but so is the existing code.
 
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -52,57 +53,29 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-shorten-the-page-allocator-fast-path mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-shorten-the-page-allocator-fast-path
+diff -puN mm/page_alloc.c~mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks
 +++ a/mm/page_alloc.c
-@@ -3418,22 +3418,17 @@ retry_cpuset:
+@@ -831,6 +831,7 @@ static void free_pcppages_bulk(struct zo
+ 	int batch_free = 0;
+ 	int to_free = count;
+ 	unsigned long nr_scanned;
++	bool isolated_pageblocks = has_isolate_pageblock(zone);
  
- 	/* First allocation attempt */
- 	page = get_page_from_freelist(alloc_mask, order, alloc_flags, &ac);
--	if (unlikely(!page)) {
--		/*
--		 * Runtime PM, block IO and its error handling path
--		 * can deadlock because I/O on the device might not
--		 * complete.
--		 */
--		alloc_mask = memalloc_noio_flags(gfp_mask);
--		ac.spread_dirty_pages = false;
-+	if (likely(page))
-+		goto out;
+ 	spin_lock(&zone->lock);
+ 	nr_scanned = zone_page_state(zone, NR_PAGES_SCANNED);
+@@ -870,7 +871,7 @@ static void free_pcppages_bulk(struct zo
+ 			/* MIGRATE_ISOLATE page should not go to pcplists */
+ 			VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
+ 			/* Pageblock could have been isolated meanwhile */
+-			if (unlikely(has_isolate_pageblock(zone)))
++			if (unlikely(isolated_pageblocks))
+ 				mt = get_pageblock_migratetype(page);
  
--		page = __alloc_pages_slowpath(alloc_mask, order, &ac);
--	}
--
--	if (kmemcheck_enabled && page)
--		kmemcheck_pagealloc_alloc(page, order, gfp_mask);
-+	/*
-+	 * Runtime PM, block IO and its error handling path can deadlock
-+	 * because I/O on the device might not complete.
-+	 */
-+	alloc_mask = memalloc_noio_flags(gfp_mask);
-+	ac.spread_dirty_pages = false;
- 
--	trace_mm_page_alloc(page, order, alloc_mask, ac.migratetype);
-+	page = __alloc_pages_slowpath(alloc_mask, order, &ac);
- 
- 	/*
- 	 * When updating a task's mems_allowed, it is possible to race with
-@@ -3446,6 +3441,12 @@ retry_cpuset:
- 		goto retry_cpuset;
- 	}
- 
-+out:
-+	if (kmemcheck_enabled && page)
-+		kmemcheck_pagealloc_alloc(page, order, gfp_mask);
-+
-+	trace_mm_page_alloc(page, order, alloc_mask, ac.migratetype);
-+
- 	return page;
- }
- EXPORT_SYMBOL(__alloc_pages_nodemask);
+ 			__free_one_page(page, page_to_pfn(page), zone, 0, mt);
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
