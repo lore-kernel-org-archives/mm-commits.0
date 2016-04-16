@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-test-suite-rebuild-when-headers-change.patch added
- to -mm tree
-Date: Fri, 15 Apr 2016 22:58:06 -0700
-Message-ID: <5711d46e.C6CZHfE2vrPbCgR1%akpm@linux-foundation.org>
+Subject: + radix-tree-test-suite-allow-testing-other-fan-out-values.patch
+ added to -mm tree
+Date: Fri, 15 Apr 2016 22:58:02 -0700
+Message-ID: <5711d46a.WTI4pZvdlWfMf1KN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33161 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33148 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751040AbcDPF6H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:58:07 -0400
+	with ESMTP id S1751040AbcDPF6D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:58:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ross.zwisler@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: rebuild when headers change
+     Subject: radix tree test suite: allow testing other fan-out values
 has been added to the -mm tree.  Its filename is
-     radix-tree-test-suite-rebuild-when-headers-change.patch
+     radix-tree-test-suite-allow-testing-other-fan-out-values.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-rebuild-when-headers-change.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-allow-testing-other-fan-out-values.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-rebuild-when-headers-change.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-allow-testing-other-fan-out-values.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: radix tree test suite: rebuild when headers change
+Subject: radix tree test suite: allow testing other fan-out values
 
-When we make changes to radix-tree.h in the regular kernel source
-(include/linux/radix-tree.h), we really want our test code to be rebuilt.
-
-We also include a few other headers from tools/include and probably want
-to rebuild if these have been changed.
-
-Update the makefile so that all of our objects will be rebuilt when any of
-the headers we depend on are changed.
+The defines in regression2.c are already in radix-tree.h and duplicating
+them in the test case makes experimenting with other values for the
+fan-out harder than necessary.  Allow the user of the radix tree to decide
+what the fan-out should be rather than fixing it to 8 for non-kernel uses.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
@@ -60,34 +56,47 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/radix-tree.h              |    4 +---
+ tools/testing/radix-tree/linux/kernel.h |    2 ++
+ tools/testing/radix-tree/regression2.c  |    7 -------
+ 3 files changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN tools/testing/radix-tree/Makefile~radix-tree-test-suite-rebuild-when-headers-change tools/testing/radix-tree/Makefile
---- a/tools/testing/radix-tree/Makefile~radix-tree-test-suite-rebuild-when-headers-change
-+++ a/tools/testing/radix-tree/Makefile
-@@ -13,7 +13,7 @@ main:	$(OFILES)
- clean:
- 	$(RM) -f $(TARGETS) *.o radix-tree.c
+diff -puN include/linux/radix-tree.h~radix-tree-test-suite-allow-testing-other-fan-out-values include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-test-suite-allow-testing-other-fan-out-values
++++ a/include/linux/radix-tree.h
+@@ -70,10 +70,8 @@ static inline int radix_tree_is_indirect
  
--$(OFILES): *.h */*.h
-+$(OFILES): *.h */*.h ../../../include/linux/radix-tree.h ../../include/linux/*.h
+ #define RADIX_TREE_MAX_TAGS 3
  
- radix-tree.c: ../../../lib/radix-tree.c
- 	sed -e 's/^static //' -e 's/__always_inline //' -e 's/inline //' < $< > $@
-_
-
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
-
-radix-tree-test-suite-allow-testing-other-fan-out-values.patch
-radix-tree-test-suite-keep-regression-test-runs-short.patch
-radix-tree-test-suite-rebuild-when-headers-change.patch
-radix-tree-remove-unused-looping-macros.patch
-radix-tree-add-support-for-multi-order-iterating.patch
-radix-tree-test-suite-multi-order-iteration-test.patch
-radix-tree-rewrite-radix_tree_tag_set.patch
-radix-tree-rewrite-radix_tree_tag_clear.patch
-radix-tree-rewrite-radix_tree_tag_get.patch
-radix-tree-test-suite-add-multi-order-tag-test.patch
-radix-tree-fix-radix_tree_dump-for-multi-order-entries.patch
-
+-#ifdef __KERNEL__
++#ifndef RADIX_TREE_MAP_SHIFT
+ #define RADIX_TREE_MAP_SHIFT	(CONFIG_BASE_SMALL ? 4 : 6)
+-#else
+-#define RADIX_TREE_MAP_SHIFT	3	/* For more stressful testing */
+ #endif
+ 
+ #define RADIX_TREE_MAP_SIZE	(1UL << RADIX_TREE_MAP_SHIFT)
+diff -puN tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-allow-testing-other-fan-out-values tools/testing/radix-tree/linux/kernel.h
+--- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-allow-testing-other-fan-out-values
++++ a/tools/testing/radix-tree/linux/kernel.h
+@@ -12,6 +12,8 @@
+ #define CONFIG_SHMEM
+ #define CONFIG_SWAP
+ 
++#define RADIX_TREE_MAP_SHIFT	3
++
+ #ifndef NULL
+ #define NULL	0
+ #endif
+diff -puN tools/testing/radix-tree/regression2.c~radix-tree-test-suite-allow-testing-other-fan-out-values tools/testing/radix-tree/regression2.c
+--- a/tools/testing/radix-tree/regression2.c~radix-tree-test-suite-allow-testing-other-fan-out-values
++++ a/tools/testing/radix-tree/regression2.c
+@@ -51,13 +51,6 @@
+ 
+ #include "regression.h"
+ 
+-#ifdef __KERNEL__
+-#define RADIX_TREE_MAP_SHIFT    (CONFIG_BASE_SMALL ? 4 : 6)
+-#else
+-#define RADIX_TREE_MAP_SHIFT    3       /* For more stressful testing */
+-#endif
