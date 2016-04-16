@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-test-suite-keep-regression-test-runs-short.patch
- added to -mm tree
-Date: Fri, 15 Apr 2016 22:58:04 -0700
-Message-ID: <5711d46c.boiO5OV1U9QQBlrf%akpm@linux-foundation.org>
+Subject: + radix-tree-remove-unused-looping-macros.patch added to -mm tree
+Date: Fri, 15 Apr 2016 22:58:08 -0700
+Message-ID: <5711d470.nQkk549AjwIzL4f6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33154 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33164 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751040AbcDPF6F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:58:05 -0400
+	with ESMTP id S1751040AbcDPF6J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:58:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ross.zwisler@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: keep regression test runs short
+     Subject: radix-tree: remove unused looping macros
 has been added to the -mm tree.  Its filename is
-     radix-tree-test-suite-keep-regression-test-runs-short.patch
+     radix-tree-remove-unused-looping-macros.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-keep-regression-test-runs-short.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-remove-unused-looping-macros.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-keep-regression-test-runs-short.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-remove-unused-looping-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,25 +39,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: radix tree test suite: keep regression test runs short
+Subject: radix-tree: remove unused looping macros
 
-Currently the full suite of regression tests take upwards of 30 minutes to
-run on my development machine.  The vast majority of this time is taken by
-the big_gang_check() and copy_tag_check() tests, which each run their
-tests through thousands of iterations...does this have value?
-
-Without big_gang_check() and copy_tag_check(), the test suite runs in
-around 15 seconds on my box.
-
-Honestly the first time I ever ran through the entire test suite was to
-gather the timings for this email - it simply takes too long to be useful
-on a normal basis.
-
-Instead, hide the excessive iterations through big_gang_check() and
-copy_tag_check() tests behind an '-l' flag (for "long run") in case they
-are still useful, but allow the regression test suite to complete in a
-reasonable amount of time.  We still run each of these tests a few times
-(3 at present) to try and keep the test coverage.
+radix_tree_for_each_chunk() and radix_tree_for_each_chunk_slot() have
+never been used in the kernel since their introduction in 2012, so remove
+them.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
@@ -69,86 +54,39 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/main.c |   22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ include/linux/radix-tree.h |   28 ----------------------------
+ 1 file changed, 28 deletions(-)
 
-diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-keep-regression-test-runs-short tools/testing/radix-tree/main.c
---- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-keep-regression-test-runs-short
-+++ a/tools/testing/radix-tree/main.c
-@@ -61,11 +61,11 @@ void __big_gang_check(void)
- 	} while (!wrapped);
+diff -puN include/linux/radix-tree.h~radix-tree-remove-unused-looping-macros include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-remove-unused-looping-macros
++++ a/include/linux/radix-tree.h
+@@ -479,34 +479,6 @@ radix_tree_next_slot(void **slot, struct
  }
  
--void big_gang_check(void)
-+void big_gang_check(bool long_run)
- {
- 	int i;
- 
--	for (i = 0; i < 1000; i++) {
-+	for (i = 0; i < (long_run ? 1000 : 3); i++) {
- 		__big_gang_check();
- 		srand(time(0));
- 		printf("%d ", i);
-@@ -270,7 +270,7 @@ static void locate_check(void)
- 	item_kill_tree(&tree);
- }
- 
--static void single_thread_tests(void)
-+static void single_thread_tests(bool long_run)
- {
- 	int i;
- 
-@@ -285,9 +285,9 @@ static void single_thread_tests(void)
- 	printf("after add_and_check: %d allocated\n", nr_allocated);
- 	dynamic_height_check();
- 	printf("after dynamic_height_check: %d allocated\n", nr_allocated);
--	big_gang_check();
-+	big_gang_check(long_run);
- 	printf("after big_gang_check: %d allocated\n", nr_allocated);
--	for (i = 0; i < 2000; i++) {
-+	for (i = 0; i < (long_run ? 2000 : 3); i++) {
- 		copy_tag_check();
- 		printf("%d ", i);
- 		fflush(stdout);
-@@ -295,15 +295,23 @@ static void single_thread_tests(void)
- 	printf("after copy_tag_check: %d allocated\n", nr_allocated);
- }
- 
--int main(void)
-+int main(int argc, char **argv)
- {
-+	bool long_run = false;
-+	int opt;
-+
-+	while ((opt = getopt(argc, argv, "l")) != -1) {
-+		if (opt == 'l')
-+			long_run = true;
-+	}
-+
- 	rcu_register_thread();
- 	radix_tree_init();
- 
- 	regression1_test();
- 	regression2_test();
- 	regression3_test();
--	single_thread_tests();
-+	single_thread_tests(long_run);
- 
- 	sleep(1);
- 	printf("after sleep(1): %d allocated\n", nr_allocated);
-_
-
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
-
-radix-tree-test-suite-allow-testing-other-fan-out-values.patch
-radix-tree-test-suite-keep-regression-test-runs-short.patch
-radix-tree-test-suite-rebuild-when-headers-change.patch
-radix-tree-remove-unused-looping-macros.patch
-radix-tree-add-support-for-multi-order-iterating.patch
-radix-tree-test-suite-multi-order-iteration-test.patch
-radix-tree-rewrite-radix_tree_tag_set.patch
-radix-tree-rewrite-radix_tree_tag_clear.patch
-radix-tree-rewrite-radix_tree_tag_get.patch
-radix-tree-test-suite-add-multi-order-tag-test.patch
-radix-tree-fix-radix_tree_dump-for-multi-order-entries.patch
-
+ /**
+- * radix_tree_for_each_chunk - iterate over chunks
+- *
+- * @slot:	the void** variable for pointer to chunk first slot
+- * @root:	the struct radix_tree_root pointer
+- * @iter:	the struct radix_tree_iter pointer
+- * @start:	iteration starting index
+- * @flags:	RADIX_TREE_ITER_* and tag index
+- *
+- * Locks can be released and reacquired between iterations.
+- */
+-#define radix_tree_for_each_chunk(slot, root, iter, start, flags)	\
+-	for (slot = radix_tree_iter_init(iter, start) ;			\
+-	      (slot = radix_tree_next_chunk(root, iter, flags)) ;)
+-
+-/**
+- * radix_tree_for_each_chunk_slot - iterate over slots in one chunk
+- *
+- * @slot:	the void** variable, at the beginning points to chunk first slot
+- * @iter:	the struct radix_tree_iter pointer
+- * @flags:	RADIX_TREE_ITER_*, should be constant
+- *
+- * This macro is designed to be nested inside radix_tree_for_each_chunk().
+- * @slot points to the radix tree slot, @iter->index contains its index.
+- */
+-#define radix_tree_for_each_chunk_slot(slot, iter, flags)		\
+-	for (; slot ; slot = radix_tree_next_slot(slot, iter, flags))
