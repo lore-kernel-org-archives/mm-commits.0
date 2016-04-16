@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-introduce-radix_tree_replace_clear_tags.patch added
- to -mm tree
-Date: Fri, 15 Apr 2016 23:05:03 -0700
-Message-ID: <5711d60f.TJ9Qku+fP1ZNp5eI%akpm@linux-foundation.org>
+Subject: +
+ radix-tree-free-up-the-bottom-bit-of-exceptional-entries-for-reuse.patch
+ added to -mm tree
+Date: Fri, 15 Apr 2016 23:05:09 -0700
+Message-ID: <5711d615.hITCgq+MeXogNd5g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33677 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33696 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751177AbcDPGFE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 02:05:04 -0400
+	with ESMTP id S1751273AbcDPGFK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 02:05:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: introduce radix_tree_replace_clear_tags()
+     Subject: radix-tree: free up the bottom bit of exceptional entries for reuse
 has been added to the -mm tree.  Its filename is
-     radix-tree-introduce-radix_tree_replace_clear_tags.patch
+     radix-tree-free-up-the-bottom-bit-of-exceptional-entries-for-reuse.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-introduce-radix_tree_replace_clear_tags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-free-up-the-bottom-bit-of-exceptional-entries-for-reuse.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-introduce-radix_tree_replace_clear_tags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-free-up-the-bottom-bit-of-exceptional-entries-for-reuse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,202 +41,92 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree: introduce radix_tree_replace_clear_tags()
+Subject: radix-tree: free up the bottom bit of exceptional entries for reuse
 
-In addition to replacing the entry, we also clear all associated tags. 
-This is really a one-off special for page_cache_tree_delete() which had
-far too much detailed knowledge about how the radix tree works.
+We are guaranteed that pointers to radix_tree_nodes always have the bottom
+two bits clear (because they come from a slab cache, and slab caches have
+a minimum alignment of sizeof(void *)), so we can redefine
+'radix_tree_is_internal_node' to only return true if the bottom two bits
+have value '01'.  This frees up one quarter of the potential values for
+use by the user.
 
-For efficiency, factor node_tag_clear() out of radix_tree_tag_clear() It
-can be used by radix_tree_delete_item() as well as
-radix_tree_replace_clear_tags().
+Idea from Neil Brown.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Suggested-by: Neil Brown <neilb@suse.de>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Jan Kara <jack@suse.com>
-Cc: Neil Brown <neilb@suse.de>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    9 ++--
- lib/radix-tree.c           |   76 +++++++++++++++++++++--------------
- mm/filemap.c               |   23 +---------
- 3 files changed, 56 insertions(+), 52 deletions(-)
+ include/linux/radix-tree.h |   36 +++++++++++++++++++++--------------
+ 1 file changed, 22 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-introduce-radix_tree_replace_clear_tags include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-introduce-radix_tree_replace_clear_tags
+diff -puN include/linux/radix-tree.h~radix-tree-free-up-the-bottom-bit-of-exceptional-entries-for-reuse include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-free-up-the-bottom-bit-of-exceptional-entries-for-reuse
 +++ a/include/linux/radix-tree.h
-@@ -281,9 +281,12 @@ bool __radix_tree_delete_node(struct rad
- 			      struct radix_tree_node *node);
- void *radix_tree_delete_item(struct radix_tree_root *, unsigned long, void *);
- void *radix_tree_delete(struct radix_tree_root *, unsigned long);
--unsigned int
--radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
--			unsigned long first_index, unsigned int max_items);
-+struct radix_tree_node *radix_tree_replace_clear_tags(
-+				struct radix_tree_root *root,
-+				unsigned long index, void *entry);
-+unsigned int radix_tree_gang_lookup(struct radix_tree_root *root,
-+			void **results, unsigned long first_index,
-+			unsigned int max_items);
- unsigned int radix_tree_gang_lookup_slot(struct radix_tree_root *root,
- 			void ***results, unsigned long *indices,
- 			unsigned long first_index, unsigned int max_items);
-diff -puN lib/radix-tree.c~radix-tree-introduce-radix_tree_replace_clear_tags lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-introduce-radix_tree_replace_clear_tags
-+++ a/lib/radix-tree.c
-@@ -740,6 +740,26 @@ void *radix_tree_tag_set(struct radix_tr
- }
- EXPORT_SYMBOL(radix_tree_tag_set);
+@@ -29,28 +29,37 @@
+ #include <linux/rcupdate.h>
  
-+static void node_tag_clear(struct radix_tree_root *root,
-+				struct radix_tree_node *node,
-+				unsigned int tag, unsigned int offset)
-+{
-+	while (node) {
-+		if (!tag_get(node, tag, offset))
-+			return;
-+		tag_clear(node, tag, offset);
-+		if (any_tag_set(node, tag))
-+			return;
-+
-+		offset = node->offset;
-+		node = node->parent;
-+	}
-+
-+	/* clear the root's tag bit */
-+	if (root_tag_get(root, tag))
-+		root_tag_clear(root, tag);
-+}
-+
- /**
-  *	radix_tree_tag_clear - clear a tag on a radix tree node
-  *	@root:		radix tree root
-@@ -776,28 +796,9 @@ void *radix_tree_tag_clear(struct radix_
- 		offset = radix_tree_descend(parent, &node, offset);
- 	}
+ /*
+- * Entries in the radix tree have the low bit set if they refer to a
+- * radix_tree_node.  If the low bit is clear then the entry is user data.
++ * The bottom two bits of the slot determine how the remaining bits in the
++ * slot are interpreted:
+  *
+- * We also use the low bit to indicate that the slot will be freed in the
+- * next RCU idle period, and users need to re-walk the tree to find the
+- * new slot for the index that they were looking for.  See the comment in
+- * radix_tree_shrink() for details.
++ * 00 - data pointer
++ * 01 - internal entry
++ * 10 - exceptional entry
++ * 11 - locked exceptional entry
++ *
++ * The internal entry may be a pointer to the next level in the tree, a
++ * sibling entry, or an indicator that the entry in this slot has been moved
++ * to another location in the tree and the lookup should be restarted.  While
++ * NULL fits the 'data pointer' pattern, it means that there is no entry in
++ * the tree for this index (no matter what level of the tree it is found at).
++ * This means that you cannot store NULL in the tree as a value for the index.
+  */
+-#define RADIX_TREE_INTERNAL_NODE	1
++#define RADIX_TREE_ENTRY_MASK		3UL
++#define RADIX_TREE_INTERNAL_NODE	1UL
  
--	if (node == NULL)
--		goto out;
--
--	index >>= shift;
--
--	while (parent) {
--		if (!tag_get(parent, tag, offset))
--			goto out;
--		tag_clear(parent, tag, offset);
--		if (any_tag_set(parent, tag))
--			goto out;
--
--		index >>= RADIX_TREE_MAP_SHIFT;
--		offset = index & RADIX_TREE_MAP_MASK;
--		parent = parent->parent;
--	}
-+	if (node)
-+		node_tag_clear(root, parent, tag, offset);
+ /*
+- * A common use of the radix tree is to store pointers to struct pages;
+- * but shmem/tmpfs needs also to store swap entries in the same tree:
+- * those are marked as exceptional entries to distinguish them.
++ * Most users of the radix tree store pointers but shmem/tmpfs stores swap
++ * entries in the same tree.  They are marked as exceptional entries to
++ * distinguish them from pointers to struct page.
+  * EXCEPTIONAL_ENTRY tests the bit, EXCEPTIONAL_SHIFT shifts content past it.
+  */
+ #define RADIX_TREE_EXCEPTIONAL_ENTRY	2
+ #define RADIX_TREE_EXCEPTIONAL_SHIFT	2
  
--	/* clear the root's tag bit */
--	if (root_tag_get(root, tag))
--		root_tag_clear(root, tag);
--
--out:
- 	return node;
- }
- EXPORT_SYMBOL(radix_tree_tag_clear);
-@@ -1526,14 +1527,9 @@ void *radix_tree_delete_item(struct radi
- 
- 	offset = get_slot_offset(node, slot);
- 
--	/*
--	 * Clear all tags associated with the item to be deleted.
--	 * This way of doing it would be inefficient, but seldom is any set.
--	 */
--	for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++) {
--		if (tag_get(node, tag, offset))
--			radix_tree_tag_clear(root, index, tag);
--	}
-+	/* Clear all tags associated with the item to be deleted.  */
-+	for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++)
-+		node_tag_clear(root, node, tag, offset);
- 
- 	delete_sibling_entries(node, node_to_entry(slot), offset);
- 	node->slots[offset] = NULL;
-@@ -1560,6 +1556,28 @@ void *radix_tree_delete(struct radix_tre
- }
- EXPORT_SYMBOL(radix_tree_delete);
- 
-+struct radix_tree_node *radix_tree_replace_clear_tags(
-+			struct radix_tree_root *root,
-+			unsigned long index, void *entry)
-+{
-+	struct radix_tree_node *node;
-+	void **slot;
-+
-+	__radix_tree_lookup(root, index, &node, &slot);
-+
-+	if (node) {
-+		unsigned int tag, offset = get_slot_offset(node, slot);
-+		for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++)
-+			node_tag_clear(root, node, tag, offset);
-+	} else {
-+		/* Clear root node tags */
-+		root->gfp_mask &= __GFP_BITS_MASK;
-+	}
-+
-+	radix_tree_replace_slot(slot, entry);
-+	return node;
-+}
-+
- /**
-  *	radix_tree_tagged - test whether any items in the tree are tagged
-  *	@root:		radix tree root
-diff -puN mm/filemap.c~radix-tree-introduce-radix_tree_replace_clear_tags mm/filemap.c
---- a/mm/filemap.c~radix-tree-introduce-radix_tree_replace_clear_tags
-+++ a/mm/filemap.c
-@@ -114,14 +114,11 @@ static void page_cache_tree_delete(struc
- 				   struct page *page, void *shadow)
+-static inline int radix_tree_is_internal_node(void *ptr)
++static inline bool radix_tree_is_internal_node(void *ptr)
  {
- 	struct radix_tree_node *node;
--	unsigned long index;
--	unsigned int offset;
--	unsigned int tag;
--	void **slot;
+-	return (int)((unsigned long)ptr & RADIX_TREE_INTERNAL_NODE);
++	return ((unsigned long)ptr & RADIX_TREE_ENTRY_MASK) ==
++				RADIX_TREE_INTERNAL_NODE;
+ }
  
- 	VM_BUG_ON(!PageLocked(page));
+ /*** radix-tree API starts here ***/
+@@ -236,8 +245,7 @@ static inline int radix_tree_exceptional
+  */
+ static inline int radix_tree_exception(void *arg)
+ {
+-	return unlikely((unsigned long)arg &
+-		(RADIX_TREE_INTERNAL_NODE | RADIX_TREE_EXCEPTIONAL_ENTRY));
++	return unlikely((unsigned long)arg & RADIX_TREE_ENTRY_MASK);
+ }
  
--	__radix_tree_lookup(&mapping->page_tree, page->index, &node, &slot);
-+	node = radix_tree_replace_clear_tags(&mapping->page_tree, page->index,
-+								shadow);
- 
- 	if (shadow) {
- 		mapping->nrexceptional++;
-@@ -135,23 +132,9 @@ static void page_cache_tree_delete(struc
- 	}
- 	mapping->nrpages--;
- 
--	if (!node) {
--		/* Clear direct pointer tags in root node */
--		mapping->page_tree.gfp_mask &= __GFP_BITS_MASK;
--		radix_tree_replace_slot(slot, shadow);
-+	if (!node)
- 		return;
--	}
--
--	/* Clear tree tags for the removed page */
--	index = page->index;
--	offset = index & RADIX_TREE_MAP_MASK;
--	for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++) {
--		if (test_bit(offset, node->tags[tag]))
--			radix_tree_tag_clear(&mapping->page_tree, index, tag);
--	}
- 
--	/* Delete page, swap shadow entry */
--	radix_tree_replace_slot(slot, shadow);
- 	workingset_node_pages_dec(node);
- 	if (shadow)
- 		workingset_node_shadows_inc(node);
+ /**
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
