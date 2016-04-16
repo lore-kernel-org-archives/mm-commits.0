@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- radix-tree-test-suite-add-tests-for-radix_tree_locate_item.patch added to
- -mm tree
-Date: Fri, 15 Apr 2016 22:58:00 -0700
-Message-ID: <5711d468.tibalHJH+Y4wqRol%akpm@linux-foundation.org>
+Subject: + radix-tree-test-suite-fix-build.patch added to -mm tree
+Date: Fri, 15 Apr 2016 22:57:58 -0700
+Message-ID: <5711d466.e6N1SUD+YDP2zoal%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33143 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33140 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751040AbcDPF6B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:58:01 -0400
+	with ESMTP id S1750967AbcDPF57 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:57:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: add tests for radix_tree_locate_item()
+     Subject: radix tree test suite: fix build
 has been added to the -mm tree.  Its filename is
-     radix-tree-test-suite-add-tests-for-radix_tree_locate_item.patch
+     radix-tree-test-suite-fix-build.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-add-tests-for-radix_tree_locate_item.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-fix-build.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-add-tests-for-radix_tree_locate_item.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,11 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix tree test suite: add tests for radix_tree_locate_item()
+Subject: radix tree test suite: fix build
 
-Fairly simple tests; add various items to the tree, then make sure we can
-find them again.  Also check that a pointer that we know isn't in the tree
-is not found.
+Add an empty linux/init.h, and definitions for a few parts of the kernel
+API either in use now, or to be used in the near future.  Start using the
+common definitions in tools/include/linux, although more work needs to be
+done here.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
@@ -56,78 +55,91 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux/kernel.h |    3 +
- tools/testing/radix-tree/main.c         |   41 ++++++++++++++++++++++
- 2 files changed, 44 insertions(+)
+ tools/testing/radix-tree/linux/kernel.h |   12 ++++++++++--
+ tools/testing/radix-tree/linux/slab.h   |    1 -
+ tools/testing/radix-tree/linux/types.h  |    7 ++-----
+ 3 files changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-add-tests-for-radix_tree_locate_item tools/testing/radix-tree/linux/kernel.h
---- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-add-tests-for-radix_tree_locate_item
+diff -puN tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-fix-build tools/testing/radix-tree/linux/kernel.h
+--- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-fix-build
 +++ a/tools/testing/radix-tree/linux/kernel.h
-@@ -9,6 +9,9 @@
+@@ -7,19 +7,25 @@
+ #include <stddef.h>
+ #include <limits.h>
  
- #include "../../include/linux/compiler.h"
- 
-+#define CONFIG_SHMEM
-+#define CONFIG_SWAP
++#include "../../include/linux/compiler.h"
 +
  #ifndef NULL
  #define NULL	0
  #endif
-diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-add-tests-for-radix_tree_locate_item tools/testing/radix-tree/main.c
---- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-add-tests-for-radix_tree_locate_item
-+++ a/tools/testing/radix-tree/main.c
-@@ -232,10 +232,51 @@ void copy_tag_check(void)
- 	item_kill_tree(&tree);
- }
  
-+void __locate_check(struct radix_tree_root *tree, unsigned long index)
-+{
-+	struct item *item;
-+	unsigned long index2;
+ #define BUG_ON(expr)	assert(!(expr))
++#define WARN_ON(expr)	assert(!(expr))
+ #define __init
+ #define __must_check
+ #define panic(expr)
+ #define printk printf
+ #define __force
+-#define likely(c) (c)
+-#define unlikely(c) (c)
+ #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
++#define pr_debug printk
 +
-+	item_insert(tree, index);
-+	item = item_lookup(tree, index);
-+	index2 = radix_tree_locate_item(tree, item);
-+	if (index != index2) {
-+		printf("index %ld inserted; found %ld\n",
-+			index, index2);
-+		abort();
-+	}
-+}
++#define smp_rmb()	barrier()
++#define smp_wmb()	barrier()
++#define cpu_relax()	barrier()
+ 
+ #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+ 
+@@ -28,6 +34,8 @@
+ 	(type *)( (char *)__mptr - offsetof(type, member) );})
+ #define min(a, b) ((a) < (b) ? (a) : (b))
+ 
++#define cond_resched()	sched_yield()
 +
-+static void locate_check(void)
-+{
-+	RADIX_TREE(tree, GFP_KERNEL);
-+	unsigned long offset, index;
-+
-+	for (offset = 0; offset < (1 << 3); offset++) {
-+		for (index = 0; index < (1UL << 5); index++) {
-+			__locate_check(&tree, index + offset);
-+		}
-+		if (radix_tree_locate_item(&tree, &tree) != -1)
-+			abort();
-+
-+		item_kill_tree(&tree);
-+	}
-+
-+	if (radix_tree_locate_item(&tree, &tree) != -1)
-+		abort();
-+	__locate_check(&tree, -1);
-+	if (radix_tree_locate_item(&tree, &tree) != -1)
-+		abort();
-+	item_kill_tree(&tree);
-+}
-+
- static void single_thread_tests(void)
+ static inline int in_interrupt(void)
  {
- 	int i;
+ 	return 0;
+diff -puN tools/testing/radix-tree/linux/slab.h~radix-tree-test-suite-fix-build tools/testing/radix-tree/linux/slab.h
+--- a/tools/testing/radix-tree/linux/slab.h~radix-tree-test-suite-fix-build
++++ a/tools/testing/radix-tree/linux/slab.h
+@@ -3,7 +3,6 @@
  
-+	printf("starting single_thread_tests: %d allocated\n", nr_allocated);
-+	locate_check();
-+	printf("after locate_check: %d allocated\n", nr_allocated);
- 	tag_check();
- 	printf("after tag_check: %d allocated\n", nr_allocated);
- 	gang_check();
+ #include <linux/types.h>
+ 
+-#define GFP_KERNEL 1
+ #define SLAB_HWCACHE_ALIGN 1
+ #define SLAB_PANIC 2
+ #define SLAB_RECLAIM_ACCOUNT    0x00020000UL            /* Objects are reclaimable */
+diff -puN tools/testing/radix-tree/linux/types.h~radix-tree-test-suite-fix-build tools/testing/radix-tree/linux/types.h
+--- a/tools/testing/radix-tree/linux/types.h~radix-tree-test-suite-fix-build
++++ a/tools/testing/radix-tree/linux/types.h
+@@ -1,15 +1,13 @@
+ #ifndef _TYPES_H
+ #define _TYPES_H
+ 
++#include "../../include/linux/types.h"
++
+ #define __rcu
+ #define __read_mostly
+ 
+ #define BITS_PER_LONG (sizeof(long) * 8)
+ 
+-struct list_head {
+-	struct list_head *next, *prev;
+-};
+-
+ static inline void INIT_LIST_HEAD(struct list_head *list)
+ {
+ 	list->next = list;
+@@ -22,7 +20,6 @@ typedef struct {
+ 
+ #define uninitialized_var(x) x = x
+ 
+-typedef unsigned gfp_t;
+ #include <linux/gfp.h>
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
