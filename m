@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-add-missing-sibling-entry-functionality.patch added
- to -mm tree
-Date: Fri, 15 Apr 2016 22:58:12 -0700
-Message-ID: <5711d474.F+SfIql5Uk4QF54y%akpm@linux-foundation.org>
+Subject: + radix-tree-introduce-radix_tree_load_root.patch added to -mm
+ tree
+Date: Fri, 15 Apr 2016 22:58:20 -0700
+Message-ID: <5711d47c.44m0FZXjJeb/J5o2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33176 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33195 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751040AbcDPF6N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:58:13 -0400
+	with ESMTP id S1751040AbcDPF6V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:58:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: add missing sibling entry functionality
+     Subject: radix-tree: introduce radix_tree_load_root()
 has been added to the -mm tree.  Its filename is
-     radix-tree-add-missing-sibling-entry-functionality.patch
+     radix-tree-introduce-radix_tree_load_root.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-add-missing-sibling-entry-functionality.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-introduce-radix_tree_load_root.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-add-missing-sibling-entry-functionality.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-introduce-radix_tree_load_root.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree: add missing sibling entry functionality
+Subject: radix-tree: introduce radix_tree_load_root()
 
-The code I previously added to enable multiorder radix tree entries was
-untested and therefore buggy.  This commit adds the support functions that
-Ross and I decided were necessary over a four-week period of iterating
-various designs.
+All the tree walking functions start with some variant of this code;
+centralise it in one place so we're not chasing subtly different bugs
+everywhere.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
@@ -56,59 +55,42 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |   40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ lib/radix-tree.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN lib/radix-tree.c~radix-tree-add-missing-sibling-entry-functionality lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-add-missing-sibling-entry-functionality
+diff -puN lib/radix-tree.c~radix-tree-introduce-radix_tree_load_root lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-introduce-radix_tree_load_root
 +++ a/lib/radix-tree.c
-@@ -80,6 +80,46 @@ static inline void *indirect_to_ptr(void
- 	return (void *)((unsigned long)ptr & ~RADIX_TREE_INDIRECT_PTR);
+@@ -405,6 +405,29 @@ static inline unsigned long radix_tree_m
+ 	return height_to_maxindex[height];
  }
  
-+#ifdef CONFIG_RADIX_TREE_MULTIORDER
-+/* Sibling slots point directly to another slot in the same node */
-+static inline bool is_sibling_entry(struct radix_tree_node *parent, void *node)
++static inline unsigned long node_maxindex(struct radix_tree_node *node)
 +{
-+	void **ptr = node;
-+	return (parent->slots <= ptr) &&
-+			(ptr < parent->slots + RADIX_TREE_MAP_SIZE);
-+}
-+#else
-+static inline bool is_sibling_entry(struct radix_tree_node *parent, void *node)
-+{
-+	return false;
-+}
-+#endif
-+
-+static inline unsigned long get_slot_offset(struct radix_tree_node *parent,
-+						 void **slot)
-+{
-+	return slot - parent->slots;
++	return radix_tree_maxindex(node->path & RADIX_TREE_HEIGHT_MASK);
 +}
 +
-+static unsigned radix_tree_descend(struct radix_tree_node *parent,
-+				struct radix_tree_node **nodep, unsigned offset)
++static unsigned radix_tree_load_root(struct radix_tree_root *root,
++		struct radix_tree_node **nodep, unsigned long *maxindex)
 +{
-+	void **entry = rcu_dereference_raw(parent->slots[offset]);
++	struct radix_tree_node *node = rcu_dereference_raw(root->rnode);
 +
-+#ifdef CONFIG_RADIX_TREE_MULTIORDER
-+	if (radix_tree_is_indirect_ptr(entry)) {
-+		unsigned long siboff = get_slot_offset(parent, entry);
-+		if (siboff < RADIX_TREE_MAP_SIZE) {
-+			offset = siboff;
-+			entry = rcu_dereference_raw(parent->slots[offset]);
-+		}
++	*nodep = node;
++
++	if (likely(radix_tree_is_indirect_ptr(node))) {
++		node = indirect_to_ptr(node);
++		*maxindex = node_maxindex(node);
++		return (node->path & RADIX_TREE_HEIGHT_MASK) *
++			RADIX_TREE_MAP_SHIFT;
 +	}
-+#endif
 +
-+	*nodep = (void *)entry;
-+	return offset;
++	*maxindex = 0;
++	return 0;
 +}
 +
- static inline gfp_t root_gfp_mask(struct radix_tree_root *root)
- {
- 	return root->gfp_mask & __GFP_BITS_MASK;
+ /*
+  *	Extend a radix tree so it can store key @index.
+  */
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
