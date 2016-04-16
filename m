@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-test-suite-allow-testing-other-fan-out-values.patch
- added to -mm tree
-Date: Fri, 15 Apr 2016 22:58:02 -0700
-Message-ID: <5711d46a.WTI4pZvdlWfMf1KN%akpm@linux-foundation.org>
+Subject: +
+ radix-tree-test-suite-add-tests-for-radix_tree_locate_item.patch added to
+ -mm tree
+Date: Fri, 15 Apr 2016 22:58:00 -0700
+Message-ID: <5711d468.tibalHJH+Y4wqRol%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33148 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33143 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751040AbcDPF6D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:58:03 -0400
+	with ESMTP id S1751040AbcDPF6B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:58:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: allow testing other fan-out values
+     Subject: radix tree test suite: add tests for radix_tree_locate_item()
 has been added to the -mm tree.  Its filename is
-     radix-tree-test-suite-allow-testing-other-fan-out-values.patch
+     radix-tree-test-suite-add-tests-for-radix_tree_locate_item.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-allow-testing-other-fan-out-values.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-test-suite-add-tests-for-radix_tree_locate_item.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-allow-testing-other-fan-out-values.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-test-suite-add-tests-for-radix_tree_locate_item.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +40,15 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: radix tree test suite: allow testing other fan-out values
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: radix tree test suite: add tests for radix_tree_locate_item()
 
-The defines in regression2.c are already in radix-tree.h and duplicating
-them in the test case makes experimenting with other values for the
-fan-out harder than necessary.  Allow the user of the radix tree to decide
-what the fan-out should be rather than fixing it to 8 for non-kernel uses.
+Fairly simple tests; add various items to the tree, then make sure we can
+find them again.  Also check that a pointer that we know isn't in the tree
+is not found.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Jan Kara <jack@suse.com>
@@ -56,47 +56,98 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h              |    4 +---
- tools/testing/radix-tree/linux/kernel.h |    2 ++
- tools/testing/radix-tree/regression2.c  |    7 -------
- 3 files changed, 3 insertions(+), 10 deletions(-)
+ tools/testing/radix-tree/linux/kernel.h |    3 +
+ tools/testing/radix-tree/main.c         |   41 ++++++++++++++++++++++
+ 2 files changed, 44 insertions(+)
 
-diff -puN include/linux/radix-tree.h~radix-tree-test-suite-allow-testing-other-fan-out-values include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-test-suite-allow-testing-other-fan-out-values
-+++ a/include/linux/radix-tree.h
-@@ -70,10 +70,8 @@ static inline int radix_tree_is_indirect
- 
- #define RADIX_TREE_MAX_TAGS 3
- 
--#ifdef __KERNEL__
-+#ifndef RADIX_TREE_MAP_SHIFT
- #define RADIX_TREE_MAP_SHIFT	(CONFIG_BASE_SMALL ? 4 : 6)
--#else
--#define RADIX_TREE_MAP_SHIFT	3	/* For more stressful testing */
- #endif
- 
- #define RADIX_TREE_MAP_SIZE	(1UL << RADIX_TREE_MAP_SHIFT)
-diff -puN tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-allow-testing-other-fan-out-values tools/testing/radix-tree/linux/kernel.h
---- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-allow-testing-other-fan-out-values
+diff -puN tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-add-tests-for-radix_tree_locate_item tools/testing/radix-tree/linux/kernel.h
+--- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-add-tests-for-radix_tree_locate_item
 +++ a/tools/testing/radix-tree/linux/kernel.h
-@@ -12,6 +12,8 @@
- #define CONFIG_SHMEM
- #define CONFIG_SWAP
+@@ -9,6 +9,9 @@
  
-+#define RADIX_TREE_MAP_SHIFT	3
+ #include "../../include/linux/compiler.h"
+ 
++#define CONFIG_SHMEM
++#define CONFIG_SWAP
 +
  #ifndef NULL
  #define NULL	0
  #endif
-diff -puN tools/testing/radix-tree/regression2.c~radix-tree-test-suite-allow-testing-other-fan-out-values tools/testing/radix-tree/regression2.c
---- a/tools/testing/radix-tree/regression2.c~radix-tree-test-suite-allow-testing-other-fan-out-values
-+++ a/tools/testing/radix-tree/regression2.c
-@@ -51,13 +51,6 @@
+diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-add-tests-for-radix_tree_locate_item tools/testing/radix-tree/main.c
+--- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-add-tests-for-radix_tree_locate_item
++++ a/tools/testing/radix-tree/main.c
+@@ -232,10 +232,51 @@ void copy_tag_check(void)
+ 	item_kill_tree(&tree);
+ }
  
- #include "regression.h"
++void __locate_check(struct radix_tree_root *tree, unsigned long index)
++{
++	struct item *item;
++	unsigned long index2;
++
++	item_insert(tree, index);
++	item = item_lookup(tree, index);
++	index2 = radix_tree_locate_item(tree, item);
++	if (index != index2) {
++		printf("index %ld inserted; found %ld\n",
++			index, index2);
++		abort();
++	}
++}
++
++static void locate_check(void)
++{
++	RADIX_TREE(tree, GFP_KERNEL);
++	unsigned long offset, index;
++
++	for (offset = 0; offset < (1 << 3); offset++) {
++		for (index = 0; index < (1UL << 5); index++) {
++			__locate_check(&tree, index + offset);
++		}
++		if (radix_tree_locate_item(&tree, &tree) != -1)
++			abort();
++
++		item_kill_tree(&tree);
++	}
++
++	if (radix_tree_locate_item(&tree, &tree) != -1)
++		abort();
++	__locate_check(&tree, -1);
++	if (radix_tree_locate_item(&tree, &tree) != -1)
++		abort();
++	item_kill_tree(&tree);
++}
++
+ static void single_thread_tests(void)
+ {
+ 	int i;
  
--#ifdef __KERNEL__
--#define RADIX_TREE_MAP_SHIFT    (CONFIG_BASE_SMALL ? 4 : 6)
--#else
--#define RADIX_TREE_MAP_SHIFT    3       /* For more stressful testing */
--#endif
++	printf("starting single_thread_tests: %d allocated\n", nr_allocated);
++	locate_check();
++	printf("after locate_check: %d allocated\n", nr_allocated);
+ 	tag_check();
+ 	printf("after tag_check: %d allocated\n", nr_allocated);
+ 	gang_check();
+_
+
+Patches currently in -mm which might be from willy@linux.intel.com are
+
+radix-tree-introduce-radix_tree_empty.patch
+radix-tree-test-suite-fix-build.patch
+radix-tree-test-suite-add-tests-for-radix_tree_locate_item.patch
+introduce-config_radix_tree_multiorder.patch
+radix-tree-add-missing-sibling-entry-functionality.patch
+radix-tree-fix-sibling-entry-insertion.patch
+radix-tree-fix-deleting-a-multi-order-entry-through-an-alias.patch
+radix-tree-remove-restriction-on-multi-order-entries.patch
+radix-tree-introduce-radix_tree_load_root.patch
+radix-tree-fix-extending-the-tree-for-multi-order-entries-at-offset-0.patch
+radix-tree-test-suite-start-adding-multiorder-tests.patch
+radix-tree-fix-several-shrinking-bugs-with-multiorder-entries.patch
+radix-tree-rewrite-__radix_tree_lookup.patch
+radix-tree-fix-multiorder-bug_on-in-radix_tree_insert.patch
+radix-tree-fix-radix_tree_create-for-sibling-entries.patch
+radix-tree-rewrite-radix_tree_locate_item.patch
+radix-tree-fix-radix_tree_range_tag_if_tagged-for-multiorder-entries.patch
+radix-tree-add-copyright-statements.patch
+
