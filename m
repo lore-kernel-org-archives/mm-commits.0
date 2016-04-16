@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask.patch added to -mm tree
-Date: Sat, 16 Apr 2016 11:55:46 -0700
-Message-ID: <57128ab2.mpkO8HW0kphIwwK6%akpm@linux-foundation.org>
+Subject: + checkpatch-whine-about-access_once.patch added to -mm tree
+Date: Sat, 16 Apr 2016 13:20:19 -0700
+Message-ID: <57129e83.ldMaD9VD6pmZex45%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37964 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41834 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751606AbcDPSzr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 14:55:47 -0400
+	with ESMTP id S1751574AbcDPUUU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 16:20:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@shadowen.org, dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: remove unnecessary initialisation from __alloc_pages_nodemask()
+     Subject: checkpatch: whine about ACCESS_ONCE
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask.patch
+     checkpatch-whine-about-access_once.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-whine-about-acc=
+ess_once.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-whine-about-acc=
+ess_once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +34,78 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: remove unnecessary initialisation from __alloc_pages_nodemask()
+=46rom: Joe Perches <joe@perches.com>
+Subject: checkpatch: whine about ACCESS_ONCE
 
-page is guaranteed to be set before it is read with or without the
-initialisation.
+Add a test for use of ACCESS_ONCE that could be written using
+READ_ONCE or WRITE_ONCE.
 
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+--fix it too if desired.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask
-+++ a/mm/page_alloc.c
-@@ -3374,7 +3374,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 			struct zonelist *zonelist, nodemask_t *nodemask)
- {
- 	struct zoneref *preferred_zoneref;
--	struct page *page = NULL;
-+	struct page *page;
- 	unsigned int cpuset_mems_cookie;
- 	unsigned int alloc_flags = ALLOC_WMARK_LOW|ALLOC_FAIR;
- 	gfp_t alloc_mask; /* The gfp_t that was actually used for allocation */
+diff -puN scripts/checkpatch.pl~checkpatch-whine-about-access_once scri=
+pts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-whine-about-access_once
++++ a/scripts/checkpatch.pl
+@@ -5837,6 +5837,28 @@ sub process {
+ 			}
+ 		}
+=20
++# whine about ACCESS_ONCE
++		if ($^V && $^V ge 5.10.0 &&
++		=A0=A0=A0=A0$line =3D~ /\bACCESS_ONCE\s*$balanced_parens\s*(=3D(?!=3D=
+))?\s*($FuncArg)?/) {
++			my $par =3D $1;
++			my $eq =3D $2;
++			my $fun =3D $3;
++			$par =3D~ s/^\(\s*(.*)\s*\)$/$1/;
++			if (defined($eq)) {
++				if (WARN("PREFER_WRITE_ONCE",
++					=A0"Prefer WRITE_ONCE(<FOO>, <BAR>) over ACCESS_ONCE(<FOO>) =3D <=
+BAR>\n" . $herecurr) &&
++				=A0=A0=A0=A0$fix) {
++					$fixed[$fixlinenr] =3D~ s/\bACCESS_ONCE\s*\(\s*\Q$par\E\s*\)\s*$e=
+q\s*\Q$fun\E/WRITE_ONCE($par, $fun)/;
++				}
++			} else {
++				if (WARN("PREFER_READ_ONCE",
++					=A0"Prefer READ_ONCE(<FOO>) over ACCESS_ONCE(<FOO>)\n" . $herecur=
+r) &&
++				=A0=A0=A0=A0$fix) {
++					$fixed[$fixlinenr] =3D~ s/\bACCESS_ONCE\s*\(\s*\Q$par\E\s*\)/READ=
+_ONCE($par)/;
++				}
++			}
++		}
++
+ # check for lockdep_set_novalidate_class
+ 		if ($line =3D~ /^.\s*lockdep_set_novalidate_class\s*\(/ ||
+ 		    $line =3D~ /__lockdep_no_validate__\s*\)/ ) {
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-page_alloc-only-check-pagecompound-for-high-order-pages.patch
-mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path.patch
-mm-page_alloc-reduce-branches-in-zone_statistics.patch
-mm-page_alloc-inline-zone_statistics.patch
-mm-page_alloc-inline-the-fast-path-of-the-zonelist-iterator.patch
-mm-page_alloc-use-__dec_zone_state-for-order-0-page-allocation.patch
-mm-page_alloc-avoid-unnecessary-zone-lookups-during-pageblock-operations.patch
-mm-page_alloc-convert-alloc_flags-to-unsigned.patch
-mm-page_alloc-convert-nr_fair_skipped-to-bool.patch
-mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist.patch
-mm-page_alloc-remove-unnecessary-initialisation-in-get_page_from_freelist.patch
-mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask.patch
-mm-page_alloc-remove-redundant-check-for-empty-zonelist.patch
-mm-page_alloc-simplify-last-cpupid-reset.patch
-mm-page_alloc-move-might_sleep_if-check-to-the-allocator-slowpath.patch
-mm-page_alloc-move-__gfp_hardwall-modifications-out-of-the-fastpath.patch
-mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch
-mm-page_alloc-shorten-the-page-allocator-fast-path.patch
-mm-page_alloc-reduce-cost-of-fair-zone-allocation-policy-retry.patch
-mm-page_alloc-shortcut-watermark-checks-for-order-0-pages.patch
-mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice.patch
-mm-page_alloc-remove-field-from-alloc_context.patch
-mm-page_alloc-check-multiple-page-fields-with-a-single-branch.patch
-mm-page_alloc-remove-unnecessary-variable-from-free_pcppages_bulk.patch
-mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths.patch
-mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch
-mm-page_alloc-defer-debugging-checks-of-pages-allocated-from-the-pcp.patch
+checkpatch-add-prefer_is_enabled-test.patch
+checkpatch-improve-constant_comparison-test-for-structure-members.patch
+checkpatch-whine-about-access_once.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
