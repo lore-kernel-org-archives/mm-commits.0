@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-rewrite-radix_tree_tag_clear.patch added to -mm tree
-Date: Fri, 15 Apr 2016 22:58:38 -0700
-Message-ID: <5711d48e.uehthUzX0pY5rKPT%akpm@linux-foundation.org>
+Subject: + radix-tree-fix-radix_tree_dump-for-multi-order-entries.patch
+ added to -mm tree
+Date: Fri, 15 Apr 2016 22:58:50 -0700
+Message-ID: <5711d49a.i0k6KEsRkz1tdw0+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33391 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33425 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751058AbcDPF6j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:58:39 -0400
+	with ESMTP id S1750967AbcDPF6v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:58:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ross.zwisler@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: Rewrite radix_tree_tag_clear
+     Subject: radix-tree: fix radix_tree_dump() for multi-order entries
 has been added to the -mm tree.  Its filename is
-     radix-tree-rewrite-radix_tree_tag_clear.patch
+     radix-tree-fix-radix_tree_dump-for-multi-order-entries.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-rewrite-radix_tree_tag_clear.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-fix-radix_tree_dump-for-multi-order-entries.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-rewrite-radix_tree_tag_clear.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-fix-radix_tree_dump-for-multi-order-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,10 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: radix-tree: Rewrite radix_tree_tag_clear
+Subject: radix-tree: fix radix_tree_dump() for multi-order entries
 
-Use the new multi-order support functions to rewrite
-radix_tree_tag_clear()
+ - Print which indices are covered by every leaf entry
+ - Print sibling entries
+ - Print the node pointer instead of the slot entry
+ - Build by default in userspace, and make it accessible to the test-suite
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
@@ -53,85 +56,88 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |   44 ++++++++++++++++++++------------------------
- 1 file changed, 20 insertions(+), 24 deletions(-)
+ lib/radix-tree.c                |   48 ++++++++++++++++++------------
+ tools/testing/radix-tree/test.h |    1 
+ 2 files changed, 30 insertions(+), 19 deletions(-)
 
-diff -puN lib/radix-tree.c~radix-tree-rewrite-radix_tree_tag_clear lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-rewrite-radix_tree_tag_clear
+diff -puN lib/radix-tree.c~radix-tree-fix-radix_tree_dump-for-multi-order-entries lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-fix-radix_tree_dump-for-multi-order-entries
 +++ a/lib/radix-tree.c
-@@ -768,44 +768,40 @@ EXPORT_SYMBOL(radix_tree_tag_set);
- void *radix_tree_tag_clear(struct radix_tree_root *root,
- 			unsigned long index, unsigned int tag)
- {
--	struct radix_tree_node *node = NULL;
--	struct radix_tree_node *slot = NULL;
--	unsigned int height, shift;
-+	struct radix_tree_node *node, *parent;
-+	unsigned long maxindex;
-+	unsigned int shift;
- 	int uninitialized_var(offset);
- 
--	height = root->height;
--	if (index > radix_tree_maxindex(height))
--		goto out;
--
--	shift = height * RADIX_TREE_MAP_SHIFT;
--	slot = root->rnode;
-+	shift = radix_tree_load_root(root, &node, &maxindex);
-+	if (index > maxindex)
-+		return NULL;
- 
--	while (shift) {
--		if (slot == NULL)
--			goto out;
--		if (!radix_tree_is_indirect_ptr(slot))
--			break;
--		slot = indirect_to_ptr(slot);
-+	parent = NULL;
- 
-+	while (radix_tree_is_indirect_ptr(node)) {
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
--		node = slot;
--		slot = slot->slots[offset];
-+
-+		parent = indirect_to_ptr(node);
-+		offset = radix_tree_descend(parent, &node, offset);
- 	}
- 
--	if (slot == NULL)
-+	if (node == NULL)
- 		goto out;
- 
--	while (node) {
--		if (!tag_get(node, tag, offset))
-+	index >>= shift;
-+
-+	while (parent) {
-+		if (!tag_get(parent, tag, offset))
- 			goto out;
--		tag_clear(node, tag, offset);
--		if (any_tag_set(node, tag))
-+		tag_clear(parent, tag, offset);
-+		if (any_tag_set(parent, tag))
- 			goto out;
- 
- 		index >>= RADIX_TREE_MAP_SHIFT;
- 		offset = index & RADIX_TREE_MAP_MASK;
--		node = node->parent;
-+		parent = parent->parent;
- 	}
- 
- 	/* clear the root's tag bit */
-@@ -813,7 +809,7 @@ void *radix_tree_tag_clear(struct radix_
- 		root_tag_clear(root, tag);
- 
- out:
--	return slot;
-+	return node;
+@@ -215,27 +215,36 @@ radix_tree_find_next_bit(const unsigned
+ 	return size;
  }
- EXPORT_SYMBOL(radix_tree_tag_clear);
  
+-#if 0
+-static void dump_node(void *slot, int height, int offset)
++#ifndef __KERNEL__
++static void dump_node(struct radix_tree_node *node, unsigned offset,
++				unsigned shift, unsigned long index)
+ {
+-	struct radix_tree_node *node;
+-	int i;
++	unsigned long i;
+ 
+-	if (!slot)
+-		return;
+-
+-	if (height == 0) {
+-		pr_debug("radix entry %p offset %d\n", slot, offset);
+-		return;
+-	}
+-
+-	node = indirect_to_ptr(slot);
+ 	pr_debug("radix node: %p offset %d tags %lx %lx %lx path %x count %d parent %p\n",
+-		slot, offset, node->tags[0][0], node->tags[1][0],
+-		node->tags[2][0], node->path, node->count, node->parent);
+-
+-	for (i = 0; i < RADIX_TREE_MAP_SIZE; i++)
+-		dump_node(node->slots[i], height - 1, i);
++		node, offset,
++		node->tags[0][0], node->tags[1][0], node->tags[2][0],
++		node->path, node->count, node->parent);
++
++	for (i = 0; i < RADIX_TREE_MAP_SIZE; i++) {
++		unsigned long first = index | (i << shift);
++		unsigned long last = first | ((1UL << shift) - 1);
++		void *entry = node->slots[i];
++		if (!entry)
++			continue;
++		if (is_sibling_entry(node, entry)) {
++			pr_debug("radix sblng %p offset %ld val %p indices %ld-%ld\n",
++					entry, i,
++					*(void **)indirect_to_ptr(entry),
++					first, last);
++		} else if (!radix_tree_is_indirect_ptr(entry)) {
++			pr_debug("radix entry %p offset %ld indices %ld-%ld\n",
++					entry, i, first, last);
++		} else {
++			dump_node(indirect_to_ptr(entry), i,
++					shift - RADIX_TREE_MAP_SHIFT, first);
++		}
++	}
+ }
+ 
+ /* For debug */
+@@ -246,7 +255,8 @@ static void radix_tree_dump(struct radix
+ 			root->gfp_mask >> __GFP_BITS_SHIFT);
+ 	if (!radix_tree_is_indirect_ptr(root->rnode))
+ 		return;
+-	dump_node(root->rnode, root->height, 0);
++	dump_node(indirect_to_ptr(root->rnode), 0,
++				(root->height - 1) * RADIX_TREE_MAP_SHIFT, 0);
+ }
+ #endif
+ 
+diff -puN tools/testing/radix-tree/test.h~radix-tree-fix-radix_tree_dump-for-multi-order-entries tools/testing/radix-tree/test.h
+--- a/tools/testing/radix-tree/test.h~radix-tree-fix-radix_tree_dump-for-multi-order-entries
++++ a/tools/testing/radix-tree/test.h
+@@ -40,5 +40,6 @@ extern int nr_allocated;
+ 
+ /* Normally private parts of lib/radix-tree.c */
+ void *indirect_to_ptr(void *ptr);
++void radix_tree_dump(struct radix_tree_root *root);
+ int root_tag_get(struct radix_tree_root *root, unsigned int tag);
+ unsigned long radix_tree_maxindex(unsigned int height);
 _
 
 Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
