@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch added to -mm tree
-Date: Fri, 15 Apr 2016 16:12:37 -0700
-Message-ID: <57117565.3Qk6mNkRKfuQI1m9%akpm@linux-foundation.org>
+Subject: + dax-add-dax_get_unmapped_area-for-pmd-mappings.patch added to
+ -mm tree
+Date: Fri, 15 Apr 2016 22:05:53 -0700
+Message-ID: <5711c831.5A3rRSxi6nfSm3VO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59087 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565AbcDOXMi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Apr 2016 19:12:38 -0400
+	with ESMTP id S1751214AbcDPFFz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 01:05:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: toshi.kani@hpe.com, adilger.kernel@dilger.ca, dan.j.williams@intel.com, david@fromorbit.com, jack@suse.cz, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: defer debugging checks of freed pages until a PCP drain
+     Subject: dax: add dax_get_unmapped_area for pmd mappings
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch
+     dax-add-dax_get_unmapped_area-for-pmd-mappings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-add-dax_get_unmapped_area-for-pmd-mappings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-add-dax_get_unmapped_area-for-pmd-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,335 +39,128 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: defer debugging checks of freed pages until a PCP drain
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: dax: add dax_get_unmapped_area for pmd mappings
 
-Every page free checks a number of page fields for validity.  This catches
-premature frees and corruptions but it is also expensive.  This patch
-weakens the debugging check by checking PCP pages at the time they are
-drained from the PCP list.  This will trigger the bug but the site that
-freed the corrupt page will be lost.  To get the full context, a kernel
-rebuild with DEBUG_VM is necessary.
+When CONFIG_FS_DAX_PMD is set, DAX supports mmap() using pmd page size. 
+This feature relies on both mmap virtual address and FS block (i.e. 
+physical address) to be aligned by the pmd page size.  Users can use mkfs
+options to specify FS to align block allocations.  However, aligning mmap
+address requires code changes to existing applications for providing a
+pmd-aligned address to mmap().
 
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+For instance, fio with "ioengine=mmap" performs I/Os with mmap() [1].  It
+calls mmap() with a NULL address, which needs to be changed to provide a
+pmd-aligned address for testing with DAX pmd mappings.  Changing all
+applications that call mmap() with NULL is undesirable.
+
+Add dax_get_unmapped_area(), which can be called by filesystem's
+get_unmapped_area to align an mmap address by the pmd size for a DAX file.
+It calls the default handler, mm->get_unmapped_area(), to find a range
+and then aligns it for a DAX file.
+
+[1]: https://github.com/axboe/fio/blob/master/engines/mmap.c
+
+The point is that we do not need to modify existing applications for using
+DAX PMD mappings.
+
+For instance, fio with "ioengine=mmap" performs I/Os with mmap(). 
+https://github.com/caius/fio/blob/master/engines/mmap.c
+
+With this change, unmodified fio can be used for testing with DAX PMD
+mappings.  There are many examples like this, and I do not think we want
+to modify all applications that we want to evaluate/test with.
+
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  244 +++++++++++++++++++++++++++-------------------
- 1 file changed, 146 insertions(+), 98 deletions(-)
+ fs/dax.c            |   43 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/dax.h |    3 ++
+ 2 files changed, 46 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain
-+++ a/mm/page_alloc.c
-@@ -939,6 +939,148 @@ static inline int free_pages_check(struc
- 	return 1;
+diff -puN fs/dax.c~dax-add-dax_get_unmapped_area-for-pmd-mappings fs/dax.c
+--- a/fs/dax.c~dax-add-dax_get_unmapped_area-for-pmd-mappings
++++ a/fs/dax.c
+@@ -1158,3 +1158,46 @@ int dax_truncate_page(struct inode *inod
+ 	return dax_zero_page_range(inode, from, length, get_block);
  }
- 
-+static int free_tail_pages_check(struct page *head_page, struct page *page)
+ EXPORT_SYMBOL_GPL(dax_truncate_page);
++
++/**
++ * dax_get_unmapped_area - handle get_unmapped_area for a DAX file
++ * @filp: The file being mmap'd, if not NULL
++ * @addr: The mmap address. If NULL, the kernel assigns the address
++ * @len: The mmap size in bytes
++ * @pgoff: The page offset in the file where the mapping starts from.
++ * @flags: The mmap flags
++ *
++ * This function can be called by a filesystem for get_unmapped_area().
++ * When a target file is a DAX file, it aligns the mmap address at the
++ * beginning of the file by the pmd size.
++ */
++unsigned long dax_get_unmapped_area(struct file *filp, unsigned long addr,
++		unsigned long len, unsigned long pgoff, unsigned long flags)
 +{
-+	int ret = 1;
++	unsigned long off, off_end, off_pmd, len_pmd, addr_pmd;
 +
-+	/*
-+	 * We rely page->lru.next never has bit 0 set, unless the page
-+	 * is PageTail(). Let's make sure that's true even for poisoned ->lru.
-+	 */
-+	BUILD_BUG_ON((unsigned long)LIST_POISON1 & 1);
++	if (!IS_ENABLED(CONFIG_FS_DAX_PMD) ||
++	    !filp || addr || !IS_DAX(filp->f_mapping->host))
++		goto out;
 +
-+	if (!IS_ENABLED(CONFIG_DEBUG_VM)) {
-+		ret = 0;
++	off = pgoff << PAGE_SHIFT;
++	off_end = off + len;
++	off_pmd = round_up(off, PMD_SIZE);  /* pmd-aligned offset */
++
++	if ((off_end <= off_pmd) || ((off_end - off_pmd) < PMD_SIZE))
 +		goto out;
-+	}
-+	switch (page - head_page) {
-+	case 1:
-+		/* the first tail page: ->mapping is compound_mapcount() */
-+		if (unlikely(compound_mapcount(page))) {
-+			bad_page(page, "nonzero compound_mapcount", 0);
-+			goto out;
-+		}
-+		break;
-+	case 2:
-+		/*
-+		 * the second tail page: ->mapping is
-+		 * page_deferred_list().next -- ignore value.
-+		 */
-+		break;
-+	default:
-+		if (page->mapping != TAIL_MAPPING) {
-+			bad_page(page, "corrupted mapping in tail page", 0);
-+			goto out;
-+		}
-+		break;
-+	}
-+	if (unlikely(!PageTail(page))) {
-+		bad_page(page, "PageTail not set", 0);
++
++	len_pmd = len + PMD_SIZE;
++	if ((off + len_pmd) < off)
 +		goto out;
++
++	addr_pmd = current->mm->get_unmapped_area(filp, addr, len_pmd,
++						  pgoff, flags);
++	if (!IS_ERR_VALUE(addr_pmd)) {
++		addr_pmd += (off - addr_pmd) & (PMD_SIZE - 1);
++		return addr_pmd;
 +	}
-+	if (unlikely(compound_head(page) != head_page)) {
-+		bad_page(page, "compound_head not consistent", 0);
-+		goto out;
-+	}
-+	ret = 0;
 +out:
-+	page->mapping = NULL;
-+	clear_compound_head(page);
-+	return ret;
++	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
 +}
-+
-+static bool free_pages_prepare(struct page *page, unsigned int order)
-+{
-+	int bad = 0;
-+
-+	VM_BUG_ON_PAGE(PageTail(page), page);
-+
-+	trace_mm_page_free(page, order);
-+	kmemcheck_free_shadow(page, order);
-+	kasan_free_pages(page, order);
-+
-+	/*
-+	 * Check tail pages before head page information is cleared to
-+	 * avoid checking PageCompound for order-0 pages.
-+	 */
-+	if (order) {
-+		bool compound = PageCompound(page);
-+		int i;
-+
-+		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
-+
-+		for (i = 1; i < (1 << order); i++) {
-+			if (compound)
-+				bad += free_tail_pages_check(page, page + i);
-+			bad += free_pages_check(page + i);
-+		}
-+	}
-+	if (PageAnonHead(page))
-+		page->mapping = NULL;
-+	bad += free_pages_check(page);
-+	if (bad)
-+		return false;
-+
-+	reset_page_owner(page, order);
-+
-+	if (!PageHighMem(page)) {
-+		debug_check_no_locks_freed(page_address(page),
-+					   PAGE_SIZE << order);
-+		debug_check_no_obj_freed(page_address(page),
-+					   PAGE_SIZE << order);
-+	}
-+	arch_free_page(page, order);
-+	kernel_poison_pages(page, 1 << order, 0);
-+	kernel_map_pages(page, 1 << order, 0);
-+
-+	return true;
-+}
-+
-+#ifdef CONFIG_DEBUG_VM
-+static inline bool free_pcp_prepare(struct page *page)
-+{
-+	return free_pages_prepare(page, 0);
-+}
-+
-+static inline bool bulkfree_pcp_prepare(struct page *page)
-+{
-+	return false;
-+}
-+#else
-+static bool free_pcp_prepare(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(PageTail(page), page);
-+
-+	trace_mm_page_free(page, 0);
-+	kmemcheck_free_shadow(page, 0);
-+	kasan_free_pages(page, 0);
-+
-+	if (PageAnonHead(page))
-+		page->mapping = NULL;
-+
-+	reset_page_owner(page, 0);
-+
-+	if (!PageHighMem(page)) {
-+		debug_check_no_locks_freed(page_address(page),
-+					   PAGE_SIZE);
-+		debug_check_no_obj_freed(page_address(page),
-+					   PAGE_SIZE);
-+	}
-+	arch_free_page(page, 0);
-+	kernel_poison_pages(page, 0, 0);
-+	kernel_map_pages(page, 0, 0);
-+
-+	page_cpupid_reset_last(page);
-+	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-+	return true;
-+}
-+
-+static bool bulkfree_pcp_prepare(struct page *page)
-+{
-+	return free_pages_check(page);
-+}
-+#endif /* CONFIG_DEBUG_VM */
-+
- /*
-  * Frees a number of pages from the PCP lists
-  * Assumes all pages on list are in same zone, and of same order.
-@@ -999,6 +1141,9 @@ static void free_pcppages_bulk(struct zo
- 			if (unlikely(isolated_pageblocks))
- 				mt = get_pageblock_migratetype(page);
++EXPORT_SYMBOL_GPL(dax_get_unmapped_area);
+diff -puN include/linux/dax.h~dax-add-dax_get_unmapped_area-for-pmd-mappings include/linux/dax.h
+--- a/include/linux/dax.h~dax-add-dax_get_unmapped_area-for-pmd-mappings
++++ a/include/linux/dax.h
+@@ -17,12 +17,15 @@ int __dax_fault(struct vm_area_struct *,
  
-+			if (bulkfree_pcp_prepare(page))
-+				continue;
-+
- 			__free_one_page(page, page_to_pfn(page), zone, 0, mt);
- 			trace_mm_page_pcpu_drain(page, 0, mt);
- 		} while (--count && --batch_free && !list_empty(list));
-@@ -1025,56 +1170,6 @@ static void free_one_page(struct zone *z
- 	spin_unlock(&zone->lock);
- }
- 
--static int free_tail_pages_check(struct page *head_page, struct page *page)
--{
--	int ret = 1;
--
--	/*
--	 * We rely page->lru.next never has bit 0 set, unless the page
--	 * is PageTail(). Let's make sure that's true even for poisoned ->lru.
--	 */
--	BUILD_BUG_ON((unsigned long)LIST_POISON1 & 1);
--
--	if (!IS_ENABLED(CONFIG_DEBUG_VM)) {
--		ret = 0;
--		goto out;
--	}
--	switch (page - head_page) {
--	case 1:
--		/* the first tail page: ->mapping is compound_mapcount() */
--		if (unlikely(compound_mapcount(page))) {
--			bad_page(page, "nonzero compound_mapcount", 0);
--			goto out;
--		}
--		break;
--	case 2:
--		/*
--		 * the second tail page: ->mapping is
--		 * page_deferred_list().next -- ignore value.
--		 */
--		break;
--	default:
--		if (page->mapping != TAIL_MAPPING) {
--			bad_page(page, "corrupted mapping in tail page", 0);
--			goto out;
--		}
--		break;
--	}
--	if (unlikely(!PageTail(page))) {
--		bad_page(page, "PageTail not set", 0);
--		goto out;
--	}
--	if (unlikely(compound_head(page) != head_page)) {
--		bad_page(page, "compound_head not consistent", 0);
--		goto out;
--	}
--	ret = 0;
--out:
--	page->mapping = NULL;
--	clear_compound_head(page);
--	return ret;
--}
--
- static void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid)
+ #ifdef CONFIG_FS_DAX
+ struct page *read_dax_sector(struct block_device *bdev, sector_t n);
++unsigned long dax_get_unmapped_area(struct file *filp, unsigned long addr,
++		unsigned long len, unsigned long pgoff, unsigned long flags);
+ #else
+ static inline struct page *read_dax_sector(struct block_device *bdev,
+ 		sector_t n)
  {
-@@ -1148,53 +1243,6 @@ void __meminit reserve_bootmem_region(un
- 	}
+ 	return ERR_PTR(-ENXIO);
  }
++#define dax_get_unmapped_area	NULL
+ #endif
  
--static bool free_pages_prepare(struct page *page, unsigned int order)
--{
--	int bad = 0;
--
--	VM_BUG_ON_PAGE(PageTail(page), page);
--
--	trace_mm_page_free(page, order);
--	kmemcheck_free_shadow(page, order);
--	kasan_free_pages(page, order);
--
--	/*
--	 * Check tail pages before head page information is cleared to
--	 * avoid checking PageCompound for order-0 pages.
--	 */
--	if (order) {
--		bool compound = PageCompound(page);
--		int i;
--
--		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
--
--		for (i = 1; i < (1 << order); i++) {
--			if (compound)
--				bad += free_tail_pages_check(page, page + i);
--			bad += free_pages_check(page + i);
--		}
--	}
--	if (PageAnonHead(page))
--		page->mapping = NULL;
--	bad += free_pages_check(page);
--	if (bad)
--		return false;
--
--	reset_page_owner(page, order);
--
--	if (!PageHighMem(page)) {
--		debug_check_no_locks_freed(page_address(page),
--					   PAGE_SIZE << order);
--		debug_check_no_obj_freed(page_address(page),
--					   PAGE_SIZE << order);
--	}
--	arch_free_page(page, order);
--	kernel_poison_pages(page, 1 << order, 0);
--	kernel_map_pages(page, 1 << order, 0);
--
--	return true;
--}
--
- static void __free_pages_ok(struct page *page, unsigned int order)
- {
- 	unsigned long flags;
-@@ -2330,7 +2378,7 @@ void free_hot_cold_page(struct page *pag
- 	unsigned long pfn = page_to_pfn(page);
- 	int migratetype;
- 
--	if (!free_pages_prepare(page, 0))
-+	if (!free_pcp_prepare(page))
- 		return;
- 
- 	migratetype = get_pfnblock_migratetype(page, pfn);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from toshi.kani@hpe.com are
 
-mm-page_alloc-only-check-pagecompound-for-high-order-pages.patch
-mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path.patch
-mm-page_alloc-reduce-branches-in-zone_statistics.patch
-mm-page_alloc-inline-zone_statistics.patch
-mm-page_alloc-inline-the-fast-path-of-the-zonelist-iterator.patch
-mm-page_alloc-use-__dec_zone_state-for-order-0-page-allocation.patch
-mm-page_alloc-avoid-unnecessary-zone-lookups-during-pageblock-operations.patch
-mm-page_alloc-convert-alloc_flags-to-unsigned.patch
-mm-page_alloc-convert-nr_fair_skipped-to-bool.patch
-mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist.patch
-mm-page_alloc-remove-unnecessary-initialisation-in-get_page_from_freelist.patch
-mm-page_alloc-remove-redundant-check-for-empty-zonelist.patch
-mm-page_alloc-simplify-last-cpupid-reset.patch
-mm-page_alloc-move-might_sleep_if-check-to-the-allocator-slowpath.patch
-mm-page_alloc-move-__gfp_hardwall-modifications-out-of-the-fastpath.patch
-mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch
-mm-page_alloc-shorten-the-page-allocator-fast-path.patch
-mm-page_alloc-reduce-cost-of-fair-zone-allocation-policy-retry.patch
-mm-page_alloc-shortcut-watermark-checks-for-order-0-pages.patch
-mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice.patch
-mm-page_alloc-remove-field-from-alloc_context.patch
-mm-page_alloc-check-multiple-page-fields-with-a-single-branch.patch
-mm-page_alloc-remove-unnecessary-variable-from-free_pcppages_bulk.patch
-mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths.patch
-mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch
-mm-page_alloc-defer-debugging-checks-of-pages-allocated-from-the-pcp.patch
+dax-add-dax_get_unmapped_area-for-pmd-mappings.patch
+ext2-4-xfs-blk-call-dax_get_unmapped_area-for-dax-pmd-mappings.patch
 
