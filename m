@@ -1,16 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-whine-about-access_once.patch added to -mm tree
-Date: Sat, 16 Apr 2016 13:20:19 -0700
-Message-ID: <57129e83.ldMaD9VD6pmZex45%akpm@linux-foundation.org>
+Subject: [to-be-updated] checkpatch-whine-about-access_once.patch removed
+ from -mm tree
+Date: Sat, 16 Apr 2016 19:12:43 -0700
+Message-ID: <5712f11b.Vgrz68wO34KjliuB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41834 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56389 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751574AbcDPUUU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 16:20:20 -0400
+	with ESMTP id S1752049AbcDQCMq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 22:12:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, apw@shadowen.org, dave@stgolabs.net, mm-commits@vger.kernel.org
@@ -18,27 +19,10 @@ To: joe@perches.com, apw@shadowen.org, dave@stgolabs.net, mm-commits@vger.kernel
 
 The patch titled
      Subject: checkpatch: whine about ACCESS_ONCE
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      checkpatch-whine-about-access_once.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-whine-about-acc=
-ess_once.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-whine-about-acc=
-ess_once.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 =46rom: Joe Perches <joe@perches.com>
@@ -102,7 +86,6 @@ Patches currently in -mm which might be from joe@perches.com are
 
 checkpatch-add-prefer_is_enabled-test.patch
 checkpatch-improve-constant_comparison-test-for-structure-members.patch
-checkpatch-whine-about-access_once.patch
 
 --
 To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
