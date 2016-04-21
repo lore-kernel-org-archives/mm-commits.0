@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch added
- to -mm tree
-Date: Thu, 21 Apr 2016 15:04:02 -0700
-Message-ID: <57194e52.Q6tu760hCJ7nOaWK%akpm@linux-foundation.org>
+Subject: + kcov-dont-profile-branches-in-kcov.patch added to -mm tree
+Date: Thu, 21 Apr 2016 15:07:28 -0700
+Message-ID: <57194f20.nbyiWho9ToKoOiwf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58801 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58921 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751302AbcDUWEE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 18:04:04 -0400
+	with ESMTP id S1751508AbcDUWH3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 18:07:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pmladek@suse.com, benh@kernel.crashing.org, daniel.thompson@linaro.org, davem@davemloft.net, jack@suse.cz, jkosina@suse.com, mingo@redhat.com, peterz@infradead.org, ralf@linux-mips.org, rmk+kernel@arm.linux.org.uk, rostedt@goodmis.org, schwidefsky@de.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, dvyukov@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk/nmi: warn when some message has been lost in NMI context
+     Subject: kcov: don't profile branches in kcov
 has been added to the -mm tree.  Its filename is
-     printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
+     kcov-dont-profile-branches-in-kcov.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kcov-dont-profile-branches-in-kcov.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kcov-dont-profile-branches-in-kcov.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,121 +38,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: printk/nmi: warn when some message has been lost in NMI context
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: kcov: don't profile branches in kcov
 
-We could not resize the temporary buffer in NMI context.  Let's warn if a
-message is lost.
+Profiling 'if' statements in __sanitizer_cov_trace_pc() leads to
+unbound recursion and crash:
+	__sanitizer_cov_trace_pc() ->
+		ftrace_likely_update ->
+			__sanitizer_cov_trace_pc() ...
 
-This is rather theoretical.  printk() should not be used in NMI.  The only
-sensible use is when we want to print backtrace from all CPUs.  The
-current buffer should be enough for this purpose.
+Define DISABLE_BRANCH_PROFILING to disable this tracer.
 
-[akpm@linux-foundation.org: whitespace fixlet]
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Jiri Kosina <jkosina@suse.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Daniel Thompson <daniel.thompson@linaro.org>
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/internal.h |   11 +++++++++++
- kernel/printk/nmi.c      |    5 ++++-
- kernel/printk/printk.c   |   10 ++++++++++
- 3 files changed, 25 insertions(+), 1 deletion(-)
+ kernel/kcov.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/printk/internal.h~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context kernel/printk/internal.h
---- a/kernel/printk/internal.h~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context
-+++ a/kernel/printk/internal.h
-@@ -34,6 +34,12 @@ static inline __printf(1, 0) int vprintk
- 	return this_cpu_read(printk_func)(fmt, args);
- }
+diff -puN kernel/kcov.c~kcov-dont-profile-branches-in-kcov kernel/kcov.c
+--- a/kernel/kcov.c~kcov-dont-profile-branches-in-kcov
++++ a/kernel/kcov.c
+@@ -1,5 +1,6 @@
+ #define pr_fmt(fmt) "kcov: " fmt
  
-+extern atomic_t nmi_message_lost;
-+static inline int get_nmi_message_lost(void)
-+{
-+	return atomic_xchg(&nmi_message_lost, 0);
-+}
-+
- #else /* CONFIG_PRINTK_NMI */
- 
- static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
-@@ -41,4 +47,9 @@ static inline __printf(1, 0) int vprintk
- 	return vprintk_default(fmt, args);
- }
- 
-+static inline int get_nmi_message_lost(void)
-+{
-+	return 0;
-+}
-+
- #endif /* CONFIG_PRINTK_NMI */
-diff -puN kernel/printk/nmi.c~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context kernel/printk/nmi.c
---- a/kernel/printk/nmi.c~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context
-+++ a/kernel/printk/nmi.c
-@@ -39,6 +39,7 @@
-  */
- DEFINE_PER_CPU(printk_func_t, printk_func) = vprintk_default;
- static int printk_nmi_irq_ready;
-+atomic_t nmi_message_lost;
- 
- #define NMI_LOG_BUF_LEN (4096 - sizeof(atomic_t) - sizeof(struct irq_work))
- 
-@@ -64,8 +65,10 @@ static int vprintk_nmi(const char *fmt,
- again:
- 	len = atomic_read(&s->len);
- 
--	if (len >= sizeof(s->buffer))
-+	if (len >= sizeof(s->buffer)) {
-+		atomic_inc(&nmi_message_lost);
- 		return 0;
-+	}
- 
- 	/*
- 	 * Make sure that all old data have been read before the buffer was
-diff -puN kernel/printk/printk.c~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context
-+++ a/kernel/printk/printk.c
-@@ -1617,6 +1617,7 @@ asmlinkage int vprintk_emit(int facility
- 	unsigned long flags;
- 	int this_cpu;
- 	int printed_len = 0;
-+	int nmi_message_lost;
- 	bool in_sched = false;
- 	/* cpu currently holding logbuf_lock in this function */
- 	static unsigned int logbuf_cpu = UINT_MAX;
-@@ -1667,6 +1668,15 @@ asmlinkage int vprintk_emit(int facility
- 					 strlen(recursion_msg));
- 	}
- 
-+	nmi_message_lost = get_nmi_message_lost();
-+	if (unlikely(nmi_message_lost)) {
-+		text_len = scnprintf(textbuf, sizeof(textbuf),
-+				     "BAD LUCK: lost %d message(s) from NMI context!",
-+				     nmi_message_lost);
-+		printed_len += log_store(0, 2, LOG_PREFIX|LOG_NEWLINE, 0,
-+					 NULL, 0, textbuf, text_len);
-+	}
-+
- 	/*
- 	 * The printf needs to come first; we need the syslog
- 	 * prefix which might be passed-in as a parameter.
++#define DISABLE_BRANCH_PROFILING
+ #include <linux/compiler.h>
+ #include <linux/types.h>
+ #include <linux/file.h>
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-printk-nmi-generic-solution-for-safe-printk-in-nmi.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
-printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable.patch
-printk-nmi-flush-nmi-messages-on-the-system-panic.patch
+kcov-dont-profile-branches-in-kcov.patch
 
