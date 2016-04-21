@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + update-email-address.patch added to -mm tree
-Date: Thu, 21 Apr 2016 16:35:33 -0700
-Message-ID: <571963c5.2jEIKPtOS0GzJhh6%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-dlm-return-zero-if-deref_done-message-is-successfully-handled.patch
+ added to -mm tree
+Date: Thu, 21 Apr 2016 16:36:59 -0700
+Message-ID: <5719641b.DgakMktbUwgt8+aZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34605 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34692 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753183AbcDUXfj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 19:35:39 -0400
+	with ESMTP id S1753183AbcDUXhA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 19:37:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ananth@in.ibm.com, ananth@linux.vnet.ibm.com, mhiramat@kernel.org, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Ananth has moved
+     Subject: ocfs2/dlm: return zero if deref_done message is successfully handled
 has been added to the -mm tree.  Its filename is
-     update-email-address.patch
+     ocfs2-dlm-return-zero-if-deref_done-message-is-successfully-handled.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/update-email-address.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-return-zero-if-deref_done-message-is-successfully-handled.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/update-email-address.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-return-zero-if-deref_done-message-is-successfully-handled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,34 +40,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Subject: Ananth has moved
+From: xuejiufei <xuejiufei@huawei.com>
+Subject: ocfs2/dlm: return zero if deref_done message is successfully handled
 
-The current ID is going away soon... update email address
+dlm_deref_lockres_done_handler() should return zero if the message is
+successfully handled.
 
-Signed-off-by: Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Fixes: 60d663cb5273 ("ocfs2/dlm: add DEREF_DONE message").
+Signed-off-by: xuejiufei <xuejiufei@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmmaster.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN MAINTAINERS~update-email-address MAINTAINERS
---- a/MAINTAINERS~update-email-address
-+++ a/MAINTAINERS
-@@ -6400,7 +6400,7 @@ F:	mm/kmemleak.c
- F:	mm/kmemleak-test.c
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-return-zero-if-deref_done-message-is-successfully-handled fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-return-zero-if-deref_done-message-is-successfully-handled
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -2455,6 +2455,8 @@ int dlm_deref_lockres_done_handler(struc
  
- KPROBES
--M:	Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-+M:	Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
- M:	Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
- M:	"David S. Miller" <davem@davemloft.net>
- M:	Masami Hiramatsu <mhiramat@kernel.org>
+ 	spin_unlock(&dlm->spinlock);
+ 
++	ret = 0;
++
+ done:
+ 	dlm_put(dlm);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from ananth@in.ibm.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-update-email-address.patch
+ocfs2-dlm-return-zero-if-deref_done-message-is-successfully-handled.patch
 
