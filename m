@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-execc-fix-minor-memory-leak.patch added to -mm tree
-Date: Thu, 21 Apr 2016 14:13:58 -0700
-Message-ID: <57194296.PkA+tTVuiuaiFdzB%akpm@linux-foundation.org>
+Subject: + mm-slab-clean-up-kmem_cache_node-setup-fix.patch added to -mm
+ tree
+Date: Thu, 21 Apr 2016 14:29:34 -0700
+Message-ID: <5719463e.Uz9UL8sVr8748jHe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57066 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753140AbcDUVN7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 17:13:59 -0400
+	with ESMTP id S1751657AbcDUV3f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 17:29:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, Valdis.Kletnieks@vt.edu, jonathanh@nvidia.com, nm@ti.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/exec.c: fix minor memory leak
+     Subject: mm/slab: clean-up kmem_cache_node setup-fix
 has been added to the -mm tree.  Its filename is
-     fs-execc-fix-minor-memory-leak.patch
+     mm-slab-clean-up-kmem_cache_node-setup-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-execc-fix-minor-memory-leak.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-clean-up-kmem_cache_node-setup-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-execc-fix-minor-memory-leak.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-clean-up-kmem_cache_node-setup-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,70 +39,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/exec.c: fix minor memory leak
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/slab: clean-up kmem_cache_node setup-fix
 
-When the to-be-removed argument's trailing '\0' is the final byte in the
-page, remove_arg_zero()'s logic will avoid freeing the page, will break
-from the loop and will then advance bprm->p to point at the first byte in
-the next page.  Net result: the final page for the zeroeth argument is
-unfreed.
+After calling free_block(), we need to re-calculate array_cache's
+avail counter. Fix it.
 
-It isn't a very important leak - that page will be freed later by the
-bprm-wide sweep in free_arg_pages().
+And, it's better to free objects in shared array when it is
+really necessary. Check it before calling free_block().
 
-Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=116841
-Reported by: hujunjie <jj.net@163.com>
-
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reported-by: Nishanth Menon <nm@ti.com>
+Tested-by: Jon Hunter <jonathanh@nvidia.com>
+Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/slab.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/exec.c~fs-execc-fix-minor-memory-leak fs/exec.c
---- a/fs/exec.c~fs-execc-fix-minor-memory-leak
-+++ a/fs/exec.c
-@@ -1482,8 +1482,15 @@ int remove_arg_zero(struct linux_binprm
- 		kunmap_atomic(kaddr);
- 		put_arg_page(page);
+diff -puN mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup-fix mm/slab.c
+--- a/mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup-fix
++++ a/mm/slab.c
+@@ -934,9 +934,10 @@ static int setup_kmem_cache_node(struct
  
--		if (offset == PAGE_SIZE)
-+		if (offset == PAGE_SIZE) {
- 			free_arg_page(bprm, (bprm->p >> PAGE_SHIFT) - 1);
-+		} else if (offset == PAGE_SIZE - 1) {
-+			/*
-+			 * The trailing '\0' is the last byte in a page - we're
-+			 * about to advance past that byte so free its page now
-+			 */
-+			free_arg_page(bprm, (bprm->p >> PAGE_SHIFT));
-+		}
- 	} while (offset == PAGE_SIZE);
+ 	n = get_node(cachep, node);
+ 	spin_lock_irq(&n->list_lock);
+-	if (n->shared) {
++	if (n->shared && force_change) {
+ 		free_block(cachep, n->shared->entry,
+ 				n->shared->avail, node, &list);
++		n->shared->avail = 0;
+ 	}
  
- 	bprm->p++;
+ 	if (!n->shared || force_change) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
-include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-include-linux-nodemaskh-create-next_node_in-helper.patch
-include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
-mm-hugetlbc-use-first_memory_node.patch
-mm-mempolicyc-offset_il_node-document-and-clarify.patch
-mm-compaction-direct-freepage-allocation-for-async-direct-compaction-checkpatch-fixes.patch
-mm-uninline-page_mapped.patch
-mm-uninline-page_mapped-checkpatch-fixes.patch
-memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
-exit_thread-remove-empty-bodies-fix.patch
-exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
-fs-execc-fix-minor-memory-leak.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-slab-hold-a-slab_mutex-when-calling-__kmem_cache_shrink.patch
+mm-slab-remove-bad_alien_magic-again.patch
+mm-slab-drain-the-free-slab-as-much-as-possible.patch
+mm-slab-factor-out-kmem_cache_node-initialization-code.patch
+mm-slab-clean-up-kmem_cache_node-setup.patch
+mm-slab-clean-up-kmem_cache_node-setup-fix.patch
+mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
+mm-slab-racy-access-modify-the-slab-color.patch
+mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
+mm-slab-separate-cache_grow-to-two-parts.patch
+mm-slab-refill-cpu-cache-through-a-new-slab-without-holding-a-node-lock.patch
+mm-slab-lockless-decision-to-grow-cache.patch
+mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
+mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic.patch
+mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
+mm-vmstat-add-zone-range-overlapping-check.patch
+mm-page_owner-add-zone-range-overlapping-check.patch
+power-add-zone-range-overlapping-check.patch
+mm-writeback-correct-dirty-page-calculation-for-highmem.patch
+mm-page_alloc-correct-highmem-memory-statistics.patch
+mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
+mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
 
