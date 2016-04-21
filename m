@@ -1,53 +1,63 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- huge-tmpfs-recovery-shmem_recovery_swapin-to-read-from-swap.patch removed
- from -mm tree
-Date: Thu, 21 Apr 2016 13:46:54 -0700
-Message-ID: <57193c3e.o5T/OMYWGrXF6dmX%akpm@linux-foundation.org>
+ huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase.patch removed from -mm tree
+Date: Thu, 21 Apr 2016 13:47:00 -0700
+Message-ID: <57193c44.NXO4Eiq9ZNy28UIK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55242 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752827AbcDUUqz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 16:46:55 -0400
+	with ESMTP id S1751707AbcDUUrB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 16:47:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs recovery: shmem_recovery_swapin to read from swap
+     Subject: huge tmpfs recovery: debugfs stats to complete this phase
 has been removed from the -mm tree.  Its filename was
-     huge-tmpfs-recovery-shmem_recovery_swapin-to-read-from-swap.patch
+     huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs recovery: shmem_recovery_swapin to read from swap
+Subject: huge tmpfs recovery: debugfs stats to complete this phase
 
-If pages of the extent are out on swap, we would much prefer to read them
-in to their final locations on the assigned huge page, than have
-swapin_readahead() adding unrelated pages, and __read_swap_cache_async()
-allocating intermediate pages, from which we would then have to migrate
-(though some may well be already in swapcache, and then need migration).
+Implement the shr_stats(name) macro that has been inserted all over, to
+make the success of recovery visible in debugfs.  After a little testing,
+"cd /sys/kernel/debug/shmem_huge_recovery; grep . *" showed:
 
-And we'd like to get all the swap I/O underway at the start, then wait on
-it in probably a single page lock of the main population loop: which can
-forget about swap, leaving shmem_getpage_gfp() to handle the transitions
-from swapcache to pagecache.
-
-shmem_recovery_swapin() is very much based on __read_swap_cache_async(),
-but the things it needs to worry about are not always the same: it does
-not matter if __read_swap_cache_async() occasionally reads an unrelated
-page which has inherited a freed swap block; but shmem_recovery_swapin()
-better not place that inside the huge page it is helping to build.
-
-Ifdef CONFIG_SWAP around it and its shmem_next_swap() helper because a
-couple of functions it calls are undeclared without CONFIG_SWAP.
+huge_alloced:15872
+huge_failed:0
+huge_too_late:0
+page_created:0
+page_migrate:1298014
+page_off_lru:300
+page_raced:0
+page_teamed:6831300
+page_unmigrated:3243
+recov_completed:15484
+recov_failed:0
+recov_partial:696
+recov_retried:2463
+remap_another:0
+remap_faulter:15484
+remap_untried:0
+resume_tagged:279
+resume_teamed:68
+swap_cached:699229
+swap_entry:7530549
+swap_gone:20
+swap_read:6831300
+work_already:43218374
+work_queued:16221
+work_too_late:2
+work_too_many:0
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -59,127 +69,130 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |  101 +++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 101 insertions(+)
+ Documentation/filesystems/tmpfs.txt |    2 
+ mm/shmem.c                          |   91 ++++++++++++++++++++++++--
+ 2 files changed, 88 insertions(+), 5 deletions(-)
 
-diff -puN mm/shmem.c~huge-tmpfs-recovery-shmem_recovery_swapin-to-read-from-swap mm/shmem.c
---- a/mm/shmem.c~huge-tmpfs-recovery-shmem_recovery_swapin-to-read-from-swap
-+++ a/mm/shmem.c
-@@ -804,6 +804,105 @@ static bool shmem_work_still_useful(stru
- 		!RB_EMPTY_ROOT(&mapping->i_mmap);  /* file is still mapped */
- }
+diff -puN Documentation/filesystems/tmpfs.txt~huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase Documentation/filesystems/tmpfs.txt
+--- a/Documentation/filesystems/tmpfs.txt~huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase
++++ a/Documentation/filesystems/tmpfs.txt
+@@ -224,6 +224,8 @@ shmem_pmdmapped 12582912   bytes tmpfs h
+ Note: the individual pages of a huge team might be charged to different
+ memcgs, but these counts assume that they are all charged to the same as head.
  
-+#ifdef CONFIG_SWAP
-+static void *shmem_next_swap(struct address_space *mapping,
-+			     pgoff_t *index, pgoff_t end)
-+{
-+	pgoff_t start = *index + 1;
-+	struct radix_tree_iter iter;
-+	void **slot;
-+	void *radswap;
++/sys/kernel/debug/shmem_huge_recovery: recovery stats to assist development.
 +
-+	rcu_read_lock();
-+restart:
-+	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
-+		if (iter.index >= end)
-+			break;
-+		radswap = radix_tree_deref_slot(slot);
-+		if (radix_tree_exception(radswap)) {
-+			if (radix_tree_deref_retry(radswap))
-+				goto restart;
-+			goto out;
-+		}
-+	}
-+	radswap = NULL;
-+out:
-+	rcu_read_unlock();
-+	*index = iter.index;
-+	return radswap;
-+}
+ Author:
+    Christoph Rohland <cr@sap.com>, 1.12.01
+ Updated:
+diff -puN mm/shmem.c~huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase mm/shmem.c
+--- a/mm/shmem.c~huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase
++++ a/mm/shmem.c
+@@ -6,8 +6,8 @@
+  *		 2000-2001 Christoph Rohland
+  *		 2000-2001 SAP AG
+  *		 2002 Red Hat Inc.
+- * Copyright (C) 2002-2011 Hugh Dickins.
+- * Copyright (C) 2011 Google Inc.
++ * Copyright (C) 2002-2016 Hugh Dickins.
++ * Copyright (C) 2011-2016 Google Inc.
+  * Copyright (C) 2002-2005 VERITAS Software Corporation.
+  * Copyright (C) 2004 Andi Kleen, SuSE Labs
+  *
+@@ -788,9 +788,90 @@ struct recovery {
+ 	bool exposed_team;
+ };
+ 
+-#define shr_stats(x)	do {} while (0)
+-#define shr_stats_add(x, n) do {} while (0)
+-/* Stats implemented in a later patch */
++#ifdef CONFIG_DEBUG_FS
++#include <linux/debugfs.h>
 +
-+static void shmem_recovery_swapin(struct recovery *recovery, struct page *head)
-+{
-+	struct shmem_inode_info *info = SHMEM_I(recovery->inode);
-+	struct address_space *mapping = recovery->inode->i_mapping;
-+	pgoff_t index = recovery->head_index - 1;
-+	pgoff_t end = recovery->head_index + HPAGE_PMD_NR;
-+	struct blk_plug plug;
-+	void *radswap;
-+	int error;
-+
++static struct dentry *shr_debugfs_root;
++static struct {
 +	/*
-+	 * If the file has nothing swapped out, don't waste time here.
-+	 * If the team has already been exposed by an earlier attempt,
-+	 * it is not safe to pursue this optimization again - truncation
-+	 * *might* let swapin I/O overlap with fresh use of the page.
++	 * Just stats: no need to use atomics; and although many of these
++	 * u32s can soon overflow, debugging doesn't need them to be u64s.
 +	 */
-+	if (!info->swapped || recovery->exposed_team)
-+		return;
++	u32 huge_alloced;
++	u32 huge_failed;
++	u32 huge_too_late;
++	u32 page_created;
++	u32 page_migrate;
++	u32 page_off_lru;
++	u32 page_raced;
++	u32 page_teamed;
++	u32 page_unmigrated;
++	u32 recov_completed;
++	u32 recov_failed;
++	u32 recov_partial;
++	u32 recov_retried;
++	u32 remap_another;
++	u32 remap_faulter;
++	u32 remap_untried;
++	u32 resume_tagged;
++	u32 resume_teamed;
++	u32 swap_cached;
++	u32 swap_entry;
++	u32 swap_gone;
++	u32 swap_read;
++	u32 work_already;
++	u32 work_queued;
++	u32 work_too_late;
++	u32 work_too_many;
++} shmem_huge_recovery_stats;
 +
-+	blk_start_plug(&plug);
-+	while ((radswap = shmem_next_swap(mapping, &index, end))) {
-+		swp_entry_t swap = radix_to_swp_entry(radswap);
-+		struct page *page = head + (index & (HPAGE_PMD_NR-1));
-+
-+		/*
-+		 * Code below is adapted from __read_swap_cache_async():
-+		 * we want to set up async swapin to the right pages.
-+		 * We don't have to worry about a more limiting gfp_mask
-+		 * leading to -ENOMEM from __add_to_swap_cache(), but we
-+		 * do have to worry about swapcache_prepare() succeeding
-+		 * when swap has been freed and reused for an unrelated page.
-+		 */
-+		shr_stats(swap_entry);
-+		error = radix_tree_preload(GFP_KERNEL);
-+		if (error)
-+			break;
-+
-+		error = swapcache_prepare(swap);
-+		if (error) {
-+			radix_tree_preload_end();
-+			shr_stats(swap_cached);
-+			continue;
-+		}
-+
-+		if (!shmem_confirm_swap(mapping, index, swap)) {
-+			radix_tree_preload_end();
-+			swapcache_free(swap);
-+			shr_stats(swap_gone);
-+			continue;
-+		}
-+
-+		__SetPageLocked(page);
-+		__SetPageSwapBacked(page);
-+		error = __add_to_swap_cache(page, swap);
-+		radix_tree_preload_end();
-+		VM_BUG_ON(error);
-+
-+		shr_stats(swap_read);
-+		lru_cache_add_anon(page);
-+		swap_readpage(page);
-+		cond_resched();
-+	}
-+	blk_finish_plug(&plug);
-+	lru_add_drain();	/* not necessary but may help debugging */
-+}
-+#else
-+static void shmem_recovery_swapin(struct recovery *recovery, struct page *head)
++#define shr_create(x)	debugfs_create_u32(#x, S_IRUGO, shr_debugfs_root, \
++					   &shmem_huge_recovery_stats.x)
++static int __init shmem_debugfs_init(void)
 +{
++	if (!debugfs_initialized())
++		return -ENODEV;
++	shr_debugfs_root = debugfs_create_dir("shmem_huge_recovery", NULL);
++	if (!shr_debugfs_root)
++		return -ENOMEM;
++
++	shr_create(huge_alloced);
++	shr_create(huge_failed);
++	shr_create(huge_too_late);
++	shr_create(page_created);
++	shr_create(page_migrate);
++	shr_create(page_off_lru);
++	shr_create(page_raced);
++	shr_create(page_teamed);
++	shr_create(page_unmigrated);
++	shr_create(recov_completed);
++	shr_create(recov_failed);
++	shr_create(recov_partial);
++	shr_create(recov_retried);
++	shr_create(remap_another);
++	shr_create(remap_faulter);
++	shr_create(remap_untried);
++	shr_create(resume_tagged);
++	shr_create(resume_teamed);
++	shr_create(swap_cached);
++	shr_create(swap_entry);
++	shr_create(swap_gone);
++	shr_create(swap_read);
++	shr_create(work_already);
++	shr_create(work_queued);
++	shr_create(work_too_late);
++	shr_create(work_too_many);
++	return 0;
 +}
-+#endif /* CONFIG_SWAP */
++fs_initcall(shmem_debugfs_init);
 +
- static struct page *shmem_get_recovery_page(struct page *page,
- 					unsigned long private, int **result)
++#undef  shr_create
++#define shr_stats(x)		(shmem_huge_recovery_stats.x++)
++#define shr_stats_add(x, n)	(shmem_huge_recovery_stats.x += n)
++#else
++#define shr_stats(x)		do {} while (0)
++#define shr_stats_add(x, n)	do {} while (0)
++#endif /* CONFIG_DEBUG_FS */
+ 
+ static bool shmem_work_still_useful(struct recovery *recovery)
  {
-@@ -855,6 +954,8 @@ static int shmem_recovery_populate(struc
- 	/* Warning: this optimization relies on disband's ClearPageChecked */
- 	if (PageTeam(head) && PageChecked(head))
- 		return 0;
-+
-+	shmem_recovery_swapin(recovery, head);
- again:
- 	migratable = 0;
- 	unmigratable = 0;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -193,7 +206,5 @@ mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch
 huge-mm-move_huge_pmd-does-not-need-new_vma.patch
 huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch
 arch-fix-has_transparent_hugepage.patch
-huge-tmpfs-recovery-tweak-shmem_getpage_gfp-to-fill-team.patch
-huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase.patch
 huge-tmpfs-recovery-page-migration-call-back-into-shmem.patch
 
