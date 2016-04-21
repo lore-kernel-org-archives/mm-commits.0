@@ -1,94 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] checkpatch-whine-about-access_once.patch removed
- from -mm tree
-Date: Sat, 16 Apr 2016 19:12:43 -0700
-Message-ID: <5712f11b.Vgrz68wO34KjliuB%akpm@linux-foundation.org>
+Subject: +
+ memcg-remove-lru_add_drain_all-invocation-from-mem_cgroup_move_charge.patch added to -mm tree
+Date: Thu, 21 Apr 2016 13:44:15 -0700
+Message-ID: <57193b9f.slrfPKuL3u7cfzSe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56389 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55029 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049AbcDQCMq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 16 Apr 2016 22:12:46 -0400
+	with ESMTP id S1751603AbcDUUoR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 16:44:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@shadowen.org, dave@stgolabs.net, mm-commits@vger.kernel.org
+To: tj@kernel.org, chrubis@suse.cz, hannes@cmpxchg.org, mhocko@kernel.org, mhocko@suse.com, pmladek@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: whine about ACCESS_ONCE
-has been removed from the -mm tree.  Its filename was
-     checkpatch-whine-about-access_once.patch
+     Subject: memcg: remove lru_add_drain_all() invocation from mem_cgroup_move_charge()
+has been added to the -mm tree.  Its filename is
+     memcg-remove-lru_add_drain_all-invocation-from-mem_cgroup_move_charge.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-remove-lru_add_drain_all-invocation-from-mem_cgroup_move_charge.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-remove-lru_add_drain_all-invocation-from-mem_cgroup_move_charge.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Joe Perches <joe@perches.com>
-Subject: checkpatch: whine about ACCESS_ONCE
+From: Tejun Heo <tj@kernel.org>
+Subject: memcg: remove lru_add_drain_all() invocation from mem_cgroup_move_charge()
 
-Add a test for use of ACCESS_ONCE that could be written using
-READ_ONCE or WRITE_ONCE.
+mem_cgroup_move_charge() invokes lru_add_drain_all() so that the pvec
+pages can be moved too.  lru_add_drain_all() schedules and flushes work
+items on system_wq which depends on being able to create new kworkers to
+make forward progress.  Since 1ed1328792ff ("sched, cgroup: replace
+signal_struct->group_rwsem with a global percpu_rwsem"), a new task can't
+be created while in the cgroup migration path and the described
+lru_add_drain_all() invocation can easily lead to a deadlock.
 
---fix it too if desired.
+Charge moving is best-effort and whether the pvec pages are migrated or
+not doesn't really matter.  Don't call it during charge moving. 
+Eventually, we want to move the actual charge moving outside the migration
+path.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+Fixes: 1ed1328792ff ("sched, cgroup: replace signal_struct->group_rwsem with a global percpu_rwsem")
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Debugged-by: Petr Mladek <pmladek@suse.com>
+Tested-by: Petr Mladek <pmladek@suse.com>
+Reported-by: Cyril Hrubis <chrubis@suse.cz>
+Reported-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Michal Hocko <mhocko@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>	[4.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ mm/memcontrol.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-whine-about-access_once scri=
-pts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-whine-about-access_once
-+++ a/scripts/checkpatch.pl
-@@ -5837,6 +5837,28 @@ sub process {
- 			}
- 		}
-=20
-+# whine about ACCESS_ONCE
-+		if ($^V && $^V ge 5.10.0 &&
-+		=A0=A0=A0=A0$line =3D~ /\bACCESS_ONCE\s*$balanced_parens\s*(=3D(?!=3D=
-))?\s*($FuncArg)?/) {
-+			my $par =3D $1;
-+			my $eq =3D $2;
-+			my $fun =3D $3;
-+			$par =3D~ s/^\(\s*(.*)\s*\)$/$1/;
-+			if (defined($eq)) {
-+				if (WARN("PREFER_WRITE_ONCE",
-+					=A0"Prefer WRITE_ONCE(<FOO>, <BAR>) over ACCESS_ONCE(<FOO>) =3D <=
-BAR>\n" . $herecurr) &&
-+				=A0=A0=A0=A0$fix) {
-+					$fixed[$fixlinenr] =3D~ s/\bACCESS_ONCE\s*\(\s*\Q$par\E\s*\)\s*$e=
-q\s*\Q$fun\E/WRITE_ONCE($par, $fun)/;
-+				}
-+			} else {
-+				if (WARN("PREFER_READ_ONCE",
-+					=A0"Prefer READ_ONCE(<FOO>) over ACCESS_ONCE(<FOO>)\n" . $herecur=
-r) &&
-+				=A0=A0=A0=A0$fix) {
-+					$fixed[$fixlinenr] =3D~ s/\bACCESS_ONCE\s*\(\s*\Q$par\E\s*\)/READ=
-_ONCE($par)/;
-+				}
-+			}
-+		}
-+
- # check for lockdep_set_novalidate_class
- 		if ($line =3D~ /^.\s*lockdep_set_novalidate_class\s*\(/ ||
- 		    $line =3D~ /__lockdep_no_validate__\s*\)/ ) {
+diff -puN mm/memcontrol.c~memcg-remove-lru_add_drain_all-invocation-from-mem_cgroup_move_charge mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-lru_add_drain_all-invocation-from-mem_cgroup_move_charge
++++ a/mm/memcontrol.c
+@@ -4859,7 +4859,6 @@ static void mem_cgroup_move_charge(struc
+ 		.mm = mm,
+ 	};
+ 
+-	lru_add_drain_all();
+ 	/*
+ 	 * Signal lock_page_memcg() to take the memcg's move_lock
+ 	 * while we're moving its pages to another memcg. Then wait
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
-checkpatch-add-prefer_is_enabled-test.patch
-checkpatch-improve-constant_comparison-test-for-structure-members.patch
+memcg-remove-lru_add_drain_all-invocation-from-mem_cgroup_move_charge.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
