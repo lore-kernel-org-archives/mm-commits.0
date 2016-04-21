@@ -1,243 +1,270 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- kvm-teach-kvm-to-map-page-teams-as-huge-pages.patch removed from -mm tree
-Date: Thu, 21 Apr 2016 13:46:27 -0700
-Message-ID: <57193c23.AtxPsSz262kCTDyV%akpm@linux-foundation.org>
+ huge-tmpfs-mem_cgroup-move-charge-on-shmem-huge-pages.patch removed from
+ -mm tree
+Date: Thu, 21 Apr 2016 13:46:30 -0700
+Message-ID: <57193c26.AioF3Tt/uruhf+OV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55170 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55176 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751679AbcDUUq2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 16:46:28 -0400
+	with ESMTP id S1752211AbcDUUqb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 16:46:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreslc@google.com, aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kvm: teach kvm to map page teams as huge pages.
+     Subject: huge tmpfs: mem_cgroup move charge on shmem huge pages
 has been removed from the -mm tree.  Its filename was
-     kvm-teach-kvm-to-map-page-teams-as-huge-pages.patch
+     huge-tmpfs-mem_cgroup-move-charge-on-shmem-huge-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andres Lagar-Cavilla <andreslc@google.com>
-Subject: kvm: teach kvm to map page teams as huge pages.
+From: Hugh Dickins <hughd@google.com>
+Subject: huge tmpfs: mem_cgroup move charge on shmem huge pages
 
-Include a small treatise on the locking rules around page teams.
+Early on, for simplicity, we disabled moving huge tmpfs pages from one
+memcg to another (nowadays only required when moving a task into a memcg
+having move_charge_at_immigrate exceptionally set).  We're about to add a
+couple of memcg stats for huge tmpfs, and will need to confront how to
+handle moving those stats, so better enable moving the pages now.
 
-Signed-off-by: Andres Lagar-Cavilla <andreslc@google.com>
+Although they're discovered by the pmd's get_mctgt_type_thp(), they have
+to be considered page by page, in what's usually the pte scan: because
+although the common case is for each member of the team to be owned by the
+same memcg, nowhere is that enforced - perhaps one day we shall need to
+enforce such a limitation, but not so far.
+
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Yang Shi <yang.shi@linaro.org>
 Cc: Ning Qu <quning@gmail.com>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c         |  130 ++++++++++++++++++++++++++++++-----
- arch/x86/kvm/paging_tmpl.h |    3 
- 2 files changed, 117 insertions(+), 16 deletions(-)
+ mm/memcontrol.c |  103 +++++++++++++++++++++++++---------------------
+ 1 file changed, 58 insertions(+), 45 deletions(-)
 
-diff -puN arch/x86/kvm/mmu.c~kvm-teach-kvm-to-map-page-teams-as-huge-pages arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~kvm-teach-kvm-to-map-page-teams-as-huge-pages
-+++ a/arch/x86/kvm/mmu.c
-@@ -32,6 +32,7 @@
- #include <linux/module.h>
- #include <linux/swap.h>
- #include <linux/hugetlb.h>
-+#include <linux/pageteam.h>
- #include <linux/compiler.h>
- #include <linux/srcu.h>
- #include <linux/slab.h>
-@@ -2807,33 +2808,132 @@ static int kvm_handle_bad_page(struct kv
- 	return -EFAULT;
- }
+diff -puN mm/memcontrol.c~huge-tmpfs-mem_cgroup-move-charge-on-shmem-huge-pages mm/memcontrol.c
+--- a/mm/memcontrol.c~huge-tmpfs-mem_cgroup-move-charge-on-shmem-huge-pages
++++ a/mm/memcontrol.c
+@@ -4329,6 +4329,7 @@ static int mem_cgroup_do_precharge(unsig
+  *   2(MC_TARGET_SWAP): if the swap entry corresponding to this pte is a
+  *     target for charge migration. if @target is not NULL, the entry is stored
+  *     in target->ent.
++ *   3(MC_TARGET_TEAM): if pmd entry is not an anon THP: check it page by page
+  *
+  * Called with pte lock held.
+  */
+@@ -4341,6 +4342,7 @@ enum mc_target_type {
+ 	MC_TARGET_NONE = 0,
+ 	MC_TARGET_PAGE,
+ 	MC_TARGET_SWAP,
++	MC_TARGET_TEAM,
+ };
  
-+/*
-+ * We are holding kvm->mmu_lock, serializing against mmu notifiers.
-+ * We have a ref on page.
-+ *
-+ * A team of tmpfs 512 pages can be mapped as an integral hugepage as long as
-+ * the team is not disbanded. The head page is !PageTeam if disbanded.
-+ *
-+ * Huge tmpfs pages are disbanded for page freeing, shrinking, or swap out.
-+ *
-+ * Freeing (punch hole, truncation):
-+ *  shmem_undo_range
-+ *     disband
-+ *       lock head page
-+ *       unmap_mapping_range
-+ *         zap_page_range_single
-+ *           mmu_notifier_invalidate_range_start
-+ *           __split_huge_pmd or zap_huge_pmd
-+ *             remap_team_by_ptes
-+ *           mmu_notifier_invalidate_range_end
-+ *       unlock head page
-+ *     pagevec_release
-+ *        pages are freed
-+ * If we race with disband MMUN will fix us up. The head page lock also
-+ * serializes any gup() against resolving the page team.
-+ *
-+ * Shrinker, disbands, but once a page team is fully banded up it no longer is
-+ * tagged as shrinkable in the radix tree and hence can't be shrunk.
-+ *  shmem_shrink_hugehole
-+ *     shmem_choose_hugehole
-+ *        disband
-+ *     migrate_pages
-+ *        try_to_unmap
-+ *           mmu_notifier_invalidate_page
-+ * Double-indemnity: if we race with disband, MMUN will fix us up.
-+ *
-+ * Swap out:
-+ *  shrink_page_list
-+ *    try_to_unmap
-+ *      unmap_team_by_pmd
-+ *         mmu_notifier_invalidate_range
-+ *    pageout
-+ *      shmem_writepage
-+ *         disband
-+ *    free_hot_cold_page_list
-+ *       pages are freed
-+ * If we race with disband, no one will come to fix us up. So, we check for a
-+ * pmd mapping, serializing against the MMUN in unmap_team_by_pmd, which will
-+ * break the pmd mapping if it runs before us (or invalidate our mapping if ran
-+ * after).
-+ */
-+static bool is_huge_tmpfs(struct kvm_vcpu *vcpu,
-+			  unsigned long address, struct page *page)
-+{
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	struct page *head;
-+
-+	if (!PageTeam(page))
-+		return false;
-+	/*
-+	 * This strictly assumes PMD-level huge-ing.
-+	 * Which is the only thing KVM can handle here.
-+	 */
-+	if (((address & (HPAGE_PMD_SIZE - 1)) >> PAGE_SHIFT) !=
-+	    (page->index & (HPAGE_PMD_NR-1)))
-+		return false;
-+	head = team_head(page);
-+	if (!PageTeam(head))
-+		return false;
-+	/*
-+	 * Attempt at early discard. If the head races into becoming SwapCache,
-+	 * and thus having a bogus team_usage, we'll know for sure next.
-+	 */
-+	if (!team_pmd_mapped(head))
-+		return false;
-+	/*
-+	 * Copied from page_check_address_transhuge, to avoid making it
-+	 * a module-visible symbol. Simplify it. No need for page table lock,
-+	 * as mmu notifier serialization ensures we are on either side of
-+	 * unmap_team_by_pmd or remap_team_by_ptes.
-+	 */
-+	address &= HPAGE_PMD_MASK;
-+	pgd = pgd_offset(vcpu->kvm->mm, address);
-+	if (!pgd_present(*pgd))
-+		return false;
-+	pud = pud_offset(pgd, address);
-+	if (!pud_present(*pud))
-+		return false;
-+	pmd = pmd_offset(pud, address);
-+	if (!pmd_trans_huge(*pmd))
-+		return false;
-+	return pmd_page(*pmd) == head;
-+}
-+
-+static bool is_transparent_hugepage(struct kvm_vcpu *vcpu,
-+				    unsigned long address, kvm_pfn_t pfn)
-+{
-+	struct page *page = pfn_to_page(pfn);
-+
-+	return PageTransCompound(page) || is_huge_tmpfs(vcpu, address, page);
-+}
-+
- static void transparent_hugepage_adjust(struct kvm_vcpu *vcpu,
--					gfn_t *gfnp, kvm_pfn_t *pfnp,
--					int *levelp)
-+					unsigned long address, gfn_t *gfnp,
-+					kvm_pfn_t *pfnp, int *levelp)
+ static struct page *mc_handle_present_pte(struct vm_area_struct *vma,
+@@ -4562,19 +4564,22 @@ static enum mc_target_type get_mctgt_typ
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /*
+- * We don't consider swapping or file mapped pages because THP does not
+- * support them for now.
+  * Caller should make sure that pmd_trans_huge(pmd) is true.
+  */
+-static enum mc_target_type get_mctgt_type_thp(struct vm_area_struct *vma,
+-		unsigned long addr, pmd_t pmd, union mc_target *target)
++static enum mc_target_type get_mctgt_type_thp(pmd_t pmd,
++		union mc_target *target, unsigned long *pfn)
  {
- 	kvm_pfn_t pfn = *pfnp;
- 	gfn_t gfn = *gfnp;
- 	int level = *levelp;
+-	struct page *page = NULL;
++	struct page *page;
+ 	enum mc_target_type ret = MC_TARGET_NONE;
  
- 	/*
--	 * Check if it's a transparent hugepage. If this would be an
--	 * hugetlbfs page, level wouldn't be set to
--	 * PT_PAGE_TABLE_LEVEL and there would be no adjustment done
--	 * here.
-+	 * Check if it's a transparent hugepage, either anon or huge tmpfs.
-+	 * If this were a hugetlbfs page, level wouldn't be set to
-+	 * PT_PAGE_TABLE_LEVEL and no adjustment would be done here.
- 	 */
- 	if (!is_error_noslot_pfn(pfn) && !kvm_is_reserved_pfn(pfn) &&
- 	    level == PT_PAGE_TABLE_LEVEL &&
--	    PageTransCompound(pfn_to_page(pfn)) &&
-+	    is_transparent_hugepage(vcpu, address, pfn) &&
- 	    !mmu_gfn_lpage_is_disallowed(vcpu, gfn, PT_DIRECTORY_LEVEL)) {
- 		unsigned long mask;
- 		/*
- 		 * mmu_notifier_retry was successful and we hold the
--		 * mmu_lock here, so the pmd can't become splitting
--		 * from under us, and in turn
--		 * __split_huge_page_refcount() can't run from under
--		 * us and we can safely transfer the refcount from
--		 * PG_tail to PG_head as we switch the pfn to tail to
--		 * head.
-+		 * mmu_lock here, so the pmd can't be split under us,
-+		 * so we can safely transfer the refcount from PG_tail
-+		 * to PG_head as we switch the pfn from tail to head.
- 		 */
- 		*levelp = level = PT_DIRECTORY_LEVEL;
- 		mask = KVM_PAGES_PER_HPAGE(level) - 1;
-@@ -3046,7 +3146,7 @@ static int nonpaging_map(struct kvm_vcpu
- 		goto out_unlock;
- 	make_mmu_pages_available(vcpu);
- 	if (likely(!force_pt_level))
--		transparent_hugepage_adjust(vcpu, &gfn, &pfn, &level);
-+		transparent_hugepage_adjust(vcpu, hva, &gfn, &pfn, &level);
- 	r = __direct_map(vcpu, write, map_writable, level, gfn, pfn, prefault);
- 	spin_unlock(&vcpu->kvm->mmu_lock);
+ 	page = pmd_page(pmd);
+-	/* Don't attempt to move huge tmpfs pages yet: can be enabled later */
+-	if (!(mc.flags & MOVE_ANON) || !PageAnon(page))
++	if (!PageAnon(page)) {
++		if (!(mc.flags & MOVE_FILE))
++			return ret;
++		*pfn = page_to_pfn(page);
++		return MC_TARGET_TEAM;
++	}
++	if (!(mc.flags & MOVE_ANON))
+ 		return ret;
+ 	if (page->mem_cgroup == mc.from) {
+ 		ret = MC_TARGET_PAGE;
+@@ -4586,8 +4591,8 @@ static enum mc_target_type get_mctgt_typ
+ 	return ret;
+ }
+ #else
+-static inline enum mc_target_type get_mctgt_type_thp(struct vm_area_struct *vma,
+-		unsigned long addr, pmd_t pmd, union mc_target *target)
++static inline enum mc_target_type get_mctgt_type_thp(pmd_t pmd,
++		union mc_target *target, unsigned long *pfn)
+ {
+ 	return MC_TARGET_NONE;
+ }
+@@ -4598,24 +4603,33 @@ static int mem_cgroup_count_precharge_pt
+ 					struct mm_walk *walk)
+ {
+ 	struct vm_area_struct *vma = walk->vma;
+-	pte_t *pte;
++	enum mc_target_type target_type;
++	unsigned long uninitialized_var(pfn);
++	pte_t ptent;
++	pte_t *pte = NULL;
+ 	spinlock_t *ptl;
  
-@@ -3586,7 +3686,7 @@ static int tdp_page_fault(struct kvm_vcp
- 		goto out_unlock;
- 	make_mmu_pages_available(vcpu);
- 	if (likely(!force_pt_level))
--		transparent_hugepage_adjust(vcpu, &gfn, &pfn, &level);
-+		transparent_hugepage_adjust(vcpu, hva, &gfn, &pfn, &level);
- 	r = __direct_map(vcpu, write, map_writable, level, gfn, pfn, prefault);
- 	spin_unlock(&vcpu->kvm->mmu_lock);
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl) {
+-		if (get_mctgt_type_thp(vma, addr, *pmd, NULL) == MC_TARGET_PAGE)
++		target_type = get_mctgt_type_thp(*pmd, NULL, &pfn);
++		if (target_type == MC_TARGET_PAGE)
+ 			mc.precharge += HPAGE_PMD_NR;
+-		spin_unlock(ptl);
+-		return 0;
++		if (target_type != MC_TARGET_TEAM)
++			goto unlock;
++	} else {
++		if (pmd_trans_unstable(pmd))
++			return 0;
++		pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	}
+-
+-	if (pmd_trans_unstable(pmd))
+-		return 0;
+-	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	for (; addr != end; pte++, addr += PAGE_SIZE)
+-		if (get_mctgt_type(vma, addr, *pte, NULL))
++	for (; addr != end; addr += PAGE_SIZE) {
++		ptent = pte ? *(pte++) : pfn_pte(pfn++, vma->vm_page_prot);
++		if (get_mctgt_type(vma, addr, ptent, NULL))
+ 			mc.precharge++;	/* increment precharge temporarily */
+-	pte_unmap_unlock(pte - 1, ptl);
++	}
++	if (pte)
++		pte_unmap(pte - 1);
++unlock:
++	spin_unlock(ptl);
+ 	cond_resched();
  
-diff -puN arch/x86/kvm/paging_tmpl.h~kvm-teach-kvm-to-map-page-teams-as-huge-pages arch/x86/kvm/paging_tmpl.h
---- a/arch/x86/kvm/paging_tmpl.h~kvm-teach-kvm-to-map-page-teams-as-huge-pages
-+++ a/arch/x86/kvm/paging_tmpl.h
-@@ -800,7 +800,8 @@ static int FNAME(page_fault)(struct kvm_
- 	kvm_mmu_audit(vcpu, AUDIT_PRE_PAGE_FAULT);
- 	make_mmu_pages_available(vcpu);
- 	if (!force_pt_level)
--		transparent_hugepage_adjust(vcpu, &walker.gfn, &pfn, &level);
-+		transparent_hugepage_adjust(vcpu, hva, &walker.gfn, &pfn,
-+					    &level);
- 	r = FNAME(fetch)(vcpu, addr, &walker, write_fault,
- 			 level, pfn, map_writable, prefault);
- 	++vcpu->stat.pf_fixed;
+ 	return 0;
+@@ -4784,22 +4798,21 @@ static int mem_cgroup_move_charge_pte_ra
+ {
+ 	int ret = 0;
+ 	struct vm_area_struct *vma = walk->vma;
+-	pte_t *pte;
++	unsigned long uninitialized_var(pfn);
++	pte_t ptent;
++	pte_t *pte = NULL;
+ 	spinlock_t *ptl;
+ 	enum mc_target_type target_type;
+ 	union mc_target target;
+ 	struct page *page;
+-
++retry:
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl) {
+-		if (mc.precharge < HPAGE_PMD_NR) {
+-			spin_unlock(ptl);
+-			return 0;
+-		}
+-		target_type = get_mctgt_type_thp(vma, addr, *pmd, &target);
++		target_type = get_mctgt_type_thp(*pmd, &target, &pfn);
+ 		if (target_type == MC_TARGET_PAGE) {
+ 			page = target.page;
+-			if (!isolate_lru_page(page)) {
++			if (mc.precharge >= HPAGE_PMD_NR &&
++			    !isolate_lru_page(page)) {
+ 				if (!mem_cgroup_move_account(page, true,
+ 							     mc.from, mc.to)) {
+ 					mc.precharge -= HPAGE_PMD_NR;
+@@ -4808,22 +4821,19 @@ static int mem_cgroup_move_charge_pte_ra
+ 				putback_lru_page(page);
+ 			}
+ 			put_page(page);
++			addr = end;
+ 		}
+-		spin_unlock(ptl);
+-		return 0;
++		if (target_type != MC_TARGET_TEAM)
++			goto unlock;
++		/* addr is not aligned when retrying after precharge ran out */
++		pfn += (addr & (HPAGE_PMD_SIZE-1)) >> PAGE_SHIFT;
++	} else {
++		if (pmd_trans_unstable(pmd))
++			return 0;
++		pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	}
+-
+-	if (pmd_trans_unstable(pmd))
+-		return 0;
+-retry:
+-	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	for (; addr != end; addr += PAGE_SIZE) {
+-		pte_t ptent = *(pte++);
+-		swp_entry_t ent;
+-
+-		if (!mc.precharge)
+-			break;
+-
++	for (; addr != end && mc.precharge; addr += PAGE_SIZE) {
++		ptent = pte ? *(pte++) : pfn_pte(pfn++, vma->vm_page_prot);
+ 		switch (get_mctgt_type(vma, addr, ptent, &target)) {
+ 		case MC_TARGET_PAGE:
+ 			page = target.page;
+@@ -4848,8 +4858,8 @@ put:			/* get_mctgt_type() gets the page
+ 			put_page(page);
+ 			break;
+ 		case MC_TARGET_SWAP:
+-			ent = target.ent;
+-			if (!mem_cgroup_move_swap_account(ent, mc.from, mc.to)) {
++			if (!mem_cgroup_move_swap_account(target.ent,
++							  mc.from, mc.to)) {
+ 				mc.precharge--;
+ 				/* we fixup refcnts and charges later. */
+ 				mc.moved_swap++;
+@@ -4859,7 +4869,10 @@ put:			/* get_mctgt_type() gets the page
+ 			break;
+ 		}
+ 	}
+-	pte_unmap_unlock(pte - 1, ptl);
++	if (pte)
++		pte_unmap(pte - 1);
++unlock:
++	spin_unlock(ptl);
+ 	cond_resched();
+ 
+ 	if (addr != end) {
 _
 
-Patches currently in -mm which might be from andreslc@google.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch
-huge-tmpfs-mem_cgroup-shmem_pmdmapped-accounting.patch
-huge-tmpfs-mem_cgroup-shmem_hugepages-accounting.patch
-huge-tmpfs-show-page-team-flag-in-pageflags.patch
+huge-pagecache-mmap_sem-is-unlocked-when-truncation-splits-pmd.patch
+mm-update_lru_size-warn-and-reset-bad-lru_size.patch
+mm-update_lru_size-do-the-__mod_zone_page_state.patch
+mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
+tmpfs-preliminary-minor-tidyups.patch
+mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch
+huge-mm-move_huge_pmd-does-not-need-new_vma.patch
+huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch
+arch-fix-has_transparent_hugepage.patch
+huge-tmpfs-proc-pid-smaps-show-shmemhugepages.patch
+huge-tmpfs-recovery-framework-for-reconstituting-huge-pages.patch
+huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page.patch
+huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd.patch
+huge-tmpfs-recovery-shmem_recovery_swapin-to-read-from-swap.patch
+huge-tmpfs-recovery-tweak-shmem_getpage_gfp-to-fill-team.patch
+huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase.patch
+huge-tmpfs-recovery-page-migration-call-back-into-shmem.patch
 
