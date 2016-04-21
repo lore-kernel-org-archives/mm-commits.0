@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-clean-up-kmem_cache_node-setup-fix.patch added to -mm
- tree
-Date: Thu, 21 Apr 2016 14:29:34 -0700
-Message-ID: <5719463e.Uz9UL8sVr8748jHe%akpm@linux-foundation.org>
+Subject: + mm-wake-kcompactd-before-kswapds-short-sleep.patch added to -mm tree
+Date: Thu, 21 Apr 2016 14:34:44 -0700
+Message-ID: <57194774.hbpp5MVENCl095YP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57066 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57286 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751657AbcDUV3f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 17:29:35 -0400
+	with ESMTP id S1752045AbcDUVeq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 17:34:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, Valdis.Kletnieks@vt.edu, jonathanh@nvidia.com, nm@ti.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, aarcange@redhat.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: clean-up kmem_cache_node setup-fix
+     Subject: mm: wake kcompactd before kswapd's short sleep
 has been added to the -mm tree.  Its filename is
-     mm-slab-clean-up-kmem_cache_node-setup-fix.patch
+     mm-wake-kcompactd-before-kswapds-short-sleep.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-clean-up-kmem_cache_node-setup-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-wake-kcompactd-before-kswapds-short-sleep.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-clean-up-kmem_cache_node-setup-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-wake-kcompactd-before-kswapds-short-sleep.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,67 +38,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: clean-up kmem_cache_node setup-fix
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: wake kcompactd before kswapd's short sleep
 
-After calling free_block(), we need to re-calculate array_cache's
-avail counter. Fix it.
+When kswapd goes to sleep it checks if the node is balanced and at first
+it sleeps only for HZ/10 time, then rechecks if the node is still balanced
+and nobody has woken it during the initial sleep.  Only then it goes fully
+sleep until an allocation slowpath wakes it up again.
 
-And, it's better to free objects in shared array when it is
-really necessary. Check it before calling free_block().
+For higher-order allocations, waking up kcompactd is done only before the
+full sleep.  This turns out to be an issue in case another high-order
+allocation fails during the initial sleep.  It will wake kswapd up,
+however kswapd considers the zone balanced from the order-0 perspective,
+and will just quickly try to sleep again.  So if there's a longer stream
+of high-order allocations hitting the slowpath and waking up kswapd, it
+might never actually wake up kcompactd, which may be considered a
+regression from kswapd-based compaction.  In the worst case, it might be
+that a single allocation that cannot direct reclaim/compact itself is
+waking kswapd in the retry loop and preventing kcompactd from being woken
+up and unblocking it.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Nishanth Menon <nm@ti.com>
-Tested-by: Jon Hunter <jonathanh@nvidia.com>
-Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+This patch makes sure kcompactd is woken up in such situations by simply
+moving the wakeup before the short initial sleep.  More efficient solution
+would be to wake kcompactd immediately instead of kswapd if the node is
+already order-0 balanced, but in that case we should also move
+reset_isolation_suitable() call to kcompactd so it's not adding to the
+allocator's latency.  Since it's late in the 4.6 cycle, let's go with the
+simpler change for now.
+
+Fixes: accf62422b3a ("mm, kswapd: replace kswapd compaction with waking up kcompactd")
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup-fix mm/slab.c
---- a/mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup-fix
-+++ a/mm/slab.c
-@@ -934,9 +934,10 @@ static int setup_kmem_cache_node(struct
+diff -puN mm/vmscan.c~mm-wake-kcompactd-before-kswapds-short-sleep mm/vmscan.c
+--- a/mm/vmscan.c~mm-wake-kcompactd-before-kswapds-short-sleep
++++ a/mm/vmscan.c
+@@ -3318,6 +3318,20 @@ static void kswapd_try_to_sleep(pg_data_
+ 	/* Try to sleep for a short interval */
+ 	if (prepare_kswapd_sleep(pgdat, order, remaining,
+ 						balanced_classzone_idx)) {
++		/*
++		 * Compaction records what page blocks it recently failed to
++		 * isolate pages from and skips them in the future scanning.
++		 * When kswapd is going to sleep, it is reasonable to assume
++		 * that pages and compaction may succeed so reset the cache.
++		 */
++		reset_isolation_suitable(pgdat);
++
++		/*
++		 * We have freed the memory, now we should compact it to make
++		 * allocation of the requested order possible.
++		 */
++		wakeup_kcompactd(pgdat, order, classzone_idx);
++
+ 		remaining = schedule_timeout(HZ/10);
+ 		finish_wait(&pgdat->kswapd_wait, &wait);
+ 		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+@@ -3341,20 +3355,6 @@ static void kswapd_try_to_sleep(pg_data_
+ 		 */
+ 		set_pgdat_percpu_threshold(pgdat, calculate_normal_threshold);
  
- 	n = get_node(cachep, node);
- 	spin_lock_irq(&n->list_lock);
--	if (n->shared) {
-+	if (n->shared && force_change) {
- 		free_block(cachep, n->shared->entry,
- 				n->shared->avail, node, &list);
-+		n->shared->avail = 0;
- 	}
- 
- 	if (!n->shared || force_change) {
-_
-
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
-
-mm-slab-hold-a-slab_mutex-when-calling-__kmem_cache_shrink.patch
-mm-slab-remove-bad_alien_magic-again.patch
-mm-slab-drain-the-free-slab-as-much-as-possible.patch
-mm-slab-factor-out-kmem_cache_node-initialization-code.patch
-mm-slab-clean-up-kmem_cache_node-setup.patch
-mm-slab-clean-up-kmem_cache_node-setup-fix.patch
-mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
-mm-slab-racy-access-modify-the-slab-color.patch
-mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
-mm-slab-separate-cache_grow-to-two-parts.patch
-mm-slab-refill-cpu-cache-through-a-new-slab-without-holding-a-node-lock.patch
-mm-slab-lockless-decision-to-grow-cache.patch
-mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
-mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic.patch
-mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
-mm-vmstat-add-zone-range-overlapping-check.patch
-mm-page_owner-add-zone-range-overlapping-check.patch
-power-add-zone-range-overlapping-check.patch
-mm-writeback-correct-dirty-page-calculation-for-highmem.patch
-mm-page_alloc-correct-highmem-memory-statistics.patch
-mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
-mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
-
+-		/*
+-		 * Compaction records what page blocks it recently failed to
+-		 * isolate pages from and skips them in the future scanning.
+-		 * When kswapd is going to sleep, it is reasonable to assume
+-		 * that pages and compaction may succeed so reset the cache.
+-		 */
+-		reset_isolation_suitable(pgdat);
+-
+-		/*
+-		 * We have freed the memory, now we should compact it to make
+-		 * allocation of the requested order possible.
+-		 */
+-		wakeup_kcompactd(pgdat, order, classzone_idx);
