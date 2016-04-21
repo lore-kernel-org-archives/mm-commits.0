@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch added to -mm tree
-Date: Thu, 21 Apr 2016 15:50:19 -0700
-Message-ID: <5719592b.sXzYvPNMcBUxt9fn%akpm@linux-foundation.org>
+ mm-consider-compaction-feedback-also-for-costly-allocation.patch added to
+ -mm tree
+Date: Thu, 21 Apr 2016 15:50:23 -0700
+Message-ID: <5719592f.Ml35cuGOkT6Dyc9l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60941 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60962 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753607AbcDUWuV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 18:50:21 -0400
+	with ESMTP id S1753607AbcDUWuY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 18:50:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: throttle on IO only when there are too many dirty and writeback pages
+     Subject: mm: consider compaction feedback also for costly allocation
 has been added to the -mm tree.  Its filename is
-     mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+     mm-consider-compaction-feedback-also-for-costly-allocation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-consider-compaction-feedback-also-for-costly-allocation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-consider-compaction-feedback-also-for-costly-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +41,178 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: throttle on IO only when there are too many dirty and writeback pages
+Subject: mm: consider compaction feedback also for costly allocation
 
-wait_iff_congested has been used to throttle allocator before it retried
-another round of direct reclaim to allow the writeback to make some
-progress and prevent reclaim from looping over dirty/writeback pages
-without making any progress.  We used to do congestion_wait before
-0e093d99763e ("writeback: do not sleep on the congestion queue if there
-are no congested BDIs or if significant congestion is not being
-encountered in the current zone") but that led to undesirable stalls and
-sleeping for the full timeout even when the BDI wasn't congested.  Hence
-wait_iff_congested was used instead.  But it seems that even
-wait_iff_congested doesn't work as expected.  We might have a small file
-LRU list with all pages dirty/writeback and yet the bdi is not congested
-so this is just a cond_resched in the end and can end up triggering pre
-mature OOM.
+PAGE_ALLOC_COSTLY_ORDER retry logic is mostly handled inside
+should_reclaim_retry currently where we decide to not retry after at least
+order worth of pages were reclaimed or the watermark check for at least
+one zone would succeed after reclaiming all pages if the reclaim hasn't
+made any progress.  Compaction feedback is mostly ignored and we just try
+to make sure that the compaction did at least something before giving up.
 
-This patch replaces the unconditional wait_iff_congested by
-congestion_wait which is executed only if we _know_ that the last round of
-direct reclaim didn't make any progress and dirty+writeback pages are more
-than a half of the reclaimable pages on the zone which might be usable for
-our target allocation.  This shouldn't reintroduce stalls fixed by
-0e093d99763e because congestion_wait is called only when we are getting
-hopeless when sleeping is a better choice than OOM with many pages under
-IO.
+The first condition was added by a41f24ea9fd6 ("page allocator: smarter
+retry of costly-order allocations) and it assumed that lumpy reclaim could
+have created a page of the sufficient order.  Lumpy reclaim, has been
+removed quite some time ago so the assumption doesn't hold anymore. 
+Remove the check for the number of reclaimed pages and rely on the
+compaction feedback solely.  should_reclaim_retry now only makes sure that
+we keep retrying reclaim for high order pages only if they are hidden by
+watermaks so order-0 reclaim makes really sense.
 
-We have to preserve logic introduced by 373ccbe59270 ("mm, vmstat: allow
-WQ concurrency to discover memory reclaim doesn't make any progress") into
-the __alloc_pages_slowpath now that wait_iff_congested is not used
-anymore.  As the only remaining user of wait_iff_congested is
-shrink_inactive_list we can remove the WQ specific short sleep from
-wait_iff_congested because the sleep is needed to be done only once in the
-allocation retry cycle.
+should_compact_retry now keeps retrying even for the costly allocations. 
+The number of retries is reduced wrt.  !costly requests because they are
+less important and harder to grant and so their pressure shouldn't cause
+contention for other requests or cause an over reclaim.  We also do not
+reset no_progress_loops for costly request to make sure we do not keep
+reclaiming too agressively.
+
+This has been tested by running a process which fragments memory:
+	- compact memory
+	- mmap large portion of the memory (1920M on 2GRAM machine with 2G
+	  of swapspace)
+	- MADV_DONTNEED single page in PAGE_SIZE*((1UL<<MAX_ORDER)-1)
+	  steps until certain amount of memory is freed (250M in my test)
+	  and reduce the step to (step / 2) + 1 after reaching the end of
+	  the mapping
+	- then run a script which populates the page cache 2G (MemTotal)
+	  from /dev/zero to a new file
+And then tries to allocate
+nr_hugepages=$(awk '/MemAvailable/{printf "%d\n", $2/(2*1024)}' /proc/meminfo)
+huge pages.
+
+root@test1:~# echo 1 > /proc/sys/vm/overcommit_memory;echo 1 > /proc/sys/vm/compact_memory; ./fragment-mem-and-run /root/alloc_hugepages.sh 1920M 250M
+Node 0, zone      DMA     31     28     31     10      2      0      2      1      2      3      1
+Node 0, zone    DMA32    437    319    171     50     28     25     20     16     16     14    437
+
+* This is the /proc/buddyinfo after the compaction
+
+Done fragmenting. size=2013265920 freed=262144000
+Node 0, zone      DMA    165     48      3      1      2      0      2      2      2      2      0
+Node 0, zone    DMA32  35109  14575    185     51     41     12      6      0      0      0      0
+
+* /proc/buddyinfo after memory got fragmented
+
+Executing "/root/alloc_hugepages.sh"
+Eating some pagecache
+508623+0 records in
+508623+0 records out
+2083319808 bytes (2.1 GB) copied, 11.7292 s, 178 MB/s
+Node 0, zone      DMA      3      5      3      1      2      0      2      2      2      2      0
+Node 0, zone    DMA32    111    344    153     20     24     10      3      0      0      0      0
+
+* /proc/buddyinfo after page cache got eaten
+
+Trying to allocate 129
+129
+
+* 129 hugepages requested and all of them granted.
+
+Node 0, zone      DMA      3      5      3      1      2      0      2      2      2      2      0
+Node 0, zone    DMA32    127     97     30     99     11      6      2      1      4      0      0
+
+* /proc/buddyinfo after hugetlb allocation.
+
+10 runs will behave as follows:
+Trying to allocate 130
+130
+--
+Trying to allocate 129
+129
+--
+Trying to allocate 128
+128
+--
+Trying to allocate 129
+129
+--
+Trying to allocate 128
+128
+--
+Trying to allocate 129
+129
+--
+Trying to allocate 132
+132
+--
+Trying to allocate 129
+129
+--
+Trying to allocate 128
+128
+--
+Trying to allocate 129
+129
+
+So basically 100% success for all 10 attempts.
+Without the patch numbers looked much worse:
+Trying to allocate 128
+12
+--
+Trying to allocate 129
+14
+--
+Trying to allocate 129
+7
+--
+Trying to allocate 129
+16
+--
+Trying to allocate 129
+30
+--
+Trying to allocate 129
+38
+--
+Trying to allocate 129
+19
+--
+Trying to allocate 129
+37
+--
+Trying to allocate 129
+28
+--
+Trying to allocate 129
+37
+
+Just for completness the base kernel without oom detection rework looks
+as follows:
+Trying to allocate 127
+30
+--
+Trying to allocate 129
+12
+--
+Trying to allocate 129
+52
+--
+Trying to allocate 128
+32
+--
+Trying to allocate 129
+12
+--
+Trying to allocate 129
+10
+--
+Trying to allocate 129
+32
+--
+Trying to allocate 128
+14
+--
+Trying to allocate 128
+16
+--
+Trying to allocate 129
+8
+
+As we can see the success rate is much more volatile and smaller without
+this patch. So the patch not only makes the retry logic for costly
+requests more sensible the success rate is even higher.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -81,108 +220,131 @@ Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |   20 +++-----------------
- mm/page_alloc.c  |   39 ++++++++++++++++++++++++++++++++++++---
- 2 files changed, 39 insertions(+), 20 deletions(-)
+ mm/page_alloc.c |   63 +++++++++++++++++++++++-----------------------
+ 1 file changed, 32 insertions(+), 31 deletions(-)
 
-diff -puN mm/backing-dev.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages mm/backing-dev.c
---- a/mm/backing-dev.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages
-+++ a/mm/backing-dev.c
-@@ -957,9 +957,8 @@ EXPORT_SYMBOL(congestion_wait);
-  * jiffies for either a BDI to exit congestion of the given @sync queue
-  * or a write to complete.
-  *
-- * In the absence of zone congestion, a short sleep or a cond_resched is
-- * performed to yield the processor and to allow other subsystems to make
-- * a forward progress.
-+ * In the absence of zone congestion, cond_resched() is called to yield
-+ * the processor if necessary but otherwise does not sleep.
-  *
-  * The return value is 0 if the sleep is for the full timeout. Otherwise,
-  * it is the number of jiffies that were still remaining when the function
-@@ -979,20 +978,7 @@ long wait_iff_congested(struct zone *zon
- 	 */
- 	if (atomic_read(&nr_wb_congested[sync]) == 0 ||
- 	    !test_bit(ZONE_CONGESTED, &zone->flags)) {
--
--		/*
--		 * Memory allocation/reclaim might be called from a WQ
--		 * context and the current implementation of the WQ
--		 * concurrency control doesn't recognize that a particular
--		 * WQ is congested if the worker thread is looping without
--		 * ever sleeping. Therefore we have to do a short sleep
--		 * here rather than calling cond_resched().
--		 */
--		if (current->flags & PF_WQ_WORKER)
--			schedule_timeout_uninterruptible(1);
--		else
--			cond_resched();
--
-+		cond_resched();
- 		/* In case we scheduled, work out time remaining */
- 		ret = timeout - (jiffies - start);
- 		if (ret < 0)
-diff -puN mm/page_alloc.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages
+diff -puN mm/page_alloc.c~mm-consider-compaction-feedback-also-for-costly-allocation mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-consider-compaction-feedback-also-for-costly-allocation
 +++ a/mm/page_alloc.c
-@@ -3474,8 +3474,9 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
- 					ac->nodemask) {
- 		unsigned long available;
-+		unsigned long reclaimable;
+@@ -3298,6 +3298,8 @@ should_compact_retry(unsigned int order,
+ 		     enum migrate_mode *migrate_mode,
+ 		     int compaction_retries)
+ {
++	int max_retries = MAX_COMPACT_RETRIES;
++
+ 	if (!order)
+ 		return false;
  
--		available = zone_reclaimable_pages(zone);
-+		available = reclaimable = zone_reclaimable_pages(zone);
- 		available -= DIV_ROUND_UP(no_progress_loops * available,
- 					  MAX_RECLAIM_RETRIES);
- 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
-@@ -3486,8 +3487,40 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 		 */
- 		if (__zone_watermark_ok(zone, order, min_wmark_pages(zone),
- 				ac->high_zoneidx, alloc_flags, available)) {
--			/* Wait for some write requests to complete then retry */
--			wait_iff_congested(zone, BLK_RW_ASYNC, HZ/50);
-+			/*
-+			 * If we didn't make any progress and have a lot of
-+			 * dirty + writeback pages then we should wait for
-+			 * an IO to complete to slow down the reclaim and
-+			 * prevent from pre mature OOM
-+			 */
-+			if (!did_some_progress) {
-+				unsigned long writeback;
-+				unsigned long dirty;
-+
-+				writeback = zone_page_state_snapshot(zone,
-+								     NR_WRITEBACK);
-+				dirty = zone_page_state_snapshot(zone, NR_FILE_DIRTY);
-+
-+				if (2*(writeback + dirty) > reclaimable) {
-+					congestion_wait(BLK_RW_ASYNC, HZ/10);
-+					return true;
-+				}
-+			}
-+
-+			/*
-+			 * Memory allocation/reclaim might be called from a WQ
-+			 * context and the current implementation of the WQ
-+			 * concurrency control doesn't recognize that
-+			 * a particular WQ is congested if the worker thread is
-+			 * looping without ever sleeping. Therefore we have to
-+			 * do a short sleep here rather than calling
-+			 * cond_resched().
-+			 */
-+			if (current->flags & PF_WQ_WORKER)
-+				schedule_timeout_uninterruptible(1);
-+			else
-+				cond_resched();
-+
- 			return true;
- 		}
+@@ -3315,17 +3317,24 @@ should_compact_retry(unsigned int order,
  	}
+ 
+ 	/*
+-	 * !costly allocations are really important and we have to make sure
+-	 * the compaction wasn't deferred or didn't bail out early due to locks
+-	 * contention before we go OOM. Still cap the reclaim retry loops with
+-	 * progress to prevent from looping forever and potential trashing.
++	 * make sure the compaction wasn't deferred or didn't bail out early
++	 * due to locks contention before we declare that we should give up.
+ 	 */
+-	if (order <= PAGE_ALLOC_COSTLY_ORDER) {
+-		if (compaction_withdrawn(compact_result))
+-			return true;
+-		if (compaction_retries <= MAX_COMPACT_RETRIES)
+-			return true;
+-	}
++	if (compaction_withdrawn(compact_result))
++		return true;
++
++	/*
++	 * !costly requests are much more important than __GFP_REPEAT
++	 * costly ones because they are de facto nofail and invoke OOM
++	 * killer to move on while costly can fail and users are ready
++	 * to cope with that. 1/4 retries is rather arbitrary but we
++	 * would need much more detailed feedback from compaction to
++	 * make a better decision.
++	 */
++	if (order > PAGE_ALLOC_COSTLY_ORDER)
++		max_retries /= 4;
++	if (compaction_retries <= max_retries)
++		return true;
+ 
+ 	return false;
+ }
+@@ -3486,18 +3495,17 @@ static inline bool is_thp_gfp_mask(gfp_t
+  * Checks whether it makes sense to retry the reclaim to make a forward progress
+  * for the given allocation request.
+  * The reclaim feedback represented by did_some_progress (any progress during
+- * the last reclaim round), pages_reclaimed (cumulative number of reclaimed
+- * pages) and no_progress_loops (number of reclaim rounds without any progress
+- * in a row) is considered as well as the reclaimable pages on the applicable
+- * zone list (with a backoff mechanism which is a function of no_progress_loops).
++ * the last reclaim round) and no_progress_loops (number of reclaim rounds without
++ * any progress in a row) is considered as well as the reclaimable pages on the
++ * applicable zone list (with a backoff mechanism which is a function of
++ * no_progress_loops).
+  *
+  * Returns true if a retry is viable or false to enter the oom path.
+  */
+ static inline bool
+ should_reclaim_retry(gfp_t gfp_mask, unsigned order,
+ 		     struct alloc_context *ac, int alloc_flags,
+-		     bool did_some_progress, unsigned long pages_reclaimed,
+-		     int no_progress_loops)
++		     bool did_some_progress, int no_progress_loops)
+ {
+ 	struct zone *zone;
+ 	struct zoneref *z;
+@@ -3509,14 +3517,6 @@ should_reclaim_retry(gfp_t gfp_mask, uns
+ 	if (no_progress_loops > MAX_RECLAIM_RETRIES)
+ 		return false;
+ 
+-	if (order > PAGE_ALLOC_COSTLY_ORDER) {
+-		if (pages_reclaimed >= (1<<order))
+-			return false;
+-
+-		if (did_some_progress)
+-			return true;
+-	}
+-
+ 	/*
+ 	 * Keep reclaiming pages while there is a chance this will lead somewhere.
+ 	 * If none of the target zones can satisfy our allocation request even
+@@ -3587,7 +3587,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
+ 	struct page *page = NULL;
+ 	unsigned int alloc_flags;
+-	unsigned long pages_reclaimed = 0;
+ 	unsigned long did_some_progress;
+ 	enum migrate_mode migration_mode = MIGRATE_ASYNC;
+ 	enum compact_result compact_result;
+@@ -3714,16 +3713,18 @@ retry:
+ 	if (order > PAGE_ALLOC_COSTLY_ORDER && !(gfp_mask & __GFP_REPEAT))
+ 		goto noretry;
+ 
+-	if (did_some_progress) {
++	/*
++	 * Costly allocations might have made a progress but this doesn't mean
++	 * their order will become available due to high fragmentation so
++	 * always increment the no progress counter for them
++	 */
++	if (did_some_progress && order <= PAGE_ALLOC_COSTLY_ORDER)
+ 		no_progress_loops = 0;
+-		pages_reclaimed += did_some_progress;
+-	} else {
++	else
+ 		no_progress_loops++;
+-	}
+ 
+ 	if (should_reclaim_retry(gfp_mask, order, ac, alloc_flags,
+-				 did_some_progress > 0, pages_reclaimed,
+-				 no_progress_loops))
++				 did_some_progress > 0, no_progress_loops))
+ 		goto retry;
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
