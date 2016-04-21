@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-wake-kcompactd-before-kswapds-short-sleep.patch added to -mm tree
-Date: Thu, 21 Apr 2016 14:34:44 -0700
-Message-ID: <57194774.hbpp5MVENCl095YP%akpm@linux-foundation.org>
+Subject: + checkpatch-add-test-for-keywords-not-starting-on-tabstops.patch added to -mm tree
+Date: Thu, 21 Apr 2016 14:47:36 -0700
+Message-ID: <57194a78.t05ckfY7qTAF7mnk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57286 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57754 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752045AbcDUVeq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 17:34:46 -0400
+	with ESMTP id S1753476AbcDUVrh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 17:47:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, aarcange@redhat.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: wake kcompactd before kswapd's short sleep
+     Subject: checkpatch: add test for keywords not starting on tabstops
 has been added to the -mm tree.  Its filename is
-     mm-wake-kcompactd-before-kswapds-short-sleep.patch
+     checkpatch-add-test-for-keywords-not-starting-on-tabstops.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-wake-kcompactd-before-kswapds-short-sleep.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-test-for-keywords-not-starting-on-tabstops.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-wake-kcompactd-before-kswapds-short-sleep.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-test-for-keywords-not-starting-on-tabstops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,88 +38,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: wake kcompactd before kswapd's short sleep
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add test for keywords not starting on tabstops
 
-When kswapd goes to sleep it checks if the node is balanced and at first
-it sleeps only for HZ/10 time, then rechecks if the node is still balanced
-and nobody has woken it during the initial sleep.  Only then it goes fully
-sleep until an allocation slowpath wakes it up again.
+It's somewhat common and in general a defect for c90 keywords to
+not start on a tabstop.
 
-For higher-order allocations, waking up kcompactd is done only before the
-full sleep.  This turns out to be an issue in case another high-order
-allocation fails during the initial sleep.  It will wake kswapd up,
-however kswapd considers the zone balanced from the order-0 perspective,
-and will just quickly try to sleep again.  So if there's a longer stream
-of high-order allocations hitting the slowpath and waking up kswapd, it
-might never actually wake up kcompactd, which may be considered a
-regression from kswapd-based compaction.  In the worst case, it might be
-that a single allocation that cannot direct reclaim/compact itself is
-waking kswapd in the retry loop and preventing kcompactd from being woken
-up and unblocking it.
+Add a test for this condition and warn when it occurs.
 
-This patch makes sure kcompactd is woken up in such situations by simply
-moving the wakeup before the short initial sleep.  More efficient solution
-would be to wake kcompactd immediately instead of kswapd if the node is
-already order-0 balanced, but in that case we should also move
-reset_isolation_suitable() call to kcompactd so it's not adding to the
-allocator's latency.  Since it's late in the 4.6 cycle, let's go with the
-simpler change for now.
-
-Fixes: accf62422b3a ("mm, kswapd: replace kswapd compaction with waking up kcompactd")
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ scripts/checkpatch.pl |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN mm/vmscan.c~mm-wake-kcompactd-before-kswapds-short-sleep mm/vmscan.c
---- a/mm/vmscan.c~mm-wake-kcompactd-before-kswapds-short-sleep
-+++ a/mm/vmscan.c
-@@ -3318,6 +3318,20 @@ static void kswapd_try_to_sleep(pg_data_
- 	/* Try to sleep for a short interval */
- 	if (prepare_kswapd_sleep(pgdat, order, remaining,
- 						balanced_classzone_idx)) {
-+		/*
-+		 * Compaction records what page blocks it recently failed to
-+		 * isolate pages from and skips them in the future scanning.
-+		 * When kswapd is going to sleep, it is reasonable to assume
-+		 * that pages and compaction may succeed so reset the cache.
-+		 */
-+		reset_isolation_suitable(pgdat);
-+
-+		/*
-+		 * We have freed the memory, now we should compact it to make
-+		 * allocation of the requested order possible.
-+		 */
-+		wakeup_kcompactd(pgdat, order, classzone_idx);
-+
- 		remaining = schedule_timeout(HZ/10);
- 		finish_wait(&pgdat->kswapd_wait, &wait);
- 		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
-@@ -3341,20 +3355,6 @@ static void kswapd_try_to_sleep(pg_data_
- 		 */
- 		set_pgdat_percpu_threshold(pgdat, calculate_normal_threshold);
+diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-keywords-not-starting-on-tabstops scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-test-for-keywords-not-starting-on-tabstops
++++ a/scripts/checkpatch.pl
+@@ -2755,6 +2755,19 @@ sub process {
+ 			    "Logical continuations should be on the previous line\n" . $hereprev);
+ 		}
  
--		/*
--		 * Compaction records what page blocks it recently failed to
--		 * isolate pages from and skips them in the future scanning.
--		 * When kswapd is going to sleep, it is reasonable to assume
--		 * that pages and compaction may succeed so reset the cache.
--		 */
--		reset_isolation_suitable(pgdat);
--
--		/*
--		 * We have freed the memory, now we should compact it to make
--		 * allocation of the requested order possible.
--		 */
--		wakeup_kcompactd(pgdat, order, classzone_idx);
++# check indentation starts on a tab stop
++		if ($^V && $^V ge 5.10.0 &&
++		    $sline =~ /^\+\t+( +)(?:$c90_Keywords\b|\{\s*$|\}\s*(?:else\b|while\b|\s*$))/) {
++			my $indent = length($1);
++			if ($indent % 8) {
++				if (WARN("TABSTOP",
++					 "Statements should start on a tabstop\n" . $herecurr) &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s@(^\+\t+) +@$1 . "\t" x ($indent/8)@e;
++				}
++			}
++		}
++
+ # check multi-line statement indentation matches previous line
+ 		if ($^V && $^V ge 5.10.0 &&
+ 		    $prevline =~ /^\+([ \t]*)((?:$c90_Keywords(?:\s+if)\s*)|(?:$Declare\s*)?(?:$Ident|\(\s*\*\s*$Ident\s*\))\s*|$Ident\s*=\s*$Ident\s*)\(.*(\&\&|\|\||,)\s*$/) {
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+checkpatch-add-prefer_is_enabled-test.patch
+checkpatch-improve-constant_comparison-test-for-structure-members.patch
+checkpatch-add-test-for-keywords-not-starting-on-tabstops.patch
+
