@@ -1,89 +1,66 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- huge-tmpfs-recovery-framework-for-reconstituting-huge-pages.patch removed
+ huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd.patch removed
  from -mm tree
-Date: Thu, 21 Apr 2016 13:46:45 -0700
-Message-ID: <57193c35.huFdVU6gl4AuyeV+%akpm@linux-foundation.org>
+Date: Thu, 21 Apr 2016 13:46:51 -0700
+Message-ID: <57193c3b.lIuuweBndH9rsYtK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55224 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752192AbcDUUqq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 16:46:46 -0400
+	with ESMTP id S1752130AbcDUUqw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 16:46:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs recovery: framework for reconstituting huge pages
+     Subject: huge tmpfs recovery: shmem_recovery_remap & remap_team_by_pmd
 has been removed from the -mm tree.  Its filename was
-     huge-tmpfs-recovery-framework-for-reconstituting-huge-pages.patch
+     huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs recovery: framework for reconstituting huge pages
+Subject: huge tmpfs recovery: shmem_recovery_remap & remap_team_by_pmd
 
-Huge tmpfs is great when you're allocated a huge page from the start; but
-not much use if there was a shortage of huge pages at that time, or your
-huge pages were disbanded and swapped out under pressure, and now paged
-back in 4k pieces once the pressure has eased.  At present the best you
-can do is copy your original file, and start afresh on the unfragmented
-copy; but we do need a better answer.
+And once we have a fully populated huge page, replace the pte mappings (by
+now already pointing into this huge page, as page migration has arranged)
+by a huge pmd mapping - not just in the mm which prompted this work, but
+in any other mm which might benefit from it.
 
-The approach taken here is driven from page fault: assembling a huge page
-from existing pieces is more expensive than initial allocation from an
-empty huge page, and the work done quite likely to be wasted, unless
-there's some evidence that a huge TLB mapping will be useful to the
-process.  A page fault in a suitable area suggests that it may.
+However, the transition from pte mappings to huge pmd mapping is a new
+one, which may surprise code elsewhere - pte_offset_map() and
+pte_offset_map_lock() in particular.  See the earlier discussion in "huge
+tmpfs: avoid premature exposure of new pagetable", but now we are forced
+to go beyond its solution.
 
-So we adjust the original "Shall we map a huge page hugely?" tests in
-shmem_fault(), to distinguish what can be done on this occasion from what
-may be possible later: invoking shmem_huge_recovery() when we cannot map a
-huge page now, but might be able to use one later.
+The answer will be to put *pmd checking inside them, and examine whether a
+pagetable page could ever be recycled for another purpose before the pte
+lock is taken: the deposit/withdraw protocol, and mmap_sem conventions,
+work nicely against that danger; but special attention will have to be
+paid to MADV_DONTNEED's zap_huge_pmd() pte_free under down_read of
+mmap_sem.
 
-It's likely that this is over-eager, that it needs some rate-limiting, and
-should be tuned by the number of faults which occur in the extent.  Such
-information will have to be stored somewhere: probably in the extent's
-recovery work struct; but no attempt to do so in this series.
+Avoid those complications for now: just use a rather unwelcome down_write
+or down_write_trylock of mmap_sem here in shmem_recovery_remap(), to
+exclude msyscalls or faults or ptrace or GUP or NUMA work or /proc access.
+rmap access is already excluded by our holding i_mmap_rwsem.  Fast GUP on
+x86 is made safe by the TLB flush in remap_team_by_pmd()'s
+pmdp_collapse_flush(), its IPIs as usual blocked by fast GUP's
+local_irq_disable().  Fast GUP on powerpc is made safe as usual by its RCU
+freeing of page tables (though zap_huge_pmd()'s pte_free appears to
+violate that, but if so it's an issue for anon THP too: investigate
+further later).
 
-So as not to add latency to the fault, shmem_huge_recovery() just enqueues
-a work item - with no consideration for all the flavors of workqueue that
-might be used: would something special be better?
-
-But skips it if this range of the file is already on the queue (which is
-both more efficient, and avoids awkward races later), or if too many items
-are currently enqueued.  "Too many" defaults to more than 8, tunable via
-/proc/sys/vm/shmem_huge_recoveries - seems more appropriate than adding it
-into the huge=N mount option.  Why 8?  Well, anon THP's khugepaged is
-equivalent to 1, but work queues let us be less restrictive.  Initializing
-or tuning it to 0 completely disables huge tmpfs recovery.
-
-shmem_recovery_work() is where the huge page is allocated - using
-__alloc_pages_node() rather than alloc_pages_vma(), like anon THP does
-nowadays: ignoring vma mempol complications for now, though I'm sure our
-NUMA behavior here will need to be improved very soon.  Population and
-remap phases left as stubs in this framework commit.
-
-But a fresh huge page is not necessarily allocated: page migration is
-never sure to succeed, so it's wiser to allow a work item to resume on a
-huge page begun by an earlier, than re-migrate all its pages so far
-instantiated, to yet another huge page.  Sometimes an unfinished huge page
-can be easily recognized by PageTeam; but sometimes it has to be located,
-by the same SHMEM_TAG_HUGEHOLE mechanism that exposes it to the hugehole
-shrinker.  Clear the tag to prevent the shrinker from interfering
-(unexpectedly disbanding) while in shmem_populate_hugeteam() itself.
-
-If shmem_huge_recoveries is enabled, shmem_alloc_page()'s retry after
-shrinking is disabled: in early testing, the shrinker was too eager to
-undo the work of recovery.  That was probably a side-effect of bugs at
-that time, but it still seems right to reduce the latency of shmem_fault()
-when it has a second chance.
+Does remap_team_by_pmd() really need its mmu_notifier_invalidate_range
+pair?  The manner of mapping changes, but nothing is actually unmapped. 
+Of course, the same question can be asked of remap_team_by_ptes().
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -95,433 +72,203 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/tmpfs.txt |   12 +
- Documentation/sysctl/vm.txt         |    9 +
- include/linux/shmem_fs.h            |    2 
- kernel/sysctl.c                     |    7 
- mm/shmem.c                          |  233 +++++++++++++++++++++++++-
- 5 files changed, 256 insertions(+), 7 deletions(-)
+ include/linux/pageteam.h |    2 
+ mm/huge_memory.c         |   87 +++++++++++++++++++++++++++++++++++++
+ mm/shmem.c               |   76 ++++++++++++++++++++++++++++++++
+ 3 files changed, 165 insertions(+)
 
-diff -puN Documentation/filesystems/tmpfs.txt~huge-tmpfs-recovery-framework-for-reconstituting-huge-pages Documentation/filesystems/tmpfs.txt
---- a/Documentation/filesystems/tmpfs.txt~huge-tmpfs-recovery-framework-for-reconstituting-huge-pages
-+++ a/Documentation/filesystems/tmpfs.txt
-@@ -176,6 +176,12 @@ user accesses between end of file and th
- not fail with SIGBUS, as they would on a huge=0 filesystem - but will fail
- with SIGBUS if the kernel could only allocate small pages to back it.
- 
-+When memory pressure eases, or compaction repairs memory fragmentation,
-+huge tmpfs recovery attempts to restore the original performance with
-+hugepages: as small pages are faulted back in, a workitem is queued to
-+bring the remainder back from swap, and migrate small pages into place,
-+before remapping the completed hugepage with a pmd.
-+
- /proc/sys/vm/shmem_huge (intended for experimentation only):
- 
- Default 0; write 1 to set tmpfs mount option huge=1 on the kernel's
-@@ -186,6 +192,12 @@ In addition to 0 and 1, it also accepts
- automatically on for all tmpfs mounts (intended for testing), or -1
- to force huge off for all (intended for safety if bugs appeared).
- 
-+/proc/sys/vm/shmem_huge_recoveries:
-+
-+Default 8, allows up to 8 concurrent workitems, recovering hugepages
-+after fragmentation prevented or reclaim disbanded; write 0 to disable
-+huge recoveries, or a higher number to allow more concurrent recoveries.
-+
- /proc/<pid>/smaps shows:
- 
- ShmemHugePages:    10240 kB   tmpfs hugepages mapped by pmd into this region
-diff -puN Documentation/sysctl/vm.txt~huge-tmpfs-recovery-framework-for-reconstituting-huge-pages Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~huge-tmpfs-recovery-framework-for-reconstituting-huge-pages
-+++ a/Documentation/sysctl/vm.txt
-@@ -57,6 +57,7 @@ Currently, these files are in /proc/sys/
- - panic_on_oom
- - percpu_pagelist_fraction
- - shmem_huge
-+- shmem_huge_recoveries
- - stat_interval
- - stat_refresh
- - swappiness
-@@ -764,6 +765,14 @@ See Documentation/filesystems/tmpfs.txt
- 
- ==============================================================
- 
-+shmem_huge_recoveries
-+
-+Default 8, allows up to 8 concurrent workitems, recovering hugepages
-+after fragmentation prevented or reclaim disbanded; write 0 to disable
-+huge recoveries, or a higher number to allow more concurrent recoveries.
-+
-+==============================================================
-+
- stat_interval
- 
- The time interval between which vm statistics are updated.  The default
-diff -puN include/linux/shmem_fs.h~huge-tmpfs-recovery-framework-for-reconstituting-huge-pages include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~huge-tmpfs-recovery-framework-for-reconstituting-huge-pages
-+++ a/include/linux/shmem_fs.h
-@@ -20,6 +20,7 @@ struct shmem_inode_info {
- 	struct list_head	swaplist;	/* chain of maybes on swap */
- 	struct shared_policy	policy;		/* NUMA memory alloc policy */
- 	struct simple_xattrs	xattrs;		/* list of xattrs */
-+	atomic_t		recoveries;	/* huge recovery work queued */
- 	struct inode		vfs_inode;
- };
- 
-@@ -87,6 +88,7 @@ static inline long shmem_fcntl(struct fi
- # ifdef CONFIG_SYSCTL
- struct ctl_table;
- extern int shmem_huge, shmem_huge_min, shmem_huge_max;
-+extern int shmem_huge_recoveries;
- extern int shmem_huge_sysctl(struct ctl_table *table, int write,
- 			     void __user *buffer, size_t *lenp, loff_t *ppos);
- # endif /* CONFIG_SYSCTL */
-diff -puN kernel/sysctl.c~huge-tmpfs-recovery-framework-for-reconstituting-huge-pages kernel/sysctl.c
---- a/kernel/sysctl.c~huge-tmpfs-recovery-framework-for-reconstituting-huge-pages
-+++ a/kernel/sysctl.c
-@@ -1324,6 +1324,13 @@ static struct ctl_table vm_table[] = {
- 		.extra1		= &shmem_huge_min,
- 		.extra2		= &shmem_huge_max,
- 	},
-+	{
-+		.procname	= "shmem_huge_recoveries",
-+		.data		= &shmem_huge_recoveries,
-+		.maxlen		= sizeof(shmem_huge_recoveries),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+	},
- #endif
- #ifdef CONFIG_HUGETLB_PAGE
- 	{
-diff -puN mm/shmem.c~huge-tmpfs-recovery-framework-for-reconstituting-huge-pages mm/shmem.c
---- a/mm/shmem.c~huge-tmpfs-recovery-framework-for-reconstituting-huge-pages
-+++ a/mm/shmem.c
-@@ -59,6 +59,7 @@ static struct vfsmount *shm_mnt;
- #include <linux/splice.h>
- #include <linux/security.h>
- #include <linux/shrinker.h>
-+#include <linux/workqueue.h>
- #include <linux/sysctl.h>
- #include <linux/swapops.h>
- #include <linux/pageteam.h>
-@@ -319,6 +320,7 @@ static DEFINE_SPINLOCK(shmem_shrinklist_
- /* ifdef here to avoid bloating shmem.o when not necessary */
- 
- int shmem_huge __read_mostly;
-+int shmem_huge_recoveries __read_mostly = 8;	/* concurrent recovery limit */
- 
- static struct page *shmem_hugeteam_lookup(struct address_space *mapping,
- 					  pgoff_t index, bool speculative)
-@@ -377,8 +379,8 @@ static int shmem_freeholes(struct page *
- 		HPAGE_PMD_NR - (nr / TEAM_PAGE_COUNTER);
+diff -puN include/linux/pageteam.h~huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd include/linux/pageteam.h
+--- a/include/linux/pageteam.h~huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd
++++ a/include/linux/pageteam.h
+@@ -313,6 +313,8 @@ void unmap_team_by_pmd(struct vm_area_st
+ 			unsigned long addr, pmd_t *pmd, struct page *page);
+ void remap_team_by_ptes(struct vm_area_struct *vma,
+ 			unsigned long addr, pmd_t *pmd);
++void remap_team_by_pmd(struct vm_area_struct *vma,
++			unsigned long addr, pmd_t *pmd, struct page *page);
+ #else
+ static inline int map_team_by_pmd(struct vm_area_struct *vma,
+ 			unsigned long addr, pmd_t *pmd, struct page *page)
+diff -puN mm/huge_memory.c~huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd
++++ a/mm/huge_memory.c
+@@ -3704,3 +3704,90 @@ raced:
+ 	spin_unlock(pml);
+ 	mmu_notifier_invalidate_range_end(mm, addr, end);
  }
- 
--static void shmem_clear_tag_hugehole(struct address_space *mapping,
--				     pgoff_t index)
-+static struct page *shmem_clear_tag_hugehole(struct address_space *mapping,
-+					     pgoff_t index)
- {
- 	struct page *page = NULL;
- 
-@@ -391,9 +393,13 @@ static void shmem_clear_tag_hugehole(str
- 	 */
- 	radix_tree_gang_lookup_tag(&mapping->page_tree, (void **)&page,
- 					index, 1, SHMEM_TAG_HUGEHOLE);
--	VM_BUG_ON(!page || page->index >= index + HPAGE_PMD_NR);
--	radix_tree_tag_clear(&mapping->page_tree, page->index,
-+	VM_BUG_ON(radix_tree_exception(page));
-+	if (page && page->index < index + HPAGE_PMD_NR) {
-+		radix_tree_tag_clear(&mapping->page_tree, page->index,
- 					SHMEM_TAG_HUGEHOLE);
-+		return page;
-+	}
-+	return NULL;
- }
- 
- static void shmem_added_to_hugeteam(struct page *page, struct zone *zone,
-@@ -748,6 +754,190 @@ static void shmem_disband_hugeteam(struc
- 	preempt_enable();
- }
- 
-+static LIST_HEAD(shmem_recoverylist);
-+static unsigned int shmem_recoverylist_depth;
-+static DEFINE_SPINLOCK(shmem_recoverylist_lock);
 +
-+struct recovery {
-+	struct list_head list;
-+	struct work_struct work;
-+	struct mm_struct *mm;
-+	struct inode *inode;
-+	struct page *page;
-+	pgoff_t head_index;
-+};
-+
-+#define shr_stats(x)	do {} while (0)
-+/* Stats implemented in a later patch */
-+
-+static bool shmem_work_still_useful(struct recovery *recovery)
++void remap_team_by_pmd(struct vm_area_struct *vma, unsigned long addr,
++		       pmd_t *pmd, struct page *head)
 +{
-+	struct address_space *mapping = READ_ONCE(recovery->page->mapping);
++	struct mm_struct *mm = vma->vm_mm;
++	struct page *page = head;
++	pgtable_t pgtable;
++	unsigned long end;
++	spinlock_t *pml;
++	spinlock_t *ptl;
++	pmd_t pmdval;
++	pte_t *pte;
++	int rss = 0;
 +
-+	return mapping &&			/* page is not yet truncated */
-+#ifdef CONFIG_MEMCG
-+		recovery->mm->owner &&		/* mm can still charge memcg */
-+#else
-+		atomic_read(&recovery->mm->mm_users) &&	/* mm still has users */
-+#endif
-+		!RB_EMPTY_ROOT(&mapping->i_mmap);  /* file is still mapped */
-+}
++	VM_BUG_ON_PAGE(!PageTeam(head), head);
++	VM_BUG_ON_PAGE(!PageLocked(head), head);
++	VM_BUG_ON(addr & ~HPAGE_PMD_MASK);
++	end = addr + HPAGE_PMD_SIZE;
 +
-+static int shmem_recovery_populate(struct recovery *recovery, struct page *head)
-+{
-+	/* Huge page has been split but is not yet PageTeam */
-+	shmem_disband_hugetails(head, NULL, 0);
-+	return -ENOENT;
-+}
-+
-+static void shmem_recovery_remap(struct recovery *recovery, struct page *head)
-+{
-+}
-+
-+static void shmem_recovery_work(struct work_struct *work)
-+{
-+	struct recovery *recovery;
-+	struct shmem_inode_info *info;
-+	struct address_space *mapping;
-+	struct page *page;
-+	struct page *head = NULL;
-+	int error = -ENOENT;
-+
-+	recovery = container_of(work, struct recovery, work);
-+	info = SHMEM_I(recovery->inode);
-+	if (!shmem_work_still_useful(recovery)) {
-+		shr_stats(work_too_late);
++	mmu_notifier_invalidate_range_start(mm, addr, end);
++	pml = pmd_lock(mm, pmd);
++	pmdval = *pmd;
++	/* I don't see how this can happen now, but be defensive */
++	if (pmd_trans_huge(pmdval) || pmd_none(pmdval))
 +		goto out;
-+	}
 +
-+	/* Are we resuming from an earlier partially successful attempt? */
-+	mapping = recovery->inode->i_mapping;
-+	spin_lock_irq(&mapping->tree_lock);
-+	page = shmem_clear_tag_hugehole(mapping, recovery->head_index);
-+	if (page)
-+		head = team_head(page);
-+	spin_unlock_irq(&mapping->tree_lock);
-+	if (head) {
-+		/* Serialize with shrinker so it won't mess with our range */
-+		spin_lock(&shmem_shrinklist_lock);
-+		spin_unlock(&shmem_shrinklist_lock);
-+	}
++	ptl = pte_lockptr(mm, pmd);
++	if (ptl != pml)
++		spin_lock(ptl);
 +
-+	/* If team is now complete, no tag and head would be found above */
-+	page = recovery->page;
-+	if (PageTeam(page))
-+		head = team_head(page);
++	pgtable = pmd_pgtable(pmdval);
++	pmdval = mk_pmd(head, vma->vm_page_prot);
++	pmdval = pmd_mkhuge(pmd_mkdirty(pmdval));
 +
-+	/* Get a reference to the head of the team already being assembled */
-+	if (head) {
-+		if (!get_page_unless_zero(head))
-+			head = NULL;
-+		else if (!PageTeam(head) || head->mapping != mapping ||
-+				head->index != recovery->head_index) {
-+			put_page(head);
-+			head = NULL;
-+		}
-+	}
-+
-+	if (head) {
-+		/* We are resuming work from a previous partial recovery */
-+		if (PageTeam(page))
-+			shr_stats(resume_teamed);
-+		else
-+			shr_stats(resume_tagged);
-+	} else {
-+		gfp_t gfp = mapping_gfp_mask(mapping);
-+		/*
-+		 * XXX: Note that with swapin readahead, page_to_nid(page) will
-+		 * often choose an unsuitable NUMA node: something to fix soon,
-+		 * but not an immediate blocker.
-+		 */
-+		head = __alloc_pages_node(page_to_nid(page),
-+			gfp | __GFP_NOWARN | __GFP_THISNODE, HPAGE_PMD_ORDER);
-+		if (!head) {
-+			shr_stats(huge_failed);
-+			error = -ENOMEM;
-+			goto out;
-+		}
-+		if (!shmem_work_still_useful(recovery)) {
-+			__free_pages(head, HPAGE_PMD_ORDER);
-+			shr_stats(huge_too_late);
-+			goto out;
-+		}
-+		split_page(head, HPAGE_PMD_ORDER);
-+		get_page(head);
-+		shr_stats(huge_alloced);
-+	}
-+
-+	put_page(page);			/* before trying to migrate it */
-+	recovery->page = head;		/* to put at out */
-+
-+	error = shmem_recovery_populate(recovery, head);
-+	if (!error)
-+		shmem_recovery_remap(recovery, head);
-+out:
-+	put_page(recovery->page);
-+	/* Let shmem_evict_inode proceed towards freeing it */
-+	if (atomic_dec_and_test(&info->recoveries))
-+		wake_up_atomic_t(&info->recoveries);
-+	mmdrop(recovery->mm);
-+
-+	spin_lock(&shmem_recoverylist_lock);
-+	shmem_recoverylist_depth--;
-+	list_del(&recovery->list);
-+	spin_unlock(&shmem_recoverylist_lock);
-+	kfree(recovery);
-+}
-+
-+static void shmem_huge_recovery(struct inode *inode, struct page *page,
-+				struct vm_area_struct *vma)
-+{
-+	struct recovery *recovery;
-+	struct recovery *r;
-+
-+	/* Limit the outstanding work somewhat; but okay to overshoot */
-+	if (shmem_recoverylist_depth >= shmem_huge_recoveries) {
-+		shr_stats(work_too_many);
-+		return;
-+	}
-+	recovery = kmalloc(sizeof(*recovery), GFP_KERNEL);
-+	if (!recovery)
-+		return;
-+
-+	recovery->mm = vma->vm_mm;
-+	recovery->inode = inode;
-+	recovery->page = page;
-+	recovery->head_index = round_down(page->index, HPAGE_PMD_NR);
-+
-+	spin_lock(&shmem_recoverylist_lock);
-+	list_for_each_entry(r, &shmem_recoverylist, list) {
-+		/* Is someone already working on this extent? */
-+		if (r->inode == inode &&
-+		    r->head_index == recovery->head_index) {
-+			spin_unlock(&shmem_recoverylist_lock);
-+			kfree(recovery);
-+			shr_stats(work_already);
-+			return;
-+		}
-+	}
-+	list_add(&recovery->list, &shmem_recoverylist);
-+	shmem_recoverylist_depth++;
-+	spin_unlock(&shmem_recoverylist_lock);
++	/* Perhaps wise to mark head as mapped before removing pte rmaps */
++	page_add_file_rmap(head);
 +
 +	/*
-+	 * It's safe to leave inc'ing these reference counts until after
-+	 * dropping the list lock above, because the corresponding decs
-+	 * cannot happen until the work is run, and we queue it below.
++	 * Just as remap_team_by_ptes() would prefer to fill the page table
++	 * earlier, remap_team_by_pmd() would prefer to empty it later; but
++	 * ppc64's variant of the deposit/withdraw protocol prevents that.
 +	 */
-+	atomic_inc(&recovery->mm->mm_count);
-+	atomic_inc(&SHMEM_I(inode)->recoveries);
-+	get_page(page);
++	pte = pte_offset_map(pmd, addr);
++	do {
++		if (pte_none(*pte))
++			continue;
 +
-+	INIT_WORK(&recovery->work, shmem_recovery_work);
-+	schedule_work(&recovery->work);
-+	shr_stats(work_queued);
-+}
++		VM_BUG_ON(!pte_present(*pte));
++		VM_BUG_ON(pte_page(*pte) != page);
 +
- static struct page *shmem_get_hugehole(struct address_space *mapping,
- 				       unsigned long *index)
- {
-@@ -998,6 +1188,8 @@ static struct shrinker shmem_hugehole_sh
- #else /* !CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #define shmem_huge SHMEM_HUGE_DENY
-+#define shmem_huge_recoveries 0
-+#define shr_stats(x) do {} while (0)
- 
- static inline struct page *shmem_hugeteam_lookup(struct address_space *mapping,
- 					pgoff_t index, bool speculative)
-@@ -1022,6 +1214,11 @@ static inline int shmem_populate_hugetea
- 	return -EAGAIN;
- }
- 
-+static inline void shmem_huge_recovery(struct inode *inode,
-+				struct page *page, struct vm_area_struct *vma)
-+{
-+}
++		pte_clear(mm, addr, pte);
++		page_remove_rmap(page, false);
++		put_page(page);
++		rss++;
++	} while (pte++, page++, addr += PAGE_SIZE, addr != end);
 +
- static inline unsigned long shmem_shrink_hugehole(struct shrinker *shrink,
- 						  struct shrink_control *sc)
- {
-@@ -1505,6 +1702,12 @@ static int shmem_setattr(struct dentry *
- 	return error;
- }
- 
-+static int shmem_wait_on_atomic_t(atomic_t *atomic)
-+{
-+	schedule();
-+	return 0;
-+}
++	pte -= HPAGE_PMD_NR;
++	addr -= HPAGE_PMD_SIZE;
 +
- static void shmem_evict_inode(struct inode *inode)
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
-@@ -1526,6 +1729,9 @@ static void shmem_evict_inode(struct ino
- 			list_del_init(&info->swaplist);
- 			mutex_unlock(&shmem_swaplist_mutex);
- 		}
-+		/* Stop inode from being freed while recovery is in progress */
-+		wait_on_atomic_t(&info->recoveries, shmem_wait_on_atomic_t,
-+				 TASK_UNINTERRUPTIBLE);
- 	}
- 
- 	simple_xattrs_free(&info->xattrs);
-@@ -1879,7 +2085,8 @@ static struct page *shmem_alloc_page(gfp
- 			head = alloc_pages_vma(gfp|__GFP_NORETRY|__GFP_NOWARN,
- 				HPAGE_PMD_ORDER, &pvma, 0, numa_node_id(),
- 				true);
--			if (!head &&
-+			/* Shrink and retry? Or leave it to recovery worker */
-+			if (!head && !shmem_huge_recoveries &&
- 			    shmem_shrink_hugehole(NULL, NULL) != SHRINK_STOP) {
- 				head = alloc_pages_vma(
- 					gfp|__GFP_NORETRY|__GFP_NOWARN,
-@@ -2377,9 +2584,9 @@ single:
- 	 */
- 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
- 		return ret;
--	if (!(vmf->flags & FAULT_FLAG_MAY_HUGE))
-+	if (shmem_huge == SHMEM_HUGE_DENY)
- 		return ret;
--	if (!PageTeam(vmf->page))
-+	if (shmem_huge != SHMEM_HUGE_FORCE && !SHMEM_SB(inode->i_sb)->huge)
- 		return ret;
- 	if (once++)
- 		return ret;
-@@ -2393,6 +2600,17 @@ single:
- 		return ret;
- 	/* But omit i_size check: allow up to huge page boundary */
- 
-+	if (!PageTeam(vmf->page) || !(vmf->flags & FAULT_FLAG_MAY_HUGE)) {
++	if (rss) {
++		pmdp_collapse_flush(vma, addr, pmd);
++		pgtable_trans_huge_deposit(mm, pmd, pgtable);
++		set_pmd_at(mm, addr, pmd, pmdval);
++		update_mmu_cache_pmd(vma, addr, pmd);
++		get_page(head);
++		page_add_team_rmap(head);
++		add_mm_counter(mm, MM_SHMEMPAGES, HPAGE_PMD_NR - rss);
++	} else {
 +		/*
-+		 * XXX: Need to add check for unobstructed pmd
-+		 * (no anon or swap), and per-pmd ratelimiting.
-+		 * Use anon_vma as over-strict hint of COWed pages.
++		 * Hmm.  We might have caught this vma in between unmap_vmas()
++		 * and free_pgtables(), which is a surprising time to insert a
++		 * huge page.  Before our caller checked mm_users, I sometimes
++		 * saw a "bad pmd" report, and pgtable_pmd_page_dtor() BUG on
++		 * pmd_huge_pte, when killing off tests.  But checking mm_users
++		 * is not enough to protect against munmap(): so for safety,
++		 * back out if we found no ptes to replace.
 +		 */
-+		if (shmem_huge_recoveries && !vma->anon_vma)
-+			shmem_huge_recovery(inode, vmf->page, vma);
-+		return ret;
++		page_remove_rmap(head, false);
 +	}
 +
- 	head = team_head(vmf->page);
- 	if (!get_page_unless_zero(head))
- 		return ret;
-@@ -2580,6 +2798,7 @@ static struct inode *shmem_get_inode(str
- 		info = SHMEM_I(inode);
- 		memset(info, 0, (char *)inode - (char *)info);
- 		spin_lock_init(&info->lock);
-+		atomic_set(&info->recoveries, 0);
- 		info->seals = F_SEAL_SEAL;
- 		info->flags = flags & VM_NORESERVE;
- 		INIT_LIST_HEAD(&info->shrinklist);
++	if (ptl != pml)
++		spin_unlock(ptl);
++	pte_unmap(pte);
++out:
++	spin_unlock(pml);
++	mmu_notifier_invalidate_range_end(mm, addr, end);
++}
+diff -puN mm/shmem.c~huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd mm/shmem.c
+--- a/mm/shmem.c~huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd
++++ a/mm/shmem.c
+@@ -1097,6 +1097,82 @@ unlock:
+ 
+ static void shmem_recovery_remap(struct recovery *recovery, struct page *head)
+ {
++	struct mm_struct *mm = recovery->mm;
++	struct address_space *mapping = head->mapping;
++	pgoff_t pgoff = head->index;
++	struct vm_area_struct *vma;
++	unsigned long addr;
++	pmd_t *pmd;
++	bool try_other_mms = false;
++
++	/*
++	 * XXX: This use of mmap_sem is regrettable.  It is needed for one
++	 * reason only: because callers of pte_offset_map(_lock)() are not
++	 * prepared for a huge pmd to appear in place of a page table at any
++	 * instant.  That can be fixed in pte_offset_map(_lock)() and callers,
++	 * but that is a more invasive change, so just do it this way for now.
++	 */
++	down_write(&mm->mmap_sem);
++	lock_page(head);
++	if (!PageTeam(head)) {
++		unlock_page(head);
++		up_write(&mm->mmap_sem);
++		return;
++	}
++	VM_BUG_ON_PAGE(!PageChecked(head), head);
++	i_mmap_lock_write(mapping);
++	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
++		/* XXX: Use anon_vma as over-strict hint of COWed pages */
++		if (vma->anon_vma)
++			continue;
++		addr = vma_address(head, vma);
++		if (addr & (HPAGE_PMD_SIZE-1))
++			continue;
++		if (vma->vm_end < addr + HPAGE_PMD_SIZE)
++			continue;
++		if (!atomic_read(&vma->vm_mm->mm_users))
++			continue;
++		if (vma->vm_mm != mm) {
++			try_other_mms = true;
++			continue;
++		}
++		/* Only replace existing ptes: empty pmd can fault for itself */
++		pmd = mm_find_pmd(vma->vm_mm, addr);
++		if (!pmd)
++			continue;
++		remap_team_by_pmd(vma, addr, pmd, head);
++		shr_stats(remap_faulter);
++	}
++	up_write(&mm->mmap_sem);
++	if (!try_other_mms)
++		goto out;
++	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
++		if (vma->vm_mm == mm)
++			continue;
++		/* XXX: Use anon_vma as over-strict hint of COWed pages */
++		if (vma->anon_vma)
++			continue;
++		addr = vma_address(head, vma);
++		if (addr & (HPAGE_PMD_SIZE-1))
++			continue;
++		if (vma->vm_end < addr + HPAGE_PMD_SIZE)
++			continue;
++		if (!atomic_read(&vma->vm_mm->mm_users))
++			continue;
++		/* Only replace existing ptes: empty pmd can fault for itself */
++		pmd = mm_find_pmd(vma->vm_mm, addr);
++		if (!pmd)
++			continue;
++		if (down_write_trylock(&vma->vm_mm->mmap_sem)) {
++			remap_team_by_pmd(vma, addr, pmd, head);
++			shr_stats(remap_another);
++			up_write(&vma->vm_mm->mmap_sem);
++		} else
++			shr_stats(remap_untried);
++	}
++out:
++	i_mmap_unlock_write(mapping);
++	unlock_page(head);
+ }
+ 
+ static void shmem_recovery_work(struct work_struct *work)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -535,8 +282,6 @@ mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch
 huge-mm-move_huge_pmd-does-not-need-new_vma.patch
 huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch
 arch-fix-has_transparent_hugepage.patch
-huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page.patch
-huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd.patch
 huge-tmpfs-recovery-shmem_recovery_swapin-to-read-from-swap.patch
 huge-tmpfs-recovery-tweak-shmem_getpage_gfp-to-fill-team.patch
 huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase.patch
