@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-padata-hide-unused-functions.patch added to -mm tree
-Date: Fri, 22 Apr 2016 13:16:00 -0700
-Message-ID: <571a8680.xxDma78IqdfceV1Y%akpm@linux-foundation.org>
+Subject: + kernel-padata-hide-unused-functions-checkpatch-fixes.patch
+ added to -mm tree
+Date: Fri, 22 Apr 2016 13:16:31 -0700
+Message-ID: <571a869f.1lDG534NLk3ibb2n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58982 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58986 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084AbcDVUQB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:16:01 -0400
+	with ESMTP id S1751084AbcDVUQc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:16:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, rcochran@linutronix.de, steffen.klassert@secunet.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/padata.c: hide unused functions
+     Subject: kernel-padata-hide-unused-functions-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     kernel-padata-hide-unused-functions.patch
+     kernel-padata-hide-unused-functions-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-padata-hide-unused-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-padata-hide-unused-functions-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-padata-hide-unused-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-padata-hide-unused-functions-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,118 +39,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kernel/padata.c: hide unused functions
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel-padata-hide-unused-functions-checkpatch-fixes
 
-A recent cleanup removed some exported functions that were not used
-anywhere, which in turn exposed the fact that some other functions in the
-same file are only used in some configurations.
+ERROR: spaces required around that '=' (ctx:WxO)
+#48: FILE: kernel/padata.c:689:
++		err =-EINVAL;
+ 		    ^
 
-We now get a warning about them when CONFIG_HOTPLUG_CPU is disabled:
+ERROR: space required before that '-' (ctx:OxV)
+#48: FILE: kernel/padata.c:689:
++		err =-EINVAL;
+ 		     ^
 
-kernel/padata.c:670:12: error: '__padata_remove_cpu' defined but not used [-Werror=unused-function]
- static int __padata_remove_cpu(struct padata_instance *pinst, int cpu)
-            ^~~~~~~~~~~~~~~~~~~
-kernel/padata.c:650:12: error: '__padata_add_cpu' defined but not used [-Werror=unused-function]
- static int __padata_add_cpu(struct padata_instance *pinst, int cpu)
+total: 2 errors, 0 warnings, 86 lines checked
 
-This rearranges the code so the __padata_remove_cpu/__padata_add_cpu
-functions are within the #ifdef that protects the code that calls them.
+./patches/kernel-padata-hide-unused-functions.patch has style problems, please review.
 
-Fixes: 4ba6d78c671e ("kernel/padata.c: removed unused code")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Richard Cochran <rcochran@linutronix.de>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/padata.c |   74 +++++++++++++++++++++++-----------------------
- 1 file changed, 37 insertions(+), 37 deletions(-)
+ kernel/padata.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/padata.c~kernel-padata-hide-unused-functions kernel/padata.c
---- a/kernel/padata.c~kernel-padata-hide-unused-functions
+diff -puN kernel/padata.c~kernel-padata-hide-unused-functions-checkpatch-fixes kernel/padata.c
+--- a/kernel/padata.c~kernel-padata-hide-unused-functions-checkpatch-fixes
 +++ a/kernel/padata.c
-@@ -674,6 +674,43 @@ out:
- }
- EXPORT_SYMBOL(padata_set_cpumask);
+@@ -686,7 +686,7 @@ int padata_start(struct padata_instance
+ 	mutex_lock(&pinst->lock);
  
-+/**
-+ * padata_start - start the parallel processing
-+ *
-+ * @pinst: padata instance to start
-+ */
-+int padata_start(struct padata_instance *pinst)
-+{
-+	int err = 0;
-+
-+	mutex_lock(&pinst->lock);
-+
-+	if (pinst->flags & PADATA_INVALID)
-+		err =-EINVAL;
-+
-+	 __padata_start(pinst);
-+
-+	mutex_unlock(&pinst->lock);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(padata_start);
-+
-+/**
-+ * padata_stop - stop the parallel processing
-+ *
-+ * @pinst: padata instance to stop
-+ */
-+void padata_stop(struct padata_instance *pinst)
-+{
-+	mutex_lock(&pinst->lock);
-+	__padata_stop(pinst);
-+	mutex_unlock(&pinst->lock);
-+}
-+EXPORT_SYMBOL(padata_stop);
-+
-+#ifdef CONFIG_HOTPLUG_CPU
-+
- static int __padata_add_cpu(struct padata_instance *pinst, int cpu)
- {
- 	struct parallel_data *pd;
-@@ -789,43 +826,6 @@ int padata_remove_cpu(struct padata_inst
- }
- EXPORT_SYMBOL(padata_remove_cpu);
- 
--/**
-- * padata_start - start the parallel processing
-- *
-- * @pinst: padata instance to start
-- */
--int padata_start(struct padata_instance *pinst)
--{
--	int err = 0;
--
--	mutex_lock(&pinst->lock);
--
--	if (pinst->flags & PADATA_INVALID)
+ 	if (pinst->flags & PADATA_INVALID)
 -		err =-EINVAL;
--
--	 __padata_start(pinst);
--
--	mutex_unlock(&pinst->lock);
--
--	return err;
--}
--EXPORT_SYMBOL(padata_start);
--
--/**
-- * padata_stop - stop the parallel processing
-- *
-- * @pinst: padata instance to stop
-- */
--void padata_stop(struct padata_instance *pinst)
--{
--	mutex_lock(&pinst->lock);
--	__padata_stop(pinst);
--	mutex_unlock(&pinst->lock);
--}
--EXPORT_SYMBOL(padata_stop);
--
--#ifdef CONFIG_HOTPLUG_CPU
++		err = -EINVAL;
+ 
+ 	 __padata_start(pinst);
+ 
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-padata-hide-unused-functions-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-compaction-direct-freepage-allocation-for-async-direct-compaction-checkpatch-fixes.patch
+mm-uninline-page_mapped.patch
+mm-uninline-page_mapped-checkpatch-fixes.patch
+memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
+exit_thread-remove-empty-bodies-fix.patch
+exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
+fs-execc-fix-minor-memory-leak.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
