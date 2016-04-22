@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-fix-the-theoretical-race-by-holding-proper-lock.patch
- added to -mm tree
-Date: Fri, 22 Apr 2016 15:01:53 -0700
-Message-ID: <571a9f51.giqQ6aEFOOjVPat/%akpm@linux-foundation.org>
+Subject: + mm-slab-racy-access-modify-the-slab-color.patch added to -mm
+ tree
+Date: Fri, 22 Apr 2016 15:02:05 -0700
+Message-ID: <571a9f5d.3eLX0PF73P9kfy13%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38036 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38078 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752372AbcDVWBz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 18:01:55 -0400
+	with ESMTP id S1752372AbcDVWCG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 18:02:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: fix the theoretical race by holding proper lock
+     Subject: mm/slab: racy access/modify the slab color
 has been added to the -mm tree.  Its filename is
-     mm-slab-fix-the-theoretical-race-by-holding-proper-lock.patch
+     mm-slab-racy-access-modify-the-slab-color.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-fix-the-theoretical-race-by-holding-proper-lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-racy-access-modify-the-slab-color.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-fix-the-theoretical-race-by-holding-proper-lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-racy-access-modify-the-slab-color.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: fix the theoretical race by holding proper lock
+Subject: mm/slab: racy access/modify the slab color
 
-While processing concurrent allocation, SLAB could be contended a lot
-because it did a lots of work with holding a lock.  This patchset try to
-reduce the number of critical section to reduce lock contention.  Major
-changes are lockless decision to allocate more slab and lockless cpu cache
-refill from the newly allocated slab.
+Slab color isn't needed to be changed strictly.  Because locking for
+changing slab color could cause more lock contention so this patch
+implements racy access/modify the slab color.  This is a preparation step
+to implement lockless allocation path when there is no free objects in the
+kmem_cache.
 
 Below is the result of concurrent allocation/free in slab allocation
 benchmark made by Christoph a long time ago.  I make the output simpler. 
@@ -64,171 +64,73 @@ Kmalloc N*alloc N*free(2048): Average=8451/1748
 Kmalloc N*alloc N*free(4096): Average=16024/2048
 
 * After
-Kmalloc N*alloc N*free(32): Average=344/792
-Kmalloc N*alloc N*free(64): Average=347/882
-Kmalloc N*alloc N*free(128): Average=390/959
-Kmalloc N*alloc N*free(256): Average=393/1067
-Kmalloc N*alloc N*free(512): Average=683/1229
-Kmalloc N*alloc N*free(1024): Average=1295/1325
-Kmalloc N*alloc N*free(2048): Average=2513/1664
-Kmalloc N*alloc N*free(4096): Average=4742/2172
+Kmalloc N*alloc N*free(32): Average=355/750
+Kmalloc N*alloc N*free(64): Average=452/812
+Kmalloc N*alloc N*free(128): Average=559/1070
+Kmalloc N*alloc N*free(256): Average=1176/980
+Kmalloc N*alloc N*free(512): Average=1939/1189
+Kmalloc N*alloc N*free(1024): Average=3521/1278
+Kmalloc N*alloc N*free(2048): Average=7152/1838
+Kmalloc N*alloc N*free(4096): Average=13438/2013
 
-It shows that performance improves greatly (roughly more than 50%) for the
-object class whose size is more than 128 bytes.
-
-This patch (of 11):
-
-If we don't hold neither the slab_mutex nor the node lock, node's shared
-array cache could be freed and re-populated.  If __kmem_cache_shrink() is
-called at the same time, it will call drain_array() with n->shared without
-holding node lock so problem can happen.  This patch fix the situation by
-holding the node lock before trying to drain the shared array.
-
-In addition, add a debug check to confirm that n->shared access race
-doesn't exist.
+It shows that contention is reduced for object size >= 1024 and
+performance increases by roughly 15%.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   68 ++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 45 insertions(+), 23 deletions(-)
+ mm/slab.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-fix-the-theoretical-race-by-holding-proper-lock mm/slab.c
---- a/mm/slab.c~mm-slab-fix-the-theoretical-race-by-holding-proper-lock
+diff -puN mm/slab.c~mm-slab-racy-access-modify-the-slab-color mm/slab.c
+--- a/mm/slab.c~mm-slab-racy-access-modify-the-slab-color
 +++ a/mm/slab.c
-@@ -2180,6 +2180,11 @@ static void check_irq_on(void)
- 	BUG_ON(irqs_disabled());
- }
- 
-+static void check_mutex_acquired(void)
-+{
-+	BUG_ON(!mutex_is_locked(&slab_mutex));
-+}
-+
- static void check_spinlock_acquired(struct kmem_cache *cachep)
- {
- #ifdef CONFIG_SMP
-@@ -2199,13 +2204,27 @@ static void check_spinlock_acquired_node
- #else
- #define check_irq_off()	do { } while(0)
- #define check_irq_on()	do { } while(0)
-+#define check_mutex_acquired()	do { } while(0)
- #define check_spinlock_acquired(x) do { } while(0)
- #define check_spinlock_acquired_node(x, y) do { } while(0)
- #endif
- 
--static void drain_array(struct kmem_cache *cachep, struct kmem_cache_node *n,
--			struct array_cache *ac,
--			int force, int node);
-+static void drain_array_locked(struct kmem_cache *cachep, struct array_cache *ac,
-+				int node, bool free_all, struct list_head *list)
-+{
-+	int tofree;
-+
-+	if (!ac || !ac->avail)
-+		return;
-+
-+	tofree = free_all ? ac->avail : (ac->limit + 4) / 5;
-+	if (tofree > ac->avail)
-+		tofree = (ac->avail + 1) / 2;
-+
-+	free_block(cachep, ac->entry, tofree, node, list);
-+	ac->avail -= tofree;
-+	memmove(ac->entry, &(ac->entry[tofree]), sizeof(void *) * ac->avail);
-+}
- 
- static void do_drain(void *arg)
- {
-@@ -2229,6 +2248,7 @@ static void drain_cpu_caches(struct kmem
- {
- 	struct kmem_cache_node *n;
- 	int node;
-+	LIST_HEAD(list);
- 
- 	on_each_cpu(do_drain, cachep, 1);
- 	check_irq_on();
-@@ -2236,8 +2256,13 @@ static void drain_cpu_caches(struct kmem
- 		if (n->alien)
- 			drain_alien_cache(cachep, n->alien);
- 
--	for_each_kmem_cache_node(cachep, node, n)
--		drain_array(cachep, n, n->shared, 1, node);
-+	for_each_kmem_cache_node(cachep, node, n) {
-+		spin_lock_irq(&n->list_lock);
-+		drain_array_locked(cachep, n->shared, node, true, &list);
-+		spin_unlock_irq(&n->list_lock);
-+
-+		slabs_destroy(cachep, &list);
-+	}
- }
- 
- /*
-@@ -3869,29 +3894,26 @@ skip_setup:
-  * if drain_array() is used on the shared array.
-  */
- static void drain_array(struct kmem_cache *cachep, struct kmem_cache_node *n,
--			 struct array_cache *ac, int force, int node)
-+			 struct array_cache *ac, int node)
- {
- 	LIST_HEAD(list);
--	int tofree;
-+
-+	/* ac from n->shared can be freed if we don't hold the slab_mutex. */
-+	check_mutex_acquired();
- 
- 	if (!ac || !ac->avail)
- 		return;
--	if (ac->touched && !force) {
-+
-+	if (ac->touched) {
- 		ac->touched = 0;
--	} else {
--		spin_lock_irq(&n->list_lock);
--		if (ac->avail) {
--			tofree = force ? ac->avail : (ac->limit + 4) / 5;
--			if (tofree > ac->avail)
--				tofree = (ac->avail + 1) / 2;
--			free_block(cachep, ac->entry, tofree, node, &list);
--			ac->avail -= tofree;
--			memmove(ac->entry, &(ac->entry[tofree]),
--				sizeof(void *) * ac->avail);
--		}
--		spin_unlock_irq(&n->list_lock);
--		slabs_destroy(cachep, &list);
-+		return;
+@@ -2568,20 +2568,7 @@ static int cache_grow(struct kmem_cache
  	}
+ 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
+ 
+-	/* Take the node list lock to change the colour_next on this node */
+ 	check_irq_off();
+-	n = get_node(cachep, nodeid);
+-	spin_lock(&n->list_lock);
+-
+-	/* Get colour for the slab, and cal the next value. */
+-	offset = n->colour_next;
+-	n->colour_next++;
+-	if (n->colour_next >= cachep->colour)
+-		n->colour_next = 0;
+-	spin_unlock(&n->list_lock);
+-
+-	offset *= cachep->colour_off;
+-
+ 	if (gfpflags_allow_blocking(local_flags))
+ 		local_irq_enable();
+ 
+@@ -2602,6 +2589,19 @@ static int cache_grow(struct kmem_cache
+ 	if (!page)
+ 		goto failed;
+ 
++	n = get_node(cachep, nodeid);
 +
-+	spin_lock_irq(&n->list_lock);
-+	drain_array_locked(cachep, ac, node, false, &list);
-+	spin_unlock_irq(&n->list_lock);
++	/* Get colour for the slab, and cal the next value. */
++	n->colour_next++;
++	if (n->colour_next >= cachep->colour)
++		n->colour_next = 0;
 +
-+	slabs_destroy(cachep, &list);
- }
- 
- /**
-@@ -3929,7 +3951,7 @@ static void cache_reap(struct work_struc
- 
- 		reap_alien(searchp, n);
- 
--		drain_array(searchp, n, cpu_cache_get(searchp), 0, node);
-+		drain_array(searchp, n, cpu_cache_get(searchp), node);
- 
- 		/*
- 		 * These are racy checks but it does not matter
-@@ -3940,7 +3962,7 @@ static void cache_reap(struct work_struc
- 
- 		n->next_reap = jiffies + REAPTIMEOUT_NODE;
- 
--		drain_array(searchp, n, n->shared, 0, node);
-+		drain_array(searchp, n, n->shared, node);
- 
- 		if (n->free_touched)
- 			n->free_touched = 0;
++	offset = n->colour_next;
++	if (offset >= cachep->colour)
++		offset = 0;
++
++	offset *= cachep->colour_off;
++
+ 	/* Get slab management. */
+ 	freelist = alloc_slabmgmt(cachep, page, offset,
+ 			local_flags & ~GFP_CONSTRAINT_MASK, nodeid);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
