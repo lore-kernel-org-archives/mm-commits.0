@@ -1,92 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-slab-remove-bad_alien_magic-again.patch
+Subject: [to-be-updated] mm-slab-clean-up-kmem_cache_node-setup-fix.patch
  removed from -mm tree
-Date: Fri, 22 Apr 2016 14:56:07 -0700
-Message-ID: <571a9df7.qS0TNhVH2lvWAheG%akpm@linux-foundation.org>
+Date: Fri, 22 Apr 2016 14:56:19 -0700
+Message-ID: <571a9e03.n/2pNRxbKdRhNVGE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37722 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37746 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752379AbcDVV4I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 17:56:08 -0400
+	with ESMTP id S1752978AbcDVV4U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 17:56:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, geert@linux-m68k.org, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, Valdis.Kletnieks@vt.edu, jonathanh@nvidia.com, nm@ti.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: remove BAD_ALIEN_MAGIC again
+     Subject: mm/slab: clean-up kmem_cache_node setup-fix
 has been removed from the -mm tree.  Its filename was
-     mm-slab-remove-bad_alien_magic-again.patch
+     mm-slab-clean-up-kmem_cache_node-setup-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: remove BAD_ALIEN_MAGIC again
+Subject: mm/slab: clean-up kmem_cache_node setup-fix
 
-Initial attemp to remove BAD_ALIEN_MAGIC is once reverted by 'commit
-edcad2509550 ("Revert "slab: remove BAD_ALIEN_MAGIC"")' because it causes
-a problem on m68k which has many node but !CONFIG_NUMA.  In this case,
-although alien cache isn't used at all but to cope with some
-initialization path, garbage value is used and that is BAD_ALIEN_MAGIC. 
-Now, this patch set use_alien_caches to 0 when !CONFIG_NUMA, there is no
-initialization path problem so we don't need BAD_ALIEN_MAGIC at all.  So
-remove it.
+After calling free_block(), we need to re-calculate array_cache's
+avail counter. Fix it.
+
+And, it's better to free objects in shared array when it is
+really necessary. Check it before calling free_block().
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Reported-by: Nishanth Menon <nm@ti.com>
+Tested-by: Jon Hunter <jonathanh@nvidia.com>
+Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/slab.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/slab.c~mm-slab-remove-bad_alien_magic-again mm/slab.c
---- a/mm/slab.c~mm-slab-remove-bad_alien_magic-again
+diff -puN mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup-fix mm/slab.c
+--- a/mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup-fix
 +++ a/mm/slab.c
-@@ -421,8 +421,6 @@ static struct kmem_cache kmem_cache_boot
- 	.name = "kmem_cache",
- };
+@@ -934,9 +934,10 @@ static int setup_kmem_cache_node(struct
  
--#define BAD_ALIEN_MAGIC 0x01020304ul
--
- static DEFINE_PER_CPU(struct delayed_work, slab_reap_work);
+ 	n = get_node(cachep, node);
+ 	spin_lock_irq(&n->list_lock);
+-	if (n->shared) {
++	if (n->shared && force_change) {
+ 		free_block(cachep, n->shared->entry,
+ 				n->shared->avail, node, &list);
++		n->shared->avail = 0;
+ 	}
  
- static inline struct array_cache *cpu_cache_get(struct kmem_cache *cachep)
-@@ -644,7 +642,7 @@ static int transfer_objects(struct array
- static inline struct alien_cache **alloc_alien_cache(int node,
- 						int limit, gfp_t gfp)
- {
--	return (struct alien_cache **)BAD_ALIEN_MAGIC;
-+	return NULL;
- }
- 
- static inline void free_alien_cache(struct alien_cache **ac_ptr)
-@@ -1212,7 +1210,7 @@ void __init kmem_cache_init(void)
- 					sizeof(struct rcu_head));
- 	kmem_cache = &kmem_cache_boot;
- 
--	if (num_possible_nodes() == 1)
-+	if (!IS_ENABLED(CONFIG_NUMA) || num_possible_nodes() == 1)
- 		use_alien_caches = 0;
- 
- 	for (i = 0; i < NUM_INIT_LISTS; i++)
+ 	if (!n->shared || force_change) {
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-mm-slab-drain-the-free-slab-as-much-as-possible.patch
-mm-slab-factor-out-kmem_cache_node-initialization-code.patch
-mm-slab-clean-up-kmem_cache_node-setup.patch
-mm-slab-clean-up-kmem_cache_node-setup-fix.patch
 mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
 mm-slab-racy-access-modify-the-slab-color.patch
 mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
