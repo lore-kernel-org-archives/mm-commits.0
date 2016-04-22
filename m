@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-whine-about-access_once.patch added to -mm tree
-Date: Fri, 22 Apr 2016 13:14:08 -0700
-Message-ID: <571a8610.KCuoyTOFDKgk8gxj%akpm@linux-foundation.org>
+Subject: + kernel-padata-hide-unused-functions.patch added to -mm tree
+Date: Fri, 22 Apr 2016 13:16:00 -0700
+Message-ID: <571a8680.xxDma78IqdfceV1Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58971 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58982 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751690AbcDVUOJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:14:09 -0400
+	with ESMTP id S1751084AbcDVUQB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:16:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, julia.lawall@lip6.fr, mm-commits@vger.kernel.org
+To: arnd@arndb.de, rcochran@linutronix.de, steffen.klassert@secunet.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: whine about ACCESS_ONCE
+     Subject: kernel/padata.c: hide unused functions
 has been added to the -mm tree.  Its filename is
-     checkpatch-whine-about-access_once.patch
+     kernel-padata-hide-unused-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-whine-about-access_once.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-padata-hide-unused-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-whine-about-access_once.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-padata-hide-unused-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,80 +38,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: whine about ACCESS_ONCE
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kernel/padata.c: hide unused functions
 
-Add a test for use of ACCESS_ONCE that could be written using READ_ONCE or
-WRITE_ONCE.
+A recent cleanup removed some exported functions that were not used
+anywhere, which in turn exposed the fact that some other functions in the
+same file are only used in some configurations.
 
---fix it too if desired.
+We now get a warning about them when CONFIG_HOTPLUG_CPU is disabled:
 
-The WRITE_ONCE fixes are less correct than the coccinelle script below as
-checkpatch cannot have a completely correct "expression" mechanism because
-checkpatch works on patches and not complete files.
+kernel/padata.c:670:12: error: '__padata_remove_cpu' defined but not used [-Werror=unused-function]
+ static int __padata_remove_cpu(struct padata_instance *pinst, int cpu)
+            ^~~~~~~~~~~~~~~~~~~
+kernel/padata.c:650:12: error: '__padata_add_cpu' defined but not used [-Werror=unused-function]
+ static int __padata_add_cpu(struct padata_instance *pinst, int cpu)
 
-$ cat access_once.cocci
-@@
-expression e1;
-expression e2;
-@@
+This rearranges the code so the __padata_remove_cpu/__padata_add_cpu
+functions are within the #ifdef that protects the code that calls them.
 
--       ACCESS_ONCE(e1) = e2
-+       WRITE_ONCE(e1, e2)
-
-@@
-expression e1;
-@@
-
--       ACCESS_ONCE(e1)
-+       READ_ONCE(e1)
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
+Fixes: 4ba6d78c671e ("kernel/padata.c: removed unused code")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Richard Cochran <rcochran@linutronix.de>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ kernel/padata.c |   74 +++++++++++++++++++++++-----------------------
+ 1 file changed, 37 insertions(+), 37 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-whine-about-access_once scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-whine-about-access_once
-+++ a/scripts/checkpatch.pl
-@@ -5850,6 +5850,28 @@ sub process {
- 			}
- 		}
+diff -puN kernel/padata.c~kernel-padata-hide-unused-functions kernel/padata.c
+--- a/kernel/padata.c~kernel-padata-hide-unused-functions
++++ a/kernel/padata.c
+@@ -674,6 +674,43 @@ out:
+ }
+ EXPORT_SYMBOL(padata_set_cpumask);
  
-+# whine about ACCESS_ONCE
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $line =~ /\bACCESS_ONCE\s*$balanced_parens\s*(=(?!=))?\s*($FuncArg)?/) {
-+			my $par = $1;
-+			my $eq = $2;
-+			my $fun = $3;
-+			$par =~ s/^\(\s*(.*)\s*\)$/$1/;
-+			if (defined($eq)) {
-+				if (WARN("PREFER_WRITE_ONCE",
-+					 "Prefer WRITE_ONCE(<FOO>, <BAR>) over ACCESS_ONCE(<FOO>) = <BAR>\n" . $herecurr) &&
-+				    $fix) {
-+					$fixed[$fixlinenr] =~ s/\bACCESS_ONCE\s*\(\s*\Q$par\E\s*\)\s*$eq\s*\Q$fun\E/WRITE_ONCE($par, $fun)/;
-+				}
-+			} else {
-+				if (WARN("PREFER_READ_ONCE",
-+					 "Prefer READ_ONCE(<FOO>) over ACCESS_ONCE(<FOO>)\n" . $herecurr) &&
-+				    $fix) {
-+					$fixed[$fixlinenr] =~ s/\bACCESS_ONCE\s*\(\s*\Q$par\E\s*\)/READ_ONCE($par)/;
-+				}
-+			}
-+		}
++/**
++ * padata_start - start the parallel processing
++ *
++ * @pinst: padata instance to start
++ */
++int padata_start(struct padata_instance *pinst)
++{
++	int err = 0;
 +
- # check for lockdep_set_novalidate_class
- 		if ($line =~ /^.\s*lockdep_set_novalidate_class\s*\(/ ||
- 		    $line =~ /__lockdep_no_validate__\s*\)/ ) {
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-checkpatch-add-prefer_is_enabled-test.patch
-checkpatch-improve-constant_comparison-test-for-structure-members.patch
-checkpatch-add-test-for-keywords-not-starting-on-tabstops.patch
-checkpatch-whine-about-access_once.patch
-
++	mutex_lock(&pinst->lock);
++
++	if (pinst->flags & PADATA_INVALID)
++		err =-EINVAL;
++
++	 __padata_start(pinst);
++
++	mutex_unlock(&pinst->lock);
++
++	return err;
++}
++EXPORT_SYMBOL(padata_start);
++
++/**
++ * padata_stop - stop the parallel processing
++ *
++ * @pinst: padata instance to stop
++ */
++void padata_stop(struct padata_instance *pinst)
++{
++	mutex_lock(&pinst->lock);
++	__padata_stop(pinst);
++	mutex_unlock(&pinst->lock);
++}
++EXPORT_SYMBOL(padata_stop);
++
++#ifdef CONFIG_HOTPLUG_CPU
++
+ static int __padata_add_cpu(struct padata_instance *pinst, int cpu)
+ {
+ 	struct parallel_data *pd;
+@@ -789,43 +826,6 @@ int padata_remove_cpu(struct padata_inst
+ }
+ EXPORT_SYMBOL(padata_remove_cpu);
+ 
+-/**
+- * padata_start - start the parallel processing
+- *
+- * @pinst: padata instance to start
+- */
+-int padata_start(struct padata_instance *pinst)
+-{
+-	int err = 0;
+-
+-	mutex_lock(&pinst->lock);
+-
+-	if (pinst->flags & PADATA_INVALID)
+-		err =-EINVAL;
+-
+-	 __padata_start(pinst);
+-
+-	mutex_unlock(&pinst->lock);
+-
+-	return err;
+-}
+-EXPORT_SYMBOL(padata_start);
+-
+-/**
+- * padata_stop - stop the parallel processing
+- *
+- * @pinst: padata instance to stop
+- */
+-void padata_stop(struct padata_instance *pinst)
+-{
+-	mutex_lock(&pinst->lock);
+-	__padata_stop(pinst);
+-	mutex_unlock(&pinst->lock);
+-}
+-EXPORT_SYMBOL(padata_stop);
+-
+-#ifdef CONFIG_HOTPLUG_CPU
