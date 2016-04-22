@@ -1,83 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory-failure-fix-race-with-compound-page-split-merge.patch added to -mm tree
-Date: Thu, 21 Apr 2016 16:45:26 -0700
-Message-ID: <57196616.SGn36HEAWKW6IU55%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ memcg-remove-lru_add_drain_all-invocation-from-mem_cgroup_move_charge.patch removed from -mm tree
+Date: Fri, 22 Apr 2016 10:47:44 -0700
+Message-ID: <571a63c0.HmDllKhSPiKnL9F1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35116 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48515 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697AbcDUXp1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Apr 2016 19:45:27 -0400
+	with ESMTP id S1754448AbcDVRrq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 13:47:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, chrubis@suse.cz, hannes@cmpxchg.org, mhocko@kernel.org, mhocko@suse.com, pmladek@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: fix race with compound page split/merge
-has been added to the -mm tree.  Its filename is
-     mm-memory-failure-fix-race-with-compound-page-split-merge.patch
+     Subject: memcg: remove lru_add_drain_all() invocation from mem_cgroup_move_charge()
+has been removed from the -mm tree.  Its filename was
+     memcg-remove-lru_add_drain_all-invocation-from-mem_cgroup_move_charge.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failure-fix-race-with-compound-page-split-merge.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failure-fix-race-with-compound-page-split-merge.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: mm/memory-failure: fix race with compound page split/merge
+From: Tejun Heo <tj@kernel.org>
+Subject: memcg: remove lru_add_drain_all() invocation from mem_cgroup_move_charge()
 
-Get_hwpoison_page() must recheck relation between head and tail pages.
+mem_cgroup_move_charge() invokes lru_add_drain_all() so that the pvec
+pages can be moved too.  lru_add_drain_all() schedules and flushes work
+items on system_wq which depends on being able to create new kworkers to
+make forward progress.  Since 1ed1328792ff ("sched, cgroup: replace
+signal_struct->group_rwsem with a global percpu_rwsem"), a new task can't
+be created while in the cgroup migration path and the described
+lru_add_drain_all() invocation can easily lead to a deadlock.
 
-n-horiguchi said: without this recheck, the race causes kernel to pin an
-irrelevant page, and finally makes kernel crash for refcount mismatch.
+Charge moving is best-effort and whether the pvec pages are migrated or
+not doesn't really matter.  Don't call it during charge moving. 
+Eventually, we want to move the actual charge moving outside the migration
+path.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Fixes: 1ed1328792ff ("sched, cgroup: replace signal_struct->group_rwsem with a global percpu_rwsem")
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Debugged-by: Petr Mladek <pmladek@suse.com>
+Tested-by: Petr Mladek <pmladek@suse.com>
+Reported-by: Cyril Hrubis <chrubis@suse.cz>
+Reported-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Michal Hocko <mhocko@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>	[4.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failure-fix-race-with-compound-page-split-merge mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failure-fix-race-with-compound-page-split-merge
-+++ a/mm/memory-failure.c
-@@ -888,7 +888,15 @@ int get_hwpoison_page(struct page *page)
- 		}
- 	}
+diff -puN mm/memcontrol.c~memcg-remove-lru_add_drain_all-invocation-from-mem_cgroup_move_charge mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-lru_add_drain_all-invocation-from-mem_cgroup_move_charge
++++ a/mm/memcontrol.c
+@@ -4859,7 +4859,6 @@ static void mem_cgroup_move_charge(struc
+ 		.mm = mm,
+ 	};
  
--	return get_page_unless_zero(head);
-+	if (get_page_unless_zero(head)) {
-+		if (head == compound_head(page))
-+			return 1;
-+
-+		pr_info("MCE: %#lx cannot catch tail\n", page_to_pfn(page));
-+		put_page(head);
-+	}
-+
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(get_hwpoison_page);
- 
+-	lru_add_drain_all();
+ 	/*
+ 	 * Signal lock_page_memcg() to take the memcg's move_lock
+ 	 * while we're moving its pages to another memcg. Then wait
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from tj@kernel.org are
 
-mm-memory-failure-fix-race-with-compound-page-split-merge.patch
-mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on.patch
 
