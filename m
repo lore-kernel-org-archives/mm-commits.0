@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + debugobjects-correct-the-usage-of-fixup-call-results.patch
- added to -mm tree
-Date: Fri, 22 Apr 2016 13:02:02 -0700
-Message-ID: <571a833a.8JVw1pgXSEHuR3j2%akpm@linux-foundation.org>
+Subject: + documentation-update-debugobjects-doc.patch added to -mm tree
+Date: Fri, 22 Apr 2016 13:02:12 -0700
+Message-ID: <571a8344.MHHpETyIf35c1wFu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58353 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58388 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751690AbcDVUCD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:02:03 -0400
+	with ESMTP id S1751738AbcDVUCN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:02:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: changbin.du@intel.com, borntraeger@de.ibm.com, corbet@lwn.net, josh@kernel.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: debugobjects: correct the usage of fixup call results
+     Subject: Documentation: update debugobjects doc
 has been added to the -mm tree.  Its filename is
-     debugobjects-correct-the-usage-of-fixup-call-results.patch
+     documentation-update-debugobjects-doc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/debugobjects-correct-the-usage-of-fixup-call-results.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-update-debugobjects-doc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/debugobjects-correct-the-usage-of-fixup-call-results.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-update-debugobjects-doc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Du, Changbin" <changbin.du@intel.com>
-Subject: debugobjects: correct the usage of fixup call results
+Subject: Documentation: update debugobjects doc
 
-If debug_object_fixup() return non-zero when problem has been fixed.  But
-the code got it backwards, it taks 0 as fixup successfully.  So fix it.
+Update documentation creangponding to change(debugobjects: make
+fixup functions return bool instead of int).
 
 Signed-off-by: Du, Changbin <changbin.du@intel.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -55,21 +54,87 @@ Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/debugobjects.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/DocBook/debugobjects.tmpl |   26 +++++++++++-----------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN lib/debugobjects.c~debugobjects-correct-the-usage-of-fixup-call-results lib/debugobjects.c
---- a/lib/debugobjects.c~debugobjects-correct-the-usage-of-fixup-call-results
-+++ a/lib/debugobjects.c
-@@ -415,7 +415,7 @@ int debug_object_activate(void *addr, st
- 			state = obj->state;
- 			raw_spin_unlock_irqrestore(&db->lock, flags);
- 			ret = debug_object_fixup(descr->fixup_activate, addr, state);
--			return ret ? -EINVAL : 0;
-+			return ret ? 0 : -EINVAL;
+diff -puN Documentation/DocBook/debugobjects.tmpl~documentation-update-debugobjects-doc Documentation/DocBook/debugobjects.tmpl
+--- a/Documentation/DocBook/debugobjects.tmpl~documentation-update-debugobjects-doc
++++ a/Documentation/DocBook/debugobjects.tmpl
+@@ -316,8 +316,8 @@
+ 	</itemizedlist>
+       </para>
+       <para>
+-	The function returns 1 when the fixup was successful,
+-	otherwise 0. The return value is used to update the
++	The function returns true when the fixup was successful,
++	otherwise false. The return value is used to update the
+ 	statistics.
+       </para>
+       <para>
+@@ -341,8 +341,8 @@
+ 	</itemizedlist>
+       </para>
+       <para>
+-	The function returns 1 when the fixup was successful,
+-	otherwise 0. The return value is used to update the
++	The function returns true when the fixup was successful,
++	otherwise false. The return value is used to update the
+ 	statistics.
+       </para>
+       <para>
+@@ -359,7 +359,8 @@
+ 	statically initialized object or not. In case it is it calls
+ 	debug_object_init() and debug_object_activate() to make the
+ 	object known to the tracker and marked active. In this case
+-	the function should return 0 because this is not a real fixup.
++	the function should return false because this is not a real
++	fixup.
+       </para>
+     </sect1>
  
- 		case ODEBUG_STATE_DESTROYED:
- 			debug_print_object(obj, "activate");
+@@ -376,8 +377,8 @@
+ 	</itemizedlist>
+       </para>
+       <para>
+-	The function returns 1 when the fixup was successful,
+-	otherwise 0. The return value is used to update the
++	The function returns true when the fixup was successful,
++	otherwise false. The return value is used to update the
+ 	statistics.
+       </para>
+     </sect1>
+@@ -397,8 +398,8 @@
+ 	</itemizedlist>
+       </para>
+       <para>
+-	The function returns 1 when the fixup was successful,
+-	otherwise 0. The return value is used to update the
++	The function returns true when the fixup was successful,
++	otherwise false. The return value is used to update the
+ 	statistics.
+       </para>
+     </sect1>
+@@ -414,8 +415,8 @@
+ 	debug bucket.
+       </para>
+       <para>
+-	The function returns 1 when the fixup was successful,
+-	otherwise 0. The return value is used to update the
++	The function returns true when the fixup was successful,
++	otherwise false. The return value is used to update the
+ 	statistics.
+       </para>
+       <para>
+@@ -427,7 +428,8 @@
+ 	case. The fixup function should check if this is a legitimate
+ 	case of a statically initialized object or not. In this case only
+ 	debug_object_init() should be called to make the object known to
+-	the tracker. Then the function should return 0 because this is not
++	the tracker. Then the function should return false because this
++	is not
+ 	a real fixup.
+       </para>
+     </sect1>
 _
 
 Patches currently in -mm which might be from changbin.du@intel.com are
