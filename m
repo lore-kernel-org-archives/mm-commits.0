@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-padata-hide-unused-functions-checkpatch-fixes.patch
- added to -mm tree
-Date: Fri, 22 Apr 2016 13:16:31 -0700
-Message-ID: <571a869f.1lDG534NLk3ibb2n%akpm@linux-foundation.org>
+Subject: +
+ mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch added to -mm tree
+Date: Fri, 22 Apr 2016 13:38:21 -0700
+Message-ID: <571a8bbd.TeXbCv6omx3rQEYg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58986 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59977 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084AbcDVUQc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:16:32 -0400
+	with ESMTP id S1751761AbcDVUiW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:38:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-padata-hide-unused-functions-checkpatch-fixes
+     Subject: mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix
 has been added to the -mm tree.  Its filename is
-     kernel-padata-hide-unused-functions-checkpatch-fixes.patch
+     mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-padata-hide-unused-functions-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-padata-hide-unused-functions-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,54 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-padata-hide-unused-functions-checkpatch-fixes
+Subject: mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix
 
-ERROR: spaces required around that '=' (ctx:WxO)
-#48: FILE: kernel/padata.c:689:
-+		err =-EINVAL;
- 		    ^
+fix it for Mel's mm-page_alloc-remove-field-from-alloc_context.patch
 
-ERROR: space required before that '-' (ctx:OxV)
-#48: FILE: kernel/padata.c:689:
-+		err =-EINVAL;
- 		     ^
-
-total: 2 errors, 0 warnings, 86 lines checked
-
-./patches/kernel-padata-hide-unused-functions.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/padata.c |    2 +-
+ mm/compaction.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/padata.c~kernel-padata-hide-unused-functions-checkpatch-fixes kernel/padata.c
---- a/kernel/padata.c~kernel-padata-hide-unused-functions-checkpatch-fixes
-+++ a/kernel/padata.c
-@@ -686,7 +686,7 @@ int padata_start(struct padata_instance
- 	mutex_lock(&pinst->lock);
- 
- 	if (pinst->flags & PADATA_INVALID)
--		err =-EINVAL;
-+		err = -EINVAL;
- 
- 	 __padata_start(pinst);
- 
+diff -puN include/linux/compaction.h~mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix include/linux/compaction.h
+diff -puN include/linux/mmzone.h~mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix include/linux/mmzone.h
+diff -puN mm/compaction.c~mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix mm/compaction.c
+--- a/mm/compaction.c~mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix
++++ a/mm/compaction.c
+@@ -1450,7 +1450,7 @@ bool compaction_zonelist_suitable(struct
+ 		available = zone_reclaimable_pages(zone) / order;
+ 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
+ 		compact_result = __compaction_suitable(zone, order, alloc_flags,
+-				ac->classzone_idx, available);
++				ac_classzone_idx(ac), available);
+ 		if (compact_result != COMPACT_SKIPPED &&
+ 				compact_result != COMPACT_NOT_SUITABLE_ZONE)
+ 			return true;
+diff -puN mm/page_alloc.c~mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix mm/page_alloc.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-padata-hide-unused-functions-checkpatch-fixes.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+kernel-padata-hide-unused-functions-checkpatch-fixes.patch
 mm.patch
 mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
 mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
@@ -101,6 +88,7 @@ mm-uninline-page_mapped.patch
 mm-uninline-page_mapped-checkpatch-fixes.patch
 memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
 mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
+mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
 exit_thread-remove-empty-bodies-fix.patch
 exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
 fs-execc-fix-minor-memory-leak.patch
