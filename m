@@ -1,94 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-slab-drain-the-free-slab-as-much-as-possible.patch removed from -mm tree
-Date: Fri, 22 Apr 2016 14:56:10 -0700
-Message-ID: <571a9dfa.DhnPBb4b7HuXiLdu%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-slab-remove-bad_alien_magic-again.patch
+ removed from -mm tree
+Date: Fri, 22 Apr 2016 14:56:07 -0700
+Message-ID: <571a9df7.qS0TNhVH2lvWAheG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37732 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37722 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752555AbcDVV4L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 17:56:11 -0400
+	with ESMTP id S1752379AbcDVV4I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 17:56:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, geert@linux-m68k.org, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: drain the free slab as much as possible
+     Subject: mm/slab: remove BAD_ALIEN_MAGIC again
 has been removed from the -mm tree.  Its filename was
-     mm-slab-drain-the-free-slab-as-much-as-possible.patch
+     mm-slab-remove-bad_alien_magic-again.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: drain the free slab as much as possible
+Subject: mm/slab: remove BAD_ALIEN_MAGIC again
 
-slabs_tofree() implies freeing all free slab. We can do it with
-just providing INT_MAX.
+Initial attemp to remove BAD_ALIEN_MAGIC is once reverted by 'commit
+edcad2509550 ("Revert "slab: remove BAD_ALIEN_MAGIC"")' because it causes
+a problem on m68k which has many node but !CONFIG_NUMA.  In this case,
+although alien cache isn't used at all but to cope with some
+initialization path, garbage value is used and that is BAD_ALIEN_MAGIC. 
+Now, this patch set use_alien_caches to 0 when !CONFIG_NUMA, there is no
+initialization path problem so we don't need BAD_ALIEN_MAGIC at all.  So
+remove it.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ mm/slab.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-drain-the-free-slab-as-much-as-possible mm/slab.c
---- a/mm/slab.c~mm-slab-drain-the-free-slab-as-much-as-possible
+diff -puN mm/slab.c~mm-slab-remove-bad_alien_magic-again mm/slab.c
+--- a/mm/slab.c~mm-slab-remove-bad_alien_magic-again
 +++ a/mm/slab.c
-@@ -895,12 +895,6 @@ static int init_cache_node_node(int node
- 	return 0;
- }
+@@ -421,8 +421,6 @@ static struct kmem_cache kmem_cache_boot
+ 	.name = "kmem_cache",
+ };
  
--static inline int slabs_tofree(struct kmem_cache *cachep,
--						struct kmem_cache_node *n)
--{
--	return (n->free_objects + cachep->num - 1) / cachep->num;
--}
+-#define BAD_ALIEN_MAGIC 0x01020304ul
 -
- static void cpuup_canceled(long cpu)
+ static DEFINE_PER_CPU(struct delayed_work, slab_reap_work);
+ 
+ static inline struct array_cache *cpu_cache_get(struct kmem_cache *cachep)
+@@ -644,7 +642,7 @@ static int transfer_objects(struct array
+ static inline struct alien_cache **alloc_alien_cache(int node,
+ 						int limit, gfp_t gfp)
  {
- 	struct kmem_cache *cachep;
-@@ -965,7 +959,7 @@ free_slab:
- 		n = get_node(cachep, node);
- 		if (!n)
- 			continue;
--		drain_freelist(cachep, n, slabs_tofree(cachep, n));
-+		drain_freelist(cachep, n, INT_MAX);
- 	}
+-	return (struct alien_cache **)BAD_ALIEN_MAGIC;
++	return NULL;
  }
  
-@@ -1117,7 +1111,7 @@ static int __meminit drain_cache_node_no
- 		if (!n)
- 			continue;
+ static inline void free_alien_cache(struct alien_cache **ac_ptr)
+@@ -1212,7 +1210,7 @@ void __init kmem_cache_init(void)
+ 					sizeof(struct rcu_head));
+ 	kmem_cache = &kmem_cache_boot;
  
--		drain_freelist(cachep, n, slabs_tofree(cachep, n));
-+		drain_freelist(cachep, n, INT_MAX);
+-	if (num_possible_nodes() == 1)
++	if (!IS_ENABLED(CONFIG_NUMA) || num_possible_nodes() == 1)
+ 		use_alien_caches = 0;
  
- 		if (!list_empty(&n->slabs_full) ||
- 		    !list_empty(&n->slabs_partial)) {
-@@ -2287,7 +2281,7 @@ int __kmem_cache_shrink(struct kmem_cach
- 
- 	check_irq_on();
- 	for_each_kmem_cache_node(cachep, node, n) {
--		drain_freelist(cachep, n, slabs_tofree(cachep, n));
-+		drain_freelist(cachep, n, INT_MAX);
- 
- 		ret += !list_empty(&n->slabs_full) ||
- 			!list_empty(&n->slabs_partial);
+ 	for (i = 0; i < NUM_INIT_LISTS; i++)
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
+mm-slab-drain-the-free-slab-as-much-as-possible.patch
 mm-slab-factor-out-kmem_cache_node-initialization-code.patch
 mm-slab-clean-up-kmem_cache_node-setup.patch
 mm-slab-clean-up-kmem_cache_node-setup-fix.patch
