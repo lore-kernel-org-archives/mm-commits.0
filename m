@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-update-debugobjects-doc.patch added to -mm tree
-Date: Fri, 22 Apr 2016 13:02:12 -0700
-Message-ID: <571a8344.MHHpETyIf35c1wFu%akpm@linux-foundation.org>
+Subject: + rcu-update-debugobjects-fixup-callbacks-return-type.patch added to -mm tree
+Date: Fri, 22 Apr 2016 13:02:08 -0700
+Message-ID: <571a8340.+AUH607FNTkurKz8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58374 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738AbcDVUCN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:02:13 -0400
+	with ESMTP id S1751738AbcDVUCJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:02:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: changbin.du@intel.com, borntraeger@de.ibm.com, corbet@lwn.net, josh@kernel.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation: update debugobjects doc
+     Subject: rcu: update debugobjects fixup callbacks return type
 has been added to the -mm tree.  Its filename is
-     documentation-update-debugobjects-doc.patch
+     rcu-update-debugobjects-fixup-callbacks-return-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-update-debugobjects-doc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rcu-update-debugobjects-fixup-callbacks-return-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-update-debugobjects-doc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rcu-update-debugobjects-fixup-callbacks-return-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,10 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Du, Changbin" <changbin.du@intel.com>
-Subject: Documentation: update debugobjects doc
+Subject: rcu: update debugobjects fixup callbacks return type
 
-Update documentation creangponding to change(debugobjects: make
-fixup functions return bool instead of int).
+Update the return type to use bool instead of int, corresponding to
+cheange (debugobjects: make fixup functions return bool instead of int).
 
 Signed-off-by: Du, Changbin <changbin.du@intel.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -54,87 +54,33 @@ Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/debugobjects.tmpl |   26 +++++++++++-----------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ kernel/rcu/update.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/DocBook/debugobjects.tmpl~documentation-update-debugobjects-doc Documentation/DocBook/debugobjects.tmpl
---- a/Documentation/DocBook/debugobjects.tmpl~documentation-update-debugobjects-doc
-+++ a/Documentation/DocBook/debugobjects.tmpl
-@@ -316,8 +316,8 @@
- 	</itemizedlist>
-       </para>
-       <para>
--	The function returns 1 when the fixup was successful,
--	otherwise 0. The return value is used to update the
-+	The function returns true when the fixup was successful,
-+	otherwise false. The return value is used to update the
- 	statistics.
-       </para>
-       <para>
-@@ -341,8 +341,8 @@
- 	</itemizedlist>
-       </para>
-       <para>
--	The function returns 1 when the fixup was successful,
--	otherwise 0. The return value is used to update the
-+	The function returns true when the fixup was successful,
-+	otherwise false. The return value is used to update the
- 	statistics.
-       </para>
-       <para>
-@@ -359,7 +359,8 @@
- 	statically initialized object or not. In case it is it calls
- 	debug_object_init() and debug_object_activate() to make the
- 	object known to the tracker and marked active. In this case
--	the function should return 0 because this is not a real fixup.
-+	the function should return false because this is not a real
-+	fixup.
-       </para>
-     </sect1>
+diff -puN kernel/rcu/update.c~rcu-update-debugobjects-fixup-callbacks-return-type kernel/rcu/update.c
+--- a/kernel/rcu/update.c~rcu-update-debugobjects-fixup-callbacks-return-type
++++ a/kernel/rcu/update.c
+@@ -386,7 +386,7 @@ void destroy_rcu_head(struct rcu_head *h
+  * - an unknown object is activated (might be a statically initialized object)
+  * Activation is performed internally by call_rcu().
+  */
+-static int rcuhead_fixup_activate(void *addr, enum debug_obj_state state)
++static bool rcuhead_fixup_activate(void *addr, enum debug_obj_state state)
+ {
+ 	struct rcu_head *head = addr;
  
-@@ -376,8 +377,8 @@
- 	</itemizedlist>
-       </para>
-       <para>
--	The function returns 1 when the fixup was successful,
--	otherwise 0. The return value is used to update the
-+	The function returns true when the fixup was successful,
-+	otherwise false. The return value is used to update the
- 	statistics.
-       </para>
-     </sect1>
-@@ -397,8 +398,8 @@
- 	</itemizedlist>
-       </para>
-       <para>
--	The function returns 1 when the fixup was successful,
--	otherwise 0. The return value is used to update the
-+	The function returns true when the fixup was successful,
-+	otherwise false. The return value is used to update the
- 	statistics.
-       </para>
-     </sect1>
-@@ -414,8 +415,8 @@
- 	debug bucket.
-       </para>
-       <para>
--	The function returns 1 when the fixup was successful,
--	otherwise 0. The return value is used to update the
-+	The function returns true when the fixup was successful,
-+	otherwise false. The return value is used to update the
- 	statistics.
-       </para>
-       <para>
-@@ -427,7 +428,8 @@
- 	case. The fixup function should check if this is a legitimate
- 	case of a statically initialized object or not. In this case only
- 	debug_object_init() should be called to make the object known to
--	the tracker. Then the function should return 0 because this is not
-+	the tracker. Then the function should return false because this
-+	is not
- 	a real fixup.
-       </para>
-     </sect1>
+@@ -399,9 +399,9 @@ static int rcuhead_fixup_activate(void *
+ 		 */
+ 		debug_object_init(head, &rcuhead_debug_descr);
+ 		debug_object_activate(head, &rcuhead_debug_descr);
+-		return 0;
++		return false;
+ 	default:
+-		return 1;
++		return true;
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from changbin.du@intel.com are
