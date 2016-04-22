@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memblock-move-memblock_addreserve_region-into-memblock_addreserve.patch
- added to -mm tree
-Date: Fri, 22 Apr 2016 13:12:17 -0700
-Message-ID: <571a85a1.I0JYXBolNLGN1k2E%akpm@linux-foundation.org>
+Subject: + checkpatch-whine-about-access_once.patch added to -mm tree
+Date: Fri, 22 Apr 2016 13:14:08 -0700
+Message-ID: <571a8610.KCuoyTOFDKgk8gxj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58848 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58971 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752764AbcDVUMS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:12:18 -0400
+	with ESMTP id S1751690AbcDVUOJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:14:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kuleshovmail@gmail.com, ard.biesheuvel@linaro.org, david@gibson.dropbear.id.au, mgorman@suse.de, penberg@kernel.org, tangchen@cn.fujitsu.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: joe@perches.com, julia.lawall@lip6.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock.c: move memblock_{add,reserve}_region into memblock_{add,reserve}
+     Subject: checkpatch: whine about ACCESS_ONCE
 has been added to the -mm tree.  Its filename is
-     mm-memblock-move-memblock_addreserve_region-into-memblock_addreserve.patch
+     checkpatch-whine-about-access_once.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-move-memblock_addreserve_region-into-memblock_addreserve.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-whine-about-access_once.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-move-memblock_addreserve_region-into-memblock_addreserve.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-whine-about-access_once.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,74 +38,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexander Kuleshov <kuleshovmail@gmail.com>
-Subject: mm/memblock.c: move memblock_{add,reserve}_region into memblock_{add,reserve}
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: whine about ACCESS_ONCE
 
-memblock_add_region() and memblock_reserve_region() do nothing specific
-before the call of memblock_add_range(), only print debug output.
+Add a test for use of ACCESS_ONCE that could be written using READ_ONCE or
+WRITE_ONCE.
 
-We can do the same in memblock_add() and memblock_reserve() since both
-memblock_add_region() and memblock_reserve_region() are not used by
-anybody outside of memblock.c and memblock_{add,reserve}() have the same
-set of flags and nids.
+--fix it too if desired.
 
-Since memblock_add_region() and memblock_reserve_region() will be inlined,
-there will not be functional changes, but will improve code readability a
-little.
+The WRITE_ONCE fixes are less correct than the coccinelle script below as
+checkpatch cannot have a completely correct "expression" mechanism because
+checkpatch works on patches and not complete files.
 
-Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
-Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
+$ cat access_once.cocci
+@@
+expression e1;
+expression e2;
+@@
+
+-       ACCESS_ONCE(e1) = e2
++       WRITE_ONCE(e1, e2)
+
+@@
+expression e1;
+@@
+
+-       ACCESS_ONCE(e1)
++       READ_ONCE(e1)
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   28 ++++++----------------------
- 1 file changed, 6 insertions(+), 22 deletions(-)
+ scripts/checkpatch.pl |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN mm/memblock.c~mm-memblock-move-memblock_addreserve_region-into-memblock_addreserve mm/memblock.c
---- a/mm/memblock.c~mm-memblock-move-memblock_addreserve_region-into-memblock_addreserve
-+++ a/mm/memblock.c
-@@ -606,22 +606,14 @@ int __init_memblock memblock_add_node(ph
- 	return memblock_add_range(&memblock.memory, base, size, nid, 0);
- }
+diff -puN scripts/checkpatch.pl~checkpatch-whine-about-access_once scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-whine-about-access_once
++++ a/scripts/checkpatch.pl
+@@ -5850,6 +5850,28 @@ sub process {
+ 			}
+ 		}
  
--static int __init_memblock memblock_add_region(phys_addr_t base,
--						phys_addr_t size,
--						int nid,
--						unsigned long flags)
-+int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
- {
- 	memblock_dbg("memblock_add: [%#016llx-%#016llx] flags %#02lx %pF\n",
- 		     (unsigned long long)base,
- 		     (unsigned long long)base + size - 1,
--		     flags, (void *)_RET_IP_);
--
--	return memblock_add_range(&memblock.memory, base, size, nid, flags);
--}
-+		     0UL, (void *)_RET_IP_);
- 
--int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
--{
--	return memblock_add_region(base, size, MAX_NUMNODES, 0);
-+	return memblock_add_range(&memblock.memory, base, size, MAX_NUMNODES, 0);
- }
- 
- /**
-@@ -732,22 +724,14 @@ int __init_memblock memblock_free(phys_a
- 	return memblock_remove_range(&memblock.reserved, base, size);
- }
- 
--static int __init_memblock memblock_reserve_region(phys_addr_t base,
--						   phys_addr_t size,
--						   int nid,
--						   unsigned long flags)
-+int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
- {
- 	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] flags %#02lx %pF\n",
- 		     (unsigned long long)base,
- 		     (unsigned long long)base + size - 1,
--		     flags, (void *)_RET_IP_);
++# whine about ACCESS_ONCE
++		if ($^V && $^V ge 5.10.0 &&
++		    $line =~ /\bACCESS_ONCE\s*$balanced_parens\s*(=(?!=))?\s*($FuncArg)?/) {
++			my $par = $1;
++			my $eq = $2;
++			my $fun = $3;
++			$par =~ s/^\(\s*(.*)\s*\)$/$1/;
++			if (defined($eq)) {
++				if (WARN("PREFER_WRITE_ONCE",
++					 "Prefer WRITE_ONCE(<FOO>, <BAR>) over ACCESS_ONCE(<FOO>) = <BAR>\n" . $herecurr) &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s/\bACCESS_ONCE\s*\(\s*\Q$par\E\s*\)\s*$eq\s*\Q$fun\E/WRITE_ONCE($par, $fun)/;
++				}
++			} else {
++				if (WARN("PREFER_READ_ONCE",
++					 "Prefer READ_ONCE(<FOO>) over ACCESS_ONCE(<FOO>)\n" . $herecurr) &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s/\bACCESS_ONCE\s*\(\s*\Q$par\E\s*\)/READ_ONCE($par)/;
++				}
++			}
++		}
++
+ # check for lockdep_set_novalidate_class
+ 		if ($line =~ /^.\s*lockdep_set_novalidate_class\s*\(/ ||
+ 		    $line =~ /__lockdep_no_validate__\s*\)/ ) {
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+checkpatch-add-prefer_is_enabled-test.patch
+checkpatch-improve-constant_comparison-test-for-structure-members.patch
+checkpatch-add-test-for-keywords-not-starting-on-tabstops.patch
+checkpatch-whine-about-access_once.patch
+
