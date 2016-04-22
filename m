@@ -1,35 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-slab-clean-up-kmem_cache_node-setup.patch
+Subject: [to-be-updated]
+ mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
  removed from -mm tree
-Date: Fri, 22 Apr 2016 14:56:16 -0700
-Message-ID: <571a9e00.FG0uVp/rIwvEuZRc%akpm@linux-foundation.org>
+Date: Fri, 22 Apr 2016 14:56:22 -0700
+Message-ID: <571a9e06.2/gJKM6ovVRnw3kA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37741 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37755 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752989AbcDVV4R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 17:56:17 -0400
+	with ESMTP id S1753103AbcDVV4X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 17:56:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: clean-up kmem_cache_node setup
+     Subject: mm/slab: don't keep free slabs if free_objects exceeds free_limit
 has been removed from the -mm tree.  Its filename was
-     mm-slab-clean-up-kmem_cache_node-setup.patch
+     mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: clean-up kmem_cache_node setup
+Subject: mm/slab: don't keep free slabs if free_objects exceeds free_limit
 
-There are mostly same code for setting up kmem_cache_node either in
-cpuup_prepare() or alloc_kmem_cache_node().  Factor out and clean-up them.
+Currently, determination to free a slab is done whenever free object is
+put into the slab.  This has a problem that free slabs are not freed even
+if we have free slabs and have more free_objects than free_limit when
+processed slab isn't a free slab.  This would cause to keep too much
+memory in the slab subsystem.  This patch try to fix it by checking number
+of free object after all free work is done.  If there is free slab at that
+time, we can free it so we keep free slab as minimal as possible.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -39,235 +45,62 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |  167 ++++++++++++++++++++--------------------------------
- 1 file changed, 67 insertions(+), 100 deletions(-)
+ mm/slab.c |   23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup mm/slab.c
---- a/mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup
+diff -puN mm/slab.c~mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit mm/slab.c
+--- a/mm/slab.c~mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit
 +++ a/mm/slab.c
-@@ -905,6 +905,62 @@ static int init_cache_node_node(int node
- 	return 0;
+@@ -3266,6 +3266,9 @@ static void free_block(struct kmem_cache
+ {
+ 	int i;
+ 	struct kmem_cache_node *n = get_node(cachep, node);
++	struct page *page;
++
++	n->free_objects += nr_objects;
+ 
+ 	for (i = 0; i < nr_objects; i++) {
+ 		void *objp;
+@@ -3278,17 +3281,11 @@ static void free_block(struct kmem_cache
+ 		check_spinlock_acquired_node(cachep, node);
+ 		slab_put_obj(cachep, page, objp);
+ 		STATS_DEC_ACTIVE(cachep);
+-		n->free_objects++;
+ 
+ 		/* fixup slab chains */
+-		if (page->active == 0) {
+-			if (n->free_objects > n->free_limit) {
+-				n->free_objects -= cachep->num;
+-				list_add_tail(&page->lru, list);
+-			} else {
+-				list_add(&page->lru, &n->slabs_free);
+-			}
+-		} else {
++		if (page->active == 0)
++			list_add(&page->lru, &n->slabs_free);
++		else {
+ 			/* Unconditionally move a slab to the end of the
+ 			 * partial list on free - maximum time for the
+ 			 * other objects to be freed, too.
+@@ -3296,6 +3293,14 @@ static void free_block(struct kmem_cache
+ 			list_add_tail(&page->lru, &n->slabs_partial);
+ 		}
+ 	}
++
++	while (n->free_objects > n->free_limit && !list_empty(&n->slabs_free)) {
++		n->free_objects -= cachep->num;
++
++		page = list_last_entry(&n->slabs_free, struct page, lru);
++		list_del(&page->lru);
++		list_add(&page->lru, list);
++	}
  }
  
-+static int setup_kmem_cache_node(struct kmem_cache *cachep,
-+				int node, gfp_t gfp, bool force_change)
-+{
-+	int ret = -ENOMEM;
-+	struct kmem_cache_node *n;
-+	struct array_cache *old_shared = NULL;
-+	struct array_cache *new_shared = NULL;
-+	struct alien_cache **new_alien = NULL;
-+	LIST_HEAD(list);
-+
-+	if (use_alien_caches) {
-+		new_alien = alloc_alien_cache(node, cachep->limit, gfp);
-+		if (!new_alien)
-+			goto fail;
-+	}
-+
-+	if (cachep->shared) {
-+		new_shared = alloc_arraycache(node,
-+			cachep->shared * cachep->batchcount, 0xbaadf00d, gfp);
-+		if (!new_shared)
-+			goto fail;
-+	}
-+
-+	ret = init_cache_node(cachep, node, gfp);
-+	if (ret)
-+		goto fail;
-+
-+	n = get_node(cachep, node);
-+	spin_lock_irq(&n->list_lock);
-+	if (n->shared) {
-+		free_block(cachep, n->shared->entry,
-+				n->shared->avail, node, &list);
-+	}
-+
-+	if (!n->shared || force_change) {
-+		old_shared = n->shared;
-+		n->shared = new_shared;
-+		new_shared = NULL;
-+	}
-+
-+	if (!n->alien) {
-+		n->alien = new_alien;
-+		new_alien = NULL;
-+	}
-+
-+	spin_unlock_irq(&n->list_lock);
-+	slabs_destroy(cachep, &list);
-+
-+fail:
-+	kfree(old_shared);
-+	kfree(new_shared);
-+	free_alien_cache(new_alien);
-+
-+	return ret;
-+}
-+
- static void cpuup_canceled(long cpu)
- {
- 	struct kmem_cache *cachep;
-@@ -976,7 +1032,6 @@ free_slab:
- static int cpuup_prepare(long cpu)
- {
- 	struct kmem_cache *cachep;
--	struct kmem_cache_node *n = NULL;
- 	int node = cpu_to_mem(cpu);
- 	int err;
- 
-@@ -995,44 +1050,9 @@ static int cpuup_prepare(long cpu)
- 	 * array caches
- 	 */
- 	list_for_each_entry(cachep, &slab_caches, list) {
--		struct array_cache *shared = NULL;
--		struct alien_cache **alien = NULL;
--
--		if (cachep->shared) {
--			shared = alloc_arraycache(node,
--				cachep->shared * cachep->batchcount,
--				0xbaadf00d, GFP_KERNEL);
--			if (!shared)
--				goto bad;
--		}
--		if (use_alien_caches) {
--			alien = alloc_alien_cache(node, cachep->limit, GFP_KERNEL);
--			if (!alien) {
--				kfree(shared);
--				goto bad;
--			}
--		}
--		n = get_node(cachep, node);
--		BUG_ON(!n);
--
--		spin_lock_irq(&n->list_lock);
--		if (!n->shared) {
--			/*
--			 * We are serialised from CPU_DEAD or
--			 * CPU_UP_CANCELLED by the cpucontrol lock
--			 */
--			n->shared = shared;
--			shared = NULL;
--		}
--#ifdef CONFIG_NUMA
--		if (!n->alien) {
--			n->alien = alien;
--			alien = NULL;
--		}
--#endif
--		spin_unlock_irq(&n->list_lock);
--		kfree(shared);
--		free_alien_cache(alien);
-+		err = setup_kmem_cache_node(cachep, node, GFP_KERNEL, false);
-+		if (err)
-+			goto bad;
- 	}
- 
- 	return 0;
-@@ -3648,72 +3668,19 @@ EXPORT_SYMBOL(kfree);
- /*
-  * This initializes kmem_cache_node or resizes various caches for all nodes.
-  */
--static int alloc_kmem_cache_node(struct kmem_cache *cachep, gfp_t gfp)
-+static int setup_kmem_cache_node_node(struct kmem_cache *cachep, gfp_t gfp)
- {
-+	int ret;
- 	int node;
- 	struct kmem_cache_node *n;
--	struct array_cache *new_shared;
--	struct alien_cache **new_alien = NULL;
- 
- 	for_each_online_node(node) {
--
--		if (use_alien_caches) {
--			new_alien = alloc_alien_cache(node, cachep->limit, gfp);
--			if (!new_alien)
--				goto fail;
--		}
--
--		new_shared = NULL;
--		if (cachep->shared) {
--			new_shared = alloc_arraycache(node,
--				cachep->shared*cachep->batchcount,
--					0xbaadf00d, gfp);
--			if (!new_shared) {
--				free_alien_cache(new_alien);
--				goto fail;
--			}
--		}
--
--		n = get_node(cachep, node);
--		if (n) {
--			struct array_cache *shared = n->shared;
--			LIST_HEAD(list);
--
--			spin_lock_irq(&n->list_lock);
--
--			if (shared)
--				free_block(cachep, shared->entry,
--						shared->avail, node, &list);
--
--			n->shared = new_shared;
--			if (!n->alien) {
--				n->alien = new_alien;
--				new_alien = NULL;
--			}
--			n->free_limit = (1 + nr_cpus_node(node)) *
--					cachep->batchcount + cachep->num;
--			spin_unlock_irq(&n->list_lock);
--			slabs_destroy(cachep, &list);
--			kfree(shared);
--			free_alien_cache(new_alien);
--			continue;
--		}
--		n = kmalloc_node(sizeof(struct kmem_cache_node), gfp, node);
--		if (!n) {
--			free_alien_cache(new_alien);
--			kfree(new_shared);
-+		ret = setup_kmem_cache_node(cachep, node, gfp, true);
-+		if (ret)
- 			goto fail;
--		}
- 
--		kmem_cache_node_init(n);
--		n->next_reap = jiffies + REAPTIMEOUT_NODE +
--				((unsigned long)cachep) % REAPTIMEOUT_NODE;
--		n->shared = new_shared;
--		n->alien = new_alien;
--		n->free_limit = (1 + nr_cpus_node(node)) *
--					cachep->batchcount + cachep->num;
--		cachep->node[node] = n;
- 	}
-+
- 	return 0;
- 
- fail:
-@@ -3755,7 +3722,7 @@ static int __do_tune_cpucache(struct kme
- 	cachep->shared = shared;
- 
- 	if (!prev)
--		goto alloc_node;
-+		goto setup_node;
- 
- 	for_each_online_cpu(cpu) {
- 		LIST_HEAD(list);
-@@ -3772,8 +3739,8 @@ static int __do_tune_cpucache(struct kme
- 	}
- 	free_percpu(prev);
- 
--alloc_node:
--	return alloc_kmem_cache_node(cachep, gfp);
-+setup_node:
-+	return setup_kmem_cache_node_node(cachep, gfp);
- }
- 
- static int do_tune_cpucache(struct kmem_cache *cachep, int limit,
+ static void cache_flusharray(struct kmem_cache *cachep, struct array_cache *ac)
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-mm-slab-clean-up-kmem_cache_node-setup-fix.patch
-mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
 mm-slab-racy-access-modify-the-slab-color.patch
 mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
 mm-slab-separate-cache_grow-to-two-parts.patch
