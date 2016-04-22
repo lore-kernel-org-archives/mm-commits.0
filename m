@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-fix-potential-null-pointer-dereference.patch added to
- -mm tree
-Date: Fri, 22 Apr 2016 11:32:26 -0700
-Message-ID: <571a6e3a.D2xCdiLenri9srQs%akpm@linux-foundation.org>
+Subject: +
+ mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range.patch added
+ to -mm tree
+Date: Fri, 22 Apr 2016 11:39:35 -0700
+Message-ID: <571a6fe7.ZGMeBgWv+cUjBhPq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51915 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52539 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084AbcDVSc1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 14:32:27 -0400
+	with ESMTP id S1751595AbcDVSjg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 14:39:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vz@mleia.com, alexandre.bounine@idt.com, mm-commits@vger.kernel.org
+To: xyjxie@linux.vnet.ibm.com, aarcange@redhat.com, dahi@linux.vnet.ibm.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, luto@kernel.org, matthew.r.wilcox@intel.com, mhocko@suse.com, mingo@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: fix potential NULL pointer dereference
+     Subject: mm: fix incorrect pfn passed to untrack_pfn() in remap_pfn_range()
 has been added to the -mm tree.  Its filename is
-     rapidio-fix-potential-null-pointer-dereference.patch
+     mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-fix-potential-null-pointer-dereference.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-fix-potential-null-pointer-dereference.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +40,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Zapolskiy <vz@mleia.com>
-Subject: rapidio: fix potential NULL pointer dereference
+From: Yongji Xie <xyjxie@linux.vnet.ibm.com>
+Subject: mm: fix incorrect pfn passed to untrack_pfn() in remap_pfn_range()
 
-The change fixes improper check for a returned error value by
-class_create() function, which on error returns ERR_PTR() value, thus the
-original check always results in a dead code on error path.
+We use generic hooks in remap_pfn_range() to help archs to track pfnmap
+regions.  The code is something like:
 
-Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+int remap_pfn_range()
+{
+	...
+	track_pfn_remap(vma, &prot, pfn, addr, PAGE_ALIGN(size));
+	...
+	pfn -= addr >> PAGE_SHIFT;
+	...
+	untrack_pfn(vma, pfn, PAGE_ALIGN(size));
+	...
+}
+
+Here we can easily find the pfn is changed but not recovered before
+untrack_pfn() is called.  That's incorrect.
+
+Signed-off-by: Yongji Xie <xyjxie@linux.vnet.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: David Hildenbrand <dahi@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-fix-potential-null-pointer-dereference drivers/rapidio/devices/rio_mport_cdev.c
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-fix-potential-null-pointer-dereference
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -2669,9 +2669,9 @@ static int __init mport_init(void)
+diff -puN mm/memory.c~mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range mm/memory.c
+--- a/mm/memory.c~mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range
++++ a/mm/memory.c
+@@ -1795,6 +1795,7 @@ int remap_pfn_range(struct vm_area_struc
+ 			break;
+ 	} while (pgd++, addr = next, addr != end);
  
- 	/* Create device class needed by udev */
- 	dev_class = class_create(THIS_MODULE, DRV_NAME);
--	if (!dev_class) {
-+	if (IS_ERR(dev_class)) {
- 		rmcd_error("Unable to create " DRV_NAME " class");
--		return -EINVAL;
-+		return PTR_ERR(dev_class);
- 	}
++	pfn += (end - PAGE_ALIGN(size)) >> PAGE_SHIFT;
+ 	if (err)
+ 		untrack_pfn(vma, pfn, PAGE_ALIGN(size));
  
- 	ret = alloc_chrdev_region(&dev_number, 0, RIO_MAX_MPORTS, DRV_NAME);
 _
 
-Patches currently in -mm which might be from vz@mleia.com are
+Patches currently in -mm which might be from xyjxie@linux.vnet.ibm.com are
 
-rapidio-fix-potential-null-pointer-dereference.patch
+mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range.patch
 
