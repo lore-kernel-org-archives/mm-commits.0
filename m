@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
- added to -mm tree
-Date: Fri, 22 Apr 2016 15:02:07 -0700
-Message-ID: <571a9f5f.LOVy2XrfoNIKsXN3%akpm@linux-foundation.org>
+Subject: + mm-slab-separate-cache_grow-to-two-parts.patch added to -mm
+ tree
+Date: Fri, 22 Apr 2016 15:02:09 -0700
+Message-ID: <571a9f61.gN6DJmC49gEPRDYF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38090 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752372AbcDVWCJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 18:02:09 -0400
+	with ESMTP id S1751904AbcDVWCK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 18:02:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: make cache_grow() handle the page allocated on arbitrary node
+     Subject: mm/slab: separate cache_grow() to two parts
 has been added to the -mm tree.  Its filename is
-     mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
+     mm-slab-separate-cache_grow-to-two-parts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-separate-cache_grow-to-two-parts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-separate-cache_grow-to-two-parts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,13 +40,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: make cache_grow() handle the page allocated on arbitrary node
+Subject: mm/slab: separate cache_grow() to two parts
 
-Currently, cache_grow() assumes that allocated page's nodeid would be same
-with parameter nodeid which is used for allocation request.  If we discard
-this assumption, we can handle fallback_alloc() case gracefully.  So, this
-patch makes cache_grow() handle the page allocated on arbitrary node and
-clean-up relevant code.
+This is a preparation step to implement lockless allocation path when
+there is no free objects in kmem_cache.  What we'd like to do here is to
+refill cpu cache without holding a node lock.  To accomplish this purpose,
+refill should be done after new slab allocation but before attaching the
+slab to the management list.  So, this patch separates cache_grow() to two
+parts, allocation and attaching to the list in order to add some code
+inbetween them in the following patch.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
@@ -57,154 +58,178 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   60 ++++++++++++++++++----------------------------------
- 1 file changed, 21 insertions(+), 39 deletions(-)
+ mm/slab.c |   74 ++++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 52 insertions(+), 22 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node mm/slab.c
---- a/mm/slab.c~mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node
+diff -puN mm/slab.c~mm-slab-separate-cache_grow-to-two-parts mm/slab.c
+--- a/mm/slab.c~mm-slab-separate-cache_grow-to-two-parts
 +++ a/mm/slab.c
-@@ -2550,13 +2550,14 @@ static void slab_map_pages(struct kmem_c
+@@ -213,6 +213,11 @@ static void slabs_destroy(struct kmem_ca
+ static int enable_cpucache(struct kmem_cache *cachep, gfp_t gfp);
+ static void cache_reap(struct work_struct *unused);
+ 
++static inline void fixup_objfreelist_debug(struct kmem_cache *cachep,
++						void **list);
++static inline void fixup_slab_list(struct kmem_cache *cachep,
++				struct kmem_cache_node *n, struct page *page,
++				void **list);
+ static int slab_early_init = 1;
+ 
+ #define INDEX_NODE kmalloc_index(sizeof(struct kmem_cache_node))
+@@ -1804,7 +1809,7 @@ static size_t calculate_slab_order(struc
+ 
+ 			/*
+ 			 * Needed to avoid possible looping condition
+-			 * in cache_grow()
++			 * in cache_grow_begin()
+ 			 */
+ 			if (OFF_SLAB(freelist_cache))
+ 				continue;
+@@ -2550,7 +2555,8 @@ static void slab_map_pages(struct kmem_c
   * Grow (by 1) the number of slabs within a cache.  This is called by
   * kmem_cache_alloc() when there are no active objs left in a cache.
   */
--static int cache_grow(struct kmem_cache *cachep,
--		gfp_t flags, int nodeid, struct page *page)
-+static int cache_grow(struct kmem_cache *cachep, gfp_t flags, int nodeid)
+-static int cache_grow(struct kmem_cache *cachep, gfp_t flags, int nodeid)
++static struct page *cache_grow_begin(struct kmem_cache *cachep,
++				gfp_t flags, int nodeid)
  {
  	void *freelist;
  	size_t offset;
- 	gfp_t local_flags;
-+	int page_node;
- 	struct kmem_cache_node *n;
-+	struct page *page;
+@@ -2616,21 +2622,40 @@ static int cache_grow(struct kmem_cache
  
- 	/*
- 	 * Be lazy and only check for valid flags here,  keeping it out of the
-@@ -2584,12 +2585,12 @@ static int cache_grow(struct kmem_cache
- 	 * Get mem for the objs.  Attempt to allocate a physical page from
- 	 * 'nodeid'.
- 	 */
--	if (!page)
--		page = kmem_getpages(cachep, local_flags, nodeid);
-+	page = kmem_getpages(cachep, local_flags, nodeid);
- 	if (!page)
- 		goto failed;
+ 	if (gfpflags_allow_blocking(local_flags))
+ 		local_irq_disable();
+-	check_irq_off();
+-	spin_lock(&n->list_lock);
  
--	n = get_node(cachep, nodeid);
-+	page_node = page_to_nid(page);
-+	n = get_node(cachep, page_node);
- 
- 	/* Get colour for the slab, and cal the next value. */
- 	n->colour_next++;
-@@ -2604,7 +2605,7 @@ static int cache_grow(struct kmem_cache
- 
- 	/* Get slab management. */
- 	freelist = alloc_slabmgmt(cachep, page, offset,
--			local_flags & ~GFP_CONSTRAINT_MASK, nodeid);
-+			local_flags & ~GFP_CONSTRAINT_MASK, page_node);
- 	if (OFF_SLAB(cachep) && !freelist)
- 		goto opps1;
- 
-@@ -2623,13 +2624,13 @@ static int cache_grow(struct kmem_cache
- 	STATS_INC_GROWN(cachep);
- 	n->free_objects += cachep->num;
- 	spin_unlock(&n->list_lock);
--	return 1;
-+	return page_node;
+-	/* Make slab active. */
+-	list_add_tail(&page->lru, &(n->slabs_free));
+-	STATS_INC_GROWN(cachep);
+-	n->free_objects += cachep->num;
+-	spin_unlock(&n->list_lock);
+-	return page_node;
++	return page;
++
  opps1:
  	kmem_freepages(cachep, page);
  failed:
  	if (gfpflags_allow_blocking(local_flags))
  		local_irq_disable();
--	return 0;
-+	return -1;
+-	return -1;
++	return NULL;
++}
++
++static void cache_grow_end(struct kmem_cache *cachep, struct page *page)
++{
++	struct kmem_cache_node *n;
++	void *list = NULL;
++
++	check_irq_off();
++
++	if (!page)
++		return;
++
++	INIT_LIST_HEAD(&page->lru);
++	n = get_node(cachep, page_to_nid(page));
++
++	spin_lock(&n->list_lock);
++	if (!page->active)
++		list_add_tail(&page->lru, &(n->slabs_free));
++	else
++		fixup_slab_list(cachep, n, page, &list);
++	STATS_INC_GROWN(cachep);
++	n->free_objects += cachep->num - page->active;
++	spin_unlock(&n->list_lock);
++
++	fixup_objfreelist_debug(cachep, &list);
  }
  
  #if DEBUG
-@@ -2910,14 +2911,14 @@ alloc_done:
+@@ -2841,6 +2866,7 @@ static void *cache_alloc_refill(struct k
+ 	struct array_cache *ac;
+ 	int node;
+ 	void *list = NULL;
++	struct page *page;
+ 
+ 	check_irq_off();
+ 	node = numa_mem_id();
+@@ -2868,7 +2894,6 @@ retry:
+ 	}
+ 
+ 	while (batchcount > 0) {
+-		struct page *page;
+ 		/* Get slab alloc is to come from. */
+ 		page = get_first_slab(n, false);
+ 		if (!page)
+@@ -2901,8 +2926,6 @@ alloc_done:
+ 	fixup_objfreelist_debug(cachep, &list);
+ 
+ 	if (unlikely(!ac->avail)) {
+-		int x;
+-
+ 		/* Check if we can use obj in pfmemalloc slab */
+ 		if (sk_memalloc_socks()) {
+ 			void *obj = cache_alloc_pfmemalloc(cachep, n, flags);
+@@ -2911,14 +2934,18 @@ alloc_done:
  				return obj;
  		}
  
--		x = cache_grow(cachep, gfp_exact_node(flags), node, NULL);
-+		x = cache_grow(cachep, gfp_exact_node(flags), node);
+-		x = cache_grow(cachep, gfp_exact_node(flags), node);
++		page = cache_grow_begin(cachep, gfp_exact_node(flags), node);
++		cache_grow_end(cachep, page);
  
- 		/* cache_grow can reenable interrupts, then ac could change. */
+-		/* cache_grow can reenable interrupts, then ac could change. */
++		/*
++		 * cache_grow_begin() can reenable interrupts,
++		 * then ac could change.
++		 */
  		ac = cpu_cache_get(cachep);
  		node = numa_mem_id();
  
  		/* no objects in sight? abort */
--		if (!x && ac->avail == 0)
-+		if (x < 0 && ac->avail == 0)
+-		if (x < 0 && ac->avail == 0)
++		if (!page && ac->avail == 0)
  			return NULL;
  
  		if (!ac->avail)		/* objects refilled by interrupt? */
-@@ -3046,7 +3047,6 @@ static void *alternate_node_alloc(struct
- static void *fallback_alloc(struct kmem_cache *cache, gfp_t flags)
- {
- 	struct zonelist *zonelist;
--	gfp_t local_flags;
- 	struct zoneref *z;
+@@ -3051,6 +3078,7 @@ static void *fallback_alloc(struct kmem_
  	struct zone *zone;
  	enum zone_type high_zoneidx = gfp_zone(flags);
-@@ -3057,8 +3057,6 @@ static void *fallback_alloc(struct kmem_
- 	if (flags & __GFP_THISNODE)
- 		return NULL;
+ 	void *obj = NULL;
++	struct page *page;
+ 	int nid;
+ 	unsigned int cpuset_mems_cookie;
  
--	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
--
- retry_cpuset:
- 	cpuset_mems_cookie = read_mems_allowed_begin();
- 	zonelist = node_zonelist(mempolicy_slab_node(), flags);
-@@ -3088,33 +3086,17 @@ retry:
+@@ -3086,8 +3114,10 @@ retry:
  		 * We may trigger various forms of reclaim on the allowed
  		 * set and go into memory reserves if necessary.
  		 */
--		struct page *page;
-+		nid = cache_grow(cache, flags, numa_mem_id());
-+		if (nid >= 0) {
-+			obj = ____cache_alloc_node(cache,
-+				gfp_exact_node(flags), nid);
+-		nid = cache_grow(cache, flags, numa_mem_id());
+-		if (nid >= 0) {
++		page = cache_grow_begin(cache, flags, numa_mem_id());
++		cache_grow_end(cache, page);
++		if (page) {
++			nid = page_to_nid(page);
+ 			obj = ____cache_alloc_node(cache,
+ 				gfp_exact_node(flags), nid);
  
--		if (gfpflags_allow_blocking(local_flags))
--			local_irq_enable();
--		kmem_flagcheck(cache, flags);
--		page = kmem_getpages(cache, local_flags, numa_mem_id());
--		if (gfpflags_allow_blocking(local_flags))
--			local_irq_disable();
--		if (page) {
- 			/*
--			 * Insert into the appropriate per node queues
-+			 * Another processor may allocate the objects in
-+			 * the slab since we are not holding any locks.
- 			 */
--			nid = page_to_nid(page);
--			if (cache_grow(cache, flags, nid, page)) {
--				obj = ____cache_alloc_node(cache,
--					gfp_exact_node(flags), nid);
--				if (!obj)
--					/*
--					 * Another processor may allocate the
--					 * objects in the slab since we are
--					 * not holding any locks.
--					 */
--					goto retry;
--			} else {
--				/* cache_grow already freed obj */
--				obj = NULL;
--			}
-+			if (!obj)
-+				goto retry;
- 		}
- 	}
+@@ -3115,7 +3145,6 @@ static void *____cache_alloc_node(struct
+ 	struct kmem_cache_node *n;
+ 	void *obj;
+ 	void *list = NULL;
+-	int x;
  
-@@ -3165,8 +3147,8 @@ retry:
+ 	VM_BUG_ON(nodeid < 0 || nodeid >= MAX_NUMNODES);
+ 	n = get_node(cachep, nodeid);
+@@ -3147,8 +3176,9 @@ retry:
  
  must_grow:
  	spin_unlock(&n->list_lock);
--	x = cache_grow(cachep, gfp_exact_node(flags), nodeid, NULL);
--	if (x)
-+	x = cache_grow(cachep, gfp_exact_node(flags), nodeid);
-+	if (x >= 0)
+-	x = cache_grow(cachep, gfp_exact_node(flags), nodeid);
+-	if (x >= 0)
++	page = cache_grow_begin(cachep, gfp_exact_node(flags), nodeid);
++	cache_grow_end(cachep, page);
++	if (page)
  		goto retry;
  
  	return fallback_alloc(cachep, flags);
