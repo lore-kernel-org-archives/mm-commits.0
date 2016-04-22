@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Fri, 22 Apr 2016 10:51:26 -0700
-Message-ID: <571a649e.gdsXywH2gpeQL+04%akpm@linux-foundation.org>
+Subject: + rapidio-fix-potential-null-pointer-dereference.patch added to
+ -mm tree
+Date: Fri, 22 Apr 2016 11:32:26 -0700
+Message-ID: <571a6e3a.D2xCdiLenri9srQs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48596 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51915 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752461AbcDVRv1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 13:51:27 -0400
+	with ESMTP id S1751084AbcDVSc1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 14:32:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: vz@mleia.com, alexandre.bounine@idt.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: rapidio: fix potential NULL pointer dereference
 has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     rapidio-fix-potential-null-pointer-dereference.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-fix-potential-null-pointer-dereference.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-fix-potential-null-pointer-dereference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,51 +39,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Vladimir Zapolskiy <vz@mleia.com>
+Subject: rapidio: fix potential NULL pointer dereference
 
+The change fixes improper check for a returned error value by
+class_create() function, which on error returns ERR_PTR() value, thus the
+original check always results in a dead code on error path.
+
+Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rapidio/devices/rio_mport_cdev.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/mips/Kconfig~linux-next-rejects arch/mips/Kconfig
---- a/arch/mips/Kconfig~linux-next-rejects
-+++ a/arch/mips/Kconfig
-@@ -48,6 +48,7 @@ config MIPS
- 	select GENERIC_SCHED_CLOCK if !CAVIUM_OCTEON_SOC
- 	select GENERIC_CMOS_UPDATE
- 	select HAVE_MOD_ARCH_SPECIFIC
-+	select HANDLE_DOMAIN_IRQ
- 	select VIRT_TO_BUS
- 	select MODULES_USE_ELF_REL if MODULES
- 	select MODULES_USE_ELF_RELA if MODULES && 64BIT
+diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-fix-potential-null-pointer-dereference drivers/rapidio/devices/rio_mport_cdev.c
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-fix-potential-null-pointer-dereference
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -2669,9 +2669,9 @@ static int __init mport_init(void)
+ 
+ 	/* Create device class needed by udev */
+ 	dev_class = class_create(THIS_MODULE, DRV_NAME);
+-	if (!dev_class) {
++	if (IS_ERR(dev_class)) {
+ 		rmcd_error("Unable to create " DRV_NAME " class");
+-		return -EINVAL;
++		return PTR_ERR(dev_class);
+ 	}
+ 
+ 	ret = alloc_chrdev_region(&dev_number, 0, RIO_MAX_MPORTS, DRV_NAME);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vz@mleia.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
-include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-include-linux-nodemaskh-create-next_node_in-helper.patch
-include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
-mm-hugetlbc-use-first_memory_node.patch
-mm-mempolicyc-offset_il_node-document-and-clarify.patch
-mm-compaction-direct-freepage-allocation-for-async-direct-compaction-checkpatch-fixes.patch
-mm-uninline-page_mapped.patch
-mm-uninline-page_mapped-checkpatch-fixes.patch
-memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
-mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
-exit_thread-remove-empty-bodies-fix.patch
-exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
-fs-execc-fix-minor-memory-leak.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-rejects.patch
+rapidio-fix-potential-null-pointer-dereference.patch
 
