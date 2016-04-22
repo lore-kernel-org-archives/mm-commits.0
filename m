@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- debugobjects-make-fixup-functions-return-bool-instead-of-int.patch added to -mm tree
-Date: Fri, 22 Apr 2016 13:02:00 -0700
-Message-ID: <571a8338.dRG+U8Aa/JxZA8Iy%akpm@linux-foundation.org>
+Subject: + workqueue-update-debugobjects-fixup-callbacks-return-type.patch added to -mm tree
+Date: Fri, 22 Apr 2016 13:02:04 -0700
+Message-ID: <571a833c.E6wg3PQzYlIl4Q7a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58344 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58360 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751172AbcDVUCC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:02:02 -0400
+	with ESMTP id S1751738AbcDVUCF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:02:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: changbin.du@intel.com, borntraeger@de.ibm.com, corbet@lwn.net, josh@kernel.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: debugobjects: make fixup functions return bool instead of int
+     Subject: workqueue: update debugobjects fixup callbacks return type
 has been added to the -mm tree.  Its filename is
-     debugobjects-make-fixup-functions-return-bool-instead-of-int.patch
+     workqueue-update-debugobjects-fixup-callbacks-return-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/debugobjects-make-fixup-functions-return-bool-instead-of-int.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/workqueue-update-debugobjects-fixup-callbacks-return-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/debugobjects-make-fixup-functions-return-bool-instead-of-int.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/workqueue-update-debugobjects-fixup-callbacks-return-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,28 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Du, Changbin" <changbin.du@intel.com>
-Subject: debugobjects: make fixup functions return bool instead of int
+Subject: workqueue: update debugobjects fixup callbacks return type
 
-I am going to introduce debugobjects infrastructure to USB subsystem.  But
-before this, I found the code of debugobjects could be improved.  This
-patchset will make fixup functions return bool type instead of int. 
-Because fixup only need report success or no.  boolean is the 'real' type.
-
-
-
-This patch (of 7):
-
-The object debugging infrastructure core provides some fixup callbacks for
-the subsystem who use it.  These callbacks are called from the debug code
-whenever a problem in debug_object_init is detected.  And debugobjects
-core suppose them returns 1 when the fixup was successful, otherwise 0. 
-So the return type is boolean.
-
-A bad thing is that debug_object_fixup use the return value for arithmetic
-operation.  It confused me that what is the reall return type.
-
-Reading over the whole code, I found some place do use the return value
-incorrectly(see next patch).  So why use bool type instead?
+Update the return type to use bool instead of int, corresponding to
+change (debugobjects: make fixup functions return bool instead of int)
 
 Signed-off-by: Du, Changbin <changbin.du@intel.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -73,82 +54,25 @@ Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/debugobjects.h |   15 ++++++-----
- lib/debugobjects.c           |   43 ++++++++++++++++-----------------
- 2 files changed, 29 insertions(+), 29 deletions(-)
+ kernel/workqueue.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/debugobjects.h~debugobjects-make-fixup-functions-return-bool-instead-of-int include/linux/debugobjects.h
---- a/include/linux/debugobjects.h~debugobjects-make-fixup-functions-return-bool-instead-of-int
-+++ a/include/linux/debugobjects.h
-@@ -39,7 +39,8 @@ struct debug_obj {
-  * @debug_hint:		function returning address, which have associated
-  *			kernel symbol, to allow identify the object
-  * @fixup_init:		fixup function, which is called when the init check
-- *			fails
-+ *			fails. All fixup functions must return true if fixup
-+ *			was successful, otherwise return false
-  * @fixup_activate:	fixup function, which is called when the activate check
-  *			fails
-  * @fixup_destroy:	fixup function, which is called when the destroy check
-@@ -51,12 +52,12 @@ struct debug_obj {
-  */
- struct debug_obj_descr {
- 	const char		*name;
--	void *(*debug_hint)	(void *addr);
--	int (*fixup_init)	(void *addr, enum debug_obj_state state);
--	int (*fixup_activate)	(void *addr, enum debug_obj_state state);
--	int (*fixup_destroy)	(void *addr, enum debug_obj_state state);
--	int (*fixup_free)	(void *addr, enum debug_obj_state state);
--	int (*fixup_assert_init)(void *addr, enum debug_obj_state state);
-+	void *(*debug_hint)(void *addr);
-+	bool (*fixup_init)(void *addr, enum debug_obj_state state);
-+	bool (*fixup_activate)(void *addr, enum debug_obj_state state);
-+	bool (*fixup_destroy)(void *addr, enum debug_obj_state state);
-+	bool (*fixup_free)(void *addr, enum debug_obj_state state);
-+	bool (*fixup_assert_init)(void *addr, enum debug_obj_state state);
- };
- 
- #ifdef CONFIG_DEBUG_OBJECTS
-diff -puN lib/debugobjects.c~debugobjects-make-fixup-functions-return-bool-instead-of-int lib/debugobjects.c
---- a/lib/debugobjects.c~debugobjects-make-fixup-functions-return-bool-instead-of-int
-+++ a/lib/debugobjects.c
-@@ -269,16 +269,15 @@ static void debug_print_object(struct de
-  * Try to repair the damage, so we have a better chance to get useful
-  * debug output.
-  */
--static int
--debug_object_fixup(int (*fixup)(void *addr, enum debug_obj_state state),
-+static bool
-+debug_object_fixup(bool (*fixup)(void *addr, enum debug_obj_state state),
- 		   void * addr, enum debug_obj_state state)
- {
--	int fixed = 0;
--
--	if (fixup)
--		fixed = fixup(addr, state);
--	debug_objects_fixups += fixed;
--	return fixed;
-+	if (fixup && fixup(addr, state)) {
-+		debug_objects_fixups++;
-+		return true;
-+	}
-+	return false;
- }
- 
- static void debug_object_is_on_stack(void *addr, int onstack)
-@@ -797,7 +796,7 @@ static __initdata struct debug_obj_descr
+diff -puN kernel/workqueue.c~workqueue-update-debugobjects-fixup-callbacks-return-type kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-update-debugobjects-fixup-callbacks-return-type
++++ a/kernel/workqueue.c
+@@ -437,7 +437,7 @@ static void *work_debug_hint(void *addr)
   * fixup_init is called when:
   * - an active object is initialized
   */
--static int __init fixup_init(void *addr, enum debug_obj_state state)
-+static bool __init fixup_init(void *addr, enum debug_obj_state state)
+-static int work_fixup_init(void *addr, enum debug_obj_state state)
++static bool work_fixup_init(void *addr, enum debug_obj_state state)
  {
- 	struct self_test *obj = addr;
+ 	struct work_struct *work = addr;
  
-@@ -805,9 +804,9 @@ static int __init fixup_init(void *addr,
+@@ -445,9 +445,9 @@ static int work_fixup_init(void *addr, e
  	case ODEBUG_STATE_ACTIVE:
- 		debug_object_deactivate(obj, &descr_type_test);
- 		debug_object_init(obj, &descr_type_test);
+ 		cancel_work_sync(work);
+ 		debug_object_init(work, &work_debug_descr);
 -		return 1;
 +		return true;
  	default:
@@ -157,30 +81,28 @@ diff -puN lib/debugobjects.c~debugobjects-make-fixup-functions-return-bool-inste
  	}
  }
  
-@@ -816,7 +815,7 @@ static int __init fixup_init(void *addr,
+@@ -456,7 +456,7 @@ static int work_fixup_init(void *addr, e
   * - an active object is activated
   * - an unknown object is activated (might be a statically initialized object)
   */
--static int __init fixup_activate(void *addr, enum debug_obj_state state)
-+static bool __init fixup_activate(void *addr, enum debug_obj_state state)
+-static int work_fixup_activate(void *addr, enum debug_obj_state state)
++static bool work_fixup_activate(void *addr, enum debug_obj_state state)
  {
- 	struct self_test *obj = addr;
+ 	struct work_struct *work = addr;
  
-@@ -825,17 +824,17 @@ static int __init fixup_activate(void *a
- 		if (obj->static_init == 1) {
- 			debug_object_init(obj, &descr_type_test);
- 			debug_object_activate(obj, &descr_type_test);
+@@ -471,16 +471,16 @@ static int work_fixup_activate(void *add
+ 		if (test_bit(WORK_STRUCT_STATIC_BIT, work_data_bits(work))) {
+ 			debug_object_init(work, &work_debug_descr);
+ 			debug_object_activate(work, &work_debug_descr);
 -			return 0;
 +			return false;
  		}
--		return 1;
-+		return true;
+ 		WARN_ON_ONCE(1);
+-		return 0;
++		return false;
  
  	case ODEBUG_STATE_ACTIVE:
- 		debug_object_deactivate(obj, &descr_type_test);
- 		debug_object_activate(obj, &descr_type_test);
--		return 1;
-+		return true;
+ 		WARN_ON(1);
  
  	default:
 -		return 0;
@@ -188,40 +110,19 @@ diff -puN lib/debugobjects.c~debugobjects-make-fixup-functions-return-bool-inste
  	}
  }
  
-@@ -843,7 +842,7 @@ static int __init fixup_activate(void *a
-  * fixup_destroy is called when:
-  * - an active object is destroyed
-  */
--static int __init fixup_destroy(void *addr, enum debug_obj_state state)
-+static bool __init fixup_destroy(void *addr, enum debug_obj_state state)
- {
- 	struct self_test *obj = addr;
- 
-@@ -851,9 +850,9 @@ static int __init fixup_destroy(void *ad
- 	case ODEBUG_STATE_ACTIVE:
- 		debug_object_deactivate(obj, &descr_type_test);
- 		debug_object_destroy(obj, &descr_type_test);
--		return 1;
-+		return true;
- 	default:
--		return 0;
-+		return false;
- 	}
- }
- 
-@@ -861,7 +860,7 @@ static int __init fixup_destroy(void *ad
+@@ -488,7 +488,7 @@ static int work_fixup_activate(void *add
   * fixup_free is called when:
   * - an active object is freed
   */
--static int __init fixup_free(void *addr, enum debug_obj_state state)
-+static bool __init fixup_free(void *addr, enum debug_obj_state state)
+-static int work_fixup_free(void *addr, enum debug_obj_state state)
++static bool work_fixup_free(void *addr, enum debug_obj_state state)
  {
- 	struct self_test *obj = addr;
+ 	struct work_struct *work = addr;
  
-@@ -869,9 +868,9 @@ static int __init fixup_free(void *addr,
+@@ -496,9 +496,9 @@ static int work_fixup_free(void *addr, e
  	case ODEBUG_STATE_ACTIVE:
- 		debug_object_deactivate(obj, &descr_type_test);
- 		debug_object_free(obj, &descr_type_test);
+ 		cancel_work_sync(work);
+ 		debug_object_free(work, &work_debug_descr);
 -		return 1;
 +		return true;
  	default:
