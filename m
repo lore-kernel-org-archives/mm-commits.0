@@ -1,178 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-keep-a-separate-lazy-free-list.patch added to -mm
- tree
-Date: Fri, 22 Apr 2016 14:52:06 -0700
-Message-ID: <571a9d06.YYN5bhl6w2dbgg8M%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-slab-hold-a-slab_mutex-when-calling-__kmem_cache_shrink.patch removed
+ from -mm tree
+Date: Fri, 22 Apr 2016 14:56:04 -0700
+Message-ID: <571a9df4.ZNt2wn7MPv1d1gyd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37528 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37714 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752178AbcDVVwH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 17:52:07 -0400
+	with ESMTP id S1752379AbcDVV4F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 17:56:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chris-wilson.co.uk, daniel.vetter@ffwll.ch, iamjoonsoo.kim@lge.com, joonas.lahtinen@linux.intel.com, mgorman@techsingularity.net, r.peniaev@gmail.com, rientjes@google.com, shawn.lin@rock-chips.com, toshi.kani@hp.com, tvrtko.ursulin@linux.intel.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: Keep a separate lazy-free list
-has been added to the -mm tree.  Its filename is
-     mm-vmalloc-keep-a-separate-lazy-free-list.patch
+     Subject: mm/slab: hold a slab_mutex when calling __kmem_cache_shrink()
+has been removed from the -mm tree.  Its filename was
+     mm-slab-hold-a-slab_mutex-when-calling-__kmem_cache_shrink.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-keep-a-separate-lazy-free-list.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-keep-a-separate-lazy-free-list.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: mm/vmalloc: Keep a separate lazy-free list
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/slab: hold a slab_mutex when calling __kmem_cache_shrink()
 
-When mixing lots of vmallocs and set_memory_*() (which calls
-vm_unmap_aliases()) I encountered situations where the performance
-degraded severely due to the walking of the entire vmap_area list each
-invocation.  One simple improvement is to add the lazily freed vmap_area
-to a separate lockless free list, such that we then avoid having to walk
-the full list on each purge.
+While processing concurrent allocation, SLAB could be contended a lot
+because it did a lots of work with holding a lock.  This patchset try to
+reduce the number of critical section to reduce lock contention.  Major
+changes are lockless decision to allocate more slab and lockless cpu cache
+refill from the newly allocated slab.
 
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Reviewed-by: Roman Pen <r.peniaev@gmail.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Below is the result of concurrent allocation/free in slab allocation
+benchmark made by Christoph a long time ago.  I make the output simpler. 
+The number shows cycle count during alloc/free respectively so less is
+better.
+
+* Before
+Kmalloc N*alloc N*free(32): Average=365/806
+Kmalloc N*alloc N*free(64): Average=452/690
+Kmalloc N*alloc N*free(128): Average=736/886
+Kmalloc N*alloc N*free(256): Average=1167/985
+Kmalloc N*alloc N*free(512): Average=2088/1125
+Kmalloc N*alloc N*free(1024): Average=4115/1184
+Kmalloc N*alloc N*free(2048): Average=8451/1748
+Kmalloc N*alloc N*free(4096): Average=16024/2048
+
+* After
+Kmalloc N*alloc N*free(32): Average=344/792
+Kmalloc N*alloc N*free(64): Average=347/882
+Kmalloc N*alloc N*free(128): Average=390/959
+Kmalloc N*alloc N*free(256): Average=393/1067
+Kmalloc N*alloc N*free(512): Average=683/1229
+Kmalloc N*alloc N*free(1024): Average=1295/1325
+Kmalloc N*alloc N*free(2048): Average=2513/1664
+Kmalloc N*alloc N*free(4096): Average=4742/2172
+
+It shows that performance improves greatly (roughly more than 50%) for the
+object class whose size is more than 128 bytes.
+
+
+
+This patch (of 11):
+
+Major kmem_cache metadata in slab subsystem is synchronized with the
+slab_mutex.  In SLAB, if some of them is changed, node's shared array
+cache would be freed and re-populated.  If __kmem_cache_shrink() is called
+at the same time, it will call drain_array() with n->shared without
+holding node lock so problem can happen.
+
+We can fix this small theoretical race condition by holding node lock in
+drain_array(), but, holding a slab_mutex in kmem_cache_shrink() looks more
+appropriate solution because stable state would make things less
+error-prone and this is not performance critical path.
+
+In addtion, annotate on SLAB functions.
+
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Roman Pen <r.peniaev@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Shawn Lin <shawn.lin@rock-chips.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    3 +-
- mm/vmalloc.c            |   39 ++++++++++++++++++--------------------
- 2 files changed, 21 insertions(+), 21 deletions(-)
+ mm/slab.c        |    2 ++
+ mm/slab_common.c |    2 ++
+ 2 files changed, 4 insertions(+)
 
-diff -puN include/linux/vmalloc.h~mm-vmalloc-keep-a-separate-lazy-free-list include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-vmalloc-keep-a-separate-lazy-free-list
-+++ a/include/linux/vmalloc.h
-@@ -4,6 +4,7 @@
- #include <linux/spinlock.h>
- #include <linux/init.h>
- #include <linux/list.h>
-+#include <linux/llist.h>
- #include <asm/page.h>		/* pgprot_t */
- #include <linux/rbtree.h>
- 
-@@ -44,7 +45,7 @@ struct vmap_area {
- 	unsigned long flags;
- 	struct rb_node rb_node;         /* address sorted rbtree */
- 	struct list_head list;          /* address sorted list */
--	struct list_head purge_list;    /* "lazy purge" list */
-+	struct llist_node purge_list;    /* "lazy purge" list */
- 	struct vm_struct *vm;
- 	struct rcu_head rcu_head;
- };
-diff -puN mm/vmalloc.c~mm-vmalloc-keep-a-separate-lazy-free-list mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-keep-a-separate-lazy-free-list
-+++ a/mm/vmalloc.c
-@@ -274,13 +274,12 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
- 
- /*** Global kva allocator ***/
- 
--#define VM_LAZY_FREE	0x01
--#define VM_LAZY_FREEING	0x02
- #define VM_VM_AREA	0x04
- 
- static DEFINE_SPINLOCK(vmap_area_lock);
- /* Export for kexec only */
- LIST_HEAD(vmap_area_list);
-+static LLIST_HEAD(vmap_purge_list);
- static struct rb_root vmap_area_root = RB_ROOT;
- 
- /* The vmap cache globals are protected by vmap_area_lock */
-@@ -601,7 +600,7 @@ static void __purge_vmap_area_lazy(unsig
- 					int sync, int force_flush)
- {
- 	static DEFINE_SPINLOCK(purge_lock);
--	LIST_HEAD(valist);
-+	struct llist_node *valist;
- 	struct vmap_area *va;
- 	struct vmap_area *n_va;
- 	int nr = 0;
-@@ -620,20 +619,14 @@ static void __purge_vmap_area_lazy(unsig
- 	if (sync)
- 		purge_fragmented_blocks_allcpus();
- 
--	rcu_read_lock();
--	list_for_each_entry_rcu(va, &vmap_area_list, list) {
--		if (va->flags & VM_LAZY_FREE) {
--			if (va->va_start < *start)
--				*start = va->va_start;
--			if (va->va_end > *end)
--				*end = va->va_end;
--			nr += (va->va_end - va->va_start) >> PAGE_SHIFT;
--			list_add_tail(&va->purge_list, &valist);
--			va->flags |= VM_LAZY_FREEING;
--			va->flags &= ~VM_LAZY_FREE;
--		}
-+	valist = llist_del_all(&vmap_purge_list);
-+	llist_for_each_entry(va, valist, purge_list) {
-+		if (va->va_start < *start)
-+			*start = va->va_start;
-+		if (va->va_end > *end)
-+			*end = va->va_end;
-+		nr += (va->va_end - va->va_start) >> PAGE_SHIFT;
- 	}
--	rcu_read_unlock();
- 
- 	if (nr)
- 		atomic_sub(nr, &vmap_lazy_nr);
-@@ -643,7 +636,7 @@ static void __purge_vmap_area_lazy(unsig
- 
- 	if (nr) {
- 		spin_lock(&vmap_area_lock);
--		list_for_each_entry_safe(va, n_va, &valist, purge_list)
-+		llist_for_each_entry_safe(va, n_va, valist, purge_list)
- 			__free_vmap_area(va);
- 		spin_unlock(&vmap_area_lock);
- 	}
-@@ -678,9 +671,15 @@ static void purge_vmap_area_lazy(void)
-  */
- static void free_vmap_area_noflush(struct vmap_area *va)
- {
--	va->flags |= VM_LAZY_FREE;
--	atomic_add((va->va_end - va->va_start) >> PAGE_SHIFT, &vmap_lazy_nr);
--	if (unlikely(atomic_read(&vmap_lazy_nr) > lazy_max_pages()))
-+	int nr_lazy;
-+
-+	nr_lazy = atomic_add_return((va->va_end - va->va_start) >> PAGE_SHIFT,
-+				    &vmap_lazy_nr);
-+
-+	/* After this point, we may free va at any time */
-+	llist_add(&va->purge_list, &vmap_purge_list);
-+
-+	if (unlikely(nr_lazy > lazy_max_pages()))
- 		try_purge_vmap_area_lazy();
+diff -puN mm/slab.c~mm-slab-hold-a-slab_mutex-when-calling-__kmem_cache_shrink mm/slab.c
+--- a/mm/slab.c~mm-slab-hold-a-slab_mutex-when-calling-__kmem_cache_shrink
++++ a/mm/slab.c
+@@ -2225,6 +2225,7 @@ static void do_drain(void *arg)
+ 	ac->avail = 0;
  }
  
++/* Should be called with slab_mutex to prevent from freeing shared array */
+ static void drain_cpu_caches(struct kmem_cache *cachep)
+ {
+ 	struct kmem_cache_node *n;
+@@ -3867,6 +3868,7 @@ skip_setup:
+  * Drain an array if it contains any elements taking the node lock only if
+  * necessary. Note that the node listlock also protects the array_cache
+  * if drain_array() is used on the shared array.
++ * Should be called with slab_mutex to prevent from freeing shared array.
+  */
+ static void drain_array(struct kmem_cache *cachep, struct kmem_cache_node *n,
+ 			 struct array_cache *ac, int force, int node)
+diff -puN mm/slab_common.c~mm-slab-hold-a-slab_mutex-when-calling-__kmem_cache_shrink mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-hold-a-slab_mutex-when-calling-__kmem_cache_shrink
++++ a/mm/slab_common.c
+@@ -753,7 +753,9 @@ int kmem_cache_shrink(struct kmem_cache
+ 
+ 	get_online_cpus();
+ 	get_online_mems();
++	mutex_lock(&slab_mutex);
+ 	ret = __kmem_cache_shrink(cachep, false);
++	mutex_unlock(&slab_mutex);
+ 	put_online_mems();
+ 	put_online_cpus();
+ 	return ret;
 _
 
-Patches currently in -mm which might be from chris@chris-wilson.co.uk are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-mm-vmalloc-keep-a-separate-lazy-free-list.patch
+mm-slab-remove-bad_alien_magic-again.patch
+mm-slab-drain-the-free-slab-as-much-as-possible.patch
+mm-slab-factor-out-kmem_cache_node-initialization-code.patch
+mm-slab-clean-up-kmem_cache_node-setup.patch
+mm-slab-clean-up-kmem_cache_node-setup-fix.patch
+mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
+mm-slab-racy-access-modify-the-slab-color.patch
+mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
+mm-slab-separate-cache_grow-to-two-parts.patch
+mm-slab-refill-cpu-cache-through-a-new-slab-without-holding-a-node-lock.patch
+mm-slab-lockless-decision-to-grow-cache.patch
+mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
+mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic.patch
+mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
+mm-vmstat-add-zone-range-overlapping-check.patch
+mm-page_owner-add-zone-range-overlapping-check.patch
+power-add-zone-range-overlapping-check.patch
+mm-writeback-correct-dirty-page-calculation-for-highmem.patch
+mm-page_alloc-correct-highmem-memory-statistics.patch
+mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
+mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
 
