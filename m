@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kcov-dont-trace-the-code-coverage-code.patch added to -mm tree
-Date: Fri, 22 Apr 2016 14:00:10 -0700
-Message-ID: <571a90da.qNAPx6wWEvCplaPN%akpm@linux-foundation.org>
+Subject: + lib-stackdepotc-allow-the-stack-trace-hash-to-be-zero.patch
+ added to -mm tree
+Date: Fri, 22 Apr 2016 14:01:18 -0700
+Message-ID: <571a911e.bqtV/Q+fMcA+Nkim%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33983 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33994 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751750AbcDVVAL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 17:00:11 -0400
+	with ESMTP id S1751172AbcDVVBT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 17:01:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: james.morse@arm.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: glider@google.com, aryabinin@virtuozzo.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: Don't trace the code coverage code
+     Subject: lib/stackdepot.c: allow the stack trace hash to be zero
 has been added to the -mm tree.  Its filename is
-     kcov-dont-trace-the-code-coverage-code.patch
+     lib-stackdepotc-allow-the-stack-trace-hash-to-be-zero.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kcov-dont-trace-the-code-coverage-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-stackdepotc-allow-the-stack-trace-hash-to-be-zero.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kcov-dont-trace-the-code-coverage-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-stackdepotc-allow-the-stack-trace-hash-to-be-zero.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,43 +39,29 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: James Morse <james.morse@arm.com>
-Subject: kcov: Don't trace the code coverage code
+From: Alexander Potapenko <glider@google.com>
+Subject: lib/stackdepot.c: allow the stack trace hash to be zero
 
-Kcov causes the compiler to add a call to __sanitizer_cov_trace_pc() in
-every basic block.  Ftrace patches in a call to _mcount() to each function
-it has annotated.
+Do not bail out from depot_save_stack() if the stack trace has zero hash. 
+Initially depot_save_stack() silently dropped stack traces with zero
+hashes, however there's actually no point in reserving this zero value.
 
-Letting these mechanisms annotate each other is a bad thing.  Break the
-loop by adding 'notrace' to __sanitizer_cov_trace_pc() so that ftrace
-won't try to patch this code.
-
-This patch lets arm64 with KCOV and STACK_TRACER boot.
-
-Signed-off-by: James Morse <james.morse@arm.com>
-Acked-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/stackdepot.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN kernel/kcov.c~kcov-dont-trace-the-code-coverage-code kernel/kcov.c
---- a/kernel/kcov.c~kcov-dont-trace-the-code-coverage-code
-+++ a/kernel/kcov.c
-@@ -43,7 +43,7 @@ struct kcov {
-  * Entry point from instrumented code.
-  * This is called once per basic-block/edge.
-  */
--void __sanitizer_cov_trace_pc(void)
-+void notrace __sanitizer_cov_trace_pc(void)
- {
- 	struct task_struct *t;
- 	enum kcov_mode mode;
-_
-
-Patches currently in -mm which might be from james.morse@arm.com are
-
-kcov-dont-trace-the-code-coverage-code.patch
-
+diff -puN lib/stackdepot.c~lib-stackdepotc-allow-the-stack-trace-hash-to-be-zero lib/stackdepot.c
+--- a/lib/stackdepot.c~lib-stackdepotc-allow-the-stack-trace-hash-to-be-zero
++++ a/lib/stackdepot.c
+@@ -210,10 +210,6 @@ depot_stack_handle_t depot_save_stack(st
+ 		goto fast_exit;
+ 
+ 	hash = hash_stack(trace->entries, trace->nr_entries);
+-	/* Bad luck, we won't store this stack. */
+-	if (hash == 0)
+-		goto exit;
