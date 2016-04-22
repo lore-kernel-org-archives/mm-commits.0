@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + rcu-update-debugobjects-fixup-callbacks-return-type.patch added to -mm tree
-Date: Fri, 22 Apr 2016 13:02:08 -0700
-Message-ID: <571a8340.+AUH607FNTkurKz8%akpm@linux-foundation.org>
+Subject: +
+ percpu_counter-update-debugobjects-fixup-callbacks-return-type.patch added
+ to -mm tree
+Date: Fri, 22 Apr 2016 13:02:10 -0700
+Message-ID: <571a8342.5YvF6Ug2Q0HXgmVS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58374 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58378 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738AbcDVUCJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:02:09 -0400
+	with ESMTP id S1751738AbcDVUCL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 16:02:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: changbin.du@intel.com, borntraeger@de.ibm.com, corbet@lwn.net, josh@kernel.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rcu: update debugobjects fixup callbacks return type
+     Subject: percpu_counter: update debugobjects fixup callbacks return type
 has been added to the -mm tree.  Its filename is
-     rcu-update-debugobjects-fixup-callbacks-return-type.patch
+     percpu_counter-update-debugobjects-fixup-callbacks-return-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rcu-update-debugobjects-fixup-callbacks-return-type.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/percpu_counter-update-debugobjects-fixup-callbacks-return-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rcu-update-debugobjects-fixup-callbacks-return-type.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/percpu_counter-update-debugobjects-fixup-callbacks-return-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Du, Changbin" <changbin.du@intel.com>
-Subject: rcu: update debugobjects fixup callbacks return type
+Subject: percpu_counter: update debugobjects fixup callbacks return type
 
 Update the return type to use bool instead of int, corresponding to
 cheange (debugobjects: make fixup functions return bool instead of int).
@@ -54,30 +56,30 @@ Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcu/update.c |    6 +++---
+ lib/percpu_counter.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/rcu/update.c~rcu-update-debugobjects-fixup-callbacks-return-type kernel/rcu/update.c
---- a/kernel/rcu/update.c~rcu-update-debugobjects-fixup-callbacks-return-type
-+++ a/kernel/rcu/update.c
-@@ -386,7 +386,7 @@ void destroy_rcu_head(struct rcu_head *h
-  * - an unknown object is activated (might be a statically initialized object)
-  * Activation is performed internally by call_rcu().
-  */
--static int rcuhead_fixup_activate(void *addr, enum debug_obj_state state)
-+static bool rcuhead_fixup_activate(void *addr, enum debug_obj_state state)
- {
- 	struct rcu_head *head = addr;
+diff -puN lib/percpu_counter.c~percpu_counter-update-debugobjects-fixup-callbacks-return-type lib/percpu_counter.c
+--- a/lib/percpu_counter.c~percpu_counter-update-debugobjects-fixup-callbacks-return-type
++++ a/lib/percpu_counter.c
+@@ -19,7 +19,7 @@ static DEFINE_SPINLOCK(percpu_counters_l
  
-@@ -399,9 +399,9 @@ static int rcuhead_fixup_activate(void *
- 		 */
- 		debug_object_init(head, &rcuhead_debug_descr);
- 		debug_object_activate(head, &rcuhead_debug_descr);
--		return 0;
-+		return false;
- 	default:
+ static struct debug_obj_descr percpu_counter_debug_descr;
+ 
+-static int percpu_counter_fixup_free(void *addr, enum debug_obj_state state)
++static bool percpu_counter_fixup_free(void *addr, enum debug_obj_state state)
+ {
+ 	struct percpu_counter *fbc = addr;
+ 
+@@ -27,9 +27,9 @@ static int percpu_counter_fixup_free(voi
+ 	case ODEBUG_STATE_ACTIVE:
+ 		percpu_counter_destroy(fbc);
+ 		debug_object_free(fbc, &percpu_counter_debug_descr);
 -		return 1;
 +		return true;
+ 	default:
+-		return 0;
++		return false;
  	}
  }
  
