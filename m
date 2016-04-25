@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2.patch
- added to -mm tree
-Date: Mon, 25 Apr 2016 13:18:41 -0700
-Message-ID: <571e7ba1.omsWQE1Qdxvkxe8u%akpm@linux-foundation.org>
+Subject: + maintainers-remove-defunct-spear-mailing-list.patch added to
+ -mm tree
+Date: Mon, 25 Apr 2016 13:33:55 -0700
+Message-ID: <571e7f33.FdIwBsrqMaYZYpaW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55787 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55853 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965035AbcDYUSm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 16:18:42 -0400
+	with ESMTP id S933460AbcDYUd4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 16:33:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xyjxie@linux.vnet.ibm.com, aarcange@redhat.com, dahi@linux.vnet.ibm.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, luto@kernel.org, matthew.r.wilcox@intel.com, mhocko@suse.com, mingo@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: eric.engestrom@imgtec.com, davem@davemloft.net, gregkh@linuxfoundation.org, jslaby@suse.com, kvalo@codeaurora.org, linux@roeck-us.net, mchehab@osg.samsung.com, viresh.kumar@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix incorrect pfn passed to untrack_pfn() in remap_pfn_range()
+     Subject: MAINTAINERS: remove defunct spear mailing list
 has been added to the -mm tree.  Its filename is
-     mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2.patch
+     maintainers-remove-defunct-spear-mailing-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-defunct-spear-mailing-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-defunct-spear-mailing-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,78 +39,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yongji Xie <xyjxie@linux.vnet.ibm.com>
-Subject: mm: fix incorrect pfn passed to untrack_pfn() in remap_pfn_range()
+From: Eric Engestrom <eric.engestrom@imgtec.com>
+Subject: MAINTAINERS: remove defunct spear mailing list
 
-We use generic hooks in remap_pfn_range() to help archs to
-track pfnmap regions. The code is something like:
+It looks like the email address for this mailing list doesn't exist anymore:
+<spear-devel@list.st.com>: host mxb-00178001.gslb.pphosted.com[91.207.212.93] said:
+550 5.1.1 User Unknown (in reply to RCPT TO command)
 
-int remap_pfn_range()
-{
-	...
-	track_pfn_remap(vma, &prot, pfn, addr, PAGE_ALIGN(size));
-	...
-	pfn -= addr >> PAGE_SHIFT;
-	...
-	untrack_pfn(vma, pfn, PAGE_ALIGN(size));
-	...
-}
-
-Here we can easily find the pfn is changed but not recovered
-before untrack_pfn() is called. That's incorrect.
-
-There are no known runtime effects - this is from inspection.
-
-Signed-off-by: Yongji Xie <xyjxie@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: David Hildenbrand <dahi@linux.vnet.ibm.com>
+Signed-off-by: Eric Engestrom <eric.engestrom@imgtec.com>
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Kalle Valo <kvalo@codeaurora.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Jiri Slaby <jslaby@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ MAINTAINERS |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/memory.c~mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2 mm/memory.c
---- a/mm/memory.c~mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2
-+++ a/mm/memory.c
-@@ -1744,6 +1744,7 @@ int remap_pfn_range(struct vm_area_struc
- 	unsigned long next;
- 	unsigned long end = addr + PAGE_ALIGN(size);
- 	struct mm_struct *mm = vma->vm_mm;
-+	unsigned long remap_pfn = pfn;
- 	int err;
+diff -puN MAINTAINERS~maintainers-remove-defunct-spear-mailing-list MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-defunct-spear-mailing-list
++++ a/MAINTAINERS
+@@ -8728,7 +8728,6 @@ F:	drivers/pinctrl/pinctrl-single.c
  
- 	/*
-@@ -1770,7 +1771,7 @@ int remap_pfn_range(struct vm_area_struc
- 		vma->vm_pgoff = pfn;
- 	}
+ PIN CONTROLLER - ST SPEAR
+ M:	Viresh Kumar <vireshk@kernel.org>
+-L:	spear-devel@list.st.com
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ W:	http://www.st.com/spear
+ S:	Maintained
+@@ -9932,7 +9931,6 @@ F:	drivers/mmc/host/sdhci-s3c*
  
--	err = track_pfn_remap(vma, &prot, pfn, addr, PAGE_ALIGN(size));
-+	err = track_pfn_remap(vma, &prot, remap_pfn, addr, PAGE_ALIGN(size));
- 	if (err)
- 		return -EINVAL;
+ SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) ST SPEAR DRIVER
+ M:	Viresh Kumar <vireshk@kernel.org>
+-L:	spear-devel@list.st.com
+ L:	linux-mmc@vger.kernel.org
+ S:	Maintained
+ F:	drivers/mmc/host/sdhci-spear.c
+@@ -10488,7 +10486,6 @@ F:	include/linux/compiler.h
+ SPEAR PLATFORM SUPPORT
+ M:	Viresh Kumar <vireshk@kernel.org>
+ M:	Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+-L:	spear-devel@list.st.com
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ W:	http://www.st.com/spear
+ S:	Maintained
+@@ -10497,7 +10494,6 @@ F:	arch/arm/mach-spear/
  
-@@ -1789,7 +1790,7 @@ int remap_pfn_range(struct vm_area_struc
- 	} while (pgd++, addr = next, addr != end);
- 
- 	if (err)
--		untrack_pfn(vma, pfn, PAGE_ALIGN(size));
-+		untrack_pfn(vma, remap_pfn, PAGE_ALIGN(size));
- 
- 	return err;
- }
+ SPEAR CLOCK FRAMEWORK SUPPORT
+ M:	Viresh Kumar <vireshk@kernel.org>
+-L:	spear-devel@list.st.com
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ W:	http://www.st.com/spear
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from xyjxie@linux.vnet.ibm.com are
+Patches currently in -mm which might be from eric.engestrom@imgtec.com are
 
-mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2.patch
+maintainers-remove-defunct-spear-mailing-list.patch
 
