@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-rajendra-nayaks-address.patch added to -mm tree
-Date: Mon, 25 Apr 2016 15:00:11 -0700
-Message-ID: <571e936b.Saw59OBzMClKUpx4%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch added
+ to -mm tree
+Date: Mon, 25 Apr 2016 15:02:52 -0700
+Message-ID: <571e940c.Wwm9oB2EA0qIgKDi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57059 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57069 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965229AbcDYWAM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 18:00:12 -0400
+	with ESMTP id S965020AbcDYWCx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 18:02:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.engestrom@imgtec.com, afzal.mohd.ma@gmail.com, rnayak@codeaurora.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, brouer@redhat.com, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: fix Rajendra Nayak's address
+     Subject: mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-rajendra-nayaks-address.patch
+     mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-fix-rajendra-nayaks-address.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-fix-rajendra-nayaks-address.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,34 +40,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Engestrom <eric.engestrom@imgtec.com>
-Subject: MAINTAINERS: fix Rajendra Nayak's address
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix
 
-Signed-off-by: Eric Engestrom <eric.engestrom@imgtec.com>
-Cc: Rajendra Nayak <rnayak@codeaurora.org>
-Cc: Afzal Mohammed <afzal.mohd.ma@gmail.com>
+use unlikely(order) in free_pages_prepare(), per Vlastimil
+
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
+ mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-fix-rajendra-nayaks-address MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-rajendra-nayaks-address
-+++ a/MAINTAINERS
-@@ -7978,7 +7978,7 @@ F:	arch/arm/*omap*/*pm*
- F:	drivers/cpufreq/omap-cpufreq.c
+diff -puN mm/page_alloc.c~mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix
++++ a/mm/page_alloc.c
+@@ -1036,7 +1036,7 @@ static bool free_pages_prepare(struct pa
+ 	 * Check tail pages before head page information is cleared to
+ 	 * avoid checking PageCompound for order-0 pages.
+ 	 */
+-	if (order) {
++	if (unlikely(order)) {
+ 		bool compound = PageCompound(page);
+ 		int i;
  
- OMAP POWERDOMAIN SOC ADAPTATION LAYER SUPPORT
--M:	Rajendra Nayak <rnayak@ti.com>
-+M:	Rajendra Nayak <rnayak@codeaurora.org>
- M:	Paul Walmsley <paul@pwsan.com>
- L:	linux-omap@vger.kernel.org
- S:	Maintained
 _
 
-Patches currently in -mm which might be from eric.engestrom@imgtec.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-maintainers-fix-rajendra-nayaks-address.patch
-maintainers-remove-defunct-spear-mailing-list.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+kernel-padata-hide-unused-functions-checkpatch-fixes.patch
+mm.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-uninline-page_mapped.patch
+mm-uninline-page_mapped-checkpatch-fixes.patch
+memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
+mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
+mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
+mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
+mm-kasan-initial-memory-quarantine-implementation-v8-fix.patch
+exit_thread-remove-empty-bodies-fix.patch
+exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
+fs-execc-fix-minor-memory-leak.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
