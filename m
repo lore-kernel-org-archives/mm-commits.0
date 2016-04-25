@@ -1,399 +1,529 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2016-04-22-15-49 uploaded
-Date: Fri, 22 Apr 2016 15:49:50 -0700
-Message-ID: <571aaa8e.Vc7B9hv+p+eHaLrq%akpm__34585.1272148595$1461365429$gmane$org@linux-foundation.org>
+Subject: + z3fold-the-3-fold-allocator-for-compressed-pages-v3.patch added to -mm tree
+Date: Mon, 25 Apr 2016 12:55:30 -0700
+Message-ID: <571e7632.D79zj3UyUd3XZry5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40426 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55104 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751800AbcDVWtv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Apr 2016 18:49:51 -0400
+	with ESMTP id S1754919AbcDYTzb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 15:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
-
-The mm-of-the-moment snapshot 2016-04-22-15-49 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: vitalywool@gmail.com, ddstreet@ieee.org, sjenning@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: z3fold-the-3-fold-allocator-for-compressed-pages-v3
+has been added to the -mm tree.  Its filename is
+     z3fold-the-3-fold-allocator-for-compressed-pages-v3.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-the-3-fold-allocator-for-compressed-pages-v3.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-the-3-fold-allocator-for-compressed-pages-v3.patch
 
-To develop on top of mmotm git:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-To rebase a branch with older patches to a new mmotm release:
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+------------------------------------------------------
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: z3fold-the-3-fold-allocator-for-compressed-pages-v3
 
+The changes since the last version (v2) are:
+* addressed checkpatch rants
+* incorporated fixes basing on feedback from akpm in [2]
+* added Documentation/vm/z3fold.txt
+* improved free space accounting for a page, allowing for better object
+  packing within a page.
 
+The changes since the first (v1) version are:
+* various concurrency fixes made after intensive testing on SMP/HMP
+  platforms.
 
+Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+ Documentation/vm/z3fold.txt |   27 +++
+ mm/Kconfig                  |    3 
+ mm/z3fold.c                 |  300 +++++++++++++++++-----------------
+ 3 files changed, 185 insertions(+), 145 deletions(-)
 
-A git copy of this tree is available at
+diff -puN /dev/null Documentation/vm/z3fold.txt
+--- /dev/null
++++ a/Documentation/vm/z3fold.txt
+@@ -0,0 +1,27 @@
++z3fold
++------
++
++z3fold is a special purpose allocator for storing compressed pages.
++It is designed to store up to three compressed pages per physical page.
++It is a zbud derivative which allows for higher compression
++ratio keeping the simplicity and determinism of its predecessor.
++
++The main differences between z3fold and zbud are:
++* unlike zbud, z3fold allows for up to PAGE_SIZE allocations
++* z3fold can hold up to 3 compressed pages in its page
++* z3fold doesn't export any API itself and is thus intended to be used
++  via the zpool API.
++
++To keep the determinism and simplicity, z3fold, just like zbud, always
++stores an integral number of compressed pages per page, but it can store
++up to 3 pages unlike zbud which can store at most 2. Therefore the
++compression ratio goes to around 2.7x while zbud's one is around 1.7x.
++
++Unlike zbud (but like zsmalloc for that matter) z3fold_alloc() does not
++return a dereferenceable pointer. Instead, it returns an unsigned long
++handle which encodes actual location of the allocated object.
++
++Keeping effective compression ratio close to zsmalloc's, z3fold doesn't
++depend on MMU enabled and provides more predictable reclaim behavior
++which makes it a better fit for small and response-critical systems.
++
+diff -puN mm/Kconfig~z3fold-the-3-fold-allocator-for-compressed-pages-v3 mm/Kconfig
+--- a/mm/Kconfig~z3fold-the-3-fold-allocator-for-compressed-pages-v3
++++ a/mm/Kconfig
+@@ -582,7 +582,8 @@ config ZBUD
+ 	  density approach when reclaim will be used.
+ 
+ config Z3FOLD
+-	tristate "Low density storage for compressed pages"
++	tristate "Higher density storage for compressed pages"
++	depends on ZPOOL
+ 	default n
+ 	help
+ 	  A special purpose allocator for storing compressed pages.
+diff -puN mm/z3fold.c~z3fold-the-3-fold-allocator-for-compressed-pages-v3 mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-the-3-fold-allocator-for-compressed-pages-v3
++++ a/mm/z3fold.c
+@@ -1,18 +1,21 @@
+ /*
+  * z3fold.c
+  *
+- * Copyright (C) 2016, Vitaly Wool <vitalywool@gmail.com>
++ * Author: Vitaly Wool <vitalywool@gmail.com>
++ * Copyright (C) 2016, Sony Mobile Communications Inc.
+  *
+  * This implementation is heavily based on zbud written by Seth Jennings.
+  *
+  * z3fold is an special purpose allocator for storing compressed pages. It
+  * can store up to three compressed pages per page which improves the
+- * compression ratio of zbud while pertaining its concept and simplicity.
++ * compression ratio of zbud while retaining its main concepts (e. g. always
++ * storing an integral number of objects per page) and simplicity.
+  * It still has simple and deterministic reclaim properties that make it
+- * preferable to a higher density approach when reclaim is used.
++ * preferable to a higher density approach (with no requirement on integral
++ * number of object per page) when reclaim is used.
+  *
+  * As in zbud, pages are divided into "chunks".  The size of the chunks is
+- * fixed at compile time and determined by NCHUNKS_ORDER below.
++ * fixed at compile time and is determined by NCHUNKS_ORDER below.
+  *
+  * The z3fold API doesn't differ from zbud API and zpool is also supported.
+  */
+@@ -36,9 +39,9 @@
+  * adjusting internal fragmentation.  It also determines the number of
+  * freelists maintained in each pool. NCHUNKS_ORDER of 6 means that the
+  * allocation granularity will be in chunks of size PAGE_SIZE/64. As one chunk
+- * in allocated page is occupied by z3fold header, NCHUNKS will be calculated to
+- * 63 which shows the max number of free chunks in z3fold page, also there will be
+- * 63 freelists per pool.
++ * in allocated page is occupied by z3fold header, NCHUNKS will be calculated
++ * to 63 which shows the max number of free chunks in z3fold page, also there
++ * will be 63 freelists per pool.
+  */
+ #define NCHUNKS_ORDER	6
+ 
+@@ -54,17 +57,6 @@ struct z3fold_ops {
+ 	int (*evict)(struct z3fold_pool *pool, unsigned long handle);
+ };
+ 
+-/* Forward declarations */
+-struct z3fold_pool *z3fold_create_pool(gfp_t gfp, const struct z3fold_ops *ops);
+-void z3fold_destroy_pool(struct z3fold_pool *pool);
+-int z3fold_alloc(struct z3fold_pool *pool, size_t size, gfp_t gfp,
+-	unsigned long *handle);
+-void z3fold_free(struct z3fold_pool *pool, unsigned long handle);
+-int z3fold_reclaim_page(struct z3fold_pool *pool, unsigned int retries);
+-void *z3fold_map(struct z3fold_pool *pool, unsigned long handle);
+-void z3fold_unmap(struct z3fold_pool *pool, unsigned long handle);
+-u64 z3fold_get_pool_size(struct z3fold_pool *pool);
+-
+ /**
+  * struct z3fold_pool - stores metadata for each z3fold pool
+  * @lock:	protects all pool fields and first|last_chunk fields of any
+@@ -132,103 +124,6 @@ enum z3fold_page_flags {
+ };
+ 
+ /*****************
+- * zpool
+- ****************/
+-
+-#ifdef CONFIG_ZPOOL
+-
+-static int z3fold_zpool_evict(struct z3fold_pool *pool, unsigned long handle)
+-{
+-	if (pool->zpool && pool->zpool_ops && pool->zpool_ops->evict)
+-		return pool->zpool_ops->evict(pool->zpool, handle);
+-	else
+-		return -ENOENT;
+-}
+-
+-static const struct z3fold_ops z3fold_zpool_ops = {
+-	.evict =	z3fold_zpool_evict
+-};
+-
+-static void *z3fold_zpool_create(const char *name, gfp_t gfp,
+-			       const struct zpool_ops *zpool_ops,
+-			       struct zpool *zpool)
+-{
+-	struct z3fold_pool *pool;
+-
+-	pool = z3fold_create_pool(gfp, zpool_ops ? &z3fold_zpool_ops : NULL);
+-	if (pool) {
+-		pool->zpool = zpool;
+-		pool->zpool_ops = zpool_ops;
+-	}
+-	return pool;
+-}
+-
+-static void z3fold_zpool_destroy(void *pool)
+-{
+-	z3fold_destroy_pool(pool);
+-}
+-
+-static int z3fold_zpool_malloc(void *pool, size_t size, gfp_t gfp,
+-			unsigned long *handle)
+-{
+-	return z3fold_alloc(pool, size, gfp, handle);
+-}
+-static void z3fold_zpool_free(void *pool, unsigned long handle)
+-{
+-	z3fold_free(pool, handle);
+-}
+-
+-static int z3fold_zpool_shrink(void *pool, unsigned int pages,
+-			unsigned int *reclaimed)
+-{
+-	unsigned int total = 0;
+-	int ret = -EINVAL;
+-
+-	while (total < pages) {
+-		ret = z3fold_reclaim_page(pool, 8);
+-		if (ret < 0)
+-			break;
+-		total++;
+-	}
+-
+-	if (reclaimed)
+-		*reclaimed = total;
+-
+-	return ret;
+-}
+-
+-static void *z3fold_zpool_map(void *pool, unsigned long handle,
+-			enum zpool_mapmode mm)
+-{
+-	return z3fold_map(pool, handle);
+-}
+-static void z3fold_zpool_unmap(void *pool, unsigned long handle)
+-{
+-	z3fold_unmap(pool, handle);
+-}
+-
+-static u64 z3fold_zpool_total_size(void *pool)
+-{
+-	return z3fold_get_pool_size(pool) * PAGE_SIZE;
+-}
+-
+-static struct zpool_driver z3fold_zpool_driver = {
+-	.type =		"z3fold",
+-	.owner =	THIS_MODULE,
+-	.create =	z3fold_zpool_create,
+-	.destroy =	z3fold_zpool_destroy,
+-	.malloc =	z3fold_zpool_malloc,
+-	.free =		z3fold_zpool_free,
+-	.shrink =	z3fold_zpool_shrink,
+-	.map =		z3fold_zpool_map,
+-	.unmap =	z3fold_zpool_unmap,
+-	.total_size =	z3fold_zpool_total_size,
+-};
+-
+-MODULE_ALIAS("zpool-z3fold");
+-#endif /* CONFIG_ZPOOL */
+-
+-/*****************
+  * Helpers
+ *****************/
+ 
+@@ -249,6 +144,7 @@ static struct z3fold_header *init_z3fold
+ 	INIT_LIST_HEAD(&page->lru);
+ 	clear_bit(UNDER_RECLAIM, &page->private);
+ 	clear_bit(PAGE_HEADLESS, &page->private);
++	clear_bit(MIDDLE_CHUNK_MAPPED, &page->private);
+ 
+ 	zhdr->first_chunks = 0;
+ 	zhdr->middle_chunks = 0;
+@@ -273,7 +169,7 @@ static unsigned long encode_handle(struc
+ {
+ 	unsigned long handle;
+ 
+- 	handle = (unsigned long)zhdr;
++	handle = (unsigned long)zhdr;
+ 	if (bud != HEADLESS)
+ 		handle += (bud + zhdr->first_num) & BUDDY_MASK;
+ 	return handle;
+@@ -293,16 +189,18 @@ static int num_free_chunks(struct z3fold
+ {
+ 	int nfree;
+ 	/*
+-	 * There is one special case, where first_chunks == 0 and
+-	 * middle_chunks != 0. In this case there may be a hole between
+-	 * the middle and the last objects, or middle object may be in use
+-	 * and thus temporarily unmovable.
++	 * If there is a middle object, pick up the bigger free space
++	 * either before or after it. Otherwise just subtract the number
++	 * of chunks occupied by the first and the last objects.
+ 	 */
+-	if (zhdr->first_chunks == 0 && zhdr->middle_chunks != 0)
+-		nfree = zhdr->start_middle - 1;
+-	else
+-		nfree = NCHUNKS - zhdr->first_chunks -
+-			zhdr->middle_chunks - zhdr->last_chunks;
++	if (zhdr->middle_chunks != 0) {
++		int nfree_before = zhdr->first_chunks ?
++			0 : zhdr->start_middle - 1;
++		int nfree_after = zhdr->last_chunks ?
++			0 : NCHUNKS - zhdr->start_middle - zhdr->middle_chunks;
++		nfree = max(nfree_before, nfree_after);
++	} else
++		nfree = NCHUNKS - zhdr->first_chunks - zhdr->last_chunks;
+ 	return nfree;
+ }
+ 
+@@ -350,19 +248,27 @@ void z3fold_destroy_pool(struct z3fold_p
+ static int z3fold_compact_page(struct z3fold_header *zhdr)
+ {
+ 	struct page *page = virt_to_page(zhdr);
++	void *beg = zhdr;
+ 
+-	if (zhdr->first_chunks == 0 && zhdr->last_chunks == 0 &&
+-	    zhdr->middle_chunks != 0 &&
+-	    !test_bit(MIDDLE_CHUNK_MAPPED, &page->private)) {
+-		/* move middle chunk to the first chunk */
+-		memmove((void *)zhdr + ZHDR_SIZE_ALIGNED,
+-			(void *)zhdr + (zhdr->start_middle << CHUNK_SHIFT),
+-			zhdr->middle_chunks << CHUNK_SHIFT);
+-		zhdr->first_chunks = zhdr->middle_chunks;
+-		zhdr->middle_chunks = 0;
+-		zhdr->start_middle = 0;
+-		zhdr->first_num++;
+-		return 1;
++	if (!test_bit(MIDDLE_CHUNK_MAPPED, &page->private) &&
++	    zhdr->middle_chunks != 0) {
++		if (zhdr->first_chunks == 0 && zhdr->last_chunks == 0) {
++			memmove(beg + ZHDR_SIZE_ALIGNED,
++				beg + (zhdr->start_middle << CHUNK_SHIFT),
++				zhdr->middle_chunks << CHUNK_SHIFT);
++			zhdr->first_chunks = zhdr->middle_chunks;
++			zhdr->middle_chunks = 0;
++			zhdr->start_middle = 0;
++			zhdr->first_num++;
++			return 1;
++		} else if (zhdr->first_chunks != 0 &&
++			   zhdr->start_middle != zhdr->first_chunks + 1) {
++			memmove(beg + ((zhdr->first_chunks+1) << CHUNK_SHIFT),
++				beg + (zhdr->start_middle << CHUNK_SHIFT),
++				zhdr->middle_chunks << CHUNK_SHIFT);
++			zhdr->start_middle = zhdr->first_chunks + 1;
++			return 1;
++		}
+ 	}
+ 	return 0;
+ }
+@@ -416,18 +322,21 @@ int z3fold_alloc(struct z3fold_pool *poo
+ 				if (zhdr->first_chunks == 0) {
+ 					if (zhdr->middle_chunks == 0)
+ 						bud = FIRST;
+-					else if (zhdr->last_chunks == 0 &&
+-						 z3fold_compact_page(zhdr))
++					else if (chunks >= zhdr->start_middle)
+ 						bud = LAST;
+-					else
++					else if (test_bit(MIDDLE_CHUNK_MAPPED,
++						     &page->private))
+ 						continue;
++					else
++						bud = FIRST;
+ 				} else if (zhdr->last_chunks == 0)
+ 					bud = LAST;
+ 				else if (zhdr->middle_chunks == 0)
+ 					bud = MIDDLE;
+ 				else {
+ 					pr_err("No free chunks in unbuddied\n");
+-					BUG();
++					WARN_ON(1);
++					continue;
+ 				}
+ 				list_del(&zhdr->buddy);
+ 				goto found;
+@@ -451,6 +360,9 @@ int z3fold_alloc(struct z3fold_pool *poo
+ 	}
+ 
+ found:
++	if (zhdr->middle_chunks != 0)
++		z3fold_compact_page(zhdr);
++
+ 	if (bud == FIRST)
+ 		zhdr->first_chunks = chunks;
+ 	else if (bud == LAST)
+@@ -523,8 +435,9 @@ void z3fold_free(struct z3fold_pool *poo
+ 			break;
+ 		default:
+ 			pr_err("%s: unknown bud %d\n", __func__, bud);
+-			BUG();
+-			break;
++			WARN_ON(1);
++			spin_unlock(&pool->lock);
++			return;
+ 		}
+ 	}
+ 
+@@ -733,7 +646,8 @@ void *z3fold_map(struct z3fold_pool *poo
+ 		break;
+ 	default:
+ 		pr_err("unknown buddy id %d\n", buddy);
+-		BUG();
++		WARN_ON(1);
++		addr = NULL;
+ 		break;
+ 	}
+ out:
+@@ -779,6 +693,104 @@ u64 z3fold_get_pool_size(struct z3fold_p
+ 	return pool->pages_nr;
+ }
+ 
++/*****************
++ * zpool
++ ****************/
++
++#ifdef CONFIG_ZPOOL
++
++static int z3fold_zpool_evict(struct z3fold_pool *pool, unsigned long handle)
++{
++	if (pool->zpool && pool->zpool_ops && pool->zpool_ops->evict)
++		return pool->zpool_ops->evict(pool->zpool, handle);
++	else
++		return -ENOENT;
++}
++
++static const struct z3fold_ops z3fold_zpool_ops = {
++	.evict =	z3fold_zpool_evict
++};
++
++static void *z3fold_zpool_create(const char *name, gfp_t gfp,
++			       const struct zpool_ops *zpool_ops,
++			       struct zpool *zpool)
++{
++	struct z3fold_pool *pool;
++
++	pool = z3fold_create_pool(gfp, zpool_ops ? &z3fold_zpool_ops : NULL);
++	if (pool) {
++		pool->zpool = zpool;
++		pool->zpool_ops = zpool_ops;
++	}
++	return pool;
++}
++
++static void z3fold_zpool_destroy(void *pool)
++{
++	z3fold_destroy_pool(pool);
++}
++
++static int z3fold_zpool_malloc(void *pool, size_t size, gfp_t gfp,
++			unsigned long *handle)
++{
++	return z3fold_alloc(pool, size, gfp, handle);
++}
++static void z3fold_zpool_free(void *pool, unsigned long handle)
++{
++	z3fold_free(pool, handle);
++}
++
++static int z3fold_zpool_shrink(void *pool, unsigned int pages,
++			unsigned int *reclaimed)
++{
++	unsigned int total = 0;
++	int ret = -EINVAL;
++
++	while (total < pages) {
++		ret = z3fold_reclaim_page(pool, 8);
++		if (ret < 0)
++			break;
++		total++;
++	}
++
++	if (reclaimed)
++		*reclaimed = total;
++
++	return ret;
++}
++
++static void *z3fold_zpool_map(void *pool, unsigned long handle,
++			enum zpool_mapmode mm)
++{
++	return z3fold_map(pool, handle);
++}
++static void z3fold_zpool_unmap(void *pool, unsigned long handle)
++{
++	z3fold_unmap(pool, handle);
++}
++
++static u64 z3fold_zpool_total_size(void *pool)
++{
++	return z3fold_get_pool_size(pool) * PAGE_SIZE;
++}
++
++static struct zpool_driver z3fold_zpool_driver = {
++	.type =		"z3fold",
++	.owner =	THIS_MODULE,
++	.create =	z3fold_zpool_create,
++	.destroy =	z3fold_zpool_destroy,
++	.malloc =	z3fold_zpool_malloc,
++	.free =		z3fold_zpool_free,
++	.shrink =	z3fold_zpool_shrink,
++	.map =		z3fold_zpool_map,
++	.unmap =	z3fold_zpool_unmap,
++	.total_size =	z3fold_zpool_total_size,
++};
++
++MODULE_ALIAS("zpool-z3fold");
++#endif /* CONFIG_ZPOOL */
++
++
+ static int __init init_z3fold(void)
+ {
+ 	/* Make sure the z3fold header will fit in one chunk */
+_
 
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+z3fold-the-3-fold-allocator-for-compressed-pages.patch
+z3fold-the-3-fold-allocator-for-compressed-pages-v3.patch
 
-
-This mmotm tree contains the following patches against 4.6-rc4:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-* ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit.patch
-  i-need-old-gcc.patch
-  arch-alpha-kernel-systblss-remove-debug-check.patch
-* kexec-update-vmcoreinfo-for-compound_order-dtor.patch
-* kexec-export-offsetpagecompound_head-to-find-out-compound-tail-page.patch
-* mm-exclude-hugetlb-pages-from-thp-page_mapped-logic.patch
-* thp-keep-huge-zero-page-pinned-until-tlb-flush.patch
-* mailmap-fix-krzysztof-kozlowskis-misspelled-name.patch
-* mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check.patch
-* numa-fix-proc-pid-numa_maps-for-thp.patch
-* mm-vmscan-reclaim-highmem-zone-if-buffer_heads-is-over-limit.patch
-* mm-call-swap_slot_free_notify-with-holding-page-lock.patch
-* mm-hwpoison-fix-wrong-num_poisoned_pages-account.patch
-* mailmap-add-frank-rowand.patch
-* mm-wake-kcompactd-before-kswapds-short-sleep.patch
-* kcov-dont-trace-the-code-coverage-code.patch
-* kcov-dont-profile-branches-in-kcov.patch
-* update-email-address.patch
-* ocfs2-dlm-return-zero-if-deref_done-message-is-successfully-handled.patch
-* mm-memory-failure-fix-race-with-compound-page-split-merge.patch
-* rapidio-fix-potential-null-pointer-dereference.patch
-* lib-stackdepotc-allow-the-stack-trace-hash-to-be-zero.patch
-* kprobes-add-the-tls-argument-for-j_do_fork.patch
-* mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range.patch
-* mm-thp-correct-split_huge_pages-file-permission.patch
-* mm-memcontrol-let-v2-cgroups-follow-changes-in-system-swappiness.patch
-* rapidio-mport_cdev-fix-uapi-type-definitions.patch
-* huge-pagecache-mmap_sem-is-unlocked-when-truncation-splits-pmd.patch
-* mm-update-min_free_kbytes-from-khugepaged-after-core-initialization.patch
-* dax-add-dax_get_unmapped_area-for-pmd-mappings.patch
-* ext2-4-xfs-blk-call-dax_get_unmapped_area-for-dax-pmd-mappings.patch
-* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-* debugobjects-make-fixup-functions-return-bool-instead-of-int.patch
-* debugobjects-correct-the-usage-of-fixup-call-results.patch
-* workqueue-update-debugobjects-fixup-callbacks-return-type.patch
-* timer-update-debugobjects-fixup-callbacks-return-type.patch
-* rcu-update-debugobjects-fixup-callbacks-return-type.patch
-* percpu_counter-update-debugobjects-fixup-callbacks-return-type.patch
-* documentation-update-debugobjects-doc.patch
-* fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-* ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08.patch
-* ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
-* ocfs2-clean-up-unused-parameter-count-in-o2hb_read_block_input.patch
-* ocfs2-o2hb-add-negotiate-timer.patch
-* ocfs2-o2hb-add-negotiate-timer-v2.patch
-* ocfs2-o2hb-add-nego_timeout-message.patch
-* ocfs2-o2hb-add-nego_timeout-message-v2.patch
-* ocfs2-o2hb-add-negotiate_approve-message.patch
-* ocfs2-o2hb-add-negotiate_approve-message-v2.patch
-* ocfs2-o2hb-add-some-user-debug-log.patch
-* ocfs2-o2hb-add-some-user-debug-log-v2.patch
-* ocfs2-o2hb-dont-negotiate-if-last-hb-fail.patch
-* ocfs2-o2hb-fix-hb-hung-time.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* padata-removed-unused-code.patch
-* kernel-padata-hide-unused-functions.patch
-* kernel-padata-hide-unused-functions-checkpatch-fixes.patch
-  mm.patch
-* mm-slab-fix-the-theoretical-race-by-holding-proper-lock.patch
-* mm-slab-remove-bad_alien_magic-again.patch
-* mm-slab-drain-the-free-slab-as-much-as-possible.patch
-* mm-slab-factor-out-kmem_cache_node-initialization-code.patch
-* mm-slab-clean-up-kmem_cache_node-setup.patch
-* mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
-* mm-slab-racy-access-modify-the-slab-color.patch
-* mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
-* mm-slab-separate-cache_grow-to-two-parts.patch
-* mm-slab-refill-cpu-cache-through-a-new-slab-without-holding-a-node-lock.patch
-* mm-slab-lockless-decision-to-grow-cache.patch
-* mm-slub-replace-kick_all_cpus_sync-with-synchronize_sched-in-kmem_cache_shrink.patch
-* mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
-* mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
-* mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
-* mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
-* mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
-* compilerh-add-support-for-malloc-attribute.patch
-* include-linux-apply-__malloc-attribute.patch
-* include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-* include-linux-nodemaskh-create-next_node_in-helper.patch
-* include-linux-nodemaskh-create-next_node_in-helper-fix.patch
-* include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
-* mm-hugetlb-optimize-minimum-size-min_size-accounting.patch
-* mm-hugetlb-introduce-hugetlb_bad_size.patch
-* arm64-mm-use-hugetlb_bad_size.patch
-* metag-mm-use-hugetlb_bad_size.patch
-* powerpc-mm-use-hugetlb_bad_size.patch
-* tile-mm-use-hugetlb_bad_size.patch
-* x86-mm-use-hugetlb_bad_size.patch
-* mm-hugetlb-is_vm_hugetlb_page-can-be-boolean.patch
-* mm-memory_hotplug-is_mem_section_removable-can-be-boolean.patch
-* mm-vmalloc-is_vmalloc_addr-can-be-boolean.patch
-* mm-mempolicy-vma_migratable-can-be-boolean.patch
-* mm-memcontrolc-mem_cgroup_select_victim_node-clarify-comment.patch
-* mm-page_alloc-remove-useless-parameter-of-__free_pages_boot_core.patch
-* zsmalloc-use-first_page-rather-than-page.patch
-* zsmalloc-clean-up-many-bug_on.patch
-* zsmalloc-reordering-function-parameter.patch
-* zsmalloc-remove-unused-pool-param-in-obj_free.patch
-* mm-hugetlbc-use-first_memory_node.patch
-* mm-mempolicyc-offset_il_node-document-and-clarify.patch
-* mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on.patch
-* mm-compaction-wrap-calculating-first-and-last-pfn-of-pageblock.patch
-* mm-compaction-reduce-spurious-pcplist-drains.patch
-* mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction.patch
-* mm-compaction-direct-freepage-allocation-for-async-direct-compaction.patch
-* mm-compaction-direct-freepage-allocation-for-async-direct-compaction-checkpatch-fixes.patch
-* mm-highmem-simplify-is_highmem.patch
-* mm-uninline-page_mapped.patch
-* mm-uninline-page_mapped-checkpatch-fixes.patch
-* mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic.patch
-* mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
-* mm-vmstat-add-zone-range-overlapping-check.patch
-* mm-page_owner-add-zone-range-overlapping-check.patch
-* power-add-zone-range-overlapping-check.patch
-* mm-workingset-only-do-workingset-activations-on-reads.patch
-* mm-filemap-only-do-access-activations-on-reads.patch
-* mm-vmscan-reduce-size-of-inactive-file-list.patch
-* mm-writeback-correct-dirty-page-calculation-for-highmem.patch
-* mm-page_alloc-correct-highmem-memory-statistics.patch
-* mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
-* mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
-* mm-mmap-kill-hook-arch_rebalance_pgtables.patch
-* mm-update_lru_size-warn-and-reset-bad-lru_size.patch
-* mm-update_lru_size-do-the-__mod_zone_page_state.patch
-* mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
-* tmpfs-preliminary-minor-tidyups.patch
-* tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch
-* mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch
-* huge-mm-move_huge_pmd-does-not-need-new_vma.patch
-* huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch
-* arch-fix-has_transparent_hugepage.patch
-* memory_hotplug-introduce-config_memory_hotplug_default_online.patch
-* memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
-* memory_hotplug-introduce-memhp_default_state=-command-line-parameter.patch
-* mm-oom-move-gfp_nofs-check-to-out_of_memory.patch
-* oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path.patch
-* oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path.patch
-* oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
-* mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
-* mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper-clear-oom_reaper_list-before-clearing-tif_memdie.patch
-* mm-page_alloc-only-check-pagecompound-for-high-order-pages.patch
-* mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path.patch
-* mm-page_alloc-reduce-branches-in-zone_statistics.patch
-* mm-page_alloc-inline-zone_statistics.patch
-* mm-page_alloc-inline-the-fast-path-of-the-zonelist-iterator.patch
-* mm-page_alloc-use-__dec_zone_state-for-order-0-page-allocation.patch
-* mm-page_alloc-avoid-unnecessary-zone-lookups-during-pageblock-operations.patch
-* mm-page_alloc-convert-alloc_flags-to-unsigned.patch
-* mm-page_alloc-convert-nr_fair_skipped-to-bool.patch
-* mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist.patch
-* mm-page_alloc-remove-unnecessary-initialisation-in-get_page_from_freelist.patch
-* mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask.patch
-* mm-page_alloc-remove-redundant-check-for-empty-zonelist.patch
-* mm-page_alloc-simplify-last-cpupid-reset.patch
-* mm-page_alloc-move-might_sleep_if-check-to-the-allocator-slowpath.patch
-* mm-page_alloc-move-__gfp_hardwall-modifications-out-of-the-fastpath.patch
-* mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch
-* mm-page_alloc-shorten-the-page-allocator-fast-path.patch
-* mm-page_alloc-reduce-cost-of-fair-zone-allocation-policy-retry.patch
-* mm-page_alloc-shortcut-watermark-checks-for-order-0-pages.patch
-* mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice.patch
-* mm-page_alloc-remove-field-from-alloc_context.patch
-* mm-page_alloc-check-multiple-page-fields-with-a-single-branch.patch
-* mm-page_alloc-remove-unnecessary-variable-from-free_pcppages_bulk.patch
-* mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths.patch
-* cpuset-use-static-key-better-and-convert-to-new-api.patch
-* mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch
-* mm-page_alloc-defer-debugging-checks-of-pages-allocated-from-the-pcp.patch
-* vmscan-consider-classzone_idx-in-compaction_ready.patch
-* mm-compaction-change-compact_-constants-into-enum.patch
-* mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
-* mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
-* mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
-* mm-compaction-update-compaction_result-ordering.patch
-* mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
-* mm-compaction-abstract-compaction-feedback-to-helpers.patch
-* mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
-* mm-use-compaction-feedback-for-thp-backoff-conditions.patch
-* mm-oom-rework-oom-detection.patch
-* mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-* mm-oom-protect-costly-allocations-some-more.patch
-* mm-consider-compaction-feedback-also-for-costly-allocation.patch
-* mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
-* mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
-* z3fold-the-3-fold-allocator-for-compressed-pages.patch
-* mm-thp-simplify-the-implementation-of-mk_huge_pmd.patch
-* memory-failure-replace-mce-with-memory-failure.patch
-* mm-memblock-move-memblock_addreserve_region-into-memblock_addreserve.patch
-* mm-vmalloc-keep-a-separate-lazy-free-list.patch
-* mm-make-optimistic-check-for-swapin-readahead.patch
-* mm-make-optimistic-check-for-swapin-readahead-fix-2.patch
-* mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
-* mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-* mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-* mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-* mm-kasan-initial-memory-quarantine-implementation.patch
-* mm-kasan-initial-memory-quarantine-implementation-v8.patch
-* mm-kasan-initial-memory-quarantine-implementation-v8-fix.patch
-* mm-kasan-dont-call-kasan_krealloc-from-ksize.patch
-* mm-kasan-add-a-ksize-test.patch
-* mm-memblock-if-nr_new-is-0-just-return.patch
-* procfs-expose-umask-in-proc-pid-status.patch
-* mn10300-let-exit_fpu-accept-a-task.patch
-* exit_thread-remove-empty-bodies.patch
-* exit_thread-remove-empty-bodies-fix.patch
-* exit_thread-accept-a-task-parameter-to-be-exited.patch
-* exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
-* fork-free-thread-in-copy_process-on-failure.patch
-* printk-nmi-generic-solution-for-safe-printk-in-nmi.patch
-* printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
-* printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable.patch
-* printk-nmi-flush-nmi-messages-on-the-system-panic.patch
-* lib-switch-config_printk_time-to-int.patch
-* printk-allow-different-timestamps-for-printktime.patch
-* maintainers-remove-linux-listsopenriscnet.patch
-* lib-vsprintf-simplify-uuid-printing.patch
-* ima-use-%pu-to-output-uuid-in-printable-format.patch
-* lib-uuid-move-generate_random_uuid-to-uuidc.patch
-* lib-uuid-introduce-few-more-generic-helpers-for-uuid.patch
-* lib-uuid-introduce-few-more-generic-helpers-for-uuid-fix.patch
-* lib-uuid-remove-fsf-address.patch
-* sysctl-use-generic-uuid-library.patch
-* efi-redefine-type-constant-macro-from-generic-code.patch
-* efivars-use-generic-uuid-library.patch
-* genhd-move-to-use-generic-uuid-library.patch
-* radix-tree-introduce-radix_tree_empty.patch
-* radix-tree-test-suite-fix-build.patch
-* radix-tree-test-suite-add-tests-for-radix_tree_locate_item.patch
-* radix-tree-test-suite-allow-testing-other-fan-out-values.patch
-* radix-tree-test-suite-keep-regression-test-runs-short.patch
-* radix-tree-test-suite-rebuild-when-headers-change.patch
-* radix-tree-remove-unused-looping-macros.patch
-* introduce-config_radix_tree_multiorder.patch
-* radix-tree-add-missing-sibling-entry-functionality.patch
-* radix-tree-fix-sibling-entry-insertion.patch
-* radix-tree-fix-deleting-a-multi-order-entry-through-an-alias.patch
-* radix-tree-remove-restriction-on-multi-order-entries.patch
-* radix-tree-introduce-radix_tree_load_root.patch
-* radix-tree-fix-extending-the-tree-for-multi-order-entries-at-offset-0.patch
-* radix-tree-test-suite-start-adding-multiorder-tests.patch
-* radix-tree-fix-several-shrinking-bugs-with-multiorder-entries.patch
-* radix-tree-rewrite-__radix_tree_lookup.patch
-* radix-tree-fix-multiorder-bug_on-in-radix_tree_insert.patch
-* radix-tree-add-support-for-multi-order-iterating.patch
-* radix-tree-test-suite-multi-order-iteration-test.patch
-* radix-tree-rewrite-radix_tree_tag_set.patch
-* radix-tree-rewrite-radix_tree_tag_clear.patch
-* radix-tree-rewrite-radix_tree_tag_get.patch
-* radix-tree-test-suite-add-multi-order-tag-test.patch
-* radix-tree-fix-radix_tree_create-for-sibling-entries.patch
-* radix-tree-rewrite-radix_tree_locate_item.patch
-* radix-tree-fix-radix_tree_range_tag_if_tagged-for-multiorder-entries.patch
-* radix-tree-fix-radix_tree_dump-for-multi-order-entries.patch
-* radix-tree-add-copyright-statements.patch
-* drivers-hwspinlock-use-correct-radix-tree-api.patch
-* radix-tree-miscellaneous-fixes.patch
-* radix-tree-split-node-path-into-offset-and-height.patch
-* radix-tree-replace-node-height-with-node-shift.patch
-* radix-tree-remove-a-use-of-root-height-from-delete_node.patch
-* radix-tree-test-suite-remove-dependencies-on-height.patch
-* radix-tree-remove-root-height.patch
-* radix-tree-rename-indirect_ptr-to-internal_node.patch
-* radix-tree-rename-ptr_to_indirect-to-node_to_entry.patch
-* radix-tree-rename-indirect_to_ptr-to-entry_to_node.patch
-* radix-tree-rename-radix_tree_is_indirect_ptr.patch
-* radix-tree-change-naming-conventions-in-radix_tree_shrink.patch
-* radix-tree-tidy-up-next_chunk.patch
-* radix-tree-tidy-up-range_tag_if_tagged.patch
-* radix-tree-tidy-up-__radix_tree_create.patch
-* radix-tree-introduce-radix_tree_replace_clear_tags.patch
-* radix-tree-make-radix_tree_descend-more-useful.patch
-* dax-move-radix_dax_-definitions-to-daxc.patch
-* radix-tree-free-up-the-bottom-bit-of-exceptional-entries-for-reuse.patch
-* lib-add-crc64-ecma-module.patch
-* checkpatch-add-prefer_is_enabled-test.patch
-* checkpatch-improve-constant_comparison-test-for-structure-members.patch
-* checkpatch-add-test-for-keywords-not-starting-on-tabstops.patch
-* checkpatch-whine-about-access_once.patch
-* checkpatch-advertise-the-fix-and-fix-inplace-options-more.patch
-* checkpatch-add-list-types-to-show-message-types-to-show-or-ignore.patch
-* init-mainc-simplify-initcall_blacklisted.patch
-* nilfs2-constify-nilfs_sc_operations-structures.patch
-* wait-ptrace-assume-__wall-if-the-child-is-traced.patch
-* wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall.patch
-* signal-make-oom_flags-a-bool.patch
-* kernel-signalc-convert-printkkern_level-to-pr_level.patch
-* fs-execc-fix-minor-memory-leak.patch
-* kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch
-* kexec-provide-arch_kexec_protectunprotect_crashkres.patch
-* kexec-make-a-pair-of-map-unmap-reserved-pages-in-error-path.patch
-* kexec-do-a-cleanup-for-function-kexec_load.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* arch-defconfig-remove-config_resource_counters.patch
-* ipc-semc-fix-complex_count-vs-simple-op-race.patch
-* ipc-msgc-msgsnd-use-freezable-blocking-call.patch
-* msgrcv-use-freezable-blocking-call.patch
-  linux-next.patch
-  linux-next-rejects.patch
-* mm-rename-_count-field-of-the-struct-page-to-_refcount-fix6.patch
-* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-  mm-add-strictlimit-knob-v2.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
