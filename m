@@ -1,114 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction-fix.patch added to -mm tree
-Date: Mon, 25 Apr 2016 13:10:02 -0700
-Message-ID: <571e799a.ZTGsHC+KQQRTn+Lm%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range.patch removed from -mm tree
+Date: Mon, 25 Apr 2016 13:17:05 -0700
+Message-ID: <571e7b41.Ao9oJjQ1tvp0aYCq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55222 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55765 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964785AbcDYUKI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 16:10:08 -0400
+	with ESMTP id S933495AbcDYURH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 16:17:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: xyjxie@linux.vnet.ibm.com, aarcange@redhat.com, dahi@linux.vnet.ibm.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, luto@kernel.org, matthew.r.wilcox@intel.com, mhocko@suse.com, mingo@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: prevent nr_isolated_* from going negative
-has been added to the -mm tree.  Its filename is
-     mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction-fix.patch
+     Subject: mm: fix incorrect pfn passed to untrack_pfn() in remap_pfn_range()
+has been removed from the -mm tree.  Its filename was
+     mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm, compaction: prevent nr_isolated_* from going negative
+From: Yongji Xie <xyjxie@linux.vnet.ibm.com>
+Subject: mm: fix incorrect pfn passed to untrack_pfn() in remap_pfn_range()
 
-/proc/sys/vm/stat_refresh warns nr_isolated_anon and nr_isolated_file go
-increasingly negative under compaction: which would add delay when should
-be none, or no delay when should delay.  putback_movable_pages()
-decrements the NR_ISOLATED counts which acct_isolated() increments, so
-isolate_migratepages_block() needs to acct before putback in that special
-case.  It's also useful to reset cc->nr_migratepages after putback so we
-don't needlessly return too early on the COMPACT_CLUSTER_MAX check.
+We use generic hooks in remap_pfn_range() to help archs to track pfnmap
+regions.  The code is something like:
 
-Also it's easier to track the life of cc->migratepages if we don't assign
-it to a migratelist variable.
+int remap_pfn_range()
+{
+	...
+	track_pfn_remap(vma, &prot, pfn, addr, PAGE_ALIGN(size));
+	...
+	pfn -= addr >> PAGE_SHIFT;
+	...
+	untrack_pfn(vma, pfn, PAGE_ALIGN(size));
+	...
+}
 
-Fixes: mmotm mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction.patch
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Here we can easily find the pfn is changed but not recovered before
+untrack_pfn() is called.  That's incorrect.
+
+Signed-off-by: Yongji Xie <xyjxie@linux.vnet.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: David Hildenbrand <dahi@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/compaction.c~mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction-fix mm/compaction.c
---- a/mm/compaction.c~mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction-fix
-+++ a/mm/compaction.c
-@@ -638,7 +638,6 @@ isolate_migratepages_block(struct compac
- {
- 	struct zone *zone = cc->zone;
- 	unsigned long nr_scanned = 0, nr_isolated = 0;
--	struct list_head *migratelist = &cc->migratepages;
- 	struct lruvec *lruvec;
- 	unsigned long flags = 0;
- 	bool locked = false;
-@@ -812,7 +811,7 @@ isolate_migratepages_block(struct compac
- 		del_page_from_lru_list(page, lruvec, page_lru(page));
+diff -puN mm/memory.c~mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range mm/memory.c
+--- a/mm/memory.c~mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range
++++ a/mm/memory.c
+@@ -1795,6 +1795,7 @@ int remap_pfn_range(struct vm_area_struc
+ 			break;
+ 	} while (pgd++, addr = next, addr != end);
  
- isolate_success:
--		list_add(&page->lru, migratelist);
-+		list_add(&page->lru, &cc->migratepages);
- 		cc->nr_migratepages++;
- 		nr_isolated++;
++	pfn += (end - PAGE_ALIGN(size)) >> PAGE_SHIFT;
+ 	if (err)
+ 		untrack_pfn(vma, pfn, PAGE_ALIGN(size));
  
-@@ -846,9 +845,11 @@ isolate_fail:
- 				spin_unlock_irqrestore(&zone->lru_lock,	flags);
- 				locked = false;
- 			}
--			putback_movable_pages(migratelist);
--			nr_isolated = 0;
-+			acct_isolated(zone, cc);
-+			putback_movable_pages(&cc->migratepages);
-+			cc->nr_migratepages = 0;
- 			cc->last_migrated_pfn = 0;
-+			nr_isolated = 0;
- 		}
- 
- 		if (low_pfn < next_skip_pfn) {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from xyjxie@linux.vnet.ibm.com are
 
-huge-pagecache-mmap_sem-is-unlocked-when-truncation-splits-pmd.patch
-mm-cma-prevent-nr_isolated_-counters-from-going-negative.patch
-mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction-fix.patch
-mm-update_lru_size-warn-and-reset-bad-lru_size.patch
-mm-update_lru_size-do-the-__mod_zone_page_state.patch
-mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
-tmpfs-preliminary-minor-tidyups.patch
-mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch
-huge-mm-move_huge_pmd-does-not-need-new_vma.patch
-huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch
-arch-fix-has_transparent_hugepage.patch
 
