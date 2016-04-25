@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- checkpatch-add-support-to-check-already-applied-git-commits.patch added to
- -mm tree
-Date: Mon, 25 Apr 2016 16:10:56 -0700
-Message-ID: <571ea400.ilooDWniN9PljxiH%akpm@linux-foundation.org>
+ mm-enable-rlimit_data-by-default-with-workaround-for-valgrind.patch added
+ to -mm tree
+Date: Mon, 25 Apr 2016 16:12:44 -0700
+Message-ID: <571ea46c.i/bQHrMOR4JGe+Dt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57897 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57909 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752558AbcDYXK5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 19:10:57 -0400
+	with ESMTP id S1751704AbcDYXMp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 19:12:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: changbin.du@intel.com, joe@perches.com, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, borntraeger@de.ibm.com, gorcunov@openvz.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add support to check already applied git commits
+     Subject: mm: enable RLIMIT_DATA by default with workaround for valgrind
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-support-to-check-already-applied-git-commits.patch
+     mm-enable-rlimit_data-by-default-with-workaround-for-valgrind.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-support-to-check-already-applied-git-commits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-enable-rlimit_data-by-default-with-workaround-for-valgrind.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-support-to-check-already-applied-git-commits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-enable-rlimit_data-by-default-with-workaround-for-valgrind.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,134 +40,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Du, Changbin" <changbin.du@intel.com>
-Subject: checkpatch: add support to check already applied git commits
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: mm: enable RLIMIT_DATA by default with workaround for valgrind
 
-It's sometimes useful to scan already committed patches.
+Since commit 84638335900f ("mm: rework virtual memory accounting")
+RLIMIT_DATA limits both brk() and private mmap() but this's disabled by
+default because of incompatibility with older versions of valgrind.
 
-Add --git <revision range> to scan specific or multiple commits.
+Valgrind always set limit to zero and fails if RLIMIT_DATA is enabled. 
+Fortunately it changes only rlim_cur and keeps rlim_max for reverting
+limit back when needed.
 
-Single commits are scanned with
-	--git <rev>
-Multiple commits are scanned with
-	--git <range>
-	--git <commit>-<count>
+This patch checks current usage also against rlim_max if rlim_cur is zero.
+This is safe because task anyway can increase rlim_cur up to rlim_max. 
+Size of brk is still checked against rlim_cur, so this part is completely
+compatible - zero rlim_cur forbids brk() but allows private mmap().
 
-[joe@perches.com:
-o Don't exec git for each <commit>-<count>,
-  use a single "git log -<count> <commit>"
-o Consolidate the git exec for the <range> and <commit>-<count> variants
-o Output 12 character commit hash ids
-o Don't scan git commit merges
-o Use -M to reduce the size of rename commits]
-
-Signed-off-by: "Du, Changbin" <changbin.du@intel.com>
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/56A28613.5070104@de.ibm.com
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   48 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 47 insertions(+), 1 deletion(-)
+ mm/mmap.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-support-to-check-already-applied-git-commits scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-support-to-check-already-applied-git-commits
-+++ a/scripts/checkpatch.pl
-@@ -27,6 +27,7 @@ my $emacs = 0;
- my $terse = 0;
- my $showfile = 0;
- my $file = 0;
-+my $git = 0;
- my $check = 0;
- my $check_orig = 0;
- my $summary = 1;
-@@ -69,6 +70,16 @@ Options:
-   --emacs                    emacs compile window format
-   --terse                    one line per report
-   --showfile                 emit diffed file position, not input file position
-+  -g, --git                  treat FILE as a single commit or git revision range
-+                             single git commit with:
-+                               <rev>
-+                               <rev>^
-+                               <rev>~n
-+                             multiple git commits with:
-+                               <rev1>..<rev2>
-+                               <rev1>...<rev2>
-+                               <rev>-<count>
-+                             git merges are ignored
-   -f, --file                 treat FILE as regular source file
-   --subjective, --strict     enable more subjective tests
-   --list-types               list the possible message types
-@@ -174,6 +185,7 @@ GetOptions(
- 	'terse!'	=> \$terse,
- 	'showfile!'	=> \$showfile,
- 	'f|file!'	=> \$file,
-+	'g|git!'	=> \$git,
- 	'subjective!'	=> \$check,
- 	'strict!'	=> \$check,
- 	'ignore=s'	=> \@ignore,
-@@ -788,10 +800,42 @@ my @fixed_inserted = ();
- my @fixed_deleted = ();
- my $fixlinenr = -1;
+diff -puN mm/mmap.c~mm-enable-rlimit_data-by-default-with-workaround-for-valgrind mm/mmap.c
+--- a/mm/mmap.c~mm-enable-rlimit_data-by-default-with-workaround-for-valgrind
++++ a/mm/mmap.c
+@@ -66,7 +66,7 @@ const int mmap_rnd_compat_bits_max = CON
+ int mmap_rnd_compat_bits __read_mostly = CONFIG_ARCH_MMAP_RND_COMPAT_BITS;
+ #endif
  
-+# If input is git commits, extract all commits from the commit expressions.
-+# For example, HEAD-3 means we need check 'HEAD, HEAD~1, HEAD~2'.
-+die "$P: No git repository found\n" if ($git && !-e ".git");
-+
-+if ($git) {
-+	my @commits = ();
-+	for my $commit_expr (@ARGV) {
-+		my $git_range;
-+		if ($commit_expr =~ m/-/) {
-+			my @tmp = split(/-/, $commit_expr);
-+			die "$P: incorrect git commits expression $commit_expr$!\n"
-+			    if (@tmp != 2);
-+			$git_range = "-$tmp[1] $tmp[0]";
-+		} elsif ($commit_expr =~ m/\.\./) {
-+			$git_range = "$commit_expr";
+-static bool ignore_rlimit_data = true;
++static bool ignore_rlimit_data;
+ core_param(ignore_rlimit_data, ignore_rlimit_data, bool, 0644);
+ 
+ static void unmap_region(struct mm_struct *mm,
+@@ -2886,13 +2886,17 @@ bool may_expand_vm(struct mm_struct *mm,
+ 
+ 	if (is_data_mapping(flags) &&
+ 	    mm->data_vm + npages > rlimit(RLIMIT_DATA) >> PAGE_SHIFT) {
+-		if (ignore_rlimit_data)
+-			pr_warn_once("%s (%d): VmData %lu exceed data ulimit %lu. Will be forbidden soon.\n",
++		/* Workaround for Valgrind */
++		if (rlimit(RLIMIT_DATA) == 0 &&
++		    mm->data_vm + npages <= rlimit_max(RLIMIT_DATA) >> PAGE_SHIFT)
++			return true;
++		if (!ignore_rlimit_data) {
++			pr_warn_once("%s (%d): VmData %lu exceed data ulimit %lu. Update limits or use boot option ignore_rlimit_data.\n",
+ 				     current->comm, current->pid,
+ 				     (mm->data_vm + npages) << PAGE_SHIFT,
+ 				     rlimit(RLIMIT_DATA));
+-		else
+ 			return false;
 +		}
-+		if (defined $git_range) {
-+			my $lines = `git log --no-merges --pretty=format:'%H' $git_range`;
-+			foreach my $line (split(/\n/, $lines)) {
-+				unshift(@commits, $line);
-+			}
-+		} else {
-+			unshift(@commits, $commit_expr);
-+		}
-+	}
-+	die "$P: no git commits after extraction!\n" if (@commits == 0);
-+	@ARGV = @commits;
-+}
-+
- my $vname;
- for my $filename (@ARGV) {
- 	my $FILE;
--	if ($file) {
-+	if ($git) {
-+		open($FILE, '-|', "git format-patch -M --stdout -1 $filename") ||
-+			die "$P: $filename: git format-patch failed - $!\n";
-+	} elsif ($file) {
- 		open($FILE, '-|', "diff -u /dev/null $filename") ||
- 			die "$P: $filename: diff failed - $!\n";
- 	} elsif ($filename eq '-') {
-@@ -802,6 +846,8 @@ for my $filename (@ARGV) {
  	}
- 	if ($filename eq '-') {
- 		$vname = 'Your patch';
-+	} elsif ($git) {
-+		$vname = "Commit " . substr($filename, 0, 12) . `git log -1 --pretty=format:' ("%s")' $filename`;
- 	} else {
- 		$vname = $filename;
- 	}
+ 
+ 	return true;
 _
 
-Patches currently in -mm which might be from changbin.du@intel.com are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
-debugobjects-make-fixup-functions-return-bool-instead-of-int.patch
-debugobjects-correct-the-usage-of-fixup-call-results.patch
-workqueue-update-debugobjects-fixup-callbacks-return-type.patch
-timer-update-debugobjects-fixup-callbacks-return-type.patch
-rcu-update-debugobjects-fixup-callbacks-return-type.patch
-percpu_counter-update-debugobjects-fixup-callbacks-return-type.patch
-documentation-update-debugobjects-doc.patch
-checkpatch-add-support-to-check-already-applied-git-commits.patch
+mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check.patch
+mm-mmap-kill-hook-arch_rebalance_pgtables.patch
+mm-enable-rlimit_data-by-default-with-workaround-for-valgrind.patch
+arch-defconfig-remove-config_resource_counters.patch
 
