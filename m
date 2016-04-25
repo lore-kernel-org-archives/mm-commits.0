@@ -1,17 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range.patch removed from -mm tree
-Date: Mon, 25 Apr 2016 13:17:05 -0700
-Message-ID: <571e7b41.Ao9oJjQ1tvp0aYCq%akpm@linux-foundation.org>
+Subject: +
+ mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2.patch
+ added to -mm tree
+Date: Mon, 25 Apr 2016 13:18:41 -0700
+Message-ID: <571e7ba1.omsWQE1Qdxvkxe8u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55765 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55787 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933495AbcDYURH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 16:17:07 -0400
+	with ESMTP id S965035AbcDYUSm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 16:18:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xyjxie@linux.vnet.ibm.com, aarcange@redhat.com, dahi@linux.vnet.ibm.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, luto@kernel.org, matthew.r.wilcox@intel.com, mhocko@suse.com, mingo@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
@@ -19,17 +20,31 @@ To: xyjxie@linux.vnet.ibm.com, aarcange@redhat.com, dahi@linux.vnet.ibm.com, dan
 
 The patch titled
      Subject: mm: fix incorrect pfn passed to untrack_pfn() in remap_pfn_range()
-has been removed from the -mm tree.  Its filename was
-     mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range.patch
+has been added to the -mm tree.  Its filename is
+     mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Yongji Xie <xyjxie@linux.vnet.ibm.com>
 Subject: mm: fix incorrect pfn passed to untrack_pfn() in remap_pfn_range()
 
-We use generic hooks in remap_pfn_range() to help archs to track pfnmap
-regions.  The code is something like:
+We use generic hooks in remap_pfn_range() to help archs to
+track pfnmap regions. The code is something like:
 
 int remap_pfn_range()
 {
@@ -42,8 +57,10 @@ int remap_pfn_range()
 	...
 }
 
-Here we can easily find the pfn is changed but not recovered before
-untrack_pfn() is called.  That's incorrect.
+Here we can easily find the pfn is changed but not recovered
+before untrack_pfn() is called. That's incorrect.
+
+There are no known runtime effects - this is from inspection.
 
 Signed-off-by: Yongji Xie <xyjxie@linux.vnet.ibm.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
@@ -60,22 +77,41 @@ Cc: David Hildenbrand <dahi@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range mm/memory.c
---- a/mm/memory.c~mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range
+diff -puN mm/memory.c~mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2 mm/memory.c
+--- a/mm/memory.c~mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2
 +++ a/mm/memory.c
-@@ -1795,6 +1795,7 @@ int remap_pfn_range(struct vm_area_struc
- 			break;
+@@ -1744,6 +1744,7 @@ int remap_pfn_range(struct vm_area_struc
+ 	unsigned long next;
+ 	unsigned long end = addr + PAGE_ALIGN(size);
+ 	struct mm_struct *mm = vma->vm_mm;
++	unsigned long remap_pfn = pfn;
+ 	int err;
+ 
+ 	/*
+@@ -1770,7 +1771,7 @@ int remap_pfn_range(struct vm_area_struc
+ 		vma->vm_pgoff = pfn;
+ 	}
+ 
+-	err = track_pfn_remap(vma, &prot, pfn, addr, PAGE_ALIGN(size));
++	err = track_pfn_remap(vma, &prot, remap_pfn, addr, PAGE_ALIGN(size));
+ 	if (err)
+ 		return -EINVAL;
+ 
+@@ -1789,7 +1790,7 @@ int remap_pfn_range(struct vm_area_struc
  	} while (pgd++, addr = next, addr != end);
  
-+	pfn += (end - PAGE_ALIGN(size)) >> PAGE_SHIFT;
  	if (err)
- 		untrack_pfn(vma, pfn, PAGE_ALIGN(size));
+-		untrack_pfn(vma, pfn, PAGE_ALIGN(size));
++		untrack_pfn(vma, remap_pfn, PAGE_ALIGN(size));
  
+ 	return err;
+ }
 _
 
 Patches currently in -mm which might be from xyjxie@linux.vnet.ibm.com are
 
+mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2.patch
 
