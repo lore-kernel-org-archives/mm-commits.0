@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch added
- to -mm tree
-Date: Mon, 25 Apr 2016 15:02:52 -0700
-Message-ID: <571e940c.Wwm9oB2EA0qIgKDi%akpm@linux-foundation.org>
+ checkpatch-add-support-to-check-already-applied-git-commits.patch added to
+ -mm tree
+Date: Mon, 25 Apr 2016 16:10:56 -0700
+Message-ID: <571ea400.ilooDWniN9PljxiH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57069 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57897 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965020AbcDYWCx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 18:02:53 -0400
+	with ESMTP id S1752558AbcDYXK5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 19:10:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, brouer@redhat.com, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: changbin.du@intel.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix
+     Subject: checkpatch: add support to check already applied git commits
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
+     checkpatch-add-support-to-check-already-applied-git-commits.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-support-to-check-already-applied-git-commits.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-support-to-check-already-applied-git-commits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,62 +40,134 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix
+From: "Du, Changbin" <changbin.du@intel.com>
+Subject: checkpatch: add support to check already applied git commits
 
-use unlikely(order) in free_pages_prepare(), per Vlastimil
+It's sometimes useful to scan already committed patches.
 
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Add --git <revision range> to scan specific or multiple commits.
+
+Single commits are scanned with
+	--git <rev>
+Multiple commits are scanned with
+	--git <range>
+	--git <commit>-<count>
+
+[joe@perches.com:
+o Don't exec git for each <commit>-<count>,
+  use a single "git log -<count> <commit>"
+o Consolidate the git exec for the <range> and <commit>-<count> variants
+o Output 12 character commit hash ids
+o Don't scan git commit merges
+o Use -M to reduce the size of rename commits]
+
+Signed-off-by: "Du, Changbin" <changbin.du@intel.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   48 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 47 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix
-+++ a/mm/page_alloc.c
-@@ -1036,7 +1036,7 @@ static bool free_pages_prepare(struct pa
- 	 * Check tail pages before head page information is cleared to
- 	 * avoid checking PageCompound for order-0 pages.
- 	 */
--	if (order) {
-+	if (unlikely(order)) {
- 		bool compound = PageCompound(page);
- 		int i;
+diff -puN scripts/checkpatch.pl~checkpatch-add-support-to-check-already-applied-git-commits scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-support-to-check-already-applied-git-commits
++++ a/scripts/checkpatch.pl
+@@ -27,6 +27,7 @@ my $emacs = 0;
+ my $terse = 0;
+ my $showfile = 0;
+ my $file = 0;
++my $git = 0;
+ my $check = 0;
+ my $check_orig = 0;
+ my $summary = 1;
+@@ -69,6 +70,16 @@ Options:
+   --emacs                    emacs compile window format
+   --terse                    one line per report
+   --showfile                 emit diffed file position, not input file position
++  -g, --git                  treat FILE as a single commit or git revision range
++                             single git commit with:
++                               <rev>
++                               <rev>^
++                               <rev>~n
++                             multiple git commits with:
++                               <rev1>..<rev2>
++                               <rev1>...<rev2>
++                               <rev>-<count>
++                             git merges are ignored
+   -f, --file                 treat FILE as regular source file
+   --subjective, --strict     enable more subjective tests
+   --list-types               list the possible message types
+@@ -174,6 +185,7 @@ GetOptions(
+ 	'terse!'	=> \$terse,
+ 	'showfile!'	=> \$showfile,
+ 	'f|file!'	=> \$file,
++	'g|git!'	=> \$git,
+ 	'subjective!'	=> \$check,
+ 	'strict!'	=> \$check,
+ 	'ignore=s'	=> \@ignore,
+@@ -788,10 +800,42 @@ my @fixed_inserted = ();
+ my @fixed_deleted = ();
+ my $fixlinenr = -1;
  
++# If input is git commits, extract all commits from the commit expressions.
++# For example, HEAD-3 means we need check 'HEAD, HEAD~1, HEAD~2'.
++die "$P: No git repository found\n" if ($git && !-e ".git");
++
++if ($git) {
++	my @commits = ();
++	for my $commit_expr (@ARGV) {
++		my $git_range;
++		if ($commit_expr =~ m/-/) {
++			my @tmp = split(/-/, $commit_expr);
++			die "$P: incorrect git commits expression $commit_expr$!\n"
++			    if (@tmp != 2);
++			$git_range = "-$tmp[1] $tmp[0]";
++		} elsif ($commit_expr =~ m/\.\./) {
++			$git_range = "$commit_expr";
++		}
++		if (defined $git_range) {
++			my $lines = `git log --no-merges --pretty=format:'%H' $git_range`;
++			foreach my $line (split(/\n/, $lines)) {
++				unshift(@commits, $line);
++			}
++		} else {
++			unshift(@commits, $commit_expr);
++		}
++	}
++	die "$P: no git commits after extraction!\n" if (@commits == 0);
++	@ARGV = @commits;
++}
++
+ my $vname;
+ for my $filename (@ARGV) {
+ 	my $FILE;
+-	if ($file) {
++	if ($git) {
++		open($FILE, '-|', "git format-patch -M --stdout -1 $filename") ||
++			die "$P: $filename: git format-patch failed - $!\n";
++	} elsif ($file) {
+ 		open($FILE, '-|', "diff -u /dev/null $filename") ||
+ 			die "$P: $filename: diff failed - $!\n";
+ 	} elsif ($filename eq '-') {
+@@ -802,6 +846,8 @@ for my $filename (@ARGV) {
+ 	}
+ 	if ($filename eq '-') {
+ 		$vname = 'Your patch';
++	} elsif ($git) {
++		$vname = "Commit " . substr($filename, 0, 12) . `git log -1 --pretty=format:' ("%s")' $filename`;
+ 	} else {
+ 		$vname = $filename;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from changbin.du@intel.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-kernel-padata-hide-unused-functions-checkpatch-fixes.patch
-mm.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
-include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-include-linux-nodemaskh-create-next_node_in-helper.patch
-include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
-mm-hugetlbc-use-first_memory_node.patch
-mm-mempolicyc-offset_il_node-document-and-clarify.patch
-mm-uninline-page_mapped.patch
-mm-uninline-page_mapped-checkpatch-fixes.patch
-memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
-mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
-mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
-mm-kasan-initial-memory-quarantine-implementation-v8-fix.patch
-exit_thread-remove-empty-bodies-fix.patch
-exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
-fs-execc-fix-minor-memory-leak.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
+debugobjects-make-fixup-functions-return-bool-instead-of-int.patch
+debugobjects-correct-the-usage-of-fixup-call-results.patch
+workqueue-update-debugobjects-fixup-callbacks-return-type.patch
+timer-update-debugobjects-fixup-callbacks-return-type.patch
+rcu-update-debugobjects-fixup-callbacks-return-type.patch
+percpu_counter-update-debugobjects-fixup-callbacks-return-type.patch
+documentation-update-debugobjects-doc.patch
+checkpatch-add-support-to-check-already-applied-git-commits.patch
 
