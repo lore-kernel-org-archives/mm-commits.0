@@ -1,176 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 26 Apr 2016 12:48:06 -0700
-Message-ID: <571fc5f6.8HiK8Ye5BzMsLKRO%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch added to -mm tree
+Date: Tue, 26 Apr 2016 12:48:59 -0700
+Message-ID: <571fc62b.8M6VWEBsMgzYEzsh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49023 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752985AbcDZTsI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2016 15:48:08 -0400
+	with ESMTP id S1752569AbcDZTtA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2016 15:49:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix
+has been added to the -mm tree.  Its filename is
+     mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix
 
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_ringbuffer.c |    3 -
- drivers/iommu/amd_iommu.c               |   13 -------
- drivers/usb/dwc3/debugfs.c              |   37 ----------------------
- 3 files changed, 53 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/i915/intel_ringbuffer.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_ringbuffer.c
---- a/drivers/gpu/drm/i915/intel_ringbuffer.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/intel_ringbuffer.c
-@@ -2101,10 +2101,7 @@ int intel_pin_and_map_ringbuffer_obj(str
- 	struct drm_i915_gem_object *obj = ringbuf->obj;
- 	/* Ring wraparound at offset 0 sometimes hangs. No idea why. */
- 	unsigned flags = PIN_OFFSET_BIAS | 4096;
--<<<<<<< HEAD
--=======
- 	void *addr;
-->>>>>>> linux-next/akpm-base
- 	int ret;
+diff -puN fs/buffer.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix fs/buffer.c
+diff -puN include/linux/mmzone.h~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix include/linux/mmzone.h
+diff -puN mm/internal.h~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix mm/internal.h
+diff -puN mm/mempolicy.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix mm/mempolicy.c
+diff -puN mm/page_alloc.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix
++++ a/mm/page_alloc.c
+@@ -3416,7 +3416,7 @@ retry_cpuset:
+ 	/* The preferred zone is used for statistics later */
+ 	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
+ 					ac.high_zoneidx, ac.nodemask);
+-	if (!ac.preferred_zone)
++	if (!ac.preferred_zoneref)
+ 		goto no_zone;
+ 	ac.classzone_idx = zonelist_zone_idx(ac.preferred_zoneref);
  
- 	if (HAS_LLC(dev_priv) && !obj->stolen) {
-diff -puN drivers/iommu/amd_iommu.c~linux-next-git-rejects drivers/iommu/amd_iommu.c
---- a/drivers/iommu/amd_iommu.c~linux-next-git-rejects
-+++ a/drivers/iommu/amd_iommu.c
-@@ -279,10 +279,7 @@ static u16 get_alias(struct device *dev)
- 	struct pci_dev *pdev = to_pci_dev(dev);
- 	u16 devid, ivrs_alias, pci_alias;
- 
--<<<<<<< HEAD
--=======
- 	/* The callers make sure that get_device_id() does not fail here */
-->>>>>>> linux-next/akpm-base
- 	devid = get_device_id(dev);
- 	ivrs_alias = amd_iommu_alias_table[devid];
- 	pci_for_each_dma_alias(pdev, __last_alias, &pci_alias);
-@@ -347,8 +344,6 @@ static struct iommu_dev_data *find_dev_d
- }
- 
- static struct iommu_dev_data *get_dev_data(struct device *dev)
--<<<<<<< HEAD
--=======
- {
- 	return dev->archdata.iommu;
- }
-@@ -357,7 +352,6 @@ static struct iommu_dev_data *get_dev_da
- * Find or create an IOMMU group for a acpihid device.
- */
- static struct iommu_group *acpihid_device_group(struct device *dev)
-->>>>>>> linux-next/akpm-base
- {
- 	struct acpihid_map_entry *p, *entry = NULL;
- 	int devid;
-@@ -505,11 +499,7 @@ static int iommu_init_device(struct devi
- 
- 	dev_data->alias = get_alias(dev);
- 
--<<<<<<< HEAD
--	if (pci_iommuv2_capable(pdev)) {
--=======
- 	if (dev_is_pci(dev) && pci_iommuv2_capable(to_pci_dev(dev))) {
-->>>>>>> linux-next/akpm-base
- 		struct amd_iommu *iommu;
- 
- 		iommu = amd_iommu_rlookup_table[dev_data->devid];
-@@ -530,12 +520,9 @@ static void iommu_ignore_device(struct d
- 	int devid;
- 
- 	devid = get_device_id(dev);
--<<<<<<< HEAD
--=======
- 	if (devid < 0)
- 		return;
- 
-->>>>>>> linux-next/akpm-base
- 	alias = get_alias(dev);
- 
- 	memset(&amd_iommu_dev_table[devid], 0, sizeof(struct dev_table_entry));
-diff -puN drivers/usb/dwc3/debugfs.c~linux-next-git-rejects drivers/usb/dwc3/debugfs.c
---- a/drivers/usb/dwc3/debugfs.c~linux-next-git-rejects
-+++ a/drivers/usb/dwc3/debugfs.c
-@@ -942,62 +942,25 @@ void dwc3_debugfs_init(struct dwc3 *dwc)
- 	dwc->regset->base = dwc->regs;
- 
- 	file = debugfs_create_regset32("regdump", S_IRUGO, root, dwc->regset);
--<<<<<<< HEAD
--	if (!file) {
--		ret = -ENOMEM;
--		goto err2;
--	}
--=======
- 	if (!file)
- 		dev_dbg(dwc->dev, "Can't create debugfs regdump\n");
-->>>>>>> linux-next/akpm-base
- 
- 	if (IS_ENABLED(CONFIG_USB_DWC3_DUAL_ROLE)) {
- 		file = debugfs_create_file("mode", S_IRUGO | S_IWUSR, root,
- 				dwc, &dwc3_mode_fops);
--<<<<<<< HEAD
--		if (!file) {
--			ret = -ENOMEM;
--			goto err2;
--		}
--=======
- 		if (!file)
- 			dev_dbg(dwc->dev, "Can't create debugfs mode\n");
-->>>>>>> linux-next/akpm-base
- 	}
- 
- 	if (IS_ENABLED(CONFIG_USB_DWC3_DUAL_ROLE) ||
- 			IS_ENABLED(CONFIG_USB_DWC3_GADGET)) {
- 		file = debugfs_create_file("testmode", S_IRUGO | S_IWUSR, root,
- 				dwc, &dwc3_testmode_fops);
--<<<<<<< HEAD
--		if (!file) {
--			ret = -ENOMEM;
--			goto err2;
--		}
--
--		file = debugfs_create_file("link_state", S_IRUGO | S_IWUSR, root,
--				dwc, &dwc3_link_state_fops);
--		if (!file) {
--			ret = -ENOMEM;
--			goto err2;
--		}
--	}
--
--	return 0;
--
--err2:
--	kfree(dwc->regset);
--
--err1:
--	debugfs_remove_recursive(root);
--=======
- 
- 		file = debugfs_create_file("link_state", S_IRUGO | S_IWUSR,
- 				root, dwc, &dwc3_link_state_fops);
- 		if (!file)
- 			dev_dbg(dwc->dev, "Can't create debugfs link_state\n");
-->>>>>>> linux-next/akpm-base
- 
- 		dwc3_debugfs_create_endpoint_dirs(dwc, root);
- 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
