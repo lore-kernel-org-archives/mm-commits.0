@@ -1,136 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size.patch added to -mm tree
-Date: Mon, 25 Apr 2016 17:12:53 -0700
-Message-ID: <571eb285.3LCR/oUe+Uo0Qni/%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ mm-page_alloc-remove-redundant-check-for-empty-zonelist.patch removed from
+ -mm tree
+Date: Tue, 26 Apr 2016 12:11:00 -0700
+Message-ID: <571fbd44.L5tiREOanxmcbPas%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48647 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751097AbcDZAMy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 20:12:54 -0400
+	with ESMTP id S1752430AbcDZTLC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2016 15:11:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, hannes@cmpxchg.org, kernel@kyup.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlb_cgroup: round limit_in_bytes down to hugepage size
-has been added to the -mm tree.  Its filename is
-     mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size.patch
+     Subject: mm, page_alloc: remove redundant check for empty zonelist
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-remove-redundant-check-for-empty-zonelist.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, hugetlb_cgroup: round limit_in_bytes down to hugepage size
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: remove redundant check for empty zonelist
 
-The page_counter rounds limits down to page size values.  This makes
-sense, except in the case of hugetlb_cgroup where it's not possible to
-charge partial hugepages.  If the hugetlb_cgroup margin is less than the
-hugepage size being charged, it will fail as expected.
+A check is made for an empty zonelist early in the page allocator fast
+path but it's unnecessary.  When get_page_from_freelist() is called, it'll
+return NULL immediately.  Removing the first check is slower for machines
+with memoryless nodes but that is a corner case that can live with the
+overhead.
 
-Round the hugetlb_cgroup limit down to hugepage size, since it is the
-effective limit of the cgroup.
-
-For consistency, round down PAGE_COUNTER_MAX as well when a hugetlb_cgroup
-is created: this prevents error reports when a user cannot restore the
-value to the kernel default.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Nikolay Borisov <kernel@kyup.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |   35 ++++++++++++++++++++++++++---------
- 1 file changed, 26 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size mm/hugetlb_cgroup.c
---- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size
-+++ a/mm/hugetlb_cgroup.c
-@@ -67,26 +67,42 @@ static inline bool hugetlb_cgroup_have_u
- 	return false;
- }
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-redundant-check-for-empty-zonelist mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-redundant-check-for-empty-zonelist
++++ a/mm/page_alloc.c
+@@ -3373,14 +3373,6 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	if (should_fail_alloc_page(gfp_mask, order))
+ 		return NULL;
  
-+static void hugetlb_cgroup_init(struct hugetlb_cgroup *h_cgroup,
-+				struct hugetlb_cgroup *parent_h_cgroup)
-+{
-+	int idx;
-+
-+	for (idx = 0; idx < HUGE_MAX_HSTATE; idx++) {
-+		struct page_counter *counter = &h_cgroup->hugepage[idx];
-+		struct page_counter *parent = NULL;
-+		unsigned long limit;
-+		int ret;
-+
-+		if (parent_h_cgroup)
-+			parent = &parent_h_cgroup->hugepage[idx];
-+		page_counter_init(counter, parent);
-+
-+		limit = round_down(PAGE_COUNTER_MAX,
-+				   1 << huge_page_order(&hstates[idx]));
-+		ret = page_counter_limit(counter, limit);
-+		VM_BUG_ON(ret);
-+	}
-+}
-+
- static struct cgroup_subsys_state *
- hugetlb_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
- {
- 	struct hugetlb_cgroup *parent_h_cgroup = hugetlb_cgroup_from_css(parent_css);
- 	struct hugetlb_cgroup *h_cgroup;
--	int idx;
+-	/*
+-	 * Check the zones suitable for the gfp_mask contain at least one
+-	 * valid zone. It's possible to have an empty zonelist as a result
+-	 * of __GFP_THISNODE and a memoryless node
+-	 */
+-	if (unlikely(!zonelist->_zonerefs->zone))
+-		return NULL;
+-
+ 	if (IS_ENABLED(CONFIG_CMA) && ac.migratetype == MIGRATE_MOVABLE)
+ 		alloc_flags |= ALLOC_CMA;
  
- 	h_cgroup = kzalloc(sizeof(*h_cgroup), GFP_KERNEL);
- 	if (!h_cgroup)
- 		return ERR_PTR(-ENOMEM);
+@@ -3393,8 +3385,6 @@ retry_cpuset:
+ 	/* The preferred zone is used for statistics later */
+ 	preferred_zoneref = first_zones_zonelist(ac.zonelist, ac.high_zoneidx,
+ 				ac.nodemask, &ac.preferred_zone);
+-	if (!ac.preferred_zone)
+-		goto out;
+ 	ac.classzone_idx = zonelist_zone_idx(preferred_zoneref);
  
--	if (parent_h_cgroup) {
--		for (idx = 0; idx < HUGE_MAX_HSTATE; idx++)
--			page_counter_init(&h_cgroup->hugepage[idx],
--					  &parent_h_cgroup->hugepage[idx]);
--	} else {
-+	if (!parent_h_cgroup)
- 		root_h_cgroup = h_cgroup;
--		for (idx = 0; idx < HUGE_MAX_HSTATE; idx++)
--			page_counter_init(&h_cgroup->hugepage[idx], NULL);
--	}
-+
-+	hugetlb_cgroup_init(h_cgroup, parent_h_cgroup);
- 	return &h_cgroup->css;
- }
+ 	/* First allocation attempt */
+@@ -3417,7 +3407,6 @@ retry_cpuset:
  
-@@ -285,6 +301,7 @@ static ssize_t hugetlb_cgroup_write(stru
- 		return ret;
+ 	trace_mm_page_alloc(page, order, alloc_mask, ac.migratetype);
  
- 	idx = MEMFILE_IDX(of_cft(of)->private);
-+	nr_pages = round_down(nr_pages, 1 << huge_page_order(&hstates[idx]));
- 
- 	switch (MEMFILE_ATTR(of_cft(of)->private)) {
- 	case RES_LIMIT:
+-out:
+ 	/*
+ 	 * When updating a task's mems_allowed, it is possible to race with
+ 	 * parallel threads in such a way that an allocation can fail while
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size.patch
+mm-page_alloc-only-check-pagecompound-for-high-order-pages.patch
+mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path.patch
+mm-page_alloc-reduce-branches-in-zone_statistics.patch
+mm-page_alloc-inline-zone_statistics.patch
+mm-page_alloc-inline-the-fast-path-of-the-zonelist-iterator.patch
+mm-page_alloc-use-__dec_zone_state-for-order-0-page-allocation.patch
+mm-page_alloc-avoid-unnecessary-zone-lookups-during-pageblock-operations.patch
+mm-page_alloc-convert-alloc_flags-to-unsigned.patch
+mm-page_alloc-convert-nr_fair_skipped-to-bool.patch
+mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist.patch
+mm-page_alloc-remove-unnecessary-initialisation-in-get_page_from_freelist.patch
+mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask.patch
+mm-page_alloc-simplify-last-cpupid-reset.patch
+mm-page_alloc-move-might_sleep_if-check-to-the-allocator-slowpath.patch
+mm-page_alloc-move-__gfp_hardwall-modifications-out-of-the-fastpath.patch
+mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch
+mm-page_alloc-shorten-the-page-allocator-fast-path.patch
+mm-page_alloc-reduce-cost-of-fair-zone-allocation-policy-retry.patch
+mm-page_alloc-shortcut-watermark-checks-for-order-0-pages.patch
+mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice.patch
+mm-page_alloc-remove-field-from-alloc_context.patch
+mm-page_alloc-check-multiple-page-fields-with-a-single-branch.patch
+mm-page_alloc-remove-unnecessary-variable-from-free_pcppages_bulk.patch
+mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths.patch
+mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch
+mm-page_alloc-defer-debugging-checks-of-pages-allocated-from-the-pcp.patch
 
