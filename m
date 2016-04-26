@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + localmodconfig-fix-whitespace-repeat-count-after-tristate.patch added to -mm tree
-Date: Tue, 26 Apr 2016 16:21:50 -0700
-Message-ID: <571ff80e.Fs7bjJxWp5bSv6cg%akpm@linux-foundation.org>
+Subject: +
+ localmodconfig-recognize-more-keywords-that-end-a-menu-entry.patch added to -mm tree
+Date: Tue, 26 Apr 2016 16:21:42 -0700
+Message-ID: <571ff806.lsdlqqQFB7jnBm0M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54439 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54425 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754341AbcDZXVv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2016 19:21:51 -0400
+	with ESMTP id S1754181AbcDZXVn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2016 19:21:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bpoirier@suse.com, mmarek@suse.cz, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: localmodconfig: fix whitespace repeat count after "tristate"
+     Subject: localmodconfig: recognize more keywords that end a menu entry
 has been added to the -mm tree.  Its filename is
-     localmodconfig-fix-whitespace-repeat-count-after-tristate.patch
+     localmodconfig-recognize-more-keywords-that-end-a-menu-entry.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/localmodconfig-fix-whitespace-repeat-count-after-tristate.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/localmodconfig-recognize-more-keywords-that-end-a-menu-entry.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/localmodconfig-fix-whitespace-repeat-count-after-tristate.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/localmodconfig-recognize-more-keywords-that-end-a-menu-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,19 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Benjamin Poirier <bpoirier@suse.com>
-Subject: localmodconfig: fix whitespace repeat count after "tristate"
+Subject: localmodconfig: recognize more keywords that end a menu entry
 
-Also recognize standalone "prompt".
+Based on the list in Documentation/kbuild/kconfig-language.txt
 
-Before this patch we incorrectly identified some symbols as not having a
-prompt and potentially needing to be selected by something else.
+This removes junk from %depends because parsing of a menu entry spilled
+over to another menu entry.
 
-Note that this patch could theoretically change the resulting .config,
-causing it to have fewer symbols turned on.  However, given the current
-set of Kconfig files, this situation does not occur because the symbols
-newly added to %prompts are absent from %selects.
-
-Link: http://lkml.kernel.org/r/1461696998-3953-1-git-send-email-bpoirier@suse.com
+Link: http://lkml.kernel.org/r/1460333193-16361-1-git-send-email-bpoirier@suse.com
 
 Signed-off-by: Benjamin Poirier <bpoirier@suse.com>
 Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
@@ -59,21 +55,23 @@ Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/streamline_config.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/kconfig/streamline_config.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/kconfig/streamline_config.pl~localmodconfig-fix-whitespace-repeat-count-after-tristate scripts/kconfig/streamline_config.pl
---- a/scripts/kconfig/streamline_config.pl~localmodconfig-fix-whitespace-repeat-count-after-tristate
+diff -puN scripts/kconfig/streamline_config.pl~localmodconfig-recognize-more-keywords-that-end-a-menu-entry scripts/kconfig/streamline_config.pl
+--- a/scripts/kconfig/streamline_config.pl~localmodconfig-recognize-more-keywords-that-end-a-menu-entry
 +++ a/scripts/kconfig/streamline_config.pl
-@@ -237,7 +237,7 @@ sub read_kconfig {
- 	    }
+@@ -256,8 +256,8 @@ sub read_kconfig {
  
- 	# configs without prompts must be selected
--	} elsif ($state ne "NONE" && /^\s*tristate\s\S/) {
-+	} elsif ($state ne "NONE" && /^\s*(tristate\s+\S|prompt\b)/) {
- 	    # note if the config has a prompt
- 	    $prompts{$config} = 1;
+ 	    $iflevel-- if ($iflevel);
  
+-	# stop on "help"
+-	} elsif (/^\s*help\s*$/) {
++	# stop on "help" and keywords that end a menu entry
++	} elsif (/^\s*help\s*$/ || /^(comment|choice|menu)\b/) {
+ 	    $state = "NONE";
+ 	}
+     }
 _
 
 Patches currently in -mm which might be from bpoirier@suse.com are
