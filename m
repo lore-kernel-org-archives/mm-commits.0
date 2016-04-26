@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch added to -mm tree
-Date: Tue, 26 Apr 2016 12:48:59 -0700
-Message-ID: <571fc62b.8M6VWEBsMgzYEzsh%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
+ added to -mm tree
+Date: Tue, 26 Apr 2016 12:49:08 -0700
+Message-ID: <571fc634.434z9UMrqzBbAnmR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49023 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49026 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569AbcDZTtA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2016 15:49:00 -0400
+	with ESMTP id S1752957AbcDZTtJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2016 15:49:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix
+     Subject: mm-page_alloc-shorten-the-page-allocator-fast-path-fix
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
+     mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +40,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix
+Subject: mm-page_alloc-shorten-the-page-allocator-fast-path-fix
 
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/buffer.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix fs/buffer.c
-diff -puN include/linux/mmzone.h~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix include/linux/mmzone.h
-diff -puN mm/internal.h~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix mm/internal.h
-diff -puN mm/mempolicy.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix mm/mempolicy.c
-diff -puN mm/page_alloc.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix
+diff -puN mm/page_alloc.c~mm-page_alloc-shorten-the-page-allocator-fast-path-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-shorten-the-page-allocator-fast-path-fix
 +++ a/mm/page_alloc.c
-@@ -3416,7 +3416,7 @@ retry_cpuset:
- 	/* The preferred zone is used for statistics later */
- 	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
- 					ac.high_zoneidx, ac.nodemask);
--	if (!ac.preferred_zone)
-+	if (!ac.preferred_zoneref)
- 		goto no_zone;
- 	ac.classzone_idx = zonelist_zone_idx(ac.preferred_zoneref);
+@@ -3396,7 +3396,7 @@ retry_cpuset:
+ 	preferred_zoneref = first_zones_zonelist(ac.zonelist, ac.high_zoneidx,
+ 				ac.nodemask, &ac.preferred_zone);
+ 	if (!ac.preferred_zone)
+-		goto out;
++		goto no_zone;
+ 	ac.classzone_idx = zonelist_zone_idx(preferred_zoneref);
  
+ 	/* First allocation attempt */
+@@ -3413,7 +3413,7 @@ retry_cpuset:
+ 
+ 	page = __alloc_pages_slowpath(alloc_mask, order, &ac);
+ 
+-out:
++no_zone:
+ 	/*
+ 	 * When updating a task's mems_allowed, it is possible to race with
+ 	 * parallel threads in such a way that an allocation can fail while
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
