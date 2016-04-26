@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-fix-vm_mayshare-mappings-for-nommu.patch added to -mm
- tree
-Date: Mon, 25 Apr 2016 17:09:15 -0700
-Message-ID: <571eb1ab.xqd9SRAcfNCFNw9O%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size.patch added to -mm tree
+Date: Mon, 25 Apr 2016 17:12:53 -0700
+Message-ID: <571eb285.3LCR/oUe+Uo0Qni/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58570 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772AbcDZAJQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 20:09:16 -0400
+	with ESMTP id S1751097AbcDZAMy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 20:12:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dalias@libc.org, geert@linux-m68k.org, gerg@uclinux.org, mhocko@suse.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: rientjes@google.com, hannes@cmpxchg.org, kernel@kyup.com, kirill.shutemov@linux.intel.com, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ramfs: fix VM_MAYSHARE mappings for NOMMU
+     Subject: mm, hugetlb_cgroup: round limit_in_bytes down to hugepage size
 has been added to the -mm tree.  Its filename is
-     tmpfs-fix-vm_mayshare-mappings-for-nommu.patch
+     mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tmpfs-fix-vm_mayshare-mappings-for-nommu.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-fix-vm_mayshare-mappings-for-nommu.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,72 +39,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rich Felker <dalias@libc.org>
-Subject: ramfs: fix VM_MAYSHARE mappings for NOMMU
+From: David Rientjes <rientjes@google.com>
+Subject: mm, hugetlb_cgroup: round limit_in_bytes down to hugepage size
 
-The nommu do_mmap expects f_op->get_unmapped_area to either succeed or
-return -ENOSYS for VM_MAYSHARE (e.g.  private read-only) mappings. 
-Returning addr in the non-MAP_SHARED case was completely wrong, and only
-happened to work because addr was 0.  However, it prevented VM_MAYSHARE
-mappings from sharing backing with the fs cache, and forced such mappings
-(including shareable program text) to be copied whenever the number of
-mappings transitioned from 0 to 1, impacting performance and memory usage.
-Subsequent mappings beyond the first still correctly shared memory with
-the first.
+The page_counter rounds limits down to page size values.  This makes
+sense, except in the case of hugetlb_cgroup where it's not possible to
+charge partial hugepages.  If the hugetlb_cgroup margin is less than the
+hugepage size being charged, it will fail as expected.
 
-Instead, treat VM_MAYSHARE identically to VM_SHARED at the file ops level;
-do_mmap already handles the semantic differences between them.
+Round the hugetlb_cgroup limit down to hugepage size, since it is the
+effective limit of the cgroup.
 
-Signed-off-by: Rich Felker <dalias@libc.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+For consistency, round down PAGE_COUNTER_MAX as well when a hugetlb_cgroup
+is created: this prevents error reports when a user cannot restore the
+value to the kernel default.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Nikolay Borisov <kernel@kyup.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/hugetlb_cgroup.c |   35 ++++++++++++++++++++++++++---------
+ 1 file changed, 26 insertions(+), 9 deletions(-)
 
-diff -puN fs/ramfs/file-nommu.c~tmpfs-fix-vm_mayshare-mappings-for-nommu fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~tmpfs-fix-vm_mayshare-mappings-for-nommu
-+++ a/fs/ramfs/file-nommu.c
-@@ -211,14 +211,11 @@ static unsigned long ramfs_nommu_get_unm
- 	struct page **pages = NULL, **ptr, *page;
- 	loff_t isize;
+diff -puN mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size mm/hugetlb_cgroup.c
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size
++++ a/mm/hugetlb_cgroup.c
+@@ -67,26 +67,42 @@ static inline bool hugetlb_cgroup_have_u
+ 	return false;
+ }
  
--	if (!(flags & MAP_SHARED))
--		return addr;
--
- 	/* the mapping mustn't extend beyond the EOF */
- 	lpages = (len + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	isize = i_size_read(inode);
- 
--	ret = -EINVAL;
-+	ret = -ENOSYS;
- 	maxpages = (isize + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (pgoff >= maxpages)
- 		goto out;
-@@ -227,7 +224,6 @@ static unsigned long ramfs_nommu_get_unm
- 		goto out;
- 
- 	/* gang-find the pages */
--	ret = -ENOMEM;
- 	pages = kcalloc(lpages, sizeof(struct page *), GFP_KERNEL);
- 	if (!pages)
- 		goto out_free;
-@@ -263,7 +259,7 @@ out:
-  */
- static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma)
++static void hugetlb_cgroup_init(struct hugetlb_cgroup *h_cgroup,
++				struct hugetlb_cgroup *parent_h_cgroup)
++{
++	int idx;
++
++	for (idx = 0; idx < HUGE_MAX_HSTATE; idx++) {
++		struct page_counter *counter = &h_cgroup->hugepage[idx];
++		struct page_counter *parent = NULL;
++		unsigned long limit;
++		int ret;
++
++		if (parent_h_cgroup)
++			parent = &parent_h_cgroup->hugepage[idx];
++		page_counter_init(counter, parent);
++
++		limit = round_down(PAGE_COUNTER_MAX,
++				   1 << huge_page_order(&hstates[idx]));
++		ret = page_counter_limit(counter, limit);
++		VM_BUG_ON(ret);
++	}
++}
++
+ static struct cgroup_subsys_state *
+ hugetlb_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
  {
--	if (!(vma->vm_flags & VM_SHARED))
-+	if (!(vma->vm_flags & (VM_SHARED | VM_MAYSHARE)))
- 		return -ENOSYS;
+ 	struct hugetlb_cgroup *parent_h_cgroup = hugetlb_cgroup_from_css(parent_css);
+ 	struct hugetlb_cgroup *h_cgroup;
+-	int idx;
  
- 	file_accessed(file);
+ 	h_cgroup = kzalloc(sizeof(*h_cgroup), GFP_KERNEL);
+ 	if (!h_cgroup)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	if (parent_h_cgroup) {
+-		for (idx = 0; idx < HUGE_MAX_HSTATE; idx++)
+-			page_counter_init(&h_cgroup->hugepage[idx],
+-					  &parent_h_cgroup->hugepage[idx]);
+-	} else {
++	if (!parent_h_cgroup)
+ 		root_h_cgroup = h_cgroup;
+-		for (idx = 0; idx < HUGE_MAX_HSTATE; idx++)
+-			page_counter_init(&h_cgroup->hugepage[idx], NULL);
+-	}
++
++	hugetlb_cgroup_init(h_cgroup, parent_h_cgroup);
+ 	return &h_cgroup->css;
+ }
+ 
+@@ -285,6 +301,7 @@ static ssize_t hugetlb_cgroup_write(stru
+ 		return ret;
+ 
+ 	idx = MEMFILE_IDX(of_cft(of)->private);
++	nr_pages = round_down(nr_pages, 1 << huge_page_order(&hstates[idx]));
+ 
+ 	switch (MEMFILE_ATTR(of_cft(of)->private)) {
+ 	case RES_LIMIT:
 _
 
-Patches currently in -mm which might be from dalias@libc.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
-tmpfs-fix-vm_mayshare-mappings-for-nommu.patch
+mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size.patch
 
