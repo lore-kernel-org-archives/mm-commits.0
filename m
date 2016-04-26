@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + localmodconfig-fix-parsing-of-kconfig-source-statements.patch
- added to -mm tree
-Date: Tue, 26 Apr 2016 16:21:40 -0700
-Message-ID: <571ff804.7yRFA6F14JkTSewq%akpm@linux-foundation.org>
+Subject: + mm-zswap-use-workqueue-to-destroy-pool.patch added to -mm tree
+Date: Tue, 26 Apr 2016 16:52:39 -0700
+Message-ID: <571fff47.caCgiy6gTD/vCFnv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54419 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54587 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754678AbcDZXVl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2016 19:21:41 -0400
+	with ESMTP id S1754460AbcDZXwk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2016 19:52:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bpoirier@suse.com, jlee@suse.com, mmarek@suse.cz, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, dan.streetman@canonical.com, yuzhao@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: localmodconfig: fix parsing of Kconfig "source" statements
+     Subject: mm/zswap: use workqueue to destroy pool
 has been added to the -mm tree.  Its filename is
-     localmodconfig-fix-parsing-of-kconfig-source-statements.patch
+     mm-zswap-use-workqueue-to-destroy-pool.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/localmodconfig-fix-parsing-of-kconfig-source-statements.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-use-workqueue-to-destroy-pool.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/localmodconfig-fix-parsing-of-kconfig-source-statements.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-use-workqueue-to-destroy-pool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +38,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Benjamin Poirier <bpoirier@suse.com>
-Subject: localmodconfig: fix parsing of Kconfig "source" statements
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: mm/zswap: use workqueue to destroy pool
 
-The parameter of Kconfig "source" statements does not need to be quoted. 
-The current regex causes many kconfig files to be skipped and hence,
-dependencies to be missed.
+Add a work_struct to struct zswap_pool, and change __zswap_pool_empty to
+use the workqueue instead of using call_rcu().
 
-Also fix the whitespace repeat count.
+When zswap destroys a pool no longer in use, it uses call_rcu() to perform
+the destruction/freeing.  Since that executes in softirq context, it must
+not sleep.  However, actually destroying the pool involves freeing the
+per-cpu compressors (which requires locking the cpu_add_remove_lock mutex)
+and freeing the zpool, for which the implementation may sleep (e.g. 
+zsmalloc calls kmem_cache_destroy, which locks the slab_mutex).  So if
+either mutex is currently taken, or any other part of the compressor or
+zpool implementation sleeps, it will result in a BUG().
 
-Link: http://lkml.kernel.org/r/1459619722-13695-1-git-send-email-bpoirier@suse.com
+It's not easy to reproduce this when changing zswap's params normally.  In
+testing with a loaded system, this does not fail:
 
-Signed-off-by: Benjamin Poirier <bpoirier@suse.com>
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Tested-by: Lee, Chun-Yi <jlee@suse.com>
-Cc: Michal Marek <mmarek@suse.cz>
+$ cd /sys/module/zswap/parameters
+$ echo lz4 > compressor ; echo zsmalloc > zpool
+
+nor does this:
+
+$ while true ; do
+> echo lzo > compressor ; echo zbud > zpool
+> sleep 1
+> echo lz4 > compressor ; echo zsmalloc > zpool
+> sleep 1
+> done
+
+although it's still possible either of those might fail, depending on
+whether anything else besides zswap has locked the mutexes.
+
+However, changing a parameter with no delay immediately causes the
+schedule while atomic BUG:
+
+$ while true ; do
+> echo lzo > compressor ; echo lz4 > compressor
+> done
+
+This is essentially the same as Yu Zhao's proposed patch to zsmalloc,
+but moved to zswap, to cover compressor and zpool freeing.
+
+Fixes: f1c54846ee45 ("zswap: dynamic pool creation")
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Reported-by: Yu Zhao <yuzhao@google.com>
+Cc: Dan Streetman <dan.streetman@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/streamline_config.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zswap.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN scripts/kconfig/streamline_config.pl~localmodconfig-fix-parsing-of-kconfig-source-statements scripts/kconfig/streamline_config.pl
---- a/scripts/kconfig/streamline_config.pl~localmodconfig-fix-parsing-of-kconfig-source-statements
-+++ a/scripts/kconfig/streamline_config.pl
-@@ -188,7 +188,7 @@ sub read_kconfig {
- 	$cont = 0;
+diff -puN mm/zswap.c~mm-zswap-use-workqueue-to-destroy-pool mm/zswap.c
+--- a/mm/zswap.c~mm-zswap-use-workqueue-to-destroy-pool
++++ a/mm/zswap.c
+@@ -117,7 +117,7 @@ struct zswap_pool {
+ 	struct crypto_comp * __percpu *tfm;
+ 	struct kref kref;
+ 	struct list_head list;
+-	struct rcu_head rcu_head;
++	struct work_struct work;
+ 	struct notifier_block notifier;
+ 	char tfm_name[CRYPTO_MAX_ALG_NAME];
+ };
+@@ -652,9 +652,11 @@ static int __must_check zswap_pool_get(s
+ 	return kref_get_unless_zero(&pool->kref);
+ }
  
- 	# collect any Kconfig sources
--	if (/^source\s*"(.*)"/) {
-+	if (/^source\s+"?([^"]+)/) {
- 	    my $kconfig = $1;
- 	    # prevent reading twice.
- 	    if (!defined($read_kconfigs{$kconfig})) {
+-static void __zswap_pool_release(struct rcu_head *head)
++static void __zswap_pool_release(struct work_struct *work)
+ {
+-	struct zswap_pool *pool = container_of(head, typeof(*pool), rcu_head);
++	struct zswap_pool *pool = container_of(work, typeof(*pool), work);
++
++	synchronize_rcu();
+ 
+ 	/* nobody should have been able to get a kref... */
+ 	WARN_ON(kref_get_unless_zero(&pool->kref));
+@@ -674,7 +676,9 @@ static void __zswap_pool_empty(struct kr
+ 	WARN_ON(pool == zswap_pool_current());
+ 
+ 	list_del_rcu(&pool->list);
+-	call_rcu(&pool->rcu_head, __zswap_pool_release);
++
++	INIT_WORK(&pool->work, __zswap_pool_release);
++	schedule_work(&pool->work);
+ 
+ 	spin_unlock(&zswap_pools_lock);
+ }
 _
 
-Patches currently in -mm which might be from bpoirier@suse.com are
+Patches currently in -mm which might be from ddstreet@ieee.org are
 
-localmodconfig-fix-parsing-of-kconfig-source-statements.patch
-localmodconfig-recognize-more-keywords-that-end-a-menu-entry.patch
-localmodconfig-fix-parsing-of-help-text.patch
-localmodconfig-add-missing-to-reference-a-variable.patch
-localmodconfig-reset-certificate-paths.patch
-localmodconfig-fix-whitespace-repeat-count-after-tristate.patch
+mm-zpool-use-workqueue-for-zpool_destroy.patch
+mm-zswap-use-workqueue-to-destroy-pool.patch
 
