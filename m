@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-decode_stacktracesh-handle-symbols-in-modules.patch
- added to -mm tree
-Date: Mon, 25 Apr 2016 16:58:07 -0700
-Message-ID: <571eaf0f.fyWaFhgErLSnZUyu%akpm@linux-foundation.org>
+Subject: + mm-update-the-document-of-numa_zonelist_order.patch added to
+ -mm tree
+Date: Mon, 25 Apr 2016 17:00:31 -0700
+Message-ID: <571eaf9f.1r7ofOZKHp7CXB9/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58456 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58470 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751095AbcDYX6I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 19:58:08 -0400
+	with ESMTP id S1751095AbcDZAAc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Apr 2016 20:00:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: qiuxishi@huawei.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/decode_stacktrace.sh: handle symbols in modules
+     Subject: Documentation/sysctl/vm.txt: update numa_zonelist_order description
 has been added to the -mm tree.  Its filename is
-     scripts-decode_stacktracesh-handle-symbols-in-modules.patch
+     mm-update-the-document-of-numa_zonelist_order.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-decode_stacktracesh-handle-symbols-in-modules.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-update-the-document-of-numa_zonelist_order.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-decode_stacktracesh-handle-symbols-in-modules.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-update-the-document-of-numa_zonelist_order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,149 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: scripts/decode_stacktrace.sh: handle symbols in modules
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: Documentation/sysctl/vm.txt: update numa_zonelist_order description
 
-scripts/decode_stacktrace.sh presently displays module symbols as
+3193913ce62c ("mm: page_alloc: default node-ordering on 64-bit NUMA,
+zone-ordering on 32-bit") changes the default value of
+numa_zonelist_order.  Update the document.
 
-	func+0x0ff/0x5153 [module]
-
-Add a third argument: the pathname of a directory where the script should
-look for the file module.ko so that the output appears as
-
-	func (foo/bar.c:123) module
-
-Without the argument or if the module file isn't found the script prints
-such symbols as is without decoding.
-
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Rik van Riel" <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "Kamezawa Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |   55 +++++++++++++++++++++++----------
- 1 file changed, 39 insertions(+), 16 deletions(-)
+ Documentation/sysctl/vm.txt |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-handle-symbols-in-modules scripts/decode_stacktrace.sh
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-handle-symbols-in-modules
-+++ a/scripts/decode_stacktrace.sh
-@@ -2,15 +2,17 @@
- # (c) 2014, Sasha Levin <sasha.levin@oracle.com>
- #set -x
+diff -puN Documentation/sysctl/vm.txt~mm-update-the-document-of-numa_zonelist_order Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-update-the-document-of-numa_zonelist_order
++++ a/Documentation/sysctl/vm.txt
+@@ -581,15 +581,16 @@ Specify "[Nn]ode" for node order
+ "Zone Order" orders the zonelists by zone type, then by node within each
+ zone.  Specify "[Zz]one" for zone order.
  
--if [[ $# != 2 ]]; then
-+if [[ $# < 2 ]]; then
- 	echo "Usage:"
--	echo "	$0 [vmlinux] [base path]"
-+	echo "	$0 [vmlinux] [base path] [modules path]"
- 	exit 1
- fi
+-Specify "[Dd]efault" to request automatic configuration.  Autoconfiguration
+-will select "node" order in following case.
+-(1) if the DMA zone does not exist or
+-(2) if the DMA zone comprises greater than 50% of the available memory or
+-(3) if any node's DMA zone comprises greater than 70% of its local memory and
+-    the amount of local memory is big enough.
++Specify "[Dd]efault" to request automatic configuration.
  
- vmlinux=$1
- basepath=$2
-+modpath=$3
- declare -A cache
-+declare -A modcache
- 
- parse_symbol() {
- 	# The structure of symbol at this point is:
-@@ -19,6 +21,17 @@ parse_symbol() {
- 	# For example:
- 	#   do_basic_setup+0x9c/0xbf
- 
-+	if [[ $module == "" ]] ; then
-+		local objfile=$vmlinux
-+	elif [[ "${modcache[$module]+isset}" == "isset" ]]; then
-+		local objfile=${modcache[$module]}
-+	else
-+		[[ $modpath == "" ]] && return
-+		local objfile=$(find "$modpath" -name $module.ko -print -quit)
-+		[[ $objfile == "" ]] && return
-+		modcache[$module]=$objfile
-+	fi
+-Otherwise, "zone" order will be selected. Default order is recommended unless
+-this is causing problems for your system/application.
++On 32-bit, the Normal zone needs to be preserved for allocations accessible
++by the kernel, so "zone" order will be selected.
 +
- 	# Remove the englobing parenthesis
- 	symbol=${symbol#\(}
- 	symbol=${symbol%\)}
-@@ -29,11 +42,11 @@ parse_symbol() {
- 	# Use 'nm vmlinux' to figure out the base address of said symbol.
- 	# It's actually faster to call it every time than to load it
- 	# all into bash.
--	if [[ "${cache[$name]+isset}" == "isset" ]]; then
--		local base_addr=${cache[$name]}
-+	if [[ "${cache[$module,$name]+isset}" == "isset" ]]; then
-+		local base_addr=${cache[$module,$name]}
- 	else
--		local base_addr=$(nm "$vmlinux" | grep -i ' t ' | awk "/ $name\$/ {print \$1}" | head -n1)
--		cache["$name"]="$base_addr"
-+		local base_addr=$(nm "$objfile" | grep -i ' t ' | awk "/ $name\$/ {print \$1}" | head -n1)
-+		cache[$module,$name]="$base_addr"
- 	fi
- 	# Let's start doing the math to get the exact address into the
- 	# symbol. First, strip out the symbol total length.
-@@ -48,12 +61,12 @@ parse_symbol() {
- 	local address=$(printf "%x\n" "$expr")
- 
- 	# Pass it to addr2line to get filename and line number
--        # Could get more than one result
--	if [[ "${cache[$address]+isset}" == "isset" ]]; then
--		local code=${cache[$address]}
-+	# Could get more than one result
-+	if [[ "${cache[$module,$address]+isset}" == "isset" ]]; then
-+		local code=${cache[$module,$address]}
- 	else
--		local code=$(addr2line -i -e "$vmlinux" "$address")
--		cache[$address]=$code
-+		local code=$(addr2line -i -e "$objfile" "$address")
-+		cache[$module,$address]=$code
- 	fi
- 
- 	# addr2line doesn't return a proper error code if it fails, so
-@@ -105,13 +118,23 @@ handle_line() {
- 		fi
- 	done
- 
--	# The symbol is the last element, process it
--	symbol=${words[$last]}
-+	if [[ ${words[$last]} =~ \[([^]]+)\] ]]; then
-+		module=${words[$last]}
-+		module=${module#\[}
-+		module=${module%\]}
-+		symbol=${words[$last-1]}
-+		unset words[$last-1]
-+	else
-+		# The symbol is the last element, process it
-+		symbol=${words[$last]}
-+		module=
-+	fi
++On 64-bit, devices that require DMA32/DMA are relatively rare, so "node"
++order will be selected.
 +
- 	unset words[$last]
- 	parse_symbol # modifies $symbol
++Default order is recommended unless this is causing problems for your
++system/application.
  
- 	# Add up the line number to the symbol
--	echo "${words[@]}" "$symbol"
-+	echo "${words[@]}" "$symbol $module"
- }
+ ==============================================================
  
- while read line; do
-@@ -121,8 +144,8 @@ while read line; do
- 		handle_line "$line"
- 	# Is it a code line?
- 	elif [[ $line == *Code:* ]]; then
--                decode_code "$line"
--        else
-+		decode_code "$line"
-+	else
- 		# Nothing special in this line, show it as is
- 		echo "$line"
- 	fi
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
-mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check.patch
-scripts-decode_stacktracesh-handle-symbols-in-modules.patch
-mm-mmap-kill-hook-arch_rebalance_pgtables.patch
-mm-enable-rlimit_data-by-default-with-workaround-for-valgrind.patch
-arch-defconfig-remove-config_resource_counters.patch
+mm-update-the-document-of-numa_zonelist_order.patch
 
