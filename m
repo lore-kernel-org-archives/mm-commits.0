@@ -1,134 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-freelist-randomization-v5-fix.patch added to -mm tree
-Date: Wed, 27 Apr 2016 12:16:30 -0700
-Message-ID: <5721100e.LEadgbrpSZ2QrHqy%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ mm-page_alloc-move-might_sleep_if-check-to-the-allocator-slowpath.patch
+ removed from -mm tree
+Date: Wed, 27 Apr 2016 12:18:05 -0700
+Message-ID: <5721106d.Iv0PB09jgD2hEMEw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47976 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753091AbcD0TQb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 15:16:31 -0400
+	with ESMTP id S1751630AbcD0TSH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 15:18:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, gthelen@google.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, labbott@fedoraproject.org, penberg@kernel.org, rientjes@google.com, thgarnie@google.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slab-freelist-randomization-v5-fix
-has been added to the -mm tree.  Its filename is
-     mm-slab-freelist-randomization-v5-fix.patch
+     Subject: mm, page_alloc: move might_sleep_if check to the allocator slowpath
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-move-might_sleep_if-check-to-the-allocator-slowpath.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-freelist-randomization-v5-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-freelist-randomization-v5-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-slab-freelist-randomization-v5-fix
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: move might_sleep_if check to the allocator slowpath
 
-propagate gfp_t into cache_random_seq_create()
+There is a debugging check for callers that specify __GFP_DIRECT_RECLAIM
+from a context that cannot sleep.  Triggering this is almost certainly a
+bug but it's also overhead in the fast path.  Move the check to the slow
+path.  It'll be harder to trigger as it'll only be checked when watermarks
+are depleted but it'll also only be checked in a path that can sleep.
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Laura Abbott <labbott@fedoraproject.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Thomas Garnier <thgarnie@google.com>
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-freelist-randomization-v5-fix mm/slab.c
---- a/mm/slab.c~mm-slab-freelist-randomization-v5-fix
-+++ a/mm/slab.c
-@@ -1262,7 +1262,7 @@ static void freelist_randomize(struct rn
- }
+diff -puN mm/page_alloc.c~mm-page_alloc-move-might_sleep_if-check-to-the-allocator-slowpath mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-move-might_sleep_if-check-to-the-allocator-slowpath
++++ a/mm/page_alloc.c
+@@ -3175,6 +3175,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 		return NULL;
+ 	}
  
- /* Create a random sequence per cache */
--static int cache_random_seq_create(struct kmem_cache *cachep)
-+static int cache_random_seq_create(struct kmem_cache *cachep, gfp_t gfp)
- {
- 	unsigned int seed, count = cachep->num;
- 	struct rnd_state state;
-@@ -1271,7 +1271,7 @@ static int cache_random_seq_create(struc
- 		return 0;
++	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
++
+ 	/*
+ 	 * We also sanity check to catch abuse of atomic reserves being used by
+ 	 * callers that are not in atomic context.
+@@ -3368,8 +3370,6 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
  
- 	/* If it fails, we will just use the global lists */
--	cachep->random_seq = kcalloc(count, sizeof(freelist_idx_t), GFP_KERNEL);
-+	cachep->random_seq = kcalloc(count, sizeof(freelist_idx_t), gfp);
- 	if (!cachep->random_seq)
- 		return -ENOMEM;
+ 	lockdep_trace_alloc(gfp_mask);
  
-@@ -1290,7 +1290,7 @@ static void cache_random_seq_destroy(str
- 	cachep->random_seq = NULL;
- }
- #else
--static inline int cache_random_seq_create(struct kmem_cache *cachep)
-+static inline int cache_random_seq_create(struct kmem_cache *cachep, gfp_t gfp)
- {
- 	return 0;
- }
-@@ -3999,7 +3999,7 @@ static int enable_cpucache(struct kmem_c
- 	int shared = 0;
- 	int batchcount = 0;
- 
--	err = cache_random_seq_create(cachep);
-+	err = cache_random_seq_create(cachep, gfp);
- 	if (err)
- 		goto end;
+-	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
+-
+ 	if (should_fail_alloc_page(gfp_mask, order))
+ 		return NULL;
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-kernel-padata-hide-unused-functions-checkpatch-fixes.patch
-mm.patch
-mm-slab-freelist-randomization-v5-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
-include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-include-linux-nodemaskh-create-next_node_in-helper.patch
-include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
-mm-hugetlbc-use-first_memory_node.patch
-mm-mempolicyc-offset_il_node-document-and-clarify.patch
-mm-uninline-page_mapped.patch
-mm-uninline-page_mapped-checkpatch-fixes.patch
-memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
-mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
-mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
-mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
-mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
-mm-kasan-initial-memory-quarantine-implementation-v8-fix.patch
-procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable-fix.patch
-exit_thread-remove-empty-bodies-fix.patch
-exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
-fs-execc-fix-minor-memory-leak.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-page_alloc-only-check-pagecompound-for-high-order-pages.patch
+mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path.patch
+mm-page_alloc-reduce-branches-in-zone_statistics.patch
+mm-page_alloc-inline-zone_statistics.patch
+mm-page_alloc-inline-the-fast-path-of-the-zonelist-iterator.patch
+mm-page_alloc-use-__dec_zone_state-for-order-0-page-allocation.patch
+mm-page_alloc-avoid-unnecessary-zone-lookups-during-pageblock-operations.patch
+mm-page_alloc-convert-alloc_flags-to-unsigned.patch
+mm-page_alloc-convert-nr_fair_skipped-to-bool.patch
+mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist.patch
+mm-page_alloc-remove-unnecessary-initialisation-in-get_page_from_freelist.patch
+mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask.patch
+mm-page_alloc-simplify-last-cpupid-reset.patch
+mm-page_alloc-move-__gfp_hardwall-modifications-out-of-the-fastpath.patch
+mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch
+mm-page_alloc-shorten-the-page-allocator-fast-path.patch
+mm-page_alloc-reduce-cost-of-fair-zone-allocation-policy-retry.patch
+mm-page_alloc-shortcut-watermark-checks-for-order-0-pages.patch
+mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice.patch
+mm-page_alloc-remove-field-from-alloc_context.patch
+mm-page_alloc-check-multiple-page-fields-with-a-single-branch.patch
+mm-page_alloc-remove-unnecessary-variable-from-free_pcppages_bulk.patch
+mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths.patch
+mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch
+mm-page_alloc-defer-debugging-checks-of-pages-allocated-from-the-pcp.patch
 
