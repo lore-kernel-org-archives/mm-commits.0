@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch added to
+ mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch added to
  -mm tree
-Date: Wed, 27 Apr 2016 13:50:55 -0700
-Message-ID: <5721262f.gG6eTAUNqL/4eXUz%akpm@linux-foundation.org>
+Date: Wed, 27 Apr 2016 13:50:53 -0700
+Message-ID: <5721262d.RFWm2K4bzU+ZiO5s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49407 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49402 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752921AbcD0Uu4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:50:56 -0400
+	with ESMTP id S1752184AbcD0Uuy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:50:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, dave@stgolabs.net, hughd@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, koct9i@gmail.com, mingo@kernel.org, oleg@redhat.com, peterz@infradead.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc, shm: make shmem attach/detach wait for mmap_sem killable
+     Subject: mm, fork: make dup_mmap wait for mmap_sem for write killable
 has been added to the -mm tree.  Its filename is
-     ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
+     mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,50 +41,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: ipc, shm: make shmem attach/detach wait for mmap_sem killable
+Subject: mm, fork: make dup_mmap wait for mmap_sem for write killable
 
-shmat and shmdt rely on mmap_sem for write.  If the waiting task gets
-killed by the oom killer it would block oom_reaper from asynchronous
-address space reclaim and reduce the chances of timely OOM resolving. 
-Wait for the lock in the killable mode and return with EINTR if the task
-got killed while waiting.
+dup_mmap needs to lock current's mm mmap_sem for write.  If the waiting
+task gets killed by the oom killer it would block oom_reaper from
+asynchronous address space reclaim and reduce the chances of timely OOM
+resolving.  Wait for the lock in the killable mode and return with EINTR
+if the task got killed while waiting.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Davidlohr Bueso <dave@stgolabs.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ kernel/fork.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN ipc/shm.c~ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable ipc/shm.c
---- a/ipc/shm.c~ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable
-+++ a/ipc/shm.c
-@@ -1200,7 +1200,11 @@ long do_shmat(int shmid, char __user *sh
- 	if (err)
- 		goto out_fput;
+diff -puN kernel/fork.c~mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable kernel/fork.c
+--- a/kernel/fork.c~mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable
++++ a/kernel/fork.c
+@@ -413,7 +413,10 @@ static int dup_mmap(struct mm_struct *mm
+ 	unsigned long charge;
  
--	down_write(&current->mm->mmap_sem);
-+	if (down_write_killable(&current->mm->mmap_sem)) {
-+		err = -EINTR;
-+		goto out_fput;
+ 	uprobe_start_dup_mmap();
+-	down_write(&oldmm->mmap_sem);
++	if (down_write_killable(&oldmm->mmap_sem)) {
++		retval = -EINTR;
++		goto fail_uprobe_end;
 +	}
-+
- 	if (addr && !(shmflg & SHM_REMAP)) {
- 		err = -EINVAL;
- 		if (addr + size < addr)
-@@ -1271,7 +1275,8 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- 	if (addr & ~PAGE_MASK)
- 		return retval;
- 
--	down_write(&mm->mmap_sem);
-+	if (down_write_killable(&mm->mmap_sem))
-+		return -EINTR;
- 
+ 	flush_cache_dup_mm(oldmm);
+ 	uprobe_dup_mmap(oldmm, mm);
  	/*
- 	 * This function tries to be smart and unmap shm segments that
+@@ -525,6 +528,7 @@ out:
+ 	up_write(&mm->mmap_sem);
+ 	flush_tlb_mm(oldmm);
+ 	up_write(&oldmm->mmap_sem);
++fail_uprobe_end:
+ 	uprobe_end_dup_mmap();
+ 	return retval;
+ fail_nomem_anon_vma_fork:
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
