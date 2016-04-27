@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch added to -mm tree
-Date: Wed, 27 Apr 2016 12:30:27 -0700
-Message-ID: <57211353.eadP8ulJWc/CdaO8%akpm@linux-foundation.org>
+ mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch added to
+ -mm tree
+Date: Wed, 27 Apr 2016 12:45:01 -0700
+Message-ID: <572116bd.gsndvaUnPRI+GINX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48170 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48418 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752022AbcD0Ta2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 15:30:28 -0400
+	with ESMTP id S1752808AbcD0TpD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 15:45:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, brouer@redhat.com, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix
+     Subject: mm, page_alloc: uninline the bad page part of check_new_page()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
+     mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,74 +40,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: uninline the bad page part of check_new_page()
 
-mm/page_alloc.c: In function 'free_pcp_prepare':
-mm/page_alloc.c:997: error: implicit declaration of function 'free_pages_prepare'
-mm/page_alloc.c: At top level:
-mm/page_alloc.c:1202: error: conflicting types for 'free_pages_prepare'
-mm/page_alloc.c:997: note: previous implicit declaration of 'free_pages_prepare' was here
+Bad pages should be rare so the code handling them doesn't need to be
+inline for performance reasons.  Put it to separate function which returns
+void.  This also assumes that the initial page_expected_state() result
+will match the result of the thorough check, i.e.  the page doesn't become
+"good" in the meanwhile.  This matches the same expectations already in
+place in free_pages_check().
 
-might be a merge snafu
+!DEBUG_VM bloat-o-meter:
 
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+add/remove: 1/0 grow/shrink: 0/1 up/down: 134/-274 (-140)
+function                                     old     new   delta
+check_new_page_bad                             -     134    +134
+get_page_from_freelist                      3468    3194    -274
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/page_alloc.c |   33 +++++++++++++++++----------------
+ 1 file changed, 17 insertions(+), 16 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix
+diff -puN mm/page_alloc.c~mm-page_alloc-uninline-the-bad-page-part-of-check_new_page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-uninline-the-bad-page-part-of-check_new_page
 +++ a/mm/page_alloc.c
-@@ -991,6 +991,8 @@ out:
- 	return ret;
+@@ -1650,19 +1650,11 @@ static inline void expand(struct zone *z
+ 	}
  }
  
-+static bool free_pages_prepare(struct page *page, unsigned int order);
-+
- #ifdef CONFIG_DEBUG_VM
- static inline bool free_pcp_prepare(struct page *page)
+-/*
+- * This page is about to be returned from the page allocator
+- */
+-static inline int check_new_page(struct page *page)
++static void check_new_page_bad(struct page *page)
  {
+-	const char *bad_reason;
+-	unsigned long bad_flags;
++	const char *bad_reason = NULL;
++	unsigned long bad_flags = 0;
+ 
+-	if (page_expected_state(page, PAGE_FLAGS_CHECK_AT_PREP|__PG_HWPOISON))
+-		return 0;
+-
+-	bad_reason = NULL;
+-	bad_flags = 0;
+ 	if (unlikely(atomic_read(&page->_mapcount) != -1))
+ 		bad_reason = "nonzero mapcount";
+ 	if (unlikely(page->mapping != NULL))
+@@ -1681,11 +1673,20 @@ static inline int check_new_page(struct
+ 	if (unlikely(page->mem_cgroup))
+ 		bad_reason = "page still charged to cgroup";
+ #endif
+-	if (unlikely(bad_reason)) {
+-		bad_page(page, bad_reason, bad_flags);
+-		return 1;
+-	}
+-	return 0;
++	bad_page(page, bad_reason, bad_flags);
++}
++
++/*
++ * This page is about to be returned from the page allocator
++ */
++static inline int check_new_page(struct page *page)
++{
++	if (likely(page_expected_state(page,
++				PAGE_FLAGS_CHECK_AT_PREP|__PG_HWPOISON)))
++		return 0;
++
++	check_new_page_bad(page);
++	return 1;
+ }
+ 
+ static inline bool free_pages_prezeroed(bool poisoned)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-kernel-padata-hide-unused-functions-checkpatch-fixes.patch
-mm.patch
-mm-slab-freelist-randomization-v5-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
-include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-include-linux-nodemaskh-create-next_node_in-helper.patch
-include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
-mm-hugetlbc-use-first_memory_node.patch
-mm-mempolicyc-offset_il_node-document-and-clarify.patch
-mm-uninline-page_mapped.patch
-mm-uninline-page_mapped-checkpatch-fixes.patch
-memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
-mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
-mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
-mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
-mm-page_alloc-un-inline-the-bad-part-of-free_pages_check-fix.patch
-mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
-mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch
-mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
-mm-kasan-initial-memory-quarantine-implementation-v8-fix.patch
-procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable-fix.patch
-exit_thread-remove-empty-bodies-fix.patch
-exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
-fs-execc-fix-minor-memory-leak.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-wake-kcompactd-before-kswapds-short-sleep.patch
+mm-compaction-wrap-calculating-first-and-last-pfn-of-pageblock.patch
+compaction-wrap-calculating-first-and-last-pfn-of-pageblock-fix.patch
+mm-compaction-reduce-spurious-pcplist-drains.patch
+mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction.patch
+mm-page_alloc-un-inline-the-bad-part-of-free_pages_check.patch
+cpuset-use-static-key-better-and-convert-to-new-api.patch
+mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch
 
