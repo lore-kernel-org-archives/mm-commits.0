@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch added to -mm tree
-Date: Wed, 27 Apr 2016 13:51:09 -0700
-Message-ID: <5721263d.H9/7rno53vGtEOnR%akpm@linux-foundation.org>
+ s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres.patch added to -mm tree
+Date: Wed, 27 Apr 2016 13:55:30 -0700
+Message-ID: <57212742.LGSOyz0aCh4HSU9V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49439 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49470 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752189AbcD0UvL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:51:11 -0400
+	with ESMTP id S1752184AbcD0Uzb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, airlied@linux.ie, daniel.vetter@intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: xlpang@redhat.com, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, mhuang@redhat.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/i915: make i915_gem_mmap_ioctl wait for mmap_sem killable
+     Subject: s390/kexec: consolidate crash_map/unmap_reserved_pages() and arch_kexec_protect(unprotect)_crashkres()
 has been added to the -mm tree.  Its filename is
-     drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
+     s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,83 +39,193 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: drm/i915: make i915_gem_mmap_ioctl wait for mmap_sem killable
+From: Xunlei Pang <xlpang@redhat.com>
+Subject: s390/kexec: consolidate crash_map/unmap_reserved_pages() and arch_kexec_protect(unprotect)_crashkres()
 
-i915_gem_mmap_ioctl relies on mmap_sem for write.  If the waiting task
-gets killed by the oom killer it would block oom_reaper from asynchronous
-address space reclaim and reduce the chances of timely OOM resolving. 
-Wait for the lock in the killable mode and return with EINTR if the task
-got killed while waiting.
+Commit 3f625002581b ("kexec: introduce a protection mechanism for the
+crashkernel reserved memory") is a similar mechanism for protecting the
+crash kernel reserved memory to previous crash_map/unmap_reserved_pages()
+implementation, the new one is more generic in name and cleaner in code
+(besides, some arch may not be allowed to unmap the pgtable).
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Daniel Vetter <daniel.vetter@intel.com>
-Cc: David Airlie <airlied@linux.ie>
+Therefore, this patch consolidates them, and uses the new
+arch_kexec_protect(unprotect)_crashkres() to replace former
+crash_map/unmap_reserved_pages() which by now has been only used by S390.
+
+The consolidation work needs the crash memory to be mapped initially, this
+is done in machine_kdump_pm_init() which is after reserve_crashkernel(). 
+Once kdump kernel is loaded, the new arch_kexec_protect_crashkres()
+implemented for S390 will actually unmap the pgtable like before.
+
+Signed-off-by: Xunlei Pang <xlpang@redhat.com>
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Acked-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Minfei Huang <mhuang@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_gem.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/s390/kernel/machine_kexec.c |   28 ++++++++++++++++++----------
+ include/linux/kexec.h            |    2 --
+ kernel/kexec.c                   |   12 ------------
+ kernel/kexec_core.c              |   11 ++---------
+ 4 files changed, 20 insertions(+), 33 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/i915_gem.c~drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable drivers/gpu/drm/i915/i915_gem.c
---- a/drivers/gpu/drm/i915/i915_gem.c~drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable
-+++ a/drivers/gpu/drm/i915/i915_gem.c
-@@ -1721,7 +1721,10 @@ i915_gem_mmap_ioctl(struct drm_device *d
- 		struct mm_struct *mm = current->mm;
- 		struct vm_area_struct *vma;
+diff -puN arch/s390/kernel/machine_kexec.c~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres arch/s390/kernel/machine_kexec.c
+--- a/arch/s390/kernel/machine_kexec.c~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres
++++ a/arch/s390/kernel/machine_kexec.c
+@@ -43,13 +43,13 @@ static int machine_kdump_pm_cb(struct no
+ 	switch (action) {
+ 	case PM_SUSPEND_PREPARE:
+ 	case PM_HIBERNATION_PREPARE:
+-		if (crashk_res.start)
+-			crash_map_reserved_pages();
++		if (kexec_crash_image)
++			arch_kexec_unprotect_crashkres();
+ 		break;
+ 	case PM_POST_SUSPEND:
+ 	case PM_POST_HIBERNATION:
+-		if (crashk_res.start)
+-			crash_unmap_reserved_pages();
++		if (kexec_crash_image)
++			arch_kexec_protect_crashkres();
+ 		break;
+ 	default:
+ 		return NOTIFY_DONE;
+@@ -60,6 +60,8 @@ static int machine_kdump_pm_cb(struct no
+ static int __init machine_kdump_pm_init(void)
+ {
+ 	pm_notifier(machine_kdump_pm_cb, 0);
++	/* Create initial mapping for crashkernel memory */
++	arch_kexec_unprotect_crashkres();
+ 	return 0;
+ }
+ arch_initcall(machine_kdump_pm_init);
+@@ -146,6 +148,8 @@ static int kdump_csum_valid(struct kimag
+ #endif
+ }
  
--		down_write(&mm->mmap_sem);
-+		if (down_write_killable(&mm->mmap_sem)) {
-+			drm_gem_object_unreference_unlocked(obj);
-+			return -EINTR;
-+		}
- 		vma = find_vma(mm, addr);
- 		if (vma)
- 			vma->vm_page_prot =
-_
-
-Patches currently in -mm which might be from mhocko@suse.com are
-
-include-linux-nodemaskh-create-next_node_in-helper-fix.patch
-mm-oom-move-gfp_nofs-check-to-out_of_memory.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path.patch
-mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
-mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper-clear-oom_reaper_list-before-clearing-tif_memdie.patch
-vmscan-consider-classzone_idx-in-compaction_ready.patch
-mm-compaction-change-compact_-constants-into-enum.patch
-mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
-mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
-mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
-mm-compaction-update-compaction_result-ordering.patch
-mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
-mm-compaction-abstract-compaction-feedback-to-helpers.patch
-mm-use-compaction-feedback-for-thp-backoff-conditions.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-oom-protect-costly-allocations-some-more.patch
-mm-consider-compaction-feedback-also-for-costly-allocation.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
-mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
-mm-make-mmap_sem-for-write-waits-killable-for-mm-syscalls.patch
-mm-make-vm_mmap-killable.patch
-mm-make-vm_munmap-killable.patch
-mm-aout-handle-vm_brk-failures.patch
-mm-elf-handle-vm_brk-error.patch
-mm-make-vm_brk-killable.patch
-mm-proc-make-clear_refs-killable.patch
-mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
-ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
-vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable.patch
-coredump-make-coredump_wait-wait-for-mmap_sem-for-write-killable.patch
-aio-make-aio_setup_ring-killable.patch
-exec-make-exec-path-waiting-for-mmap_sem-killable.patch
-prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
-uprobes-wait-for-mmap_sem-for-write-killable.patch
-drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
-drm-radeon-make-radeon_mn_get-wait-for-mmap_sem-killable.patch
-drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable.patch
-
++#ifdef CONFIG_CRASH_DUMP
++
+ /*
+  * Map or unmap crashkernel memory
+  */
+@@ -167,21 +171,25 @@ static void crash_map_pages(int enable)
+ }
+ 
+ /*
+- * Map crashkernel memory
++ * Unmap crashkernel memory
+  */
+-void crash_map_reserved_pages(void)
++void arch_kexec_protect_crashkres(void)
+ {
+-	crash_map_pages(1);
++	if (crashk_res.end)
++		crash_map_pages(0);
+ }
+ 
+ /*
+- * Unmap crashkernel memory
++ * Map crashkernel memory
+  */
+-void crash_unmap_reserved_pages(void)
++void arch_kexec_unprotect_crashkres(void)
+ {
+-	crash_map_pages(0);
++	if (crashk_res.end)
++		crash_map_pages(1);
+ }
+ 
++#endif
++
+ /*
+  * Give back memory to hypervisor before new kdump is loaded
+  */
+diff -puN include/linux/kexec.h~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres include/linux/kexec.h
+--- a/include/linux/kexec.h~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres
++++ a/include/linux/kexec.h
+@@ -230,8 +230,6 @@ extern void crash_kexec(struct pt_regs *
+ int kexec_should_crash(struct task_struct *);
+ void crash_save_cpu(struct pt_regs *regs, int cpu);
+ void crash_save_vmcoreinfo(void);
+-void crash_map_reserved_pages(void);
+-void crash_unmap_reserved_pages(void);
+ void arch_crash_save_vmcoreinfo(void);
+ __printf(1, 2)
+ void vmcoreinfo_append_str(const char *fmt, ...);
+diff -puN kernel/kexec.c~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres kernel/kexec.c
+--- a/kernel/kexec.c~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres
++++ a/kernel/kexec.c
+@@ -136,9 +136,6 @@ static int do_kexec_load(unsigned long e
+ 	if (ret)
+ 		return ret;
+ 
+-	if (flags & KEXEC_ON_CRASH)
+-		crash_map_reserved_pages();
+-
+ 	if (flags & KEXEC_PRESERVE_CONTEXT)
+ 		image->preserve_context = 1;
+ 
+@@ -161,12 +158,6 @@ out:
+ 	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
+ 		arch_kexec_protect_crashkres();
+ 
+-	/*
+-	 * Once the reserved memory is mapped, we should unmap this memory
+-	 * before returning
+-	 */
+-	if (flags & KEXEC_ON_CRASH)
+-		crash_unmap_reserved_pages();
+ 	kimage_free(image);
+ 	return ret;
+ }
+@@ -232,9 +223,6 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
+ 
+ 	result = do_kexec_load(entry, nr_segments, segments, flags);
+ 
+-	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
+-		arch_kexec_protect_crashkres();
+-
+ 	mutex_unlock(&kexec_mutex);
+ 
+ 	return result;
+diff -puN kernel/kexec_core.c~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres kernel/kexec_core.c
+--- a/kernel/kexec_core.c~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres
++++ a/kernel/kexec_core.c
+@@ -954,7 +954,6 @@ int crash_shrink_memory(unsigned long ne
+ 	start = roundup(start, KEXEC_CRASH_MEM_ALIGN);
+ 	end = roundup(start + new_size, KEXEC_CRASH_MEM_ALIGN);
+ 
+-	crash_map_reserved_pages();
+ 	crash_free_reserved_phys_range(end, crashk_res.end);
+ 
+ 	if ((start == end) && (crashk_res.parent != NULL))
+@@ -968,7 +967,6 @@ int crash_shrink_memory(unsigned long ne
+ 	crashk_res.end = end - 1;
+ 
+ 	insert_resource(&iomem_resource, ram_res);
+-	crash_unmap_reserved_pages();
+ 
+ unlock:
+ 	mutex_unlock(&kexec_mutex);
+@@ -1553,17 +1551,12 @@ int kernel_kexec(void)
+ }
+ 
+ /*
+- * Add and remove page tables for crashkernel memory
++ * Protection mechanism for crashkernel reserved memory after
++ * the kdump kernel is loaded.
+  *
+  * Provide an empty default implementation here -- architecture
+  * code may override this
+  */
+-void __weak crash_map_reserved_pages(void)
+-{}
+-
+-void __weak crash_unmap_reserved_pages(void)
+-{}
