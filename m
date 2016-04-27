@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fsnotify-avoid-spurious-emfile-errors-from-inotify_init.patch
- added to -mm tree
-Date: Wed, 27 Apr 2016 13:12:54 -0700
-Message-ID: <57211d46.xI45ygSUEXX3axfe%akpm@linux-foundation.org>
+Subject: +
+ fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 27 Apr 2016 13:13:55 -0700
+Message-ID: <57211d83.uFDmlbLhXmlkwFIW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48937 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48946 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752626AbcD0UMz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:12:55 -0400
+	with ESMTP id S1752558AbcD0UN4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:13:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, jlayton@poochiereds.net, wangxg.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: avoid spurious EMFILE errors from inotify_init()
+     Subject: fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     fsnotify-avoid-spurious-emfile-errors-from-inotify_init.patch
+     fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-avoid-spurious-emfile-errors-from-inotify_init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-avoid-spurious-emfile-errors-from-inotify_init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,233 +39,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: fsnotify: avoid spurious EMFILE errors from inotify_init()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes
 
-Inotify instance is destroyed when all references to it are dropped.  That
-not only means that the corresponding file descriptor needs to be closed
-but also that all corresponding instance marks are freed (as each mark
-holds a reference to the inotify instance).  However marks are freed only
-after SRCU period ends which can take some time and thus if user rapidly
-creates and frees inotify instances, number of existing inotify instances
-can exceed max_user_instances limit although from user point of view there
-is always at most one existing instance.  Thus inotify_init() returns
-EMFILE error which is hard to justify from user point of view.  This
-problem is exposed by LTP inotify06 testcase on some machines.
+WARNING: line over 80 characters
+#44: FILE: fs/notify/fsnotify.h:61:
++/* wait for fsnotify_mark_srcu period to end and free all marks in destroy_list */
 
-We fix the problem by making sure all group marks are properly freed while
-destroying inotify instance.  We wait for SRCU period to end in that path
-anyway since we have to make sure there is no event being added to the
-instance while we are tearing down the instance.  So it takes only some
-plumbing to allow for marks to be destroyed in that path as well and not
-from a dedicated work item.
+total: 0 errors, 1 warnings, 168 lines checked
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Xiaoguang Wang <wangxg.fnst@cn.fujitsu.com>
-Tested-by: Xiaoguang Wang <wangxg.fnst@cn.fujitsu.com>
-Acked-by: Jeff Layton <jlayton@poochiereds.net>
+./patches/fsnotify-avoid-spurious-emfile-errors-from-inotify_init.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fsnotify.h             |    5 +
- fs/notify/group.c                |   17 ++++--
- fs/notify/mark.c                 |   78 ++++++++++++++++++++++-------
- include/linux/fsnotify_backend.h |    2 
- 4 files changed, 79 insertions(+), 23 deletions(-)
+ fs/notify/fsnotify.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/notify/fsnotify.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init fs/notify/fsnotify.h
---- a/fs/notify/fsnotify.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init
+diff -puN fs/notify/fsnotify.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes fs/notify/fsnotify.h
+--- a/fs/notify/fsnotify.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes
 +++ a/fs/notify/fsnotify.h
-@@ -56,6 +56,11 @@ static inline void fsnotify_clear_marks_
- 	fsnotify_destroy_marks(&real_mount(mnt)->mnt_fsnotify_marks,
- 			       &mnt->mnt_root->d_lock);
+@@ -58,7 +58,9 @@ static inline void fsnotify_clear_marks_
  }
-+/* prepare for freeing all marks associated with given group */
-+extern void fsnotify_detach_group_marks(struct fsnotify_group *group);
-+/* wait for fsnotify_mark_srcu period to end and free all marks in destroy_list */
-+extern void fsnotify_mark_destroy_list(void);
-+
- /*
-  * update the dentry->d_flags of all of inode's children to indicate if inode cares
-  * about events that happen to its children.
-diff -puN fs/notify/group.c~fsnotify-avoid-spurious-emfile-errors-from-inotify_init fs/notify/group.c
---- a/fs/notify/group.c~fsnotify-avoid-spurious-emfile-errors-from-inotify_init
-+++ a/fs/notify/group.c
-@@ -47,12 +47,21 @@ static void fsnotify_final_destroy_group
-  */
- void fsnotify_destroy_group(struct fsnotify_group *group)
- {
--	/* clear all inode marks for this group */
--	fsnotify_clear_marks_by_group(group);
-+	/* clear all inode marks for this group, attach them to destroy_list */
-+	fsnotify_detach_group_marks(group);
- 
--	synchronize_srcu(&fsnotify_mark_srcu);
-+	/*
-+	 * Wait for fsnotify_mark_srcu period to end and free all marks in
-+	 * destroy_list
-+	 */
-+	fsnotify_mark_destroy_list();
- 
--	/* clear the notification queue of all events */
-+	/*
-+	 * Since we have waited for fsnotify_mark_srcu in
-+	 * fsnotify_mark_destroy_list() there can be no outstanding event
-+	 * notification against this group. So clearing the notification queue
-+	 * of all events is reliable now.
-+	 */
- 	fsnotify_flush_notify(group);
- 
- 	/*
-diff -puN fs/notify/mark.c~fsnotify-avoid-spurious-emfile-errors-from-inotify_init fs/notify/mark.c
---- a/fs/notify/mark.c~fsnotify-avoid-spurious-emfile-errors-from-inotify_init
-+++ a/fs/notify/mark.c
-@@ -97,8 +97,8 @@ struct srcu_struct fsnotify_mark_srcu;
- static DEFINE_SPINLOCK(destroy_lock);
- static LIST_HEAD(destroy_list);
- 
--static void fsnotify_mark_destroy(struct work_struct *work);
--static DECLARE_DELAYED_WORK(reaper_work, fsnotify_mark_destroy);
-+static void fsnotify_mark_destroy_workfn(struct work_struct *work);
-+static DECLARE_DELAYED_WORK(reaper_work, fsnotify_mark_destroy_workfn);
- 
- void fsnotify_get_mark(struct fsnotify_mark *mark)
- {
-@@ -173,11 +173,15 @@ void fsnotify_detach_mark(struct fsnotif
- }
- 
- /*
-- * Free fsnotify mark. The freeing is actually happening from a kthread which
-- * first waits for srcu period end. Caller must have a reference to the mark
-- * or be protected by fsnotify_mark_srcu.
-+ * Prepare mark for freeing and add it to the list of marks prepared for
-+ * freeing. The actual freeing must happen after SRCU period ends and the
-+ * caller is responsible for this.
-+ *
-+ * The function returns true if the mark was added to the list of marks for
-+ * freeing. The function returns false if someone else has already called
-+ * __fsnotify_free_mark() for the mark.
-  */
--void fsnotify_free_mark(struct fsnotify_mark *mark)
-+static bool __fsnotify_free_mark(struct fsnotify_mark *mark)
- {
- 	struct fsnotify_group *group = mark->group;
- 
-@@ -185,17 +189,11 @@ void fsnotify_free_mark(struct fsnotify_
- 	/* something else already called this function on this mark */
- 	if (!(mark->flags & FSNOTIFY_MARK_FLAG_ALIVE)) {
- 		spin_unlock(&mark->lock);
--		return;
-+		return false;
- 	}
- 	mark->flags &= ~FSNOTIFY_MARK_FLAG_ALIVE;
- 	spin_unlock(&mark->lock);
- 
--	spin_lock(&destroy_lock);
--	list_add(&mark->g_list, &destroy_list);
--	spin_unlock(&destroy_lock);
--	queue_delayed_work(system_unbound_wq, &reaper_work,
--				FSNOTIFY_REAPER_DELAY);
--
- 	/*
- 	 * Some groups like to know that marks are being freed.  This is a
- 	 * callback to the group function to let it know that this mark
-@@ -203,6 +201,25 @@ void fsnotify_free_mark(struct fsnotify_
- 	 */
- 	if (group->ops->freeing_mark)
- 		group->ops->freeing_mark(mark, group);
-+
-+	spin_lock(&destroy_lock);
-+	list_add(&mark->g_list, &destroy_list);
-+	spin_unlock(&destroy_lock);
-+
-+	return true;
-+}
-+
+ /* prepare for freeing all marks associated with given group */
+ extern void fsnotify_detach_group_marks(struct fsnotify_group *group);
+-/* wait for fsnotify_mark_srcu period to end and free all marks in destroy_list */
 +/*
-+ * Free fsnotify mark. The freeing is actually happening from a workqueue which
-+ * first waits for srcu period end. Caller must have a reference to the mark
-+ * or be protected by fsnotify_mark_srcu.
++ * wait for fsnotify_mark_srcu period to end and free all marks in destroy_list
 + */
-+void fsnotify_free_mark(struct fsnotify_mark *mark)
-+{
-+	if (__fsnotify_free_mark(mark)) {
-+		queue_delayed_work(system_unbound_wq, &reaper_work,
-+				   FSNOTIFY_REAPER_DELAY);
-+	}
- }
- 
- void fsnotify_destroy_mark(struct fsnotify_mark *mark,
-@@ -468,11 +485,29 @@ void fsnotify_clear_marks_by_group_flags
- }
+ extern void fsnotify_mark_destroy_list(void);
  
  /*
-- * Given a group, destroy all of the marks associated with that group.
-+ * Given a group, prepare for freeing all the marks associated with that group.
-+ * The marks are attached to the list of marks prepared for destruction, the
-+ * caller is responsible for freeing marks in that list after SRCU period has
-+ * ended.
-  */
--void fsnotify_clear_marks_by_group(struct fsnotify_group *group)
-+void fsnotify_detach_group_marks(struct fsnotify_group *group)
- {
--	fsnotify_clear_marks_by_group_flags(group, (unsigned int)-1);
-+	struct fsnotify_mark *mark;
-+
-+	while (1) {
-+		mutex_lock_nested(&group->mark_mutex, SINGLE_DEPTH_NESTING);
-+		if (list_empty(&group->marks_list)) {
-+			mutex_unlock(&group->mark_mutex);
-+			break;
-+		}
-+		mark = list_first_entry(&group->marks_list,
-+					struct fsnotify_mark, g_list);
-+		fsnotify_get_mark(mark);
-+		fsnotify_detach_mark(mark);
-+		mutex_unlock(&group->mark_mutex);
-+		__fsnotify_free_mark(mark);
-+		fsnotify_put_mark(mark);
-+	}
- }
- 
- void fsnotify_duplicate_mark(struct fsnotify_mark *new, struct fsnotify_mark *old)
-@@ -499,7 +534,11 @@ void fsnotify_init_mark(struct fsnotify_
- 	mark->free_mark = free_mark;
- }
- 
--static void fsnotify_mark_destroy(struct work_struct *work)
-+/*
-+ * Destroy all marks in destroy_list, waits for SRCU period to finish before
-+ * actually freeing marks.
-+ */
-+void fsnotify_mark_destroy_list(void)
- {
- 	struct fsnotify_mark *mark, *next;
- 	struct list_head private_destroy_list;
-@@ -516,3 +555,8 @@ static void fsnotify_mark_destroy(struct
- 		fsnotify_put_mark(mark);
- 	}
- }
-+
-+static void fsnotify_mark_destroy_workfn(struct work_struct *work)
-+{
-+	fsnotify_mark_destroy_list();
-+}
-diff -puN include/linux/fsnotify_backend.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init
-+++ a/include/linux/fsnotify_backend.h
-@@ -359,8 +359,6 @@ extern void fsnotify_clear_vfsmount_mark
- extern void fsnotify_clear_inode_marks_by_group(struct fsnotify_group *group);
- /* run all the marks in a group, and clear all of the marks where mark->flags & flags is true*/
- extern void fsnotify_clear_marks_by_group_flags(struct fsnotify_group *group, unsigned int flags);
--/* run all the marks in a group, and flag them to be freed */
--extern void fsnotify_clear_marks_by_group(struct fsnotify_group *group);
- extern void fsnotify_get_mark(struct fsnotify_mark *mark);
- extern void fsnotify_put_mark(struct fsnotify_mark *mark);
- extern void fsnotify_unmount_inodes(struct super_block *sb);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fsnotify-avoid-spurious-emfile-errors-from-inotify_init.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes.patch
+kernel-padata-hide-unused-functions-checkpatch-fixes.patch
+mm.patch
+mm-slab-freelist-randomization-v5-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-uninline-page_mapped.patch
+mm-uninline-page_mapped-checkpatch-fixes.patch
+memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
+mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
+mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
+mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
+mm-page_alloc-un-inline-the-bad-part-of-free_pages_check-fix.patch
+mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
+mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch
+mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
+mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
+mm-kasan-initial-memory-quarantine-implementation-v8-fix.patch
+procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable-fix.patch
+exit_thread-remove-empty-bodies-fix.patch
+exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
+fs-execc-fix-minor-memory-leak.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
