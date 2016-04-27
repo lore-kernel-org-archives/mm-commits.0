@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-vm_mmap-killable.patch added to -mm tree
-Date: Wed, 27 Apr 2016 13:50:41 -0700
-Message-ID: <57212621.ErczKPiyuikIgXP5%akpm@linux-foundation.org>
+Subject: +
+ ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch added to
+ -mm tree
+Date: Wed, 27 Apr 2016 13:50:55 -0700
+Message-ID: <5721262f.gG6eTAUNqL/4eXUz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49368 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49407 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751553AbcD0Uum (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:50:42 -0400
+	with ESMTP id S1752921AbcD0Uu4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:50:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, aarcange@redhat.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mgorman@suse.de, oleg@redhat.com, vbabka@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mhocko@suse.com, dave@stgolabs.net, hughd@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make vm_mmap killable
+     Subject: ipc, shm: make shmem attach/detach wait for mmap_sem killable
 has been added to the -mm tree.  Its filename is
-     mm-make-vm_mmap-killable.patch
+     ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-vm_mmap-killable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-vm_mmap-killable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,136 +41,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: make vm_mmap killable
+Subject: ipc, shm: make shmem attach/detach wait for mmap_sem killable
 
-All the callers of vm_mmap seem to check for the failure already and bail
-out in one way or another on the error which means that we can change it
-to use killable version of vm_mmap_pgoff and return -EINTR if the current
-task gets killed while waiting for mmap_sem.  This also means that
-vm_mmap_pgoff can be killable by default and drop the additional
-parameter.
-
-This will help in the OOM conditions when the oom victim might be stuck
-waiting for the mmap_sem for write which in turn can block oom_reaper
-which relies on the mmap_sem for read to make a forward progress and
-reclaim the address space of the victim.
-
-Please note that load_elf_binary is ignoring vm_mmap error for
-current->personality & MMAP_PAGE_ZERO case but that shouldn't be a problem
-because the address is not used anywhere and we never return to the
-userspace if we got killed.
+shmat and shmdt rely on mmap_sem for write.  If the waiting task gets
+killed by the oom killer it would block oom_reaper from asynchronous
+address space reclaim and reduce the chances of timely OOM resolving. 
+Wait for the lock in the killable mode and return with EINTR if the task
+got killed while waiting.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Davidlohr Bueso <dave@stgolabs.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/internal.h      |    3 +--
- mm/mmap.c          |    2 +-
- mm/nommu.c         |    2 +-
- mm/util.c          |   13 ++++---------
- 5 files changed, 8 insertions(+), 14 deletions(-)
+ ipc/shm.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-make-vm_mmap-killable include/linux/mm.h
---- a/include/linux/mm.h~mm-make-vm_mmap-killable
-+++ a/include/linux/mm.h
-@@ -2005,7 +2005,7 @@ static inline void mm_populate(unsigned
- /* These take the mm semaphore themselves */
- extern unsigned long vm_brk(unsigned long, unsigned long);
- extern int vm_munmap(unsigned long, size_t);
--extern unsigned long vm_mmap(struct file *, unsigned long,
-+extern unsigned long __must_check vm_mmap(struct file *, unsigned long,
-         unsigned long, unsigned long,
-         unsigned long, unsigned long);
+diff -puN ipc/shm.c~ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable ipc/shm.c
+--- a/ipc/shm.c~ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable
++++ a/ipc/shm.c
+@@ -1200,7 +1200,11 @@ long do_shmat(int shmid, char __user *sh
+ 	if (err)
+ 		goto out_fput;
  
-diff -puN mm/internal.h~mm-make-vm_mmap-killable mm/internal.h
---- a/mm/internal.h~mm-make-vm_mmap-killable
-+++ a/mm/internal.h
-@@ -448,8 +448,7 @@ extern u32 hwpoison_filter_enable;
+-	down_write(&current->mm->mmap_sem);
++	if (down_write_killable(&current->mm->mmap_sem)) {
++		err = -EINTR;
++		goto out_fput;
++	}
++
+ 	if (addr && !(shmflg & SHM_REMAP)) {
+ 		err = -EINVAL;
+ 		if (addr + size < addr)
+@@ -1271,7 +1275,8 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
+ 	if (addr & ~PAGE_MASK)
+ 		return retval;
  
- extern unsigned long  __must_check vm_mmap_pgoff(struct file *, unsigned long,
-         unsigned long, unsigned long,
--        unsigned long, unsigned long,
--        bool);
-+        unsigned long, unsigned long);
+-	down_write(&mm->mmap_sem);
++	if (down_write_killable(&mm->mmap_sem))
++		return -EINTR;
  
- extern void set_pageblock_order(void);
- unsigned long reclaim_clean_pages_from_list(struct zone *zone,
-diff -puN mm/mmap.c~mm-make-vm_mmap-killable mm/mmap.c
---- a/mm/mmap.c~mm-make-vm_mmap-killable
-+++ a/mm/mmap.c
-@@ -1333,7 +1333,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
- 
- 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
- 
--	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff, true);
-+	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
- out_fput:
- 	if (file)
- 		fput(file);
-diff -puN mm/nommu.c~mm-make-vm_mmap-killable mm/nommu.c
---- a/mm/nommu.c~mm-make-vm_mmap-killable
-+++ a/mm/nommu.c
-@@ -1446,7 +1446,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
- 
- 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
- 
--	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff, true);
-+	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
- 
- 	if (file)
- 		fput(file);
-diff -puN mm/util.c~mm-make-vm_mmap-killable mm/util.c
---- a/mm/util.c~mm-make-vm_mmap-killable
-+++ a/mm/util.c
-@@ -289,7 +289,7 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
- 
- unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot,
--	unsigned long flag, unsigned long pgoff, bool killable)
-+	unsigned long flag, unsigned long pgoff)
- {
- 	unsigned long ret;
- 	struct mm_struct *mm = current->mm;
-@@ -297,12 +297,8 @@ unsigned long vm_mmap_pgoff(struct file
- 
- 	ret = security_mmap_file(file, prot, flag);
- 	if (!ret) {
--		if (killable) {
--			if (down_write_killable(&mm->mmap_sem))
--				return -EINTR;
--		} else {
--			down_write(&mm->mmap_sem);
--		}
-+		if (down_write_killable(&mm->mmap_sem))
-+			return -EINTR;
- 		ret = do_mmap_pgoff(file, addr, len, prot, flag, pgoff,
- 				    &populate);
- 		up_write(&mm->mmap_sem);
-@@ -312,7 +308,6 @@ unsigned long vm_mmap_pgoff(struct file
- 	return ret;
- }
- 
--/* XXX are all callers checking an error */
- unsigned long vm_mmap(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot,
- 	unsigned long flag, unsigned long offset)
-@@ -322,7 +317,7 @@ unsigned long vm_mmap(struct file *file,
- 	if (unlikely(offset_in_page(offset)))
- 		return -EINVAL;
- 
--	return vm_mmap_pgoff(file, addr, len, prot, flag, offset >> PAGE_SHIFT, false);
-+	return vm_mmap_pgoff(file, addr, len, prot, flag, offset >> PAGE_SHIFT);
- }
- EXPORT_SYMBOL(vm_mmap);
- 
+ 	/*
+ 	 * This function tries to be smart and unmap shm segments that
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
