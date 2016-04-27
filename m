@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch added to
- -mm tree
-Date: Wed, 27 Apr 2016 13:50:53 -0700
-Message-ID: <5721262d.RFWm2K4bzU+ZiO5s%akpm@linux-foundation.org>
+Subject: + mm-proc-make-clear_refs-killable.patch added to -mm tree
+Date: Wed, 27 Apr 2016 13:50:51 -0700
+Message-ID: <5721262b.C/ixMn+Q03KYUQLH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49397 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752184AbcD0Uuy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:50:54 -0400
+	with ESMTP id S1752184AbcD0Uux (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:50:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, koct9i@gmail.com, mingo@kernel.org, oleg@redhat.com, peterz@infradead.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, oleg@redhat.com, petrcermak@chromium.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, fork: make dup_mmap wait for mmap_sem for write killable
+     Subject: mm, proc: make clear_refs killable
 has been added to the -mm tree.  Its filename is
-     mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
+     mm-proc-make-clear_refs-killable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-proc-make-clear_refs-killable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-proc-make-clear_refs-killable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,49 +39,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, fork: make dup_mmap wait for mmap_sem for write killable
+Subject: mm, proc: make clear_refs killable
 
-dup_mmap needs to lock current's mm mmap_sem for write.  If the waiting
-task gets killed by the oom killer it would block oom_reaper from
+CLEAR_REFS_MM_HIWATER_RSS and CLEAR_REFS_SOFT_DIRTY are relying on
+mmap_sem for write.  If the waiting task gets killed by the oom killer and
+it would operate on the current's mm it would block oom_reaper from
 asynchronous address space reclaim and reduce the chances of timely OOM
 resolving.  Wait for the lock in the killable mode and return with EINTR
-if the task got killed while waiting.
+if the task got killed while waiting.  This will also expedite the return
+to the userspace and do_exit even if the mm is remote.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Petr Cermak <petrcermak@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN kernel/fork.c~mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable kernel/fork.c
---- a/kernel/fork.c~mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable
-+++ a/kernel/fork.c
-@@ -413,7 +413,10 @@ static int dup_mmap(struct mm_struct *mm
- 	unsigned long charge;
+diff -puN fs/proc/task_mmu.c~mm-proc-make-clear_refs-killable fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-proc-make-clear_refs-killable
++++ a/fs/proc/task_mmu.c
+@@ -1027,11 +1027,15 @@ static ssize_t clear_refs_write(struct f
+ 		};
  
- 	uprobe_start_dup_mmap();
--	down_write(&oldmm->mmap_sem);
-+	if (down_write_killable(&oldmm->mmap_sem)) {
-+		retval = -EINTR;
-+		goto fail_uprobe_end;
-+	}
- 	flush_cache_dup_mm(oldmm);
- 	uprobe_dup_mmap(oldmm, mm);
- 	/*
-@@ -525,6 +528,7 @@ out:
- 	up_write(&mm->mmap_sem);
- 	flush_tlb_mm(oldmm);
- 	up_write(&oldmm->mmap_sem);
-+fail_uprobe_end:
- 	uprobe_end_dup_mmap();
- 	return retval;
- fail_nomem_anon_vma_fork:
+ 		if (type == CLEAR_REFS_MM_HIWATER_RSS) {
++			if (down_write_killable(&mm->mmap_sem)) {
++				count = -EINTR;
++				goto out_mm;
++			}
++
+ 			/*
+ 			 * Writing 5 to /proc/pid/clear_refs resets the peak
+ 			 * resident set size to this mm's current rss value.
+ 			 */
+-			down_write(&mm->mmap_sem);
+ 			reset_mm_hiwater_rss(mm);
+ 			up_write(&mm->mmap_sem);
+ 			goto out_mm;
+@@ -1043,7 +1047,10 @@ static ssize_t clear_refs_write(struct f
+ 				if (!(vma->vm_flags & VM_SOFTDIRTY))
+ 					continue;
+ 				up_read(&mm->mmap_sem);
+-				down_write(&mm->mmap_sem);
++				if (down_write_killable(&mm->mmap_sem)) {
++					count = -EINTR;
++					goto out_mm;
++				}
+ 				for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 					vma->vm_flags &= ~VM_SOFTDIRTY;
+ 					vma_set_page_prot(vma);
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
