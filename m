@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks-fix.patch added
- to -mm tree
-Date: Wed, 27 Apr 2016 12:19:08 -0700
-Message-ID: <572110ac.9EyF+W5BXoRIOK06%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-un-inline-the-bad-part-of-free_pages_check.patch
+ added to -mm tree
+Date: Wed, 27 Apr 2016 12:22:34 -0700
+Message-ID: <5721117a.xB7gq3S3HX/40ni1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47981 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48064 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750867AbcD0TTJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 15:19:09 -0400
+	with ESMTP id S1752380AbcD0TWf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 15:22:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: Check once if a zone has isolated pageblocks -fix
+     Subject: mm, page_alloc: un-inline the bad part of free_pages_check
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks-fix.patch
+     mm-page_alloc-un-inline-the-bad-part-of-free_pages_check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-un-inline-the-bad-part-of-free_pages_check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-un-inline-the-bad-part-of-free_pages_check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,39 +40,73 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: Check once if a zone has isolated pageblocks -fix
+Subject: mm, page_alloc: un-inline the bad part of free_pages_check
 
-Vlastimil Babka pointed out that the original code was protected by
-the zone lock and provided a fix.
 
-This is a fix to the mmotm patch
-mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch . Once
-applied the following line should be removed from the changelog "Technically
-this is race-prone but so is the existing code."
+!DEBUG_VM size and bloat-o-meter:
+
+add/remove: 1/0 grow/shrink: 0/2 up/down: 124/-370 (-246)
+function                                     old     new   delta
+free_pages_check_bad                           -     124    +124
+free_pcppages_bulk                          1288    1171    -117
+__free_pages_ok                              948     695    -253
+
+DEBUG_VM:
+
+add/remove: 1/0 grow/shrink: 0/1 up/down: 124/-214 (-90)
+function                                     old     new   delta
+free_pages_check_bad                           -     124    +124
+free_pages_prepare                          1112     898    -214
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks-fix
+diff -puN mm/page_alloc.c~mm-page_alloc-un-inline-the-bad-part-of-free_pages_check mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-un-inline-the-bad-part-of-free_pages_check
 +++ a/mm/page_alloc.c
-@@ -831,9 +831,10 @@ static void free_pcppages_bulk(struct zo
- 	int batch_free = 0;
- 	int to_free = count;
- 	unsigned long nr_scanned;
--	bool isolated_pageblocks = has_isolate_pageblock(zone);
-+	bool isolated_pageblocks;
+@@ -806,18 +806,11 @@ static inline bool page_expected_state(s
+ 	return true;
+ }
  
- 	spin_lock(&zone->lock);
-+	isolated_pageblocks = has_isolate_pageblock(zone);
- 	nr_scanned = zone_page_state(zone, NR_PAGES_SCANNED);
- 	if (nr_scanned)
- 		__mod_zone_page_state(zone, NR_PAGES_SCANNED, -nr_scanned);
+-static inline int free_pages_check(struct page *page)
++static void free_pages_check_bad(struct page *page)
+ {
+ 	const char *bad_reason;
+ 	unsigned long bad_flags;
+ 
+-	if (page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE)) {
+-		page_cpupid_reset_last(page);
+-		page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+-		return 0;
+-	}
+-
+-	/* Something has gone sideways, find it */
+ 	bad_reason = NULL;
+ 	bad_flags = 0;
+ 
+@@ -836,6 +829,17 @@ static inline int free_pages_check(struc
+ 		bad_reason = "page still charged to cgroup";
+ #endif
+ 	bad_page(page, bad_reason, bad_flags);
++}
++static inline int free_pages_check(struct page *page)
++{
++	if (likely(page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE))) {
++		page_cpupid_reset_last(page);
++		page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
++		return 0;
++	}
++
++	/* Something has gone sideways, find it */
++	free_pages_check_bad(page);
+ 	return 1;
+ }
+ 
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
@@ -100,6 +133,7 @@ mm-page_alloc-shortcut-watermark-checks-for-order-0-pages.patch
 mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice.patch
 mm-page_alloc-remove-field-from-alloc_context.patch
 mm-page_alloc-check-multiple-page-fields-with-a-single-branch.patch
+mm-page_alloc-un-inline-the-bad-part-of-free_pages_check.patch
 mm-page_alloc-remove-unnecessary-variable-from-free_pcppages_bulk.patch
 mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths.patch
 mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch
