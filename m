@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function.patch added to
- -mm tree
-Date: Wed, 27 Apr 2016 14:22:07 -0700
-Message-ID: <57212d7f.AbduCBIIouKEjySr%akpm@linux-foundation.org>
+ mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix.patch added to -mm tree
+Date: Wed, 27 Apr 2016 14:48:46 -0700
+Message-ID: <572133be.tBPmE3+G64zckCWu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49951 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51468 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752362AbcD0VWI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 17:22:08 -0400
+	with ESMTP id S1752533AbcD0Vsr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 17:48:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guozhonghua@h3c.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, brouer@redhat.com, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: clean up an unneeded goto in ocfs2_put_slot()
+     Subject: mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function.patch
+     mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +39,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guozhonghua <guozhonghua@h3c.com>
-Subject: ocfs2: clean up an unneeded goto in ocfs2_put_slot()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix
 
-The goto is not useful in ocfs2_put_slot(), so delete it.
+mm/page_alloc.c: In function '__alloc_pages_nodemask':
+mm/page_alloc.c:3350: warning: 'page' may be used uninitialized in this function
 
-Signed-off-by: Guozhonghua <guozhonghua@h3c.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Not feeling good about what happened in here.
+
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/slot_map.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/page_alloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/slot_map.c~ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function fs/ocfs2/slot_map.c
---- a/fs/ocfs2/slot_map.c~ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function
-+++ a/fs/ocfs2/slot_map.c
-@@ -535,12 +535,9 @@ void ocfs2_put_slot(struct ocfs2_super *
- 	spin_unlock(&osb->osb_lock);
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix
++++ a/mm/page_alloc.c
+@@ -3393,8 +3393,11 @@ retry_cpuset:
+ 	/* The preferred zone is used for statistics later */
+ 	preferred_zoneref = first_zones_zonelist(ac.zonelist, ac.high_zoneidx,
+ 				ac.nodemask, &ac.preferred_zone);
+-	if (!ac.preferred_zone)
++	if (!ac.preferred_zone) {
++		page = NULL;
+ 		goto out;
++	}
++
+ 	ac.classzone_idx = zonelist_zone_idx(preferred_zoneref);
  
- 	status = ocfs2_update_disk_slot(osb, si, slot_num);
--	if (status < 0) {
-+       if (status < 0)
- 		mlog_errno(status);
--		goto bail;
--	}
- 
--bail:
- 	ocfs2_free_slot_info(osb);
- }
- 
+ 	/* First allocation attempt */
 _
 
-Patches currently in -mm which might be from guozhonghua@h3c.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08.patch
-ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes.patch
+kernel-padata-hide-unused-functions-checkpatch-fixes.patch
+mm.patch
+mm-slab-freelist-randomization-v5-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-uninline-page_mapped.patch
+mm-uninline-page_mapped-checkpatch-fixes.patch
+memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
+mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
+mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix.patch
+mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
+mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
+mm-page_alloc-un-inline-the-bad-part-of-free_pages_check-fix.patch
+mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
+mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch
+mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
+mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable-fix.patch
+exit_thread-remove-empty-bodies-fix.patch
+exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
+fs-execc-fix-minor-memory-leak.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
