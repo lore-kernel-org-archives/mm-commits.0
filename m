@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch added to -mm tree
-Date: Wed, 27 Apr 2016 12:30:31 -0700
-Message-ID: <57211357.QPbZANPBQ0ynkeTh%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch added to -mm tree
+Date: Wed, 27 Apr 2016 12:30:27 -0700
+Message-ID: <57211353.eadP8ulJWc/CdaO8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48177 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48170 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752380AbcD0Tac (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 15:30:32 -0400
+	with ESMTP id S1752022AbcD0Ta2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 15:30:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, brouer@redhat.com, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix
+     Subject: mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch
+     mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,40 +40,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix
+Subject: mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix
 
+mm/page_alloc.c: In function 'free_pcp_prepare':
+mm/page_alloc.c:997: error: implicit declaration of function 'free_pages_prepare'
+mm/page_alloc.c: At top level:
+mm/page_alloc.c:1202: error: conflicting types for 'free_pages_prepare'
+mm/page_alloc.c:997: note: previous implicit declaration of 'free_pages_prepare' was here
+
+might be a merge snafu
+
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix
+diff -puN mm/page_alloc.c~mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix
 +++ a/mm/page_alloc.c
-@@ -991,7 +991,8 @@ out:
+@@ -991,6 +991,8 @@ out:
  	return ret;
  }
  
--static bool free_pages_prepare(struct page *page, unsigned int order);
-+static bool free_pages_prepare(struct page *page, unsigned int order,
-+			       bool check_free);
- 
++static bool free_pages_prepare(struct page *page, unsigned int order);
++
  #ifdef CONFIG_DEBUG_VM
  static inline bool free_pcp_prepare(struct page *page)
-@@ -1178,8 +1179,8 @@ void __meminit reserve_bootmem_region(un
- 	}
- }
- 
--static __always_inline bool free_pages_prepare(struct page *page, unsigned int order,
--						bool check_free)
-+static __always_inline bool free_pages_prepare(struct page *page,
-+					unsigned int order, bool check_free)
  {
- 	int bad = 0;
- 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
