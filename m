@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-hugetlb-clean-up-code.patch added to -mm tree
-Date: Wed, 27 Apr 2016 14:05:18 -0700
-Message-ID: <5721298e.4OTdo//dqfuiQzlJ%akpm@linux-foundation.org>
+Subject: +
+ include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported.patch added to -mm tree
+Date: Wed, 27 Apr 2016 14:05:50 -0700
+Message-ID: <572129ae.nwedbWgS6E8UAGHn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49498 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49500 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752316AbcD0VFT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 17:05:19 -0400
+	with ESMTP id S1752316AbcD0VFv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 17:05:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
+To: chengang@emindsoft.com.cn, gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/hugetlb*.h: clean up code
+     Subject: include/linux/hugetlb.h: use bool instead of int for hugepage_migration_supported()
 has been added to the -mm tree.  Its filename is
-     include-linux-hugetlb-clean-up-code.patch
+     include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-hugetlb-clean-up-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-hugetlb-clean-up-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,72 +39,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen.5i5j@gmail.com>
-Subject: include/linux/hugetlb*.h: clean up code
+From: Chen Gang <chengang@emindsoft.com.cn>
+Subject: include/linux/hugetlb.h: use bool instead of int for hugepage_migration_supported()
 
-Macro HUGETLBFS_SB is clear enough, so one statement is clearer than 3
-lines statements.
-
-Remove redundant return statements for non-return functions, which can
-save lines, at least.
+It is used as a pure bool function within kernel source wide.
 
 Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h        |    4 +---
- include/linux/hugetlb_cgroup.h |    4 ----
- 2 files changed, 1 insertion(+), 7 deletions(-)
+ include/linux/hugetlb.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/hugetlb.h~include-linux-hugetlb-clean-up-code include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~include-linux-hugetlb-clean-up-code
+diff -puN include/linux/hugetlb.h~include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported
 +++ a/include/linux/hugetlb.h
-@@ -353,9 +353,7 @@ extern unsigned int default_hstate_idx;
+@@ -452,12 +452,12 @@ static inline pgoff_t basepage_index(str
  
- static inline struct hstate *hstate_inode(struct inode *i)
+ extern void dissolve_free_huge_pages(unsigned long start_pfn,
+ 				     unsigned long end_pfn);
+-static inline int hugepage_migration_supported(struct hstate *h)
++static inline bool hugepage_migration_supported(struct hstate *h)
  {
--	struct hugetlbfs_sb_info *hsb;
--	hsb = HUGETLBFS_SB(i->i_sb);
--	return hsb->hstate;
-+	return HUGETLBFS_SB(i->i_sb)->hstate;
+ #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+ 	return huge_page_shift(h) == PMD_SHIFT;
+ #else
+-	return 0;
++	return false;
+ #endif
  }
  
- static inline struct hstate *hstate_file(struct file *f)
-diff -puN include/linux/hugetlb_cgroup.h~include-linux-hugetlb-clean-up-code include/linux/hugetlb_cgroup.h
---- a/include/linux/hugetlb_cgroup.h~include-linux-hugetlb-clean-up-code
-+++ a/include/linux/hugetlb_cgroup.h
-@@ -93,20 +93,17 @@ hugetlb_cgroup_commit_charge(int idx, un
- 			     struct hugetlb_cgroup *h_cg,
- 			     struct page *page)
- {
--	return;
+@@ -519,7 +519,7 @@ static inline pgoff_t basepage_index(str
+ 	return page->index;
  }
+ #define dissolve_free_huge_pages(s, e)	do {} while (0)
+-#define hugepage_migration_supported(h)	0
++#define hugepage_migration_supported(h)	false
  
- static inline void
- hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages, struct page *page)
- {
--	return;
- }
- 
- static inline void
- hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
- 			       struct hugetlb_cgroup *h_cg)
- {
--	return;
- }
- 
- static inline void hugetlb_cgroup_file_init(void)
-@@ -116,7 +113,6 @@ static inline void hugetlb_cgroup_file_i
- static inline void hugetlb_cgroup_migrate(struct page *oldhpage,
- 					  struct page *newhpage)
- {
--	return;
- }
- 
- #endif  /* CONFIG_MEM_RES_CTLR_HUGETLB */
+ static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
+ 					   struct mm_struct *mm, pte_t *pte)
 _
 
-Patches currently in -mm which might be from gang.chen.5i5j@gmail.com are
+Patches currently in -mm which might be from chengang@emindsoft.com.cn are
 
-include-linux-hugetlb-clean-up-code.patch
+include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported.patch
 
