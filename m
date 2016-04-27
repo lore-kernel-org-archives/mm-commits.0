@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + uprobes-wait-for-mmap_sem-for-write-killable.patch added to -mm tree
-Date: Wed, 27 Apr 2016 13:51:07 -0700
-Message-ID: <5721263b.nMNgZt8zmbSotbFi%akpm@linux-foundation.org>
+Subject: + aio-make-aio_setup_ring-killable.patch added to -mm tree
+Date: Wed, 27 Apr 2016 13:51:01 -0700
+Message-ID: <57212635.fz8Rn+2EDua+K5/G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49435 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49423 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751553AbcD0UvI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:51:08 -0400
+	with ESMTP id S1752977AbcD0UvD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:51:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, oleg@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, bcrl@kvack.org, jmoyer@redhat.com, vbabka@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uprobes: wait for mmap_sem for write killable
+     Subject: aio: make aio_setup_ring killable
 has been added to the -mm tree.  Its filename is
-     uprobes-wait-for-mmap_sem-for-write-killable.patch
+     aio-make-aio_setup_ring-killable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/uprobes-wait-for-mmap_sem-for-write-killable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/aio-make-aio_setup_ring-killable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/uprobes-wait-for-mmap_sem-for-write-killable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/aio-make-aio_setup_ring-killable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +39,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: uprobes: wait for mmap_sem for write killable
+Subject: aio: make aio_setup_ring killable
 
-xol_add_vma needs mmap_sem for write.  If the waiting task gets killed by
-the oom killer it would block oom_reaper from asynchronous address space
-reclaim and reduce the chances of timely OOM resolving.  Wait for the lock
-in the killable mode and return with EINTR if the task got killed while
-waiting.
-
-Do not warn in dup_xol_work if __create_xol_area failed due to fatal
-signal pending because this is usually considered a kernel issue.
+aio_setup_ring waits for mmap_sem in writable mode.  If the waiting task
+gets killed by the oom killer it would block oom_reaper from asynchronous
+address space reclaim and reduce the chances of timely OOM resolving. 
+Wait for the lock in the killable mode and return with EINTR if the task
+got killed while waiting.  This will also expedite the return to the
+userspace and do_exit.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Benamin LaHaise <bcrl@kvack.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/aio.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN kernel/events/uprobes.c~uprobes-wait-for-mmap_sem-for-write-killable kernel/events/uprobes.c
---- a/kernel/events/uprobes.c~uprobes-wait-for-mmap_sem-for-write-killable
-+++ a/kernel/events/uprobes.c
-@@ -1130,7 +1130,9 @@ static int xol_add_vma(struct mm_struct
- 	struct vm_area_struct *vma;
- 	int ret;
+diff -puN fs/aio.c~aio-make-aio_setup_ring-killable fs/aio.c
+--- a/fs/aio.c~aio-make-aio_setup_ring-killable
++++ a/fs/aio.c
+@@ -496,7 +496,12 @@ static int aio_setup_ring(struct kioctx
+ 	ctx->mmap_size = nr_pages * PAGE_SIZE;
+ 	pr_debug("attempting mmap of %lu bytes\n", ctx->mmap_size);
  
 -	down_write(&mm->mmap_sem);
-+	if (down_write_killable(&mm->mmap_sem))
++	if (down_write_killable(&mm->mmap_sem)) {
++		ctx->mmap_size = 0;
++		aio_free_ring(ctx);
 +		return -EINTR;
++	}
 +
- 	if (mm->uprobes_state.xol_area) {
- 		ret = -EALREADY;
- 		goto fail;
-@@ -1469,7 +1471,8 @@ static void dup_xol_work(struct callback
- 	if (current->flags & PF_EXITING)
- 		return;
- 
--	if (!__create_xol_area(current->utask->dup_xol_addr))
-+	if (!__create_xol_area(current->utask->dup_xol_addr) &&
-+			!fatal_signal_pending(current))
- 		uprobe_warn(current, "dup xol area");
- }
- 
+ 	ctx->mmap_base = do_mmap_pgoff(ctx->aio_ring_file, 0, ctx->mmap_size,
+ 				       PROT_READ | PROT_WRITE,
+ 				       MAP_SHARED, 0, &unused);
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
