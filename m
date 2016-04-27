@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-aout-handle-vm_brk-failures.patch added to -mm tree
-Date: Wed, 27 Apr 2016 13:50:45 -0700
-Message-ID: <57212625.fZb3VPoMNAWcBLis%akpm@linux-foundation.org>
+Subject: + mm-elf-handle-vm_brk-error.patch added to -mm tree
+Date: Wed, 27 Apr 2016 13:50:47 -0700
+Message-ID: <57212627.KqFjGjXRj6qm/SjJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49380 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49386 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752184AbcD0Uur (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:50:47 -0400
+	with ESMTP id S1752184AbcD0Uus (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:50:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hpa@zytor.com, mingo@kernel.org, tglx@linutronix.de, vbabka@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mhocko@suse.com, vbabka@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, aout: handle vm_brk failures
+     Subject: mm, elf: handle vm_brk error
 has been added to the -mm tree.  Its filename is
-     mm-aout-handle-vm_brk-failures.patch
+     mm-elf-handle-vm_brk-error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-aout-handle-vm_brk-failures.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-elf-handle-vm_brk-error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-aout-handle-vm_brk-failures.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-elf-handle-vm_brk-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,121 +39,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, aout: handle vm_brk failures
+Subject: mm, elf: handle vm_brk error
 
-vm_brk is allowed to fail but load_aout_binary simply ignores the error
-and happily continues.  I haven't noticed any problem from that in real
-life but later patches will make the failure more likely because vm_brk
-will become killable (resp.  mmap_sem for write waiting will become
-killable) so we should be more careful now.
-
-The error handling should be quite straightforward because there are calls
-to vm_mmap which check the error properly already.  The only notable
-exception is set_brk which is called after beyond_if label.  But nothing
-indicates that we cannot move it above set_binfmt as the two do not depend
-on each other and fail before we do set_binfmt and alter reference
-counting.
+load_elf_library doesn't handle vm_brk failure although nothing really
+indicates it cannot do that because the function is allowed to fail due to
+vm_mmap failures already.  This might be not a problem now but later patch
+will make vm_brk killable (resp.  mmap_sem for write waiting will become
+killable) and so the failure will be more probable.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32_aout.c |   22 +++++++++++++++-------
- fs/binfmt_aout.c          |   11 ++++++++---
- 2 files changed, 23 insertions(+), 10 deletions(-)
+ fs/binfmt_elf.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/ia32/ia32_aout.c~mm-aout-handle-vm_brk-failures arch/x86/ia32/ia32_aout.c
---- a/arch/x86/ia32/ia32_aout.c~mm-aout-handle-vm_brk-failures
-+++ a/arch/x86/ia32/ia32_aout.c
-@@ -116,13 +116,13 @@ static struct linux_binfmt aout_format =
- 	.min_coredump	= PAGE_SIZE
- };
+diff -puN fs/binfmt_elf.c~mm-elf-handle-vm_brk-error fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~mm-elf-handle-vm_brk-error
++++ a/fs/binfmt_elf.c
+@@ -1176,8 +1176,11 @@ static int load_elf_library(struct file
+ 	len = ELF_PAGESTART(eppnt->p_filesz + eppnt->p_vaddr +
+ 			    ELF_MIN_ALIGN - 1);
+ 	bss = eppnt->p_memsz + eppnt->p_vaddr;
+-	if (bss > len)
+-		vm_brk(len, bss - len);
++	if (bss > len) {
++		error = vm_brk(len, bss - len);
++		if (BAD_ADDR(error))
++			goto out_free_ph;
++	}
+ 	error = 0;
  
--static void set_brk(unsigned long start, unsigned long end)
-+static unsigned long set_brk(unsigned long start, unsigned long end)
- {
- 	start = PAGE_ALIGN(start);
- 	end = PAGE_ALIGN(end);
- 	if (end <= start)
--		return;
--	vm_brk(start, end - start);
-+		return start;
-+	return vm_brk(start, end - start);
- }
- 
- #ifdef CONFIG_COREDUMP
-@@ -349,7 +349,10 @@ static int load_aout_binary(struct linux
- #endif
- 
- 		if (!bprm->file->f_op->mmap || (fd_offset & ~PAGE_MASK) != 0) {
--			vm_brk(N_TXTADDR(ex), ex.a_text+ex.a_data);
-+			error = vm_brk(N_TXTADDR(ex), ex.a_text+ex.a_data);
-+			if (IS_ERR_VALUE(error))
-+				return error;
-+
- 			read_code(bprm->file, N_TXTADDR(ex), fd_offset,
- 					ex.a_text+ex.a_data);
- 			goto beyond_if;
-@@ -372,10 +375,13 @@ static int load_aout_binary(struct linux
- 		if (error != N_DATADDR(ex))
- 			return error;
- 	}
-+
- beyond_if:
--	set_binfmt(&aout_format);
-+	error = set_brk(current->mm->start_brk, current->mm->brk);
-+	if (IS_ERR_VALUE(error))
-+		return error;
- 
--	set_brk(current->mm->start_brk, current->mm->brk);
-+	set_binfmt(&aout_format);
- 
- 	current->mm->start_stack =
- 		(unsigned long)create_aout_tables((char __user *)bprm->p, bprm);
-@@ -434,7 +440,9 @@ static int load_aout_library(struct file
- 			error_time = jiffies;
- 		}
- #endif
--		vm_brk(start_addr, ex.a_text + ex.a_data + ex.a_bss);
-+		retval = vm_brk(start_addr, ex.a_text + ex.a_data + ex.a_bss);
-+		if (IS_ERR_VALUE(retval))
-+			goto out;
- 
- 		read_code(file, start_addr, N_TXTOFF(ex),
- 			  ex.a_text + ex.a_data);
-diff -puN fs/binfmt_aout.c~mm-aout-handle-vm_brk-failures fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~mm-aout-handle-vm_brk-failures
-+++ a/fs/binfmt_aout.c
-@@ -297,7 +297,10 @@ static int load_aout_binary(struct linux
- 		}
- 
- 		if (!bprm->file->f_op->mmap||((fd_offset & ~PAGE_MASK) != 0)) {
--			vm_brk(N_TXTADDR(ex), ex.a_text+ex.a_data);
-+			error = vm_brk(N_TXTADDR(ex), ex.a_text+ex.a_data);
-+			if (IS_ERR_VALUE(error))
-+				return error;
-+
- 			read_code(bprm->file, N_TXTADDR(ex), fd_offset,
- 				  ex.a_text + ex.a_data);
- 			goto beyond_if;
-@@ -378,8 +381,10 @@ static int load_aout_library(struct file
- 			       "N_TXTOFF is not page aligned. Please convert library: %pD\n",
- 			       file);
- 		}
--		vm_brk(start_addr, ex.a_text + ex.a_data + ex.a_bss);
--		
-+		retval = vm_brk(start_addr, ex.a_text + ex.a_data + ex.a_bss);
-+		if (IS_ERR_VALUE(retval))
-+			goto out;
-+
- 		read_code(file, start_addr, N_TXTOFF(ex),
- 			  ex.a_text + ex.a_data);
- 		retval = 0;
+ out_free_ph:
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
