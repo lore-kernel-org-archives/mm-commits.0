@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
- added to -mm tree
-Date: Wed, 27 Apr 2016 13:51:05 -0700
-Message-ID: <57212639.btJ3/Fr52lSrQpu8%akpm@linux-foundation.org>
+Subject: + uprobes-wait-for-mmap_sem-for-write-killable.patch added to -mm tree
+Date: Wed, 27 Apr 2016 13:51:07 -0700
+Message-ID: <5721263b.nMNgZt8zmbSotbFi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49431 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49435 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752977AbcD0UvG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:51:06 -0400
+	with ESMTP id S1751553AbcD0UvI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 16:51:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, athorlton@sgi.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, oleg@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: prctl: make PR_SET_THP_DISABLE wait for mmap_sem killable
+     Subject: uprobes: wait for mmap_sem for write killable
 has been added to the -mm tree.  Its filename is
-     prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
+     uprobes-wait-for-mmap_sem-for-write-killable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/uprobes-wait-for-mmap_sem-for-write-killable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/uprobes-wait-for-mmap_sem-for-write-killable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,36 +39,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: prctl: make PR_SET_THP_DISABLE wait for mmap_sem killable
+Subject: uprobes: wait for mmap_sem for write killable
 
-PR_SET_THP_DISABLE requires mmap_sem for write.  If the waiting task gets
-killed by the oom killer it would block oom_reaper from asynchronous
-address space reclaim and reduce the chances of timely OOM resolving. 
-Wait for the lock in the killable mode and return with EINTR if the task
-got killed while waiting.
+xol_add_vma needs mmap_sem for write.  If the waiting task gets killed by
+the oom killer it would block oom_reaper from asynchronous address space
+reclaim and reduce the chances of timely OOM resolving.  Wait for the lock
+in the killable mode and return with EINTR if the task got killed while
+waiting.
+
+Do not warn in dup_xol_work if __create_xol_area failed due to fatal
+signal pending because this is usually considered a kernel issue.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Alex Thorlton <athorlton@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/events/uprobes.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sys.c~prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable kernel/sys.c
---- a/kernel/sys.c~prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable
-+++ a/kernel/sys.c
-@@ -2246,7 +2246,8 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 	case PR_SET_THP_DISABLE:
- 		if (arg3 || arg4 || arg5)
- 			return -EINVAL;
--		down_write(&me->mm->mmap_sem);
-+		if (down_write_killable(&me->mm->mmap_sem))
-+			return -EINTR;
- 		if (arg2)
- 			me->mm->def_flags |= VM_NOHUGEPAGE;
- 		else
+diff -puN kernel/events/uprobes.c~uprobes-wait-for-mmap_sem-for-write-killable kernel/events/uprobes.c
+--- a/kernel/events/uprobes.c~uprobes-wait-for-mmap_sem-for-write-killable
++++ a/kernel/events/uprobes.c
+@@ -1130,7 +1130,9 @@ static int xol_add_vma(struct mm_struct
+ 	struct vm_area_struct *vma;
+ 	int ret;
+ 
+-	down_write(&mm->mmap_sem);
++	if (down_write_killable(&mm->mmap_sem))
++		return -EINTR;
++
+ 	if (mm->uprobes_state.xol_area) {
+ 		ret = -EALREADY;
+ 		goto fail;
+@@ -1469,7 +1471,8 @@ static void dup_xol_work(struct callback
+ 	if (current->flags & PF_EXITING)
+ 		return;
+ 
+-	if (!__create_xol_area(current->utask->dup_xol_addr))
++	if (!__create_xol_area(current->utask->dup_xol_addr) &&
++			!fatal_signal_pending(current))
+ 		uprobe_warn(current, "dup xol area");
+ }
+ 
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
