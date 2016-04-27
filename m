@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch added to
- -mm tree
-Date: Wed, 27 Apr 2016 12:45:01 -0700
-Message-ID: <572116bd.gsndvaUnPRI+GINX%akpm@linux-foundation.org>
+Subject: + mm-thp-kvm-fix-memory-corruption-in-kvm-with-thp-enabled.patch
+ added to -mm tree
+Date: Wed, 27 Apr 2016 12:55:18 -0700
+Message-ID: <57211926.3cZoehvS+rJC0Uv5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48418 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48825 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752808AbcD0TpD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 15:45:03 -0400
+	with ESMTP id S1752432AbcD0TzT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 15:55:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, amit.shah@redhat.com, dgilbert@redhat.com, kirill@shutemov.name, liang.z.li@intel.com, pbonzini@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: uninline the bad page part of check_new_page()
+     Subject: mm: thp: kvm: fix memory corruption in KVM with THP enabled
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch
+     mm-thp-kvm-fix-memory-corruption-in-kvm-with-thp-enabled.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-kvm-fix-memory-corruption-in-kvm-with-thp-enabled.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-kvm-fix-memory-corruption-in-kvm-with-thp-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,93 +39,145 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: uninline the bad page part of check_new_page()
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: thp: kvm: fix memory corruption in KVM with THP enabled
 
-Bad pages should be rare so the code handling them doesn't need to be
-inline for performance reasons.  Put it to separate function which returns
-void.  This also assumes that the initial page_expected_state() result
-will match the result of the thorough check, i.e.  the page doesn't become
-"good" in the meanwhile.  This matches the same expectations already in
-place in free_pages_check().
+After the THP refcounting change, obtaining a compound pages from
+get_user_pages() no longer allows us to assume the entire compound page is
+immediately mappable from a secondary MMU.
 
-!DEBUG_VM bloat-o-meter:
+A secondary MMU doesn't want to call get_user_pages() more than once for
+each compound page, in order to know if it can map the whole compound
+page.  So a secondary MMU needs to know from a single get_user_pages()
+invocation when it can map immediately the entire compound page to avoid a
+flood of unnecessary secondary MMU faults and spurious
+atomic_inc()/atomic_dec() (pages don't have to be pinned by MMU notifier
+users).
 
-add/remove: 1/0 grow/shrink: 0/1 up/down: 134/-274 (-140)
-function                                     old     new   delta
-check_new_page_bad                             -     134    +134
-get_page_from_freelist                      3468    3194    -274
+Ideally instead of the page->_mapcount < 1 check, get_user_pages() should
+return the granularity of the "page" mapping in the "mm" passed to
+get_user_pages().  However it's non trivial change to pass the "pmd"
+status belonging to the "mm" walked by get_user_pages up the stack (up to
+the caller of get_user_pages).  So the fix just checks if there is not a
+single pte mapping on the page returned by get_user_pages, and in turn if
+the caller can assume that the whole compound page is mapped in the
+current "mm" (in a pmd_trans_huge()).  In such case the entire compound
+page is safe to map into the secondary MMU without additional
+get_user_pages() calls on the surrounding tail/head pages.  In addition of
+being faster, not having to run other get_user_pages() calls also reduces
+the memory footprint of the secondary MMU fault in case the pmd split
+happened as result of memory pressure.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Without this fix after a MADV_DONTNEED (like invoked by QEMU during
+postcopy live migration or balloning) or after generic swapping (with a
+failure in split_huge_page() that would only result in pmd splitting and
+not a physical page split), KVM would map the whole compound page into the
+shadow pagetables, despite regular faults or userfaults (like UFFDIO_COPY)
+may map regular pages into the primary MMU as result of the pte faults,
+leading to the guest mode and userland mode going out of sync and not
+working on the same memory at all times.
+
+Any other secondary MMU notifier manager (KVM is just one of the many MMU
+notifier users) will need the same information if it doesn't want to run a
+flood of get_user_pages_fast and it can support multiple granularity in
+the secondary MMU mappings, so I think it is justified to be exposed not
+just to KVM.
+
+The other option would be to move transparent_hugepage_adjust to
+mm/huge_memory.c but that currently has all kind of KVM data structures in
+it, so it's definitely not a cut-and-paste work, so I couldn't do a fix as
+cleaner as this one for 4.6.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: "Li, Liang Z" <liang.z.li@intel.com>
+Cc: Amit Shah <amit.shah@redhat.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   33 +++++++++++++++++----------------
- 1 file changed, 17 insertions(+), 16 deletions(-)
+ arch/arm/kvm/mmu.c         |    2 +-
+ arch/x86/kvm/mmu.c         |    4 ++--
+ include/linux/page-flags.h |   22 ++++++++++++++++++++++
+ 3 files changed, 25 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-uninline-the-bad-page-part-of-check_new_page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-uninline-the-bad-page-part-of-check_new_page
-+++ a/mm/page_alloc.c
-@@ -1650,19 +1650,11 @@ static inline void expand(struct zone *z
- 	}
+diff -puN arch/arm/kvm/mmu.c~mm-thp-kvm-fix-memory-corruption-in-kvm-with-thp-enabled arch/arm/kvm/mmu.c
+--- a/arch/arm/kvm/mmu.c~mm-thp-kvm-fix-memory-corruption-in-kvm-with-thp-enabled
++++ a/arch/arm/kvm/mmu.c
+@@ -1004,7 +1004,7 @@ static bool transparent_hugepage_adjust(
+ 	kvm_pfn_t pfn = *pfnp;
+ 	gfn_t gfn = *ipap >> PAGE_SHIFT;
+ 
+-	if (PageTransCompound(pfn_to_page(pfn))) {
++	if (PageTransCompoundMap(pfn_to_page(pfn))) {
+ 		unsigned long mask;
+ 		/*
+ 		 * The address we faulted on is backed by a transparent huge
+diff -puN arch/x86/kvm/mmu.c~mm-thp-kvm-fix-memory-corruption-in-kvm-with-thp-enabled arch/x86/kvm/mmu.c
+--- a/arch/x86/kvm/mmu.c~mm-thp-kvm-fix-memory-corruption-in-kvm-with-thp-enabled
++++ a/arch/x86/kvm/mmu.c
+@@ -2823,7 +2823,7 @@ static void transparent_hugepage_adjust(
+ 	 */
+ 	if (!is_error_noslot_pfn(pfn) && !kvm_is_reserved_pfn(pfn) &&
+ 	    level == PT_PAGE_TABLE_LEVEL &&
+-	    PageTransCompound(pfn_to_page(pfn)) &&
++	    PageTransCompoundMap(pfn_to_page(pfn)) &&
+ 	    !mmu_gfn_lpage_is_disallowed(vcpu, gfn, PT_DIRECTORY_LEVEL)) {
+ 		unsigned long mask;
+ 		/*
+@@ -4785,7 +4785,7 @@ restart:
+ 		 */
+ 		if (sp->role.direct &&
+ 			!kvm_is_reserved_pfn(pfn) &&
+-			PageTransCompound(pfn_to_page(pfn))) {
++			PageTransCompoundMap(pfn_to_page(pfn))) {
+ 			drop_spte(kvm, sptep);
+ 			need_tlb_flush = 1;
+ 			goto restart;
+diff -puN include/linux/page-flags.h~mm-thp-kvm-fix-memory-corruption-in-kvm-with-thp-enabled include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-thp-kvm-fix-memory-corruption-in-kvm-with-thp-enabled
++++ a/include/linux/page-flags.h
+@@ -517,6 +517,27 @@ static inline int PageTransCompound(stru
  }
  
--/*
-- * This page is about to be returned from the page allocator
-- */
--static inline int check_new_page(struct page *page)
-+static void check_new_page_bad(struct page *page)
- {
--	const char *bad_reason;
--	unsigned long bad_flags;
-+	const char *bad_reason = NULL;
-+	unsigned long bad_flags = 0;
- 
--	if (page_expected_state(page, PAGE_FLAGS_CHECK_AT_PREP|__PG_HWPOISON))
--		return 0;
--
--	bad_reason = NULL;
--	bad_flags = 0;
- 	if (unlikely(atomic_read(&page->_mapcount) != -1))
- 		bad_reason = "nonzero mapcount";
- 	if (unlikely(page->mapping != NULL))
-@@ -1681,11 +1673,20 @@ static inline int check_new_page(struct
- 	if (unlikely(page->mem_cgroup))
- 		bad_reason = "page still charged to cgroup";
- #endif
--	if (unlikely(bad_reason)) {
--		bad_page(page, bad_reason, bad_flags);
--		return 1;
--	}
--	return 0;
-+	bad_page(page, bad_reason, bad_flags);
+ /*
++ * PageTransCompoundMap is the same as PageTransCompound, but it also
++ * guarantees the primary MMU has the entire compound page mapped
++ * through pmd_trans_huge, which in turn guarantees the secondary MMUs
++ * can also map the entire compound page. This allows the secondary
++ * MMUs to call get_user_pages() only once for each compound page and
++ * to immediately map the entire compound page with a single secondary
++ * MMU fault. If there will be a pmd split later, the secondary MMUs
++ * will get an update through the MMU notifier invalidation through
++ * split_huge_pmd().
++ *
++ * Unlike PageTransCompound, this is safe to be called only while
++ * split_huge_pmd() cannot run from under us, like if protected by the
++ * MMU notifier, otherwise it may result in page->_mapcount < 0 false
++ * positives.
++ */
++static inline int PageTransCompoundMap(struct page *page)
++{
++	return PageTransCompound(page) && atomic_read(&page->_mapcount) < 0;
 +}
 +
 +/*
-+ * This page is about to be returned from the page allocator
-+ */
-+static inline int check_new_page(struct page *page)
-+{
-+	if (likely(page_expected_state(page,
-+				PAGE_FLAGS_CHECK_AT_PREP|__PG_HWPOISON)))
-+		return 0;
-+
-+	check_new_page_bad(page);
-+	return 1;
- }
- 
- static inline bool free_pages_prezeroed(bool poisoned)
+  * PageTransTail returns true for both transparent huge pages
+  * and hugetlbfs pages, so it should only be called when it's known
+  * that hugetlbfs pages aren't involved.
+@@ -559,6 +580,7 @@ static inline int TestClearPageDoubleMap
+ #else
+ TESTPAGEFLAG_FALSE(TransHuge)
+ TESTPAGEFLAG_FALSE(TransCompound)
++TESTPAGEFLAG_FALSE(TransCompoundMap)
+ TESTPAGEFLAG_FALSE(TransTail)
+ TESTPAGEFLAG_FALSE(DoubleMap)
+ 	TESTSETFLAG_FALSE(DoubleMap)
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-mm-wake-kcompactd-before-kswapds-short-sleep.patch
-mm-compaction-wrap-calculating-first-and-last-pfn-of-pageblock.patch
-compaction-wrap-calculating-first-and-last-pfn-of-pageblock-fix.patch
-mm-compaction-reduce-spurious-pcplist-drains.patch
-mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction.patch
-mm-page_alloc-un-inline-the-bad-part-of-free_pages_check.patch
-cpuset-use-static-key-better-and-convert-to-new-api.patch
-mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit.patch
+mm-thp-kvm-fix-memory-corruption-in-kvm-with-thp-enabled.patch
 
