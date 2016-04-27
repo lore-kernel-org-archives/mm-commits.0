@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-tighten-fault_in_pages_writeable.patch added to -mm tree
-Date: Tue, 26 Apr 2016 16:58:36 -0700
-Message-ID: <572000ac.3U0H7pGBsYSgkXni%akpm@linux-foundation.org>
+Subject: + procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable.patch
+ added to -mm tree
+Date: Tue, 26 Apr 2016 17:09:26 -0700
+Message-ID: <57200336.3vw7EUveFTeowlwZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54595 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54667 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752676AbcDZX6m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2016 19:58:42 -0400
+	with ESMTP id S1754303AbcD0AJ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Apr 2016 20:09:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edumazet@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: jdanis@google.com, adobriyan@gmail.com, calvinowens@fb.com, colin.king@canonical.com, gorcunov@openvz.org, jann@thejh.net, john.stultz@linaro.org, keescook@chromium.org, mnfhuang@gmail.com, rientjes@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: tighten fault_in_pages_writeable()
+     Subject: procfs: fix pthread cross-thread naming if !PR_DUMPABLE
 has been added to the -mm tree.  Its filename is
-     mm-tighten-fault_in_pages_writeable.patch
+     procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-tighten-fault_in_pages_writeable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-tighten-fault_in_pages_writeable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,53 +39,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Dumazet <edumazet@google.com>
-Subject: mm: tighten fault_in_pages_writeable()
+From: Janis Danisevskis <jdanis@google.com>
+Subject: procfs: fix pthread cross-thread naming if !PR_DUMPABLE
 
-copy_page_to_iter_iovec() is currently the only user of
-fault_in_pages_writeable(), and it definitely can use fragments from high
-order pages.
+The PR_DUMPABLE flag causes the pid related paths of the proc file system
+to be owned by ROOT.  The implementation of pthread_set/getname_np however
+needs access to /proc/<pid>/task/<tid>/comm.  If PR_DUMPABLE is false this
+implementation is locked out.
 
-Make sure fault_in_pages_writeable() is only touching two adjacent pages
-at most, as claimed.
+This patch installs a special permission function for the file "comm" that
+grants read and write access to all threads of the same group regardless
+of the ownership of the inode.  For all other threads the function falls
+back to the generic inode permission check.
 
-Signed-off-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: Janis Danisevskis <jdanis@google.com>
+Cc: Kees Cook <keescook@chromium.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Minfei Huang <mnfhuang@gmail.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Calvin Owens <calvinowens@fb.com>
+Cc: Jann Horn <jann@thejh.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
+ fs/proc/base.c |   42 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 41 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/pagemap.h~mm-tighten-fault_in_pages_writeable include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-tighten-fault_in_pages_writeable
-+++ a/include/linux/pagemap.h
-@@ -518,33 +518,27 @@ void page_endio(struct page *page, int r
- extern void add_page_wait_queue(struct page *page, wait_queue_t *waiter);
+diff -puN fs/proc/base.c~procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable fs/proc/base.c
+--- a/fs/proc/base.c~procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable
++++ a/fs/proc/base.c
+@@ -3157,6 +3157,44 @@ int proc_pid_readdir(struct file *file,
+ }
  
  /*
-- * Fault a userspace page into pagetables.  Return non-zero on a fault.
-- *
-- * This assumes that two userspace pages are always sufficient.
-+ * Fault one or two userspace pages into pagetables.
-+ * Return -EINVAL if more than two pages would be needed.
-+ * Return non-zero on a fault.
++ * proc_tid_comm_permission is a special permission function exclusively
++ * used for the node /proc/<pid>/task/<tid>/comm.
++ * It bypasses generic permission checks in the case where a task of the same
++ * task group attempts to access the node.
++ * The rational behind this is that glibc and bionic access this node for
++ * cross thread naming (pthread_set/getname_np(!self)). However, if
++ * PR_SET_DUMPABLE gets set to 0 this node among others becomes uid=0 gid=0,
++ * which locks out the cross thread naming implementation.
++ * This function makes sure that the node is always accessible for members of
++ * same thread group.
++ */
++static int proc_tid_comm_permission(struct inode *inode, int mask)
++{
++	bool is_same_tgroup;
++	struct task_struct *task;
++
++	task = get_proc_task(inode);
++	if (!task)
++		return -ESRCH;
++	is_same_tgroup = same_thread_group(current, task);
++	put_task_struct(task);
++
++	if (likely(is_same_tgroup && !(mask & MAY_EXEC))) {
++		/* This file (/proc/<pid>/task/<tid>/comm) can always be
++		 * read or written by the members of the corresponding
++		 * thread group.
++		 */
++		return 0;
++	}
++
++	return generic_permission(inode, mask);
++}
++
++static const struct inode_operations proc_tid_comm_inode_operations = {
++		.permission = proc_tid_comm_permission,
++};
++
++/*
+  * Tasks
   */
- static inline int fault_in_pages_writeable(char __user *uaddr, int size)
- {
--	int ret;
-+	int span, ret;
- 
- 	if (unlikely(size == 0))
- 		return 0;
- 
-+	span = offset_in_page(uaddr) + size;
-+	if (span > 2 * PAGE_SIZE)
-+		return -EINVAL;
- 	/*
- 	 * Writing zeroes into userspace here is OK, because we know that if
- 	 * the zero gets there, we'll be overwriting it.
- 	 */
- 	ret = __put_user(0, uaddr);
--	if (ret == 0) {
--		char __user *end = uaddr + size - 1;
+ static const struct pid_entry tid_base_stuff[] = {
+@@ -3174,7 +3212,9 @@ static const struct pid_entry tid_base_s
+ #ifdef CONFIG_SCHED_DEBUG
+ 	REG("sched",     S_IRUGO|S_IWUSR, proc_pid_sched_operations),
+ #endif
+-	REG("comm",      S_IRUGO|S_IWUSR, proc_pid_set_comm_operations),
++	NOD("comm",      S_IFREG|S_IRUGO|S_IWUSR,
++			 &proc_tid_comm_inode_operations,
++			 &proc_pid_set_comm_operations, {}),
+ #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
+ 	ONE("syscall",   S_IRUSR, proc_pid_syscall),
+ #endif
+_
+
+Patches currently in -mm which might be from jdanis@google.com are
+
+procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable.patch
+
