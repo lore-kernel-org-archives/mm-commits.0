@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + wmi-use-generic-uuid-library.patch added to -mm tree
-Date: Wed, 27 Apr 2016 14:19:44 -0700
-Message-ID: <57212cf0.fFkwsl6aZoqQJ/Br%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function.patch added to
+ -mm tree
+Date: Wed, 27 Apr 2016 14:22:07 -0700
+Message-ID: <57212d7f.AbduCBIIouKEjySr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49872 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49951 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752286AbcD0VTq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 17:19:46 -0400
+	with ESMTP id S1752362AbcD0VWI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 17:22:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, dvhart@linux.intel.com, mm-commits@vger.kernel.org
+To: guozhonghua@h3c.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/platform/x86/wmi.c: use generic UUID library
+     Subject: ocfs2: clean up an unneeded goto in ocfs2_put_slot()
 has been added to the -mm tree.  Its filename is
-     wmi-use-generic-uuid-library.patch
+     ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/wmi-use-generic-uuid-library.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/wmi-use-generic-uuid-library.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,199 +40,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: drivers/platform/x86/wmi.c: use generic UUID library
+From: Guozhonghua <guozhonghua@h3c.com>
+Subject: ocfs2: clean up an unneeded goto in ocfs2_put_slot()
 
-Instead of opencoding let's use generic UUID library functions here.
+The goto is not useful in ocfs2_put_slot(), so delete it.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Darren Hart <dvhart@linux.intel.com>
+Signed-off-by: Guozhonghua <guozhonghua@h3c.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/wmi.c |  104 ++++-------------------------------
- 1 file changed, 13 insertions(+), 91 deletions(-)
+ fs/ocfs2/slot_map.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/platform/x86/wmi.c~wmi-use-generic-uuid-library drivers/platform/x86/wmi.c
---- a/drivers/platform/x86/wmi.c~wmi-use-generic-uuid-library
-+++ a/drivers/platform/x86/wmi.c
-@@ -37,6 +37,7 @@
- #include <linux/acpi.h>
- #include <linux/slab.h>
- #include <linux/module.h>
-+#include <linux/uuid.h>
+diff -puN fs/ocfs2/slot_map.c~ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function fs/ocfs2/slot_map.c
+--- a/fs/ocfs2/slot_map.c~ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function
++++ a/fs/ocfs2/slot_map.c
+@@ -535,12 +535,9 @@ void ocfs2_put_slot(struct ocfs2_super *
+ 	spin_unlock(&osb->osb_lock);
  
- ACPI_MODULE_NAME("wmi");
- MODULE_AUTHOR("Carlos Corbacho");
-@@ -115,100 +116,21 @@ static struct acpi_driver acpi_wmi_drive
-  * GUID parsing functions
-  */
- 
--/**
-- * wmi_parse_hexbyte - Convert a ASCII hex number to a byte
-- * @src:  Pointer to at least 2 characters to convert.
-- *
-- * Convert a two character ASCII hex string to a number.
-- *
-- * Return:  0-255  Success, the byte was parsed correctly
-- *          -1     Error, an invalid character was supplied
-- */
--static int wmi_parse_hexbyte(const u8 *src)
--{
--	int h;
--	int value;
--
--	/* high part */
--	h = value = hex_to_bin(src[0]);
--	if (value < 0)
--		return -1;
--
--	/* low part */
--	value = hex_to_bin(src[1]);
--	if (value >= 0)
--		return (h << 4) | value;
--	return -1;
--}
--
--/**
-- * wmi_swap_bytes - Rearrange GUID bytes to match GUID binary
-- * @src:   Memory block holding binary GUID (16 bytes)
-- * @dest:  Memory block to hold byte swapped binary GUID (16 bytes)
-- *
-- * Byte swap a binary GUID to match it's real GUID value
-- */
--static void wmi_swap_bytes(u8 *src, u8 *dest)
--{
--	int i;
--
--	for (i = 0; i <= 3; i++)
--		memcpy(dest + i, src + (3 - i), 1);
--
--	for (i = 0; i <= 1; i++)
--		memcpy(dest + 4 + i, src + (5 - i), 1);
--
--	for (i = 0; i <= 1; i++)
--		memcpy(dest + 6 + i, src + (7 - i), 1);
--
--	memcpy(dest + 8, src + 8, 8);
--}
--
--/**
-- * wmi_parse_guid - Convert GUID from ASCII to binary
-- * @src:   36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
-- * @dest:  Memory block to hold binary GUID (16 bytes)
-- *
-- * N.B. The GUID need not be NULL terminated.
-- *
-- * Return:  'true'   @dest contains binary GUID
-- *          'false'  @dest contents are undefined
-- */
--static bool wmi_parse_guid(const u8 *src, u8 *dest)
--{
--	static const int size[] = { 4, 2, 2, 2, 6 };
--	int i, j, v;
--
--	if (src[8]  != '-' || src[13] != '-' ||
--		src[18] != '-' || src[23] != '-')
--		return false;
--
--	for (j = 0; j < 5; j++, src++) {
--		for (i = 0; i < size[j]; i++, src += 2, *dest++ = v) {
--			v = wmi_parse_hexbyte(src);
--			if (v < 0)
--				return false;
--		}
+ 	status = ocfs2_update_disk_slot(osb, si, slot_num);
+-	if (status < 0) {
++       if (status < 0)
+ 		mlog_errno(status);
+-		goto bail;
 -	}
--
--	return true;
--}
--
- static bool find_guid(const char *guid_string, struct wmi_block **out)
- {
--	char tmp[16], guid_input[16];
-+	uuid_le guid_input;
- 	struct wmi_block *wblock;
- 	struct guid_block *block;
- 	struct list_head *p;
  
--	wmi_parse_guid(guid_string, tmp);
--	wmi_swap_bytes(tmp, guid_input);
-+	if (uuid_le_to_bin(guid_string, &guid_input))
-+		return false;
+-bail:
+ 	ocfs2_free_slot_info(osb);
+ }
  
- 	list_for_each(p, &wmi_block_list) {
- 		wblock = list_entry(p, struct wmi_block, list);
- 		block = &wblock->gblock;
- 
--		if (memcmp(block->guid, guid_input, 16) == 0) {
-+		if (memcmp(block->guid, &guid_input, 16) == 0) {
- 			if (out)
- 				*out = wblock;
- 			return true;
-@@ -498,20 +420,20 @@ wmi_notify_handler handler, void *data)
- {
- 	struct wmi_block *block;
- 	acpi_status status = AE_NOT_EXIST;
--	char tmp[16], guid_input[16];
-+	uuid_le guid_input;
- 	struct list_head *p;
- 
- 	if (!guid || !handler)
- 		return AE_BAD_PARAMETER;
- 
--	wmi_parse_guid(guid, tmp);
--	wmi_swap_bytes(tmp, guid_input);
-+	if (uuid_le_to_bin(guid, &guid_input))
-+		return AE_BAD_PARAMETER;
- 
- 	list_for_each(p, &wmi_block_list) {
- 		acpi_status wmi_status;
- 		block = list_entry(p, struct wmi_block, list);
- 
--		if (memcmp(block->gblock.guid, guid_input, 16) == 0) {
-+		if (memcmp(block->gblock.guid, &guid_input, 16) == 0) {
- 			if (block->handler &&
- 			    block->handler != wmi_notify_debug)
- 				return AE_ALREADY_ACQUIRED;
-@@ -539,20 +461,20 @@ acpi_status wmi_remove_notify_handler(co
- {
- 	struct wmi_block *block;
- 	acpi_status status = AE_NOT_EXIST;
--	char tmp[16], guid_input[16];
-+	uuid_le guid_input;
- 	struct list_head *p;
- 
- 	if (!guid)
- 		return AE_BAD_PARAMETER;
- 
--	wmi_parse_guid(guid, tmp);
--	wmi_swap_bytes(tmp, guid_input);
-+	if (uuid_le_to_bin(guid, &guid_input))
-+		return AE_BAD_PARAMETER;
- 
- 	list_for_each(p, &wmi_block_list) {
- 		acpi_status wmi_status;
- 		block = list_entry(p, struct wmi_block, list);
- 
--		if (memcmp(block->gblock.guid, guid_input, 16) == 0) {
-+		if (memcmp(block->gblock.guid, &guid_input, 16) == 0) {
- 			if (!block->handler ||
- 			    block->handler == wmi_notify_debug)
- 				return AE_NULL_ENTRY;
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from guozhonghua@h3c.com are
 
-lib-vsprintf-simplify-uuid-printing.patch
-ima-use-%pu-to-output-uuid-in-printable-format.patch
-lib-uuid-move-generate_random_uuid-to-uuidc.patch
-lib-uuid-introduce-few-more-generic-helpers-for-uuid.patch
-lib-uuid-introduce-few-more-generic-helpers-for-uuid-fix.patch
-lib-uuid-remove-fsf-address.patch
-sysctl-use-generic-uuid-library.patch
-efi-redefine-type-constant-macro-from-generic-code.patch
-efivars-use-generic-uuid-library.patch
-genhd-move-to-use-generic-uuid-library.patch
-ldm-use-generic-uuid-library.patch
-wmi-use-generic-uuid-library.patch
+ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08.patch
+ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function.patch
 
