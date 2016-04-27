@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-freelist-randomization-v5.patch added to -mm tree
-Date: Wed, 27 Apr 2016 12:16:28 -0700
-Message-ID: <5721100c.ywbxoXrXnRlNcDQ/%akpm@linux-foundation.org>
+Subject: + mm-slab-freelist-randomization-v5-fix.patch added to -mm tree
+Date: Wed, 27 Apr 2016 12:16:30 -0700
+Message-ID: <5721100e.LEadgbrpSZ2QrHqy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47787 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47796 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751266AbcD0TQ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 15:16:29 -0400
+	with ESMTP id S1753091AbcD0TQb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 15:16:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thgarnie@google.com, cl@linux.com, gthelen@google.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, labbott@fedoraproject.org, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, gthelen@google.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, labbott@fedoraproject.org, penberg@kernel.org, rientjes@google.com, thgarnie@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: SLAB freelist randomization
+     Subject: mm-slab-freelist-randomization-v5-fix
 has been added to the -mm tree.  Its filename is
-     mm-slab-freelist-randomization-v5.patch
+     mm-slab-freelist-randomization-v5-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-freelist-randomization-v5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-freelist-randomization-v5-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-freelist-randomization-v5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-freelist-randomization-v5-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,92 +38,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thomas Garnier <thgarnie@google.com>
-Subject: mm: SLAB freelist randomization
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-slab-freelist-randomization-v5-fix
 
-Signed-off-by: Thomas Garnier <thgarnie@google.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+propagate gfp_t into cache_random_seq_create()
+
+Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Greg Thelen <gthelen@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Greg Thelen <gthelen@google.com>
 Cc: Laura Abbott <labbott@fedoraproject.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Thomas Garnier <thgarnie@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab_def.h |    2 +-
- init/Kconfig             |    2 +-
- mm/slab.c                |    8 ++++----
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ mm/slab.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/slab_def.h~mm-slab-freelist-randomization-v5 include/linux/slab_def.h
---- a/include/linux/slab_def.h~mm-slab-freelist-randomization-v5
-+++ a/include/linux/slab_def.h
-@@ -80,7 +80,7 @@ struct kmem_cache {
- 	struct kasan_cache kasan_info;
- #endif
- 
--#ifdef CONFIG_FREELIST_RANDOM
-+#ifdef CONFIG_SLAB_FREELIST_RANDOM
- 	void *random_seq;
- #endif
- 
-diff -puN init/Kconfig~mm-slab-freelist-randomization-v5 init/Kconfig
---- a/init/Kconfig~mm-slab-freelist-randomization-v5
-+++ a/init/Kconfig
-@@ -1742,7 +1742,7 @@ config SLOB
- 
- endchoice
- 
--config FREELIST_RANDOM
-+config SLAB_FREELIST_RANDOM
- 	default n
- 	depends on SLAB
- 	bool "SLAB freelist randomization"
-diff -puN mm/slab.c~mm-slab-freelist-randomization-v5 mm/slab.c
---- a/mm/slab.c~mm-slab-freelist-randomization-v5
+diff -puN mm/slab.c~mm-slab-freelist-randomization-v5-fix mm/slab.c
+--- a/mm/slab.c~mm-slab-freelist-randomization-v5-fix
 +++ a/mm/slab.c
-@@ -1243,7 +1243,7 @@ static void __init set_up_node(struct km
- 	}
+@@ -1262,7 +1262,7 @@ static void freelist_randomize(struct rn
  }
  
--#ifdef CONFIG_FREELIST_RANDOM
-+#ifdef CONFIG_SLAB_FREELIST_RANDOM
- static void freelist_randomize(struct rnd_state *state, freelist_idx_t *list,
- 			size_t count)
+ /* Create a random sequence per cache */
+-static int cache_random_seq_create(struct kmem_cache *cachep)
++static int cache_random_seq_create(struct kmem_cache *cachep, gfp_t gfp)
  {
-@@ -1295,7 +1295,7 @@ static inline int cache_random_seq_creat
+ 	unsigned int seed, count = cachep->num;
+ 	struct rnd_state state;
+@@ -1271,7 +1271,7 @@ static int cache_random_seq_create(struc
+ 		return 0;
+ 
+ 	/* If it fails, we will just use the global lists */
+-	cachep->random_seq = kcalloc(count, sizeof(freelist_idx_t), GFP_KERNEL);
++	cachep->random_seq = kcalloc(count, sizeof(freelist_idx_t), gfp);
+ 	if (!cachep->random_seq)
+ 		return -ENOMEM;
+ 
+@@ -1290,7 +1290,7 @@ static void cache_random_seq_destroy(str
+ 	cachep->random_seq = NULL;
+ }
+ #else
+-static inline int cache_random_seq_create(struct kmem_cache *cachep)
++static inline int cache_random_seq_create(struct kmem_cache *cachep, gfp_t gfp)
+ {
  	return 0;
  }
- static inline void cache_random_seq_destroy(struct kmem_cache *cachep) { }
--#endif /* CONFIG_FREELIST_RANDOM */
-+#endif /* CONFIG_SLAB_FREELIST_RANDOM */
+@@ -3999,7 +3999,7 @@ static int enable_cpucache(struct kmem_c
+ 	int shared = 0;
+ 	int batchcount = 0;
  
+-	err = cache_random_seq_create(cachep);
++	err = cache_random_seq_create(cachep, gfp);
+ 	if (err)
+ 		goto end;
  
- /*
-@@ -2537,7 +2537,7 @@ static void cache_init_objs_debug(struct
- #endif
- }
- 
--#ifdef CONFIG_FREELIST_RANDOM
-+#ifdef CONFIG_SLAB_FREELIST_RANDOM
- /* Hold information during a freelist initialization */
- union freelist_init_state {
- 	struct {
-@@ -2631,7 +2631,7 @@ static inline bool shuffle_freelist(stru
- {
- 	return false;
- }
--#endif /* CONFIG_FREELIST_RANDOM */
-+#endif /* CONFIG_SLAB_FREELIST_RANDOM */
- 
- static void cache_init_objs(struct kmem_cache *cachep,
- 			    struct page *page)
 _
 
-Patches currently in -mm which might be from thgarnie@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-slab-freelist-randomization-v4.patch
-mm-slab-freelist-randomization-v5.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+kernel-padata-hide-unused-functions-checkpatch-fixes.patch
+mm.patch
+mm-slab-freelist-randomization-v5-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-uninline-page_mapped.patch
+mm-uninline-page_mapped-checkpatch-fixes.patch
+memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
+mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
+mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
+mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
+mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
+mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
+mm-kasan-initial-memory-quarantine-implementation-v8-fix.patch
+procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable-fix.patch
+exit_thread-remove-empty-bodies-fix.patch
+exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
+fs-execc-fix-minor-memory-leak.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
