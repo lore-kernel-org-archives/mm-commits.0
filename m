@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported.patch added to -mm tree
-Date: Wed, 27 Apr 2016 14:05:50 -0700
-Message-ID: <572129ae.nwedbWgS6E8UAGHn%akpm@linux-foundation.org>
+Subject: + mm-vmstat-calculate-particular-vm-event.patch added to -mm tree
+Date: Wed, 27 Apr 2016 14:17:18 -0700
+Message-ID: <57212c5e.pxfKSrShdkOsnKAH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49832 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752316AbcD0VFv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 17:05:51 -0400
+	with ESMTP id S1752416AbcD0VRT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Apr 2016 17:17:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chengang@emindsoft.com.cn, gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
+To: ebru.akagunduz@gmail.com, cl@linux.com, kirill.shutemov@linux.intel.com, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/hugetlb.h: use bool instead of int for hugepage_migration_supported()
+     Subject: mm, vmstat: calculate particular vm event
 has been added to the -mm tree.  Its filename is
-     include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported.patch
+     mm-vmstat-calculate-particular-vm-event.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-calculate-particular-vm-event.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-calculate-particular-vm-event.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +38,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Gang <chengang@emindsoft.com.cn>
-Subject: include/linux/hugetlb.h: use bool instead of int for hugepage_migration_supported()
+From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Subject: mm, vmstat: calculate particular vm event
 
-It is used as a pure bool function within kernel source wide.
+Currently, vmstat can calculate a specific vm event with all_vm_events()
+however it calculates all vm events at a time.  This patch introduces a
+new function to calculate only single event at a time.
 
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Suggested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/vmstat.h |    6 ++++++
+ mm/vmstat.c            |   12 ++++++++++++
+ 2 files changed, 18 insertions(+)
 
-diff -puN include/linux/hugetlb.h~include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported
-+++ a/include/linux/hugetlb.h
-@@ -452,12 +452,12 @@ static inline pgoff_t basepage_index(str
+diff -puN include/linux/vmstat.h~mm-vmstat-calculate-particular-vm-event include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-vmstat-calculate-particular-vm-event
++++ a/include/linux/vmstat.h
+@@ -53,6 +53,8 @@ static inline void count_vm_events(enum
  
- extern void dissolve_free_huge_pages(unsigned long start_pfn,
- 				     unsigned long end_pfn);
--static inline int hugepage_migration_supported(struct hstate *h)
-+static inline bool hugepage_migration_supported(struct hstate *h)
- {
- #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
- 	return huge_page_shift(h) == PMD_SHIFT;
+ extern void all_vm_events(unsigned long *);
+ 
++extern unsigned long sum_vm_event(enum vm_event_item item);
++
+ extern void vm_events_fold_cpu(int cpu);
+ 
  #else
--	return 0;
-+	return false;
- #endif
+@@ -73,6 +75,10 @@ static inline void __count_vm_events(enu
+ static inline void all_vm_events(unsigned long *ret)
+ {
  }
- 
-@@ -519,7 +519,7 @@ static inline pgoff_t basepage_index(str
- 	return page->index;
++static inline unsigned long sum_vm_event(enum vm_event_item item)
++{
++	return 0;
++}
+ static inline void vm_events_fold_cpu(int cpu)
+ {
  }
- #define dissolve_free_huge_pages(s, e)	do {} while (0)
--#define hugepage_migration_supported(h)	0
-+#define hugepage_migration_supported(h)	false
+diff -puN mm/vmstat.c~mm-vmstat-calculate-particular-vm-event mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-calculate-particular-vm-event
++++ a/mm/vmstat.c
+@@ -34,6 +34,18 @@
+ DEFINE_PER_CPU(struct vm_event_state, vm_event_states) = {{0}};
+ EXPORT_PER_CPU_SYMBOL(vm_event_states);
  
- static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
- 					   struct mm_struct *mm, pte_t *pte)
++unsigned long sum_vm_event(enum vm_event_item item)
++{
++	int cpu;
++	unsigned long ret = 0;
++
++	get_online_cpus();
++	for_each_online_cpu(cpu)
++		ret += per_cpu(vm_event_states, cpu).event[item];
++	put_online_cpus();
++	return ret;
++}
++
+ static void sum_vm_events(unsigned long *ret)
+ {
+ 	int cpu;
 _
 
-Patches currently in -mm which might be from chengang@emindsoft.com.cn are
+Patches currently in -mm which might be from ebru.akagunduz@gmail.com are
 
-include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported.patch
+mm-make-optimistic-check-for-swapin-readahead.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
+mm-vmstat-calculate-particular-vm-event.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged.patch
 
