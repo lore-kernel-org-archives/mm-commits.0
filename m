@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mmwriteback-dont-use-memory-reserves-for-wb_start_writeback.patch added to
- -mm tree
-Date: Thu, 28 Apr 2016 15:08:19 -0700
-Message-ID: <572289d3.4G4nyAZ4WJmMsloP%akpm@linux-foundation.org>
+Subject: + mm-zswap-provide-unique-zpool-name.patch added to -mm tree
+Date: Thu, 28 Apr 2016 15:16:50 -0700
+Message-ID: <57228bd2.7y5ZJRY5pJoj1tOf%akpm__2569.69178230992$1461881838$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48177 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48245 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751865AbcD1WIU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Apr 2016 18:08:20 -0400
+	with ESMTP id S1752321AbcD1WQv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Apr 2016 18:16:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, jack@suse.cz, mhocko@suse.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, dan.streetman@canonical.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,writeback: don't use memory reserves for wb_start_writeback
+     Subject: mm/zswap: provide unique zpool name
 has been added to the -mm tree.  Its filename is
-     mmwriteback-dont-use-memory-reserves-for-wb_start_writeback.patch
+     mm-zswap-provide-unique-zpool-name.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmwriteback-dont-use-memory-reserves-for-wb_start_writeback.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zswap-provide-unique-zpool-name.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmwriteback-dont-use-memory-reserves-for-wb_start_writeback.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zswap-provide-unique-zpool-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,177 +38,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm,writeback: don't use memory reserves for wb_start_writeback
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: mm/zswap: provide unique zpool name
 
-When writeback operation cannot make forward progress because memory
-allocation requests needed for doing I/O cannot be satisfied (e.g.  under
-OOM-livelock situation), we can observe flood of order-0 page allocation
-failure messages caused by complete depletion of memory reserves.
+Instead of using "zswap" as the name for all zpools created, add an atomic
+counter and use "zswap%x" with the counter number for each zpool created,
+to provide a unique name for each new zpool.
 
-This is caused by unconditionally allocating "struct wb_writeback_work"
-objects using GFP_ATOMIC from PF_MEMALLOC context.
+As zsmalloc, one of the zpool implementations, requires/expects a unique
+name for each pool created, zswap should provide a unique name.  The
+zsmalloc pool creation does not fail if a new pool with a conflicting name
+is created, unless CONFIG_ZSMALLOC_STAT is enabled; in that case, zsmalloc
+pool creation fails with -ENOMEM.  Then zswap will be unable to change its
+compressor parameter if its zpool is zsmalloc; it also will be unable to
+change its zpool parameter back to zsmalloc, if it has any existing old
+zpool using zsmalloc with page(s) in it.  Attempts to change the
+parameters will result in failure to create the zpool.  This changes zswap
+to provide a unique name for each zpool creation.
 
-__alloc_pages_nodemask() {
-  __alloc_pages_slowpath() {
-    __alloc_pages_direct_reclaim() {
-      __perform_reclaim() {
-        current->flags |= PF_MEMALLOC;
-        try_to_free_pages() {
-          do_try_to_free_pages() {
-            wakeup_flusher_threads() {
-              wb_start_writeback() {
-                kzalloc(sizeof(*work), GFP_ATOMIC) {
-                  /* ALLOC_NO_WATERMARKS via PF_MEMALLOC */
-                }
-              }
-            }
-          }
-        }
-        current->flags &= ~PF_MEMALLOC;
-      }
-    }
-  }
-}
-
-Since I/O is stalling, allocating writeback requests forever shall deplete
-memory reserves.  Fortunately, since wb_start_writeback() can fall back to
-wb_wakeup() when allocating "struct wb_writeback_work" failed, we don't
-need to allow wb_start_writeback() to use memory reserves.
-
-[   59.562581] Mem-Info:
-[   59.563935] active_anon:289393 inactive_anon:2093 isolated_anon:29
-[   59.563935]  active_file:10838 inactive_file:113013 isolated_file:859
-[   59.563935]  unevictable:0 dirty:108531 writeback:5308 unstable:0
-[   59.563935]  slab_reclaimable:5526 slab_unreclaimable:7077
-[   59.563935]  mapped:9970 shmem:2159 pagetables:2387 bounce:0
-[   59.563935]  free:3042 free_pcp:0 free_cma:0
-[   59.574558] Node 0 DMA free:6968kB min:44kB low:52kB high:64kB active_anon:6056kB inactive_anon:176kB active_file:712kB inactive_file:744kB unevictable:0kB isolated(anon):0kB isolated(file):0kB present:15988kB managed:15904kB mlocked:0kB dirty:756kB writeback:0kB mapped:736kB shmem:184kB slab_reclaimable:48kB slab_unreclaimable:208kB kernel_stack:160kB pagetables:144kB unstable:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB writeback_tmp:0kB pages_scanned:9708 all_unreclaimable? yes
-[   59.585464] lowmem_reserve[]: 0 1732 1732 1732
-[   59.587123] Node 0 DMA32 free:5200kB min:5200kB low:6500kB high:7800kB active_anon:1151516kB inactive_anon:8196kB active_file:42640kB inactive_file:451076kB unevictable:0kB isolated(anon):116kB isolated(file):3564kB present:2080640kB managed:1775332kB mlocked:0kB dirty:433368kB writeback:21232kB mapped:39144kB shmem:8452kB slab_reclaimable:22056kB slab_unreclaimable:28100kB kernel_stack:20976kB pagetables:9404kB unstable:0kB bounce:0kB free_pcp:120kB local_pcp:0kB free_cma:0kB writeback_tmp:0kB pages_scanned:2701604 all_unreclaimable? no
-[   59.599649] lowmem_reserve[]: 0 0 0 0
-[   59.601431] Node 0 DMA: 25*4kB (UME) 16*8kB (UME) 3*16kB (UE) 5*32kB (UME) 2*64kB (UM) 2*128kB (ME) 2*256kB (ME) 1*512kB (E) 1*1024kB (E) 2*2048kB (ME) 0*4096kB = 6964kB
-[   59.606509] Node 0 DMA32: 925*4kB (UME) 140*8kB (UME) 5*16kB (ME) 5*32kB (M) 0*64kB 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB = 5060kB
-[   59.610415] Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=1048576kB
-[   59.612879] Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
-[   59.615308] 126847 total pagecache pages
-[   59.616921] 0 pages in swap cache
-[   59.618475] Swap cache stats: add 0, delete 0, find 0/0
-[   59.620268] Free swap  = 0kB
-[   59.621650] Total swap = 0kB
-[   59.623011] 524157 pages RAM
-[   59.624365] 0 pages HighMem/MovableOnly
-[   59.625893] 76348 pages reserved
-[   59.627506] 0 pages hwpoisoned
-[   59.628838] Out of memory: Kill process 4450 (file_io.00) score 998 or sacrifice child
-[   59.631071] Killed process 4450 (file_io.00) total-vm:4308kB, anon-rss:100kB, file-rss:1184kB, shmem-rss:0kB
-[   61.526353] kthreadd: page allocation failure: order:0, mode:0x2200020
-[   61.527976] file_io.00: page allocation failure: order:0, mode:0x2200020
-[   61.527978] CPU: 0 PID: 4457 Comm: file_io.00 Not tainted 4.5.0-rc7+ #45
-[   61.527979] Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 07/31/2013
-[   61.527981]  0000000000000086 000000000005bb2d ffff88006cc5b588 ffffffff812a4d65
-[   61.527982]  0000000002200020 0000000000000000 ffff88006cc5b618 ffffffff81106dc7
-[   61.527983]  0000000000000000 ffffffffffffffff 00ff880000000000 ffff880000000004
-[   61.527983] Call Trace:
-[   61.528009]  [<ffffffff812a4d65>] dump_stack+0x4d/0x68
-[   61.528012]  [<ffffffff81106dc7>] warn_alloc_failed+0xf7/0x150
-[   61.528014]  [<ffffffff81109e3f>] __alloc_pages_nodemask+0x23f/0xa60
-[   61.528016]  [<ffffffff81137770>] ? page_check_address_transhuge+0x350/0x350
-[   61.528018]  [<ffffffff8111327d>] ? page_evictable+0xd/0x40
-[   61.528019]  [<ffffffff8114d927>] alloc_pages_current+0x87/0x110
-[   61.528021]  [<ffffffff81155181>] new_slab+0x3a1/0x440
-[   61.528023]  [<ffffffff81156fdf>] ___slab_alloc+0x3cf/0x590
-[   61.528024]  [<ffffffff811a0999>] ? wb_start_writeback+0x39/0x90
-[   61.528027]  [<ffffffff815a7f68>] ? preempt_schedule_common+0x1f/0x37
-[   61.528028]  [<ffffffff815a7f9f>] ? preempt_schedule+0x1f/0x30
-[   61.528030]  [<ffffffff81001012>] ? ___preempt_schedule+0x12/0x14
-[   61.528030]  [<ffffffff811a0999>] ? wb_start_writeback+0x39/0x90
-[   61.528032]  [<ffffffff81175536>] __slab_alloc.isra.64+0x18/0x1d
-[   61.528033]  [<ffffffff8115778c>] kmem_cache_alloc+0x11c/0x150
-[   61.528034]  [<ffffffff811a0999>] wb_start_writeback+0x39/0x90
-[   61.528035]  [<ffffffff811a0d9f>] wakeup_flusher_threads+0x7f/0xf0
-[   61.528036]  [<ffffffff81115ac9>] do_try_to_free_pages+0x1f9/0x410
-[   61.528037]  [<ffffffff81115d74>] try_to_free_pages+0x94/0xc0
-[   61.528038]  [<ffffffff8110a166>] __alloc_pages_nodemask+0x566/0xa60
-[   61.528040]  [<ffffffff81200878>] ? xfs_bmapi_read+0x208/0x2f0
-[   61.528041]  [<ffffffff8114d927>] alloc_pages_current+0x87/0x110
-[   61.528042]  [<ffffffff8110092f>] __page_cache_alloc+0xaf/0xc0
-[   61.528043]  [<ffffffff811011e8>] pagecache_get_page+0x88/0x260
-[   61.528044]  [<ffffffff81101d31>] grab_cache_page_write_begin+0x21/0x40
-[   61.528046]  [<ffffffff81222c9f>] xfs_vm_write_begin+0x2f/0xf0
-[   61.528047]  [<ffffffff810b14be>] ? current_fs_time+0x1e/0x30
-[   61.528048]  [<ffffffff81101eca>] generic_perform_write+0xca/0x1c0
-[   61.528050]  [<ffffffff8107c390>] ? wake_up_process+0x10/0x20
-[   61.528051]  [<ffffffff8122e01c>] xfs_file_buffered_aio_write+0xcc/0x1f0
-[   61.528052]  [<ffffffff81079037>] ? finish_task_switch+0x77/0x280
-[   61.528053]  [<ffffffff8122e1c4>] xfs_file_write_iter+0x84/0x140
-[   61.528054]  [<ffffffff811777a7>] __vfs_write+0xc7/0x100
-[   61.528055]  [<ffffffff811784cd>] vfs_write+0x9d/0x190
-[   61.528056]  [<ffffffff810010a1>] ? do_audit_syscall_entry+0x61/0x70
-[   61.528057]  [<ffffffff811793c0>] SyS_write+0x50/0xc0
-[   61.528059]  [<ffffffff815ab4d7>] entry_SYSCALL_64_fastpath+0x12/0x6a
-[   61.528059] Mem-Info:
-[   61.528062] active_anon:293335 inactive_anon:2093 isolated_anon:0
-[   61.528062]  active_file:10829 inactive_file:110045 isolated_file:32
-[   61.528062]  unevictable:0 dirty:109275 writeback:822 unstable:0
-[   61.528062]  slab_reclaimable:5489 slab_unreclaimable:10070
-[   61.528062]  mapped:9999 shmem:2159 pagetables:2420 bounce:0
-[   61.528062]  free:3 free_pcp:0 free_cma:0
-[   61.528065] Node 0 DMA free:12kB min:44kB low:52kB high:64kB active_anon:6060kB inactive_anon:176kB active_file:708kB inactive_file:756kB unevictable:0kB isolated(anon):0kB isolated(file):0kB present:15988kB managed:15904kB mlocked:0kB dirty:756kB writeback:0kB mapped:736kB shmem:184kB slab_reclaimable:48kB slab_unreclaimable:7160kB kernel_stack:160kB pagetables:144kB unstable:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB writeback_tmp:0kB pages_scanned:9844 all_unreclaimable? yes
-[   61.528066] lowmem_reserve[]: 0 1732 1732 1732
-[   61.528068] Node 0 DMA32 free:0kB min:5200kB low:6500kB high:7800kB active_anon:1167280kB inactive_anon:8196kB active_file:42608kB inactive_file:439424kB unevictable:0kB isolated(anon):0kB isolated(file):128kB present:2080640kB managed:1775332kB mlocked:0kB dirty:436344kB writeback:3288kB mapped:39260kB shmem:8452kB slab_reclaimable:21908kB slab_unreclaimable:33120kB kernel_stack:20976kB pagetables:9536kB unstable:0kB bounce:0kB free_pcp:0kB local_pcp:0kB free_cma:0kB writeback_tmp:0kB pages_scanned:11073180 all_unreclaimable? yes
-[   61.528069] lowmem_reserve[]: 0 0 0 0
-[   61.528072] Node 0 DMA: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB = 0kB
-[   61.528074] Node 0 DMA32: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB = 0kB
-[   61.528075] Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=1048576kB
-[   61.528075] Node 0 hugepages_total=0 hugepages_free=0 hugepages_surp=0 hugepages_size=2048kB
-[   61.528076] 123086 total pagecache pages
-[   61.528076] 0 pages in swap cache
-[   61.528077] Swap cache stats: add 0, delete 0, find 0/0
-[   61.528077] Free swap  = 0kB
-[   61.528077] Total swap = 0kB
-[   61.528077] 524157 pages RAM
-[   61.528078] 0 pages HighMem/MovableOnly
-[   61.528078] 76348 pages reserved
-[   61.528078] 0 pages hwpoisoned
-[   61.528079] SLUB: Unable to allocate memory on node -1 (gfp=0x2088020)
-[   61.528080]   cache: kmalloc-64, object size: 64, buffer size: 64, default order: 0, min order: 0
-[   61.528080]   node 0: slabs: 3218, objs: 205952, free: 0
-[   61.528085] file_io.00: page allocation failure: order:0, mode:0x2200020
-[   61.528086] CPU: 0 PID: 4457 Comm: file_io.00 Not tainted 4.5.0-rc7+ #45
-
-Assuming that somebody will find a better solution, let's apply this patch
-for now to stop bleeding, for this problem frequently prevents me from
-testing OOM livelock condition.
-
-Link: http://lkml.kernel.org/r/20160318131136.GE7152@quack.suse.cz
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
+Fixes: f1c54846ee45 ("zswap: dynamic pool creation")
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Reported-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Dan Streetman <dan.streetman@canonical.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/zswap.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~mmwriteback-dont-use-memory-reserves-for-wb_start_writeback fs/fs-writeback.c
---- a/fs/fs-writeback.c~mmwriteback-dont-use-memory-reserves-for-wb_start_writeback
-+++ a/fs/fs-writeback.c
-@@ -931,7 +931,8 @@ void wb_start_writeback(struct bdi_write
- 	 * This is WB_SYNC_NONE writeback, so if allocation fails just
- 	 * wakeup the thread for old dirty data writeback
- 	 */
--	work = kzalloc(sizeof(*work), GFP_ATOMIC);
-+	work = kzalloc(sizeof(*work),
-+		       GFP_NOWAIT | __GFP_NOMEMALLOC | __GFP_NOWARN);
- 	if (!work) {
- 		trace_writeback_nowork(wb);
- 		wb_wakeup(wb);
+diff -puN mm/zswap.c~mm-zswap-provide-unique-zpool-name mm/zswap.c
+--- a/mm/zswap.c~mm-zswap-provide-unique-zpool-name
++++ a/mm/zswap.c
+@@ -170,6 +170,8 @@ static struct zswap_tree *zswap_trees[MA
+ static LIST_HEAD(zswap_pools);
+ /* protects zswap_pools list modification */
+ static DEFINE_SPINLOCK(zswap_pools_lock);
++/* pool counter to provide unique names to zpool */
++static atomic_t zswap_pools_count = ATOMIC_INIT(0);
+ 
+ /* used by param callback function */
+ static bool zswap_init_started;
+@@ -565,6 +567,7 @@ static struct zswap_pool *zswap_pool_fin
+ static struct zswap_pool *zswap_pool_create(char *type, char *compressor)
+ {
+ 	struct zswap_pool *pool;
++	char name[38]; /* 'zswap' + 32 char (max) num + \0 */
+ 	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
+ 
+ 	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
+@@ -573,7 +576,10 @@ static struct zswap_pool *zswap_pool_cre
+ 		return NULL;
+ 	}
+ 
+-	pool->zpool = zpool_create_pool(type, "zswap", gfp, &zswap_zpool_ops);
++	/* unique name for each pool specifically required by zsmalloc */
++	snprintf(name, 38, "zswap%x", atomic_inc_return(&zswap_pools_count));
++
++	pool->zpool = zpool_create_pool(type, name, gfp, &zswap_zpool_ops);
+ 	if (!pool->zpool) {
+ 		pr_err("%s zpool not available\n", type);
+ 		goto error;
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from ddstreet@ieee.org are
 
-mmwriteback-dont-use-memory-reserves-for-wb_start_writeback.patch
-signal-make-oom_flags-a-bool.patch
+mm-zswap-provide-unique-zpool-name.patch
+mm-zswap-use-workqueue-to-destroy-pool.patch
+mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch
 
