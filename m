@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-vm-fix-spelling-mistakes.patch added to -mm tree
-Date: Thu, 28 Apr 2016 12:12:44 -0700
-Message-ID: <572260ac.fy5ri2G6OY+B0VZJ%akpm@linux-foundation.org>
+Subject: +
+ drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable-fix.patch added to -mm tree
+Date: Thu, 28 Apr 2016 14:13:08 -0700
+Message-ID: <57227ce4.qih6hTR+j89///iE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45899 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47710 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632AbcD1TMu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Apr 2016 15:12:50 -0400
+	with ESMTP id S1753336AbcD1VNJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Apr 2016 17:13:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric@engestrom.ch, corbet@lwn.net, mm-commits@vger.kernel.org
+To: arnd@arndb.de, mhocko@suse.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation: vm: fix spelling mistakes
+     Subject: drm/amdgpu: use ERR_PTR() to return from amdgpu_mn_get
 has been added to the -mm tree.  Its filename is
-     documentation-vm-fix-spelling-mistakes.patch
+     drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-vm-fix-spelling-mistakes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-vm-fix-spelling-mistakes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,56 +39,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Engestrom <eric@engestrom.ch>
-Subject: Documentation: vm: fix spelling mistakes
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: drm/amdgpu: use ERR_PTR() to return from amdgpu_mn_get
 
-Signed-off-by: Eric Engestrom <eric@engestrom.ch>
-Cc: Jonathan Corbet <corbet@lwn.net>
+The newly added failure path in amdgpu_mn_get() use the
+wrong return type:
+
+drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c: In function 'amdgpu_mn_get':
+drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c:237:10: error: return makes pointer from integer without a cast
+
+This adds the necessary ERR_PTR() conversion.
+
+Fixes: ad35eee9fb17 ("drm/amdgpu: make amdgpu_mn_get wait for mmap_sem killable")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/vm/transhuge.txt~documentation-vm-fix-spelling-mistakes Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~documentation-vm-fix-spelling-mistakes
-+++ a/Documentation/vm/transhuge.txt
-@@ -340,7 +340,7 @@ unaffected. libhugetlbfs will also work
+diff -puN drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c~drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable-fix drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c~drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable-fix
++++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
+@@ -234,7 +234,7 @@ static struct amdgpu_mn *amdgpu_mn_get(s
+ 	mutex_lock(&adev->mn_lock);
+ 	if (down_write_killable(&mm->mmap_sem)) {
+ 		mutex_unlock(&adev->mn_lock);
+-		return -EINTR;
++		return ERR_PTR(-EINTR);
+ 	}
  
- == Graceful fallback ==
- 
--Code walking pagetables but unware about huge pmds can simply call
-+Code walking pagetables but unaware about huge pmds can simply call
- split_huge_pmd(vma, pmd, addr) where the pmd is the one returned by
- pmd_offset. It's trivial to make the code transparent hugepage aware
- by just grepping for "pmd_offset" and adding split_huge_pmd where
-@@ -414,7 +414,7 @@ tracking. The alternative is alter ->_ma
- map/unmap of the whole compound page.
- 
- We set PG_double_map when a PMD of the page got split for the first time,
--but still have PMD mapping. The addtional references go away with last
-+but still have PMD mapping. The additional references go away with last
- compound_mapcount.
- 
- split_huge_page internally has to distribute the refcounts in the head
-@@ -432,10 +432,10 @@ page->_mapcount.
- We safe against physical memory scanners too: the only legitimate way
- scanner can get reference to a page is get_page_unless_zero().
- 
--All tail pages has zero ->_refcount until atomic_add(). It prevent scanner
--from geting reference to tail page up to the point. After the atomic_add()
--we don't care about ->_refcount value.  We already known how many references
--with should uncharge from head page.
-+All tail pages have zero ->_refcount until atomic_add(). This prevents the
-+scanner from getting a reference to the tail page up to that point. After the
-+atomic_add() we don't care about the ->_refcount value.  We already known how
-+many references should be uncharged from the head page.
- 
- For head page get_page_unless_zero() will succeed and we don't mind. It's
- clear where reference should go after split: it will stay on head page.
+ 	hash_for_each_possible(adev->mn_hash, rmn, node, (unsigned long)mm)
 _
 
-Patches currently in -mm which might be from eric@engestrom.ch are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-documentation-vm-fix-spelling-mistakes.patch
+kernel-padata-hide-unused-functions.patch
+drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable-fix.patch
 
