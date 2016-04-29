@@ -1,54 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-stackdepotc-allow-the-stack-trace-hash-to-be-zero.patch removed from
- -mm tree
-Date: Fri, 29 Apr 2016 15:05:52 -0700
-Message-ID: <5723dac0.JVIekI2x63hJshrj%akpm@linux-foundation.org>
+Subject: [merged] update-email-address.patch removed from -mm tree
+Date: Fri, 29 Apr 2016 15:05:43 -0700
+Message-ID: <5723dab7.P/gCOnmfxOAAt5mk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45467 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45449 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753109AbcD2WFx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 18:05:53 -0400
+	with ESMTP id S1752436AbcD2WFo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 18:05:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glider@google.com, aryabinin@virtuozzo.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: ananth@in.ibm.com, ananth@linux.vnet.ibm.com, mhiramat@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot.c: allow the stack trace hash to be zero
+     Subject: Ananth has moved
 has been removed from the -mm tree.  Its filename was
-     lib-stackdepotc-allow-the-stack-trace-hash-to-be-zero.patch
+     update-email-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: lib/stackdepot.c: allow the stack trace hash to be zero
+From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Subject: Ananth has moved
 
-Do not bail out from depot_save_stack() if the stack trace has zero hash. 
-Initially depot_save_stack() silently dropped stack traces with zero
-hashes, however there's actually no point in reserving this zero value.
+The current ID is going away soon... update email address
 
-Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Signed-off-by: Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    4 ----
- 1 file changed, 4 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/stackdepot.c~lib-stackdepotc-allow-the-stack-trace-hash-to-be-zero lib/stackdepot.c
---- a/lib/stackdepot.c~lib-stackdepotc-allow-the-stack-trace-hash-to-be-zero
-+++ a/lib/stackdepot.c
-@@ -210,10 +210,6 @@ depot_stack_handle_t depot_save_stack(st
- 		goto fast_exit;
+diff -puN MAINTAINERS~update-email-address MAINTAINERS
+--- a/MAINTAINERS~update-email-address
++++ a/MAINTAINERS
+@@ -6400,7 +6400,7 @@ F:	mm/kmemleak.c
+ F:	mm/kmemleak-test.c
  
- 	hash = hash_stack(trace->entries, trace->nr_entries);
--	/* Bad luck, we won't store this stack. */
--	if (hash == 0)
--		goto exit;
+ KPROBES
+-M:	Ananth N Mavinakayanahalli <ananth@in.ibm.com>
++M:	Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
+ M:	Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+ M:	"David S. Miller" <davem@davemloft.net>
+ M:	Masami Hiramatsu <mhiramat@kernel.org>
+_
+
+Patches currently in -mm which might be from ananth@in.ibm.com are
+
+
