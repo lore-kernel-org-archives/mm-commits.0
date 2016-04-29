@@ -1,87 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check.patch
- removed from -mm tree
-Date: Fri, 29 Apr 2016 15:05:22 -0700
-Message-ID: <5723daa2.jiHprid95SfHWqUC%akpm__12481.9481665783$1461967535$gmane$org@linux-foundation.org>
+ mm-vmscan-reclaim-highmem-zone-if-buffer_heads-is-over-limit.patch removed
+ from -mm tree
+Date: Fri, 29 Apr 2016 15:05:28 -0700
+Message-ID: <5723daa8.HFonhv0VZ5Kugh9S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45421 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753046AbcD2WFX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 18:05:23 -0400
+	with ESMTP id S1753069AbcD2WF3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 18:05:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, aarcange@redhat.com, dvyukov@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: minchan@kernel.org, hannes@cmpxchg.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory: replace VM_NO_THP VM_BUG_ON with actual VMA check
+     Subject: mm: vmscan: reclaim highmem zone if buffer_heads is over limit
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check.patch
+     mm-vmscan-reclaim-highmem-zone-if-buffer_heads-is-over-limit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: mm/huge_memory: replace VM_NO_THP VM_BUG_ON with actual VMA check
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: vmscan: reclaim highmem zone if buffer_heads is over limit
 
-Khugepaged detects own VMAs by checking vm_file and vm_ops but this
-way it cannot distinguish private /dev/zero mappings from other special
-mappings like /dev/hpet which has no vm_ops and popultes PTEs in mmap.
+We have been reclaimed highmem zone if buffer_heads is over limit but
+6b4f7799c6a5 ("mm: vmscan: invoke slab shrinkers from shrink_zone()")
+changed the behavior so it doesn't reclaim highmem zone although
+buffer_heads is over the limit.  This patch restores the logic.
 
-This fixes false-positive VM_BUG_ON and prevents installing THP where
-they are not expected.
-
-Link: http://lkml.kernel.org/r/CACT4Y+ZmuZMV5CjSFOeXviwQdABAgT7T+StKfTqan9YDtgEi5g@mail.gmail.com
-Fixes: 78f11a255749 ("mm: thp: fix /dev/zero MAP_PRIVATE and vm_flags cleanups")
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: stable <stable@vger.kernel.org>
+Fixes: 6b4f7799c6a5 ("mm: vmscan: invoke slab shrinkers from shrink_zone()")
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check mm/huge_memory.c
---- a/mm/huge_memory.c~mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check
-+++ a/mm/huge_memory.c
-@@ -1960,10 +1960,9 @@ int khugepaged_enter_vma_merge(struct vm
- 		 * page fault if needed.
- 		 */
- 		return 0;
--	if (vma->vm_ops)
-+	if (vma->vm_ops || (vm_flags & VM_NO_THP))
- 		/* khugepaged not yet working on file or special mappings */
- 		return 0;
--	VM_BUG_ON_VMA(vm_flags & VM_NO_THP, vma);
- 	hstart = (vma->vm_start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK;
- 	hend = vma->vm_end & HPAGE_PMD_MASK;
- 	if (hstart < hend)
-@@ -2352,8 +2351,7 @@ static bool hugepage_vma_check(struct vm
- 		return false;
- 	if (is_vma_temporary_stack(vma))
- 		return false;
--	VM_BUG_ON_VMA(vma->vm_flags & VM_NO_THP, vma);
--	return true;
-+	return !(vma->vm_flags & VM_NO_THP);
- }
+diff -puN mm/vmscan.c~mm-vmscan-reclaim-highmem-zone-if-buffer_heads-is-over-limit mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-reclaim-highmem-zone-if-buffer_heads-is-over-limit
++++ a/mm/vmscan.c
+@@ -2553,7 +2553,7 @@ static bool shrink_zones(struct zonelist
+ 		sc->gfp_mask |= __GFP_HIGHMEM;
  
- static void collapse_huge_page(struct mm_struct *mm,
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
+-					requested_highidx, sc->nodemask) {
++					gfp_zone(sc->gfp_mask), sc->nodemask) {
+ 		enum zone_type classzone_idx;
+ 
+ 		if (!populated_zone(zone))
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-scripts-decode_stacktracesh-handle-symbols-in-modules.patch
-mm-mmap-kill-hook-arch_rebalance_pgtables.patch
-mm-enable-rlimit_data-by-default-with-workaround-for-valgrind.patch
-arch-defconfig-remove-config_resource_counters.patch
+zsmalloc-use-first_page-rather-than-page.patch
+zsmalloc-clean-up-many-bug_on.patch
+zsmalloc-reordering-function-parameter.patch
+zsmalloc-remove-unused-pool-param-in-obj_free.patch
 
