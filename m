@@ -1,79 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-update-the-document-of-numa_zonelist_order.patch
- removed from -mm tree
-Date: Fri, 29 Apr 2016 15:05:54 -0700
-Message-ID: <5723dac2.jHvn2PzZC/GLnrbq%akpm@linux-foundation.org>
+Subject: + mm-use-unsigned-long-constant-for-page-flags.patch added to -mm tree
+Date: Fri, 29 Apr 2016 16:22:01 -0700
+Message-ID: <5723ec99.vXMuyhmGb7KTzNCY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45473 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46287 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752641AbcD2WFz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 18:05:55 -0400
+	with ESMTP id S1752613AbcD2XWD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 19:22:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: yuzhao@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/sysctl/vm.txt: update numa_zonelist_order description
-has been removed from the -mm tree.  Its filename was
-     mm-update-the-document-of-numa_zonelist_order.patch
+     Subject: mm: use unsigned long constant for page flags
+has been added to the -mm tree.  Its filename is
+     mm-use-unsigned-long-constant-for-page-flags.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-unsigned-long-constant-for-page-flags.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-unsigned-long-constant-for-page-flags.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: Documentation/sysctl/vm.txt: update numa_zonelist_order description
+From: Yu Zhao <yuzhao@google.com>
+Subject: mm: use unsigned long constant for page flags
 
-3193913ce62c ("mm: page_alloc: default node-ordering on 64-bit NUMA,
-zone-ordering on 32-bit") changes the default value of
-numa_zonelist_order.  Update the document.
+struct page->flags is unsigned long, so when shifting bits we should
+use UL suffix to match it.
 
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Found this problem after I added 64-bit CPU specific page flags and
+failed to compile the kernel:
+mm/page_alloc.c: In function '__free_one_page':
+mm/page_alloc.c:672:2: error: integer overflow in expression [-Werror=overflow]
+
+Link: http://lkml.kernel.org/r/1461971723-16187-1-git-send-email-yuzhao@google.com
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+"Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Michal Hocko <mhocko@suse.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Jerome Marchand <jmarchan@redhat.com>, Denys Vlasenko <dvlasenk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ include/linux/page-flags.h |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-update-the-document-of-numa_zonelist_order Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-update-the-document-of-numa_zonelist_order
-+++ a/Documentation/sysctl/vm.txt
-@@ -581,15 +581,16 @@ Specify "[Nn]ode" for node order
- "Zone Order" orders the zonelists by zone type, then by node within each
- zone.  Specify "[Zz]one" for zone order.
+diff -puN include/linux/page-flags.h~mm-use-unsigned-long-constant-for-page-flags include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-use-unsigned-long-constant-for-page-flags
++++ a/include/linux/page-flags.h
+@@ -479,7 +479,7 @@ static inline void ClearPageCompound(str
+ }
+ #endif
  
--Specify "[Dd]efault" to request automatic configuration.  Autoconfiguration
--will select "node" order in following case.
--(1) if the DMA zone does not exist or
--(2) if the DMA zone comprises greater than 50% of the available memory or
--(3) if any node's DMA zone comprises greater than 70% of its local memory and
--    the amount of local memory is big enough.
-+Specify "[Dd]efault" to request automatic configuration.
+-#define PG_head_mask ((1L << PG_head))
++#define PG_head_mask ((1UL << PG_head))
  
--Otherwise, "zone" order will be selected. Default order is recommended unless
--this is causing problems for your system/application.
-+On 32-bit, the Normal zone needs to be preserved for allocations accessible
-+by the kernel, so "zone" order will be selected.
-+
-+On 64-bit, devices that require DMA32/DMA are relatively rare, so "node"
-+order will be selected.
-+
-+Default order is recommended unless this is causing problems for your
-+system/application.
+ #ifdef CONFIG_HUGETLB_PAGE
+ int PageHuge(struct page *page);
+@@ -670,7 +670,7 @@ static inline void ClearPageSlabPfmemall
+ }
  
- ==============================================================
+ #ifdef CONFIG_MMU
+-#define __PG_MLOCKED		(1 << PG_mlocked)
++#define __PG_MLOCKED		(1UL << PG_mlocked)
+ #else
+ #define __PG_MLOCKED		0
+ #endif
+@@ -680,11 +680,11 @@ static inline void ClearPageSlabPfmemall
+  * these flags set.  It they are, there is a problem.
+  */
+ #define PAGE_FLAGS_CHECK_AT_FREE \
+-	(1 << PG_lru	 | 1 << PG_locked    | \
+-	 1 << PG_private | 1 << PG_private_2 | \
+-	 1 << PG_writeback | 1 << PG_reserved | \
+-	 1 << PG_slab	 | 1 << PG_swapcache | 1 << PG_active | \
+-	 1 << PG_unevictable | __PG_MLOCKED)
++	(1UL << PG_lru	 | 1UL << PG_locked    | \
++	 1UL << PG_private | 1UL << PG_private_2 | \
++	 1UL << PG_writeback | 1UL << PG_reserved | \
++	 1UL << PG_slab	 | 1UL << PG_swapcache | 1UL << PG_active | \
++	 1UL << PG_unevictable | __PG_MLOCKED)
  
+ /*
+  * Flags checked when a page is prepped for return by the page allocator.
+@@ -695,10 +695,10 @@ static inline void ClearPageSlabPfmemall
+  * alloc-free cycle to prevent from reusing the page.
+  */
+ #define PAGE_FLAGS_CHECK_AT_PREP	\
+-	(((1 << NR_PAGEFLAGS) - 1) & ~__PG_HWPOISON)
++	(((1UL << NR_PAGEFLAGS) - 1) & ~__PG_HWPOISON)
+ 
+ #define PAGE_FLAGS_PRIVATE				\
+-	(1 << PG_private | 1 << PG_private_2)
++	(1UL << PG_private | 1UL << PG_private_2)
+ /**
+  * page_has_private - Determine if page has private stuff
+  * @page: The page to be checked
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
+mm-use-unsigned-long-constant-for-page-flags.patch
 
