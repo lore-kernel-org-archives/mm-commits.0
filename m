@@ -1,56 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] update-email-address.patch removed from -mm tree
-Date: Fri, 29 Apr 2016 15:05:43 -0700
-Message-ID: <5723dab7.P/gCOnmfxOAAt5mk%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memory-failure-fix-race-with-compound-page-split-merge.patch removed
+ from -mm tree
+Date: Fri, 29 Apr 2016 15:05:48 -0700
+Message-ID: <5723dabc.8BjwvxFTJTrEAAhx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45449 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45460 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752436AbcD2WFo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 18:05:44 -0400
+	with ESMTP id S1752654AbcD2WFt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 18:05:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ananth@in.ibm.com, ananth@linux.vnet.ibm.com, mhiramat@kernel.org, mm-commits@vger.kernel.org
+To: khlebnikov@yandex-team.ru, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Ananth has moved
+     Subject: mm/memory-failure: fix race with compound page split/merge
 has been removed from the -mm tree.  Its filename was
-     update-email-address.patch
+     mm-memory-failure-fix-race-with-compound-page-split-merge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Subject: Ananth has moved
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: mm/memory-failure: fix race with compound page split/merge
 
-The current ID is going away soon... update email address
+get_hwpoison_page() must recheck relation between head and tail pages.
 
-Signed-off-by: Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
+n-horiguchi said: without this recheck, the race causes kernel to pin an
+irrelevant page, and finally makes kernel crash for refcount mismatch.
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~update-email-address MAINTAINERS
---- a/MAINTAINERS~update-email-address
-+++ a/MAINTAINERS
-@@ -6400,7 +6400,7 @@ F:	mm/kmemleak.c
- F:	mm/kmemleak-test.c
+diff -puN mm/memory-failure.c~mm-memory-failure-fix-race-with-compound-page-split-merge mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failure-fix-race-with-compound-page-split-merge
++++ a/mm/memory-failure.c
+@@ -888,7 +888,15 @@ int get_hwpoison_page(struct page *page)
+ 		}
+ 	}
  
- KPROBES
--M:	Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-+M:	Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
- M:	Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
- M:	"David S. Miller" <davem@davemloft.net>
- M:	Masami Hiramatsu <mhiramat@kernel.org>
+-	return get_page_unless_zero(head);
++	if (get_page_unless_zero(head)) {
++		if (head == compound_head(page))
++			return 1;
++
++		pr_info("MCE: %#lx cannot catch tail\n", page_to_pfn(page));
++		put_page(head);
++	}
++
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(get_hwpoison_page);
+ 
 _
 
-Patches currently in -mm which might be from ananth@in.ibm.com are
+Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
 
+mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on.patch
 
