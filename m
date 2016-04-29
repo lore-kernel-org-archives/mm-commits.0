@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-replace-__attribute__packed-with-__packed.patch added to -mm tree
-Date: Fri, 29 Apr 2016 13:40:31 -0700
-Message-ID: <5723c6bf.jpw2iD76xxMEZr/T%akpm@linux-foundation.org>
+Subject: + nilfs2-clean-trailing-semicolons-in-macros.patch added to -mm
+ tree
+Date: Fri, 29 Apr 2016 13:40:35 -0700
+Message-ID: <5723c6c3.SyZ2fA5ROe0sLwC1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43865 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43870 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752854AbcD2Ukd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 16:40:33 -0400
+	with ESMTP id S1752693AbcD2Ukg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 16:40:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: replace __attribute__((packed)) with __packed
+     Subject: nilfs2: clean trailing semicolons in macros
 has been added to the -mm tree.  Its filename is
-     nilfs2-replace-__attribute__packed-with-__packed.patch
+     nilfs2-clean-trailing-semicolons-in-macros.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-replace-__attribute__packed-with-__packed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-clean-trailing-semicolons-in-macros.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-replace-__attribute__packed-with-__packed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-clean-trailing-semicolons-in-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,33 +40,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: replace __attribute__((packed)) with __packed
+Subject: nilfs2: clean trailing semicolons in macros
 
-This fixes the following checkpatch.pl warning:
+Remove trailing semicolons from macros, as suggested by checkpatch.pl.
 
-WARNING: __packed is preferred over __attribute__((packed))
-#23: FILE: export.h:23:
-+} __attribute__ ((packed));
-
-Link: http://lkml.kernel.org/r/1461935747-10380-10-git-send-email-konishi.ryusuke@lab.ntt.co.jp
+Link: http://lkml.kernel.org/r/1461935747-10380-12-git-send-email-konishi.ryusuke@lab.ntt.co.jp
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/export.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/sysfs.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/nilfs2/export.h~nilfs2-replace-__attribute__packed-with-__packed fs/nilfs2/export.h
---- a/fs/nilfs2/export.h~nilfs2-replace-__attribute__packed-with-__packed
-+++ a/fs/nilfs2/export.h
-@@ -20,6 +20,6 @@ struct nilfs_fid {
+diff -puN fs/nilfs2/sysfs.h~nilfs2-clean-trailing-semicolons-in-macros fs/nilfs2/sysfs.h
+--- a/fs/nilfs2/sysfs.h~nilfs2-clean-trailing-semicolons-in-macros
++++ a/fs/nilfs2/sysfs.h
+@@ -66,7 +66,7 @@ struct nilfs_##name##_attr { \
+ 			char *); \
+ 	ssize_t (*store)(struct kobject *, struct attribute *, \
+ 			 const char *, size_t); \
+-};
++}
  
- 	u32 parent_gen;
- 	u64 parent_ino;
--} __attribute__ ((packed));
-+} __packed;
+ NILFS_COMMON_ATTR_STRUCT(feature);
  
- #endif
+@@ -77,7 +77,7 @@ struct nilfs_##name##_attr { \
+ 			char *); \
+ 	ssize_t (*store)(struct nilfs_##name##_attr *, struct the_nilfs *, \
+ 			 const char *, size_t); \
+-};
++}
+ 
+ NILFS_DEV_ATTR_STRUCT(dev);
+ NILFS_DEV_ATTR_STRUCT(segments);
+@@ -93,7 +93,7 @@ struct nilfs_##name##_attr { \
+ 			char *); \
+ 	ssize_t (*store)(struct nilfs_##name##_attr *, struct nilfs_root *, \
+ 			 const char *, size_t); \
+-};
++}
+ 
+ NILFS_CP_ATTR_STRUCT(snapshot);
+ 
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
