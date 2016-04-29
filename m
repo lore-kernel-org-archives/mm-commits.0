@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-get-rid-of-nilfs_mdt_mark_block_dirty.patch added to -mm tree
-Date: Fri, 29 Apr 2016 13:40:27 -0700
-Message-ID: <5723c6bb.cc6WjgHyhE1pnrC2%akpm@linux-foundation.org>
+Subject: +
+ nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines.patch added
+ to -mm tree
+Date: Fri, 29 Apr 2016 13:40:29 -0700
+Message-ID: <5723c6bd.M861343jjs5be3si%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43857 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43861 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753005AbcD2Uk2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 16:40:28 -0400
+	with ESMTP id S1753027AbcD2Uka (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 16:40:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: get rid of nilfs_mdt_mark_block_dirty()
+     Subject: nilfs2: move cleanup code of metadata file from inode routines
 has been added to the -mm tree.  Its filename is
-     nilfs2-get-rid-of-nilfs_mdt_mark_block_dirty.patch
+     nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-get-rid-of-nilfs_mdt_mark_block_dirty.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-get-rid-of-nilfs_mdt_mark_block_dirty.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,105 +41,131 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: get rid of nilfs_mdt_mark_block_dirty()
+Subject: nilfs2: move cleanup code of metadata file from inode routines
 
-nilfs_mdt_mark_block_dirty() can be replaced with primary functions
-like nilfs_mdt_get_block() and mark_buffer_dirty(), and it's used only
-by nilfs_ioctl_mark_blocks_dirty().
+Refactor nilfs_clear_inode() and nilfs_i_callback() so that cleanup
+code or resource deallocation related to metadata file will be moved
+out to mdt.c.
 
-This gets rid of the function to simplify the interface of metadata
-file.
-
-Link: http://lkml.kernel.org/r/1461935747-10380-8-git-send-email-konishi.ryusuke@lab.ntt.co.jp
+Link: http://lkml.kernel.org/r/1461935747-10380-9-git-send-email-konishi.ryusuke@lab.ntt.co.jp
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ioctl.c |   11 ++++++++---
- fs/nilfs2/mdt.c   |   28 ----------------------------
- fs/nilfs2/mdt.h   |    1 -
- 3 files changed, 8 insertions(+), 32 deletions(-)
+ fs/nilfs2/inode.c |    5 ++---
+ fs/nilfs2/mdt.c   |   25 +++++++++++++++++++++++++
+ fs/nilfs2/mdt.h   |    8 ++++++++
+ fs/nilfs2/super.c |    8 +++-----
+ 4 files changed, 38 insertions(+), 8 deletions(-)
 
-diff -puN fs/nilfs2/ioctl.c~nilfs2-get-rid-of-nilfs_mdt_mark_block_dirty fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~nilfs2-get-rid-of-nilfs_mdt_mark_block_dirty
-+++ a/fs/nilfs2/ioctl.c
-@@ -779,6 +779,7 @@ static int nilfs_ioctl_mark_blocks_dirty
- 	size_t nmembs = argv->v_nmembs;
- 	struct nilfs_bmap *bmap = NILFS_I(nilfs->ns_dat)->i_bmap;
- 	struct nilfs_bdesc *bdescs = buf;
-+	struct buffer_head *bh;
- 	int ret, i;
- 
- 	for (i = 0; i < nmembs; i++) {
-@@ -796,12 +797,16 @@ static int nilfs_ioctl_mark_blocks_dirty
- 			/* skip dead block */
- 			continue;
- 		if (bdescs[i].bd_level == 0) {
--			ret = nilfs_mdt_mark_block_dirty(nilfs->ns_dat,
--							 bdescs[i].bd_offset);
--			if (ret < 0) {
-+			ret = nilfs_mdt_get_block(nilfs->ns_dat,
-+						  bdescs[i].bd_offset,
-+						  false, NULL, &bh);
-+			if (unlikely(ret)) {
- 				WARN_ON(ret == -ENOENT);
- 				return ret;
- 			}
-+			mark_buffer_dirty(bh);
-+			nilfs_mdt_mark_dirty(nilfs->ns_dat);
-+			put_bh(bh);
- 		} else {
- 			ret = nilfs_bmap_mark(bmap, bdescs[i].bd_offset,
- 					      bdescs[i].bd_level);
-diff -puN fs/nilfs2/mdt.c~nilfs2-get-rid-of-nilfs_mdt_mark_block_dirty fs/nilfs2/mdt.c
---- a/fs/nilfs2/mdt.c~nilfs2-get-rid-of-nilfs_mdt_mark_block_dirty
-+++ a/fs/nilfs2/mdt.c
-@@ -389,34 +389,6 @@ int nilfs_mdt_forget_block(struct inode
- 	return ret;
- }
- 
--/**
-- * nilfs_mdt_mark_block_dirty - mark a block on the meta data file dirty.
-- * @inode: inode of the meta data file
-- * @block: block offset
-- *
-- * Return Value: On success, it returns 0. On error, the following negative
-- * error code is returned.
-- *
-- * %-ENOMEM - Insufficient memory available.
-- *
-- * %-EIO - I/O error
-- *
-- * %-ENOENT - the specified block does not exist (hole block)
-- */
--int nilfs_mdt_mark_block_dirty(struct inode *inode, unsigned long block)
--{
--	struct buffer_head *bh;
--	int err;
--
--	err = nilfs_mdt_read_block(inode, block, 0, &bh);
--	if (unlikely(err))
--		return err;
--	mark_buffer_dirty(bh);
--	nilfs_mdt_mark_dirty(inode);
--	brelse(bh);
--	return 0;
--}
--
- int nilfs_mdt_fetch_dirty(struct inode *inode)
+diff -puN fs/nilfs2/inode.c~nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines
++++ a/fs/nilfs2/inode.c
+@@ -755,7 +755,6 @@ void nilfs_truncate(struct inode *inode)
+ static void nilfs_clear_inode(struct inode *inode)
  {
  	struct nilfs_inode_info *ii = NILFS_I(inode);
-diff -puN fs/nilfs2/mdt.h~nilfs2-get-rid-of-nilfs_mdt_mark_block_dirty fs/nilfs2/mdt.h
---- a/fs/nilfs2/mdt.h~nilfs2-get-rid-of-nilfs_mdt_mark_block_dirty
+-	struct nilfs_mdt_info *mdi = NILFS_MDT(inode);
+ 
+ 	/*
+ 	 * Free resources allocated in nilfs_read_inode(), here.
+@@ -764,8 +763,8 @@ static void nilfs_clear_inode(struct ino
+ 	brelse(ii->i_bh);
+ 	ii->i_bh = NULL;
+ 
+-	if (mdi && mdi->mi_palloc_cache)
+-		nilfs_palloc_destroy_cache(inode);
++	if (nilfs_is_metadata_file_inode(inode))
++		nilfs_mdt_clear(inode);
+ 
+ 	if (test_bit(NILFS_I_BMAP, &ii->i_state))
+ 		nilfs_bmap_clear(ii->i_bmap);
+diff -puN fs/nilfs2/mdt.c~nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines fs/nilfs2/mdt.c
+--- a/fs/nilfs2/mdt.c~nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines
++++ a/fs/nilfs2/mdt.c
+@@ -28,6 +28,7 @@
+ #include "segment.h"
+ #include "page.h"
+ #include "mdt.h"
++#include "alloc.h"		/* nilfs_palloc_destroy_cache() */
+ 
+ #include <trace/events/nilfs2.h>
+ 
+@@ -465,6 +466,30 @@ int nilfs_mdt_init(struct inode *inode,
+ 	return 0;
+ }
+ 
++/**
++ * nilfs_mdt_clear - do cleanup for the metadata file
++ * @inode: inode of the metadata file
++ */
++void nilfs_mdt_clear(struct inode *inode)
++{
++	struct nilfs_mdt_info *mdi = NILFS_MDT(inode);
++
++	if (mdi->mi_palloc_cache)
++		nilfs_palloc_destroy_cache(inode);
++}
++
++/**
++ * nilfs_mdt_destroy - release resources used by the metadata file
++ * @inode: inode of the metadata file
++ */
++void nilfs_mdt_destroy(struct inode *inode)
++{
++	struct nilfs_mdt_info *mdi = NILFS_MDT(inode);
++
++	kfree(mdi->mi_bgl); /* kfree(NULL) is safe */
++	kfree(mdi);
++}
++
+ void nilfs_mdt_set_entry_size(struct inode *inode, unsigned entry_size,
+ 			      unsigned header_size)
+ {
+diff -puN fs/nilfs2/mdt.h~nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines fs/nilfs2/mdt.h
+--- a/fs/nilfs2/mdt.h~nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines
 +++ a/fs/nilfs2/mdt.h
-@@ -79,7 +79,6 @@ int nilfs_mdt_find_block(struct inode *i
- 			 struct buffer_head **out_bh);
- int nilfs_mdt_delete_block(struct inode *, unsigned long);
- int nilfs_mdt_forget_block(struct inode *, unsigned long);
--int nilfs_mdt_mark_block_dirty(struct inode *, unsigned long);
+@@ -67,6 +67,11 @@ static inline struct nilfs_mdt_info *NIL
+ 	return inode->i_private;
+ }
+ 
++static inline int nilfs_is_metadata_file_inode(const struct inode *inode)
++{
++	return inode->i_private != NULL;
++}
++
+ /* Default GFP flags using highmem */
+ #define NILFS_MDT_GFP      (__GFP_RECLAIM | __GFP_IO | __GFP_HIGHMEM)
+ 
+@@ -82,6 +87,9 @@ int nilfs_mdt_forget_block(struct inode
  int nilfs_mdt_fetch_dirty(struct inode *);
  
  int nilfs_mdt_init(struct inode *inode, gfp_t gfp_mask, size_t objsz);
++void nilfs_mdt_clear(struct inode *inode);
++void nilfs_mdt_destroy(struct inode *inode);
++
+ void nilfs_mdt_set_entry_size(struct inode *, unsigned, unsigned);
+ 
+ int nilfs_mdt_setup_shadow_map(struct inode *inode,
+diff -puN fs/nilfs2/super.c~nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines
++++ a/fs/nilfs2/super.c
+@@ -169,12 +169,10 @@ struct inode *nilfs_alloc_inode(struct s
+ static void nilfs_i_callback(struct rcu_head *head)
+ {
+ 	struct inode *inode = container_of(head, struct inode, i_rcu);
+-	struct nilfs_mdt_info *mdi = NILFS_MDT(inode);
+ 
+-	if (mdi) {
+-		kfree(mdi->mi_bgl); /* kfree(NULL) is safe */
+-		kfree(mdi);
+-	}
++	if (nilfs_is_metadata_file_inode(inode))
++		nilfs_mdt_destroy(inode);
++
+ 	kmem_cache_free(nilfs_inode_cachep, NILFS_I(inode));
+ }
+ 
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
