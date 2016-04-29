@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-clarify-permission-to-replicate-the-design.patch added
- to -mm tree
-Date: Fri, 29 Apr 2016 13:40:25 -0700
-Message-ID: <5723c6b9.0QEBNcrYf633JBjT%akpm@linux-foundation.org>
+Subject: + maintainers-add-web-link-for-nilfs-project.patch added to -mm
+ tree
+Date: Fri, 29 Apr 2016 13:40:23 -0700
+Message-ID: <5723c6b7.f0DOEHcJajtQcJRP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43855 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43854 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753021AbcD2Uk0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 16:40:26 -0400
+	with ESMTP id S1753005AbcD2UkY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Apr 2016 16:40:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: clarify permission to replicate the design
+     Subject: MAINTAINERS: add web link for nilfs project
 has been added to the -mm tree.  Its filename is
-     nilfs2-clarify-permission-to-replicate-the-design.patch
+     maintainers-add-web-link-for-nilfs-project.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-clarify-permission-to-replicate-the-design.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-web-link-for-nilfs-project.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-clarify-permission-to-replicate-the-design.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-web-link-for-nilfs-project.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,32 +40,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: clarify permission to replicate the design
+Subject: MAINTAINERS: add web link for nilfs project
 
-To respond to a certain developer's request, this explicitly state
-that developers can reimplement the nilfs2 design for other operating
-systems to share data stored in that format.
+Add nilfs.osdn.jp as the second web site of nilfs project.
 
-Link: http://lkml.kernel.org/r/1461935747-10380-7-git-send-email-konishi.ryusuke@lab.ntt.co.jp
+Link: http://lkml.kernel.org/r/1461935747-10380-6-git-send-email-konishi.ryusuke@lab.ntt.co.jp
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/nilfs2.txt |    5 +++++
- 1 file changed, 5 insertions(+)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/filesystems/nilfs2.txt~nilfs2-clarify-permission-to-replicate-the-design Documentation/filesystems/nilfs2.txt
---- a/Documentation/filesystems/nilfs2.txt~nilfs2-clarify-permission-to-replicate-the-design
-+++ a/Documentation/filesystems/nilfs2.txt
-@@ -268,3 +268,8 @@ among NILFS2 files can be depicted as fo
-                                     ( regular file, directory, or symlink )
- 
- For detail on the format of each file, please see include/linux/nilfs2_fs.h.
-+
-+There are no patents or other intellectual property that we protect
-+with regard to the design of NILFS2.  It is allowed to replicate the
-+design in hopes that other operating systems could share (mount, read,
-+write, etc.) data stored in this format.
+diff -puN MAINTAINERS~maintainers-add-web-link-for-nilfs-project MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-web-link-for-nilfs-project
++++ a/MAINTAINERS
+@@ -7794,6 +7794,7 @@ NILFS2 FILESYSTEM
+ M:	Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+ L:	linux-nilfs@vger.kernel.org
+ W:	http://nilfs.sourceforge.net/
++W:	http://nilfs.osdn.jp/
+ T:	git git://github.com/konis/nilfs2.git
+ S:	Supported
+ F:	Documentation/filesystems/nilfs2.txt
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
