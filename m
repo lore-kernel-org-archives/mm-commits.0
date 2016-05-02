@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-rewrite-radix_tree_locate_item-fix.patch added to
- -mm tree
-Date: Mon, 02 May 2016 14:45:17 -0700
-Message-ID: <5727ca6d.8gasCuaj5lBR3ngK%akpm@linux-foundation.org>
+Subject: +
+ modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property.patch added to -mm tree
+Date: Mon, 02 May 2016 14:53:23 -0700
+Message-ID: <5727cc53.4AqaF+7BsCEAjnMS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56339 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56515 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754390AbcEBVpS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 May 2016 17:45:18 -0400
+	with ESMTP id S1754390AbcEBVxY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 May 2016 17:53:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, ross.zwisler@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: p.zabel@pengutronix.de, computersforpeace@gmail.com, gregkh@linuxfoundation.org, javier@osg.samsung.com, rusty@rustcorp.com.au, sjoerd.simons@collabora.co.uk, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: rewrite radix_tree_locate_item fix
+     Subject: modpost: fix module autoloading for OF devices with generic compatible property
 has been added to the -mm tree.  Its filename is
-     radix-tree-rewrite-radix_tree_locate_item-fix.patch
+     modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-rewrite-radix_tree_locate_item-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-rewrite-radix_tree_locate_item-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,61 +39,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: radix-tree: rewrite radix_tree_locate_item fix
+From: Philipp Zabel <p.zabel@pengutronix.de>
+Subject: modpost: fix module autoloading for OF devices with generic compatible property
 
-radix_tree_locate_item() is often returning the wrong index, causing
-swapoff of shmem to hang because it cannot find the swap entry there.
-__locate()'s use of base is bogus, it adds an offset twice into index.
+Since the wildcard at the end of OF module aliases is gone, autoloading of
+modules that don't match a device's last (most generic) compatible value
+fails.
 
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1605012108490.1166@eggly.anvils
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+For example the CODA960 VPU on i.MX6Q has the SoC specific compatible
+"fsl,imx6q-vpu" and the generic compatible "cnm,coda960".  Since the
+driver currently only works with knowledge about the SoC specific
+integration, it doesn't list "cnm,cod960" in the module device table. 
+This results in the device compatible
+"of:NvpuT<NULL>Cfsl,imx6q-vpuCcnm,coda960" not matching the module alias
+"of:N*T*Cfsl,imx6q-vpu" anymore, whereas before commit 2f632369ab79
+("modpost: don't add a trailing wildcard for OF module aliases") it
+matched the module alias "of:N*T*Cfsl,imx6q-vpu*".
+
+This patch adds two module aliases for each compatible, one without the
+wildcard and one with "C*" appended.
+
+$ modinfo coda | grep imx6q
+alias:          of:N*T*Cfsl,imx6q-vpuC*
+alias:          of:N*T*Cfsl,imx6q-vpu
+
+Fixes: 2f632369ab79 ("modpost: don't add a trailing wildcard for OF module aliases")
+Link: http://lkml.kernel.org/r/1462203339-15340-1-git-send-email-p.zabel@pengutronix.de
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Brian Norris <computersforpeace@gmail.com>
+Cc: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: <stable@vger.kernel.org>	[4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ scripts/mod/file2alias.c |   69 ++++++++++++++++++++++++-------------
+ 1 file changed, 45 insertions(+), 24 deletions(-)
 
-diff -puN lib/radix-tree.c~radix-tree-rewrite-radix_tree_locate_item-fix lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-rewrite-radix_tree_locate_item-fix
-+++ a/lib/radix-tree.c
-@@ -1315,18 +1315,17 @@ static unsigned long __locate(struct rad
- 			      unsigned long index, struct locate_info *info)
- {
- 	unsigned int shift, height;
--	unsigned long base, i;
-+	unsigned long i;
+diff -puN scripts/mod/file2alias.c~modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property
++++ a/scripts/mod/file2alias.c
+@@ -371,6 +371,49 @@ static void do_usb_table(void *symval, u
+ 		do_usb_entry_multi(symval + i, mod);
+ }
  
- 	height = slot->path & RADIX_TREE_HEIGHT_MASK;
- 	shift = height * RADIX_TREE_MAP_SHIFT;
++static void do_of_entry_multi(void *symval, struct module *mod)
++{
++	char alias[500];
++	int len;
++	char *tmp;
++
++	DEF_FIELD_ADDR(symval, of_device_id, name);
++	DEF_FIELD_ADDR(symval, of_device_id, type);
++	DEF_FIELD_ADDR(symval, of_device_id, compatible);
++
++	len = sprintf(alias, "of:N%sT%s", (*name)[0] ? *name : "*",
++		      (*type)[0] ? *type : "*");
++
++	if (compatible[0])
++		sprintf(&alias[len], "%sC%s", (*type)[0] ? "*" : "",
++			*compatible);
++
++	/* Replace all whitespace with underscores */
++	for (tmp = alias; tmp && *tmp; tmp++)
++		if (isspace(*tmp))
++			*tmp = '_';
++
++	buf_printf(&mod->dev_table_buf, "MODULE_ALIAS(\"%s\");\n", alias);
++	strcat(alias, "C");
++	add_wildcard(alias);
++	buf_printf(&mod->dev_table_buf, "MODULE_ALIAS(\"%s\");\n", alias);
++}
++
++static void do_of_table(void *symval, unsigned long size,
++			struct module *mod)
++{
++	unsigned int i;
++	const unsigned long id_size = SIZE_of_device_id;
++
++	device_id_check(mod->name, "of", size, id_size, symval);
++
++	/* Leave last one: it's the terminator. */
++	size -= id_size;
++
++	for (i = 0; i < size; i += id_size)
++		do_of_entry_multi(symval + i, mod);
++}
++
+ /* Looks like: hid:bNvNpN */
+ static int do_hid_entry(const char *filename,
+ 			     void *symval, char *alias)
+@@ -684,30 +727,6 @@ static int do_pcmcia_entry(const char *f
+ }
+ ADD_TO_DEVTABLE("pcmcia", pcmcia_device_id, do_pcmcia_entry);
  
- 	do {
- 		shift -= RADIX_TREE_MAP_SHIFT;
--		base = index & ~((1UL << shift) - 1);
- 
- 		for (i = (index >> shift) & RADIX_TREE_MAP_MASK;
- 		     i < RADIX_TREE_MAP_SIZE;
--		     i++, index = base + (i << shift)) {
-+		     i++, index += (1UL << shift)) {
- 			struct radix_tree_node *node =
- 					rcu_dereference_raw(slot->slots[i]);
- 			if (node == RADIX_TREE_RETRY)
-_
-
-Patches currently in -mm which might be from hughd@google.com are
-
-huge-pagecache-mmap_sem-is-unlocked-when-truncation-splits-pmd.patch
-mm-cma-prevent-nr_isolated_-counters-from-going-negative.patch
-mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction-fix.patch
-mm-update_lru_size-warn-and-reset-bad-lru_size.patch
-mm-update_lru_size-do-the-__mod_zone_page_state.patch
-mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
-tmpfs-preliminary-minor-tidyups.patch
-mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch
-huge-mm-move_huge_pmd-does-not-need-new_vma.patch
-huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch
-arch-fix-has_transparent_hugepage.patch
-radix-tree-rewrite-radix_tree_locate_item-fix.patch
-
+-static int do_of_entry (const char *filename, void *symval, char *alias)
+-{
+-	int len;
+-	char *tmp;
+-	DEF_FIELD_ADDR(symval, of_device_id, name);
+-	DEF_FIELD_ADDR(symval, of_device_id, type);
+-	DEF_FIELD_ADDR(symval, of_device_id, compatible);
+-
+-	len = sprintf(alias, "of:N%sT%s", (*name)[0] ? *name : "*",
+-		      (*type)[0] ? *type : "*");
+-
+-	if (compatible[0])
+-		sprintf(&alias[len], "%sC%s", (*type)[0] ? "*" : "",
+-			*compatible);
+-
+-	/* Replace all whitespace with underscores */
+-	for (tmp = alias; tmp && *tmp; tmp++)
+-		if (isspace (*tmp))
+-			*tmp = '_';
+-
+-	return 1;
+-}
+-ADD_TO_DEVTABLE("of", of_device_id, do_of_entry);
