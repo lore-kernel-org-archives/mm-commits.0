@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-optimistic-check-for-swapin-readahead-fix.patch added
- to -mm tree
-Date: Mon, 02 May 2016 14:41:18 -0700
-Message-ID: <5727c97e.qqkeu2H7UhNz1mkL%akpm@linux-foundation.org>
+Subject: + radix-tree-rewrite-radix_tree_locate_item-fix.patch added to
+ -mm tree
+Date: Mon, 02 May 2016 14:45:17 -0700
+Message-ID: <5727ca6d.8gasCuaj5lBR3ngK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56217 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56339 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932200AbcEBVlT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 May 2016 17:41:19 -0400
+	with ESMTP id S1754390AbcEBVpS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 May 2016 17:45:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, aneesh.kumar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: hughd@google.com, ross.zwisler@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [PATCH] mm: make optimistic check for swapin readahead fix
+     Subject: radix-tree: rewrite radix_tree_locate_item fix
 has been added to the -mm tree.  Its filename is
-     mm-make-optimistic-check-for-swapin-readahead-fix.patch
+     radix-tree-rewrite-radix_tree_locate_item-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-optimistic-check-for-swapin-readahead-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-rewrite-radix_tree_locate_item-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-optimistic-check-for-swapin-readahead-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-rewrite-radix_tree_locate_item-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: [PATCH] mm: make optimistic check for swapin readahead fix
+From: Hugh Dickins <hughd@google.com>
+Subject: radix-tree: rewrite radix_tree_locate_item fix
 
-Link: http://lkml.kernel.org/r/20160502183234.1dad8115@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+radix_tree_locate_item() is often returning the wrong index, causing
+swapoff of shmem to hang because it cannot find the swap entry there.
+__locate()'s use of base is bogus, it adds an offset twice into index.
+
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1605012108490.1166@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/radix-tree.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-make-optimistic-check-for-swapin-readahead-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-make-optimistic-check-for-swapin-readahead-fix
-+++ a/mm/huge_memory.c
-@@ -101,7 +101,7 @@ static DECLARE_WAIT_QUEUE_HEAD(khugepage
-  * fault.
-  */
- static unsigned int khugepaged_max_ptes_none __read_mostly;
--static unsigned int khugepaged_max_ptes_swap __read_mostly = HPAGE_PMD_NR/8;
-+static unsigned int khugepaged_max_ptes_swap __read_mostly;
- static unsigned long allocstall;
+diff -puN lib/radix-tree.c~radix-tree-rewrite-radix_tree_locate_item-fix lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-rewrite-radix_tree_locate_item-fix
++++ a/lib/radix-tree.c
+@@ -1315,18 +1315,17 @@ static unsigned long __locate(struct rad
+ 			      unsigned long index, struct locate_info *info)
+ {
+ 	unsigned int shift, height;
+-	unsigned long base, i;
++	unsigned long i;
  
- static int khugepaged(void *none);
-@@ -703,6 +703,7 @@ static int __init hugepage_init(void)
+ 	height = slot->path & RADIX_TREE_HEIGHT_MASK;
+ 	shift = height * RADIX_TREE_MAP_SHIFT;
  
- 	khugepaged_pages_to_scan = HPAGE_PMD_NR * 8;
- 	khugepaged_max_ptes_none = HPAGE_PMD_NR - 1;
-+	khugepaged_max_ptes_swap = HPAGE_PMD_NR / 8;
- 	/*
- 	 * hugepages can't be allocated by the buddy allocator
- 	 */
+ 	do {
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+-		base = index & ~((1UL << shift) - 1);
+ 
+ 		for (i = (index >> shift) & RADIX_TREE_MAP_MASK;
+ 		     i < RADIX_TREE_MAP_SIZE;
+-		     i++, index = base + (i << shift)) {
++		     i++, index += (1UL << shift)) {
+ 			struct radix_tree_node *node =
+ 					rcu_dereference_raw(slot->slots[i]);
+ 			if (node == RADIX_TREE_RETRY)
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix6.patch
-mm-make-optimistic-check-for-swapin-readahead-fix.patch
+huge-pagecache-mmap_sem-is-unlocked-when-truncation-splits-pmd.patch
+mm-cma-prevent-nr_isolated_-counters-from-going-negative.patch
+mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction-fix.patch
+mm-update_lru_size-warn-and-reset-bad-lru_size.patch
+mm-update_lru_size-do-the-__mod_zone_page_state.patch
+mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
+tmpfs-preliminary-minor-tidyups.patch
+mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch
+huge-mm-move_huge_pmd-does-not-need-new_vma.patch
+huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch
+arch-fix-has_transparent_hugepage.patch
+radix-tree-rewrite-radix_tree_locate_item-fix.patch
 
