@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-stackdepot-avoid-to-return-0-handle.patch added to -mm tree
-Date: Wed, 04 May 2016 14:02:54 -0700
-Message-ID: <572a637e.dhcvg+VTacbKspkp%akpm@linux-foundation.org>
+Subject: + time-add-missing-implementation-for-timespec64_add_safe.patch
+ added to -mm tree
+Date: Wed, 04 May 2016 16:51:26 -0700
+Message-ID: <572a8afe.XwqYrmxC0Tl3I0qM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36916 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42248 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751139AbcEDVCz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2016 17:02:55 -0400
+	with ESMTP id S1755397AbcEDXv1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2016 19:51:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
+To: deepa.kernel@gmail.com, arnd@arndb.de, john.stultz@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: avoid to return 0 handle
+     Subject: time: add missing implementation for timespec64_add_safe()
 has been added to the -mm tree.  Its filename is
-     lib-stackdepot-avoid-to-return-0-handle.patch
+     time-add-missing-implementation-for-timespec64_add_safe.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-stackdepot-avoid-to-return-0-handle.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/time-add-missing-implementation-for-timespec64_add_safe.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-stackdepot-avoid-to-return-0-handle.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/time-add-missing-implementation-for-timespec64_add_safe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,90 +39,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: lib/stackdepot: avoid to return 0 handle
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Subject: time: add missing implementation for timespec64_add_safe()
 
-Recently, we allow to save the stacktrace whose hashed value is 0.  It
-causes the problem that stackdepot could return 0 even if in success. 
-User of stackdepot cannot distinguish whether it is success or not so we
-need to solve this problem.  In this patch, 1 bit are added to handle and
-make valid handle none 0 by setting this bit.  After that, valid handle
-will not be 0 and 0 handle will represent failure correctly.
+timespec64_add_safe() has been defined in time64.h for 64 bit systems. 
+But, 32 bit systems only have an extern function prototype defined. 
+Provide a definition for the above function.
 
-Fixes: 33334e25769c ("lib/stackdepot.c: allow the stack trace hash
-to be zero")
-Link: http://lkml.kernel.org/r/1462252403-1106-1-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+The function will be necessary as part of y2038 changes.  struct timespec
+is not y2038 safe.  All references to timespec will be replaced by struct
+timespec64.  The function is meant to be a replacement for
+timespec_add_safe().
+
+The implementation is similar to timespec_add_safe().
+
+Link: http://lkml.kernel.org/r/1461947989-21926-2-git-send-email-deepa.kernel@gmail.com
+Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/linux/time64.h |    4 +---
+ kernel/time/time.c     |   25 +++++++++++++++++++++++++
+ 2 files changed, 26 insertions(+), 3 deletions(-)
 
-diff -puN lib/stackdepot.c~lib-stackdepot-avoid-to-return-0-handle lib/stackdepot.c
---- a/lib/stackdepot.c~lib-stackdepot-avoid-to-return-0-handle
-+++ a/lib/stackdepot.c
-@@ -42,12 +42,14 @@
+diff -puN include/linux/time64.h~time-add-missing-implementation-for-timespec64_add_safe include/linux/time64.h
+--- a/include/linux/time64.h~time-add-missing-implementation-for-timespec64_add_safe
++++ a/include/linux/time64.h
+@@ -136,13 +136,11 @@ extern void set_normalized_timespec64(st
  
- #define DEPOT_STACK_BITS (sizeof(depot_stack_handle_t) * 8)
+ /*
+  * timespec64_add_safe assumes both values are positive and checks for
+- * overflow. It will return TIME_T_MAX if the returned value would be
+- * smaller then either of the arguments.
++ * overflow. It will return TIME64_MAX in case of overflow.
+  */
+ extern struct timespec64 timespec64_add_safe(const struct timespec64 lhs,
+ 					 const struct timespec64 rhs);
  
-+#define STACK_ALLOC_NULL_PROTECTION_BITS 1
- #define STACK_ALLOC_ORDER 2 /* 'Slab' size order for stack depot, 4 pages */
- #define STACK_ALLOC_SIZE (1LL << (PAGE_SHIFT + STACK_ALLOC_ORDER))
- #define STACK_ALLOC_ALIGN 4
- #define STACK_ALLOC_OFFSET_BITS (STACK_ALLOC_ORDER + PAGE_SHIFT - \
- 					STACK_ALLOC_ALIGN)
--#define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - STACK_ALLOC_OFFSET_BITS)
-+#define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - \
-+		STACK_ALLOC_NULL_PROTECTION_BITS - STACK_ALLOC_OFFSET_BITS)
- #define STACK_ALLOC_SLABS_CAP 1024
- #define STACK_ALLOC_MAX_SLABS \
- 	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
-@@ -59,6 +61,7 @@ union handle_parts {
- 	struct {
- 		u32 slabindex : STACK_ALLOC_INDEX_BITS;
- 		u32 offset : STACK_ALLOC_OFFSET_BITS;
-+		u32 valid : STACK_ALLOC_NULL_PROTECTION_BITS;
- 	};
- };
+-
+ static inline struct timespec64 timespec64_add(struct timespec64 lhs,
+ 						struct timespec64 rhs)
+ {
+diff -puN kernel/time/time.c~time-add-missing-implementation-for-timespec64_add_safe kernel/time/time.c
+--- a/kernel/time/time.c~time-add-missing-implementation-for-timespec64_add_safe
++++ a/kernel/time/time.c
+@@ -769,3 +769,28 @@ struct timespec timespec_add_safe(const
  
-@@ -136,6 +139,7 @@ static struct stack_record *depot_alloc_
- 	stack->size = size;
- 	stack->handle.slabindex = depot_index;
- 	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
-+	stack->handle.valid = 1;
- 	memcpy(stack->entries, entries, size * sizeof(unsigned long));
- 	depot_offset += required_size;
- 
+ 	return res;
+ }
++
++#if __BITS_PER_LONG != 64
++
++/*
++ * Add two timespec64 values and do a safety check for overflow.
++ * It's assumed that both values are valid (>= 0).
++ * And, each timespec64 is in normalized form.
++ */
++struct timespec64 timespec64_add_safe(const struct timespec64 lhs,
++				const struct timespec64 rhs)
++{
++	struct timespec64 res;
++
++	set_normalized_timespec64(&res, lhs.tv_sec + rhs.tv_sec,
++			lhs.tv_nsec + rhs.tv_nsec);
++
++	if (unlikely(res.tv_sec < lhs.tv_sec || res.tv_sec < rhs.tv_sec)) {
++		res.tv_sec = TIME64_MAX;
++		res.tv_nsec = 0;
++	}
++
++	return res;
++}
++
++#endif
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from deepa.kernel@gmail.com are
 
-lib-stackdepot-avoid-to-return-0-handle.patch
-mm-slab-fix-the-theoretical-race-by-holding-proper-lock.patch
-mm-slab-remove-bad_alien_magic-again.patch
-mm-slab-drain-the-free-slab-as-much-as-possible.patch
-mm-slab-factor-out-kmem_cache_node-initialization-code.patch
-mm-slab-factor-out-kmem_cache_node-initialization-code-fix.patch
-mm-slab-clean-up-kmem_cache_node-setup.patch
-mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
-mm-slab-racy-access-modify-the-slab-color.patch
-mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
-mm-slab-separate-cache_grow-to-two-parts.patch
-mm-slab-refill-cpu-cache-through-a-new-slab-without-holding-a-node-lock.patch
-mm-slab-lockless-decision-to-grow-cache.patch
-mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
-mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic.patch
-mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
-mm-vmstat-add-zone-range-overlapping-check.patch
-mm-page_owner-add-zone-range-overlapping-check.patch
-power-add-zone-range-overlapping-check.patch
-mm-writeback-correct-dirty-page-calculation-for-highmem.patch
-mm-page_alloc-correct-highmem-memory-statistics.patch
-mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
-mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
+time-add-missing-implementation-for-timespec64_add_safe.patch
+fs-poll-select-recvmmsg-use-timespec64-for-timeout-events.patch
+time-remove-timespec_add_safe.patch
 
