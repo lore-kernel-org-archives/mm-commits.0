@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-remove-max_comp_streams-internals.patch added to -mm tree
-Date: Wed, 04 May 2016 14:01:49 -0700
-Message-ID: <572a633d.ZRXlaK66J6sajN1g%akpm@linux-foundation.org>
+Subject: + lib-stackdepot-avoid-to-return-0-handle.patch added to -mm tree
+Date: Wed, 04 May 2016 14:02:54 -0700
+Message-ID: <572a637e.dhcvg+VTacbKspkp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36874 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36916 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751311AbcEDVBu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2016 17:01:50 -0400
+	with ESMTP id S1751139AbcEDVCz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2016 17:02:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: remove max_comp_streams internals
+     Subject: lib/stackdepot: avoid to return 0 handle
 has been added to the -mm tree.  Its filename is
-     zram-remove-max_comp_streams-internals.patch
+     lib-stackdepot-avoid-to-return-0-handle.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-remove-max_comp_streams-internals.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-stackdepot-avoid-to-return-0-handle.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-remove-max_comp_streams-internals.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-stackdepot-avoid-to-return-0-handle.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,188 +38,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: remove max_comp_streams internals
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: lib/stackdepot: avoid to return 0 handle
 
-Remove the internal part of max_comp_streams interface, since we switched
-to per-cpu streams.  We will keep RW max_comp_streams attr around,
-because:
+Recently, we allow to save the stacktrace whose hashed value is 0.  It
+causes the problem that stackdepot could return 0 even if in success. 
+User of stackdepot cannot distinguish whether it is success or not so we
+need to solve this problem.  In this patch, 1 bit are added to handle and
+make valid handle none 0 by setting this bit.  After that, valid handle
+will not be 0 and 0 handle will represent failure correctly.
 
-a) we may (silently) switch back to idle compression streams list and
-   don't want to disturb user space
-
-b) max_comp_streams attr must wait for the next 'lay off cycle'; we
-   give user space 2 years to adjust before we remove/downgrade the attr,
-   and there are already several attrs scheduled for removal in 4.11, so
-   it's too late for max_comp_streams.
-
-This slightly change a user visible behaviour:
-
-- First, reading from max_comp_stream file now will always return the
-  number of online CPUs.
-
-- Second, writing to max_comp_stream will not take any effect.
-
-Link: http://lkml.kernel.org/r/20160503165546.25201-1-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Fixes: 33334e25769c ("lib/stackdepot.c: allow the stack trace hash
+to be zero")
+Link: http://lkml.kernel.org/r/1462252403-1106-1-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/blockdev/zram.txt |   25 ++++------------
- drivers/block/zram/zcomp.c      |    5 ---
- drivers/block/zram/zram_drv.c   |   45 +++++++-----------------------
- drivers/block/zram/zram_drv.h   |    1 
- 4 files changed, 18 insertions(+), 58 deletions(-)
+ lib/stackdepot.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/blockdev/zram.txt~zram-remove-max_comp_streams-internals Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-remove-max_comp_streams-internals
-+++ a/Documentation/blockdev/zram.txt
-@@ -59,27 +59,16 @@ num_devices parameter is optional and te
- pre-created. Default: 1.
+diff -puN lib/stackdepot.c~lib-stackdepot-avoid-to-return-0-handle lib/stackdepot.c
+--- a/lib/stackdepot.c~lib-stackdepot-avoid-to-return-0-handle
++++ a/lib/stackdepot.c
+@@ -42,12 +42,14 @@
  
- 2) Set max number of compression streams
--	Compression backend may use up to max_comp_streams compression streams,
--	thus allowing up to max_comp_streams concurrent compression operations.
--	By default, compression backend uses single compression stream.
-+	Regardless the value passed to this attribute, ZRAM will always
-+	allocate multiple compression streams - one per online CPUs - thus
-+	allowing several concurrent compression operations. The number of
-+	allocated compression streams goes down when some of the CPUs
-+	become offline. There is no single-compression-stream mode anymore,
-+	unless you are running a UP system or has only 1 CPU online.
+ #define DEPOT_STACK_BITS (sizeof(depot_stack_handle_t) * 8)
  
--	Examples:
--	#show max compression streams number
-+	To find out how many streams are currently available:
- 	cat /sys/block/zram0/max_comp_streams
++#define STACK_ALLOC_NULL_PROTECTION_BITS 1
+ #define STACK_ALLOC_ORDER 2 /* 'Slab' size order for stack depot, 4 pages */
+ #define STACK_ALLOC_SIZE (1LL << (PAGE_SHIFT + STACK_ALLOC_ORDER))
+ #define STACK_ALLOC_ALIGN 4
+ #define STACK_ALLOC_OFFSET_BITS (STACK_ALLOC_ORDER + PAGE_SHIFT - \
+ 					STACK_ALLOC_ALIGN)
+-#define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - STACK_ALLOC_OFFSET_BITS)
++#define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - \
++		STACK_ALLOC_NULL_PROTECTION_BITS - STACK_ALLOC_OFFSET_BITS)
+ #define STACK_ALLOC_SLABS_CAP 1024
+ #define STACK_ALLOC_MAX_SLABS \
+ 	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
+@@ -59,6 +61,7 @@ union handle_parts {
+ 	struct {
+ 		u32 slabindex : STACK_ALLOC_INDEX_BITS;
+ 		u32 offset : STACK_ALLOC_OFFSET_BITS;
++		u32 valid : STACK_ALLOC_NULL_PROTECTION_BITS;
+ 	};
+ };
  
--	#set max compression streams number to 3
--	echo 3 > /sys/block/zram0/max_comp_streams
--
--Note:
--In order to enable compression backend's multi stream support max_comp_streams
--must be initially set to desired concurrency level before ZRAM device
--initialisation. Once the device initialised as a single stream compression
--backend (max_comp_streams equals to 1), you will see error if you try to change
--the value of max_comp_streams because single stream compression backend
--implemented as a special case by lock overhead issue and does not support
--dynamic max_comp_streams. Only multi stream backend supports dynamic
--max_comp_streams adjustment.
--
- 3) Select compression algorithm
- 	Using comp_algorithm device attribute one can see available and
- 	currently selected (shown in square brackets) compression algorithms,
-diff -puN drivers/block/zram/zcomp.c~zram-remove-max_comp_streams-internals drivers/block/zram/zcomp.c
---- a/drivers/block/zram/zcomp.c~zram-remove-max_comp_streams-internals
-+++ a/drivers/block/zram/zcomp.c
-@@ -95,11 +95,6 @@ bool zcomp_available_algorithm(const cha
- 	return find_backend(comp) != NULL;
- }
+@@ -136,6 +139,7 @@ static struct stack_record *depot_alloc_
+ 	stack->size = size;
+ 	stack->handle.slabindex = depot_index;
+ 	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
++	stack->handle.valid = 1;
+ 	memcpy(stack->entries, entries, size * sizeof(unsigned long));
+ 	depot_offset += required_size;
  
--bool zcomp_set_max_streams(struct zcomp *comp, int num_strm)
--{
--	return true;
--}
--
- struct zcomp_strm *zcomp_strm_find(struct zcomp *comp)
- {
- 	return *get_cpu_ptr(comp->stream);
-diff -puN drivers/block/zram/zram_drv.c~zram-remove-max_comp_streams-internals drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-remove-max_comp_streams-internals
-+++ a/drivers/block/zram/zram_drv.c
-@@ -304,46 +304,25 @@ static ssize_t mem_used_max_store(struct
- 	return len;
- }
- 
-+/*
-+ * We switched to per-cpu streams and this attr is not needed anymore.
-+ * However, we will keep it around for some time, because:
-+ * a) we may revert per-cpu streams in the future
-+ * b) it's visible to user space and we need to follow our 2 years
-+ *    retirement rule; but we already have a number of 'soon to be
-+ *    altered' attrs, so max_comp_streams need to wait for the next
-+ *    layoff cycle.
-+ */
- static ssize_t max_comp_streams_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	int val;
--	struct zram *zram = dev_to_zram(dev);
--
--	down_read(&zram->init_lock);
--	val = zram->max_comp_streams;
--	up_read(&zram->init_lock);
--
--	return scnprintf(buf, PAGE_SIZE, "%d\n", val);
-+	return scnprintf(buf, PAGE_SIZE, "%d\n", num_online_cpus());
- }
- 
- static ssize_t max_comp_streams_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t len)
- {
--	int num;
--	struct zram *zram = dev_to_zram(dev);
--	int ret;
--
--	ret = kstrtoint(buf, 0, &num);
--	if (ret < 0)
--		return ret;
--	if (num < 1)
--		return -EINVAL;
--
--	down_write(&zram->init_lock);
--	if (init_done(zram)) {
--		if (!zcomp_set_max_streams(zram->comp, num)) {
--			pr_info("Cannot change max compression streams\n");
--			ret = -EINVAL;
--			goto out;
--		}
--	}
--
--	zram->max_comp_streams = num;
--	ret = len;
--out:
--	up_write(&zram->init_lock);
--	return ret;
-+	return len;
- }
- 
- static ssize_t comp_algorithm_show(struct device *dev,
-@@ -1035,7 +1014,6 @@ static void zram_reset_device(struct zra
- 	/* Reset stats */
- 	memset(&zram->stats, 0, sizeof(zram->stats));
- 	zram->disksize = 0;
--	zram->max_comp_streams = 1;
- 
- 	set_capacity(zram->disk, 0);
- 	part_stat_set_all(&zram->disk->part0, 0);
-@@ -1299,7 +1277,6 @@ static int zram_add(void)
- 	}
- 	strlcpy(zram->compressor, default_compressor, sizeof(zram->compressor));
- 	zram->meta = NULL;
--	zram->max_comp_streams = 1;
- 
- 	pr_info("Added device: %s\n", zram->disk->disk_name);
- 	return device_id;
-diff -puN drivers/block/zram/zram_drv.h~zram-remove-max_comp_streams-internals drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-remove-max_comp_streams-internals
-+++ a/drivers/block/zram/zram_drv.h
-@@ -102,7 +102,6 @@ struct zram {
- 	 * the number of pages zram can consume for storing compressed data
- 	 */
- 	unsigned long limit_pages;
--	int max_comp_streams;
- 
- 	struct zram_stats stats;
- 	atomic_t refcount; /* refcount for zram_meta */
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-zsmalloc-require-gfp-in-zs_malloc.patch
-zsmalloc-require-gfp-in-zs_malloc-v2.patch
-zram-user-per-cpu-compression-streams.patch
-zram-user-per-cpu-compression-streams-fix.patch
-zram-remove-max_comp_streams-internals.patch
+lib-stackdepot-avoid-to-return-0-handle.patch
+mm-slab-fix-the-theoretical-race-by-holding-proper-lock.patch
+mm-slab-remove-bad_alien_magic-again.patch
+mm-slab-drain-the-free-slab-as-much-as-possible.patch
+mm-slab-factor-out-kmem_cache_node-initialization-code.patch
+mm-slab-factor-out-kmem_cache_node-initialization-code-fix.patch
+mm-slab-clean-up-kmem_cache_node-setup.patch
+mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
+mm-slab-racy-access-modify-the-slab-color.patch
+mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
+mm-slab-separate-cache_grow-to-two-parts.patch
+mm-slab-refill-cpu-cache-through-a-new-slab-without-holding-a-node-lock.patch
+mm-slab-lockless-decision-to-grow-cache.patch
+mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
+mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic.patch
+mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
+mm-vmstat-add-zone-range-overlapping-check.patch
+mm-page_owner-add-zone-range-overlapping-check.patch
+power-add-zone-range-overlapping-check.patch
+mm-writeback-correct-dirty-page-calculation-for-highmem.patch
+mm-page_alloc-correct-highmem-memory-statistics.patch
+mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
+mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
 
