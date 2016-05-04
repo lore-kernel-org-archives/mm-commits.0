@@ -1,115 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: + byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix.patch added to -mm tree
-Date: Tue, 03 May 2016 15:45:39 -0700
-Message-ID: <57292a13.dR2KkRnH6UlLd/Bz%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 04 May 2016 11:54:37 -0700
+Message-ID: <572a456d.XLvHJMvyvC8Gu8JZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33397 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34800 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756436AbcECWpk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 May 2016 18:45:40 -0400
+	with ESMTP id S1753658AbcEDSyn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2016 14:54:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, jpoimboe@redhat.com, quinn.tran@qlogic.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix
-has been added to the -mm tree.  Its filename is
-     byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-> > > net/tipc/name_distr.c: In function 'tipc_named_process_backlog':
-> > > net/tipc/name_distr.c:330: warning: format '%u' expects type 'unsigned int', but argument 3 has type 'unsigned int'
-> > > net/tipc/name_distr.c:330: warning: format '%u' expects type 'unsigned int', but argument 4 has type 'unsigned int'
-> > > net/tipc/name_distr.c:330: warning: format '%u' expects type 'unsigned int', but argument 5 has type 'unsigned int'
-> > > net/tipc/name_distr.c:330: warning: format '%u' expects type 'unsigned int', but argument 7 has type 'unsigned int'
-> >
-> > I've built a few thousand kernels (arm32 with gcc-6.1) with the patch applied,
-> > but didn't see this one. What target architecture and compiler version produced
-> > this? Does it go away if you add a (__u32) cast? I don't even know what the
-> > warning is trying to tell me.
->
-> heh, I didn't actually read it.
->
-> Hopefully we can write this off as a gcc-4.4.4 glitch. 4.8.4 is OK.
-
-Ah, old compiler. I've tried gcc-4.3 now on ARM, and I don't get this warning
-(just a lot "may be used uninitialized"), but unlike gcc-4.4, my version doesn't
-actually get into the code path I have changed because __builtin_bswap32 was only
-introduced with 4.4.
-
-I don't have gcc-4.4 and 4.5 here, but the warning does show up with 4.6, 4.7
-and 4.8:
-
-drivers/soc/sunxi/sunxi_sram.c: In function `sunxi_sram_show':
-drivers/soc/sunxi/sunxi_sram.c:103:7: warning: format `%x' expects argument of type `unsigned int', but argument 3 has type `unsigned int' [-Wformat=]
-
-4.8 is probably still common enough that we should try to address this.
-This change addresses the problem for me with ARM gcc-4.8, but adding
-two more type casts. This also makes the 16/32/64 bit swaps all
-look the same. I would expect this to also have the same effect on 4.4.
-
-Link: http://lkml.kernel.org/r/12243652.bxSxEgjgfk@wuerfel
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com> # on gcc-5.3
-Cc: Quinn Tran <quinn.tran@qlogic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/swab.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/hid/usbhid/hid-quirks.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN include/uapi/linux/swab.h~byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix include/uapi/linux/swab.h
---- a/include/uapi/linux/swab.h~byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix
-+++ a/include/uapi/linux/swab.h
-@@ -97,7 +97,7 @@ static inline __attribute_const__ __u32
-  * @x: value to byteswap
-  */
- #ifdef __HAVE_BUILTIN_BSWAP16__
--#define __swab16(x) __builtin_bswap16((__u16)(x))
-+#define __swab16(x) (__u16)__builtin_bswap16((__u16)(x))
- #else
- #define __swab16(x)				\
- 	(__builtin_constant_p((__u16)(x)) ?	\
-@@ -110,7 +110,7 @@ static inline __attribute_const__ __u32
-  * @x: value to byteswap
-  */
- #ifdef __HAVE_BUILTIN_BSWAP32__
--#define __swab32(x) __builtin_bswap32((__u32)(x))
-+#define __swab32(x) (__u32)__builtin_bswap32((__u32)(x))
- #else
- #define __swab32(x)				\
- 	(__builtin_constant_p((__u32)(x)) ?	\
+diff -puN drivers/hid/usbhid/hid-quirks.c~linux-next-git-rejects drivers/hid/usbhid/hid-quirks.c
+--- a/drivers/hid/usbhid/hid-quirks.c~linux-next-git-rejects
++++ a/drivers/hid/usbhid/hid-quirks.c
+@@ -71,14 +71,11 @@ static const struct hid_blacklist {
+ 	{ USB_VENDOR_ID_CH, USB_DEVICE_ID_CH_3AXIS_5BUTTON_STICK, HID_QUIRK_NOGET },
+ 	{ USB_VENDOR_ID_CH, USB_DEVICE_ID_CH_AXIS_295, HID_QUIRK_NOGET },
+ 	{ USB_VENDOR_ID_CHICONY, USB_DEVICE_ID_CHICONY_PIXART_USB_OPTICAL_MOUSE, HID_QUIRK_ALWAYS_POLL },
+-<<<<<<< HEAD
+-=======
+ 	{ USB_VENDOR_ID_CORSAIR, USB_DEVICE_ID_CORSAIR_K70R, HID_QUIRK_NO_INIT_REPORTS },
+ 	{ USB_VENDOR_ID_CORSAIR, USB_DEVICE_ID_CORSAIR_M65RGB, HID_QUIRK_NO_INIT_REPORTS },
+ 	{ USB_VENDOR_ID_CORSAIR, USB_DEVICE_ID_CORSAIR_K95RGB, HID_QUIRK_NO_INIT_REPORTS | HID_QUIRK_ALWAYS_POLL },
+ 	{ USB_VENDOR_ID_CORSAIR, USB_DEVICE_ID_CORSAIR_K70RGB, HID_QUIRK_NO_INIT_REPORTS },
+ 	{ USB_VENDOR_ID_CORSAIR, USB_DEVICE_ID_CORSAIR_K65RGB, HID_QUIRK_NO_INIT_REPORTS },
+->>>>>>> linux-next/akpm-base
+ 	{ USB_VENDOR_ID_CREATIVELABS, USB_DEVICE_ID_CREATIVE_SB_OMNI_SURROUND_51, HID_QUIRK_NOGET },
+ 	{ USB_VENDOR_ID_DMI, USB_DEVICE_ID_DMI_ENC, HID_QUIRK_NOGET },
+ 	{ USB_VENDOR_ID_DRAGONRISE, USB_DEVICE_ID_DRAGONRISE_WIIU, HID_QUIRK_MULTI_INPUT },
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2.patch
-byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix.patch
-kernel-padata-hide-unused-functions.patch
-drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable-fix.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes.patch
+kernel-padata-hide-unused-functions-checkpatch-fixes.patch
+mm.patch
+mm-slab-freelist-randomization-v5-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-uninline-page_mapped.patch
+mm-uninline-page_mapped-checkpatch-fixes.patch
+memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
+mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
+mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix.patch
+mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
+mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
+mm-page_alloc-un-inline-the-bad-part-of-free_pages_check-fix.patch
+mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
+mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch
+mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix-fix.patch
+mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
+mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable-fix.patch
+exit_thread-remove-empty-bodies-fix.patch
+exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
+fs-execc-fix-minor-memory-leak.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-fsh-kernel_read_file_id_str-remove-paranoid-check.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
