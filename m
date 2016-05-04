@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kcompactd-hang-during-memory-offlining.patch added to -mm tree
-Date: Wed, 04 May 2016 12:22:13 -0700
-Message-ID: <572a4be5.OSieyMVzCqitDLl8%akpm@linux-foundation.org>
+Subject: + mm-slab-remove-zone_dma_flag.patch added to -mm tree
+Date: Wed, 04 May 2016 13:11:56 -0700
+Message-ID: <572a578c.ayedvhGA1dB9O4jm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35869 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36481 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132AbcEDTWP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2016 15:22:15 -0400
+	with ESMTP id S1752560AbcEDUL6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2016 16:11:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, aarcange@redhat.com, arbab@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: yang.shi@linaro.org, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix kcompactd hang during memory offlining
+     Subject: mm: slab: remove ZONE_DMA_FLAG
 has been added to the -mm tree.  Its filename is
-     kcompactd-hang-during-memory-offlining.patch
+     mm-slab-remove-zone_dma_flag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kcompactd-hang-during-memory-offlining.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-remove-zone_dma_flag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kcompactd-hang-during-memory-offlining.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-remove-zone_dma_flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,99 +38,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: fix kcompactd hang during memory offlining
+From: Yang Shi <yang.shi@linaro.org>
+Subject: mm: slab: remove ZONE_DMA_FLAG
 
-Assume memory47 is the last online block left in node1. This will hang:
+Now we have IS_ENABLED helper to check if a Kconfig option is enabled or
+not, so ZONE_DMA_FLAG sounds no longer useful.
 
-# echo offline > /sys/devices/system/node/node1/memory47/state
+And, the use of ZONE_DMA_FLAG in slab looks pointless according to the
+comment [1] from Johannes Weiner, so remove them and ORing passed in flags with
+the cache gfp flags has been done in kmem_getpages().
 
-After a couple of minutes, the following pops up in dmesg:
+[1] https://lkml.org/lkml/2014/9/25/553
 
-INFO: task bash:957 blocked for more than 120 seconds.
-       Not tainted 4.6.0-rc6+ #6
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-bash            D ffff8800b7adbaf8     0   957    951 0x00000000
-  ffff8800b7adbaf8 ffff880034d5b880 ffff8800b698d4c0 ffff8800b7adc000
-  7fffffffffffffff ffff88003381ff10 ffff8800b698d4c0 0000000000180000
-  ffff8800b7adbb10 ffffffff817be0b5 ffff88003381ff08 ffff8800b7adbbc0
-Call Trace:
-  [<ffffffff817be0b5>] schedule+0x35/0x80
-  [<ffffffff817c100c>] schedule_timeout+0x1ac/0x270
-  [<ffffffff810d9750>] ? check_preempt_wakeup+0x100/0x220
-  [<ffffffff810ce0a0>] ? check_preempt_curr+0x80/0x90
-  [<ffffffff817bf501>] wait_for_completion+0xe1/0x120
-  [<ffffffff810cefc0>] ? wake_up_q+0x70/0x70
-  [<ffffffff810c42ff>] kthread_stop+0x4f/0x110
-  [<ffffffff811e1046>] kcompactd_stop+0x26/0x40
-  [<ffffffff817b7a16>] __offline_pages.constprop.28+0x7e6/0x840
-  [<ffffffff8121ee61>] offline_pages+0x11/0x20
-  [<ffffffff8151a073>] memory_block_action+0x73/0x1d0
-  [<ffffffff8151a217>] memory_subsys_offline+0x47/0x60
-  [<ffffffff81502dc6>] device_offline+0x86/0xb0
-  [<ffffffff8151a8fa>] store_mem_state+0xda/0xf0
-  [<ffffffff814ffea8>] dev_attr_store+0x18/0x30
-  [<ffffffff812c1097>] sysfs_kf_write+0x37/0x40
-  [<ffffffff812c062d>] kernfs_fop_write+0x11d/0x170
-  [<ffffffff8123e797>] __vfs_write+0x37/0x120
-  [<ffffffff8134d1ad>] ? security_file_permission+0x3d/0xc0
-  [<ffffffff810eed32>] ? percpu_down_read+0x12/0x50
-  [<ffffffff8123f969>] vfs_write+0xa9/0x1a0
-  [<ffffffff8134d543>] ? security_file_fcntl+0x43/0x60
-  [<ffffffff81240dc5>] SyS_write+0x55/0xc0
-  [<ffffffff817c21b2>] entry_SYSCALL_64_fastpath+0x1a/0xa4
-
-kcompactd is waiting for kcompactd_max_order > 0 when it's woken up to
-actually exit.  Check kthread_should_stop() to break out of the wait.
-
-Reported-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Tested-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/1462381297-11009-1-git-send-email-yang.shi@linaro.org
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/Kconfig |    5 -----
+ mm/slab.c  |   23 +----------------------
+ 2 files changed, 1 insertion(+), 27 deletions(-)
 
-diff -puN mm/compaction.c~kcompactd-hang-during-memory-offlining mm/compaction.c
---- a/mm/compaction.c~kcompactd-hang-during-memory-offlining
-+++ a/mm/compaction.c
-@@ -1733,7 +1733,7 @@ void compaction_unregister_node(struct n
+diff -puN mm/Kconfig~mm-slab-remove-zone_dma_flag mm/Kconfig
+--- a/mm/Kconfig~mm-slab-remove-zone_dma_flag
++++ a/mm/Kconfig
+@@ -268,11 +268,6 @@ config ARCH_ENABLE_HUGEPAGE_MIGRATION
+ config PHYS_ADDR_T_64BIT
+ 	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
  
- static inline bool kcompactd_work_requested(pg_data_t *pgdat)
- {
--	return pgdat->kcompactd_max_order > 0;
-+	return pgdat->kcompactd_max_order > 0 || kthread_should_stop();
+-config ZONE_DMA_FLAG
+-	int
+-	default "0" if !ZONE_DMA
+-	default "1"
+-
+ config BOUNCE
+ 	bool "Enable bounce buffers"
+ 	default y
+diff -puN mm/slab.c~mm-slab-remove-zone_dma_flag mm/slab.c
+--- a/mm/slab.c~mm-slab-remove-zone_dma_flag
++++ a/mm/slab.c
+@@ -2236,7 +2236,7 @@ done:
+ 	cachep->freelist_size = cachep->num * sizeof(freelist_idx_t);
+ 	cachep->flags = flags;
+ 	cachep->allocflags = __GFP_COMP;
+-	if (CONFIG_ZONE_DMA_FLAG && (flags & SLAB_CACHE_DMA))
++	if (flags & SLAB_CACHE_DMA)
+ 		cachep->allocflags |= GFP_DMA;
+ 	cachep->size = size;
+ 	cachep->reciprocal_buffer_size = reciprocal_value(size);
+@@ -2664,16 +2664,6 @@ static void cache_init_objs(struct kmem_
+ 	}
  }
  
- static bool kcompactd_node_suitable(pg_data_t *pgdat)
-@@ -1797,6 +1797,8 @@ static void kcompactd_do_work(pg_data_t
- 		INIT_LIST_HEAD(&cc.freepages);
- 		INIT_LIST_HEAD(&cc.migratepages);
+-static void kmem_flagcheck(struct kmem_cache *cachep, gfp_t flags)
+-{
+-	if (CONFIG_ZONE_DMA_FLAG) {
+-		if (flags & GFP_DMA)
+-			BUG_ON(!(cachep->allocflags & GFP_DMA));
+-		else
+-			BUG_ON(cachep->allocflags & GFP_DMA);
+-	}
+-}
+-
+ static void *slab_get_obj(struct kmem_cache *cachep, struct page *page)
+ {
+ 	void *objp;
+@@ -2753,14 +2743,6 @@ static struct page *cache_grow_begin(str
+ 		local_irq_enable();
  
-+		if (kthread_should_stop())
-+			return;
- 		status = compact_zone(zone, &cc);
- 
- 		if (zone_watermark_ok(zone, cc.order, low_wmark_pages(zone),
-_
-
-Patches currently in -mm which might be from vbabka@suse.cz are
-
-kcompactd-hang-during-memory-offlining.patch
-mm-compaction-wrap-calculating-first-and-last-pfn-of-pageblock.patch
-compaction-wrap-calculating-first-and-last-pfn-of-pageblock-fix.patch
-mm-compaction-reduce-spurious-pcplist-drains.patch
-mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction.patch
-mm-page_alloc-un-inline-the-bad-part-of-free_pages_check.patch
-cpuset-use-static-key-better-and-convert-to-new-api.patch
-mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch
-
+ 	/*
+-	 * The test for missing atomic flag is performed here, rather than
+-	 * the more obvious place, simply to reduce the critical path length
+-	 * in kmem_cache_alloc(). If a caller is seriously mis-behaving they
+-	 * will eventually be caught here (where it matters).
+-	 */
+-	kmem_flagcheck(cachep, flags);
