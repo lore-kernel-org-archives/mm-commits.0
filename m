@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-restore-the-original-nodemask-if-the-fast-path-allocation-failed.patch added to -mm tree
-Date: Wed, 04 May 2016 14:00:38 -0700
-Message-ID: <572a62f6.8OICCo56GhoPz3/S%akpm@linux-foundation.org>
+Subject: + zram-remove-max_comp_streams-internals.patch added to -mm tree
+Date: Wed, 04 May 2016 14:01:49 -0700
+Message-ID: <572a633d.ZRXlaK66J6sajN1g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36870 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36874 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752311AbcEDVAj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2016 17:00:39 -0400
+	with ESMTP id S1751311AbcEDVBu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 May 2016 17:01:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: restore the original nodemask if the fast path allocation failed
+     Subject: zram: remove max_comp_streams internals
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-restore-the-original-nodemask-if-the-fast-path-allocation-failed.patch
+     zram-remove-max_comp_streams-internals.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-restore-the-original-nodemask-if-the-fast-path-allocation-failed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-remove-max_comp_streams-internals.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-restore-the-original-nodemask-if-the-fast-path-allocation-failed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-remove-max_comp_streams-internals.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,74 +38,188 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: restore the original nodemask if the fast path allocation failed
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: remove max_comp_streams internals
 
-The page allocator fast path uses either the requested nodemask or
-cpuset_current_mems_allowed if cpusets are enabled.  If the allocation
-context allows watermarks to be ignored then it can also ignore memory
-policies.  However, on entering the allocator slowpath the nodemask may
-still be cpuset_current_mems_allowed and the policies are enforced.  This
-patch resets the nodemask appropriately before entering the slowpath.
+Remove the internal part of max_comp_streams interface, since we switched
+to per-cpu streams.  We will keep RW max_comp_streams attr around,
+because:
 
-Link: http://lkml.kernel.org/r/20160504143628.GU2858@techsingularity.net
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+a) we may (silently) switch back to idle compression streams list and
+   don't want to disturb user space
+
+b) max_comp_streams attr must wait for the next 'lay off cycle'; we
+   give user space 2 years to adjust before we remove/downgrade the attr,
+   and there are already several attrs scheduled for removal in 4.11, so
+   it's too late for max_comp_streams.
+
+This slightly change a user visible behaviour:
+
+- First, reading from max_comp_stream file now will always return the
+  number of online CPUs.
+
+- Second, writing to max_comp_stream will not take any effect.
+
+Link: http://lkml.kernel.org/r/20160503165546.25201-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/blockdev/zram.txt |   25 ++++------------
+ drivers/block/zram/zcomp.c      |    5 ---
+ drivers/block/zram/zram_drv.c   |   45 +++++++-----------------------
+ drivers/block/zram/zram_drv.h   |    1 
+ 4 files changed, 18 insertions(+), 58 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-restore-the-original-nodemask-if-the-fast-path-allocation-failed mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-restore-the-original-nodemask-if-the-fast-path-allocation-failed
-+++ a/mm/page_alloc.c
-@@ -3636,6 +3636,12 @@ retry_cpuset:
- 	alloc_mask = memalloc_noio_flags(gfp_mask);
- 	ac.spread_dirty_pages = false;
+diff -puN Documentation/blockdev/zram.txt~zram-remove-max_comp_streams-internals Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-remove-max_comp_streams-internals
++++ a/Documentation/blockdev/zram.txt
+@@ -59,27 +59,16 @@ num_devices parameter is optional and te
+ pre-created. Default: 1.
  
-+	/*
-+	 * Restore the original nodemask if it was potentially replaced with
-+	 * &cpuset_current_mems_allowed to optimize the fast-path attempt.
-+	 */
-+	if (cpusets_enabled())
-+		ac.nodemask = nodemask;
- 	page = __alloc_pages_slowpath(alloc_mask, order, &ac);
+ 2) Set max number of compression streams
+-	Compression backend may use up to max_comp_streams compression streams,
+-	thus allowing up to max_comp_streams concurrent compression operations.
+-	By default, compression backend uses single compression stream.
++	Regardless the value passed to this attribute, ZRAM will always
++	allocate multiple compression streams - one per online CPUs - thus
++	allowing several concurrent compression operations. The number of
++	allocated compression streams goes down when some of the CPUs
++	become offline. There is no single-compression-stream mode anymore,
++	unless you are running a UP system or has only 1 CPU online.
  
- no_zone:
+-	Examples:
+-	#show max compression streams number
++	To find out how many streams are currently available:
+ 	cat /sys/block/zram0/max_comp_streams
+ 
+-	#set max compression streams number to 3
+-	echo 3 > /sys/block/zram0/max_comp_streams
+-
+-Note:
+-In order to enable compression backend's multi stream support max_comp_streams
+-must be initially set to desired concurrency level before ZRAM device
+-initialisation. Once the device initialised as a single stream compression
+-backend (max_comp_streams equals to 1), you will see error if you try to change
+-the value of max_comp_streams because single stream compression backend
+-implemented as a special case by lock overhead issue and does not support
+-dynamic max_comp_streams. Only multi stream backend supports dynamic
+-max_comp_streams adjustment.
+-
+ 3) Select compression algorithm
+ 	Using comp_algorithm device attribute one can see available and
+ 	currently selected (shown in square brackets) compression algorithms,
+diff -puN drivers/block/zram/zcomp.c~zram-remove-max_comp_streams-internals drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-remove-max_comp_streams-internals
++++ a/drivers/block/zram/zcomp.c
+@@ -95,11 +95,6 @@ bool zcomp_available_algorithm(const cha
+ 	return find_backend(comp) != NULL;
+ }
+ 
+-bool zcomp_set_max_streams(struct zcomp *comp, int num_strm)
+-{
+-	return true;
+-}
+-
+ struct zcomp_strm *zcomp_strm_find(struct zcomp *comp)
+ {
+ 	return *get_cpu_ptr(comp->stream);
+diff -puN drivers/block/zram/zram_drv.c~zram-remove-max_comp_streams-internals drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-remove-max_comp_streams-internals
++++ a/drivers/block/zram/zram_drv.c
+@@ -304,46 +304,25 @@ static ssize_t mem_used_max_store(struct
+ 	return len;
+ }
+ 
++/*
++ * We switched to per-cpu streams and this attr is not needed anymore.
++ * However, we will keep it around for some time, because:
++ * a) we may revert per-cpu streams in the future
++ * b) it's visible to user space and we need to follow our 2 years
++ *    retirement rule; but we already have a number of 'soon to be
++ *    altered' attrs, so max_comp_streams need to wait for the next
++ *    layoff cycle.
++ */
+ static ssize_t max_comp_streams_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+-	int val;
+-	struct zram *zram = dev_to_zram(dev);
+-
+-	down_read(&zram->init_lock);
+-	val = zram->max_comp_streams;
+-	up_read(&zram->init_lock);
+-
+-	return scnprintf(buf, PAGE_SIZE, "%d\n", val);
++	return scnprintf(buf, PAGE_SIZE, "%d\n", num_online_cpus());
+ }
+ 
+ static ssize_t max_comp_streams_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
+ {
+-	int num;
+-	struct zram *zram = dev_to_zram(dev);
+-	int ret;
+-
+-	ret = kstrtoint(buf, 0, &num);
+-	if (ret < 0)
+-		return ret;
+-	if (num < 1)
+-		return -EINVAL;
+-
+-	down_write(&zram->init_lock);
+-	if (init_done(zram)) {
+-		if (!zcomp_set_max_streams(zram->comp, num)) {
+-			pr_info("Cannot change max compression streams\n");
+-			ret = -EINVAL;
+-			goto out;
+-		}
+-	}
+-
+-	zram->max_comp_streams = num;
+-	ret = len;
+-out:
+-	up_write(&zram->init_lock);
+-	return ret;
++	return len;
+ }
+ 
+ static ssize_t comp_algorithm_show(struct device *dev,
+@@ -1035,7 +1014,6 @@ static void zram_reset_device(struct zra
+ 	/* Reset stats */
+ 	memset(&zram->stats, 0, sizeof(zram->stats));
+ 	zram->disksize = 0;
+-	zram->max_comp_streams = 1;
+ 
+ 	set_capacity(zram->disk, 0);
+ 	part_stat_set_all(&zram->disk->part0, 0);
+@@ -1299,7 +1277,6 @@ static int zram_add(void)
+ 	}
+ 	strlcpy(zram->compressor, default_compressor, sizeof(zram->compressor));
+ 	zram->meta = NULL;
+-	zram->max_comp_streams = 1;
+ 
+ 	pr_info("Added device: %s\n", zram->disk->disk_name);
+ 	return device_id;
+diff -puN drivers/block/zram/zram_drv.h~zram-remove-max_comp_streams-internals drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-remove-max_comp_streams-internals
++++ a/drivers/block/zram/zram_drv.h
+@@ -102,7 +102,6 @@ struct zram {
+ 	 * the number of pages zram can consume for storing compressed data
+ 	 */
+ 	unsigned long limit_pages;
+-	int max_comp_streams;
+ 
+ 	struct zram_stats stats;
+ 	atomic_t refcount; /* refcount for zram_meta */
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-mm-page_alloc-only-check-pagecompound-for-high-order-pages.patch
-mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path.patch
-mm-page_alloc-reduce-branches-in-zone_statistics.patch
-mm-page_alloc-inline-zone_statistics.patch
-mm-page_alloc-inline-the-fast-path-of-the-zonelist-iterator.patch
-mm-page_alloc-use-__dec_zone_state-for-order-0-page-allocation.patch
-mm-page_alloc-avoid-unnecessary-zone-lookups-during-pageblock-operations.patch
-mm-page_alloc-convert-alloc_flags-to-unsigned.patch
-mm-page_alloc-convert-nr_fair_skipped-to-bool.patch
-mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist.patch
-mm-page_alloc-remove-unnecessary-initialisation-in-get_page_from_freelist.patch
-mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask.patch
-mm-page_alloc-simplify-last-cpupid-reset.patch
-mm-page_alloc-move-__gfp_hardwall-modifications-out-of-the-fastpath.patch
-mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch
-mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks-fix.patch
-mm-page_alloc-shorten-the-page-allocator-fast-path.patch
-mm-page_alloc-reduce-cost-of-fair-zone-allocation-policy-retry.patch
-mm-page_alloc-shortcut-watermark-checks-for-order-0-pages.patch
-mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice.patch
-mm-page_alloc-remove-field-from-alloc_context.patch
-mm-page_alloc-check-multiple-page-fields-with-a-single-branch.patch
-mm-page_alloc-un-inline-the-bad-part-of-free_pages_check.patch
-mm-page_alloc-pull-out-side-effects-from-free_pages_check.patch
-mm-page_alloc-remove-unnecessary-variable-from-free_pcppages_bulk.patch
-mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths.patch
-mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch
-mm-page_alloc-defer-debugging-checks-of-pages-allocated-from-the-pcp.patch
-mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare.patch
-mm-page_alloc-restore-the-original-nodemask-if-the-fast-path-allocation-failed.patch
+zsmalloc-require-gfp-in-zs_malloc.patch
+zsmalloc-require-gfp-in-zs_malloc-v2.patch
+zram-user-per-cpu-compression-streams.patch
+zram-user-per-cpu-compression-streams-fix.patch
+zram-remove-max_comp_streams-internals.patch
 
