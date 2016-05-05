@@ -1,85 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/14] huge pagecache: mmap_sem is unlocked when
- truncation splits pmd
-Date: Thu, 05 May 2016 16:22:09 -0700
-Message-ID: <572bd5a1.q5aFW8b7Ig3ryUur%akpm@linux-foundation.org>
+Subject: [patch 06/14] mm, cma: prevent nr_isolated_* counters from going
+ negative
+Date: Thu, 05 May 2016 16:22:15 -0700
+Message-ID: <572bd5a7.7i7Dh9EY5c9aSRvR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34895 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34903 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755496AbcEEXWK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2016 19:22:10 -0400
+	with ESMTP id S1755704AbcEEXWQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2016 19:22:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, willy@linux.intel.com, yang.shi@linaro.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, stable@vger.kernel.org, vbabka@suse.cz
 
 From: Hugh Dickins <hughd@google.com>
-Subject: huge pagecache: mmap_sem is unlocked when truncation splits pmd
+Subject: mm, cma: prevent nr_isolated_* counters from going negative
 
-zap_pmd_range()'s CONFIG_DEBUG_VM !rwsem_is_locked(&mmap_sem) BUG() will
-be invalid with huge pagecache, in whatever way it is implemented:
-truncation of a hugely-mapped file to an unhugely-aligned size would
-easily hit it.
+/proc/sys/vm/stat_refresh warns nr_isolated_anon and nr_isolated_file go
+increasingly negative under compaction: which would add delay when should
+be none, or no delay when should delay.  The bug in compaction was due to
+a recent mmotm patch, but much older instance of the bug was also noticed
+in isolate_migratepages_range() which is used for CMA and gigantic
+hugepage allocations.
 
-(Although anon THP could in principle apply khugepaged to private file
-mappings, which are not excluded by the MADV_HUGEPAGE restrictions, in
-practice there's a vm_ops check which excludes them, so it never hits this
-BUG() - there's no interface to "truncate" an anonymous mapping.)
+The bug is caused by putback_movable_pages() in an error path decrementing
+the isolated counters without them being previously incremented by
+acct_isolated().  Fix isolate_migratepages_range() by removing the
+error-path putback, thus reaching acct_isolated() with migratepages still
+isolated, and leaving putback to caller like most other places do.
 
-We could complicate the test, to check i_mmap_rwsem also when there's a
-vm_file; but my inclination was to make zap_pmd_range() more readable by
-simply deleting this check.  A search has shown no report of the issue in
-the years since commit e0897d75f0b2 ("mm, thp: print useful information
-when mmap_sem is unlocked in zap_pmd_range") expanded it from VM_BUG_ON()
-- though I cannot point to what commit I would say then fixed the issue.
-
-But there are a couple of other patches now floating around, neither yet
-in the tree: let's agree to retain the check as a VM_BUG_ON_VMA(), as
-Matthew Wilcox has done; but subject to a vma_is_anonymous() check, as
-Kirill Shutemov has done.  And let's get this in, without waiting for any
-particular huge pagecache implementation to reach the tree.
-
-Matthew said "We can reproduce this BUG() in the current Linus tree with
-DAX PMDs".
-
+Fixes: edc2ca612496 ("mm, compaction: move pageblock checks up from isolate_migratepages_range()")
+[vbabka@suse.cz: expanded the changelog]
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Tested-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Yang Shi <yang.shi@linaro.org>
-Cc: Ning Qu <quning@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ mm/compaction.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN mm/memory.c~huge-pagecache-mmap_sem-is-unlocked-when-truncation-splits-pmd mm/memory.c
---- a/mm/memory.c~huge-pagecache-mmap_sem-is-unlocked-when-truncation-splits-pmd
-+++ a/mm/memory.c
-@@ -1222,15 +1222,8 @@ static inline unsigned long zap_pmd_rang
- 		next = pmd_addr_end(addr, end);
- 		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE) {
--#ifdef CONFIG_DEBUG_VM
--				if (!rwsem_is_locked(&tlb->mm->mmap_sem)) {
--					pr_err("%s: mmap_sem is unlocked! addr=0x%lx end=0x%lx vma->vm_start=0x%lx vma->vm_end=0x%lx\n",
--						__func__, addr, end,
--						vma->vm_start,
--						vma->vm_end);
--					BUG();
--				}
--#endif
-+				VM_BUG_ON_VMA(vma_is_anonymous(vma) &&
-+				    !rwsem_is_locked(&tlb->mm->mmap_sem), vma);
- 				split_huge_pmd(vma, pmd, addr);
- 			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
- 				goto next;
+diff -puN mm/compaction.c~mm-cma-prevent-nr_isolated_-counters-from-going-negative mm/compaction.c
+--- a/mm/compaction.c~mm-cma-prevent-nr_isolated_-counters-from-going-negative
++++ a/mm/compaction.c
+@@ -852,16 +852,8 @@ isolate_migratepages_range(struct compac
+ 		pfn = isolate_migratepages_block(cc, pfn, block_end_pfn,
+ 							ISOLATE_UNEVICTABLE);
+ 
+-		/*
+-		 * In case of fatal failure, release everything that might
+-		 * have been isolated in the previous iteration, and signal
+-		 * the failure back to caller.
+-		 */
+-		if (!pfn) {
+-			putback_movable_pages(&cc->migratepages);
+-			cc->nr_migratepages = 0;
++		if (!pfn)
+ 			break;
+-		}
+ 
+ 		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
+ 			break;
 _
