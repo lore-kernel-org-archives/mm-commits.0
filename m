@@ -1,102 +1,69 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged]
- byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix.patch removed
- from -mm tree
-Date: Thu, 05 May 2016 15:53:59 -0700
-Message-ID: <572bcf07.Yi73IviASm6oiwTi%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Thu, 5 May 2016 16:21:28 -0700
+Message-ID: <20160505162128.5957ffaee11f8b71feb6170e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Thu__5_May_2016_16_21_28_-0700_SgK/9BzohfF4Ha=v"
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34371 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34572 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753293AbcEEWyA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2016 18:54:00 -0400
+	with ESMTP id S1753293AbcEEXVl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2016 19:21:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, jpoimboe@redhat.com, quinn.tran@qlogic.com, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
+
+--Signature=_Thu__5_May_2016_16_21_28_-0700_SgK/9BzohfF4Ha=v
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+14 fixes, based on c5e0666c5a3ccabdf16bb88451886cdf81849b66:
+
+Subject: mm: thp: correct split_huge_pages file permission
+Subject: mm: memcontrol: let v2 cgroups follow changes in system swappiness
+Subject: rapidio/mport_cdev: fix uapi type definitions
+Subject: huge pagecache: mmap_sem is unlocked when truncation splits pmd
+Subject: mm: update min_free_kbytes from khugepaged after core initializati=
+on
+Subject: mm, cma: prevent nr_isolated_* counters from going negative
+Subject: MAINTAINERS: fix Rajendra Nayak's address
+Subject: mm: thp: kvm: fix memory corruption in KVM with THP enabled
+Subject: mm/zswap: provide unique zpool name
+Subject: proc: prevent accessing /proc/<PID>/environ until it's ready
+Subject: modpost: fix module autoloading for OF devices with generic compat=
+ible property
+Subject: mm: fix kcompactd hang during memory offlining
+Subject: lib/stackdepot: avoid to return 0 handle
+Subject: byteswap: try to avoid __builtin_constant_p gcc bug
 
 
-The patch titled
-     Subject: byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix
-has been removed from the -mm tree.  Its filename was
-     byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix.patch
 
-This patch was dropped because it was folded into byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2.patch
 
-------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix
 
-> > > net/tipc/name_distr.c: In function 'tipc_named_process_backlog':
-> > > net/tipc/name_distr.c:330: warning: format '%u' expects type 'unsigned int', but argument 3 has type 'unsigned int'
-> > > net/tipc/name_distr.c:330: warning: format '%u' expects type 'unsigned int', but argument 4 has type 'unsigned int'
-> > > net/tipc/name_distr.c:330: warning: format '%u' expects type 'unsigned int', but argument 5 has type 'unsigned int'
-> > > net/tipc/name_distr.c:330: warning: format '%u' expects type 'unsigned int', but argument 7 has type 'unsigned int'
-> >
-> > I've built a few thousand kernels (arm32 with gcc-6.1) with the patch applied,
-> > but didn't see this one. What target architecture and compiler version produced
-> > this? Does it go away if you add a (__u32) cast? I don't even know what the
-> > warning is trying to tell me.
->
-> heh, I didn't actually read it.
->
-> Hopefully we can write this off as a gcc-4.4.4 glitch. 4.8.4 is OK.
+--Signature=_Thu__5_May_2016_16_21_28_-0700_SgK/9BzohfF4Ha=v
+Content-Type: application/pgp-signature
 
-Ah, old compiler. I've tried gcc-4.3 now on ARM, and I don't get this warning
-(just a lot "may be used uninitialized"), but unlike gcc-4.4, my version doesn't
-actually get into the code path I have changed because __builtin_bswap32 was only
-introduced with 4.4.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-I don't have gcc-4.4 and 4.5 here, but the warning does show up with 4.6, 4.7
-and 4.8:
+iQIcBAEBAgAGBQJXK9WEAAoJEJxZ78cCqAIH5NYP/irSo28q/01xQ9oEP1NzVKrc
+Bn4L8E5gYFeY5nccgtlViQpEX4/VE8VMEL2W8H6Yw9l5XDR/nO7oNlkMF5vT861Y
+v7W2P3GhmRq9U7aGVSlQBv4smlyVi0cDb6LQ5ZeZApZtJITyrIWjks1mVpOascE4
+mk2tFp2XTnDVxY2qisRJ4Ux/0tl2TawjWGmEu8WG9Nj9KVhdacwJMwo29cMMKPTU
+MN1mvG7FRaFu51GG8Xh0oekQ9oM8hN4sUMWaof6zyWZ8L42mjEgOeayPmX2LcBc2
+oZZdlMK/1oQJxcJkEJUp+ZGQ2jFLsaq8/dQgUqnK619rRVKi8vTZ5ZuTJsSnxaGT
+oAa2Ta2pqYXS0ggl5lgLMiEAwVHhnf8/1MVL/qRjmd6c8q6GZSCp46QTVBpvwyOt
+z9F98l3NvMDCMA+BpmidzIH0Ucyr3dVs8+oQSak6+RUuPYMxFeor7j/JOdZctd0I
+Ts4gidfhQ03n5ewIsagkpuaT/fPGAmmLFI5HEdN+v/gzKEJWVTi7CnLVrmFCBNYt
+05d2/sonL4f/7X+2KU8S0Io1OrL7wC5pjQ3YSENRhNKkjbun0qxxkM4wae94zfRg
+HQvj4qb2TkiKE5CsC5fKFs6+QOWrAXgwkcT5vMnjOWK4TqJAWQht+szEi6N6T5gN
+GJuWnEPxo7x3qznPMiie
+=mvep
+-----END PGP SIGNATURE-----
 
-drivers/soc/sunxi/sunxi_sram.c: In function `sunxi_sram_show':
-drivers/soc/sunxi/sunxi_sram.c:103:7: warning: format `%x' expects argument of type `unsigned int', but argument 3 has type `unsigned int' [-Wformat=]
-
-4.8 is probably still common enough that we should try to address this.
-This change addresses the problem for me with ARM gcc-4.8, but adding
-two more type casts. This also makes the 16/32/64 bit swaps all
-look the same. I would expect this to also have the same effect on 4.4.
-
-Link: http://lkml.kernel.org/r/12243652.bxSxEgjgfk@wuerfel
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com> # on gcc-5.3
-Cc: Quinn Tran <quinn.tran@qlogic.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/uapi/linux/swab.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff -puN include/uapi/linux/swab.h~byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix include/uapi/linux/swab.h
---- a/include/uapi/linux/swab.h~byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2-fix
-+++ a/include/uapi/linux/swab.h
-@@ -97,7 +97,7 @@ static inline __attribute_const__ __u32
-  * @x: value to byteswap
-  */
- #ifdef __HAVE_BUILTIN_BSWAP16__
--#define __swab16(x) __builtin_bswap16((__u16)(x))
-+#define __swab16(x) (__u16)__builtin_bswap16((__u16)(x))
- #else
- #define __swab16(x)				\
- 	(__builtin_constant_p((__u16)(x)) ?	\
-@@ -110,7 +110,7 @@ static inline __attribute_const__ __u32
-  * @x: value to byteswap
-  */
- #ifdef __HAVE_BUILTIN_BSWAP32__
--#define __swab32(x) __builtin_bswap32((__u32)(x))
-+#define __swab32(x) (__u32)__builtin_bswap32((__u32)(x))
- #else
- #define __swab32(x)				\
- 	(__builtin_constant_p((__u32)(x)) ?	\
-_
-
-Patches currently in -mm which might be from arnd@arndb.de are
-
-byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2.patch
-kernel-padata-hide-unused-functions.patch
-drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable-fix.patch
-
+--Signature=_Thu__5_May_2016_16_21_28_-0700_SgK/9BzohfF4Ha=v--
