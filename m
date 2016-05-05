@@ -1,136 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [patch 11/14] modpost: fix module autoloading for OF devices with generic compatible property
-Date: Thu, 05 May 2016 16:22:29 -0700
-Message-ID: <572bd5b5.QNm8N8dAIN5Q7/jA%akpm@linux-foundation.org>
+Subject: [patch 12/14] mm: fix kcompactd hang during memory offlining
+Date: Thu, 05 May 2016 16:22:32 -0700
+Message-ID: <572bd5b8.IuLRVfaszriYSN6I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755123AbcEEXWb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2016 19:22:31 -0400
+	with ESMTP id S1755123AbcEEXWe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2016 19:22:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, p.zabel@pengutronix.de, computersforpeace@gmail.com, gregkh@linuxfoundation.org, javier@osg.samsung.com, rusty@rustcorp.com.au, sjoerd.simons@collabora.co.uk, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, aarcange@redhat.com, arbab@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
-Subject: modpost: fix module autoloading for OF devices with generic compatible property
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: fix kcompactd hang during memory offlining
 
-Since the wildcard at the end of OF module aliases is gone, autoloading of
-modules that don't match a device's last (most generic) compatible value
-fails.
+Assume memory47 is the last online block left in node1. This will hang:
 
-For example the CODA960 VPU on i.MX6Q has the SoC specific compatible
-"fsl,imx6q-vpu" and the generic compatible "cnm,coda960".  Since the
-driver currently only works with knowledge about the SoC specific
-integration, it doesn't list "cnm,cod960" in the module device table. 
-This results in the device compatible
-"of:NvpuT<NULL>Cfsl,imx6q-vpuCcnm,coda960" not matching the module alias
-"of:N*T*Cfsl,imx6q-vpu" anymore, whereas before commit 2f632369ab79
-("modpost: don't add a trailing wildcard for OF module aliases") it
-matched the module alias "of:N*T*Cfsl,imx6q-vpu*".
+# echo offline > /sys/devices/system/node/node1/memory47/state
 
-This patch adds two module aliases for each compatible, one without the
-wildcard and one with "C*" appended.
+After a couple of minutes, the following pops up in dmesg:
 
-$ modinfo coda | grep imx6q
-alias:          of:N*T*Cfsl,imx6q-vpuC*
-alias:          of:N*T*Cfsl,imx6q-vpu
+INFO: task bash:957 blocked for more than 120 seconds.
+       Not tainted 4.6.0-rc6+ #6
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+bash            D ffff8800b7adbaf8     0   957    951 0x00000000
+  ffff8800b7adbaf8 ffff880034d5b880 ffff8800b698d4c0 ffff8800b7adc000
+  7fffffffffffffff ffff88003381ff10 ffff8800b698d4c0 0000000000180000
+  ffff8800b7adbb10 ffffffff817be0b5 ffff88003381ff08 ffff8800b7adbbc0
+Call Trace:
+  [<ffffffff817be0b5>] schedule+0x35/0x80
+  [<ffffffff817c100c>] schedule_timeout+0x1ac/0x270
+  [<ffffffff810d9750>] ? check_preempt_wakeup+0x100/0x220
+  [<ffffffff810ce0a0>] ? check_preempt_curr+0x80/0x90
+  [<ffffffff817bf501>] wait_for_completion+0xe1/0x120
+  [<ffffffff810cefc0>] ? wake_up_q+0x70/0x70
+  [<ffffffff810c42ff>] kthread_stop+0x4f/0x110
+  [<ffffffff811e1046>] kcompactd_stop+0x26/0x40
+  [<ffffffff817b7a16>] __offline_pages.constprop.28+0x7e6/0x840
+  [<ffffffff8121ee61>] offline_pages+0x11/0x20
+  [<ffffffff8151a073>] memory_block_action+0x73/0x1d0
+  [<ffffffff8151a217>] memory_subsys_offline+0x47/0x60
+  [<ffffffff81502dc6>] device_offline+0x86/0xb0
+  [<ffffffff8151a8fa>] store_mem_state+0xda/0xf0
+  [<ffffffff814ffea8>] dev_attr_store+0x18/0x30
+  [<ffffffff812c1097>] sysfs_kf_write+0x37/0x40
+  [<ffffffff812c062d>] kernfs_fop_write+0x11d/0x170
+  [<ffffffff8123e797>] __vfs_write+0x37/0x120
+  [<ffffffff8134d1ad>] ? security_file_permission+0x3d/0xc0
+  [<ffffffff810eed32>] ? percpu_down_read+0x12/0x50
+  [<ffffffff8123f969>] vfs_write+0xa9/0x1a0
+  [<ffffffff8134d543>] ? security_file_fcntl+0x43/0x60
+  [<ffffffff81240dc5>] SyS_write+0x55/0xc0
+  [<ffffffff817c21b2>] entry_SYSCALL_64_fastpath+0x1a/0xa4
 
-Fixes: 2f632369ab79 ("modpost: don't add a trailing wildcard for OF module aliases")
-Link: http://lkml.kernel.org/r/1462203339-15340-1-git-send-email-p.zabel@pengutronix.de
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Brian Norris <computersforpeace@gmail.com>
-Cc: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: <stable@vger.kernel.org>	[4.5+]
+kcompactd is waiting for kcompactd_max_order > 0 when it's woken up to
+actually exit.  Check kthread_should_stop() to break out of the wait.
+
+Fixes: 698b1b306 ("mm, compaction: introduce kcompactd").
+Reported-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Tested-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/file2alias.c |   69 ++++++++++++++++++++++++-------------
- 1 file changed, 45 insertions(+), 24 deletions(-)
+ mm/compaction.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN scripts/mod/file2alias.c~modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property
-+++ a/scripts/mod/file2alias.c
-@@ -371,6 +371,49 @@ static void do_usb_table(void *symval, u
- 		do_usb_entry_multi(symval + i, mod);
+diff -puN mm/compaction.c~kcompactd-hang-during-memory-offlining mm/compaction.c
+--- a/mm/compaction.c~kcompactd-hang-during-memory-offlining
++++ a/mm/compaction.c
+@@ -1733,7 +1733,7 @@ void compaction_unregister_node(struct n
+ 
+ static inline bool kcompactd_work_requested(pg_data_t *pgdat)
+ {
+-	return pgdat->kcompactd_max_order > 0;
++	return pgdat->kcompactd_max_order > 0 || kthread_should_stop();
  }
  
-+static void do_of_entry_multi(void *symval, struct module *mod)
-+{
-+	char alias[500];
-+	int len;
-+	char *tmp;
-+
-+	DEF_FIELD_ADDR(symval, of_device_id, name);
-+	DEF_FIELD_ADDR(symval, of_device_id, type);
-+	DEF_FIELD_ADDR(symval, of_device_id, compatible);
-+
-+	len = sprintf(alias, "of:N%sT%s", (*name)[0] ? *name : "*",
-+		      (*type)[0] ? *type : "*");
-+
-+	if (compatible[0])
-+		sprintf(&alias[len], "%sC%s", (*type)[0] ? "*" : "",
-+			*compatible);
-+
-+	/* Replace all whitespace with underscores */
-+	for (tmp = alias; tmp && *tmp; tmp++)
-+		if (isspace(*tmp))
-+			*tmp = '_';
-+
-+	buf_printf(&mod->dev_table_buf, "MODULE_ALIAS(\"%s\");\n", alias);
-+	strcat(alias, "C");
-+	add_wildcard(alias);
-+	buf_printf(&mod->dev_table_buf, "MODULE_ALIAS(\"%s\");\n", alias);
-+}
-+
-+static void do_of_table(void *symval, unsigned long size,
-+			struct module *mod)
-+{
-+	unsigned int i;
-+	const unsigned long id_size = SIZE_of_device_id;
-+
-+	device_id_check(mod->name, "of", size, id_size, symval);
-+
-+	/* Leave last one: it's the terminator. */
-+	size -= id_size;
-+
-+	for (i = 0; i < size; i += id_size)
-+		do_of_entry_multi(symval + i, mod);
-+}
-+
- /* Looks like: hid:bNvNpN */
- static int do_hid_entry(const char *filename,
- 			     void *symval, char *alias)
-@@ -684,30 +727,6 @@ static int do_pcmcia_entry(const char *f
- }
- ADD_TO_DEVTABLE("pcmcia", pcmcia_device_id, do_pcmcia_entry);
+ static bool kcompactd_node_suitable(pg_data_t *pgdat)
+@@ -1797,6 +1797,8 @@ static void kcompactd_do_work(pg_data_t
+ 		INIT_LIST_HEAD(&cc.freepages);
+ 		INIT_LIST_HEAD(&cc.migratepages);
  
--static int do_of_entry (const char *filename, void *symval, char *alias)
--{
--	int len;
--	char *tmp;
--	DEF_FIELD_ADDR(symval, of_device_id, name);
--	DEF_FIELD_ADDR(symval, of_device_id, type);
--	DEF_FIELD_ADDR(symval, of_device_id, compatible);
--
--	len = sprintf(alias, "of:N%sT%s", (*name)[0] ? *name : "*",
--		      (*type)[0] ? *type : "*");
--
--	if (compatible[0])
--		sprintf(&alias[len], "%sC%s", (*type)[0] ? "*" : "",
--			*compatible);
--
--	/* Replace all whitespace with underscores */
--	for (tmp = alias; tmp && *tmp; tmp++)
--		if (isspace (*tmp))
--			*tmp = '_';
--
--	return 1;
--}
--ADD_TO_DEVTABLE("of", of_device_id, do_of_entry);
++		if (kthread_should_stop())
++			return;
+ 		status = compact_zone(zone, &cc);
+ 
+ 		if (zone_watermark_ok(zone, cc.order, low_wmark_pages(zone),
+_
