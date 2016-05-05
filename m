@@ -1,74 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [patch 13/14] lib/stackdepot: avoid to return 0 handle
-Date: Thu, 05 May 2016 16:22:35 -0700
-Message-ID: <572bd5bb.iDH+26lQBzxwUxjo%akpm@linux-foundation.org>
+Subject: [patch 14/14] byteswap: try to avoid __builtin_constant_p gcc bug
+Date: Thu, 05 May 2016 16:22:39 -0700
+Message-ID: <572bd5bf.t2mI2xihNNeJy8Ji%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34957 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34965 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755589AbcEEXWh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2016 19:22:37 -0400
+	with ESMTP id S1755380AbcEEXWk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2016 19:22:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, aryabinin@virtuozzo.com, glider@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, James.Bottomley@hansenpartnership.com, dvlasenk@redhat.com, himanshu.madhani@qlogic.com, hubicka@ucw.cz, jpoimboe@redhat.com, martin.petersen@oracle.com, mingo@kernel.org, mjambor@suse.cz, peterz@infradead.org, quinn.tran@qlogic.com, rientjes@google.com, tgraf@suug.ch
 
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: lib/stackdepot: avoid to return 0 handle
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: byteswap: try to avoid __builtin_constant_p gcc bug
 
-Recently, we allow to save the stacktrace whose hashed value is 0.  It
-causes the problem that stackdepot could return 0 even if in success. 
-User of stackdepot cannot distinguish whether it is success or not so we
-need to solve this problem.  In this patch, 1 bit are added to handle and
-make valid handle none 0 by setting this bit.  After that, valid handle
-will not be 0 and 0 handle will represent failure correctly.
+This is another attempt to avoid a regression in wwn_to_u64() after that
+started using get_unaligned_be64(), which in turn ran into a bug on
+gcc-4.9 through 6.1.
 
-Fixes: 33334e25769c ("lib/stackdepot.c: allow the stack trace hash to be zero")
-Link: http://lkml.kernel.org/r/1462252403-1106-1-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+The regression got introduced due to the combination of two separate
+workarounds (e3bde9568d99 ("include/linux/unaligned: force inlining of
+byteswap operations") and ef3fb2422ffe ("scsi: fc: use get/put_unaligned64
+for wwn access")) that each try to sidestep distinct problems with gcc
+behavior (code growth and increased stack usage).  Unfortunately after
+both have been applied, a more serious gcc bug has been uncovered, leading
+to incorrect object code that discards part of a function and causes
+undefined behavior.
+
+As part of this problem is how __builtin_constant_p gets evaluated on an
+argument passed by reference into an inline function, this avoids the use
+of __builtin_constant_p() for all architectures that set
+CONFIG_ARCH_USE_BUILTIN_BSWAP.  Most architectures do not set
+ARCH_SUPPORTS_OPTIMIZED_INLINING, which means they probably do not suffer
+from the problem in the qla2xxx driver, but they might still run into it
+elsewhere.
+
+Both of the original workarounds were only merged in the 4.6 kernel, and
+the bug that is fixed by this patch should only appear if both are there,
+so we probably don't need to backport the fix.  On the other hand, it
+works by simplifying the code path and should not have any negative
+effects.
+
+[arnd@arndb.de: fix older gcc warnings]
+  (http://lkml.kernel.org/r/12243652.bxSxEgjgfk@wuerfel)
+Link: https://lkml.org/lkml/headers/2016/4/12/1103
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66122
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70232
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70646
+Fixes: e3bde9568d99 ("include/linux/unaligned: force inlining of byteswap operations")
+Fixes: ef3fb2422ffe ("scsi: fc: use get/put_unaligned64 for wwn access")
+Link: http://lkml.kernel.org/r/1780465.XdtPJpi8Tt@wuerfel
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Tested-by: Josh Poimboeuf <jpoimboe@redhat.com> # on gcc-5.3
+Tested-by: Quinn Tran <quinn.tran@qlogic.com>
+Cc: Martin Jambor <mjambor@suse.cz>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: Thomas Graf <tgraf@suug.ch>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Himanshu Madhani <himanshu.madhani@qlogic.com>
+Cc: Jan Hubicka <hubicka@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ include/uapi/linux/swab.h |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN lib/stackdepot.c~lib-stackdepot-avoid-to-return-0-handle lib/stackdepot.c
---- a/lib/stackdepot.c~lib-stackdepot-avoid-to-return-0-handle
-+++ a/lib/stackdepot.c
-@@ -42,12 +42,14 @@
+diff -puN include/uapi/linux/swab.h~byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2 include/uapi/linux/swab.h
+--- a/include/uapi/linux/swab.h~byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2
++++ a/include/uapi/linux/swab.h
+@@ -45,9 +45,7 @@
  
- #define DEPOT_STACK_BITS (sizeof(depot_stack_handle_t) * 8)
+ static inline __attribute_const__ __u16 __fswab16(__u16 val)
+ {
+-#ifdef __HAVE_BUILTIN_BSWAP16__
+-	return __builtin_bswap16(val);
+-#elif defined (__arch_swab16)
++#if defined (__arch_swab16)
+ 	return __arch_swab16(val);
+ #else
+ 	return ___constant_swab16(val);
+@@ -56,9 +54,7 @@ static inline __attribute_const__ __u16
  
-+#define STACK_ALLOC_NULL_PROTECTION_BITS 1
- #define STACK_ALLOC_ORDER 2 /* 'Slab' size order for stack depot, 4 pages */
- #define STACK_ALLOC_SIZE (1LL << (PAGE_SHIFT + STACK_ALLOC_ORDER))
- #define STACK_ALLOC_ALIGN 4
- #define STACK_ALLOC_OFFSET_BITS (STACK_ALLOC_ORDER + PAGE_SHIFT - \
- 					STACK_ALLOC_ALIGN)
--#define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - STACK_ALLOC_OFFSET_BITS)
-+#define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - \
-+		STACK_ALLOC_NULL_PROTECTION_BITS - STACK_ALLOC_OFFSET_BITS)
- #define STACK_ALLOC_SLABS_CAP 1024
- #define STACK_ALLOC_MAX_SLABS \
- 	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
-@@ -59,6 +61,7 @@ union handle_parts {
- 	struct {
- 		u32 slabindex : STACK_ALLOC_INDEX_BITS;
- 		u32 offset : STACK_ALLOC_OFFSET_BITS;
-+		u32 valid : STACK_ALLOC_NULL_PROTECTION_BITS;
- 	};
- };
+ static inline __attribute_const__ __u32 __fswab32(__u32 val)
+ {
+-#ifdef __HAVE_BUILTIN_BSWAP32__
+-	return __builtin_bswap32(val);
+-#elif defined(__arch_swab32)
++#if defined(__arch_swab32)
+ 	return __arch_swab32(val);
+ #else
+ 	return ___constant_swab32(val);
+@@ -67,9 +63,7 @@ static inline __attribute_const__ __u32
  
-@@ -136,6 +139,7 @@ static struct stack_record *depot_alloc_
- 	stack->size = size;
- 	stack->handle.slabindex = depot_index;
- 	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
-+	stack->handle.valid = 1;
- 	memcpy(stack->entries, entries, size * sizeof(unsigned long));
- 	depot_offset += required_size;
+ static inline __attribute_const__ __u64 __fswab64(__u64 val)
+ {
+-#ifdef __HAVE_BUILTIN_BSWAP64__
+-	return __builtin_bswap64(val);
+-#elif defined (__arch_swab64)
++#if defined (__arch_swab64)
+ 	return __arch_swab64(val);
+ #elif defined(__SWAB_64_THRU_32__)
+ 	__u32 h = val >> 32;
+@@ -102,28 +96,40 @@ static inline __attribute_const__ __u32
+  * __swab16 - return a byteswapped 16-bit value
+  * @x: value to byteswap
+  */
++#ifdef __HAVE_BUILTIN_BSWAP16__
++#define __swab16(x) (__u16)__builtin_bswap16((__u16)(x))
++#else
+ #define __swab16(x)				\
+ 	(__builtin_constant_p((__u16)(x)) ?	\
+ 	___constant_swab16(x) :			\
+ 	__fswab16(x))
++#endif
  
+ /**
+  * __swab32 - return a byteswapped 32-bit value
+  * @x: value to byteswap
+  */
++#ifdef __HAVE_BUILTIN_BSWAP32__
++#define __swab32(x) (__u32)__builtin_bswap32((__u32)(x))
++#else
+ #define __swab32(x)				\
+ 	(__builtin_constant_p((__u32)(x)) ?	\
+ 	___constant_swab32(x) :			\
+ 	__fswab32(x))
++#endif
+ 
+ /**
+  * __swab64 - return a byteswapped 64-bit value
+  * @x: value to byteswap
+  */
++#ifdef __HAVE_BUILTIN_BSWAP64__
++#define __swab64(x) (__u64)__builtin_bswap64((__u64)(x))
++#else
+ #define __swab64(x)				\
+ 	(__builtin_constant_p((__u64)(x)) ?	\
+ 	___constant_swab64(x) :			\
+ 	__fswab64(x))
++#endif
+ 
+ /**
+  * __swahw32 - return a word-swapped 32-bit value
 _
