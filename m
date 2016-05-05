@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- ksm-fix-conflict-between-mmput-and-scan_get_next_rmap_item.patch added to
- -mm tree
-Date: Thu, 05 May 2016 14:08:19 -0700
-Message-ID: <572bb643.Akj9PqxEaDTzNKgU%akpm@linux-foundation.org>
+ mm-zsmalloc-avoid-unnecessary-iteration-in-get_pages_per_zspage.patch added to -mm tree
+Date: Thu, 05 May 2016 14:46:30 -0700
+Message-ID: <572bbf36.gzoKp3GKaoD+eEDt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60502 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33506 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756245AbcEEVIU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2016 17:08:20 -0400
+	with ESMTP id S1757092AbcEEVqb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 May 2016 17:46:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhouchengming1@huawei.com, aarcange@redhat.com, dingtianhong@huawei.com, geliangtang@163.com, guohanjun@huawei.com, huawei.libin@huawei.com, hughd@google.com, kirill.shutemov@linux.intel.com, minchan@kernel.org, qiuxishi@huawei.com, thunder.leizhen@huawei.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: opensource.ganesh@gmail.com, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: fix conflict between mmput and scan_get_next_rmap_item
+     Subject: mm/zsmalloc: avoid unnecessary iteration in get_pages_per_zspage()
 has been added to the -mm tree.  Its filename is
-     ksm-fix-conflict-between-mmput-and-scan_get_next_rmap_item.patch
+     mm-zsmalloc-avoid-unnecessary-iteration-in-get_pages_per_zspage.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ksm-fix-conflict-between-mmput-and-scan_get_next_rmap_item.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-avoid-unnecessary-iteration-in-get_pages_per_zspage.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ksm-fix-conflict-between-mmput-and-scan_get_next_rmap_item.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-avoid-unnecessary-iteration-in-get_pages_per_zspage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,98 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhou Chengming <zhouchengming1@huawei.com>
-Subject: ksm: fix conflict between mmput and scan_get_next_rmap_item
+From: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Subject: mm/zsmalloc: avoid unnecessary iteration in get_pages_per_zspage()
 
-A concurrency issue about KSM in the function scan_get_next_rmap_item.
+If we find a zspage with usage == 100%, there is no need to try other
+zspages.
 
-task A (ksmd):				|task B (the mm's task):
-|
-mm = slot->mm;				|
-down_read(&mm->mmap_sem);		|
-|
-...					|
-|
-spin_lock(&ksm_mmlist_lock);		|
-|
-ksm_scan.mm_slot go to the next slot;	|
-|
-spin_unlock(&ksm_mmlist_lock);		|
-|mmput() ->
-|	ksm_exit():
-|
-|spin_lock(&ksm_mmlist_lock);
-|if (mm_slot && ksm_scan.mm_slot != mm_slot) {
-|	if (!mm_slot->rmap_list) {
-|		easy_to_free = 1;
-|		...
-|
-|if (easy_to_free) {
-|	mmdrop(mm);
-|	...
-|
-|So this mm_struct will be freed successfully.
-|
-up_read(&mm->mmap_sem);			|
-
-As we can see above, the ksmd thread may access a mm_struct that already
-been freed to the kmem_cache.
-Suppose a fork will get this mm_struct from the kmem_cache, the ksmd thread
-then call up_read(&mm->mmap_sem), will cause mmap_sem.count to become -1.
-I changed the scan_get_next_rmap_item function refered to the khugepaged
-scan function.
-
-Link: http://lkml.kernel.org/r/1462452176-33462-1-git-send-email-zhouchengming1@huawei.com
-Signed-off-by: Zhou Chengming <zhouchengming1@huawei.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Geliang Tang <geliangtang@163.com>
+Link: http://lkml.kernel.org/r/1462425447-13385-1-git-send-email-opensource.ganesh@gmail.com
+Signed-off-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Ding Tianhong <dingtianhong@huawei.com>
-Cc: Li Bin <huawei.libin@huawei.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/zsmalloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/ksm.c~ksm-fix-conflict-between-mmput-and-scan_get_next_rmap_item mm/ksm.c
---- a/mm/ksm.c~ksm-fix-conflict-between-mmput-and-scan_get_next_rmap_item
-+++ a/mm/ksm.c
-@@ -1640,6 +1640,7 @@ next_mm:
- 	 * because there were no VM_MERGEABLE vmas with such addresses.
- 	 */
- 	remove_trailing_rmap_items(slot, ksm_scan.rmap_list);
-+	up_read(&mm->mmap_sem);
- 
- 	spin_lock(&ksm_mmlist_lock);
- 	ksm_scan.mm_slot = list_entry(slot->mm_list.next,
-@@ -1656,16 +1657,12 @@ next_mm:
- 		 */
- 		hash_del(&slot->link);
- 		list_del(&slot->mm_list);
--		spin_unlock(&ksm_mmlist_lock);
- 
- 		free_mm_slot(slot);
- 		clear_bit(MMF_VM_MERGEABLE, &mm->flags);
--		up_read(&mm->mmap_sem);
- 		mmdrop(mm);
--	} else {
--		spin_unlock(&ksm_mmlist_lock);
--		up_read(&mm->mmap_sem);
+diff -puN mm/zsmalloc.c~mm-zsmalloc-avoid-unnecessary-iteration-in-get_pages_per_zspage mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-avoid-unnecessary-iteration-in-get_pages_per_zspage
++++ a/mm/zsmalloc.c
+@@ -770,6 +770,9 @@ static int get_pages_per_zspage(int clas
+ 		if (usedpc > max_usedpc) {
+ 			max_usedpc = usedpc;
+ 			max_usedpc_order = i;
++
++			if (max_usedpc == 100)
++				break;
+ 		}
  	}
-+	spin_unlock(&ksm_mmlist_lock);
  
- 	/* Repeat until we've completed scanning the whole list */
- 	slot = ksm_scan.mm_slot;
 _
 
-Patches currently in -mm which might be from zhouchengming1@huawei.com are
+Patches currently in -mm which might be from opensource.ganesh@gmail.com are
 
-ksm-fix-conflict-between-mmput-and-scan_get_next_rmap_item.patch
+mm-zsmalloc-avoid-unnecessary-iteration-in-get_pages_per_zspage.patch
 
