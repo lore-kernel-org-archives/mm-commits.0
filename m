@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-split_huge_pmd_address-comment-improvement.patch added
- to -mm tree
-Date: Fri, 06 May 2016 15:26:15 -0700
-Message-ID: <572d1a07.12IyVXbtJ2A8M7I7%akpm@linux-foundation.org>
+Subject: + mm-kasan-print-name-of-mem-caller-in-report.patch added to -mm
+ tree
+Date: Fri, 06 May 2016 15:48:23 -0700
+Message-ID: <572d1f37.2huFYp0B1B+zalVE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55168 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55209 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759201AbcEFW0Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2016 18:26:16 -0400
+	with ESMTP id S1759186AbcEFWsZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2016 18:48:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, alex.williamson@redhat.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: split_huge_pmd_address() comment improvement
+     Subject: mm/kasan: print name of mem[set,cpy,move]() caller in report
 has been added to the -mm tree.  Its filename is
-     mm-thp-split_huge_pmd_address-comment-improvement.patch
+     mm-kasan-print-name-of-mem-caller-in-report.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-split_huge_pmd_address-comment-improvement.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-print-name-of-mem-caller-in-report.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-split_huge_pmd_address-comment-improvement.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-print-name-of-mem-caller-in-report.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +39,164 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: thp: split_huge_pmd_address() comment improvement
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: mm/kasan: print name of mem[set,cpy,move]() caller in report
 
-Comment is partly wrong, this improves it by including the case of
-split_huge_pmd_address() called by try_to_unmap_one if TTU_SPLIT_HUGE_PMD
-is set.
+When bogus memory access happens in mem[set,cpy,move]() it's usually
+caller's fault.  So don't blame mem[set,cpy,move]() in bug report, blame
+the caller instead.
 
-Link: http://lkml.kernel.org/r/1462547040-1737-4-git-send-email-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Alex Williamson <alex.williamson@redhat.com>
+Before:
+BUG: KASAN: out-of-bounds access in memset+0x23/0x40 at <address>
+After:
+BUG: KASAN: out-of-bounds access in <memset_caller> at <address>
+
+Link: http://lkml.kernel.org/r/1462538722-1574-2-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/kasan/kasan.c |   64 +++++++++++++++++++++++----------------------
+ 1 file changed, 34 insertions(+), 30 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-split_huge_pmd_address-comment-improvement mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-split_huge_pmd_address-comment-improvement
-+++ a/mm/huge_memory.c
-@@ -3023,8 +3023,10 @@ void split_huge_pmd_address(struct vm_ar
+diff -puN mm/kasan/kasan.c~mm-kasan-print-name-of-mem-caller-in-report mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-print-name-of-mem-caller-in-report
++++ a/mm/kasan/kasan.c
+@@ -273,32 +273,36 @@ static __always_inline bool memory_is_po
+ 	return memory_is_poisoned_n(addr, size);
+ }
+ 
+-
+-static __always_inline void check_memory_region(unsigned long addr,
+-						size_t size, bool write)
++static __always_inline void check_memory_region_inline(unsigned long addr,
++						size_t size, bool write,
++						unsigned long ret_ip)
+ {
+ 	if (unlikely(size == 0))
  		return;
  
- 	/*
--	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
--	 * materialize from under us.
-+	 * Caller holds the mmap_sem write mode or the anon_vma lock,
-+	 * so a huge pmd cannot materialize from under us (khugepaged
-+	 * holds both the mmap_sem write mode and the anon_vma lock
-+	 * write mode).
- 	 */
- 	__split_huge_pmd(vma, pmd, address, freeze);
+ 	if (unlikely((void *)addr <
+ 		kasan_shadow_to_mem((void *)KASAN_SHADOW_START))) {
+-		kasan_report(addr, size, write, _RET_IP_);
++		kasan_report(addr, size, write, ret_ip);
+ 		return;
+ 	}
+ 
+ 	if (likely(!memory_is_poisoned(addr, size)))
+ 		return;
+ 
+-	kasan_report(addr, size, write, _RET_IP_);
++	kasan_report(addr, size, write, ret_ip);
  }
+ 
+-void __asan_loadN(unsigned long addr, size_t size);
+-void __asan_storeN(unsigned long addr, size_t size);
++static void check_memory_region(unsigned long addr,
++				size_t size, bool write,
++				unsigned long ret_ip)
++{
++	check_memory_region_inline(addr, size, write, ret_ip);
++}
+ 
+ #undef memset
+ void *memset(void *addr, int c, size_t len)
+ {
+-	__asan_storeN((unsigned long)addr, len);
++	check_memory_region((unsigned long)addr, len, true, _RET_IP_);
+ 
+ 	return __memset(addr, c, len);
+ }
+@@ -306,8 +310,8 @@ void *memset(void *addr, int c, size_t l
+ #undef memmove
+ void *memmove(void *dest, const void *src, size_t len)
+ {
+-	__asan_loadN((unsigned long)src, len);
+-	__asan_storeN((unsigned long)dest, len);
++	check_memory_region((unsigned long)src, len, false, _RET_IP_);
++	check_memory_region((unsigned long)dest, len, true, _RET_IP_);
+ 
+ 	return __memmove(dest, src, len);
+ }
+@@ -315,8 +319,8 @@ void *memmove(void *dest, const void *sr
+ #undef memcpy
+ void *memcpy(void *dest, const void *src, size_t len)
+ {
+-	__asan_loadN((unsigned long)src, len);
+-	__asan_storeN((unsigned long)dest, len);
++	check_memory_region((unsigned long)src, len, false, _RET_IP_);
++	check_memory_region((unsigned long)dest, len, true, _RET_IP_);
+ 
+ 	return __memcpy(dest, src, len);
+ }
+@@ -698,22 +702,22 @@ void __asan_unregister_globals(struct ka
+ }
+ EXPORT_SYMBOL(__asan_unregister_globals);
+ 
+-#define DEFINE_ASAN_LOAD_STORE(size)				\
+-	void __asan_load##size(unsigned long addr)		\
+-	{							\
+-		check_memory_region(addr, size, false);		\
+-	}							\
+-	EXPORT_SYMBOL(__asan_load##size);			\
+-	__alias(__asan_load##size)				\
+-	void __asan_load##size##_noabort(unsigned long);	\
+-	EXPORT_SYMBOL(__asan_load##size##_noabort);		\
+-	void __asan_store##size(unsigned long addr)		\
+-	{							\
+-		check_memory_region(addr, size, true);		\
+-	}							\
+-	EXPORT_SYMBOL(__asan_store##size);			\
+-	__alias(__asan_store##size)				\
+-	void __asan_store##size##_noabort(unsigned long);	\
++#define DEFINE_ASAN_LOAD_STORE(size)					\
++	void __asan_load##size(unsigned long addr)			\
++	{								\
++		check_memory_region_inline(addr, size, false, _RET_IP_);\
++	}								\
++	EXPORT_SYMBOL(__asan_load##size);				\
++	__alias(__asan_load##size)					\
++	void __asan_load##size##_noabort(unsigned long);		\
++	EXPORT_SYMBOL(__asan_load##size##_noabort);			\
++	void __asan_store##size(unsigned long addr)			\
++	{								\
++		check_memory_region_inline(addr, size, true, _RET_IP_);	\
++	}								\
++	EXPORT_SYMBOL(__asan_store##size);				\
++	__alias(__asan_store##size)					\
++	void __asan_store##size##_noabort(unsigned long);		\
+ 	EXPORT_SYMBOL(__asan_store##size##_noabort)
+ 
+ DEFINE_ASAN_LOAD_STORE(1);
+@@ -724,7 +728,7 @@ DEFINE_ASAN_LOAD_STORE(16);
+ 
+ void __asan_loadN(unsigned long addr, size_t size)
+ {
+-	check_memory_region(addr, size, false);
++	check_memory_region(addr, size, false, _RET_IP_);
+ }
+ EXPORT_SYMBOL(__asan_loadN);
+ 
+@@ -734,7 +738,7 @@ EXPORT_SYMBOL(__asan_loadN_noabort);
+ 
+ void __asan_storeN(unsigned long addr, size_t size)
+ {
+-	check_memory_region(addr, size, true);
++	check_memory_region(addr, size, true, _RET_IP_);
+ }
+ EXPORT_SYMBOL(__asan_storeN);
+ 
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults.patch
-mm-thp-microoptimize-compound_mapcount.patch
-mm-thp-split_huge_pmd_address-comment-improvement.patch
+mm-kasan-print-name-of-mem-caller-in-report.patch
+mm-kasan-add-api-to-check-memory-regions.patch
+x86-kasan-instrument-user-memory-access-api.patch
+kasan-tests-add-tests-for-user-memory-access-functions.patch
 
