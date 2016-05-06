@@ -1,123 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kcompactd-hang-during-memory-offlining.patch removed
- from -mm tree
-Date: Fri, 06 May 2016 14:17:41 -0700
-Message-ID: <572d09f5.aRzpVv7KPr6DGep7%akpm@linux-foundation.org>
+Subject: [merged]
+ byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2.patch removed from
+ -mm tree
+Date: Fri, 06 May 2016 14:17:46 -0700
+Message-ID: <572d09fa.MGYGl/VdTq/+Xk7G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54448 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54458 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758514AbcEFVRm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2016 17:17:42 -0400
+	with ESMTP id S1758514AbcEFVRr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2016 17:17:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, aarcange@redhat.com, arbab@linux.vnet.ibm.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, James.Bottomley@hansenpartnership.com, dvlasenk@redhat.com, himanshu.madhani@qlogic.com, hubicka@ucw.cz, jpoimboe@redhat.com, martin.petersen@oracle.com, mingo@kernel.org, mjambor@suse.cz, peterz@infradead.org, quinn.tran@qlogic.com, rientjes@google.com, tgraf@suug.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix kcompactd hang during memory offlining
+     Subject: byteswap: try to avoid __builtin_constant_p gcc bug
 has been removed from the -mm tree.  Its filename was
-     kcompactd-hang-during-memory-offlining.patch
+     byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: fix kcompactd hang during memory offlining
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: byteswap: try to avoid __builtin_constant_p gcc bug
 
-Assume memory47 is the last online block left in node1. This will hang:
+This is another attempt to avoid a regression in wwn_to_u64() after that
+started using get_unaligned_be64(), which in turn ran into a bug on
+gcc-4.9 through 6.1.
 
-# echo offline > /sys/devices/system/node/node1/memory47/state
+The regression got introduced due to the combination of two separate
+workarounds (e3bde9568d99 ("include/linux/unaligned: force inlining of
+byteswap operations") and ef3fb2422ffe ("scsi: fc: use get/put_unaligned64
+for wwn access")) that each try to sidestep distinct problems with gcc
+behavior (code growth and increased stack usage).  Unfortunately after
+both have been applied, a more serious gcc bug has been uncovered, leading
+to incorrect object code that discards part of a function and causes
+undefined behavior.
 
-After a couple of minutes, the following pops up in dmesg:
+As part of this problem is how __builtin_constant_p gets evaluated on an
+argument passed by reference into an inline function, this avoids the use
+of __builtin_constant_p() for all architectures that set
+CONFIG_ARCH_USE_BUILTIN_BSWAP.  Most architectures do not set
+ARCH_SUPPORTS_OPTIMIZED_INLINING, which means they probably do not suffer
+from the problem in the qla2xxx driver, but they might still run into it
+elsewhere.
 
-INFO: task bash:957 blocked for more than 120 seconds.
-       Not tainted 4.6.0-rc6+ #6
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-bash            D ffff8800b7adbaf8     0   957    951 0x00000000
-  ffff8800b7adbaf8 ffff880034d5b880 ffff8800b698d4c0 ffff8800b7adc000
-  7fffffffffffffff ffff88003381ff10 ffff8800b698d4c0 0000000000180000
-  ffff8800b7adbb10 ffffffff817be0b5 ffff88003381ff08 ffff8800b7adbbc0
-Call Trace:
-  [<ffffffff817be0b5>] schedule+0x35/0x80
-  [<ffffffff817c100c>] schedule_timeout+0x1ac/0x270
-  [<ffffffff810d9750>] ? check_preempt_wakeup+0x100/0x220
-  [<ffffffff810ce0a0>] ? check_preempt_curr+0x80/0x90
-  [<ffffffff817bf501>] wait_for_completion+0xe1/0x120
-  [<ffffffff810cefc0>] ? wake_up_q+0x70/0x70
-  [<ffffffff810c42ff>] kthread_stop+0x4f/0x110
-  [<ffffffff811e1046>] kcompactd_stop+0x26/0x40
-  [<ffffffff817b7a16>] __offline_pages.constprop.28+0x7e6/0x840
-  [<ffffffff8121ee61>] offline_pages+0x11/0x20
-  [<ffffffff8151a073>] memory_block_action+0x73/0x1d0
-  [<ffffffff8151a217>] memory_subsys_offline+0x47/0x60
-  [<ffffffff81502dc6>] device_offline+0x86/0xb0
-  [<ffffffff8151a8fa>] store_mem_state+0xda/0xf0
-  [<ffffffff814ffea8>] dev_attr_store+0x18/0x30
-  [<ffffffff812c1097>] sysfs_kf_write+0x37/0x40
-  [<ffffffff812c062d>] kernfs_fop_write+0x11d/0x170
-  [<ffffffff8123e797>] __vfs_write+0x37/0x120
-  [<ffffffff8134d1ad>] ? security_file_permission+0x3d/0xc0
-  [<ffffffff810eed32>] ? percpu_down_read+0x12/0x50
-  [<ffffffff8123f969>] vfs_write+0xa9/0x1a0
-  [<ffffffff8134d543>] ? security_file_fcntl+0x43/0x60
-  [<ffffffff81240dc5>] SyS_write+0x55/0xc0
-  [<ffffffff817c21b2>] entry_SYSCALL_64_fastpath+0x1a/0xa4
+Both of the original workarounds were only merged in the 4.6 kernel, and
+the bug that is fixed by this patch should only appear if both are there,
+so we probably don't need to backport the fix.  On the other hand, it
+works by simplifying the code path and should not have any negative
+effects.
 
-kcompactd is waiting for kcompactd_max_order > 0 when it's woken up to
-actually exit.  Check kthread_should_stop() to break out of the wait.
-
-Fixes: 698b1b306 ("mm, compaction: introduce kcompactd").
-Reported-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Tested-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+[arnd@arndb.de: fix older gcc warnings]
+  (http://lkml.kernel.org/r/12243652.bxSxEgjgfk@wuerfel)
+Link: https://lkml.org/lkml/headers/2016/4/12/1103
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66122
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70232
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=70646
+Fixes: e3bde9568d99 ("include/linux/unaligned: force inlining of byteswap operations")
+Fixes: ef3fb2422ffe ("scsi: fc: use get/put_unaligned64 for wwn access")
+Link: http://lkml.kernel.org/r/1780465.XdtPJpi8Tt@wuerfel
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Tested-by: Josh Poimboeuf <jpoimboe@redhat.com> # on gcc-5.3
+Tested-by: Quinn Tran <quinn.tran@qlogic.com>
+Cc: Martin Jambor <mjambor@suse.cz>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: Thomas Graf <tgraf@suug.ch>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Himanshu Madhani <himanshu.madhani@qlogic.com>
+Cc: Jan Hubicka <hubicka@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/uapi/linux/swab.h |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN mm/compaction.c~kcompactd-hang-during-memory-offlining mm/compaction.c
---- a/mm/compaction.c~kcompactd-hang-during-memory-offlining
-+++ a/mm/compaction.c
-@@ -1733,7 +1733,7 @@ void compaction_unregister_node(struct n
+diff -puN include/uapi/linux/swab.h~byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2 include/uapi/linux/swab.h
+--- a/include/uapi/linux/swab.h~byteswap-try-to-avoid-__builtin_constant_p-gcc-bug-v2
++++ a/include/uapi/linux/swab.h
+@@ -45,9 +45,7 @@
  
- static inline bool kcompactd_work_requested(pg_data_t *pgdat)
+ static inline __attribute_const__ __u16 __fswab16(__u16 val)
  {
--	return pgdat->kcompactd_max_order > 0;
-+	return pgdat->kcompactd_max_order > 0 || kthread_should_stop();
- }
+-#ifdef __HAVE_BUILTIN_BSWAP16__
+-	return __builtin_bswap16(val);
+-#elif defined (__arch_swab16)
++#if defined (__arch_swab16)
+ 	return __arch_swab16(val);
+ #else
+ 	return ___constant_swab16(val);
+@@ -56,9 +54,7 @@ static inline __attribute_const__ __u16
  
- static bool kcompactd_node_suitable(pg_data_t *pgdat)
-@@ -1797,6 +1797,8 @@ static void kcompactd_do_work(pg_data_t
- 		INIT_LIST_HEAD(&cc.freepages);
- 		INIT_LIST_HEAD(&cc.migratepages);
+ static inline __attribute_const__ __u32 __fswab32(__u32 val)
+ {
+-#ifdef __HAVE_BUILTIN_BSWAP32__
+-	return __builtin_bswap32(val);
+-#elif defined(__arch_swab32)
++#if defined(__arch_swab32)
+ 	return __arch_swab32(val);
+ #else
+ 	return ___constant_swab32(val);
+@@ -67,9 +63,7 @@ static inline __attribute_const__ __u32
  
-+		if (kthread_should_stop())
-+			return;
- 		status = compact_zone(zone, &cc);
+ static inline __attribute_const__ __u64 __fswab64(__u64 val)
+ {
+-#ifdef __HAVE_BUILTIN_BSWAP64__
+-	return __builtin_bswap64(val);
+-#elif defined (__arch_swab64)
++#if defined (__arch_swab64)
+ 	return __arch_swab64(val);
+ #elif defined(__SWAB_64_THRU_32__)
+ 	__u32 h = val >> 32;
+@@ -102,28 +96,40 @@ static inline __attribute_const__ __u32
+  * __swab16 - return a byteswapped 16-bit value
+  * @x: value to byteswap
+  */
++#ifdef __HAVE_BUILTIN_BSWAP16__
++#define __swab16(x) (__u16)__builtin_bswap16((__u16)(x))
++#else
+ #define __swab16(x)				\
+ 	(__builtin_constant_p((__u16)(x)) ?	\
+ 	___constant_swab16(x) :			\
+ 	__fswab16(x))
++#endif
  
- 		if (zone_watermark_ok(zone, cc.order, low_wmark_pages(zone),
+ /**
+  * __swab32 - return a byteswapped 32-bit value
+  * @x: value to byteswap
+  */
++#ifdef __HAVE_BUILTIN_BSWAP32__
++#define __swab32(x) (__u32)__builtin_bswap32((__u32)(x))
++#else
+ #define __swab32(x)				\
+ 	(__builtin_constant_p((__u32)(x)) ?	\
+ 	___constant_swab32(x) :			\
+ 	__fswab32(x))
++#endif
+ 
+ /**
+  * __swab64 - return a byteswapped 64-bit value
+  * @x: value to byteswap
+  */
++#ifdef __HAVE_BUILTIN_BSWAP64__
++#define __swab64(x) (__u64)__builtin_bswap64((__u64)(x))
++#else
+ #define __swab64(x)				\
+ 	(__builtin_constant_p((__u64)(x)) ?	\
+ 	___constant_swab64(x) :			\
+ 	__fswab64(x))
++#endif
+ 
+ /**
+  * __swahw32 - return a word-swapped 32-bit value
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-compaction-wrap-calculating-first-and-last-pfn-of-pageblock.patch
-compaction-wrap-calculating-first-and-last-pfn-of-pageblock-fix.patch
-mm-compaction-reduce-spurious-pcplist-drains.patch
-mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction.patch
-mm-page_alloc-un-inline-the-bad-part-of-free_pages_check.patch
-cpuset-use-static-key-better-and-convert-to-new-api.patch
-mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch
+kernel-padata-hide-unused-functions.patch
+drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable-fix.patch
 
