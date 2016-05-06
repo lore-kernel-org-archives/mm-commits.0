@@ -1,97 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-zswap-provide-unique-zpool-name.patch removed from
- -mm tree
-Date: Fri, 06 May 2016 14:17:32 -0700
-Message-ID: <572d09ec.i01KZA5InjmhtSTm%akpm@linux-foundation.org>
+Subject: [merged]
+ modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property.patch removed from -mm tree
+Date: Fri, 06 May 2016 14:17:38 -0700
+Message-ID: <572d09f2.lvTLfZtuZuxjYV2d%akpm__19650.3811669119$1462569474$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54420 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54432 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758514AbcEFVRd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2016 17:17:33 -0400
+	with ESMTP id S1758514AbcEFVRj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2016 17:17:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddstreet@ieee.org, dan.streetman@canonical.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: p.zabel@pengutronix.de, computersforpeace@gmail.com, gregkh@linuxfoundation.org, javier@osg.samsung.com, rusty@rustcorp.com.au, sjoerd.simons@collabora.co.uk, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zswap: provide unique zpool name
+     Subject: modpost: fix module autoloading for OF devices with generic compatible property
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-provide-unique-zpool-name.patch
+     modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Streetman <ddstreet@ieee.org>
-Subject: mm/zswap: provide unique zpool name
+From: Philipp Zabel <p.zabel@pengutronix.de>
+Subject: modpost: fix module autoloading for OF devices with generic compatible property
 
-Instead of using "zswap" as the name for all zpools created, add an atomic
-counter and use "zswap%x" with the counter number for each zpool created,
-to provide a unique name for each new zpool.
+Since the wildcard at the end of OF module aliases is gone, autoloading of
+modules that don't match a device's last (most generic) compatible value
+fails.
 
-As zsmalloc, one of the zpool implementations, requires/expects a unique
-name for each pool created, zswap should provide a unique name.  The
-zsmalloc pool creation does not fail if a new pool with a conflicting name
-is created, unless CONFIG_ZSMALLOC_STAT is enabled; in that case, zsmalloc
-pool creation fails with -ENOMEM.  Then zswap will be unable to change its
-compressor parameter if its zpool is zsmalloc; it also will be unable to
-change its zpool parameter back to zsmalloc, if it has any existing old
-zpool using zsmalloc with page(s) in it.  Attempts to change the
-parameters will result in failure to create the zpool.  This changes zswap
-to provide a unique name for each zpool creation.
+For example the CODA960 VPU on i.MX6Q has the SoC specific compatible
+"fsl,imx6q-vpu" and the generic compatible "cnm,coda960".  Since the
+driver currently only works with knowledge about the SoC specific
+integration, it doesn't list "cnm,cod960" in the module device table. 
+This results in the device compatible
+"of:NvpuT<NULL>Cfsl,imx6q-vpuCcnm,coda960" not matching the module alias
+"of:N*T*Cfsl,imx6q-vpu" anymore, whereas before commit 2f632369ab79
+("modpost: don't add a trailing wildcard for OF module aliases") it
+matched the module alias "of:N*T*Cfsl,imx6q-vpu*".
 
-Fixes: f1c54846ee45 ("zswap: dynamic pool creation")
-Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Reported-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Dan Streetman <dan.streetman@canonical.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>
+This patch adds two module aliases for each compatible, one without the
+wildcard and one with "C*" appended.
+
+$ modinfo coda | grep imx6q
+alias:          of:N*T*Cfsl,imx6q-vpuC*
+alias:          of:N*T*Cfsl,imx6q-vpu
+
+Fixes: 2f632369ab79 ("modpost: don't add a trailing wildcard for OF module aliases")
+Link: http://lkml.kernel.org/r/1462203339-15340-1-git-send-email-p.zabel@pengutronix.de
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Brian Norris <computersforpeace@gmail.com>
+Cc: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: <stable@vger.kernel.org>	[4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ scripts/mod/file2alias.c |   69 ++++++++++++++++++++++++-------------
+ 1 file changed, 45 insertions(+), 24 deletions(-)
 
-diff -puN mm/zswap.c~mm-zswap-provide-unique-zpool-name mm/zswap.c
---- a/mm/zswap.c~mm-zswap-provide-unique-zpool-name
-+++ a/mm/zswap.c
-@@ -170,6 +170,8 @@ static struct zswap_tree *zswap_trees[MA
- static LIST_HEAD(zswap_pools);
- /* protects zswap_pools list modification */
- static DEFINE_SPINLOCK(zswap_pools_lock);
-+/* pool counter to provide unique names to zpool */
-+static atomic_t zswap_pools_count = ATOMIC_INIT(0);
+diff -puN scripts/mod/file2alias.c~modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property
++++ a/scripts/mod/file2alias.c
+@@ -371,6 +371,49 @@ static void do_usb_table(void *symval, u
+ 		do_usb_entry_multi(symval + i, mod);
+ }
  
- /* used by param callback function */
- static bool zswap_init_started;
-@@ -565,6 +567,7 @@ static struct zswap_pool *zswap_pool_fin
- static struct zswap_pool *zswap_pool_create(char *type, char *compressor)
- {
- 	struct zswap_pool *pool;
-+	char name[38]; /* 'zswap' + 32 char (max) num + \0 */
- 	gfp_t gfp = __GFP_NORETRY | __GFP_NOWARN | __GFP_KSWAPD_RECLAIM;
- 
- 	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
-@@ -573,7 +576,10 @@ static struct zswap_pool *zswap_pool_cre
- 		return NULL;
- 	}
- 
--	pool->zpool = zpool_create_pool(type, "zswap", gfp, &zswap_zpool_ops);
-+	/* unique name for each pool specifically required by zsmalloc */
-+	snprintf(name, 38, "zswap%x", atomic_inc_return(&zswap_pools_count));
++static void do_of_entry_multi(void *symval, struct module *mod)
++{
++	char alias[500];
++	int len;
++	char *tmp;
 +
-+	pool->zpool = zpool_create_pool(type, name, gfp, &zswap_zpool_ops);
- 	if (!pool->zpool) {
- 		pr_err("%s zpool not available\n", type);
- 		goto error;
-_
-
-Patches currently in -mm which might be from ddstreet@ieee.org are
-
-mm-zswap-use-workqueue-to-destroy-pool.patch
-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch
-
++	DEF_FIELD_ADDR(symval, of_device_id, name);
++	DEF_FIELD_ADDR(symval, of_device_id, type);
++	DEF_FIELD_ADDR(symval, of_device_id, compatible);
++
++	len = sprintf(alias, "of:N%sT%s", (*name)[0] ? *name : "*",
++		      (*type)[0] ? *type : "*");
++
++	if (compatible[0])
++		sprintf(&alias[len], "%sC%s", (*type)[0] ? "*" : "",
++			*compatible);
++
++	/* Replace all whitespace with underscores */
++	for (tmp = alias; tmp && *tmp; tmp++)
++		if (isspace(*tmp))
++			*tmp = '_';
++
++	buf_printf(&mod->dev_table_buf, "MODULE_ALIAS(\"%s\");\n", alias);
++	strcat(alias, "C");
++	add_wildcard(alias);
++	buf_printf(&mod->dev_table_buf, "MODULE_ALIAS(\"%s\");\n", alias);
++}
++
++static void do_of_table(void *symval, unsigned long size,
++			struct module *mod)
++{
++	unsigned int i;
++	const unsigned long id_size = SIZE_of_device_id;
++
++	device_id_check(mod->name, "of", size, id_size, symval);
++
++	/* Leave last one: it's the terminator. */
++	size -= id_size;
++
++	for (i = 0; i < size; i += id_size)
++		do_of_entry_multi(symval + i, mod);
++}
++
+ /* Looks like: hid:bNvNpN */
+ static int do_hid_entry(const char *filename,
+ 			     void *symval, char *alias)
+@@ -684,30 +727,6 @@ static int do_pcmcia_entry(const char *f
+ }
+ ADD_TO_DEVTABLE("pcmcia", pcmcia_device_id, do_pcmcia_entry);
+ 
+-static int do_of_entry (const char *filename, void *symval, char *alias)
+-{
+-	int len;
+-	char *tmp;
+-	DEF_FIELD_ADDR(symval, of_device_id, name);
+-	DEF_FIELD_ADDR(symval, of_device_id, type);
+-	DEF_FIELD_ADDR(symval, of_device_id, compatible);
+-
+-	len = sprintf(alias, "of:N%sT%s", (*name)[0] ? *name : "*",
+-		      (*type)[0] ? *type : "*");
+-
+-	if (compatible[0])
+-		sprintf(&alias[len], "%sC%s", (*type)[0] ? "*" : "",
+-			*compatible);
+-
+-	/* Replace all whitespace with underscores */
+-	for (tmp = alias; tmp && *tmp; tmp++)
+-		if (isspace (*tmp))
+-			*tmp = '_';
+-
+-	return 1;
+-}
+-ADD_TO_DEVTABLE("of", of_device_id, do_of_entry);
