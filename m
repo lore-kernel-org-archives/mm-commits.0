@@ -1,146 +1,82 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property.patch removed from -mm tree
-Date: Fri, 06 May 2016 14:17:38 -0700
-Message-ID: <572d09f2.lvTLfZtuZuxjYV2d%akpm__19650.3811669119$1462569474$gmane$org@linux-foundation.org>
+ proc-prevent-accessing-proc-pid-environ-until-its-ready.patch removed from
+ -mm tree
+Date: Fri, 06 May 2016 14:17:35 -0700
+Message-ID: <572d09ef.cTevcpLKpRefcKGx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54427 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758514AbcEFVRj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2016 17:17:39 -0400
+	with ESMTP id S1758514AbcEFVRg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2016 17:17:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: p.zabel@pengutronix.de, computersforpeace@gmail.com, gregkh@linuxfoundation.org, javier@osg.samsung.com, rusty@rustcorp.com.au, sjoerd.simons@collabora.co.uk, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: minipli@googlemail.com, adobriyan@gmail.com, gorcunov@openvz.org, jarod@redhat.com, mguzik@redhat.com, pageexec@freemail.hu, re.emese@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: modpost: fix module autoloading for OF devices with generic compatible property
+     Subject: proc: prevent accessing /proc/<PID>/environ until it's ready
 has been removed from the -mm tree.  Its filename was
-     modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property.patch
+     proc-prevent-accessing-proc-pid-environ-until-its-ready.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Philipp Zabel <p.zabel@pengutronix.de>
-Subject: modpost: fix module autoloading for OF devices with generic compatible property
+From: Mathias Krause <minipli@googlemail.com>
+Subject: proc: prevent accessing /proc/<PID>/environ until it's ready
 
-Since the wildcard at the end of OF module aliases is gone, autoloading of
-modules that don't match a device's last (most generic) compatible value
-fails.
+If /proc/<PID>/environ gets read before the envp[] array is fully set up
+in create_{aout,elf,elf_fdpic,flat}_tables(), we might end up trying to
+read more bytes than are actually written, as env_start will already be
+set but env_end will still be zero, making the range calculation
+underflow, allowing to read beyond the end of what has been written.
 
-For example the CODA960 VPU on i.MX6Q has the SoC specific compatible
-"fsl,imx6q-vpu" and the generic compatible "cnm,coda960".  Since the
-driver currently only works with knowledge about the SoC specific
-integration, it doesn't list "cnm,cod960" in the module device table. 
-This results in the device compatible
-"of:NvpuT<NULL>Cfsl,imx6q-vpuCcnm,coda960" not matching the module alias
-"of:N*T*Cfsl,imx6q-vpu" anymore, whereas before commit 2f632369ab79
-("modpost: don't add a trailing wildcard for OF module aliases") it
-matched the module alias "of:N*T*Cfsl,imx6q-vpu*".
+Fix this as it is done for /proc/<PID>/cmdline by testing env_end for
+zero.  It is, apparently, intentionally set last in create_*_tables().
 
-This patch adds two module aliases for each compatible, one without the
-wildcard and one with "C*" appended.
+This bug was found by the PaX size_overflow plugin that detected the
+arithmetic underflow of 'this_len = env_end - (env_start + src)' when
+env_end is still zero.
 
-$ modinfo coda | grep imx6q
-alias:          of:N*T*Cfsl,imx6q-vpuC*
-alias:          of:N*T*Cfsl,imx6q-vpu
+The expected consequence is that userland trying to access
+/proc/<PID>/environ of a not yet fully set up process may get inconsistent
+data as we're in the middle of copying in the environment variables.
 
-Fixes: 2f632369ab79 ("modpost: don't add a trailing wildcard for OF module aliases")
-Link: http://lkml.kernel.org/r/1462203339-15340-1-git-send-email-p.zabel@pengutronix.de
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Brian Norris <computersforpeace@gmail.com>
-Cc: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: <stable@vger.kernel.org>	[4.5+]
+Fixes: https://forums.grsecurity.net/viewtopic.php?f=3&t=4363
+Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=116461
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Cc: Emese Revfy <re.emese@gmail.com>
+Cc: Pax Team <pageexec@freemail.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Mateusz Guzik <mguzik@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Jarod Wilson <jarod@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/file2alias.c |   69 ++++++++++++++++++++++++-------------
- 1 file changed, 45 insertions(+), 24 deletions(-)
+ fs/proc/base.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/mod/file2alias.c~modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~modpost-fix-module-autoloading-for-of-devices-with-generic-compatible-property
-+++ a/scripts/mod/file2alias.c
-@@ -371,6 +371,49 @@ static void do_usb_table(void *symval, u
- 		do_usb_entry_multi(symval + i, mod);
- }
+diff -puN fs/proc/base.c~proc-prevent-accessing-proc-pid-environ-until-its-ready fs/proc/base.c
+--- a/fs/proc/base.c~proc-prevent-accessing-proc-pid-environ-until-its-ready
++++ a/fs/proc/base.c
+@@ -955,7 +955,8 @@ static ssize_t environ_read(struct file
+ 	struct mm_struct *mm = file->private_data;
+ 	unsigned long env_start, env_end;
  
-+static void do_of_entry_multi(void *symval, struct module *mod)
-+{
-+	char alias[500];
-+	int len;
-+	char *tmp;
-+
-+	DEF_FIELD_ADDR(symval, of_device_id, name);
-+	DEF_FIELD_ADDR(symval, of_device_id, type);
-+	DEF_FIELD_ADDR(symval, of_device_id, compatible);
-+
-+	len = sprintf(alias, "of:N%sT%s", (*name)[0] ? *name : "*",
-+		      (*type)[0] ? *type : "*");
-+
-+	if (compatible[0])
-+		sprintf(&alias[len], "%sC%s", (*type)[0] ? "*" : "",
-+			*compatible);
-+
-+	/* Replace all whitespace with underscores */
-+	for (tmp = alias; tmp && *tmp; tmp++)
-+		if (isspace(*tmp))
-+			*tmp = '_';
-+
-+	buf_printf(&mod->dev_table_buf, "MODULE_ALIAS(\"%s\");\n", alias);
-+	strcat(alias, "C");
-+	add_wildcard(alias);
-+	buf_printf(&mod->dev_table_buf, "MODULE_ALIAS(\"%s\");\n", alias);
-+}
-+
-+static void do_of_table(void *symval, unsigned long size,
-+			struct module *mod)
-+{
-+	unsigned int i;
-+	const unsigned long id_size = SIZE_of_device_id;
-+
-+	device_id_check(mod->name, "of", size, id_size, symval);
-+
-+	/* Leave last one: it's the terminator. */
-+	size -= id_size;
-+
-+	for (i = 0; i < size; i += id_size)
-+		do_of_entry_multi(symval + i, mod);
-+}
-+
- /* Looks like: hid:bNvNpN */
- static int do_hid_entry(const char *filename,
- 			     void *symval, char *alias)
-@@ -684,30 +727,6 @@ static int do_pcmcia_entry(const char *f
- }
- ADD_TO_DEVTABLE("pcmcia", pcmcia_device_id, do_pcmcia_entry);
+-	if (!mm)
++	/* Ensure the process spawned far enough to have an environment. */
++	if (!mm || !mm->env_end)
+ 		return 0;
  
--static int do_of_entry (const char *filename, void *symval, char *alias)
--{
--	int len;
--	char *tmp;
--	DEF_FIELD_ADDR(symval, of_device_id, name);
--	DEF_FIELD_ADDR(symval, of_device_id, type);
--	DEF_FIELD_ADDR(symval, of_device_id, compatible);
--
--	len = sprintf(alias, "of:N%sT%s", (*name)[0] ? *name : "*",
--		      (*type)[0] ? *type : "*");
--
--	if (compatible[0])
--		sprintf(&alias[len], "%sC%s", (*type)[0] ? "*" : "",
--			*compatible);
--
--	/* Replace all whitespace with underscores */
--	for (tmp = alias; tmp && *tmp; tmp++)
--		if (isspace (*tmp))
--			*tmp = '_';
--
--	return 1;
--}
--ADD_TO_DEVTABLE("of", of_device_id, do_of_entry);
+ 	page = (char *)__get_free_page(GFP_TEMPORARY);
+_
+
+Patches currently in -mm which might be from minipli@googlemail.com are
+
+
