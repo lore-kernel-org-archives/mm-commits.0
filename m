@@ -1,82 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- proc-prevent-accessing-proc-pid-environ-until-its-ready.patch removed from
- -mm tree
-Date: Fri, 06 May 2016 14:17:35 -0700
-Message-ID: <572d09ef.cTevcpLKpRefcKGx%akpm@linux-foundation.org>
+Subject: [merged] lib-stackdepot-avoid-to-return-0-handle.patch removed
+ from -mm tree
+Date: Fri, 06 May 2016 14:17:44 -0700
+Message-ID: <572d09f8.KJWo96EtLyuWu8Cn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54427 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54450 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758514AbcEFVRg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2016 17:17:36 -0400
+	with ESMTP id S1758514AbcEFVRp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 May 2016 17:17:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minipli@googlemail.com, adobriyan@gmail.com, gorcunov@openvz.org, jarod@redhat.com, mguzik@redhat.com, pageexec@freemail.hu, re.emese@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: prevent accessing /proc/<PID>/environ until it's ready
+     Subject: lib/stackdepot: avoid to return 0 handle
 has been removed from the -mm tree.  Its filename was
-     proc-prevent-accessing-proc-pid-environ-until-its-ready.patch
+     lib-stackdepot-avoid-to-return-0-handle.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mathias Krause <minipli@googlemail.com>
-Subject: proc: prevent accessing /proc/<PID>/environ until it's ready
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: lib/stackdepot: avoid to return 0 handle
 
-If /proc/<PID>/environ gets read before the envp[] array is fully set up
-in create_{aout,elf,elf_fdpic,flat}_tables(), we might end up trying to
-read more bytes than are actually written, as env_start will already be
-set but env_end will still be zero, making the range calculation
-underflow, allowing to read beyond the end of what has been written.
+Recently, we allow to save the stacktrace whose hashed value is 0.  It
+causes the problem that stackdepot could return 0 even if in success. 
+User of stackdepot cannot distinguish whether it is success or not so we
+need to solve this problem.  In this patch, 1 bit are added to handle and
+make valid handle none 0 by setting this bit.  After that, valid handle
+will not be 0 and 0 handle will represent failure correctly.
 
-Fix this as it is done for /proc/<PID>/cmdline by testing env_end for
-zero.  It is, apparently, intentionally set last in create_*_tables().
-
-This bug was found by the PaX size_overflow plugin that detected the
-arithmetic underflow of 'this_len = env_end - (env_start + src)' when
-env_end is still zero.
-
-The expected consequence is that userland trying to access
-/proc/<PID>/environ of a not yet fully set up process may get inconsistent
-data as we're in the middle of copying in the environment variables.
-
-Fixes: https://forums.grsecurity.net/viewtopic.php?f=3&t=4363
-Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=116461
-Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: Emese Revfy <re.emese@gmail.com>
-Cc: Pax Team <pageexec@freemail.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Mateusz Guzik <mguzik@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Jarod Wilson <jarod@redhat.com>
+Fixes: 33334e25769c ("lib/stackdepot.c: allow the stack trace hash to be zero")
+Link: http://lkml.kernel.org/r/1462252403-1106-1-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/stackdepot.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~proc-prevent-accessing-proc-pid-environ-until-its-ready fs/proc/base.c
---- a/fs/proc/base.c~proc-prevent-accessing-proc-pid-environ-until-its-ready
-+++ a/fs/proc/base.c
-@@ -955,7 +955,8 @@ static ssize_t environ_read(struct file
- 	struct mm_struct *mm = file->private_data;
- 	unsigned long env_start, env_end;
+diff -puN lib/stackdepot.c~lib-stackdepot-avoid-to-return-0-handle lib/stackdepot.c
+--- a/lib/stackdepot.c~lib-stackdepot-avoid-to-return-0-handle
++++ a/lib/stackdepot.c
+@@ -42,12 +42,14 @@
  
--	if (!mm)
-+	/* Ensure the process spawned far enough to have an environment. */
-+	if (!mm || !mm->env_end)
- 		return 0;
+ #define DEPOT_STACK_BITS (sizeof(depot_stack_handle_t) * 8)
  
- 	page = (char *)__get_free_page(GFP_TEMPORARY);
++#define STACK_ALLOC_NULL_PROTECTION_BITS 1
+ #define STACK_ALLOC_ORDER 2 /* 'Slab' size order for stack depot, 4 pages */
+ #define STACK_ALLOC_SIZE (1LL << (PAGE_SHIFT + STACK_ALLOC_ORDER))
+ #define STACK_ALLOC_ALIGN 4
+ #define STACK_ALLOC_OFFSET_BITS (STACK_ALLOC_ORDER + PAGE_SHIFT - \
+ 					STACK_ALLOC_ALIGN)
+-#define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - STACK_ALLOC_OFFSET_BITS)
++#define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - \
++		STACK_ALLOC_NULL_PROTECTION_BITS - STACK_ALLOC_OFFSET_BITS)
+ #define STACK_ALLOC_SLABS_CAP 1024
+ #define STACK_ALLOC_MAX_SLABS \
+ 	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
+@@ -59,6 +61,7 @@ union handle_parts {
+ 	struct {
+ 		u32 slabindex : STACK_ALLOC_INDEX_BITS;
+ 		u32 offset : STACK_ALLOC_OFFSET_BITS;
++		u32 valid : STACK_ALLOC_NULL_PROTECTION_BITS;
+ 	};
+ };
+ 
+@@ -136,6 +139,7 @@ static struct stack_record *depot_alloc_
+ 	stack->size = size;
+ 	stack->handle.slabindex = depot_index;
+ 	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
++	stack->handle.valid = 1;
+ 	memcpy(stack->entries, entries, size * sizeof(unsigned long));
+ 	depot_offset += required_size;
+ 
 _
 
-Patches currently in -mm which might be from minipli@googlemail.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
+mm-slab-fix-the-theoretical-race-by-holding-proper-lock.patch
+mm-slab-remove-bad_alien_magic-again.patch
+mm-slab-drain-the-free-slab-as-much-as-possible.patch
+mm-slab-factor-out-kmem_cache_node-initialization-code.patch
+mm-slab-factor-out-kmem_cache_node-initialization-code-fix.patch
+mm-slab-clean-up-kmem_cache_node-setup.patch
+mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
+mm-slab-racy-access-modify-the-slab-color.patch
+mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
+mm-slab-separate-cache_grow-to-two-parts.patch
+mm-slab-refill-cpu-cache-through-a-new-slab-without-holding-a-node-lock.patch
+mm-slab-lockless-decision-to-grow-cache.patch
+mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
+mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic.patch
+mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
+mm-vmstat-add-zone-range-overlapping-check.patch
+mm-page_owner-add-zone-range-overlapping-check.patch
+power-add-zone-range-overlapping-check.patch
+mm-writeback-correct-dirty-page-calculation-for-highmem.patch
+mm-page_alloc-correct-highmem-memory-statistics.patch
+mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
+mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
 
