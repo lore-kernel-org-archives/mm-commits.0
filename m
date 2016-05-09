@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-clean-trailing-semicolons-in-macros-fix.patch added to
- -mm tree
-Date: Mon, 09 May 2016 12:03:07 -0700
-Message-ID: <5730deeb.OLVImwMM2/ChFoaG%akpm@linux-foundation.org>
+Subject: + compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16.patch added to -mm tree
+Date: Mon, 09 May 2016 12:05:54 -0700
+Message-ID: <5730df92.oWOtn6oZSj4XNscu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51242 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51440 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751302AbcEITDI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 15:03:08 -0400
+	with ESMTP id S1752499AbcEITFz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 15:05:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: jpoimboe@redhat.com, arnd@arndb.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2-clean-trailing-semicolons-in-macros-fix
+     Subject: compiler-gcc: require gcc 4.8 for powerpc __builtin_bswap16()
 has been added to the -mm tree.  Its filename is
-     nilfs2-clean-trailing-semicolons-in-macros-fix.patch
+     compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-clean-trailing-semicolons-in-macros-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-clean-trailing-semicolons-in-macros-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,55 +38,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2-clean-trailing-semicolons-in-macros-fix
+From: Josh Poimboeuf <jpoimboe@redhat.com>
+Subject: compiler-gcc: require gcc 4.8 for powerpc __builtin_bswap16()
 
-The above patch didn't modify the same style issue in nilfs2/sysfs.c.
-This addition covers the remaining places.
+gcc support for __builtin_bswap16() was supposedly added for powerpc in
+gcc 4.6, and was then later added for other architectures in gcc 4.8.
 
-Link: http://lkml.kernel.org/r/20160509.231703.1481729973362188932.konishi.ryusuke@lab.ntt.co.jp
+However, Stephen Rothwell reported that attempting to use it on powerpc in
+gcc 4.6 fails with:
 
+lib/vsprintf.c:160:2: error: initializer element is not constant
+lib/vsprintf.c:160:2: error: (near initialization for 'decpair[0]')
+lib/vsprintf.c:160:2: error: initializer element is not constant
+lib/vsprintf.c:160:2: error: (near initialization for 'decpair[1]')
+lib/vsprintf.c:160:2: error: initializer element is not constant
+lib/vsprintf.c:160:2: error: (near initialization for 'decpair[2]')
+lib/vsprintf.c:160:2: error: initializer element is not constant
+lib/vsprintf.c:160:2: error: (near initialization for 'decpair[3]')
+lib/vsprintf.c:160:2: error: initializer element is not constant
+
+I'm not entirely sure what those errors mean, but I don't see them on gcc
+4.8.  So let's consider gcc 4.8 to be the official starting point for
+__builtin_bswap16().
+
+Arnd Bergmann adds:
+
+"I found the commit in gcc-4.8 that replaced the powerpc-specific
+implementation of __builtin_bswap16 with an architecture-independent one. 
+Apparently the powerpc version (gcc-4.6 and 4.7) just mapped to the
+lhbrx/sthbrx instructions, so it ended up not being a constant, though the
+intent of the patch was mainly to add support for the builtin to x86.
+
+https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52624 has the patch that went
+into gcc-4.8 and more information."
+
+Fixes: 7322dd755e7d ("byteswap: try to avoid __builtin_constant_p gcc bug")
+Link: http://lkml.kernel.org/r/20160509203616.2c5a6ebc@canb.auug.org.au
+Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Tested-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sysfs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/compiler-gcc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/sysfs.c~nilfs2-clean-trailing-semicolons-in-macros-fix fs/nilfs2/sysfs.c
---- a/fs/nilfs2/sysfs.c~nilfs2-clean-trailing-semicolons-in-macros-fix
-+++ a/fs/nilfs2/sysfs.c
-@@ -68,7 +68,7 @@ static ssize_t nilfs_##name##_attr_store
- static const struct sysfs_ops nilfs_##name##_attr_ops = { \
- 	.show	= nilfs_##name##_attr_show, \
- 	.store	= nilfs_##name##_attr_store, \
--};
-+}
- 
- #define NILFS_DEV_INT_GROUP_TYPE(name, parent_name) \
- static void nilfs_##name##_attr_release(struct kobject *kobj) \
-@@ -84,7 +84,7 @@ static struct kobj_type nilfs_##name##_k
- 	.default_attrs	= nilfs_##name##_attrs, \
- 	.sysfs_ops	= &nilfs_##name##_attr_ops, \
- 	.release	= nilfs_##name##_attr_release, \
--};
-+}
- 
- #define NILFS_DEV_INT_GROUP_FNS(name, parent_name) \
- static int nilfs_sysfs_create_##name##_group(struct the_nilfs *nilfs) \
+diff -puN include/linux/compiler-gcc.h~compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16 include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16
++++ a/include/linux/compiler-gcc.h
+@@ -246,7 +246,7 @@
+ #define __HAVE_BUILTIN_BSWAP32__
+ #define __HAVE_BUILTIN_BSWAP64__
+ #endif
+-#if GCC_VERSION >= 40800 || (defined(__powerpc__) && GCC_VERSION >= 40600)
++#if GCC_VERSION >= 40800
+ #define __HAVE_BUILTIN_BSWAP16__
+ #endif
+ #endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from jpoimboe@redhat.com are
 
-nilfs2-fix-white-space-issue-in-nilfs_mount.patch
-nilfs2-remove-space-before-comma.patch
-nilfs2-remove-fsf-mailing-address-from-gpl-notices.patch
-nilfs2-clean-up-old-e-mail-addresses.patch
-maintainers-add-web-link-for-nilfs-project.patch
-nilfs2-clarify-permission-to-replicate-the-design.patch
-nilfs2-get-rid-of-nilfs_mdt_mark_block_dirty.patch
-nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines.patch
-nilfs2-replace-__attribute__packed-with-__packed.patch
-nilfs2-add-missing-line-spacing.patch
-nilfs2-clean-trailing-semicolons-in-macros.patch
-nilfs2-clean-trailing-semicolons-in-macros-fix.patch
+compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16.patch
 
