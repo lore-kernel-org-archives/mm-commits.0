@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-add-move_pfn_range.patch added to -mm tree
-Date: Mon, 09 May 2016 13:15:01 -0700
-Message-ID: <5730efc5.YoVsQZcTzFBaOemJ%akpm@linux-foundation.org>
+Subject: +
+ memory-hotplug-use-zone_can_shift-for-sysfs-valid_zones-attribute.patch
+ added to -mm tree
+Date: Mon, 09 May 2016 13:15:07 -0700
+Message-ID: <5730efcb.6/owNEw1CwwRoH50%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53393 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751536AbcEIUPD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 16:15:03 -0400
+	with ESMTP id S1751813AbcEIUPJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 16:15:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arbab@linux.vnet.ibm.com, abanman@sgi.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, rientjes@google.com, shaohua.li@intel.com, slaoub@gmail.com, tangchen@cn.fujitsu.com, vbabka@suse.cz, vkuznets@redhat.com, y-goto@jp.fujitsu.com, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: add move_pfn_range()
+     Subject: memory-hotplug: use zone_can_shift() for sysfs valid_zones attribute
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-add-move_pfn_range.patch
+     memory-hotplug-use-zone_can_shift-for-sysfs-valid_zones-attribute.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-add-move_pfn_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-use-zone_can_shift-for-sysfs-valid_zones-attribute.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-add-move_pfn_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-use-zone_can_shift-for-sysfs-valid_zones-attribute.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,14 +41,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Reza Arbab <arbab@linux.vnet.ibm.com>
-Subject: memory-hotplug: add move_pfn_range()
+Subject: memory-hotplug: use zone_can_shift() for sysfs valid_zones attribute
 
-Add move_pfn_range(), a wrapper to call move_pfn_range_left() or
-move_pfn_range_right().
+Since zone_can_shift() is being used to validate the target zone during
+onlining, it should also be used to determine the content of valid_zones.
 
-No functional change. This will be utilized by a later patch.
-
-Link: http://lkml.kernel.org/r/1462816419-4479-2-git-send-email-arbab@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1462816419-4479-4-git-send-email-arbab@linux.vnet.ibm.com
 Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Daniel Kiper <daniel.kiper@oracle.com>
@@ -66,73 +66,58 @@ Cc: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   38 ++++++++++++++++++++++++++++----------
- 1 file changed, 28 insertions(+), 10 deletions(-)
+ drivers/base/memory.c |   28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-add-move_pfn_range mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-add-move_pfn_range
-+++ a/mm/memory_hotplug.c
-@@ -449,6 +449,25 @@ out_fail:
- 	return -1;
- }
- 
-+static struct zone * __meminit move_pfn_range(int zone_shift,
-+		unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	struct zone *zone = page_zone(pfn_to_page(start_pfn));
-+	int ret = 0;
-+
-+	if (zone_shift < 0)
-+		ret = move_pfn_range_left(zone + zone_shift, zone,
-+					  start_pfn, end_pfn);
-+	else if (zone_shift)
-+		ret = move_pfn_range_right(zone, zone + zone_shift,
-+					   start_pfn, end_pfn);
-+
-+	if (ret)
-+		return NULL;
-+
-+	return zone + zone_shift;
-+}
-+
- static void __meminit grow_pgdat_span(struct pglist_data *pgdat, unsigned long start_pfn,
- 				      unsigned long end_pfn)
- {
-@@ -1039,6 +1058,7 @@ int __ref online_pages(unsigned long pfn
- 	int nid;
- 	int ret;
- 	struct memory_notify arg;
+diff -puN drivers/base/memory.c~memory-hotplug-use-zone_can_shift-for-sysfs-valid_zones-attribute drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-use-zone_can_shift-for-sysfs-valid_zones-attribute
++++ a/drivers/base/memory.c
+@@ -391,6 +391,7 @@ static ssize_t show_valid_zones(struct d
+ 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
+ 	struct page *first_page;
+ 	struct zone *zone;
 +	int zone_shift = 0;
  
- 	/*
- 	 * This doesn't need a lock to do pfn_to_page().
-@@ -1053,18 +1073,16 @@ int __ref online_pages(unsigned long pfn
- 		return -EINVAL;
+ 	start_pfn = section_nr_to_pfn(mem->start_section_nr);
+ 	end_pfn = start_pfn + nr_pages;
+@@ -402,21 +403,26 @@ static ssize_t show_valid_zones(struct d
  
- 	if (online_type == MMOP_ONLINE_KERNEL &&
--	    zone_idx(zone) == ZONE_MOVABLE) {
--		if (move_pfn_range_left(zone - 1, zone, pfn, pfn + nr_pages))
--			return -EINVAL;
--	}
-+	    zone_idx(zone) == ZONE_MOVABLE)
-+		zone_shift = -1;
+ 	zone = page_zone(first_page);
+ 
+-	if (zone_idx(zone) == ZONE_MOVABLE - 1) {
+-		/*The mem block is the last memoryblock of this zone.*/
+-		if (end_pfn == zone_end_pfn(zone))
+-			return sprintf(buf, "%s %s\n",
+-					zone->name, (zone + 1)->name);
++	/* MMOP_ONLINE_KEEP */
++	sprintf(buf, "%s", zone->name);
 +
- 	if (online_type == MMOP_ONLINE_MOVABLE &&
--	    zone_idx(zone) == ZONE_MOVABLE - 1) {
--		if (move_pfn_range_right(zone, zone + 1, pfn, pfn + nr_pages))
--			return -EINVAL;
--	}
-+	    zone_idx(zone) == ZONE_MOVABLE - 1)
-+		zone_shift = 1;
++	/* MMOP_ONLINE_KERNEL */
++	zone_shift = zone_can_shift(start_pfn, nr_pages, ZONE_NORMAL);
++	if (zone_shift) {
++		strcat(buf, " ");
++		strcat(buf, (zone + zone_shift)->name);
+ 	}
  
--	/* Previous code may changed the zone of the pfn range */
--	zone = page_zone(pfn_to_page(pfn));
-+	zone = move_pfn_range(zone_shift, pfn, pfn + nr_pages);
-+	if (!zone)
-+		return -EINVAL;
+-	if (zone_idx(zone) == ZONE_MOVABLE) {
+-		/*The mem block is the first memoryblock of ZONE_MOVABLE.*/
+-		if (start_pfn == zone->zone_start_pfn)
+-			return sprintf(buf, "%s %s\n",
+-					zone->name, (zone - 1)->name);
++	/* MMOP_ONLINE_MOVABLE */
++	zone_shift = zone_can_shift(start_pfn, nr_pages, ZONE_MOVABLE);
++	if (zone_shift) {
++		strcat(buf, " ");
++		strcat(buf, (zone + zone_shift)->name);
+ 	}
  
- 	arg.start_pfn = pfn;
- 	arg.nr_pages = nr_pages;
+-	return sprintf(buf, "%s\n", zone->name);
++	strcat(buf, "\n");
++
++	return strlen(buf);
+ }
+ static DEVICE_ATTR(valid_zones, 0444, show_valid_zones, NULL);
+ #endif
 _
 
 Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
