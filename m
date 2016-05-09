@@ -1,150 +1,919 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-fix-zs_can_compact-integer-overflow.patch added to -mm tree
-Date: Mon, 09 May 2016 13:29:52 -0700
-Message-ID: <5730f340.iKq19eu8GPtGIqjT%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ z3fold-the-3-fold-allocator-for-compressed-pages.patch removed from -mm
+ tree
+Date: Mon, 09 May 2016 13:45:40 -0700
+Message-ID: <5730f6f4.wl6uDDS7qIOVxjZO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54277 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54524 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750993AbcEIU3y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 16:29:54 -0400
+	with ESMTP id S1751768AbcEIUpm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 16:45:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: vitalywool@gmail.com, ddstreet@ieee.org, sjenning@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: fix zs_can_compact() integer overflow
-has been added to the -mm tree.  Its filename is
-     zsmalloc-fix-zs_can_compact-integer-overflow.patch
+     Subject: z3fold: the 3-fold allocator for compressed pages
+has been removed from the -mm tree.  Its filename was
+     z3fold-the-3-fold-allocator-for-compressed-pages.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-fix-zs_can_compact-integer-overflow.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-fix-zs_can_compact-integer-overflow.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: fix zs_can_compact() integer overflow
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: z3fold: the 3-fold allocator for compressed pages
 
-zs_can_compact() has two race conditions in its core calculation:
+This patch introduces z3fold, a special purpose allocator for storing
+compressed pages.  It is designed to store up to three compressed pages
+per physical page.  It is a ZBUD derivative which allows for higher
+compression ratio keeping the simplicity and determinism of its
+predecessor.
 
-unsigned long obj_wasted = zs_stat_get(class, OBJ_ALLOCATED) -
-				zs_stat_get(class, OBJ_USED);
+This patch comes as a follow-up to the discussions at the Embedded Linux
+Conference in San-Diego related to the talk [1].  The outcome of these
+discussions was that it would be good to have a compressed page allocator
+as stable and deterministic as zbud with with higher compression ratio.
 
-1) classes are not locked, so the numbers of allocated and used
-   objects can change by the concurrent ops happening on other CPUs
-2) shrinker invokes it from preemptible context
+To keep the determinism and simplicity, z3fold, just like zbud, always
+stores an integral number of compressed pages per page, but it can store
+up to 3 pages unlike zbud which can store at most 2.  Therefore the
+compression ratio goes to around 2.6x while zbud's one is around 1.7x.
 
-Depending on the circumstances, thus, OBJ_ALLOCATED can become
-less than OBJ_USED, which can result in either very high or
-negative `total_scan' value calculated later in do_shrink_slab().
+There has been a question of why zbud is still needed if z3fold is
+introduced.  My personal preference is to keep zbud due to the following
+reasons:
 
-do_shrink_slab() has some logic to prevent those cases:
+* zbud is 30% less object code
+* some system configurations might break if we removed zbud
+* zbud exports its own API while z3fold is designed to work via zpool
+* limiting the amount of zpool users doesn't make much sense to me,
+  after all :)
 
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-64
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
+[1] https://openiotelc2016.sched.org/event/6DAC/swapping-and-embedded-compression-relieves-the-pressure-vitaly-wool-softprise-consulting-ou
+[2] https://lkml.org/lkml/2016/4/21/799
 
-However, due to the way `total_scan' is calculated, not every
-shrinker->count_objects() overflow can be spotted and handled.
-To demonstrate the latter, I added some debugging code to do_shrink_slab()
-(x86_64) and the results were:
-
- vmscan: OVERFLOW: shrinker->count_objects() == -1 [18446744073709551615]
- vmscan: but total_scan > 0: 92679974445502
- vmscan: resulting total_scan: 92679974445502
-[..]
- vmscan: OVERFLOW: shrinker->count_objects() == -1 [18446744073709551615]
- vmscan: but total_scan > 0: 22634041808232578
- vmscan: resulting total_scan: 22634041808232578
-
-Even though shrinker->count_objects() has returned an overflowed value,
-the resulting `total_scan' is positive, and, what is more worrisome, it
-is insanely huge. This value is getting used later on in
-shrinker->scan_objects() loop:
-
-        while (total_scan >= batch_size ||
-               total_scan >= freeable) {
-                unsigned long ret;
-                unsigned long nr_to_scan = min(batch_size, total_scan);
-
-                shrinkctl->nr_to_scan = nr_to_scan;
-                ret = shrinker->scan_objects(shrinker, shrinkctl);
-                if (ret == SHRINK_STOP)
-                        break;
-                freed += ret;
-
-                count_vm_events(SLABS_SCANNED, nr_to_scan);
-                total_scan -= nr_to_scan;
-
-                cond_resched();
-        }
-
-`total_scan >= batch_size' is true for a very-very long time and
-'total_scan >= freeable' is also true for quite some time, because
-`freeable < 0' and `total_scan' is large enough, for example,
-22634041808232578. The only break condition, in the given scheme of
-things, is shrinker->scan_objects() == SHRINK_STOP test, which is a
-bit too weak to rely on, especially in heavy zsmalloc-usage scenarios.
-
-To fix the issue, take a pool stat snapshot and use it instead of
-racy zs_stat_get() calls.
-
-Link: http://lkml.kernel.org/r/20160509140052.3389-1-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>        [4.3+]
+Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/Kconfig  |    9 
+ mm/Makefile |    1 
+ mm/z3fold.c |  806 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 816 insertions(+)
 
-diff -puN mm/zsmalloc.c~zsmalloc-fix-zs_can_compact-integer-overflow mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-fix-zs_can_compact-integer-overflow
-+++ a/mm/zsmalloc.c
-@@ -1728,10 +1728,13 @@ static struct page *isolate_source_page(
- static unsigned long zs_can_compact(struct size_class *class)
- {
- 	unsigned long obj_wasted;
-+	unsigned long obj_allocated = zs_stat_get(class, OBJ_ALLOCATED);
-+	unsigned long obj_used = zs_stat_get(class, OBJ_USED);
+diff -puN mm/Kconfig~z3fold-the-3-fold-allocator-for-compressed-pages mm/Kconfig
+--- a/mm/Kconfig~z3fold-the-3-fold-allocator-for-compressed-pages
++++ a/mm/Kconfig
+@@ -576,6 +576,15 @@ config ZBUD
+ 	  deterministic reclaim properties that make it preferable to a higher
+ 	  density approach when reclaim will be used.
  
--	obj_wasted = zs_stat_get(class, OBJ_ALLOCATED) -
--		zs_stat_get(class, OBJ_USED);
-+	if (obj_allocated <= obj_used)
-+		return 0;
- 
-+	obj_wasted = obj_allocated - obj_used;
- 	obj_wasted /= get_maxobj_per_zspage(class->size,
- 			class->pages_per_zspage);
- 
++config Z3FOLD
++	tristate "Low density storage for compressed pages"
++	default n
++	help
++	  A special purpose allocator for storing compressed pages.
++	  It is designed to store up to three compressed pages per physical
++	  page. It is a ZBUD derivative so the simplicity and determinism are
++	  still there.
++
+ config ZSMALLOC
+ 	tristate "Memory allocator for compressed pages"
+ 	depends on MMU
+diff -puN mm/Makefile~z3fold-the-3-fold-allocator-for-compressed-pages mm/Makefile
+--- a/mm/Makefile~z3fold-the-3-fold-allocator-for-compressed-pages
++++ a/mm/Makefile
+@@ -89,6 +89,7 @@ obj-$(CONFIG_MEMORY_ISOLATION) += page_i
+ obj-$(CONFIG_ZPOOL)	+= zpool.o
+ obj-$(CONFIG_ZBUD)	+= zbud.o
+ obj-$(CONFIG_ZSMALLOC)	+= zsmalloc.o
++obj-$(CONFIG_Z3FOLD)	+= z3fold.o
+ obj-$(CONFIG_GENERIC_EARLY_IOREMAP) += early_ioremap.o
+ obj-$(CONFIG_CMA)	+= cma.o
+ obj-$(CONFIG_MEMORY_BALLOON) += balloon_compaction.o
+diff -puN /dev/null mm/z3fold.c
+--- /dev/null
++++ a/mm/z3fold.c
+@@ -0,0 +1,806 @@
++/*
++ * z3fold.c
++ *
++ * Copyright (C) 2016, Vitaly Wool <vitalywool@gmail.com>
++ *
++ * This implementation is heavily based on zbud written by Seth Jennings.
++ *
++ * z3fold is an special purpose allocator for storing compressed pages. It
++ * can store up to three compressed pages per page which improves the
++ * compression ratio of zbud while pertaining its concept and simplicity.
++ * It still has simple and deterministic reclaim properties that make it
++ * preferable to a higher density approach when reclaim is used.
++ *
++ * As in zbud, pages are divided into "chunks".  The size of the chunks is
++ * fixed at compile time and determined by NCHUNKS_ORDER below.
++ *
++ * The z3fold API doesn't differ from zbud API and zpool is also supported.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/atomic.h>
++#include <linux/list.h>
++#include <linux/mm.h>
++#include <linux/module.h>
++#include <linux/preempt.h>
++#include <linux/slab.h>
++#include <linux/spinlock.h>
++#include <linux/zpool.h>
++
++/*****************
++ * Structures
++*****************/
++/*
++ * NCHUNKS_ORDER determines the internal allocation granularity, effectively
++ * adjusting internal fragmentation.  It also determines the number of
++ * freelists maintained in each pool. NCHUNKS_ORDER of 6 means that the
++ * allocation granularity will be in chunks of size PAGE_SIZE/64. As one chunk
++ * in allocated page is occupied by z3fold header, NCHUNKS will be calculated to
++ * 63 which shows the max number of free chunks in z3fold page, also there will be
++ * 63 freelists per pool.
++ */
++#define NCHUNKS_ORDER	6
++
++#define CHUNK_SHIFT	(PAGE_SHIFT - NCHUNKS_ORDER)
++#define CHUNK_SIZE	(1 << CHUNK_SHIFT)
++#define ZHDR_SIZE_ALIGNED CHUNK_SIZE
++#define NCHUNKS		((PAGE_SIZE - ZHDR_SIZE_ALIGNED) >> CHUNK_SHIFT)
++
++#define BUDDY_MASK	((1 << NCHUNKS_ORDER) - 1)
++
++struct z3fold_pool;
++struct z3fold_ops {
++	int (*evict)(struct z3fold_pool *pool, unsigned long handle);
++};
++
++/* Forward declarations */
++struct z3fold_pool *z3fold_create_pool(gfp_t gfp, const struct z3fold_ops *ops);
++void z3fold_destroy_pool(struct z3fold_pool *pool);
++int z3fold_alloc(struct z3fold_pool *pool, size_t size, gfp_t gfp,
++	unsigned long *handle);
++void z3fold_free(struct z3fold_pool *pool, unsigned long handle);
++int z3fold_reclaim_page(struct z3fold_pool *pool, unsigned int retries);
++void *z3fold_map(struct z3fold_pool *pool, unsigned long handle);
++void z3fold_unmap(struct z3fold_pool *pool, unsigned long handle);
++u64 z3fold_get_pool_size(struct z3fold_pool *pool);
++
++/**
++ * struct z3fold_pool - stores metadata for each z3fold pool
++ * @lock:	protects all pool fields and first|last_chunk fields of any
++ *		z3fold page in the pool
++ * @unbuddied:	array of lists tracking z3fold pages that contain 2- buddies;
++ *		the lists each z3fold page is added to depends on the size of
++ *		its free region.
++ * @buddied:	list tracking the z3fold pages that contain 3 buddies;
++ *		these z3fold pages are full
++ * @lru:	list tracking the z3fold pages in LRU order by most recently
++ *		added buddy.
++ * @pages_nr:	number of z3fold pages in the pool.
++ * @ops:	pointer to a structure of user defined operations specified at
++ *		pool creation time.
++ *
++ * This structure is allocated at pool creation time and maintains metadata
++ * pertaining to a particular z3fold pool.
++ */
++struct z3fold_pool {
++	spinlock_t lock;
++	struct list_head unbuddied[NCHUNKS];
++	struct list_head buddied;
++	struct list_head lru;
++	u64 pages_nr;
++	const struct z3fold_ops *ops;
++#ifdef CONFIG_ZPOOL
++	struct zpool *zpool;
++	const struct zpool_ops *zpool_ops;
++#endif
++};
++
++enum buddy {
++	HEADLESS = 0,
++	FIRST,
++	MIDDLE,
++	LAST,
++	BUDDIES_MAX
++};
++
++/*
++ * struct z3fold_header - z3fold page metadata occupying the first chunk of each
++ *			z3fold page, except for HEADLESS pages
++ * @buddy:	links the z3fold page into the relevant list in the pool
++ * @first_chunks:	the size of the first buddy in chunks, 0 if free
++ * @middle_chunks:	the size of the middle buddy in chunks, 0 if free
++ * @last_chunks:	the size of the last buddy in chunks, 0 if free
++ * @first_num:		the starting number (for the first handle)
++ */
++struct z3fold_header {
++	struct list_head buddy;
++	unsigned short first_chunks;
++	unsigned short middle_chunks;
++	unsigned short last_chunks;
++	unsigned short start_middle;
++	unsigned short first_num:NCHUNKS_ORDER;
++};
++
++/*
++ * Internal z3fold page flags
++ */
++enum z3fold_page_flags {
++	UNDER_RECLAIM = 0,
++	PAGE_HEADLESS,
++	MIDDLE_CHUNK_MAPPED,
++};
++
++/*****************
++ * zpool
++ ****************/
++
++#ifdef CONFIG_ZPOOL
++
++static int z3fold_zpool_evict(struct z3fold_pool *pool, unsigned long handle)
++{
++	if (pool->zpool && pool->zpool_ops && pool->zpool_ops->evict)
++		return pool->zpool_ops->evict(pool->zpool, handle);
++	else
++		return -ENOENT;
++}
++
++static const struct z3fold_ops z3fold_zpool_ops = {
++	.evict =	z3fold_zpool_evict
++};
++
++static void *z3fold_zpool_create(const char *name, gfp_t gfp,
++			       const struct zpool_ops *zpool_ops,
++			       struct zpool *zpool)
++{
++	struct z3fold_pool *pool;
++
++	pool = z3fold_create_pool(gfp, zpool_ops ? &z3fold_zpool_ops : NULL);
++	if (pool) {
++		pool->zpool = zpool;
++		pool->zpool_ops = zpool_ops;
++	}
++	return pool;
++}
++
++static void z3fold_zpool_destroy(void *pool)
++{
++	z3fold_destroy_pool(pool);
++}
++
++static int z3fold_zpool_malloc(void *pool, size_t size, gfp_t gfp,
++			unsigned long *handle)
++{
++	return z3fold_alloc(pool, size, gfp, handle);
++}
++static void z3fold_zpool_free(void *pool, unsigned long handle)
++{
++	z3fold_free(pool, handle);
++}
++
++static int z3fold_zpool_shrink(void *pool, unsigned int pages,
++			unsigned int *reclaimed)
++{
++	unsigned int total = 0;
++	int ret = -EINVAL;
++
++	while (total < pages) {
++		ret = z3fold_reclaim_page(pool, 8);
++		if (ret < 0)
++			break;
++		total++;
++	}
++
++	if (reclaimed)
++		*reclaimed = total;
++
++	return ret;
++}
++
++static void *z3fold_zpool_map(void *pool, unsigned long handle,
++			enum zpool_mapmode mm)
++{
++	return z3fold_map(pool, handle);
++}
++static void z3fold_zpool_unmap(void *pool, unsigned long handle)
++{
++	z3fold_unmap(pool, handle);
++}
++
++static u64 z3fold_zpool_total_size(void *pool)
++{
++	return z3fold_get_pool_size(pool) * PAGE_SIZE;
++}
++
++static struct zpool_driver z3fold_zpool_driver = {
++	.type =		"z3fold",
++	.owner =	THIS_MODULE,
++	.create =	z3fold_zpool_create,
++	.destroy =	z3fold_zpool_destroy,
++	.malloc =	z3fold_zpool_malloc,
++	.free =		z3fold_zpool_free,
++	.shrink =	z3fold_zpool_shrink,
++	.map =		z3fold_zpool_map,
++	.unmap =	z3fold_zpool_unmap,
++	.total_size =	z3fold_zpool_total_size,
++};
++
++MODULE_ALIAS("zpool-z3fold");
++#endif /* CONFIG_ZPOOL */
++
++/*****************
++ * Helpers
++*****************/
++
++/* Converts an allocation size in bytes to size in z3fold chunks */
++static int size_to_chunks(size_t size)
++{
++	return (size + CHUNK_SIZE - 1) >> CHUNK_SHIFT;
++}
++
++#define for_each_unbuddied_list(_iter, _begin) \
++	for ((_iter) = (_begin); (_iter) < NCHUNKS; (_iter)++)
++
++/* Initializes the z3fold header of a newly allocated z3fold page */
++static struct z3fold_header *init_z3fold_page(struct page *page)
++{
++	struct z3fold_header *zhdr = page_address(page);
++
++	INIT_LIST_HEAD(&page->lru);
++	clear_bit(UNDER_RECLAIM, &page->private);
++	clear_bit(PAGE_HEADLESS, &page->private);
++
++	zhdr->first_chunks = 0;
++	zhdr->middle_chunks = 0;
++	zhdr->last_chunks = 0;
++	zhdr->first_num = 0;
++	zhdr->start_middle = 0;
++	INIT_LIST_HEAD(&zhdr->buddy);
++	return zhdr;
++}
++
++/* Resets the struct page fields and frees the page */
++static void free_z3fold_page(struct z3fold_header *zhdr)
++{
++	__free_page(virt_to_page(zhdr));
++}
++
++/*
++ * Encodes the handle of a particular buddy within a z3fold page
++ * Pool lock should be held as this function accesses first_num
++ */
++static unsigned long encode_handle(struct z3fold_header *zhdr, enum buddy bud)
++{
++	unsigned long handle;
++
++ 	handle = (unsigned long)zhdr;
++	if (bud != HEADLESS)
++		handle += (bud + zhdr->first_num) & BUDDY_MASK;
++	return handle;
++}
++
++/* Returns the z3fold page where a given handle is stored */
++static struct z3fold_header *handle_to_z3fold_header(unsigned long handle)
++{
++	return (struct z3fold_header *)(handle & PAGE_MASK);
++}
++
++/*
++ * Returns the number of free chunks in a z3fold page.
++ * NB: can't be used with HEADLESS pages.
++ */
++static int num_free_chunks(struct z3fold_header *zhdr)
++{
++	int nfree;
++	/*
++	 * There is one special case, where first_chunks == 0 and
++	 * middle_chunks != 0. In this case there may be a hole between
++	 * the middle and the last objects, or middle object may be in use
++	 * and thus temporarily unmovable.
++	 */
++	if (zhdr->first_chunks == 0 && zhdr->middle_chunks != 0)
++		nfree = zhdr->start_middle - 1;
++	else
++		nfree = NCHUNKS - zhdr->first_chunks -
++			zhdr->middle_chunks - zhdr->last_chunks;
++	return nfree;
++}
++
++/*****************
++ * API Functions
++*****************/
++/**
++ * z3fold_create_pool() - create a new z3fold pool
++ * @gfp:	gfp flags when allocating the z3fold pool structure
++ * @ops:	user-defined operations for the z3fold pool
++ *
++ * Return: pointer to the new z3fold pool or NULL if the metadata allocation
++ * failed.
++ */
++struct z3fold_pool *z3fold_create_pool(gfp_t gfp, const struct z3fold_ops *ops)
++{
++	struct z3fold_pool *pool;
++	int i;
++
++	pool = kzalloc(sizeof(struct z3fold_pool), gfp);
++	if (!pool)
++		return NULL;
++	spin_lock_init(&pool->lock);
++	for_each_unbuddied_list(i, 0)
++		INIT_LIST_HEAD(&pool->unbuddied[i]);
++	INIT_LIST_HEAD(&pool->buddied);
++	INIT_LIST_HEAD(&pool->lru);
++	pool->pages_nr = 0;
++	pool->ops = ops;
++	return pool;
++}
++
++/**
++ * z3fold_destroy_pool() - destroys an existing z3fold pool
++ * @pool:	the z3fold pool to be destroyed
++ *
++ * The pool should be emptied before this function is called.
++ */
++void z3fold_destroy_pool(struct z3fold_pool *pool)
++{
++	kfree(pool);
++}
++
++/* Has to be called with lock held */
++static int z3fold_compact_page(struct z3fold_header *zhdr)
++{
++	struct page *page = virt_to_page(zhdr);
++
++	if (zhdr->first_chunks == 0 && zhdr->last_chunks == 0 &&
++	    zhdr->middle_chunks != 0 &&
++	    !test_bit(MIDDLE_CHUNK_MAPPED, &page->private)) {
++		/* move middle chunk to the first chunk */
++		memmove((void *)zhdr + ZHDR_SIZE_ALIGNED,
++			(void *)zhdr + (zhdr->start_middle << CHUNK_SHIFT),
++			zhdr->middle_chunks << CHUNK_SHIFT);
++		zhdr->first_chunks = zhdr->middle_chunks;
++		zhdr->middle_chunks = 0;
++		zhdr->start_middle = 0;
++		zhdr->first_num++;
++		return 1;
++	}
++	return 0;
++}
++
++/**
++ * z3fold_alloc() - allocates a region of a given size
++ * @pool:	z3fold pool from which to allocate
++ * @size:	size in bytes of the desired allocation
++ * @gfp:	gfp flags used if the pool needs to grow
++ * @handle:	handle of the new allocation
++ *
++ * This function will attempt to find a free region in the pool large enough to
++ * satisfy the allocation request.  A search of the unbuddied lists is
++ * performed first. If no suitable free region is found, then a new page is
++ * allocated and added to the pool to satisfy the request.
++ *
++ * gfp should not set __GFP_HIGHMEM as highmem pages cannot be used
++ * as z3fold pool pages.
++ *
++ * Return: 0 if success and handle is set, otherwise -EINVAL if the size or
++ * gfp arguments are invalid or -ENOMEM if the pool was unable to allocate
++ * a new page.
++ */
++int z3fold_alloc(struct z3fold_pool *pool, size_t size, gfp_t gfp,
++			unsigned long *handle)
++{
++	int chunks = 0, i, freechunks;
++	struct z3fold_header *zhdr = NULL;
++	enum buddy bud;
++	struct page *page;
++
++	if (!size || (gfp & __GFP_HIGHMEM))
++		return -EINVAL;
++
++	if (size > PAGE_SIZE)
++		return -ENOSPC;
++
++	if (size > PAGE_SIZE - ZHDR_SIZE_ALIGNED - CHUNK_SIZE)
++		bud = HEADLESS;
++	else {
++		chunks = size_to_chunks(size);
++		spin_lock(&pool->lock);
++
++		/* First, try to find an unbuddied z3fold page. */
++		zhdr = NULL;
++		for_each_unbuddied_list(i, chunks) {
++			if (!list_empty(&pool->unbuddied[i])) {
++				zhdr = list_first_entry(&pool->unbuddied[i],
++						struct z3fold_header, buddy);
++				page = virt_to_page(zhdr);
++				if (zhdr->first_chunks == 0) {
++					if (zhdr->middle_chunks == 0)
++						bud = FIRST;
++					else if (zhdr->last_chunks == 0 &&
++						 z3fold_compact_page(zhdr))
++						bud = LAST;
++					else
++						continue;
++				} else if (zhdr->last_chunks == 0)
++					bud = LAST;
++				else if (zhdr->middle_chunks == 0)
++					bud = MIDDLE;
++				else {
++					pr_err("No free chunks in unbuddied\n");
++					BUG();
++				}
++				list_del(&zhdr->buddy);
++				goto found;
++			}
++		}
++		bud = FIRST;
++		spin_unlock(&pool->lock);
++	}
++
++	/* Couldn't find unbuddied z3fold page, create new one */
++	page = alloc_page(gfp);
++	if (!page)
++		return -ENOMEM;
++	spin_lock(&pool->lock);
++	pool->pages_nr++;
++	zhdr = init_z3fold_page(page);
++
++	if (bud == HEADLESS) {
++		set_bit(PAGE_HEADLESS, &page->private);
++		goto headless;
++	}
++
++found:
++	if (bud == FIRST)
++		zhdr->first_chunks = chunks;
++	else if (bud == LAST)
++		zhdr->last_chunks = chunks;
++	else {
++		zhdr->middle_chunks = chunks;
++		zhdr->start_middle = zhdr->first_chunks + 1;
++	}
++
++	if (zhdr->first_chunks == 0 || zhdr->last_chunks == 0 ||
++			zhdr->middle_chunks == 0) {
++		/* Add to unbuddied list */
++		freechunks = num_free_chunks(zhdr);
++		list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
++	} else {
++		/* Add to buddied list */
++		list_add(&zhdr->buddy, &pool->buddied);
++	}
++
++headless:
++	/* Add/move z3fold page to beginning of LRU */
++	if (!list_empty(&page->lru))
++		list_del(&page->lru);
++
++	list_add(&page->lru, &pool->lru);
++
++	*handle = encode_handle(zhdr, bud);
++	spin_unlock(&pool->lock);
++
++	return 0;
++}
++
++/**
++ * z3fold_free() - frees the allocation associated with the given handle
++ * @pool:	pool in which the allocation resided
++ * @handle:	handle associated with the allocation returned by z3fold_alloc()
++ *
++ * In the case that the z3fold page in which the allocation resides is under
++ * reclaim, as indicated by the PG_reclaim flag being set, this function
++ * only sets the first|last_chunks to 0.  The page is actually freed
++ * once both buddies are evicted (see z3fold_reclaim_page() below).
++ */
++void z3fold_free(struct z3fold_pool *pool, unsigned long handle)
++{
++	struct z3fold_header *zhdr;
++	int freechunks;
++	struct page *page;
++	enum buddy bud;
++
++	spin_lock(&pool->lock);
++	zhdr = handle_to_z3fold_header(handle);
++	page = virt_to_page(zhdr);
++
++	if (test_bit(PAGE_HEADLESS, &page->private)) {
++		/* HEADLESS page stored */
++		bud = HEADLESS;
++	} else {
++		bud = (handle - zhdr->first_num) & BUDDY_MASK;
++
++		switch (bud) {
++		case FIRST:
++			zhdr->first_chunks = 0;
++			break;
++		case MIDDLE:
++			zhdr->middle_chunks = 0;
++			zhdr->start_middle = 0;
++			break;
++		case LAST:
++			zhdr->last_chunks = 0;
++			break;
++		default:
++			pr_err("%s: unknown bud %d\n", __func__, bud);
++			BUG();
++			break;
++		}
++	}
++
++	if (test_bit(UNDER_RECLAIM, &page->private)) {
++		/* z3fold page is under reclaim, reclaim will free */
++		spin_unlock(&pool->lock);
++		return;
++	}
++
++	if (bud != HEADLESS) {
++		/* Remove from existing buddy list */
++		list_del(&zhdr->buddy);
++	}
++
++	if (bud == HEADLESS ||
++	    (zhdr->first_chunks == 0 && zhdr->middle_chunks == 0 &&
++			zhdr->last_chunks == 0)) {
++		/* z3fold page is empty, free */
++		list_del(&page->lru);
++		clear_bit(PAGE_HEADLESS, &page->private);
++		free_z3fold_page(zhdr);
++		pool->pages_nr--;
++	} else {
++		z3fold_compact_page(zhdr);
++		/* Add to the unbuddied list */
++		freechunks = num_free_chunks(zhdr);
++		list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
++	}
++
++	spin_unlock(&pool->lock);
++}
++
++#define list_tail_entry(ptr, type, member) \
++	list_entry((ptr)->prev, type, member)
++
++/**
++ * z3fold_reclaim_page() - evicts allocations from a pool page and frees it
++ * @pool:	pool from which a page will attempt to be evicted
++ * @retires:	number of pages on the LRU list for which eviction will
++ *		be attempted before failing
++ *
++ * z3fold reclaim is different from normal system reclaim in that it is done
++ * from the bottom, up. This is because only the bottom layer, z3fold, has
++ * information on how the allocations are organized within each z3fold page.
++ * This has the potential to create interesting locking situations between
++ * z3fold and the user, however.
++ *
++ * To avoid these, this is how z3fold_reclaim_page() should be called:
++
++ * The user detects a page should be reclaimed and calls z3fold_reclaim_page().
++ * z3fold_reclaim_page() will remove a z3fold page from the pool LRU list and
++ * call the user-defined eviction handler with the pool and handle as
++ * arguments.
++ *
++ * If the handle can not be evicted, the eviction handler should return
++ * non-zero. z3fold_reclaim_page() will add the z3fold page back to the
++ * appropriate list and try the next z3fold page on the LRU up to
++ * a user defined number of retries.
++ *
++ * If the handle is successfully evicted, the eviction handler should
++ * return 0 _and_ should have called z3fold_free() on the handle. z3fold_free()
++ * contains logic to delay freeing the page if the page is under reclaim,
++ * as indicated by the setting of the PG_reclaim flag on the underlying page.
++ *
++ * If all buddies in the z3fold page are successfully evicted, then the
++ * z3fold page can be freed.
++ *
++ * Returns: 0 if page is successfully freed, otherwise -EINVAL if there are
++ * no pages to evict or an eviction handler is not registered, -EAGAIN if
++ * the retry limit was hit.
++ */
++int z3fold_reclaim_page(struct z3fold_pool *pool, unsigned int retries)
++{
++	int i, ret = 0, freechunks;
++	struct z3fold_header *zhdr;
++	struct page *page;
++	unsigned long first_handle = 0, middle_handle = 0, last_handle = 0;
++
++	spin_lock(&pool->lock);
++	if (!pool->ops || !pool->ops->evict || list_empty(&pool->lru) ||
++			retries == 0) {
++		spin_unlock(&pool->lock);
++		return -EINVAL;
++	}
++	for (i = 0; i < retries; i++) {
++		page = list_tail_entry(&pool->lru, struct page, lru);
++		list_del(&page->lru);
++
++		/* Protect z3fold page against free */
++		set_bit(UNDER_RECLAIM, &page->private);
++		zhdr = page_address(page);
++		if (!test_bit(PAGE_HEADLESS, &page->private)) {
++			list_del(&zhdr->buddy);
++			/*
++			 * We need encode the handles before unlocking, since
++			 * we can race with free that will set
++			 * (first|last)_chunks to 0
++			 */
++			first_handle = 0;
++			last_handle = 0;
++			middle_handle = 0;
++			if (zhdr->first_chunks)
++				first_handle = encode_handle(zhdr, FIRST);
++			if (zhdr->middle_chunks)
++				middle_handle = encode_handle(zhdr, MIDDLE);
++			if (zhdr->last_chunks)
++				last_handle = encode_handle(zhdr, LAST);
++		} else {
++			first_handle = encode_handle(zhdr, HEADLESS);
++			last_handle = middle_handle = 0;
++		}
++
++		spin_unlock(&pool->lock);
++
++		/* Issue the eviction callback(s) */
++		if (middle_handle) {
++			ret = pool->ops->evict(pool, middle_handle);
++			if (ret)
++				goto next;
++		}
++		if (first_handle) {
++			ret = pool->ops->evict(pool, first_handle);
++			if (ret)
++				goto next;
++		}
++		if (last_handle) {
++			ret = pool->ops->evict(pool, last_handle);
++			if (ret)
++				goto next;
++		}
++next:
++		spin_lock(&pool->lock);
++		clear_bit(UNDER_RECLAIM, &page->private);
++		if (test_bit(PAGE_HEADLESS, &page->private)) {
++			if (ret == 0) {
++				clear_bit(PAGE_HEADLESS, &page->private);
++				free_z3fold_page(zhdr);
++				pool->pages_nr--;
++				spin_unlock(&pool->lock);
++				return 0;
++			}
++		} else if (zhdr->middle_chunks != 0) {
++			/* Full, add to buddied list */
++			freechunks = num_free_chunks(zhdr);
++			list_add(&zhdr->buddy, &pool->buddied);
++		} else if (zhdr->first_chunks == 0 &&
++				zhdr->last_chunks == 0 &&
++				zhdr->middle_chunks == 0) {
++			/*
++			 * All buddies are now free, free the z3fold page and
++			 * return success.
++			 */
++			free_z3fold_page(zhdr);
++			pool->pages_nr--;
++			spin_unlock(&pool->lock);
++			return 0;
++		} else {
++			/* add to unbuddied list */
++			freechunks = num_free_chunks(zhdr);
++			list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
++		}
++
++		/* add to beginning of LRU */
++		list_add(&page->lru, &pool->lru);
++	}
++	spin_unlock(&pool->lock);
++	return -EAGAIN;
++}
++
++/**
++ * z3fold_map() - maps the allocation associated with the given handle
++ * @pool:	pool in which the allocation resides
++ * @handle:	handle associated with the allocation to be mapped
++ *
++ * Extracts the buddy number from handle and constructs the pointer to the
++ * correct starting chunk within the page.
++ *
++ * Returns: a pointer to the mapped allocation
++ */
++void *z3fold_map(struct z3fold_pool *pool, unsigned long handle)
++{
++	struct z3fold_header *zhdr;
++	struct page *page;
++	void *addr;
++	enum buddy buddy;
++
++	spin_lock(&pool->lock);
++	zhdr = handle_to_z3fold_header(handle);
++	addr = zhdr;
++	page = virt_to_page(zhdr);
++
++	if (test_bit(PAGE_HEADLESS, &page->private))
++		goto out;
++
++	buddy = (handle - zhdr->first_num) & BUDDY_MASK;
++	switch (buddy) {
++	case FIRST:
++		addr += ZHDR_SIZE_ALIGNED;
++		break;
++	case MIDDLE:
++		addr += zhdr->start_middle << CHUNK_SHIFT;
++		set_bit(MIDDLE_CHUNK_MAPPED, &page->private);
++		break;
++	case LAST:
++		addr += PAGE_SIZE - (zhdr->last_chunks << CHUNK_SHIFT);
++		break;
++	default:
++		pr_err("unknown buddy id %d\n", buddy);
++		BUG();
++		break;
++	}
++out:
++	spin_unlock(&pool->lock);
++	return addr;
++}
++
++/**
++ * z3fold_unmap() - unmaps the allocation associated with the given handle
++ * @pool:	pool in which the allocation resides
++ * @handle:	handle associated with the allocation to be unmapped
++ */
++void z3fold_unmap(struct z3fold_pool *pool, unsigned long handle)
++{
++	struct z3fold_header *zhdr;
++	struct page *page;
++	enum buddy buddy;
++
++	spin_lock(&pool->lock);
++	zhdr = handle_to_z3fold_header(handle);
++	page = virt_to_page(zhdr);
++
++	if (test_bit(PAGE_HEADLESS, &page->private)) {
++		spin_unlock(&pool->lock);
++		return;
++	}
++
++	buddy = (handle - zhdr->first_num) & BUDDY_MASK;
++	if (buddy == MIDDLE)
++		clear_bit(MIDDLE_CHUNK_MAPPED, &page->private);
++	spin_unlock(&pool->lock);
++}
++
++/**
++ * z3fold_get_pool_size() - gets the z3fold pool size in pages
++ * @pool:	pool whose size is being queried
++ *
++ * Returns: size in pages of the given pool.  The pool lock need not be
++ * taken to access pages_nr.
++ */
++u64 z3fold_get_pool_size(struct z3fold_pool *pool)
++{
++	return pool->pages_nr;
++}
++
++static int __init init_z3fold(void)
++{
++	/* Make sure the z3fold header will fit in one chunk */
++	BUILD_BUG_ON(sizeof(struct z3fold_header) > ZHDR_SIZE_ALIGNED);
++
++#ifdef CONFIG_ZPOOL
++	zpool_register_driver(&z3fold_zpool_driver);
++#endif
++
++	return 0;
++}
++
++static void __exit exit_z3fold(void)
++{
++#ifdef CONFIG_ZPOOL
++	zpool_unregister_driver(&z3fold_zpool_driver);
++#endif
++}
++
++module_init(init_z3fold);
++module_exit(exit_z3fold);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Vitaly Wool <vitalywool@gmail.com>");
++MODULE_DESCRIPTION("3-Fold Allocator for Compressed Pages");
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
-zsmalloc-fix-zs_can_compact-integer-overflow.patch
-zsmalloc-require-gfp-in-zs_malloc.patch
-zsmalloc-require-gfp-in-zs_malloc-v2.patch
-zram-user-per-cpu-compression-streams.patch
-zram-user-per-cpu-compression-streams-fix.patch
-zram-remove-max_comp_streams-internals.patch
+z3fold-the-3-fold-allocator-for-compressed-pages-v4.patch
+z3fold-the-3-fold-allocator-for-compressed-pages-v3.patch
 
