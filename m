@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- memory-hotplug-more-general-validation-of-zone-during-online.patch added to -mm tree
-Date: Mon, 09 May 2016 13:15:04 -0700
-Message-ID: <5730efc8.mfljIfWmadnSPHj4%akpm@linux-foundation.org>
+Subject: + zsmalloc-fix-zs_can_compact-integer-overflow.patch added to -mm tree
+Date: Mon, 09 May 2016 13:29:52 -0700
+Message-ID: <5730f340.iKq19eu8GPtGIqjT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53377 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54277 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751259AbcEIUPG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 16:15:06 -0400
+	with ESMTP id S1750993AbcEIU3y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 16:29:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arbab@linux.vnet.ibm.com, abanman@sgi.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, rientjes@google.com, shaohua.li@intel.com, slaoub@gmail.com, tangchen@cn.fujitsu.com, vbabka@suse.cz, vkuznets@redhat.com, y-goto@jp.fujitsu.com, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: more general validation of zone during online
+     Subject: zsmalloc: fix zs_can_compact() integer overflow
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-more-general-validation-of-zone-during-online.patch
+     zsmalloc-fix-zs_can_compact-integer-overflow.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-more-general-validation-of-zone-during-online.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-fix-zs_can_compact-integer-overflow.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-more-general-validation-of-zone-during-online.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-fix-zs_can_compact-integer-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,101 +38,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Reza Arbab <arbab@linux.vnet.ibm.com>
-Subject: memory-hotplug: more general validation of zone during online
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zsmalloc: fix zs_can_compact() integer overflow
 
-When memory is onlined, we are only able to rezone from ZONE_MOVABLE to
-ZONE_KERNEL, or from (ZONE_MOVABLE - 1) to ZONE_MOVABLE.
+zs_can_compact() has two race conditions in its core calculation:
 
-To be more flexible, use the following criteria instead; to online memory
-from zone X into zone Y,
+unsigned long obj_wasted = zs_stat_get(class, OBJ_ALLOCATED) -
+				zs_stat_get(class, OBJ_USED);
 
-* Any zones between X and Y must be unused.
-* If X is lower than Y, the onlined memory must lie at the end of X.
-* If X is higher than Y, the onlined memory must lie at the start of X.
+1) classes are not locked, so the numbers of allocated and used
+   objects can change by the concurrent ops happening on other CPUs
+2) shrinker invokes it from preemptible context
 
-Add zone_can_shift() to make this determination.
+Depending on the circumstances, thus, OBJ_ALLOCATED can become
+less than OBJ_USED, which can result in either very high or
+negative `total_scan' value calculated later in do_shrink_slab().
 
-Link: http://lkml.kernel.org/r/1462816419-4479-3-git-send-email-arbab@linux.vnet.ibm.com
-Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Andrew Banman <abanman@sgi.com>
-Cc: Chen Yucong <slaoub@gmail.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
+do_shrink_slab() has some logic to prevent those cases:
+
+ vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
+ vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
+ vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-64
+ vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
+ vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
+ vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
+
+However, due to the way `total_scan' is calculated, not every
+shrinker->count_objects() overflow can be spotted and handled.
+To demonstrate the latter, I added some debugging code to do_shrink_slab()
+(x86_64) and the results were:
+
+ vmscan: OVERFLOW: shrinker->count_objects() == -1 [18446744073709551615]
+ vmscan: but total_scan > 0: 92679974445502
+ vmscan: resulting total_scan: 92679974445502
+[..]
+ vmscan: OVERFLOW: shrinker->count_objects() == -1 [18446744073709551615]
+ vmscan: but total_scan > 0: 22634041808232578
+ vmscan: resulting total_scan: 22634041808232578
+
+Even though shrinker->count_objects() has returned an overflowed value,
+the resulting `total_scan' is positive, and, what is more worrisome, it
+is insanely huge. This value is getting used later on in
+shrinker->scan_objects() loop:
+
+        while (total_scan >= batch_size ||
+               total_scan >= freeable) {
+                unsigned long ret;
+                unsigned long nr_to_scan = min(batch_size, total_scan);
+
+                shrinkctl->nr_to_scan = nr_to_scan;
+                ret = shrinker->scan_objects(shrinker, shrinkctl);
+                if (ret == SHRINK_STOP)
+                        break;
+                freed += ret;
+
+                count_vm_events(SLABS_SCANNED, nr_to_scan);
+                total_scan -= nr_to_scan;
+
+                cond_resched();
+        }
+
+`total_scan >= batch_size' is true for a very-very long time and
+'total_scan >= freeable' is also true for quite some time, because
+`freeable < 0' and `total_scan' is large enough, for example,
+22634041808232578. The only break condition, in the given scheme of
+things, is shrinker->scan_objects() == SHRINK_STOP test, which is a
+bit too weak to rely on, especially in heavy zsmalloc-usage scenarios.
+
+To fix the issue, take a pool stat snapshot and use it instead of
+racy zs_stat_get() calls.
+
+Link: http://lkml.kernel.org/r/20160509140052.3389-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>        [4.3+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    2 +
- mm/memory_hotplug.c            |   42 +++++++++++++++++++++++++------
- 2 files changed, 37 insertions(+), 7 deletions(-)
+ mm/zsmalloc.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memory_hotplug.h~memory-hotplug-more-general-validation-of-zone-during-online include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~memory-hotplug-more-general-validation-of-zone-during-online
-+++ a/include/linux/memory_hotplug.h
-@@ -284,5 +284,7 @@ extern void sparse_remove_one_section(st
- 		unsigned long map_offset);
- extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
- 					  unsigned long pnum);
-+extern int zone_can_shift(unsigned long pfn, unsigned long nr_pages,
-+			  enum zone_type target);
+diff -puN mm/zsmalloc.c~zsmalloc-fix-zs_can_compact-integer-overflow mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-fix-zs_can_compact-integer-overflow
++++ a/mm/zsmalloc.c
+@@ -1728,10 +1728,13 @@ static struct page *isolate_source_page(
+ static unsigned long zs_can_compact(struct size_class *class)
+ {
+ 	unsigned long obj_wasted;
++	unsigned long obj_allocated = zs_stat_get(class, OBJ_ALLOCATED);
++	unsigned long obj_used = zs_stat_get(class, OBJ_USED);
  
- #endif /* __LINUX_MEMORY_HOTPLUG_H */
-diff -puN mm/memory_hotplug.c~memory-hotplug-more-general-validation-of-zone-during-online mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-more-general-validation-of-zone-during-online
-+++ a/mm/memory_hotplug.c
-@@ -1047,6 +1047,37 @@ static void node_states_set_node(int nod
- 	node_set_state(node, N_MEMORY);
- }
+-	obj_wasted = zs_stat_get(class, OBJ_ALLOCATED) -
+-		zs_stat_get(class, OBJ_USED);
++	if (obj_allocated <= obj_used)
++		return 0;
  
-+int zone_can_shift(unsigned long pfn, unsigned long nr_pages,
-+		   enum zone_type target)
-+{
-+	struct zone *zone = page_zone(pfn_to_page(pfn));
-+	enum zone_type idx = zone_idx(zone);
-+	int i;
-+
-+	if (idx < target) {
-+		/* pages must be at end of current zone */
-+		if (pfn + nr_pages != zone_end_pfn(zone))
-+			return 0;
-+
-+		/* no zones in use between current zone and target */
-+		for (i = idx + 1; i < target; i++)
-+			if (zone_is_initialized(zone - idx + i))
-+				return 0;
-+	}
-+
-+	if (target < idx) {
-+		/* pages must be at beginning of current zone */
-+		if (pfn != zone->zone_start_pfn)
-+			return 0;
-+
-+		/* no zones in use between current zone and target */
-+		for (i = target + 1; i < idx; i++)
-+			if (zone_is_initialized(zone - idx + i))
-+				return 0;
-+	}
-+
-+	return target - idx;
-+}
++	obj_wasted = obj_allocated - obj_used;
+ 	obj_wasted /= get_maxobj_per_zspage(class->size,
+ 			class->pages_per_zspage);
  
- /* Must be protected by mem_hotplug_begin() */
- int __ref online_pages(unsigned long pfn, unsigned long nr_pages, int online_type)
-@@ -1072,13 +1103,10 @@ int __ref online_pages(unsigned long pfn
- 	    !can_online_high_movable(zone))
- 		return -EINVAL;
- 
--	if (online_type == MMOP_ONLINE_KERNEL &&
--	    zone_idx(zone) == ZONE_MOVABLE)
--		zone_shift = -1;
+_
+
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+
+zsmalloc-fix-zs_can_compact-integer-overflow.patch
+zsmalloc-require-gfp-in-zs_malloc.patch
+zsmalloc-require-gfp-in-zs_malloc-v2.patch
+zram-user-per-cpu-compression-streams.patch
+zram-user-per-cpu-compression-streams-fix.patch
+zram-remove-max_comp_streams-internals.patch
+
