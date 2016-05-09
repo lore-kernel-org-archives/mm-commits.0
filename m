@@ -1,117 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/3] zsmalloc: fix zs_can_compact() integer overflow
-Date: Mon, 09 May 2016 16:28:49 -0700
-Message-ID: <57311d31.sZRb6GnY06xtxjTf%akpm__26026.7784972259$1462836544$gmane$org@linux-foundation.org>
+Subject: [patch 3/3] compiler-gcc: require gcc 4.8 for powerpc
+ __builtin_bswap16()
+Date: Mon, 09 May 2016 16:28:52 -0700
+Message-ID: <57311d34.0DSTxhxpgPMDMq2O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58104 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58108 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752192AbcEIX2v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 19:28:51 -0400
+	with ESMTP id S1752443AbcEIX2y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 19:28:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sergey.senozhatsky@gmail.com, minchan@kernel.org, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jpoimboe@redhat.com, arnd@arndb.de, sfr@canb.auug.org.au
 
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: fix zs_can_compact() integer overflow
+From: Josh Poimboeuf <jpoimboe@redhat.com>
+Subject: compiler-gcc: require gcc 4.8 for powerpc __builtin_bswap16()
 
-zs_can_compact() has two race conditions in its core calculation:
+gcc support for __builtin_bswap16() was supposedly added for powerpc in
+gcc 4.6, and was then later added for other architectures in gcc 4.8.
 
-unsigned long obj_wasted = zs_stat_get(class, OBJ_ALLOCATED) -
-				zs_stat_get(class, OBJ_USED);
+However, Stephen Rothwell reported that attempting to use it on powerpc in
+gcc 4.6 fails with:
 
-1) classes are not locked, so the numbers of allocated and used
-   objects can change by the concurrent ops happening on other CPUs
-2) shrinker invokes it from preemptible context
+lib/vsprintf.c:160:2: error: initializer element is not constant
+lib/vsprintf.c:160:2: error: (near initialization for 'decpair[0]')
+lib/vsprintf.c:160:2: error: initializer element is not constant
+lib/vsprintf.c:160:2: error: (near initialization for 'decpair[1]')
+lib/vsprintf.c:160:2: error: initializer element is not constant
+lib/vsprintf.c:160:2: error: (near initialization for 'decpair[2]')
+lib/vsprintf.c:160:2: error: initializer element is not constant
+lib/vsprintf.c:160:2: error: (near initialization for 'decpair[3]')
+lib/vsprintf.c:160:2: error: initializer element is not constant
 
-Depending on the circumstances, thus, OBJ_ALLOCATED can become
-less than OBJ_USED, which can result in either very high or
-negative `total_scan' value calculated later in do_shrink_slab().
+I'm not entirely sure what those errors mean, but I don't see them on gcc
+4.8.  So let's consider gcc 4.8 to be the official starting point for
+__builtin_bswap16().
 
-do_shrink_slab() has some logic to prevent those cases:
+Arnd Bergmann adds:
 
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-64
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
+"I found the commit in gcc-4.8 that replaced the powerpc-specific
+implementation of __builtin_bswap16 with an architecture-independent one. 
+Apparently the powerpc version (gcc-4.6 and 4.7) just mapped to the
+lhbrx/sthbrx instructions, so it ended up not being a constant, though the
+intent of the patch was mainly to add support for the builtin to x86.
 
-However, due to the way `total_scan' is calculated, not every
-shrinker->count_objects() overflow can be spotted and handled.
-To demonstrate the latter, I added some debugging code to do_shrink_slab()
-(x86_64) and the results were:
+https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52624 has the patch that went
+into gcc-4.8 and more information."
 
- vmscan: OVERFLOW: shrinker->count_objects() == -1 [18446744073709551615]
- vmscan: but total_scan > 0: 92679974445502
- vmscan: resulting total_scan: 92679974445502
-[..]
- vmscan: OVERFLOW: shrinker->count_objects() == -1 [18446744073709551615]
- vmscan: but total_scan > 0: 22634041808232578
- vmscan: resulting total_scan: 22634041808232578
-
-Even though shrinker->count_objects() has returned an overflowed value,
-the resulting `total_scan' is positive, and, what is more worrisome, it
-is insanely huge. This value is getting used later on in
-shrinker->scan_objects() loop:
-
-        while (total_scan >= batch_size ||
-               total_scan >= freeable) {
-                unsigned long ret;
-                unsigned long nr_to_scan = min(batch_size, total_scan);
-
-                shrinkctl->nr_to_scan = nr_to_scan;
-                ret = shrinker->scan_objects(shrinker, shrinkctl);
-                if (ret == SHRINK_STOP)
-                        break;
-                freed += ret;
-
-                count_vm_events(SLABS_SCANNED, nr_to_scan);
-                total_scan -= nr_to_scan;
-
-                cond_resched();
-        }
-
-`total_scan >= batch_size' is true for a very-very long time and
-'total_scan >= freeable' is also true for quite some time, because
-`freeable < 0' and `total_scan' is large enough, for example,
-22634041808232578. The only break condition, in the given scheme of
-things, is shrinker->scan_objects() == SHRINK_STOP test, which is a
-bit too weak to rely on, especially in heavy zsmalloc-usage scenarios.
-
-To fix the issue, take a pool stat snapshot and use it instead of
-racy zs_stat_get() calls.
-
-Link: http://lkml.kernel.org/r/20160509140052.3389-1-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>        [4.3+]
+Fixes: 7322dd755e7d ("byteswap: try to avoid __builtin_constant_p gcc bug")
+Link: http://lkml.kernel.org/r/20160509203616.2c5a6ebc@canb.auug.org.au
+Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Tested-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/compiler-gcc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-fix-zs_can_compact-integer-overflow mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-fix-zs_can_compact-integer-overflow
-+++ a/mm/zsmalloc.c
-@@ -1735,10 +1735,13 @@ static struct page *isolate_source_page(
- static unsigned long zs_can_compact(struct size_class *class)
- {
- 	unsigned long obj_wasted;
-+	unsigned long obj_allocated = zs_stat_get(class, OBJ_ALLOCATED);
-+	unsigned long obj_used = zs_stat_get(class, OBJ_USED);
- 
--	obj_wasted = zs_stat_get(class, OBJ_ALLOCATED) -
--		zs_stat_get(class, OBJ_USED);
-+	if (obj_allocated <= obj_used)
-+		return 0;
- 
-+	obj_wasted = obj_allocated - obj_used;
- 	obj_wasted /= get_maxobj_per_zspage(class->size,
- 			class->pages_per_zspage);
- 
+diff -puN include/linux/compiler-gcc.h~compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16 include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16
++++ a/include/linux/compiler-gcc.h
+@@ -246,7 +246,7 @@
+ #define __HAVE_BUILTIN_BSWAP32__
+ #define __HAVE_BUILTIN_BSWAP64__
+ #endif
+-#if GCC_VERSION >= 40800 || (defined(__powerpc__) && GCC_VERSION >= 40600)
++#if GCC_VERSION >= 40800
+ #define __HAVE_BUILTIN_BSWAP16__
+ #endif
+ #endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
 _
