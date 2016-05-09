@@ -1,54 +1,65 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Mon, 9 May 2016 16:28:32 -0700
-Message-ID: <20160509162832.d195b5946709f583e89a203e@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [patch 1/3] Revert "proc/base: make prompt shell start from new
+ line after executing "cat /proc/$pid/wchan""
+Date: Mon, 09 May 2016 16:28:46 -0700
+Message-ID: <57311d2e.P2JyPhRihF17Ouao%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Mon__9_May_2016_16_28_32_-0700_+NG0L.ZntTJGdRH5"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58103 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752192AbcEIX2j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 19:28:39 -0400
+	with ESMTP id S1752192AbcEIX2r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 19:28:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, plaguedbypenguins@gmail.com, mnfhuang@gmail.com
 
---Signature=_Mon__9_May_2016_16_28_32_-0700_+NG0L.ZntTJGdRH5
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+From: Robin Humble <plaguedbypenguins@gmail.com>
+Subject: Revert "proc/base: make prompt shell start from new line after executing "cat /proc/$pid/wchan""
 
-3 fixes, based on 44549e8f5eea4e0a41b487b63e616cb089922b99:
+This reverts the 4.6-rc1 commit 7e2bc81da333f0d4ca68 ("proc/base: make
+prompt shell start from new line after executing "cat /proc/$pid/wchan").
 
-Subject: Revert "proc/base: make prompt shell start from new line after exe=
-cuting "cat /proc/$pid/wchan""
-Subject: zsmalloc: fix zs_can_compact() integer overflow
-Subject: compiler-gcc: require gcc 4.8 for powerpc __builtin_bswap16()
+Please revert because it breaks /proc/$PID/whcan formatting in ps and
+top.
 
+Revert also because the patch is inconsistent - it adds a newline at the
+end of only the '0' wchan, and does not add a newline when
+/proc/$PID/wchan contains a symbol name.
 
---Signature=_Mon__9_May_2016_16_28_32_-0700_+NG0L.ZntTJGdRH5
-Content-Type: application/pgp-signature
+eg.
+$ ps -eo pid,stat,wchan,comm
+PID STAT WCHAN  COMMAND
+...
+1189 S    -      dbus-launch
+1190 Ssl  0
+dbus-daemon
+1198 Sl   0
+lightdm
+1299 Ss   ep_pol systemd
+1301 S    -      (sd-pam)
+1304 Ss   wait   sh
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Signed-off-by: Robin Humble <plaguedbypenguins@gmail.com>
+Cc: Minfei Huang <mnfhuang@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-iQIcBAEBAgAGBQJXMR0lAAoJEJxZ78cCqAIHcOAP/3RBRU+OfWh3Pka1II9jE/hq
-vjMZhCjCg2qEH3SMGof4hbdcG1oLky9R9RzUY/Av4jp51XZKwQdoAMA2tynwbLMt
-j9Bzy/bY/nv3AKdvVSyzmhrolo7D9mwg9hZPnsGFcJIHMxu/I3CHQUeyEP80kmHs
-BNv/ss3y1RlXPnNAbuvmiAhJykQWik8nD+xH5YowRCRUDMUv/wN4elaZwszy+yBw
-S05+TlQY6c6ZpjXmppizyvVIRrSn0MxVQn/VUzafiAU4G10yTSW0XIfQvsOn5qRY
-0IApxtJn5QJQganUqgQbpH/7JR1Eedrxy2hNk4Fqz2id/ckq+VkrpD5RGCW+u2gC
-Tt6XGVfhUNKD/W0Ptyo7hJCO5b1qNIQi6BB14+32y64I/g5bDCzWplxZR5hscxSk
-7hRWR+JG19GXXGR9Wat0gHPnzHUOMxHwGbLTASwrg3PNf564QVZWh9WU1sPHqJcJ
-fCyUSfn7tsGNy6FlxTMKum59y1X4eUJHHDh9lq25w1cVw15yp29coBYef7bKcUE9
-soYhINY6cSrEoUPs4g/eiRkqSJ2iWqGfiiiWhAjIlyUCJoyXls4FVe9jmrQx+GdU
-nnFo5hN4jK538ZJysrWFhNI1R/3pR+RIQY/GaZ+ecdt49pgQ64OvicvQBoAm736P
-mAp8UX3+l3i0Q8/l5khN
-=ogME
------END PGP SIGNATURE-----
+ fs/proc/base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---Signature=_Mon__9_May_2016_16_28_32_-0700_+NG0L.ZntTJGdRH5--
+diff -puN fs/proc/base.c~revert-proc-base-make-prompt-shell-start-from-new-line-after-executing-cat-proc-pid-wchan fs/proc/base.c
+--- a/fs/proc/base.c~revert-proc-base-make-prompt-shell-start-from-new-line-after-executing-cat-proc-pid-wchan
++++ a/fs/proc/base.c
+@@ -434,7 +434,7 @@ static int proc_pid_wchan(struct seq_fil
+ 			&& !lookup_symbol_name(wchan, symname))
+ 		seq_printf(m, "%s", symname);
+ 	else
+-		seq_puts(m, "0\n");
++		seq_putc(m, '0');
+ 
+ 	return 0;
+ }
+_
