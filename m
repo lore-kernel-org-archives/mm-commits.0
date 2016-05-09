@@ -1,75 +1,54 @@
-From: akpm@linux-foundation.org
-Subject: +
- fs-befs-datastreamc-befs_read_lsymlink-remove-unneeded-initialization-to-null.patch added to -mm tree
-Date: Mon, 09 May 2016 14:52:18 -0700
-Message-ID: <57310692.Iil94FjWCL4QSLGR%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Mon, 9 May 2016 16:28:32 -0700
+Message-ID: <20160509162832.d195b5946709f583e89a203e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Mon__9_May_2016_16_28_32_-0700_+NG0L.ZntTJGdRH5"
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55847 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58100 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751562AbcEIVwT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 17:52:19 -0400
+	with ESMTP id S1752192AbcEIX2j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 19:28:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: salah.triki@acm.org, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
+
+--Signature=_Mon__9_May_2016_16_28_32_-0700_+NG0L.ZntTJGdRH5
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+3 fixes, based on 44549e8f5eea4e0a41b487b63e616cb089922b99:
+
+Subject: Revert "proc/base: make prompt shell start from new line after exe=
+cuting "cat /proc/$pid/wchan""
+Subject: zsmalloc: fix zs_can_compact() integer overflow
+Subject: compiler-gcc: require gcc 4.8 for powerpc __builtin_bswap16()
 
 
-The patch titled
-     Subject: fs/befs/datastream.c:befs_read_lsymlink(): remove unneeded initialization to NULL
-has been added to the -mm tree.  Its filename is
-     fs-befs-datastreamc-befs_read_lsymlink-remove-unneeded-initialization-to-null.patch
+--Signature=_Mon__9_May_2016_16_28_32_-0700_+NG0L.ZntTJGdRH5
+Content-Type: application/pgp-signature
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-befs-datastreamc-befs_read_lsymlink-remove-unneeded-initialization-to-null.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-befs-datastreamc-befs_read_lsymlink-remove-unneeded-initialization-to-null.patch
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+iQIcBAEBAgAGBQJXMR0lAAoJEJxZ78cCqAIHcOAP/3RBRU+OfWh3Pka1II9jE/hq
+vjMZhCjCg2qEH3SMGof4hbdcG1oLky9R9RzUY/Av4jp51XZKwQdoAMA2tynwbLMt
+j9Bzy/bY/nv3AKdvVSyzmhrolo7D9mwg9hZPnsGFcJIHMxu/I3CHQUeyEP80kmHs
+BNv/ss3y1RlXPnNAbuvmiAhJykQWik8nD+xH5YowRCRUDMUv/wN4elaZwszy+yBw
+S05+TlQY6c6ZpjXmppizyvVIRrSn0MxVQn/VUzafiAU4G10yTSW0XIfQvsOn5qRY
+0IApxtJn5QJQganUqgQbpH/7JR1Eedrxy2hNk4Fqz2id/ckq+VkrpD5RGCW+u2gC
+Tt6XGVfhUNKD/W0Ptyo7hJCO5b1qNIQi6BB14+32y64I/g5bDCzWplxZR5hscxSk
+7hRWR+JG19GXXGR9Wat0gHPnzHUOMxHwGbLTASwrg3PNf564QVZWh9WU1sPHqJcJ
+fCyUSfn7tsGNy6FlxTMKum59y1X4eUJHHDh9lq25w1cVw15yp29coBYef7bKcUE9
+soYhINY6cSrEoUPs4g/eiRkqSJ2iWqGfiiiWhAjIlyUCJoyXls4FVe9jmrQx+GdU
+nnFo5hN4jK538ZJysrWFhNI1R/3pR+RIQY/GaZ+ecdt49pgQ64OvicvQBoAm736P
+mAp8UX3+l3i0Q8/l5khN
+=ogME
+-----END PGP SIGNATURE-----
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Salah Triki <salah.triki@acm.org>
-Subject: fs/befs/datastream.c:befs_read_lsymlink(): remove unneeded initialization to NULL
-
-bh is reinitialized by befs_read_datastream() so no need to init it
-with NULL in the beginning of befs_read_lsymlink().
-
-Link: http://lkml.kernel.org/r/e22f279bceb8d026af048952e02ba98925b21c92.1462649034.git.salah.triki@acm.org
-Signed-off-by: Salah Triki <salah.triki@acm.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/befs/datastream.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff -puN fs/befs/datastream.c~fs-befs-datastreamc-befs_read_lsymlink-remove-unneeded-initialization-to-null fs/befs/datastream.c
---- a/fs/befs/datastream.c~fs-befs-datastreamc-befs_read_lsymlink-remove-unneeded-initialization-to-null
-+++ a/fs/befs/datastream.c
-@@ -127,7 +127,7 @@ befs_read_lsymlink(struct super_block *
- {
- 	befs_off_t bytes_read = 0;	/* bytes readed */
- 	u16 plen;
--	struct buffer_head *bh = NULL;
-+	struct buffer_head *bh;
- 	befs_debug(sb, "---> %s length: %llu", __func__, len);
- 
- 	while (bytes_read < len) {
-_
-
-Patches currently in -mm which might be from salah.triki@acm.org are
-
-fs-befs-datastreamc-befs_read_datastream-remove-unneeded-initialization-to-null.patch
-fs-befs-datastreamc-befs_read_lsymlink-remove-unneeded-initialization-to-null.patch
-fs-befs-datastreamc-befs_find_brun_dblindirect-remove-unneeded-initializations-to-null.patch
-
+--Signature=_Mon__9_May_2016_16_28_32_-0700_+NG0L.ZntTJGdRH5--
