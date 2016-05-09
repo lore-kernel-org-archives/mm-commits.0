@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16.patch added to -mm tree
-Date: Mon, 09 May 2016 12:05:54 -0700
-Message-ID: <5730df92.oWOtn6oZSj4XNscu%akpm@linux-foundation.org>
+Subject: + memory-hotplug-add-move_pfn_range.patch added to -mm tree
+Date: Mon, 09 May 2016 13:15:01 -0700
+Message-ID: <5730efc5.YoVsQZcTzFBaOemJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51440 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53362 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752499AbcEITFz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 15:05:55 -0400
+	with ESMTP id S1751536AbcEIUPD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 May 2016 16:15:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jpoimboe@redhat.com, arnd@arndb.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: arbab@linux.vnet.ibm.com, abanman@sgi.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, rientjes@google.com, shaohua.li@intel.com, slaoub@gmail.com, tangchen@cn.fujitsu.com, vbabka@suse.cz, vkuznets@redhat.com, y-goto@jp.fujitsu.com, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler-gcc: require gcc 4.8 for powerpc __builtin_bswap16()
+     Subject: memory-hotplug: add move_pfn_range()
 has been added to the -mm tree.  Its filename is
-     compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16.patch
+     memory-hotplug-add-move_pfn_range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-add-move_pfn_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-add-move_pfn_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,68 +38,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Josh Poimboeuf <jpoimboe@redhat.com>
-Subject: compiler-gcc: require gcc 4.8 for powerpc __builtin_bswap16()
+From: Reza Arbab <arbab@linux.vnet.ibm.com>
+Subject: memory-hotplug: add move_pfn_range()
 
-gcc support for __builtin_bswap16() was supposedly added for powerpc in
-gcc 4.6, and was then later added for other architectures in gcc 4.8.
+Add move_pfn_range(), a wrapper to call move_pfn_range_left() or
+move_pfn_range_right().
 
-However, Stephen Rothwell reported that attempting to use it on powerpc in
-gcc 4.6 fails with:
+No functional change. This will be utilized by a later patch.
 
-lib/vsprintf.c:160:2: error: initializer element is not constant
-lib/vsprintf.c:160:2: error: (near initialization for 'decpair[0]')
-lib/vsprintf.c:160:2: error: initializer element is not constant
-lib/vsprintf.c:160:2: error: (near initialization for 'decpair[1]')
-lib/vsprintf.c:160:2: error: initializer element is not constant
-lib/vsprintf.c:160:2: error: (near initialization for 'decpair[2]')
-lib/vsprintf.c:160:2: error: initializer element is not constant
-lib/vsprintf.c:160:2: error: (near initialization for 'decpair[3]')
-lib/vsprintf.c:160:2: error: initializer element is not constant
-
-I'm not entirely sure what those errors mean, but I don't see them on gcc
-4.8.  So let's consider gcc 4.8 to be the official starting point for
-__builtin_bswap16().
-
-Arnd Bergmann adds:
-
-"I found the commit in gcc-4.8 that replaced the powerpc-specific
-implementation of __builtin_bswap16 with an architecture-independent one. 
-Apparently the powerpc version (gcc-4.6 and 4.7) just mapped to the
-lhbrx/sthbrx instructions, so it ended up not being a constant, though the
-intent of the patch was mainly to add support for the builtin to x86.
-
-https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52624 has the patch that went
-into gcc-4.8 and more information."
-
-Fixes: 7322dd755e7d ("byteswap: try to avoid __builtin_constant_p gcc bug")
-Link: http://lkml.kernel.org/r/20160509203616.2c5a6ebc@canb.auug.org.au
-Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Tested-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Link: http://lkml.kernel.org/r/1462816419-4479-2-git-send-email-arbab@linux.vnet.ibm.com
+Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Daniel Kiper <daniel.kiper@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Andrew Banman <abanman@sgi.com>
+Cc: Chen Yucong <slaoub@gmail.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |   38 ++++++++++++++++++++++++++++----------
+ 1 file changed, 28 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/compiler-gcc.h~compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16 include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16
-+++ a/include/linux/compiler-gcc.h
-@@ -246,7 +246,7 @@
- #define __HAVE_BUILTIN_BSWAP32__
- #define __HAVE_BUILTIN_BSWAP64__
- #endif
--#if GCC_VERSION >= 40800 || (defined(__powerpc__) && GCC_VERSION >= 40600)
-+#if GCC_VERSION >= 40800
- #define __HAVE_BUILTIN_BSWAP16__
- #endif
- #endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
+diff -puN mm/memory_hotplug.c~memory-hotplug-add-move_pfn_range mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-add-move_pfn_range
++++ a/mm/memory_hotplug.c
+@@ -449,6 +449,25 @@ out_fail:
+ 	return -1;
+ }
+ 
++static struct zone * __meminit move_pfn_range(int zone_shift,
++		unsigned long start_pfn, unsigned long end_pfn)
++{
++	struct zone *zone = page_zone(pfn_to_page(start_pfn));
++	int ret = 0;
++
++	if (zone_shift < 0)
++		ret = move_pfn_range_left(zone + zone_shift, zone,
++					  start_pfn, end_pfn);
++	else if (zone_shift)
++		ret = move_pfn_range_right(zone, zone + zone_shift,
++					   start_pfn, end_pfn);
++
++	if (ret)
++		return NULL;
++
++	return zone + zone_shift;
++}
++
+ static void __meminit grow_pgdat_span(struct pglist_data *pgdat, unsigned long start_pfn,
+ 				      unsigned long end_pfn)
+ {
+@@ -1039,6 +1058,7 @@ int __ref online_pages(unsigned long pfn
+ 	int nid;
+ 	int ret;
+ 	struct memory_notify arg;
++	int zone_shift = 0;
+ 
+ 	/*
+ 	 * This doesn't need a lock to do pfn_to_page().
+@@ -1053,18 +1073,16 @@ int __ref online_pages(unsigned long pfn
+ 		return -EINVAL;
+ 
+ 	if (online_type == MMOP_ONLINE_KERNEL &&
+-	    zone_idx(zone) == ZONE_MOVABLE) {
+-		if (move_pfn_range_left(zone - 1, zone, pfn, pfn + nr_pages))
+-			return -EINVAL;
+-	}
++	    zone_idx(zone) == ZONE_MOVABLE)
++		zone_shift = -1;
++
+ 	if (online_type == MMOP_ONLINE_MOVABLE &&
+-	    zone_idx(zone) == ZONE_MOVABLE - 1) {
+-		if (move_pfn_range_right(zone, zone + 1, pfn, pfn + nr_pages))
+-			return -EINVAL;
+-	}
++	    zone_idx(zone) == ZONE_MOVABLE - 1)
++		zone_shift = 1;
+ 
+-	/* Previous code may changed the zone of the pfn range */
+-	zone = page_zone(pfn_to_page(pfn));
++	zone = move_pfn_range(zone_shift, pfn, pfn + nr_pages);
++	if (!zone)
++		return -EINVAL;
+ 
+ 	arg.start_pfn = pfn;
+ 	arg.nr_pages = nr_pages;
 _
 
-Patches currently in -mm which might be from jpoimboe@redhat.com are
+Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
 
-compiler-gcc-require-gcc-48-for-powerpc-__builtin_bswap16.patch
+memory-hotplug-add-move_pfn_range.patch
+memory-hotplug-more-general-validation-of-zone-during-online.patch
+memory-hotplug-use-zone_can_shift-for-sysfs-valid_zones-attribute.patch
 
