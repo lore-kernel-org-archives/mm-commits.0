@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-gdb-add-cpu-iterators.patch added to -mm tree
-Date: Tue, 10 May 2016 12:34:32 -0700
-Message-ID: <573237c8.r9mw+hm83sSb01gz%akpm@linux-foundation.org>
+Subject: + scripts-gdb-add-mount-point-list-command.patch added to -mm
+ tree
+Date: Tue, 10 May 2016 12:34:30 -0700
+Message-ID: <573237c6.eKcnYCUi3rLcrqgN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55533 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751726AbcEJTed (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 15:34:33 -0400
+	with ESMTP id S1751318AbcEJTeb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 15:34:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kieran.bingham@linaro.org, jan.kiszka@siemens.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: add cpu iterators
+     Subject: scripts/gdb: add mount point list command
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-add-cpu-iterators.patch
+     scripts-gdb-add-mount-point-list-command.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-cpu-iterators.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-mount-point-list-command.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-cpu-iterators.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-mount-point-list-command.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +40,173 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kieran Bingham <kieran.bingham@linaro.org>
-Subject: scripts/gdb: add cpu iterators
+Subject: scripts/gdb: add mount point list command
 
-The linux kernel provides macro's for iterating against values from the
-cpu_list masks. By providing some commonly used masks, we can mirror the
-kernels helper macros with easy to use generators.
+lx-mounts will identify current mount points based on the 'init_task'
+namespace by default, as we do not yet have a kernel thread list
+implementation to select the current running thread.
 
-Link: http://lkml.kernel.org/r/d045c6599771ada1999d49612ee30fd2f9acf17f.1462865983.git.jan.kiszka@siemens.com
+Optionally, a user can specify a PID to list from that process'
+namespace
+
+Link: http://lkml.kernel.org/r/e614c7bc32d2350b4ff1627ec761a7148e65bfe6.1462865983.git.jan.kiszka@siemens.com
 Signed-off-by: Kieran Bingham <kieran.bingham@linaro.org>
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/cpus.py |   38 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ scripts/gdb/linux/constants.py.in |   20 +++++
+ scripts/gdb/linux/proc.py         |   99 ++++++++++++++++++++++++++++
+ 2 files changed, 119 insertions(+)
 
-diff -puN scripts/gdb/linux/cpus.py~scripts-gdb-add-cpu-iterators scripts/gdb/linux/cpus.py
---- a/scripts/gdb/linux/cpus.py~scripts-gdb-add-cpu-iterators
-+++ a/scripts/gdb/linux/cpus.py
-@@ -100,6 +100,44 @@ def cpu_list(mask_name):
-         yield cpu
+diff -puN scripts/gdb/linux/constants.py.in~scripts-gdb-add-mount-point-list-command scripts/gdb/linux/constants.py.in
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-add-mount-point-list-command
++++ a/scripts/gdb/linux/constants.py.in
+@@ -12,7 +12,11 @@
+  *
+  */
+ 
++#include <linux/fs.h>
++#include <linux/mount.h>
++
+ /* We need to stringify expanded macros so that they can be parsed */
++
+ #define STRING(x) #x
+ #define XSTRING(x) STRING(x)
+ 
+@@ -30,3 +34,19 @@
+ <!-- end-c-headers -->
+ 
+ import gdb
++
++/* linux/fs.h */
++LX_VALUE(MS_RDONLY)
++LX_VALUE(MS_SYNCHRONOUS)
++LX_VALUE(MS_MANDLOCK)
++LX_VALUE(MS_DIRSYNC)
++LX_VALUE(MS_NOATIME)
++LX_VALUE(MS_NODIRATIME)
++
++/* linux/mount.h */
++LX_VALUE(MNT_NOSUID)
++LX_VALUE(MNT_NODEV)
++LX_VALUE(MNT_NOEXEC)
++LX_VALUE(MNT_NOATIME)
++LX_VALUE(MNT_NODIRATIME)
++LX_VALUE(MNT_RELATIME)
+diff -puN scripts/gdb/linux/proc.py~scripts-gdb-add-mount-point-list-command scripts/gdb/linux/proc.py
+--- a/scripts/gdb/linux/proc.py~scripts-gdb-add-mount-point-list-command
++++ a/scripts/gdb/linux/proc.py
+@@ -12,6 +12,10 @@
+ #
+ 
+ import gdb
++from linux import constants
++from linux import utils
++from linux import tasks
++from linux import lists
  
  
-+def each_online_cpu():
-+    for cpu in cpu_list("__cpu_online_mask"):
-+        yield cpu
+ class LxCmdLine(gdb.Command):
+@@ -96,3 +100,98 @@ Equivalent to cat /proc/ioports on a run
+         return show_lx_resources("ioport_resource")
+ 
+ LxIOPorts()
 +
 +
-+def each_present_cpu():
-+    for cpu in cpu_list("__cpu_present_mask"):
-+        yield cpu
++# Mount namespace viewer
++#  /proc/mounts
++
++def info_opts(lst, opt):
++    opts = ""
++    for key, string in lst.items():
++        if opt & key:
++            opts += string
++    return opts
 +
 +
-+def each_possible_cpu():
-+    for cpu in cpu_list("__cpu_possible_mask"):
-+        yield cpu
++FS_INFO = {constants.LX_MS_SYNCHRONOUS: ",sync",
++           constants.LX_MS_MANDLOCK: ",mand",
++           constants.LX_MS_DIRSYNC: ",dirsync",
++           constants.LX_MS_NOATIME: ",noatime",
++           constants.LX_MS_NODIRATIME: ",nodiratime"}
++
++MNT_INFO = {constants.LX_MNT_NOSUID: ",nosuid",
++            constants.LX_MNT_NODEV: ",nodev",
++            constants.LX_MNT_NOEXEC: ",noexec",
++            constants.LX_MNT_NOATIME: ",noatime",
++            constants.LX_MNT_NODIRATIME: ",nodiratime",
++            constants.LX_MNT_RELATIME: ",relatime"}
++
++mount_type = utils.CachedType("struct mount")
++mount_ptr_type = mount_type.get_type().pointer()
 +
 +
-+def each_active_cpu():
-+    for cpu in cpu_list("__cpu_active_mask"):
-+        yield cpu
++class LxMounts(gdb.Command):
++    """Report the VFS mounts of the current process namespace.
 +
-+
-+class LxCpus(gdb.Command):
-+    """List CPU status arrays
-+
-+Displays the known state of each CPU based on the kernel masks
-+and can help identify the state of hotplugged CPUs"""
++Equivalent to cat /proc/mounts on a running target
++An integer value can be supplied to display the mount
++values of that process namespace"""
 +
 +    def __init__(self):
-+        super(LxCpus, self).__init__("lx-cpus", gdb.COMMAND_DATA)
++        super(LxMounts, self).__init__("lx-mounts", gdb.COMMAND_DATA)
 +
++    # Equivalent to proc_namespace.c:show_vfsmnt
++    # However, that has the ability to call into s_op functions
++    # whereas we cannot and must make do with the information we can obtain.
 +    def invoke(self, arg, from_tty):
-+        gdb.write("Possible CPUs : {}\n".format(list(each_possible_cpu())))
-+        gdb.write("Present CPUs  : {}\n".format(list(each_present_cpu())))
-+        gdb.write("Online CPUs   : {}\n".format(list(each_online_cpu())))
-+        gdb.write("Active CPUs   : {}\n".format(list(each_active_cpu())))
++        argv = gdb.string_to_argv(arg)
++        if len(argv) >= 1:
++            try:
++                pid = int(argv[0])
++            except:
++                raise gdb.GdbError("Provide a PID as integer value")
++        else:
++            pid = 1
 +
-+LxCpus()
++        task = tasks.get_task_by_pid(pid)
++        if not task:
++            raise gdb.GdbError("Couldn't find a process with PID {}"
++                               .format(pid))
 +
++        namespace = task['nsproxy']['mnt_ns']
++        if not namespace:
++            raise gdb.GdbError("No namespace for current process")
 +
- class PerCpu(gdb.Function):
-     """Return per-cpu variable.
- 
++        for vfs in lists.list_for_each_entry(namespace['list'],
++                                             mount_ptr_type, "mnt_list"):
++            devname = vfs['mnt_devname'].string()
++            devname = devname if devname else "none"
++
++            pathname = ""
++            parent = vfs
++            while True:
++                mntpoint = parent['mnt_mountpoint']
++                pathname = utils.dentry_name(mntpoint) + pathname
++                if (parent == parent['mnt_parent']):
++                    break
++                parent = parent['mnt_parent']
++
++            if (pathname == ""):
++                pathname = "/"
++
++            superblock = vfs['mnt']['mnt_sb']
++            fstype = superblock['s_type']['name'].string()
++            s_flags = int(superblock['s_flags'])
++            m_flags = int(vfs['mnt']['mnt_flags'])
++            rd = "ro" if (s_flags & constants.LX_MS_RDONLY) else "rw"
++
++            gdb.write(
++                "{} {} {} {}{}{} 0 0\n"
++                .format(devname,
++                        pathname,
++                        fstype,
++                        rd,
++                        info_opts(FS_INFO, s_flags),
++                        info_opts(MNT_INFO, m_flags)))
++
++LxMounts()
 _
 
 Patches currently in -mm which might be from kieran.bingham@linaro.org are
