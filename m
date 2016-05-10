@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-gdb-add-lx_thread_info_by_pid-helper.patch added to -mm tree
-Date: Tue, 10 May 2016 12:34:40 -0700
-Message-ID: <573237d0.sxvc71w4PUeUdQdQ%akpm@linux-foundation.org>
+Subject: + maintainers-add-co-maintainer-for-scripts-gdb.patch added to
+ -mm tree
+Date: Tue, 10 May 2016 12:34:48 -0700
+Message-ID: <573237d8.6geku5HROWIVO1fr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55548 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55563 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751935AbcEJTel (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 15:34:41 -0400
+	with ESMTP id S1751935AbcEJTet (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 15:34:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kieran.bingham@linaro.org, jan.kiszka@siemens.com, mm-commits@vger.kernel.org
+To: kieran@ksquared.org.uk, jan.kiszka@siemens.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: add lx_thread_info_by_pid helper
+     Subject: MAINTAINERS: add co-maintainer for scripts/gdb
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-add-lx_thread_info_by_pid-helper.patch
+     maintainers-add-co-maintainer-for-scripts-gdb.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-lx_thread_info_by_pid-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-co-maintainer-for-scripts-gdb.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-lx_thread_info_by_pid-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-co-maintainer-for-scripts-gdb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,65 +39,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kieran Bingham <kieran.bingham@linaro.org>
-Subject: scripts/gdb: add lx_thread_info_by_pid helper
+From: Kieran Bingham <kieran@bingham.xyz>
+Subject: MAINTAINERS: add co-maintainer for scripts/gdb
 
-The tasks module already provides helpers to find the task struct by
-pid, and the thread_info by task struct; however this is cumbersome to
-utilise on the gdb commandline.
+Add myself as a co-maintainer for scripts/gdb supporting Jan Kizka
 
-Wrap these two functionalities together in an extra single helper to
-allow exploring the thread info, from a PID value
-
-Link: http://lkml.kernel.org/r/dadc5667f053ec811eb3e3033d99d937fedbc93b.1462865983.git.jan.kiszka@siemens.com
-Signed-off-by: Kieran Bingham <kieran.bingham@linaro.org>
+Link: http://lkml.kernel.org/r/fb5d34ce563f33d2f324f26f592b24ded30032ee.1462865983.git.jan.kiszka@siemens.com
+Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/tasks.py |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/gdb/linux/tasks.py~scripts-gdb-add-lx_thread_info_by_pid-helper scripts/gdb/linux/tasks.py
---- a/scripts/gdb/linux/tasks.py~scripts-gdb-add-lx_thread_info_by_pid-helper
-+++ a/scripts/gdb/linux/tasks.py
-@@ -114,3 +114,22 @@ variable."""
+diff -puN MAINTAINERS~maintainers-add-co-maintainer-for-scripts-gdb MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-co-maintainer-for-scripts-gdb
++++ a/MAINTAINERS
+@@ -4773,6 +4773,7 @@ F:	drivers/scsi/gdt*
  
+ GDB KERNEL DEBUGGING HELPER SCRIPTS
+ M:	Jan Kiszka <jan.kiszka@siemens.com>
++M:	Kieran Bingham <kieran@bingham.xyz>
+ S:	Supported
+ F:	scripts/gdb/
  
- LxThreadInfoFunc()
-+
-+
-+class LxThreadInfoByPidFunc (gdb.Function):
-+    """Calculate Linux thread_info from task variable found by pid
-+
-+$lx_thread_info_by_pid(PID): Given PID, return the corresponding thread_info
-+variable."""
-+
-+    def __init__(self):
-+        super(LxThreadInfoByPidFunc, self).__init__("lx_thread_info_by_pid")
-+
-+    def invoke(self, pid):
-+        task = get_task_by_pid(pid)
-+        if task:
-+            return get_thread_info(task.dereference())
-+        else:
-+            raise gdb.GdbError("No task of PID " + str(pid))
-+
-+LxThreadInfoByPidFunc()
 _
 
-Patches currently in -mm which might be from kieran.bingham@linaro.org are
+Patches currently in -mm which might be from kieran@bingham.xyz are
 
-scripts-gdb-provide-linux-constants.patch
-scripts-gdb-provide-kernel-list-item-generators.patch
-scripts-gdb-convert-modules-usage-to-lists-functions.patch
-scripts-gdb-provide-exception-catching-parser.patch
-scripts-gdb-support-config_modules-gracefully.patch
-scripts-gdb-provide-a-dentry_name-vfs-path-helper.patch
-scripts-gdb-add-io-resource-readers.patch
-scripts-gdb-add-mount-point-list-command.patch
-scripts-gdb-add-cpu-iterators.patch
-scripts-gdb-add-a-radix-tree-parser.patch
-scripts-gdb-add-documentation-example-for-radix-tree.patch
-scripts-gdb-add-lx_thread_info_by_pid-helper.patch
+scripts-gdb-decode-bytestream-on-dmesg-for-python3.patch
+maintainers-add-co-maintainer-for-scripts-gdb.patch
 
