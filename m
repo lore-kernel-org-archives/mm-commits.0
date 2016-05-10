@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix.patch added to -mm tree
-Date: Tue, 10 May 2016 11:44:43 -0700
-Message-ID: <57322c1b.CKSHIOFrkYIp/TMK%akpm@linux-foundation.org>
+Subject: + nilfs2-remove-space-before-semicolon.patch added to -mm tree
+Date: Tue, 10 May 2016 12:23:43 -0700
+Message-ID: <5732353f.3hz38uitOM9lWV31%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53107 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54349 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751515AbcEJSoo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 14:44:44 -0400
+	with ESMTP id S1751479AbcEJTXo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 15:23:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: fix build of reuse_swap_page with CONFIG_SWAP=n
+     Subject: nilfs2: remove space before semicolon
 has been added to the -mm tree.  Its filename is
-     mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix.patch
+     nilfs2-remove-space-before-semicolon.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-remove-space-before-semicolon.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-remove-space-before-semicolon.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,45 +38,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: thp: fix build of reuse_swap_page with CONFIG_SWAP=n
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: remove space before semicolon
 
-page_trans_huge_compound is inline defined in mm.h. reuse_swap_page is
-calling page_trans_huge_compound in swap.h which included early on by
-mm.h before page_trans_huge_compound is defined.
+This fixes the checkpatch.pl warning "WARNING: space prohibited before
+semicolon" at nilfs_store_magic_and_option().
 
-This is why reuse_swap_page was a preprocessor macro, so make it a
-preprocessor macro again.
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Link: http://lkml.kernel.org/r/1462886671-3521-3-git-send-email-konishi.ryusuke@lab.ntt.co.jp
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/nilfs2/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix include/linux/swap.h
---- a/include/linux/swap.h~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix
-+++ a/include/linux/swap.h
-@@ -513,10 +513,8 @@ static inline int swp_swapcount(swp_entr
- 	return 0;
+diff -puN fs/nilfs2/super.c~nilfs2-remove-space-before-semicolon fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-remove-space-before-semicolon
++++ a/fs/nilfs2/super.c
+@@ -886,7 +886,7 @@ int nilfs_store_magic_and_option(struct
+ 	nilfs->ns_interval = le32_to_cpu(sbp->s_c_interval);
+ 	nilfs->ns_watermark = le32_to_cpu(sbp->s_c_block_max);
+ 
+-	return !parse_options(data, sb, 0) ? -EINVAL : 0 ;
++	return !parse_options(data, sb, 0) ? -EINVAL : 0;
  }
  
--static inline bool reuse_swap_page(struct page *page, int *total_mapcount)
--{
--	return page_trans_huge_mapcount(page, total_mapcount) == 1;
--}
-+#define reuse_swap_page(page, total_mapcount) \
-+	(page_trans_huge_mapcount(page, total_mapcount) == 1)
- 
- static inline int try_to_free_swap(struct page *page)
- {
+ int nilfs_check_feature_compatibility(struct super_block *sb,
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults.patch
-mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix.patch
-mm-thp-microoptimize-compound_mapcount.patch
-mm-thp-split_huge_pmd_address-comment-improvement.patch
+nilfs2-fix-white-space-issue-in-nilfs_mount.patch
+nilfs2-remove-space-before-comma.patch
+nilfs2-remove-fsf-mailing-address-from-gpl-notices.patch
+nilfs2-clean-up-old-e-mail-addresses.patch
+maintainers-add-web-link-for-nilfs-project.patch
+nilfs2-clarify-permission-to-replicate-the-design.patch
+nilfs2-get-rid-of-nilfs_mdt_mark_block_dirty.patch
+nilfs2-move-cleanup-code-of-metadata-file-from-inode-routines.patch
+nilfs2-replace-__attribute__packed-with-__packed.patch
+nilfs2-add-missing-line-spacing.patch
+nilfs2-clean-trailing-semicolons-in-macros.patch
+nilfs2-clean-trailing-semicolons-in-macros-fix.patch
+nilfs2-do-not-emit-extra-newline-on-nilfs_warning-and-nilfs_error.patch
+nilfs2-remove-space-before-semicolon.patch
+nilfs2-fix-code-indent-coding-style-issue.patch
+nilfs2-avoid-bare-use-of-unsigned.patch
+nilfs2-remove-unnecessary-else-after-return-or-break.patch
+nilfs2-remove-loops-of-single-statement-macros.patch
+nilfs2-fix-block-comments.patch
 
