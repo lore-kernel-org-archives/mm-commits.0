@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-gdb-fix-issue-with-dmesgpy-and-python-3x.patch added to -mm tree
-Date: Tue, 10 May 2016 12:34:44 -0700
-Message-ID: <573237d4.BtYBF0HRCj29tqoX%akpm@linux-foundation.org>
+Subject: + scripts-gdb-add-a-radix-tree-parser.patch added to -mm tree
+Date: Tue, 10 May 2016 12:34:36 -0700
+Message-ID: <573237cc.E4bLTHaeazTUZCp2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55555 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55541 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751935AbcEJTeq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 15:34:46 -0400
+	with ESMTP id S1751479AbcEJTeh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 15:34:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: buzdelabuz2+git@gmail.com, jan.kiszka@siemens.com, kieran@ksquared.org.uk, mm-commits@vger.kernel.org
+To: kieran.bingham@linaro.org, jan.kiszka@siemens.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: fix issue with dmesg.py and python 3.X
+     Subject: scripts/gdb: add a Radix Tree Parser
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-fix-issue-with-dmesgpy-and-python-3x.patch
+     scripts-gdb-add-a-radix-tree-parser.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-fix-issue-with-dmesgpy-and-python-3x.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-a-radix-tree-parser.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-fix-issue-with-dmesgpy-and-python-3x.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-a-radix-tree-parser.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,53 +38,184 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dom Cote <buzdelabuz2+git@gmail.com>
-Subject: scripts/gdb: fix issue with dmesg.py and python 3.X
+From: Kieran Bingham <kieran.bingham@linaro.org>
+Subject: scripts/gdb: add a Radix Tree Parser
 
-When built against Python 3, GDB differs in the return type for its
-read_memory function, causing the lx-dmesg command to fail.
+Linux makes use of the Radix Tree data structure to store pointers indexed
+by integer values. This structure is utilised across many structures in
+the kernel including the IRQ descriptor tables, and several filesystems.
 
-Now that we have an improved read_16() we can use the new read_memoryview()
-abstraction to make lx-dmesg return valid data on both current Python APIs
+This module provides a method to lookup values from a structure given
+its head node.
 
-Tested with python 3.4 and 2.7
-Tested with gdb 7.7
+Usage:
 
-Link: http://lkml.kernel.org/r/28477b727ff7fe3101fd4e426060e8a68317a639.1462865983.git.jan.kiszka@siemens.com
-Signed-off-by: Dom Cote <buzdelabuz2+git@gmail.com>
-[kieran@bingham.xyz: Adjusted commit log to better reflect code changes]
-Tested-by: Kieran Bingham <kieran@bingham.xyz> (Py2.7,Py3.4,GDB10)
-Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+The function lx_radix_tree_lookup, must be given a symbol of type
+struct radix_tree_root, and an index into that tree.
+
+The object returned is a generic integer value, and must be cast
+correctly to the type based on the storage in the data structure.
+
+For example, to print the irq descriptor in the sparse irq_desc_tree at
+index 18, try the following:
+
+ (gdb) print (struct irq_desc)$lx_radix_tree_lookup(irq_desc_tree, 18)
+
+Link: http://lkml.kernel.org/r/d2028c55e50cf95a9b7f8ca0d11885174b0cc709.1462865983.git.jan.kiszka@siemens.com
+Signed-off-by: Kieran Bingham <kieran.bingham@linaro.org>
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/dmesg.py |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ scripts/gdb/linux/constants.py.in |    7 ++
+ scripts/gdb/linux/radixtree.py    |   97 ++++++++++++++++++++++++++++
+ scripts/gdb/vmlinux-gdb.py        |    1 
+ 3 files changed, 105 insertions(+)
 
-diff -puN scripts/gdb/linux/dmesg.py~scripts-gdb-fix-issue-with-dmesgpy-and-python-3x scripts/gdb/linux/dmesg.py
---- a/scripts/gdb/linux/dmesg.py~scripts-gdb-fix-issue-with-dmesgpy-and-python-3x
-+++ a/scripts/gdb/linux/dmesg.py
-@@ -33,11 +33,12 @@ class LxDmesg(gdb.Command):
-         if log_first_idx < log_next_idx:
-             log_buf_2nd_half = -1
-             length = log_next_idx - log_first_idx
--            log_buf = inf.read_memory(start, length)
-+            log_buf = utils.read_memoryview(inf, start, length).tobytes()
-         else:
-             log_buf_2nd_half = log_buf_len - log_first_idx
--            log_buf = inf.read_memory(start, log_buf_2nd_half) + \
--                inf.read_memory(log_buf_addr, log_next_idx)
-+            a = utils.read_memoryview(inf, start, log_buf_2nd_half)
-+            b = utils.read_memoryview(inf, log_buf_addr, log_next_idx)
-+            log_buf = a.tobytes() + b.tobytes()
+diff -puN scripts/gdb/linux/constants.py.in~scripts-gdb-add-a-radix-tree-parser scripts/gdb/linux/constants.py.in
+--- a/scripts/gdb/linux/constants.py.in~scripts-gdb-add-a-radix-tree-parser
++++ a/scripts/gdb/linux/constants.py.in
+@@ -14,6 +14,7 @@
  
-         pos = 0
-         while pos < log_buf.__len__():
+ #include <linux/fs.h>
+ #include <linux/mount.h>
++#include <linux/radix-tree.h>
+ 
+ /* We need to stringify expanded macros so that they can be parsed */
+ 
+@@ -50,3 +51,9 @@ LX_VALUE(MNT_NOEXEC)
+ LX_VALUE(MNT_NOATIME)
+ LX_VALUE(MNT_NODIRATIME)
+ LX_VALUE(MNT_RELATIME)
++
++/* linux/radix-tree.h */
++LX_VALUE(RADIX_TREE_INDIRECT_PTR)
++LX_GDBPARSED(RADIX_TREE_HEIGHT_MASK)
++LX_GDBPARSED(RADIX_TREE_MAP_SHIFT)
++LX_GDBPARSED(RADIX_TREE_MAP_MASK)
+diff -puN /dev/null scripts/gdb/linux/radixtree.py
+--- /dev/null
++++ a/scripts/gdb/linux/radixtree.py
+@@ -0,0 +1,97 @@
++#
++# gdb helper commands and functions for Linux kernel debugging
++#
++#  Radix Tree Parser
++#
++# Copyright (c) 2016 Linaro Ltd
++#
++# Authors:
++#  Kieran Bingham <kieran.bingham@linaro.org>
++#
++# This work is licensed under the terms of the GNU GPL version 2.
++#
++
++import gdb
++
++from linux import utils
++from linux import constants
++
++radix_tree_root_type = utils.CachedType("struct radix_tree_root")
++radix_tree_node_type = utils.CachedType("struct radix_tree_node")
++
++
++def is_indirect_ptr(node):
++    long_type = utils.get_long_type()
++    return (node.cast(long_type) & constants.LX_RADIX_TREE_INDIRECT_PTR)
++
++
++def indirect_to_ptr(node):
++    long_type = utils.get_long_type()
++    node_type = node.type
++    indirect_ptr = node.cast(long_type) & ~constants.LX_RADIX_TREE_INDIRECT_PTR
++    return indirect_ptr.cast(node_type)
++
++
++def maxindex(height):
++    height = height & constants.LX_RADIX_TREE_HEIGHT_MASK
++    return gdb.parse_and_eval("height_to_maxindex["+str(height)+"]")
++
++
++def lookup(root, index):
++    if root.type == radix_tree_root_type.get_type().pointer():
++        root = root.dereference()
++    elif root.type != radix_tree_root_type.get_type():
++        raise gdb.GdbError("Must be struct radix_tree_root not {}"
++                           .format(root.type))
++
++    node = root['rnode']
++    if node is 0:
++        return None
++
++    if not (is_indirect_ptr(node)):
++        if (index > 0):
++            return None
++        return node
++
++    node = indirect_to_ptr(node)
++
++    height = node['path'] & constants.LX_RADIX_TREE_HEIGHT_MASK
++    if (index > maxindex(height)):
++        return None
++
++    shift = (height-1) * constants.LX_RADIX_TREE_MAP_SHIFT
++
++    while True:
++        new_index = (index >> shift) & constants.LX_RADIX_TREE_MAP_MASK
++        slot = node['slots'][new_index]
++
++        node = slot.cast(node.type.pointer()).dereference()
++        if node is 0:
++            return None
++
++        shift -= constants.LX_RADIX_TREE_MAP_SHIFT
++        height -= 1
++
++        if (height <= 0):
++            break
++
++    return node
++
++
++class LxRadixTree(gdb.Function):
++    """ Lookup and return a node from a RadixTree.
++
++$lx_radix_tree_lookup(root_node [, index]): Return the node at the given index.
++If index is omitted, the root node is dereferenced and returned."""
++
++    def __init__(self):
++        super(LxRadixTree, self).__init__("lx_radix_tree_lookup")
++
++    def invoke(self, root, index=0):
++        result = lookup(root, index)
++        if result is None:
++            raise gdb.GdbError("No entry in tree at index {}".format(index))
++
++        return result
++
++LxRadixTree()
+diff -puN scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-a-radix-tree-parser scripts/gdb/vmlinux-gdb.py
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-a-radix-tree-parser
++++ a/scripts/gdb/vmlinux-gdb.py
+@@ -31,3 +31,4 @@ else:
+     import linux.lists
+     import linux.proc
+     import linux.constants
++    import linux.radixtree
 _
 
-Patches currently in -mm which might be from buzdelabuz2+git@gmail.com are
+Patches currently in -mm which might be from kieran.bingham@linaro.org are
 
-scripts-gdb-improve-types-abstraction-for-gdb-python-scripts.patch
-scripts-gdb-fix-issue-with-dmesgpy-and-python-3x.patch
+scripts-gdb-provide-linux-constants.patch
+scripts-gdb-provide-kernel-list-item-generators.patch
+scripts-gdb-convert-modules-usage-to-lists-functions.patch
+scripts-gdb-provide-exception-catching-parser.patch
+scripts-gdb-support-config_modules-gracefully.patch
+scripts-gdb-provide-a-dentry_name-vfs-path-helper.patch
+scripts-gdb-add-io-resource-readers.patch
+scripts-gdb-add-mount-point-list-command.patch
+scripts-gdb-add-cpu-iterators.patch
+scripts-gdb-add-a-radix-tree-parser.patch
+scripts-gdb-add-documentation-example-for-radix-tree.patch
+scripts-gdb-add-lx_thread_info_by_pid-helper.patch
 
