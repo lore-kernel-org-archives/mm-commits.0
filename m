@@ -1,313 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-posix_acl_create-deadlock.patch added to -mm tree
-Date: Mon, 09 May 2016 22:58:14 -0700
-Message-ID: <57317876.1L8MWxL2nPOXedgc%akpm@linux-foundation.org>
+Subject: [merged] zsmalloc-fix-zs_can_compact-integer-overflow.patch
+ removed from -mm tree
+Date: Tue, 10 May 2016 10:30:49 -0700
+Message-ID: <57321ac9.3CzN6vrf0YxGZLHY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37956 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51486 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750918AbcEJF6P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 01:58:15 -0400
+	with ESMTP id S1750951AbcEJRav (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 13:30:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, tariq.x.saeed@oracle.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix posix_acl_create deadlock
-has been added to the -mm tree.  Its filename is
-     ocfs2-fix-posix_acl_create-deadlock.patch
+     Subject: zsmalloc: fix zs_can_compact() integer overflow
+has been removed from the -mm tree.  Its filename was
+     zsmalloc-fix-zs_can_compact-integer-overflow.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-posix_acl_create-deadlock.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-posix_acl_create-deadlock.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: fix posix_acl_create deadlock
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zsmalloc: fix zs_can_compact() integer overflow
 
-commit 702e5bc68ad2 ("ocfs2: use generic posix ACL infrastructure")
-refactored code to use posix_acl_create.  The problem with this function
-is that it is not mindful of the cluster wide inode lock making it
-unsuitable for use with ocfs2 inode creation with ACLs.  For example, when
-used in ocfs2_mknod, this function can cause deadlock as follows.  The
-parent dir inode lock is taken when calling posix_acl_create -> get_acl ->
-ocfs2_iop_get_acl which takes the inode lock again.  This can cause
-deadlock if there is a blocked remote lock request waiting for the lock to
-be downconverted.  And same deadlock happened in ocfs2_reflink.  This fix
-is to revert back using ocfs2_init_acl.
+zs_can_compact() has two race conditions in its core calculation:
 
-Fixes: 702e5bc68ad2 ("ocfs2: use generic posix ACL infrastructure")
-Signed-off-by: Tariq Saeed <tariq.x.saeed@oracle.com>
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+unsigned long obj_wasted = zs_stat_get(class, OBJ_ALLOCATED) -
+				zs_stat_get(class, OBJ_USED);
+
+1) classes are not locked, so the numbers of allocated and used
+   objects can change by the concurrent ops happening on other CPUs
+2) shrinker invokes it from preemptible context
+
+Depending on the circumstances, thus, OBJ_ALLOCATED can become
+less than OBJ_USED, which can result in either very high or
+negative `total_scan' value calculated later in do_shrink_slab().
+
+do_shrink_slab() has some logic to prevent those cases:
+
+ vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
+ vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
+ vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-64
+ vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
+ vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
+ vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
+
+However, due to the way `total_scan' is calculated, not every
+shrinker->count_objects() overflow can be spotted and handled.
+To demonstrate the latter, I added some debugging code to do_shrink_slab()
+(x86_64) and the results were:
+
+ vmscan: OVERFLOW: shrinker->count_objects() == -1 [18446744073709551615]
+ vmscan: but total_scan > 0: 92679974445502
+ vmscan: resulting total_scan: 92679974445502
+[..]
+ vmscan: OVERFLOW: shrinker->count_objects() == -1 [18446744073709551615]
+ vmscan: but total_scan > 0: 22634041808232578
+ vmscan: resulting total_scan: 22634041808232578
+
+Even though shrinker->count_objects() has returned an overflowed value,
+the resulting `total_scan' is positive, and, what is more worrisome, it
+is insanely huge. This value is getting used later on in
+shrinker->scan_objects() loop:
+
+        while (total_scan >= batch_size ||
+               total_scan >= freeable) {
+                unsigned long ret;
+                unsigned long nr_to_scan = min(batch_size, total_scan);
+
+                shrinkctl->nr_to_scan = nr_to_scan;
+                ret = shrinker->scan_objects(shrinker, shrinkctl);
+                if (ret == SHRINK_STOP)
+                        break;
+                freed += ret;
+
+                count_vm_events(SLABS_SCANNED, nr_to_scan);
+                total_scan -= nr_to_scan;
+
+                cond_resched();
+        }
+
+`total_scan >= batch_size' is true for a very-very long time and
+'total_scan >= freeable' is also true for quite some time, because
+`freeable < 0' and `total_scan' is large enough, for example,
+22634041808232578. The only break condition, in the given scheme of
+things, is shrinker->scan_objects() == SHRINK_STOP test, which is a
+bit too weak to rely on, especially in heavy zsmalloc-usage scenarios.
+
+To fix the issue, take a pool stat snapshot and use it instead of
+racy zs_stat_get() calls.
+
+Link: http://lkml.kernel.org/r/20160509140052.3389-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>        [4.3+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/acl.c          |   63 ++++++++++++++++++++++++++++++++++++++
- fs/ocfs2/acl.h          |    4 ++
- fs/ocfs2/namei.c        |   23 +------------
- fs/ocfs2/refcounttree.c |   17 +---------
- fs/ocfs2/xattr.c        |   14 +++-----
- fs/ocfs2/xattr.h        |    4 --
- 6 files changed, 77 insertions(+), 48 deletions(-)
+ mm/zsmalloc.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/acl.c~ocfs2-fix-posix_acl_create-deadlock fs/ocfs2/acl.c
---- a/fs/ocfs2/acl.c~ocfs2-fix-posix_acl_create-deadlock
-+++ a/fs/ocfs2/acl.c
-@@ -346,3 +346,66 @@ int ocfs2_acl_chmod(struct inode *inode,
- 	posix_acl_release(acl);
- 	return ret;
- }
-+
-+/*
-+ * Initialize the ACLs of a new inode. If parent directory has default ACL,
-+ * then clone to new inode. Called from ocfs2_mknod.
-+ */
-+int ocfs2_init_acl(handle_t *handle,
-+		   struct inode *inode,
-+		   struct inode *dir,
-+		   struct buffer_head *di_bh,
-+		   struct buffer_head *dir_bh,
-+		   struct ocfs2_alloc_context *meta_ac,
-+		   struct ocfs2_alloc_context *data_ac)
-+{
-+	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
-+	struct posix_acl *acl = NULL;
-+	int ret = 0, ret2;
-+	umode_t mode;
-+
-+	if (!S_ISLNK(inode->i_mode)) {
-+		if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
-+			acl = ocfs2_get_acl_nolock(dir, ACL_TYPE_DEFAULT,
-+						   dir_bh);
-+			if (IS_ERR(acl))
-+				return PTR_ERR(acl);
-+		}
-+		if (!acl) {
-+			mode = inode->i_mode & ~current_umask();
-+			ret = ocfs2_acl_set_mode(inode, di_bh, handle, mode);
-+			if (ret) {
-+				mlog_errno(ret);
-+				goto cleanup;
-+			}
-+		}
-+	}
-+	if ((osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) && acl) {
-+		if (S_ISDIR(inode->i_mode)) {
-+			ret = ocfs2_set_acl(handle, inode, di_bh,
-+					    ACL_TYPE_DEFAULT, acl,
-+					    meta_ac, data_ac);
-+			if (ret)
-+				goto cleanup;
-+		}
-+		mode = inode->i_mode;
-+		ret = __posix_acl_create(&acl, GFP_NOFS, &mode);
-+		if (ret < 0)
-+			return ret;
-+
-+		ret2 = ocfs2_acl_set_mode(inode, di_bh, handle, mode);
-+		if (ret2) {
-+			mlog_errno(ret2);
-+			ret = ret2;
-+			goto cleanup;
-+		}
-+		if (ret > 0) {
-+			ret = ocfs2_set_acl(handle, inode,
-+					    di_bh, ACL_TYPE_ACCESS,
-+					    acl, meta_ac, data_ac);
-+		}
-+	}
-+cleanup:
-+	posix_acl_release(acl);
-+	return ret;
-+}
-diff -puN fs/ocfs2/acl.h~ocfs2-fix-posix_acl_create-deadlock fs/ocfs2/acl.h
---- a/fs/ocfs2/acl.h~ocfs2-fix-posix_acl_create-deadlock
-+++ a/fs/ocfs2/acl.h
-@@ -36,5 +36,9 @@ int ocfs2_set_acl(handle_t *handle,
- 			 struct ocfs2_alloc_context *meta_ac,
- 			 struct ocfs2_alloc_context *data_ac);
- extern int ocfs2_acl_chmod(struct inode *, struct buffer_head *);
-+extern int ocfs2_init_acl(handle_t *, struct inode *, struct inode *,
-+			  struct buffer_head *, struct buffer_head *,
-+			  struct ocfs2_alloc_context *,
-+			  struct ocfs2_alloc_context *);
- 
- #endif /* OCFS2_ACL_H */
-diff -puN fs/ocfs2/namei.c~ocfs2-fix-posix_acl_create-deadlock fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-fix-posix_acl_create-deadlock
-+++ a/fs/ocfs2/namei.c
-@@ -259,7 +259,6 @@ static int ocfs2_mknod(struct inode *dir
- 	struct ocfs2_dir_lookup_result lookup = { NULL, };
- 	sigset_t oldset;
- 	int did_block_signals = 0;
--	struct posix_acl *default_acl = NULL, *acl = NULL;
- 	struct ocfs2_dentry_lock *dl = NULL;
- 
- 	trace_ocfs2_mknod(dir, dentry, dentry->d_name.len, dentry->d_name.name,
-@@ -367,12 +366,6 @@ static int ocfs2_mknod(struct inode *dir
- 		goto leave;
- 	}
- 
--	status = posix_acl_create(dir, &inode->i_mode, &default_acl, &acl);
--	if (status) {
--		mlog_errno(status);
--		goto leave;
--	}
--
- 	handle = ocfs2_start_trans(osb, ocfs2_mknod_credits(osb->sb,
- 							    S_ISDIR(mode),
- 							    xattr_credits));
-@@ -421,16 +414,8 @@ static int ocfs2_mknod(struct inode *dir
- 		inc_nlink(dir);
- 	}
- 
--	if (default_acl) {
--		status = ocfs2_set_acl(handle, inode, new_fe_bh,
--				       ACL_TYPE_DEFAULT, default_acl,
--				       meta_ac, data_ac);
--	}
--	if (!status && acl) {
--		status = ocfs2_set_acl(handle, inode, new_fe_bh,
--				       ACL_TYPE_ACCESS, acl,
--				       meta_ac, data_ac);
--	}
-+	status = ocfs2_init_acl(handle, inode, dir, new_fe_bh, parent_fe_bh,
-+			 meta_ac, data_ac);
- 
- 	if (status < 0) {
- 		mlog_errno(status);
-@@ -472,10 +457,6 @@ static int ocfs2_mknod(struct inode *dir
- 	d_instantiate(dentry, inode);
- 	status = 0;
- leave:
--	if (default_acl)
--		posix_acl_release(default_acl);
--	if (acl)
--		posix_acl_release(acl);
- 	if (status < 0 && did_quota_inode)
- 		dquot_free_inode(inode);
- 	if (handle)
-diff -puN fs/ocfs2/refcounttree.c~ocfs2-fix-posix_acl_create-deadlock fs/ocfs2/refcounttree.c
---- a/fs/ocfs2/refcounttree.c~ocfs2-fix-posix_acl_create-deadlock
-+++ a/fs/ocfs2/refcounttree.c
-@@ -4248,20 +4248,12 @@ static int ocfs2_reflink(struct dentry *
- 	struct inode *inode = d_inode(old_dentry);
- 	struct buffer_head *old_bh = NULL;
- 	struct inode *new_orphan_inode = NULL;
--	struct posix_acl *default_acl, *acl;
--	umode_t mode;
- 
- 	if (!ocfs2_refcount_tree(OCFS2_SB(inode->i_sb)))
- 		return -EOPNOTSUPP;
- 
--	mode = inode->i_mode;
--	error = posix_acl_create(dir, &mode, &default_acl, &acl);
--	if (error) {
--		mlog_errno(error);
--		return error;
--	}
- 
--	error = ocfs2_create_inode_in_orphan(dir, mode,
-+	error = ocfs2_create_inode_in_orphan(dir, inode->i_mode,
- 					     &new_orphan_inode);
- 	if (error) {
- 		mlog_errno(error);
-@@ -4300,16 +4292,11 @@ static int ocfs2_reflink(struct dentry *
- 	/* If the security isn't preserved, we need to re-initialize them. */
- 	if (!preserve) {
- 		error = ocfs2_init_security_and_acl(dir, new_orphan_inode,
--						    &new_dentry->d_name,
--						    default_acl, acl);
-+						    &new_dentry->d_name);
- 		if (error)
- 			mlog_errno(error);
- 	}
- out:
--	if (default_acl)
--		posix_acl_release(default_acl);
--	if (acl)
--		posix_acl_release(acl);
- 	if (!error) {
- 		error = ocfs2_mv_orphaned_inode_to_new(dir, new_orphan_inode,
- 						       new_dentry);
-diff -puN fs/ocfs2/xattr.c~ocfs2-fix-posix_acl_create-deadlock fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-fix-posix_acl_create-deadlock
-+++ a/fs/ocfs2/xattr.c
-@@ -7216,12 +7216,10 @@ out:
-  */
- int ocfs2_init_security_and_acl(struct inode *dir,
- 				struct inode *inode,
--				const struct qstr *qstr,
--				struct posix_acl *default_acl,
--				struct posix_acl *acl)
-+				const struct qstr *qstr)
+diff -puN mm/zsmalloc.c~zsmalloc-fix-zs_can_compact-integer-overflow mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-fix-zs_can_compact-integer-overflow
++++ a/mm/zsmalloc.c
+@@ -1735,10 +1735,13 @@ static struct page *isolate_source_page(
+ static unsigned long zs_can_compact(struct size_class *class)
  {
--	struct buffer_head *dir_bh = NULL;
- 	int ret = 0;
-+	struct buffer_head *dir_bh = NULL;
+ 	unsigned long obj_wasted;
++	unsigned long obj_allocated = zs_stat_get(class, OBJ_ALLOCATED);
++	unsigned long obj_used = zs_stat_get(class, OBJ_USED);
  
- 	ret = ocfs2_init_security_get(inode, dir, qstr, NULL);
- 	if (ret) {
-@@ -7234,11 +7232,9 @@ int ocfs2_init_security_and_acl(struct i
- 		mlog_errno(ret);
- 		goto leave;
- 	}
--
--	if (!ret && default_acl)
--		ret = ocfs2_iop_set_acl(inode, default_acl, ACL_TYPE_DEFAULT);
--	if (!ret && acl)
--		ret = ocfs2_iop_set_acl(inode, acl, ACL_TYPE_ACCESS);
-+	ret = ocfs2_init_acl(NULL, inode, dir, NULL, dir_bh, NULL, NULL);
-+	if (ret)
-+		mlog_errno(ret);
+-	obj_wasted = zs_stat_get(class, OBJ_ALLOCATED) -
+-		zs_stat_get(class, OBJ_USED);
++	if (obj_allocated <= obj_used)
++		return 0;
  
- 	ocfs2_inode_unlock(dir, 0);
- 	brelse(dir_bh);
-diff -puN fs/ocfs2/xattr.h~ocfs2-fix-posix_acl_create-deadlock fs/ocfs2/xattr.h
---- a/fs/ocfs2/xattr.h~ocfs2-fix-posix_acl_create-deadlock
-+++ a/fs/ocfs2/xattr.h
-@@ -94,7 +94,5 @@ int ocfs2_reflink_xattrs(struct inode *o
- 			 bool preserve_security);
- int ocfs2_init_security_and_acl(struct inode *dir,
- 				struct inode *inode,
--				const struct qstr *qstr,
--				struct posix_acl *default_acl,
--				struct posix_acl *acl);
-+				const struct qstr *qstr);
- #endif /* OCFS2_XATTR_H */
++	obj_wasted = obj_allocated - obj_used;
+ 	obj_wasted /= get_maxobj_per_zspage(class->size,
+ 			class->pages_per_zspage);
+ 
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-ocfs2-revert-using-ocfs2_acl_chmod-to-avoid-inode-cluster-lock-hang.patch
-ocfs2-fix-posix_acl_create-deadlock.patch
-ocfs2-o2hb-add-negotiate-timer.patch
-ocfs2-o2hb-add-negotiate-timer-v2.patch
-ocfs2-o2hb-add-nego_timeout-message.patch
-ocfs2-o2hb-add-nego_timeout-message-v2.patch
-ocfs2-o2hb-add-negotiate_approve-message.patch
-ocfs2-o2hb-add-negotiate_approve-message-v2.patch
-ocfs2-o2hb-add-some-user-debug-log.patch
-ocfs2-o2hb-add-some-user-debug-log-v2.patch
-ocfs2-o2hb-dont-negotiate-if-last-hb-fail.patch
-ocfs2-o2hb-fix-hb-hung-time.patch
+zsmalloc-require-gfp-in-zs_malloc.patch
+zsmalloc-require-gfp-in-zs_malloc-v2.patch
+zram-user-per-cpu-compression-streams.patch
+zram-user-per-cpu-compression-streams-fix.patch
+zram-remove-max_comp_streams-internals.patch
 
