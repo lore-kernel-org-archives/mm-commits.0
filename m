@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-gdb-cast-cpu-numbers-to-integer.patch added to -mm tree
-Date: Tue, 10 May 2016 12:34:34 -0700
-Message-ID: <573237ca.My143mnDZbgAeMCf%akpm@linux-foundation.org>
+Subject: + scripts-gdb-fix-issue-with-dmesgpy-and-python-3x.patch added to -mm tree
+Date: Tue, 10 May 2016 12:34:44 -0700
+Message-ID: <573237d4.BtYBF0HRCj29tqoX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55539 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55555 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752261AbcEJTef (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 15:34:35 -0400
+	with ESMTP id S1751935AbcEJTeq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 15:34:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan.kiszka@siemens.com, mm-commits@vger.kernel.org
+To: buzdelabuz2+git@gmail.com, jan.kiszka@siemens.com, kieran@ksquared.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: cast CPU numbers to integer
+     Subject: scripts/gdb: fix issue with dmesg.py and python 3.X
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-cast-cpu-numbers-to-integer.patch
+     scripts-gdb-fix-issue-with-dmesgpy-and-python-3x.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-cast-cpu-numbers-to-integer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-fix-issue-with-dmesgpy-and-python-3x.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-cast-cpu-numbers-to-integer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-fix-issue-with-dmesgpy-and-python-3x.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,36 +38,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: cast CPU numbers to integer
+From: Dom Cote <buzdelabuz2+git@gmail.com>
+Subject: scripts/gdb: fix issue with dmesg.py and python 3.X
 
-We won't see more than 2 billion CPUs any time soon, and having cpu_list
-return long makes the output of lx-cpus a bit ugly.
+When built against Python 3, GDB differs in the return type for its
+read_memory function, causing the lx-dmesg command to fail.
 
-Link: http://lkml.kernel.org/r/dcb45c3b0a59e0fd321fa56ff7aa398458c689b3.1462865983.git.jan.kiszka@siemens.com
+Now that we have an improved read_16() we can use the new read_memoryview()
+abstraction to make lx-dmesg return valid data on both current Python APIs
+
+Tested with python 3.4 and 2.7
+Tested with gdb 7.7
+
+Link: http://lkml.kernel.org/r/28477b727ff7fe3101fd4e426060e8a68317a639.1462865983.git.jan.kiszka@siemens.com
+Signed-off-by: Dom Cote <buzdelabuz2+git@gmail.com>
+[kieran@bingham.xyz: Adjusted commit log to better reflect code changes]
+Tested-by: Kieran Bingham <kieran@bingham.xyz> (Py2.7,Py3.4,GDB10)
+Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/cpus.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/gdb/linux/dmesg.py |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN scripts/gdb/linux/cpus.py~scripts-gdb-cast-cpu-numbers-to-integer scripts/gdb/linux/cpus.py
---- a/scripts/gdb/linux/cpus.py~scripts-gdb-cast-cpu-numbers-to-integer
-+++ a/scripts/gdb/linux/cpus.py
-@@ -97,7 +97,7 @@ def cpu_list(mask_name):
-         bits >>= 1
-         bit += 1
+diff -puN scripts/gdb/linux/dmesg.py~scripts-gdb-fix-issue-with-dmesgpy-and-python-3x scripts/gdb/linux/dmesg.py
+--- a/scripts/gdb/linux/dmesg.py~scripts-gdb-fix-issue-with-dmesgpy-and-python-3x
++++ a/scripts/gdb/linux/dmesg.py
+@@ -33,11 +33,12 @@ class LxDmesg(gdb.Command):
+         if log_first_idx < log_next_idx:
+             log_buf_2nd_half = -1
+             length = log_next_idx - log_first_idx
+-            log_buf = inf.read_memory(start, length)
++            log_buf = utils.read_memoryview(inf, start, length).tobytes()
+         else:
+             log_buf_2nd_half = log_buf_len - log_first_idx
+-            log_buf = inf.read_memory(start, log_buf_2nd_half) + \
+-                inf.read_memory(log_buf_addr, log_next_idx)
++            a = utils.read_memoryview(inf, start, log_buf_2nd_half)
++            b = utils.read_memoryview(inf, log_buf_addr, log_next_idx)
++            log_buf = a.tobytes() + b.tobytes()
  
--        yield cpu
-+        yield int(cpu)
- 
- 
- def each_online_cpu():
+         pos = 0
+         while pos < log_buf.__len__():
 _
 
-Patches currently in -mm which might be from jan.kiszka@siemens.com are
+Patches currently in -mm which might be from buzdelabuz2+git@gmail.com are
 
-scripts-gdb-adjust-module-reference-counter-reported-by-lx-lsmod.patch
-scripts-gdb-cast-cpu-numbers-to-integer.patch
+scripts-gdb-improve-types-abstraction-for-gdb-python-scripts.patch
+scripts-gdb-fix-issue-with-dmesgpy-and-python-3x.patch
 
