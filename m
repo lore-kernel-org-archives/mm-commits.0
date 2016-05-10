@@ -1,136 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zsmalloc-fix-zs_can_compact-integer-overflow.patch
- removed from -mm tree
-Date: Tue, 10 May 2016 10:30:49 -0700
-Message-ID: <57321ac9.3CzN6vrf0YxGZLHY%akpm@linux-foundation.org>
+Subject: [merged]
+ revert-proc-base-make-prompt-shell-start-from-new-line-after-executing-cat-proc-pid-wchan.patch removed from -mm tree
+Date: Tue, 10 May 2016 10:30:46 -0700
+Message-ID: <57321ac6.1TIgmnVLmdk8q95Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51486 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51484 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750951AbcEJRav (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 13:30:51 -0400
+	with ESMTP id S1750864AbcEJRat (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 May 2016 13:30:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: plaguedbypenguins@gmail.com, mnfhuang@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: fix zs_can_compact() integer overflow
+     Subject: Revert "proc/base: make prompt shell start from new line after executing "cat /proc/$pid/wchan""
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-fix-zs_can_compact-integer-overflow.patch
+     revert-proc-base-make-prompt-shell-start-from-new-line-after-executing-cat-proc-pid-wchan.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: fix zs_can_compact() integer overflow
+From: Robin Humble <plaguedbypenguins@gmail.com>
+Subject: Revert "proc/base: make prompt shell start from new line after executing "cat /proc/$pid/wchan""
 
-zs_can_compact() has two race conditions in its core calculation:
+This reverts the 4.6-rc1 commit 7e2bc81da333f0d4ca68 ("proc/base: make
+prompt shell start from new line after executing "cat /proc/$pid/wchan").
 
-unsigned long obj_wasted = zs_stat_get(class, OBJ_ALLOCATED) -
-				zs_stat_get(class, OBJ_USED);
+Please revert because it breaks /proc/$PID/whcan formatting in ps and
+top.
 
-1) classes are not locked, so the numbers of allocated and used
-   objects can change by the concurrent ops happening on other CPUs
-2) shrinker invokes it from preemptible context
+Revert also because the patch is inconsistent - it adds a newline at the
+end of only the '0' wchan, and does not add a newline when
+/proc/$PID/wchan contains a symbol name.
 
-Depending on the circumstances, thus, OBJ_ALLOCATED can become
-less than OBJ_USED, which can result in either very high or
-negative `total_scan' value calculated later in do_shrink_slab().
+eg.
+$ ps -eo pid,stat,wchan,comm
+PID STAT WCHAN  COMMAND
+...
+1189 S    -      dbus-launch
+1190 Ssl  0
+dbus-daemon
+1198 Sl   0
+lightdm
+1299 Ss   ep_pol systemd
+1301 S    -      (sd-pam)
+1304 Ss   wait   sh
 
-do_shrink_slab() has some logic to prevent those cases:
-
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-64
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
- vmscan: shrink_slab: zs_shrinker_scan+0x0/0x28 [zsmalloc] negative objects to delete nr=-62
-
-However, due to the way `total_scan' is calculated, not every
-shrinker->count_objects() overflow can be spotted and handled.
-To demonstrate the latter, I added some debugging code to do_shrink_slab()
-(x86_64) and the results were:
-
- vmscan: OVERFLOW: shrinker->count_objects() == -1 [18446744073709551615]
- vmscan: but total_scan > 0: 92679974445502
- vmscan: resulting total_scan: 92679974445502
-[..]
- vmscan: OVERFLOW: shrinker->count_objects() == -1 [18446744073709551615]
- vmscan: but total_scan > 0: 22634041808232578
- vmscan: resulting total_scan: 22634041808232578
-
-Even though shrinker->count_objects() has returned an overflowed value,
-the resulting `total_scan' is positive, and, what is more worrisome, it
-is insanely huge. This value is getting used later on in
-shrinker->scan_objects() loop:
-
-        while (total_scan >= batch_size ||
-               total_scan >= freeable) {
-                unsigned long ret;
-                unsigned long nr_to_scan = min(batch_size, total_scan);
-
-                shrinkctl->nr_to_scan = nr_to_scan;
-                ret = shrinker->scan_objects(shrinker, shrinkctl);
-                if (ret == SHRINK_STOP)
-                        break;
-                freed += ret;
-
-                count_vm_events(SLABS_SCANNED, nr_to_scan);
-                total_scan -= nr_to_scan;
-
-                cond_resched();
-        }
-
-`total_scan >= batch_size' is true for a very-very long time and
-'total_scan >= freeable' is also true for quite some time, because
-`freeable < 0' and `total_scan' is large enough, for example,
-22634041808232578. The only break condition, in the given scheme of
-things, is shrinker->scan_objects() == SHRINK_STOP test, which is a
-bit too weak to rely on, especially in heavy zsmalloc-usage scenarios.
-
-To fix the issue, take a pool stat snapshot and use it instead of
-racy zs_stat_get() calls.
-
-Link: http://lkml.kernel.org/r/20160509140052.3389-1-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>        [4.3+]
+Signed-off-by: Robin Humble <plaguedbypenguins@gmail.com>
+Cc: Minfei Huang <mnfhuang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/proc/base.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-fix-zs_can_compact-integer-overflow mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-fix-zs_can_compact-integer-overflow
-+++ a/mm/zsmalloc.c
-@@ -1735,10 +1735,13 @@ static struct page *isolate_source_page(
- static unsigned long zs_can_compact(struct size_class *class)
- {
- 	unsigned long obj_wasted;
-+	unsigned long obj_allocated = zs_stat_get(class, OBJ_ALLOCATED);
-+	unsigned long obj_used = zs_stat_get(class, OBJ_USED);
+diff -puN fs/proc/base.c~revert-proc-base-make-prompt-shell-start-from-new-line-after-executing-cat-proc-pid-wchan fs/proc/base.c
+--- a/fs/proc/base.c~revert-proc-base-make-prompt-shell-start-from-new-line-after-executing-cat-proc-pid-wchan
++++ a/fs/proc/base.c
+@@ -434,7 +434,7 @@ static int proc_pid_wchan(struct seq_fil
+ 			&& !lookup_symbol_name(wchan, symname))
+ 		seq_printf(m, "%s", symname);
+ 	else
+-		seq_puts(m, "0\n");
++		seq_putc(m, '0');
  
--	obj_wasted = zs_stat_get(class, OBJ_ALLOCATED) -
--		zs_stat_get(class, OBJ_USED);
-+	if (obj_allocated <= obj_used)
-+		return 0;
- 
-+	obj_wasted = obj_allocated - obj_used;
- 	obj_wasted /= get_maxobj_per_zspage(class->size,
- 			class->pages_per_zspage);
- 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from plaguedbypenguins@gmail.com are
 
-zsmalloc-require-gfp-in-zs_malloc.patch
-zsmalloc-require-gfp-in-zs_malloc-v2.patch
-zram-user-per-cpu-compression-streams.patch
-zram-user-per-cpu-compression-streams-fix.patch
-zram-remove-max_comp_streams-internals.patch
 
