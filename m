@@ -1,60 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- mm-kasan-initial-memory-quarantine-implementation-v8-fix.patch removed from -mm tree
-Date: Wed, 11 May 2016 15:07:43 -0700
-Message-ID: <5733ad2f.+STj+9hRhCjU6klc%akpm@linux-foundation.org>
+Subject: + mm-kasan-initial-memory-quarantine-implementation-v9.patch
+ added to -mm tree
+Date: Wed, 11 May 2016 15:15:53 -0700
+Message-ID: <5733af19.ozJBh3echgKiH1aO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38334 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38454 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751741AbcEKWHp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 May 2016 18:07:45 -0400
+	with ESMTP id S1752491AbcEKWPz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 May 2016 18:15:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: glider@google.com, adech.fo@gmail.com, cl@linux.com, dmitryc@google.com, dvyukov@google.com, iamjoonsoo.kim@lge.com, kcc@google.com, penberg@kernel.org, rientjes@google.com, rostedt@goodmis.org, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-kasan-initial-memory-quarantine-implementation-v8-fix
-has been removed from the -mm tree.  Its filename was
-     mm-kasan-initial-memory-quarantine-implementation-v8-fix.patch
+     Subject: mm: kasan: Initial memory quarantine implementation
+has been added to the -mm tree.  Its filename is
+     mm-kasan-initial-memory-quarantine-implementation-v9.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-initial-memory-quarantine-implementation-v9.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-initial-memory-quarantine-implementation-v9.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm-kasan-initial-memory-quarantine-implementation-v8-fix
+From: Alexander Potapenko <glider@google.com>
+Subject: mm: kasan: Initial memory quarantine implementation
 
- * Fix comment styles,
- * Get rid of some ifdefs
- * Revert needless functions renames in quarantine patch
- * Remove needless local_irq_save()/restore() in per_cpu_remove_cache()
- * Add new 'struct qlist_node' instead of 'void **' types. This makes
-   code a bit more redable.
+v9: - incorporate the fixes by Andrey Ryabinin:
+      * Fix comment styles,
+      * Get rid of some ifdefs
+      * Revert needless functions renames in quarantine patch
+      * Remove needless local_irq_save()/restore() in
+        per_cpu_remove_cache()
+      * Add new 'struct qlist_node' instead of 'void **' types. This makes
+        code a bit more redable.
+    - remove the non-deterministic quarantine test
+    - dropped smp_load_acquire()/smp_store_release()
 
-Link: http://lkml.kernel.org/r/1462887534-30428-1-git-send-email-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/1462987130-144092-1-git-send-email-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Andrey Konovalov <adech.fo@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Konstantin Serebryany <kcc@google.com>
+Cc: Dmitry Chernenkov <dmitryc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   17 ++----
+ include/linux/kasan.h |   17 +----
+ lib/test_kasan.c      |   29 ---------
  mm/kasan/Makefile     |    5 -
- mm/kasan/kasan.c      |   14 +----
- mm/kasan/kasan.h      |   12 ++++
- mm/kasan/quarantine.c |  110 ++++++++++++++++++++--------------------
+ mm/kasan/kasan.c      |   14 ----
+ mm/kasan/kasan.h      |   12 +++
+ mm/kasan/quarantine.c |  126 ++++++++++++++++++++--------------------
  mm/mempool.c          |    5 -
  mm/page_alloc.c       |    2 
  mm/slab.c             |    7 --
  mm/slub.c             |    4 -
- 9 files changed, 84 insertions(+), 92 deletions(-)
+ 10 files changed, 92 insertions(+), 129 deletions(-)
 
-diff -puN include/linux/kasan.h~mm-kasan-initial-memory-quarantine-implementation-v8-fix include/linux/kasan.h
---- a/include/linux/kasan.h~mm-kasan-initial-memory-quarantine-implementation-v8-fix
+diff -puN include/linux/kasan.h~mm-kasan-initial-memory-quarantine-implementation-v9 include/linux/kasan.h
+--- a/include/linux/kasan.h~mm-kasan-initial-memory-quarantine-implementation-v9
 +++ a/include/linux/kasan.h
 @@ -46,7 +46,7 @@ void kasan_unpoison_shadow(const void *a
  void kasan_unpoison_task_stack(struct task_struct *task);
@@ -113,8 +140,54 @@ diff -puN include/linux/kasan.h~mm-kasan-initial-memory-quarantine-implementatio
  static inline bool kasan_slab_free(struct kmem_cache *s, void *object)
  {
  	return false;
-diff -puN mm/kasan/Makefile~mm-kasan-initial-memory-quarantine-implementation-v8-fix mm/kasan/Makefile
---- a/mm/kasan/Makefile~mm-kasan-initial-memory-quarantine-implementation-v8-fix
+diff -puN lib/test_kasan.c~mm-kasan-initial-memory-quarantine-implementation-v9 lib/test_kasan.c
+--- a/lib/test_kasan.c~mm-kasan-initial-memory-quarantine-implementation-v9
++++ a/lib/test_kasan.c
+@@ -344,32 +344,6 @@ static noinline void __init kasan_stack_
+ 	*(volatile char *)p;
+ }
+ 
+-#ifdef CONFIG_SLAB
+-static noinline void __init kasan_quarantine_cache(void)
+-{
+-	struct kmem_cache *cache = kmem_cache_create(
+-			"test", 137, 8, GFP_KERNEL, NULL);
+-	int i;
+-
+-	for (i = 0; i <  100; i++) {
+-		void *p = kmem_cache_alloc(cache, GFP_KERNEL);
+-
+-		kmem_cache_free(cache, p);
+-		p = kmalloc(sizeof(u64), GFP_KERNEL);
+-		kfree(p);
+-	}
+-	kmem_cache_shrink(cache);
+-	for (i = 0; i <  100; i++) {
+-		u64 *p = kmem_cache_alloc(cache, GFP_KERNEL);
+-
+-		kmem_cache_free(cache, p);
+-		p = kmalloc(sizeof(u64), GFP_KERNEL);
+-		kfree(p);
+-	}
+-	kmem_cache_destroy(cache);
+-}
+-#endif
+-
+ static int __init kmalloc_tests_init(void)
+ {
+ 	kmalloc_oob_right();
+@@ -393,9 +367,6 @@ static int __init kmalloc_tests_init(voi
+ 	kmem_cache_oob();
+ 	kasan_stack_oob();
+ 	kasan_global_oob();
+-#ifdef CONFIG_SLAB
+-	kasan_quarantine_cache();
+-#endif
+ 	return -EAGAIN;
+ }
+ 
+diff -puN mm/kasan/Makefile~mm-kasan-initial-memory-quarantine-implementation-v9 mm/kasan/Makefile
+--- a/mm/kasan/Makefile~mm-kasan-initial-memory-quarantine-implementation-v9
 +++ a/mm/kasan/Makefile
 @@ -8,7 +8,4 @@ CFLAGS_REMOVE_kasan.o = -pg
  CFLAGS_kasan.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector)
@@ -125,8 +198,8 @@ diff -puN mm/kasan/Makefile~mm-kasan-initial-memory-quarantine-implementation-v8
 -	obj-y	+= quarantine.o
 -endif
 +obj-$(CONFIG_SLAB) += quarantine.o
-diff -puN mm/kasan/kasan.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix
+diff -puN mm/kasan/kasan.c~mm-kasan-initial-memory-quarantine-implementation-v9 mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-initial-memory-quarantine-implementation-v9
 +++ a/mm/kasan/kasan.c
 @@ -327,7 +327,7 @@ void kasan_alloc_pages(struct page *page
  		kasan_unpoison_shadow(page_address(page), PAGE_SIZE << order);
@@ -194,8 +267,8 @@ diff -puN mm/kasan/kasan.c~mm-kasan-initial-memory-quarantine-implementation-v8-
  {
  	struct page *page = virt_to_page(ptr);
  
-diff -puN mm/kasan/kasan.h~mm-kasan-initial-memory-quarantine-implementation-v8-fix mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~mm-kasan-initial-memory-quarantine-implementation-v8-fix
+diff -puN mm/kasan/kasan.h~mm-kasan-initial-memory-quarantine-implementation-v9 mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~mm-kasan-initial-memory-quarantine-implementation-v9
 +++ a/mm/kasan/kasan.h
 @@ -80,11 +80,14 @@ struct kasan_alloc_meta {
  	u32 reserved;
@@ -229,8 +302,8 @@ diff -puN mm/kasan/kasan.h~mm-kasan-initial-memory-quarantine-implementation-v8-
 +#endif
  
  #endif
-diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix mm/kasan/quarantine.c
---- a/mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix
+diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementation-v9 mm/kasan/quarantine.c
+--- a/mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementation-v9
 +++ a/mm/kasan/quarantine.c
 @@ -33,40 +33,42 @@
  
@@ -304,7 +377,7 @@ diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementatio
  {
  	if (unlikely(last == from->tail)) {
  		qlist_move_all(from, to);
-@@ -94,53 +96,56 @@ static void qlist_move(struct qlist *fro
+@@ -94,53 +96,52 @@ static void qlist_move(struct qlist *fro
  	if (qlist_empty(to))
  		to->head = from->head;
  	else
@@ -344,11 +417,10 @@ diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementatio
  #define QUARANTINE_FRACTION 32
  
 -/* smp_load_acquire() here pairs with smp_store_release() in
-+/*
-+ * smp_load_acquire() here pairs with smp_store_release() in
-  * quarantine_reduce().
-  */
- #define QUARANTINE_LOW_SIZE (smp_load_acquire(&quarantine_size) * 3 / 4)
+- * quarantine_reduce().
+- */
+-#define QUARANTINE_LOW_SIZE (smp_load_acquire(&quarantine_size) * 3 / 4)
++#define QUARANTINE_LOW_SIZE (READ_ONCE(quarantine_size) * 3 / 4)
  #define QUARANTINE_PERCPU_SIZE (1 << 20)
  
 -static struct kmem_cache *qlink_to_cache(void **qlink)
@@ -373,7 +445,7 @@ diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementatio
  {
  	void *object = qlink_to_object(qlink, cache);
  	struct kasan_alloc_meta *alloc_info = get_alloc_info(cache, object);
-@@ -152,9 +157,9 @@ static void qlink_free(void **qlink, str
+@@ -152,9 +153,9 @@ static void qlink_free(void **qlink, str
  	local_irq_restore(flags);
  }
  
@@ -385,7 +457,7 @@ diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementatio
  
  	if (unlikely(qlist_empty(q)))
  		return;
-@@ -163,7 +168,7 @@ static void qlist_free_all(struct qlist
+@@ -163,7 +164,7 @@ static void qlist_free_all(struct qlist
  	while (qlink) {
  		struct kmem_cache *obj_cache =
  			cache ? cache :	qlink_to_cache(qlink);
@@ -394,7 +466,7 @@ diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementatio
  
  		qlink_free(qlink, obj_cache);
  		qlink = next;
-@@ -174,13 +179,13 @@ static void qlist_free_all(struct qlist
+@@ -174,13 +175,13 @@ static void qlist_free_all(struct qlist
  void quarantine_put(struct kasan_free_meta *info, struct kmem_cache *cache)
  {
  	unsigned long flags;
@@ -411,7 +483,7 @@ diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementatio
  	if (unlikely(q->bytes > QUARANTINE_PERCPU_SIZE))
  		qlist_move_all(q, &temp);
  
-@@ -197,21 +202,22 @@ void quarantine_reduce(void)
+@@ -197,35 +198,34 @@ void quarantine_reduce(void)
  {
  	size_t new_quarantine_size;
  	unsigned long flags;
@@ -421,10 +493,11 @@ diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementatio
 -	void **last;
 +	struct qlist_node *last;
  
- 	/* smp_load_acquire() here pairs with smp_store_release() below. */
+-	/* smp_load_acquire() here pairs with smp_store_release() below. */
 -	if (likely(ACCESS_ONCE(global_quarantine.bytes) <=
+-		   smp_load_acquire(&quarantine_size)))
 +	if (likely(READ_ONCE(global_quarantine.bytes) <=
- 		   smp_load_acquire(&quarantine_size)))
++		   READ_ONCE(quarantine_size)))
  		return;
  
  	spin_lock_irqsave(&quarantine_lock, flags);
@@ -438,8 +511,12 @@ diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementatio
 +	new_quarantine_size = (READ_ONCE(totalram_pages) << PAGE_SHIFT) /
  		QUARANTINE_FRACTION;
  	new_quarantine_size -= QUARANTINE_PERCPU_SIZE * num_online_cpus();
- 	/* Pairs with smp_load_acquire() above and in QUARANTINE_LOW_SIZE. */
-@@ -222,10 +228,10 @@ void quarantine_reduce(void)
+-	/* Pairs with smp_load_acquire() above and in QUARANTINE_LOW_SIZE. */
+-	smp_store_release(&quarantine_size, new_quarantine_size);
++	WRITE_ONCE(quarantine_size, new_quarantine_size);
+ 
+ 	last = global_quarantine.head;
+ 	while (last) {
  		struct kmem_cache *cache = qlink_to_cache(last);
  
  		size_to_free += cache->size;
@@ -452,7 +529,7 @@ diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementatio
  	}
  	qlist_move(&global_quarantine, last, &to_free, size_to_free);
  
-@@ -234,50 +240,46 @@ void quarantine_reduce(void)
+@@ -234,50 +234,52 @@ void quarantine_reduce(void)
  	qlist_free_all(&to_free, NULL);
  }
  
@@ -463,7 +540,7 @@ diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementatio
  				   struct kmem_cache *cache)
  {
 -	void ***prev;
-+	struct qlist_node *prev;
++	struct qlist_node *prev = NULL, *curr;
  
  	if (unlikely(qlist_empty(from)))
  		return;
@@ -471,22 +548,29 @@ diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementatio
 -	prev = &from->head;
 -	while (*prev) {
 -		void **qlink = *prev;
-+	prev = from->head;
-+	while (prev) {
-+		struct qlist_node *qlink = prev->next;
++	curr = from->head;
++	while (curr) {
++		struct qlist_node *qlink = curr;
  		struct kmem_cache *obj_cache = qlink_to_cache(qlink);
  
  		if (obj_cache == cache) {
++			if (unlikely(from->head == qlink)) {
++				from->head = curr->next;
++				prev = curr;
++			} else
++				prev->next = curr->next;
  			if (unlikely(from->tail == qlink))
 -				from->tail = (void **) prev;
 -			*prev = (void **) *qlink;
-+				from->tail = prev;
-+			prev = qlink->next;
++				from->tail = curr->next;
  			from->bytes -= cache->size;
  			qlist_put(to, qlink, cache->size);
- 		} else
+-		} else
 -			prev = (void ***) *prev;
-+			prev = prev->next;
++		} else {
++			prev = curr;
++		}
++		curr = curr->next;
  	}
  }
  
@@ -515,8 +599,8 @@ diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementatio
  
  	on_each_cpu(per_cpu_remove_cache, cache, 1);
  
-diff -puN mm/mempool.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix mm/mempool.c
---- a/mm/mempool.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix
+diff -puN mm/mempool.c~mm-kasan-initial-memory-quarantine-implementation-v9 mm/mempool.c
+--- a/mm/mempool.c~mm-kasan-initial-memory-quarantine-implementation-v9
 +++ a/mm/mempool.c
 @@ -107,10 +107,9 @@ static void kasan_poison_element(mempool
  	if (pool->alloc == mempool_alloc_slab)
@@ -531,8 +615,8 @@ diff -puN mm/mempool.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix 
  }
  
  static void kasan_unpoison_element(mempool_t *pool, void *element, gfp_t flags)
-diff -puN mm/page_alloc.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix
+diff -puN mm/page_alloc.c~mm-kasan-initial-memory-quarantine-implementation-v9 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-kasan-initial-memory-quarantine-implementation-v9
 +++ a/mm/page_alloc.c
 @@ -993,7 +993,7 @@ static __always_inline bool free_pages_p
  
@@ -543,8 +627,8 @@ diff -puN mm/page_alloc.c~mm-kasan-initial-memory-quarantine-implementation-v8-f
  
  	/*
  	 * Check tail pages before head page information is cleared to
-diff -puN mm/slab.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix mm/slab.c
---- a/mm/slab.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix
+diff -puN mm/slab.c~mm-kasan-initial-memory-quarantine-implementation-v9 mm/slab.c
+--- a/mm/slab.c~mm-kasan-initial-memory-quarantine-implementation-v9
 +++ a/mm/slab.c
 @@ -3547,13 +3547,10 @@ free_done:
  static inline void __cache_free(struct kmem_cache *cachep, void *objp,
@@ -562,8 +646,8 @@ diff -puN mm/slab.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix mm/
  	___cache_free(cachep, objp, caller);
  }
  
-diff -puN mm/slub.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix mm/slub.c
---- a/mm/slub.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix
+diff -puN mm/slub.c~mm-kasan-initial-memory-quarantine-implementation-v9 mm/slub.c
+--- a/mm/slub.c~mm-kasan-initial-memory-quarantine-implementation-v9
 +++ a/mm/slub.c
 @@ -1319,7 +1319,7 @@ static inline void kmalloc_large_node_ho
  static inline void kfree_hook(const void *x)
@@ -585,11 +669,11 @@ diff -puN mm/slub.c~mm-kasan-initial-memory-quarantine-implementation-v8-fix mm/
  static inline void slab_free_freelist_hook(struct kmem_cache *s,
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from glider@google.com are
 
-mm-kasan-print-name-of-mem-caller-in-report.patch
-mm-kasan-add-api-to-check-memory-regions.patch
-x86-kasan-instrument-user-memory-access-api.patch
-x86-kasan-instrument-user-memory-access-api-fix.patch
-kasan-tests-add-tests-for-user-memory-access-functions.patch
+mm-kasan-initial-memory-quarantine-implementation.patch
+mm-kasan-initial-memory-quarantine-implementation-v8.patch
+mm-kasan-initial-memory-quarantine-implementation-v9.patch
+mm-kasan-dont-call-kasan_krealloc-from-ksize.patch
+mm-kasan-add-a-ksize-test.patch
 
