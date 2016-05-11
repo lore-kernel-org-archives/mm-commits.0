@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + zram-introduce-per-device-debug_stat-sysfs-node.patch added to
+Subject: +
+ documentation-memcg-update-kmem-limit-doc-as-codes-behavior.patch added to
  -mm tree
-Date: Wed, 11 May 2016 15:42:37 -0700
-Message-ID: <5733b55d.hVsLd8nOv5POBNcn%akpm@linux-foundation.org>
+Date: Wed, 11 May 2016 15:44:20 -0700
+Message-ID: <5733b5c4.5Z49hVJPveFP9t3y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39447 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40013 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751901AbcEKWmi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 May 2016 18:42:38 -0400
+	with ESMTP id S1751769AbcEKWoV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 May 2016 18:44:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: h.huangqiang@huawei.com, corbet@lwn.net, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: introduce per-device debug_stat sysfs node
+     Subject: Documentation/memcg: update kmem limit doc to match code behavior
 has been added to the -mm tree.  Its filename is
-     zram-introduce-per-device-debug_stat-sysfs-node.patch
+     documentation-memcg-update-kmem-limit-doc-as-codes-behavior.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-introduce-per-device-debug_stat-sysfs-node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-memcg-update-kmem-limit-doc-as-codes-behavior.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-introduce-per-device-debug_stat-sysfs-node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-memcg-update-kmem-limit-doc-as-codes-behavior.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,124 +40,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: introduce per-device debug_stat sysfs node
+From: Qiang Huang <h.huangqiang@huawei.com>
+Subject: Documentation/memcg: update kmem limit doc to match code behavior
 
-debug_stat sysfs is read-only and represents various debugging data that
-zram developers may need.  This file is not meant to be used by anyone
-else: its content is not documented and will change any time w/o any
-notice.  Therefore, the output of debug_stat file contains a version
-string.  To reduce the possibility of contusion, etc.  we would increase
-the version number every time we modify the output.
+The restriction of kmem setting is not there anymore because the
+accounting is enabled by default even in the cgroup v1 - see b313aeee2509
+("mm: memcontrol: enable kmem accounting for all cgroups in the legacy
+hierarchy").
 
-At the moment this file exports only one value -- the number of
-re-compressions, IOW, the number of times compression fast path has
-failed; which is a temporarily stats, that we will be using should any
-per-cpu regressions happen.  It's excepted to go away.
+Update docs accordingly.
 
-Link: http://lkml.kernel.org/r/20160511134553.12655-1-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: http://lkml.kernel.org/r/5732CC23.2060101@huawei.com
+Signed-off-by: Qiang Huang <h.huangqiang@huawei.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |    7 ++++++
- Documentation/blockdev/zram.txt            |    1 
- drivers/block/zram/zram_drv.c              |   21 +++++++++++++++++++
- drivers/block/zram/zram_drv.h              |    1 
- 4 files changed, 30 insertions(+)
+ Documentation/cgroup-v1/memory.txt |   14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-introduce-per-device-debug_stat-sysfs-node Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-introduce-per-device-debug_stat-sysfs-node
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -166,3 +166,10 @@ Description:
- 		The mm_stat file is read-only and represents device's mm
- 		statistics (orig_data_size, compr_data_size, etc.) in a format
- 		similar to block layer statistics file format.
-+
-+What:		/sys/block/zram<id>/debug_stat
-+Date:		July 2016
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The debug_stat file is read-only and represents various
-+		device's debugging info.
-diff -puN Documentation/blockdev/zram.txt~zram-introduce-per-device-debug_stat-sysfs-node Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-introduce-per-device-debug_stat-sysfs-node
-+++ a/Documentation/blockdev/zram.txt
-@@ -172,6 +172,7 @@ mem_limit         RW    the maximum amou
- pages_compacted   RO    the number of pages freed during compaction
-                         (available only via zram<id>/mm_stat node)
- compact           WO    trigger memory compaction
-+debug_stat        RO    this file is used for zram debugging purposes
+diff -puN Documentation/cgroup-v1/memory.txt~documentation-memcg-update-kmem-limit-doc-as-codes-behavior Documentation/cgroup-v1/memory.txt
+--- a/Documentation/cgroup-v1/memory.txt~documentation-memcg-update-kmem-limit-doc-as-codes-behavior
++++ a/Documentation/cgroup-v1/memory.txt
+@@ -280,17 +280,9 @@ the amount of kernel memory used by the
+ different than user memory, since it can't be swapped out, which makes it
+ possible to DoS the system by consuming too much of this precious resource.
  
- WARNING
- =======
-diff -puN drivers/block/zram/zram_drv.c~zram-introduce-per-device-debug_stat-sysfs-node drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-introduce-per-device-debug_stat-sysfs-node
-+++ a/drivers/block/zram/zram_drv.c
-@@ -435,8 +435,26 @@ static ssize_t mm_stat_show(struct devic
- 	return ret;
- }
- 
-+static ssize_t debug_stat_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	unsigned int version = 1;
-+	struct zram *zram = dev_to_zram(dev);
-+	ssize_t ret;
-+
-+	down_read(&zram->init_lock);
-+	ret = scnprintf(buf, PAGE_SIZE,
-+			"version: %d\n%8llu\n",
-+			version,
-+			(u64)atomic64_read(&zram->stats.num_recompress));
-+	up_read(&zram->init_lock);
-+
-+	return ret;
-+}
-+
- static DEVICE_ATTR_RO(io_stat);
- static DEVICE_ATTR_RO(mm_stat);
-+static DEVICE_ATTR_RO(debug_stat);
- ZRAM_ATTR_RO(num_reads);
- ZRAM_ATTR_RO(num_writes);
- ZRAM_ATTR_RO(failed_reads);
-@@ -719,6 +737,8 @@ compress_again:
- 		zcomp_strm_release(zram->comp, zstrm);
- 		zstrm = NULL;
- 
-+		atomic64_inc(&zram->stats.num_recompress);
-+
- 		handle = zs_malloc(meta->mem_pool, clen,
- 				GFP_NOIO | __GFP_HIGHMEM);
- 		if (handle)
-@@ -1181,6 +1201,7 @@ static struct attribute *zram_disk_attrs
- 	&dev_attr_comp_algorithm.attr,
- 	&dev_attr_io_stat.attr,
- 	&dev_attr_mm_stat.attr,
-+	&dev_attr_debug_stat.attr,
- 	NULL,
- };
- 
-diff -puN drivers/block/zram/zram_drv.h~zram-introduce-per-device-debug_stat-sysfs-node drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-introduce-per-device-debug_stat-sysfs-node
-+++ a/drivers/block/zram/zram_drv.h
-@@ -85,6 +85,7 @@ struct zram_stats {
- 	atomic64_t zero_pages;		/* no. of zero filled pages */
- 	atomic64_t pages_stored;	/* no. of pages currently stored */
- 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
-+	atomic64_t num_recompress;	/* no. of compression slow paths */
- };
- 
- struct zram_meta {
-_
-
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
-
-zsmalloc-require-gfp-in-zs_malloc.patch
-zsmalloc-require-gfp-in-zs_malloc-v2.patch
-zram-user-per-cpu-compression-streams.patch
-zram-user-per-cpu-compression-streams-fix.patch
-zram-remove-max_comp_streams-internals.patch
-zram-introduce-per-device-debug_stat-sysfs-node.patch
-
+-Kernel memory won't be accounted at all until limit on a group is set. This
+-allows for existing setups to continue working without disruption.  The limit
+-cannot be set if the cgroup have children, or if there are already tasks in the
+-cgroup. Attempting to set the limit under those conditions will return -EBUSY.
+-When use_hierarchy == 1 and a group is accounted, its children will
+-automatically be accounted regardless of their limit value.
