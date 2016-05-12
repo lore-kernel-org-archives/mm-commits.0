@@ -1,66 +1,56 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix-2.patch removed from -mm tree
-Date: Thu, 12 May 2016 15:18:40 -0700
-Message-ID: <57350140.FG45VtT23anxY/Kl%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Thu, 12 May 2016 15:41:50 -0700
+Message-ID: <20160512154150.9f1f6fb171163f02a9b4a74b@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Thu__12_May_2016_15_41_50_-0700_wQDdu.NREz6+5aDf"
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39047 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39304 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752013AbcELWSm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2016 18:18:42 -0400
+	with ESMTP id S1751637AbcELWmG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2016 18:42:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, kirill@shutemov.name, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
+
+--Signature=_Thu__12_May_2016_15_41_50_-0700_wQDdu.NREz6+5aDf
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+4 fixes, based on 422ce5a97570cb8a37d016b6bc2021ae4dac5499:
+
+Subject: ocfs2: revert using ocfs2_acl_chmod to avoid inode cluster lock ha=
+ng
+Subject: ocfs2: fix posix_acl_create deadlock
+Subject: ksm: fix conflict between mmput and scan_get_next_rmap_item
+Subject: mm: thp: calculate the mapcount correctly for THP pages during WP =
+faults
 
 
-The patch titled
-     Subject: mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix-2
-has been removed from the -mm tree.  Its filename was
-     mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix-2.patch
+--Signature=_Thu__12_May_2016_15_41_50_-0700_wQDdu.NREz6+5aDf
+Content-Type: application/pgp-signature
 
-This patch was dropped because it was folded into mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults.patch
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix-2
+iQIcBAEBAgAGBQJXNQa8AAoJEJxZ78cCqAIHDpkP/ilfVHo3WROvYhOS/+TnoEfd
+cQ2BYI97ds5FPbOyJcLNvaZ8AJ8Pfx1lhzmgaONO2HG0aIH6Rc3sLuVvDiIXAXnj
+xykuDjgvj2qU/rYytB7nAy/T8UavNsQLLOxJcPIpPRPtfcXW8tXUlxmeFhPP0bLN
+vqIBrnxeXBnTz288LYo/B43yEqtf+DQomcnjO9loVXmVKaglOIqWUVi0s0p5472v
+QBu2DXvNG6xEOPoz8zD0D+L8jbq9jUeZNG0u8kGQPgY3eNw5iVILgvNC5yG5VIy+
+IKghEsRrXloAZFNo5PIAvFx+/ztS1K3WZJ5v2YDxPFGr9dEmJUbtNUJ/0LcCJ8rE
+yCTsO6kX0Sgkx4ozCRHtrBch12SJvzFAshRsxwvfbJO9gZHan9KFzo0+J3zsgziu
++BeFSAUrLz+0brspKwkEhLK+uOArAk9ndHKzXWBojnXz9MKegYBCHwLDIb7oHYgA
+oI+d9ZV5NJFTR0JmR2Aq3/cnamoQ4DXVkgByDFLLKeUXcEgHtIaFga/7aunf5SLw
+K2Qg91JUjEhmODbjVzRsLxywGtVpqmHd9xFTBGtxdf4l5Xx5/zU1EcNLY/z/9BJ+
+SFzyrcuXRNDBkH1TgVMXJ8tASo54nxapColuDU1R9376u9Xq3SlSDoUHJ/ksh7oZ
+nerAUxtwf/4bhGwG+iTw
+=X1GL
+-----END PGP SIGNATURE-----
 
-Link: http://lkml.kernel.org/r/1463070742-18401-1-git-send-email-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: "Kirill A. Shutemov" <kirill@shutemov.name>
-
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/huge_memory.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
-
-diff -puN mm/huge_memory.c~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix-2 mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix-2
-+++ a/mm/huge_memory.c
-@@ -3248,8 +3248,12 @@ int page_trans_huge_mapcount(struct page
- 	/* hugetlbfs shouldn't call it */
- 	VM_BUG_ON_PAGE(PageHuge(page), page);
- 
--	if (likely(!PageTransCompound(page)))
--		return atomic_read(&page->_mapcount) + 1;
-+	if (likely(!PageTransCompound(page))) {
-+		mapcount = atomic_read(&page->_mapcount) + 1;
-+		if (total_mapcount)
-+			*total_mapcount = mapcount;
-+		return mapcount;
-+	}
- 
- 	page = compound_head(page);
- 
-_
-
-Patches currently in -mm which might be from aarcange@redhat.com are
-
-mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults.patch
-mm-thp-microoptimize-compound_mapcount.patch
-mm-thp-split_huge_pmd_address-comment-improvement.patch
-
+--Signature=_Thu__12_May_2016_15_41_50_-0700_wQDdu.NREz6+5aDf--
