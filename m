@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix.patch added to -mm tree
-Date: Thu, 12 May 2016 14:20:44 -0700
-Message-ID: <5734f3ac.ZibVnfpPj6zqxATq%akpm@linux-foundation.org>
+ mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
+ added to -mm tree
+Date: Thu, 12 May 2016 14:21:10 -0700
+Message-ID: <5734f3c6.6HIuviGCNqxbj0Mr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38162 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38166 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751990AbcELVUp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2016 17:20:45 -0400
+	with ESMTP id S1751990AbcELVVL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2016 17:21:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix
+     Subject: mm, oom: protect !costly allocations some more for !CONFIG_COMPACTION
 has been added to the -mm tree.  Its filename is
-     mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix.patch
+     mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +41,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix
+Subject: mm, oom: protect !costly allocations some more for !CONFIG_COMPACTION
 
-watermark check should use classzone_idx rather than high_zoneidx
-to check reserves against the correct (preferred) zone.
+Joonsoo has reported that he is able to trigger OOM for !costly high order
+requests (heavy fork() workload close the OOM) with the new oom detection
+rework.  This is because we rely only on should_reclaim_retry when the
+compaction is disabled and it only checks watermarks for the requested
+order and so we might trigger OOM when there is a lot of free memory.
 
-Link: http://lkml.kernel.org/r/1463051677-29418-2-git-send-email-mhocko@kernel.org
+It is not very clear what are the usual workloads when the compaction is
+disabled.  Relying on high order allocations heavily without any mechanism
+to create those orders except for unbound amount of reclaim is certainly
+not a good idea.
+
+To prevent from potential regressions let's help this configuration some. 
+We have to sacrifice the determinsm though because there simply is none
+here possible.  should_compact_retry implementation for
+!CONFIG_COMPACTION, which was empty so far, will do watermark check for
+order-0 on all eligible zones.  This will cause retrying until either the
+reclaim cannot make any further progress or all the zones are depleted
+even for order-0 pages.  This means that the number of retries is
+basically unbounded for !costly orders but that was the case before the
+rework as well so this shouldn't regress.
+
+Link: http://lkml.kernel.org/r/1463051677-29418-3-git-send-email-mhocko@kernel.org
+Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix
+diff -puN mm/page_alloc.c~mm-oom-protect-costly-allocations-some-more-for-config_compaction mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-oom-protect-costly-allocations-some-more-for-config_compaction
 +++ a/mm/page_alloc.c
-@@ -3448,7 +3448,7 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 		 * available?
- 		 */
- 		if (__zone_watermark_ok(zone, order, min_wmark_pages(zone),
--				ac->high_zoneidx, alloc_flags, available)) {
-+				ac_classzone_idx(ac), alloc_flags, available)) {
- 			/*
- 			 * If we didn't make any progress and have a lot of
- 			 * dirty + writeback pages then we should wait for
+@@ -3316,6 +3316,24 @@ should_compact_retry(struct alloc_contex
+ 		     enum migrate_mode *migrate_mode,
+ 		     int compaction_retries)
+ {
++	struct zone *zone;
++	struct zoneref *z;
++
++	if (!order || order > PAGE_ALLOC_COSTLY_ORDER)
++		return false;
++
++	/*
++	 * There are setups with compaction disabled which would prefer to loop
++	 * inside the allocator rather than hit the oom killer prematurely. Let's
++	 * give them a good hope and keep retrying while the order-0 watermarks
++	 * are OK.
++	 */
++	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
++					ac->nodemask) {
++		if(zone_watermark_ok(zone, 0, min_wmark_pages(zone),
++					ac_classzone_idx(ac), alloc_flags))
++			return true;
++	}
+ 	return false;
+ }
+ #endif /* CONFIG_COMPACTION */
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
@@ -89,6 +125,7 @@ mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix.pat
 mm-oom-protect-costly-allocations-some-more.patch
 mm-consider-compaction-feedback-also-for-costly-allocation.patch
 mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
+mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
 mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
 mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
 mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
