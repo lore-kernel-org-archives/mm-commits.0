@@ -1,56 +1,251 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Thu, 12 May 2016 15:41:50 -0700
-Message-ID: <20160512154150.9f1f6fb171163f02a9b4a74b@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [patch 2/4] ocfs2: fix posix_acl_create deadlock
+Date: Thu, 12 May 2016 15:42:18 -0700
+Message-ID: <573506ca.GZ9jPlZ1cE3Jzu8r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__12_May_2016_15_41_50_-0700_wQDdu.NREz6+5aDf"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39304 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39316 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751637AbcELWmG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2016 18:42:06 -0400
+	with ESMTP id S1751637AbcELWmT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2016 18:42:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, stable@vger.kernel.org, tariq.x.saeed@oracle.com
 
---Signature=_Thu__12_May_2016_15_41_50_-0700_wQDdu.NREz6+5aDf
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-4 fixes, based on 422ce5a97570cb8a37d016b6bc2021ae4dac5499:
-
-Subject: ocfs2: revert using ocfs2_acl_chmod to avoid inode cluster lock ha=
-ng
+From: Junxiao Bi <junxiao.bi@oracle.com>
 Subject: ocfs2: fix posix_acl_create deadlock
-Subject: ksm: fix conflict between mmput and scan_get_next_rmap_item
-Subject: mm: thp: calculate the mapcount correctly for THP pages during WP =
-faults
 
+commit 702e5bc68ad2 ("ocfs2: use generic posix ACL infrastructure")
+refactored code to use posix_acl_create.  The problem with this function
+is that it is not mindful of the cluster wide inode lock making it
+unsuitable for use with ocfs2 inode creation with ACLs.  For example, when
+used in ocfs2_mknod, this function can cause deadlock as follows.  The
+parent dir inode lock is taken when calling posix_acl_create -> get_acl ->
+ocfs2_iop_get_acl which takes the inode lock again.  This can cause
+deadlock if there is a blocked remote lock request waiting for the lock to
+be downconverted.  And same deadlock happened in ocfs2_reflink.  This fix
+is to revert back using ocfs2_init_acl.
 
---Signature=_Thu__12_May_2016_15_41_50_-0700_wQDdu.NREz6+5aDf
-Content-Type: application/pgp-signature
+Fixes: 702e5bc68ad2 ("ocfs2: use generic posix ACL infrastructure")
+Signed-off-by: Tariq Saeed <tariq.x.saeed@oracle.com>
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+ fs/ocfs2/acl.c          |   63 ++++++++++++++++++++++++++++++++++++++
+ fs/ocfs2/acl.h          |    4 ++
+ fs/ocfs2/namei.c        |   23 +------------
+ fs/ocfs2/refcounttree.c |   17 +---------
+ fs/ocfs2/xattr.c        |   14 +++-----
+ fs/ocfs2/xattr.h        |    4 --
+ 6 files changed, 77 insertions(+), 48 deletions(-)
 
-iQIcBAEBAgAGBQJXNQa8AAoJEJxZ78cCqAIHDpkP/ilfVHo3WROvYhOS/+TnoEfd
-cQ2BYI97ds5FPbOyJcLNvaZ8AJ8Pfx1lhzmgaONO2HG0aIH6Rc3sLuVvDiIXAXnj
-xykuDjgvj2qU/rYytB7nAy/T8UavNsQLLOxJcPIpPRPtfcXW8tXUlxmeFhPP0bLN
-vqIBrnxeXBnTz288LYo/B43yEqtf+DQomcnjO9loVXmVKaglOIqWUVi0s0p5472v
-QBu2DXvNG6xEOPoz8zD0D+L8jbq9jUeZNG0u8kGQPgY3eNw5iVILgvNC5yG5VIy+
-IKghEsRrXloAZFNo5PIAvFx+/ztS1K3WZJ5v2YDxPFGr9dEmJUbtNUJ/0LcCJ8rE
-yCTsO6kX0Sgkx4ozCRHtrBch12SJvzFAshRsxwvfbJO9gZHan9KFzo0+J3zsgziu
-+BeFSAUrLz+0brspKwkEhLK+uOArAk9ndHKzXWBojnXz9MKegYBCHwLDIb7oHYgA
-oI+d9ZV5NJFTR0JmR2Aq3/cnamoQ4DXVkgByDFLLKeUXcEgHtIaFga/7aunf5SLw
-K2Qg91JUjEhmODbjVzRsLxywGtVpqmHd9xFTBGtxdf4l5Xx5/zU1EcNLY/z/9BJ+
-SFzyrcuXRNDBkH1TgVMXJ8tASo54nxapColuDU1R9376u9Xq3SlSDoUHJ/ksh7oZ
-nerAUxtwf/4bhGwG+iTw
-=X1GL
------END PGP SIGNATURE-----
-
---Signature=_Thu__12_May_2016_15_41_50_-0700_wQDdu.NREz6+5aDf--
+diff -puN fs/ocfs2/acl.c~ocfs2-fix-posix_acl_create-deadlock fs/ocfs2/acl.c
+--- a/fs/ocfs2/acl.c~ocfs2-fix-posix_acl_create-deadlock
++++ a/fs/ocfs2/acl.c
+@@ -346,3 +346,66 @@ int ocfs2_acl_chmod(struct inode *inode,
+ 	posix_acl_release(acl);
+ 	return ret;
+ }
++
++/*
++ * Initialize the ACLs of a new inode. If parent directory has default ACL,
++ * then clone to new inode. Called from ocfs2_mknod.
++ */
++int ocfs2_init_acl(handle_t *handle,
++		   struct inode *inode,
++		   struct inode *dir,
++		   struct buffer_head *di_bh,
++		   struct buffer_head *dir_bh,
++		   struct ocfs2_alloc_context *meta_ac,
++		   struct ocfs2_alloc_context *data_ac)
++{
++	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
++	struct posix_acl *acl = NULL;
++	int ret = 0, ret2;
++	umode_t mode;
++
++	if (!S_ISLNK(inode->i_mode)) {
++		if (osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) {
++			acl = ocfs2_get_acl_nolock(dir, ACL_TYPE_DEFAULT,
++						   dir_bh);
++			if (IS_ERR(acl))
++				return PTR_ERR(acl);
++		}
++		if (!acl) {
++			mode = inode->i_mode & ~current_umask();
++			ret = ocfs2_acl_set_mode(inode, di_bh, handle, mode);
++			if (ret) {
++				mlog_errno(ret);
++				goto cleanup;
++			}
++		}
++	}
++	if ((osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) && acl) {
++		if (S_ISDIR(inode->i_mode)) {
++			ret = ocfs2_set_acl(handle, inode, di_bh,
++					    ACL_TYPE_DEFAULT, acl,
++					    meta_ac, data_ac);
++			if (ret)
++				goto cleanup;
++		}
++		mode = inode->i_mode;
++		ret = __posix_acl_create(&acl, GFP_NOFS, &mode);
++		if (ret < 0)
++			return ret;
++
++		ret2 = ocfs2_acl_set_mode(inode, di_bh, handle, mode);
++		if (ret2) {
++			mlog_errno(ret2);
++			ret = ret2;
++			goto cleanup;
++		}
++		if (ret > 0) {
++			ret = ocfs2_set_acl(handle, inode,
++					    di_bh, ACL_TYPE_ACCESS,
++					    acl, meta_ac, data_ac);
++		}
++	}
++cleanup:
++	posix_acl_release(acl);
++	return ret;
++}
+diff -puN fs/ocfs2/acl.h~ocfs2-fix-posix_acl_create-deadlock fs/ocfs2/acl.h
+--- a/fs/ocfs2/acl.h~ocfs2-fix-posix_acl_create-deadlock
++++ a/fs/ocfs2/acl.h
+@@ -36,5 +36,9 @@ int ocfs2_set_acl(handle_t *handle,
+ 			 struct ocfs2_alloc_context *meta_ac,
+ 			 struct ocfs2_alloc_context *data_ac);
+ extern int ocfs2_acl_chmod(struct inode *, struct buffer_head *);
++extern int ocfs2_init_acl(handle_t *, struct inode *, struct inode *,
++			  struct buffer_head *, struct buffer_head *,
++			  struct ocfs2_alloc_context *,
++			  struct ocfs2_alloc_context *);
+ 
+ #endif /* OCFS2_ACL_H */
+diff -puN fs/ocfs2/namei.c~ocfs2-fix-posix_acl_create-deadlock fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-fix-posix_acl_create-deadlock
++++ a/fs/ocfs2/namei.c
+@@ -259,7 +259,6 @@ static int ocfs2_mknod(struct inode *dir
+ 	struct ocfs2_dir_lookup_result lookup = { NULL, };
+ 	sigset_t oldset;
+ 	int did_block_signals = 0;
+-	struct posix_acl *default_acl = NULL, *acl = NULL;
+ 	struct ocfs2_dentry_lock *dl = NULL;
+ 
+ 	trace_ocfs2_mknod(dir, dentry, dentry->d_name.len, dentry->d_name.name,
+@@ -367,12 +366,6 @@ static int ocfs2_mknod(struct inode *dir
+ 		goto leave;
+ 	}
+ 
+-	status = posix_acl_create(dir, &inode->i_mode, &default_acl, &acl);
+-	if (status) {
+-		mlog_errno(status);
+-		goto leave;
+-	}
+-
+ 	handle = ocfs2_start_trans(osb, ocfs2_mknod_credits(osb->sb,
+ 							    S_ISDIR(mode),
+ 							    xattr_credits));
+@@ -421,16 +414,8 @@ static int ocfs2_mknod(struct inode *dir
+ 		inc_nlink(dir);
+ 	}
+ 
+-	if (default_acl) {
+-		status = ocfs2_set_acl(handle, inode, new_fe_bh,
+-				       ACL_TYPE_DEFAULT, default_acl,
+-				       meta_ac, data_ac);
+-	}
+-	if (!status && acl) {
+-		status = ocfs2_set_acl(handle, inode, new_fe_bh,
+-				       ACL_TYPE_ACCESS, acl,
+-				       meta_ac, data_ac);
+-	}
++	status = ocfs2_init_acl(handle, inode, dir, new_fe_bh, parent_fe_bh,
++			 meta_ac, data_ac);
+ 
+ 	if (status < 0) {
+ 		mlog_errno(status);
+@@ -472,10 +457,6 @@ static int ocfs2_mknod(struct inode *dir
+ 	d_instantiate(dentry, inode);
+ 	status = 0;
+ leave:
+-	if (default_acl)
+-		posix_acl_release(default_acl);
+-	if (acl)
+-		posix_acl_release(acl);
+ 	if (status < 0 && did_quota_inode)
+ 		dquot_free_inode(inode);
+ 	if (handle)
+diff -puN fs/ocfs2/refcounttree.c~ocfs2-fix-posix_acl_create-deadlock fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~ocfs2-fix-posix_acl_create-deadlock
++++ a/fs/ocfs2/refcounttree.c
+@@ -4248,20 +4248,12 @@ static int ocfs2_reflink(struct dentry *
+ 	struct inode *inode = d_inode(old_dentry);
+ 	struct buffer_head *old_bh = NULL;
+ 	struct inode *new_orphan_inode = NULL;
+-	struct posix_acl *default_acl, *acl;
+-	umode_t mode;
+ 
+ 	if (!ocfs2_refcount_tree(OCFS2_SB(inode->i_sb)))
+ 		return -EOPNOTSUPP;
+ 
+-	mode = inode->i_mode;
+-	error = posix_acl_create(dir, &mode, &default_acl, &acl);
+-	if (error) {
+-		mlog_errno(error);
+-		return error;
+-	}
+ 
+-	error = ocfs2_create_inode_in_orphan(dir, mode,
++	error = ocfs2_create_inode_in_orphan(dir, inode->i_mode,
+ 					     &new_orphan_inode);
+ 	if (error) {
+ 		mlog_errno(error);
+@@ -4300,16 +4292,11 @@ static int ocfs2_reflink(struct dentry *
+ 	/* If the security isn't preserved, we need to re-initialize them. */
+ 	if (!preserve) {
+ 		error = ocfs2_init_security_and_acl(dir, new_orphan_inode,
+-						    &new_dentry->d_name,
+-						    default_acl, acl);
++						    &new_dentry->d_name);
+ 		if (error)
+ 			mlog_errno(error);
+ 	}
+ out:
+-	if (default_acl)
+-		posix_acl_release(default_acl);
+-	if (acl)
+-		posix_acl_release(acl);
+ 	if (!error) {
+ 		error = ocfs2_mv_orphaned_inode_to_new(dir, new_orphan_inode,
+ 						       new_dentry);
+diff -puN fs/ocfs2/xattr.c~ocfs2-fix-posix_acl_create-deadlock fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-fix-posix_acl_create-deadlock
++++ a/fs/ocfs2/xattr.c
+@@ -7216,12 +7216,10 @@ out:
+  */
+ int ocfs2_init_security_and_acl(struct inode *dir,
+ 				struct inode *inode,
+-				const struct qstr *qstr,
+-				struct posix_acl *default_acl,
+-				struct posix_acl *acl)
++				const struct qstr *qstr)
+ {
+-	struct buffer_head *dir_bh = NULL;
+ 	int ret = 0;
++	struct buffer_head *dir_bh = NULL;
+ 
+ 	ret = ocfs2_init_security_get(inode, dir, qstr, NULL);
+ 	if (ret) {
+@@ -7234,11 +7232,9 @@ int ocfs2_init_security_and_acl(struct i
+ 		mlog_errno(ret);
+ 		goto leave;
+ 	}
