@@ -1,124 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-protect-costly-allocations-some-more-fix.patch added to
- -mm tree
-Date: Thu, 12 May 2016 14:26:54 -0700
-Message-ID: <5734f51e.YXl+I/SlGJsnptcF%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix.patch removed from -mm tree
+Date: Thu, 12 May 2016 15:18:37 -0700
+Message-ID: <5735013d.nz6iyUnX8SZl8jGc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38183 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39044 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751167AbcELV0z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2016 17:26:55 -0400
+	with ESMTP id S1752013AbcELWSi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2016 18:18:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, arnd@arndb.de, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-oom-protect-costly-allocations-some-more-fix
-has been added to the -mm tree.  Its filename is
-     mm-oom-protect-costly-allocations-some-more-fix.patch
+     Subject: mm: thp: fix build of reuse_swap_page with CONFIG_SWAP=n
+has been removed from the -mm tree.  Its filename was
+     mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-protect-costly-allocations-some-more-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-protect-costly-allocations-some-more-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults.patch
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm-oom-protect-costly-allocations-some-more-fix
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: thp: fix build of reuse_swap_page with CONFIG_SWAP=n
 
-Arnd has reported the following compilation warning:
-mm/page_alloc.c: In function '__alloc_pages_nodemask':
-mm/page_alloc.c:3651:6: error: 'compact_result' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+page_trans_huge_compound is inline defined in mm.h. reuse_swap_page is
+calling page_trans_huge_compound in swap.h which included early on by
+mm.h before page_trans_huge_compound is defined.
 
-This should be a false positive TRANSPARENT_HUGEPAGE depends on COMPACTION
-so is_thp_gfp_mask shouldn't be true. GFP_TRANSHUGE is a bit tricky
-and somebody might be using this accidently. Make sure that compact_result
-is defined also for !CONFIG_COMPACT and set it to COMPACT_SKIPPED because
-the compaction was really withdrawn.
+This is why reuse_swap_page was a preprocessor macro, so make it a
+preprocessor macro again.
 
-Link: http://lkml.kernel.org/r/20160512061636.GA4200@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/swap.h |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-oom-protect-costly-allocations-some-more-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-oom-protect-costly-allocations-some-more-fix
-+++ a/mm/page_alloc.c
-@@ -3297,6 +3297,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 		unsigned int alloc_flags, const struct alloc_context *ac,
- 		enum migrate_mode mode, enum compact_result *compact_result)
- {
-+	*compact_result = COMPACT_SKIPPED;
- 	return NULL;
+diff -puN include/linux/swap.h~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix include/linux/swap.h
+--- a/include/linux/swap.h~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix
++++ a/include/linux/swap.h
+@@ -513,10 +513,8 @@ static inline int swp_swapcount(swp_entr
+ 	return 0;
  }
  
+-static inline bool reuse_swap_page(struct page *page, int *total_mapcount)
+-{
+-	return page_trans_huge_mapcount(page, total_mapcount) == 1;
+-}
++#define reuse_swap_page(page, total_mapcount) \
++	(page_trans_huge_mapcount(page, total_mapcount) == 1)
+ 
+ static inline int try_to_free_swap(struct page *page)
+ {
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-include-linux-nodemaskh-create-next_node_in-helper-fix.patch
-mm-oom-move-gfp_nofs-check-to-out_of_memory.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path.patch
-mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
-mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper-clear-oom_reaper_list-before-clearing-tif_memdie.patch
-vmscan-consider-classzone_idx-in-compaction_ready.patch
-mm-compaction-change-compact_-constants-into-enum.patch
-mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
-mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
-mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
-mm-compaction-update-compaction_result-ordering.patch
-mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
-mm-compaction-abstract-compaction-feedback-to-helpers.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix.patch
-mm-oom-protect-costly-allocations-some-more.patch
-mm-oom-protect-costly-allocations-some-more-fix.patch
-mm-consider-compaction-feedback-also-for-costly-allocation.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
-mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
-mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
-mm-make-mmap_sem-for-write-waits-killable-for-mm-syscalls.patch
-mm-make-vm_mmap-killable.patch
-mm-make-vm_munmap-killable.patch
-mm-aout-handle-vm_brk-failures.patch
-mm-elf-handle-vm_brk-error.patch
-mm-make-vm_brk-killable.patch
-mm-proc-make-clear_refs-killable.patch
-mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
-ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
-vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable.patch
-coredump-make-coredump_wait-wait-for-mmap_sem-for-write-killable.patch
-aio-make-aio_setup_ring-killable.patch
-exec-make-exec-path-waiting-for-mmap_sem-killable.patch
-prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
-uprobes-wait-for-mmap_sem-for-write-killable.patch
-drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
-drm-radeon-make-radeon_mn_get-wait-for-mmap_sem-killable.patch
-drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable.patch
+mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults.patch
+mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults-fix-2.patch
+mm-thp-microoptimize-compound_mapcount.patch
+mm-thp-split_huge_pmd_address-comment-improvement.patch
 
