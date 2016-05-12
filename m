@@ -1,119 +1,319 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/4] ocfs2: revert using ocfs2_acl_chmod to avoid inode
- cluster lock hang
-Date: Thu, 12 May 2016 15:42:15 -0700
-Message-ID: <573506c7.2vl07DD0AGaCcUu3%akpm__21767.0121732683$1463092956$gmane$org@linux-foundation.org>
+Subject: [patch 4/4] mm: thp: calculate the mapcount correctly for THP
+ pages during WP faults
+Date: Thu, 12 May 2016 15:42:25 -0700
+Message-ID: <573506d1.WIciwltGaEXY7QZS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39307 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39328 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751637AbcELWmR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2016 18:42:17 -0400
+	with ESMTP id S1751637AbcELWm0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2016 18:42:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, stable@vger.kernel.org, tariq.x.saeed@oracle.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, alex.williamson@redhat.com, dean.luick@intel.com, josh.d.collier@intel.com, kirill@shutemov.name, mh+linux-kernel@zugschlus.de, mike.marciniszyn@intel.com, stable@vger.kernel.org
 
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: revert using ocfs2_acl_chmod to avoid inode cluster lock hang
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: thp: calculate the mapcount correctly for THP pages during WP faults
 
-commit 743b5f1434f5 ("ocfs2: take inode lock in ocfs2_iop_set/get_acl()")
-introduced this issue.  ocfs2_setattr called by chmod command holds
-cluster wide inode lock when calling posix_acl_chmod.  This latter
-function in turn calls ocfs2_iop_get_acl and ocfs2_iop_set_acl.  These two
-are also called directly from vfs layer for getfacl/setfacl commands and
-therefore acquire the cluster wide inode lock.  If a remote conversion
-request comes after the first inode lock in ocfs2_setattr,
-OCFS2_LOCK_BLOCKED will be set.  And this will cause the second call to
-inode lock from the ocfs2_iop_get_acl() to block indefinetly.
+This will provide fully accuracy to the mapcount calculation in the
+write protect faults, so page pinning will not get broken by false
+positive copy-on-writes.
 
-The deleted version of ocfs2_acl_chmod() calls __posix_acl_chmod() which
-does not call back into the filesystem.  Therefore, we restore
-ocfs2_acl_chmod(), modify it slightly for locking as needed, and use that
-instead.
+total_mapcount() isn't the right calculation needed in
+reuse_swap_page(), so this introduces a page_trans_huge_mapcount()
+that is effectively the full accurate return value for page_mapcount()
+if dealing with Transparent Hugepages, however we only use the
+page_trans_huge_mapcount() during COW faults where it strictly needed,
+due to its higher runtime cost.
 
-Fixes: 743b5f1434f5 ("ocfs2: take inode lock in ocfs2_iop_set/get_acl()")
-Signed-off-by: Tariq Saeed <tariq.x.saeed@oracle.com>
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: <stable@vger.kernel.org>
+This also provide at practical zero cost the total_mapcount
+information which is needed to know if we can still relocate the page
+anon_vma to the local vma. If page_trans_huge_mapcount() returns 1 we
+can reuse the page no matter if it's a pte or a pmd_trans_huge
+triggering the fault, but we can only relocate the page anon_vma to
+the local vma->anon_vma if we're sure it's only this "vma" mapping the
+whole THP physical range.
+
+Kirill A. Shutemov discovered the problem with moving the page
+anon_vma to the local vma->anon_vma in a previous version of this
+patch and another problem in the way page_move_anon_rmap() was called.
+
+Andrew Morton discovered that CONFIG_SWAP=n wouldn't build in a
+previous version, because reuse_swap_page must be a macro to call
+page_trans_huge_mapcount from swap.h, so this uses a macro again
+instead of an inline function. With this change at least it's a less
+dangerous usage than it was before, because "page" is used only once
+now, while with the previous code reuse_swap_page(page++) would have
+called page_mapcount on page+1 and it would have increased page twice
+instead of just once.
+
+Dean Luick noticed an uninitialized variable that could result in a
+rmap inefficiency for the non-THP case in a previous version.
+
+Mike Marciniszyn said:
+
+: Our RDMA tests are seeing an issue with memory locking that bisects to
+: commit 61f5d698cc97 ("mm: re-enable THP")
+: 
+: The test program registers two rather large MRs (512M) and RDMA
+: writes data to a passive peer using the first and RDMA reads it back
+: into the second MR and compares that data.  The sizes are chosen randomly
+: between 0 and 1024 bytes.
+: 
+: The test will get through a few (<= 4 iterations) and then gets a
+: compare error.
+: 
+: Tracing indicates the kernel logical addresses associated with the individual
+: pages at registration ARE correct , the data in the "RDMA read response only"
+: packets ARE correct.
+: 
+: The "corruption" occurs when the packet crosse two pages that are not physically
+: contiguous.   The second page reads back as zero in the program.
+: 
+: It looks like the user VA at the point of the compare error no longer points to
+: the same physical address as was registered.
+: 
+: This patch totally resolves the issue!
+
+Link: http://lkml.kernel.org/r/1462547040-1737-2-git-send-email-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: "Kirill A. Shutemov" <kirill@shutemov.name>
+Reviewed-by: Dean Luick <dean.luick@intel.com>
+Tested-by: Alex Williamson <alex.williamson@redhat.com>
+Tested-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Tested-by: Josh Collier <josh.d.collier@intel.com>
+Cc: Marc Haber <mh+linux-kernel@zugschlus.de>
+Cc: <stable@vger.kernel.org>	[4.5]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/acl.c  |   24 ++++++++++++++++++++++++
- fs/ocfs2/acl.h  |    1 +
- fs/ocfs2/file.c |    4 ++--
- 3 files changed, 27 insertions(+), 2 deletions(-)
+ include/linux/mm.h   |    9 +++++
+ include/linux/swap.h |    6 +--
+ mm/huge_memory.c     |   71 +++++++++++++++++++++++++++++++++++------
+ mm/memory.c          |   22 ++++++++----
+ mm/swapfile.c        |   13 ++++---
+ 5 files changed, 95 insertions(+), 26 deletions(-)
 
-diff -puN fs/ocfs2/acl.c~ocfs2-revert-using-ocfs2_acl_chmod-to-avoid-inode-cluster-lock-hang fs/ocfs2/acl.c
---- a/fs/ocfs2/acl.c~ocfs2-revert-using-ocfs2_acl_chmod-to-avoid-inode-cluster-lock-hang
-+++ a/fs/ocfs2/acl.c
-@@ -322,3 +322,27 @@ struct posix_acl *ocfs2_iop_get_acl(stru
- 	brelse(di_bh);
- 	return acl;
+diff -puN include/linux/mm.h~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults include/linux/mm.h
+--- a/include/linux/mm.h~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults
++++ a/include/linux/mm.h
+@@ -500,11 +500,20 @@ static inline int page_mapcount(struct p
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ int total_mapcount(struct page *page);
++int page_trans_huge_mapcount(struct page *page, int *total_mapcount);
+ #else
+ static inline int total_mapcount(struct page *page)
+ {
+ 	return page_mapcount(page);
  }
-+
-+int ocfs2_acl_chmod(struct inode *inode, struct buffer_head *bh)
++static inline int page_trans_huge_mapcount(struct page *page,
++					   int *total_mapcount)
 +{
-+	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
-+	struct posix_acl *acl;
-+	int ret;
++	int mapcount = page_mapcount(page);
++	if (total_mapcount)
++		*total_mapcount = mapcount;
++	return mapcount;
++}
+ #endif
+ 
+ static inline struct page *virt_to_head_page(const void *x)
+diff -puN include/linux/swap.h~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults include/linux/swap.h
+--- a/include/linux/swap.h~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults
++++ a/include/linux/swap.h
+@@ -418,7 +418,7 @@ extern sector_t swapdev_block(int, pgoff
+ extern int page_swapcount(struct page *);
+ extern int swp_swapcount(swp_entry_t entry);
+ extern struct swap_info_struct *page_swap_info(struct page *);
+-extern int reuse_swap_page(struct page *);
++extern bool reuse_swap_page(struct page *, int *);
+ extern int try_to_free_swap(struct page *);
+ struct backing_dev_info;
+ 
+@@ -513,8 +513,8 @@ static inline int swp_swapcount(swp_entr
+ 	return 0;
+ }
+ 
+-#define reuse_swap_page(page) \
+-	(!PageTransCompound(page) && page_mapcount(page) == 1)
++#define reuse_swap_page(page, total_mapcount) \
++	(page_trans_huge_mapcount(page, total_mapcount) == 1)
+ 
+ static inline int try_to_free_swap(struct page *page)
+ {
+diff -puN mm/huge_memory.c~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults
++++ a/mm/huge_memory.c
+@@ -1298,15 +1298,9 @@ int do_huge_pmd_wp_page(struct mm_struct
+ 	VM_BUG_ON_PAGE(!PageCompound(page) || !PageHead(page), page);
+ 	/*
+ 	 * We can only reuse the page if nobody else maps the huge page or it's
+-	 * part. We can do it by checking page_mapcount() on each sub-page, but
+-	 * it's expensive.
+-	 * The cheaper way is to check page_count() to be equal 1: every
+-	 * mapcount takes page reference reference, so this way we can
+-	 * guarantee, that the PMD is the only mapping.
+-	 * This can give false negative if somebody pinned the page, but that's
+-	 * fine.
++	 * part.
+ 	 */
+-	if (page_mapcount(page) == 1 && page_count(page) == 1) {
++	if (page_trans_huge_mapcount(page, NULL) == 1) {
+ 		pmd_t entry;
+ 		entry = pmd_mkyoung(orig_pmd);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+@@ -2079,7 +2073,8 @@ static int __collapse_huge_page_isolate(
+ 		if (pte_write(pteval)) {
+ 			writable = true;
+ 		} else {
+-			if (PageSwapCache(page) && !reuse_swap_page(page)) {
++			if (PageSwapCache(page) &&
++			    !reuse_swap_page(page, NULL)) {
+ 				unlock_page(page);
+ 				result = SCAN_SWAP_CACHE_PAGE;
+ 				goto out;
+@@ -3222,6 +3217,64 @@ int total_mapcount(struct page *page)
+ 	return ret;
+ }
+ 
++/*
++ * This calculates accurately how many mappings a transparent hugepage
++ * has (unlike page_mapcount() which isn't fully accurate). This full
++ * accuracy is primarily needed to know if copy-on-write faults can
++ * reuse the page and change the mapping to read-write instead of
++ * copying them. At the same time this returns the total_mapcount too.
++ *
++ * The function returns the highest mapcount any one of the subpages
++ * has. If the return value is one, even if different processes are
++ * mapping different subpages of the transparent hugepage, they can
++ * all reuse it, because each process is reusing a different subpage.
++ *
++ * The total_mapcount is instead counting all virtual mappings of the
++ * subpages. If the total_mapcount is equal to "one", it tells the
++ * caller all mappings belong to the same "mm" and in turn the
++ * anon_vma of the transparent hugepage can become the vma->anon_vma
++ * local one as no other process may be mapping any of the subpages.
++ *
++ * It would be more accurate to replace page_mapcount() with
++ * page_trans_huge_mapcount(), however we only use
++ * page_trans_huge_mapcount() in the copy-on-write faults where we
++ * need full accuracy to avoid breaking page pinning, because
++ * page_trans_huge_mapcount() is slower than page_mapcount().
++ */
++int page_trans_huge_mapcount(struct page *page, int *total_mapcount)
++{
++	int i, ret, _total_mapcount, mapcount;
 +
-+	if (S_ISLNK(inode->i_mode))
-+		return -EOPNOTSUPP;
++	/* hugetlbfs shouldn't call it */
++	VM_BUG_ON_PAGE(PageHuge(page), page);
 +
-+	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
-+		return 0;
++	if (likely(!PageTransCompound(page))) {
++		mapcount = atomic_read(&page->_mapcount) + 1;
++		if (total_mapcount)
++			*total_mapcount = mapcount;
++		return mapcount;
++	}
 +
-+	acl = ocfs2_get_acl_nolock(inode, ACL_TYPE_ACCESS, bh);
-+	if (IS_ERR(acl) || !acl)
-+		return PTR_ERR(acl);
-+	ret = __posix_acl_chmod(&acl, GFP_KERNEL, inode->i_mode);
-+	if (ret)
-+		return ret;
-+	ret = ocfs2_set_acl(NULL, inode, NULL, ACL_TYPE_ACCESS,
-+			    acl, NULL, NULL);
-+	posix_acl_release(acl);
++	page = compound_head(page);
++
++	_total_mapcount = ret = 0;
++	for (i = 0; i < HPAGE_PMD_NR; i++) {
++		mapcount = atomic_read(&page[i]._mapcount) + 1;
++		ret = max(ret, mapcount);
++		_total_mapcount += mapcount;
++	}
++	if (PageDoubleMap(page)) {
++		ret -= 1;
++		_total_mapcount -= HPAGE_PMD_NR;
++	}
++	mapcount = compound_mapcount(page);
++	ret += mapcount;
++	_total_mapcount += mapcount;
++	if (total_mapcount)
++		*total_mapcount = _total_mapcount;
 +	return ret;
 +}
-diff -puN fs/ocfs2/acl.h~ocfs2-revert-using-ocfs2_acl_chmod-to-avoid-inode-cluster-lock-hang fs/ocfs2/acl.h
---- a/fs/ocfs2/acl.h~ocfs2-revert-using-ocfs2_acl_chmod-to-avoid-inode-cluster-lock-hang
-+++ a/fs/ocfs2/acl.h
-@@ -35,5 +35,6 @@ int ocfs2_set_acl(handle_t *handle,
- 			 struct posix_acl *acl,
- 			 struct ocfs2_alloc_context *meta_ac,
- 			 struct ocfs2_alloc_context *data_ac);
-+extern int ocfs2_acl_chmod(struct inode *, struct buffer_head *);
++
+ /*
+  * This function splits huge page into normal pages. @page can point to any
+  * subpage of huge page to split. Split doesn't change the position of @page.
+diff -puN mm/memory.c~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults mm/memory.c
+--- a/mm/memory.c~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults
++++ a/mm/memory.c
+@@ -2373,6 +2373,7 @@ static int do_wp_page(struct mm_struct *
+ 	 * not dirty accountable.
+ 	 */
+ 	if (PageAnon(old_page) && !PageKsm(old_page)) {
++		int total_mapcount;
+ 		if (!trylock_page(old_page)) {
+ 			get_page(old_page);
+ 			pte_unmap_unlock(page_table, ptl);
+@@ -2387,13 +2388,18 @@ static int do_wp_page(struct mm_struct *
+ 			}
+ 			put_page(old_page);
+ 		}
+-		if (reuse_swap_page(old_page)) {
+-			/*
+-			 * The page is all ours.  Move it to our anon_vma so
+-			 * the rmap code will not search our parent or siblings.
+-			 * Protected against the rmap code by the page lock.
+-			 */
+-			page_move_anon_rmap(old_page, vma, address);
++		if (reuse_swap_page(old_page, &total_mapcount)) {
++			if (total_mapcount == 1) {
++				/*
++				 * The page is all ours. Move it to
++				 * our anon_vma so the rmap code will
++				 * not search our parent or siblings.
++				 * Protected against the rmap code by
++				 * the page lock.
++				 */
++				page_move_anon_rmap(compound_head(old_page),
++						    vma, address);
++			}
+ 			unlock_page(old_page);
+ 			return wp_page_reuse(mm, vma, address, page_table, ptl,
+ 					     orig_pte, old_page, 0, 0);
+@@ -2617,7 +2623,7 @@ static int do_swap_page(struct mm_struct
+ 	inc_mm_counter_fast(mm, MM_ANONPAGES);
+ 	dec_mm_counter_fast(mm, MM_SWAPENTS);
+ 	pte = mk_pte(page, vma->vm_page_prot);
+-	if ((flags & FAULT_FLAG_WRITE) && reuse_swap_page(page)) {
++	if ((flags & FAULT_FLAG_WRITE) && reuse_swap_page(page, NULL)) {
+ 		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
+ 		flags &= ~FAULT_FLAG_WRITE;
+ 		ret |= VM_FAULT_WRITE;
+diff -puN mm/swapfile.c~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults mm/swapfile.c
+--- a/mm/swapfile.c~mm-thp-calculate-the-mapcount-correctly-for-thp-pages-during-wp-faults
++++ a/mm/swapfile.c
+@@ -922,18 +922,19 @@ out:
+  * to it.  And as a side-effect, free up its swap: because the old content
+  * on disk will never be read, and seeking back there to write new content
+  * later would only waste time away from clustering.
++ *
++ * NOTE: total_mapcount should not be relied upon by the caller if
++ * reuse_swap_page() returns false, but it may be always overwritten
++ * (see the other implementation for CONFIG_SWAP=n).
+  */
+-int reuse_swap_page(struct page *page)
++bool reuse_swap_page(struct page *page, int *total_mapcount)
+ {
+ 	int count;
  
- #endif /* OCFS2_ACL_H */
-diff -puN fs/ocfs2/file.c~ocfs2-revert-using-ocfs2_acl_chmod-to-avoid-inode-cluster-lock-hang fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-revert-using-ocfs2_acl_chmod-to-avoid-inode-cluster-lock-hang
-+++ a/fs/ocfs2/file.c
-@@ -1268,20 +1268,20 @@ bail_unlock_rw:
- 	if (size_change)
- 		ocfs2_rw_unlock(inode, 1);
- bail:
--	brelse(bh);
- 
- 	/* Release quota pointers in case we acquired them */
- 	for (qtype = 0; qtype < OCFS2_MAXQUOTAS; qtype++)
- 		dqput(transfer_to[qtype]);
- 
- 	if (!status && attr->ia_valid & ATTR_MODE) {
--		status = posix_acl_chmod(inode, inode->i_mode);
-+		status = ocfs2_acl_chmod(inode, bh);
- 		if (status < 0)
- 			mlog_errno(status);
- 	}
- 	if (inode_locked)
- 		ocfs2_inode_unlock(inode, 1);
- 
-+	brelse(bh);
- 	return status;
- }
- 
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	if (unlikely(PageKsm(page)))
+-		return 0;
+-	/* The page is part of THP and cannot be reused */
+-	if (PageTransCompound(page))
+-		return 0;
+-	count = page_mapcount(page);
++		return false;
++	count = page_trans_huge_mapcount(page, total_mapcount);
+ 	if (count <= 1 && PageSwapCache(page)) {
+ 		count += page_swapcount(page);
+ 		if (count == 1 && !PageWriteback(page)) {
 _
