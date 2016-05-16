@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-introduce-per-device-debug_stat-sysfs-node-update.patch
- added to -mm tree
-Date: Mon, 16 May 2016 14:24:00 -0700
-Message-ID: <573a3a70.3TDdQnX0tBlRMpLq%akpm@linux-foundation.org>
+Subject: +
+ userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch added to -mm tree
+Date: Mon, 16 May 2016 15:31:51 -0700
+Message-ID: <573a4a57.r6SsLSywktj/V0mZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58485 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59057 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750711AbcEPVYB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 May 2016 17:24:01 -0400
+	with ESMTP id S1752879AbcEPWbw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 May 2016 18:31:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram-introduce-per-device-debug_stat-sysfs-node-update
+     Subject: userfaultfd: don't pin the user memory in userfaultfd_file_create()
 has been added to the -mm tree.  Its filename is
-     zram-introduce-per-device-debug_stat-sysfs-node-update.patch
+     userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-introduce-per-device-debug_stat-sysfs-node-update.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-introduce-per-device-debug_stat-sysfs-node-update.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +39,181 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram-introduce-per-device-debug_stat-sysfs-node-update
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: userfaultfd: don't pin the user memory in userfaultfd_file_create()
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Signed-off-by: Minchan Kim <minchan@kernel.org>
+userfaultfd_file_create() increments mm->mm_users; this means that the
+memory won't be unmapped/freed if mm owner exits/execs, and UFFDIO_COPY
+after that can populate the orphaned mm more.
+
+Change userfaultfd_file_create() and userfaultfd_ctx_put() to use
+mm->mm_count to pin mm_struct.  This means that
+atomic_inc_not_zero(mm->mm_users) is needed when we are going to actually
+play with this memory.  Except handle_userfault() path doesn't need this,
+the caller must already have a reference.
+
+The patch adds the new trivial helper, mmget_not_zero(), it can have more
+users.
+
+Link: http://lkml.kernel.org/r/20160516172254.GA8595@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |    4 +++-
- drivers/block/zram/zram_drv.c              |    6 +++---
- drivers/block/zram/zram_drv.h              |    2 +-
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ fs/userfaultfd.c      |   41 +++++++++++++++++++++++++++-------------
+ include/linux/sched.h |    7 +++++-
+ 2 files changed, 34 insertions(+), 14 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-introduce-per-device-debug_stat-sysfs-node-update Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-introduce-per-device-debug_stat-sysfs-node-update
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -172,4 +172,6 @@ Date:		July 2016
- Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
- Description:
- 		The debug_stat file is read-only and represents various
--		device's debugging info.
-+		device's debugging info useful for kernel developers. Its
-+		format is not documented intentionally and may change
-+		anytime without any notice.
-diff -puN drivers/block/zram/zram_drv.c~zram-introduce-per-device-debug_stat-sysfs-node-update drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-introduce-per-device-debug_stat-sysfs-node-update
-+++ a/drivers/block/zram/zram_drv.c
-@@ -438,7 +438,7 @@ static ssize_t mm_stat_show(struct devic
- static ssize_t debug_stat_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
--	unsigned int version = 1;
-+	int version = 1;
- 	struct zram *zram = dev_to_zram(dev);
- 	ssize_t ret;
+diff -puN fs/userfaultfd.c~userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create
++++ a/fs/userfaultfd.c
+@@ -137,7 +137,7 @@ static void userfaultfd_ctx_put(struct u
+ 		VM_BUG_ON(waitqueue_active(&ctx->fault_wqh));
+ 		VM_BUG_ON(spin_is_locked(&ctx->fd_wqh.lock));
+ 		VM_BUG_ON(waitqueue_active(&ctx->fd_wqh));
+-		mmput(ctx->mm);
++		mmdrop(ctx->mm);
+ 		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
+ 	}
+ }
+@@ -434,6 +434,9 @@ static int userfaultfd_release(struct in
  
-@@ -446,7 +446,7 @@ static ssize_t debug_stat_show(struct de
- 	ret = scnprintf(buf, PAGE_SIZE,
- 			"version: %d\n%8llu\n",
- 			version,
--			(u64)atomic64_read(&zram->stats.num_recompress));
-+			(u64)atomic64_read(&zram->stats.writestall));
- 	up_read(&zram->init_lock);
+ 	ACCESS_ONCE(ctx->released) = true;
  
++	if (!mmget_not_zero(mm))
++		goto wakeup;
++
+ 	/*
+ 	 * Flush page faults out of all CPUs. NOTE: all page faults
+ 	 * must be retried without returning VM_FAULT_SIGBUS if
+@@ -466,7 +469,8 @@ static int userfaultfd_release(struct in
+ 		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+ 	}
+ 	up_write(&mm->mmap_sem);
+-
++	mmput(mm);
++wakeup:
+ 	/*
+ 	 * After no new page faults can wait on this fault_*wqh, flush
+ 	 * the last page faults that may have been already waiting on
+@@ -760,10 +764,12 @@ static int userfaultfd_register(struct u
+ 	start = uffdio_register.range.start;
+ 	end = start + uffdio_register.range.len;
+ 
++	ret = -ENOMEM;
++	if (!mmget_not_zero(mm))
++		goto out;
++
+ 	down_write(&mm->mmap_sem);
+ 	vma = find_vma_prev(mm, start, &prev);
+-
+-	ret = -ENOMEM;
+ 	if (!vma)
+ 		goto out_unlock;
+ 
+@@ -864,6 +870,7 @@ static int userfaultfd_register(struct u
+ 	} while (vma && vma->vm_start < end);
+ out_unlock:
+ 	up_write(&mm->mmap_sem);
++	mmput(mm);
+ 	if (!ret) {
+ 		/*
+ 		 * Now that we scanned all vmas we can already tell
+@@ -902,10 +909,12 @@ static int userfaultfd_unregister(struct
+ 	start = uffdio_unregister.start;
+ 	end = start + uffdio_unregister.len;
+ 
++	ret = -ENOMEM;
++	if (!mmget_not_zero(mm))
++		goto out;
++
+ 	down_write(&mm->mmap_sem);
+ 	vma = find_vma_prev(mm, start, &prev);
+-
+-	ret = -ENOMEM;
+ 	if (!vma)
+ 		goto out_unlock;
+ 
+@@ -998,6 +1007,7 @@ static int userfaultfd_unregister(struct
+ 	} while (vma && vma->vm_start < end);
+ out_unlock:
+ 	up_write(&mm->mmap_sem);
++	mmput(mm);
+ out:
  	return ret;
-@@ -737,7 +737,7 @@ compress_again:
- 		zcomp_strm_release(zram->comp, zstrm);
- 		zstrm = NULL;
+ }
+@@ -1067,9 +1077,11 @@ static int userfaultfd_copy(struct userf
+ 		goto out;
+ 	if (uffdio_copy.mode & ~UFFDIO_COPY_MODE_DONTWAKE)
+ 		goto out;
+-
+-	ret = mcopy_atomic(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
+-			   uffdio_copy.len);
++	if (mmget_not_zero(ctx->mm)) {
++		ret = mcopy_atomic(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
++				   uffdio_copy.len);
++		mmput(ctx->mm);
++	}
+ 	if (unlikely(put_user(ret, &user_uffdio_copy->copy)))
+ 		return -EFAULT;
+ 	if (ret < 0)
+@@ -1110,8 +1122,11 @@ static int userfaultfd_zeropage(struct u
+ 	if (uffdio_zeropage.mode & ~UFFDIO_ZEROPAGE_MODE_DONTWAKE)
+ 		goto out;
  
--		atomic64_inc(&zram->stats.num_recompress);
-+		atomic64_inc(&zram->stats.writestall);
+-	ret = mfill_zeropage(ctx->mm, uffdio_zeropage.range.start,
+-			     uffdio_zeropage.range.len);
++	if (mmget_not_zero(ctx->mm)) {
++		ret = mfill_zeropage(ctx->mm, uffdio_zeropage.range.start,
++				     uffdio_zeropage.range.len);
++		mmput(ctx->mm);
++	}
+ 	if (unlikely(put_user(ret, &user_uffdio_zeropage->zeropage)))
+ 		return -EFAULT;
+ 	if (ret < 0)
+@@ -1289,12 +1304,12 @@ static struct file *userfaultfd_file_cre
+ 	ctx->released = false;
+ 	ctx->mm = current->mm;
+ 	/* prevent the mm struct to be freed */
+-	atomic_inc(&ctx->mm->mm_users);
++	atomic_inc(&ctx->mm->mm_count);
  
- 		handle = zs_malloc(meta->mem_pool, clen,
- 				GFP_NOIO | __GFP_HIGHMEM);
-diff -puN drivers/block/zram/zram_drv.h~zram-introduce-per-device-debug_stat-sysfs-node-update drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-introduce-per-device-debug_stat-sysfs-node-update
-+++ a/drivers/block/zram/zram_drv.h
-@@ -85,7 +85,7 @@ struct zram_stats {
- 	atomic64_t zero_pages;		/* no. of zero filled pages */
- 	atomic64_t pages_stored;	/* no. of pages currently stored */
- 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
--	atomic64_t num_recompress;	/* no. of compression slow paths */
-+	atomic64_t writestall;		/* no. of write slow paths */
- };
+ 	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, ctx,
+ 				  O_RDWR | (flags & UFFD_SHARED_FCNTL_FLAGS));
+ 	if (IS_ERR(file)) {
+-		mmput(ctx->mm);
++		mmdrop(ctx->mm);
+ 		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
+ 	}
+ out:
+diff -puN include/linux/sched.h~userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create include/linux/sched.h
+--- a/include/linux/sched.h~userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create
++++ a/include/linux/sched.h
+@@ -2611,12 +2611,17 @@ extern struct mm_struct * mm_alloc(void)
  
- struct zram_meta {
+ /* mmdrop drops the mm and the page tables */
+ extern void __mmdrop(struct mm_struct *);
+-static inline void mmdrop(struct mm_struct * mm)
++static inline void mmdrop(struct mm_struct *mm)
+ {
+ 	if (unlikely(atomic_dec_and_test(&mm->mm_count)))
+ 		__mmdrop(mm);
+ }
+ 
++static inline bool mmget_not_zero(struct mm_struct *mm)
++{
++	return atomic_inc_not_zero(&mm->mm_users);
++}
++
+ /* mmput gets rid of the mappings and all user-space */
+ extern void mmput(struct mm_struct *);
+ /* same as above but performs the slow path from the async kontext. Can
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-zsmalloc-use-first_page-rather-than-page.patch
-zsmalloc-clean-up-many-bug_on.patch
-zsmalloc-reordering-function-parameter.patch
-zsmalloc-remove-unused-pool-param-in-obj_free.patch
-zram-introduce-per-device-debug_stat-sysfs-node-update.patch
+userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch
+wait-ptrace-assume-__wall-if-the-child-is-traced.patch
+wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall.patch
 
