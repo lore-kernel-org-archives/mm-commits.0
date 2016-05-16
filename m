@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch
- added to -mm tree
-Date: Mon, 16 May 2016 15:33:03 -0700
-Message-ID: <573a4a9f.JqCxXjWGvdTAbYAH%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch removed from -mm tree
+Date: Mon, 16 May 2016 15:35:55 -0700
+Message-ID: <573a4b4b.JRWDAL+EtZosOqYg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59078 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752608AbcEPWdE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 May 2016 18:33:04 -0400
+	with ESMTP id S1751356AbcEPWf5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 May 2016 18:35:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, arnd@arndb.de, cl@linux.com, mm-commits@vger.kernel.org
@@ -19,24 +19,10 @@ To: mhocko@suse.com, arnd@arndb.de, cl@linux.com, mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
@@ -87,7 +73,6 @@ _
 Patches currently in -mm which might be from mhocko@suse.com are
 
 include-linux-nodemaskh-create-next_node_in-helper-fix.patch
-mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch
 mm-oom-move-gfp_nofs-check-to-out_of_memory.patch
 oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path.patch
 oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path.patch
