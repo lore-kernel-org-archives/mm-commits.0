@@ -1,118 +1,254 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch removed from -mm tree
-Date: Mon, 16 May 2016 15:35:55 -0700
-Message-ID: <573a4b4b.JRWDAL+EtZosOqYg%akpm@linux-foundation.org>
+Subject: +
+ kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels.patch added to -mm tree
+Date: Mon, 16 May 2016 16:41:11 -0700
+Message-ID: <573a5a97.2EYYfsfylSupnSRq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59078 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60563 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356AbcEPWf5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 May 2016 18:35:57 -0400
+	with ESMTP id S1751450AbcEPXlM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 May 2016 19:41:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, arnd@arndb.de, cl@linux.com, mm-commits@vger.kernel.org
+To: cminyard@mvista.com, bhe@redhat.com, hbabu@us.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2
-has been removed from the -mm tree.  Its filename was
-     mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch
+     Subject: kdump: fix gdb macros work work with newer and 64-bit kernels
+has been added to the -mm tree.  Its filename is
+     kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2
+From: Corey Minyard <cminyard@mvista.com>
+Subject: kdump: fix gdb macros work work with newer and 64-bit kernels
 
-Arnd has reported:
-In randconfig builds with sysfs, procfs and numa all disabled,
-but SMP enabled, we now get a link error in the newly introduced
-vmstat_refresh function:
+Lots of little changes needed to be made to clean these up, remove the
+four byte pointer assumption and traverse the pid queue properly.  Also
+consolidate the traceback code into a single function instead of having
+three copies of it.
 
-mm/built-in.o: In function `vmstat_refresh':
-:(.text+0x15c78): undefined reference to `vmstat_text'
-
-vmstat_refresh is proc_fs specific so there is no reason to define it
-when !CONFIG_PROC_FS.
-
-Link: http://lkml.kernel.org/r/20160516142332.GL23146@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Christoph Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/1462926655-9390-1-git-send-email-minyard@acm.org
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Haren Myneni <hbabu@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/kdump/gdbmacros.txt |   96 ++++++++++++----------------
+ 1 file changed, 44 insertions(+), 52 deletions(-)
 
-diff -puN mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2 mm/vmstat.c
---- a/mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2
-+++ a/mm/vmstat.c
-@@ -1383,6 +1383,7 @@ static void refresh_vm_stats(struct work
- 	refresh_cpu_vm_stats(true);
- }
+diff -puN Documentation/kdump/gdbmacros.txt~kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels Documentation/kdump/gdbmacros.txt
+--- a/Documentation/kdump/gdbmacros.txt~kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels
++++ a/Documentation/kdump/gdbmacros.txt
+@@ -15,15 +15,16 @@
  
-+#ifdef CONFIG_PROC_FS
- int vmstat_refresh(struct ctl_table *table, int write,
- 		   void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -1466,6 +1467,7 @@ static void vmstat_update(struct work_st
- 		cpumask_set_cpu(smp_processor_id(), cpu_stat_off);
- 	}
- }
-+#endif
+ define bttnobp
+ 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
+-	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
++	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
+ 	set $init_t=&init_task
+ 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
++	set var $stacksize = sizeof(union thread_union)
+ 	while ($next_t != $init_t)
+ 		set $next_t=(struct task_struct *)$next_t
+ 		printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
+ 		printf "===================\n"
+-		set var $stackp = $next_t.thread.esp
+-		set var $stack_top = ($stackp & ~4095) + 4096
++		set var $stackp = $next_t.thread.sp
++		set var $stack_top = ($stackp & ~($stacksize - 1)) + $stacksize
  
- /*
-  * Switch off vmstat processing and then fold all the remaining differentials
+ 		while ($stackp < $stack_top)
+ 			if (*($stackp) > _stext && *($stackp) < _sinittext)
+@@ -31,13 +32,13 @@ define bttnobp
+ 			end
+ 			set $stackp += 4
+ 		end
+-		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
++		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
+ 		while ($next_th != $next_t)
+ 			set $next_th=(struct task_struct *)$next_th
+ 			printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
+ 			printf "===================\n"
+-			set var $stackp = $next_t.thread.esp
+-			set var $stack_top = ($stackp & ~4095) + 4096
++			set var $stackp = $next_t.thread.sp
++			set var $stack_top = ($stackp & ~($stacksize - 1)) + stacksize
+ 
+ 			while ($stackp < $stack_top)
+ 				if (*($stackp) > _stext && *($stackp) < _sinittext)
+@@ -45,7 +46,7 @@ define bttnobp
+ 				end
+ 				set $stackp += 4
+ 			end
+-			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
++			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
+ 		end
+ 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
+ 	end
+@@ -54,42 +55,44 @@ document bttnobp
+ 	dump all thread stack traces on a kernel compiled with !CONFIG_FRAME_POINTER
+ end
+ 
++define btthreadstack
++	set var $pid_task = $arg0
++
++	printf "\npid %d; comm %s:\n", $pid_task.pid, $pid_task.comm
++	printf "task struct: "
++	print $pid_task
++	printf "===================\n"
++	set var $stackp = $pid_task.thread.sp
++	set var $stacksize = sizeof(union thread_union)
++	set var $stack_top = ($stackp & ~($stacksize - 1)) + $stacksize
++	set var $stack_bot = ($stackp & ~($stacksize - 1))
++
++	set $stackp = *((unsigned long *) $stackp)
++	while (($stackp < $stack_top) && ($stackp > $stack_bot))
++		set var $addr = *(((unsigned long *) $stackp) + 1)
++		info symbol $addr
++		set $stackp = *((unsigned long *) $stackp)
++	end
++end
++document btthreadstack
++	 dump a thread stack using the given task structure pointer
++end
++
++
+ define btt
+ 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
+-	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
++	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
+ 	set $init_t=&init_task
+ 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
+ 	while ($next_t != $init_t)
+ 		set $next_t=(struct task_struct *)$next_t
+-		printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
+-		printf "===================\n"
+-		set var $stackp = $next_t.thread.esp
+-		set var $stack_top = ($stackp & ~4095) + 4096
+-		set var $stack_bot = ($stackp & ~4095)
+-
+-		set $stackp = *($stackp)
+-		while (($stackp < $stack_top) && ($stackp > $stack_bot))
+-			set var $addr = *($stackp + 4)
+-			info symbol $addr
+-			set $stackp = *($stackp)
+-		end
++		btthreadstack $next_t
+ 
+-		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
++		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
+ 		while ($next_th != $next_t)
+ 			set $next_th=(struct task_struct *)$next_th
+-			printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
+-			printf "===================\n"
+-			set var $stackp = $next_t.thread.esp
+-			set var $stack_top = ($stackp & ~4095) + 4096
+-			set var $stack_bot = ($stackp & ~4095)
+-
+-			set $stackp = *($stackp)
+-			while (($stackp < $stack_top) && ($stackp > $stack_bot))
+-				set var $addr = *($stackp + 4)
+-				info symbol $addr
+-				set $stackp = *($stackp)
+-			end
+-			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
++			btthreadstack $next_th
++			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
+ 		end
+ 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
+ 	end
+@@ -101,7 +104,7 @@ end
+ define btpid
+ 	set var $pid = $arg0
+ 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
+-	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
++	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
+ 	set $init_t=&init_task
+ 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
+ 	set var $pid_task = 0
+@@ -113,29 +116,18 @@ define btpid
+ 			set $pid_task = $next_t
+ 		end
+ 
+-		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
++		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
+ 		while ($next_th != $next_t)
+ 			set $next_th=(struct task_struct *)$next_th
+ 			if ($next_th.pid == $pid)
+ 				set $pid_task = $next_th
+ 			end
+-			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
++			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
+ 		end
+ 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
+ 	end
+ 
+-	printf "\npid %d; comm %s:\n", $pid_task.pid, $pid_task.comm
+-	printf "===================\n"
+-	set var $stackp = $pid_task.thread.esp
+-	set var $stack_top = ($stackp & ~4095) + 4096
+-	set var $stack_bot = ($stackp & ~4095)
+-
+-	set $stackp = *($stackp)
+-	while (($stackp < $stack_top) && ($stackp > $stack_bot))
+-		set var $addr = *($stackp + 4)
+-		info symbol $addr
+-		set $stackp = *($stackp)
+-	end
++	btthreadstack $pid_task
+ end
+ document btpid
+ 	backtrace of pid
+@@ -145,7 +137,7 @@ end
+ define trapinfo
+ 	set var $pid = $arg0
+ 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
+-	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
++	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
+ 	set $init_t=&init_task
+ 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
+ 	set var $pid_task = 0
+@@ -157,13 +149,13 @@ define trapinfo
+ 			set $pid_task = $next_t
+ 		end
+ 
+-		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
++		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
+ 		while ($next_th != $next_t)
+ 			set $next_th=(struct task_struct *)$next_th
+ 			if ($next_th.pid == $pid)
+ 				set $pid_task = $next_th
+ 			end
+-			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
++			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
+ 		end
+ 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
+ 	end
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
-include-linux-nodemaskh-create-next_node_in-helper-fix.patch
-mm-oom-move-gfp_nofs-check-to-out_of_memory.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path.patch
-mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
-mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper-clear-oom_reaper_list-before-clearing-tif_memdie.patch
-vmscan-consider-classzone_idx-in-compaction_ready.patch
-mm-compaction-change-compact_-constants-into-enum.patch
-mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
-mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
-mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
-mm-compaction-update-compaction_result-ordering.patch
-mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
-mm-compaction-abstract-compaction-feedback-to-helpers.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix.patch
-mm-oom-protect-costly-allocations-some-more.patch
-mm-oom-protect-costly-allocations-some-more-fix.patch
-mm-consider-compaction-feedback-also-for-costly-allocation.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
-mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
-mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
-mm-make-mmap_sem-for-write-waits-killable-for-mm-syscalls.patch
-mm-make-vm_mmap-killable.patch
-mm-make-vm_munmap-killable.patch
-mm-aout-handle-vm_brk-failures.patch
-mm-elf-handle-vm_brk-error.patch
-mm-make-vm_brk-killable.patch
-mm-proc-make-clear_refs-killable.patch
-mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
-ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
-vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable.patch
-coredump-make-coredump_wait-wait-for-mmap_sem-for-write-killable.patch
-aio-make-aio_setup_ring-killable.patch
-exec-make-exec-path-waiting-for-mmap_sem-killable.patch
-prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
-uprobes-wait-for-mmap_sem-for-write-killable.patch
-drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
-drm-radeon-make-radeon_mn_get-wait-for-mmap_sem-killable.patch
-drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable.patch
+kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels.patch
 
