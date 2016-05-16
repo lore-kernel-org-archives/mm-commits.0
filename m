@@ -1,125 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/4] ksm: fix conflict between mmput and
- scan_get_next_rmap_item
-Date: Thu, 12 May 2016 15:42:21 -0700
-Message-ID: <573506cd.bPRC9jB0iRvSAdIu%akpm@linux-foundation.org>
+Subject: + zram-introduce-per-device-debug_stat-sysfs-node-update.patch
+ added to -mm tree
+Date: Mon, 16 May 2016 14:24:00 -0700
+Message-ID: <573a3a70.3TDdQnX0tBlRMpLq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39322 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58485 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751637AbcELWmW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 May 2016 18:42:22 -0400
+	with ESMTP id S1750711AbcEPVYB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 May 2016 17:24:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zhouchengming1@huawei.com, aarcange@redhat.com, dingtianhong@huawei.com, geliangtang@163.com, guohanjun@huawei.com, huawei.libin@huawei.com, hughd@google.com, kirill.shutemov@linux.intel.com, minchan@kernel.org, qiuxishi@huawei.com, thunder.leizhen@huawei.com, vbabka@suse.cz
+To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
-From: Zhou Chengming <zhouchengming1@huawei.com>
-Subject: ksm: fix conflict between mmput and scan_get_next_rmap_item
 
-A concurrency issue about KSM in the function scan_get_next_rmap_item.
+The patch titled
+     Subject: zram-introduce-per-device-debug_stat-sysfs-node-update
+has been added to the -mm tree.  Its filename is
+     zram-introduce-per-device-debug_stat-sysfs-node-update.patch
 
-task A (ksmd):				|task B (the mm's task):
-					|
-mm = slot->mm;				|
-down_read(&mm->mmap_sem);		|
-					|
-...					|
-					|
-spin_lock(&ksm_mmlist_lock);		|
-					|
-ksm_scan.mm_slot go to the next slot;	|
-					|
-spin_unlock(&ksm_mmlist_lock);		|
-					|mmput() ->
-					|	ksm_exit():
-					|
-					|spin_lock(&ksm_mmlist_lock);
-					|if (mm_slot && ksm_scan.mm_slot != mm_slot) {
-					|	if (!mm_slot->rmap_list) {
-					|		easy_to_free = 1;
-					|		...
-					|
-					|if (easy_to_free) {
-					|	mmdrop(mm);
-					|	...
-					|
-					|So this mm_struct may be freed in the mmput().
-					|
-up_read(&mm->mmap_sem);			|
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-introduce-per-device-debug_stat-sysfs-node-update.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-introduce-per-device-debug_stat-sysfs-node-update.patch
 
-As we can see above, the ksmd thread may access a mm_struct that already
-been freed to the kmem_cache.  Suppose a fork will get this mm_struct from
-the kmem_cache, the ksmd thread then call up_read(&mm->mmap_sem), will
-cause mmap_sem.count to become -1.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-As suggested by Andrea Arcangeli, unmerge_and_remove_all_rmap_items has
-the same SMP race condition, so fix it too.  My prev fix in function
-scan_get_next_rmap_item will introduce a different SMP race condition, so
-just invert the up_read/spin_unlock order as Andrea Arcangeli said.
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-Link: http://lkml.kernel.org/r/1462708815-31301-1-git-send-email-zhouchengming1@huawei.com
-Signed-off-by: Zhou Chengming <zhouchengming1@huawei.com>
-Suggested-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Geliang Tang <geliangtang@163.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Ding Tianhong <dingtianhong@huawei.com>
-Cc: Li Bin <huawei.libin@huawei.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram-introduce-per-device-debug_stat-sysfs-node-update
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ Documentation/ABI/testing/sysfs-block-zram |    4 +++-
+ drivers/block/zram/zram_drv.c              |    6 +++---
+ drivers/block/zram/zram_drv.h              |    2 +-
+ 3 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN mm/ksm.c~ksm-fix-conflict-between-mmput-and-scan_get_next_rmap_item-v4 mm/ksm.c
---- a/mm/ksm.c~ksm-fix-conflict-between-mmput-and-scan_get_next_rmap_item-v4
-+++ a/mm/ksm.c
-@@ -783,6 +783,7 @@ static int unmerge_and_remove_all_rmap_i
- 		}
+diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-introduce-per-device-debug_stat-sysfs-node-update Documentation/ABI/testing/sysfs-block-zram
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-introduce-per-device-debug_stat-sysfs-node-update
++++ a/Documentation/ABI/testing/sysfs-block-zram
+@@ -172,4 +172,6 @@ Date:		July 2016
+ Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+ Description:
+ 		The debug_stat file is read-only and represents various
+-		device's debugging info.
++		device's debugging info useful for kernel developers. Its
++		format is not documented intentionally and may change
++		anytime without any notice.
+diff -puN drivers/block/zram/zram_drv.c~zram-introduce-per-device-debug_stat-sysfs-node-update drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-per-device-debug_stat-sysfs-node-update
++++ a/drivers/block/zram/zram_drv.c
+@@ -438,7 +438,7 @@ static ssize_t mm_stat_show(struct devic
+ static ssize_t debug_stat_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+-	unsigned int version = 1;
++	int version = 1;
+ 	struct zram *zram = dev_to_zram(dev);
+ 	ssize_t ret;
  
- 		remove_trailing_rmap_items(mm_slot, &mm_slot->rmap_list);
-+		up_read(&mm->mmap_sem);
+@@ -446,7 +446,7 @@ static ssize_t debug_stat_show(struct de
+ 	ret = scnprintf(buf, PAGE_SIZE,
+ 			"version: %d\n%8llu\n",
+ 			version,
+-			(u64)atomic64_read(&zram->stats.num_recompress));
++			(u64)atomic64_read(&zram->stats.writestall));
+ 	up_read(&zram->init_lock);
  
- 		spin_lock(&ksm_mmlist_lock);
- 		ksm_scan.mm_slot = list_entry(mm_slot->mm_list.next,
-@@ -794,12 +795,9 @@ static int unmerge_and_remove_all_rmap_i
+ 	return ret;
+@@ -737,7 +737,7 @@ compress_again:
+ 		zcomp_strm_release(zram->comp, zstrm);
+ 		zstrm = NULL;
  
- 			free_mm_slot(mm_slot);
- 			clear_bit(MMF_VM_MERGEABLE, &mm->flags);
--			up_read(&mm->mmap_sem);
- 			mmdrop(mm);
--		} else {
-+		} else
- 			spin_unlock(&ksm_mmlist_lock);
--			up_read(&mm->mmap_sem);
--		}
- 	}
+-		atomic64_inc(&zram->stats.num_recompress);
++		atomic64_inc(&zram->stats.writestall);
  
- 	/* Clean up stable nodes, but don't worry if some are still busy */
-@@ -1663,8 +1661,15 @@ next_mm:
- 		up_read(&mm->mmap_sem);
- 		mmdrop(mm);
- 	} else {
--		spin_unlock(&ksm_mmlist_lock);
- 		up_read(&mm->mmap_sem);
-+		/*
-+		 * up_read(&mm->mmap_sem) first because after
-+		 * spin_unlock(&ksm_mmlist_lock) run, the "mm" may
-+		 * already have been freed under us by __ksm_exit()
-+		 * because the "mm_slot" is still hashed and
-+		 * ksm_scan.mm_slot doesn't point to it anymore.
-+		 */
-+		spin_unlock(&ksm_mmlist_lock);
- 	}
+ 		handle = zs_malloc(meta->mem_pool, clen,
+ 				GFP_NOIO | __GFP_HIGHMEM);
+diff -puN drivers/block/zram/zram_drv.h~zram-introduce-per-device-debug_stat-sysfs-node-update drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-introduce-per-device-debug_stat-sysfs-node-update
++++ a/drivers/block/zram/zram_drv.h
+@@ -85,7 +85,7 @@ struct zram_stats {
+ 	atomic64_t zero_pages;		/* no. of zero filled pages */
+ 	atomic64_t pages_stored;	/* no. of pages currently stored */
+ 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
+-	atomic64_t num_recompress;	/* no. of compression slow paths */
++	atomic64_t writestall;		/* no. of write slow paths */
+ };
  
- 	/* Repeat until we've completed scanning the whole list */
+ struct zram_meta {
 _
+
+Patches currently in -mm which might be from minchan@kernel.org are
+
+zsmalloc-use-first_page-rather-than-page.patch
+zsmalloc-clean-up-many-bug_on.patch
+zsmalloc-reordering-function-parameter.patch
+zsmalloc-remove-unused-pool-param-in-obj_free.patch
+zram-introduce-per-device-debug_stat-sysfs-node-update.patch
+
