@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch added to -mm tree
-Date: Mon, 16 May 2016 15:31:51 -0700
-Message-ID: <573a4a57.r6SsLSywktj/V0mZ%akpm@linux-foundation.org>
+Subject: + mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch
+ added to -mm tree
+Date: Mon, 16 May 2016 15:33:03 -0700
+Message-ID: <573a4a9f.JqCxXjWGvdTAbYAH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59057 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59060 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752879AbcEPWbw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 May 2016 18:31:52 -0400
+	with ESMTP id S1752608AbcEPWdE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 May 2016 18:33:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, arnd@arndb.de, cl@linux.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: don't pin the user memory in userfaultfd_file_create()
+     Subject: mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2
 has been added to the -mm tree.  Its filename is
-     userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch
+     mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,181 +39,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: userfaultfd: don't pin the user memory in userfaultfd_file_create()
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2
 
-userfaultfd_file_create() increments mm->mm_users; this means that the
-memory won't be unmapped/freed if mm owner exits/execs, and UFFDIO_COPY
-after that can populate the orphaned mm more.
+Arnd has reported:
+In randconfig builds with sysfs, procfs and numa all disabled,
+but SMP enabled, we now get a link error in the newly introduced
+vmstat_refresh function:
 
-Change userfaultfd_file_create() and userfaultfd_ctx_put() to use
-mm->mm_count to pin mm_struct.  This means that
-atomic_inc_not_zero(mm->mm_users) is needed when we are going to actually
-play with this memory.  Except handle_userfault() path doesn't need this,
-the caller must already have a reference.
+mm/built-in.o: In function `vmstat_refresh':
+:(.text+0x15c78): undefined reference to `vmstat_text'
 
-The patch adds the new trivial helper, mmget_not_zero(), it can have more
-users.
+vmstat_refresh is proc_fs specific so there is no reason to define it
+when !CONFIG_PROC_FS.
 
-Link: http://lkml.kernel.org/r/20160516172254.GA8595@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Link: http://lkml.kernel.org/r/20160516142332.GL23146@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c      |   41 +++++++++++++++++++++++++++-------------
- include/linux/sched.h |    7 +++++-
- 2 files changed, 34 insertions(+), 14 deletions(-)
+ mm/vmstat.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/userfaultfd.c~userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create
-+++ a/fs/userfaultfd.c
-@@ -137,7 +137,7 @@ static void userfaultfd_ctx_put(struct u
- 		VM_BUG_ON(waitqueue_active(&ctx->fault_wqh));
- 		VM_BUG_ON(spin_is_locked(&ctx->fd_wqh.lock));
- 		VM_BUG_ON(waitqueue_active(&ctx->fd_wqh));
--		mmput(ctx->mm);
-+		mmdrop(ctx->mm);
- 		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
- 	}
+diff -puN mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2 mm/vmstat.c
+--- a/mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2
++++ a/mm/vmstat.c
+@@ -1383,6 +1383,7 @@ static void refresh_vm_stats(struct work
+ 	refresh_cpu_vm_stats(true);
  }
-@@ -434,6 +434,9 @@ static int userfaultfd_release(struct in
  
- 	ACCESS_ONCE(ctx->released) = true;
- 
-+	if (!mmget_not_zero(mm))
-+		goto wakeup;
-+
- 	/*
- 	 * Flush page faults out of all CPUs. NOTE: all page faults
- 	 * must be retried without returning VM_FAULT_SIGBUS if
-@@ -466,7 +469,8 @@ static int userfaultfd_release(struct in
- 		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
- 	}
- 	up_write(&mm->mmap_sem);
--
-+	mmput(mm);
-+wakeup:
- 	/*
- 	 * After no new page faults can wait on this fault_*wqh, flush
- 	 * the last page faults that may have been already waiting on
-@@ -760,10 +764,12 @@ static int userfaultfd_register(struct u
- 	start = uffdio_register.range.start;
- 	end = start + uffdio_register.range.len;
- 
-+	ret = -ENOMEM;
-+	if (!mmget_not_zero(mm))
-+		goto out;
-+
- 	down_write(&mm->mmap_sem);
- 	vma = find_vma_prev(mm, start, &prev);
--
--	ret = -ENOMEM;
- 	if (!vma)
- 		goto out_unlock;
- 
-@@ -864,6 +870,7 @@ static int userfaultfd_register(struct u
- 	} while (vma && vma->vm_start < end);
- out_unlock:
- 	up_write(&mm->mmap_sem);
-+	mmput(mm);
- 	if (!ret) {
- 		/*
- 		 * Now that we scanned all vmas we can already tell
-@@ -902,10 +909,12 @@ static int userfaultfd_unregister(struct
- 	start = uffdio_unregister.start;
- 	end = start + uffdio_unregister.len;
- 
-+	ret = -ENOMEM;
-+	if (!mmget_not_zero(mm))
-+		goto out;
-+
- 	down_write(&mm->mmap_sem);
- 	vma = find_vma_prev(mm, start, &prev);
--
--	ret = -ENOMEM;
- 	if (!vma)
- 		goto out_unlock;
- 
-@@ -998,6 +1007,7 @@ static int userfaultfd_unregister(struct
- 	} while (vma && vma->vm_start < end);
- out_unlock:
- 	up_write(&mm->mmap_sem);
-+	mmput(mm);
- out:
- 	return ret;
- }
-@@ -1067,9 +1077,11 @@ static int userfaultfd_copy(struct userf
- 		goto out;
- 	if (uffdio_copy.mode & ~UFFDIO_COPY_MODE_DONTWAKE)
- 		goto out;
--
--	ret = mcopy_atomic(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
--			   uffdio_copy.len);
-+	if (mmget_not_zero(ctx->mm)) {
-+		ret = mcopy_atomic(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
-+				   uffdio_copy.len);
-+		mmput(ctx->mm);
-+	}
- 	if (unlikely(put_user(ret, &user_uffdio_copy->copy)))
- 		return -EFAULT;
- 	if (ret < 0)
-@@ -1110,8 +1122,11 @@ static int userfaultfd_zeropage(struct u
- 	if (uffdio_zeropage.mode & ~UFFDIO_ZEROPAGE_MODE_DONTWAKE)
- 		goto out;
- 
--	ret = mfill_zeropage(ctx->mm, uffdio_zeropage.range.start,
--			     uffdio_zeropage.range.len);
-+	if (mmget_not_zero(ctx->mm)) {
-+		ret = mfill_zeropage(ctx->mm, uffdio_zeropage.range.start,
-+				     uffdio_zeropage.range.len);
-+		mmput(ctx->mm);
-+	}
- 	if (unlikely(put_user(ret, &user_uffdio_zeropage->zeropage)))
- 		return -EFAULT;
- 	if (ret < 0)
-@@ -1289,12 +1304,12 @@ static struct file *userfaultfd_file_cre
- 	ctx->released = false;
- 	ctx->mm = current->mm;
- 	/* prevent the mm struct to be freed */
--	atomic_inc(&ctx->mm->mm_users);
-+	atomic_inc(&ctx->mm->mm_count);
- 
- 	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, ctx,
- 				  O_RDWR | (flags & UFFD_SHARED_FCNTL_FLAGS));
- 	if (IS_ERR(file)) {
--		mmput(ctx->mm);
-+		mmdrop(ctx->mm);
- 		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
- 	}
- out:
-diff -puN include/linux/sched.h~userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create include/linux/sched.h
---- a/include/linux/sched.h~userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create
-+++ a/include/linux/sched.h
-@@ -2611,12 +2611,17 @@ extern struct mm_struct * mm_alloc(void)
- 
- /* mmdrop drops the mm and the page tables */
- extern void __mmdrop(struct mm_struct *);
--static inline void mmdrop(struct mm_struct * mm)
-+static inline void mmdrop(struct mm_struct *mm)
++#ifdef CONFIG_PROC_FS
+ int vmstat_refresh(struct ctl_table *table, int write,
+ 		   void __user *buffer, size_t *lenp, loff_t *ppos)
  {
- 	if (unlikely(atomic_dec_and_test(&mm->mm_count)))
- 		__mmdrop(mm);
+@@ -1466,6 +1467,7 @@ static void vmstat_update(struct work_st
+ 		cpumask_set_cpu(smp_processor_id(), cpu_stat_off);
+ 	}
  }
++#endif
  
-+static inline bool mmget_not_zero(struct mm_struct *mm)
-+{
-+	return atomic_inc_not_zero(&mm->mm_users);
-+}
-+
- /* mmput gets rid of the mappings and all user-space */
- extern void mmput(struct mm_struct *);
- /* same as above but performs the slow path from the async kontext. Can
+ /*
+  * Switch off vmstat processing and then fold all the remaining differentials
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch
-wait-ptrace-assume-__wall-if-the-child-is-traced.patch
-wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix.patch
+mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-2.patch
+mm-oom-move-gfp_nofs-check-to-out_of_memory.patch
+oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path.patch
+oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path.patch
+mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
+mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper-clear-oom_reaper_list-before-clearing-tif_memdie.patch
+vmscan-consider-classzone_idx-in-compaction_ready.patch
+mm-compaction-change-compact_-constants-into-enum.patch
+mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
+mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
+mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
+mm-compaction-update-compaction_result-ordering.patch
+mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
+mm-compaction-abstract-compaction-feedback-to-helpers.patch
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix.patch
+mm-oom-protect-costly-allocations-some-more.patch
+mm-oom-protect-costly-allocations-some-more-fix.patch
+mm-consider-compaction-feedback-also-for-costly-allocation.patch
+mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
+mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
+mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
+mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
+mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
+mm-make-mmap_sem-for-write-waits-killable-for-mm-syscalls.patch
+mm-make-vm_mmap-killable.patch
+mm-make-vm_munmap-killable.patch
+mm-aout-handle-vm_brk-failures.patch
+mm-elf-handle-vm_brk-error.patch
+mm-make-vm_brk-killable.patch
+mm-proc-make-clear_refs-killable.patch
+mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
+ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
+vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable.patch
+coredump-make-coredump_wait-wait-for-mmap_sem-for-write-killable.patch
+aio-make-aio_setup_ring-killable.patch
+exec-make-exec-path-waiting-for-mmap_sem-killable.patch
+prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
+uprobes-wait-for-mmap_sem-for-write-killable.patch
+drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
+drm-radeon-make-radeon_mn_get-wait-for-mmap_sem-killable.patch
+drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable.patch
 
