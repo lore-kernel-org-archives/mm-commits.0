@@ -1,104 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: + signal-move-the-sig-sigrtmin-check-into-siginmasksig.patch
- added to -mm tree
-Date: Tue, 17 May 2016 16:03:08 -0700
-Message-ID: <573ba32c.cDBHHmA6PYq1zYX5%akpm@linux-foundation.org>
+Subject: [alternative-merged] fs-execc-fix-minor-memory-leak.patch removed from -mm tree
+Date: Tue, 17 May 2016 16:04:13 -0700
+Message-ID: <573ba36d.eLxnHKt9w/5L+Z2v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39665 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39670 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981AbcEQXDK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 May 2016 19:03:10 -0400
+	with ESMTP id S1751796AbcEQXEP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 May 2016 19:04:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, mroos@linux.ee, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jj.net@163.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: move the "sig < SIGRTMIN" check into siginmask(sig)
-has been added to the -mm tree.  Its filename is
-     signal-move-the-sig-sigrtmin-check-into-siginmasksig.patch
+     Subject: fs/exec.c: fix minor memory leak
+has been removed from the -mm tree.  Its filename was
+     fs-execc-fix-minor-memory-leak.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/signal-move-the-sig-sigrtmin-check-into-siginmasksig.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/signal-move-the-sig-sigrtmin-check-into-siginmasksig.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: signal: move the "sig < SIGRTMIN" check into siginmask(sig)
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/exec.c: fix minor memory leak
 
-All the users of siginmask() must ensure that sig < SIGRTMIN.  sig_fatal()
-doesn't and this is wrong:
+When the to-be-removed argument's trailing '\0' is the final byte in the
+page, remove_arg_zero()'s logic will avoid freeing the page, will break
+from the loop and will then advance bprm->p to point at the first byte in
+the next page.  Net result: the final page for the zeroeth argument is
+unfreed.
 
-	[  211.406327] UBSAN: Undefined behaviour in kernel/signal.c:911:6
-	[  211.406365] shift exponent 32 is too large for 32-bit type 'long unsigned int'
+It isn't a very important leak - that page will be freed later by the
+bprm-wide sweep in free_arg_pages().
 
-the patch doesn't add the neccesary check to sig_fatal(), it moves the
-check into siginmask() and updates other callers.
-
-Link: http://lkml.kernel.org/r/20160517195052.GA15187@redhat.com
-Reported-by: Meelis Roos <mroos@linux.ee>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Fixes: https://bugzilla.kernel.org/show_bug.cgi?id=116841
+Reported-by: hujunjie <jj.net@163.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/signal.h |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ fs/exec.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/signal.h~signal-move-the-sig-sigrtmin-check-into-siginmasksig include/linux/signal.h
---- a/include/linux/signal.h~signal-move-the-sig-sigrtmin-check-into-siginmasksig
-+++ a/include/linux/signal.h
-@@ -385,7 +385,9 @@ int unhandled_signal(struct task_struct
- #else
- #define rt_sigmask(sig)	sigmask(sig)
- #endif
--#define siginmask(sig, mask) (rt_sigmask(sig) & (mask))
-+
-+#define siginmask(sig, mask) \
-+	((sig) < SIGRTMIN && (rt_sigmask(sig) & (mask)))
+diff -puN fs/exec.c~fs-execc-fix-minor-memory-leak fs/exec.c
+--- a/fs/exec.c~fs-execc-fix-minor-memory-leak
++++ a/fs/exec.c
+@@ -1482,8 +1482,15 @@ int remove_arg_zero(struct linux_binprm
+ 		kunmap_atomic(kaddr);
+ 		put_arg_page(page);
  
- #define SIG_KERNEL_ONLY_MASK (\
- 	rt_sigmask(SIGKILL)   |  rt_sigmask(SIGSTOP))
-@@ -406,14 +408,10 @@ int unhandled_signal(struct task_struct
-         rt_sigmask(SIGCONT)   |  rt_sigmask(SIGCHLD)   | \
- 	rt_sigmask(SIGWINCH)  |  rt_sigmask(SIGURG)    )
+-		if (offset == PAGE_SIZE)
++		if (offset == PAGE_SIZE) {
+ 			free_arg_page(bprm, (bprm->p >> PAGE_SHIFT) - 1);
++		} else if (offset == PAGE_SIZE - 1) {
++			/*
++			 * The trailing '\0' is the last byte in a page - we're
++			 * about to advance past that byte so free its page now
++			 */
++			free_arg_page(bprm, (bprm->p >> PAGE_SHIFT));
++		}
+ 	} while (offset == PAGE_SIZE);
  
--#define sig_kernel_only(sig) \
--	(((sig) < SIGRTMIN) && siginmask(sig, SIG_KERNEL_ONLY_MASK))
--#define sig_kernel_coredump(sig) \
--	(((sig) < SIGRTMIN) && siginmask(sig, SIG_KERNEL_COREDUMP_MASK))
--#define sig_kernel_ignore(sig) \
--	(((sig) < SIGRTMIN) && siginmask(sig, SIG_KERNEL_IGNORE_MASK))
--#define sig_kernel_stop(sig) \
--	(((sig) < SIGRTMIN) && siginmask(sig, SIG_KERNEL_STOP_MASK))
-+#define sig_kernel_only(sig)		siginmask(sig, SIG_KERNEL_ONLY_MASK)
-+#define sig_kernel_coredump(sig)	siginmask(sig, SIG_KERNEL_COREDUMP_MASK)
-+#define sig_kernel_ignore(sig)		siginmask(sig, SIG_KERNEL_IGNORE_MASK)
-+#define sig_kernel_stop(sig)		siginmask(sig, SIG_KERNEL_STOP_MASK)
- 
- #define sig_user_defined(t, signr) \
- 	(((t)->sighand->action[(signr)-1].sa.sa_handler != SIG_DFL) &&	\
+ 	bprm->p++;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch
-wait-ptrace-assume-__wall-if-the-child-is-traced.patch
-wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall.patch
-signal-move-the-sig-sigrtmin-check-into-siginmasksig.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes.patch
+kernel-padata-hide-unused-functions-checkpatch-fixes.patch
+mm.patch
+mm-slab-freelist-randomization-v5-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-uninline-page_mapped.patch
+mm-uninline-page_mapped-checkpatch-fixes.patch
+memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
+mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
+mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix.patch
+mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
+mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
+mm-page_alloc-un-inline-the-bad-part-of-free_pages_check-fix.patch
+mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
+mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch
+mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix-fix.patch
+mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
+mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
+mm-oom-protect-costly-allocations-some-more-for-config_compaction-checkpatch-fixes.patch
+vmstat-get-rid-of-the-ugly-cpu_stat_off-variable-v2-fix.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable-fix.patch
+exit_thread-remove-empty-bodies-fix.patch
+exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
+lib-gcd-use-binary-gcd-algorithm-instead-of-euclidean-fix.patch
+allocate-idle-task-for-a-cpu-always-on-its-local-node-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
