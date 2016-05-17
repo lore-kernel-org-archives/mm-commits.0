@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-efs-fix-return-value.patch added to -mm tree
-Date: Tue, 17 May 2016 16:19:17 -0700
-Message-ID: <573ba6f5.z/Q4jMXennoQKuQZ%akpm@linux-foundation.org>
+Subject: + mm-slubc-fix-sysfs-filename-in-comment.patch added to -mm tree
+Date: Tue, 17 May 2016 16:19:55 -0700
+Message-ID: <573ba71b.iSnX3gxwNVbNvYxN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39847 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39854 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751911AbcEQXTS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 May 2016 19:19:18 -0400
+	with ESMTP id S1751911AbcEQXT4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 May 2016 19:19:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: os@iscas.ac.cn, firogm@gmail.com, hannes@cmpxchg.org, vdavydov@virtuozzo.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: lip@dtdream.com, cl@linux.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/efs/super.c: fix return value
+     Subject: mm/slub.c: fix sysfs filename in comment
 has been added to the -mm tree.  Its filename is
-     fs-efs-fix-return-value.patch
+     mm-slubc-fix-sysfs-filename-in-comment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-efs-fix-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slubc-fix-sysfs-filename-in-comment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-efs-fix-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slubc-fix-sysfs-filename-in-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,47 +38,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heloise <os@iscas.ac.cn>
-Subject: fs/efs/super.c: fix return value
+From: Li Peng <lip@dtdream.com>
+Subject: mm/slub.c: fix sysfs filename in comment
 
-When sb_bread() fails, the return value should be -EIO, fix it.
+/sys/kernel/slab/xx/defrag_ratio should be remote_node_defrag_ratio.
 
-Link: http://lkml.kernel.org/r/1463464943-4142-1-git-send-email-os@iscas.ac.cn
-Signed-off-by: Heloise <os@iscas.ac.cn>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Firo Yang <firogm@gmail.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/1463449242-5366-1-git-send-email-lip@dtdream.com
+Signed-off-by: Li Peng <lip@dtdream.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/super.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slub.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/efs/super.c~fs-efs-fix-return-value fs/efs/super.c
---- a/fs/efs/super.c~fs-efs-fix-return-value
-+++ a/fs/efs/super.c
-@@ -275,7 +275,7 @@ static int efs_fill_super(struct super_b
- 
- 	if (!bh) {
- 		pr_err("cannot read volume header\n");
--		return -EINVAL;
-+		return -EIO;
- 	}
- 
- 	/*
-@@ -293,7 +293,7 @@ static int efs_fill_super(struct super_b
- 	bh = sb_bread(s, sb->fs_start + EFS_SUPER);
- 	if (!bh) {
- 		pr_err("cannot read superblock\n");
--		return -EINVAL;
-+		return -EIO;
- 	}
- 		
- 	if (efs_validate_super(sb, (struct efs_super *) bh->b_data)) {
+diff -puN mm/slub.c~mm-slubc-fix-sysfs-filename-in-comment mm/slub.c
+--- a/mm/slub.c~mm-slubc-fix-sysfs-filename-in-comment
++++ a/mm/slub.c
+@@ -1735,11 +1735,11 @@ static void *get_any_partial(struct kmem
+ 	 * may return off node objects because partial slabs are obtained
+ 	 * from other nodes and filled up.
+ 	 *
+-	 * If /sys/kernel/slab/xx/defrag_ratio is set to 100 (which makes
+-	 * defrag_ratio = 1000) then every (well almost) allocation will
+-	 * first attempt to defrag slab caches on other nodes. This means
+-	 * scanning over all nodes to look for partial slabs which may be
+-	 * expensive if we do it every time we are trying to find a slab
++	 * If /sys/kernel/slab/xx/remote_node_defrag_ratio is set to 100
++	 * (which makes defrag_ratio = 1000) then every (well almost)
++	 * allocation will first attempt to defrag slab caches on other nodes.
++	 * This means scanning over all nodes to look for partial slabs which
++	 * may be expensive if we do it every time we are trying to find a slab
+ 	 * with available objects.
+ 	 */
+ 	if (!s->remote_node_defrag_ratio ||
 _
 
-Patches currently in -mm which might be from os@iscas.ac.cn are
+Patches currently in -mm which might be from lip@dtdream.com are
 
-fs-efs-fix-return-value.patch
+mm-slubc-fix-sysfs-filename-in-comment.patch
 
