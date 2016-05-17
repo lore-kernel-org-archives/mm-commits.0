@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-phys_addr_t-for-reserve_bootmem_region-arguments.patch
- added to -mm tree
-Date: Tue, 17 May 2016 16:09:20 -0700
-Message-ID: <573ba4a0.2l5YwVOfHSUZDgjg%akpm@linux-foundation.org>
+Subject: + mm-make-faultaround-produce-old-ptes.patch added to -mm tree
+Date: Tue, 17 May 2016 16:11:07 -0700
+Message-ID: <573ba50b.egW70q2b/A+Ej40w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39675 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39685 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750790AbcEQXJV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 May 2016 19:09:21 -0400
+	with ESMTP id S1751382AbcEQXLI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 May 2016 19:11:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefan.bader@canonical.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@kernel.org, minchan@kernel.org, riel@redhat.com, vinmenon@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use phys_addr_t for reserve_bootmem_region() arguments
+     Subject: mm: make faultaround produce old ptes
 has been added to the -mm tree.  Its filename is
-     mm-use-phys_addr_t-for-reserve_bootmem_region-arguments.patch
+     mm-make-faultaround-produce-old-ptes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-phys_addr_t-for-reserve_bootmem_region-arguments.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-faultaround-produce-old-ptes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-phys_addr_t-for-reserve_bootmem_region-arguments.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-faultaround-produce-old-ptes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,61 +38,140 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stefan Bader <stefan.bader@canonical.com>
-Subject: mm: use phys_addr_t for reserve_bootmem_region() arguments
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: make faultaround produce old ptes
 
-Since 92923ca3aacef63 ("mm: meminit: only set page reserved in the
-memblock region") the reserved bit is set on reserved memblock regions. 
-However start and end address are passed as unsigned long.  This is only
-32bit on i386, so it can end up marking the wrong pages reserved for
-ranges at 4GB and above.
+Currently, faultaround code produces young pte.  This can screw up vmscan
+behaviour[1], as it makes vmscan think that these pages are hot and not
+push them out on first round.
 
-This was observed on a 32bit Xen dom0 which was booted with initial memory
-set to a value below 4G but allowing to balloon in memory (dom0_mem=1024M
-for example).  This would define a reserved bootmem region for the
-additional memory (for example on a 8GB system there was a reverved region
-covering the 4GB-8GB range).  But since the addresses were passed on as
-unsigned long, this was actually marking all pages from 0 to 4GB as
-reserved.
+Modify faultaround to produce old ptes, so they can easily be reclaimed
+under memory pressure.
 
-Fixes: 92923ca3aacef63 ("mm: meminit: only set page reserved in the memblock region")
-Link: http://lkml.kernel.org/r/1463491221-10573-1-git-send-email-stefan.bader@canonical.com
-Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
-Cc: <stable@kernel.org>		[4.2+]
+This can to some extend defeat the purpose of faultaround on machines
+without hardware accessed bit as it will not help us with reducing the
+number of minor page faults.
+
+We may want to disable faultaround on such machines altogether, but that's
+subject for separate patchset.
+
+[1] https://lkml.kernel.org/r/1460992636-711-1-git-send-email-vinmenon@codeaurora.org
+
+Link: http://lkml.kernel.org/r/1463488366-47723-1-git-send-email-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/mm.h |    2 +-
- mm/page_alloc.c    |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/filemap.c       |    2 +-
+ mm/memory.c        |   23 ++++++++++++++++++-----
+ 3 files changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/mm.h~mm-use-phys_addr_t-for-reserve_bootmem_region-arguments include/linux/mm.h
---- a/include/linux/mm.h~mm-use-phys_addr_t-for-reserve_bootmem_region-arguments
+diff -puN include/linux/mm.h~mm-make-faultaround-produce-old-ptes include/linux/mm.h
+--- a/include/linux/mm.h~mm-make-faultaround-produce-old-ptes
 +++ a/include/linux/mm.h
-@@ -1763,7 +1763,7 @@ extern void free_highmem_page(struct pag
- extern void adjust_managed_page_count(struct page *page, long count);
- extern void mem_init_print_info(const char *str);
+@@ -596,7 +596,7 @@ static inline pte_t maybe_mkwrite(pte_t
+ }
  
--extern void reserve_bootmem_region(unsigned long start, unsigned long end);
-+extern void reserve_bootmem_region(phys_addr_t start, phys_addr_t end);
+ void do_set_pte(struct vm_area_struct *vma, unsigned long address,
+-		struct page *page, pte_t *pte, bool write, bool anon);
++		struct page *page, pte_t *pte, bool write, bool anon, bool old);
+ #endif
  
- /* Free the reserved page into the buddy system, so it gets managed. */
- static inline void __free_reserved_page(struct page *page)
-diff -puN mm/page_alloc.c~mm-use-phys_addr_t-for-reserve_bootmem_region-arguments mm/page_alloc.c
---- a/mm/page_alloc.c~mm-use-phys_addr_t-for-reserve_bootmem_region-arguments
-+++ a/mm/page_alloc.c
-@@ -1205,7 +1205,7 @@ static inline void init_reserved_page(un
-  * marks the pages PageReserved. The remaining valid pages are later
-  * sent to the buddy page allocator.
+ /*
+diff -puN mm/filemap.c~mm-make-faultaround-produce-old-ptes mm/filemap.c
+--- a/mm/filemap.c~mm-make-faultaround-produce-old-ptes
++++ a/mm/filemap.c
+@@ -2193,7 +2193,7 @@ repeat:
+ 		if (file->f_ra.mmap_miss > 0)
+ 			file->f_ra.mmap_miss--;
+ 		addr = address + (page->index - vmf->pgoff) * PAGE_SIZE;
+-		do_set_pte(vma, addr, page, pte, false, false);
++		do_set_pte(vma, addr, page, pte, false, false, true);
+ 		unlock_page(page);
+ 		goto next;
+ unlock:
+diff -puN mm/memory.c~mm-make-faultaround-produce-old-ptes mm/memory.c
+--- a/mm/memory.c~mm-make-faultaround-produce-old-ptes
++++ a/mm/memory.c
+@@ -2876,7 +2876,7 @@ static int __do_fault(struct vm_area_str
+  * vm_ops->map_pages.
   */
--void __meminit reserve_bootmem_region(unsigned long start, unsigned long end)
-+void __meminit reserve_bootmem_region(phys_addr_t start, phys_addr_t end)
+ void do_set_pte(struct vm_area_struct *vma, unsigned long address,
+-		struct page *page, pte_t *pte, bool write, bool anon)
++		struct page *page, pte_t *pte, bool write, bool anon, bool old)
  {
- 	unsigned long start_pfn = PFN_DOWN(start);
- 	unsigned long end_pfn = PFN_UP(end);
+ 	pte_t entry;
+ 
+@@ -2884,6 +2884,8 @@ void do_set_pte(struct vm_area_struct *v
+ 	entry = mk_pte(page, vma->vm_page_prot);
+ 	if (write)
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
++	if (old)
++		entry = pte_mkold(entry);
+ 	if (anon) {
+ 		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
+ 		page_add_new_anon_rmap(page, vma, address, false);
+@@ -3021,9 +3023,20 @@ static int do_read_fault(struct mm_struc
+ 	 */
+ 	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1) {
+ 		pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+-		do_fault_around(vma, address, pte, pgoff, flags);
+ 		if (!pte_same(*pte, orig_pte))
+ 			goto unlock_out;
++		do_fault_around(vma, address, pte, pgoff, flags);
++		/* Check if the fault is handled by faultaround */
++		if (!pte_same(*pte, orig_pte)) {
++			/*
++			 * Faultaround produce old pte, but the pte we've
++			 * handler fault for should be young.
++			 */
++			pte_t entry = pte_mkyoung(*pte);
++			if (ptep_set_access_flags(vma, address, pte, entry, 0))
++				update_mmu_cache(vma, address, pte);
++			goto unlock_out;
++		}
+ 		pte_unmap_unlock(pte, ptl);
+ 	}
+ 
+@@ -3038,7 +3051,7 @@ static int do_read_fault(struct mm_struc
+ 		put_page(fault_page);
+ 		return ret;
+ 	}
+-	do_set_pte(vma, address, fault_page, pte, false, false);
++	do_set_pte(vma, address, fault_page, pte, false, false, false);
+ 	unlock_page(fault_page);
+ unlock_out:
+ 	pte_unmap_unlock(pte, ptl);
+@@ -3090,7 +3103,7 @@ static int do_cow_fault(struct mm_struct
+ 		}
+ 		goto uncharge_out;
+ 	}
+-	do_set_pte(vma, address, new_page, pte, true, true);
++	do_set_pte(vma, address, new_page, pte, true, true, false);
+ 	mem_cgroup_commit_charge(new_page, memcg, false, false);
+ 	lru_cache_add_active_or_unevictable(new_page, vma);
+ 	pte_unmap_unlock(pte, ptl);
+@@ -3147,7 +3160,7 @@ static int do_shared_fault(struct mm_str
+ 		put_page(fault_page);
+ 		return ret;
+ 	}
+-	do_set_pte(vma, address, fault_page, pte, true, false);
++	do_set_pte(vma, address, fault_page, pte, true, false, false);
+ 	pte_unmap_unlock(pte, ptl);
+ 
+ 	if (set_page_dirty(fault_page))
 _
 
-Patches currently in -mm which might be from stefan.bader@canonical.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-use-phys_addr_t-for-reserve_bootmem_region-arguments.patch
+mm-make-faultaround-produce-old-ptes.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
