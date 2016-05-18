@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-increase-safety-margin-provided-by-pf_less_throttle.patch
- added to -mm tree
-Date: Wed, 18 May 2016 14:19:47 -0700
-Message-ID: <573cdc73.JvivuGt7zaZ8EqMp%akpm@linux-foundation.org>
+Subject: +
+ mm-disable-fault-around-on-emulated-access-bit-architecture.patch added to
+ -mm tree
+Date: Wed, 18 May 2016 14:24:02 -0700
+Message-ID: <573cdd72.u1PUiNgxTG1yyPRK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43333 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43694 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753465AbcERVTs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2016 17:19:48 -0400
+	with ESMTP id S1752009AbcERVYD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2016 17:24:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, kirill@shutemov.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MM: increase safety margin provided by PF_LESS_THROTTLE
+     Subject: mm: disable fault around on emulated access bit architecture
 has been added to the -mm tree.  Its filename is
-     mm-increase-safety-margin-provided-by-pf_less_throttle.patch
+     mm-disable-fault-around-on-emulated-access-bit-architecture.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-increase-safety-margin-provided-by-pf_less_throttle.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-disable-fault-around-on-emulated-access-bit-architecture.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-increase-safety-margin-provided-by-pf_less_throttle.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-disable-fault-around-on-emulated-access-bit-architecture.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +40,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.com>
-Subject: MM: increase safety margin provided by PF_LESS_THROTTLE
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: disable fault around on emulated access bit architecture
 
-When nfsd is exporting a filesystem over NFS which is then NFS-mounted on
-the local machine there is a risk of deadlock.  This happens when there
-are lots of dirty pages in the NFS filesystem and they cause NFSD to be
-throttled, either in throttle_vm_writeout() or in balance_dirty_pages().
+fault_around aims to reduce minor faults of file-backed pages via
+speculative ahead pte mapping and relying on readahead logic.  However, on
+non-HW access bit architecture the benefit is highly limited because they
+should emulate the young bit with minor faults for reclaim's page aging
+algorithm.  IOW, we cannot reduce minor faults on those architectures.
 
-To avoid this problem the PF_LESS_THROTTLE flag is set for NFSD threads
-and it provides a 25% increase to the limits that affect NFSD.  Any
-process writing to an NFS filesystem will be throttled well before the
-number of dirty NFS pages reaches the limit imposed on NFSD, so NFSD will
-not deadlock on pages that it needs to write out.  At least it shouldn't.
+I did quick a test on my ARM machine.
 
-All processes are allowed a small excess margin to avoid performing too
-many calculations: ratelimit_pages.
+512M file mmap sequential every word read on eSATA drive 4 times.  stddev
+is stable.
 
-ratelimit_pages is set so that if a thread on every CPU uses the entire
-margin, the total will only go 3% over the limit, and this is much less
-than the 25% bonus that PF_LESS_THROTTLE provides, so this margin
-shouldn't be a problem.  But it is.
+= fault_around 4096 =
+elapsed time(usec): 6747645
 
-The "total memory" that these 3% and 25% are calculated against are not
-really total memory but are "global_dirtyable_memory()" which doesn't
-include anonymous memory, just free memory and page-cache memory.
+= fault_around 65536 =
+elapsed time(usec): 6709263
 
-The "ratelimit_pages" number is based on whatever the
-global_dirtyable_memory was on the last CPU hot-plug, which might not be
-what you expect, but is probably close to the total freeable memory.
+0.5% gain.
 
-The throttle threshold uses the global_dirtable_memory at the moment when
-the throttling happens, which could be much less than at the last CPU
-hotplug.  So if lots of anonymous memory has been allocated, thus pushing
-out lots of page-cache pages, then NFSD might end up being throttled due
-to dirty NFS pages because the "25%" bonus it gets is calculated against a
-rather small amount of dirtyable memory, while the "3%" margin that other
-processes are allowed to dirty without penalty is calculated against a
-much larger number.
+Even when I tested it with eMMC there is no gain because I guess with slow
+storage the major fault is the dominant factor.
 
-To remove this possibility of deadlock we need to make sure that the
-margin granted to PF_LESS_THROTTLE exceeds that rate-limit margin.  Simply
-adding ratelimit_pages isn't enough as that should be multiplied by the
-number of cpus.
+Also, fault_around has the side effect of shrinking slab more aggressively
+and causes higher vmpressure, so if such speculation fails, it can evict
+slab more which can result in page I/O (e.g., inode cache).  In the end,
+it would make void any benefit of fault_around.
 
-So add "global_wb_domain.dirty_limit / 32" as that more accurately
-reflects the current total over-shoot margin.  This ensures that the
-number of dirty NFS pages never gets so high that nfsd will be throttled
-waiting for them to be written.
+So let's make the default "disabled" on those architectures.
 
-Link: http://lkml.kernel.org/r/87futgowwv.fsf@notabene.neil.brown.name
-Signed-off-by: NeilBrown <neilb@suse.com>
+Link: http://lkml.kernel.org/r/20160518014229.GB21538@bbox
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/page-writeback.c~mm-increase-safety-margin-provided-by-pf_less_throttle mm/page-writeback.c
---- a/mm/page-writeback.c~mm-increase-safety-margin-provided-by-pf_less_throttle
-+++ a/mm/page-writeback.c
-@@ -411,8 +411,8 @@ static void domain_dirty_limits(struct d
- 		bg_thresh = thresh / 2;
- 	tsk = current;
- 	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
--		bg_thresh += bg_thresh / 4;
--		thresh += thresh / 4;
-+		bg_thresh += bg_thresh / 4 + global_wb_domain.dirty_limit / 32;
-+		thresh += thresh / 4 + global_wb_domain.dirty_limit / 32;
- 	}
- 	dtc->thresh = thresh;
- 	dtc->bg_thresh = bg_thresh;
+diff -puN mm/memory.c~mm-disable-fault-around-on-emulated-access-bit-architecture mm/memory.c
+--- a/mm/memory.c~mm-disable-fault-around-on-emulated-access-bit-architecture
++++ a/mm/memory.c
+@@ -2899,8 +2899,16 @@ void do_set_pte(struct vm_area_struct *v
+ 	update_mmu_cache(vma, address, pte);
+ }
+ 
++/*
++ * If architecture emulates "accessed" or "young" bit without HW support,
++ * there is no much gain with fault_around.
++ */
+ static unsigned long fault_around_bytes __read_mostly =
++#ifndef __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
++	PAGE_SIZE;
++#else
+ 	rounddown_pow_of_two(65536);
++#endif
+ 
+ #ifdef CONFIG_DEBUG_FS
+ static int fault_around_bytes_get(void *data, u64 *val)
 _
 
-Patches currently in -mm which might be from neilb@suse.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-increase-safety-margin-provided-by-pf_less_throttle.patch
-dax-move-radix_dax_-definitions-to-daxc.patch
+mm-disable-fault-around-on-emulated-access-bit-architecture.patch
+zsmalloc-use-first_page-rather-than-page.patch
+zsmalloc-clean-up-many-bug_on.patch
+zsmalloc-reordering-function-parameter.patch
+zsmalloc-remove-unused-pool-param-in-obj_free.patch
+zram-introduce-per-device-debug_stat-sysfs-node-update.patch
 
