@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-print-out-the-symbol-name-for-the-hooks.patch added to
- -mm tree
-Date: Wed, 18 May 2016 14:26:23 -0700
-Message-ID: <573cddff.mJRqfW/D6lHbCcdg%akpm@linux-foundation.org>
+Subject: + kprobes-add-a-new-module-parameter.patch added to -mm tree
+Date: Wed, 18 May 2016 14:26:21 -0700
+Message-ID: <573cddfd.XFvSnxBqVNAC7oPs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43703 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43699 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753320AbcERV0Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2016 17:26:24 -0400
+	with ESMTP id S1754292AbcERV0W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2016 17:26:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: shijie.huang@arm.com, pmladek@suse.com, steve.capper@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: samples/kprobes: print out the symbol name for the hooks
+     Subject: samples/kprobes: add a new module parameter
 has been added to the -mm tree.  Its filename is
-     kprobes-print-out-the-symbol-name-for-the-hooks.patch
+     kprobes-add-a-new-module-parameter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kprobes-print-out-the-symbol-name-for-the-hooks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kprobes-add-a-new-module-parameter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kprobes-print-out-the-symbol-name-for-the-hooks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kprobes-add-a-new-module-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,85 +39,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Huang Shijie <shijie.huang@arm.com>
-Subject: samples/kprobes: print out the symbol name for the hooks
+Subject: samples/kprobes: add a new module parameter
 
-Print out the symbol name for the hooks, it makes the logs more readable.
+Add a new module parameter which can be used as the symbol name.  With
+this parameter, the module becomes more flexable.
 
-Link: http://lkml.kernel.org/r/1463535417-29637-2-git-send-email-shijie.huang@arm.com
+Link: http://lkml.kernel.org/r/1463535417-29637-1-git-send-email-shijie.huang@arm.com
 Signed-off-by: Huang Shijie <shijie.huang@arm.com>
 Cc: Petr Mladek <pmladek@suse.com>
 Cc: Steve Capper <steve.capper@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/kprobes/kprobe_example.c |   32 ++++++++++++++---------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ samples/kprobes/kprobe_example.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN samples/kprobes/kprobe_example.c~kprobes-print-out-the-symbol-name-for-the-hooks samples/kprobes/kprobe_example.c
---- a/samples/kprobes/kprobe_example.c~kprobes-print-out-the-symbol-name-for-the-hooks
+diff -puN samples/kprobes/kprobe_example.c~kprobes-add-a-new-module-parameter samples/kprobes/kprobe_example.c
+--- a/samples/kprobes/kprobe_example.c~kprobes-add-a-new-module-parameter
 +++ a/samples/kprobes/kprobe_example.c
-@@ -27,24 +27,24 @@ static struct kprobe kp = {
- static int handler_pre(struct kprobe *p, struct pt_regs *regs)
- {
- #ifdef CONFIG_X86
--	printk(KERN_INFO "pre_handler: p->addr = 0x%p, ip = %lx,"
-+	printk(KERN_INFO "<%s> pre_handler: p->addr = 0x%p, ip = %lx,"
- 			" flags = 0x%lx\n",
--		p->addr, regs->ip, regs->flags);
-+		p->symbol_name, p->addr, regs->ip, regs->flags);
- #endif
- #ifdef CONFIG_PPC
--	printk(KERN_INFO "pre_handler: p->addr = 0x%p, nip = 0x%lx,"
-+	printk(KERN_INFO "<%s> pre_handler: p->addr = 0x%p, nip = 0x%lx,"
- 			" msr = 0x%lx\n",
--		p->addr, regs->nip, regs->msr);
-+		p->symbol_name, p->addr, regs->nip, regs->msr);
- #endif
- #ifdef CONFIG_MIPS
--	printk(KERN_INFO "pre_handler: p->addr = 0x%p, epc = 0x%lx,"
-+	printk(KERN_INFO "<%s> pre_handler: p->addr = 0x%p, epc = 0x%lx,"
- 			" status = 0x%lx\n",
--		p->addr, regs->cp0_epc, regs->cp0_status);
-+		p->symbol_name, p->addr, regs->cp0_epc, regs->cp0_status);
- #endif
- #ifdef CONFIG_TILEGX
--	printk(KERN_INFO "pre_handler: p->addr = 0x%p, pc = 0x%lx,"
-+	printk(KERN_INFO "<%s> pre_handler: p->addr = 0x%p, pc = 0x%lx,"
- 			" ex1 = 0x%lx\n",
--		p->addr, regs->pc, regs->ex1);
-+		p->symbol_name, p->addr, regs->pc, regs->ex1);
- #endif
+@@ -14,9 +14,13 @@
+ #include <linux/module.h>
+ #include <linux/kprobes.h>
  
- 	/* A dump_stack() here will give a stack backtrace */
-@@ -56,20 +56,20 @@ static void handler_post(struct kprobe *
- 				unsigned long flags)
- {
- #ifdef CONFIG_X86
--	printk(KERN_INFO "post_handler: p->addr = 0x%p, flags = 0x%lx\n",
--		p->addr, regs->flags);
-+	printk(KERN_INFO "<%s> post_handler: p->addr = 0x%p, flags = 0x%lx\n",
-+		p->symbol_name, p->addr, regs->flags);
- #endif
- #ifdef CONFIG_PPC
--	printk(KERN_INFO "post_handler: p->addr = 0x%p, msr = 0x%lx\n",
--		p->addr, regs->msr);
-+	printk(KERN_INFO "<%s> post_handler: p->addr = 0x%p, msr = 0x%lx\n",
-+		p->symbol_name, p->addr, regs->msr);
- #endif
- #ifdef CONFIG_MIPS
--	printk(KERN_INFO "post_handler: p->addr = 0x%p, status = 0x%lx\n",
--		p->addr, regs->cp0_status);
-+	printk(KERN_INFO "<%s> post_handler: p->addr = 0x%p, status = 0x%lx\n",
-+		p->symbol_name, p->addr, regs->cp0_status);
- #endif
- #ifdef CONFIG_TILEGX
--	printk(KERN_INFO "post_handler: p->addr = 0x%p, ex1 = 0x%lx\n",
--		p->addr, regs->ex1);
-+	printk(KERN_INFO "<%s> post_handler: p->addr = 0x%p, ex1 = 0x%lx\n",
-+		p->symbol_name, p->addr, regs->ex1);
- #endif
- }
++#define MAX_SYMBOL_LEN	64
++static char symbol[MAX_SYMBOL_LEN] = "_do_fork";
++module_param_string(symbol, symbol, sizeof(symbol), 0644);
++
+ /* For each probe you need to allocate a kprobe structure */
+ static struct kprobe kp = {
+-	.symbol_name	= "_do_fork",
++	.symbol_name	= symbol,
+ };
  
+ /* kprobe pre_handler: called just before the probed instruction is executed */
 _
 
 Patches currently in -mm which might be from shijie.huang@arm.com are
