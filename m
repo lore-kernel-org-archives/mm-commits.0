@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-kasan-fix-to-call-kasan_free_pages-after-poisoning-page.patch added to
- -mm tree
-Date: Tue, 17 May 2016 16:24:54 -0700
-Message-ID: <573ba846.oKF8U+CAJCI+KOmc%akpm@linux-foundation.org>
+ mm-check_new_page_bad-directly-returns-in-__pg_hwpoison-case.patch added to -mm tree
+Date: Wed, 18 May 2016 13:19:42 -0700
+Message-ID: <573cce5e.UUNnWc3LTRF/tzk3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41432 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750875AbcEQXYz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 May 2016 19:24:55 -0400
+	with ESMTP id S1753931AbcERUTn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2016 16:19:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamyooon@gmail.com, a.ryabinin@samsung.com, labbott@fedoraproject.org, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, kasan: fix to call kasan_free_pages() after poisoning page
+     Subject: mm: check_new_page_bad() directly returns in __PG_HWPOISON case
 has been added to the -mm tree.  Its filename is
-     mm-kasan-fix-to-call-kasan_free_pages-after-poisoning-page.patch
+     mm-check_new_page_bad-directly-returns-in-__pg_hwpoison-case.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-fix-to-call-kasan_free_pages-after-poisoning-page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-check_new_page_bad-directly-returns-in-__pg_hwpoison-case.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-fix-to-call-kasan_free_pages-after-poisoning-page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-check_new_page_bad-directly-returns-in-__pg_hwpoison-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,55 +39,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "seokhoon.yoon" <iamyooon@gmail.com>
-Subject: mm, kasan: fix to call kasan_free_pages() after poisoning page
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: check_new_page_bad() directly returns in __PG_HWPOISON case
 
-When CONFIG_PAGE_POISONING and CONFIG_KASAN is enabled,
-free_pages_prepare()'s codeflow is below.
+Currently we check page->flags twice for "HWPoisoned" case of
+check_new_page_bad(), which can cause a race with unpoisoning.
+This race unnecessarily taints kernel with "BUG: Bad page state".
+check_new_page_bad() is the only caller of bad_page() which is interested
+in __PG_HWPOISON, so let's move the hwpoison related code in bad_page()
+to it.
 
-1)kmemcheck_free_shadow()
-2)kasan_free_pages()
-- set shadow byte of page is freed
-3)kernel_poison_pages()
-3.1) check access to page is valid or not using kasan
----> error occur, kasan think it is invalid access
-3.2) poison page
-4)kernel_map_pages()
-
-So kasan_free_pages() should be called after poisoning the page.
-
-Link: http://lkml.kernel.org/r/1463220405-7455-1-git-send-email-iamyooon@gmail.com
-Signed-off-by: seokhoon.yoon <iamyooon@gmail.com>
-Cc: Andrey Ryabinin <a.ryabinin@samsung.com>
-Cc: Laura Abbott <labbott@fedoraproject.org>
+Link: http://lkml.kernel.org/r/20160518100949.GA17299@hori1.linux.bs1.fc.nec.co.jp
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-kasan-fix-to-call-kasan_free_pages-after-poisoning-page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-kasan-fix-to-call-kasan_free_pages-after-poisoning-page
+diff -puN mm/page_alloc.c~mm-check_new_page_bad-directly-returns-in-__pg_hwpoison-case mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-check_new_page_bad-directly-returns-in-__pg_hwpoison-case
 +++ a/mm/page_alloc.c
-@@ -993,7 +993,6 @@ static __always_inline bool free_pages_p
+@@ -522,12 +522,6 @@ static void bad_page(struct page *page,
+ 	static unsigned long nr_shown;
+ 	static unsigned long nr_unshown;
  
- 	trace_mm_page_free(page, order);
- 	kmemcheck_free_shadow(page, order);
--	kasan_free_pages(page, order);
- 
- 	/*
- 	 * Check tail pages before head page information is cleared to
-@@ -1035,6 +1034,7 @@ static __always_inline bool free_pages_p
- 	arch_free_page(page, order);
- 	kernel_poison_pages(page, 1 << order, 0);
- 	kernel_map_pages(page, 1 << order, 0);
-+	kasan_free_pages(page, order);
- 
- 	return true;
- }
-_
-
-Patches currently in -mm which might be from iamyooon@gmail.com are
-
-mm-kasan-fix-to-call-kasan_free_pages-after-poisoning-page.patch
-
+-	/* Don't complain about poisoned pages */
+-	if (PageHWPoison(page)) {
+-		page_mapcount_reset(page); /* remove PageBuddy */
+-		return;
+-	}
