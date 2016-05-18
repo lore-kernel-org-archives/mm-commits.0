@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-bloat-o-meter-print-percent-change.patch added to -mm
- tree
-Date: Wed, 18 May 2016 15:36:53 -0700
-Message-ID: <573cee85.V3Sn6+usQ/YkqYRi%akpm@linux-foundation.org>
+Subject: +
+ mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet.patch added to -mm tree
+Date: Wed, 18 May 2016 16:03:00 -0700
+Message-ID: <573cf4a4.GI5xUl2d5NEf8Coj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44680 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45099 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751654AbcERWgy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2016 18:36:54 -0400
+	with ESMTP id S1750752AbcERXDH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2016 19:03:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Vineet.Gupta1@synopsys.com, josh@joshtriplett.org, mmarek@suse.cz, vgupta@synopsys.com, mm-commits@vger.kernel.org
+To: yang.shi@linaro.org, iamjoonsoo.kim@lge.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/bloat-o-meter: print percent change
+     Subject: mm: page_is_guard(): return false when page_ext arrays are not allocated yet
 has been added to the -mm tree.  Its filename is
-     scripts-bloat-o-meter-print-percent-change.patch
+     mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-bloat-o-meter-print-percent-change.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-bloat-o-meter-print-percent-change.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,70 +39,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Subject: scripts/bloat-o-meter: print percent change
+From: Yang Shi <yang.shi@linaro.org>
+Subject: mm: page_is_guard(): return false when page_ext arrays are not allocated yet
 
-This adds an additional line of output (to reduce the chances of breaking
-any existing output parsers) which prints the total size before and after
-and the relative difference.
+When enabling the below kernel configs:
 
-add/remove: 39/0 grow/shrink: 12408/55 up/down: 362227/-1430 (360797)
-function                                     old     new   delta
-ext4_fill_super                            10556   12590   +2034
-_fpadd_parts                                   -    1186   +1186
-ntfs_fill_super                             5340    6164    +824
-...
-...
-__divdf3                                     752     386    -366
-unlzma                                      3682    3274    -408
-Total: Before=5023101, After=5383898, chg 7.000000%
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+CONFIG_DEFERRED_STRUCT_PAGE_INIT
+CONFIG_DEBUG_PAGEALLOC
+CONFIG_PAGE_EXTENSION
+CONFIG_DEBUG_VM
 
-Link: http://lkml.kernel.org/r/1463124110-30314-1-git-send-email-vgupta@synopsys.com
-Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Michal Marek <mmarek@suse.cz>
+kernel bootup may fail due to the following oops:
+
+BUG: unable to handle kernel NULL pointer dereference at           (null)
+IP: [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
+PGD 0
+Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
+Modules linked in:
+CPU: 11 PID: 106 Comm: pgdatinit1 Not tainted 4.6.0-rc5-next-20160427 #26
+Hardware name: Intel Corporation S5520HC/S5520HC, BIOS S5500.86B.01.10.0025.030220091519 03/02/2009
+task: ffff88017c080040 ti: ffff88017c084000 task.ti: ffff88017c084000
+RIP: 0010:[<ffffffff8118d982>]  [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
+RSP: 0000:ffff88017c087c48  EFLAGS: 00010046
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000001
+RDX: 0000000000000980 RSI: 0000000000000080 RDI: 0000000000660401
+RBP: ffff88017c087cd0 R08: 0000000000000401 R09: 0000000000000009
+R10: ffff88017c080040 R11: 000000000000000a R12: 0000000000000400
+R13: ffffea0019810000 R14: ffffea0019810040 R15: ffff88066cfe6080
+FS:  0000000000000000(0000) GS:ffff88066cd40000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000000002406000 CR4: 00000000000006e0
+Stack:
+ ffff88066cd5bbd8 ffff88066cfe6640 0000000000000000 0000000000000000
+ 0000001f0000001f ffff88066cd5bbe8 ffffea0019810000 000000008118f53e
+ 0000000000000009 0000000000000401 ffffffff0000000a 0000000000000001
+Call Trace:
+ [<ffffffff8118f602>] free_hot_cold_page+0x192/0x1d0
+ [<ffffffff8118f69c>] __free_pages+0x5c/0x90
+ [<ffffffff8262a676>] __free_pages_boot_core+0x11a/0x14e
+ [<ffffffff8262a6fa>] deferred_free_range+0x50/0x62
+ [<ffffffff8262aa46>] deferred_init_memmap+0x220/0x3c3
+ [<ffffffff8262a826>] ? setup_per_cpu_pageset+0x35/0x35
+ [<ffffffff8108b1f8>] kthread+0xf8/0x110
+ [<ffffffff81c1b732>] ret_from_fork+0x22/0x40
+ [<ffffffff8108b100>] ? kthread_create_on_node+0x200/0x200
+Code: 49 89 d4 48 c1 e0 06 49 01 c5 e9 de fe ff ff 4c 89 f7 44 89 4d b8 4c 89 45 c0 44 89 5d c8 48 89 4d d0 e8 62 c7 07 00 48 8b 4d d0 <48> 8b 00 44 8b 5d c8 4c 8b 45 c0 44 8b 4d b8 a8 02 0f 84 05 ff
+RIP  [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
+ RSP <ffff88017c087c48>
+CR2: 0000000000000000
+
+The problem is lookup_page_ext() returns NULL then page_is_guard() tried to
+access it in page freeing.
+
+page_is_guard() depends on PAGE_EXT_DEBUG_GUARD bit of page extension
+flag, but freeing page might reach here before the page_ext arrays are
+allocated when feeding a range of pages to the allocator for the first
+time during bootup or memory hotplug.
+
+When it returns NULL, page_is_guard() should just return false instead of
+checking PAGE_EXT_DEBUG_GUARD unconditionally.
+
+Link: http://lkml.kernel.org/r/1463610225-29060-1-git-send-email-yang.shi@linaro.org
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/mm.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-print-percent-change scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-print-percent-change
-+++ a/scripts/bloat-o-meter
-@@ -32,18 +32,21 @@ old = getsizes(sys.argv[1])
- new = getsizes(sys.argv[2])
- grow, shrink, add, remove, up, down = 0, 0, 0, 0, 0, 0
- delta, common = [], {}
-+otot, ntot = 0, 0
+diff -puN include/linux/mm.h~mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet include/linux/mm.h
+--- a/include/linux/mm.h~mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet
++++ a/include/linux/mm.h
+@@ -2386,6 +2386,9 @@ static inline bool page_is_guard(struct
+ 		return false;
  
- for a in old:
-     if a in new:
-         common[a] = 1
- 
- for name in old:
-+    otot += old[name]
-     if name not in common:
-         remove += 1
-         down += old[name]
-         delta.append((-old[name], name))
- 
- for name in new:
-+    ntot += new[name]
-     if name not in common:
-         add += 1
-         up += new[name]
-@@ -63,3 +66,6 @@ print("add/remove: %s/%s grow/shrink: %s
- print("%-40s %7s %7s %+7s" % ("function", "old", "new", "delta"))
- for d, n in delta:
-     if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
+ 	page_ext = lookup_page_ext(page);
++	if (unlikely(!page_ext))
++		return false;
 +
-+print("Total: Before=%d, After=%d, chg %f%%" % \
-+    (otot, ntot, (ntot - otot)*100/otot))
+ 	return test_bit(PAGE_EXT_DEBUG_GUARD, &page_ext->flags);
+ }
+ #else
 _
 
-Patches currently in -mm which might be from Vineet.Gupta1@synopsys.com are
+Patches currently in -mm which might be from yang.shi@linaro.org are
 
-scripts-bloat-o-meter-print-percent-change.patch
+mm-slab-remove-zone_dma_flag.patch
+mm-thp-simplify-the-implementation-of-mk_huge_pmd.patch
+mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet.patch
 
