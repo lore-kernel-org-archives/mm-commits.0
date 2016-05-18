@@ -1,120 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-v2.patch removed
- from -mm tree
-Date: Wed, 18 May 2016 13:34:30 -0700
-Message-ID: <573cd1d6./WU4wEXF+Lb+aY84%akpm@linux-foundation.org>
+Subject: + mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-99.patch added to -mm tree
+Date: Wed, 18 May 2016 13:35:59 -0700
+Message-ID: <573cd22f.0NpMDVDhdTq5vWd1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41807 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41815 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753553AbcERUec (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2016 16:34:32 -0400
+	with ESMTP id S1753207AbcERUgA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2016 16:36:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, arnd@arndb.de, cl@linux.com, mm-commits@vger.kernel.org
+To: hughd@google.com, arnd@arndb.de, cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmotm: mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix
-has been removed from the -mm tree.  Its filename was
-     mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-v2.patch
+     Subject: mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-99
+has been added to the -mm tree.  Its filename is
+     mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-99.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-99.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-99.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mmotm: mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix
+From: Hugh Dickins <hughd@google.com>
+Subject: mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-99
 
-Arnd has reported:
-In randconfig builds with sysfs, procfs and numa all disabled,
-but SMP enabled, we now get a link error in the newly introduced
-vmstat_refresh function:
+Sorry for my noise, sorry for my silence, thanks to Arnd and everyone
+for chipping in.  But now I try it, I find that even Michal's is not
+quite right: if you build without CONFIG_PROC_FS, then it gives you
+mm/vmstat.c:1381:13: warning: `refresh_vm_stats' defined but not used [-Wunused-function]
+(well, that was on a tree with different line numbering).
+So here's my attempt...
 
-mm/built-in.o: In function `vmstat_refresh':
-:(.text+0x15c78): undefined reference to `vmstat_text'
-
-vmstat_refresh is proc_fs specific so there is no reason to define it
-when !CONFIG_PROC_FS.
-
-Link: http://lkml.kernel.org/r/20160516142332.GL23146@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Christoph Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1605171750010.24624@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/vmstat.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-v2 mm/vmstat.c
---- a/mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-v2
+diff -puN mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-99 mm/vmstat.c
+--- a/mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-99
 +++ a/mm/vmstat.c
-@@ -1384,6 +1384,7 @@ static void refresh_vm_stats(struct work
- 	refresh_cpu_vm_stats(true);
- }
+@@ -1379,6 +1379,7 @@ static DEFINE_PER_CPU(struct delayed_wor
+ int sysctl_stat_interval __read_mostly = HZ;
+ static cpumask_var_t cpu_stat_off;
  
 +#ifdef CONFIG_PROC_FS
- int vmstat_refresh(struct ctl_table *table, int write,
- 		   void __user *buffer, size_t *lenp, loff_t *ppos)
+ static void refresh_vm_stats(struct work_struct *work)
  {
+ 	refresh_cpu_vm_stats(true);
 @@ -1436,6 +1437,7 @@ int vmstat_refresh(struct ctl_table *tab
  		*lenp = 0;
  	return 0;
  }
-+#endif
++#endif /* CONFIG_PROC_FS */
  
  static void vmstat_update(struct work_struct *w)
  {
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-include-linux-nodemaskh-create-next_node_in-helper-fix.patch
-mm-oom-move-gfp_nofs-check-to-out_of_memory.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path.patch
-mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
-mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper-clear-oom_reaper_list-before-clearing-tif_memdie.patch
-vmscan-consider-classzone_idx-in-compaction_ready.patch
-mm-compaction-change-compact_-constants-into-enum.patch
-mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
-mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
-mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
-mm-compaction-update-compaction_result-ordering.patch
-mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
-mm-compaction-abstract-compaction-feedback-to-helpers.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix.patch
-mm-oom-protect-costly-allocations-some-more.patch
-mm-oom-protect-costly-allocations-some-more-fix.patch
-mm-consider-compaction-feedback-also-for-costly-allocation.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
-mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
-mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
-oom-consider-multi-threaded-tasks-in-task_will_free_mem.patch
-mm-make-mmap_sem-for-write-waits-killable-for-mm-syscalls.patch
-mm-make-vm_mmap-killable.patch
-mm-make-vm_munmap-killable.patch
-mm-aout-handle-vm_brk-failures.patch
-mm-elf-handle-vm_brk-error.patch
-mm-make-vm_brk-killable.patch
-mm-proc-make-clear_refs-killable.patch
-mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
-ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
-vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable.patch
-coredump-make-coredump_wait-wait-for-mmap_sem-for-write-killable.patch
-aio-make-aio_setup_ring-killable.patch
-exec-make-exec-path-waiting-for-mmap_sem-killable.patch
-prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
-uprobes-wait-for-mmap_sem-for-write-killable.patch
-drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
-drm-radeon-make-radeon_mn_get-wait-for-mmap_sem-killable.patch
-drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable.patch
+mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction-fix.patch
+mm-update_lru_size-warn-and-reset-bad-lru_size.patch
+mm-update_lru_size-do-the-__mod_zone_page_state.patch
+mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
+tmpfs-preliminary-minor-tidyups.patch
+mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch
+mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-99.patch
+huge-mm-move_huge_pmd-does-not-need-new_vma.patch
+huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch
+arch-fix-has_transparent_hugepage.patch
+radix-tree-rewrite-radix_tree_locate_item-fix.patch
 
