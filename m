@@ -1,65 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-bad_page-checks-bad_flags-instead-of-page-flags-for-hwpoison-page.patch
- removed from -mm tree
-Date: Wed, 18 May 2016 13:19:05 -0700
-Message-ID: <573cce39.YUZHdUMbOwSUxieP%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-v2.patch removed
+ from -mm tree
+Date: Wed, 18 May 2016 13:34:30 -0700
+Message-ID: <573cd1d6./WU4wEXF+Lb+aY84%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41363 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41807 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932630AbcERUTH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2016 16:19:07 -0400
+	with ESMTP id S1753553AbcERUec (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 May 2016 16:34:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, arnd@arndb.de, cl@linux.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: bad_page() checks bad_flags instead of page->flags for hwpoison page
+     Subject: mmotm: mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix
 has been removed from the -mm tree.  Its filename was
-     mm-bad_page-checks-bad_flags-instead-of-page-flags-for-hwpoison-page.patch
+     mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-v2.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: bad_page() checks bad_flags instead of page->flags for hwpoison page
+From: Michal Hocko <mhocko@suse.com>
+Subject: mmotm: mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix
 
-There's a race window between checking page->flags and unpoisoning, which
-taints kernel with "BUG: Bad page state".  That's overkill.  It's safer to
-use bad_flags to detect hwpoisoned page.
+Arnd has reported:
+In randconfig builds with sysfs, procfs and numa all disabled,
+but SMP enabled, we now get a link error in the newly introduced
+vmstat_refresh function:
 
-Link: http://lkml.kernel.org/r/1463470975-29972-1-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+mm/built-in.o: In function `vmstat_refresh':
+:(.text+0x15c78): undefined reference to `vmstat_text'
+
+vmstat_refresh is proc_fs specific so there is no reason to define it
+when !CONFIG_PROC_FS.
+
+Link: http://lkml.kernel.org/r/20160516142332.GL23146@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmstat.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-bad_page-checks-bad_flags-instead-of-page-flags-for-hwpoison-page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-bad_page-checks-bad_flags-instead-of-page-flags-for-hwpoison-page
-+++ a/mm/page_alloc.c
-@@ -522,8 +522,8 @@ static void bad_page(struct page *page,
- 	static unsigned long nr_shown;
- 	static unsigned long nr_unshown;
+diff -puN mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-v2 mm/vmstat.c
+--- a/mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update-fix-v2
++++ a/mm/vmstat.c
+@@ -1384,6 +1384,7 @@ static void refresh_vm_stats(struct work
+ 	refresh_cpu_vm_stats(true);
+ }
  
--	/* Don't complain about poisoned pages */
--	if (PageHWPoison(page)) {
-+	/* Don't complain about hwpoisoned pages */
-+	if (bad_flags == __PG_HWPOISON) {
- 		page_mapcount_reset(page); /* remove PageBuddy */
- 		return;
- 	}
++#ifdef CONFIG_PROC_FS
+ int vmstat_refresh(struct ctl_table *table, int write,
+ 		   void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+@@ -1436,6 +1437,7 @@ int vmstat_refresh(struct ctl_table *tab
+ 		*lenp = 0;
+ 	return 0;
+ }
++#endif
+ 
+ static void vmstat_update(struct work_struct *w)
+ {
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-check_new_page_bad-directly-returns-in-__pg_hwpoison-case.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix.patch
+mm-oom-move-gfp_nofs-check-to-out_of_memory.patch
+oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path.patch
+oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path.patch
+mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
+mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper-clear-oom_reaper_list-before-clearing-tif_memdie.patch
+vmscan-consider-classzone_idx-in-compaction_ready.patch
+mm-compaction-change-compact_-constants-into-enum.patch
+mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
+mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
+mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
+mm-compaction-update-compaction_result-ordering.patch
+mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
+mm-compaction-abstract-compaction-feedback-to-helpers.patch
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix.patch
+mm-oom-protect-costly-allocations-some-more.patch
+mm-oom-protect-costly-allocations-some-more-fix.patch
+mm-consider-compaction-feedback-also-for-costly-allocation.patch
+mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
+mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
+mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
+mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
+mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
+oom-consider-multi-threaded-tasks-in-task_will_free_mem.patch
+mm-make-mmap_sem-for-write-waits-killable-for-mm-syscalls.patch
+mm-make-vm_mmap-killable.patch
+mm-make-vm_munmap-killable.patch
+mm-aout-handle-vm_brk-failures.patch
+mm-elf-handle-vm_brk-error.patch
+mm-make-vm_brk-killable.patch
+mm-proc-make-clear_refs-killable.patch
+mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
+ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
+vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable.patch
+coredump-make-coredump_wait-wait-for-mmap_sem-for-write-killable.patch
+aio-make-aio_setup_ring-killable.patch
+exec-make-exec-path-waiting-for-mmap_sem-killable.patch
+prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
+uprobes-wait-for-mmap_sem-for-write-killable.patch
+drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
+drm-radeon-make-radeon_mn_get-wait-for-mmap_sem-killable.patch
+drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable.patch
 
