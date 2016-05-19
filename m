@@ -1,133 +1,76 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-rename-_count-field-of-the-struct-page-to-_refcount-fix6.patch removed
- from -mm tree
-Date: Thu, 19 May 2016 16:42:42 -0700
-Message-ID: <573e4f72.Ac5LDFR7ypN5fOny%akpm@linux-foundation.org>
+ include-linux-apply-__malloc-attribute-checkpatch-fixes.patch removed from
+ -mm tree
+Date: Thu, 19 May 2016 16:44:15 -0700
+Message-ID: <573e4fcf.RFp2VqDwy/OBtBll%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44868 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44872 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755172AbcESXmn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 19:42:43 -0400
+	with ESMTP id S1755087AbcESXoQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 19:44:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, davem@davemloft.net, iamjoonsoo.kim@lge.com, manish.chopra@qlogic.com, saeedm@mellanox.com, tariqt@mellanox.com, yuval.mintz@qlogic.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rename-_count-field-of-the-struct-page-to-_refcount-fix6
+     Subject: include-linux-apply-__malloc-attribute-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-rename-_count-field-of-the-struct-page-to-_refcount-fix6.patch
+     include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
+This patch was dropped because it was folded into include-linux-apply-__malloc-attribute.patch
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm-rename-_count-field-of-the-struct-page-to-_refcount-fix6
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include-linux-apply-__malloc-attribute-checkpatch-fixes
 
-sync ethernet driver changes with -mm's
-mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
+ERROR: "foo * bar" should be "foo *bar"
+#171: FILE: include/linux/mempool.h:35:
++extern void * mempool_alloc(mempool_t *pool, gfp_t gfp_mask) __malloc;
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Manish Chopra <manish.chopra@qlogic.com>
-Cc: Yuval Mintz <yuval.mintz@qlogic.com>
-Cc: Tariq Toukan <tariqt@mellanox.com>
-Cc: Saeed Mahameed <saeedm@mellanox.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/mellanox/mlx5/core/en_rx.c |   20 +++++++-------
- drivers/net/ethernet/qlogic/qede/qede_main.c    |    4 +-
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ include/linux/mempool.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ethernet/mellanox/mlx5/core/en_rx.c~mm-rename-_count-field-of-the-struct-page-to-_refcount-fix6 drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c~mm-rename-_count-field-of-the-struct-page-to-_refcount-fix6
-+++ a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -433,8 +433,8 @@ static int mlx5e_alloc_rx_fragmented_mpw
- 	for (i = 0; i < MLX5_MPWRQ_PAGES_PER_WQE; i++) {
- 		if (unlikely(mlx5e_alloc_and_map_page(rq, wi, i)))
- 			goto err_unmap;
--		atomic_add(mlx5e_mpwqe_strides_per_page(rq),
--			   &wi->umr.dma_info[i].page->_count);
-+		page_ref_add(wi->umr.dma_info[i].page,
-+			     mlx5e_mpwqe_strides_per_page(rq));
- 		wi->skbs_frags[i] = 0;
- 	}
+diff -puN include/linux/mempool.h~include-linux-apply-__malloc-attribute-checkpatch-fixes include/linux/mempool.h
+--- a/include/linux/mempool.h~include-linux-apply-__malloc-attribute-checkpatch-fixes
++++ a/include/linux/mempool.h
+@@ -32,7 +32,7 @@ extern mempool_t *mempool_create_node(in
  
-@@ -452,8 +452,8 @@ err_unmap:
- 	while (--i >= 0) {
- 		dma_unmap_page(rq->pdev, wi->umr.dma_info[i].addr, PAGE_SIZE,
- 			       PCI_DMA_FROMDEVICE);
--		atomic_sub(mlx5e_mpwqe_strides_per_page(rq),
--			   &wi->umr.dma_info[i].page->_count);
-+		page_ref_sub(wi->umr.dma_info[i].page,
-+			     mlx5e_mpwqe_strides_per_page(rq));
- 		put_page(wi->umr.dma_info[i].page);
- 	}
- 	dma_unmap_single(rq->pdev, wi->umr.mtt_addr, mtt_sz, PCI_DMA_TODEVICE);
-@@ -477,8 +477,8 @@ void mlx5e_free_rx_fragmented_mpwqe(stru
- 	for (i = 0; i < MLX5_MPWRQ_PAGES_PER_WQE; i++) {
- 		dma_unmap_page(rq->pdev, wi->umr.dma_info[i].addr, PAGE_SIZE,
- 			       PCI_DMA_FROMDEVICE);
--		atomic_sub(mlx5e_mpwqe_strides_per_page(rq) - wi->skbs_frags[i],
--			   &wi->umr.dma_info[i].page->_count);
-+		page_ref_sub(wi->umr.dma_info[i].page,
-+			mlx5e_mpwqe_strides_per_page(rq) - wi->skbs_frags[i]);
- 		put_page(wi->umr.dma_info[i].page);
- 	}
- 	dma_unmap_single(rq->pdev, wi->umr.mtt_addr, mtt_sz, PCI_DMA_TODEVICE);
-@@ -527,8 +527,8 @@ static int mlx5e_alloc_rx_linear_mpwqe(s
- 	 */
- 	split_page(wi->dma_info.page, MLX5_MPWRQ_WQE_PAGE_ORDER);
- 	for (i = 0; i < MLX5_MPWRQ_PAGES_PER_WQE; i++) {
--		atomic_add(mlx5e_mpwqe_strides_per_page(rq),
--			   &wi->dma_info.page[i]._count);
-+		page_ref_add(&wi->dma_info.page[i],
-+			     mlx5e_mpwqe_strides_per_page(rq));
- 		wi->skbs_frags[i] = 0;
- 	}
+ extern int mempool_resize(mempool_t *pool, int new_min_nr);
+ extern void mempool_destroy(mempool_t *pool);
+-extern void * mempool_alloc(mempool_t *pool, gfp_t gfp_mask) __malloc;
++extern void *mempool_alloc(mempool_t *pool, gfp_t gfp_mask) __malloc;
+ extern void mempool_free(void *element, mempool_t *pool);
  
-@@ -551,8 +551,8 @@ void mlx5e_free_rx_linear_mpwqe(struct m
- 	dma_unmap_page(rq->pdev, wi->dma_info.addr, rq->wqe_sz,
- 		       PCI_DMA_FROMDEVICE);
- 	for (i = 0; i < MLX5_MPWRQ_PAGES_PER_WQE; i++) {
--		atomic_sub(mlx5e_mpwqe_strides_per_page(rq) - wi->skbs_frags[i],
--			   &wi->dma_info.page[i]._count);
-+		page_ref_sub(&wi->dma_info.page[i],
-+			mlx5e_mpwqe_strides_per_page(rq) - wi->skbs_frags[i]);
- 		put_page(&wi->dma_info.page[i]);
- 	}
- }
-diff -puN drivers/net/ethernet/qlogic/qede/qede_main.c~mm-rename-_count-field-of-the-struct-page-to-_refcount-fix6 drivers/net/ethernet/qlogic/qede/qede_main.c
---- a/drivers/net/ethernet/qlogic/qede/qede_main.c~mm-rename-_count-field-of-the-struct-page-to-_refcount-fix6
-+++ a/drivers/net/ethernet/qlogic/qede/qede_main.c
-@@ -1036,7 +1036,7 @@ static int qede_fill_frag_skb(struct qed
- 		/* Incr page ref count to reuse on allocation failure
- 		 * so that it doesn't get freed while freeing SKB.
- 		 */
--		atomic_inc(&current_bd->data->_count);
-+		page_ref_inc(current_bd->data);
- 		goto out;
- 	}
- 
-@@ -1487,7 +1487,7 @@ static int qede_rx_int(struct qede_fastp
- 				 * freeing SKB.
- 				 */
- 
--				atomic_inc(&sw_rx_data->data->_count);
-+				page_ref_inc(sw_rx_data->data);
- 				rxq->rx_alloc_errors++;
- 				qede_recycle_rx_bd_ring(rxq, edev,
- 							fp_cqe->bd_num);
+ /*
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
+include-linux-apply-__malloc-attribute.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-uninline-page_mapped.patch
+mm-uninline-page_mapped-checkpatch-fixes.patch
+memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
+oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
+mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
+mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix.patch
+mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
+mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
+mm-page_alloc-un-inline-the-bad-part-of-free_pages_check-fix.patch
+mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
+mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch
+mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix-fix.patch
 
