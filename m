@@ -1,96 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks-fix.patch
- removed from -mm tree
-Date: Thu, 19 May 2016 16:53:33 -0700
-Message-ID: <573e51fd.8zyI31mYdZ+NOqkS%akpm@linux-foundation.org>
+ mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch removed from
+ -mm tree
+Date: Thu, 19 May 2016 16:56:01 -0700
+Message-ID: <573e5291.8uTKvu4O6Yosli15%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45738 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45761 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755233AbcESXxe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 19:53:34 -0400
+	with ESMTP id S1754170AbcESX4C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 19:56:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: Check once if a zone has isolated pageblocks -fix
+     Subject: mm-page_alloc-shorten-the-page-allocator-fast-path-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks-fix.patch
+     mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
 
-This patch was dropped because it was folded into mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch
+This patch was dropped because it was folded into mm-page_alloc-shorten-the-page-allocator-fast-path.patch
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: Check once if a zone has isolated pageblocks -fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-shorten-the-page-allocator-fast-path-fix
 
-Vlastimil Babka pointed out that the original code was protected by
-the zone lock and provided a fix.
-
-This is a fix to the mmotm patch
-mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch . Once
-applied the following line should be removed from the changelog "Technically
-this is race-prone but so is the existing code."
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks-fix
+diff -puN mm/page_alloc.c~mm-page_alloc-shorten-the-page-allocator-fast-path-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-shorten-the-page-allocator-fast-path-fix
 +++ a/mm/page_alloc.c
-@@ -831,9 +831,10 @@ static void free_pcppages_bulk(struct zo
- 	int batch_free = 0;
- 	int to_free = count;
- 	unsigned long nr_scanned;
--	bool isolated_pageblocks = has_isolate_pageblock(zone);
-+	bool isolated_pageblocks;
+@@ -3398,7 +3398,7 @@ retry_cpuset:
+ 				ac.nodemask, &ac.preferred_zone);
+ 	if (!ac.preferred_zone) {
+ 		page = NULL;
+-		goto out;
++		goto no_zone;
+ 	}
  
- 	spin_lock(&zone->lock);
-+	isolated_pageblocks = has_isolate_pageblock(zone);
- 	nr_scanned = zone_page_state(zone, NR_PAGES_SCANNED);
- 	if (nr_scanned)
- 		__mod_zone_page_state(zone, NR_PAGES_SCANNED, -nr_scanned);
+ 	ac.classzone_idx = zonelist_zone_idx(preferred_zoneref);
+@@ -3417,7 +3417,7 @@ retry_cpuset:
+ 
+ 	page = __alloc_pages_slowpath(alloc_mask, order, &ac);
+ 
+-out:
++no_zone:
+ 	/*
+ 	 * When updating a task's mems_allowed, it is possible to race with
+ 	 * parallel threads in such a way that an allocation can fail while
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-only-check-pagecompound-for-high-order-pages.patch
-mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path.patch
-mm-page_alloc-reduce-branches-in-zone_statistics.patch
-mm-page_alloc-inline-zone_statistics.patch
-mm-page_alloc-inline-the-fast-path-of-the-zonelist-iterator.patch
-mm-page_alloc-use-__dec_zone_state-for-order-0-page-allocation.patch
-mm-page_alloc-avoid-unnecessary-zone-lookups-during-pageblock-operations.patch
-mm-page_alloc-convert-alloc_flags-to-unsigned.patch
-mm-page_alloc-convert-nr_fair_skipped-to-bool.patch
-mm-page_alloc-remove-unnecessary-local-variable-in-get_page_from_freelist.patch
-mm-page_alloc-remove-unnecessary-initialisation-in-get_page_from_freelist.patch
-mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask.patch
-mm-page_alloc-simplify-last-cpupid-reset.patch
-mm-page_alloc-move-__gfp_hardwall-modifications-out-of-the-fastpath.patch
-mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-uninline-page_mapped.patch
 mm-page_alloc-shorten-the-page-allocator-fast-path.patch
-mm-page_alloc-reduce-cost-of-fair-zone-allocation-policy-retry.patch
-mm-page_alloc-shortcut-watermark-checks-for-order-0-pages.patch
-mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice.patch
-mm-page_alloc-remove-field-from-alloc_context.patch
-mm-page_alloc-check-multiple-page-fields-with-a-single-branch.patch
-mm-page_alloc-un-inline-the-bad-part-of-free_pages_check.patch
-mm-page_alloc-pull-out-side-effects-from-free_pages_check.patch
-mm-page_alloc-remove-unnecessary-variable-from-free_pcppages_bulk.patch
-mm-page_alloc-inline-pageblock-lookup-in-page-free-fast-paths.patch
-mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch
-mm-page_alloc-defer-debugging-checks-of-pages-allocated-from-the-pcp.patch
-mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare.patch
-mm-page_alloc-restore-the-original-nodemask-if-the-fast-path-allocation-failed.patch
+mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
+mm-page_alloc-un-inline-the-bad-part-of-free_pages_check-fix.patch
+mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
+mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch
+mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix-fix.patch
 
