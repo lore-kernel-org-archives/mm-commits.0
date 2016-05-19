@@ -1,148 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch removed
- from -mm tree
-Date: Thu, 19 May 2016 16:44:53 -0700
-Message-ID: <573e4ff5.IqyutQ+fc6e5xVMD%akpm@linux-foundation.org>
+ compaction-wrap-calculating-first-and-last-pfn-of-pageblock-fix.patch
+ removed from -mm tree
+Date: Thu, 19 May 2016 16:46:17 -0700
+Message-ID: <573e5049.x8HH3cpfotM6lcrP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44881 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44891 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754737AbcESXoy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 19:44:54 -0400
+	with ESMTP id S1753824AbcESXqS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 19:46:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, js1304@gmail.com, lauraa@codeaurora.org, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, wangxq10@lzu.edu.cn, zhuhui@xiaomi.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include-linux-nodemaskh-create-next_node_in-helper-fix-fix
+     Subject: mm, compaction: fix crash in get_pfnblock_flags_mask() from isolate_freepages():
 has been removed from the -mm tree.  Its filename was
-     include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+     compaction-wrap-calculating-first-and-last-pfn-of-pageblock-fix.patch
 
-This patch was dropped because it was folded into include-linux-nodemaskh-create-next_node_in-helper.patch
+This patch was dropped because it was folded into mm-compaction-wrap-calculating-first-and-last-pfn-of-pageblock.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include-linux-nodemaskh-create-next_node_in-helper-fix-fix
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: fix crash in get_pfnblock_flags_mask() from isolate_freepages():
 
-next_node_in() is rather large.  Uninline it to saves 420 bytes for 8
-callsites.
+In isolate_freepages(), low_pfn was mistakenly initialized to
+pageblock_start_pfn() instead of pageblock_end_pfn(), creating a possible
+underflow, as described by Hugh:
 
-Create lib/nodemask.c for this.  Move node_random() into lib/nodemask.c.
+   There's a case when that "block_start_pfn -= pageblock_nr_pages" loop can
+   pass through 0 and end up trying to access a pageblock before the start of
+   the mem_map[].
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Laura Abbott <lauraa@codeaurora.org>
-Cc: Hui Zhu <zhuhui@xiaomi.com>
-Cc: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Fixes: mmotm mm-compaction-wrap-calculating-first-and-last-pfn-of-pageblock.patch
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |    9 +--------
- lib/Makefile             |    2 +-
- lib/nodemask.c           |   30 ++++++++++++++++++++++++++++++
- mm/mempolicy.c           |   16 ----------------
- 4 files changed, 32 insertions(+), 25 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/nodemask.h~include-linux-nodemaskh-create-next_node_in-helper-fix-fix include/linux/nodemask.h
---- a/include/linux/nodemask.h~include-linux-nodemaskh-create-next_node_in-helper-fix-fix
-+++ a/include/linux/nodemask.h
-@@ -266,14 +266,7 @@ static inline int __next_node(int n, con
-  * the first node in src if needed.  Returns MAX_NUMNODES if src is empty.
-  */
- #define next_node_in(n, src) __next_node_in((n), &(src))
--static inline int __next_node_in(int node, const nodemask_t *srcp)
--{
--	int ret = __next_node(node, srcp);
--
--	if (ret == MAX_NUMNODES)
--		ret = __first_node(srcp);
--	return ret;
--}
-+int __next_node_in(int node, const nodemask_t *srcp);
+diff -puN mm/compaction.c~compaction-wrap-calculating-first-and-last-pfn-of-pageblock-fix mm/compaction.c
+--- a/mm/compaction.c~compaction-wrap-calculating-first-and-last-pfn-of-pageblock-fix
++++ a/mm/compaction.c
+@@ -932,7 +932,7 @@ static void isolate_freepages(struct com
+ 	block_start_pfn = pageblock_start_pfn(cc->free_pfn);
+ 	block_end_pfn = min(block_start_pfn + pageblock_nr_pages,
+ 						zone_end_pfn(zone));
+-	low_pfn = pageblock_start_pfn(cc->migrate_pfn);
++	low_pfn = pageblock_end_pfn(cc->migrate_pfn);
  
- static inline void init_nodemask_of_node(nodemask_t *mask, int node)
- {
-diff -puN lib/Makefile~include-linux-nodemaskh-create-next_node_in-helper-fix-fix lib/Makefile
---- a/lib/Makefile~include-linux-nodemaskh-create-next_node_in-helper-fix-fix
-+++ a/lib/Makefile
-@@ -25,7 +25,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 sha1.o md5.o irq_regs.o argv_split.o \
- 	 flex_proportions.o ratelimit.o show_mem.o \
- 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
--	 earlycpio.o seq_buf.o nmi_backtrace.o
-+	 earlycpio.o seq_buf.o nmi_backtrace.o nodemask.o
- 
- obj-$(CONFIG_ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS) += usercopy.o
- lib-$(CONFIG_MMU) += ioremap.o
-diff -puN /dev/null lib/nodemask.c
---- /dev/null
-+++ a/lib/nodemask.c
-@@ -0,0 +1,30 @@
-+#include <linux/nodemask.h>
-+#include <linux/module.h>
-+#include <linux/random.h>
-+
-+int __next_node_in(int node, const nodemask_t *srcp)
-+{
-+	int ret = __next_node(node, srcp);
-+
-+	if (ret == MAX_NUMNODES)
-+		ret = __first_node(srcp);
-+	return ret;
-+}
-+EXPORT_SYMBOL(__next_node_in);
-+
-+#ifdef CONFIG_NUMA
-+/*
-+ * Return the bit number of a random bit set in the nodemask.
-+ * (returns NUMA_NO_NODE if nodemask is empty)
-+ */
-+int node_random(const nodemask_t *maskp)
-+{
-+	int w, bit = NUMA_NO_NODE;
-+
-+	w = nodes_weight(*maskp);
-+	if (w)
-+		bit = bitmap_ord_to_pos(maskp->bits,
-+			get_random_int() % w, MAX_NUMNODES);
-+	return bit;
-+}
-+#endif
-diff -puN mm/mempolicy.c~include-linux-nodemaskh-create-next_node_in-helper-fix-fix mm/mempolicy.c
---- a/mm/mempolicy.c~include-linux-nodemaskh-create-next_node_in-helper-fix-fix
-+++ a/mm/mempolicy.c
-@@ -97,7 +97,6 @@
- 
- #include <asm/tlbflush.h>
- #include <asm/uaccess.h>
--#include <linux/random.h>
- 
- #include "internal.h"
- 
-@@ -1801,21 +1800,6 @@ static inline unsigned interleave_nid(st
- 		return interleave_nodes(pol);
- }
- 
--/*
-- * Return the bit number of a random bit set in the nodemask.
-- * (returns NUMA_NO_NODE if nodemask is empty)
-- */
--int node_random(const nodemask_t *maskp)
--{
--	int w, bit = NUMA_NO_NODE;
--
--	w = nodes_weight(*maskp);
--	if (w)
--		bit = bitmap_ord_to_pos(maskp->bits,
--			get_random_int() % w, MAX_NUMNODES);
--	return bit;
--}
+ 	/*
+ 	 * Isolate free pages until enough are available to migrate the
+_
+
+Patches currently in -mm which might be from vbabka@suse.cz are
+
+mm-compaction-wrap-calculating-first-and-last-pfn-of-pageblock.patch
+mm-compaction-reduce-spurious-pcplist-drains.patch
+mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction.patch
+mm-page_alloc-un-inline-the-bad-part-of-free_pages_check.patch
+cpuset-use-static-key-better-and-convert-to-new-api.patch
+mm-page_alloc-uninline-the-bad-page-part-of-check_new_page.patch
+
