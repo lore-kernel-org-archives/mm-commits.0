@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compact-fix-zoneindex-in-compact-fix.patch added to -mm tree
-Date: Thu, 19 May 2016 14:13:28 -0700
-Message-ID: <573e2c78.62EdIdA9ok4lTU5L%akpm@linux-foundation.org>
+Subject: + zram-introduce-per-device-debug_stat-sysfs-node-minchan.patch
+ added to -mm tree
+Date: Thu, 19 May 2016 14:54:13 -0700
+Message-ID: <573e3605.tYAPxxxckTTbxHV6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42609 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43308 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753562AbcESVNa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 17:13:30 -0400
+	with ESMTP id S1753562AbcESVyO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 17:54:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, puck.chen@hisilicon.com, suzhuangluan@hisilicon.com, tj@kernel.org, vbabka@suse.cz, xuyiping@hisilicon.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compact-fix-zoneindex-in-compact-fix
+     Subject: Re: zram: introduce per-device debug_stat sysfs node
 has been added to the -mm tree.  Its filename is
-     mm-compact-fix-zoneindex-in-compact-fix.patch
+     zram-introduce-per-device-debug_stat-sysfs-node-minchan.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compact-fix-zoneindex-in-compact-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-introduce-per-device-debug_stat-sysfs-node-minchan.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compact-fix-zoneindex-in-compact-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-introduce-per-device-debug_stat-sysfs-node-minchan.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,81 +39,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compact-fix-zoneindex-in-compact-fix
+From: Minchan Kim <minchan@kernel.org>
+Subject: Re: zram: introduce per-device debug_stat sysfs node
 
-fix kcompactd_do_work() as well, per Hugh
+Fortunately, Andrew isn't pick up this patch yet so I want to replace
+it to below suggested by Sergey which is better.
 
-Cc: Chen Feng <puck.chen@hisilicon.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yiping Xu <xuyiping@hisilicon.com>
-Cc: Zhuangluan Su <suzhuangluan@hisilicon.com>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |    8 ++++----
+ drivers/block/zram/zram_drv.h |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/compaction.c~mm-compact-fix-zoneindex-in-compact-fix mm/compaction.c
---- a/mm/compaction.c~mm-compact-fix-zoneindex-in-compact-fix
-+++ a/mm/compaction.c
-@@ -1897,7 +1897,7 @@ static void kcompactd_do_work(pg_data_t
- 							cc.classzone_idx);
- 	count_vm_event(KCOMPACTD_WAKE);
+diff -puN drivers/block/zram/zram_drv.c~zram-introduce-per-device-debug_stat-sysfs-node-minchan drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-per-device-debug_stat-sysfs-node-minchan
++++ a/drivers/block/zram/zram_drv.c
+@@ -446,7 +446,7 @@ static ssize_t debug_stat_show(struct de
+ 	ret = scnprintf(buf, PAGE_SIZE,
+ 			"version: %d\n%8llu\n",
+ 			version,
+-			(u64)atomic64_read(&zram->stats.num_recompress));
++			(u64)atomic64_read(&zram->stats.writestall));
+ 	up_read(&zram->init_lock);
  
--	for (zoneid = 0; zoneid < cc.classzone_idx; zoneid++) {
-+	for (zoneid = 0; zoneid <= cc.classzone_idx; zoneid++) {
- 		int status;
+ 	return ret;
+@@ -737,12 +737,12 @@ compress_again:
+ 		zcomp_strm_release(zram->comp, zstrm);
+ 		zstrm = NULL;
  
- 		zone = &pgdat->node_zones[zoneid];
++		atomic64_inc(&zram->stats.writestall);
++
+ 		handle = zs_malloc(meta->mem_pool, clen,
+ 				GFP_NOIO | __GFP_HIGHMEM);
+-		if (handle) {
+-			atomic64_inc(&zram->stats.num_recompress);
++		if (handle)
+ 			goto compress_again;
+-		}
+ 
+ 		pr_err("Error allocating memory for compressed page: %u, size=%zu\n",
+ 			index, clen);
+diff -puN drivers/block/zram/zram_drv.h~zram-introduce-per-device-debug_stat-sysfs-node-minchan drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-introduce-per-device-debug_stat-sysfs-node-minchan
++++ a/drivers/block/zram/zram_drv.h
+@@ -85,7 +85,7 @@ struct zram_stats {
+ 	atomic64_t zero_pages;		/* no. of zero filled pages */
+ 	atomic64_t pages_stored;	/* no. of pages currently stored */
+ 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
+-	atomic64_t num_recompress;	/* no. of compression slow paths */
++	atomic64_t writestall;		/* no. of write slow paths */
+ };
+ 
+ struct zram_meta {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-fsnotify-avoid-spurious-emfile-errors-from-inotify_init-checkpatch-fixes.patch
-kernel-padata-hide-unused-functions-checkpatch-fixes.patch
-mm.patch
-mm-slab-freelist-randomization-v5-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
-include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-include-linux-nodemaskh-create-next_node_in-helper.patch
-include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
-mm-hugetlbc-use-first_memory_node.patch
-mm-mempolicyc-offset_il_node-document-and-clarify.patch
-mm-uninline-page_mapped.patch
-mm-uninline-page_mapped-checkpatch-fixes.patch
-memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
-mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
-mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix.patch
-mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
-mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
-mm-page_alloc-un-inline-the-bad-part-of-free_pages_check-fix.patch
-mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
-mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch
-mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix-fix.patch
-mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
-mm-oom-protect-costly-allocations-some-more-for-config_compaction-checkpatch-fixes.patch
-vmstat-get-rid-of-the-ugly-cpu_stat_off-variable-v2-fix.patch
-mm-compact-fix-zoneindex-in-compact-fix.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable-fix.patch
-exit_thread-remove-empty-bodies-fix.patch
-exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
-lib-gcd-use-binary-gcd-algorithm-instead-of-euclidean-fix.patch
-allocate-idle-task-for-a-cpu-always-on-its-local-node-fix.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-disable-fault-around-on-emulated-access-bit-architecture.patch
+zsmalloc-use-first_page-rather-than-page.patch
+zsmalloc-clean-up-many-bug_on.patch
+zsmalloc-reordering-function-parameter.patch
+zsmalloc-remove-unused-pool-param-in-obj_free.patch
+zram-introduce-per-device-debug_stat-sysfs-node-update.patch
+zram-introduce-per-device-debug_stat-sysfs-node-minchan.patch
 
