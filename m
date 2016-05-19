@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-introduce-per-device-debug_stat-sysfs-node-minchan.patch
- added to -mm tree
-Date: Thu, 19 May 2016 14:54:13 -0700
-Message-ID: <573e3605.tYAPxxxckTTbxHV6%akpm@linux-foundation.org>
+Subject: + mm-migrate-increment-fail-count-on-enomem.patch added to -mm
+ tree
+Date: Thu, 19 May 2016 15:30:54 -0700
+Message-ID: <573e3e9e.rPw9imPxsrVQUKB6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43308 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43460 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753562AbcESVyO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 17:54:14 -0400
+	with ESMTP id S932690AbcESWaz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 18:30:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Re: zram: introduce per-device debug_stat sysfs node
+     Subject: mm, migrate: increment fail count on ENOMEM
 has been added to the -mm tree.  Its filename is
-     zram-introduce-per-device-debug_stat-sysfs-node-minchan.patch
+     mm-migrate-increment-fail-count-on-enomem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-introduce-per-device-debug_stat-sysfs-node-minchan.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-increment-fail-count-on-enomem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-introduce-per-device-debug_stat-sysfs-node-minchan.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-increment-fail-count-on-enomem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,70 +39,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: Re: zram: introduce per-device debug_stat sysfs node
+From: David Rientjes <rientjes@google.com>
+Subject: mm, migrate: increment fail count on ENOMEM
 
-Fortunately, Andrew isn't pick up this patch yet so I want to replace
-it to below suggested by Sergey which is better.
+If page migration fails due to -ENOMEM, nr_failed should still be
+incremented for proper statistics.
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Signed-off-by: Minchan Kim <minchan@kernel.org>
+This was encountered recently when all page migration vmstats showed 0,
+and inferred that migrate_pages() was never called, although in reality
+the first page migration failed because compaction_alloc() failed to find
+a migration target.
+
+This patch increments nr_failed so the vmstat is properly accounted on
+ENOMEM.
+
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1605191510230.32658@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 ++++----
- drivers/block/zram/zram_drv.h |    2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ mm/migrate.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-introduce-per-device-debug_stat-sysfs-node-minchan drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-introduce-per-device-debug_stat-sysfs-node-minchan
-+++ a/drivers/block/zram/zram_drv.c
-@@ -446,7 +446,7 @@ static ssize_t debug_stat_show(struct de
- 	ret = scnprintf(buf, PAGE_SIZE,
- 			"version: %d\n%8llu\n",
- 			version,
--			(u64)atomic64_read(&zram->stats.num_recompress));
-+			(u64)atomic64_read(&zram->stats.writestall));
- 	up_read(&zram->init_lock);
+diff -puN mm/migrate.c~mm-migrate-increment-fail-count-on-enomem mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-increment-fail-count-on-enomem
++++ a/mm/migrate.c
+@@ -1171,6 +1171,7 @@ int migrate_pages(struct list_head *from
  
- 	return ret;
-@@ -737,12 +737,12 @@ compress_again:
- 		zcomp_strm_release(zram->comp, zstrm);
- 		zstrm = NULL;
- 
-+		atomic64_inc(&zram->stats.writestall);
-+
- 		handle = zs_malloc(meta->mem_pool, clen,
- 				GFP_NOIO | __GFP_HIGHMEM);
--		if (handle) {
--			atomic64_inc(&zram->stats.num_recompress);
-+		if (handle)
- 			goto compress_again;
--		}
- 
- 		pr_err("Error allocating memory for compressed page: %u, size=%zu\n",
- 			index, clen);
-diff -puN drivers/block/zram/zram_drv.h~zram-introduce-per-device-debug_stat-sysfs-node-minchan drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-introduce-per-device-debug_stat-sysfs-node-minchan
-+++ a/drivers/block/zram/zram_drv.h
-@@ -85,7 +85,7 @@ struct zram_stats {
- 	atomic64_t zero_pages;		/* no. of zero filled pages */
- 	atomic64_t pages_stored;	/* no. of pages currently stored */
- 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
--	atomic64_t num_recompress;	/* no. of compression slow paths */
-+	atomic64_t writestall;		/* no. of write slow paths */
- };
- 
- struct zram_meta {
+ 			switch(rc) {
+ 			case -ENOMEM:
++				nr_failed++;
+ 				goto out;
+ 			case -EAGAIN:
+ 				retry++;
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mm-disable-fault-around-on-emulated-access-bit-architecture.patch
-zsmalloc-use-first_page-rather-than-page.patch
-zsmalloc-clean-up-many-bug_on.patch
-zsmalloc-reordering-function-parameter.patch
-zsmalloc-remove-unused-pool-param-in-obj_free.patch
-zram-introduce-per-device-debug_stat-sysfs-node-update.patch
-zram-introduce-per-device-debug_stat-sysfs-node-minchan.patch
+mm-hugetlb_cgroup-round-limit_in_bytes-down-to-hugepage-size.patch
+mm-thp-khugepaged-should-scan-when-sleep-value-is-written.patch
+mm-migrate-increment-fail-count-on-enomem.patch
 
