@@ -1,98 +1,80 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+ mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
  removed from -mm tree
-Date: Thu, 19 May 2016 16:42:36 -0700
-Message-ID: <573e4f6c.gBwqApo74gRUL9lI%akpm@linux-foundation.org>
+Date: Thu, 19 May 2016 16:42:38 -0700
+Message-ID: <573e4f6e.AXXbbS8CyBdJ5qyp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44862 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44864 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755375AbcESXmh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 19:42:37 -0400
+	with ESMTP id S1755172AbcESXmj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 19:42:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix
+     Subject: mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+     mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
 
 This patch was dropped because it was folded into mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix
+ fix fix
 
-Documentation/vm/transhuge.txt too
+String in mm/page_alloc.c too
 
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/vm/transhuge.txt~mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix
-+++ a/Documentation/vm/transhuge.txt
-@@ -394,9 +394,9 @@ hugepage natively. Once finished you can
- Refcounting on THP is mostly consistent with refcounting on other compound
- pages:
- 
--  - get_page()/put_page() and GUP operate in head page's ->_count.
-+  - get_page()/put_page() and GUP operate in head page's ->_refcount.
- 
--  - ->_count in tail pages is always zero: get_page_unless_zero() never
-+  - ->_refcount in tail pages is always zero: get_page_unless_zero() never
-     succeed on tail pages.
- 
-   - map/unmap of the pages with PTE entry increment/decrement ->_mapcount
-@@ -426,15 +426,15 @@ requests to split pinned huge page: it e
- sum of mapcount of all sub-pages plus one (split_huge_page caller must
- have reference for head page).
- 
--split_huge_page uses migration entries to stabilize page->_count and
-+split_huge_page uses migration entries to stabilize page->_refcount and
- page->_mapcount.
- 
- We safe against physical memory scanners too: the only legitimate way
- scanner can get reference to a page is get_page_unless_zero().
- 
--All tail pages has zero ->_count until atomic_add(). It prevent scanner
-+All tail pages has zero ->_refcount until atomic_add(). It prevent scanner
- from geting reference to tail page up to the point. After the atomic_add()
--we don't care about ->_count value.  We already known how many references
-+we don't care about ->_refcount value.  We already known how many references
- with should uncharge from head page.
- 
- For head page get_page_unless_zero() will succeed and we don't mind. It's
+diff -puN mm/page_alloc.c~mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix
++++ a/mm/page_alloc.c
+@@ -794,7 +794,7 @@ static inline int free_pages_check(struc
+ 	if (unlikely(page->mapping != NULL))
+ 		bad_reason = "non-NULL mapping";
+ 	if (unlikely(page_ref_count(page) != 0))
+-		bad_reason = "nonzero _count";
++		bad_reason = "nonzero _refcount";
+ 	if (unlikely(page->flags & PAGE_FLAGS_CHECK_AT_FREE)) {
+ 		bad_reason = "PAGE_FLAGS_CHECK_AT_FREE flag(s) set";
+ 		bad_flags = PAGE_FLAGS_CHECK_AT_FREE;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
+mm-slab-fix-the-theoretical-race-by-holding-proper-lock.patch
+mm-slab-remove-bad_alien_magic-again.patch
+mm-slab-drain-the-free-slab-as-much-as-possible.patch
+mm-slab-factor-out-kmem_cache_node-initialization-code.patch
+mm-slab-clean-up-kmem_cache_node-setup.patch
+mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
+mm-slab-racy-access-modify-the-slab-color.patch
+mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
+mm-slab-separate-cache_grow-to-two-parts.patch
+mm-slab-refill-cpu-cache-through-a-new-slab-without-holding-a-node-lock.patch
+mm-slab-lockless-decision-to-grow-cache.patch
+mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
 mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
-include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-include-linux-nodemaskh-create-next_node_in-helper.patch
-include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
-mm-hugetlbc-use-first_memory_node.patch
-mm-mempolicyc-offset_il_node-document-and-clarify.patch
-mm-uninline-page_mapped.patch
-mm-uninline-page_mapped-checkpatch-fixes.patch
-memory_hotplug-introduce-config_memory_hotplug_default_online-fix.patch
-oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path-try-to-reap-tasks-which-skip-regular-memcg-oom-killer-path-fix.patch
-mm-page_alloc-only-check-pagecompound-for-high-order-pages-fix.patch
-mm-page_alloc-remove-unnecessary-initialisation-from-__alloc_pages_nodemask-fix.patch
-mm-page_alloc-shorten-the-page-allocator-fast-path-fix.patch
-mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice-fix.patch
-mm-page_alloc-un-inline-the-bad-part-of-free_pages_check-fix.patch
-mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain-fix.patch
-mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix.patch
-mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare-fix-fix.patch
+mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic.patch
+mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
+mm-vmstat-add-zone-range-overlapping-check.patch
+mm-page_owner-add-zone-range-overlapping-check.patch
+power-add-zone-range-overlapping-check.patch
+mm-writeback-correct-dirty-page-calculation-for-highmem.patch
+mm-page_alloc-correct-highmem-memory-statistics.patch
+mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
+mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
 
