@@ -1,93 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-slab-factor-out-kmem_cache_node-initialization-code-fix.patch removed
+Subject: [folded-merged] mm-slab-freelist-randomization-v5.patch removed
  from -mm tree
-Date: Thu, 19 May 2016 16:37:12 -0700
-Message-ID: <573e4e28.Z/agBN52U1vJ/kVc%akpm@linux-foundation.org>
+Date: Thu, 19 May 2016 16:37:34 -0700
+Message-ID: <573e4e3e.KSdO0HmhRc9C7AEa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44501 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44508 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755213AbcESXhN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 19:37:13 -0400
+	with ESMTP id S1755172AbcESXhg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 19:37:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: thgarnie@google.com, cl@linux.com, gthelen@google.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, labbott@fedoraproject.org, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [PATCH] mm/slab: fix bug
+     Subject: mm: SLAB freelist randomization
 has been removed from the -mm tree.  Its filename was
-     mm-slab-factor-out-kmem_cache_node-initialization-code-fix.patch
+     mm-slab-freelist-randomization-v5.patch
 
-This patch was dropped because it was folded into mm-slab-factor-out-kmem_cache_node-initialization-code.patch
+This patch was dropped because it was folded into mm-slab-freelist-randomization-v4.patch
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: [PATCH] mm/slab: fix bug
+From: Thomas Garnier <thgarnie@google.com>
+Subject: mm: SLAB freelist randomization
 
-n->free_limit is once set in boot-up process without enabling multiple
-cpu so it could be very low value. If we don't re-set when another cpu
-is up, it will stay too low. Fix it.
-
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Signed-off-by: Thomas Garnier <thgarnie@google.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Laura Abbott <labbott@fedoraproject.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ include/linux/slab_def.h |    2 +-
+ init/Kconfig             |    2 +-
+ mm/slab.c                |    8 ++++----
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-factor-out-kmem_cache_node-initialization-code-fix mm/slab.c
---- a/mm/slab.c~mm-slab-factor-out-kmem_cache_node-initialization-code-fix
-+++ a/mm/slab.c
-@@ -858,8 +858,14 @@ static int init_cache_node(struct kmem_c
- 	 * node has not already allocated this
- 	 */
- 	n = get_node(cachep, node);
--	if (n)
-+	if (n) {
-+		spin_lock_irq(&n->list_lock);
-+		n->free_limit = (1 + nr_cpus_node(node)) * cachep->batchcount +
-+				cachep->num;
-+		spin_unlock_irq(&n->list_lock);
-+
- 		return 0;
-+	}
+diff -puN include/linux/slab_def.h~mm-slab-freelist-randomization-v5 include/linux/slab_def.h
+--- a/include/linux/slab_def.h~mm-slab-freelist-randomization-v5
++++ a/include/linux/slab_def.h
+@@ -80,7 +80,7 @@ struct kmem_cache {
+ 	struct kasan_cache kasan_info;
+ #endif
  
- 	n = kmalloc_node(sizeof(struct kmem_cache_node), gfp, node);
- 	if (!n)
+-#ifdef CONFIG_FREELIST_RANDOM
++#ifdef CONFIG_SLAB_FREELIST_RANDOM
+ 	void *random_seq;
+ #endif
+ 
+diff -puN init/Kconfig~mm-slab-freelist-randomization-v5 init/Kconfig
+--- a/init/Kconfig~mm-slab-freelist-randomization-v5
++++ a/init/Kconfig
+@@ -1742,7 +1742,7 @@ config SLOB
+ 
+ endchoice
+ 
+-config FREELIST_RANDOM
++config SLAB_FREELIST_RANDOM
+ 	default n
+ 	depends on SLAB
+ 	bool "SLAB freelist randomization"
+diff -puN mm/slab.c~mm-slab-freelist-randomization-v5 mm/slab.c
+--- a/mm/slab.c~mm-slab-freelist-randomization-v5
++++ a/mm/slab.c
+@@ -1243,7 +1243,7 @@ static void __init set_up_node(struct km
+ 	}
+ }
+ 
+-#ifdef CONFIG_FREELIST_RANDOM
++#ifdef CONFIG_SLAB_FREELIST_RANDOM
+ static void freelist_randomize(struct rnd_state *state, freelist_idx_t *list,
+ 			size_t count)
+ {
+@@ -1295,7 +1295,7 @@ static inline int cache_random_seq_creat
+ 	return 0;
+ }
+ static inline void cache_random_seq_destroy(struct kmem_cache *cachep) { }
+-#endif /* CONFIG_FREELIST_RANDOM */
++#endif /* CONFIG_SLAB_FREELIST_RANDOM */
+ 
+ 
+ /*
+@@ -2537,7 +2537,7 @@ static void cache_init_objs_debug(struct
+ #endif
+ }
+ 
+-#ifdef CONFIG_FREELIST_RANDOM
++#ifdef CONFIG_SLAB_FREELIST_RANDOM
+ /* Hold information during a freelist initialization */
+ union freelist_init_state {
+ 	struct {
+@@ -2631,7 +2631,7 @@ static inline bool shuffle_freelist(stru
+ {
+ 	return false;
+ }
+-#endif /* CONFIG_FREELIST_RANDOM */
++#endif /* CONFIG_SLAB_FREELIST_RANDOM */
+ 
+ static void cache_init_objs(struct kmem_cache *cachep,
+ 			    struct page *page)
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from thgarnie@google.com are
 
-mm-slab-fix-the-theoretical-race-by-holding-proper-lock.patch
-mm-slab-remove-bad_alien_magic-again.patch
-mm-slab-drain-the-free-slab-as-much-as-possible.patch
-mm-slab-factor-out-kmem_cache_node-initialization-code.patch
-mm-slab-clean-up-kmem_cache_node-setup.patch
-mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
-mm-slab-racy-access-modify-the-slab-color.patch
-mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
-mm-slab-separate-cache_grow-to-two-parts.patch
-mm-slab-refill-cpu-cache-through-a-new-slab-without-holding-a-node-lock.patch
-mm-slab-lockless-decision-to-grow-cache.patch
-mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
-mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic.patch
-mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
-mm-vmstat-add-zone-range-overlapping-check.patch
-mm-page_owner-add-zone-range-overlapping-check.patch
-power-add-zone-range-overlapping-check.patch
-mm-writeback-correct-dirty-page-calculation-for-highmem.patch
-mm-page_alloc-correct-highmem-memory-statistics.patch
-mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
-mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
+mm-slab-freelist-randomization-v4.patch
 
