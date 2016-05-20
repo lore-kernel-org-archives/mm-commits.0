@@ -1,251 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [patch 077/117] tmpfs: mem_cgroup charge fault to vm_mm not
- current mm
-Date: Thu, 19 May 2016 17:12:47 -0700
-Message-ID: <573e567f.UmHOmblUvKqMqp72%akpm@linux-foundation.org>
+Subject: [patch 088/117] mm, page_alloc: use new PageAnonHead helper in
+ the free page fast path
+Date: Thu, 19 May 2016 17:13:21 -0700
+Message-ID: <573e56a1.xLXaGEtHDoh03KLU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46421 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46516 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932871AbcETAMt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:12:49 -0400
+	with ESMTP id S932921AbcETANW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:13:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, andreslc@google.com, aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz
 
-From: Andres Lagar-Cavilla <andreslc@google.com>
-Subject: tmpfs: mem_cgroup charge fault to vm_mm not current mm
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: use new PageAnonHead helper in the free page fast path
 
-Although shmem_fault() has been careful to count a major fault to vm_mm,
-shmem_getpage_gfp() has been careless in charging a remote access fault to
-current->mm owner's memcg instead of to vma->vm_mm owner's memcg: that is
-inconsistent with all the mem_cgroup charging on remote access faults in
-mm/memory.c.
+The PageAnon check always checks for compound_head but this is a
+relatively expensive check if the caller already knows the page is a head
+page.  This patch creates a helper and uses it in the page free path which
+only operates on head pages.
 
-Fix it by passing fault_mm along with fault_type to shmem_get_page_gfp();
-but in that case, now knowing the right mm, it's better for it to handle
-the PGMAJFAULT updates itself.
+With this patch and "Only check PageCompound for high-order pages", the
+performance difference on a page allocator microbenchmark is;
 
-And let's keep this clutter out of most callers' way: change the common
-shmem_getpage() wrapper to hide fault_mm and fault_type as well as gfp.
+                                           4.6.0-rc2                  4.6.0-rc2
+                                             vanilla           nocompound-v1r20
+Min      alloc-odr0-1               425.00 (  0.00%)           417.00 (  1.88%)
+Min      alloc-odr0-2               313.00 (  0.00%)           308.00 (  1.60%)
+Min      alloc-odr0-4               257.00 (  0.00%)           253.00 (  1.56%)
+Min      alloc-odr0-8               224.00 (  0.00%)           221.00 (  1.34%)
+Min      alloc-odr0-16              208.00 (  0.00%)           205.00 (  1.44%)
+Min      alloc-odr0-32              199.00 (  0.00%)           199.00 (  0.00%)
+Min      alloc-odr0-64              195.00 (  0.00%)           193.00 (  1.03%)
+Min      alloc-odr0-128             192.00 (  0.00%)           191.00 (  0.52%)
+Min      alloc-odr0-256             204.00 (  0.00%)           200.00 (  1.96%)
+Min      alloc-odr0-512             213.00 (  0.00%)           212.00 (  0.47%)
+Min      alloc-odr0-1024            219.00 (  0.00%)           219.00 (  0.00%)
+Min      alloc-odr0-2048            225.00 (  0.00%)           225.00 (  0.00%)
+Min      alloc-odr0-4096            230.00 (  0.00%)           231.00 ( -0.43%)
+Min      alloc-odr0-8192            235.00 (  0.00%)           234.00 (  0.43%)
+Min      alloc-odr0-16384           235.00 (  0.00%)           234.00 (  0.43%)
+Min      free-odr0-1                215.00 (  0.00%)           191.00 ( 11.16%)
+Min      free-odr0-2                152.00 (  0.00%)           136.00 ( 10.53%)
+Min      free-odr0-4                119.00 (  0.00%)           107.00 ( 10.08%)
+Min      free-odr0-8                106.00 (  0.00%)            96.00 (  9.43%)
+Min      free-odr0-16                97.00 (  0.00%)            87.00 ( 10.31%)
+Min      free-odr0-32                91.00 (  0.00%)            83.00 (  8.79%)
+Min      free-odr0-64                89.00 (  0.00%)            81.00 (  8.99%)
+Min      free-odr0-128               88.00 (  0.00%)            80.00 (  9.09%)
+Min      free-odr0-256              106.00 (  0.00%)            95.00 ( 10.38%)
+Min      free-odr0-512              116.00 (  0.00%)           111.00 (  4.31%)
+Min      free-odr0-1024             125.00 (  0.00%)           118.00 (  5.60%)
+Min      free-odr0-2048             133.00 (  0.00%)           126.00 (  5.26%)
+Min      free-odr0-4096             136.00 (  0.00%)           130.00 (  4.41%)
+Min      free-odr0-8192             138.00 (  0.00%)           130.00 (  5.80%)
+Min      free-odr0-16384            137.00 (  0.00%)           130.00 (  5.11%)
 
-Signed-off-by: Andres Lagar-Cavilla <andreslc@google.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Yang Shi <yang.shi@linaro.org>
-Cc: Ning Qu <quning@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+There is a sizable boost to the free allocator performance.  While there
+is an apparent boost on the allocation side, it's likely a co-incidence or
+due to the patches slightly reducing cache footprint.
+
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   61 ++++++++++++++++++++++++++++-----------------------
- 1 file changed, 34 insertions(+), 27 deletions(-)
+ include/linux/page-flags.h |    7 ++++++-
+ mm/page_alloc.c            |    2 +-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm mm/shmem.c
---- a/mm/shmem.c~tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm
-+++ a/mm/shmem.c
-@@ -121,13 +121,14 @@ static bool shmem_should_replace_page(st
- static int shmem_replace_page(struct page **pagep, gfp_t gfp,
- 				struct shmem_inode_info *info, pgoff_t index);
- static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
--	struct page **pagep, enum sgp_type sgp, gfp_t gfp, int *fault_type);
-+		struct page **pagep, enum sgp_type sgp,
-+		gfp_t gfp, struct mm_struct *fault_mm, int *fault_type);
+diff -puN include/linux/page-flags.h~mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path
++++ a/include/linux/page-flags.h
+@@ -371,10 +371,15 @@ PAGEFLAG(Idle, idle, PF_ANY)
+ #define PAGE_MAPPING_KSM	2
+ #define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM)
  
- static inline int shmem_getpage(struct inode *inode, pgoff_t index,
--	struct page **pagep, enum sgp_type sgp, int *fault_type)
-+		struct page **pagep, enum sgp_type sgp)
++static __always_inline int PageAnonHead(struct page *page)
++{
++	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
++}
++
+ static __always_inline int PageAnon(struct page *page)
  {
- 	return shmem_getpage_gfp(inode, index, pagep, sgp,
--			mapping_gfp_mask(inode->i_mapping), fault_type);
-+		mapping_gfp_mask(inode->i_mapping), NULL, NULL);
+ 	page = compound_head(page);
+-	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
++	return PageAnonHead(page);
  }
  
- static inline struct shmem_sb_info *SHMEM_SB(struct super_block *sb)
-@@ -527,7 +528,7 @@ static void shmem_undo_range(struct inod
- 
- 	if (partial_start) {
- 		struct page *page = NULL;
--		shmem_getpage(inode, start - 1, &page, SGP_READ, NULL);
-+		shmem_getpage(inode, start - 1, &page, SGP_READ);
- 		if (page) {
- 			unsigned int top = PAGE_SIZE;
- 			if (start > end) {
-@@ -542,7 +543,7 @@ static void shmem_undo_range(struct inod
- 	}
- 	if (partial_end) {
- 		struct page *page = NULL;
--		shmem_getpage(inode, end, &page, SGP_READ, NULL);
-+		shmem_getpage(inode, end, &page, SGP_READ);
- 		if (page) {
- 			zero_user_segment(page, 0, partial_end);
- 			set_page_dirty(page);
-@@ -1115,14 +1116,19 @@ static int shmem_replace_page(struct pag
-  *
-  * If we allocate a new one we do not mark it dirty. That's up to the
-  * vm. If we swap it in we mark it dirty since we also free the swap
-- * entry since a page cannot live in both the swap and page cache
-+ * entry since a page cannot live in both the swap and page cache.
-+ *
-+ * fault_mm and fault_type are only supplied by shmem_fault:
-+ * otherwise they are NULL.
-  */
- static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
--	struct page **pagep, enum sgp_type sgp, gfp_t gfp, int *fault_type)
-+	struct page **pagep, enum sgp_type sgp, gfp_t gfp,
-+	struct mm_struct *fault_mm, int *fault_type)
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info;
- 	struct shmem_sb_info *sbinfo;
-+	struct mm_struct *charge_mm;
- 	struct mem_cgroup *memcg;
- 	struct page *page;
- 	swp_entry_t swap;
-@@ -1168,14 +1174,19 @@ repeat:
- 	 */
- 	info = SHMEM_I(inode);
- 	sbinfo = SHMEM_SB(inode->i_sb);
-+	charge_mm = fault_mm ? : current->mm;
- 
- 	if (swap.val) {
- 		/* Look it up and read it in.. */
- 		page = lookup_swap_cache(swap);
- 		if (!page) {
--			/* here we actually do the io */
--			if (fault_type)
-+			/* Or update major stats only when swapin succeeds?? */
-+			if (fault_type) {
- 				*fault_type |= VM_FAULT_MAJOR;
-+				count_vm_event(PGMAJFAULT);
-+				mem_cgroup_count_vm_event(fault_mm, PGMAJFAULT);
-+			}
-+			/* Here we actually start the io */
- 			page = shmem_swapin(swap, gfp, info, index);
- 			if (!page) {
- 				error = -ENOMEM;
-@@ -1202,7 +1213,7 @@ repeat:
- 				goto failed;
+ #ifdef CONFIG_KSM
+diff -puN mm/page_alloc.c~mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path
++++ a/mm/page_alloc.c
+@@ -1048,7 +1048,7 @@ static bool free_pages_prepare(struct pa
+ 			bad += free_pages_check(page + i);
  		}
- 
--		error = mem_cgroup_try_charge(page, current->mm, gfp, &memcg,
-+		error = mem_cgroup_try_charge(page, charge_mm, gfp, &memcg,
- 				false);
- 		if (!error) {
- 			error = shmem_add_to_page_cache(page, mapping, index,
-@@ -1263,7 +1274,7 @@ repeat:
- 		if (sgp == SGP_WRITE)
- 			__SetPageReferenced(page);
- 
--		error = mem_cgroup_try_charge(page, current->mm, gfp, &memcg,
-+		error = mem_cgroup_try_charge(page, charge_mm, gfp, &memcg,
- 				false);
- 		if (error)
- 			goto decused;
-@@ -1352,6 +1363,7 @@ unlock:
- static int shmem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct inode *inode = file_inode(vma->vm_file);
-+	gfp_t gfp = mapping_gfp_mask(inode->i_mapping);
- 	int error;
- 	int ret = VM_FAULT_LOCKED;
- 
-@@ -1413,14 +1425,10 @@ static int shmem_fault(struct vm_area_st
- 		spin_unlock(&inode->i_lock);
  	}
- 
--	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
-+	error = shmem_getpage_gfp(inode, vmf->pgoff, &vmf->page, SGP_CACHE,
-+				  gfp, vma->vm_mm, &ret);
- 	if (error)
- 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
--
--	if (ret & VM_FAULT_MAJOR) {
--		count_vm_event(PGMAJFAULT);
--		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
--	}
- 	return ret;
- }
- 
-@@ -1567,7 +1575,7 @@ shmem_write_begin(struct file *file, str
- 			return -EPERM;
- 	}
- 
--	return shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
-+	return shmem_getpage(inode, index, pagep, SGP_WRITE);
- }
- 
- static int
-@@ -1633,7 +1641,7 @@ static ssize_t shmem_file_read_iter(stru
- 				break;
- 		}
- 
--		error = shmem_getpage(inode, index, &page, sgp, NULL);
-+		error = shmem_getpage(inode, index, &page, sgp);
- 		if (error) {
- 			if (error == -EINVAL)
- 				error = 0;
-@@ -1749,7 +1757,7 @@ static ssize_t shmem_file_splice_read(st
- 	error = 0;
- 
- 	while (spd.nr_pages < nr_pages) {
--		error = shmem_getpage(inode, index, &page, SGP_CACHE, NULL);
-+		error = shmem_getpage(inode, index, &page, SGP_CACHE);
- 		if (error)
- 			break;
- 		unlock_page(page);
-@@ -1771,8 +1779,7 @@ static ssize_t shmem_file_splice_read(st
- 		page = spd.pages[page_nr];
- 
- 		if (!PageUptodate(page) || page->mapping != mapping) {
--			error = shmem_getpage(inode, index, &page,
--							SGP_CACHE, NULL);
-+			error = shmem_getpage(inode, index, &page, SGP_CACHE);
- 			if (error)
- 				break;
- 			unlock_page(page);
-@@ -2215,8 +2222,7 @@ static long shmem_fallocate(struct file
- 		else if (shmem_falloc.nr_unswapped > shmem_falloc.nr_falloced)
- 			error = -ENOMEM;
- 		else
--			error = shmem_getpage(inode, index, &page, SGP_FALLOC,
--									NULL);
-+			error = shmem_getpage(inode, index, &page, SGP_FALLOC);
- 		if (error) {
- 			/* Remove the !PageUptodate pages we added */
- 			shmem_undo_range(inode,
-@@ -2534,7 +2540,7 @@ static int shmem_symlink(struct inode *d
- 		inode->i_op = &shmem_short_symlink_operations;
- 	} else {
- 		inode_nohighmem(inode);
--		error = shmem_getpage(inode, 0, &page, SGP_WRITE, NULL);
-+		error = shmem_getpage(inode, 0, &page, SGP_WRITE);
- 		if (error) {
- 			iput(inode);
- 			return error;
-@@ -2575,7 +2581,7 @@ static const char *shmem_get_link(struct
- 			return ERR_PTR(-ECHILD);
- 		}
- 	} else {
--		error = shmem_getpage(inode, 0, &page, SGP_READ, NULL);
-+		error = shmem_getpage(inode, 0, &page, SGP_READ);
- 		if (error)
- 			return ERR_PTR(error);
- 		unlock_page(page);
-@@ -3479,7 +3485,8 @@ struct page *shmem_read_mapping_page_gfp
- 	int error;
- 
- 	BUG_ON(mapping->a_ops != &shmem_aops);
--	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE, gfp, NULL);
-+	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE,
-+				  gfp, NULL, NULL);
- 	if (error)
- 		page = ERR_PTR(error);
- 	else
+-	if (PageAnon(page))
++	if (PageAnonHead(page))
+ 		page->mapping = NULL;
+ 	bad += free_pages_check(page);
+ 	if (bad)
 _
