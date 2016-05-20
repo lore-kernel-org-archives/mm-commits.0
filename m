@@ -1,34 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [patch 085/117] oom, oom_reaper: try to reap tasks which skip
- regular OOM killer path
-Date: Thu, 19 May 2016 17:13:12 -0700
-Message-ID: <573e5698.5oihJXQVNZzDsSA8%akpm@linux-foundation.org>
+Subject: [patch 086/117] mm, oom_reaper: clear TIF_MEMDIE for all tasks
+ queued for oom_reaper
+Date: Thu, 19 May 2016 17:13:15 -0700
+Message-ID: <573e569b.wfGuEz8Xg8NI3Ei9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46493 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46503 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932921AbcETANN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:13:13 -0400
+	with ESMTP id S932921AbcETANR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:13:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, daniel.vetter@intel.com, mst@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, rmaksudova@parallels.com
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: oom, oom_reaper: try to reap tasks which skip regular OOM killer path
+Subject: mm, oom_reaper: clear TIF_MEMDIE for all tasks queued for oom_reaper
 
-If either the current task is already killed or PF_EXITING or a selected
-task is PF_EXITING then the oom killer is suppressed and so is the oom
-reaper.  This patch adds try_oom_reaper which checks the given task and
-queues it for the oom reaper if that is safe to be done meaning that the
-task doesn't share the mm with an alive process.
+Right now the oom reaper will clear TIF_MEMDIE only for tasks which were
+successfully reaped.  This is the safest option because we know that such
+an oom victim would only block forward progress of the oom killer without
+a good reason because it is highly unlikely it would release much more
+memory.  Basically most of its memory has been already torn down.
 
-This might help to release the memory pressure while the task tries to
-exit.
+We can relax this assumption to catch more corner cases though.
 
-[akpm@linux-foundation.org: fix nommu build]
+The first obvious one is when the oom victim clears its mm and gets stuck
+later on.  oom_reaper would back of on find_lock_task_mm returning NULL. 
+We can safely try to clear TIF_MEMDIE in this case because such a task
+would be ignored by the oom killer anyway.  The flag would be cleared by
+that time already most of the time anyway.
+
+The less obvious one is when the oom reaper fails due to mmap_sem
+contention.  Even if we clear TIF_MEMDIE for this task then it is not very
+likely that we would select another task too easily because we haven't
+reaped the last victim and so it would be still the #1 candidate.  There
+is a rare race condition possible when the current victim terminates
+before the next select_bad_process but considering that oom_reap_task had
+retried several times before giving up then this sounds like a borderline
+thing.
+
+After this patch we should have a guarantee that the OOM killer will not
+be block for unbounded amount of time for most cases.
+
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Cc: Raushaniya Maksudova <rmaksudova@parallels.com>
 Cc: Michael S. Tsirkin <mst@redhat.com>
@@ -40,162 +56,43 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    8 +++
- mm/memcontrol.c     |    1 
- mm/oom_kill.c       |   86 +++++++++++++++++++++++++++++++++---------
- 3 files changed, 77 insertions(+), 18 deletions(-)
+ mm/oom_kill.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path mm/oom_kill.c
---- a/mm/oom_kill.c~oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path
+diff -puN mm/oom_kill.c~mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper
 +++ a/mm/oom_kill.c
-@@ -412,6 +412,25 @@ bool oom_killer_disabled __read_mostly;
+@@ -510,14 +510,10 @@ static bool __oom_reap_task(struct task_
+ 	up_read(&mm->mmap_sem);
  
- #define K(x) ((x) << (PAGE_SHIFT-10))
- 
-+/*
-+ * task->mm can be NULL if the task is the exited group leader.  So to
-+ * determine whether the task is using a particular mm, we examine all the
-+ * task's threads: if one of those is using this mm then this task was also
-+ * using it.
-+ */
-+static bool process_shares_mm(struct task_struct *p, struct mm_struct *mm)
-+{
-+	struct task_struct *t;
-+
-+	for_each_thread(p, t) {
-+		struct mm_struct *t_mm = READ_ONCE(t->mm);
-+		if (t_mm)
-+			return t_mm == mm;
-+	}
-+	return false;
-+}
-+
-+
- #ifdef CONFIG_MMU
- /*
-  * OOM Reaper kernel thread which tries to reap the memory used by the OOM
-@@ -563,6 +582,53 @@ static void wake_oom_reaper(struct task_
- 	wake_up(&oom_reaper_wait);
- }
- 
-+/* Check if we can reap the given task. This has to be called with stable
-+ * tsk->mm
-+ */
-+void try_oom_reaper(struct task_struct *tsk)
-+{
-+	struct mm_struct *mm = tsk->mm;
-+	struct task_struct *p;
-+
-+	if (!mm)
-+		return;
-+
-+	/*
-+	 * There might be other threads/processes which are either not
-+	 * dying or even not killable.
-+	 */
-+	if (atomic_read(&mm->mm_users) > 1) {
-+		rcu_read_lock();
-+		for_each_process(p) {
-+			bool exiting;
-+
-+			if (!process_shares_mm(p, mm))
-+				continue;
-+			if (same_thread_group(p, tsk))
-+				continue;
-+			if (fatal_signal_pending(p))
-+				continue;
-+
-+			/*
-+			 * If the task is exiting make sure the whole thread group
-+			 * is exiting and cannot acces mm anymore.
-+			 */
-+			spin_lock_irq(&p->sighand->siglock);
-+			exiting = signal_group_exit(p->signal);
-+			spin_unlock_irq(&p->sighand->siglock);
-+			if (exiting)
-+				continue;
-+
-+			/* Give up */
-+			rcu_read_unlock();
-+			return;
-+		}
-+		rcu_read_unlock();
-+	}
-+
-+	wake_oom_reaper(tsk);
-+}
-+
- static int __init oom_init(void)
- {
- 	oom_reaper_th = kthread_run(oom_reaper, NULL, "oom_reaper");
-@@ -653,24 +719,6 @@ void oom_killer_enable(void)
- }
- 
- /*
-- * task->mm can be NULL if the task is the exited group leader.  So to
-- * determine whether the task is using a particular mm, we examine all the
-- * task's threads: if one of those is using this mm then this task was also
-- * using it.
-- */
--static bool process_shares_mm(struct task_struct *p, struct mm_struct *mm)
--{
--	struct task_struct *t;
--
--	for_each_thread(p, t) {
--		struct mm_struct *t_mm = READ_ONCE(t->mm);
--		if (t_mm)
--			return t_mm == mm;
--	}
--	return false;
--}
--
--/*
-  * Must be called while holding a reference to p, which will be released upon
-  * returning.
-  */
-@@ -694,6 +742,7 @@ void oom_kill_process(struct oom_control
- 	task_lock(p);
- 	if (p->mm && task_will_free_mem(p)) {
- 		mark_oom_victim(p);
-+		try_oom_reaper(p);
- 		task_unlock(p);
- 		put_task_struct(p);
- 		return;
-@@ -873,6 +922,7 @@ bool out_of_memory(struct oom_control *o
- 	if (current->mm &&
- 	    (fatal_signal_pending(current) || task_will_free_mem(current))) {
- 		mark_oom_victim(current);
-+		try_oom_reaper(current);
- 		return true;
- 	}
- 
-diff -puN include/linux/oom.h~oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path include/linux/oom.h
---- a/include/linux/oom.h~oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path
-+++ a/include/linux/oom.h
-@@ -72,6 +72,14 @@ static inline bool oom_task_origin(const
- 
- extern void mark_oom_victim(struct task_struct *tsk);
- 
-+#ifdef CONFIG_MMU
-+extern void try_oom_reaper(struct task_struct *tsk);
-+#else
-+static inline void try_oom_reaper(struct task_struct *tsk)
-+{
-+}
-+#endif
-+
- extern unsigned long oom_badness(struct task_struct *p,
- 		struct mem_cgroup *memcg, const nodemask_t *nodemask,
- 		unsigned long totalpages);
-diff -puN mm/memcontrol.c~oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path mm/memcontrol.c
---- a/mm/memcontrol.c~oom-oom_reaper-try-to-reap-tasks-which-skip-regular-oom-killer-path
-+++ a/mm/memcontrol.c
-@@ -1275,6 +1275,7 @@ static bool mem_cgroup_out_of_memory(str
+ 	/*
+-	 * Clear TIF_MEMDIE because the task shouldn't be sitting on a
+-	 * reasonably reclaimable memory anymore. OOM killer can continue
+-	 * by selecting other victim if unmapping hasn't led to any
+-	 * improvements. This also means that selecting this task doesn't
+-	 * make any sense.
++	 * This task can be safely ignored because we cannot do much more
++	 * to release its memory.
  	 */
- 	if (fatal_signal_pending(current) || task_will_free_mem(current)) {
- 		mark_oom_victim(current);
-+		try_oom_reaper(current);
- 		goto unlock;
+ 	tsk->signal->oom_score_adj = OOM_SCORE_ADJ_MIN;
+-	exit_oom_victim(tsk);
+ out:
+ 	mmput(mm);
+ 	return ret;
+@@ -538,6 +534,15 @@ static void oom_reap_task(struct task_st
+ 		debug_show_all_locks();
  	}
  
++	/*
++	 * Clear TIF_MEMDIE because the task shouldn't be sitting on a
++	 * reasonably reclaimable memory anymore or it is not a good candidate
++	 * for the oom victim right now because it cannot release its memory
++	 * itself nor by the oom reaper.
++	 */
++	tsk->oom_reaper_list = NULL;
++	exit_oom_victim(tsk);
++
+ 	/* Drop a reference taken by wake_oom_reaper */
+ 	put_task_struct(tsk);
+ }
 _
