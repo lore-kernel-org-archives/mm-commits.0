@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [patch 069/117] mm/page_alloc: correct highmem memory statistics
-Date: Thu, 19 May 2016 17:12:23 -0700
-Message-ID: <573e5667.47LOXon5hrXIbPvG%akpm@linux-foundation.org>
+Subject: [patch 064/117] mm/memory_hotplug: add comment to some functions
+ related to memory hotplug
+Date: Thu, 19 May 2016 17:12:06 -0700
+Message-ID: <573e5656.RLtWdjf1YPNwxwq2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46279 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932831AbcETAMY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:12:24 -0400
+	with ESMTP id S932690AbcETAMI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:12:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, mpe@ellerman.id.au, paulus@samba.org, riel@redhat.com, rjw@rjwysocki.net, vbabka@suse.cz
 
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_alloc: correct highmem memory statistics
+Subject: mm/memory_hotplug: add comment to some functions related to memory hotplug
 
-ZONE_MOVABLE could be treated as highmem so we need to consider it for
-accurate statistics.  And, in following patches, ZONE_CMA will be
-introduced and it can be treated as highmem, too.  So, instead of manually
-adding stat of ZONE_MOVABLE, looping all zones and check whether the zone
-is highmem or not and add stat of the zone which can be treated as
-highmem.
+__offline_isolated_pages() and test_pages_isolated() are used by memory
+hotplug.  These functions require that range is in a single zone but there
+is no code to do this because memory hotplug checks it before calling
+these functions.  To avoid confusing future user of these functions, this
+patch adds comments to them.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
@@ -34,48 +34,40 @@ Cc: Laura Abbott <lauraa@codeaurora.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ mm/page_alloc.c     |    3 ++-
+ mm/page_isolation.c |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-correct-highmem-memory-statistics mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-correct-highmem-memory-statistics
+diff -puN mm/page_alloc.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug
 +++ a/mm/page_alloc.c
-@@ -3793,6 +3793,8 @@ void si_meminfo_node(struct sysinfo *val
- {
- 	int zone_type;		/* needs to be signed */
- 	unsigned long managed_pages = 0;
-+	unsigned long managed_highpages = 0;
-+	unsigned long free_highpages = 0;
- 	pg_data_t *pgdat = NODE_DATA(nid);
+@@ -7176,7 +7176,8 @@ void zone_pcp_reset(struct zone *zone)
  
- 	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++)
-@@ -3801,12 +3803,19 @@ void si_meminfo_node(struct sysinfo *val
- 	val->sharedram = node_page_state(nid, NR_SHMEM);
- 	val->freeram = node_page_state(nid, NR_FREE_PAGES);
- #ifdef CONFIG_HIGHMEM
--	val->totalhigh = pgdat->node_zones[ZONE_HIGHMEM].managed_pages;
--	val->freehigh = zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
--			NR_FREE_PAGES);
-+	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
-+		struct zone *zone = &pgdat->node_zones[zone_type];
-+
-+		if (is_highmem(zone)) {
-+			managed_highpages += zone->managed_pages;
-+			free_highpages += zone_page_state(zone, NR_FREE_PAGES);
-+		}
-+	}
-+	val->totalhigh = managed_highpages;
-+	val->freehigh = free_highpages;
- #else
--	val->totalhigh = 0;
--	val->freehigh = 0;
-+	val->totalhigh = managed_highpages;
-+	val->freehigh = free_highpages;
- #endif
- 	val->mem_unit = PAGE_SIZE;
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ /*
+- * All pages in the range must be isolated before calling this.
++ * All pages in the range must be in a single zone and isolated
++ * before calling this.
+  */
+ void
+ __offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
+diff -puN mm/page_isolation.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug
++++ a/mm/page_isolation.c
+@@ -246,6 +246,7 @@ __test_page_isolated_in_pageblock(unsign
+ 	return pfn;
  }
+ 
++/* Caller should ensure that requested range is in a single zone */
+ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
+ 			bool skip_hwpoisoned_pages)
+ {
 _
