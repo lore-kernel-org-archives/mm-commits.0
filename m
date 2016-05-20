@@ -1,129 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [patch 080/117] huge pagecache: extend mremap pmd rmap lockout to files
-Date: Thu, 19 May 2016 17:12:57 -0700
-Message-ID: <573e5689.cJu0D0yjsCHm1li9%akpm@linux-foundation.org>
+Subject: [patch 084/117] mm, oom: move GFP_NOFS check to out_of_memory
+Date: Thu, 19 May 2016 17:13:09 -0700
+Message-ID: <573e5695.JP50AYgacUPOL39o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46444 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46487 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932921AbcETAM6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:12:58 -0400
+	with ESMTP id S932921AbcETANL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:13:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, daniel.vetter@intel.com, mst@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, rmaksudova@parallels.com
 
-From: Hugh Dickins <hughd@google.com>
-Subject: huge pagecache: extend mremap pmd rmap lockout to files
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, oom: move GFP_NOFS check to out_of_memory
 
-Whatever huge pagecache implementation we go with, file rmap locking must
-be added to anon rmap locking, when mremap's move_page_tables() finds a
-pmd_trans_huge pmd entry: a simple change, let's do it now.
+__alloc_pages_may_oom is the central place to decide when the
+out_of_memory should be invoked.  This is a good approach for most checks
+there because they are page allocator specific and the allocation fails
+right after for all of them.
 
-Factor out take_rmap_locks() and drop_rmap_locks() to handle the locking
-for make move_ptes() and move_page_tables(), and delete the VM_BUG_ON_VMA
-which rejected vm_file and required anon_vma.
+The notable exception is GFP_NOFS context which is faking
+did_some_progress and keep the page allocator looping even though there
+couldn't have been any progress from the OOM killer.  This patch doesn't
+change this behavior because we are not ready to allow those allocation
+requests to fail yet (and maybe we will face the reality that we will
+never manage to safely fail these request).  Instead __GFP_FS check is
+moved down to out_of_memory and prevent from OOM victim selection there. 
+There are two reasons for that
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Yang Shi <yang.shi@linaro.org>
-Cc: Ning Qu <quning@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+	- OOM notifiers might release some memory even from this context
+	  as none of the registered notifier seems to be FS related
+	- this might help a dying thread to get an access to memory
+          reserves and move on which will make the behavior more
+          consistent with the case when the task gets killed from a
+          different context.
+
+Keep a comment in __alloc_pages_may_oom to make sure we do not forget how
+GFP_NOFS is special and that we really want to do something about it.
+
+Note to the current oom_notifier users:
+
+The observable difference for you is that oom notifiers cannot depend on
+any fs locks because we could deadlock.  Not that this would be allowed
+today because that would just lockup machine in most of the cases and
+ruling out the OOM killer along the way.  Another difference is that
+callbacks might be invoked sooner now because GFP_NOFS is a weaker reclaim
+context and so there could be reclaimable memory which is just not
+reachable now.  That would require GFP_NOFS only loads which are really
+rare and more importantly the observable result would be dropping of
+reconstructible object and potential performance drop which is not such a
+big deal when we are struggling to fulfill other important allocation
+requests.
+
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Raushaniya Maksudova <rmaksudova@parallels.com>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Daniel Vetter <daniel.vetter@intel.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   42 ++++++++++++++++++++++--------------------
- 1 file changed, 22 insertions(+), 20 deletions(-)
+ mm/oom_kill.c   |    9 +++++++++
+ mm/page_alloc.c |   24 ++++++++++--------------
+ 2 files changed, 19 insertions(+), 14 deletions(-)
 
-diff -puN mm/mremap.c~huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files mm/mremap.c
---- a/mm/mremap.c~huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files
-+++ a/mm/mremap.c
-@@ -70,6 +70,22 @@ static pmd_t *alloc_new_pmd(struct mm_st
- 	return pmd;
- }
+diff -puN mm/oom_kill.c~mm-oom-move-gfp_nofs-check-to-out_of_memory mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-move-gfp_nofs-check-to-out_of_memory
++++ a/mm/oom_kill.c
+@@ -877,6 +877,15 @@ bool out_of_memory(struct oom_control *o
+ 	}
  
-+static void take_rmap_locks(struct vm_area_struct *vma)
-+{
-+	if (vma->vm_file)
-+		i_mmap_lock_write(vma->vm_file->f_mapping);
-+	if (vma->anon_vma)
-+		anon_vma_lock_write(vma->anon_vma);
-+}
-+
-+static void drop_rmap_locks(struct vm_area_struct *vma)
-+{
-+	if (vma->anon_vma)
-+		anon_vma_unlock_write(vma->anon_vma);
-+	if (vma->vm_file)
-+		i_mmap_unlock_write(vma->vm_file->f_mapping);
-+}
-+
- static pte_t move_soft_dirty_pte(pte_t pte)
- {
  	/*
-@@ -90,8 +106,6 @@ static void move_ptes(struct vm_area_str
- 		struct vm_area_struct *new_vma, pmd_t *new_pmd,
- 		unsigned long new_addr, bool need_rmap_locks)
- {
--	struct address_space *mapping = NULL;
--	struct anon_vma *anon_vma = NULL;
- 	struct mm_struct *mm = vma->vm_mm;
- 	pte_t *old_pte, *new_pte, pte;
- 	spinlock_t *old_ptl, *new_ptl;
-@@ -114,16 +128,8 @@ static void move_ptes(struct vm_area_str
- 	 *   serialize access to individual ptes, but only rmap traversal
- 	 *   order guarantees that we won't miss both the old and new ptes).
++	 * The OOM killer does not compensate for IO-less reclaim.
++	 * pagefault_out_of_memory lost its gfp context so we have to
++	 * make sure exclude 0 mask - all other users should have at least
++	 * ___GFP_DIRECT_RECLAIM to get here.
++	 */
++	if (oc->gfp_mask && !(oc->gfp_mask & (__GFP_FS|__GFP_NOFAIL)))
++		return true;
++
++	/*
+ 	 * Check if there were limitations on the allocation (only relevant for
+ 	 * NUMA) that may require different handling.
  	 */
--	if (need_rmap_locks) {
--		if (vma->vm_file) {
--			mapping = vma->vm_file->f_mapping;
--			i_mmap_lock_write(mapping);
+diff -puN mm/page_alloc.c~mm-oom-move-gfp_nofs-check-to-out_of_memory mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-oom-move-gfp_nofs-check-to-out_of_memory
++++ a/mm/page_alloc.c
+@@ -2875,22 +2875,18 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 		/* The OOM killer does not needlessly kill tasks for lowmem */
+ 		if (ac->high_zoneidx < ZONE_NORMAL)
+ 			goto out;
+-		/* The OOM killer does not compensate for IO-less reclaim */
+-		if (!(gfp_mask & __GFP_FS)) {
+-			/*
+-			 * XXX: Page reclaim didn't yield anything,
+-			 * and the OOM killer can't be invoked, but
+-			 * keep looping as per tradition.
+-			 *
+-			 * But do not keep looping if oom_killer_disable()
+-			 * was already called, for the system is trying to
+-			 * enter a quiescent state during suspend.
+-			 */
+-			*did_some_progress = !oom_killer_disabled;
+-			goto out;
 -		}
--		if (vma->anon_vma) {
--			anon_vma = vma->anon_vma;
--			anon_vma_lock_write(anon_vma);
--		}
--	}
-+	if (need_rmap_locks)
-+		take_rmap_locks(vma);
- 
- 	/*
- 	 * We don't have to worry about the ordering of src and dst
-@@ -151,10 +157,8 @@ static void move_ptes(struct vm_area_str
- 		spin_unlock(new_ptl);
- 	pte_unmap(new_pte - 1);
- 	pte_unmap_unlock(old_pte - 1, old_ptl);
--	if (anon_vma)
--		anon_vma_unlock_write(anon_vma);
--	if (mapping)
--		i_mmap_unlock_write(mapping);
-+	if (need_rmap_locks)
-+		drop_rmap_locks(vma);
- }
- 
- #define LATENCY_LIMIT	(64 * PAGE_SIZE)
-@@ -193,15 +197,13 @@ unsigned long move_page_tables(struct vm
- 		if (pmd_trans_huge(*old_pmd)) {
- 			if (extent == HPAGE_PMD_SIZE) {
- 				bool moved;
--				VM_BUG_ON_VMA(vma->vm_file || !vma->anon_vma,
--					      vma);
- 				/* See comment in move_ptes() */
- 				if (need_rmap_locks)
--					anon_vma_lock_write(vma->anon_vma);
-+					take_rmap_locks(vma);
- 				moved = move_huge_pmd(vma, old_addr, new_addr,
- 						    old_end, old_pmd, new_pmd);
- 				if (need_rmap_locks)
--					anon_vma_unlock_write(vma->anon_vma);
-+					drop_rmap_locks(vma);
- 				if (moved) {
- 					need_flush = true;
- 					continue;
+ 		if (pm_suspended_storage())
+ 			goto out;
++		/*
++		 * XXX: GFP_NOFS allocations should rather fail than rely on
++		 * other request to make a forward progress.
++		 * We are in an unfortunate situation where out_of_memory cannot
++		 * do much for this context but let's try it to at least get
++		 * access to memory reserved if the current task is killed (see
++		 * out_of_memory). Once filesystems are ready to handle allocation
++		 * failures more gracefully we should just bail out here.
++		 */
++
+ 		/* The OOM killer may not free memory on a specific node */
+ 		if (gfp_mask & __GFP_THISNODE)
+ 			goto out;
 _
