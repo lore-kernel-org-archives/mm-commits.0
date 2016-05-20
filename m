@@ -1,46 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [patch 089/117] mm, page_alloc: reduce branches in
- zone_statistics
-Date: Thu, 19 May 2016 17:13:24 -0700
-Message-ID: <573e56a4.noU8GqDO/QQgKDfY%akpm@linux-foundation.org>
+Subject: [patch 090/117] mm, page_alloc: inline zone_statistics
+Date: Thu, 19 May 2016 17:13:27 -0700
+Message-ID: <573e56a7.ty/NY+6pa/4+QeLg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46527 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932921AbcETANZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:13:25 -0400
+	with ESMTP id S932921AbcETAN2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:13:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: reduce branches in zone_statistics
+Subject: mm, page_alloc: inline zone_statistics
 
-zone_statistics has more branches than it really needs to take an unlikely
-GFP flag into account.  Reduce the number and annotate the unlikely flag.
+zone_statistics has one call-site but it's a public function.  Make it
+static and inline.
 
 The performance difference on a page allocator microbenchmark is;
 
                                            4.6.0-rc2                  4.6.0-rc2
-                                    nocompound-v1r10           statbranch-v1r10
-Min      alloc-odr0-1               417.00 (  0.00%)           419.00 ( -0.48%)
-Min      alloc-odr0-2               308.00 (  0.00%)           305.00 (  0.97%)
-Min      alloc-odr0-4               253.00 (  0.00%)           250.00 (  1.19%)
-Min      alloc-odr0-8               221.00 (  0.00%)           219.00 (  0.90%)
-Min      alloc-odr0-16              205.00 (  0.00%)           203.00 (  0.98%)
-Min      alloc-odr0-32              199.00 (  0.00%)           195.00 (  2.01%)
-Min      alloc-odr0-64              193.00 (  0.00%)           191.00 (  1.04%)
-Min      alloc-odr0-128             191.00 (  0.00%)           189.00 (  1.05%)
-Min      alloc-odr0-256             200.00 (  0.00%)           198.00 (  1.00%)
-Min      alloc-odr0-512             212.00 (  0.00%)           210.00 (  0.94%)
-Min      alloc-odr0-1024            219.00 (  0.00%)           216.00 (  1.37%)
-Min      alloc-odr0-2048            225.00 (  0.00%)           221.00 (  1.78%)
-Min      alloc-odr0-4096            231.00 (  0.00%)           227.00 (  1.73%)
-Min      alloc-odr0-8192            234.00 (  0.00%)           232.00 (  0.85%)
-Min      alloc-odr0-16384           234.00 (  0.00%)           232.00 (  0.85%)
+                                    statbranch-v1r20           statinline-v1r20
+Min      alloc-odr0-1               419.00 (  0.00%)           412.00 (  1.67%)
+Min      alloc-odr0-2               305.00 (  0.00%)           301.00 (  1.31%)
+Min      alloc-odr0-4               250.00 (  0.00%)           247.00 (  1.20%)
+Min      alloc-odr0-8               219.00 (  0.00%)           215.00 (  1.83%)
+Min      alloc-odr0-16              203.00 (  0.00%)           199.00 (  1.97%)
+Min      alloc-odr0-32              195.00 (  0.00%)           191.00 (  2.05%)
+Min      alloc-odr0-64              191.00 (  0.00%)           187.00 (  2.09%)
+Min      alloc-odr0-128             189.00 (  0.00%)           185.00 (  2.12%)
+Min      alloc-odr0-256             198.00 (  0.00%)           193.00 (  2.53%)
+Min      alloc-odr0-512             210.00 (  0.00%)           207.00 (  1.43%)
+Min      alloc-odr0-1024            216.00 (  0.00%)           213.00 (  1.39%)
+Min      alloc-odr0-2048            221.00 (  0.00%)           220.00 (  0.45%)
+Min      alloc-odr0-4096            227.00 (  0.00%)           226.00 (  0.44%)
+Min      alloc-odr0-8192            232.00 (  0.00%)           229.00 (  1.29%)
+Min      alloc-odr0-16384           232.00 (  0.00%)           229.00 (  1.29%)
 
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -48,17 +47,46 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ include/linux/vmstat.h |    2 --
+ mm/page_alloc.c        |   31 +++++++++++++++++++++++++++++++
+ mm/vmstat.c            |   29 -----------------------------
+ 3 files changed, 31 insertions(+), 31 deletions(-)
 
-diff -puN mm/vmstat.c~mm-page_alloc-reduce-branches-in-zone_statistics mm/vmstat.c
---- a/mm/vmstat.c~mm-page_alloc-reduce-branches-in-zone_statistics
-+++ a/mm/vmstat.c
-@@ -581,17 +581,21 @@ void drain_zonestat(struct zone *zone, s
-  */
- void zone_statistics(struct zone *preferred_zone, struct zone *z, gfp_t flags)
- {
--	if (z->zone_pgdat == preferred_zone->zone_pgdat) {
+diff -puN include/linux/vmstat.h~mm-page_alloc-inline-zone_statistics include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-page_alloc-inline-zone_statistics
++++ a/include/linux/vmstat.h
+@@ -163,12 +163,10 @@ static inline unsigned long zone_page_st
+ #ifdef CONFIG_NUMA
+ 
+ extern unsigned long node_page_state(int node, enum zone_stat_item item);
+-extern void zone_statistics(struct zone *, struct zone *, gfp_t gfp);
+ 
+ #else
+ 
+ #define node_page_state(node, item) global_page_state(item)
+-#define zone_statistics(_zl, _z, gfp) do { } while (0)
+ 
+ #endif /* CONFIG_NUMA */
+ 
+diff -puN mm/page_alloc.c~mm-page_alloc-inline-zone_statistics mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-inline-zone_statistics
++++ a/mm/page_alloc.c
+@@ -2355,6 +2355,37 @@ int split_free_page(struct page *page)
+ }
+ 
+ /*
++ * Update NUMA hit/miss statistics
++ *
++ * Must be called with interrupts disabled.
++ *
++ * When __GFP_OTHER_NODE is set assume the node of the preferred
++ * zone is the local node. This is useful for daemons who allocate
++ * memory on behalf of other processes.
++ */
++static inline void zone_statistics(struct zone *preferred_zone, struct zone *z,
++								gfp_t flags)
++{
++#ifdef CONFIG_NUMA
 +	int local_nid = numa_node_id();
 +	enum zone_stat_item local_stat = NUMA_LOCAL;
 +
@@ -68,18 +96,50 @@ diff -puN mm/vmstat.c~mm-page_alloc-reduce-branches-in-zone_statistics mm/vmstat
 +	}
 +
 +	if (z->node == local_nid) {
- 		__inc_zone_state(z, NUMA_HIT);
++		__inc_zone_state(z, NUMA_HIT);
 +		__inc_zone_state(z, local_stat);
- 	} else {
- 		__inc_zone_state(z, NUMA_MISS);
- 		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
- 	}
--	if (z->node == ((flags & __GFP_OTHER_NODE) ?
--			preferred_zone->node : numa_node_id()))
--		__inc_zone_state(z, NUMA_LOCAL);
--	else
--		__inc_zone_state(z, NUMA_OTHER);
- }
++	} else {
++		__inc_zone_state(z, NUMA_MISS);
++		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
++	}
++#endif
++}
++
++/*
+  * Allocate a page from the given zone. Use pcplists for order-0 allocations.
+  */
+ static inline
+diff -puN mm/vmstat.c~mm-page_alloc-inline-zone_statistics mm/vmstat.c
+--- a/mm/vmstat.c~mm-page_alloc-inline-zone_statistics
++++ a/mm/vmstat.c
+@@ -570,35 +570,6 @@ void drain_zonestat(struct zone *zone, s
  
+ #ifdef CONFIG_NUMA
  /*
-_
+- * zonelist = the list of zones passed to the allocator
+- * z 	    = the zone from which the allocation occurred.
+- *
+- * Must be called with interrupts disabled.
+- *
+- * When __GFP_OTHER_NODE is set assume the node of the preferred
+- * zone is the local node. This is useful for daemons who allocate
+- * memory on behalf of other processes.
+- */
+-void zone_statistics(struct zone *preferred_zone, struct zone *z, gfp_t flags)
+-{
+-	int local_nid = numa_node_id();
+-	enum zone_stat_item local_stat = NUMA_LOCAL;
+-
+-	if (unlikely(flags & __GFP_OTHER_NODE)) {
+-		local_stat = NUMA_OTHER;
+-		local_nid = preferred_zone->node;
+-	}
+-
+-	if (z->node == local_nid) {
+-		__inc_zone_state(z, NUMA_HIT);
+-		__inc_zone_state(z, local_stat);
+-	} else {
+-		__inc_zone_state(z, NUMA_MISS);
+-		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
+-	}
+-}
