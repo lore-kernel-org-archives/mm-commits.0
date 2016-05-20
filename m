@@ -1,109 +1,72 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-move-__gfp_hardwall-modifications-out-of-the-fastpath.patch
- removed from -mm tree
-Date: Fri, 20 May 2016 14:06:36 -0700
-Message-ID: <573f7c5c.rC3rx59aABoNviJ4%akpm@linux-foundation.org>
+ mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch removed
+ from -mm tree
+Date: Fri, 20 May 2016 14:06:38 -0700
+Message-ID: <573f7c5e.qekvwdKGjqrXkISJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47343 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47347 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961AbcETVGh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:06:37 -0400
+	with ESMTP id S1750961AbcETVGj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:06:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: move __GFP_HARDWALL modifications out of the fastpath
+     Subject: mm, page_alloc: check once if a zone has isolated pageblocks
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-move-__gfp_hardwall-modifications-out-of-the-fastpath.patch
+     mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: move __GFP_HARDWALL modifications out of the fastpath
+Subject: mm, page_alloc: check once if a zone has isolated pageblocks
 
-__GFP_HARDWALL only has meaning in the context of cpusets but the fast
-path always applies the flag on the first attempt.  Move the manipulations
-into the cpuset paths where they will be masked by a static branch in the
-common case.
+When bulk freeing pages from the per-cpu lists the zone is checked for
+isolated pageblocks on every release.  This patch checks it once per
+drain.
 
-With the other micro-optimisations in this series combined, the impact on
-a page allocator microbenchmark is
-
-                                           4.6.0-rc2                  4.6.0-rc2
-                                       decstat-v1r20                micro-v1r20
-Min      alloc-odr0-1               381.00 (  0.00%)           377.00 (  1.05%)
-Min      alloc-odr0-2               275.00 (  0.00%)           273.00 (  0.73%)
-Min      alloc-odr0-4               229.00 (  0.00%)           226.00 (  1.31%)
-Min      alloc-odr0-8               199.00 (  0.00%)           196.00 (  1.51%)
-Min      alloc-odr0-16              186.00 (  0.00%)           183.00 (  1.61%)
-Min      alloc-odr0-32              179.00 (  0.00%)           175.00 (  2.23%)
-Min      alloc-odr0-64              174.00 (  0.00%)           172.00 (  1.15%)
-Min      alloc-odr0-128             172.00 (  0.00%)           170.00 (  1.16%)
-Min      alloc-odr0-256             181.00 (  0.00%)           183.00 ( -1.10%)
-Min      alloc-odr0-512             193.00 (  0.00%)           191.00 (  1.04%)
-Min      alloc-odr0-1024            201.00 (  0.00%)           199.00 (  1.00%)
-Min      alloc-odr0-2048            206.00 (  0.00%)           204.00 (  0.97%)
-Min      alloc-odr0-4096            212.00 (  0.00%)           210.00 (  0.94%)
-Min      alloc-odr0-8192            215.00 (  0.00%)           213.00 (  0.93%)
-Min      alloc-odr0-16384           216.00 (  0.00%)           214.00 (  0.93%)
-
+[mgorman@techsingularity.net: fix locking radce, per Vlastimil]
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-move-__gfp_hardwall-modifications-out-of-the-fastpath mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-move-__gfp_hardwall-modifications-out-of-the-fastpath
+diff -puN mm/page_alloc.c~mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-check-once-if-a-zone-has-isolated-pageblocks
 +++ a/mm/page_alloc.c
-@@ -3350,7 +3350,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	struct page *page;
- 	unsigned int cpuset_mems_cookie;
- 	unsigned int alloc_flags = ALLOC_WMARK_LOW|ALLOC_FAIR;
--	gfp_t alloc_mask; /* The gfp_t that was actually used for allocation */
-+	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
- 	struct alloc_context ac = {
- 		.high_zoneidx = gfp_zone(gfp_mask),
- 		.zonelist = zonelist,
-@@ -3359,6 +3359,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	};
+@@ -831,8 +831,10 @@ static void free_pcppages_bulk(struct zo
+ 	int batch_free = 0;
+ 	int to_free = count;
+ 	unsigned long nr_scanned;
++	bool isolated_pageblocks;
  
- 	if (cpusets_enabled()) {
-+		alloc_mask |= __GFP_HARDWALL;
- 		alloc_flags |= ALLOC_CPUSET;
- 		if (!ac.nodemask)
- 			ac.nodemask = &cpuset_current_mems_allowed;
-@@ -3401,7 +3402,6 @@ retry_cpuset:
- 	ac.classzone_idx = zonelist_zone_idx(preferred_zoneref);
+ 	spin_lock(&zone->lock);
++	isolated_pageblocks = has_isolate_pageblock(zone);
+ 	nr_scanned = zone_page_state(zone, NR_PAGES_SCANNED);
+ 	if (nr_scanned)
+ 		__mod_zone_page_state(zone, NR_PAGES_SCANNED, -nr_scanned);
+@@ -870,7 +872,7 @@ static void free_pcppages_bulk(struct zo
+ 			/* MIGRATE_ISOLATE page should not go to pcplists */
+ 			VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
+ 			/* Pageblock could have been isolated meanwhile */
+-			if (unlikely(has_isolate_pageblock(zone)))
++			if (unlikely(isolated_pageblocks))
+ 				mt = get_pageblock_migratetype(page);
  
- 	/* First allocation attempt */
--	alloc_mask = gfp_mask|__GFP_HARDWALL;
- 	page = get_page_from_freelist(alloc_mask, order, alloc_flags, &ac);
- 	if (unlikely(!page)) {
- 		/*
-@@ -3427,8 +3427,10 @@ out:
- 	 * the mask is being updated. If a page allocation is about to fail,
- 	 * check if the cpuset changed during allocation and if so, retry.
- 	 */
--	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
-+	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie))) {
-+		alloc_mask = gfp_mask;
- 		goto retry_cpuset;
-+	}
- 
- 	return page;
- }
+ 			__free_one_page(page, page_to_pfn(page), zone, 0, mt);
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
