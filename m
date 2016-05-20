@@ -1,36 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [patch 060/162] mm/kasan: print name of mem[set,cpy,move]()
- caller in report
-Date: Fri, 20 May 2016 16:59:20 -0700
-Message-ID: <573fa4d8.CzTBAKe+hwf4Hndj%akpm@linux-foundation.org>
+Subject: [patch 063/162] kasan/tests: add tests for user memory access
+ functions
+Date: Fri, 20 May 2016 16:59:34 -0700
+Message-ID: <573fa4e6.qYT16txPoDF8+R0V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52437 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52460 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475AbcETX70 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:59:26 -0400
+	with ESMTP id S1751419AbcETX7f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:59:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm/kasan: print name of mem[set,cpy,move]() caller in report
+Subject: kasan/tests: add tests for user memory access functions
 
-When bogus memory access happens in mem[set,cpy,move]() it's usually
-caller's fault.  So don't blame mem[set,cpy,move]() in bug report, blame
-the caller instead.
+Add some tests for the newly-added user memory access API.
 
-Before:
-BUG: KASAN: out-of-bounds access in memset+0x23/0x40 at <address>
-After:
-BUG: KASAN: out-of-bounds access in <memset_caller> at <address>
-
-Link: http://lkml.kernel.org/r/1462538722-1574-2-git-send-email-aryabinin@virtuozzo.com
+Link: http://lkml.kernel.org/r/1462538722-1574-1-git-send-email-aryabinin@virtuozzo.com
 Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -38,134 +31,83 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |   64 +++++++++++++++++++++++----------------------
- 1 file changed, 34 insertions(+), 30 deletions(-)
+ lib/test_kasan.c |   49 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff -puN mm/kasan/kasan.c~mm-kasan-print-name-of-mem-caller-in-report mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mm-kasan-print-name-of-mem-caller-in-report
-+++ a/mm/kasan/kasan.c
-@@ -273,32 +273,36 @@ static __always_inline bool memory_is_po
- 	return memory_is_poisoned_n(addr, size);
+diff -puN lib/test_kasan.c~kasan-tests-add-tests-for-user-memory-access-functions lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-tests-add-tests-for-user-memory-access-functions
++++ a/lib/test_kasan.c
+@@ -12,9 +12,12 @@
+ #define pr_fmt(fmt) "kasan test: %s " fmt, __func__
+ 
+ #include <linux/kernel.h>
++#include <linux/mman.h>
++#include <linux/mm.h>
+ #include <linux/printk.h>
+ #include <linux/slab.h>
+ #include <linux/string.h>
++#include <linux/uaccess.h>
+ #include <linux/module.h>
+ 
+ static noinline void __init kmalloc_oob_right(void)
+@@ -363,6 +366,51 @@ static noinline void __init ksize_unpois
+ 	kfree(ptr);
  }
  
--
--static __always_inline void check_memory_region(unsigned long addr,
--						size_t size, bool write)
-+static __always_inline void check_memory_region_inline(unsigned long addr,
-+						size_t size, bool write,
-+						unsigned long ret_ip)
- {
- 	if (unlikely(size == 0))
- 		return;
- 
- 	if (unlikely((void *)addr <
- 		kasan_shadow_to_mem((void *)KASAN_SHADOW_START))) {
--		kasan_report(addr, size, write, _RET_IP_);
-+		kasan_report(addr, size, write, ret_ip);
- 		return;
- 	}
- 
- 	if (likely(!memory_is_poisoned(addr, size)))
- 		return;
- 
--	kasan_report(addr, size, write, _RET_IP_);
-+	kasan_report(addr, size, write, ret_ip);
- }
- 
--void __asan_loadN(unsigned long addr, size_t size);
--void __asan_storeN(unsigned long addr, size_t size);
-+static void check_memory_region(unsigned long addr,
-+				size_t size, bool write,
-+				unsigned long ret_ip)
++static noinline void __init copy_user_test(void)
 +{
-+	check_memory_region_inline(addr, size, write, ret_ip);
++	char *kmem;
++	char __user *usermem;
++	size_t size = 10;
++	int unused;
++
++	kmem = kmalloc(size, GFP_KERNEL);
++	if (!kmem)
++		return;
++
++	usermem = (char __user *)vm_mmap(NULL, 0, PAGE_SIZE,
++			    PROT_READ | PROT_WRITE | PROT_EXEC,
++			    MAP_ANONYMOUS | MAP_PRIVATE, 0);
++	if (IS_ERR(usermem)) {
++		pr_err("Failed to allocate user memory\n");
++		kfree(kmem);
++		return;
++	}
++
++	pr_info("out-of-bounds in copy_from_user()\n");
++	unused = copy_from_user(kmem, usermem, size + 1);
++
++	pr_info("out-of-bounds in copy_to_user()\n");
++	unused = copy_to_user(usermem, kmem, size + 1);
++
++	pr_info("out-of-bounds in __copy_from_user()\n");
++	unused = __copy_from_user(kmem, usermem, size + 1);
++
++	pr_info("out-of-bounds in __copy_to_user()\n");
++	unused = __copy_to_user(usermem, kmem, size + 1);
++
++	pr_info("out-of-bounds in __copy_from_user_inatomic()\n");
++	unused = __copy_from_user_inatomic(kmem, usermem, size + 1);
++
++	pr_info("out-of-bounds in __copy_to_user_inatomic()\n");
++	unused = __copy_to_user_inatomic(usermem, kmem, size + 1);
++
++	pr_info("out-of-bounds in strncpy_from_user()\n");
++	unused = strncpy_from_user(kmem, usermem, size + 1);
++
++	vm_munmap((unsigned long)usermem, PAGE_SIZE);
++	kfree(kmem);
 +}
- 
- #undef memset
- void *memset(void *addr, int c, size_t len)
++
+ static int __init kmalloc_tests_init(void)
  {
--	__asan_storeN((unsigned long)addr, len);
-+	check_memory_region((unsigned long)addr, len, true, _RET_IP_);
- 
- 	return __memset(addr, c, len);
+ 	kmalloc_oob_right();
+@@ -387,6 +435,7 @@ static int __init kmalloc_tests_init(voi
+ 	kasan_stack_oob();
+ 	kasan_global_oob();
+ 	ksize_unpoisons_memory();
++	copy_user_test();
+ 	return -EAGAIN;
  }
-@@ -306,8 +310,8 @@ void *memset(void *addr, int c, size_t l
- #undef memmove
- void *memmove(void *dest, const void *src, size_t len)
- {
--	__asan_loadN((unsigned long)src, len);
--	__asan_storeN((unsigned long)dest, len);
-+	check_memory_region((unsigned long)src, len, false, _RET_IP_);
-+	check_memory_region((unsigned long)dest, len, true, _RET_IP_);
- 
- 	return __memmove(dest, src, len);
- }
-@@ -315,8 +319,8 @@ void *memmove(void *dest, const void *sr
- #undef memcpy
- void *memcpy(void *dest, const void *src, size_t len)
- {
--	__asan_loadN((unsigned long)src, len);
--	__asan_storeN((unsigned long)dest, len);
-+	check_memory_region((unsigned long)src, len, false, _RET_IP_);
-+	check_memory_region((unsigned long)dest, len, true, _RET_IP_);
- 
- 	return __memcpy(dest, src, len);
- }
-@@ -690,22 +694,22 @@ void __asan_unregister_globals(struct ka
- }
- EXPORT_SYMBOL(__asan_unregister_globals);
- 
--#define DEFINE_ASAN_LOAD_STORE(size)				\
--	void __asan_load##size(unsigned long addr)		\
--	{							\
--		check_memory_region(addr, size, false);		\
--	}							\
--	EXPORT_SYMBOL(__asan_load##size);			\
--	__alias(__asan_load##size)				\
--	void __asan_load##size##_noabort(unsigned long);	\
--	EXPORT_SYMBOL(__asan_load##size##_noabort);		\
--	void __asan_store##size(unsigned long addr)		\
--	{							\
--		check_memory_region(addr, size, true);		\
--	}							\
--	EXPORT_SYMBOL(__asan_store##size);			\
--	__alias(__asan_store##size)				\
--	void __asan_store##size##_noabort(unsigned long);	\
-+#define DEFINE_ASAN_LOAD_STORE(size)					\
-+	void __asan_load##size(unsigned long addr)			\
-+	{								\
-+		check_memory_region_inline(addr, size, false, _RET_IP_);\
-+	}								\
-+	EXPORT_SYMBOL(__asan_load##size);				\
-+	__alias(__asan_load##size)					\
-+	void __asan_load##size##_noabort(unsigned long);		\
-+	EXPORT_SYMBOL(__asan_load##size##_noabort);			\
-+	void __asan_store##size(unsigned long addr)			\
-+	{								\
-+		check_memory_region_inline(addr, size, true, _RET_IP_);	\
-+	}								\
-+	EXPORT_SYMBOL(__asan_store##size);				\
-+	__alias(__asan_store##size)					\
-+	void __asan_store##size##_noabort(unsigned long);		\
- 	EXPORT_SYMBOL(__asan_store##size##_noabort)
- 
- DEFINE_ASAN_LOAD_STORE(1);
-@@ -716,7 +720,7 @@ DEFINE_ASAN_LOAD_STORE(16);
- 
- void __asan_loadN(unsigned long addr, size_t size)
- {
--	check_memory_region(addr, size, false);
-+	check_memory_region(addr, size, false, _RET_IP_);
- }
- EXPORT_SYMBOL(__asan_loadN);
- 
-@@ -726,7 +730,7 @@ EXPORT_SYMBOL(__asan_loadN_noabort);
- 
- void __asan_storeN(unsigned long addr, size_t size)
- {
--	check_memory_region(addr, size, true);
-+	check_memory_region(addr, size, true, _RET_IP_);
- }
- EXPORT_SYMBOL(__asan_storeN);
  
 _
