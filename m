@@ -1,305 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: [patch 003/162] mm: vmscan: reduce size of inactive file list
-Date: Fri, 20 May 2016 16:56:31 -0700
-Message-ID: <573fa42f.7pcRjSIbG1hmJVmr%akpm@linux-foundation.org>
+Subject: [patch 004/162] vmscan: consider classzone_idx in
+ compaction_ready
+Date: Fri, 20 May 2016 16:56:34 -0700
+Message-ID: <573fa432.a58SZiMoQ5x0sm0n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52039 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52052 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcETX4d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:56:33 -0400
+	with ESMTP id S1751065AbcETX4g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:56:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, riel@redhat.com, andres@anarazel.de, hannes@cmpxchg.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com
 
-From: Rik van Riel <riel@redhat.com>
-Subject: mm: vmscan: reduce size of inactive file list
+From: Michal Hocko <mhocko@suse.com>
+Subject: vmscan: consider classzone_idx in compaction_ready
 
-The inactive file list should still be large enough to contain readahead
-windows and freshly written file data, but it no longer is the only source
-for detecting multiple accesses to file pages.  The workingset refault
-measurement code causes recently evicted file pages that get accessed
-again after a shorter interval to be promoted directly to the active list.
+Motivation:
+As pointed by Linus [3][4] relying on zone_reclaimable as a way to
+communicate the reclaim progress is rater dubious. I tend to agree,
+not only it is really obscure, it is not hard to imagine cases where a
+single page freed in the loop keeps all the reclaimers looping without
+getting any progress because their gfp_mask wouldn't allow to get that
+page anyway (e.g. single GFP_ATOMIC alloc and free loop). This is rather
+rare so it doesn't happen in the practice but the current logic which we
+have is rather obscure and hard to follow a also non-deterministic.
 
-With that mechanism in place, we can afford to (on a larger system)
-dedicate more memory to the active file list, so we can actually cache
-more of the frequently used file pages in memory, and not have them pushed
-out by streaming writes, once-used streaming file reads, etc.
+This is an attempt to make the OOM detection more deterministic and
+easier to follow because each reclaimer basically tracks its own
+progress which is implemented at the page allocator layer rather spread
+out between the allocator and the reclaim. The more on the implementation
+is described in the first patch.
 
-This can help things like database workloads, where only half the page
-cache can currently be used to cache the database working set.  This patch
-automatically increases that fraction on larger systems, using the same
-ratio that has already been used for anonymous memory.
+I have tested several different scenarios but it should be clear that
+testing OOM killer is quite hard to be representative. There is usually
+a tiny gap between almost OOM and full blown OOM which is often time
+sensitive. Anyway, I have tested the following 2 scenarios and I would
+appreciate if there are more to test.
 
-[hannes@cmpxchg.org: cgroup-awareness]
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Andres Freund <andres@anarazel.de>
+Testing environment: a virtual machine with 2G of RAM and 2CPUs without
+any swap to make the OOM more deterministic.
+
+1) 2 writers (each doing dd with 4M blocks to an xfs partition with 1G
+   file size, removes the files and starts over again) running in
+   parallel for 10s to build up a lot of dirty pages when 100 parallel
+   mem_eaters (anon private populated mmap which waits until it gets
+   signal) with 80M each.
+
+   This causes an OOM flood of course and I have compared both patched
+   and unpatched kernels. The test is considered finished after there
+   are no OOM conditions detected. This should tell us whether there are
+   any excessive kills or some of them premature (e.g. due to dirty pages):
+
+I have performed two runs this time each after a fresh boot.
+
+* base kernel
+$ grep "Out of memory:" base-oom-run1.log | wc -l
+78
+$ grep "Out of memory:" base-oom-run2.log | wc -l
+78
+
+$ grep "Kill process" base-oom-run1.log | tail -n1
+[   91.391203] Out of memory: Kill process 3061 (mem_eater) score 39 or sacrifice child
+$ grep "Kill process" base-oom-run2.log | tail -n1
+[   82.141919] Out of memory: Kill process 3086 (mem_eater) score 39 or sacrifice child
+
+$ grep "DMA32 free:" base-oom-run1.log | sed 's@.*free:\([0-9]*\)kB.*@\1@' | calc_min_max.awk 
+min: 5376.00 max: 6776.00 avg: 5530.75 std: 166.50 nr: 61
+$ grep "DMA32 free:" base-oom-run2.log | sed 's@.*free:\([0-9]*\)kB.*@\1@' | calc_min_max.awk 
+min: 5416.00 max: 5608.00 avg: 5514.15 std: 42.94 nr: 52
+
+$ grep "DMA32.*all_unreclaimable? no" base-oom-run1.log | wc -l
+1
+$ grep "DMA32.*all_unreclaimable? no" base-oom-run2.log | wc -l
+3
+
+* patched kernel
+$ grep "Out of memory:" patched-oom-run1.log | wc -l
+78
+miso@tiehlicka /mnt/share/devel/miso/kvm $ grep "Out of memory:" patched-oom-run2.log | wc -l
+77
+
+e grep "Kill process" patched-oom-run1.log | tail -n1
+[  497.317732] Out of memory: Kill process 3108 (mem_eater) score 39 or sacrifice child
+$ grep "Kill process" patched-oom-run2.log | tail -n1
+[  316.169920] Out of memory: Kill process 3093 (mem_eater) score 39 or sacrifice child
+
+$ grep "DMA32 free:" patched-oom-run1.log | sed 's@.*free:\([0-9]*\)kB.*@\1@' | calc_min_max.awk 
+min: 5420.00 max: 5808.00 avg: 5513.90 std: 60.45 nr: 78
+$ grep "DMA32 free:" patched-oom-run2.log | sed 's@.*free:\([0-9]*\)kB.*@\1@' | calc_min_max.awk 
+min: 5380.00 max: 6384.00 avg: 5520.94 std: 136.84 nr: 77
+
+e grep "DMA32.*all_unreclaimable? no" patched-oom-run1.log | wc -l
+2
+$ grep "DMA32.*all_unreclaimable? no" patched-oom-run2.log | wc -l
+3
+
+The patched kernel run noticeably longer while invoking OOM killer same
+number of times. This means that the original implementation is much
+more aggressive and triggers the OOM killer sooner. free pages stats
+show that neither kernels went OOM too early most of the time, though. I
+guess the difference is in the backoff when retries without any progress
+do sleep for a while if there is memory under writeback or dirty which
+is highly likely considering the parallel IO.
+Both kernels have seen races where zone wasn't marked unreclaimable
+and we still hit the OOM killer. This is most likely a race where
+a task managed to exit between the last allocation attempt and the oom
+killer invocation.
+
+2) 2 writers again with 10s of run and then 10 mem_eaters to consume as much
+   memory as possible without triggering the OOM killer. This required a lot
+   of tuning but I've considered 3 consecutive runs in three different boots
+   without OOM as a success.
+
+* base kernel
+size=$(awk '/MemFree/{printf "%dK", ($2/10)-(16*1024)}' /proc/meminfo)
+
+* patched kernel
+size=$(awk '/MemFree/{printf "%dK", ($2/10)-(12*1024)}' /proc/meminfo)
+
+That means 40M more memory was usable without triggering OOM killer. The
+base kernel sometimes managed to handle the same as patched but it
+wasn't consistent and failed in at least on of the 3 runs. This seems
+like a minor improvement.
+
+I was testing also GPF_REPEAT costly requests (hughetlb) with fragmented
+memory and under memory pressure. The results are in patch 11 where the
+logic is implemented. In short I can see huge improvement there.
+
+I am certainly interested in other usecases as well as well as any
+feedback. Especially those which require higher order requests.
+
+
+This patch (of 14):
+
+While playing with the oom detection rework [1] I have noticed that my
+heavy order-9 (hugetlb) load close to OOM ended up in an endless loop
+where the reclaim hasn't made any progress but did_some_progress didn't
+reflect that and compaction_suitable was backing off because no zone is
+above low wmark + 1 << order.
+
+It turned out that this is in fact an old standing bug in
+compaction_ready which ignores the requested_highidx and did the
+watermark check for 0 classzone_idx.  This succeeds for zone DMA most
+of the time as the zone is mostly unused because of lowmem protection. 
+As a result costly high order allocatios always report a successfull
+progress even when there was none.  This wasn't a problem so far
+because these allocations usually fail quite early or retry only few
+times with __GFP_REPEAT but this will change after later patch in this
+series so make sure to not lie about the progress and propagate
+requested_highidx down to compaction_ready and use it for both the
+watermak check and compaction_suitable to fix this issue.
+
+[1] http://lkml.kernel.org/r/1459855533-4600-1-git-send-email-mhocko@kernel.org
+
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   25 --------
- mm/page_alloc.c            |   44 --------------
- mm/vmscan.c                |  104 ++++++++++++++---------------------
- 3 files changed, 42 insertions(+), 131 deletions(-)
+ mm/vmscan.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-vmscan-reduce-size-of-inactive-file-list include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-vmscan-reduce-size-of-inactive-file-list
-+++ a/include/linux/memcontrol.h
-@@ -415,25 +415,6 @@ unsigned long mem_cgroup_get_lru_size(st
- 	return mz->lru_size[lru];
- }
- 
--static inline bool mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
--{
--	unsigned long inactive_ratio;
--	unsigned long inactive;
--	unsigned long active;
--	unsigned long gb;
--
--	inactive = mem_cgroup_get_lru_size(lruvec, LRU_INACTIVE_ANON);
--	active = mem_cgroup_get_lru_size(lruvec, LRU_ACTIVE_ANON);
--
--	gb = (inactive + active) >> (30 - PAGE_SHIFT);
--	if (gb)
--		inactive_ratio = int_sqrt(10 * gb);
--	else
--		inactive_ratio = 1;
--
--	return inactive * inactive_ratio < active;
--}
--
- void mem_cgroup_handle_over_high(void);
- 
- void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
-@@ -645,12 +626,6 @@ static inline bool mem_cgroup_online(str
- {
- 	return true;
- }
--
--static inline bool
--mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
--{
--	return true;
--}
- 
- static inline unsigned long
- mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
-diff -puN mm/page_alloc.c~mm-vmscan-reduce-size-of-inactive-file-list mm/page_alloc.c
---- a/mm/page_alloc.c~mm-vmscan-reduce-size-of-inactive-file-list
-+++ a/mm/page_alloc.c
-@@ -6671,49 +6671,6 @@ void setup_per_zone_wmarks(void)
- }
- 
- /*
-- * The inactive anon list should be small enough that the VM never has to
-- * do too much work, but large enough that each inactive page has a chance
-- * to be referenced again before it is swapped out.
-- *
-- * The inactive_anon ratio is the target ratio of ACTIVE_ANON to
-- * INACTIVE_ANON pages on this zone's LRU, maintained by the
-- * pageout code. A zone->inactive_ratio of 3 means 3:1 or 25% of
-- * the anonymous pages are kept on the inactive list.
-- *
-- * total     target    max
-- * memory    ratio     inactive anon
-- * -------------------------------------
-- *   10MB       1         5MB
-- *  100MB       1        50MB
-- *    1GB       3       250MB
-- *   10GB      10       0.9GB
-- *  100GB      31         3GB
-- *    1TB     101        10GB
-- *   10TB     320        32GB
-- */
--static void __meminit calculate_zone_inactive_ratio(struct zone *zone)
--{
--	unsigned int gb, ratio;
--
--	/* Zone size in gigabytes */
--	gb = zone->managed_pages >> (30 - PAGE_SHIFT);
--	if (gb)
--		ratio = int_sqrt(10 * gb);
--	else
--		ratio = 1;
--
--	zone->inactive_ratio = ratio;
--}
--
--static void __meminit setup_per_zone_inactive_ratio(void)
--{
--	struct zone *zone;
--
--	for_each_zone(zone)
--		calculate_zone_inactive_ratio(zone);
--}
--
--/*
-  * Initialise min_free_kbytes.
-  *
-  * For small machines we want it small (128k min).  For large machines
-@@ -6758,7 +6715,6 @@ int __meminit init_per_zone_wmark_min(vo
- 	setup_per_zone_wmarks();
- 	refresh_zone_stat_thresholds();
- 	setup_per_zone_lowmem_reserve();
--	setup_per_zone_inactive_ratio();
- 	return 0;
- }
- core_initcall(init_per_zone_wmark_min)
-diff -puN mm/vmscan.c~mm-vmscan-reduce-size-of-inactive-file-list mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-reduce-size-of-inactive-file-list
+diff -puN mm/vmscan.c~vmscan-consider-classzone_idx-in-compaction_ready mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-consider-classzone_idx-in-compaction_ready
 +++ a/mm/vmscan.c
-@@ -1862,83 +1862,63 @@ static void shrink_active_list(unsigned
- 	free_hot_cold_page_list(&l_hold, true);
- }
- 
--#ifdef CONFIG_SWAP
--static bool inactive_anon_is_low_global(struct zone *zone)
--{
--	unsigned long active, inactive;
--
--	active = zone_page_state(zone, NR_ACTIVE_ANON);
--	inactive = zone_page_state(zone, NR_INACTIVE_ANON);
--
--	return inactive * zone->inactive_ratio < active;
--}
--
--/**
-- * inactive_anon_is_low - check if anonymous pages need to be deactivated
-- * @lruvec: LRU vector to check
-+/*
-+ * The inactive anon list should be small enough that the VM never has
-+ * to do too much work.
-  *
-- * Returns true if the zone does not have enough inactive anon pages,
-- * meaning some active anon pages need to be deactivated.
-- */
--static bool inactive_anon_is_low(struct lruvec *lruvec)
--{
--	/*
--	 * If we don't have swap space, anonymous page deactivation
--	 * is pointless.
--	 */
--	if (!total_swap_pages)
--		return false;
--
--	if (!mem_cgroup_disabled())
--		return mem_cgroup_inactive_anon_is_low(lruvec);
--
--	return inactive_anon_is_low_global(lruvec_zone(lruvec));
--}
--#else
--static inline bool inactive_anon_is_low(struct lruvec *lruvec)
--{
--	return false;
--}
--#endif
--
--/**
-- * inactive_file_is_low - check if file pages need to be deactivated
-- * @lruvec: LRU vector to check
-+ * The inactive file list should be small enough to leave most memory
-+ * to the established workingset on the scan-resistant active list,
-+ * but large enough to avoid thrashing the aggregate readahead window.
-  *
-- * When the system is doing streaming IO, memory pressure here
-- * ensures that active file pages get deactivated, until more
-- * than half of the file pages are on the inactive list.
-+ * Both inactive lists should also be large enough that each inactive
-+ * page has a chance to be referenced again before it is reclaimed.
-  *
-- * Once we get to that situation, protect the system's working
-- * set from being evicted by disabling active file page aging.
-+ * The inactive_ratio is the target ratio of ACTIVE to INACTIVE pages
-+ * on this LRU, maintained by the pageout code. A zone->inactive_ratio
-+ * of 3 means 3:1 or 25% of the pages are kept on the inactive list.
-  *
-- * This uses a different ratio than the anonymous pages, because
-- * the page cache uses a use-once replacement algorithm.
-+ * total     target    max
-+ * memory    ratio     inactive
-+ * -------------------------------------
-+ *   10MB       1         5MB
-+ *  100MB       1        50MB
-+ *    1GB       3       250MB
-+ *   10GB      10       0.9GB
-+ *  100GB      31         3GB
-+ *    1TB     101        10GB
-+ *   10TB     320        32GB
+@@ -2459,7 +2459,7 @@ static bool shrink_zone(struct zone *zon
+  * Returns true if compaction should go ahead for a high-order request, or
+  * the high-order allocation would succeed without compaction.
   */
--static bool inactive_file_is_low(struct lruvec *lruvec)
-+static bool inactive_list_is_low(struct lruvec *lruvec, bool file)
+-static inline bool compaction_ready(struct zone *zone, int order)
++static inline bool compaction_ready(struct zone *zone, int order, int classzone_idx)
  {
-+	unsigned long inactive_ratio;
- 	unsigned long inactive;
- 	unsigned long active;
-+	unsigned long gb;
+ 	unsigned long balance_gap, watermark;
+ 	bool watermark_ok;
+@@ -2473,7 +2473,7 @@ static inline bool compaction_ready(stru
+ 	balance_gap = min(low_wmark_pages(zone), DIV_ROUND_UP(
+ 			zone->managed_pages, KSWAPD_ZONE_BALANCE_GAP_RATIO));
+ 	watermark = high_wmark_pages(zone) + balance_gap + (2UL << order);
+-	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, 0);
++	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, classzone_idx);
  
--	inactive = lruvec_lru_size(lruvec, LRU_INACTIVE_FILE);
--	active = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE);
-+	/*
-+	 * If we don't have swap space, anonymous page deactivation
-+	 * is pointless.
-+	 */
-+	if (!file && !total_swap_pages)
-+		return false;
- 
--	return active > inactive;
--}
-+	inactive = lruvec_lru_size(lruvec, file * LRU_FILE);
-+	active = lruvec_lru_size(lruvec, file * LRU_FILE + LRU_ACTIVE);
- 
--static bool inactive_list_is_low(struct lruvec *lruvec, enum lru_list lru)
--{
--	if (is_file_lru(lru))
--		return inactive_file_is_low(lruvec);
-+	gb = (inactive + active) >> (30 - PAGE_SHIFT);
-+	if (gb)
-+		inactive_ratio = int_sqrt(10 * gb);
- 	else
--		return inactive_anon_is_low(lruvec);
-+		inactive_ratio = 1;
-+
-+	return inactive * inactive_ratio < active;
- }
- 
- static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
- 				 struct lruvec *lruvec, struct scan_control *sc)
- {
- 	if (is_active_lru(lru)) {
--		if (inactive_list_is_low(lruvec, lru))
-+		if (inactive_list_is_low(lruvec, is_file_lru(lru)))
- 			shrink_active_list(nr_to_scan, lruvec, sc, lru);
- 		return 0;
- 	}
-@@ -2059,7 +2039,7 @@ static void get_scan_count(struct lruvec
- 	 * lruvec even if it has plenty of old anonymous pages unless the
- 	 * system is under heavy pressure.
+ 	/*
+ 	 * If compaction is deferred, reclaim up to a point where
+@@ -2486,7 +2486,7 @@ static inline bool compaction_ready(stru
+ 	 * If compaction is not ready to start and allocation is not likely
+ 	 * to succeed without it, then keep reclaiming.
  	 */
--	if (!inactive_file_is_low(lruvec) &&
-+	if (!inactive_list_is_low(lruvec, true) &&
- 	    lruvec_lru_size(lruvec, LRU_INACTIVE_FILE) >> sc->priority) {
- 		scan_balance = SCAN_FILE;
- 		goto out;
-@@ -2301,7 +2281,7 @@ static void shrink_zone_memcg(struct zon
- 	 * Even if we did not try to evict anon pages at all, we want to
- 	 * rebalance the anon lru active/inactive ratio.
- 	 */
--	if (inactive_anon_is_low(lruvec))
-+	if (inactive_list_is_low(lruvec, false))
- 		shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
- 				   sc, LRU_ACTIVE_ANON);
+-	if (compaction_suitable(zone, order, 0, 0) == COMPACT_SKIPPED)
++	if (compaction_suitable(zone, order, 0, classzone_idx) == COMPACT_SKIPPED)
+ 		return false;
  
-@@ -2962,7 +2942,7 @@ static void age_active_anon(struct zone
- 	do {
- 		struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
- 
--		if (inactive_anon_is_low(lruvec))
-+		if (inactive_list_is_low(lruvec, false))
- 			shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
- 					   sc, LRU_ACTIVE_ANON);
- 
+ 	return watermark_ok;
+@@ -2566,7 +2566,7 @@ static bool shrink_zones(struct zonelist
+ 			if (IS_ENABLED(CONFIG_COMPACTION) &&
+ 			    sc->order > PAGE_ALLOC_COSTLY_ORDER &&
+ 			    zonelist_zone_idx(z) <= requested_highidx &&
+-			    compaction_ready(zone, sc->order)) {
++			    compaction_ready(zone, sc->order, requested_highidx)) {
+ 				sc->compaction_ready = true;
+ 				continue;
+ 			}
 _
