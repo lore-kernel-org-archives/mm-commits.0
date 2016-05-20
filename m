@@ -1,24 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: [patch 017/117] ocfs2: clean up an unused variable 'wants_rotate' in ocfs2_truncate_rec
-Date: Thu, 19 May 2016 17:09:47 -0700
-Message-ID: <573e55cb.8oaEZrqkFlOjxJfT%akpm@linux-foundation.org>
+Subject: [patch 018/117] ocfs2: clean up unused parameter 'count' in
+ o2hb_read_block_input()
+Date: Thu, 19 May 2016 17:09:50 -0700
+Message-ID: <573e55ce.zRDu0sNqSKhCHac3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45908 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45913 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753824AbcETAJs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:48 -0400
+	with ESMTP id S1754172AbcETAJv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, piaojun@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de
 
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2: clean up an unused variable 'wants_rotate' in ocfs2_truncate_rec
+From: Jun Piao <piaojun@huawei.com>
+Subject: ocfs2: clean up unused parameter 'count' in o2hb_read_block_input()
 
-Clean up an unused variable 'wants_rotate' in ocfs2_truncate_rec.
+Clean up unused parameter 'count' in o2hb_read_block_input().
 
 Signed-off-by: Jun Piao <piaojun@huawei.com>
 Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
@@ -28,27 +29,29 @@ Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec
-+++ a/fs/ocfs2/alloc.c
-@@ -5351,7 +5351,7 @@ static int ocfs2_truncate_rec(handle_t *
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-clean-up-unused-parameter-count-in-o2hb_read_block_input fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-clean-up-unused-parameter-count-in-o2hb_read_block_input
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -1456,7 +1456,6 @@ static void o2hb_region_release(struct c
+ 
+ static int o2hb_read_block_input(struct o2hb_region *reg,
+ 				 const char *page,
+-				 size_t count,
+ 				 unsigned long *ret_bytes,
+ 				 unsigned int *ret_bits)
  {
- 	int ret;
- 	u32 left_cpos, rec_range, trunc_range;
--	int wants_rotate = 0, is_rightmost_tree_rec = 0;
-+	int is_rightmost_tree_rec = 0;
- 	struct super_block *sb = ocfs2_metadata_cache_get_super(et->et_ci);
- 	struct ocfs2_path *left_path = NULL;
- 	struct ocfs2_extent_list *el = path_leaf_el(path);
-@@ -5457,7 +5457,6 @@ static int ocfs2_truncate_rec(handle_t *
+@@ -1499,8 +1498,8 @@ static ssize_t o2hb_region_block_bytes_s
+ 	if (reg->hr_bdev)
+ 		return -EINVAL;
  
- 		memset(rec, 0, sizeof(*rec));
- 		ocfs2_cleanup_merge(el, index);
--		wants_rotate = 1;
+-	status = o2hb_read_block_input(reg, page, count,
+-				       &block_bytes, &block_bits);
++	status = o2hb_read_block_input(reg, page, &block_bytes,
++				       &block_bits);
+ 	if (status)
+ 		return status;
  
- 		next_free = le16_to_cpu(el->l_next_free_rec);
- 		if (is_rightmost_tree_rec && next_free > 1) {
 _
