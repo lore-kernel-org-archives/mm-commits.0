@@ -1,149 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [patch 025/162] mm/vmalloc: keep a separate lazy-free list
-Date: Fri, 20 May 2016 16:57:38 -0700
-Message-ID: <573fa472.qXGvpupSBWPyy+rv%akpm@linux-foundation.org>
+Subject: [patch 028/162] tmpfs/ramfs: fix VM_MAYSHARE mappings for NOMMU
+Date: Fri, 20 May 2016 16:57:47 -0700
+Message-ID: <573fa47b.aFRP/dXGO+0ciVwX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52256 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52277 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751230AbcETX5k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:57:40 -0400
+	with ESMTP id S1751475AbcETX5t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:57:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, chris@chris-wilson.co.uk, daniel.vetter@ffwll.ch, iamjoonsoo.kim@lge.com, joonas.lahtinen@linux.intel.com, mgorman@techsingularity.net, r.peniaev@gmail.com, rientjes@google.com, shawn.lin@rock-chips.com, toshi.kani@hp.com, tvrtko.ursulin@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dalias@libc.org, geert@linux-m68k.org, gerg@uclinux.org, mhocko@suse.com, ysato@users.sourceforge.jp
 
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: mm/vmalloc: keep a separate lazy-free list
+From: Rich Felker <dalias@libc.org>
+Subject: tmpfs/ramfs: fix VM_MAYSHARE mappings for NOMMU
 
-When mixing lots of vmallocs and set_memory_*() (which calls
-vm_unmap_aliases()) I encountered situations where the performance
-degraded severely due to the walking of the entire vmap_area list each
-invocation.  One simple improvement is to add the lazily freed vmap_area
-to a separate lockless free list, such that we then avoid having to walk
-the full list on each purge.
+The nommu do_mmap expects f_op->get_unmapped_area to either succeed or
+return -ENOSYS for VM_MAYSHARE (e.g.  private read-only) mappings. 
+Returning addr in the non-MAP_SHARED case was completely wrong, and only
+happened to work because addr was 0.  However, it prevented VM_MAYSHARE
+mappings from sharing backing with the fs cache, and forced such mappings
+(including shareable program text) to be copied whenever the number of
+mappings transitioned from 0 to 1, impacting performance and memory usage.
+Subsequent mappings beyond the first still correctly shared memory with
+the first.
 
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Reviewed-by: Roman Pen <r.peniaev@gmail.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Roman Pen <r.peniaev@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Shawn Lin <shawn.lin@rock-chips.com>
+Instead, treat VM_MAYSHARE identically to VM_SHARED at the file ops level;
+do_mmap already handles the semantic differences between them.
+
+Signed-off-by: Rich Felker <dalias@libc.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    3 +-
- mm/vmalloc.c            |   39 ++++++++++++++++++--------------------
- 2 files changed, 21 insertions(+), 21 deletions(-)
+ fs/ramfs/file-nommu.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/vmalloc.h~mm-vmalloc-keep-a-separate-lazy-free-list include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-vmalloc-keep-a-separate-lazy-free-list
-+++ a/include/linux/vmalloc.h
-@@ -4,6 +4,7 @@
- #include <linux/spinlock.h>
- #include <linux/init.h>
- #include <linux/list.h>
-+#include <linux/llist.h>
- #include <asm/page.h>		/* pgprot_t */
- #include <linux/rbtree.h>
+diff -puN fs/ramfs/file-nommu.c~tmpfs-fix-vm_mayshare-mappings-for-nommu fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~tmpfs-fix-vm_mayshare-mappings-for-nommu
++++ a/fs/ramfs/file-nommu.c
+@@ -211,14 +211,11 @@ static unsigned long ramfs_nommu_get_unm
+ 	struct page **pages = NULL, **ptr, *page;
+ 	loff_t isize;
  
-@@ -44,7 +45,7 @@ struct vmap_area {
- 	unsigned long flags;
- 	struct rb_node rb_node;         /* address sorted rbtree */
- 	struct list_head list;          /* address sorted list */
--	struct list_head purge_list;    /* "lazy purge" list */
-+	struct llist_node purge_list;    /* "lazy purge" list */
- 	struct vm_struct *vm;
- 	struct rcu_head rcu_head;
- };
-diff -puN mm/vmalloc.c~mm-vmalloc-keep-a-separate-lazy-free-list mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-keep-a-separate-lazy-free-list
-+++ a/mm/vmalloc.c
-@@ -274,13 +274,12 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
+-	if (!(flags & MAP_SHARED))
+-		return addr;
+-
+ 	/* the mapping mustn't extend beyond the EOF */
+ 	lpages = (len + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	isize = i_size_read(inode);
  
- /*** Global kva allocator ***/
+-	ret = -EINVAL;
++	ret = -ENOSYS;
+ 	maxpages = (isize + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	if (pgoff >= maxpages)
+ 		goto out;
+@@ -227,7 +224,6 @@ static unsigned long ramfs_nommu_get_unm
+ 		goto out;
  
--#define VM_LAZY_FREE	0x01
--#define VM_LAZY_FREEING	0x02
- #define VM_VM_AREA	0x04
- 
- static DEFINE_SPINLOCK(vmap_area_lock);
- /* Export for kexec only */
- LIST_HEAD(vmap_area_list);
-+static LLIST_HEAD(vmap_purge_list);
- static struct rb_root vmap_area_root = RB_ROOT;
- 
- /* The vmap cache globals are protected by vmap_area_lock */
-@@ -601,7 +600,7 @@ static void __purge_vmap_area_lazy(unsig
- 					int sync, int force_flush)
- {
- 	static DEFINE_SPINLOCK(purge_lock);
--	LIST_HEAD(valist);
-+	struct llist_node *valist;
- 	struct vmap_area *va;
- 	struct vmap_area *n_va;
- 	int nr = 0;
-@@ -620,20 +619,14 @@ static void __purge_vmap_area_lazy(unsig
- 	if (sync)
- 		purge_fragmented_blocks_allcpus();
- 
--	rcu_read_lock();
--	list_for_each_entry_rcu(va, &vmap_area_list, list) {
--		if (va->flags & VM_LAZY_FREE) {
--			if (va->va_start < *start)
--				*start = va->va_start;
--			if (va->va_end > *end)
--				*end = va->va_end;
--			nr += (va->va_end - va->va_start) >> PAGE_SHIFT;
--			list_add_tail(&va->purge_list, &valist);
--			va->flags |= VM_LAZY_FREEING;
--			va->flags &= ~VM_LAZY_FREE;
--		}
-+	valist = llist_del_all(&vmap_purge_list);
-+	llist_for_each_entry(va, valist, purge_list) {
-+		if (va->va_start < *start)
-+			*start = va->va_start;
-+		if (va->va_end > *end)
-+			*end = va->va_end;
-+		nr += (va->va_end - va->va_start) >> PAGE_SHIFT;
- 	}
--	rcu_read_unlock();
- 
- 	if (nr)
- 		atomic_sub(nr, &vmap_lazy_nr);
-@@ -643,7 +636,7 @@ static void __purge_vmap_area_lazy(unsig
- 
- 	if (nr) {
- 		spin_lock(&vmap_area_lock);
--		list_for_each_entry_safe(va, n_va, &valist, purge_list)
-+		llist_for_each_entry_safe(va, n_va, valist, purge_list)
- 			__free_vmap_area(va);
- 		spin_unlock(&vmap_area_lock);
- 	}
-@@ -678,9 +671,15 @@ static void purge_vmap_area_lazy(void)
+ 	/* gang-find the pages */
+-	ret = -ENOMEM;
+ 	pages = kcalloc(lpages, sizeof(struct page *), GFP_KERNEL);
+ 	if (!pages)
+ 		goto out_free;
+@@ -263,7 +259,7 @@ out:
   */
- static void free_vmap_area_noflush(struct vmap_area *va)
+ static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma)
  {
--	va->flags |= VM_LAZY_FREE;
--	atomic_add((va->va_end - va->va_start) >> PAGE_SHIFT, &vmap_lazy_nr);
--	if (unlikely(atomic_read(&vmap_lazy_nr) > lazy_max_pages()))
-+	int nr_lazy;
-+
-+	nr_lazy = atomic_add_return((va->va_end - va->va_start) >> PAGE_SHIFT,
-+				    &vmap_lazy_nr);
-+
-+	/* After this point, we may free va at any time */
-+	llist_add(&va->purge_list, &vmap_purge_list);
-+
-+	if (unlikely(nr_lazy > lazy_max_pages()))
- 		try_purge_vmap_area_lazy();
- }
+-	if (!(vma->vm_flags & VM_SHARED))
++	if (!(vma->vm_flags & (VM_SHARED | VM_MAYSHARE)))
+ 		return -ENOSYS;
  
+ 	file_accessed(file);
 _
