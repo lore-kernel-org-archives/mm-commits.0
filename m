@@ -1,55 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [patch 117/117] mm, page_alloc: restore the original nodemask if
- the fast path allocation failed
-Date: Thu, 19 May 2016 17:14:44 -0700
-Message-ID: <573e56f4.6PZUN6Pr+ETCinvI%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 19 May 2016 17:20:08 -0700
+Message-ID: <573e5838.MCaB/UVNZl7r2gIJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46658 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46869 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932311AbcETAOp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:45 -0400
+	with ESMTP id S1754590AbcETAUJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:20:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: restore the original nodemask if the fast path allocation failed
 
-The page allocator fast path uses either the requested nodemask or
-cpuset_current_mems_allowed if cpusets are enabled.  If the allocation
-context allows watermarks to be ignored then it can also ignore memory
-policies.  However, on entering the allocator slowpath the nodemask may
-still be cpuset_current_mems_allowed and the policies are enforced.  This
-patch resets the nodemask appropriately before entering the slowpath.
+The patch titled
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-Link: http://lkml.kernel.org/r/20160504143628.GU2858@techsingularity.net
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ samples/Makefile |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-restore-the-original-nodemask-if-the-fast-path-allocation-failed mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-restore-the-original-nodemask-if-the-fast-path-allocation-failed
-+++ a/mm/page_alloc.c
-@@ -3636,6 +3636,12 @@ retry_cpuset:
- 	alloc_mask = memalloc_noio_flags(gfp_mask);
- 	ac.spread_dirty_pages = false;
+diff -puN samples/Makefile~linux-next-git-rejects samples/Makefile
+--- a/samples/Makefile~linux-next-git-rejects
++++ a/samples/Makefile
+@@ -2,8 +2,4 @@
  
-+	/*
-+	 * Restore the original nodemask if it was potentially replaced with
-+	 * &cpuset_current_mems_allowed to optimize the fast-path attempt.
-+	 */
-+	if (cpusets_enabled())
-+		ac.nodemask = nodemask;
- 	page = __alloc_pages_slowpath(alloc_mask, order, &ac);
- 
- no_zone:
+ obj-$(CONFIG_SAMPLES)	+= kobject/ kprobes/ trace_events/ livepatch/ \
+ 			   hw_breakpoint/ kfifo/ kdb/ hidraw/ rpmsg/ seccomp/ \
+-<<<<<<< HEAD
+-			   configfs/ v4l/
+-=======
+ 			   configfs/ connector/ v4l/
+->>>>>>> linux-next/akpm-base
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+include-linux-nodemaskh-create-next_node_in-helper.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-uninline-page_mapped.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
+mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
+mm-oom-protect-costly-allocations-some-more-for-config_compaction-checkpatch-fixes.patch
+vmstat-get-rid-of-the-ugly-cpu_stat_off-variable-v2-fix.patch
+mm-compact-fix-zoneindex-in-compact-fix.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable-fix.patch
+exit_thread-remove-empty-bodies-fix.patch
+exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
+lib-gcd-use-binary-gcd-algorithm-instead-of-euclidean-fix.patch
+allocate-idle-task-for-a-cpu-always-on-its-local-node-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+a.patch
+linux-next-git-rejects.patch
+
