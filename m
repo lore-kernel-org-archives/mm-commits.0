@@ -1,330 +1,230 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice.patch
- removed from -mm tree
-Date: Fri, 20 May 2016 14:06:47 -0700
-Message-ID: <573f7c67.XzGIgTtLEHnKZzA3%akpm@linux-foundation.org>
+ cpuset-use-static-key-better-and-convert-to-new-api.patch removed from -mm
+ tree
+Date: Fri, 20 May 2016 14:07:01 -0700
+Message-ID: <573f7c75.deUsDu35iIihB6oG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47363 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47388 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751242AbcETVGs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:06:48 -0400
+	with ESMTP id S1751478AbcETVHC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:07:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, brouer@redhat.com, lizefan@huawei.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: avoid looking up the first zone in a zonelist twice
+     Subject: cpuset: use static key better and convert to new API
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice.patch
+     cpuset-use-static-key-better-and-convert-to-new-api.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: avoid looking up the first zone in a zonelist twice
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: cpuset: use static key better and convert to new API
 
-The allocator fast path looks up the first usable zone in a zonelist and
-then get_page_from_freelist does the same job in the zonelist iterator. 
-This patch preserves the necessary information.
+An important function for cpusets is cpuset_node_allowed(), which
+optimizes on the fact if there's a single root CPU set, it must be
+trivially allowed.  But the check "nr_cpusets() <= 1" doesn't use the
+cpusets_enabled_key static key the right way where static keys eliminate
+branching overhead with jump labels.
+
+This patch converts it so that static key is used properly. It's also switched
+to the new static key API and the checking functions are converted to return
+bool instead of int. We also provide a new variant __cpuset_zone_allowed()
+which expects that the static key check was already done and they key was
+enabled. This is needed for get_page_from_freelist() where we want to also
+avoid the relatively slower check when ALLOC_CPUSET is not set in alloc_flags.
+
+The impact on the page allocator microbenchmark is less than expected but
+the cleanup in itself is worthwhile.
 
                                            4.6.0-rc2                  4.6.0-rc2
-                                      fastmark-v1r20             initonce-v1r20
-Min      alloc-odr0-1               364.00 (  0.00%)           359.00 (  1.37%)
-Min      alloc-odr0-2               262.00 (  0.00%)           260.00 (  0.76%)
-Min      alloc-odr0-4               214.00 (  0.00%)           214.00 (  0.00%)
-Min      alloc-odr0-8               186.00 (  0.00%)           186.00 (  0.00%)
-Min      alloc-odr0-16              173.00 (  0.00%)           173.00 (  0.00%)
-Min      alloc-odr0-32              165.00 (  0.00%)           165.00 (  0.00%)
-Min      alloc-odr0-64              161.00 (  0.00%)           162.00 ( -0.62%)
-Min      alloc-odr0-128             159.00 (  0.00%)           161.00 ( -1.26%)
-Min      alloc-odr0-256             168.00 (  0.00%)           170.00 ( -1.19%)
-Min      alloc-odr0-512             180.00 (  0.00%)           181.00 ( -0.56%)
-Min      alloc-odr0-1024            190.00 (  0.00%)           190.00 (  0.00%)
-Min      alloc-odr0-2048            196.00 (  0.00%)           196.00 (  0.00%)
-Min      alloc-odr0-4096            202.00 (  0.00%)           202.00 (  0.00%)
-Min      alloc-odr0-8192            206.00 (  0.00%)           205.00 (  0.49%)
-Min      alloc-odr0-16384           206.00 (  0.00%)           205.00 (  0.49%)
+                                     multcheck-v1r20               cpuset-v1r20
+Min      alloc-odr0-1               348.00 (  0.00%)           348.00 (  0.00%)
+Min      alloc-odr0-2               254.00 (  0.00%)           254.00 (  0.00%)
+Min      alloc-odr0-4               213.00 (  0.00%)           213.00 (  0.00%)
+Min      alloc-odr0-8               186.00 (  0.00%)           183.00 (  1.61%)
+Min      alloc-odr0-16              173.00 (  0.00%)           171.00 (  1.16%)
+Min      alloc-odr0-32              166.00 (  0.00%)           163.00 (  1.81%)
+Min      alloc-odr0-64              162.00 (  0.00%)           159.00 (  1.85%)
+Min      alloc-odr0-128             160.00 (  0.00%)           157.00 (  1.88%)
+Min      alloc-odr0-256             169.00 (  0.00%)           166.00 (  1.78%)
+Min      alloc-odr0-512             180.00 (  0.00%)           180.00 (  0.00%)
+Min      alloc-odr0-1024            188.00 (  0.00%)           187.00 (  0.53%)
+Min      alloc-odr0-2048            194.00 (  0.00%)           193.00 (  0.52%)
+Min      alloc-odr0-4096            199.00 (  0.00%)           198.00 (  0.50%)
+Min      alloc-odr0-8192            202.00 (  0.00%)           201.00 (  0.50%)
+Min      alloc-odr0-16384           203.00 (  0.00%)           202.00 (  0.49%)
 
-The benefit is negligible and the results are within the noise but each
-cycle counts.
-
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Zefan Li <lizefan@huawei.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c            |   10 +++++-----
- include/linux/mmzone.h |   18 +++++++++++-------
- mm/internal.h          |    2 +-
- mm/mempolicy.c         |   19 ++++++++++---------
- mm/page_alloc.c        |   34 ++++++++++++++++------------------
- 5 files changed, 43 insertions(+), 40 deletions(-)
+ include/linux/cpuset.h |   42 ++++++++++++++++++++++++++-------------
+ kernel/cpuset.c        |   14 ++++++-------
+ mm/page_alloc.c        |    2 -
+ 3 files changed, 36 insertions(+), 22 deletions(-)
 
-diff -puN fs/buffer.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice fs/buffer.c
---- a/fs/buffer.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice
-+++ a/fs/buffer.c
-@@ -255,17 +255,17 @@ out:
-  */
- static void free_more_memory(void)
- {
--	struct zone *zone;
-+	struct zoneref *z;
- 	int nid;
+diff -puN include/linux/cpuset.h~cpuset-use-static-key-better-and-convert-to-new-api include/linux/cpuset.h
+--- a/include/linux/cpuset.h~cpuset-use-static-key-better-and-convert-to-new-api
++++ a/include/linux/cpuset.h
+@@ -16,26 +16,26 @@
  
- 	wakeup_flusher_threads(1024, WB_REASON_FREE_MORE_MEM);
- 	yield();
+ #ifdef CONFIG_CPUSETS
  
- 	for_each_online_node(nid) {
--		(void)first_zones_zonelist(node_zonelist(nid, GFP_NOFS),
--						gfp_zone(GFP_NOFS), NULL,
--						&zone);
--		if (zone)
-+
-+		z = first_zones_zonelist(node_zonelist(nid, GFP_NOFS),
-+						gfp_zone(GFP_NOFS), NULL);
-+		if (z->zone)
- 			try_to_free_pages(node_zonelist(nid, GFP_NOFS), 0,
- 						GFP_NOFS, NULL);
- 	}
-diff -puN include/linux/mmzone.h~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice
-+++ a/include/linux/mmzone.h
-@@ -959,13 +959,10 @@ static __always_inline struct zoneref *n
-  */
- static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
- 					enum zone_type highest_zoneidx,
--					nodemask_t *nodes,
--					struct zone **zone)
-+					nodemask_t *nodes)
+-extern struct static_key cpusets_enabled_key;
++extern struct static_key_false cpusets_enabled_key;
+ static inline bool cpusets_enabled(void)
  {
--	struct zoneref *z = next_zones_zonelist(zonelist->_zonerefs,
-+	return next_zones_zonelist(zonelist->_zonerefs,
- 							highest_zoneidx, nodes);
--	*zone = zonelist_zone(z);
--	return z;
+-	return static_key_false(&cpusets_enabled_key);
++	return static_branch_unlikely(&cpusets_enabled_key);
  }
  
- /**
-@@ -980,10 +977,17 @@ static inline struct zoneref *first_zone
-  * within a given nodemask
+ static inline int nr_cpusets(void)
+ {
+ 	/* jump label reference count + the top-level cpuset */
+-	return static_key_count(&cpusets_enabled_key) + 1;
++	return static_key_count(&cpusets_enabled_key.key) + 1;
+ }
+ 
+ static inline void cpuset_inc(void)
+ {
+-	static_key_slow_inc(&cpusets_enabled_key);
++	static_branch_inc(&cpusets_enabled_key);
+ }
+ 
+ static inline void cpuset_dec(void)
+ {
+-	static_key_slow_dec(&cpusets_enabled_key);
++	static_branch_dec(&cpusets_enabled_key);
+ }
+ 
+ extern int cpuset_init(void);
+@@ -48,16 +48,25 @@ extern nodemask_t cpuset_mems_allowed(st
+ void cpuset_init_current_mems_allowed(void);
+ int cpuset_nodemask_valid_mems_allowed(nodemask_t *nodemask);
+ 
+-extern int __cpuset_node_allowed(int node, gfp_t gfp_mask);
++extern bool __cpuset_node_allowed(int node, gfp_t gfp_mask);
+ 
+-static inline int cpuset_node_allowed(int node, gfp_t gfp_mask)
++static inline bool cpuset_node_allowed(int node, gfp_t gfp_mask)
+ {
+-	return nr_cpusets() <= 1 || __cpuset_node_allowed(node, gfp_mask);
++	if (cpusets_enabled())
++		return __cpuset_node_allowed(node, gfp_mask);
++	return true;
+ }
+ 
+-static inline int cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
++static inline bool __cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
+ {
+-	return cpuset_node_allowed(zone_to_nid(z), gfp_mask);
++	return __cpuset_node_allowed(zone_to_nid(z), gfp_mask);
++}
++
++static inline bool cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
++{
++	if (cpusets_enabled())
++		return __cpuset_zone_allowed(z, gfp_mask);
++	return true;
+ }
+ 
+ extern int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
+@@ -172,14 +181,19 @@ static inline int cpuset_nodemask_valid_
+ 	return 1;
+ }
+ 
+-static inline int cpuset_node_allowed(int node, gfp_t gfp_mask)
++static inline bool cpuset_node_allowed(int node, gfp_t gfp_mask)
+ {
+-	return 1;
++	return true;
+ }
+ 
+-static inline int cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
++static inline bool __cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
+ {
+-	return 1;
++	return true;
++}
++
++static inline bool cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
++{
++	return true;
+ }
+ 
+ static inline int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
+diff -puN kernel/cpuset.c~cpuset-use-static-key-better-and-convert-to-new-api kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-use-static-key-better-and-convert-to-new-api
++++ a/kernel/cpuset.c
+@@ -61,7 +61,7 @@
+ #include <linux/cgroup.h>
+ #include <linux/wait.h>
+ 
+-struct static_key cpusets_enabled_key __read_mostly = STATIC_KEY_INIT_FALSE;
++DEFINE_STATIC_KEY_FALSE(cpusets_enabled_key);
+ 
+ /* See "Frequency meter" comments, below. */
+ 
+@@ -2528,27 +2528,27 @@ static struct cpuset *nearest_hardwall_a
+  *	GFP_KERNEL   - any node in enclosing hardwalled cpuset ok
+  *	GFP_USER     - only nodes in current tasks mems allowed ok.
   */
- #define for_each_zone_zonelist_nodemask(zone, z, zlist, highidx, nodemask) \
--	for (z = first_zones_zonelist(zlist, highidx, nodemask, &zone);	\
-+	for (z = first_zones_zonelist(zlist, highidx, nodemask), zone = zonelist_zone(z);	\
- 		zone;							\
- 		z = next_zones_zonelist(++z, highidx, nodemask),	\
--			zone = zonelist_zone(z))			\
-+			zone = zonelist_zone(z))
-+
-+#define for_next_zone_zonelist_nodemask(zone, z, zlist, highidx, nodemask) \
-+	for (zone = z->zone;	\
-+		zone;							\
-+		z = next_zones_zonelist(++z, highidx, nodemask),	\
-+			zone = zonelist_zone(z))
-+
- 
- /**
-  * for_each_zone_zonelist - helper macro to iterate over valid zones in a zonelist at or below a given zone index
-diff -puN mm/internal.h~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice mm/internal.h
---- a/mm/internal.h~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice
-+++ a/mm/internal.h
-@@ -102,7 +102,7 @@ extern pmd_t *mm_find_pmd(struct mm_stru
- struct alloc_context {
- 	struct zonelist *zonelist;
- 	nodemask_t *nodemask;
--	struct zone *preferred_zone;
-+	struct zoneref *preferred_zoneref;
- 	int classzone_idx;
- 	int migratetype;
- 	enum zone_type high_zoneidx;
-diff -puN mm/mempolicy.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice mm/mempolicy.c
---- a/mm/mempolicy.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice
-+++ a/mm/mempolicy.c
-@@ -1739,18 +1739,18 @@ unsigned int mempolicy_slab_node(void)
- 		return interleave_nodes(policy);
- 
- 	case MPOL_BIND: {
-+		struct zoneref *z;
-+
- 		/*
- 		 * Follow bind policy behavior and start allocation at the
- 		 * first node.
- 		 */
- 		struct zonelist *zonelist;
--		struct zone *zone;
- 		enum zone_type highest_zoneidx = gfp_zone(GFP_KERNEL);
- 		zonelist = &NODE_DATA(node)->node_zonelists[0];
--		(void)first_zones_zonelist(zonelist, highest_zoneidx,
--							&policy->v.nodes,
--							&zone);
--		return zone ? zone->node : node;
-+		z = first_zones_zonelist(zonelist, highest_zoneidx,
-+							&policy->v.nodes);
-+		return z->zone ? z->zone->node : node;
- 	}
- 
- 	default:
-@@ -2266,7 +2266,7 @@ static void sp_free(struct sp_node *n)
- int mpol_misplaced(struct page *page, struct vm_area_struct *vma, unsigned long addr)
+-int __cpuset_node_allowed(int node, gfp_t gfp_mask)
++bool __cpuset_node_allowed(int node, gfp_t gfp_mask)
  {
- 	struct mempolicy *pol;
--	struct zone *zone;
-+	struct zoneref *z;
- 	int curnid = page_to_nid(page);
- 	unsigned long pgoff;
- 	int thiscpu = raw_smp_processor_id();
-@@ -2298,6 +2298,7 @@ int mpol_misplaced(struct page *page, st
- 		break;
+ 	struct cpuset *cs;		/* current cpuset ancestors */
+ 	int allowed;			/* is allocation in zone z allowed? */
+ 	unsigned long flags;
  
- 	case MPOL_BIND:
-+
- 		/*
- 		 * allows binding to multiple nodes.
- 		 * use current page if in policy nodemask,
-@@ -2306,11 +2307,11 @@ int mpol_misplaced(struct page *page, st
- 		 */
- 		if (node_isset(curnid, pol->v.nodes))
- 			goto out;
--		(void)first_zones_zonelist(
-+		z = first_zones_zonelist(
- 				node_zonelist(numa_node_id(), GFP_HIGHUSER),
- 				gfp_zone(GFP_HIGHUSER),
--				&pol->v.nodes, &zone);
--		polnid = zone->node;
-+				&pol->v.nodes);
-+		polnid = z->zone->node;
- 		break;
- 
- 	default:
-diff -puN mm/page_alloc.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-avoid-looking-up-the-first-zone-in-a-zonelist-twice
-+++ a/mm/page_alloc.c
-@@ -2704,7 +2704,7 @@ static struct page *
- get_page_from_freelist(gfp_t gfp_mask, unsigned int order, int alloc_flags,
- 						const struct alloc_context *ac)
- {
--	struct zoneref *z;
-+	struct zoneref *z = ac->preferred_zoneref;
- 	struct zone *zone;
- 	bool fair_skipped = false;
- 	bool apply_fair = (alloc_flags & ALLOC_FAIR);
-@@ -2714,7 +2714,7 @@ zonelist_scan:
- 	 * Scan zonelist, looking for a zone with enough free.
- 	 * See also __cpuset_node_allowed() comment in kernel/cpuset.c.
+ 	if (in_interrupt())
+-		return 1;
++		return true;
+ 	if (node_isset(node, current->mems_allowed))
+-		return 1;
++		return true;
+ 	/*
+ 	 * Allow tasks that have access to memory reserves because they have
+ 	 * been OOM killed to get memory anywhere.
  	 */
--	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
-+	for_next_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
- 								ac->nodemask) {
- 		struct page *page;
- 		unsigned long mark;
-@@ -2734,7 +2734,7 @@ zonelist_scan:
- 				fair_skipped = true;
+ 	if (unlikely(test_thread_flag(TIF_MEMDIE)))
+-		return 1;
++		return true;
+ 	if (gfp_mask & __GFP_HARDWALL)	/* If hardwall request, stop here */
+-		return 0;
++		return false;
+ 
+ 	if (current->flags & PF_EXITING) /* Let dying task have memory */
+-		return 1;
++		return true;
+ 
+ 	/* Not hardwall and node outside mems_allowed: scan up cpusets */
+ 	spin_lock_irqsave(&callback_lock, flags);
+diff -puN mm/page_alloc.c~cpuset-use-static-key-better-and-convert-to-new-api mm/page_alloc.c
+--- a/mm/page_alloc.c~cpuset-use-static-key-better-and-convert-to-new-api
++++ a/mm/page_alloc.c
+@@ -2859,7 +2859,7 @@ zonelist_scan:
+ 
+ 		if (cpusets_enabled() &&
+ 			(alloc_flags & ALLOC_CPUSET) &&
+-			!cpuset_zone_allowed(zone, gfp_mask))
++			!__cpuset_zone_allowed(zone, gfp_mask))
  				continue;
- 			}
--			if (!zone_local(ac->preferred_zone, zone)) {
-+			if (!zone_local(ac->preferred_zoneref->zone, zone)) {
- 				if (fair_skipped)
- 					goto reset_fair;
- 				apply_fair = false;
-@@ -2780,7 +2780,7 @@ zonelist_scan:
- 				goto try_this_zone;
- 
- 			if (zone_reclaim_mode == 0 ||
--			    !zone_allows_reclaim(ac->preferred_zone, zone))
-+			    !zone_allows_reclaim(ac->preferred_zoneref->zone, zone))
- 				continue;
- 
- 			ret = zone_reclaim(zone, gfp_mask, order);
-@@ -2802,7 +2802,7 @@ zonelist_scan:
- 		}
- 
- try_this_zone:
--		page = buffered_rmqueue(ac->preferred_zone, zone, order,
-+		page = buffered_rmqueue(ac->preferred_zoneref->zone, zone, order,
- 				gfp_mask, alloc_flags, ac->migratetype);
- 		if (page) {
- 			if (prep_new_page(page, order, gfp_mask, alloc_flags))
-@@ -2831,7 +2831,7 @@ try_this_zone:
- reset_fair:
- 		apply_fair = false;
- 		fair_skipped = false;
--		reset_alloc_batches(ac->preferred_zone);
-+		reset_alloc_batches(ac->preferred_zoneref->zone);
- 		goto zonelist_scan;
- 	}
- 
-@@ -3114,7 +3114,7 @@ static void wake_all_kswapds(unsigned in
- 
- 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist,
- 						ac->high_zoneidx, ac->nodemask)
--		wakeup_kswapd(zone, order, zone_idx(ac->preferred_zone));
-+		wakeup_kswapd(zone, order, zonelist_zone_idx(ac->preferred_zoneref));
- }
- 
- static inline unsigned int
-@@ -3332,7 +3332,7 @@ retry:
- 	if ((did_some_progress && order <= PAGE_ALLOC_COSTLY_ORDER) ||
- 	    ((gfp_mask & __GFP_REPEAT) && pages_reclaimed < (1 << order))) {
- 		/* Wait for some write requests to complete then retry */
--		wait_iff_congested(ac->preferred_zone, BLK_RW_ASYNC, HZ/50);
-+		wait_iff_congested(ac->preferred_zoneref->zone, BLK_RW_ASYNC, HZ/50);
- 		goto retry;
- 	}
- 
-@@ -3370,7 +3370,6 @@ struct page *
- __alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
- 			struct zonelist *zonelist, nodemask_t *nodemask)
- {
--	struct zoneref *preferred_zoneref;
- 	struct page *page;
- 	unsigned int cpuset_mems_cookie;
- 	unsigned int alloc_flags = ALLOC_WMARK_LOW|ALLOC_FAIR;
-@@ -3416,14 +3415,14 @@ retry_cpuset:
- 	ac.spread_dirty_pages = (gfp_mask & __GFP_WRITE);
- 
- 	/* The preferred zone is used for statistics later */
--	preferred_zoneref = first_zones_zonelist(ac.zonelist, ac.high_zoneidx,
--				ac.nodemask, &ac.preferred_zone);
--	if (!ac.preferred_zone) {
-+	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
-+					ac.high_zoneidx, ac.nodemask);
-+	if (!ac.preferred_zoneref) {
- 		page = NULL;
- 		goto no_zone;
- 	}
- 
--	ac.classzone_idx = zonelist_zone_idx(preferred_zoneref);
-+	ac.classzone_idx = zonelist_zone_idx(ac.preferred_zoneref);
- 
- 	/* First allocation attempt */
- 	page = get_page_from_freelist(alloc_mask, order, alloc_flags, &ac);
-@@ -4462,13 +4461,12 @@ static void build_zonelists(pg_data_t *p
-  */
- int local_memory_node(int node)
- {
--	struct zone *zone;
-+	struct zoneref *z;
- 
--	(void)first_zones_zonelist(node_zonelist(node, GFP_KERNEL),
-+	z = first_zones_zonelist(node_zonelist(node, GFP_KERNEL),
- 				   gfp_zone(GFP_KERNEL),
--				   NULL,
--				   &zone);
--	return zone->node;
-+				   NULL);
-+	return z->zone->node;
- }
- #endif
- 
+ 		/*
+ 		 * Distribute pages in proportion to the individual
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
