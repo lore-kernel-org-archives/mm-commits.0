@@ -1,79 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [patch 007/117] scripts/bloat-o-meter: print percent change
-Date: Thu, 19 May 2016 17:09:17 -0700
-Message-ID: <573e55ad.rIAs2UkOfl78ED57%akpm@linux-foundation.org>
+Subject: [patch 009/117] debugobjects: correct the usage of fixup call
+ results
+Date: Thu, 19 May 2016 17:09:23 -0700
+Message-ID: <573e55b3.42MWYnE6bz8oRTgV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45831 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45850 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754406AbcETAJS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:18 -0400
+	with ESMTP id S1754443AbcETAJY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, Vineet.Gupta1@synopsys.com, josh@joshtriplett.org, mmarek@suse.cz, vgupta@synopsys.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, changbin.du@intel.com, borntraeger@de.ibm.com, corbet@lwn.net, josh@kernel.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org
 
-From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Subject: scripts/bloat-o-meter: print percent change
+From: "Du, Changbin" <changbin.du@intel.com>
+Subject: debugobjects: correct the usage of fixup call results
 
-This adds an additional line of output (to reduce the chances of breaking
-any existing output parsers) which prints the total size before and after
-and the relative difference.
+If debug_object_fixup() return non-zero when problem has been fixed.  But
+the code got it backwards, it taks 0 as fixup successfully.  So fix it.
 
-add/remove: 39/0 grow/shrink: 12408/55 up/down: 362227/-1430 (360797)
-function                                     old     new   delta
-ext4_fill_super                            10556   12590   +2034
-_fpadd_parts                                   -    1186   +1186
-ntfs_fill_super                             5340    6164    +824
-...
-...
-__divdf3                                     752     386    -366
-unlzma                                      3682    3274    -408
-Total: Before=5023101, After=5383898, chg 7.000000%
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Link: http://lkml.kernel.org/r/1463124110-30314-1-git-send-email-vgupta@synopsys.com
-Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Du, Changbin <changbin.du@intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Josh Triplett <josh@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/debugobjects.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-print-percent-change scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-print-percent-change
-+++ a/scripts/bloat-o-meter
-@@ -32,18 +32,21 @@ old = getsizes(sys.argv[1])
- new = getsizes(sys.argv[2])
- grow, shrink, add, remove, up, down = 0, 0, 0, 0, 0, 0
- delta, common = [], {}
-+otot, ntot = 0, 0
+diff -puN lib/debugobjects.c~debugobjects-correct-the-usage-of-fixup-call-results lib/debugobjects.c
+--- a/lib/debugobjects.c~debugobjects-correct-the-usage-of-fixup-call-results
++++ a/lib/debugobjects.c
+@@ -415,7 +415,7 @@ int debug_object_activate(void *addr, st
+ 			state = obj->state;
+ 			raw_spin_unlock_irqrestore(&db->lock, flags);
+ 			ret = debug_object_fixup(descr->fixup_activate, addr, state);
+-			return ret ? -EINVAL : 0;
++			return ret ? 0 : -EINVAL;
  
- for a in old:
-     if a in new:
-         common[a] = 1
- 
- for name in old:
-+    otot += old[name]
-     if name not in common:
-         remove += 1
-         down += old[name]
-         delta.append((-old[name], name))
- 
- for name in new:
-+    ntot += new[name]
-     if name not in common:
-         add += 1
-         up += new[name]
-@@ -63,3 +66,6 @@ print("add/remove: %s/%s grow/shrink: %s
- print("%-40s %7s %7s %+7s" % ("function", "old", "new", "delta"))
- for d, n in delta:
-     if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
-+
-+print("Total: Before=%d, After=%d, chg %f%%" % \
-+    (otot, ntot, (ntot - otot)*100/otot))
+ 		case ODEBUG_STATE_DESTROYED:
+ 			debug_print_object(obj, "activate");
 _
