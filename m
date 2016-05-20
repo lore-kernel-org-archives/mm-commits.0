@@ -1,68 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slab-racy-access-modify-the-slab-color.patch removed
+Subject: [merged] mm-slab-clean-up-kmem_cache_node-setup.patch removed
  from -mm tree
-Date: Fri, 20 May 2016 14:03:28 -0700
-Message-ID: <573f7ba0.MtPWYhXD+JPRzq95%akpm@linux-foundation.org>
+Date: Fri, 20 May 2016 14:03:24 -0700
+Message-ID: <573f7b9c.6N+w5Eh30zdbXghO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46825 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46812 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961AbcETVD3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:03:29 -0400
+	with ESMTP id S1751065AbcETVDZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:03:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, jonathanh@nvidia.com, nm@ti.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: racy access/modify the slab color
+     Subject: mm/slab: clean-up kmem_cache_node setup
 has been removed from the -mm tree.  Its filename was
-     mm-slab-racy-access-modify-the-slab-color.patch
+     mm-slab-clean-up-kmem_cache_node-setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: racy access/modify the slab color
+Subject: mm/slab: clean-up kmem_cache_node setup
 
-Slab color isn't needed to be changed strictly.  Because locking for
-changing slab color could cause more lock contention so this patch
-implements racy access/modify the slab color.  This is a preparation step
-to implement lockless allocation path when there is no free objects in the
-kmem_cache.
-
-Below is the result of concurrent allocation/free in slab allocation
-benchmark made by Christoph a long time ago.  I make the output simpler. 
-The number shows cycle count during alloc/free respectively so less is
-better.
-
-* Before
-Kmalloc N*alloc N*free(32): Average=365/806
-Kmalloc N*alloc N*free(64): Average=452/690
-Kmalloc N*alloc N*free(128): Average=736/886
-Kmalloc N*alloc N*free(256): Average=1167/985
-Kmalloc N*alloc N*free(512): Average=2088/1125
-Kmalloc N*alloc N*free(1024): Average=4115/1184
-Kmalloc N*alloc N*free(2048): Average=8451/1748
-Kmalloc N*alloc N*free(4096): Average=16024/2048
-
-* After
-Kmalloc N*alloc N*free(32): Average=355/750
-Kmalloc N*alloc N*free(64): Average=452/812
-Kmalloc N*alloc N*free(128): Average=559/1070
-Kmalloc N*alloc N*free(256): Average=1176/980
-Kmalloc N*alloc N*free(512): Average=1939/1189
-Kmalloc N*alloc N*free(1024): Average=3521/1278
-Kmalloc N*alloc N*free(2048): Average=7152/1838
-Kmalloc N*alloc N*free(4096): Average=13438/2013
-
-It shows that contention is reduced for object size >= 1024 and
-performance increases by roughly 15%.
+There are mostly same code for setting up kmem_cache_node either in
+cpuup_prepare() or alloc_kmem_cache_node().  Factor out and clean-up them.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Tested-by: Nishanth Menon <nm@ti.com>
+Tested-by: Jon Hunter <jonathanh@nvidia.com>
 Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Pekka Enberg <penberg@kernel.org>
@@ -70,53 +41,230 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ mm/slab.c |  168 +++++++++++++++++++++-------------------------------
+ 1 file changed, 68 insertions(+), 100 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-racy-access-modify-the-slab-color mm/slab.c
---- a/mm/slab.c~mm-slab-racy-access-modify-the-slab-color
+diff -puN mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup mm/slab.c
+--- a/mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup
 +++ a/mm/slab.c
-@@ -2574,20 +2574,7 @@ static int cache_grow(struct kmem_cache
+@@ -911,6 +911,63 @@ static int init_cache_node_node(int node
+ 	return 0;
+ }
+ 
++static int setup_kmem_cache_node(struct kmem_cache *cachep,
++				int node, gfp_t gfp, bool force_change)
++{
++	int ret = -ENOMEM;
++	struct kmem_cache_node *n;
++	struct array_cache *old_shared = NULL;
++	struct array_cache *new_shared = NULL;
++	struct alien_cache **new_alien = NULL;
++	LIST_HEAD(list);
++
++	if (use_alien_caches) {
++		new_alien = alloc_alien_cache(node, cachep->limit, gfp);
++		if (!new_alien)
++			goto fail;
++	}
++
++	if (cachep->shared) {
++		new_shared = alloc_arraycache(node,
++			cachep->shared * cachep->batchcount, 0xbaadf00d, gfp);
++		if (!new_shared)
++			goto fail;
++	}
++
++	ret = init_cache_node(cachep, node, gfp);
++	if (ret)
++		goto fail;
++
++	n = get_node(cachep, node);
++	spin_lock_irq(&n->list_lock);
++	if (n->shared && force_change) {
++		free_block(cachep, n->shared->entry,
++				n->shared->avail, node, &list);
++		n->shared->avail = 0;
++	}
++
++	if (!n->shared || force_change) {
++		old_shared = n->shared;
++		n->shared = new_shared;
++		new_shared = NULL;
++	}
++
++	if (!n->alien) {
++		n->alien = new_alien;
++		new_alien = NULL;
++	}
++
++	spin_unlock_irq(&n->list_lock);
++	slabs_destroy(cachep, &list);
++
++fail:
++	kfree(old_shared);
++	kfree(new_shared);
++	free_alien_cache(new_alien);
++
++	return ret;
++}
++
+ static void cpuup_canceled(long cpu)
+ {
+ 	struct kmem_cache *cachep;
+@@ -982,7 +1039,6 @@ free_slab:
+ static int cpuup_prepare(long cpu)
+ {
+ 	struct kmem_cache *cachep;
+-	struct kmem_cache_node *n = NULL;
+ 	int node = cpu_to_mem(cpu);
+ 	int err;
+ 
+@@ -1001,44 +1057,9 @@ static int cpuup_prepare(long cpu)
+ 	 * array caches
+ 	 */
+ 	list_for_each_entry(cachep, &slab_caches, list) {
+-		struct array_cache *shared = NULL;
+-		struct alien_cache **alien = NULL;
+-
+-		if (cachep->shared) {
+-			shared = alloc_arraycache(node,
+-				cachep->shared * cachep->batchcount,
+-				0xbaadf00d, GFP_KERNEL);
+-			if (!shared)
+-				goto bad;
+-		}
+-		if (use_alien_caches) {
+-			alien = alloc_alien_cache(node, cachep->limit, GFP_KERNEL);
+-			if (!alien) {
+-				kfree(shared);
+-				goto bad;
+-			}
+-		}
+-		n = get_node(cachep, node);
+-		BUG_ON(!n);
+-
+-		spin_lock_irq(&n->list_lock);
+-		if (!n->shared) {
+-			/*
+-			 * We are serialised from CPU_DEAD or
+-			 * CPU_UP_CANCELLED by the cpucontrol lock
+-			 */
+-			n->shared = shared;
+-			shared = NULL;
+-		}
+-#ifdef CONFIG_NUMA
+-		if (!n->alien) {
+-			n->alien = alien;
+-			alien = NULL;
+-		}
+-#endif
+-		spin_unlock_irq(&n->list_lock);
+-		kfree(shared);
+-		free_alien_cache(alien);
++		err = setup_kmem_cache_node(cachep, node, GFP_KERNEL, false);
++		if (err)
++			goto bad;
  	}
- 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
  
--	/* Take the node list lock to change the colour_next on this node */
- 	check_irq_off();
--	n = get_node(cachep, nodeid);
--	spin_lock(&n->list_lock);
--
--	/* Get colour for the slab, and cal the next value. */
--	offset = n->colour_next;
--	n->colour_next++;
--	if (n->colour_next >= cachep->colour)
--		n->colour_next = 0;
--	spin_unlock(&n->list_lock);
--
--	offset *= cachep->colour_off;
--
- 	if (gfpflags_allow_blocking(local_flags))
- 		local_irq_enable();
+ 	return 0;
+@@ -3678,72 +3699,19 @@ EXPORT_SYMBOL(kfree);
+ /*
+  * This initializes kmem_cache_node or resizes various caches for all nodes.
+  */
+-static int alloc_kmem_cache_node(struct kmem_cache *cachep, gfp_t gfp)
++static int setup_kmem_cache_nodes(struct kmem_cache *cachep, gfp_t gfp)
+ {
++	int ret;
+ 	int node;
+ 	struct kmem_cache_node *n;
+-	struct array_cache *new_shared;
+-	struct alien_cache **new_alien = NULL;
  
-@@ -2608,6 +2595,19 @@ static int cache_grow(struct kmem_cache
- 	if (!page)
- 		goto failed;
+ 	for_each_online_node(node) {
+-
+-		if (use_alien_caches) {
+-			new_alien = alloc_alien_cache(node, cachep->limit, gfp);
+-			if (!new_alien)
+-				goto fail;
+-		}
+-
+-		new_shared = NULL;
+-		if (cachep->shared) {
+-			new_shared = alloc_arraycache(node,
+-				cachep->shared*cachep->batchcount,
+-					0xbaadf00d, gfp);
+-			if (!new_shared) {
+-				free_alien_cache(new_alien);
+-				goto fail;
+-			}
+-		}
+-
+-		n = get_node(cachep, node);
+-		if (n) {
+-			struct array_cache *shared = n->shared;
+-			LIST_HEAD(list);
+-
+-			spin_lock_irq(&n->list_lock);
+-
+-			if (shared)
+-				free_block(cachep, shared->entry,
+-						shared->avail, node, &list);
+-
+-			n->shared = new_shared;
+-			if (!n->alien) {
+-				n->alien = new_alien;
+-				new_alien = NULL;
+-			}
+-			n->free_limit = (1 + nr_cpus_node(node)) *
+-					cachep->batchcount + cachep->num;
+-			spin_unlock_irq(&n->list_lock);
+-			slabs_destroy(cachep, &list);
+-			kfree(shared);
+-			free_alien_cache(new_alien);
+-			continue;
+-		}
+-		n = kmalloc_node(sizeof(struct kmem_cache_node), gfp, node);
+-		if (!n) {
+-			free_alien_cache(new_alien);
+-			kfree(new_shared);
++		ret = setup_kmem_cache_node(cachep, node, gfp, true);
++		if (ret)
+ 			goto fail;
+-		}
  
-+	n = get_node(cachep, nodeid);
+-		kmem_cache_node_init(n);
+-		n->next_reap = jiffies + REAPTIMEOUT_NODE +
+-				((unsigned long)cachep) % REAPTIMEOUT_NODE;
+-		n->shared = new_shared;
+-		n->alien = new_alien;
+-		n->free_limit = (1 + nr_cpus_node(node)) *
+-					cachep->batchcount + cachep->num;
+-		cachep->node[node] = n;
+ 	}
 +
-+	/* Get colour for the slab, and cal the next value. */
-+	n->colour_next++;
-+	if (n->colour_next >= cachep->colour)
-+		n->colour_next = 0;
-+
-+	offset = n->colour_next;
-+	if (offset >= cachep->colour)
-+		offset = 0;
-+
-+	offset *= cachep->colour_off;
-+
- 	/* Get slab management. */
- 	freelist = alloc_slabmgmt(cachep, page, offset,
- 			local_flags & ~GFP_CONSTRAINT_MASK, nodeid);
+ 	return 0;
+ 
+ fail:
+@@ -3785,7 +3753,7 @@ static int __do_tune_cpucache(struct kme
+ 	cachep->shared = shared;
+ 
+ 	if (!prev)
+-		goto alloc_node;
++		goto setup_node;
+ 
+ 	for_each_online_cpu(cpu) {
+ 		LIST_HEAD(list);
+@@ -3802,8 +3770,8 @@ static int __do_tune_cpucache(struct kme
+ 	}
+ 	free_percpu(prev);
+ 
+-alloc_node:
+-	return alloc_kmem_cache_node(cachep, gfp);
++setup_node:
++	return setup_kmem_cache_nodes(cachep, gfp);
+ }
+ 
+ static int do_tune_cpucache(struct kmem_cache *cachep, int limit,
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
