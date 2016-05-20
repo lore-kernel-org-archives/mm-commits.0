@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mmoom-speed-up-select_bad_process-loop-fix.patch added to -mm
- tree
-Date: Fri, 20 May 2016 15:15:34 -0700
-Message-ID: <573f8c86.To7x4mSfZRUhDg0x%akpm@linux-foundation.org>
+Subject: +
+ mm-move-page_ext_init-after-all-struct-pages-are-initialized-v2.patch added to -mm tree
+Date: Fri, 20 May 2016 15:36:46 -0700
+Message-ID: <573f917e.IOqCAFT3IVDITWxb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48360 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48466 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750836AbcETWPf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 18:15:35 -0400
+	with ESMTP id S1750782AbcETWgr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 18:36:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, oleg@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: yang.shi@linaro.org, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmotm: mmoom-speed-up-select_bad_process-loop-fix
+     Subject: mm: call page_ext_init() after all struct pages are initialized
 has been added to the -mm tree.  Its filename is
-     mmoom-speed-up-select_bad_process-loop-fix.patch
+     mm-move-page_ext_init-after-all-struct-pages-are-initialized-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmoom-speed-up-select_bad_process-loop-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-page_ext_init-after-all-struct-pages-are-initialized-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmoom-speed-up-select_bad_process-loop-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-page_ext_init-after-all-struct-pages-are-initialized-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,111 +39,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mmotm: mmoom-speed-up-select_bad_process-loop-fix
+From: Yang Shi <yang.shi@linaro.org>
+Subject: mm: call page_ext_init() after all struct pages are initialized
 
-Do not blow the signal_struct size. pahole -C signal_struct says:
+When DEFERRED_STRUCT_PAGE_INIT is enabled, just a subset of memmap at boot
+are initialized, then the rest are initialized in parallel by starting
+one-off "pgdatinitX" kernel thread for each node X.
 
-struct signal_struct {
-	atomic_t                   sigcnt;               /*     0     4 */
-	atomic_t                   live;                 /*     4     4 */
-	int                        nr_threads;           /*     8     4 */
+If page_ext_init is called before it, some pages will not have valid
+extension, this may lead the below kernel oops when booting up kernel:
 
-	/* XXX 4 bytes hole, try to pack */
+BUG: unable to handle kernel NULL pointer dereference at           (null)
+IP: [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
+PGD 0
+Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
+Modules linked in:
+CPU: 11 PID: 106 Comm: pgdatinit1 Not tainted 4.6.0-rc5-next-20160427 #26
+Hardware name: Intel Corporation S5520HC/S5520HC, BIOS S5500.86B.01.10.0025.030220091519 03/02/2009
+task: ffff88017c080040 ti: ffff88017c084000 task.ti: ffff88017c084000
+RIP: 0010:[<ffffffff8118d982>]  [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
+RSP: 0000:ffff88017c087c48  EFLAGS: 00010046
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000001
+RDX: 0000000000000980 RSI: 0000000000000080 RDI: 0000000000660401
+RBP: ffff88017c087cd0 R08: 0000000000000401 R09: 0000000000000009
+R10: ffff88017c080040 R11: 000000000000000a R12: 0000000000000400
+R13: ffffea0019810000 R14: ffffea0019810040 R15: ffff88066cfe6080
+FS:  0000000000000000(0000) GS:ffff88066cd40000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000000002406000 CR4: 00000000000006e0
+Stack:
+ ffff88066cd5bbd8 ffff88066cfe6640 0000000000000000 0000000000000000
+ 0000001f0000001f ffff88066cd5bbe8 ffffea0019810000 000000008118f53e
+ 0000000000000009 0000000000000401 ffffffff0000000a 0000000000000001
+Call Trace:
+ [<ffffffff8118f602>] free_hot_cold_page+0x192/0x1d0
+ [<ffffffff8118f69c>] __free_pages+0x5c/0x90
+ [<ffffffff8262a676>] __free_pages_boot_core+0x11a/0x14e
+ [<ffffffff8262a6fa>] deferred_free_range+0x50/0x62
+ [<ffffffff8262aa46>] deferred_init_memmap+0x220/0x3c3
+ [<ffffffff8262a826>] ? setup_per_cpu_pageset+0x35/0x35
+ [<ffffffff8108b1f8>] kthread+0xf8/0x110
+ [<ffffffff81c1b732>] ret_from_fork+0x22/0x40
+ [<ffffffff8108b100>] ? kthread_create_on_node+0x200/0x200
+Code: 49 89 d4 48 c1 e0 06 49 01 c5 e9 de fe ff ff 4c 89 f7 44 89 4d b8 4c 89 45 c0 44 89 5d c8 48 89 4d d0 e8 62 c7 07 00 48 8b 4d d0 <48> 8b 00 44 8b 5d c8 4c 8b 45 c0 44 8b 4d b8 a8 02 0f 84 05 ff
+RIP  [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
+ RSP <ffff88017c087c48>
+CR2: 0000000000000000
 
-	struct list_head           thread_head;          /*    16    16 */
+Move page_ext_init() after page_alloc_init_late() to make sure page extension
+is setup for all pages.
 
-So we can stick the new counter after nr_threads and keep the size
-of the structure on 64b.
-
-While we are at it also remove the thread_group_leader check from
-select_bad_process because it is not really needed as we are iterating
-processes rather than threads.
-
-Link: http://lkml.kernel.org/r/20160520075035.GF19172@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Link: http://lkml.kernel.org/r/1463696006-31360-1-git-send-email-yang.shi@linaro.org
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 +-
- mm/oom_kill.c         |    3 ---
- 2 files changed, 1 insertion(+), 4 deletions(-)
+ init/main.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~mmoom-speed-up-select_bad_process-loop-fix include/linux/sched.h
---- a/include/linux/sched.h~mmoom-speed-up-select_bad_process-loop-fix
-+++ a/include/linux/sched.h
-@@ -669,6 +669,7 @@ struct signal_struct {
- 	atomic_t		sigcnt;
- 	atomic_t		live;
- 	int			nr_threads;
-+	atomic_t oom_victims; /* # of TIF_MEDIE threads in this thread group */
- 	struct list_head	thread_head;
+diff -puN init/main.c~mm-move-page_ext_init-after-all-struct-pages-are-initialized-v2 init/main.c
+--- a/init/main.c~mm-move-page_ext_init-after-all-struct-pages-are-initialized-v2
++++ a/init/main.c
+@@ -606,7 +606,6 @@ asmlinkage __visible void __init start_k
+ 		initrd_start = 0;
+ 	}
+ #endif
+-	page_ext_init();
+ 	debug_objects_mem_init();
+ 	kmemleak_init();
+ 	setup_per_cpu_pageset();
+@@ -1004,6 +1003,8 @@ static noinline void __init kernel_init_
+ 	sched_init_smp();
  
- 	wait_queue_head_t	wait_chldexit;	/* for wait4() */
-@@ -771,7 +772,6 @@ struct signal_struct {
- 	 */
- 	unsigned long long sum_sched_runtime;
+ 	page_alloc_init_late();
++	/* Initialize page ext after all struct pages are initializaed */
++	page_ext_init();
  
--	atomic_t oom_victims; /* # of TIF_MEDIE threads in this thread group */
- 	/*
- 	 * We don't bother to synchronize most readers of this at all,
- 	 * because there is no reader checking a limit that actually needs
-diff -puN mm/oom_kill.c~mmoom-speed-up-select_bad_process-loop-fix mm/oom_kill.c
---- a/mm/oom_kill.c~mmoom-speed-up-select_bad_process-loop-fix
-+++ a/mm/oom_kill.c
-@@ -327,9 +327,6 @@ static struct task_struct *select_bad_pr
- 		points = oom_badness(p, NULL, oc->nodemask, totalpages);
- 		if (!points || points < chosen_points)
- 			continue;
--		/* Prefer thread group leaders for display purposes */
--		if (points == chosen_points && thread_group_leader(chosen))
--			continue;
+ 	do_basic_setup();
  
- 		chosen = p;
- 		chosen_points = points;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from yang.shi@linaro.org are
 
-vmscan-consider-classzone_idx-in-compaction_ready.patch
-mm-compaction-change-compact_-constants-into-enum.patch
-mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
-mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
-mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
-mm-compaction-update-compaction_result-ordering.patch
-mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
-mm-compaction-abstract-compaction-feedback-to-helpers.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix.patch
-mm-oom-protect-costly-allocations-some-more.patch
-mm-oom-protect-costly-allocations-some-more-fix.patch
-mm-consider-compaction-feedback-also-for-costly-allocation.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
-mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
-mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
-oom-consider-multi-threaded-tasks-in-task_will_free_mem.patch
-mmoom-speed-up-select_bad_process-loop-fix.patch
-mm-make-mmap_sem-for-write-waits-killable-for-mm-syscalls.patch
-mm-make-vm_mmap-killable.patch
-mm-make-vm_munmap-killable.patch
-mm-aout-handle-vm_brk-failures.patch
-mm-elf-handle-vm_brk-error.patch
-mm-make-vm_brk-killable.patch
-mm-proc-make-clear_refs-killable.patch
-mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
-ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
-vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable.patch
-coredump-make-coredump_wait-wait-for-mmap_sem-for-write-killable.patch
-aio-make-aio_setup_ring-killable.patch
-exec-make-exec-path-waiting-for-mmap_sem-killable.patch
-prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
-uprobes-wait-for-mmap_sem-for-write-killable.patch
-drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
-drm-radeon-make-radeon_mn_get-wait-for-mmap_sem-killable.patch
-drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable.patch
+mm-thp-simplify-the-implementation-of-mk_huge_pmd.patch
+mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet.patch
+mm-move-page_ext_init-after-all-struct-pages-are-initialized-v2.patch
 
