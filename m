@@ -1,155 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [patch 005/117] scripts/decode_stacktrace.sh: handle symbols in
- modules
-Date: Thu, 19 May 2016 17:09:11 -0700
-Message-ID: <573e55a7.i13eqM5D4MKEndbY%akpm@linux-foundation.org>
+Subject: [patch 007/117] scripts/bloat-o-meter: print percent change
+Date: Thu, 19 May 2016 17:09:17 -0700
+Message-ID: <573e55ad.rIAs2UkOfl78ED57%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45822 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45831 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754406AbcETAJM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:12 -0400
+	with ESMTP id S1754406AbcETAJS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, koct9i@gmail.com, sasha.levin@oracle.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, Vineet.Gupta1@synopsys.com, josh@joshtriplett.org, mmarek@suse.cz, vgupta@synopsys.com
 
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: scripts/decode_stacktrace.sh: handle symbols in modules
+From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
+Subject: scripts/bloat-o-meter: print percent change
 
-scripts/decode_stacktrace.sh presently displays module symbols as
+This adds an additional line of output (to reduce the chances of breaking
+any existing output parsers) which prints the total size before and after
+and the relative difference.
 
-	func+0x0ff/0x5153 [module]
+add/remove: 39/0 grow/shrink: 12408/55 up/down: 362227/-1430 (360797)
+function                                     old     new   delta
+ext4_fill_super                            10556   12590   +2034
+_fpadd_parts                                   -    1186   +1186
+ntfs_fill_super                             5340    6164    +824
+...
+...
+__divdf3                                     752     386    -366
+unlzma                                      3682    3274    -408
+Total: Before=5023101, After=5383898, chg 7.000000%
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Add a third argument: the pathname of a directory where the script should
-look for the file module.ko so that the output appears as
-
-	func (foo/bar.c:123) module
-
-Without the argument or if the module file isn't found the script prints
-such symbols as is without decoding.
-
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Link: http://lkml.kernel.org/r/1463124110-30314-1-git-send-email-vgupta@synopsys.com
+Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |   55 +++++++++++++++++++++++----------
- 1 file changed, 39 insertions(+), 16 deletions(-)
+ scripts/bloat-o-meter |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-handle-symbols-in-modules scripts/decode_stacktrace.sh
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktracesh-handle-symbols-in-modules
-+++ a/scripts/decode_stacktrace.sh
-@@ -2,15 +2,17 @@
- # (c) 2014, Sasha Levin <sasha.levin@oracle.com>
- #set -x
+diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-print-percent-change scripts/bloat-o-meter
+--- a/scripts/bloat-o-meter~scripts-bloat-o-meter-print-percent-change
++++ a/scripts/bloat-o-meter
+@@ -32,18 +32,21 @@ old = getsizes(sys.argv[1])
+ new = getsizes(sys.argv[2])
+ grow, shrink, add, remove, up, down = 0, 0, 0, 0, 0, 0
+ delta, common = [], {}
++otot, ntot = 0, 0
  
--if [[ $# != 2 ]]; then
-+if [[ $# < 2 ]]; then
- 	echo "Usage:"
--	echo "	$0 [vmlinux] [base path]"
-+	echo "	$0 [vmlinux] [base path] [modules path]"
- 	exit 1
- fi
+ for a in old:
+     if a in new:
+         common[a] = 1
  
- vmlinux=$1
- basepath=$2
-+modpath=$3
- declare -A cache
-+declare -A modcache
+ for name in old:
++    otot += old[name]
+     if name not in common:
+         remove += 1
+         down += old[name]
+         delta.append((-old[name], name))
  
- parse_symbol() {
- 	# The structure of symbol at this point is:
-@@ -19,6 +21,17 @@ parse_symbol() {
- 	# For example:
- 	#   do_basic_setup+0x9c/0xbf
- 
-+	if [[ $module == "" ]] ; then
-+		local objfile=$vmlinux
-+	elif [[ "${modcache[$module]+isset}" == "isset" ]]; then
-+		local objfile=${modcache[$module]}
-+	else
-+		[[ $modpath == "" ]] && return
-+		local objfile=$(find "$modpath" -name $module.ko -print -quit)
-+		[[ $objfile == "" ]] && return
-+		modcache[$module]=$objfile
-+	fi
+ for name in new:
++    ntot += new[name]
+     if name not in common:
+         add += 1
+         up += new[name]
+@@ -63,3 +66,6 @@ print("add/remove: %s/%s grow/shrink: %s
+ print("%-40s %7s %7s %+7s" % ("function", "old", "new", "delta"))
+ for d, n in delta:
+     if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
 +
- 	# Remove the englobing parenthesis
- 	symbol=${symbol#\(}
- 	symbol=${symbol%\)}
-@@ -29,11 +42,11 @@ parse_symbol() {
- 	# Use 'nm vmlinux' to figure out the base address of said symbol.
- 	# It's actually faster to call it every time than to load it
- 	# all into bash.
--	if [[ "${cache[$name]+isset}" == "isset" ]]; then
--		local base_addr=${cache[$name]}
-+	if [[ "${cache[$module,$name]+isset}" == "isset" ]]; then
-+		local base_addr=${cache[$module,$name]}
- 	else
--		local base_addr=$(nm "$vmlinux" | grep -i ' t ' | awk "/ $name\$/ {print \$1}" | head -n1)
--		cache["$name"]="$base_addr"
-+		local base_addr=$(nm "$objfile" | grep -i ' t ' | awk "/ $name\$/ {print \$1}" | head -n1)
-+		cache[$module,$name]="$base_addr"
- 	fi
- 	# Let's start doing the math to get the exact address into the
- 	# symbol. First, strip out the symbol total length.
-@@ -48,12 +61,12 @@ parse_symbol() {
- 	local address=$(printf "%x\n" "$expr")
- 
- 	# Pass it to addr2line to get filename and line number
--        # Could get more than one result
--	if [[ "${cache[$address]+isset}" == "isset" ]]; then
--		local code=${cache[$address]}
-+	# Could get more than one result
-+	if [[ "${cache[$module,$address]+isset}" == "isset" ]]; then
-+		local code=${cache[$module,$address]}
- 	else
--		local code=$(addr2line -i -e "$vmlinux" "$address")
--		cache[$address]=$code
-+		local code=$(addr2line -i -e "$objfile" "$address")
-+		cache[$module,$address]=$code
- 	fi
- 
- 	# addr2line doesn't return a proper error code if it fails, so
-@@ -105,13 +118,23 @@ handle_line() {
- 		fi
- 	done
- 
--	# The symbol is the last element, process it
--	symbol=${words[$last]}
-+	if [[ ${words[$last]} =~ \[([^]]+)\] ]]; then
-+		module=${words[$last]}
-+		module=${module#\[}
-+		module=${module%\]}
-+		symbol=${words[$last-1]}
-+		unset words[$last-1]
-+	else
-+		# The symbol is the last element, process it
-+		symbol=${words[$last]}
-+		module=
-+	fi
-+
- 	unset words[$last]
- 	parse_symbol # modifies $symbol
- 
- 	# Add up the line number to the symbol
--	echo "${words[@]}" "$symbol"
-+	echo "${words[@]}" "$symbol $module"
- }
- 
- while read line; do
-@@ -121,8 +144,8 @@ while read line; do
- 		handle_line "$line"
- 	# Is it a code line?
- 	elif [[ $line == *Code:* ]]; then
--                decode_code "$line"
--        else
-+		decode_code "$line"
-+	else
- 		# Nothing special in this line, show it as is
- 		echo "$line"
- 	fi
++print("Total: Before=%d, After=%d, chg %f%%" % \
++    (otot, ntot, (ntot - otot)*100/otot))
 _
