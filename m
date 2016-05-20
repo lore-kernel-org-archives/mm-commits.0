@@ -1,67 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-mm-use-hugetlb_bad_size.patch removed from -mm tree
-Date: Fri, 20 May 2016 14:04:22 -0700
-Message-ID: <573f7bd6.7EljSQu8xK7Mdrey%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on.patch removed from
+ -mm tree
+Date: Fri, 20 May 2016 14:04:42 -0700
+Message-ID: <573f7bea.VR4poOZRkbjE/3RK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46987 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47014 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcETVEX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:23 -0400
+	with ESMTP id S1750961AbcETVEn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vaishali.thakkar@oracle.com, baiyaowei@cmss.chinamobile.com, dave.hansen@linux.intel.com, dingel@linux.vnet.ibm.com, hillf.zj@alibaba-inc.com, hpa@zytor.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mingo@elte.hu, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: khlebnikov@yandex-team.ru, vbabka@suse.cz, vvs@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: mm: use hugetlb_bad_size()
+     Subject: mm/rmap: replace BUG_ON(anon_vma->degree) with VM_WARN_ON
 has been removed from the -mm tree.  Its filename was
-     x86-mm-use-hugetlb_bad_size.patch
+     mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vaishali Thakkar <vaishali.thakkar@oracle.com>
-Subject: x86: mm: use hugetlb_bad_size()
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: mm/rmap: replace BUG_ON(anon_vma->degree) with VM_WARN_ON
 
-Update setup_hugepagesz() to call hugetlb_bad_size() when unsupported
-hugepage size is found.
+This check effectively catches anon vma hierarchy inconsistence and some
+vma corruptions.  It was effective for catching corner cases in anon vma
+reusing logic.  For now this code seems stable so check could be hidden
+under CONFIG_DEBUG_VM and replaced with WARN because it's not so fatal.
 
-Signed-off-by: Vaishali Thakkar <vaishali.thakkar@oracle.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Cc: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Suggested-by: Vasily Averin <vvs@virtuozzo.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/rmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/hugetlbpage.c~x86-mm-use-hugetlb_bad_size arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~x86-mm-use-hugetlb_bad_size
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -165,6 +165,7 @@ static __init int setup_hugepagesz(char
- 	} else if (ps == PUD_SIZE && boot_cpu_has(X86_FEATURE_GBPAGES)) {
- 		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
- 	} else {
-+		hugetlb_bad_size();
- 		printk(KERN_ERR "hugepagesz: Unsupported page size %lu M\n",
- 			ps >> 20);
- 		return 0;
+diff -puN mm/rmap.c~mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on
++++ a/mm/rmap.c
+@@ -409,7 +409,7 @@ void unlink_anon_vmas(struct vm_area_str
+ 	list_for_each_entry_safe(avc, next, &vma->anon_vma_chain, same_vma) {
+ 		struct anon_vma *anon_vma = avc->anon_vma;
+ 
+-		BUG_ON(anon_vma->degree);
++		VM_WARN_ON(anon_vma->degree);
+ 		put_anon_vma(anon_vma);
+ 
+ 		list_del(&avc->same_vma);
 _
 
-Patches currently in -mm which might be from vaishali.thakkar@oracle.com are
+Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
 
 
