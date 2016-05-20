@@ -1,45 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [patch 090/117] mm, page_alloc: inline zone_statistics
-Date: Thu, 19 May 2016 17:13:27 -0700
-Message-ID: <573e56a7.ty/NY+6pa/4+QeLg%akpm@linux-foundation.org>
+Subject: [patch 092/117] mm, page_alloc: use __dec_zone_state for order-0
+ page allocation
+Date: Thu, 19 May 2016 17:13:33 -0700
+Message-ID: <573e56ad.ZF1d4x5W8VIvd4BX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46527 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46536 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932921AbcETAN2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:13:28 -0400
+	with ESMTP id S932955AbcETANe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:13:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: inline zone_statistics
+Subject: mm, page_alloc: use __dec_zone_state for order-0 page allocation
 
-zone_statistics has one call-site but it's a public function.  Make it
-static and inline.
+__dec_zone_state is cheaper to use for removing an order-0 page as it has
+fewer conditions to check.
 
 The performance difference on a page allocator microbenchmark is;
 
                                            4.6.0-rc2                  4.6.0-rc2
-                                    statbranch-v1r20           statinline-v1r20
-Min      alloc-odr0-1               419.00 (  0.00%)           412.00 (  1.67%)
-Min      alloc-odr0-2               305.00 (  0.00%)           301.00 (  1.31%)
-Min      alloc-odr0-4               250.00 (  0.00%)           247.00 (  1.20%)
-Min      alloc-odr0-8               219.00 (  0.00%)           215.00 (  1.83%)
-Min      alloc-odr0-16              203.00 (  0.00%)           199.00 (  1.97%)
-Min      alloc-odr0-32              195.00 (  0.00%)           191.00 (  2.05%)
-Min      alloc-odr0-64              191.00 (  0.00%)           187.00 (  2.09%)
-Min      alloc-odr0-128             189.00 (  0.00%)           185.00 (  2.12%)
-Min      alloc-odr0-256             198.00 (  0.00%)           193.00 (  2.53%)
-Min      alloc-odr0-512             210.00 (  0.00%)           207.00 (  1.43%)
-Min      alloc-odr0-1024            216.00 (  0.00%)           213.00 (  1.39%)
-Min      alloc-odr0-2048            221.00 (  0.00%)           220.00 (  0.45%)
-Min      alloc-odr0-4096            227.00 (  0.00%)           226.00 (  0.44%)
-Min      alloc-odr0-8192            232.00 (  0.00%)           229.00 (  1.29%)
-Min      alloc-odr0-16384           232.00 (  0.00%)           229.00 (  1.29%)
+                                       optiter-v1r20              decstat-v1r20
+Min      alloc-odr0-1               382.00 (  0.00%)           381.00 (  0.26%)
+Min      alloc-odr0-2               282.00 (  0.00%)           275.00 (  2.48%)
+Min      alloc-odr0-4               233.00 (  0.00%)           229.00 (  1.72%)
+Min      alloc-odr0-8               203.00 (  0.00%)           199.00 (  1.97%)
+Min      alloc-odr0-16              188.00 (  0.00%)           186.00 (  1.06%)
+Min      alloc-odr0-32              182.00 (  0.00%)           179.00 (  1.65%)
+Min      alloc-odr0-64              177.00 (  0.00%)           174.00 (  1.69%)
+Min      alloc-odr0-128             175.00 (  0.00%)           172.00 (  1.71%)
+Min      alloc-odr0-256             184.00 (  0.00%)           181.00 (  1.63%)
+Min      alloc-odr0-512             197.00 (  0.00%)           193.00 (  2.03%)
+Min      alloc-odr0-1024            203.00 (  0.00%)           201.00 (  0.99%)
+Min      alloc-odr0-2048            209.00 (  0.00%)           206.00 (  1.44%)
+Min      alloc-odr0-4096            214.00 (  0.00%)           212.00 (  0.93%)
+Min      alloc-odr0-8192            218.00 (  0.00%)           215.00 (  1.38%)
+Min      alloc-odr0-16384           219.00 (  0.00%)           216.00 (  1.37%)
 
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -47,99 +48,31 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    2 --
- mm/page_alloc.c        |   31 +++++++++++++++++++++++++++++++
- mm/vmstat.c            |   29 -----------------------------
- 3 files changed, 31 insertions(+), 31 deletions(-)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/vmstat.h~mm-page_alloc-inline-zone_statistics include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-page_alloc-inline-zone_statistics
-+++ a/include/linux/vmstat.h
-@@ -163,12 +163,10 @@ static inline unsigned long zone_page_st
- #ifdef CONFIG_NUMA
- 
- extern unsigned long node_page_state(int node, enum zone_stat_item item);
--extern void zone_statistics(struct zone *, struct zone *, gfp_t gfp);
- 
- #else
- 
- #define node_page_state(node, item) global_page_state(item)
--#define zone_statistics(_zl, _z, gfp) do { } while (0)
- 
- #endif /* CONFIG_NUMA */
- 
-diff -puN mm/page_alloc.c~mm-page_alloc-inline-zone_statistics mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-inline-zone_statistics
+diff -puN mm/page_alloc.c~mm-page_alloc-use-__dec_zone_state-for-order-0-page-allocation mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-use-__dec_zone_state-for-order-0-page-allocation
 +++ a/mm/page_alloc.c
-@@ -2355,6 +2355,37 @@ int split_free_page(struct page *page)
- }
+@@ -2417,6 +2417,7 @@ struct page *buffered_rmqueue(struct zon
+ 		else
+ 			page = list_first_entry(list, struct page, lru);
  
- /*
-+ * Update NUMA hit/miss statistics
-+ *
-+ * Must be called with interrupts disabled.
-+ *
-+ * When __GFP_OTHER_NODE is set assume the node of the preferred
-+ * zone is the local node. This is useful for daemons who allocate
-+ * memory on behalf of other processes.
-+ */
-+static inline void zone_statistics(struct zone *preferred_zone, struct zone *z,
-+								gfp_t flags)
-+{
-+#ifdef CONFIG_NUMA
-+	int local_nid = numa_node_id();
-+	enum zone_stat_item local_stat = NUMA_LOCAL;
-+
-+	if (unlikely(flags & __GFP_OTHER_NODE)) {
-+		local_stat = NUMA_OTHER;
-+		local_nid = preferred_zone->node;
-+	}
-+
-+	if (z->node == local_nid) {
-+		__inc_zone_state(z, NUMA_HIT);
-+		__inc_zone_state(z, local_stat);
-+	} else {
-+		__inc_zone_state(z, NUMA_MISS);
-+		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
-+	}
-+#endif
-+}
-+
-+/*
-  * Allocate a page from the given zone. Use pcplists for order-0 allocations.
-  */
- static inline
-diff -puN mm/vmstat.c~mm-page_alloc-inline-zone_statistics mm/vmstat.c
---- a/mm/vmstat.c~mm-page_alloc-inline-zone_statistics
-+++ a/mm/vmstat.c
-@@ -570,35 +570,6 @@ void drain_zonestat(struct zone *zone, s
++		__dec_zone_state(zone, NR_ALLOC_BATCH);
+ 		list_del(&page->lru);
+ 		pcp->count--;
+ 	} else {
+@@ -2438,11 +2439,11 @@ struct page *buffered_rmqueue(struct zon
+ 		spin_unlock(&zone->lock);
+ 		if (!page)
+ 			goto failed;
++		__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
+ 		__mod_zone_freepage_state(zone, -(1 << order),
+ 					  get_pcppage_migratetype(page));
+ 	}
  
- #ifdef CONFIG_NUMA
- /*
-- * zonelist = the list of zones passed to the allocator
-- * z 	    = the zone from which the allocation occurred.
-- *
-- * Must be called with interrupts disabled.
-- *
-- * When __GFP_OTHER_NODE is set assume the node of the preferred
-- * zone is the local node. This is useful for daemons who allocate
-- * memory on behalf of other processes.
-- */
--void zone_statistics(struct zone *preferred_zone, struct zone *z, gfp_t flags)
--{
--	int local_nid = numa_node_id();
--	enum zone_stat_item local_stat = NUMA_LOCAL;
--
--	if (unlikely(flags & __GFP_OTHER_NODE)) {
--		local_stat = NUMA_OTHER;
--		local_nid = preferred_zone->node;
--	}
--
--	if (z->node == local_nid) {
--		__inc_zone_state(z, NUMA_HIT);
--		__inc_zone_state(z, local_stat);
--	} else {
--		__inc_zone_state(z, NUMA_MISS);
--		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
--	}
--}
+-	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
+ 	if (atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]) <= 0 &&
+ 	    !test_bit(ZONE_FAIR_DEPLETED, &zone->flags))
+ 		set_bit(ZONE_FAIR_DEPLETED, &zone->flags);
+_
