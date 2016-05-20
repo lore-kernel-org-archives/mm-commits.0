@@ -1,81 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] power-add-zone-range-overlapping-check.patch removed
- from -mm tree
-Date: Fri, 20 May 2016 14:05:09 -0700
-Message-ID: <573f7c05.Pt1MAMdcG10HrbTE%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-correct-highmem-memory-statistics.patch
+ removed from -mm tree
+Date: Fri, 20 May 2016 14:05:15 -0700
+Message-ID: <573f7c0b.y30hP8tnsI5aMcan%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47128 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47148 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103AbcETVFK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:10 -0400
+	with ESMTP id S1751032AbcETVFQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mpe@ellerman.id.au, paulus@samba.org, riel@redhat.com, rjw@rjwysocki.net, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: power: add zone range overlapping check
+     Subject: mm/page_alloc: correct highmem memory statistics
 has been removed from the -mm tree.  Its filename was
-     power-add-zone-range-overlapping-check.patch
+     mm-page_alloc-correct-highmem-memory-statistics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: power: add zone range overlapping check
+Subject: mm/page_alloc: correct highmem memory statistics
 
-There is a system thats node's pfns are overlapped as follows:
-
------pfn-------->
-N0 N1 N2 N0 N1 N2
-
-Therefore, we need to care this overlapping when iterating pfn range.
-
-mark_free_pages() iterates requested zone's pfn range and unset all
-range's bitmap first.  And then it marks freepages in a zone to the
-bitmap.  If there is an overlapping zone, above unset could clear previous
-marked bit and reference to this bitmap in the future will cause the
-problem.  To prevent it, this patch adds a zone check in
-mark_free_pages().
+ZONE_MOVABLE could be treated as highmem so we need to consider it for
+accurate statistics.  And, in following patches, ZONE_CMA will be
+introduced and it can be treated as highmem, too.  So, instead of manually
+adding stat of ZONE_MOVABLE, looping all zones and check whether the zone
+is highmem or not and add stat of the zone which can be treated as
+highmem.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Laura Abbott <lauraa@codeaurora.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/page_alloc.c |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_alloc.c~power-add-zone-range-overlapping-check mm/page_alloc.c
---- a/mm/page_alloc.c~power-add-zone-range-overlapping-check
+diff -puN mm/page_alloc.c~mm-page_alloc-correct-highmem-memory-statistics mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-correct-highmem-memory-statistics
 +++ a/mm/page_alloc.c
-@@ -2156,6 +2156,10 @@ void mark_free_pages(struct zone *zone)
- 	for (pfn = zone->zone_start_pfn; pfn < max_zone_pfn; pfn++)
- 		if (pfn_valid(pfn)) {
- 			page = pfn_to_page(pfn);
+@@ -3793,6 +3793,8 @@ void si_meminfo_node(struct sysinfo *val
+ {
+ 	int zone_type;		/* needs to be signed */
+ 	unsigned long managed_pages = 0;
++	unsigned long managed_highpages = 0;
++	unsigned long free_highpages = 0;
+ 	pg_data_t *pgdat = NODE_DATA(nid);
+ 
+ 	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++)
+@@ -3801,12 +3803,19 @@ void si_meminfo_node(struct sysinfo *val
+ 	val->sharedram = node_page_state(nid, NR_SHMEM);
+ 	val->freeram = node_page_state(nid, NR_FREE_PAGES);
+ #ifdef CONFIG_HIGHMEM
+-	val->totalhigh = pgdat->node_zones[ZONE_HIGHMEM].managed_pages;
+-	val->freehigh = zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
+-			NR_FREE_PAGES);
++	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
++		struct zone *zone = &pgdat->node_zones[zone_type];
 +
-+			if (page_zone(page) != zone)
-+				continue;
-+
- 			if (!swsusp_page_is_forbidden(page))
- 				swsusp_unset_page_free(page);
- 		}
++		if (is_highmem(zone)) {
++			managed_highpages += zone->managed_pages;
++			free_highpages += zone_page_state(zone, NR_FREE_PAGES);
++		}
++	}
++	val->totalhigh = managed_highpages;
++	val->freehigh = free_highpages;
+ #else
+-	val->totalhigh = 0;
+-	val->freehigh = 0;
++	val->totalhigh = managed_highpages;
++	val->freehigh = free_highpages;
+ #endif
+ 	val->mem_unit = PAGE_SIZE;
+ }
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
