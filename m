@@ -1,91 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [patch 109/117] mm, page_alloc: pull out side effects from
- free_pages_check
-Date: Thu, 19 May 2016 17:14:21 -0700
-Message-ID: <573e56dd.HdYvfxhjzf18MEto%akpm@linux-foundation.org>
+Subject: [patch 110/117] mm, page_alloc: remove unnecessary variable from
+ free_pcppages_bulk
+Date: Thu, 19 May 2016 17:14:24 -0700
+Message-ID: <573e56e0.fnehZC5s4e5rw3x/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46624 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755185AbcETAOW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:22 -0400
+	with ESMTP id S1755185AbcETAOZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: pull out side effects from free_pages_check
+Subject: mm, page_alloc: remove unnecessary variable from free_pcppages_bulk
 
-Check without side-effects should be easier to maintain.  It also removes
-the duplicated cpupid and flags reset done in !DEBUG_VM variant of both
-free_pcp_prepare() and then bulkfree_pcp_prepare().  Finally, it enables
-the next patch.
+The original count is never reused so it can be removed.
 
-It shouldn't result in new branches, thanks to inlining of the check.
-
-!DEBUG_VM bloat-o-meter:
-
-add/remove: 0/0 grow/shrink: 0/2 up/down: 0/-27 (-27)
-function                                     old     new   delta
-__free_pages_ok                              748     739      -9
-free_pcppages_bulk                          1403    1385     -18
-
-DEBUG_VM:
-
-add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-28 (-28)
-function                                     old     new   delta
-free_pages_prepare                           806     778     -28
-
-This is also slightly faster because cpupid information is not set on tail
-pages so we can avoid resets there.
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-pull-out-side-effects-from-free_pages_check mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-pull-out-side-effects-from-free_pages_check
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-unnecessary-variable-from-free_pcppages_bulk mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-unnecessary-variable-from-free_pcppages_bulk
 +++ a/mm/page_alloc.c
-@@ -833,11 +833,8 @@ static void free_pages_check_bad(struct
- 
- static inline int free_pages_check(struct page *page)
+@@ -857,7 +857,6 @@ static void free_pcppages_bulk(struct zo
  {
--	if (likely(page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE))) {
--		page_cpupid_reset_last(page);
--		page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-+	if (likely(page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE)))
- 		return 0;
--	}
+ 	int migratetype = 0;
+ 	int batch_free = 0;
+-	int to_free = count;
+ 	unsigned long nr_scanned;
+ 	bool isolated_pageblocks;
  
- 	/* Something has gone sideways, find it */
- 	free_pages_check_bad(page);
-@@ -1078,7 +1075,11 @@ static bool free_pages_prepare(struct pa
- 		for (i = 1; i < (1 << order); i++) {
- 			if (compound)
- 				bad += free_tail_pages_check(page, page + i);
--			bad += free_pages_check(page + i);
-+			if (unlikely(free_pages_check(page + i))) {
-+				bad++;
-+				continue;
-+			}
-+			(page + i)->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 		}
+@@ -867,7 +866,7 @@ static void free_pcppages_bulk(struct zo
+ 	if (nr_scanned)
+ 		__mod_zone_page_state(zone, NR_PAGES_SCANNED, -nr_scanned);
+ 
+-	while (to_free) {
++	while (count) {
+ 		struct page *page;
+ 		struct list_head *list;
+ 
+@@ -887,7 +886,7 @@ static void free_pcppages_bulk(struct zo
+ 
+ 		/* This is the only non-empty list. Free them all. */
+ 		if (batch_free == MIGRATE_PCPTYPES)
+-			batch_free = to_free;
++			batch_free = count;
+ 
+ 		do {
+ 			int mt;	/* migratetype of the to-be-freed page */
+@@ -905,7 +904,7 @@ static void free_pcppages_bulk(struct zo
+ 
+ 			__free_one_page(page, page_to_pfn(page), zone, 0, mt);
+ 			trace_mm_page_pcpu_drain(page, 0, mt);
+-		} while (--to_free && --batch_free && !list_empty(list));
++		} while (--count && --batch_free && !list_empty(list));
  	}
- 	if (PageAnonHead(page))
-@@ -1087,6 +1088,8 @@ static bool free_pages_prepare(struct pa
- 	if (bad)
- 		return false;
- 
-+	page_cpupid_reset_last(page);
-+	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 	reset_page_owner(page, order);
- 
- 	if (!PageHighMem(page)) {
+ 	spin_unlock(&zone->lock);
+ }
 _
