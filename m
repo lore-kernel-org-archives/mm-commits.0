@@ -1,68 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [patch 033/117] mm/slub.c: replace kick_all_cpus_sync() with
- synchronize_sched() in kmem_cache_shrink()
-Date: Thu, 19 May 2016 17:10:34 -0700
-Message-ID: <573e55fa.uWHbxyIy6glzVXXJ%akpm@linux-foundation.org>
+Subject: [patch 035/117] mm: slab: remove ZONE_DMA_FLAG
+Date: Thu, 19 May 2016 17:10:41 -0700
+Message-ID: <573e5601.avi//GdTase8O3Zd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46037 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646AbcETAKg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:10:36 -0400
+	with ESMTP id S1754590AbcETAKm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:10:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, penberg@kernel.org, peterz@infradead.org, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yang.shi@linaro.org, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com
 
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm/slub.c: replace kick_all_cpus_sync() with synchronize_sched() in kmem_cache_shrink()
+From: Yang Shi <yang.shi@linaro.org>
+Subject: mm: slab: remove ZONE_DMA_FLAG
 
-When we call __kmem_cache_shrink on memory cgroup removal, we need to
-synchronize kmem_cache->cpu_partial update with put_cpu_partial that might
-be running on other cpus.  Currently, we achieve that by using
-kick_all_cpus_sync, which works as a system wide memory barrier.  Though
-fast it is, this method has a flaw - it issues a lot of IPIs, which might
-hurt high performance or real-time workloads.
+Now we have IS_ENABLED helper to check if a Kconfig option is enabled or
+not, so ZONE_DMA_FLAG sounds no longer useful.
 
-To fix this, let's replace kick_all_cpus_sync with synchronize_sched. 
-Although the latter one may take much longer to finish, it shouldn't be a
-problem in this particular case, because memory cgroups are destroyed
-asynchronously from a workqueue so that no user visible effects should be
-introduced.  OTOH, it will save us from excessive IPIs when someone
-removes a cgroup.
+And, the use of ZONE_DMA_FLAG in slab looks pointless according to the
+comment [1] from Johannes Weiner, so remove them and ORing passed in flags with
+the cache gfp flags has been done in kmem_getpages().
 
-Anyway, even if using synchronize_sched turns out to take too long, we can
-always introduce a kind of __kmem_cache_shrink batching so that this
-method would only be called once per one cgroup destruction (not per each
-per memcg kmem cache as it is now).
+[1] https://lkml.org/lkml/2014/9/25/553
 
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Reported-by: Peter Zijlstra <peterz@infradead.org>
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1462381297-11009-1-git-send-email-yang.shi@linaro.org
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Kconfig |    5 -----
+ mm/slab.c  |   23 +----------------------
+ 2 files changed, 1 insertion(+), 27 deletions(-)
 
-diff -puN mm/slub.c~mm-slub-replace-kick_all_cpus_sync-with-synchronize_sched-in-kmem_cache_shrink mm/slub.c
---- a/mm/slub.c~mm-slub-replace-kick_all_cpus_sync-with-synchronize_sched-in-kmem_cache_shrink
-+++ a/mm/slub.c
-@@ -3697,7 +3697,7 @@ int __kmem_cache_shrink(struct kmem_cach
- 		 * s->cpu_partial is checked locklessly (see put_cpu_partial),
- 		 * so we have to make sure the change is visible.
- 		 */
--		kick_all_cpus_sync();
-+		synchronize_sched();
- 	}
+diff -puN mm/Kconfig~mm-slab-remove-zone_dma_flag mm/Kconfig
+--- a/mm/Kconfig~mm-slab-remove-zone_dma_flag
++++ a/mm/Kconfig
+@@ -268,11 +268,6 @@ config ARCH_ENABLE_HUGEPAGE_MIGRATION
+ config PHYS_ADDR_T_64BIT
+ 	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
  
- 	flush_all(s);
-_
+-config ZONE_DMA_FLAG
+-	int
+-	default "0" if !ZONE_DMA
+-	default "1"
+-
+ config BOUNCE
+ 	bool "Enable bounce buffers"
+ 	default y
+diff -puN mm/slab.c~mm-slab-remove-zone_dma_flag mm/slab.c
+--- a/mm/slab.c~mm-slab-remove-zone_dma_flag
++++ a/mm/slab.c
+@@ -2236,7 +2236,7 @@ done:
+ 	cachep->freelist_size = cachep->num * sizeof(freelist_idx_t);
+ 	cachep->flags = flags;
+ 	cachep->allocflags = __GFP_COMP;
+-	if (CONFIG_ZONE_DMA_FLAG && (flags & SLAB_CACHE_DMA))
++	if (flags & SLAB_CACHE_DMA)
+ 		cachep->allocflags |= GFP_DMA;
+ 	cachep->size = size;
+ 	cachep->reciprocal_buffer_size = reciprocal_value(size);
+@@ -2664,16 +2664,6 @@ static void cache_init_objs(struct kmem_
+ 	}
+ }
+ 
+-static void kmem_flagcheck(struct kmem_cache *cachep, gfp_t flags)
+-{
+-	if (CONFIG_ZONE_DMA_FLAG) {
+-		if (flags & GFP_DMA)
+-			BUG_ON(!(cachep->allocflags & GFP_DMA));
+-		else
+-			BUG_ON(cachep->allocflags & GFP_DMA);
+-	}
+-}
+-
+ static void *slab_get_obj(struct kmem_cache *cachep, struct page *page)
+ {
+ 	void *objp;
+@@ -2753,14 +2743,6 @@ static struct page *cache_grow_begin(str
+ 		local_irq_enable();
+ 
+ 	/*
+-	 * The test for missing atomic flag is performed here, rather than
+-	 * the more obvious place, simply to reduce the critical path length
+-	 * in kmem_cache_alloc(). If a caller is seriously mis-behaving they
+-	 * will eventually be caught here (where it matters).
+-	 */
+-	kmem_flagcheck(cachep, flags);
