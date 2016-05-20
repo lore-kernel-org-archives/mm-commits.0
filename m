@@ -1,343 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-nodemaskh-create-next_node_in-helper.patch removed from -mm tree
-Date: Fri, 20 May 2016 14:04:01 -0700
-Message-ID: <573f7bc1.gcrwilCyIbueEibR%akpm@linux-foundation.org>
+Subject: [merged] mm-hugetlb-introduce-hugetlb_bad_size.patch removed from -mm tree
+Date: Fri, 20 May 2016 14:04:07 -0700
+Message-ID: <573f7bc7.4nlP/CVUIVL0un54%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46918 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46934 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcETVEC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:02 -0400
+	with ESMTP id S1751065AbcETVEI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, js1304@gmail.com, lauraa@codeaurora.org, mhocko@kernel.org, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, vbabka@suse.cz, wangxq10@lzu.edu.cn, zhuhui@xiaomi.com, mm-commits@vger.kernel.org
+To: vaishali.thakkar@oracle.com, baiyaowei@cmss.chinamobile.com, benh@kernel.crashing.org, dave.hansen@linux.intel.com, dingel@linux.vnet.ibm.com, hillf.zj@alibaba-inc.com, hpa@zytor.com, james.hogan@imgtec.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mingo@elte.hu, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/nodemask.h: create next_node_in() helper
+     Subject: mm/hugetlb: introduce hugetlb_bad_size()
 has been removed from the -mm tree.  Its filename was
-     include-linux-nodemaskh-create-next_node_in-helper.patch
+     mm-hugetlb-introduce-hugetlb_bad_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/nodemask.h: create next_node_in() helper
+From: Vaishali Thakkar <vaishali.thakkar@oracle.com>
+Subject: mm/hugetlb: introduce hugetlb_bad_size()
 
-Lots of code does
+When any unsupported hugepage size is specified, 'hugepagesz=' and
+'hugepages=' should be ignored during command line parsing until any
+supported hugepage size is found.  But currently incorrect number of
+hugepages are allocated when unsupported size is specified as it fails to
+ignore the 'hugepages=' command.
 
-	node = next_node(node, XXX);
-	if (node == MAX_NUMNODES)
-		node = first_node(XXX);
+Test case:
 
-so create next_node_in() to do this and use it in various places.
+Note that this is specific to x86 architecture.
 
-[mhocko@suse.com: use next_node_in() helper]
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@kernel.org>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Laura Abbott <lauraa@codeaurora.org>
-Cc: Hui Zhu <zhuhui@xiaomi.com>
-Cc: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Boot the kernel with command line option 'hugepagesz=256M hugepages=X'. 
+After boot, dmesg output shows that X number of hugepages of the size 2M
+is pre-allocated instead of 0.
+
+So, to handle such command line options, introduce new routine
+hugetlb_bad_size.  The routine hugetlb_bad_size sets the global variable
+parsed_valid_hugepagesz.  We are using parsed_valid_hugepagesz to save the
+state when unsupported hugepagesize is found so that we can ignore the
+'hugepages=' parameters after that and then reset the variable when
+supported hugepage size is found.
+
+The routine hugetlb_bad_size can be called while setting 'hugepagesz='
+parameter in an architecture specific code.
+
+Signed-off-by: Vaishali Thakkar <vaishali.thakkar@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Cc: Dominik Dingel <dingel@linux.vnet.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/kernel/setup.c |    4 +---
- arch/x86/mm/numa.c       |    4 +---
- include/linux/nodemask.h |   11 ++++++++++-
- kernel/cpuset.c          |    8 +-------
- lib/Makefile             |    2 +-
- lib/nodemask.c           |   30 ++++++++++++++++++++++++++++++
- mm/hugetlb.c             |    4 +---
- mm/memcontrol.c          |    4 +---
- mm/mempolicy.c           |   24 ++----------------------
- mm/page_isolation.c      |    9 +++------
- mm/slab.c                |   13 +++----------
- 11 files changed, 54 insertions(+), 59 deletions(-)
+ include/linux/hugetlb.h |    1 +
+ mm/hugetlb.c            |   14 +++++++++++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN arch/tile/kernel/setup.c~include-linux-nodemaskh-create-next_node_in-helper arch/tile/kernel/setup.c
---- a/arch/tile/kernel/setup.c~include-linux-nodemaskh-create-next_node_in-helper
-+++ a/arch/tile/kernel/setup.c
-@@ -962,9 +962,7 @@ static void __init setup_numa_mapping(vo
- 		cpumask_set_cpu(best_cpu, &node_2_cpu_mask[node]);
- 		cpu_2_node[best_cpu] = node;
- 		cpumask_clear_cpu(best_cpu, &unbound_cpus);
--		node = next_node(node, default_nodes);
--		if (node == MAX_NUMNODES)
--			node = first_node(default_nodes);
-+		node = next_node_in(node, default_nodes);
- 	}
+diff -puN include/linux/hugetlb.h~mm-hugetlb-introduce-hugetlb_bad_size include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-introduce-hugetlb_bad_size
++++ a/include/linux/hugetlb.h
+@@ -338,6 +338,7 @@ int huge_add_to_page_cache(struct page *
+ /* arch callback */
+ int __init alloc_bootmem_huge_page(struct hstate *h);
  
- 	/* Print out node assignments and set defaults for disabled cpus */
-diff -puN arch/x86/mm/numa.c~include-linux-nodemaskh-create-next_node_in-helper arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~include-linux-nodemaskh-create-next_node_in-helper
-+++ a/arch/x86/mm/numa.c
-@@ -617,9 +617,7 @@ static void __init numa_init_array(void)
- 		if (early_cpu_to_node(i) != NUMA_NO_NODE)
- 			continue;
- 		numa_set_node(i, rr);
--		rr = next_node(rr, node_online_map);
--		if (rr == MAX_NUMNODES)
--			rr = first_node(node_online_map);
-+		rr = next_node_in(rr, node_online_map);
- 	}
- }
++void __init hugetlb_bad_size(void);
+ void __init hugetlb_add_hstate(unsigned order);
+ struct hstate *size_to_hstate(unsigned long size);
  
-diff -puN include/linux/nodemask.h~include-linux-nodemaskh-create-next_node_in-helper include/linux/nodemask.h
---- a/include/linux/nodemask.h~include-linux-nodemaskh-create-next_node_in-helper
-+++ a/include/linux/nodemask.h
-@@ -43,8 +43,10 @@
-  *
-  * int first_node(mask)			Number lowest set bit, or MAX_NUMNODES
-  * int next_node(node, mask)		Next node past 'node', or MAX_NUMNODES
-+ * int next_node_in(node, mask)		Next node past 'node', or wrap to first,
-+ *					or MAX_NUMNODES
-  * int first_unset_node(mask)		First node not set in mask, or 
-- *					MAX_NUMNODES.
-+ *					MAX_NUMNODES
-  *
-  * nodemask_t nodemask_of_node(node)	Return nodemask with bit 'node' set
-  * NODE_MASK_ALL			Initializer - all bits set
-@@ -259,6 +261,13 @@ static inline int __next_node(int n, con
- 	return min_t(int,MAX_NUMNODES,find_next_bit(srcp->bits, MAX_NUMNODES, n+1));
- }
- 
-+/*
-+ * Find the next present node in src, starting after node n, wrapping around to
-+ * the first node in src if needed.  Returns MAX_NUMNODES if src is empty.
-+ */
-+#define next_node_in(n, src) __next_node_in((n), &(src))
-+int __next_node_in(int node, const nodemask_t *srcp);
-+
- static inline void init_nodemask_of_node(nodemask_t *mask, int node)
- {
- 	nodes_clear(*mask);
-diff -puN kernel/cpuset.c~include-linux-nodemaskh-create-next_node_in-helper kernel/cpuset.c
---- a/kernel/cpuset.c~include-linux-nodemaskh-create-next_node_in-helper
-+++ a/kernel/cpuset.c
-@@ -2591,13 +2591,7 @@ int __cpuset_node_allowed(int node, gfp_
- 
- static int cpuset_spread_node(int *rotor)
- {
--	int node;
--
--	node = next_node(*rotor, current->mems_allowed);
--	if (node == MAX_NUMNODES)
--		node = first_node(current->mems_allowed);
--	*rotor = node;
--	return node;
-+	return *rotor = next_node_in(*rotor, current->mems_allowed);
- }
- 
- int cpuset_mem_spread_node(void)
-diff -puN lib/Makefile~include-linux-nodemaskh-create-next_node_in-helper lib/Makefile
---- a/lib/Makefile~include-linux-nodemaskh-create-next_node_in-helper
-+++ a/lib/Makefile
-@@ -25,7 +25,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 sha1.o md5.o irq_regs.o argv_split.o \
- 	 flex_proportions.o ratelimit.o show_mem.o \
- 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
--	 earlycpio.o seq_buf.o nmi_backtrace.o
-+	 earlycpio.o seq_buf.o nmi_backtrace.o nodemask.o
- 
- obj-$(CONFIG_ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS) += usercopy.o
- lib-$(CONFIG_MMU) += ioremap.o
-diff -puN /dev/null lib/nodemask.c
---- /dev/null
-+++ a/lib/nodemask.c
-@@ -0,0 +1,30 @@
-+#include <linux/nodemask.h>
-+#include <linux/module.h>
-+#include <linux/random.h>
-+
-+int __next_node_in(int node, const nodemask_t *srcp)
-+{
-+	int ret = __next_node(node, srcp);
-+
-+	if (ret == MAX_NUMNODES)
-+		ret = __first_node(srcp);
-+	return ret;
-+}
-+EXPORT_SYMBOL(__next_node_in);
-+
-+#ifdef CONFIG_NUMA
-+/*
-+ * Return the bit number of a random bit set in the nodemask.
-+ * (returns NUMA_NO_NODE if nodemask is empty)
-+ */
-+int node_random(const nodemask_t *maskp)
-+{
-+	int w, bit = NUMA_NO_NODE;
-+
-+	w = nodes_weight(*maskp);
-+	if (w)
-+		bit = bitmap_ord_to_pos(maskp->bits,
-+			get_random_int() % w, MAX_NUMNODES);
-+	return bit;
-+}
-+#endif
-diff -puN mm/hugetlb.c~include-linux-nodemaskh-create-next_node_in-helper mm/hugetlb.c
---- a/mm/hugetlb.c~include-linux-nodemaskh-create-next_node_in-helper
+diff -puN mm/hugetlb.c~mm-hugetlb-introduce-hugetlb_bad_size mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-introduce-hugetlb_bad_size
 +++ a/mm/hugetlb.c
-@@ -937,9 +937,7 @@ err:
-  */
- static int next_node_allowed(int nid, nodemask_t *nodes_allowed)
- {
--	nid = next_node(nid, *nodes_allowed);
--	if (nid == MAX_NUMNODES)
--		nid = first_node(*nodes_allowed);
-+	nid = next_node_in(nid, *nodes_allowed);
- 	VM_BUG_ON(nid >= MAX_NUMNODES);
+@@ -51,6 +51,7 @@ __initdata LIST_HEAD(huge_boot_pages);
+ static struct hstate * __initdata parsed_hstate;
+ static unsigned long __initdata default_hstate_max_huge_pages;
+ static unsigned long __initdata default_hstate_size;
++static bool __initdata parsed_valid_hugepagesz = true;
  
- 	return nid;
-diff -puN mm/memcontrol.c~include-linux-nodemaskh-create-next_node_in-helper mm/memcontrol.c
---- a/mm/memcontrol.c~include-linux-nodemaskh-create-next_node_in-helper
-+++ a/mm/memcontrol.c
-@@ -1389,9 +1389,7 @@ int mem_cgroup_select_victim_node(struct
- 	mem_cgroup_may_update_nodemask(memcg);
- 	node = memcg->last_scanned_node;
- 
--	node = next_node(node, memcg->scan_nodes);
--	if (node == MAX_NUMNODES)
--		node = first_node(memcg->scan_nodes);
-+	node = next_node_in(node, memcg->scan_nodes);
- 	/*
- 	 * We call this when we hit limit, not when pages are added to LRU.
- 	 * No LRU may hold pages because all pages are UNEVICTABLE or
-diff -puN mm/mempolicy.c~include-linux-nodemaskh-create-next_node_in-helper mm/mempolicy.c
---- a/mm/mempolicy.c~include-linux-nodemaskh-create-next_node_in-helper
-+++ a/mm/mempolicy.c
-@@ -97,7 +97,6 @@
- 
- #include <asm/tlbflush.h>
- #include <asm/uaccess.h>
--#include <linux/random.h>
- 
- #include "internal.h"
- 
-@@ -347,9 +346,7 @@ static void mpol_rebind_nodemask(struct
- 		BUG();
- 
- 	if (!node_isset(current->il_next, tmp)) {
--		current->il_next = next_node(current->il_next, tmp);
--		if (current->il_next >= MAX_NUMNODES)
--			current->il_next = first_node(tmp);
-+		current->il_next = next_node_in(current->il_next, tmp);
- 		if (current->il_next >= MAX_NUMNODES)
- 			current->il_next = numa_node_id();
- 	}
-@@ -1709,9 +1706,7 @@ static unsigned interleave_nodes(struct
- 	struct task_struct *me = current;
- 
- 	nid = me->il_next;
--	next = next_node(nid, policy->v.nodes);
--	if (next >= MAX_NUMNODES)
--		next = first_node(policy->v.nodes);
-+	next = next_node_in(nid, policy->v.nodes);
- 	if (next < MAX_NUMNODES)
- 		me->il_next = next;
- 	return nid;
-@@ -1805,21 +1800,6 @@ static inline unsigned interleave_nid(st
- 		return interleave_nodes(pol);
- }
- 
--/*
-- * Return the bit number of a random bit set in the nodemask.
-- * (returns NUMA_NO_NODE if nodemask is empty)
-- */
--int node_random(const nodemask_t *maskp)
--{
--	int w, bit = NUMA_NO_NODE;
--
--	w = nodes_weight(*maskp);
--	if (w)
--		bit = bitmap_ord_to_pos(maskp->bits,
--			get_random_int() % w, MAX_NUMNODES);
--	return bit;
--}
--
- #ifdef CONFIG_HUGETLBFS
  /*
-  * huge_zonelist(@vma, @addr, @gfp_flags, @mpol)
-diff -puN mm/page_isolation.c~include-linux-nodemaskh-create-next_node_in-helper mm/page_isolation.c
---- a/mm/page_isolation.c~include-linux-nodemaskh-create-next_node_in-helper
-+++ a/mm/page_isolation.c
-@@ -288,13 +288,10 @@ struct page *alloc_migrate_target(struct
- 	 * accordance with memory policy of the user process if possible. For
- 	 * now as a simple work-around, we use the next node for destination.
+  * Protects updates to hugepage_freelists, hugepage_activelist, nr_huge_pages,
+@@ -2659,6 +2660,11 @@ static int __init hugetlb_init(void)
+ subsys_initcall(hugetlb_init);
+ 
+ /* Should be called on processing a hugepagesz=... option */
++void __init hugetlb_bad_size(void)
++{
++	parsed_valid_hugepagesz = false;
++}
++
+ void __init hugetlb_add_hstate(unsigned int order)
+ {
+ 	struct hstate *h;
+@@ -2691,11 +2697,17 @@ static int __init hugetlb_nrpages_setup(
+ 	unsigned long *mhp;
+ 	static unsigned long *last_mhp;
+ 
++	if (!parsed_valid_hugepagesz) {
++		pr_warn("hugepages = %s preceded by "
++			"an unsupported hugepagesz, ignoring\n", s);
++		parsed_valid_hugepagesz = true;
++		return 1;
++	}
+ 	/*
+ 	 * !hugetlb_max_hstate means we haven't parsed a hugepagesz= parameter yet,
+ 	 * so this hugepages= parameter goes to the "default hstate".
  	 */
--	if (PageHuge(page)) {
--		int node = next_online_node(page_to_nid(page));
--		if (node == MAX_NUMNODES)
--			node = first_online_node;
-+	if (PageHuge(page))
- 		return alloc_huge_page_node(page_hstate(compound_head(page)),
--					    node);
--	}
-+					    next_node_in(page_to_nid(page),
-+							 node_online_map));
- 
- 	if (PageHighMem(page))
- 		gfp_mask |= __GFP_HIGHMEM;
-diff -puN mm/slab.c~include-linux-nodemaskh-create-next_node_in-helper mm/slab.c
---- a/mm/slab.c~include-linux-nodemaskh-create-next_node_in-helper
-+++ a/mm/slab.c
-@@ -522,22 +522,15 @@ static DEFINE_PER_CPU(unsigned long, sla
- 
- static void init_reap_node(int cpu)
- {
--	int node;
--
--	node = next_node(cpu_to_mem(cpu), node_online_map);
--	if (node == MAX_NUMNODES)
--		node = first_node(node_online_map);
--
--	per_cpu(slab_reap_node, cpu) = node;
-+	per_cpu(slab_reap_node, cpu) = next_node_in(cpu_to_mem(cpu),
-+						    node_online_map);
- }
- 
- static void next_reap_node(void)
- {
- 	int node = __this_cpu_read(slab_reap_node);
- 
--	node = next_node(node, node_online_map);
--	if (unlikely(node >= MAX_NUMNODES))
--		node = first_node(node_online_map);
-+	node = next_node_in(node, node_online_map);
- 	__this_cpu_write(slab_reap_node, node);
- }
- 
+-	if (!hugetlb_max_hstate)
++	else if (!hugetlb_max_hstate)
+ 		mhp = &default_hstate_max_huge_pages;
+ 	else
+ 		mhp = &parsed_hstate->max_huge_pages;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vaishali.thakkar@oracle.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
-mm-oom-protect-costly-allocations-some-more-for-config_compaction-checkpatch-fixes.patch
-vmstat-get-rid-of-the-ugly-cpu_stat_off-variable-v2-fix.patch
-mm-compact-fix-zoneindex-in-compact-fix.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable-fix.patch
-exit_thread-remove-empty-bodies-fix.patch
-exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
-lib-gcd-use-binary-gcd-algorithm-instead-of-euclidean-fix.patch
-allocate-idle-task-for-a-cpu-always-on-its-local-node-fix.patch
-linux-next-git-rejects.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
