@@ -1,71 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: [patch 110/117] mm, page_alloc: remove unnecessary variable from
- free_pcppages_bulk
-Date: Thu, 19 May 2016 17:14:24 -0700
-Message-ID: <573e56e0.fnehZC5s4e5rw3x/%akpm@linux-foundation.org>
+Subject: [patch 112/117] cpuset: use static key better and convert to new
+ API
+Date: Thu, 19 May 2016 17:14:30 -0700
+Message-ID: <573e56e6.6nznR9PX6bradeQ4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46636 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755185AbcETAOZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:25 -0400
+	with ESMTP id S932358AbcETAOb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, brouer@redhat.com, lizefan@huawei.com, mgorman@techsingularity.net
 
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: remove unnecessary variable from free_pcppages_bulk
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: cpuset: use static key better and convert to new API
 
-The original count is never reused so it can be removed.
+An important function for cpusets is cpuset_node_allowed(), which
+optimizes on the fact if there's a single root CPU set, it must be
+trivially allowed.  But the check "nr_cpusets() <= 1" doesn't use the
+cpusets_enabled_key static key the right way where static keys eliminate
+branching overhead with jump labels.
 
+This patch converts it so that static key is used properly. It's also switched
+to the new static key API and the checking functions are converted to return
+bool instead of int. We also provide a new variant __cpuset_zone_allowed()
+which expects that the static key check was already done and they key was
+enabled. This is needed for get_page_from_freelist() where we want to also
+avoid the relatively slower check when ALLOC_CPUSET is not set in alloc_flags.
+
+The impact on the page allocator microbenchmark is less than expected but
+the cleanup in itself is worthwhile.
+
+                                           4.6.0-rc2                  4.6.0-rc2
+                                     multcheck-v1r20               cpuset-v1r20
+Min      alloc-odr0-1               348.00 (  0.00%)           348.00 (  0.00%)
+Min      alloc-odr0-2               254.00 (  0.00%)           254.00 (  0.00%)
+Min      alloc-odr0-4               213.00 (  0.00%)           213.00 (  0.00%)
+Min      alloc-odr0-8               186.00 (  0.00%)           183.00 (  1.61%)
+Min      alloc-odr0-16              173.00 (  0.00%)           171.00 (  1.16%)
+Min      alloc-odr0-32              166.00 (  0.00%)           163.00 (  1.81%)
+Min      alloc-odr0-64              162.00 (  0.00%)           159.00 (  1.85%)
+Min      alloc-odr0-128             160.00 (  0.00%)           157.00 (  1.88%)
+Min      alloc-odr0-256             169.00 (  0.00%)           166.00 (  1.78%)
+Min      alloc-odr0-512             180.00 (  0.00%)           180.00 (  0.00%)
+Min      alloc-odr0-1024            188.00 (  0.00%)           187.00 (  0.53%)
+Min      alloc-odr0-2048            194.00 (  0.00%)           193.00 (  0.52%)
+Min      alloc-odr0-4096            199.00 (  0.00%)           198.00 (  0.50%)
+Min      alloc-odr0-8192            202.00 (  0.00%)           201.00 (  0.50%)
+Min      alloc-odr0-16384           203.00 (  0.00%)           202.00 (  0.49%)
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Zefan Li <lizefan@huawei.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/cpuset.h |   42 ++++++++++++++++++++++++++-------------
+ kernel/cpuset.c        |   14 ++++++-------
+ mm/page_alloc.c        |    2 -
+ 3 files changed, 36 insertions(+), 22 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-unnecessary-variable-from-free_pcppages_bulk mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-unnecessary-variable-from-free_pcppages_bulk
-+++ a/mm/page_alloc.c
-@@ -857,7 +857,6 @@ static void free_pcppages_bulk(struct zo
+diff -puN include/linux/cpuset.h~cpuset-use-static-key-better-and-convert-to-new-api include/linux/cpuset.h
+--- a/include/linux/cpuset.h~cpuset-use-static-key-better-and-convert-to-new-api
++++ a/include/linux/cpuset.h
+@@ -16,26 +16,26 @@
+ 
+ #ifdef CONFIG_CPUSETS
+ 
+-extern struct static_key cpusets_enabled_key;
++extern struct static_key_false cpusets_enabled_key;
+ static inline bool cpusets_enabled(void)
  {
- 	int migratetype = 0;
- 	int batch_free = 0;
--	int to_free = count;
- 	unsigned long nr_scanned;
- 	bool isolated_pageblocks;
- 
-@@ -867,7 +866,7 @@ static void free_pcppages_bulk(struct zo
- 	if (nr_scanned)
- 		__mod_zone_page_state(zone, NR_PAGES_SCANNED, -nr_scanned);
- 
--	while (to_free) {
-+	while (count) {
- 		struct page *page;
- 		struct list_head *list;
- 
-@@ -887,7 +886,7 @@ static void free_pcppages_bulk(struct zo
- 
- 		/* This is the only non-empty list. Free them all. */
- 		if (batch_free == MIGRATE_PCPTYPES)
--			batch_free = to_free;
-+			batch_free = count;
- 
- 		do {
- 			int mt;	/* migratetype of the to-be-freed page */
-@@ -905,7 +904,7 @@ static void free_pcppages_bulk(struct zo
- 
- 			__free_one_page(page, page_to_pfn(page), zone, 0, mt);
- 			trace_mm_page_pcpu_drain(page, 0, mt);
--		} while (--to_free && --batch_free && !list_empty(list));
-+		} while (--count && --batch_free && !list_empty(list));
- 	}
- 	spin_unlock(&zone->lock);
+-	return static_key_false(&cpusets_enabled_key);
++	return static_branch_unlikely(&cpusets_enabled_key);
  }
+ 
+ static inline int nr_cpusets(void)
+ {
+ 	/* jump label reference count + the top-level cpuset */
+-	return static_key_count(&cpusets_enabled_key) + 1;
++	return static_key_count(&cpusets_enabled_key.key) + 1;
+ }
+ 
+ static inline void cpuset_inc(void)
+ {
+-	static_key_slow_inc(&cpusets_enabled_key);
++	static_branch_inc(&cpusets_enabled_key);
+ }
+ 
+ static inline void cpuset_dec(void)
+ {
+-	static_key_slow_dec(&cpusets_enabled_key);
++	static_branch_dec(&cpusets_enabled_key);
+ }
+ 
+ extern int cpuset_init(void);
+@@ -48,16 +48,25 @@ extern nodemask_t cpuset_mems_allowed(st
+ void cpuset_init_current_mems_allowed(void);
+ int cpuset_nodemask_valid_mems_allowed(nodemask_t *nodemask);
+ 
+-extern int __cpuset_node_allowed(int node, gfp_t gfp_mask);
++extern bool __cpuset_node_allowed(int node, gfp_t gfp_mask);
+ 
+-static inline int cpuset_node_allowed(int node, gfp_t gfp_mask)
++static inline bool cpuset_node_allowed(int node, gfp_t gfp_mask)
+ {
+-	return nr_cpusets() <= 1 || __cpuset_node_allowed(node, gfp_mask);
++	if (cpusets_enabled())
++		return __cpuset_node_allowed(node, gfp_mask);
++	return true;
+ }
+ 
+-static inline int cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
++static inline bool __cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
+ {
+-	return cpuset_node_allowed(zone_to_nid(z), gfp_mask);
++	return __cpuset_node_allowed(zone_to_nid(z), gfp_mask);
++}
++
++static inline bool cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
++{
++	if (cpusets_enabled())
++		return __cpuset_zone_allowed(z, gfp_mask);
++	return true;
+ }
+ 
+ extern int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
+@@ -172,14 +181,19 @@ static inline int cpuset_nodemask_valid_
+ 	return 1;
+ }
+ 
+-static inline int cpuset_node_allowed(int node, gfp_t gfp_mask)
++static inline bool cpuset_node_allowed(int node, gfp_t gfp_mask)
+ {
+-	return 1;
++	return true;
+ }
+ 
+-static inline int cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
++static inline bool __cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
+ {
+-	return 1;
++	return true;
++}
++
++static inline bool cpuset_zone_allowed(struct zone *z, gfp_t gfp_mask)
++{
++	return true;
+ }
+ 
+ static inline int cpuset_mems_allowed_intersects(const struct task_struct *tsk1,
+diff -puN kernel/cpuset.c~cpuset-use-static-key-better-and-convert-to-new-api kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-use-static-key-better-and-convert-to-new-api
++++ a/kernel/cpuset.c
+@@ -61,7 +61,7 @@
+ #include <linux/cgroup.h>
+ #include <linux/wait.h>
+ 
+-struct static_key cpusets_enabled_key __read_mostly = STATIC_KEY_INIT_FALSE;
++DEFINE_STATIC_KEY_FALSE(cpusets_enabled_key);
+ 
+ /* See "Frequency meter" comments, below. */
+ 
+@@ -2528,27 +2528,27 @@ static struct cpuset *nearest_hardwall_a
+  *	GFP_KERNEL   - any node in enclosing hardwalled cpuset ok
+  *	GFP_USER     - only nodes in current tasks mems allowed ok.
+  */
+-int __cpuset_node_allowed(int node, gfp_t gfp_mask)
++bool __cpuset_node_allowed(int node, gfp_t gfp_mask)
+ {
+ 	struct cpuset *cs;		/* current cpuset ancestors */
+ 	int allowed;			/* is allocation in zone z allowed? */
+ 	unsigned long flags;
+ 
+ 	if (in_interrupt())
+-		return 1;
++		return true;
+ 	if (node_isset(node, current->mems_allowed))
+-		return 1;
++		return true;
+ 	/*
+ 	 * Allow tasks that have access to memory reserves because they have
+ 	 * been OOM killed to get memory anywhere.
+ 	 */
+ 	if (unlikely(test_thread_flag(TIF_MEMDIE)))
+-		return 1;
++		return true;
+ 	if (gfp_mask & __GFP_HARDWALL)	/* If hardwall request, stop here */
+-		return 0;
++		return false;
+ 
+ 	if (current->flags & PF_EXITING) /* Let dying task have memory */
+-		return 1;
++		return true;
+ 
+ 	/* Not hardwall and node outside mems_allowed: scan up cpusets */
+ 	spin_lock_irqsave(&callback_lock, flags);
+diff -puN mm/page_alloc.c~cpuset-use-static-key-better-and-convert-to-new-api mm/page_alloc.c
+--- a/mm/page_alloc.c~cpuset-use-static-key-better-and-convert-to-new-api
++++ a/mm/page_alloc.c
+@@ -2859,7 +2859,7 @@ zonelist_scan:
+ 
+ 		if (cpusets_enabled() &&
+ 			(alloc_flags & ALLOC_CPUSET) &&
+-			!cpuset_zone_allowed(zone, gfp_mask))
++			!__cpuset_zone_allowed(zone, gfp_mask))
+ 				continue;
+ 		/*
+ 		 * Distribute pages in proportion to the individual
 _
