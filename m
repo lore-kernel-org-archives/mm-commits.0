@@ -1,109 +1,315 @@
 From: akpm@linux-foundation.org
-Subject: [patch 088/117] mm, page_alloc: use new PageAnonHead helper in
- the free page fast path
-Date: Thu, 19 May 2016 17:13:21 -0700
-Message-ID: <573e56a1.xLXaGEtHDoh03KLU%akpm@linux-foundation.org>
+Subject: [patch 087/117] mm, page_alloc: only check PageCompound for
+ high-order pages
+Date: Thu, 19 May 2016 17:13:18 -0700
+Message-ID: <573e569e.4023nSwkebb6bm9Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46511 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932921AbcETANW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:13:22 -0400
+	with ESMTP id S932921AbcETANU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:13:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: use new PageAnonHead helper in the free page fast path
+Subject: mm, page_alloc: only check PageCompound for high-order pages
 
-The PageAnon check always checks for compound_head but this is a
-relatively expensive check if the caller already knows the page is a head
-page.  This patch creates a helper and uses it in the page free path which
-only operates on head pages.
+Another year, another round of page allocator optimisations focusing this
+time on the alloc and free fast paths.  This should be of help to
+workloads that are allocator-intensive from kernel space where the cost of
+zeroing is not nceessraily incurred.
 
-With this patch and "Only check PageCompound for high-order pages", the
-performance difference on a page allocator microbenchmark is;
+The series is motivated by the observation that page alloc microbenchmarks
+on multiple machines regressed between 3.12.44 and 4.4.  Second, there is
+discussions before LSF/MM considering the possibility of adding another
+page allocator which is potentially hazardous but a patch series improving
+performance is better than whining.
 
-                                           4.6.0-rc2                  4.6.0-rc2
-                                             vanilla           nocompound-v1r20
-Min      alloc-odr0-1               425.00 (  0.00%)           417.00 (  1.88%)
-Min      alloc-odr0-2               313.00 (  0.00%)           308.00 (  1.60%)
-Min      alloc-odr0-4               257.00 (  0.00%)           253.00 (  1.56%)
-Min      alloc-odr0-8               224.00 (  0.00%)           221.00 (  1.34%)
-Min      alloc-odr0-16              208.00 (  0.00%)           205.00 (  1.44%)
-Min      alloc-odr0-32              199.00 (  0.00%)           199.00 (  0.00%)
-Min      alloc-odr0-64              195.00 (  0.00%)           193.00 (  1.03%)
-Min      alloc-odr0-128             192.00 (  0.00%)           191.00 (  0.52%)
-Min      alloc-odr0-256             204.00 (  0.00%)           200.00 (  1.96%)
-Min      alloc-odr0-512             213.00 (  0.00%)           212.00 (  0.47%)
-Min      alloc-odr0-1024            219.00 (  0.00%)           219.00 (  0.00%)
-Min      alloc-odr0-2048            225.00 (  0.00%)           225.00 (  0.00%)
-Min      alloc-odr0-4096            230.00 (  0.00%)           231.00 ( -0.43%)
-Min      alloc-odr0-8192            235.00 (  0.00%)           234.00 (  0.43%)
-Min      alloc-odr0-16384           235.00 (  0.00%)           234.00 (  0.43%)
-Min      free-odr0-1                215.00 (  0.00%)           191.00 ( 11.16%)
-Min      free-odr0-2                152.00 (  0.00%)           136.00 ( 10.53%)
-Min      free-odr0-4                119.00 (  0.00%)           107.00 ( 10.08%)
-Min      free-odr0-8                106.00 (  0.00%)            96.00 (  9.43%)
-Min      free-odr0-16                97.00 (  0.00%)            87.00 ( 10.31%)
-Min      free-odr0-32                91.00 (  0.00%)            83.00 (  8.79%)
-Min      free-odr0-64                89.00 (  0.00%)            81.00 (  8.99%)
-Min      free-odr0-128               88.00 (  0.00%)            80.00 (  9.09%)
-Min      free-odr0-256              106.00 (  0.00%)            95.00 ( 10.38%)
-Min      free-odr0-512              116.00 (  0.00%)           111.00 (  4.31%)
+After the series is applied, there are still hazards.  In the free paths,
+the debugging checking and page zone/pageblock lookups dominate but there
+was not an obvious solution to that.  In the alloc path, the major
+contributers are dealing with zonelists, new page preperation, the fair
+zone allocation and numerous statistic updates.  The fair zone allocator
+is removed by the per-node LRU series if that gets merged so it's nor a
+major concern at the moment.
+
+On normal userspace benchmarks, there is little impact as the zeroing cost
+is significant but it's visible
+
+aim9
+                               4.6.0-rc3             4.6.0-rc3
+                                 vanilla         deferalloc-v3
+Min      page_test   828693.33 (  0.00%)   887060.00 (  7.04%)
+Min      brk_test   4847266.67 (  0.00%)  4966266.67 (  2.45%)
+Min      exec_test     1271.00 (  0.00%)     1275.67 (  0.37%)
+Min      fork_test    12371.75 (  0.00%)    12380.00 (  0.07%)
+
+The overall impact on a page allocator microbenchmark for a range of orders
+and number of pages allocated in a batch is
+
+                                          4.6.0-rc3                  4.6.0-rc3
+                                             vanilla            deferalloc-v3r7
+Min      alloc-odr0-1               428.00 (  0.00%)           316.00 ( 26.17%)
+Min      alloc-odr0-2               314.00 (  0.00%)           231.00 ( 26.43%)
+Min      alloc-odr0-4               256.00 (  0.00%)           192.00 ( 25.00%)
+Min      alloc-odr0-8               222.00 (  0.00%)           166.00 ( 25.23%)
+Min      alloc-odr0-16              207.00 (  0.00%)           154.00 ( 25.60%)
+Min      alloc-odr0-32              197.00 (  0.00%)           148.00 ( 24.87%)
+Min      alloc-odr0-64              193.00 (  0.00%)           144.00 ( 25.39%)
+Min      alloc-odr0-128             191.00 (  0.00%)           143.00 ( 25.13%)
+Min      alloc-odr0-256             203.00 (  0.00%)           153.00 ( 24.63%)
+Min      alloc-odr0-512             212.00 (  0.00%)           165.00 ( 22.17%)
+Min      alloc-odr0-1024            221.00 (  0.00%)           172.00 ( 22.17%)
+Min      alloc-odr0-2048            225.00 (  0.00%)           179.00 ( 20.44%)
+Min      alloc-odr0-4096            232.00 (  0.00%)           185.00 ( 20.26%)
+Min      alloc-odr0-8192            235.00 (  0.00%)           187.00 ( 20.43%)
+Min      alloc-odr0-16384           236.00 (  0.00%)           188.00 ( 20.34%)
+Min      alloc-odr1-1               519.00 (  0.00%)           450.00 ( 13.29%)
+Min      alloc-odr1-2               391.00 (  0.00%)           336.00 ( 14.07%)
+Min      alloc-odr1-4               313.00 (  0.00%)           268.00 ( 14.38%)
+Min      alloc-odr1-8               277.00 (  0.00%)           235.00 ( 15.16%)
+Min      alloc-odr1-16              256.00 (  0.00%)           218.00 ( 14.84%)
+Min      alloc-odr1-32              252.00 (  0.00%)           212.00 ( 15.87%)
+Min      alloc-odr1-64              244.00 (  0.00%)           206.00 ( 15.57%)
+Min      alloc-odr1-128             244.00 (  0.00%)           207.00 ( 15.16%)
+Min      alloc-odr1-256             243.00 (  0.00%)           207.00 ( 14.81%)
+Min      alloc-odr1-512             245.00 (  0.00%)           209.00 ( 14.69%)
+Min      alloc-odr1-1024            248.00 (  0.00%)           214.00 ( 13.71%)
+Min      alloc-odr1-2048            253.00 (  0.00%)           220.00 ( 13.04%)
+Min      alloc-odr1-4096            258.00 (  0.00%)           224.00 ( 13.18%)
+Min      alloc-odr1-8192            261.00 (  0.00%)           229.00 ( 12.26%)
+Min      alloc-odr2-1               560.00 (  0.00%)           753.00 (-34.46%)
+Min      alloc-odr2-2               424.00 (  0.00%)           351.00 ( 17.22%)
+Min      alloc-odr2-4               339.00 (  0.00%)           393.00 (-15.93%)
+Min      alloc-odr2-8               298.00 (  0.00%)           246.00 ( 17.45%)
+Min      alloc-odr2-16              276.00 (  0.00%)           227.00 ( 17.75%)
+Min      alloc-odr2-32              271.00 (  0.00%)           221.00 ( 18.45%)
+Min      alloc-odr2-64              264.00 (  0.00%)           217.00 ( 17.80%)
+Min      alloc-odr2-128             264.00 (  0.00%)           217.00 ( 17.80%)
+Min      alloc-odr2-256             264.00 (  0.00%)           218.00 ( 17.42%)
+Min      alloc-odr2-512             269.00 (  0.00%)           223.00 ( 17.10%)
+Min      alloc-odr2-1024            279.00 (  0.00%)           230.00 ( 17.56%)
+Min      alloc-odr2-2048            283.00 (  0.00%)           235.00 ( 16.96%)
+Min      alloc-odr2-4096            285.00 (  0.00%)           239.00 ( 16.14%)
+Min      alloc-odr3-1               629.00 (  0.00%)           505.00 ( 19.71%)
+Min      alloc-odr3-2               472.00 (  0.00%)           374.00 ( 20.76%)
+Min      alloc-odr3-4               383.00 (  0.00%)           301.00 ( 21.41%)
+Min      alloc-odr3-8               341.00 (  0.00%)           266.00 ( 21.99%)
+Min      alloc-odr3-16              316.00 (  0.00%)           248.00 ( 21.52%)
+Min      alloc-odr3-32              308.00 (  0.00%)           241.00 ( 21.75%)
+Min      alloc-odr3-64              305.00 (  0.00%)           241.00 ( 20.98%)
+Min      alloc-odr3-128             308.00 (  0.00%)           244.00 ( 20.78%)
+Min      alloc-odr3-256             317.00 (  0.00%)           249.00 ( 21.45%)
+Min      alloc-odr3-512             327.00 (  0.00%)           256.00 ( 21.71%)
+Min      alloc-odr3-1024            331.00 (  0.00%)           261.00 ( 21.15%)
+Min      alloc-odr3-2048            333.00 (  0.00%)           266.00 ( 20.12%)
+Min      alloc-odr4-1               767.00 (  0.00%)           572.00 ( 25.42%)
+Min      alloc-odr4-2               578.00 (  0.00%)           429.00 ( 25.78%)
+Min      alloc-odr4-4               474.00 (  0.00%)           346.00 ( 27.00%)
+Min      alloc-odr4-8               422.00 (  0.00%)           310.00 ( 26.54%)
+Min      alloc-odr4-16              399.00 (  0.00%)           295.00 ( 26.07%)
+Min      alloc-odr4-32              392.00 (  0.00%)           293.00 ( 25.26%)
+Min      alloc-odr4-64              394.00 (  0.00%)           293.00 ( 25.63%)
+Min      alloc-odr4-128             405.00 (  0.00%)           305.00 ( 24.69%)
+Min      alloc-odr4-256             417.00 (  0.00%)           319.00 ( 23.50%)
+Min      alloc-odr4-512             425.00 (  0.00%)           326.00 ( 23.29%)
+Min      alloc-odr4-1024            426.00 (  0.00%)           329.00 ( 22.77%)
+Min      free-odr0-1                216.00 (  0.00%)           178.00 ( 17.59%)
+Min      free-odr0-2                152.00 (  0.00%)           125.00 ( 17.76%)
+Min      free-odr0-4                120.00 (  0.00%)            99.00 ( 17.50%)
+Min      free-odr0-8                106.00 (  0.00%)            85.00 ( 19.81%)
+Min      free-odr0-16                97.00 (  0.00%)            80.00 ( 17.53%)
+Min      free-odr0-32                92.00 (  0.00%)            76.00 ( 17.39%)
+Min      free-odr0-64                89.00 (  0.00%)            74.00 ( 16.85%)
+Min      free-odr0-128               89.00 (  0.00%)            73.00 ( 17.98%)
+Min      free-odr0-256              107.00 (  0.00%)            90.00 ( 15.89%)
+Min      free-odr0-512              117.00 (  0.00%)           108.00 (  7.69%)
 Min      free-odr0-1024             125.00 (  0.00%)           118.00 (  5.60%)
-Min      free-odr0-2048             133.00 (  0.00%)           126.00 (  5.26%)
-Min      free-odr0-4096             136.00 (  0.00%)           130.00 (  4.41%)
-Min      free-odr0-8192             138.00 (  0.00%)           130.00 (  5.80%)
-Min      free-odr0-16384            137.00 (  0.00%)           130.00 (  5.11%)
+Min      free-odr0-2048             132.00 (  0.00%)           125.00 (  5.30%)
+Min      free-odr0-4096             135.00 (  0.00%)           130.00 (  3.70%)
+Min      free-odr0-8192             137.00 (  0.00%)           130.00 (  5.11%)
+Min      free-odr0-16384            137.00 (  0.00%)           131.00 (  4.38%)
+Min      free-odr1-1                318.00 (  0.00%)           289.00 (  9.12%)
+Min      free-odr1-2                228.00 (  0.00%)           207.00 (  9.21%)
+Min      free-odr1-4                182.00 (  0.00%)           165.00 (  9.34%)
+Min      free-odr1-8                163.00 (  0.00%)           146.00 ( 10.43%)
+Min      free-odr1-16               151.00 (  0.00%)           135.00 ( 10.60%)
+Min      free-odr1-32               146.00 (  0.00%)           129.00 ( 11.64%)
+Min      free-odr1-64               145.00 (  0.00%)           130.00 ( 10.34%)
+Min      free-odr1-128              148.00 (  0.00%)           134.00 (  9.46%)
+Min      free-odr1-256              148.00 (  0.00%)           137.00 (  7.43%)
+Min      free-odr1-512              151.00 (  0.00%)           140.00 (  7.28%)
+Min      free-odr1-1024             154.00 (  0.00%)           143.00 (  7.14%)
+Min      free-odr1-2048             156.00 (  0.00%)           144.00 (  7.69%)
+Min      free-odr1-4096             156.00 (  0.00%)           142.00 (  8.97%)
+Min      free-odr1-8192             156.00 (  0.00%)           140.00 ( 10.26%)
+Min      free-odr2-1                361.00 (  0.00%)           457.00 (-26.59%)
+Min      free-odr2-2                258.00 (  0.00%)           224.00 ( 13.18%)
+Min      free-odr2-4                208.00 (  0.00%)           223.00 ( -7.21%)
+Min      free-odr2-8                185.00 (  0.00%)           160.00 ( 13.51%)
+Min      free-odr2-16               173.00 (  0.00%)           149.00 ( 13.87%)
+Min      free-odr2-32               166.00 (  0.00%)           145.00 ( 12.65%)
+Min      free-odr2-64               166.00 (  0.00%)           146.00 ( 12.05%)
+Min      free-odr2-128              169.00 (  0.00%)           148.00 ( 12.43%)
+Min      free-odr2-256              170.00 (  0.00%)           152.00 ( 10.59%)
+Min      free-odr2-512              177.00 (  0.00%)           156.00 ( 11.86%)
+Min      free-odr2-1024             182.00 (  0.00%)           162.00 ( 10.99%)
+Min      free-odr2-2048             181.00 (  0.00%)           160.00 ( 11.60%)
+Min      free-odr2-4096             180.00 (  0.00%)           159.00 ( 11.67%)
+Min      free-odr3-1                431.00 (  0.00%)           367.00 ( 14.85%)
+Min      free-odr3-2                306.00 (  0.00%)           259.00 ( 15.36%)
+Min      free-odr3-4                249.00 (  0.00%)           208.00 ( 16.47%)
+Min      free-odr3-8                224.00 (  0.00%)           186.00 ( 16.96%)
+Min      free-odr3-16               208.00 (  0.00%)           176.00 ( 15.38%)
+Min      free-odr3-32               206.00 (  0.00%)           174.00 ( 15.53%)
+Min      free-odr3-64               210.00 (  0.00%)           178.00 ( 15.24%)
+Min      free-odr3-128              215.00 (  0.00%)           182.00 ( 15.35%)
+Min      free-odr3-256              224.00 (  0.00%)           189.00 ( 15.62%)
+Min      free-odr3-512              232.00 (  0.00%)           195.00 ( 15.95%)
+Min      free-odr3-1024             230.00 (  0.00%)           195.00 ( 15.22%)
+Min      free-odr3-2048             229.00 (  0.00%)           193.00 ( 15.72%)
+Min      free-odr4-1                561.00 (  0.00%)           439.00 ( 21.75%)
+Min      free-odr4-2                418.00 (  0.00%)           318.00 ( 23.92%)
+Min      free-odr4-4                339.00 (  0.00%)           269.00 ( 20.65%)
+Min      free-odr4-8                299.00 (  0.00%)           239.00 ( 20.07%)
+Min      free-odr4-16               289.00 (  0.00%)           234.00 ( 19.03%)
+Min      free-odr4-32               291.00 (  0.00%)           235.00 ( 19.24%)
+Min      free-odr4-64               298.00 (  0.00%)           238.00 ( 20.13%)
+Min      free-odr4-128              308.00 (  0.00%)           251.00 ( 18.51%)
+Min      free-odr4-256              321.00 (  0.00%)           267.00 ( 16.82%)
+Min      free-odr4-512              327.00 (  0.00%)           269.00 ( 17.74%)
+Min      free-odr4-1024             326.00 (  0.00%)           271.00 ( 16.87%)
+Min      total-odr0-1               644.00 (  0.00%)           494.00 ( 23.29%)
+Min      total-odr0-2               466.00 (  0.00%)           356.00 ( 23.61%)
+Min      total-odr0-4               376.00 (  0.00%)           291.00 ( 22.61%)
+Min      total-odr0-8               328.00 (  0.00%)           251.00 ( 23.48%)
+Min      total-odr0-16              304.00 (  0.00%)           234.00 ( 23.03%)
+Min      total-odr0-32              289.00 (  0.00%)           224.00 ( 22.49%)
+Min      total-odr0-64              282.00 (  0.00%)           218.00 ( 22.70%)
+Min      total-odr0-128             280.00 (  0.00%)           216.00 ( 22.86%)
+Min      total-odr0-256             310.00 (  0.00%)           243.00 ( 21.61%)
+Min      total-odr0-512             329.00 (  0.00%)           273.00 ( 17.02%)
+Min      total-odr0-1024            346.00 (  0.00%)           290.00 ( 16.18%)
+Min      total-odr0-2048            357.00 (  0.00%)           304.00 ( 14.85%)
+Min      total-odr0-4096            367.00 (  0.00%)           315.00 ( 14.17%)
+Min      total-odr0-8192            372.00 (  0.00%)           317.00 ( 14.78%)
+Min      total-odr0-16384           373.00 (  0.00%)           319.00 ( 14.48%)
+Min      total-odr1-1               838.00 (  0.00%)           739.00 ( 11.81%)
+Min      total-odr1-2               619.00 (  0.00%)           543.00 ( 12.28%)
+Min      total-odr1-4               495.00 (  0.00%)           433.00 ( 12.53%)
+Min      total-odr1-8               440.00 (  0.00%)           382.00 ( 13.18%)
+Min      total-odr1-16              407.00 (  0.00%)           353.00 ( 13.27%)
+Min      total-odr1-32              398.00 (  0.00%)           341.00 ( 14.32%)
+Min      total-odr1-64              389.00 (  0.00%)           336.00 ( 13.62%)
+Min      total-odr1-128             392.00 (  0.00%)           341.00 ( 13.01%)
+Min      total-odr1-256             391.00 (  0.00%)           344.00 ( 12.02%)
+Min      total-odr1-512             396.00 (  0.00%)           349.00 ( 11.87%)
+Min      total-odr1-1024            402.00 (  0.00%)           357.00 ( 11.19%)
+Min      total-odr1-2048            409.00 (  0.00%)           364.00 ( 11.00%)
+Min      total-odr1-4096            414.00 (  0.00%)           366.00 ( 11.59%)
+Min      total-odr1-8192            417.00 (  0.00%)           369.00 ( 11.51%)
+Min      total-odr2-1               921.00 (  0.00%)          1210.00 (-31.38%)
+Min      total-odr2-2               682.00 (  0.00%)           576.00 ( 15.54%)
+Min      total-odr2-4               547.00 (  0.00%)           616.00 (-12.61%)
+Min      total-odr2-8               483.00 (  0.00%)           406.00 ( 15.94%)
+Min      total-odr2-16              449.00 (  0.00%)           376.00 ( 16.26%)
+Min      total-odr2-32              437.00 (  0.00%)           366.00 ( 16.25%)
+Min      total-odr2-64              431.00 (  0.00%)           363.00 ( 15.78%)
+Min      total-odr2-128             433.00 (  0.00%)           365.00 ( 15.70%)
+Min      total-odr2-256             434.00 (  0.00%)           371.00 ( 14.52%)
+Min      total-odr2-512             446.00 (  0.00%)           379.00 ( 15.02%)
+Min      total-odr2-1024            461.00 (  0.00%)           392.00 ( 14.97%)
+Min      total-odr2-2048            464.00 (  0.00%)           395.00 ( 14.87%)
+Min      total-odr2-4096            465.00 (  0.00%)           398.00 ( 14.41%)
+Min      total-odr3-1              1060.00 (  0.00%)           872.00 ( 17.74%)
+Min      total-odr3-2               778.00 (  0.00%)           633.00 ( 18.64%)
+Min      total-odr3-4               632.00 (  0.00%)           510.00 ( 19.30%)
+Min      total-odr3-8               565.00 (  0.00%)           452.00 ( 20.00%)
+Min      total-odr3-16              524.00 (  0.00%)           424.00 ( 19.08%)
+Min      total-odr3-32              514.00 (  0.00%)           415.00 ( 19.26%)
+Min      total-odr3-64              515.00 (  0.00%)           419.00 ( 18.64%)
+Min      total-odr3-128             523.00 (  0.00%)           426.00 ( 18.55%)
+Min      total-odr3-256             541.00 (  0.00%)           438.00 ( 19.04%)
+Min      total-odr3-512             559.00 (  0.00%)           451.00 ( 19.32%)
+Min      total-odr3-1024            561.00 (  0.00%)           456.00 ( 18.72%)
+Min      total-odr3-2048            562.00 (  0.00%)           459.00 ( 18.33%)
+Min      total-odr4-1              1328.00 (  0.00%)          1011.00 ( 23.87%)
+Min      total-odr4-2               997.00 (  0.00%)           747.00 ( 25.08%)
+Min      total-odr4-4               813.00 (  0.00%)           615.00 ( 24.35%)
+Min      total-odr4-8               721.00 (  0.00%)           550.00 ( 23.72%)
+Min      total-odr4-16              689.00 (  0.00%)           529.00 ( 23.22%)
+Min      total-odr4-32              683.00 (  0.00%)           528.00 ( 22.69%)
+Min      total-odr4-64              692.00 (  0.00%)           531.00 ( 23.27%)
+Min      total-odr4-128             713.00 (  0.00%)           556.00 ( 22.02%)
+Min      total-odr4-256             738.00 (  0.00%)           586.00 ( 20.60%)
+Min      total-odr4-512             753.00 (  0.00%)           595.00 ( 20.98%)
+Min      total-odr4-1024            752.00 (  0.00%)           600.00 ( 20.21%)
 
-There is a sizable boost to the free allocator performance.  While there
-is an apparent boost on the allocation side, it's likely a co-incidence or
-due to the patches slightly reducing cache footprint.
 
+
+This patch (of 27):
+
+order-0 pages by definition cannot be compound so avoid the check in the
+fast path for those pages.
+
+[akpm@linux-foundation.org: use unlikely(order) in free_pages_prepare(), per Vlastimil]
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    7 ++++++-
- mm/page_alloc.c            |    2 +-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/page-flags.h~mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path
-+++ a/include/linux/page-flags.h
-@@ -371,10 +371,15 @@ PAGEFLAG(Idle, idle, PF_ANY)
- #define PAGE_MAPPING_KSM	2
- #define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM)
- 
-+static __always_inline int PageAnonHead(struct page *page)
-+{
-+	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
-+}
-+
- static __always_inline int PageAnon(struct page *page)
- {
- 	page = compound_head(page);
--	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
-+	return PageAnonHead(page);
- }
- 
- #ifdef CONFIG_KSM
-diff -puN mm/page_alloc.c~mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-use-new-pageanonhead-helper-in-the-free-page-fast-path
+diff -puN mm/page_alloc.c~mm-page_alloc-only-check-pagecompound-for-high-order-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-only-check-pagecompound-for-high-order-pages
 +++ a/mm/page_alloc.c
-@@ -1048,7 +1048,7 @@ static bool free_pages_prepare(struct pa
- 			bad += free_pages_check(page + i);
- 		}
- 	}
--	if (PageAnon(page))
-+	if (PageAnonHead(page))
+@@ -1024,24 +1024,33 @@ void __meminit reserve_bootmem_region(un
+ 
+ static bool free_pages_prepare(struct page *page, unsigned int order)
+ {
+-	bool compound = PageCompound(page);
+-	int i, bad = 0;
++	int bad = 0;
+ 
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+-	VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
+ 
+ 	trace_mm_page_free(page, order);
+ 	kmemcheck_free_shadow(page, order);
+ 	kasan_free_pages(page, order);
+ 
++	/*
++	 * Check tail pages before head page information is cleared to
++	 * avoid checking PageCompound for order-0 pages.
++	 */
++	if (unlikely(order)) {
++		bool compound = PageCompound(page);
++		int i;
++
++		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
++
++		for (i = 1; i < (1 << order); i++) {
++			if (compound)
++				bad += free_tail_pages_check(page, page + i);
++			bad += free_pages_check(page + i);
++		}
++	}
+ 	if (PageAnon(page))
  		page->mapping = NULL;
  	bad += free_pages_check(page);
+-	for (i = 1; i < (1 << order); i++) {
+-		if (compound)
+-			bad += free_tail_pages_check(page, page + i);
+-		bad += free_pages_check(page + i);
+-	}
  	if (bad)
+ 		return false;
+ 
 _
