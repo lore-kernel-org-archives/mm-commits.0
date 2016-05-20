@@ -1,47 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-fix-has_transparent_hugepage.patch removed from -mm tree
-Date: Fri, 20 May 2016 14:05:50 -0700
-Message-ID: <573f7c2e.jDNyeVAyEnc+n9c8%akpm@linux-foundation.org>
+Subject: [merged]
+ tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch removed from
+ -mm tree
+Date: Fri, 20 May 2016 14:05:38 -0700
+Message-ID: <573f7c22.GmziGQfBt2tqBQrD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47238 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47210 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751172AbcETVFv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:51 -0400
+	with ESMTP id S1751215AbcETVFj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, davem@davemloft.net, gerald.schaefer@de.ibm.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, mingo@kernel.org, quning@gmail.com, vgupta@synopsys.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: andreslc@google.com, aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch: fix has_transparent_hugepage()
+     Subject: tmpfs: mem_cgroup charge fault to vm_mm not current mm
 has been removed from the -mm tree.  Its filename was
-     arch-fix-has_transparent_hugepage.patch
+     tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: arch: fix has_transparent_hugepage()
+From: Andres Lagar-Cavilla <andreslc@google.com>
+Subject: tmpfs: mem_cgroup charge fault to vm_mm not current mm
 
-I've just discovered that the useful-sounding has_transparent_hugepage()
-is actually an architecture-dependent minefield: on some arches it only
-builds if CONFIG_TRANSPARENT_HUGEPAGE=y, on others it's also there when
-not, but on some of those (arm and arm64) it then gives the wrong answer;
-and on mips alone it's marked __init, which would crash if called later
-(but so far it has not been called later).
+Although shmem_fault() has been careful to count a major fault to vm_mm,
+shmem_getpage_gfp() has been careless in charging a remote access fault to
+current->mm owner's memcg instead of to vma->vm_mm owner's memcg: that is
+inconsistent with all the mem_cgroup charging on remote access faults in
+mm/memory.c.
 
-Straighten this out: make it available to all configs, with a sensible
-default in asm-generic/pgtable.h, removing its definitions from those
-arches (arc, arm, arm64, sparc, tile) which are served by the default,
-adding #define has_transparent_hugepage has_transparent_hugepage to those
-(mips, powerpc, s390, x86) which need to override the default at runtime,
-and removing the __init from mips (but maybe that kind of code should be
-avoided after init: set a static variable the first time it's called).
+Fix it by passing fault_mm along with fault_type to shmem_get_page_gfp();
+but in that case, now knowing the right mm, it's better for it to handle
+the PGMAJFAULT updates itself.
 
+And let's keep this clutter out of most callers' way: change the common
+shmem_getpage() wrapper to hide fault_mm and fault_type as well as gfp.
+
+Signed-off-by: Andres Lagar-Cavilla <andreslc@google.com>
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -50,200 +51,215 @@ Cc: Yang Shi <yang.shi@linaro.org>
 Cc: Ning Qu <quning@gmail.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: Vineet Gupta <vgupta@synopsys.com>		[arch/arc]
-Acked-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>	[arch/s390]
-Acked-by: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/hugepage.h              |    2 -
- arch/arm/include/asm/pgtable-3level.h        |    5 ----
- arch/arm64/include/asm/pgtable.h             |    5 ----
- arch/mips/include/asm/pgtable.h              |    1 
- arch/mips/mm/tlb-r4k.c                       |   21 ++++++++---------
- arch/powerpc/include/asm/book3s/64/pgtable.h |    1 
- arch/powerpc/include/asm/pgtable.h           |    1 
- arch/s390/include/asm/pgtable.h              |    1 
- arch/sparc/include/asm/pgtable_64.h          |    2 -
- arch/tile/include/asm/pgtable.h              |    1 
- arch/x86/include/asm/pgtable.h               |    1 
- include/asm-generic/pgtable.h                |    8 ++++++
- 12 files changed, 23 insertions(+), 26 deletions(-)
+ mm/shmem.c |   61 ++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 34 insertions(+), 27 deletions(-)
 
-diff -puN arch/arc/include/asm/hugepage.h~arch-fix-has_transparent_hugepage arch/arc/include/asm/hugepage.h
---- a/arch/arc/include/asm/hugepage.h~arch-fix-has_transparent_hugepage
-+++ a/arch/arc/include/asm/hugepage.h
-@@ -61,8 +61,6 @@ static inline void set_pmd_at(struct mm_
- extern void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
- 				 pmd_t *pmd);
+diff -puN mm/shmem.c~tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm mm/shmem.c
+--- a/mm/shmem.c~tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm
++++ a/mm/shmem.c
+@@ -121,13 +121,14 @@ static bool shmem_should_replace_page(st
+ static int shmem_replace_page(struct page **pagep, gfp_t gfp,
+ 				struct shmem_inode_info *info, pgoff_t index);
+ static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
+-	struct page **pagep, enum sgp_type sgp, gfp_t gfp, int *fault_type);
++		struct page **pagep, enum sgp_type sgp,
++		gfp_t gfp, struct mm_struct *fault_mm, int *fault_type);
  
--#define has_transparent_hugepage() 1
--
- /* Generic variants assume pgtable_t is struct page *, hence need for these */
- #define __HAVE_ARCH_PGTABLE_DEPOSIT
- extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
-diff -puN arch/arm/include/asm/pgtable-3level.h~arch-fix-has_transparent_hugepage arch/arm/include/asm/pgtable-3level.h
---- a/arch/arm/include/asm/pgtable-3level.h~arch-fix-has_transparent_hugepage
-+++ a/arch/arm/include/asm/pgtable-3level.h
-@@ -281,11 +281,6 @@ static inline void set_pmd_at(struct mm_
- 	flush_pmd_entry(pmdp);
- }
- 
--static inline int has_transparent_hugepage(void)
--{
--	return 1;
--}
--
- #endif /* __ASSEMBLY__ */
- 
- #endif /* _ASM_PGTABLE_3LEVEL_H */
-diff -puN arch/arm64/include/asm/pgtable.h~arch-fix-has_transparent_hugepage arch/arm64/include/asm/pgtable.h
---- a/arch/arm64/include/asm/pgtable.h~arch-fix-has_transparent_hugepage
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -314,11 +314,6 @@ static inline int pmd_protnone(pmd_t pmd
- 
- #define set_pmd_at(mm, addr, pmdp, pmd)	set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd))
- 
--static inline int has_transparent_hugepage(void)
--{
--	return 1;
--}
--
- #define __pgprot_modify(prot,mask,bits) \
- 	__pgprot((pgprot_val(prot) & ~(mask)) | (bits))
- 
-diff -puN arch/mips/include/asm/pgtable.h~arch-fix-has_transparent_hugepage arch/mips/include/asm/pgtable.h
---- a/arch/mips/include/asm/pgtable.h~arch-fix-has_transparent_hugepage
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -468,6 +468,7 @@ static inline int io_remap_pfn_range(str
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 
-+#define has_transparent_hugepage has_transparent_hugepage
- extern int has_transparent_hugepage(void);
- 
- static inline int pmd_trans_huge(pmd_t pmd)
-diff -puN arch/mips/mm/tlb-r4k.c~arch-fix-has_transparent_hugepage arch/mips/mm/tlb-r4k.c
---- a/arch/mips/mm/tlb-r4k.c~arch-fix-has_transparent_hugepage
-+++ a/arch/mips/mm/tlb-r4k.c
-@@ -400,19 +400,20 @@ void add_wired_entry(unsigned long entry
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 
--int __init has_transparent_hugepage(void)
-+int has_transparent_hugepage(void)
+ static inline int shmem_getpage(struct inode *inode, pgoff_t index,
+-	struct page **pagep, enum sgp_type sgp, int *fault_type)
++		struct page **pagep, enum sgp_type sgp)
  {
--	unsigned int mask;
--	unsigned long flags;
-+	static unsigned int mask = -1;
+ 	return shmem_getpage_gfp(inode, index, pagep, sgp,
+-			mapping_gfp_mask(inode->i_mapping), fault_type);
++		mapping_gfp_mask(inode->i_mapping), NULL, NULL);
+ }
  
--	local_irq_save(flags);
--	write_c0_pagemask(PM_HUGE_MASK);
--	back_to_back_c0_hazard();
--	mask = read_c0_pagemask();
--	write_c0_pagemask(PM_DEFAULT_MASK);
+ static inline struct shmem_sb_info *SHMEM_SB(struct super_block *sb)
+@@ -527,7 +528,7 @@ static void shmem_undo_range(struct inod
+ 
+ 	if (partial_start) {
+ 		struct page *page = NULL;
+-		shmem_getpage(inode, start - 1, &page, SGP_READ, NULL);
++		shmem_getpage(inode, start - 1, &page, SGP_READ);
+ 		if (page) {
+ 			unsigned int top = PAGE_SIZE;
+ 			if (start > end) {
+@@ -542,7 +543,7 @@ static void shmem_undo_range(struct inod
+ 	}
+ 	if (partial_end) {
+ 		struct page *page = NULL;
+-		shmem_getpage(inode, end, &page, SGP_READ, NULL);
++		shmem_getpage(inode, end, &page, SGP_READ);
+ 		if (page) {
+ 			zero_user_segment(page, 0, partial_end);
+ 			set_page_dirty(page);
+@@ -1115,14 +1116,19 @@ static int shmem_replace_page(struct pag
+  *
+  * If we allocate a new one we do not mark it dirty. That's up to the
+  * vm. If we swap it in we mark it dirty since we also free the swap
+- * entry since a page cannot live in both the swap and page cache
++ * entry since a page cannot live in both the swap and page cache.
++ *
++ * fault_mm and fault_type are only supplied by shmem_fault:
++ * otherwise they are NULL.
+  */
+ static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
+-	struct page **pagep, enum sgp_type sgp, gfp_t gfp, int *fault_type)
++	struct page **pagep, enum sgp_type sgp, gfp_t gfp,
++	struct mm_struct *fault_mm, int *fault_type)
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct shmem_inode_info *info;
+ 	struct shmem_sb_info *sbinfo;
++	struct mm_struct *charge_mm;
+ 	struct mem_cgroup *memcg;
+ 	struct page *page;
+ 	swp_entry_t swap;
+@@ -1168,14 +1174,19 @@ repeat:
+ 	 */
+ 	info = SHMEM_I(inode);
+ 	sbinfo = SHMEM_SB(inode->i_sb);
++	charge_mm = fault_mm ? : current->mm;
+ 
+ 	if (swap.val) {
+ 		/* Look it up and read it in.. */
+ 		page = lookup_swap_cache(swap);
+ 		if (!page) {
+-			/* here we actually do the io */
+-			if (fault_type)
++			/* Or update major stats only when swapin succeeds?? */
++			if (fault_type) {
+ 				*fault_type |= VM_FAULT_MAJOR;
++				count_vm_event(PGMAJFAULT);
++				mem_cgroup_count_vm_event(fault_mm, PGMAJFAULT);
++			}
++			/* Here we actually start the io */
+ 			page = shmem_swapin(swap, gfp, info, index);
+ 			if (!page) {
+ 				error = -ENOMEM;
+@@ -1202,7 +1213,7 @@ repeat:
+ 				goto failed;
+ 		}
+ 
+-		error = mem_cgroup_try_charge(page, current->mm, gfp, &memcg,
++		error = mem_cgroup_try_charge(page, charge_mm, gfp, &memcg,
+ 				false);
+ 		if (!error) {
+ 			error = shmem_add_to_page_cache(page, mapping, index,
+@@ -1263,7 +1274,7 @@ repeat:
+ 		if (sgp == SGP_WRITE)
+ 			__SetPageReferenced(page);
+ 
+-		error = mem_cgroup_try_charge(page, current->mm, gfp, &memcg,
++		error = mem_cgroup_try_charge(page, charge_mm, gfp, &memcg,
+ 				false);
+ 		if (error)
+ 			goto decused;
+@@ -1352,6 +1363,7 @@ unlock:
+ static int shmem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct inode *inode = file_inode(vma->vm_file);
++	gfp_t gfp = mapping_gfp_mask(inode->i_mapping);
+ 	int error;
+ 	int ret = VM_FAULT_LOCKED;
+ 
+@@ -1413,14 +1425,10 @@ static int shmem_fault(struct vm_area_st
+ 		spin_unlock(&inode->i_lock);
+ 	}
+ 
+-	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
++	error = shmem_getpage_gfp(inode, vmf->pgoff, &vmf->page, SGP_CACHE,
++				  gfp, vma->vm_mm, &ret);
+ 	if (error)
+ 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
 -
--	local_irq_restore(flags);
-+	if (mask == -1) {	/* first call comes during __init */
-+		unsigned long flags;
- 
-+		local_irq_save(flags);
-+		write_c0_pagemask(PM_HUGE_MASK);
-+		back_to_back_c0_hazard();
-+		mask = read_c0_pagemask();
-+		write_c0_pagemask(PM_DEFAULT_MASK);
-+		local_irq_restore(flags);
-+	}
- 	return mask == PM_HUGE_MASK;
+-	if (ret & VM_FAULT_MAJOR) {
+-		count_vm_event(PGMAJFAULT);
+-		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+-	}
+ 	return ret;
  }
  
-diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~arch-fix-has_transparent_hugepage arch/powerpc/include/asm/book3s/64/pgtable.h
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~arch-fix-has_transparent_hugepage
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -219,6 +219,7 @@ extern void set_pmd_at(struct mm_struct
- 		       pmd_t *pmdp, pmd_t pmd);
- extern void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
- 				 pmd_t *pmd);
-+#define has_transparent_hugepage has_transparent_hugepage
- extern int has_transparent_hugepage(void);
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+@@ -1567,7 +1575,7 @@ shmem_write_begin(struct file *file, str
+ 			return -EPERM;
+ 	}
  
-diff -puN arch/powerpc/include/asm/pgtable.h~arch-fix-has_transparent_hugepage arch/powerpc/include/asm/pgtable.h
---- a/arch/powerpc/include/asm/pgtable.h~arch-fix-has_transparent_hugepage
-+++ a/arch/powerpc/include/asm/pgtable.h
-@@ -65,7 +65,6 @@ extern int gup_hugepte(pte_t *ptep, unsi
- 		       struct page **pages, int *nr);
- #ifndef CONFIG_TRANSPARENT_HUGEPAGE
- #define pmd_large(pmd)		0
--#define has_transparent_hugepage() 0
- #endif
- pte_t *__find_linux_pte_or_hugepte(pgd_t *pgdir, unsigned long ea,
- 				   bool *is_thp, unsigned *shift);
-diff -puN arch/s390/include/asm/pgtable.h~arch-fix-has_transparent_hugepage arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~arch-fix-has_transparent_hugepage
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1223,6 +1223,7 @@ static inline int pmd_trans_huge(pmd_t p
- 	return pmd_val(pmd) & _SEGMENT_ENTRY_LARGE;
+-	return shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
++	return shmem_getpage(inode, index, pagep, SGP_WRITE);
  }
  
-+#define has_transparent_hugepage has_transparent_hugepage
- static inline int has_transparent_hugepage(void)
- {
- 	return MACHINE_HAS_HPAGE ? 1 : 0;
-diff -puN arch/sparc/include/asm/pgtable_64.h~arch-fix-has_transparent_hugepage arch/sparc/include/asm/pgtable_64.h
---- a/arch/sparc/include/asm/pgtable_64.h~arch-fix-has_transparent_hugepage
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -681,8 +681,6 @@ static inline unsigned long pmd_trans_hu
- 	return pte_val(pte) & _PAGE_PMD_HUGE;
- }
+ static int
+@@ -1633,7 +1641,7 @@ static ssize_t shmem_file_read_iter(stru
+ 				break;
+ 		}
  
--#define has_transparent_hugepage() 1
--
- static inline pmd_t pmd_mkold(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
-diff -puN arch/tile/include/asm/pgtable.h~arch-fix-has_transparent_hugepage arch/tile/include/asm/pgtable.h
---- a/arch/tile/include/asm/pgtable.h~arch-fix-has_transparent_hugepage
-+++ a/arch/tile/include/asm/pgtable.h
-@@ -487,7 +487,6 @@ static inline pmd_t pmd_modify(pmd_t pmd
- }
+-		error = shmem_getpage(inode, index, &page, sgp, NULL);
++		error = shmem_getpage(inode, index, &page, sgp);
+ 		if (error) {
+ 			if (error == -EINVAL)
+ 				error = 0;
+@@ -1749,7 +1757,7 @@ static ssize_t shmem_file_splice_read(st
+ 	error = 0;
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--#define has_transparent_hugepage() 1
- #define pmd_trans_huge pmd_huge_page
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 	while (spd.nr_pages < nr_pages) {
+-		error = shmem_getpage(inode, index, &page, SGP_CACHE, NULL);
++		error = shmem_getpage(inode, index, &page, SGP_CACHE);
+ 		if (error)
+ 			break;
+ 		unlock_page(page);
+@@ -1771,8 +1779,7 @@ static ssize_t shmem_file_splice_read(st
+ 		page = spd.pages[page_nr];
  
-diff -puN arch/x86/include/asm/pgtable.h~arch-fix-has_transparent_hugepage arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~arch-fix-has_transparent_hugepage
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -181,6 +181,7 @@ static inline int pmd_trans_huge(pmd_t p
- 	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
- }
+ 		if (!PageUptodate(page) || page->mapping != mapping) {
+-			error = shmem_getpage(inode, index, &page,
+-							SGP_CACHE, NULL);
++			error = shmem_getpage(inode, index, &page, SGP_CACHE);
+ 			if (error)
+ 				break;
+ 			unlock_page(page);
+@@ -2215,8 +2222,7 @@ static long shmem_fallocate(struct file
+ 		else if (shmem_falloc.nr_unswapped > shmem_falloc.nr_falloced)
+ 			error = -ENOMEM;
+ 		else
+-			error = shmem_getpage(inode, index, &page, SGP_FALLOC,
+-									NULL);
++			error = shmem_getpage(inode, index, &page, SGP_FALLOC);
+ 		if (error) {
+ 			/* Remove the !PageUptodate pages we added */
+ 			shmem_undo_range(inode,
+@@ -2534,7 +2540,7 @@ static int shmem_symlink(struct inode *d
+ 		inode->i_op = &shmem_short_symlink_operations;
+ 	} else {
+ 		inode_nohighmem(inode);
+-		error = shmem_getpage(inode, 0, &page, SGP_WRITE, NULL);
++		error = shmem_getpage(inode, 0, &page, SGP_WRITE);
+ 		if (error) {
+ 			iput(inode);
+ 			return error;
+@@ -2575,7 +2581,7 @@ static const char *shmem_get_link(struct
+ 			return ERR_PTR(-ECHILD);
+ 		}
+ 	} else {
+-		error = shmem_getpage(inode, 0, &page, SGP_READ, NULL);
++		error = shmem_getpage(inode, 0, &page, SGP_READ);
+ 		if (error)
+ 			return ERR_PTR(error);
+ 		unlock_page(page);
+@@ -3479,7 +3485,8 @@ struct page *shmem_read_mapping_page_gfp
+ 	int error;
  
-+#define has_transparent_hugepage has_transparent_hugepage
- static inline int has_transparent_hugepage(void)
- {
- 	return boot_cpu_has(X86_FEATURE_PSE);
-diff -puN include/asm-generic/pgtable.h~arch-fix-has_transparent_hugepage include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~arch-fix-has_transparent_hugepage
-+++ a/include/asm-generic/pgtable.h
-@@ -806,4 +806,12 @@ static inline int pmd_clear_huge(pmd_t *
- #define io_remap_pfn_range remap_pfn_range
- #endif
- 
-+#ifndef has_transparent_hugepage
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#define has_transparent_hugepage() 1
-+#else
-+#define has_transparent_hugepage() 0
-+#endif
-+#endif
-+
- #endif /* _ASM_GENERIC_PGTABLE_H */
+ 	BUG_ON(mapping->a_ops != &shmem_aops);
+-	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE, gfp, NULL);
++	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE,
++				  gfp, NULL, NULL);
+ 	if (error)
+ 		page = ERR_PTR(error);
+ 	else
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from andreslc@google.com are
 
-radix-tree-rewrite-radix_tree_locate_item-fix.patch
 
