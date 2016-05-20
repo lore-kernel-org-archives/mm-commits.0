@@ -1,90 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [patch 037/117] mm/page_ref: use page_ref helper instead of
- direct modification of _count
-Date: Thu, 19 May 2016 17:10:46 -0700
-Message-ID: <573e5606.LJYXel3hmhUfkhE4%akpm@linux-foundation.org>
+Subject: [patch 039/117] compiler.h: add support for malloc attribute
+Date: Thu, 19 May 2016 17:10:52 -0700
+Message-ID: <573e560c.iakIEcXxVqL9CFor%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46047 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46068 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755342AbcETAKs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:10:48 -0400
+	with ESMTP id S1755342AbcETAKy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:10:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, cmetcalf@mellanox.com, davem@davemloft.net, hughd@google.com, johannes@sipsolutions.net, sgoutham@cavium.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, linux@rasmusvillemoes.dk, ak@linux.intel.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com
 
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_ref: use page_ref helper instead of direct modification of _count
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: compiler.h: add support for malloc attribute
 
-page_reference manipulation functions are introduced to track down
-reference count change of the page.  Use it instead of direct modification
-of _count.
+gcc as far back as at least 3.04 documents the function attribute
+__malloc__.  Add a shorthand for attaching that to a function declaration.
+This was also suggested by Andi Kleen way back in 2002 [1], but didn't
+get applied, perhaps because gcc at that time generated the exact same
+code with and without this attribute.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Sunil Goutham <sgoutham@cavium.com>
-Cc: Chris Metcalf <cmetcalf@mellanox.com>
+This attribute tells the compiler that the return value (if non-NULL) can
+be assumed not to alias any other valid pointers at the time of the call.
+
+Please note that the documentation for a range of gcc versions (starting
+from around 4.7) contained a somewhat confusing and self-contradicting
+text:
+
+  The malloc attribute is used to tell the compiler that a function may
+  be treated as if any non-NULL pointer it returns cannot alias any other
+  pointer valid when the function returns and *that the memory has
+  undefined content*.  [...] Standard functions with this property include
+  malloc and *calloc*.
+
+(emphasis mine). The intended meaning has later been clarified [2]:
+
+  This tells the compiler that a function is malloc-like, i.e., that the
+  pointer P returned by the function cannot alias any other pointer valid
+  when the function returns, and moreover no pointers to valid objects
+  occur in any storage addressed by P.
+
+What this means is that we can apply the attribute to kmalloc and friends,
+and it is ok for the returned memory to have well-defined contents
+(__GFP_ZERO).  But it is not ok to apply it to kmemdup(), nor to other
+functions which both allocate and possibly initialize the memory with
+existing pointers.  So unless someone is doing something pretty perverted
+kstrdup() should also be a fine candidate.
+
+[1] http://thread.gmane.org/gmane.linux.kernel/57172
+[2] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56955
+
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/cavium/thunder/nicvf_queues.c |    2 +-
- drivers/net/ethernet/qlogic/qede/qede_main.c       |    2 +-
- mm/filemap.c                                       |    2 +-
- net/wireless/util.c                                |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/compiler-gcc.h |    1 +
+ include/linux/compiler.h     |    4 ++++
+ 2 files changed, 5 insertions(+)
 
-diff -puN drivers/net/ethernet/cavium/thunder/nicvf_queues.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count drivers/net/ethernet/cavium/thunder/nicvf_queues.c
---- a/drivers/net/ethernet/cavium/thunder/nicvf_queues.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count
-+++ a/drivers/net/ethernet/cavium/thunder/nicvf_queues.c
-@@ -23,7 +23,7 @@ static void nicvf_get_page(struct nicvf
- 	if (!nic->rb_pageref || !nic->rb_page)
- 		return;
+diff -puN include/linux/compiler-gcc.h~compilerh-add-support-for-malloc-attribute include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compilerh-add-support-for-malloc-attribute
++++ a/include/linux/compiler-gcc.h
+@@ -142,6 +142,7 @@
  
--	atomic_add(nic->rb_pageref, &nic->rb_page->_count);
-+	page_ref_add(nic->rb_page, nic->rb_pageref);
- 	nic->rb_pageref = 0;
- }
+ #if GCC_VERSION >= 30400
+ #define __must_check		__attribute__((warn_unused_result))
++#define __malloc		__attribute__((__malloc__))
+ #endif
  
-diff -puN drivers/net/ethernet/qlogic/qede/qede_main.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count drivers/net/ethernet/qlogic/qede/qede_main.c
---- a/drivers/net/ethernet/qlogic/qede/qede_main.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count
-+++ a/drivers/net/ethernet/qlogic/qede/qede_main.c
-@@ -920,7 +920,7 @@ static inline int qede_realloc_rx_buffer
- 		 * network stack to take the ownership of the page
- 		 * which can be recycled multiple times by the driver.
- 		 */
--		atomic_inc(&curr_cons->data->_count);
-+		page_ref_inc(curr_cons->data);
- 		qede_reuse_page(edev, rxq, curr_cons);
- 	}
+ #if GCC_VERSION >= 40000
+diff -puN include/linux/compiler.h~compilerh-add-support-for-malloc-attribute include/linux/compiler.h
+--- a/include/linux/compiler.h~compilerh-add-support-for-malloc-attribute
++++ a/include/linux/compiler.h
+@@ -357,6 +357,10 @@ static __always_inline void __write_once
+ #define __deprecated_for_modules
+ #endif
  
-diff -puN mm/filemap.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count mm/filemap.c
---- a/mm/filemap.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count
-+++ a/mm/filemap.c
-@@ -213,7 +213,7 @@ void __delete_from_page_cache(struct pag
- 			 * some other bad page check should catch it later.
- 			 */
- 			page_mapcount_reset(page);
--			atomic_sub(mapcount, &page->_count);
-+			page_ref_sub(page, mapcount);
- 		}
- 	}
- 
-diff -puN net/wireless/util.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count net/wireless/util.c
---- a/net/wireless/util.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count
-+++ a/net/wireless/util.c
-@@ -651,7 +651,7 @@ __frame_add_frag(struct sk_buff *skb, st
- 	struct skb_shared_info *sh = skb_shinfo(skb);
- 	int page_offset;
- 
--	atomic_inc(&page->_count);
-+	page_ref_inc(page);
- 	page_offset = ptr - page_address(page);
- 	skb_add_rx_frag(skb, sh->nr_frags, page, page_offset, len, size);
- }
++#ifndef __malloc
++#define __malloc
++#endif
++
+ /*
+  * Allow us to avoid 'defined but not used' warnings on functions and data,
+  * as well as force them to be emitted to the assembly file.
 _
