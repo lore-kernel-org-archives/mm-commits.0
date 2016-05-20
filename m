@@ -1,100 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: [patch 063/117] mm/hugetlb: add same zone check in
- pfn_range_valid_gigantic()
-Date: Thu, 19 May 2016 17:12:03 -0700
-Message-ID: <573e5653.ObqpCdrogv7dctHn%akpm@linux-foundation.org>
+Subject: [patch 078/117] mm: /proc/sys/vm/stat_refresh to force vmstat
+ update
+Date: Thu, 19 May 2016 17:12:50 -0700
+Message-ID: <573e5682.78cGSAV4yym0N51H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46255 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46430 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932455AbcETAMF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:12:05 -0400
+	with ESMTP id S1755059AbcETAMw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:12:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, mpe@ellerman.id.au, paulus@samba.org, riel@redhat.com, rjw@rjwysocki.net, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org
 
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/hugetlb: add same zone check in pfn_range_valid_gigantic()
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: /proc/sys/vm/stat_refresh to force vmstat update
 
-This patchset deals with some problematic sites that iterate pfn ranges.
+Provide /proc/sys/vm/stat_refresh to force an immediate update of per-cpu
+into global vmstats: useful to avoid a sleep(2) or whatever before
+checking counts when testing.  Originally added to work around a bug which
+left counts stranded indefinitely on a cpu going idle (an inaccuracy
+magnified when small below-batch numbers represent "huge" amounts of
+memory), but I believe that bug is now fixed: nonetheless, this is still a
+useful knob.
 
-There is a system thats node's pfns are overlapped as follows:
+Its schedule_on_each_cpu() is probably too expensive just to fold into
+reading /proc/meminfo itself: give this mode 0600 to prevent abuse.  Allow
+a write or a read to do the same: nothing to read, but "grep -h Shmem
+/proc/sys/vm/stat_refresh /proc/meminfo" is convenient.  Oh, and since
+global_page_state() itself is careful to disguise any underflow as 0, hack
+in an "Invalid argument" and pr_warn() if a counter is negative after the
+refresh - this helped to fix a misaccounting of NR_ISOLATED_FILE in my
+migration code.
 
------pfn-------->
-N0 N1 N2 N0 N1 N2
+But on recent kernels, I find that NR_ALLOC_BATCH and NR_PAGES_SCANNED
+often go negative some of the time.  I have not yet worked out why, but
+have no evidence that it's actually harmful.  Punt for the moment by just
+ignoring the anomaly on those.
 
-Therefore, we need to take care of this overlapping when iterating pfn
-range.
-
-I audit many iterating sites that uses pfn_valid(), pfn_valid_within(),
-zone_start_pfn and etc.  and others looks safe to me.  This is a
-preparation step for a new CMA implementation, ZONE_CMA
-(https://lkml.org/lkml/2015/2/12/95), because it would be easily
-overlapped with other zones.  But, zone overlap check is also needed for
-the general case so I send it separately.
-
-
-
-This patch (of 5):
-
-alloc_gigantic_page() uses alloc_contig_range() and this requires that the
-requested range is in a single zone.  To satisfy this requirement, add
-this check to pfn_range_valid_gigantic().
-
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Ning Qu <quning@gmail.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Laura Abbott <lauraa@codeaurora.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ Documentation/sysctl/vm.txt |   14 +++++++
+ include/linux/vmstat.h      |    4 ++
+ kernel/sysctl.c             |    7 +++
+ mm/vmstat.c                 |   60 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 85 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic
-+++ a/mm/hugetlb.c
-@@ -1031,8 +1031,8 @@ static int __alloc_gigantic_page(unsigne
- 	return alloc_contig_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
- }
+diff -puN Documentation/sysctl/vm.txt~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update
++++ a/Documentation/sysctl/vm.txt
+@@ -57,6 +57,7 @@ Currently, these files are in /proc/sys/
+ - panic_on_oom
+ - percpu_pagelist_fraction
+ - stat_interval
++- stat_refresh
+ - swappiness
+ - user_reserve_kbytes
+ - vfs_cache_pressure
+@@ -755,6 +756,19 @@ is 1 second.
  
--static bool pfn_range_valid_gigantic(unsigned long start_pfn,
--				unsigned long nr_pages)
-+static bool pfn_range_valid_gigantic(struct zone *z,
-+			unsigned long start_pfn, unsigned long nr_pages)
- {
- 	unsigned long i, end_pfn = start_pfn + nr_pages;
- 	struct page *page;
-@@ -1043,6 +1043,9 @@ static bool pfn_range_valid_gigantic(uns
+ ==============================================================
  
- 		page = pfn_to_page(i);
- 
-+		if (page_zone(page) != z)
-+			return false;
++stat_refresh
 +
- 		if (PageReserved(page))
- 			return false;
++Any read or write (by root only) flushes all the per-cpu vm statistics
++into their global totals, for more accurate reports when testing
++e.g. cat /proc/sys/vm/stat_refresh /proc/meminfo
++
++As a side-effect, it also checks for negative totals (elsewhere reported
++as 0) and "fails" with EINVAL if any are found, with a warning in dmesg.
++(At time of writing, a few stats are known sometimes to be found negative,
++with no ill effects: errors and warnings on these stats are suppressed.)
++
++==============================================================
++
+ swappiness
  
-@@ -1075,7 +1078,7 @@ static struct page *alloc_gigantic_page(
+ This control is used to define how aggressive the kernel will swap
+diff -puN include/linux/vmstat.h~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update
++++ a/include/linux/vmstat.h
+@@ -193,6 +193,10 @@ void quiet_vmstat(void);
+ void cpu_vm_stats_fold(int cpu);
+ void refresh_zone_stat_thresholds(void);
  
- 		pfn = ALIGN(z->zone_start_pfn, nr_pages);
- 		while (zone_spans_last_pfn(z, pfn, nr_pages)) {
--			if (pfn_range_valid_gigantic(pfn, nr_pages)) {
-+			if (pfn_range_valid_gigantic(z, pfn, nr_pages)) {
- 				/*
- 				 * We release the zone lock here because
- 				 * alloc_contig_range() will also lock the zone
++struct ctl_table;
++int vmstat_refresh(struct ctl_table *, int write,
++		   void __user *buffer, size_t *lenp, loff_t *ppos);
++
+ void drain_zonestat(struct zone *zone, struct per_cpu_pageset *);
+ 
+ int calculate_pressure_threshold(struct zone *zone);
+diff -puN kernel/sysctl.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update
++++ a/kernel/sysctl.c
+@@ -1521,6 +1521,13 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_jiffies,
+ 	},
++	{
++		.procname	= "stat_refresh",
++		.data		= NULL,
++		.maxlen		= 0,
++		.mode		= 0600,
++		.proc_handler	= vmstat_refresh,
++	},
+ #endif
+ #ifdef CONFIG_MMU
+ 	{
+diff -puN mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update mm/vmstat.c
+--- a/mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update
++++ a/mm/vmstat.c
+@@ -1379,6 +1379,66 @@ static DEFINE_PER_CPU(struct delayed_wor
+ int sysctl_stat_interval __read_mostly = HZ;
+ static cpumask_var_t cpu_stat_off;
+ 
++#ifdef CONFIG_PROC_FS
++static void refresh_vm_stats(struct work_struct *work)
++{
++	refresh_cpu_vm_stats(true);
++}
++
++int vmstat_refresh(struct ctl_table *table, int write,
++		   void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	long val;
++	int err;
++	int i;
++
++	/*
++	 * The regular update, every sysctl_stat_interval, may come later
++	 * than expected: leaving a significant amount in per_cpu buckets.
++	 * This is particularly misleading when checking a quantity of HUGE
++	 * pages, immediately after running a test.  /proc/sys/vm/stat_refresh,
++	 * which can equally be echo'ed to or cat'ted from (by root),
++	 * can be used to update the stats just before reading them.
++	 *
++	 * Oh, and since global_page_state() etc. are so careful to hide
++	 * transiently negative values, report an error here if any of
++	 * the stats is negative, so we know to go looking for imbalance.
++	 */
++	err = schedule_on_each_cpu(refresh_vm_stats);
++	if (err)
++		return err;
++	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
++		val = atomic_long_read(&vm_stat[i]);
++		if (val < 0) {
++			switch (i) {
++			case NR_ALLOC_BATCH:
++			case NR_PAGES_SCANNED:
++				/*
++				 * These are often seen to go negative in
++				 * recent kernels, but not to go permanently
++				 * negative.  Whilst it would be nicer not to
++				 * have exceptions, rooting them out would be
++				 * another task, of rather low priority.
++				 */
++				break;
++			default:
++				pr_warn("%s: %s %ld\n",
++					__func__, vmstat_text[i], val);
++				err = -EINVAL;
++				break;
++			}
++		}
++	}
++	if (err)
++		return err;
++	if (write)
++		*ppos += *lenp;
++	else
++		*lenp = 0;
++	return 0;
++}
++#endif /* CONFIG_PROC_FS */
++
+ static void vmstat_update(struct work_struct *w)
+ {
+ 	if (refresh_cpu_vm_stats(true)) {
 _
