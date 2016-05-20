@@ -1,27 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [patch 079/117] huge mm: move_huge_pmd does not need new_vma
-Date: Thu, 19 May 2016 17:12:54 -0700
-Message-ID: <573e5686.ueuyvW5l371TrxEL%akpm@linux-foundation.org>
+Subject: [patch 081/117] arch: fix has_transparent_hugepage()
+Date: Thu, 19 May 2016 17:13:00 -0700
+Message-ID: <573e568c.cPdNe2szsz9sINmI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46437 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46453 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932921AbcETAMz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:12:55 -0400
+	with ESMTP id S932921AbcETANB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:13:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, aarcange@redhat.com, andreslc@google.com, davem@davemloft.net, gerald.schaefer@de.ibm.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, mingo@kernel.org, quning@gmail.com, vgupta@synopsys.com, yang.shi@linaro.org
 
 From: Hugh Dickins <hughd@google.com>
-Subject: huge mm: move_huge_pmd does not need new_vma
+Subject: arch: fix has_transparent_hugepage()
 
-Remove move_huge_pmd()'s redundant new_vma arg: all it was used for was a
-VM_NOHUGEPAGE check on new_vma flags, but the new_vma is cloned from the
-old vma, so a trans_huge_pmd in the new_vma will be as acceptable as it
-was in the old vma, alignment and size permitting.
+I've just discovered that the useful-sounding has_transparent_hugepage()
+is actually an architecture-dependent minefield: on some arches it only
+builds if CONFIG_TRANSPARENT_HUGEPAGE=y, on others it's also there when
+not, but on some of those (arm and arm64) it then gives the wrong answer;
+and on mips alone it's marked __init, which would crash if called later
+(but so far it has not been called later).
+
+Straighten this out: make it available to all configs, with a sensible
+default in asm-generic/pgtable.h, removing its definitions from those
+arches (arc, arm, arm64, sparc, tile) which are served by the default,
+adding #define has_transparent_hugepage has_transparent_hugepage to those
+(mips, powerpc, s390, x86) which need to override the default at runtime,
+and removing the __init from mips (but maybe that kind of code should be
+avoided after init: set a static variable the first time it's called).
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -30,69 +40,196 @@ Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Yang Shi <yang.shi@linaro.org>
 Cc: Ning Qu <quning@gmail.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Vineet Gupta <vgupta@synopsys.com>		[arch/arc]
+Acked-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>	[arch/s390]
+Acked-by: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    4 +---
- mm/huge_memory.c        |    7 ++-----
- mm/mremap.c             |    5 ++---
- 3 files changed, 5 insertions(+), 11 deletions(-)
+ arch/arc/include/asm/hugepage.h              |    2 -
+ arch/arm/include/asm/pgtable-3level.h        |    5 ----
+ arch/arm64/include/asm/pgtable.h             |    5 ----
+ arch/mips/include/asm/pgtable.h              |    1 
+ arch/mips/mm/tlb-r4k.c                       |   21 ++++++++---------
+ arch/powerpc/include/asm/book3s/64/pgtable.h |    1 
+ arch/powerpc/include/asm/pgtable.h           |    1 
+ arch/s390/include/asm/pgtable.h              |    1 
+ arch/sparc/include/asm/pgtable_64.h          |    2 -
+ arch/tile/include/asm/pgtable.h              |    1 
+ arch/x86/include/asm/pgtable.h               |    1 
+ include/asm-generic/pgtable.h                |    8 ++++++
+ 12 files changed, 23 insertions(+), 26 deletions(-)
 
-diff -puN include/linux/huge_mm.h~huge-mm-move_huge_pmd-does-not-need-new_vma include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~huge-mm-move_huge_pmd-does-not-need-new_vma
-+++ a/include/linux/huge_mm.h
-@@ -28,9 +28,7 @@ extern int zap_huge_pmd(struct mmu_gathe
- extern int mincore_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 			unsigned long addr, unsigned long end,
- 			unsigned char *vec);
--extern bool move_huge_pmd(struct vm_area_struct *vma,
--			 struct vm_area_struct *new_vma,
--			 unsigned long old_addr,
-+extern bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
- 			 unsigned long new_addr, unsigned long old_end,
- 			 pmd_t *old_pmd, pmd_t *new_pmd);
- extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
-diff -puN mm/huge_memory.c~huge-mm-move_huge_pmd-does-not-need-new_vma mm/huge_memory.c
---- a/mm/huge_memory.c~huge-mm-move_huge_pmd-does-not-need-new_vma
-+++ a/mm/huge_memory.c
-@@ -1698,20 +1698,17 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 	return 1;
+diff -puN arch/arc/include/asm/hugepage.h~arch-fix-has_transparent_hugepage arch/arc/include/asm/hugepage.h
+--- a/arch/arc/include/asm/hugepage.h~arch-fix-has_transparent_hugepage
++++ a/arch/arc/include/asm/hugepage.h
+@@ -61,8 +61,6 @@ static inline void set_pmd_at(struct mm_
+ extern void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 				 pmd_t *pmd);
+ 
+-#define has_transparent_hugepage() 1
+-
+ /* Generic variants assume pgtable_t is struct page *, hence need for these */
+ #define __HAVE_ARCH_PGTABLE_DEPOSIT
+ extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+diff -puN arch/arm/include/asm/pgtable-3level.h~arch-fix-has_transparent_hugepage arch/arm/include/asm/pgtable-3level.h
+--- a/arch/arm/include/asm/pgtable-3level.h~arch-fix-has_transparent_hugepage
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -281,11 +281,6 @@ static inline void set_pmd_at(struct mm_
+ 	flush_pmd_entry(pmdp);
  }
  
--bool move_huge_pmd(struct vm_area_struct *vma, struct vm_area_struct *new_vma,
--		  unsigned long old_addr,
-+bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
- 		  unsigned long new_addr, unsigned long old_end,
- 		  pmd_t *old_pmd, pmd_t *new_pmd)
- {
- 	spinlock_t *old_ptl, *new_ptl;
- 	pmd_t pmd;
+-static inline int has_transparent_hugepage(void)
+-{
+-	return 1;
+-}
 -
- 	struct mm_struct *mm = vma->vm_mm;
+ #endif /* __ASSEMBLY__ */
  
- 	if ((old_addr & ~HPAGE_PMD_MASK) ||
- 	    (new_addr & ~HPAGE_PMD_MASK) ||
--	    old_end - old_addr < HPAGE_PMD_SIZE ||
--	    (new_vma->vm_flags & VM_NOHUGEPAGE))
-+	    old_end - old_addr < HPAGE_PMD_SIZE)
- 		return false;
+ #endif /* _ASM_PGTABLE_3LEVEL_H */
+diff -puN arch/arm64/include/asm/pgtable.h~arch-fix-has_transparent_hugepage arch/arm64/include/asm/pgtable.h
+--- a/arch/arm64/include/asm/pgtable.h~arch-fix-has_transparent_hugepage
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -314,11 +314,6 @@ static inline int pmd_protnone(pmd_t pmd
  
- 	/*
-diff -puN mm/mremap.c~huge-mm-move_huge_pmd-does-not-need-new_vma mm/mremap.c
---- a/mm/mremap.c~huge-mm-move_huge_pmd-does-not-need-new_vma
-+++ a/mm/mremap.c
-@@ -198,9 +198,8 @@ unsigned long move_page_tables(struct vm
- 				/* See comment in move_ptes() */
- 				if (need_rmap_locks)
- 					anon_vma_lock_write(vma->anon_vma);
--				moved = move_huge_pmd(vma, new_vma, old_addr,
--						    new_addr, old_end,
--						    old_pmd, new_pmd);
-+				moved = move_huge_pmd(vma, old_addr, new_addr,
-+						    old_end, old_pmd, new_pmd);
- 				if (need_rmap_locks)
- 					anon_vma_unlock_write(vma->anon_vma);
- 				if (moved) {
+ #define set_pmd_at(mm, addr, pmdp, pmd)	set_pte_at(mm, addr, (pte_t *)pmdp, pmd_pte(pmd))
+ 
+-static inline int has_transparent_hugepage(void)
+-{
+-	return 1;
+-}
+-
+ #define __pgprot_modify(prot,mask,bits) \
+ 	__pgprot((pgprot_val(prot) & ~(mask)) | (bits))
+ 
+diff -puN arch/mips/include/asm/pgtable.h~arch-fix-has_transparent_hugepage arch/mips/include/asm/pgtable.h
+--- a/arch/mips/include/asm/pgtable.h~arch-fix-has_transparent_hugepage
++++ a/arch/mips/include/asm/pgtable.h
+@@ -468,6 +468,7 @@ static inline int io_remap_pfn_range(str
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 
++#define has_transparent_hugepage has_transparent_hugepage
+ extern int has_transparent_hugepage(void);
+ 
+ static inline int pmd_trans_huge(pmd_t pmd)
+diff -puN arch/mips/mm/tlb-r4k.c~arch-fix-has_transparent_hugepage arch/mips/mm/tlb-r4k.c
+--- a/arch/mips/mm/tlb-r4k.c~arch-fix-has_transparent_hugepage
++++ a/arch/mips/mm/tlb-r4k.c
+@@ -400,19 +400,20 @@ void add_wired_entry(unsigned long entry
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 
+-int __init has_transparent_hugepage(void)
++int has_transparent_hugepage(void)
+ {
+-	unsigned int mask;
+-	unsigned long flags;
++	static unsigned int mask = -1;
+ 
+-	local_irq_save(flags);
+-	write_c0_pagemask(PM_HUGE_MASK);
+-	back_to_back_c0_hazard();
+-	mask = read_c0_pagemask();
+-	write_c0_pagemask(PM_DEFAULT_MASK);
+-
+-	local_irq_restore(flags);
++	if (mask == -1) {	/* first call comes during __init */
++		unsigned long flags;
+ 
++		local_irq_save(flags);
++		write_c0_pagemask(PM_HUGE_MASK);
++		back_to_back_c0_hazard();
++		mask = read_c0_pagemask();
++		write_c0_pagemask(PM_DEFAULT_MASK);
++		local_irq_restore(flags);
++	}
+ 	return mask == PM_HUGE_MASK;
+ }
+ 
+diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~arch-fix-has_transparent_hugepage arch/powerpc/include/asm/book3s/64/pgtable.h
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~arch-fix-has_transparent_hugepage
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -219,6 +219,7 @@ extern void set_pmd_at(struct mm_struct
+ 		       pmd_t *pmdp, pmd_t pmd);
+ extern void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 				 pmd_t *pmd);
++#define has_transparent_hugepage has_transparent_hugepage
+ extern int has_transparent_hugepage(void);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+diff -puN arch/powerpc/include/asm/pgtable.h~arch-fix-has_transparent_hugepage arch/powerpc/include/asm/pgtable.h
+--- a/arch/powerpc/include/asm/pgtable.h~arch-fix-has_transparent_hugepage
++++ a/arch/powerpc/include/asm/pgtable.h
+@@ -65,7 +65,6 @@ extern int gup_hugepte(pte_t *ptep, unsi
+ 		       struct page **pages, int *nr);
+ #ifndef CONFIG_TRANSPARENT_HUGEPAGE
+ #define pmd_large(pmd)		0
+-#define has_transparent_hugepage() 0
+ #endif
+ pte_t *__find_linux_pte_or_hugepte(pgd_t *pgdir, unsigned long ea,
+ 				   bool *is_thp, unsigned *shift);
+diff -puN arch/s390/include/asm/pgtable.h~arch-fix-has_transparent_hugepage arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~arch-fix-has_transparent_hugepage
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1223,6 +1223,7 @@ static inline int pmd_trans_huge(pmd_t p
+ 	return pmd_val(pmd) & _SEGMENT_ENTRY_LARGE;
+ }
+ 
++#define has_transparent_hugepage has_transparent_hugepage
+ static inline int has_transparent_hugepage(void)
+ {
+ 	return MACHINE_HAS_HPAGE ? 1 : 0;
+diff -puN arch/sparc/include/asm/pgtable_64.h~arch-fix-has_transparent_hugepage arch/sparc/include/asm/pgtable_64.h
+--- a/arch/sparc/include/asm/pgtable_64.h~arch-fix-has_transparent_hugepage
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -681,8 +681,6 @@ static inline unsigned long pmd_trans_hu
+ 	return pte_val(pte) & _PAGE_PMD_HUGE;
+ }
+ 
+-#define has_transparent_hugepage() 1
+-
+ static inline pmd_t pmd_mkold(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+diff -puN arch/tile/include/asm/pgtable.h~arch-fix-has_transparent_hugepage arch/tile/include/asm/pgtable.h
+--- a/arch/tile/include/asm/pgtable.h~arch-fix-has_transparent_hugepage
++++ a/arch/tile/include/asm/pgtable.h
+@@ -487,7 +487,6 @@ static inline pmd_t pmd_modify(pmd_t pmd
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-#define has_transparent_hugepage() 1
+ #define pmd_trans_huge pmd_huge_page
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+diff -puN arch/x86/include/asm/pgtable.h~arch-fix-has_transparent_hugepage arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~arch-fix-has_transparent_hugepage
++++ a/arch/x86/include/asm/pgtable.h
+@@ -181,6 +181,7 @@ static inline int pmd_trans_huge(pmd_t p
+ 	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
+ }
+ 
++#define has_transparent_hugepage has_transparent_hugepage
+ static inline int has_transparent_hugepage(void)
+ {
+ 	return boot_cpu_has(X86_FEATURE_PSE);
+diff -puN include/asm-generic/pgtable.h~arch-fix-has_transparent_hugepage include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~arch-fix-has_transparent_hugepage
++++ a/include/asm-generic/pgtable.h
+@@ -806,4 +806,12 @@ static inline int pmd_clear_huge(pmd_t *
+ #define io_remap_pfn_range remap_pfn_range
+ #endif
+ 
++#ifndef has_transparent_hugepage
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#define has_transparent_hugepage() 1
++#else
++#define has_transparent_hugepage() 0
++#endif
++#endif
++
+ #endif /* _ASM_GENERIC_PGTABLE_H */
 _
