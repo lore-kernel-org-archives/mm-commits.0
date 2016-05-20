@@ -1,50 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [patch 019/117] ocfs2: clean up an unneeded goto in
- ocfs2_put_slot()
-Date: Thu, 19 May 2016 17:09:53 -0700
-Message-ID: <573e55d1.7XTN6Cl9EhnwUMVT%akpm@linux-foundation.org>
+Subject: [patch 021/117] kernel/padata.c: hide unused functions
+Date: Thu, 19 May 2016 17:09:59 -0700
+Message-ID: <573e55d7.phX9UV9aJpcqy9CE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45924 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45934 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754561AbcETAJz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:55 -0400
+	with ESMTP id S1753942AbcETAKA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:10:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, guozhonghua@h3c.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, rcochran@linutronix.de, steffen.klassert@secunet.com
 
-From: Guozhonghua <guozhonghua@h3c.com>
-Subject: ocfs2: clean up an unneeded goto in ocfs2_put_slot()
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kernel/padata.c: hide unused functions
 
-The goto is not useful in ocfs2_put_slot(), so delete it.
+A recent cleanup removed some exported functions that were not used
+anywhere, which in turn exposed the fact that some other functions in the
+same file are only used in some configurations.
 
-Signed-off-by: Guozhonghua <guozhonghua@h3c.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+We now get a warning about them when CONFIG_HOTPLUG_CPU is disabled:
+
+kernel/padata.c:670:12: error: '__padata_remove_cpu' defined but not used [-Werror=unused-function]
+ static int __padata_remove_cpu(struct padata_instance *pinst, int cpu)
+            ^~~~~~~~~~~~~~~~~~~
+kernel/padata.c:650:12: error: '__padata_add_cpu' defined but not used [-Werror=unused-function]
+ static int __padata_add_cpu(struct padata_instance *pinst, int cpu)
+
+This rearranges the code so the __padata_remove_cpu/__padata_add_cpu
+functions are within the #ifdef that protects the code that calls them.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Fixes: 4ba6d78c671e ("kernel/padata.c: removed unused code")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Richard Cochran <rcochran@linutronix.de>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/slot_map.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ kernel/padata.c |   74 +++++++++++++++++++++++-----------------------
+ 1 file changed, 37 insertions(+), 37 deletions(-)
 
-diff -puN fs/ocfs2/slot_map.c~ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function fs/ocfs2/slot_map.c
---- a/fs/ocfs2/slot_map.c~ocfs2-clean-up-an-unuseful-goto-in-ocfs2_put_slot-function
-+++ a/fs/ocfs2/slot_map.c
-@@ -535,12 +535,8 @@ void ocfs2_put_slot(struct ocfs2_super *
- 	spin_unlock(&osb->osb_lock);
- 
- 	status = ocfs2_update_disk_slot(osb, si, slot_num);
--	if (status < 0) {
-+	if (status < 0)
- 		mlog_errno(status);
--		goto bail;
--	}
- 
--bail:
- 	ocfs2_free_slot_info(osb);
+diff -puN kernel/padata.c~kernel-padata-hide-unused-functions kernel/padata.c
+--- a/kernel/padata.c~kernel-padata-hide-unused-functions
++++ a/kernel/padata.c
+@@ -647,6 +647,43 @@ out:
  }
+ EXPORT_SYMBOL(padata_set_cpumask);
+ 
++/**
++ * padata_start - start the parallel processing
++ *
++ * @pinst: padata instance to start
++ */
++int padata_start(struct padata_instance *pinst)
++{
++	int err = 0;
++
++	mutex_lock(&pinst->lock);
++
++	if (pinst->flags & PADATA_INVALID)
++		err = -EINVAL;
++
++	 __padata_start(pinst);
++
++	mutex_unlock(&pinst->lock);
++
++	return err;
++}
++EXPORT_SYMBOL(padata_start);
++
++/**
++ * padata_stop - stop the parallel processing
++ *
++ * @pinst: padata instance to stop
++ */
++void padata_stop(struct padata_instance *pinst)
++{
++	mutex_lock(&pinst->lock);
++	__padata_stop(pinst);
++	mutex_unlock(&pinst->lock);
++}
++EXPORT_SYMBOL(padata_stop);
++
++#ifdef CONFIG_HOTPLUG_CPU
++
+ static int __padata_add_cpu(struct padata_instance *pinst, int cpu)
+ {
+ 	struct parallel_data *pd;
+@@ -726,43 +763,6 @@ int padata_remove_cpu(struct padata_inst
+ }
+ EXPORT_SYMBOL(padata_remove_cpu);
+ 
+-/**
+- * padata_start - start the parallel processing
+- *
+- * @pinst: padata instance to start
+- */
+-int padata_start(struct padata_instance *pinst)
+-{
+-	int err = 0;
+-
+-	mutex_lock(&pinst->lock);
+-
+-	if (pinst->flags & PADATA_INVALID)
+-		err =-EINVAL;
+-
+-	 __padata_start(pinst);
+-
+-	mutex_unlock(&pinst->lock);
+-
+-	return err;
+-}
+-EXPORT_SYMBOL(padata_start);
+-
+-/**
+- * padata_stop - stop the parallel processing
+- *
+- * @pinst: padata instance to stop
+- */
+-void padata_stop(struct padata_instance *pinst)
+-{
+-	mutex_lock(&pinst->lock);
+-	__padata_stop(pinst);
+-	mutex_unlock(&pinst->lock);
+-}
+-EXPORT_SYMBOL(padata_stop);
+-
+-#ifdef CONFIG_HOTPLUG_CPU
