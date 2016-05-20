@@ -1,105 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_alloc-pull-out-side-effects-from-free_pages_check.patch removed
- from -mm tree
-Date: Fri, 20 May 2016 14:06:55 -0700
-Message-ID: <573f7c6f.BruUM21ZlBQeG2NO%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-remove-field-from-alloc_context.patch
+ removed from -mm tree
+Date: Fri, 20 May 2016 14:06:49 -0700
+Message-ID: <573f7c69.LTv3cVCGcYACfEh2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47377 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47367 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751614AbcETVG4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:06:56 -0400
+	with ESMTP id S1751591AbcETVGu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:06:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: pull out side effects from free_pages_check
+     Subject: mm, page_alloc: remove field from alloc_context
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-pull-out-side-effects-from-free_pages_check.patch
+     mm-page_alloc-remove-field-from-alloc_context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: pull out side effects from free_pages_check
+Subject: mm, page_alloc: remove field from alloc_context
 
-Check without side-effects should be easier to maintain.  It also removes
-the duplicated cpupid and flags reset done in !DEBUG_VM variant of both
-free_pcp_prepare() and then bulkfree_pcp_prepare().  Finally, it enables
-the next patch.
+The classzone_idx can be inferred from preferred_zoneref so remove the
+unnecessary field and save stack space.
 
-It shouldn't result in new branches, thanks to inlining of the check.
-
-!DEBUG_VM bloat-o-meter:
-
-add/remove: 0/0 grow/shrink: 0/2 up/down: 0/-27 (-27)
-function                                     old     new   delta
-__free_pages_ok                              748     739      -9
-free_pcppages_bulk                          1403    1385     -18
-
-DEBUG_VM:
-
-add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-28 (-28)
-function                                     old     new   delta
-free_pages_prepare                           806     778     -28
-
-This is also slightly faster because cpupid information is not set on tail
-pages so we can avoid resets there.
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/compaction.c |    4 ++--
+ mm/internal.h   |    3 ++-
+ mm/page_alloc.c |    8 +++-----
+ 3 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-pull-out-side-effects-from-free_pages_check mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-pull-out-side-effects-from-free_pages_check
+diff -puN mm/compaction.c~mm-page_alloc-remove-field-from-alloc_context mm/compaction.c
+--- a/mm/compaction.c~mm-page_alloc-remove-field-from-alloc_context
++++ a/mm/compaction.c
+@@ -1602,7 +1602,7 @@ unsigned long try_to_compact_pages(gfp_t
+ 
+ 		status = compact_zone_order(zone, order, gfp_mask, mode,
+ 				&zone_contended, alloc_flags,
+-				ac->classzone_idx);
++				ac_classzone_idx(ac));
+ 		rc = max(status, rc);
+ 		/*
+ 		 * It takes at least one zone that wasn't lock contended
+@@ -1612,7 +1612,7 @@ unsigned long try_to_compact_pages(gfp_t
+ 
+ 		/* If a normal allocation would succeed, stop compacting */
+ 		if (zone_watermark_ok(zone, order, low_wmark_pages(zone),
+-					ac->classzone_idx, alloc_flags)) {
++					ac_classzone_idx(ac), alloc_flags)) {
+ 			/*
+ 			 * We think the allocation will succeed in this zone,
+ 			 * but it is not certain, hence the false. The caller
+diff -puN mm/internal.h~mm-page_alloc-remove-field-from-alloc_context mm/internal.h
+--- a/mm/internal.h~mm-page_alloc-remove-field-from-alloc_context
++++ a/mm/internal.h
+@@ -103,12 +103,13 @@ struct alloc_context {
+ 	struct zonelist *zonelist;
+ 	nodemask_t *nodemask;
+ 	struct zoneref *preferred_zoneref;
+-	int classzone_idx;
+ 	int migratetype;
+ 	enum zone_type high_zoneidx;
+ 	bool spread_dirty_pages;
+ };
+ 
++#define ac_classzone_idx(ac) zonelist_zone_idx(ac->preferred_zoneref)
++
+ /*
+  * Locate the struct page for both the matching buddy in our
+  * pair (buddy1) and the combined O(n+1) page they form (page).
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-field-from-alloc_context mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-field-from-alloc_context
 +++ a/mm/page_alloc.c
-@@ -833,11 +833,8 @@ static void free_pages_check_bad(struct
+@@ -2771,7 +2771,7 @@ zonelist_scan:
  
- static inline int free_pages_check(struct page *page)
- {
--	if (likely(page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE))) {
--		page_cpupid_reset_last(page);
--		page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-+	if (likely(page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE)))
- 		return 0;
--	}
+ 		mark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
+ 		if (!zone_watermark_fast(zone, order, mark,
+-				       ac->classzone_idx, alloc_flags)) {
++				       ac_classzone_idx(ac), alloc_flags)) {
+ 			int ret;
  
- 	/* Something has gone sideways, find it */
- 	free_pages_check_bad(page);
-@@ -1078,7 +1075,11 @@ static bool free_pages_prepare(struct pa
- 		for (i = 1; i < (1 << order); i++) {
- 			if (compound)
- 				bad += free_tail_pages_check(page, page + i);
--			bad += free_pages_check(page + i);
-+			if (unlikely(free_pages_check(page + i))) {
-+				bad++;
-+				continue;
-+			}
-+			(page + i)->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 		}
+ 			/* Checked here to keep the fast path fast */
+@@ -2794,7 +2794,7 @@ zonelist_scan:
+ 			default:
+ 				/* did we reclaim enough */
+ 				if (zone_watermark_ok(zone, order, mark,
+-						ac->classzone_idx, alloc_flags))
++						ac_classzone_idx(ac), alloc_flags))
+ 					goto try_this_zone;
+ 
+ 				continue;
+@@ -3114,7 +3114,7 @@ static void wake_all_kswapds(unsigned in
+ 
+ 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist,
+ 						ac->high_zoneidx, ac->nodemask)
+-		wakeup_kswapd(zone, order, zonelist_zone_idx(ac->preferred_zoneref));
++		wakeup_kswapd(zone, order, ac_classzone_idx(ac));
+ }
+ 
+ static inline unsigned int
+@@ -3422,8 +3422,6 @@ retry_cpuset:
+ 		goto no_zone;
  	}
- 	if (PageAnonHead(page))
-@@ -1087,6 +1088,8 @@ static bool free_pages_prepare(struct pa
- 	if (bad)
- 		return false;
  
-+	page_cpupid_reset_last(page);
-+	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 	reset_page_owner(page, order);
- 
- 	if (!PageHighMem(page)) {
-_
-
-Patches currently in -mm which might be from mgorman@techsingularity.net are
-
-
+-	ac.classzone_idx = zonelist_zone_idx(ac.preferred_zoneref);
