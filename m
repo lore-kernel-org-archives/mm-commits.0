@@ -1,80 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch removed from -mm tree
-Date: Fri, 20 May 2016 14:05:18 -0700
-Message-ID: <573f7c0e.4eDdWgv3WBYLC1zU%akpm@linux-foundation.org>
+Subject: [merged] mm-update_lru_size-do-the-__mod_zone_page_state.patch
+ removed from -mm tree
+Date: Fri, 20 May 2016 14:05:29 -0700
+Message-ID: <573f7c19.+ayPRYc3lHrDkUgL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47158 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47188 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbcETVFT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:19 -0400
+	with ESMTP id S1751251AbcETVFa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/highmem: make nr_free_highpages() handles all highmem zones by itself
+     Subject: mm: update_lru_size do the __mod_zone_page_state
 has been removed from the -mm tree.  Its filename was
-     mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
+     mm-update_lru_size-do-the-__mod_zone_page_state.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/highmem: make nr_free_highpages() handles all highmem zones by itself
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: update_lru_size do the __mod_zone_page_state
 
-nr_free_highpages() manually adds statistics per each highmem zone and
-returns a total value for them.  Whenever we add a new highmem zone, we
-need to consider this function and it's really troublesome.  Make it
-handle all highmem zones by itself.
+Konstantin Khlebnikov pointed out (nearly four years ago, when lumpy
+reclaim was removed) that lru_size can be updated by -nr_taken once per
+call to isolate_lru_pages(), instead of page by page.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Update it inside isolate_lru_pages(), or at its two callsites?  I chose to
+update it at the callsites, rearranging and grouping the updates by
+nr_taken and nr_scanned together in both.
+
+With one exception, mem_cgroup_update_lru_size(,lru,) is then used where
+__mod_zone_page_state(,NR_LRU_BASE+lru,) is used; and we shall be adding
+some more calls in a future commit.  Make the code a little smaller and
+simpler by incorporating stat update in lru_size update.
+
+The exception was move_active_pages_to_lru(), which aggregated the pgmoved
+stat update separately from the individual lru_size updates; but I still
+think this a simplification worth making.
+
+However, the __mod_zone_page_state is not peculiar to mem_cgroups: so
+better use the name update_lru_size, calls mem_cgroup_update_lru_size when
+CONFIG_MEMCG.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Ning Qu <quning@gmail.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Laura Abbott <lauraa@codeaurora.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ include/linux/memcontrol.h |    6 ------
+ include/linux/mm_inline.h  |   24 ++++++++++++++++++------
+ mm/memcontrol.c            |    2 ++
+ mm/vmscan.c                |   23 ++++++++++-------------
+ 4 files changed, 30 insertions(+), 25 deletions(-)
 
-diff -puN mm/highmem.c~mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself mm/highmem.c
---- a/mm/highmem.c~mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself
-+++ a/mm/highmem.c
-@@ -112,16 +112,12 @@ EXPORT_PER_CPU_SYMBOL(__kmap_atomic_idx)
+diff -puN include/linux/memcontrol.h~mm-update_lru_size-do-the-__mod_zone_page_state include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-update_lru_size-do-the-__mod_zone_page_state
++++ a/include/linux/memcontrol.h
+@@ -658,12 +658,6 @@ mem_cgroup_get_lru_size(struct lruvec *l
+ 	return 0;
+ }
  
- unsigned int nr_free_highpages (void)
+-static inline void
+-mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
+-			      int increment)
+-{
+-}
+-
+ static inline unsigned long
+ mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
+ 			     int nid, unsigned int lru_mask)
+diff -puN include/linux/mm_inline.h~mm-update_lru_size-do-the-__mod_zone_page_state include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-update_lru_size-do-the-__mod_zone_page_state
++++ a/include/linux/mm_inline.h
+@@ -22,22 +22,34 @@ static inline int page_is_file_cache(str
+ 	return !PageSwapBacked(page);
+ }
+ 
++static __always_inline void __update_lru_size(struct lruvec *lruvec,
++				enum lru_list lru, int nr_pages)
++{
++	__mod_zone_page_state(lruvec_zone(lruvec), NR_LRU_BASE + lru, nr_pages);
++}
++
++static __always_inline void update_lru_size(struct lruvec *lruvec,
++				enum lru_list lru, int nr_pages)
++{
++#ifdef CONFIG_MEMCG
++	mem_cgroup_update_lru_size(lruvec, lru, nr_pages);
++#else
++	__update_lru_size(lruvec, lru, nr_pages);
++#endif
++}
++
+ static __always_inline void add_page_to_lru_list(struct page *page,
+ 				struct lruvec *lruvec, enum lru_list lru)
  {
--	pg_data_t *pgdat;
-+	struct zone *zone;
- 	unsigned int pages = 0;
+-	int nr_pages = hpage_nr_pages(page);
+-	mem_cgroup_update_lru_size(lruvec, lru, nr_pages);
++	update_lru_size(lruvec, lru, hpage_nr_pages(page));
+ 	list_add(&page->lru, &lruvec->lists[lru]);
+-	__mod_zone_page_state(lruvec_zone(lruvec), NR_LRU_BASE + lru, nr_pages);
+ }
  
--	for_each_online_pgdat(pgdat) {
--		pages += zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
--			NR_FREE_PAGES);
--		if (zone_movable_is_highmem())
--			pages += zone_page_state(
--					&pgdat->node_zones[ZONE_MOVABLE],
--					NR_FREE_PAGES);
-+	for_each_populated_zone(zone) {
-+		if (is_highmem(zone))
-+			pages += zone_page_state(zone, NR_FREE_PAGES);
+ static __always_inline void del_page_from_lru_list(struct page *page,
+ 				struct lruvec *lruvec, enum lru_list lru)
+ {
+-	int nr_pages = hpage_nr_pages(page);
+ 	list_del(&page->lru);
+-	mem_cgroup_update_lru_size(lruvec, lru, -nr_pages);
+-	__mod_zone_page_state(lruvec_zone(lruvec), NR_LRU_BASE + lru, -nr_pages);
++	update_lru_size(lruvec, lru, -hpage_nr_pages(page));
+ }
+ 
+ /**
+diff -puN mm/memcontrol.c~mm-update_lru_size-do-the-__mod_zone_page_state mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-update_lru_size-do-the-__mod_zone_page_state
++++ a/mm/memcontrol.c
+@@ -1035,6 +1035,8 @@ void mem_cgroup_update_lru_size(struct l
+ 	long size;
+ 	bool empty;
+ 
++	__update_lru_size(lruvec, lru, nr_pages);
++
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
+diff -puN mm/vmscan.c~mm-update_lru_size-do-the-__mod_zone_page_state mm/vmscan.c
+--- a/mm/vmscan.c~mm-update_lru_size-do-the-__mod_zone_page_state
++++ a/mm/vmscan.c
+@@ -1374,7 +1374,6 @@ static unsigned long isolate_lru_pages(u
+ 	for (scan = 0; scan < nr_to_scan && nr_taken < nr_to_scan &&
+ 					!list_empty(src); scan++) {
+ 		struct page *page;
+-		int nr_pages;
+ 
+ 		page = lru_to_page(src);
+ 		prefetchw_prev_lru_page(page, src, flags);
+@@ -1383,10 +1382,8 @@ static unsigned long isolate_lru_pages(u
+ 
+ 		switch (__isolate_lru_page(page, mode)) {
+ 		case 0:
+-			nr_pages = hpage_nr_pages(page);
+-			mem_cgroup_update_lru_size(lruvec, lru, -nr_pages);
++			nr_taken += hpage_nr_pages(page);
+ 			list_move(&page->lru, dst);
+-			nr_taken += nr_pages;
+ 			break;
+ 
+ 		case -EBUSY:
+@@ -1602,8 +1599,9 @@ shrink_inactive_list(unsigned long nr_to
+ 	nr_taken = isolate_lru_pages(nr_to_scan, lruvec, &page_list,
+ 				     &nr_scanned, sc, isolate_mode, lru);
+ 
+-	__mod_zone_page_state(zone, NR_LRU_BASE + lru, -nr_taken);
++	update_lru_size(lruvec, lru, -nr_taken);
+ 	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, nr_taken);
++	reclaim_stat->recent_scanned[file] += nr_taken;
+ 
+ 	if (global_reclaim(sc)) {
+ 		__mod_zone_page_state(zone, NR_PAGES_SCANNED, nr_scanned);
+@@ -1624,8 +1622,6 @@ shrink_inactive_list(unsigned long nr_to
+ 
+ 	spin_lock_irq(&zone->lru_lock);
+ 
+-	reclaim_stat->recent_scanned[file] += nr_taken;
+-
+ 	if (global_reclaim(sc)) {
+ 		if (current_is_kswapd())
+ 			__count_zone_vm_events(PGSTEAL_KSWAPD, zone,
+@@ -1742,7 +1738,7 @@ static void move_active_pages_to_lru(str
+ 		SetPageLRU(page);
+ 
+ 		nr_pages = hpage_nr_pages(page);
+-		mem_cgroup_update_lru_size(lruvec, lru, nr_pages);
++		update_lru_size(lruvec, lru, nr_pages);
+ 		list_move(&page->lru, &lruvec->lists[lru]);
+ 		pgmoved += nr_pages;
+ 
+@@ -1760,7 +1756,7 @@ static void move_active_pages_to_lru(str
+ 				list_add(&page->lru, pages_to_free);
+ 		}
  	}
+-	__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
++
+ 	if (!is_active_lru(lru))
+ 		__count_vm_events(PGDEACTIVATE, pgmoved);
+ }
+@@ -1794,14 +1790,15 @@ static void shrink_active_list(unsigned
  
- 	return pages;
+ 	nr_taken = isolate_lru_pages(nr_to_scan, lruvec, &l_hold,
+ 				     &nr_scanned, sc, isolate_mode, lru);
+-	if (global_reclaim(sc))
+-		__mod_zone_page_state(zone, NR_PAGES_SCANNED, nr_scanned);
+ 
++	update_lru_size(lruvec, lru, -nr_taken);
++	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, nr_taken);
+ 	reclaim_stat->recent_scanned[file] += nr_taken;
+ 
++	if (global_reclaim(sc))
++		__mod_zone_page_state(zone, NR_PAGES_SCANNED, nr_scanned);
+ 	__count_zone_vm_events(PGREFILL, zone, nr_scanned);
+-	__mod_zone_page_state(zone, NR_LRU_BASE + lru, -nr_taken);
+-	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, nr_taken);
++
+ 	spin_unlock_irq(&zone->lru_lock);
+ 
+ 	while (!list_empty(&l_hold)) {
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from hughd@google.com are
 
+radix-tree-rewrite-radix_tree_locate_item-fix.patch
 
