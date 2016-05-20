@@ -1,194 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [patch 078/117] mm: /proc/sys/vm/stat_refresh to force vmstat
- update
-Date: Thu, 19 May 2016 17:12:50 -0700
-Message-ID: <573e5682.78cGSAV4yym0N51H%akpm@linux-foundation.org>
+Subject: [patch 082/117] memory_hotplug: introduce
+ CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
+Date: Thu, 19 May 2016 17:13:03 -0700
+Message-ID: <573e568f.WPoihmCXhXhSZJRZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46467 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755059AbcETAMw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:12:52 -0400
+	with ESMTP id S932929AbcETANE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:13:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vkuznets@redhat.com, corbet@lwn.net, dan.j.williams@intel.com, david.vrabel@citrix.com, imammedo@redhat.com, kirill.shutemov@linux.intel.com, lennart@poettering.net, mgorman@techsingularity.net, rientjes@google.com
 
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: /proc/sys/vm/stat_refresh to force vmstat update
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: memory_hotplug: introduce CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
 
-Provide /proc/sys/vm/stat_refresh to force an immediate update of per-cpu
-into global vmstats: useful to avoid a sleep(2) or whatever before
-checking counts when testing.  Originally added to work around a bug which
-left counts stranded indefinitely on a cpu going idle (an inaccuracy
-magnified when small below-batch numbers represent "huge" amounts of
-memory), but I believe that bug is now fixed: nonetheless, this is still a
-useful knob.
+This patchset continues the work I started with 31bc3858ea3eb
+("memory-hotplug: add automatic onlining policy for the newly added
+memory").
 
-Its schedule_on_each_cpu() is probably too expensive just to fold into
-reading /proc/meminfo itself: give this mode 0600 to prevent abuse.  Allow
-a write or a read to do the same: nothing to read, but "grep -h Shmem
-/proc/sys/vm/stat_refresh /proc/meminfo" is convenient.  Oh, and since
-global_page_state() itself is careful to disguise any underflow as 0, hack
-in an "Invalid argument" and pr_warn() if a counter is negative after the
-refresh - this helped to fix a misaccounting of NR_ISOLATED_FILE in my
-migration code.
+Initially I was going to stop there and bring the policy setting logic to
+userspace. I met two issues on this way:
 
-But on recent kernels, I find that NR_ALLOC_BATCH and NR_PAGES_SCANNED
-often go negative some of the time.  I have not yet worked out why, but
-have no evidence that it's actually harmful.  Punt for the moment by just
-ignoring the anomaly on those.
+1) It is possible to have memory hotplugged at boot (e.g. with QEMU). These
+   blocks stay offlined if we turn the onlining policy on by userspace.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
+2) My attempt to bring this policy setting to systemd failed, systemd
+   maintainers suggest to change the default in kernel or ... to use tmpfiles.d
+   to alter the policy (which looks like a hack to me): 
+   https://github.com/systemd/systemd/pull/2938
+
+Here I suggest to add a config option to set the default value for the
+policy and a kernel command line parameter to make the override.
+
+
+This patch (of 2):
+
+Introduce config option to set the default value for memory hotplug
+onlining policy (/sys/devices/system/memory/auto_online_blocks). The
+reason one would want to turn this option on are to have early onlining
+for hotpluggable memory available at boot and to not require any userspace
+actions to make memory hotplug work.
+
+[akpm@linux-foundation.org: tweak Kconfig text]
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Yang Shi <yang.shi@linaro.org>
-Cc: Ning Qu <quning@gmail.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Lennart Poettering <lennart@poettering.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   14 +++++++
- include/linux/vmstat.h      |    4 ++
- kernel/sysctl.c             |    7 +++
- mm/vmstat.c                 |   60 ++++++++++++++++++++++++++++++++++
- 4 files changed, 85 insertions(+)
+ Documentation/memory-hotplug.txt |    9 +++++----
+ mm/Kconfig                       |   16 ++++++++++++++++
+ mm/memory_hotplug.c              |    4 ++++
+ 3 files changed, 25 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update
-+++ a/Documentation/sysctl/vm.txt
-@@ -57,6 +57,7 @@ Currently, these files are in /proc/sys/
- - panic_on_oom
- - percpu_pagelist_fraction
- - stat_interval
-+- stat_refresh
- - swappiness
- - user_reserve_kbytes
- - vfs_cache_pressure
-@@ -755,6 +756,19 @@ is 1 second.
+diff -puN Documentation/memory-hotplug.txt~memory_hotplug-introduce-config_memory_hotplug_default_online Documentation/memory-hotplug.txt
+--- a/Documentation/memory-hotplug.txt~memory_hotplug-introduce-config_memory_hotplug_default_online
++++ a/Documentation/memory-hotplug.txt
+@@ -261,10 +261,11 @@ it according to the policy which can be
  
- ==============================================================
+ % cat /sys/devices/system/memory/auto_online_blocks
  
-+stat_refresh
-+
-+Any read or write (by root only) flushes all the per-cpu vm statistics
-+into their global totals, for more accurate reports when testing
-+e.g. cat /proc/sys/vm/stat_refresh /proc/meminfo
-+
-+As a side-effect, it also checks for negative totals (elsewhere reported
-+as 0) and "fails" with EINVAL if any are found, with a warning in dmesg.
-+(At time of writing, a few stats are known sometimes to be found negative,
-+with no ill effects: errors and warnings on these stats are suppressed.)
-+
-+==============================================================
-+
- swappiness
+-The default is "offline" which means the newly added memory is not in a
+-ready-to-use state and you have to "online" the newly added memory blocks
+-manually. Automatic onlining can be requested by writing "online" to
+-"auto_online_blocks" file:
++The default depends on the CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE kernel config
++option. If it is disabled the default is "offline" which means the newly added
++memory is not in a ready-to-use state and you have to "online" the newly added
++memory blocks manually. Automatic onlining can be requested by writing "online"
++to "auto_online_blocks" file:
  
- This control is used to define how aggressive the kernel will swap
-diff -puN include/linux/vmstat.h~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update
-+++ a/include/linux/vmstat.h
-@@ -193,6 +193,10 @@ void quiet_vmstat(void);
- void cpu_vm_stats_fold(int cpu);
- void refresh_zone_stat_thresholds(void);
+ % echo online > /sys/devices/system/memory/auto_online_blocks
  
-+struct ctl_table;
-+int vmstat_refresh(struct ctl_table *, int write,
-+		   void __user *buffer, size_t *lenp, loff_t *ppos);
-+
- void drain_zonestat(struct zone *zone, struct per_cpu_pageset *);
+diff -puN mm/Kconfig~memory_hotplug-introduce-config_memory_hotplug_default_online mm/Kconfig
+--- a/mm/Kconfig~memory_hotplug-introduce-config_memory_hotplug_default_online
++++ a/mm/Kconfig
+@@ -192,6 +192,22 @@ config MEMORY_HOTPLUG_SPARSE
+ 	def_bool y
+ 	depends on SPARSEMEM && MEMORY_HOTPLUG
  
- int calculate_pressure_threshold(struct zone *zone);
-diff -puN kernel/sysctl.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update kernel/sysctl.c
---- a/kernel/sysctl.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update
-+++ a/kernel/sysctl.c
-@@ -1521,6 +1521,13 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_jiffies,
- 	},
-+	{
-+		.procname	= "stat_refresh",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0600,
-+		.proc_handler	= vmstat_refresh,
-+	},
- #endif
- #ifdef CONFIG_MMU
- 	{
-diff -puN mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update mm/vmstat.c
---- a/mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update
-+++ a/mm/vmstat.c
-@@ -1379,6 +1379,66 @@ static DEFINE_PER_CPU(struct delayed_wor
- int sysctl_stat_interval __read_mostly = HZ;
- static cpumask_var_t cpu_stat_off;
++config MEMORY_HOTPLUG_DEFAULT_ONLINE
++        bool "Online the newly added memory blocks by default"
++        default n
++        depends on MEMORY_HOTPLUG
++        help
++	  This option sets the default policy setting for memory hotplug
++	  onlining policy (/sys/devices/system/memory/auto_online_blocks) which
++	  determines what happens to newly added memory regions. Policy setting
++	  can always be changed at runtime.
++	  See Documentation/memory-hotplug.txt for more information.
++
++	  Say Y here if you want all hot-plugged memory blocks to appear in
++	  'online' state by default.
++	  Say N here if you want the default policy to keep all hot-plugged
++	  memory blocks in 'offline' state.
++
+ config MEMORY_HOTREMOVE
+ 	bool "Allow for memory hot remove"
+ 	select MEMORY_ISOLATION
+diff -puN mm/memory_hotplug.c~memory_hotplug-introduce-config_memory_hotplug_default_online mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory_hotplug-introduce-config_memory_hotplug_default_online
++++ a/mm/memory_hotplug.c
+@@ -78,7 +78,11 @@ static struct {
+ #define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
+ #define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
  
-+#ifdef CONFIG_PROC_FS
-+static void refresh_vm_stats(struct work_struct *work)
-+{
-+	refresh_cpu_vm_stats(true);
-+}
-+
-+int vmstat_refresh(struct ctl_table *table, int write,
-+		   void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	long val;
-+	int err;
-+	int i;
-+
-+	/*
-+	 * The regular update, every sysctl_stat_interval, may come later
-+	 * than expected: leaving a significant amount in per_cpu buckets.
-+	 * This is particularly misleading when checking a quantity of HUGE
-+	 * pages, immediately after running a test.  /proc/sys/vm/stat_refresh,
-+	 * which can equally be echo'ed to or cat'ted from (by root),
-+	 * can be used to update the stats just before reading them.
-+	 *
-+	 * Oh, and since global_page_state() etc. are so careful to hide
-+	 * transiently negative values, report an error here if any of
-+	 * the stats is negative, so we know to go looking for imbalance.
-+	 */
-+	err = schedule_on_each_cpu(refresh_vm_stats);
-+	if (err)
-+		return err;
-+	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
-+		val = atomic_long_read(&vm_stat[i]);
-+		if (val < 0) {
-+			switch (i) {
-+			case NR_ALLOC_BATCH:
-+			case NR_PAGES_SCANNED:
-+				/*
-+				 * These are often seen to go negative in
-+				 * recent kernels, but not to go permanently
-+				 * negative.  Whilst it would be nicer not to
-+				 * have exceptions, rooting them out would be
-+				 * another task, of rather low priority.
-+				 */
-+				break;
-+			default:
-+				pr_warn("%s: %s %ld\n",
-+					__func__, vmstat_text[i], val);
-+				err = -EINVAL;
-+				break;
-+			}
-+		}
-+	}
-+	if (err)
-+		return err;
-+	if (write)
-+		*ppos += *lenp;
-+	else
-+		*lenp = 0;
-+	return 0;
-+}
-+#endif /* CONFIG_PROC_FS */
-+
- static void vmstat_update(struct work_struct *w)
- {
- 	if (refresh_cpu_vm_stats(true)) {
++#ifndef CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
+ bool memhp_auto_online;
++#else
++bool memhp_auto_online = true;
++#endif
+ EXPORT_SYMBOL_GPL(memhp_auto_online);
+ 
+ void get_online_mems(void)
 _
