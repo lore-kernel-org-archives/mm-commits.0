@@ -1,102 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [patch 104/117] mm, page_alloc: shortcut watermark checks for
- order-0 pages
-Date: Thu, 19 May 2016 17:14:07 -0700
-Message-ID: <573e56cf.j4q728Ai5ElVxDYm%akpm@linux-foundation.org>
+Subject: [patch 106/117] mm, page_alloc: remove field from alloc_context
+Date: Thu, 19 May 2016 17:14:13 -0700
+Message-ID: <573e56d5.bU0td2JBFJCeN+TI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46596 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46606 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755185AbcETAOI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:08 -0400
+	with ESMTP id S1755185AbcETAOO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: shortcut watermark checks for order-0 pages
+Subject: mm, page_alloc: remove field from alloc_context
 
-Watermarks have to be checked on every allocation including the number of
-pages being allocated and whether reserves can be accessed.  The reserves
-only matter if memory is limited and the free_pages adjustment only
-applies to high-order pages.  This patch adds a shortcut for order-0 pages
-that avoids numerous calculations if there is plenty of free memory
-yielding the following performance difference in a page allocator
-microbenchmark;
-
-                                           4.6.0-rc2                  4.6.0-rc2
-                                       optfair-v1r20             fastmark-v1r20
-Min      alloc-odr0-1               380.00 (  0.00%)           364.00 (  4.21%)
-Min      alloc-odr0-2               273.00 (  0.00%)           262.00 (  4.03%)
-Min      alloc-odr0-4               227.00 (  0.00%)           214.00 (  5.73%)
-Min      alloc-odr0-8               196.00 (  0.00%)           186.00 (  5.10%)
-Min      alloc-odr0-16              183.00 (  0.00%)           173.00 (  5.46%)
-Min      alloc-odr0-32              173.00 (  0.00%)           165.00 (  4.62%)
-Min      alloc-odr0-64              169.00 (  0.00%)           161.00 (  4.73%)
-Min      alloc-odr0-128             169.00 (  0.00%)           159.00 (  5.92%)
-Min      alloc-odr0-256             180.00 (  0.00%)           168.00 (  6.67%)
-Min      alloc-odr0-512             190.00 (  0.00%)           180.00 (  5.26%)
-Min      alloc-odr0-1024            198.00 (  0.00%)           190.00 (  4.04%)
-Min      alloc-odr0-2048            204.00 (  0.00%)           196.00 (  3.92%)
-Min      alloc-odr0-4096            209.00 (  0.00%)           202.00 (  3.35%)
-Min      alloc-odr0-8192            213.00 (  0.00%)           206.00 (  3.29%)
-Min      alloc-odr0-16384           214.00 (  0.00%)           206.00 (  3.74%)
+The classzone_idx can be inferred from preferred_zoneref so remove the
+unnecessary field and save stack space.
 
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+ mm/compaction.c |    4 ++--
+ mm/internal.h   |    3 ++-
+ mm/page_alloc.c |    8 +++-----
+ 3 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-shortcut-watermark-checks-for-order-0-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-shortcut-watermark-checks-for-order-0-pages
-+++ a/mm/page_alloc.c
-@@ -2623,6 +2623,32 @@ bool zone_watermark_ok(struct zone *z, u
- 					zone_page_state(z, NR_FREE_PAGES));
- }
+diff -puN mm/compaction.c~mm-page_alloc-remove-field-from-alloc_context mm/compaction.c
+--- a/mm/compaction.c~mm-page_alloc-remove-field-from-alloc_context
++++ a/mm/compaction.c
+@@ -1602,7 +1602,7 @@ unsigned long try_to_compact_pages(gfp_t
  
-+static inline bool zone_watermark_fast(struct zone *z, unsigned int order,
-+		unsigned long mark, int classzone_idx, unsigned int alloc_flags)
-+{
-+	long free_pages = zone_page_state(z, NR_FREE_PAGES);
-+	long cma_pages = 0;
+ 		status = compact_zone_order(zone, order, gfp_mask, mode,
+ 				&zone_contended, alloc_flags,
+-				ac->classzone_idx);
++				ac_classzone_idx(ac));
+ 		rc = max(status, rc);
+ 		/*
+ 		 * It takes at least one zone that wasn't lock contended
+@@ -1612,7 +1612,7 @@ unsigned long try_to_compact_pages(gfp_t
+ 
+ 		/* If a normal allocation would succeed, stop compacting */
+ 		if (zone_watermark_ok(zone, order, low_wmark_pages(zone),
+-					ac->classzone_idx, alloc_flags)) {
++					ac_classzone_idx(ac), alloc_flags)) {
+ 			/*
+ 			 * We think the allocation will succeed in this zone,
+ 			 * but it is not certain, hence the false. The caller
+diff -puN mm/internal.h~mm-page_alloc-remove-field-from-alloc_context mm/internal.h
+--- a/mm/internal.h~mm-page_alloc-remove-field-from-alloc_context
++++ a/mm/internal.h
+@@ -103,12 +103,13 @@ struct alloc_context {
+ 	struct zonelist *zonelist;
+ 	nodemask_t *nodemask;
+ 	struct zoneref *preferred_zoneref;
+-	int classzone_idx;
+ 	int migratetype;
+ 	enum zone_type high_zoneidx;
+ 	bool spread_dirty_pages;
+ };
+ 
++#define ac_classzone_idx(ac) zonelist_zone_idx(ac->preferred_zoneref)
 +
-+#ifdef CONFIG_CMA
-+	/* If allocation can't use CMA areas don't use free CMA pages */
-+	if (!(alloc_flags & ALLOC_CMA))
-+		cma_pages = zone_page_state(z, NR_FREE_CMA_PAGES);
-+#endif
-+
-+	/*
-+	 * Fast check for order-0 only. If this fails then the reserves
-+	 * need to be calculated. There is a corner case where the check
-+	 * passes but only the high-order atomic reserve are free. If
-+	 * the caller is !atomic then it'll uselessly search the free
-+	 * list. That corner case is then slower but it is harmless.
-+	 */
-+	if (!order && (free_pages - cma_pages) > mark + z->lowmem_reserve[classzone_idx])
-+		return true;
-+
-+	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
-+					free_pages);
-+}
-+
- bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
- 			unsigned long mark, int classzone_idx)
- {
-@@ -2744,7 +2770,7 @@ zonelist_scan:
- 			continue;
+ /*
+  * Locate the struct page for both the matching buddy in our
+  * pair (buddy1) and the combined O(n+1) page they form (page).
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-field-from-alloc_context mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-field-from-alloc_context
++++ a/mm/page_alloc.c
+@@ -2771,7 +2771,7 @@ zonelist_scan:
  
  		mark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
--		if (!zone_watermark_ok(zone, order, mark,
-+		if (!zone_watermark_fast(zone, order, mark,
- 				       ac->classzone_idx, alloc_flags)) {
+ 		if (!zone_watermark_fast(zone, order, mark,
+-				       ac->classzone_idx, alloc_flags)) {
++				       ac_classzone_idx(ac), alloc_flags)) {
  			int ret;
  
-_
+ 			/* Checked here to keep the fast path fast */
+@@ -2794,7 +2794,7 @@ zonelist_scan:
+ 			default:
+ 				/* did we reclaim enough */
+ 				if (zone_watermark_ok(zone, order, mark,
+-						ac->classzone_idx, alloc_flags))
++						ac_classzone_idx(ac), alloc_flags))
+ 					goto try_this_zone;
+ 
+ 				continue;
+@@ -3114,7 +3114,7 @@ static void wake_all_kswapds(unsigned in
+ 
+ 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist,
+ 						ac->high_zoneidx, ac->nodemask)
+-		wakeup_kswapd(zone, order, zonelist_zone_idx(ac->preferred_zoneref));
++		wakeup_kswapd(zone, order, ac_classzone_idx(ac));
+ }
+ 
+ static inline unsigned int
+@@ -3422,8 +3422,6 @@ retry_cpuset:
+ 		goto no_zone;
+ 	}
+ 
+-	ac.classzone_idx = zonelist_zone_idx(ac.preferred_zoneref);
