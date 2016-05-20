@@ -1,65 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [patch 049/162] mm, kasan: fix to call kasan_free_pages() after
- poisoning page
-Date: Fri, 20 May 2016 16:58:47 -0700
-Message-ID: <573fa4b7.KHKg1EB/un4t/tAX%akpm@linux-foundation.org>
+Subject: [patch 048/162] mm: disable fault around on emulated access bit
+ architecture
+Date: Fri, 20 May 2016 16:58:44 -0700
+Message-ID: <573fa4b4.iHFUoi/JsKnRrIwP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52376 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52371 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466AbcETX6s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:58:48 -0400
+	with ESMTP id S1751466AbcETX6p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:58:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamyooon@gmail.com, a.ryabinin@samsung.com, labbott@fedoraproject.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, kirill@shutemov.name
 
-From: "seokhoon.yoon" <iamyooon@gmail.com>
-Subject: mm, kasan: fix to call kasan_free_pages() after poisoning page
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: disable fault around on emulated access bit architecture
 
-When CONFIG_PAGE_POISONING and CONFIG_KASAN is enabled,
-free_pages_prepare()'s codeflow is below.
+fault_around aims to reduce minor faults of file-backed pages via
+speculative ahead pte mapping and relying on readahead logic.  However, on
+non-HW access bit architecture the benefit is highly limited because they
+should emulate the young bit with minor faults for reclaim's page aging
+algorithm.  IOW, we cannot reduce minor faults on those architectures.
 
-1)kmemcheck_free_shadow()
-2)kasan_free_pages()
-- set shadow byte of page is freed
-3)kernel_poison_pages()
-3.1) check access to page is valid or not using kasan
----> error occur, kasan think it is invalid access
-3.2) poison page
-4)kernel_map_pages()
+I did quick a test on my ARM machine.
 
-So kasan_free_pages() should be called after poisoning the page.
+512M file mmap sequential every word read on eSATA drive 4 times.  stddev
+is stable.
 
-Link: http://lkml.kernel.org/r/1463220405-7455-1-git-send-email-iamyooon@gmail.com
-Signed-off-by: seokhoon.yoon <iamyooon@gmail.com>
-Cc: Andrey Ryabinin <a.ryabinin@samsung.com>
-Cc: Laura Abbott <labbott@fedoraproject.org>
+= fault_around 4096 =
+elapsed time(usec): 6747645
+
+= fault_around 65536 =
+elapsed time(usec): 6709263
+
+0.5% gain.
+
+Even when I tested it with eMMC there is no gain because I guess with slow
+storage the major fault is the dominant factor.
+
+Also, fault_around has the side effect of shrinking slab more aggressively
+and causes higher vmpressure, so if such speculation fails, it can evict
+slab more which can result in page I/O (e.g., inode cache).  In the end,
+it would make void any benefit of fault_around.
+
+So let's make the default "disabled" on those architectures.
+
+Link: http://lkml.kernel.org/r/20160518014229.GB21538@bbox
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-kasan-fix-to-call-kasan_free_pages-after-poisoning-page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-kasan-fix-to-call-kasan_free_pages-after-poisoning-page
-+++ a/mm/page_alloc.c
-@@ -993,7 +993,6 @@ static __always_inline bool free_pages_p
- 
- 	trace_mm_page_free(page, order);
- 	kmemcheck_free_shadow(page, order);
--	kasan_free_pages(page, order);
- 
- 	/*
- 	 * Check tail pages before head page information is cleared to
-@@ -1035,6 +1034,7 @@ static __always_inline bool free_pages_p
- 	arch_free_page(page, order);
- 	kernel_poison_pages(page, 1 << order, 0);
- 	kernel_map_pages(page, 1 << order, 0);
-+	kasan_free_pages(page, order);
- 
- 	return true;
+diff -puN mm/memory.c~mm-disable-fault-around-on-emulated-access-bit-architecture mm/memory.c
+--- a/mm/memory.c~mm-disable-fault-around-on-emulated-access-bit-architecture
++++ a/mm/memory.c
+@@ -2899,8 +2899,16 @@ void do_set_pte(struct vm_area_struct *v
+ 	update_mmu_cache(vma, address, pte);
  }
+ 
++/*
++ * If architecture emulates "accessed" or "young" bit without HW support,
++ * there is no much gain with fault_around.
++ */
+ static unsigned long fault_around_bytes __read_mostly =
++#ifndef __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
++	PAGE_SIZE;
++#else
+ 	rounddown_pow_of_two(65536);
++#endif
+ 
+ #ifdef CONFIG_DEBUG_FS
+ static int fault_around_bytes_get(void *data, u64 *val)
 _
