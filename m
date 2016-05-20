@@ -1,53 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch removed from -mm tree
-Date: Fri, 20 May 2016 14:05:41 -0700
-Message-ID: <573f7c25.Xsbzb70L0rfx4Pb+%akpm@linux-foundation.org>
+Subject: [merged]
+ huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch removed from
+ -mm tree
+Date: Fri, 20 May 2016 14:05:47 -0700
+Message-ID: <573f7c2b.Nt8Ip05v3CllXPfX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47217 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47232 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103AbcETVFm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:42 -0400
+	with ESMTP id S1751172AbcETVFs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: /proc/sys/vm/stat_refresh to force vmstat update
+     Subject: huge pagecache: extend mremap pmd rmap lockout to files
 has been removed from the -mm tree.  Its filename was
-     mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch
+     huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: /proc/sys/vm/stat_refresh to force vmstat update
+Subject: huge pagecache: extend mremap pmd rmap lockout to files
 
-Provide /proc/sys/vm/stat_refresh to force an immediate update of per-cpu
-into global vmstats: useful to avoid a sleep(2) or whatever before
-checking counts when testing.  Originally added to work around a bug which
-left counts stranded indefinitely on a cpu going idle (an inaccuracy
-magnified when small below-batch numbers represent "huge" amounts of
-memory), but I believe that bug is now fixed: nonetheless, this is still a
-useful knob.
+Whatever huge pagecache implementation we go with, file rmap locking must
+be added to anon rmap locking, when mremap's move_page_tables() finds a
+pmd_trans_huge pmd entry: a simple change, let's do it now.
 
-Its schedule_on_each_cpu() is probably too expensive just to fold into
-reading /proc/meminfo itself: give this mode 0600 to prevent abuse.  Allow
-a write or a read to do the same: nothing to read, but "grep -h Shmem
-/proc/sys/vm/stat_refresh /proc/meminfo" is convenient.  Oh, and since
-global_page_state() itself is careful to disguise any underflow as 0, hack
-in an "Invalid argument" and pr_warn() if a counter is negative after the
-refresh - this helped to fix a misaccounting of NR_ISOLATED_FILE in my
-migration code.
-
-But on recent kernels, I find that NR_ALLOC_BATCH and NR_PAGES_SCANNED
-often go negative some of the time.  I have not yet worked out why, but
-have no evidence that it's actually harmful.  Punt for the moment by just
-ignoring the anomaly on those.
+Factor out take_rmap_locks() and drop_rmap_locks() to handle the locking
+for make move_ptes() and move_page_tables(), and delete the VM_BUG_ON_VMA
+which rejected vm_file and required anon_vma.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -61,144 +49,94 @@ Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   14 +++++++
- include/linux/vmstat.h      |    4 ++
- kernel/sysctl.c             |    7 +++
- mm/vmstat.c                 |   60 ++++++++++++++++++++++++++++++++++
- 4 files changed, 85 insertions(+)
+ mm/mremap.c |   42 ++++++++++++++++++++++--------------------
+ 1 file changed, 22 insertions(+), 20 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update
-+++ a/Documentation/sysctl/vm.txt
-@@ -57,6 +57,7 @@ Currently, these files are in /proc/sys/
- - panic_on_oom
- - percpu_pagelist_fraction
- - stat_interval
-+- stat_refresh
- - swappiness
- - user_reserve_kbytes
- - vfs_cache_pressure
-@@ -755,6 +756,19 @@ is 1 second.
+diff -puN mm/mremap.c~huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files mm/mremap.c
+--- a/mm/mremap.c~huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files
++++ a/mm/mremap.c
+@@ -70,6 +70,22 @@ static pmd_t *alloc_new_pmd(struct mm_st
+ 	return pmd;
+ }
  
- ==============================================================
- 
-+stat_refresh
-+
-+Any read or write (by root only) flushes all the per-cpu vm statistics
-+into their global totals, for more accurate reports when testing
-+e.g. cat /proc/sys/vm/stat_refresh /proc/meminfo
-+
-+As a side-effect, it also checks for negative totals (elsewhere reported
-+as 0) and "fails" with EINVAL if any are found, with a warning in dmesg.
-+(At time of writing, a few stats are known sometimes to be found negative,
-+with no ill effects: errors and warnings on these stats are suppressed.)
-+
-+==============================================================
-+
- swappiness
- 
- This control is used to define how aggressive the kernel will swap
-diff -puN include/linux/vmstat.h~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update
-+++ a/include/linux/vmstat.h
-@@ -193,6 +193,10 @@ void quiet_vmstat(void);
- void cpu_vm_stats_fold(int cpu);
- void refresh_zone_stat_thresholds(void);
- 
-+struct ctl_table;
-+int vmstat_refresh(struct ctl_table *, int write,
-+		   void __user *buffer, size_t *lenp, loff_t *ppos);
-+
- void drain_zonestat(struct zone *zone, struct per_cpu_pageset *);
- 
- int calculate_pressure_threshold(struct zone *zone);
-diff -puN kernel/sysctl.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update kernel/sysctl.c
---- a/kernel/sysctl.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update
-+++ a/kernel/sysctl.c
-@@ -1521,6 +1521,13 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_jiffies,
- 	},
-+	{
-+		.procname	= "stat_refresh",
-+		.data		= NULL,
-+		.maxlen		= 0,
-+		.mode		= 0600,
-+		.proc_handler	= vmstat_refresh,
-+	},
- #endif
- #ifdef CONFIG_MMU
- 	{
-diff -puN mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update mm/vmstat.c
---- a/mm/vmstat.c~mm-proc-sys-vm-stat_refresh-to-force-vmstat-update
-+++ a/mm/vmstat.c
-@@ -1379,6 +1379,66 @@ static DEFINE_PER_CPU(struct delayed_wor
- int sysctl_stat_interval __read_mostly = HZ;
- static cpumask_var_t cpu_stat_off;
- 
-+#ifdef CONFIG_PROC_FS
-+static void refresh_vm_stats(struct work_struct *work)
++static void take_rmap_locks(struct vm_area_struct *vma)
 +{
-+	refresh_cpu_vm_stats(true);
++	if (vma->vm_file)
++		i_mmap_lock_write(vma->vm_file->f_mapping);
++	if (vma->anon_vma)
++		anon_vma_lock_write(vma->anon_vma);
 +}
 +
-+int vmstat_refresh(struct ctl_table *table, int write,
-+		   void __user *buffer, size_t *lenp, loff_t *ppos)
++static void drop_rmap_locks(struct vm_area_struct *vma)
 +{
-+	long val;
-+	int err;
-+	int i;
-+
-+	/*
-+	 * The regular update, every sysctl_stat_interval, may come later
-+	 * than expected: leaving a significant amount in per_cpu buckets.
-+	 * This is particularly misleading when checking a quantity of HUGE
-+	 * pages, immediately after running a test.  /proc/sys/vm/stat_refresh,
-+	 * which can equally be echo'ed to or cat'ted from (by root),
-+	 * can be used to update the stats just before reading them.
-+	 *
-+	 * Oh, and since global_page_state() etc. are so careful to hide
-+	 * transiently negative values, report an error here if any of
-+	 * the stats is negative, so we know to go looking for imbalance.
-+	 */
-+	err = schedule_on_each_cpu(refresh_vm_stats);
-+	if (err)
-+		return err;
-+	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++) {
-+		val = atomic_long_read(&vm_stat[i]);
-+		if (val < 0) {
-+			switch (i) {
-+			case NR_ALLOC_BATCH:
-+			case NR_PAGES_SCANNED:
-+				/*
-+				 * These are often seen to go negative in
-+				 * recent kernels, but not to go permanently
-+				 * negative.  Whilst it would be nicer not to
-+				 * have exceptions, rooting them out would be
-+				 * another task, of rather low priority.
-+				 */
-+				break;
-+			default:
-+				pr_warn("%s: %s %ld\n",
-+					__func__, vmstat_text[i], val);
-+				err = -EINVAL;
-+				break;
-+			}
-+		}
-+	}
-+	if (err)
-+		return err;
-+	if (write)
-+		*ppos += *lenp;
-+	else
-+		*lenp = 0;
-+	return 0;
++	if (vma->anon_vma)
++		anon_vma_unlock_write(vma->anon_vma);
++	if (vma->vm_file)
++		i_mmap_unlock_write(vma->vm_file->f_mapping);
 +}
-+#endif /* CONFIG_PROC_FS */
 +
- static void vmstat_update(struct work_struct *w)
+ static pte_t move_soft_dirty_pte(pte_t pte)
  {
- 	if (refresh_cpu_vm_stats(true)) {
+ 	/*
+@@ -90,8 +106,6 @@ static void move_ptes(struct vm_area_str
+ 		struct vm_area_struct *new_vma, pmd_t *new_pmd,
+ 		unsigned long new_addr, bool need_rmap_locks)
+ {
+-	struct address_space *mapping = NULL;
+-	struct anon_vma *anon_vma = NULL;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pte_t *old_pte, *new_pte, pte;
+ 	spinlock_t *old_ptl, *new_ptl;
+@@ -114,16 +128,8 @@ static void move_ptes(struct vm_area_str
+ 	 *   serialize access to individual ptes, but only rmap traversal
+ 	 *   order guarantees that we won't miss both the old and new ptes).
+ 	 */
+-	if (need_rmap_locks) {
+-		if (vma->vm_file) {
+-			mapping = vma->vm_file->f_mapping;
+-			i_mmap_lock_write(mapping);
+-		}
+-		if (vma->anon_vma) {
+-			anon_vma = vma->anon_vma;
+-			anon_vma_lock_write(anon_vma);
+-		}
+-	}
++	if (need_rmap_locks)
++		take_rmap_locks(vma);
+ 
+ 	/*
+ 	 * We don't have to worry about the ordering of src and dst
+@@ -151,10 +157,8 @@ static void move_ptes(struct vm_area_str
+ 		spin_unlock(new_ptl);
+ 	pte_unmap(new_pte - 1);
+ 	pte_unmap_unlock(old_pte - 1, old_ptl);
+-	if (anon_vma)
+-		anon_vma_unlock_write(anon_vma);
+-	if (mapping)
+-		i_mmap_unlock_write(mapping);
++	if (need_rmap_locks)
++		drop_rmap_locks(vma);
+ }
+ 
+ #define LATENCY_LIMIT	(64 * PAGE_SIZE)
+@@ -193,15 +197,13 @@ unsigned long move_page_tables(struct vm
+ 		if (pmd_trans_huge(*old_pmd)) {
+ 			if (extent == HPAGE_PMD_SIZE) {
+ 				bool moved;
+-				VM_BUG_ON_VMA(vma->vm_file || !vma->anon_vma,
+-					      vma);
+ 				/* See comment in move_ptes() */
+ 				if (need_rmap_locks)
+-					anon_vma_lock_write(vma->anon_vma);
++					take_rmap_locks(vma);
+ 				moved = move_huge_pmd(vma, old_addr, new_addr,
+ 						    old_end, old_pmd, new_pmd);
+ 				if (need_rmap_locks)
+-					anon_vma_unlock_write(vma->anon_vma);
++					drop_rmap_locks(vma);
+ 				if (moved) {
+ 					need_flush = true;
+ 					continue;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
