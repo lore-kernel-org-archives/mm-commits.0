@@ -1,96 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memory_hotplug-is_mem_section_removable-can-be-boolean.patch removed
- from -mm tree
-Date: Fri, 20 May 2016 14:04:27 -0700
-Message-ID: <573f7bdb.sIhXZpz6cEWP2uPl%akpm@linux-foundation.org>
+Subject: [merged] mm-mempolicy-vma_migratable-can-be-boolean.patch removed from -mm tree
+Date: Fri, 20 May 2016 14:04:31 -0700
+Message-ID: <573f7bdf.pCIZuNh+DU/3EjeJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46996 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47000 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751086AbcETVE2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:28 -0400
+	with ESMTP id S1751032AbcETVEc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: baiyaowei@cmss.chinamobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: is_mem_section_removable() can return bool
+     Subject: mm/mempolicy.c: vma_migratable() can return bool
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-is_mem_section_removable-can-be-boolean.patch
+     mm-mempolicy-vma_migratable-can-be-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Subject: mm/memory_hotplug: is_mem_section_removable() can return bool
+Subject: mm/mempolicy.c: vma_migratable() can return bool
 
-Make is_mem_section_removable() return bool to improve readability due to
-this particular function only using either one or zero as its return
-value.
+Make vma_migratable() return bool due to this particular function only
+using either one or zero as its return value.
 
 Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    6 +++---
- mm/memory_hotplug.c            |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/mempolicy.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-is_mem_section_removable-can-be-boolean include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-is_mem_section_removable-can-be-boolean
-+++ a/include/linux/memory_hotplug.h
-@@ -247,16 +247,16 @@ static inline void mem_hotplug_done(void
+diff -puN include/linux/mempolicy.h~mm-mempolicy-vma_migratable-can-be-boolean include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicy-vma_migratable-can-be-boolean
++++ a/include/linux/mempolicy.h
+@@ -172,14 +172,14 @@ extern int mpol_parse_str(char *str, str
+ extern void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol);
  
- #ifdef CONFIG_MEMORY_HOTREMOVE
- 
--extern int is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
-+extern bool is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
- extern void try_offline_node(int nid);
- extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
- extern void remove_memory(int nid, u64 start, u64 size);
- 
- #else
--static inline int is_mem_section_removable(unsigned long pfn,
-+static inline bool is_mem_section_removable(unsigned long pfn,
- 					unsigned long nr_pages)
+ /* Check if a vma is migratable */
+-static inline int vma_migratable(struct vm_area_struct *vma)
++static inline bool vma_migratable(struct vm_area_struct *vma)
  {
--	return 0;
-+	return false;
- }
+ 	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
+-		return 0;
++		return false;
  
- static inline void try_offline_node(int nid) {}
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-is_mem_section_removable-can-be-boolean mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-is_mem_section_removable-can-be-boolean
-+++ a/mm/memory_hotplug.c
-@@ -1410,7 +1410,7 @@ static struct page *next_active_pagebloc
- }
+ #ifndef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+ 	if (vma->vm_flags & VM_HUGETLB)
+-		return 0;
++		return false;
+ #endif
  
- /* Checks if this range of memory is likely to be hot-removable. */
--int is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
-+bool is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
- {
- 	struct page *page = pfn_to_page(start_pfn);
- 	struct page *end_page = page + nr_pages;
-@@ -1418,12 +1418,12 @@ int is_mem_section_removable(unsigned lo
- 	/* Check the starting page of each pageblock within the range */
- 	for (; page < end_page; page = next_active_pageblock(page)) {
- 		if (!is_pageblock_removable_nolock(page))
+ 	/*
+@@ -190,8 +190,8 @@ static inline int vma_migratable(struct
+ 	if (vma->vm_file &&
+ 		gfp_zone(mapping_gfp_mask(vma->vm_file->f_mapping))
+ 								< policy_zone)
 -			return 0;
-+			return false;
- 		cond_resched();
- 	}
- 
- 	/* All pageblocks in the memory block are likely to be hot-removable */
 -	return 1;
++			return false;
 +	return true;
  }
  
- /*
+ extern int mpol_misplaced(struct page *, struct vm_area_struct *, unsigned long);
 _
 
 Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
