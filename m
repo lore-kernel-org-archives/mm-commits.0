@@ -1,258 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [patch 026/117] mm/slab: clean-up kmem_cache_node setup
-Date: Thu, 19 May 2016 17:10:14 -0700
-Message-ID: <573e55e6.H4I59CQNmaHTkxha%akpm@linux-foundation.org>
+Subject: [patch 042/117] mm/hugetlb: optimize minimum size (min_size)
+ accounting
+Date: Thu, 19 May 2016 17:11:01 -0700
+Message-ID: <573e5615.w2sb+cp3wy3A/Hn3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45970 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46098 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755298AbcETAKP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:10:15 -0400
+	with ESMTP id S1755298AbcETALD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:11:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, jonathanh@nvidia.com, nm@ti.com, penberg@kernel.org, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mike.kravetz@oracle.com, dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, rientjes@google.com
 
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: clean-up kmem_cache_node setup
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb: optimize minimum size (min_size) accounting
 
-There are mostly same code for setting up kmem_cache_node either in
-cpuup_prepare() or alloc_kmem_cache_node().  Factor out and clean-up them.
+It was observed that minimum size accounting associated with the
+hugetlbfs min_size mount option may not perform optimally and as
+expected.  As huge pages/reservations are released from the filesystem
+and given back to the global pools, they are reserved for subsequent
+filesystem use as long as the subpool reserved count is less than
+subpool minimum size.  It does not take into account used pages
+within the filesystem.  The filesystem size limits are not exceeded
+and this is technically not a bug.  However, better behavior would
+be to wait for the number of used pages/reservations associated with
+the filesystem to drop below the minimum size before taking reservations
+to satisfy minimum size.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Tested-by: Nishanth Menon <nm@ti.com>
-Tested-by: Jon Hunter <jonathanh@nvidia.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+An optimization is also made to the hugepage_subpool_get_pages()
+routine which is called when pages/reservations are allocated.  This
+does not change behavior, but simply avoids the accounting if all
+reservations have already been taken (subpool reserved count == 0).
+
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |  168 +++++++++++++++++++++-------------------------------
- 1 file changed, 68 insertions(+), 100 deletions(-)
+ mm/hugetlb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup mm/slab.c
---- a/mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup
-+++ a/mm/slab.c
-@@ -911,6 +911,63 @@ static int init_cache_node_node(int node
- 	return 0;
- }
- 
-+static int setup_kmem_cache_node(struct kmem_cache *cachep,
-+				int node, gfp_t gfp, bool force_change)
-+{
-+	int ret = -ENOMEM;
-+	struct kmem_cache_node *n;
-+	struct array_cache *old_shared = NULL;
-+	struct array_cache *new_shared = NULL;
-+	struct alien_cache **new_alien = NULL;
-+	LIST_HEAD(list);
-+
-+	if (use_alien_caches) {
-+		new_alien = alloc_alien_cache(node, cachep->limit, gfp);
-+		if (!new_alien)
-+			goto fail;
-+	}
-+
-+	if (cachep->shared) {
-+		new_shared = alloc_arraycache(node,
-+			cachep->shared * cachep->batchcount, 0xbaadf00d, gfp);
-+		if (!new_shared)
-+			goto fail;
-+	}
-+
-+	ret = init_cache_node(cachep, node, gfp);
-+	if (ret)
-+		goto fail;
-+
-+	n = get_node(cachep, node);
-+	spin_lock_irq(&n->list_lock);
-+	if (n->shared && force_change) {
-+		free_block(cachep, n->shared->entry,
-+				n->shared->avail, node, &list);
-+		n->shared->avail = 0;
-+	}
-+
-+	if (!n->shared || force_change) {
-+		old_shared = n->shared;
-+		n->shared = new_shared;
-+		new_shared = NULL;
-+	}
-+
-+	if (!n->alien) {
-+		n->alien = new_alien;
-+		new_alien = NULL;
-+	}
-+
-+	spin_unlock_irq(&n->list_lock);
-+	slabs_destroy(cachep, &list);
-+
-+fail:
-+	kfree(old_shared);
-+	kfree(new_shared);
-+	free_alien_cache(new_alien);
-+
-+	return ret;
-+}
-+
- static void cpuup_canceled(long cpu)
- {
- 	struct kmem_cache *cachep;
-@@ -982,7 +1039,6 @@ free_slab:
- static int cpuup_prepare(long cpu)
- {
- 	struct kmem_cache *cachep;
--	struct kmem_cache_node *n = NULL;
- 	int node = cpu_to_mem(cpu);
- 	int err;
- 
-@@ -1001,44 +1057,9 @@ static int cpuup_prepare(long cpu)
- 	 * array caches
- 	 */
- 	list_for_each_entry(cachep, &slab_caches, list) {
--		struct array_cache *shared = NULL;
--		struct alien_cache **alien = NULL;
--
--		if (cachep->shared) {
--			shared = alloc_arraycache(node,
--				cachep->shared * cachep->batchcount,
--				0xbaadf00d, GFP_KERNEL);
--			if (!shared)
--				goto bad;
--		}
--		if (use_alien_caches) {
--			alien = alloc_alien_cache(node, cachep->limit, GFP_KERNEL);
--			if (!alien) {
--				kfree(shared);
--				goto bad;
--			}
--		}
--		n = get_node(cachep, node);
--		BUG_ON(!n);
--
--		spin_lock_irq(&n->list_lock);
--		if (!n->shared) {
--			/*
--			 * We are serialised from CPU_DEAD or
--			 * CPU_UP_CANCELLED by the cpucontrol lock
--			 */
--			n->shared = shared;
--			shared = NULL;
--		}
--#ifdef CONFIG_NUMA
--		if (!n->alien) {
--			n->alien = alien;
--			alien = NULL;
--		}
--#endif
--		spin_unlock_irq(&n->list_lock);
--		kfree(shared);
--		free_alien_cache(alien);
-+		err = setup_kmem_cache_node(cachep, node, GFP_KERNEL, false);
-+		if (err)
-+			goto bad;
+diff -puN mm/hugetlb.c~mm-hugetlb-optimize-minimum-size-min_size-accounting mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-optimize-minimum-size-min_size-accounting
++++ a/mm/hugetlb.c
+@@ -144,7 +144,8 @@ static long hugepage_subpool_get_pages(s
+ 		}
  	}
  
- 	return 0;
-@@ -3678,72 +3699,19 @@ EXPORT_SYMBOL(kfree);
- /*
-  * This initializes kmem_cache_node or resizes various caches for all nodes.
-  */
--static int alloc_kmem_cache_node(struct kmem_cache *cachep, gfp_t gfp)
-+static int setup_kmem_cache_nodes(struct kmem_cache *cachep, gfp_t gfp)
- {
-+	int ret;
- 	int node;
- 	struct kmem_cache_node *n;
--	struct array_cache *new_shared;
--	struct alien_cache **new_alien = NULL;
+-	if (spool->min_hpages != -1) {		/* minimum size accounting */
++	/* minimum size accounting */
++	if (spool->min_hpages != -1 && spool->rsv_hpages) {
+ 		if (delta > spool->rsv_hpages) {
+ 			/*
+ 			 * Asking for more reserves than those already taken on
+@@ -182,7 +183,8 @@ static long hugepage_subpool_put_pages(s
+ 	if (spool->max_hpages != -1)		/* maximum size accounting */
+ 		spool->used_hpages -= delta;
  
- 	for_each_online_node(node) {
--
--		if (use_alien_caches) {
--			new_alien = alloc_alien_cache(node, cachep->limit, gfp);
--			if (!new_alien)
--				goto fail;
--		}
--
--		new_shared = NULL;
--		if (cachep->shared) {
--			new_shared = alloc_arraycache(node,
--				cachep->shared*cachep->batchcount,
--					0xbaadf00d, gfp);
--			if (!new_shared) {
--				free_alien_cache(new_alien);
--				goto fail;
--			}
--		}
--
--		n = get_node(cachep, node);
--		if (n) {
--			struct array_cache *shared = n->shared;
--			LIST_HEAD(list);
--
--			spin_lock_irq(&n->list_lock);
--
--			if (shared)
--				free_block(cachep, shared->entry,
--						shared->avail, node, &list);
--
--			n->shared = new_shared;
--			if (!n->alien) {
--				n->alien = new_alien;
--				new_alien = NULL;
--			}
--			n->free_limit = (1 + nr_cpus_node(node)) *
--					cachep->batchcount + cachep->num;
--			spin_unlock_irq(&n->list_lock);
--			slabs_destroy(cachep, &list);
--			kfree(shared);
--			free_alien_cache(new_alien);
--			continue;
--		}
--		n = kmalloc_node(sizeof(struct kmem_cache_node), gfp, node);
--		if (!n) {
--			free_alien_cache(new_alien);
--			kfree(new_shared);
-+		ret = setup_kmem_cache_node(cachep, node, gfp, true);
-+		if (ret)
- 			goto fail;
--		}
- 
--		kmem_cache_node_init(n);
--		n->next_reap = jiffies + REAPTIMEOUT_NODE +
--				((unsigned long)cachep) % REAPTIMEOUT_NODE;
--		n->shared = new_shared;
--		n->alien = new_alien;
--		n->free_limit = (1 + nr_cpus_node(node)) *
--					cachep->batchcount + cachep->num;
--		cachep->node[node] = n;
- 	}
-+
- 	return 0;
- 
- fail:
-@@ -3785,7 +3753,7 @@ static int __do_tune_cpucache(struct kme
- 	cachep->shared = shared;
- 
- 	if (!prev)
--		goto alloc_node;
-+		goto setup_node;
- 
- 	for_each_online_cpu(cpu) {
- 		LIST_HEAD(list);
-@@ -3802,8 +3770,8 @@ static int __do_tune_cpucache(struct kme
- 	}
- 	free_percpu(prev);
- 
--alloc_node:
--	return alloc_kmem_cache_node(cachep, gfp);
-+setup_node:
-+	return setup_kmem_cache_nodes(cachep, gfp);
- }
- 
- static int do_tune_cpucache(struct kmem_cache *cachep, int limit,
+-	if (spool->min_hpages != -1) {		/* minimum size accounting */
++	 /* minimum size accounting */
++	if (spool->min_hpages != -1 && spool->used_hpages < spool->min_hpages) {
+ 		if (spool->rsv_hpages + delta <= spool->min_hpages)
+ 			ret = 0;
+ 		else
 _
