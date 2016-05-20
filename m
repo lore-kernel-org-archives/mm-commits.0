@@ -1,148 +1,259 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: mmotm 2016-05-19-19-59 uploaded
-Date: Thu, 19 May 2016 22:39:26 -0700
-Message-ID: <20160519223926.c2a6c169287c048ee78ec151@linux-foundation.org>
-References: <573e7da6.pLi6U/36fnX6Drn0%akpm@linux-foundation.org>
-	<20160520051417.GA6808@bbox>
-	<20160520053628.GB6808@bbox>
+From: akpm@linux-foundation.org
+Subject: [merged]
+ fsnotify-avoid-spurious-emfile-errors-from-inotify_init.patch removed from
+ -mm tree
+Date: Fri, 20 May 2016 14:02:16 -0700
+Message-ID: <573f7b58.+n8Yv23rq70mefnd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52229 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46667 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750851AbcETFj3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 01:39:29 -0400
-In-Reply-To: <20160520053628.GB6808@bbox>
+	with ESMTP id S1750836AbcETVCS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:02:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Minchan Kim <minchan@kernel.org>
-Cc: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org, jack@suse.cz
+To: jack@suse.cz, wangxg.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
-Someone stuck a load of for-4.8 stuff into -next during the merge
-window.  It had better be for 4.8 anyway - it is super-late.
+The patch titled
+     Subject: fsnotify: avoid spurious EMFILE errors from inotify_init()
+has been removed from the -mm tree.  Its filename was
+     fsnotify-avoid-spurious-emfile-errors-from-inotify_init.patch
 
-I intend to simply ignore it and merge the for-4.7 material.
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-On Fri, 20 May 2016 14:36:28 +0900 Minchan Kim <minchan@kernel.org> wrote:
+------------------------------------------------------
+From: Jan Kara <jack@suse.cz>
+Subject: fsnotify: avoid spurious EMFILE errors from inotify_init()
 
-> Ccing Jan,
-> 
-> dax: Remove complete_unwritten argument
-> 
-> On Fri, May 20, 2016 at 02:14:17PM +0900, Minchan Kim wrote:
-> > On Thu, May 19, 2016 at 07:59:50PM -0700, akpm@linux-foundation.org wrote:
-> > > The mm-of-the-moment snapshot 2016-05-19-19-59 has been uploaded to
-> > > 
-> > >    http://www.ozlabs.org/~akpm/mmotm/
-> > > 
-> > > mmotm-readme.txt says
-> > > 
-> > > README for mm-of-the-moment:
-> > > 
-> > > http://www.ozlabs.org/~akpm/mmotm/
-> > > 
-> > > This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-> > > more than once a week.
-> > > 
-> > > You will need quilt to apply these patches to the latest Linus release (4.x
-> > > or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-> > > http://ozlabs.org/~akpm/mmotm/series
-> > > 
-> > > The file broken-out.tar.gz contains two datestamp files: .DATE and
-> > > .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-> > > followed by the base kernel version against which this patch series is to
-> > > be applied.
-> > > 
-> > > This tree is partially included in linux-next.  To see which patches are
-> > > included in linux-next, consult the `series' file.  Only the patches
-> > > within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-> > > linux-next.
-> > > 
-> > > A git tree which contains the memory management portion of this tree is
-> > > maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-> > > by Michal Hocko.  It contains the patches which are between the
-> > > "#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-> > > file, http://www.ozlabs.org/~akpm/mmotm/series.
-> > > 
-> > > 
-> > > A full copy of the full kernel tree with the linux-next and mmotm patches
-> > > already applied is available through git within an hour of the mmotm
-> > > release.  Individual mmotm releases are tagged.  The master branch always
-> > > points to the latest release, so it's constantly rebasing.
-> > > 
-> > > http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
-> > > 
-> > > To develop on top of mmotm git:
-> > > 
-> > >   $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-> > >   $ git remote update mmotm
-> > >   $ git checkout -b topic mmotm/master
-> > >   <make changes, commit>
-> > >   $ git send-email mmotm/master.. [...]
-> > > 
-> > > To rebase a branch with older patches to a new mmotm release:
-> > > 
-> > >   $ git remote update mmotm
-> > >   $ git rebase --onto mmotm/master <topic base> topic
-> > > 
-> > > 
-> > > 
-> > > 
-> > > The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-> > > contains daily snapshots of the -mm tree.  It is updated more frequently
-> > > than mmotm, and is untested.
-> > > 
-> > > A git copy of this tree is available at
-> > > 
-> > > 	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
-> > > 
-> > > and use of this tree is similar to
-> > > http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
-> > > 
-> > 
-> > In first build, I got this.
-> > 
-> > In file included from mm/filemap.c:14:0:
-> > include/linux/dax.h:14:3: error: unknown type name ___dax_iodone_t___
-> >    dax_iodone_t);
-> >    ^
-> > include/linux/dax.h:16:3: error: unknown type name ___dax_iodone_t___
-> >    dax_iodone_t);
-> >    ^
-> > include/linux/dax.h:39:5: error: unknown type name ___dax_iodone_t___
-> >      dax_iodone_t di)
-> >      ^
-> > In file included from mm/vmscan.c:49:0:
-> > include/linux/dax.h:14:3: error: unknown type name ___dax_iodone_t___
-> >    dax_iodone_t);
-> >    ^
-> > include/linux/dax.h:16:3: error: unknown type name ___dax_iodone_t___
-> >    dax_iodone_t);
-> >    ^
-> > include/linux/dax.h:39:5: error: unknown type name ___dax_iodone_t___
-> >      dax_iodone_t di)
-> >      ^
-> > In file included from mm/truncate.c:12:0:
-> > include/linux/dax.h:14:3: error: unknown type name ___dax_iodone_t___
-> >    dax_iodone_t);
-> >    ^
-> > include/linux/dax.h:16:3: error: unknown type name ___dax_iodone_t___
-> >    dax_iodone_t);
-> >    ^
-> > include/linux/dax.h:39:5: error: unknown type name ___dax_iodone_t___
-> >      dax_iodone_t di)
-> >      ^
-> > make[1]: *** [mm/truncate.o] Error 1
-> > make[1]: *** Waiting for unfinished jobs....
-> > make[1]: *** [mm/filemap.o] Error 1
-> > make[1]: *** [mm/vmscan.o] Error 1
-> > make: *** [mm/] Error 2
-> > 
-> > --
-> > To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> > the body to majordomo@kvack.org.  For more info on Linux MM,
-> > see: http://www.linux-mm.org/ .
-> > Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Inotify instance is destroyed when all references to it are dropped.  That
+not only means that the corresponding file descriptor needs to be closed
+but also that all corresponding instance marks are freed (as each mark
+holds a reference to the inotify instance).  However marks are freed only
+after SRCU period ends which can take some time and thus if user rapidly
+creates and frees inotify instances, number of existing inotify instances
+can exceed max_user_instances limit although from user point of view there
+is always at most one existing instance.  Thus inotify_init() returns
+EMFILE error which is hard to justify from user point of view.  This
+problem is exposed by LTP inotify06 testcase on some machines.
+
+We fix the problem by making sure all group marks are properly freed while
+destroying inotify instance.  We wait for SRCU period to end in that path
+anyway since we have to make sure there is no event being added to the
+instance while we are tearing down the instance.  So it takes only some
+plumbing to allow for marks to be destroyed in that path as well and not
+from a dedicated work item.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Xiaoguang Wang <wangxg.fnst@cn.fujitsu.com>
+Tested-by: Xiaoguang Wang <wangxg.fnst@cn.fujitsu.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/notify/fsnotify.h             |    7 ++
+ fs/notify/group.c                |   17 ++++--
+ fs/notify/mark.c                 |   78 ++++++++++++++++++++++-------
+ include/linux/fsnotify_backend.h |    2 
+ 4 files changed, 81 insertions(+), 23 deletions(-)
+
+diff -puN fs/notify/fsnotify.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init fs/notify/fsnotify.h
+--- a/fs/notify/fsnotify.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init
++++ a/fs/notify/fsnotify.h
+@@ -56,6 +56,13 @@ static inline void fsnotify_clear_marks_
+ 	fsnotify_destroy_marks(&real_mount(mnt)->mnt_fsnotify_marks,
+ 			       &mnt->mnt_root->d_lock);
+ }
++/* prepare for freeing all marks associated with given group */
++extern void fsnotify_detach_group_marks(struct fsnotify_group *group);
++/*
++ * wait for fsnotify_mark_srcu period to end and free all marks in destroy_list
++ */
++extern void fsnotify_mark_destroy_list(void);
++
+ /*
+  * update the dentry->d_flags of all of inode's children to indicate if inode cares
+  * about events that happen to its children.
+diff -puN fs/notify/group.c~fsnotify-avoid-spurious-emfile-errors-from-inotify_init fs/notify/group.c
+--- a/fs/notify/group.c~fsnotify-avoid-spurious-emfile-errors-from-inotify_init
++++ a/fs/notify/group.c
+@@ -47,12 +47,21 @@ static void fsnotify_final_destroy_group
+  */
+ void fsnotify_destroy_group(struct fsnotify_group *group)
+ {
+-	/* clear all inode marks for this group */
+-	fsnotify_clear_marks_by_group(group);
++	/* clear all inode marks for this group, attach them to destroy_list */
++	fsnotify_detach_group_marks(group);
+ 
+-	synchronize_srcu(&fsnotify_mark_srcu);
++	/*
++	 * Wait for fsnotify_mark_srcu period to end and free all marks in
++	 * destroy_list
++	 */
++	fsnotify_mark_destroy_list();
+ 
+-	/* clear the notification queue of all events */
++	/*
++	 * Since we have waited for fsnotify_mark_srcu in
++	 * fsnotify_mark_destroy_list() there can be no outstanding event
++	 * notification against this group. So clearing the notification queue
++	 * of all events is reliable now.
++	 */
+ 	fsnotify_flush_notify(group);
+ 
+ 	/*
+diff -puN fs/notify/mark.c~fsnotify-avoid-spurious-emfile-errors-from-inotify_init fs/notify/mark.c
+--- a/fs/notify/mark.c~fsnotify-avoid-spurious-emfile-errors-from-inotify_init
++++ a/fs/notify/mark.c
+@@ -97,8 +97,8 @@ struct srcu_struct fsnotify_mark_srcu;
+ static DEFINE_SPINLOCK(destroy_lock);
+ static LIST_HEAD(destroy_list);
+ 
+-static void fsnotify_mark_destroy(struct work_struct *work);
+-static DECLARE_DELAYED_WORK(reaper_work, fsnotify_mark_destroy);
++static void fsnotify_mark_destroy_workfn(struct work_struct *work);
++static DECLARE_DELAYED_WORK(reaper_work, fsnotify_mark_destroy_workfn);
+ 
+ void fsnotify_get_mark(struct fsnotify_mark *mark)
+ {
+@@ -173,11 +173,15 @@ void fsnotify_detach_mark(struct fsnotif
+ }
+ 
+ /*
+- * Free fsnotify mark. The freeing is actually happening from a kthread which
+- * first waits for srcu period end. Caller must have a reference to the mark
+- * or be protected by fsnotify_mark_srcu.
++ * Prepare mark for freeing and add it to the list of marks prepared for
++ * freeing. The actual freeing must happen after SRCU period ends and the
++ * caller is responsible for this.
++ *
++ * The function returns true if the mark was added to the list of marks for
++ * freeing. The function returns false if someone else has already called
++ * __fsnotify_free_mark() for the mark.
+  */
+-void fsnotify_free_mark(struct fsnotify_mark *mark)
++static bool __fsnotify_free_mark(struct fsnotify_mark *mark)
+ {
+ 	struct fsnotify_group *group = mark->group;
+ 
+@@ -185,17 +189,11 @@ void fsnotify_free_mark(struct fsnotify_
+ 	/* something else already called this function on this mark */
+ 	if (!(mark->flags & FSNOTIFY_MARK_FLAG_ALIVE)) {
+ 		spin_unlock(&mark->lock);
+-		return;
++		return false;
+ 	}
+ 	mark->flags &= ~FSNOTIFY_MARK_FLAG_ALIVE;
+ 	spin_unlock(&mark->lock);
+ 
+-	spin_lock(&destroy_lock);
+-	list_add(&mark->g_list, &destroy_list);
+-	spin_unlock(&destroy_lock);
+-	queue_delayed_work(system_unbound_wq, &reaper_work,
+-				FSNOTIFY_REAPER_DELAY);
+-
+ 	/*
+ 	 * Some groups like to know that marks are being freed.  This is a
+ 	 * callback to the group function to let it know that this mark
+@@ -203,6 +201,25 @@ void fsnotify_free_mark(struct fsnotify_
+ 	 */
+ 	if (group->ops->freeing_mark)
+ 		group->ops->freeing_mark(mark, group);
++
++	spin_lock(&destroy_lock);
++	list_add(&mark->g_list, &destroy_list);
++	spin_unlock(&destroy_lock);
++
++	return true;
++}
++
++/*
++ * Free fsnotify mark. The freeing is actually happening from a workqueue which
++ * first waits for srcu period end. Caller must have a reference to the mark
++ * or be protected by fsnotify_mark_srcu.
++ */
++void fsnotify_free_mark(struct fsnotify_mark *mark)
++{
++	if (__fsnotify_free_mark(mark)) {
++		queue_delayed_work(system_unbound_wq, &reaper_work,
++				   FSNOTIFY_REAPER_DELAY);
++	}
+ }
+ 
+ void fsnotify_destroy_mark(struct fsnotify_mark *mark,
+@@ -468,11 +485,29 @@ void fsnotify_clear_marks_by_group_flags
+ }
+ 
+ /*
+- * Given a group, destroy all of the marks associated with that group.
++ * Given a group, prepare for freeing all the marks associated with that group.
++ * The marks are attached to the list of marks prepared for destruction, the
++ * caller is responsible for freeing marks in that list after SRCU period has
++ * ended.
+  */
+-void fsnotify_clear_marks_by_group(struct fsnotify_group *group)
++void fsnotify_detach_group_marks(struct fsnotify_group *group)
+ {
+-	fsnotify_clear_marks_by_group_flags(group, (unsigned int)-1);
++	struct fsnotify_mark *mark;
++
++	while (1) {
++		mutex_lock_nested(&group->mark_mutex, SINGLE_DEPTH_NESTING);
++		if (list_empty(&group->marks_list)) {
++			mutex_unlock(&group->mark_mutex);
++			break;
++		}
++		mark = list_first_entry(&group->marks_list,
++					struct fsnotify_mark, g_list);
++		fsnotify_get_mark(mark);
++		fsnotify_detach_mark(mark);
++		mutex_unlock(&group->mark_mutex);
++		__fsnotify_free_mark(mark);
++		fsnotify_put_mark(mark);
++	}
+ }
+ 
+ void fsnotify_duplicate_mark(struct fsnotify_mark *new, struct fsnotify_mark *old)
+@@ -499,7 +534,11 @@ void fsnotify_init_mark(struct fsnotify_
+ 	mark->free_mark = free_mark;
+ }
+ 
+-static void fsnotify_mark_destroy(struct work_struct *work)
++/*
++ * Destroy all marks in destroy_list, waits for SRCU period to finish before
++ * actually freeing marks.
++ */
++void fsnotify_mark_destroy_list(void)
+ {
+ 	struct fsnotify_mark *mark, *next;
+ 	struct list_head private_destroy_list;
+@@ -516,3 +555,8 @@ static void fsnotify_mark_destroy(struct
+ 		fsnotify_put_mark(mark);
+ 	}
+ }
++
++static void fsnotify_mark_destroy_workfn(struct work_struct *work)
++{
++	fsnotify_mark_destroy_list();
++}
+diff -puN include/linux/fsnotify_backend.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init
++++ a/include/linux/fsnotify_backend.h
+@@ -359,8 +359,6 @@ extern void fsnotify_clear_vfsmount_mark
+ extern void fsnotify_clear_inode_marks_by_group(struct fsnotify_group *group);
+ /* run all the marks in a group, and clear all of the marks where mark->flags & flags is true*/
+ extern void fsnotify_clear_marks_by_group_flags(struct fsnotify_group *group, unsigned int flags);
+-/* run all the marks in a group, and flag them to be freed */
+-extern void fsnotify_clear_marks_by_group(struct fsnotify_group *group);
+ extern void fsnotify_get_mark(struct fsnotify_mark *mark);
+ extern void fsnotify_put_mark(struct fsnotify_mark *mark);
+ extern void fsnotify_unmount_inodes(struct super_block *sb);
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+
