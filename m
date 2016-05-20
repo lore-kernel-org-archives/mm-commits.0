@@ -1,88 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hugetlb-optimize-minimum-size-min_size-accounting.patch removed from -mm tree
-Date: Fri, 20 May 2016 14:04:04 -0700
-Message-ID: <573f7bc4.gbbe0CDceHI0y7zY%akpm@linux-foundation.org>
+Subject: [merged] metag-mm-use-hugetlb_bad_size.patch removed from -mm
+ tree
+Date: Fri, 20 May 2016 14:04:13 -0700
+Message-ID: <573f7bcd.rvWfqJLcjM+ApCNz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46924 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46956 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcETVEF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:05 -0400
+	with ESMTP id S1751065AbcETVEO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: vaishali.thakkar@oracle.com, baiyaowei@cmss.chinamobile.com, dave.hansen@linux.intel.com, dingel@linux.vnet.ibm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: optimize minimum size (min_size) accounting
+     Subject: metag: mm: use hugetlb_bad_size()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-optimize-minimum-size-min_size-accounting.patch
+     metag-mm-use-hugetlb_bad_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: optimize minimum size (min_size) accounting
+From: Vaishali Thakkar <vaishali.thakkar@oracle.com>
+Subject: metag: mm: use hugetlb_bad_size()
 
-It was observed that minimum size accounting associated with the
-hugetlbfs min_size mount option may not perform optimally and as
-expected.  As huge pages/reservations are released from the filesystem
-and given back to the global pools, they are reserved for subsequent
-filesystem use as long as the subpool reserved count is less than
-subpool minimum size.  It does not take into account used pages
-within the filesystem.  The filesystem size limits are not exceeded
-and this is technically not a bug.  However, better behavior would
-be to wait for the number of used pages/reservations associated with
-the filesystem to drop below the minimum size before taking reservations
-to satisfy minimum size.
+Update setup_hugepagesz() to call hugetlb_bad_size() when unsupported
+hugepage size is found.
 
-An optimization is also made to the hugepage_subpool_get_pages()
-routine which is called when pages/reservations are allocated.  This
-does not change behavior, but simply avoids the accounting if all
-reservations have already been taken (subpool reserved count == 0).
-
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Vaishali Thakkar <vaishali.thakkar@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Cc: Dominik Dingel <dingel@linux.vnet.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/metag/mm/hugetlbpage.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-optimize-minimum-size-min_size-accounting mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-optimize-minimum-size-min_size-accounting
-+++ a/mm/hugetlb.c
-@@ -144,7 +144,8 @@ static long hugepage_subpool_get_pages(s
- 		}
- 	}
- 
--	if (spool->min_hpages != -1) {		/* minimum size accounting */
-+	/* minimum size accounting */
-+	if (spool->min_hpages != -1 && spool->rsv_hpages) {
- 		if (delta > spool->rsv_hpages) {
- 			/*
- 			 * Asking for more reserves than those already taken on
-@@ -182,7 +183,8 @@ static long hugepage_subpool_put_pages(s
- 	if (spool->max_hpages != -1)		/* maximum size accounting */
- 		spool->used_hpages -= delta;
- 
--	if (spool->min_hpages != -1) {		/* minimum size accounting */
-+	 /* minimum size accounting */
-+	if (spool->min_hpages != -1 && spool->used_hpages < spool->min_hpages) {
- 		if (spool->rsv_hpages + delta <= spool->min_hpages)
- 			ret = 0;
- 		else
+diff -puN arch/metag/mm/hugetlbpage.c~metag-mm-use-hugetlb_bad_size arch/metag/mm/hugetlbpage.c
+--- a/arch/metag/mm/hugetlbpage.c~metag-mm-use-hugetlb_bad_size
++++ a/arch/metag/mm/hugetlbpage.c
+@@ -239,6 +239,7 @@ static __init int setup_hugepagesz(char
+ 	if (ps == (1 << HPAGE_SHIFT)) {
+ 		hugetlb_add_hstate(HPAGE_SHIFT - PAGE_SHIFT);
+ 	} else {
++		hugetlb_bad_size();
+ 		pr_err("hugepagesz: Unsupported page size %lu M\n",
+ 		       ps >> 20);
+ 		return 0;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from vaishali.thakkar@oracle.com are
 
 
