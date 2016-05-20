@@ -1,98 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [patch 052/162] mm, thp: khugepaged should scan when sleep value
- is written
-Date: Fri, 20 May 2016 16:58:56 -0700
-Message-ID: <573fa4c0.88WeGb2o3TJCJEF1%akpm@linux-foundation.org>
+Subject: [patch 051/162] MM: increase safety margin provided by
+ PF_LESS_THROTTLE
+Date: Fri, 20 May 2016 16:58:53 -0700
+Message-ID: <573fa4bd.qJF0SDpfYG2Bjo5f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52391 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52385 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751478AbcETX65 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:58:57 -0400
+	with ESMTP id S1751419AbcETX6y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:58:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rientjes@google.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, neilb@suse.com
 
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: khugepaged should scan when sleep value is written
+From: NeilBrown <neilb@suse.com>
+Subject: MM: increase safety margin provided by PF_LESS_THROTTLE
 
-If a large value is written to scan_sleep_millisecs, for example, that
-period must lapse before khugepaged will wake up for periodic collapsing.
+When nfsd is exporting a filesystem over NFS which is then NFS-mounted on
+the local machine there is a risk of deadlock.  This happens when there
+are lots of dirty pages in the NFS filesystem and they cause NFSD to be
+throttled, either in throttle_vm_writeout() or in balance_dirty_pages().
 
-If this value is tuned to 1 day, for example, and then re-tuned to its
-default 10s, khugepaged will still wait for a day before scanning again.
+To avoid this problem the PF_LESS_THROTTLE flag is set for NFSD threads
+and it provides a 25% increase to the limits that affect NFSD.  Any
+process writing to an NFS filesystem will be throttled well before the
+number of dirty NFS pages reaches the limit imposed on NFSD, so NFSD will
+not deadlock on pages that it needs to write out.  At least it shouldn't.
 
-This patch causes khugepaged to wakeup immediately when the value is
-changed and then sleep until that value is rewritten or the new value
-lapses.
+All processes are allowed a small excess margin to avoid performing too
+many calculations: ratelimit_pages.
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1605181453200.4786@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+ratelimit_pages is set so that if a thread on every CPU uses the entire
+margin, the total will only go 3% over the limit, and this is much less
+than the 25% bonus that PF_LESS_THROTTLE provides, so this margin
+shouldn't be a problem.  But it is.
+
+The "total memory" that these 3% and 25% are calculated against are not
+really total memory but are "global_dirtyable_memory()" which doesn't
+include anonymous memory, just free memory and page-cache memory.
+
+The "ratelimit_pages" number is based on whatever the
+global_dirtyable_memory was on the last CPU hot-plug, which might not be
+what you expect, but is probably close to the total freeable memory.
+
+The throttle threshold uses the global_dirtable_memory at the moment when
+the throttling happens, which could be much less than at the last CPU
+hotplug.  So if lots of anonymous memory has been allocated, thus pushing
+out lots of page-cache pages, then NFSD might end up being throttled due
+to dirty NFS pages because the "25%" bonus it gets is calculated against a
+rather small amount of dirtyable memory, while the "3%" margin that other
+processes are allowed to dirty without penalty is calculated against a
+much larger number.
+
+To remove this possibility of deadlock we need to make sure that the
+margin granted to PF_LESS_THROTTLE exceeds that rate-limit margin.  Simply
+adding ratelimit_pages isn't enough as that should be multiplied by the
+number of cpus.
+
+So add "global_wb_domain.dirty_limit / 32" as that more accurately
+reflects the current total over-shoot margin.  This ensures that the
+number of dirty NFS pages never gets so high that nfsd will be throttled
+waiting for them to be written.
+
+Link: http://lkml.kernel.org/r/87futgowwv.fsf@notabene.neil.brown.name
+Signed-off-by: NeilBrown <neilb@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ mm/page-writeback.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-khugepaged-should-scan-when-sleep-value-is-written mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-khugepaged-should-scan-when-sleep-value-is-written
-+++ a/mm/huge_memory.c
-@@ -89,6 +89,7 @@ static unsigned int khugepaged_full_scan
- static unsigned int khugepaged_scan_sleep_millisecs __read_mostly = 10000;
- /* during fragmentation poll the hugepage allocator once every minute */
- static unsigned int khugepaged_alloc_sleep_millisecs __read_mostly = 60000;
-+static unsigned long khugepaged_sleep_expire;
- static struct task_struct *khugepaged_thread __read_mostly;
- static DEFINE_MUTEX(khugepaged_mutex);
- static DEFINE_SPINLOCK(khugepaged_mm_lock);
-@@ -467,6 +468,7 @@ static ssize_t scan_sleep_millisecs_stor
- 		return -EINVAL;
- 
- 	khugepaged_scan_sleep_millisecs = msecs;
-+	khugepaged_sleep_expire = 0;
- 	wake_up_interruptible(&khugepaged_wait);
- 
- 	return count;
-@@ -494,6 +496,7 @@ static ssize_t alloc_sleep_millisecs_sto
- 		return -EINVAL;
- 
- 	khugepaged_alloc_sleep_millisecs = msecs;
-+	khugepaged_sleep_expire = 0;
- 	wake_up_interruptible(&khugepaged_wait);
- 
- 	return count;
-@@ -2791,15 +2794,25 @@ static void khugepaged_do_scan(void)
- 		put_page(hpage);
- }
- 
-+static bool khugepaged_should_wakeup(void)
-+{
-+	return kthread_should_stop() ||
-+	       time_after_eq(jiffies, khugepaged_sleep_expire);
-+}
-+
- static void khugepaged_wait_work(void)
- {
- 	if (khugepaged_has_work()) {
--		if (!khugepaged_scan_sleep_millisecs)
-+		const unsigned long scan_sleep_jiffies =
-+			msecs_to_jiffies(khugepaged_scan_sleep_millisecs);
-+
-+		if (!scan_sleep_jiffies)
- 			return;
- 
-+		khugepaged_sleep_expire = jiffies + scan_sleep_jiffies;
- 		wait_event_freezable_timeout(khugepaged_wait,
--					     kthread_should_stop(),
--			msecs_to_jiffies(khugepaged_scan_sleep_millisecs));
-+					     khugepaged_should_wakeup(),
-+					     scan_sleep_jiffies);
- 		return;
+diff -puN mm/page-writeback.c~mm-increase-safety-margin-provided-by-pf_less_throttle mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-increase-safety-margin-provided-by-pf_less_throttle
++++ a/mm/page-writeback.c
+@@ -411,8 +411,8 @@ static void domain_dirty_limits(struct d
+ 		bg_thresh = thresh / 2;
+ 	tsk = current;
+ 	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
+-		bg_thresh += bg_thresh / 4;
+-		thresh += thresh / 4;
++		bg_thresh += bg_thresh / 4 + global_wb_domain.dirty_limit / 32;
++		thresh += thresh / 4 + global_wb_domain.dirty_limit / 32;
  	}
- 
+ 	dtc->thresh = thresh;
+ 	dtc->bg_thresh = bg_thresh;
 _
