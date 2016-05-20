@@ -1,82 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [patch 017/162] mm, oom: protect !costly allocations some more
- for !CONFIG_COMPACTION
-Date: Fri, 20 May 2016 16:57:15 -0700
-Message-ID: <573fa45b.00S4VHirsVB7EKk3%akpm@linux-foundation.org>
+Subject: [patch 019/162] mm, oom_reaper: do not mmput synchronously from
+ the oom reaper context
+Date: Fri, 20 May 2016 16:57:21 -0700
+Message-ID: <573fa461.HdSAfj7fyeNCN4Br%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52207 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52217 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751363AbcETX5Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:57:16 -0400
+	with ESMTP id S1751536AbcETX5W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:57:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom: protect !costly allocations some more for !CONFIG_COMPACTION
+Subject: mm, oom_reaper: do not mmput synchronously from the oom reaper context
 
-Joonsoo has reported that he is able to trigger OOM for !costly high order
-requests (heavy fork() workload close the OOM) with the new oom detection
-rework.  This is because we rely only on should_reclaim_retry when the
-compaction is disabled and it only checks watermarks for the requested
-order and so we might trigger OOM when there is a lot of free memory.
+Tetsuo has properly noted that mmput slow path might get blocked waiting
+for another party (e.g.  exit_aio waits for an IO).  If that happens the
+oom_reaper would be put out of the way and will not be able to process
+next oom victim.  We should strive for making this context as reliable and
+independent on other subsystems as much as possible.
 
-It is not very clear what are the usual workloads when the compaction is
-disabled.  Relying on high order allocations heavily without any mechanism
-to create those orders except for unbound amount of reclaim is certainly
-not a good idea.
+Introduce mmput_async which will perform the slow path from an async (WQ)
+context.  This will delay the operation but that shouldn't be a problem
+because the oom_reaper has reclaimed the victim's address space for most
+cases as much as possible and the remaining context shouldn't bind too
+much memory anymore.  The only exception is when mmap_sem trylock has
+failed which shouldn't happen too often.
 
-To prevent from potential regressions let's help this configuration some. 
-We have to sacrifice the determinsm though because there simply is none
-here possible.  should_compact_retry implementation for
-!CONFIG_COMPACTION, which was empty so far, will do watermark check for
-order-0 on all eligible zones.  This will cause retrying until either the
-reclaim cannot make any further progress or all the zones are depleted
-even for order-0 pages.  This means that the number of retries is
-basically unbounded for !costly orders but that was the case before the
-rework as well so this shouldn't regress.
+The issue is only theoretical but not impossible.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/1463051677-29418-3-git-send-email-mhocko@kernel.org
-Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ include/linux/mm_types.h |    2 +
+ include/linux/sched.h    |    5 +++
+ kernel/fork.c            |   50 +++++++++++++++++++++++++------------
+ mm/oom_kill.c            |    8 ++++-
+ 4 files changed, 48 insertions(+), 17 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-oom-protect-costly-allocations-some-more-for-config_compaction mm/page_alloc.c
---- a/mm/page_alloc.c~mm-oom-protect-costly-allocations-some-more-for-config_compaction
-+++ a/mm/page_alloc.c
-@@ -3317,6 +3317,24 @@ should_compact_retry(struct alloc_contex
- 		     enum migrate_mode *migrate_mode,
- 		     int compaction_retries)
- {
-+	struct zone *zone;
-+	struct zoneref *z;
+diff -puN include/linux/mm_types.h~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context
++++ a/include/linux/mm_types.h
+@@ -12,6 +12,7 @@
+ #include <linux/cpumask.h>
+ #include <linux/uprobes.h>
+ #include <linux/page-flags-layout.h>
++#include <linux/workqueue.h>
+ #include <asm/page.h>
+ #include <asm/mmu.h>
+ 
+@@ -513,6 +514,7 @@ struct mm_struct {
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	atomic_long_t hugetlb_usage;
+ #endif
++	struct work_struct async_put_work;
+ };
+ 
+ static inline void mm_init_cpumask(struct mm_struct *mm)
+diff -puN include/linux/sched.h~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context include/linux/sched.h
+--- a/include/linux/sched.h~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context
++++ a/include/linux/sched.h
+@@ -2730,6 +2730,11 @@ static inline void mmdrop(struct mm_stru
+ 
+ /* mmput gets rid of the mappings and all user-space */
+ extern void mmput(struct mm_struct *);
++/* same as above but performs the slow path from the async kontext. Can
++ * be called from the atomic context as well
++ */
++extern void mmput_async(struct mm_struct *);
 +
-+	if (!order || order > PAGE_ALLOC_COSTLY_ORDER)
-+		return false;
-+
-+	/*
-+	 * There are setups with compaction disabled which would prefer to loop
-+	 * inside the allocator rather than hit the oom killer prematurely.
-+	 * Let's give them a good hope and keep retrying while the order-0
-+	 * watermarks are OK.
-+	 */
-+	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
-+					ac->nodemask) {
-+		if (zone_watermark_ok(zone, 0, min_wmark_pages(zone),
-+					ac_classzone_idx(ac), alloc_flags))
-+			return true;
-+	}
- 	return false;
+ /* Grab a reference to a task's mm, if it is not already going away */
+ extern struct mm_struct *get_task_mm(struct task_struct *task);
+ /*
+diff -puN kernel/fork.c~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context kernel/fork.c
+--- a/kernel/fork.c~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context
++++ a/kernel/fork.c
+@@ -699,6 +699,26 @@ void __mmdrop(struct mm_struct *mm)
  }
- #endif /* CONFIG_COMPACTION */
-_
+ EXPORT_SYMBOL_GPL(__mmdrop);
+ 
++static inline void __mmput(struct mm_struct *mm)
++{
++	VM_BUG_ON(atomic_read(&mm->mm_users));
++
++	uprobe_clear_state(mm);
++	exit_aio(mm);
++	ksm_exit(mm);
++	khugepaged_exit(mm); /* must run before exit_mmap */
++	exit_mmap(mm);
++	set_mm_exe_file(mm, NULL);
++	if (!list_empty(&mm->mmlist)) {
++		spin_lock(&mmlist_lock);
++		list_del(&mm->mmlist);
++		spin_unlock(&mmlist_lock);
++	}
++	if (mm->binfmt)
++		module_put(mm->binfmt->module);
++	mmdrop(mm);
++}
++
+ /*
+  * Decrement the use count and release all resources for an mm.
+  */
+@@ -706,24 +726,24 @@ void mmput(struct mm_struct *mm)
+ {
+ 	might_sleep();
+ 
++	if (atomic_dec_and_test(&mm->mm_users))
++		__mmput(mm);
++}
++EXPORT_SYMBOL_GPL(mmput);
++
++static void mmput_async_fn(struct work_struct *work)
++{
++	struct mm_struct *mm = container_of(work, struct mm_struct, async_put_work);
++	__mmput(mm);
++}
++
++void mmput_async(struct mm_struct *mm)
++{
+ 	if (atomic_dec_and_test(&mm->mm_users)) {
+-		uprobe_clear_state(mm);
+-		exit_aio(mm);
+-		ksm_exit(mm);
+-		khugepaged_exit(mm); /* must run before exit_mmap */
+-		exit_mmap(mm);
+-		set_mm_exe_file(mm, NULL);
+-		if (!list_empty(&mm->mmlist)) {
+-			spin_lock(&mmlist_lock);
+-			list_del(&mm->mmlist);
+-			spin_unlock(&mmlist_lock);
+-		}
+-		if (mm->binfmt)
+-			module_put(mm->binfmt->module);
+-		mmdrop(mm);
++		INIT_WORK(&mm->async_put_work, mmput_async_fn);
++		schedule_work(&mm->async_put_work);
+ 	}
+ }
+-EXPORT_SYMBOL_GPL(mmput);
+ 
+ /**
+  * set_mm_exe_file - change a reference to the mm's executable file
+diff -puN mm/oom_kill.c~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context
++++ a/mm/oom_kill.c
+@@ -446,7 +446,6 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_reape
+ static struct task_struct *oom_reaper_list;
+ static DEFINE_SPINLOCK(oom_reaper_lock);
+ 
