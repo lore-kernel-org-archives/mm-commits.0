@@ -1,154 +1,113 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare.patch removed from
- -mm tree
-Date: Fri, 20 May 2016 14:07:07 -0700
-Message-ID: <573f7c7b.IXidr0l7UHu5SPLd%akpm@linux-foundation.org>
+ mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch removed from -mm tree
+Date: Fri, 20 May 2016 14:07:03 -0700
+Message-ID: <573f7c77.b28kbnTvnS4AwbaS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47435 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47394 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751196AbcETVHI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:07:08 -0400
+	with ESMTP id S1751215AbcETVHE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:07:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: don't duplicate code in free_pcp_prepare
+     Subject: mm, page_alloc: defer debugging checks of freed pages until a PCP drain
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare.patch
+     mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: don't duplicate code in free_pcp_prepare
+Subject: mm, page_alloc: defer debugging checks of freed pages until a PCP drain
 
-The new free_pcp_prepare() function shares a lot of code with
-free_pages_prepare(), which makes this a maintenance risk when some future
-patch modifies only one of them. We should be able to achieve the same effect
-(skipping free_pages_check() from !DEBUG_VM configs) by adding a parameter to
-free_pages_prepare() and making it inline, so the checks (and the order != 0
-parts) are eliminated from the call from free_pcp_prepare().
-
-!DEBUG_VM: bloat-o-meter reports no difference, as my gcc was already inlining
-free_pages_prepare() and the elimination seems to work as expected
-
-DEBUG_VM bloat-o-meter:
-
-add/remove: 0/1 grow/shrink: 2/0 up/down: 1035/-778 (257)
-function                                     old     new   delta
-__free_pages_ok                              297    1060    +763
-free_hot_cold_page                           480     752    +272
-free_pages_prepare                           778       -    -778
-
-Here inlining didn't occur before, and added some code, but it's ok for a debug
-option.
+Every page free checks a number of page fields for validity.  This catches
+premature frees and corruptions but it is also expensive.  This patch
+weakens the debugging check by checking PCP pages at the time they are
+drained from the PCP list.  This will trigger the bug but the site that
+freed the corrupt page will be lost.  To get the full context, a kernel
+rebuild with DEBUG_VM is necessary.
 
 [akpm@linux-foundation.org: fix build]
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  133 +++++++++++++++++++---------------------------
- 1 file changed, 55 insertions(+), 78 deletions(-)
+ mm/page_alloc.c |  152 ++++++++++++++++++++++++++++++----------------
+ 1 file changed, 101 insertions(+), 51 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare
+diff -puN mm/page_alloc.c~mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-defer-debugging-checks-of-freed-pages-until-a-pcp-drain
 +++ a/mm/page_alloc.c
-@@ -991,47 +991,77 @@ out:
- 	return ret;
+@@ -941,6 +941,103 @@ static inline int free_pages_check(struc
+ 	return 1;
  }
  
--static bool free_pages_prepare(struct page *page, unsigned int order);
--
--#ifdef CONFIG_DEBUG_VM
--static inline bool free_pcp_prepare(struct page *page)
-+static __always_inline bool free_pages_prepare(struct page *page,
-+					unsigned int order, bool check_free)
- {
--	return free_pages_prepare(page, 0);
--}
-+	int bad = 0;
- 
--static inline bool bulkfree_pcp_prepare(struct page *page)
--{
--	return false;
--}
--#else
--static bool free_pcp_prepare(struct page *page)
--{
- 	VM_BUG_ON_PAGE(PageTail(page), page);
- 
--	trace_mm_page_free(page, 0);
--	kmemcheck_free_shadow(page, 0);
--	kasan_free_pages(page, 0);
-+	trace_mm_page_free(page, order);
-+	kmemcheck_free_shadow(page, order);
-+	kasan_free_pages(page, order);
++static int free_tail_pages_check(struct page *head_page, struct page *page)
++{
++	int ret = 1;
 +
 +	/*
-+	 * Check tail pages before head page information is cleared to
-+	 * avoid checking PageCompound for order-0 pages.
++	 * We rely page->lru.next never has bit 0 set, unless the page
++	 * is PageTail(). Let's make sure that's true even for poisoned ->lru.
 +	 */
-+	if (unlikely(order)) {
-+		bool compound = PageCompound(page);
-+		int i;
++	BUILD_BUG_ON((unsigned long)LIST_POISON1 & 1);
 +
-+		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
- 
-+		for (i = 1; i < (1 << order); i++) {
-+			if (compound)
-+				bad += free_tail_pages_check(page, page + i);
-+			if (unlikely(free_pages_check(page + i))) {
-+				bad++;
-+				continue;
-+			}
-+			(page + i)->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-+		}
++	if (!IS_ENABLED(CONFIG_DEBUG_VM)) {
++		ret = 0;
++		goto out;
 +	}
- 	if (PageAnonHead(page))
- 		page->mapping = NULL;
-+	if (check_free)
-+		bad += free_pages_check(page);
-+	if (bad)
-+		return false;
- 
--	reset_page_owner(page, 0);
-+	page_cpupid_reset_last(page);
-+	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-+	reset_page_owner(page, order);
- 
- 	if (!PageHighMem(page)) {
- 		debug_check_no_locks_freed(page_address(page),
--					   PAGE_SIZE);
-+					   PAGE_SIZE << order);
- 		debug_check_no_obj_freed(page_address(page),
--					   PAGE_SIZE);
-+					   PAGE_SIZE << order);
- 	}
--	arch_free_page(page, 0);
--	kernel_poison_pages(page, 0, 0);
--	kernel_map_pages(page, 0, 0);
-+	arch_free_page(page, order);
-+	kernel_poison_pages(page, 1 << order, 0);
-+	kernel_map_pages(page, 1 << order, 0);
- 
--	page_cpupid_reset_last(page);
--	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 	return true;
- }
- 
++	switch (page - head_page) {
++	case 1:
++		/* the first tail page: ->mapping is compound_mapcount() */
++		if (unlikely(compound_mapcount(page))) {
++			bad_page(page, "nonzero compound_mapcount", 0);
++			goto out;
++		}
++		break;
++	case 2:
++		/*
++		 * the second tail page: ->mapping is
++		 * page_deferred_list().next -- ignore value.
++		 */
++		break;
++	default:
++		if (page->mapping != TAIL_MAPPING) {
++			bad_page(page, "corrupted mapping in tail page", 0);
++			goto out;
++		}
++		break;
++	}
++	if (unlikely(!PageTail(page))) {
++		bad_page(page, "PageTail not set", 0);
++		goto out;
++	}
++	if (unlikely(compound_head(page) != head_page)) {
++		bad_page(page, "compound_head not consistent", 0);
++		goto out;
++	}
++	ret = 0;
++out:
++	page->mapping = NULL;
++	clear_compound_head(page);
++	return ret;
++}
++
++static bool free_pages_prepare(struct page *page, unsigned int order);
++
 +#ifdef CONFIG_DEBUG_VM
 +static inline bool free_pcp_prepare(struct page *page)
 +{
-+	return free_pages_prepare(page, 0, true);
++	return free_pages_prepare(page, 0);
 +}
 +
 +static inline bool bulkfree_pcp_prepare(struct page *page)
@@ -158,65 +117,101 @@ diff -puN mm/page_alloc.c~mm-page_alloc-dont-duplicate-code-in-free_pcp_prepare 
 +#else
 +static bool free_pcp_prepare(struct page *page)
 +{
-+	return free_pages_prepare(page, 0, false);
++	VM_BUG_ON_PAGE(PageTail(page), page);
++
++	trace_mm_page_free(page, 0);
++	kmemcheck_free_shadow(page, 0);
++	kasan_free_pages(page, 0);
++
++	if (PageAnonHead(page))
++		page->mapping = NULL;
++
++	reset_page_owner(page, 0);
++
++	if (!PageHighMem(page)) {
++		debug_check_no_locks_freed(page_address(page),
++					   PAGE_SIZE);
++		debug_check_no_obj_freed(page_address(page),
++					   PAGE_SIZE);
++	}
++	arch_free_page(page, 0);
++	kernel_poison_pages(page, 0, 0);
++	kernel_map_pages(page, 0, 0);
++
++	page_cpupid_reset_last(page);
++	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
++	return true;
 +}
 +
- static bool bulkfree_pcp_prepare(struct page *page)
- {
- 	return free_pages_check(page);
-@@ -1201,66 +1231,13 @@ void __meminit reserve_bootmem_region(un
- 	}
++static bool bulkfree_pcp_prepare(struct page *page)
++{
++	return free_pages_check(page);
++}
++#endif /* CONFIG_DEBUG_VM */
++
+ /*
+  * Frees a number of pages from the PCP lists
+  * Assumes all pages on list are in same zone, and of same order.
+@@ -1002,6 +1099,9 @@ static void free_pcppages_bulk(struct zo
+ 			if (unlikely(isolated_pageblocks))
+ 				mt = get_pageblock_migratetype(page);
+ 
++			if (bulkfree_pcp_prepare(page))
++				continue;
++
+ 			__free_one_page(page, page_to_pfn(page), zone, 0, mt);
+ 			trace_mm_page_pcpu_drain(page, 0, mt);
+ 		} while (--count && --batch_free && !list_empty(list));
+@@ -1028,56 +1128,6 @@ static void free_one_page(struct zone *z
+ 	spin_unlock(&zone->lock);
  }
  
--static bool free_pages_prepare(struct page *page, unsigned int order)
+-static int free_tail_pages_check(struct page *head_page, struct page *page)
 -{
--	int bad = 0;
--
--	VM_BUG_ON_PAGE(PageTail(page), page);
--
--	trace_mm_page_free(page, order);
--	kmemcheck_free_shadow(page, order);
--	kasan_free_pages(page, order);
+-	int ret = 1;
 -
 -	/*
--	 * Check tail pages before head page information is cleared to
--	 * avoid checking PageCompound for order-0 pages.
+-	 * We rely page->lru.next never has bit 0 set, unless the page
+-	 * is PageTail(). Let's make sure that's true even for poisoned ->lru.
 -	 */
--	if (unlikely(order)) {
--		bool compound = PageCompound(page);
--		int i;
+-	BUILD_BUG_ON((unsigned long)LIST_POISON1 & 1);
 -
--		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
--
--		for (i = 1; i < (1 << order); i++) {
--			if (compound)
--				bad += free_tail_pages_check(page, page + i);
--			if (unlikely(free_pages_check(page + i))) {
--				bad++;
--				continue;
--			}
--			(page + i)->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+-	if (!IS_ENABLED(CONFIG_DEBUG_VM)) {
+-		ret = 0;
+-		goto out;
+-	}
+-	switch (page - head_page) {
+-	case 1:
+-		/* the first tail page: ->mapping is compound_mapcount() */
+-		if (unlikely(compound_mapcount(page))) {
+-			bad_page(page, "nonzero compound_mapcount", 0);
+-			goto out;
 -		}
+-		break;
+-	case 2:
+-		/*
+-		 * the second tail page: ->mapping is
+-		 * page_deferred_list().next -- ignore value.
+-		 */
+-		break;
+-	default:
+-		if (page->mapping != TAIL_MAPPING) {
+-			bad_page(page, "corrupted mapping in tail page", 0);
+-			goto out;
+-		}
+-		break;
 -	}
--	if (PageAnonHead(page))
--		page->mapping = NULL;
--	bad += free_pages_check(page);
--	if (bad)
--		return false;
--
--	page_cpupid_reset_last(page);
--	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
--	reset_page_owner(page, order);
--
--	if (!PageHighMem(page)) {
--		debug_check_no_locks_freed(page_address(page),
--					   PAGE_SIZE << order);
--		debug_check_no_obj_freed(page_address(page),
--					   PAGE_SIZE << order);
+-	if (unlikely(!PageTail(page))) {
+-		bad_page(page, "PageTail not set", 0);
+-		goto out;
 -	}
--	arch_free_page(page, order);
--	kernel_poison_pages(page, 1 << order, 0);
--	kernel_map_pages(page, 1 << order, 0);
--
--	return true;
+-	if (unlikely(compound_head(page) != head_page)) {
+-		bad_page(page, "compound_head not consistent", 0);
+-		goto out;
+-	}
+-	ret = 0;
+-out:
+-	page->mapping = NULL;
+-	clear_compound_head(page);
+-	return ret;
 -}
