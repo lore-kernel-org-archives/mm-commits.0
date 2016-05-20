@@ -1,113 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: [patch 063/162] kasan/tests: add tests for user memory access
- functions
-Date: Fri, 20 May 2016 16:59:34 -0700
-Message-ID: <573fa4e6.qYT16txPoDF8+R0V%akpm@linux-foundation.org>
+Subject: [patch 064/162] zsmalloc: use first_page rather than page
+Date: Fri, 20 May 2016 16:59:36 -0700
+Message-ID: <573fa4e8.SaIeWw2Zs7ecrPe2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52460 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52464 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751419AbcETX7f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:59:35 -0400
+	with ESMTP id S1751419AbcETX7i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:59:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, sergey.senozhatsky@gmail.com
 
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: kasan/tests: add tests for user memory access functions
+From: Minchan Kim <minchan@kernel.org>
+Subject: zsmalloc: use first_page rather than page
 
-Add some tests for the newly-added user memory access API.
+Clean up function parameter "struct page".  Many functions of zsmalloc
+expect that page paramter is "first_page" so use "first_page" rather than
+"page" for code readability.
 
-Link: http://lkml.kernel.org/r/1462538722-1574-1-git-send-email-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   49 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ mm/zsmalloc.c |   62 ++++++++++++++++++++++++------------------------
+ 1 file changed, 32 insertions(+), 30 deletions(-)
 
-diff -puN lib/test_kasan.c~kasan-tests-add-tests-for-user-memory-access-functions lib/test_kasan.c
---- a/lib/test_kasan.c~kasan-tests-add-tests-for-user-memory-access-functions
-+++ a/lib/test_kasan.c
-@@ -12,9 +12,12 @@
- #define pr_fmt(fmt) "kasan test: %s " fmt, __func__
- 
- #include <linux/kernel.h>
-+#include <linux/mman.h>
-+#include <linux/mm.h>
- #include <linux/printk.h>
- #include <linux/slab.h>
- #include <linux/string.h>
-+#include <linux/uaccess.h>
- #include <linux/module.h>
- 
- static noinline void __init kmalloc_oob_right(void)
-@@ -363,6 +366,51 @@ static noinline void __init ksize_unpois
- 	kfree(ptr);
+diff -puN mm/zsmalloc.c~zsmalloc-use-first_page-rather-than-page mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-use-first_page-rather-than-page
++++ a/mm/zsmalloc.c
+@@ -413,26 +413,28 @@ static int is_last_page(struct page *pag
+ 	return PagePrivate2(page);
  }
  
-+static noinline void __init copy_user_test(void)
-+{
-+	char *kmem;
-+	char __user *usermem;
-+	size_t size = 10;
-+	int unused;
-+
-+	kmem = kmalloc(size, GFP_KERNEL);
-+	if (!kmem)
-+		return;
-+
-+	usermem = (char __user *)vm_mmap(NULL, 0, PAGE_SIZE,
-+			    PROT_READ | PROT_WRITE | PROT_EXEC,
-+			    MAP_ANONYMOUS | MAP_PRIVATE, 0);
-+	if (IS_ERR(usermem)) {
-+		pr_err("Failed to allocate user memory\n");
-+		kfree(kmem);
-+		return;
-+	}
-+
-+	pr_info("out-of-bounds in copy_from_user()\n");
-+	unused = copy_from_user(kmem, usermem, size + 1);
-+
-+	pr_info("out-of-bounds in copy_to_user()\n");
-+	unused = copy_to_user(usermem, kmem, size + 1);
-+
-+	pr_info("out-of-bounds in __copy_from_user()\n");
-+	unused = __copy_from_user(kmem, usermem, size + 1);
-+
-+	pr_info("out-of-bounds in __copy_to_user()\n");
-+	unused = __copy_to_user(usermem, kmem, size + 1);
-+
-+	pr_info("out-of-bounds in __copy_from_user_inatomic()\n");
-+	unused = __copy_from_user_inatomic(kmem, usermem, size + 1);
-+
-+	pr_info("out-of-bounds in __copy_to_user_inatomic()\n");
-+	unused = __copy_to_user_inatomic(usermem, kmem, size + 1);
-+
-+	pr_info("out-of-bounds in strncpy_from_user()\n");
-+	unused = strncpy_from_user(kmem, usermem, size + 1);
-+
-+	vm_munmap((unsigned long)usermem, PAGE_SIZE);
-+	kfree(kmem);
-+}
-+
- static int __init kmalloc_tests_init(void)
+-static void get_zspage_mapping(struct page *page, unsigned int *class_idx,
++static void get_zspage_mapping(struct page *first_page,
++				unsigned int *class_idx,
+ 				enum fullness_group *fullness)
  {
- 	kmalloc_oob_right();
-@@ -387,6 +435,7 @@ static int __init kmalloc_tests_init(voi
- 	kasan_stack_oob();
- 	kasan_global_oob();
- 	ksize_unpoisons_memory();
-+	copy_user_test();
- 	return -EAGAIN;
+ 	unsigned long m;
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+-	m = (unsigned long)page->mapping;
++	m = (unsigned long)first_page->mapping;
+ 	*fullness = m & FULLNESS_MASK;
+ 	*class_idx = (m >> FULLNESS_BITS) & CLASS_IDX_MASK;
  }
  
+-static void set_zspage_mapping(struct page *page, unsigned int class_idx,
++static void set_zspage_mapping(struct page *first_page,
++				unsigned int class_idx,
+ 				enum fullness_group fullness)
+ {
+ 	unsigned long m;
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+ 	m = ((class_idx & CLASS_IDX_MASK) << FULLNESS_BITS) |
+ 			(fullness & FULLNESS_MASK);
+-	page->mapping = (struct address_space *)m;
++	first_page->mapping = (struct address_space *)m;
+ }
+ 
+ /*
+@@ -625,14 +627,14 @@ static inline void zs_pool_stat_destroy(
+  * the pool (not yet implemented). This function returns fullness
+  * status of the given page.
+  */
+-static enum fullness_group get_fullness_group(struct page *page)
++static enum fullness_group get_fullness_group(struct page *first_page)
+ {
+ 	int inuse, max_objects;
+ 	enum fullness_group fg;
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+-	inuse = page->inuse;
+-	max_objects = page->objects;
++	inuse = first_page->inuse;
++	max_objects = first_page->objects;
+ 
+ 	if (inuse == 0)
+ 		fg = ZS_EMPTY;
+@@ -652,12 +654,12 @@ static enum fullness_group get_fullness_
+  * have. This functions inserts the given zspage into the freelist
+  * identified by <class, fullness_group>.
+  */
+-static void insert_zspage(struct page *page, struct size_class *class,
++static void insert_zspage(struct page *first_page, struct size_class *class,
+ 				enum fullness_group fullness)
+ {
+ 	struct page **head;
+ 
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+ 	if (fullness >= _ZS_NR_FULLNESS_GROUPS)
+ 		return;
+@@ -667,7 +669,7 @@ static void insert_zspage(struct page *p
+ 
+ 	head = &class->fullness_list[fullness];
+ 	if (!*head) {
+-		*head = page;
++		*head = first_page;
+ 		return;
+ 	}
+ 
+@@ -675,21 +677,21 @@ static void insert_zspage(struct page *p
+ 	 * We want to see more ZS_FULL pages and less almost
+ 	 * empty/full. Put pages with higher ->inuse first.
+ 	 */
+-	list_add_tail(&page->lru, &(*head)->lru);
+-	if (page->inuse >= (*head)->inuse)
+-		*head = page;
++	list_add_tail(&first_page->lru, &(*head)->lru);
++	if (first_page->inuse >= (*head)->inuse)
++		*head = first_page;
+ }
+ 
+ /*
+  * This function removes the given zspage from the freelist identified
+  * by <class, fullness_group>.
+  */
+-static void remove_zspage(struct page *page, struct size_class *class,
++static void remove_zspage(struct page *first_page, struct size_class *class,
+ 				enum fullness_group fullness)
+ {
+ 	struct page **head;
+ 
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+ 	if (fullness >= _ZS_NR_FULLNESS_GROUPS)
+ 		return;
+@@ -698,11 +700,11 @@ static void remove_zspage(struct page *p
+ 	BUG_ON(!*head);
+ 	if (list_empty(&(*head)->lru))
+ 		*head = NULL;
+-	else if (*head == page)
++	else if (*head == first_page)
+ 		*head = (struct page *)list_entry((*head)->lru.next,
+ 					struct page, lru);
+ 
+-	list_del_init(&page->lru);
++	list_del_init(&first_page->lru);
+ 	zs_stat_dec(class, fullness == ZS_ALMOST_EMPTY ?
+ 			CLASS_ALMOST_EMPTY : CLASS_ALMOST_FULL, 1);
+ }
+@@ -717,21 +719,21 @@ static void remove_zspage(struct page *p
+  * fullness group.
+  */
+ static enum fullness_group fix_fullness_group(struct size_class *class,
+-						struct page *page)
++						struct page *first_page)
+ {
+ 	int class_idx;
+ 	enum fullness_group currfg, newfg;
+ 
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+-	get_zspage_mapping(page, &class_idx, &currfg);
+-	newfg = get_fullness_group(page);
++	get_zspage_mapping(first_page, &class_idx, &currfg);
++	newfg = get_fullness_group(first_page);
+ 	if (newfg == currfg)
+ 		goto out;
+ 
+-	remove_zspage(page, class, currfg);
+-	insert_zspage(page, class, newfg);
+-	set_zspage_mapping(page, class_idx, newfg);
++	remove_zspage(first_page, class, currfg);
++	insert_zspage(first_page, class, newfg);
++	set_zspage_mapping(first_page, class_idx, newfg);
+ 
+ out:
+ 	return newfg;
+@@ -1234,11 +1236,11 @@ static bool can_merge(struct size_class
+ 	return true;
+ }
+ 
+-static bool zspage_full(struct page *page)
++static bool zspage_full(struct page *first_page)
+ {
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+-	return page->inuse == page->objects;
++	return first_page->inuse == first_page->objects;
+ }
+ 
+ unsigned long zs_get_total_pages(struct zs_pool *pool)
 _
