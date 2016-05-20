@@ -1,85 +1,98 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-remove-useless-parameter-of-__free_pages_boot_core.patch
- removed from -mm tree
-Date: Fri, 20 May 2016 14:04:35 -0700
-Message-ID: <573f7be3.ZdqCsKa3LQPk93Y3%akpm@linux-foundation.org>
+ mm-memory_hotplug-is_mem_section_removable-can-be-boolean.patch removed
+ from -mm tree
+Date: Fri, 20 May 2016 14:04:27 -0700
+Message-ID: <573f7bdb.sIhXZpz6cEWP2uPl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47004 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46996 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751086AbcETVEg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:36 -0400
+	with ESMTP id S1751086AbcETVE2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhlcindy@linux.vnet.ibm.com, xinhui.pan@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: baiyaowei@cmss.chinamobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: remove useless parameter of __free_pages_boot_core
+     Subject: mm/memory_hotplug: is_mem_section_removable() can return bool
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-remove-useless-parameter-of-__free_pages_boot_core.patch
+     mm-memory_hotplug-is_mem_section_removable-can-be-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Li Zhang <zhlcindy@linux.vnet.ibm.com>
-Subject: mm/page_alloc: remove useless parameter of __free_pages_boot_core
+From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Subject: mm/memory_hotplug: is_mem_section_removable() can return bool
 
-__free_pages_boot_core has parameter pfn which is not used at all.  Remove
-it.
+Make is_mem_section_removable() return bool to improve readability due to
+this particular function only using either one or zero as its return
+value.
 
-Signed-off-by: Li Zhang <zhlcindy@linux.vnet.ibm.com>
-Reviewed-by: Pan Xinhui <xinhui.pan@linux.vnet.ibm.com>
+Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ include/linux/memory_hotplug.h |    6 +++---
+ mm/memory_hotplug.c            |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-useless-parameter-of-__free_pages_boot_core mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-useless-parameter-of-__free_pages_boot_core
-+++ a/mm/page_alloc.c
-@@ -1076,8 +1076,7 @@ static void __free_pages_ok(struct page
- 	local_irq_restore(flags);
+diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-is_mem_section_removable-can-be-boolean include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-is_mem_section_removable-can-be-boolean
++++ a/include/linux/memory_hotplug.h
+@@ -247,16 +247,16 @@ static inline void mem_hotplug_done(void
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ 
+-extern int is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
++extern bool is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
+ extern void try_offline_node(int nid);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern void remove_memory(int nid, u64 start, u64 size);
+ 
+ #else
+-static inline int is_mem_section_removable(unsigned long pfn,
++static inline bool is_mem_section_removable(unsigned long pfn,
+ 					unsigned long nr_pages)
+ {
+-	return 0;
++	return false;
  }
  
--static void __init __free_pages_boot_core(struct page *page,
--					unsigned long pfn, unsigned int order)
-+static void __init __free_pages_boot_core(struct page *page, unsigned int order)
+ static inline void try_offline_node(int nid) {}
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-is_mem_section_removable-can-be-boolean mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-is_mem_section_removable-can-be-boolean
++++ a/mm/memory_hotplug.c
+@@ -1410,7 +1410,7 @@ static struct page *next_active_pagebloc
+ }
+ 
+ /* Checks if this range of memory is likely to be hot-removable. */
+-int is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
++bool is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
  {
- 	unsigned int nr_pages = 1 << order;
- 	struct page *p = page;
-@@ -1154,7 +1153,7 @@ void __init __free_pages_bootmem(struct
- {
- 	if (early_page_uninitialised(pfn))
- 		return;
--	return __free_pages_boot_core(page, pfn, order);
-+	return __free_pages_boot_core(page, order);
+ 	struct page *page = pfn_to_page(start_pfn);
+ 	struct page *end_page = page + nr_pages;
+@@ -1418,12 +1418,12 @@ int is_mem_section_removable(unsigned lo
+ 	/* Check the starting page of each pageblock within the range */
+ 	for (; page < end_page; page = next_active_pageblock(page)) {
+ 		if (!is_pageblock_removable_nolock(page))
+-			return 0;
++			return false;
+ 		cond_resched();
+ 	}
+ 
+ 	/* All pageblocks in the memory block are likely to be hot-removable */
+-	return 1;
++	return true;
  }
  
  /*
-@@ -1239,12 +1238,12 @@ static void __init deferred_free_range(s
- 	if (nr_pages == MAX_ORDER_NR_PAGES &&
- 	    (pfn & (MAX_ORDER_NR_PAGES-1)) == 0) {
- 		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--		__free_pages_boot_core(page, pfn, MAX_ORDER-1);
-+		__free_pages_boot_core(page, MAX_ORDER-1);
- 		return;
- 	}
- 
--	for (i = 0; i < nr_pages; i++, page++, pfn++)
--		__free_pages_boot_core(page, pfn, 0);
-+	for (i = 0; i < nr_pages; i++, page++)
-+		__free_pages_boot_core(page, 0);
- }
- 
- /* Completion tracking for deferred_init_memmap() threads */
 _
 
-Patches currently in -mm which might be from zhlcindy@linux.vnet.ibm.com are
+Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
 
 
