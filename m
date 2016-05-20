@@ -1,51 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [patch 051/117] mm/vmalloc.c: is_vmalloc_addr() can return bool
-Date: Thu, 19 May 2016 17:11:29 -0700
-Message-ID: <573e5631.zeQqDbFn8kYXkl/z%akpm@linux-foundation.org>
+Subject: [patch 058/117] mm, compaction: wrap calculating first and last
+ pfn of pageblock
+Date: Thu, 19 May 2016 17:11:48 -0700
+Message-ID: <573e5644.EC8F9uez7UQNjO8y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46216 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755498AbcETALa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:11:30 -0400
+	with ESMTP id S932311AbcETALu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:11:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, baiyaowei@cmss.chinamobile.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, hughd@google.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, rientjes@google.com
 
-From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Subject: mm/vmalloc.c: is_vmalloc_addr() can return bool
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: wrap calculating first and last pfn of pageblock
 
-Make is_vmalloc_addr() return bool to improve readability due to this
-particular function only using either one or zero as its return value.
+Compaction code has accumulated numerous instances of manual calculations
+of the first (inclusive) and last (exclusive) pfn of a pageblock (or a
+smaller block of given order), given a pfn within the pageblock.  Wrap
+these calculations by introducing pageblock_start_pfn(pfn) and
+pageblock_end_pfn(pfn) macros.
 
-Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+[vbabka@suse.cz: fix crash in get_pfnblock_flags_mask() from isolate_freepages():]
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/compaction.c |   33 +++++++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/mm.h~mm-vmalloc-is_vmalloc_addr-can-be-boolean include/linux/mm.h
---- a/include/linux/mm.h~mm-vmalloc-is_vmalloc_addr-can-be-boolean
-+++ a/include/linux/mm.h
-@@ -447,14 +447,14 @@ unsigned long vmalloc_to_pfn(const void
-  * On nommu, vmalloc/vfree wrap through kmalloc/kfree directly, so there
-  * is no special casing required.
-  */
--static inline int is_vmalloc_addr(const void *x)
-+static inline bool is_vmalloc_addr(const void *x)
- {
- #ifdef CONFIG_MMU
- 	unsigned long addr = (unsigned long)x;
+diff -puN mm/compaction.c~mm-compaction-wrap-calculating-first-and-last-pfn-of-pageblock mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-wrap-calculating-first-and-last-pfn-of-pageblock
++++ a/mm/compaction.c
+@@ -42,6 +42,11 @@ static inline void count_compact_events(
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/compaction.h>
  
- 	return addr >= VMALLOC_START && addr < VMALLOC_END;
- #else
--	return 0;
-+	return false;
- #endif
++#define block_start_pfn(pfn, order)	round_down(pfn, 1UL << (order))
++#define block_end_pfn(pfn, order)	ALIGN((pfn) + 1, 1UL << (order))
++#define pageblock_start_pfn(pfn)	block_start_pfn(pfn, pageblock_order)
++#define pageblock_end_pfn(pfn)		block_end_pfn(pfn, pageblock_order)
++
+ static unsigned long release_freepages(struct list_head *freelist)
+ {
+ 	struct page *page, *next;
+@@ -161,7 +166,7 @@ static void reset_cached_positions(struc
+ 	zone->compact_cached_migrate_pfn[0] = zone->zone_start_pfn;
+ 	zone->compact_cached_migrate_pfn[1] = zone->zone_start_pfn;
+ 	zone->compact_cached_free_pfn =
+-			round_down(zone_end_pfn(zone) - 1, pageblock_nr_pages);
++				pageblock_start_pfn(zone_end_pfn(zone) - 1);
  }
- #ifdef CONFIG_MMU
+ 
+ /*
+@@ -519,10 +524,10 @@ isolate_freepages_range(struct compact_c
+ 	LIST_HEAD(freelist);
+ 
+ 	pfn = start_pfn;
+-	block_start_pfn = pfn & ~(pageblock_nr_pages - 1);
++	block_start_pfn = pageblock_start_pfn(pfn);
+ 	if (block_start_pfn < cc->zone->zone_start_pfn)
+ 		block_start_pfn = cc->zone->zone_start_pfn;
+-	block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
++	block_end_pfn = pageblock_end_pfn(pfn);
+ 
+ 	for (; pfn < end_pfn; pfn += isolated,
+ 				block_start_pfn = block_end_pfn,
+@@ -538,8 +543,8 @@ isolate_freepages_range(struct compact_c
+ 		 * scanning range to right one.
+ 		 */
+ 		if (pfn >= block_end_pfn) {
+-			block_start_pfn = pfn & ~(pageblock_nr_pages - 1);
+-			block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
++			block_start_pfn = pageblock_start_pfn(pfn);
++			block_end_pfn = pageblock_end_pfn(pfn);
+ 			block_end_pfn = min(block_end_pfn, end_pfn);
+ 		}
+ 
+@@ -834,10 +839,10 @@ isolate_migratepages_range(struct compac
+ 
+ 	/* Scan block by block. First and last block may be incomplete */
+ 	pfn = start_pfn;
+-	block_start_pfn = pfn & ~(pageblock_nr_pages - 1);
++	block_start_pfn = pageblock_start_pfn(pfn);
+ 	if (block_start_pfn < cc->zone->zone_start_pfn)
+ 		block_start_pfn = cc->zone->zone_start_pfn;
+-	block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
++	block_end_pfn = pageblock_end_pfn(pfn);
+ 
+ 	for (; pfn < end_pfn; pfn = block_end_pfn,
+ 				block_start_pfn = block_end_pfn,
+@@ -924,10 +929,10 @@ static void isolate_freepages(struct com
+ 	 * is using.
+ 	 */
+ 	isolate_start_pfn = cc->free_pfn;
+-	block_start_pfn = cc->free_pfn & ~(pageblock_nr_pages-1);
++	block_start_pfn = pageblock_start_pfn(cc->free_pfn);
+ 	block_end_pfn = min(block_start_pfn + pageblock_nr_pages,
+ 						zone_end_pfn(zone));
+-	low_pfn = ALIGN(cc->migrate_pfn + 1, pageblock_nr_pages);
++	low_pfn = pageblock_end_pfn(cc->migrate_pfn);
+ 
+ 	/*
+ 	 * Isolate free pages until enough are available to migrate the
+@@ -1081,12 +1086,12 @@ static isolate_migrate_t isolate_migrate
+ 	 * initialized by compact_zone()
+ 	 */
+ 	low_pfn = cc->migrate_pfn;
+-	block_start_pfn = cc->migrate_pfn & ~(pageblock_nr_pages - 1);
++	block_start_pfn = pageblock_start_pfn(low_pfn);
+ 	if (block_start_pfn < zone->zone_start_pfn)
+ 		block_start_pfn = zone->zone_start_pfn;
+ 
+ 	/* Only scan within a pageblock boundary */
+-	block_end_pfn = ALIGN(low_pfn + 1, pageblock_nr_pages);
++	block_end_pfn = pageblock_end_pfn(low_pfn);
+ 
+ 	/*
+ 	 * Iterate over whole pageblocks until we find the first suitable.
+@@ -1343,7 +1348,7 @@ static int compact_zone(struct zone *zon
+ 	cc->migrate_pfn = zone->compact_cached_migrate_pfn[sync];
+ 	cc->free_pfn = zone->compact_cached_free_pfn;
+ 	if (cc->free_pfn < start_pfn || cc->free_pfn >= end_pfn) {
+-		cc->free_pfn = round_down(end_pfn - 1, pageblock_nr_pages);
++		cc->free_pfn = pageblock_start_pfn(end_pfn - 1);
+ 		zone->compact_cached_free_pfn = cc->free_pfn;
+ 	}
+ 	if (cc->migrate_pfn < start_pfn || cc->migrate_pfn >= end_pfn) {
+@@ -1411,7 +1416,7 @@ check_drain:
+ 		if (cc->order > 0 && cc->last_migrated_pfn) {
+ 			int cpu;
+ 			unsigned long current_block_start =
+-				cc->migrate_pfn & ~((1UL << cc->order) - 1);
++				block_start_pfn(cc->migrate_pfn, cc->order);
+ 
+ 			if (cc->last_migrated_pfn < current_block_start) {
+ 				cpu = get_cpu();
+@@ -1436,7 +1441,7 @@ out:
+ 		cc->nr_freepages = 0;
+ 		VM_BUG_ON(free_pfn == 0);
+ 		/* The cached pfn is always the first in a pageblock */
+-		free_pfn &= ~(pageblock_nr_pages-1);
++		free_pfn = pageblock_start_pfn(free_pfn);
+ 		/*
+ 		 * Only go back, not forward. The cached pfn might have been
+ 		 * already reset to zone end in compact_finished()
 _
