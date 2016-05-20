@@ -1,73 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slab-lockless-decision-to-grow-cache.patch removed
- from -mm tree
-Date: Fri, 20 May 2016 14:03:36 -0700
-Message-ID: <573f7ba8.dXTZ8yi0dRDYj2Us%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
+ removed from -mm tree
+Date: Fri, 20 May 2016 14:03:26 -0700
+Message-ID: <573f7b9e.RY33lwNvC7+3W03y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46848 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46821 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcETVDh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:03:37 -0400
+	with ESMTP id S1751065AbcETVD1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:03:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: lockless decision to grow cache
+     Subject: mm/slab: don't keep free slabs if free_objects exceeds free_limit
 has been removed from the -mm tree.  Its filename was
-     mm-slab-lockless-decision-to-grow-cache.patch
+     mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: lockless decision to grow cache
+Subject: mm/slab: don't keep free slabs if free_objects exceeds free_limit
 
-To check whether free objects exist or not precisely, we need to grab a
-lock.  But, accuracy isn't that important because race window would be
-even small and if there is too much free object, cache reaper would reap
-it.  So, this patch makes the check for free object exisistence not to
-hold a lock.  This will reduce lock contention in heavily allocation case.
+Currently, determination to free a slab is done whenever each freed object
+is put into the slab.  This has a following problem.
 
-Note that until now, n->shared can be freed during the processing by
-writing slabinfo, but, with some trick in this patch, we can access it
-freely within interrupt disabled period.
+Assume free_limit = 10 and nr_free = 9.
 
-Below is the result of concurrent allocation/free in slab allocation
-benchmark made by Christoph a long time ago.  I make the output simpler. 
-The number shows cycle count during alloc/free respectively so less is
-better.
+Free happens as following sequence and nr_free changes as following.
 
-* Before
-Kmalloc N*alloc N*free(32): Average=248/966
-Kmalloc N*alloc N*free(64): Average=261/949
-Kmalloc N*alloc N*free(128): Average=314/1016
-Kmalloc N*alloc N*free(256): Average=741/1061
-Kmalloc N*alloc N*free(512): Average=1246/1152
-Kmalloc N*alloc N*free(1024): Average=2437/1259
-Kmalloc N*alloc N*free(2048): Average=4980/1800
-Kmalloc N*alloc N*free(4096): Average=9000/2078
+free(become a free slab) free(not become a free slab)
+nr_free: 9 -> 10 (at first free) -> 11 (at second free)
 
-* After
-Kmalloc N*alloc N*free(32): Average=344/792
-Kmalloc N*alloc N*free(64): Average=347/882
-Kmalloc N*alloc N*free(128): Average=390/959
-Kmalloc N*alloc N*free(256): Average=393/1067
-Kmalloc N*alloc N*free(512): Average=683/1229
-Kmalloc N*alloc N*free(1024): Average=1295/1325
-Kmalloc N*alloc N*free(2048): Average=2513/1664
-Kmalloc N*alloc N*free(4096): Average=4742/2172
+If we try to check if we can free current slab or not on each object free,
+we can't free any slab in this situation because current slab isn't a free
+slab when nr_free exceed free_limit (at second free) even if there is a
+free slab.
 
-It shows that allocation performance decreases for the object size up to
-128 and it may be due to extra checks in cache_alloc_refill().  But, with
-considering improvement of free performance, net result looks the same. 
-Result for other size class looks very promising, roughly, 50% performance
-improvement.
+However, if we check it lastly, we can free 1 free slab.
+
+This problem would cause to keep too much memory in the slab subsystem. 
+This patch try to fix it by checking number of free object after all free
+work is done.  If there is free slab at that time, we can free slab as
+much as possible so we keep free slab as minimal.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
@@ -77,64 +59,58 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ mm/slab.c |   23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-lockless-decision-to-grow-cache mm/slab.c
---- a/mm/slab.c~mm-slab-lockless-decision-to-grow-cache
+diff -puN mm/slab.c~mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit mm/slab.c
+--- a/mm/slab.c~mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit
 +++ a/mm/slab.c
-@@ -965,6 +965,15 @@ static int setup_kmem_cache_node(struct
- 	spin_unlock_irq(&n->list_lock);
- 	slabs_destroy(cachep, &list);
- 
-+	/*
-+	 * To protect lockless access to n->shared during irq disabled context.
-+	 * If n->shared isn't NULL in irq disabled context, accessing to it is
-+	 * guaranteed to be valid until irq is re-enabled, because it will be
-+	 * freed after synchronize_sched().
-+	 */
-+	if (force_change)
-+		synchronize_sched();
-+
- fail:
- 	kfree(old_shared);
- 	kfree(new_shared);
-@@ -2893,7 +2902,7 @@ static void *cache_alloc_refill(struct k
+@@ -3296,6 +3296,9 @@ static void free_block(struct kmem_cache
  {
- 	int batchcount;
- 	struct kmem_cache_node *n;
--	struct array_cache *ac;
-+	struct array_cache *ac, *shared;
- 	int node;
- 	void *list = NULL;
- 	struct page *page;
-@@ -2914,11 +2923,16 @@ static void *cache_alloc_refill(struct k
- 	n = get_node(cachep, node);
- 
- 	BUG_ON(ac->avail > 0 || !n);
-+	shared = READ_ONCE(n->shared);
-+	if (!n->free_objects && (!shared || !shared->avail))
-+		goto direct_grow;
+ 	int i;
+ 	struct kmem_cache_node *n = get_node(cachep, node);
++	struct page *page;
 +
- 	spin_lock(&n->list_lock);
-+	shared = READ_ONCE(n->shared);
++	n->free_objects += nr_objects;
  
- 	/* See if we can refill from the shared array */
--	if (n->shared && transfer_objects(ac, n->shared, batchcount)) {
--		n->shared->touched = 1;
-+	if (shared && transfer_objects(ac, shared, batchcount)) {
-+		shared->touched = 1;
- 		goto alloc_done;
+ 	for (i = 0; i < nr_objects; i++) {
+ 		void *objp;
+@@ -3308,17 +3311,11 @@ static void free_block(struct kmem_cache
+ 		check_spinlock_acquired_node(cachep, node);
+ 		slab_put_obj(cachep, page, objp);
+ 		STATS_DEC_ACTIVE(cachep);
+-		n->free_objects++;
+ 
+ 		/* fixup slab chains */
+-		if (page->active == 0) {
+-			if (n->free_objects > n->free_limit) {
+-				n->free_objects -= cachep->num;
+-				list_add_tail(&page->lru, list);
+-			} else {
+-				list_add(&page->lru, &n->slabs_free);
+-			}
+-		} else {
++		if (page->active == 0)
++			list_add(&page->lru, &n->slabs_free);
++		else {
+ 			/* Unconditionally move a slab to the end of the
+ 			 * partial list on free - maximum time for the
+ 			 * other objects to be freed, too.
+@@ -3326,6 +3323,14 @@ static void free_block(struct kmem_cache
+ 			list_add_tail(&page->lru, &n->slabs_partial);
+ 		}
  	}
++
++	while (n->free_objects > n->free_limit && !list_empty(&n->slabs_free)) {
++		n->free_objects -= cachep->num;
++
++		page = list_last_entry(&n->slabs_free, struct page, lru);
++		list_del(&page->lru);
++		list_add(&page->lru, list);
++	}
+ }
  
-@@ -2940,6 +2954,7 @@ alloc_done:
- 	spin_unlock(&n->list_lock);
- 	fixup_objfreelist_debug(cachep, &list);
- 
-+direct_grow:
- 	if (unlikely(!ac->avail)) {
- 		/* Check if we can use obj in pfmemalloc slab */
- 		if (sk_memalloc_socks()) {
+ static void cache_flusharray(struct kmem_cache *cachep, struct array_cache *ac)
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
