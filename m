@@ -1,265 +1,140 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch removed from
- -mm tree
-Date: Fri, 20 May 2016 14:05:38 -0700
-Message-ID: <573f7c22.GmziGQfBt2tqBQrD%akpm@linux-foundation.org>
+ memory_hotplug-introduce-config_memory_hotplug_default_online.patch removed from -mm tree
+Date: Fri, 20 May 2016 14:05:53 -0700
+Message-ID: <573f7c31.wvdbPP5lgzE0AGMN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47210 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47249 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751215AbcETVFj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:39 -0400
+	with ESMTP id S1751172AbcETVFy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreslc@google.com, aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: vkuznets@redhat.com, corbet@lwn.net, dan.j.williams@intel.com, david.vrabel@citrix.com, imammedo@redhat.com, kirill.shutemov@linux.intel.com, lennart@poettering.net, mgorman@techsingularity.net, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: mem_cgroup charge fault to vm_mm not current mm
+     Subject: memory_hotplug: introduce CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
 has been removed from the -mm tree.  Its filename was
-     tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch
+     memory_hotplug-introduce-config_memory_hotplug_default_online.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andres Lagar-Cavilla <andreslc@google.com>
-Subject: tmpfs: mem_cgroup charge fault to vm_mm not current mm
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: memory_hotplug: introduce CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
 
-Although shmem_fault() has been careful to count a major fault to vm_mm,
-shmem_getpage_gfp() has been careless in charging a remote access fault to
-current->mm owner's memcg instead of to vma->vm_mm owner's memcg: that is
-inconsistent with all the mem_cgroup charging on remote access faults in
-mm/memory.c.
+This patchset continues the work I started with 31bc3858ea3eb
+("memory-hotplug: add automatic onlining policy for the newly added
+memory").
 
-Fix it by passing fault_mm along with fault_type to shmem_get_page_gfp();
-but in that case, now knowing the right mm, it's better for it to handle
-the PGMAJFAULT updates itself.
+Initially I was going to stop there and bring the policy setting logic to
+userspace. I met two issues on this way:
 
-And let's keep this clutter out of most callers' way: change the common
-shmem_getpage() wrapper to hide fault_mm and fault_type as well as gfp.
+1) It is possible to have memory hotplugged at boot (e.g. with QEMU). These
+   blocks stay offlined if we turn the onlining policy on by userspace.
 
-Signed-off-by: Andres Lagar-Cavilla <andreslc@google.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
+2) My attempt to bring this policy setting to systemd failed, systemd
+   maintainers suggest to change the default in kernel or ... to use tmpfiles.d
+   to alter the policy (which looks like a hack to me): 
+   https://github.com/systemd/systemd/pull/2938
+
+Here I suggest to add a config option to set the default value for the
+policy and a kernel command line parameter to make the override.
+
+
+This patch (of 2):
+
+Introduce config option to set the default value for memory hotplug
+onlining policy (/sys/devices/system/memory/auto_online_blocks). The
+reason one would want to turn this option on are to have early onlining
+for hotpluggable memory available at boot and to not require any userspace
+actions to make memory hotplug work.
+
+[akpm@linux-foundation.org: tweak Kconfig text]
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Yang Shi <yang.shi@linaro.org>
-Cc: Ning Qu <quning@gmail.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Lennart Poettering <lennart@poettering.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   61 ++++++++++++++++++++++++++++-----------------------
- 1 file changed, 34 insertions(+), 27 deletions(-)
+ Documentation/memory-hotplug.txt |    9 +++++----
+ mm/Kconfig                       |   16 ++++++++++++++++
+ mm/memory_hotplug.c              |    4 ++++
+ 3 files changed, 25 insertions(+), 4 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm mm/shmem.c
---- a/mm/shmem.c~tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm
-+++ a/mm/shmem.c
-@@ -121,13 +121,14 @@ static bool shmem_should_replace_page(st
- static int shmem_replace_page(struct page **pagep, gfp_t gfp,
- 				struct shmem_inode_info *info, pgoff_t index);
- static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
--	struct page **pagep, enum sgp_type sgp, gfp_t gfp, int *fault_type);
-+		struct page **pagep, enum sgp_type sgp,
-+		gfp_t gfp, struct mm_struct *fault_mm, int *fault_type);
+diff -puN Documentation/memory-hotplug.txt~memory_hotplug-introduce-config_memory_hotplug_default_online Documentation/memory-hotplug.txt
+--- a/Documentation/memory-hotplug.txt~memory_hotplug-introduce-config_memory_hotplug_default_online
++++ a/Documentation/memory-hotplug.txt
+@@ -261,10 +261,11 @@ it according to the policy which can be
  
- static inline int shmem_getpage(struct inode *inode, pgoff_t index,
--	struct page **pagep, enum sgp_type sgp, int *fault_type)
-+		struct page **pagep, enum sgp_type sgp)
- {
- 	return shmem_getpage_gfp(inode, index, pagep, sgp,
--			mapping_gfp_mask(inode->i_mapping), fault_type);
-+		mapping_gfp_mask(inode->i_mapping), NULL, NULL);
- }
+ % cat /sys/devices/system/memory/auto_online_blocks
  
- static inline struct shmem_sb_info *SHMEM_SB(struct super_block *sb)
-@@ -527,7 +528,7 @@ static void shmem_undo_range(struct inod
+-The default is "offline" which means the newly added memory is not in a
+-ready-to-use state and you have to "online" the newly added memory blocks
+-manually. Automatic onlining can be requested by writing "online" to
+-"auto_online_blocks" file:
++The default depends on the CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE kernel config
++option. If it is disabled the default is "offline" which means the newly added
++memory is not in a ready-to-use state and you have to "online" the newly added
++memory blocks manually. Automatic onlining can be requested by writing "online"
++to "auto_online_blocks" file:
  
- 	if (partial_start) {
- 		struct page *page = NULL;
--		shmem_getpage(inode, start - 1, &page, SGP_READ, NULL);
-+		shmem_getpage(inode, start - 1, &page, SGP_READ);
- 		if (page) {
- 			unsigned int top = PAGE_SIZE;
- 			if (start > end) {
-@@ -542,7 +543,7 @@ static void shmem_undo_range(struct inod
- 	}
- 	if (partial_end) {
- 		struct page *page = NULL;
--		shmem_getpage(inode, end, &page, SGP_READ, NULL);
-+		shmem_getpage(inode, end, &page, SGP_READ);
- 		if (page) {
- 			zero_user_segment(page, 0, partial_end);
- 			set_page_dirty(page);
-@@ -1115,14 +1116,19 @@ static int shmem_replace_page(struct pag
-  *
-  * If we allocate a new one we do not mark it dirty. That's up to the
-  * vm. If we swap it in we mark it dirty since we also free the swap
-- * entry since a page cannot live in both the swap and page cache
-+ * entry since a page cannot live in both the swap and page cache.
-+ *
-+ * fault_mm and fault_type are only supplied by shmem_fault:
-+ * otherwise they are NULL.
-  */
- static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
--	struct page **pagep, enum sgp_type sgp, gfp_t gfp, int *fault_type)
-+	struct page **pagep, enum sgp_type sgp, gfp_t gfp,
-+	struct mm_struct *fault_mm, int *fault_type)
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	struct shmem_inode_info *info;
- 	struct shmem_sb_info *sbinfo;
-+	struct mm_struct *charge_mm;
- 	struct mem_cgroup *memcg;
- 	struct page *page;
- 	swp_entry_t swap;
-@@ -1168,14 +1174,19 @@ repeat:
- 	 */
- 	info = SHMEM_I(inode);
- 	sbinfo = SHMEM_SB(inode->i_sb);
-+	charge_mm = fault_mm ? : current->mm;
+ % echo online > /sys/devices/system/memory/auto_online_blocks
  
- 	if (swap.val) {
- 		/* Look it up and read it in.. */
- 		page = lookup_swap_cache(swap);
- 		if (!page) {
--			/* here we actually do the io */
--			if (fault_type)
-+			/* Or update major stats only when swapin succeeds?? */
-+			if (fault_type) {
- 				*fault_type |= VM_FAULT_MAJOR;
-+				count_vm_event(PGMAJFAULT);
-+				mem_cgroup_count_vm_event(fault_mm, PGMAJFAULT);
-+			}
-+			/* Here we actually start the io */
- 			page = shmem_swapin(swap, gfp, info, index);
- 			if (!page) {
- 				error = -ENOMEM;
-@@ -1202,7 +1213,7 @@ repeat:
- 				goto failed;
- 		}
+diff -puN mm/Kconfig~memory_hotplug-introduce-config_memory_hotplug_default_online mm/Kconfig
+--- a/mm/Kconfig~memory_hotplug-introduce-config_memory_hotplug_default_online
++++ a/mm/Kconfig
+@@ -192,6 +192,22 @@ config MEMORY_HOTPLUG_SPARSE
+ 	def_bool y
+ 	depends on SPARSEMEM && MEMORY_HOTPLUG
  
--		error = mem_cgroup_try_charge(page, current->mm, gfp, &memcg,
-+		error = mem_cgroup_try_charge(page, charge_mm, gfp, &memcg,
- 				false);
- 		if (!error) {
- 			error = shmem_add_to_page_cache(page, mapping, index,
-@@ -1263,7 +1274,7 @@ repeat:
- 		if (sgp == SGP_WRITE)
- 			__SetPageReferenced(page);
++config MEMORY_HOTPLUG_DEFAULT_ONLINE
++        bool "Online the newly added memory blocks by default"
++        default n
++        depends on MEMORY_HOTPLUG
++        help
++	  This option sets the default policy setting for memory hotplug
++	  onlining policy (/sys/devices/system/memory/auto_online_blocks) which
++	  determines what happens to newly added memory regions. Policy setting
++	  can always be changed at runtime.
++	  See Documentation/memory-hotplug.txt for more information.
++
++	  Say Y here if you want all hot-plugged memory blocks to appear in
++	  'online' state by default.
++	  Say N here if you want the default policy to keep all hot-plugged
++	  memory blocks in 'offline' state.
++
+ config MEMORY_HOTREMOVE
+ 	bool "Allow for memory hot remove"
+ 	select MEMORY_ISOLATION
+diff -puN mm/memory_hotplug.c~memory_hotplug-introduce-config_memory_hotplug_default_online mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory_hotplug-introduce-config_memory_hotplug_default_online
++++ a/mm/memory_hotplug.c
+@@ -78,7 +78,11 @@ static struct {
+ #define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
+ #define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
  
--		error = mem_cgroup_try_charge(page, current->mm, gfp, &memcg,
-+		error = mem_cgroup_try_charge(page, charge_mm, gfp, &memcg,
- 				false);
- 		if (error)
- 			goto decused;
-@@ -1352,6 +1363,7 @@ unlock:
- static int shmem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
- 	struct inode *inode = file_inode(vma->vm_file);
-+	gfp_t gfp = mapping_gfp_mask(inode->i_mapping);
- 	int error;
- 	int ret = VM_FAULT_LOCKED;
++#ifndef CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE
+ bool memhp_auto_online;
++#else
++bool memhp_auto_online = true;
++#endif
+ EXPORT_SYMBOL_GPL(memhp_auto_online);
  
-@@ -1413,14 +1425,10 @@ static int shmem_fault(struct vm_area_st
- 		spin_unlock(&inode->i_lock);
- 	}
- 
--	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
-+	error = shmem_getpage_gfp(inode, vmf->pgoff, &vmf->page, SGP_CACHE,
-+				  gfp, vma->vm_mm, &ret);
- 	if (error)
- 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
--
--	if (ret & VM_FAULT_MAJOR) {
--		count_vm_event(PGMAJFAULT);
--		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
--	}
- 	return ret;
- }
- 
-@@ -1567,7 +1575,7 @@ shmem_write_begin(struct file *file, str
- 			return -EPERM;
- 	}
- 
--	return shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
-+	return shmem_getpage(inode, index, pagep, SGP_WRITE);
- }
- 
- static int
-@@ -1633,7 +1641,7 @@ static ssize_t shmem_file_read_iter(stru
- 				break;
- 		}
- 
--		error = shmem_getpage(inode, index, &page, sgp, NULL);
-+		error = shmem_getpage(inode, index, &page, sgp);
- 		if (error) {
- 			if (error == -EINVAL)
- 				error = 0;
-@@ -1749,7 +1757,7 @@ static ssize_t shmem_file_splice_read(st
- 	error = 0;
- 
- 	while (spd.nr_pages < nr_pages) {
--		error = shmem_getpage(inode, index, &page, SGP_CACHE, NULL);
-+		error = shmem_getpage(inode, index, &page, SGP_CACHE);
- 		if (error)
- 			break;
- 		unlock_page(page);
-@@ -1771,8 +1779,7 @@ static ssize_t shmem_file_splice_read(st
- 		page = spd.pages[page_nr];
- 
- 		if (!PageUptodate(page) || page->mapping != mapping) {
--			error = shmem_getpage(inode, index, &page,
--							SGP_CACHE, NULL);
-+			error = shmem_getpage(inode, index, &page, SGP_CACHE);
- 			if (error)
- 				break;
- 			unlock_page(page);
-@@ -2215,8 +2222,7 @@ static long shmem_fallocate(struct file
- 		else if (shmem_falloc.nr_unswapped > shmem_falloc.nr_falloced)
- 			error = -ENOMEM;
- 		else
--			error = shmem_getpage(inode, index, &page, SGP_FALLOC,
--									NULL);
-+			error = shmem_getpage(inode, index, &page, SGP_FALLOC);
- 		if (error) {
- 			/* Remove the !PageUptodate pages we added */
- 			shmem_undo_range(inode,
-@@ -2534,7 +2540,7 @@ static int shmem_symlink(struct inode *d
- 		inode->i_op = &shmem_short_symlink_operations;
- 	} else {
- 		inode_nohighmem(inode);
--		error = shmem_getpage(inode, 0, &page, SGP_WRITE, NULL);
-+		error = shmem_getpage(inode, 0, &page, SGP_WRITE);
- 		if (error) {
- 			iput(inode);
- 			return error;
-@@ -2575,7 +2581,7 @@ static const char *shmem_get_link(struct
- 			return ERR_PTR(-ECHILD);
- 		}
- 	} else {
--		error = shmem_getpage(inode, 0, &page, SGP_READ, NULL);
-+		error = shmem_getpage(inode, 0, &page, SGP_READ);
- 		if (error)
- 			return ERR_PTR(error);
- 		unlock_page(page);
-@@ -3479,7 +3485,8 @@ struct page *shmem_read_mapping_page_gfp
- 	int error;
- 
- 	BUG_ON(mapping->a_ops != &shmem_aops);
--	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE, gfp, NULL);
-+	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE,
-+				  gfp, NULL, NULL);
- 	if (error)
- 		page = ERR_PTR(error);
- 	else
+ void get_online_mems(void)
 _
 
-Patches currently in -mm which might be from andreslc@google.com are
+Patches currently in -mm which might be from vkuznets@redhat.com are
 
 
