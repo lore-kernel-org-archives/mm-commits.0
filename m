@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: [patch 010/117] workqueue: update debugobjects fixup callbacks
- return type
-Date: Thu, 19 May 2016 17:09:26 -0700
-Message-ID: <573e55b6.o5BFZEHcKxrBleZt%akpm@linux-foundation.org>
+Subject: [patch 011/117] timer: update debugobjects fixup callbacks return type
+Date: Thu, 19 May 2016 17:09:29 -0700
+Message-ID: <573e55b9.FS1kERvshMurGRMi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45863 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754170AbcETAJ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:27 -0400
+	with ESMTP id S1753942AbcETAJa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, changbin.du@intel.com, borntraeger@de.ibm.com, corbet@lwn.net, josh@kernel.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org
 
 From: "Du, Changbin" <changbin.du@intel.com>
-Subject: workqueue: update debugobjects fixup callbacks return type
+Subject: timer: update debugobjects fixup callbacks return type
 
 Update the return type to use bool instead of int, corresponding to
-change (debugobjects: make fixup functions return bool instead of int)
+cheange (debugobjects: make fixup functions return bool instead of int).
 
 Signed-off-by: Du, Changbin <changbin.du@intel.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -32,25 +31,26 @@ Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ kernel/time/hrtimer.c |   18 +++++++++---------
+ kernel/time/timer.c   |   30 +++++++++++++++---------------
+ 2 files changed, 24 insertions(+), 24 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueue-update-debugobjects-fixup-callbacks-return-type kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-update-debugobjects-fixup-callbacks-return-type
-+++ a/kernel/workqueue.c
-@@ -437,7 +437,7 @@ static void *work_debug_hint(void *addr)
+diff -puN kernel/time/hrtimer.c~timer-update-debugobjects-fixup-callbacks-return-type kernel/time/hrtimer.c
+--- a/kernel/time/hrtimer.c~timer-update-debugobjects-fixup-callbacks-return-type
++++ a/kernel/time/hrtimer.c
+@@ -334,7 +334,7 @@ static void *hrtimer_debug_hint(void *ad
   * fixup_init is called when:
   * - an active object is initialized
   */
--static int work_fixup_init(void *addr, enum debug_obj_state state)
-+static bool work_fixup_init(void *addr, enum debug_obj_state state)
+-static int hrtimer_fixup_init(void *addr, enum debug_obj_state state)
++static bool hrtimer_fixup_init(void *addr, enum debug_obj_state state)
  {
- 	struct work_struct *work = addr;
+ 	struct hrtimer *timer = addr;
  
-@@ -445,9 +445,9 @@ static int work_fixup_init(void *addr, e
+@@ -342,9 +342,9 @@ static int hrtimer_fixup_init(void *addr
  	case ODEBUG_STATE_ACTIVE:
- 		cancel_work_sync(work);
- 		debug_object_init(work, &work_debug_descr);
+ 		hrtimer_cancel(timer);
+ 		debug_object_init(timer, &hrtimer_debug_descr);
 -		return 1;
 +		return true;
  	default:
@@ -59,22 +59,16 @@ diff -puN kernel/workqueue.c~workqueue-update-debugobjects-fixup-callbacks-retur
  	}
  }
  
-@@ -456,7 +456,7 @@ static int work_fixup_init(void *addr, e
+@@ -353,19 +353,19 @@ static int hrtimer_fixup_init(void *addr
   * - an active object is activated
   * - an unknown object is activated (might be a statically initialized object)
   */
--static int work_fixup_activate(void *addr, enum debug_obj_state state)
-+static bool work_fixup_activate(void *addr, enum debug_obj_state state)
+-static int hrtimer_fixup_activate(void *addr, enum debug_obj_state state)
++static bool hrtimer_fixup_activate(void *addr, enum debug_obj_state state)
  {
- 	struct work_struct *work = addr;
+ 	switch (state) {
  
-@@ -471,16 +471,16 @@ static int work_fixup_activate(void *add
- 		if (test_bit(WORK_STRUCT_STATIC_BIT, work_data_bits(work))) {
- 			debug_object_init(work, &work_debug_descr);
- 			debug_object_activate(work, &work_debug_descr);
--			return 0;
-+			return false;
- 		}
+ 	case ODEBUG_STATE_NOTAVAILABLE:
  		WARN_ON_ONCE(1);
 -		return 0;
 +		return false;
@@ -88,21 +82,124 @@ diff -puN kernel/workqueue.c~workqueue-update-debugobjects-fixup-callbacks-retur
  	}
  }
  
-@@ -488,7 +488,7 @@ static int work_fixup_activate(void *add
+@@ -373,7 +373,7 @@ static int hrtimer_fixup_activate(void *
   * fixup_free is called when:
   * - an active object is freed
   */
--static int work_fixup_free(void *addr, enum debug_obj_state state)
-+static bool work_fixup_free(void *addr, enum debug_obj_state state)
+-static int hrtimer_fixup_free(void *addr, enum debug_obj_state state)
++static bool hrtimer_fixup_free(void *addr, enum debug_obj_state state)
  {
- 	struct work_struct *work = addr;
+ 	struct hrtimer *timer = addr;
  
-@@ -496,9 +496,9 @@ static int work_fixup_free(void *addr, e
+@@ -381,9 +381,9 @@ static int hrtimer_fixup_free(void *addr
  	case ODEBUG_STATE_ACTIVE:
- 		cancel_work_sync(work);
- 		debug_object_free(work, &work_debug_descr);
+ 		hrtimer_cancel(timer);
+ 		debug_object_free(timer, &hrtimer_debug_descr);
 -		return 1;
 +		return true;
+ 	default:
+-		return 0;
++		return false;
+ 	}
+ }
+ 
+diff -puN kernel/time/timer.c~timer-update-debugobjects-fixup-callbacks-return-type kernel/time/timer.c
+--- a/kernel/time/timer.c~timer-update-debugobjects-fixup-callbacks-return-type
++++ a/kernel/time/timer.c
+@@ -493,7 +493,7 @@ static void *timer_debug_hint(void *addr
+  * fixup_init is called when:
+  * - an active object is initialized
+  */
+-static int timer_fixup_init(void *addr, enum debug_obj_state state)
++static bool timer_fixup_init(void *addr, enum debug_obj_state state)
+ {
+ 	struct timer_list *timer = addr;
+ 
+@@ -501,9 +501,9 @@ static int timer_fixup_init(void *addr,
+ 	case ODEBUG_STATE_ACTIVE:
+ 		del_timer_sync(timer);
+ 		debug_object_init(timer, &timer_debug_descr);
+-		return 1;
++		return true;
+ 	default:
+-		return 0;
++		return false;
+ 	}
+ }
+ 
+@@ -518,7 +518,7 @@ static void stub_timer(unsigned long dat
+  * - an active object is activated
+  * - an unknown object is activated (might be a statically initialized object)
+  */
+-static int timer_fixup_activate(void *addr, enum debug_obj_state state)
++static bool timer_fixup_activate(void *addr, enum debug_obj_state state)
+ {
+ 	struct timer_list *timer = addr;
+ 
+@@ -534,18 +534,18 @@ static int timer_fixup_activate(void *ad
+ 		    timer->entry.next == TIMER_ENTRY_STATIC) {
+ 			debug_object_init(timer, &timer_debug_descr);
+ 			debug_object_activate(timer, &timer_debug_descr);
+-			return 0;
++			return false;
+ 		} else {
+ 			setup_timer(timer, stub_timer, 0);
+-			return 1;
++			return true;
+ 		}
+-		return 0;
++		return false;
+ 
+ 	case ODEBUG_STATE_ACTIVE:
+ 		WARN_ON(1);
+ 
+ 	default:
+-		return 0;
++		return false;
+ 	}
+ }
+ 
+@@ -553,7 +553,7 @@ static int timer_fixup_activate(void *ad
+  * fixup_free is called when:
+  * - an active object is freed
+  */
+-static int timer_fixup_free(void *addr, enum debug_obj_state state)
++static bool timer_fixup_free(void *addr, enum debug_obj_state state)
+ {
+ 	struct timer_list *timer = addr;
+ 
+@@ -561,9 +561,9 @@ static int timer_fixup_free(void *addr,
+ 	case ODEBUG_STATE_ACTIVE:
+ 		del_timer_sync(timer);
+ 		debug_object_free(timer, &timer_debug_descr);
+-		return 1;
++		return true;
+ 	default:
+-		return 0;
++		return false;
+ 	}
+ }
+ 
+@@ -571,7 +571,7 @@ static int timer_fixup_free(void *addr,
+  * fixup_assert_init is called when:
+  * - an untracked/uninit-ed object is found
+  */
+-static int timer_fixup_assert_init(void *addr, enum debug_obj_state state)
++static bool timer_fixup_assert_init(void *addr, enum debug_obj_state state)
+ {
+ 	struct timer_list *timer = addr;
+ 
+@@ -584,13 +584,13 @@ static int timer_fixup_assert_init(void
+ 			 * is tracked in the object tracker.
+ 			 */
+ 			debug_object_init(timer, &timer_debug_descr);
+-			return 0;
++			return false;
+ 		} else {
+ 			setup_timer(timer, stub_timer, 0);
+-			return 1;
++			return true;
+ 		}
  	default:
 -		return 0;
 +		return false;
