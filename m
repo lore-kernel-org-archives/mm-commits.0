@@ -1,45 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [patch 016/117] ocfs2: fix comment in struct ocfs2_extended_slot
-Date: Thu, 19 May 2016 17:09:44 -0700
-Message-ID: <573e55c8.rLwZKYBnFF4L9fs2%akpm@linux-foundation.org>
+Subject: [patch 017/117] ocfs2: clean up an unused variable 'wants_rotate' in ocfs2_truncate_rec
+Date: Thu, 19 May 2016 17:09:47 -0700
+Message-ID: <573e55cb.8oaEZrqkFlOjxJfT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45901 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45908 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754443AbcETAJp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:45 -0400
+	with ESMTP id S1753824AbcETAJs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, guozhonghua@h3c.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, piaojun@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de
 
-From: Guozhonghua <guozhonghua@h3c.com>
-Subject: ocfs2: fix comment in struct ocfs2_extended_slot
+From: piaojun <piaojun@huawei.com>
+Subject: ocfs2: clean up an unused variable 'wants_rotate' in ocfs2_truncate_rec
 
-The comment in ocfs2_extended_slot has the offset wrong.
+Clean up an unused variable 'wants_rotate' in ocfs2_truncate_rec.
 
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2_fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/ocfs2_fs.h~ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08 fs/ocfs2/ocfs2_fs.h
---- a/fs/ocfs2/ocfs2_fs.h~ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08
-+++ a/fs/ocfs2/ocfs2_fs.h
-@@ -580,7 +580,7 @@ struct ocfs2_extended_slot {
- /*00*/	__u8	es_valid;
- 	__u8	es_reserved1[3];
- 	__le32	es_node_num;
--/*10*/
-+/*08*/
- };
+diff -puN fs/ocfs2/alloc.c~ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec
++++ a/fs/ocfs2/alloc.c
+@@ -5351,7 +5351,7 @@ static int ocfs2_truncate_rec(handle_t *
+ {
+ 	int ret;
+ 	u32 left_cpos, rec_range, trunc_range;
+-	int wants_rotate = 0, is_rightmost_tree_rec = 0;
++	int is_rightmost_tree_rec = 0;
+ 	struct super_block *sb = ocfs2_metadata_cache_get_super(et->et_ci);
+ 	struct ocfs2_path *left_path = NULL;
+ 	struct ocfs2_extent_list *el = path_leaf_el(path);
+@@ -5457,7 +5457,6 @@ static int ocfs2_truncate_rec(handle_t *
  
- /*
+ 		memset(rec, 0, sizeof(*rec));
+ 		ocfs2_cleanup_merge(el, index);
+-		wants_rotate = 1;
+ 
+ 		next_free = le16_to_cpu(el->l_next_free_rec);
+ 		if (is_rightmost_tree_rec && next_free > 1) {
 _
