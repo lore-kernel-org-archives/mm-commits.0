@@ -1,92 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-bloat-o-meter-print-percent-change.patch removed from -mm tree
-Date: Fri, 20 May 2016 14:02:32 -0700
-Message-ID: <573f7b68.N8iK+WZdv/c2Jl6V%akpm@linux-foundation.org>
+Subject: [merged] scripts-spellingtxt-add-fimware-misspelling.patch
+ removed from -mm tree
+Date: Fri, 20 May 2016 14:02:30 -0700
+Message-ID: <573f7b66.GGvPT+Tt9qKJ3Fak%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46692 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46688 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcETVCd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:02:33 -0400
+	with ESMTP id S1751065AbcETVCb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:02:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Vineet.Gupta1@synopsys.com, josh@joshtriplett.org, mmarek@suse.cz, vgupta@synopsys.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/bloat-o-meter: print percent change
+     Subject: scripts/spelling.txt: add "fimware" misspelling
 has been removed from the -mm tree.  Its filename was
-     scripts-bloat-o-meter-print-percent-change.patch
+     scripts-spellingtxt-add-fimware-misspelling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Subject: scripts/bloat-o-meter: print percent change
+From: Kees Cook <keescook@chromium.org>
+Subject: scripts/spelling.txt: add "fimware" misspelling
 
-This adds an additional line of output (to reduce the chances of breaking
-any existing output parsers) which prints the total size before and after
-and the relative difference.
+A few instances of "fimware" instead of "firmware" were found. Fix these
+and add it to the spelling.txt file.
 
-add/remove: 39/0 grow/shrink: 12408/55 up/down: 362227/-1430 (360797)
-function                                     old     new   delta
-ext4_fill_super                            10556   12590   +2034
-_fpadd_parts                                   -    1186   +1186
-ntfs_fill_super                             5340    6164    +824
-...
-...
-__divdf3                                     752     386    -366
-unlzma                                      3682    3274    -408
-Total: Before=5023101, After=5383898, chg 7.000000%
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Link: http://lkml.kernel.org/r/1463124110-30314-1-git-send-email-vgupta@synopsys.com
-Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/media/usb/dvb-usb/dib0700_core.c      |    2 +-
+ drivers/scsi/bfa/bfi.h                        |    2 +-
+ drivers/staging/comedi/drivers/daqboard2000.c |    2 +-
+ scripts/spelling.txt                          |    1 +
+ 4 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-print-percent-change scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-print-percent-change
-+++ a/scripts/bloat-o-meter
-@@ -32,18 +32,21 @@ old = getsizes(sys.argv[1])
- new = getsizes(sys.argv[2])
- grow, shrink, add, remove, up, down = 0, 0, 0, 0, 0, 0
- delta, common = [], {}
-+otot, ntot = 0, 0
+diff -puN drivers/media/usb/dvb-usb/dib0700_core.c~scripts-spellingtxt-add-fimware-misspelling drivers/media/usb/dvb-usb/dib0700_core.c
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c~scripts-spellingtxt-add-fimware-misspelling
++++ a/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -517,7 +517,7 @@ int dib0700_download_firmware(struct usb
+ 	if (nb_packet_buffer_size < 1)
+ 		nb_packet_buffer_size = 1;
  
- for a in old:
-     if a in new:
-         common[a] = 1
- 
- for name in old:
-+    otot += old[name]
-     if name not in common:
-         remove += 1
-         down += old[name]
-         delta.append((-old[name], name))
- 
- for name in new:
-+    ntot += new[name]
-     if name not in common:
-         add += 1
-         up += new[name]
-@@ -63,3 +66,6 @@ print("add/remove: %s/%s grow/shrink: %s
- print("%-40s %7s %7s %+7s" % ("function", "old", "new", "delta"))
- for d, n in delta:
-     if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
-+
-+print("Total: Before=%d, After=%d, chg %f%%" % \
-+    (otot, ntot, (ntot - otot)*100/otot))
+-	/* get the fimware version */
++	/* get the firmware version */
+ 	usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
+ 				  REQUEST_GET_VERSION,
+ 				  USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
+diff -puN drivers/scsi/bfa/bfi.h~scripts-spellingtxt-add-fimware-misspelling drivers/scsi/bfa/bfi.h
+--- a/drivers/scsi/bfa/bfi.h~scripts-spellingtxt-add-fimware-misspelling
++++ a/drivers/scsi/bfa/bfi.h
+@@ -356,7 +356,7 @@ struct bfi_ioc_image_hdr_s {
+ 	u8	port0_mode;	/* device mode for port 0	*/
+ 	u8	port1_mode;	/* device mode for port 1	*/
+ 	u32	exec;		/* exec vector			*/
+-	u32	bootenv;	/* fimware boot env		*/
++	u32	bootenv;	/* firmware boot env		*/
+ 	u32	rsvd_b[2];
+ 	struct bfi_ioc_fwver_s	fwver;
+ 	u32	md5sum[BFI_IOC_MD5SUM_SZ];
+diff -puN drivers/staging/comedi/drivers/daqboard2000.c~scripts-spellingtxt-add-fimware-misspelling drivers/staging/comedi/drivers/daqboard2000.c
+--- a/drivers/staging/comedi/drivers/daqboard2000.c~scripts-spellingtxt-add-fimware-misspelling
++++ a/drivers/staging/comedi/drivers/daqboard2000.c
+@@ -26,7 +26,7 @@
+  * Much of the functionality of this driver was determined from reading
+  * the source code for the Windows driver.
+  *
+- * The FPGA on the board requires fimware, which is available from
++ * The FPGA on the board requires firmware, which is available from
+  * http://www.comedi.org in the comedi_nonfree_firmware tarball.
+  *
+  * Configuration options: not applicable, uses PCI auto config
+diff -puN scripts/spelling.txt~scripts-spellingtxt-add-fimware-misspelling scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-fimware-misspelling
++++ a/scripts/spelling.txt
+@@ -428,6 +428,7 @@ feautures||features
+ fetaure||feature
+ fetaures||features
+ fileystem||filesystem
++fimware||firmware
+ finanize||finalize
+ findn||find
+ finilizes||finalizes
 _
 
-Patches currently in -mm which might be from Vineet.Gupta1@synopsys.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 
