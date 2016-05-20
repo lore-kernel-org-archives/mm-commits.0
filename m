@@ -1,67 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [patch 070/117] mm/highmem: make nr_free_highpages() handles all
- highmem zones by itself
-Date: Thu, 19 May 2016 17:12:26 -0700
-Message-ID: <573e566a.7t8m4axTW+vjGFSi%akpm@linux-foundation.org>
+Subject: [patch 073/117] mm: update_lru_size warn and reset bad lru_size
+Date: Thu, 19 May 2016 17:12:35 -0700
+Message-ID: <573e5673.xyY8llNHZDuWAI+O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46391 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932831AbcETAM1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:12:27 -0400
+	with ESMTP id S932831AbcETAMg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:12:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, aarcange@redhat.com, andreslc@google.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, mhocko@kernel.org, quning@gmail.com, yang.shi@linaro.org
 
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/highmem: make nr_free_highpages() handles all highmem zones by itself
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: update_lru_size warn and reset bad lru_size
 
-nr_free_highpages() manually adds statistics per each highmem zone and
-returns a total value for them.  Whenever we add a new highmem zone, we
-need to consider this function and it's really troublesome.  Make it
-handle all highmem zones by itself.
+Though debug kernels have a VM_BUG_ON to help protect from misaccounting
+lru_size, non-debug kernels are liable to wrap it around: and then the
+vast unsigned long size draws page reclaim into a loop of repeatedly doing
+nothing on an empty list, without even a cond_resched().
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+That soft lockup looks confusingly like an over-busy reclaim scenario,
+with lots of contention on the lru_lock in shrink_inactive_list(): yet has
+a totally different origin.
+
+Help differentiate with a custom warning in mem_cgroup_update_lru_size(),
+even in non-debug kernels; and reset the size to avoid the lockup.  But
+the particular bug which suggested this change was mine alone, and since
+fixed.
+
+Make it a WARN_ONCE: the first occurrence is the most informative, a
+flurry may follow, yet even when rate-limited little more is learnt.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Ning Qu <quning@gmail.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Laura Abbott <lauraa@codeaurora.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ include/linux/mm_inline.h |    2 +-
+ mm/memcontrol.c           |   24 ++++++++++++++++++++----
+ 2 files changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN mm/highmem.c~mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself mm/highmem.c
---- a/mm/highmem.c~mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself
-+++ a/mm/highmem.c
-@@ -112,16 +112,12 @@ EXPORT_PER_CPU_SYMBOL(__kmap_atomic_idx)
- 
- unsigned int nr_free_highpages (void)
+diff -puN include/linux/mm_inline.h~mm-update_lru_size-warn-and-reset-bad-lru_size include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-update_lru_size-warn-and-reset-bad-lru_size
++++ a/include/linux/mm_inline.h
+@@ -35,8 +35,8 @@ static __always_inline void del_page_fro
+ 				struct lruvec *lruvec, enum lru_list lru)
  {
--	pg_data_t *pgdat;
-+	struct zone *zone;
- 	unsigned int pages = 0;
+ 	int nr_pages = hpage_nr_pages(page);
+-	mem_cgroup_update_lru_size(lruvec, lru, -nr_pages);
+ 	list_del(&page->lru);
++	mem_cgroup_update_lru_size(lruvec, lru, -nr_pages);
+ 	__mod_zone_page_state(lruvec_zone(lruvec), NR_LRU_BASE + lru, -nr_pages);
+ }
  
--	for_each_online_pgdat(pgdat) {
--		pages += zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
--			NR_FREE_PAGES);
--		if (zone_movable_is_highmem())
--			pages += zone_page_state(
--					&pgdat->node_zones[ZONE_MOVABLE],
--					NR_FREE_PAGES);
-+	for_each_populated_zone(zone) {
-+		if (is_highmem(zone))
-+			pages += zone_page_state(zone, NR_FREE_PAGES);
- 	}
+diff -puN mm/memcontrol.c~mm-update_lru_size-warn-and-reset-bad-lru_size mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-update_lru_size-warn-and-reset-bad-lru_size
++++ a/mm/memcontrol.c
+@@ -1023,22 +1023,38 @@ out:
+  * @lru: index of lru list the page is sitting on
+  * @nr_pages: positive when adding or negative when removing
+  *
+- * This function must be called when a page is added to or removed from an
+- * lru list.
++ * This function must be called under lru_lock, just before a page is added
++ * to or just after a page is removed from an lru list (that ordering being
++ * so as to allow it to check that lru_size 0 is consistent with list_empty).
+  */
+ void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
+ 				int nr_pages)
+ {
+ 	struct mem_cgroup_per_zone *mz;
+ 	unsigned long *lru_size;
++	long size;
++	bool empty;
  
- 	return pages;
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
+ 	mz = container_of(lruvec, struct mem_cgroup_per_zone, lruvec);
+ 	lru_size = mz->lru_size + lru;
+-	*lru_size += nr_pages;
+-	VM_BUG_ON((long)(*lru_size) < 0);
++	empty = list_empty(lruvec->lists + lru);
++
++	if (nr_pages < 0)
++		*lru_size += nr_pages;
++
++	size = *lru_size;
++	if (WARN_ONCE(size < 0 || empty != !size,
++		"%s(%p, %d, %d): lru_size %ld but %sempty\n",
++		__func__, lruvec, lru, nr_pages, size, empty ? "" : "not ")) {
++		VM_BUG_ON(1);
++		*lru_size = 0;
++	}
++
++	if (nr_pages > 0)
++		*lru_size += nr_pages;
+ }
+ 
+ bool task_in_mem_cgroup(struct task_struct *task, struct mem_cgroup *memcg)
 _
