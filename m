@@ -1,77 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlbc-use-first_memory_node.patch removed from -mm tree
-Date: Fri, 20 May 2016 14:04:37 -0700
-Message-ID: <573f7be5.MlKWI0zHSeIDOfzF%akpm@linux-foundation.org>
+Subject: [merged] x86-mm-use-hugetlb_bad_size.patch removed from -mm tree
+Date: Fri, 20 May 2016 14:04:22 -0700
+Message-ID: <573f7bd6.7EljSQu8xK7Mdrey%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47006 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46987 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751086AbcETVEi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:38 -0400
+	with ESMTP id S1751065AbcETVEX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: vaishali.thakkar@oracle.com, baiyaowei@cmss.chinamobile.com, dave.hansen@linux.intel.com, dingel@linux.vnet.ibm.com, hillf.zj@alibaba-inc.com, hpa@zytor.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mingo@elte.hu, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb.c: use first_memory_node
+     Subject: x86: mm: use hugetlb_bad_size()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbc-use-first_memory_node.patch
+     x86-mm-use-hugetlb_bad_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/hugetlb.c: use first_memory_node
+From: Vaishali Thakkar <vaishali.thakkar@oracle.com>
+Subject: x86: mm: use hugetlb_bad_size()
 
-Instead of open-coding it.
+Update setup_hugepagesz() to call hugetlb_bad_size() when unsupported
+hugepage size is found.
 
-
+Signed-off-by: Vaishali Thakkar <vaishali.thakkar@oracle.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Cc: Dominik Dingel <dingel@linux.vnet.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/mm/hugetlbpage.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlbc-use-first_memory_node mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbc-use-first_memory_node
-+++ a/mm/hugetlb.c
-@@ -2684,8 +2684,8 @@ void __init hugetlb_add_hstate(unsigned
- 	for (i = 0; i < MAX_NUMNODES; ++i)
- 		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
- 	INIT_LIST_HEAD(&h->hugepage_activelist);
--	h->next_nid_to_alloc = first_node(node_states[N_MEMORY]);
--	h->next_nid_to_free = first_node(node_states[N_MEMORY]);
-+	h->next_nid_to_alloc = first_memory_node;
-+	h->next_nid_to_free = first_memory_node;
- 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
- 					huge_page_size(h)/1024);
- 
+diff -puN arch/x86/mm/hugetlbpage.c~x86-mm-use-hugetlb_bad_size arch/x86/mm/hugetlbpage.c
+--- a/arch/x86/mm/hugetlbpage.c~x86-mm-use-hugetlb_bad_size
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -165,6 +165,7 @@ static __init int setup_hugepagesz(char
+ 	} else if (ps == PUD_SIZE && boot_cpu_has(X86_FEATURE_GBPAGES)) {
+ 		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
+ 	} else {
++		hugetlb_bad_size();
+ 		printk(KERN_ERR "hugepagesz: Unsupported page size %lu M\n",
+ 			ps >> 20);
+ 		return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vaishali.thakkar@oracle.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-compaction-abstract-compaction-feedback-to-helpers-fix.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders-fix.patch
-mm-oom-protect-costly-allocations-some-more-for-config_compaction-checkpatch-fixes.patch
-vmstat-get-rid-of-the-ugly-cpu_stat_off-variable-v2-fix.patch
-mm-compact-fix-zoneindex-in-compact-fix.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable-fix.patch
-exit_thread-remove-empty-bodies-fix.patch
-exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
-lib-gcd-use-binary-gcd-algorithm-instead-of-euclidean-fix.patch
-allocate-idle-task-for-a-cpu-always-on-its-local-node-fix.patch
-linux-next-git-rejects.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
