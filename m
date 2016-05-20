@@ -1,245 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [patch 001/117] fsnotify: avoid spurious EMFILE errors from
- inotify_init()
-Date: Thu, 19 May 2016 17:08:59 -0700
-Message-ID: <573e559b.B5SmOaYUqlk0vCEs%akpm@linux-foundation.org>
+Subject: [patch 002/117] time: add missing implementation for
+ timespec64_add_safe()
+Date: Thu, 19 May 2016 17:09:02 -0700
+Message-ID: <573e559e.gqOdSkODeEoeUc8F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45802 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45808 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753942AbcETAJB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:01 -0400
+	with ESMTP id S1753942AbcETAJE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:09:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jack@suse.cz, wangxg.fnst@cn.fujitsu.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, deepa.kernel@gmail.com, arnd@arndb.de, john.stultz@linaro.org, tglx@linutronix.de
 
-From: Jan Kara <jack@suse.cz>
-Subject: fsnotify: avoid spurious EMFILE errors from inotify_init()
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Subject: time: add missing implementation for timespec64_add_safe()
 
-Inotify instance is destroyed when all references to it are dropped.  That
-not only means that the corresponding file descriptor needs to be closed
-but also that all corresponding instance marks are freed (as each mark
-holds a reference to the inotify instance).  However marks are freed only
-after SRCU period ends which can take some time and thus if user rapidly
-creates and frees inotify instances, number of existing inotify instances
-can exceed max_user_instances limit although from user point of view there
-is always at most one existing instance.  Thus inotify_init() returns
-EMFILE error which is hard to justify from user point of view.  This
-problem is exposed by LTP inotify06 testcase on some machines.
+timespec64_add_safe() has been defined in time64.h for 64 bit systems. 
+But, 32 bit systems only have an extern function prototype defined. 
+Provide a definition for the above function.
 
-We fix the problem by making sure all group marks are properly freed while
-destroying inotify instance.  We wait for SRCU period to end in that path
-anyway since we have to make sure there is no event being added to the
-instance while we are tearing down the instance.  So it takes only some
-plumbing to allow for marks to be destroyed in that path as well and not
-from a dedicated work item.
+The function will be necessary as part of y2038 changes.  struct timespec
+is not y2038 safe.  All references to timespec will be replaced by struct
+timespec64.  The function is meant to be a replacement for
+timespec_add_safe().
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Xiaoguang Wang <wangxg.fnst@cn.fujitsu.com>
-Tested-by: Xiaoguang Wang <wangxg.fnst@cn.fujitsu.com>
+The implementation is similar to timespec_add_safe().
+
+Link: http://lkml.kernel.org/r/1461947989-21926-2-git-send-email-deepa.kernel@gmail.com
+Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+Acked-by: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fsnotify.h             |    7 ++
- fs/notify/group.c                |   17 ++++--
- fs/notify/mark.c                 |   78 ++++++++++++++++++++++-------
- include/linux/fsnotify_backend.h |    2 
- 4 files changed, 81 insertions(+), 23 deletions(-)
+ include/linux/time64.h |    4 +---
+ kernel/time/time.c     |   25 +++++++++++++++++++++++++
+ 2 files changed, 26 insertions(+), 3 deletions(-)
 
-diff -puN fs/notify/fsnotify.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init fs/notify/fsnotify.h
---- a/fs/notify/fsnotify.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init
-+++ a/fs/notify/fsnotify.h
-@@ -56,6 +56,13 @@ static inline void fsnotify_clear_marks_
- 	fsnotify_destroy_marks(&real_mount(mnt)->mnt_fsnotify_marks,
- 			       &mnt->mnt_root->d_lock);
- }
-+/* prepare for freeing all marks associated with given group */
-+extern void fsnotify_detach_group_marks(struct fsnotify_group *group);
-+/*
-+ * wait for fsnotify_mark_srcu period to end and free all marks in destroy_list
-+ */
-+extern void fsnotify_mark_destroy_list(void);
-+
- /*
-  * update the dentry->d_flags of all of inode's children to indicate if inode cares
-  * about events that happen to its children.
-diff -puN fs/notify/group.c~fsnotify-avoid-spurious-emfile-errors-from-inotify_init fs/notify/group.c
---- a/fs/notify/group.c~fsnotify-avoid-spurious-emfile-errors-from-inotify_init
-+++ a/fs/notify/group.c
-@@ -47,12 +47,21 @@ static void fsnotify_final_destroy_group
-  */
- void fsnotify_destroy_group(struct fsnotify_group *group)
- {
--	/* clear all inode marks for this group */
--	fsnotify_clear_marks_by_group(group);
-+	/* clear all inode marks for this group, attach them to destroy_list */
-+	fsnotify_detach_group_marks(group);
- 
--	synchronize_srcu(&fsnotify_mark_srcu);
-+	/*
-+	 * Wait for fsnotify_mark_srcu period to end and free all marks in
-+	 * destroy_list
-+	 */
-+	fsnotify_mark_destroy_list();
- 
--	/* clear the notification queue of all events */
-+	/*
-+	 * Since we have waited for fsnotify_mark_srcu in
-+	 * fsnotify_mark_destroy_list() there can be no outstanding event
-+	 * notification against this group. So clearing the notification queue
-+	 * of all events is reliable now.
-+	 */
- 	fsnotify_flush_notify(group);
- 
- 	/*
-diff -puN fs/notify/mark.c~fsnotify-avoid-spurious-emfile-errors-from-inotify_init fs/notify/mark.c
---- a/fs/notify/mark.c~fsnotify-avoid-spurious-emfile-errors-from-inotify_init
-+++ a/fs/notify/mark.c
-@@ -97,8 +97,8 @@ struct srcu_struct fsnotify_mark_srcu;
- static DEFINE_SPINLOCK(destroy_lock);
- static LIST_HEAD(destroy_list);
- 
--static void fsnotify_mark_destroy(struct work_struct *work);
--static DECLARE_DELAYED_WORK(reaper_work, fsnotify_mark_destroy);
-+static void fsnotify_mark_destroy_workfn(struct work_struct *work);
-+static DECLARE_DELAYED_WORK(reaper_work, fsnotify_mark_destroy_workfn);
- 
- void fsnotify_get_mark(struct fsnotify_mark *mark)
- {
-@@ -173,11 +173,15 @@ void fsnotify_detach_mark(struct fsnotif
- }
+diff -puN include/linux/time64.h~time-add-missing-implementation-for-timespec64_add_safe include/linux/time64.h
+--- a/include/linux/time64.h~time-add-missing-implementation-for-timespec64_add_safe
++++ a/include/linux/time64.h
+@@ -136,13 +136,11 @@ extern void set_normalized_timespec64(st
  
  /*
-- * Free fsnotify mark. The freeing is actually happening from a kthread which
-- * first waits for srcu period end. Caller must have a reference to the mark
-- * or be protected by fsnotify_mark_srcu.
-+ * Prepare mark for freeing and add it to the list of marks prepared for
-+ * freeing. The actual freeing must happen after SRCU period ends and the
-+ * caller is responsible for this.
-+ *
-+ * The function returns true if the mark was added to the list of marks for
-+ * freeing. The function returns false if someone else has already called
-+ * __fsnotify_free_mark() for the mark.
+  * timespec64_add_safe assumes both values are positive and checks for
+- * overflow. It will return TIME_T_MAX if the returned value would be
+- * smaller then either of the arguments.
++ * overflow. It will return TIME64_MAX in case of overflow.
   */
--void fsnotify_free_mark(struct fsnotify_mark *mark)
-+static bool __fsnotify_free_mark(struct fsnotify_mark *mark)
- {
- 	struct fsnotify_group *group = mark->group;
+ extern struct timespec64 timespec64_add_safe(const struct timespec64 lhs,
+ 					 const struct timespec64 rhs);
  
-@@ -185,17 +189,11 @@ void fsnotify_free_mark(struct fsnotify_
- 	/* something else already called this function on this mark */
- 	if (!(mark->flags & FSNOTIFY_MARK_FLAG_ALIVE)) {
- 		spin_unlock(&mark->lock);
--		return;
-+		return false;
- 	}
- 	mark->flags &= ~FSNOTIFY_MARK_FLAG_ALIVE;
- 	spin_unlock(&mark->lock);
- 
--	spin_lock(&destroy_lock);
--	list_add(&mark->g_list, &destroy_list);
--	spin_unlock(&destroy_lock);
--	queue_delayed_work(system_unbound_wq, &reaper_work,
--				FSNOTIFY_REAPER_DELAY);
 -
- 	/*
- 	 * Some groups like to know that marks are being freed.  This is a
- 	 * callback to the group function to let it know that this mark
-@@ -203,6 +201,25 @@ void fsnotify_free_mark(struct fsnotify_
- 	 */
- 	if (group->ops->freeing_mark)
- 		group->ops->freeing_mark(mark, group);
+ static inline struct timespec64 timespec64_add(struct timespec64 lhs,
+ 						struct timespec64 rhs)
+ {
+diff -puN kernel/time/time.c~time-add-missing-implementation-for-timespec64_add_safe kernel/time/time.c
+--- a/kernel/time/time.c~time-add-missing-implementation-for-timespec64_add_safe
++++ a/kernel/time/time.c
+@@ -769,3 +769,28 @@ struct timespec timespec_add_safe(const
+ 
+ 	return res;
+ }
 +
-+	spin_lock(&destroy_lock);
-+	list_add(&mark->g_list, &destroy_list);
-+	spin_unlock(&destroy_lock);
-+
-+	return true;
-+}
++#if __BITS_PER_LONG != 64
 +
 +/*
-+ * Free fsnotify mark. The freeing is actually happening from a workqueue which
-+ * first waits for srcu period end. Caller must have a reference to the mark
-+ * or be protected by fsnotify_mark_srcu.
++ * Add two timespec64 values and do a safety check for overflow.
++ * It's assumed that both values are valid (>= 0).
++ * And, each timespec64 is in normalized form.
 + */
-+void fsnotify_free_mark(struct fsnotify_mark *mark)
++struct timespec64 timespec64_add_safe(const struct timespec64 lhs,
++				const struct timespec64 rhs)
 +{
-+	if (__fsnotify_free_mark(mark)) {
-+		queue_delayed_work(system_unbound_wq, &reaper_work,
-+				   FSNOTIFY_REAPER_DELAY);
-+	}
- }
- 
- void fsnotify_destroy_mark(struct fsnotify_mark *mark,
-@@ -468,11 +485,29 @@ void fsnotify_clear_marks_by_group_flags
- }
- 
- /*
-- * Given a group, destroy all of the marks associated with that group.
-+ * Given a group, prepare for freeing all the marks associated with that group.
-+ * The marks are attached to the list of marks prepared for destruction, the
-+ * caller is responsible for freeing marks in that list after SRCU period has
-+ * ended.
-  */
--void fsnotify_clear_marks_by_group(struct fsnotify_group *group)
-+void fsnotify_detach_group_marks(struct fsnotify_group *group)
- {
--	fsnotify_clear_marks_by_group_flags(group, (unsigned int)-1);
-+	struct fsnotify_mark *mark;
++	struct timespec64 res;
 +
-+	while (1) {
-+		mutex_lock_nested(&group->mark_mutex, SINGLE_DEPTH_NESTING);
-+		if (list_empty(&group->marks_list)) {
-+			mutex_unlock(&group->mark_mutex);
-+			break;
-+		}
-+		mark = list_first_entry(&group->marks_list,
-+					struct fsnotify_mark, g_list);
-+		fsnotify_get_mark(mark);
-+		fsnotify_detach_mark(mark);
-+		mutex_unlock(&group->mark_mutex);
-+		__fsnotify_free_mark(mark);
-+		fsnotify_put_mark(mark);
-+	}
- }
- 
- void fsnotify_duplicate_mark(struct fsnotify_mark *new, struct fsnotify_mark *old)
-@@ -499,7 +534,11 @@ void fsnotify_init_mark(struct fsnotify_
- 	mark->free_mark = free_mark;
- }
- 
--static void fsnotify_mark_destroy(struct work_struct *work)
-+/*
-+ * Destroy all marks in destroy_list, waits for SRCU period to finish before
-+ * actually freeing marks.
-+ */
-+void fsnotify_mark_destroy_list(void)
- {
- 	struct fsnotify_mark *mark, *next;
- 	struct list_head private_destroy_list;
-@@ -516,3 +555,8 @@ static void fsnotify_mark_destroy(struct
- 		fsnotify_put_mark(mark);
- 	}
- }
++	set_normalized_timespec64(&res, lhs.tv_sec + rhs.tv_sec,
++			lhs.tv_nsec + rhs.tv_nsec);
 +
-+static void fsnotify_mark_destroy_workfn(struct work_struct *work)
-+{
-+	fsnotify_mark_destroy_list();
++	if (unlikely(res.tv_sec < lhs.tv_sec || res.tv_sec < rhs.tv_sec)) {
++		res.tv_sec = TIME64_MAX;
++		res.tv_nsec = 0;
++	}
++
++	return res;
 +}
-diff -puN include/linux/fsnotify_backend.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fsnotify-avoid-spurious-emfile-errors-from-inotify_init
-+++ a/include/linux/fsnotify_backend.h
-@@ -359,8 +359,6 @@ extern void fsnotify_clear_vfsmount_mark
- extern void fsnotify_clear_inode_marks_by_group(struct fsnotify_group *group);
- /* run all the marks in a group, and clear all of the marks where mark->flags & flags is true*/
- extern void fsnotify_clear_marks_by_group_flags(struct fsnotify_group *group, unsigned int flags);
--/* run all the marks in a group, and flag them to be freed */
--extern void fsnotify_clear_marks_by_group(struct fsnotify_group *group);
- extern void fsnotify_get_mark(struct fsnotify_mark *mark);
- extern void fsnotify_put_mark(struct fsnotify_mark *mark);
- extern void fsnotify_unmount_inodes(struct super_block *sb);
++
++#endif
 _
