@@ -1,93 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 038/162] mm: use unsigned long constant for page flags
-Date: Fri, 20 May 2016 16:58:16 -0700
-Message-ID: <573fa498.So1ZPnlQndqkkA2q%akpm@linux-foundation.org>
+Subject: [patch 042/162] mm: thp: split_huge_pmd_address() comment
+ improvement
+Date: Fri, 20 May 2016 16:58:27 -0700
+Message-ID: <573fa4a3.rCbTjl6fgtXqMazw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52323 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52344 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751230AbcETX6R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:58:17 -0400
+	with ESMTP id S1751591AbcETX62 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:58:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yuzhao@google.com, dvlasenk@redhat.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, n-horiguchi@ah.jp.nec.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, alex.williamson@redhat.com, kirill.shutemov@linux.intel.com
 
-From: Yu Zhao <yuzhao@google.com>
-Subject: mm: use unsigned long constant for page flags
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: thp: split_huge_pmd_address() comment improvement
 
-struct page->flags is unsigned long, so when shifting bits we should
-use UL suffix to match it.
+Comment is partly wrong, this improves it by including the case of
+split_huge_pmd_address() called by try_to_unmap_one if TTU_SPLIT_HUGE_PMD
+is set.
 
-Found this problem after I added 64-bit CPU specific page flags and
-failed to compile the kernel:
-mm/page_alloc.c: In function '__free_one_page':
-mm/page_alloc.c:672:2: error: integer overflow in expression [-Werror=overflow]
-
-Link: http://lkml.kernel.org/r/1461971723-16187-1-git-send-email-yuzhao@google.com
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Link: http://lkml.kernel.org/r/1462547040-1737-4-git-send-email-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Alex Williamson <alex.williamson@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/page-flags.h~mm-use-unsigned-long-constant-for-page-flags include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-use-unsigned-long-constant-for-page-flags
-+++ a/include/linux/page-flags.h
-@@ -479,7 +479,7 @@ static inline void ClearPageCompound(str
+diff -puN mm/huge_memory.c~mm-thp-split_huge_pmd_address-comment-improvement mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-split_huge_pmd_address-comment-improvement
++++ a/mm/huge_memory.c
+@@ -3023,8 +3023,10 @@ void split_huge_pmd_address(struct vm_ar
+ 		return;
+ 
+ 	/*
+-	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
+-	 * materialize from under us.
++	 * Caller holds the mmap_sem write mode or the anon_vma lock,
++	 * so a huge pmd cannot materialize from under us (khugepaged
++	 * holds both the mmap_sem write mode and the anon_vma lock
++	 * write mode).
+ 	 */
+ 	__split_huge_pmd(vma, pmd, address, freeze);
  }
- #endif
- 
--#define PG_head_mask ((1L << PG_head))
-+#define PG_head_mask ((1UL << PG_head))
- 
- #ifdef CONFIG_HUGETLB_PAGE
- int PageHuge(struct page *page);
-@@ -670,7 +670,7 @@ static inline void ClearPageSlabPfmemall
- }
- 
- #ifdef CONFIG_MMU
--#define __PG_MLOCKED		(1 << PG_mlocked)
-+#define __PG_MLOCKED		(1UL << PG_mlocked)
- #else
- #define __PG_MLOCKED		0
- #endif
-@@ -680,11 +680,11 @@ static inline void ClearPageSlabPfmemall
-  * these flags set.  It they are, there is a problem.
-  */
- #define PAGE_FLAGS_CHECK_AT_FREE \
--	(1 << PG_lru	 | 1 << PG_locked    | \
--	 1 << PG_private | 1 << PG_private_2 | \
--	 1 << PG_writeback | 1 << PG_reserved | \
--	 1 << PG_slab	 | 1 << PG_swapcache | 1 << PG_active | \
--	 1 << PG_unevictable | __PG_MLOCKED)
-+	(1UL << PG_lru	 | 1UL << PG_locked    | \
-+	 1UL << PG_private | 1UL << PG_private_2 | \
-+	 1UL << PG_writeback | 1UL << PG_reserved | \
-+	 1UL << PG_slab	 | 1UL << PG_swapcache | 1UL << PG_active | \
-+	 1UL << PG_unevictable | __PG_MLOCKED)
- 
- /*
-  * Flags checked when a page is prepped for return by the page allocator.
-@@ -695,10 +695,10 @@ static inline void ClearPageSlabPfmemall
-  * alloc-free cycle to prevent from reusing the page.
-  */
- #define PAGE_FLAGS_CHECK_AT_PREP	\
--	(((1 << NR_PAGEFLAGS) - 1) & ~__PG_HWPOISON)
-+	(((1UL << NR_PAGEFLAGS) - 1) & ~__PG_HWPOISON)
- 
- #define PAGE_FLAGS_PRIVATE				\
--	(1 << PG_private | 1 << PG_private_2)
-+	(1UL << PG_private | 1UL << PG_private_2)
- /**
-  * page_has_private - Determine if page has private stuff
-  * @page: The page to be checked
 _
