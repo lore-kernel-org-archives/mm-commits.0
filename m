@@ -1,150 +1,329 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
- removed from -mm tree
-Date: Fri, 20 May 2016 14:06:05 -0700
-Message-ID: <573f7c3d.PYgOXPnsaSyHPF28%akpm@linux-foundation.org>
+ mm-page_alloc-only-check-pagecompound-for-high-order-pages.patch removed
+ from -mm tree
+Date: Fri, 20 May 2016 14:06:08 -0700
+Message-ID: <573f7c40.OiANURbBb4iharu4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47283 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47291 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103AbcETVGG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:06:06 -0400
+	with ESMTP id S1751366AbcETVGJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:06:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, daniel.vetter@intel.com, mst@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, rmaksudova@parallels.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom_reaper: clear TIF_MEMDIE for all tasks queued for oom_reaper
+     Subject: mm, page_alloc: only check PageCompound for high-order pages
 has been removed from the -mm tree.  Its filename was
-     mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper.patch
+     mm-page_alloc-only-check-pagecompound-for-high-order-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom_reaper: clear TIF_MEMDIE for all tasks queued for oom_reaper
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: only check PageCompound for high-order pages
 
-Right now the oom reaper will clear TIF_MEMDIE only for tasks which were
-successfully reaped.  This is the safest option because we know that such
-an oom victim would only block forward progress of the oom killer without
-a good reason because it is highly unlikely it would release much more
-memory.  Basically most of its memory has been already torn down.
+Another year, another round of page allocator optimisations focusing this
+time on the alloc and free fast paths.  This should be of help to
+workloads that are allocator-intensive from kernel space where the cost of
+zeroing is not nceessraily incurred.
 
-We can relax this assumption to catch more corner cases though.
+The series is motivated by the observation that page alloc microbenchmarks
+on multiple machines regressed between 3.12.44 and 4.4.  Second, there is
+discussions before LSF/MM considering the possibility of adding another
+page allocator which is potentially hazardous but a patch series improving
+performance is better than whining.
 
-The first obvious one is when the oom victim clears its mm and gets stuck
-later on.  oom_reaper would back of on find_lock_task_mm returning NULL. 
-We can safely try to clear TIF_MEMDIE in this case because such a task
-would be ignored by the oom killer anyway.  The flag would be cleared by
-that time already most of the time anyway.
+After the series is applied, there are still hazards.  In the free paths,
+the debugging checking and page zone/pageblock lookups dominate but there
+was not an obvious solution to that.  In the alloc path, the major
+contributers are dealing with zonelists, new page preperation, the fair
+zone allocation and numerous statistic updates.  The fair zone allocator
+is removed by the per-node LRU series if that gets merged so it's nor a
+major concern at the moment.
 
-The less obvious one is when the oom reaper fails due to mmap_sem
-contention.  Even if we clear TIF_MEMDIE for this task then it is not very
-likely that we would select another task too easily because we haven't
-reaped the last victim and so it would be still the #1 candidate.  There
-is a rare race condition possible when the current victim terminates
-before the next select_bad_process but considering that oom_reap_task had
-retried several times before giving up then this sounds like a borderline
-thing.
+On normal userspace benchmarks, there is little impact as the zeroing cost
+is significant but it's visible
 
-After this patch we should have a guarantee that the OOM killer will not
-be block for unbounded amount of time for most cases.
+aim9
+                               4.6.0-rc3             4.6.0-rc3
+                                 vanilla         deferalloc-v3
+Min      page_test   828693.33 (  0.00%)   887060.00 (  7.04%)
+Min      brk_test   4847266.67 (  0.00%)  4966266.67 (  2.45%)
+Min      exec_test     1271.00 (  0.00%)     1275.67 (  0.37%)
+Min      fork_test    12371.75 (  0.00%)    12380.00 (  0.07%)
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Raushaniya Maksudova <rmaksudova@parallels.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Daniel Vetter <daniel.vetter@intel.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+The overall impact on a page allocator microbenchmark for a range of orders
+and number of pages allocated in a batch is
+
+                                          4.6.0-rc3                  4.6.0-rc3
+                                             vanilla            deferalloc-v3r7
+Min      alloc-odr0-1               428.00 (  0.00%)           316.00 ( 26.17%)
+Min      alloc-odr0-2               314.00 (  0.00%)           231.00 ( 26.43%)
+Min      alloc-odr0-4               256.00 (  0.00%)           192.00 ( 25.00%)
+Min      alloc-odr0-8               222.00 (  0.00%)           166.00 ( 25.23%)
+Min      alloc-odr0-16              207.00 (  0.00%)           154.00 ( 25.60%)
+Min      alloc-odr0-32              197.00 (  0.00%)           148.00 ( 24.87%)
+Min      alloc-odr0-64              193.00 (  0.00%)           144.00 ( 25.39%)
+Min      alloc-odr0-128             191.00 (  0.00%)           143.00 ( 25.13%)
+Min      alloc-odr0-256             203.00 (  0.00%)           153.00 ( 24.63%)
+Min      alloc-odr0-512             212.00 (  0.00%)           165.00 ( 22.17%)
+Min      alloc-odr0-1024            221.00 (  0.00%)           172.00 ( 22.17%)
+Min      alloc-odr0-2048            225.00 (  0.00%)           179.00 ( 20.44%)
+Min      alloc-odr0-4096            232.00 (  0.00%)           185.00 ( 20.26%)
+Min      alloc-odr0-8192            235.00 (  0.00%)           187.00 ( 20.43%)
+Min      alloc-odr0-16384           236.00 (  0.00%)           188.00 ( 20.34%)
+Min      alloc-odr1-1               519.00 (  0.00%)           450.00 ( 13.29%)
+Min      alloc-odr1-2               391.00 (  0.00%)           336.00 ( 14.07%)
+Min      alloc-odr1-4               313.00 (  0.00%)           268.00 ( 14.38%)
+Min      alloc-odr1-8               277.00 (  0.00%)           235.00 ( 15.16%)
+Min      alloc-odr1-16              256.00 (  0.00%)           218.00 ( 14.84%)
+Min      alloc-odr1-32              252.00 (  0.00%)           212.00 ( 15.87%)
+Min      alloc-odr1-64              244.00 (  0.00%)           206.00 ( 15.57%)
+Min      alloc-odr1-128             244.00 (  0.00%)           207.00 ( 15.16%)
+Min      alloc-odr1-256             243.00 (  0.00%)           207.00 ( 14.81%)
+Min      alloc-odr1-512             245.00 (  0.00%)           209.00 ( 14.69%)
+Min      alloc-odr1-1024            248.00 (  0.00%)           214.00 ( 13.71%)
+Min      alloc-odr1-2048            253.00 (  0.00%)           220.00 ( 13.04%)
+Min      alloc-odr1-4096            258.00 (  0.00%)           224.00 ( 13.18%)
+Min      alloc-odr1-8192            261.00 (  0.00%)           229.00 ( 12.26%)
+Min      alloc-odr2-1               560.00 (  0.00%)           753.00 (-34.46%)
+Min      alloc-odr2-2               424.00 (  0.00%)           351.00 ( 17.22%)
+Min      alloc-odr2-4               339.00 (  0.00%)           393.00 (-15.93%)
+Min      alloc-odr2-8               298.00 (  0.00%)           246.00 ( 17.45%)
+Min      alloc-odr2-16              276.00 (  0.00%)           227.00 ( 17.75%)
+Min      alloc-odr2-32              271.00 (  0.00%)           221.00 ( 18.45%)
+Min      alloc-odr2-64              264.00 (  0.00%)           217.00 ( 17.80%)
+Min      alloc-odr2-128             264.00 (  0.00%)           217.00 ( 17.80%)
+Min      alloc-odr2-256             264.00 (  0.00%)           218.00 ( 17.42%)
+Min      alloc-odr2-512             269.00 (  0.00%)           223.00 ( 17.10%)
+Min      alloc-odr2-1024            279.00 (  0.00%)           230.00 ( 17.56%)
+Min      alloc-odr2-2048            283.00 (  0.00%)           235.00 ( 16.96%)
+Min      alloc-odr2-4096            285.00 (  0.00%)           239.00 ( 16.14%)
+Min      alloc-odr3-1               629.00 (  0.00%)           505.00 ( 19.71%)
+Min      alloc-odr3-2               472.00 (  0.00%)           374.00 ( 20.76%)
+Min      alloc-odr3-4               383.00 (  0.00%)           301.00 ( 21.41%)
+Min      alloc-odr3-8               341.00 (  0.00%)           266.00 ( 21.99%)
+Min      alloc-odr3-16              316.00 (  0.00%)           248.00 ( 21.52%)
+Min      alloc-odr3-32              308.00 (  0.00%)           241.00 ( 21.75%)
+Min      alloc-odr3-64              305.00 (  0.00%)           241.00 ( 20.98%)
+Min      alloc-odr3-128             308.00 (  0.00%)           244.00 ( 20.78%)
+Min      alloc-odr3-256             317.00 (  0.00%)           249.00 ( 21.45%)
+Min      alloc-odr3-512             327.00 (  0.00%)           256.00 ( 21.71%)
+Min      alloc-odr3-1024            331.00 (  0.00%)           261.00 ( 21.15%)
+Min      alloc-odr3-2048            333.00 (  0.00%)           266.00 ( 20.12%)
+Min      alloc-odr4-1               767.00 (  0.00%)           572.00 ( 25.42%)
+Min      alloc-odr4-2               578.00 (  0.00%)           429.00 ( 25.78%)
+Min      alloc-odr4-4               474.00 (  0.00%)           346.00 ( 27.00%)
+Min      alloc-odr4-8               422.00 (  0.00%)           310.00 ( 26.54%)
+Min      alloc-odr4-16              399.00 (  0.00%)           295.00 ( 26.07%)
+Min      alloc-odr4-32              392.00 (  0.00%)           293.00 ( 25.26%)
+Min      alloc-odr4-64              394.00 (  0.00%)           293.00 ( 25.63%)
+Min      alloc-odr4-128             405.00 (  0.00%)           305.00 ( 24.69%)
+Min      alloc-odr4-256             417.00 (  0.00%)           319.00 ( 23.50%)
+Min      alloc-odr4-512             425.00 (  0.00%)           326.00 ( 23.29%)
+Min      alloc-odr4-1024            426.00 (  0.00%)           329.00 ( 22.77%)
+Min      free-odr0-1                216.00 (  0.00%)           178.00 ( 17.59%)
+Min      free-odr0-2                152.00 (  0.00%)           125.00 ( 17.76%)
+Min      free-odr0-4                120.00 (  0.00%)            99.00 ( 17.50%)
+Min      free-odr0-8                106.00 (  0.00%)            85.00 ( 19.81%)
+Min      free-odr0-16                97.00 (  0.00%)            80.00 ( 17.53%)
+Min      free-odr0-32                92.00 (  0.00%)            76.00 ( 17.39%)
+Min      free-odr0-64                89.00 (  0.00%)            74.00 ( 16.85%)
+Min      free-odr0-128               89.00 (  0.00%)            73.00 ( 17.98%)
+Min      free-odr0-256              107.00 (  0.00%)            90.00 ( 15.89%)
+Min      free-odr0-512              117.00 (  0.00%)           108.00 (  7.69%)
+Min      free-odr0-1024             125.00 (  0.00%)           118.00 (  5.60%)
+Min      free-odr0-2048             132.00 (  0.00%)           125.00 (  5.30%)
+Min      free-odr0-4096             135.00 (  0.00%)           130.00 (  3.70%)
+Min      free-odr0-8192             137.00 (  0.00%)           130.00 (  5.11%)
+Min      free-odr0-16384            137.00 (  0.00%)           131.00 (  4.38%)
+Min      free-odr1-1                318.00 (  0.00%)           289.00 (  9.12%)
+Min      free-odr1-2                228.00 (  0.00%)           207.00 (  9.21%)
+Min      free-odr1-4                182.00 (  0.00%)           165.00 (  9.34%)
+Min      free-odr1-8                163.00 (  0.00%)           146.00 ( 10.43%)
+Min      free-odr1-16               151.00 (  0.00%)           135.00 ( 10.60%)
+Min      free-odr1-32               146.00 (  0.00%)           129.00 ( 11.64%)
+Min      free-odr1-64               145.00 (  0.00%)           130.00 ( 10.34%)
+Min      free-odr1-128              148.00 (  0.00%)           134.00 (  9.46%)
+Min      free-odr1-256              148.00 (  0.00%)           137.00 (  7.43%)
+Min      free-odr1-512              151.00 (  0.00%)           140.00 (  7.28%)
+Min      free-odr1-1024             154.00 (  0.00%)           143.00 (  7.14%)
+Min      free-odr1-2048             156.00 (  0.00%)           144.00 (  7.69%)
+Min      free-odr1-4096             156.00 (  0.00%)           142.00 (  8.97%)
+Min      free-odr1-8192             156.00 (  0.00%)           140.00 ( 10.26%)
+Min      free-odr2-1                361.00 (  0.00%)           457.00 (-26.59%)
+Min      free-odr2-2                258.00 (  0.00%)           224.00 ( 13.18%)
+Min      free-odr2-4                208.00 (  0.00%)           223.00 ( -7.21%)
+Min      free-odr2-8                185.00 (  0.00%)           160.00 ( 13.51%)
+Min      free-odr2-16               173.00 (  0.00%)           149.00 ( 13.87%)
+Min      free-odr2-32               166.00 (  0.00%)           145.00 ( 12.65%)
+Min      free-odr2-64               166.00 (  0.00%)           146.00 ( 12.05%)
+Min      free-odr2-128              169.00 (  0.00%)           148.00 ( 12.43%)
+Min      free-odr2-256              170.00 (  0.00%)           152.00 ( 10.59%)
+Min      free-odr2-512              177.00 (  0.00%)           156.00 ( 11.86%)
+Min      free-odr2-1024             182.00 (  0.00%)           162.00 ( 10.99%)
+Min      free-odr2-2048             181.00 (  0.00%)           160.00 ( 11.60%)
+Min      free-odr2-4096             180.00 (  0.00%)           159.00 ( 11.67%)
+Min      free-odr3-1                431.00 (  0.00%)           367.00 ( 14.85%)
+Min      free-odr3-2                306.00 (  0.00%)           259.00 ( 15.36%)
+Min      free-odr3-4                249.00 (  0.00%)           208.00 ( 16.47%)
+Min      free-odr3-8                224.00 (  0.00%)           186.00 ( 16.96%)
+Min      free-odr3-16               208.00 (  0.00%)           176.00 ( 15.38%)
+Min      free-odr3-32               206.00 (  0.00%)           174.00 ( 15.53%)
+Min      free-odr3-64               210.00 (  0.00%)           178.00 ( 15.24%)
+Min      free-odr3-128              215.00 (  0.00%)           182.00 ( 15.35%)
+Min      free-odr3-256              224.00 (  0.00%)           189.00 ( 15.62%)
+Min      free-odr3-512              232.00 (  0.00%)           195.00 ( 15.95%)
+Min      free-odr3-1024             230.00 (  0.00%)           195.00 ( 15.22%)
+Min      free-odr3-2048             229.00 (  0.00%)           193.00 ( 15.72%)
+Min      free-odr4-1                561.00 (  0.00%)           439.00 ( 21.75%)
+Min      free-odr4-2                418.00 (  0.00%)           318.00 ( 23.92%)
+Min      free-odr4-4                339.00 (  0.00%)           269.00 ( 20.65%)
+Min      free-odr4-8                299.00 (  0.00%)           239.00 ( 20.07%)
+Min      free-odr4-16               289.00 (  0.00%)           234.00 ( 19.03%)
+Min      free-odr4-32               291.00 (  0.00%)           235.00 ( 19.24%)
+Min      free-odr4-64               298.00 (  0.00%)           238.00 ( 20.13%)
+Min      free-odr4-128              308.00 (  0.00%)           251.00 ( 18.51%)
+Min      free-odr4-256              321.00 (  0.00%)           267.00 ( 16.82%)
+Min      free-odr4-512              327.00 (  0.00%)           269.00 ( 17.74%)
+Min      free-odr4-1024             326.00 (  0.00%)           271.00 ( 16.87%)
+Min      total-odr0-1               644.00 (  0.00%)           494.00 ( 23.29%)
+Min      total-odr0-2               466.00 (  0.00%)           356.00 ( 23.61%)
+Min      total-odr0-4               376.00 (  0.00%)           291.00 ( 22.61%)
+Min      total-odr0-8               328.00 (  0.00%)           251.00 ( 23.48%)
+Min      total-odr0-16              304.00 (  0.00%)           234.00 ( 23.03%)
+Min      total-odr0-32              289.00 (  0.00%)           224.00 ( 22.49%)
+Min      total-odr0-64              282.00 (  0.00%)           218.00 ( 22.70%)
+Min      total-odr0-128             280.00 (  0.00%)           216.00 ( 22.86%)
+Min      total-odr0-256             310.00 (  0.00%)           243.00 ( 21.61%)
+Min      total-odr0-512             329.00 (  0.00%)           273.00 ( 17.02%)
+Min      total-odr0-1024            346.00 (  0.00%)           290.00 ( 16.18%)
+Min      total-odr0-2048            357.00 (  0.00%)           304.00 ( 14.85%)
+Min      total-odr0-4096            367.00 (  0.00%)           315.00 ( 14.17%)
+Min      total-odr0-8192            372.00 (  0.00%)           317.00 ( 14.78%)
+Min      total-odr0-16384           373.00 (  0.00%)           319.00 ( 14.48%)
+Min      total-odr1-1               838.00 (  0.00%)           739.00 ( 11.81%)
+Min      total-odr1-2               619.00 (  0.00%)           543.00 ( 12.28%)
+Min      total-odr1-4               495.00 (  0.00%)           433.00 ( 12.53%)
+Min      total-odr1-8               440.00 (  0.00%)           382.00 ( 13.18%)
+Min      total-odr1-16              407.00 (  0.00%)           353.00 ( 13.27%)
+Min      total-odr1-32              398.00 (  0.00%)           341.00 ( 14.32%)
+Min      total-odr1-64              389.00 (  0.00%)           336.00 ( 13.62%)
+Min      total-odr1-128             392.00 (  0.00%)           341.00 ( 13.01%)
+Min      total-odr1-256             391.00 (  0.00%)           344.00 ( 12.02%)
+Min      total-odr1-512             396.00 (  0.00%)           349.00 ( 11.87%)
+Min      total-odr1-1024            402.00 (  0.00%)           357.00 ( 11.19%)
+Min      total-odr1-2048            409.00 (  0.00%)           364.00 ( 11.00%)
+Min      total-odr1-4096            414.00 (  0.00%)           366.00 ( 11.59%)
+Min      total-odr1-8192            417.00 (  0.00%)           369.00 ( 11.51%)
+Min      total-odr2-1               921.00 (  0.00%)          1210.00 (-31.38%)
+Min      total-odr2-2               682.00 (  0.00%)           576.00 ( 15.54%)
+Min      total-odr2-4               547.00 (  0.00%)           616.00 (-12.61%)
+Min      total-odr2-8               483.00 (  0.00%)           406.00 ( 15.94%)
+Min      total-odr2-16              449.00 (  0.00%)           376.00 ( 16.26%)
+Min      total-odr2-32              437.00 (  0.00%)           366.00 ( 16.25%)
+Min      total-odr2-64              431.00 (  0.00%)           363.00 ( 15.78%)
+Min      total-odr2-128             433.00 (  0.00%)           365.00 ( 15.70%)
+Min      total-odr2-256             434.00 (  0.00%)           371.00 ( 14.52%)
+Min      total-odr2-512             446.00 (  0.00%)           379.00 ( 15.02%)
+Min      total-odr2-1024            461.00 (  0.00%)           392.00 ( 14.97%)
+Min      total-odr2-2048            464.00 (  0.00%)           395.00 ( 14.87%)
+Min      total-odr2-4096            465.00 (  0.00%)           398.00 ( 14.41%)
+Min      total-odr3-1              1060.00 (  0.00%)           872.00 ( 17.74%)
+Min      total-odr3-2               778.00 (  0.00%)           633.00 ( 18.64%)
+Min      total-odr3-4               632.00 (  0.00%)           510.00 ( 19.30%)
+Min      total-odr3-8               565.00 (  0.00%)           452.00 ( 20.00%)
+Min      total-odr3-16              524.00 (  0.00%)           424.00 ( 19.08%)
+Min      total-odr3-32              514.00 (  0.00%)           415.00 ( 19.26%)
+Min      total-odr3-64              515.00 (  0.00%)           419.00 ( 18.64%)
+Min      total-odr3-128             523.00 (  0.00%)           426.00 ( 18.55%)
+Min      total-odr3-256             541.00 (  0.00%)           438.00 ( 19.04%)
+Min      total-odr3-512             559.00 (  0.00%)           451.00 ( 19.32%)
+Min      total-odr3-1024            561.00 (  0.00%)           456.00 ( 18.72%)
+Min      total-odr3-2048            562.00 (  0.00%)           459.00 ( 18.33%)
+Min      total-odr4-1              1328.00 (  0.00%)          1011.00 ( 23.87%)
+Min      total-odr4-2               997.00 (  0.00%)           747.00 ( 25.08%)
+Min      total-odr4-4               813.00 (  0.00%)           615.00 ( 24.35%)
+Min      total-odr4-8               721.00 (  0.00%)           550.00 ( 23.72%)
+Min      total-odr4-16              689.00 (  0.00%)           529.00 ( 23.22%)
+Min      total-odr4-32              683.00 (  0.00%)           528.00 ( 22.69%)
+Min      total-odr4-64              692.00 (  0.00%)           531.00 ( 23.27%)
+Min      total-odr4-128             713.00 (  0.00%)           556.00 ( 22.02%)
+Min      total-odr4-256             738.00 (  0.00%)           586.00 ( 20.60%)
+Min      total-odr4-512             753.00 (  0.00%)           595.00 ( 20.98%)
+Min      total-odr4-1024            752.00 (  0.00%)           600.00 ( 20.21%)
+
+
+
+This patch (of 27):
+
+order-0 pages by definition cannot be compound so avoid the check in the
+fast path for those pages.
+
+[akpm@linux-foundation.org: use unlikely(order) in free_pages_prepare(), per Vlastimil]
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |   25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_reaper-clear-tif_memdie-for-all-tasks-queued-for-oom_reaper
-+++ a/mm/oom_kill.c
-@@ -510,14 +510,10 @@ static bool __oom_reap_task(struct task_
- 	up_read(&mm->mmap_sem);
+diff -puN mm/page_alloc.c~mm-page_alloc-only-check-pagecompound-for-high-order-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-only-check-pagecompound-for-high-order-pages
++++ a/mm/page_alloc.c
+@@ -1024,24 +1024,33 @@ void __meminit reserve_bootmem_region(un
  
- 	/*
--	 * Clear TIF_MEMDIE because the task shouldn't be sitting on a
--	 * reasonably reclaimable memory anymore. OOM killer can continue
--	 * by selecting other victim if unmapping hasn't led to any
--	 * improvements. This also means that selecting this task doesn't
--	 * make any sense.
-+	 * This task can be safely ignored because we cannot do much more
-+	 * to release its memory.
- 	 */
- 	tsk->signal->oom_score_adj = OOM_SCORE_ADJ_MIN;
--	exit_oom_victim(tsk);
- out:
- 	mmput(mm);
- 	return ret;
-@@ -538,6 +534,15 @@ static void oom_reap_task(struct task_st
- 		debug_show_all_locks();
- 	}
+ static bool free_pages_prepare(struct page *page, unsigned int order)
+ {
+-	bool compound = PageCompound(page);
+-	int i, bad = 0;
++	int bad = 0;
+ 
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+-	VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
+ 
+ 	trace_mm_page_free(page, order);
+ 	kmemcheck_free_shadow(page, order);
+ 	kasan_free_pages(page, order);
  
 +	/*
-+	 * Clear TIF_MEMDIE because the task shouldn't be sitting on a
-+	 * reasonably reclaimable memory anymore or it is not a good candidate
-+	 * for the oom victim right now because it cannot release its memory
-+	 * itself nor by the oom reaper.
++	 * Check tail pages before head page information is cleared to
++	 * avoid checking PageCompound for order-0 pages.
 +	 */
-+	tsk->oom_reaper_list = NULL;
-+	exit_oom_victim(tsk);
++	if (unlikely(order)) {
++		bool compound = PageCompound(page);
++		int i;
 +
- 	/* Drop a reference taken by wake_oom_reaper */
- 	put_task_struct(tsk);
- }
++		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
++
++		for (i = 1; i < (1 << order); i++) {
++			if (compound)
++				bad += free_tail_pages_check(page, page + i);
++			bad += free_pages_check(page + i);
++		}
++	}
+ 	if (PageAnon(page))
+ 		page->mapping = NULL;
+ 	bad += free_pages_check(page);
+-	for (i = 1; i < (1 << order); i++) {
+-		if (compound)
+-			bad += free_tail_pages_check(page, page + i);
+-		bad += free_pages_check(page + i);
+-	}
+ 	if (bad)
+ 		return false;
+ 
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-vmscan-consider-classzone_idx-in-compaction_ready.patch
-mm-compaction-change-compact_-constants-into-enum.patch
-mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
-mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
-mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
-mm-compaction-update-compaction_result-ordering.patch
-mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
-mm-compaction-abstract-compaction-feedback-to-helpers.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages-fix.patch
-mm-oom-protect-costly-allocations-some-more.patch
-mm-oom-protect-costly-allocations-some-more-fix.patch
-mm-consider-compaction-feedback-also-for-costly-allocation.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
-mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
-mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
-oom-consider-multi-threaded-tasks-in-task_will_free_mem.patch
-mm-make-mmap_sem-for-write-waits-killable-for-mm-syscalls.patch
-mm-make-vm_mmap-killable.patch
-mm-make-vm_munmap-killable.patch
-mm-aout-handle-vm_brk-failures.patch
-mm-elf-handle-vm_brk-error.patch
-mm-make-vm_brk-killable.patch
-mm-proc-make-clear_refs-killable.patch
-mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
-ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
-vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable.patch
-coredump-make-coredump_wait-wait-for-mmap_sem-for-write-killable.patch
-aio-make-aio_setup_ring-killable.patch
-exec-make-exec-path-waiting-for-mmap_sem-killable.patch
-prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
-uprobes-wait-for-mmap_sem-for-write-killable.patch
-drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
-drm-radeon-make-radeon_mn_get-wait-for-mmap_sem-killable.patch
-drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable.patch
 
