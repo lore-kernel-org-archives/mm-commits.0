@@ -1,212 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [patch 030/117] mm/slab: separate cache_grow() to two parts
-Date: Thu, 19 May 2016 17:10:26 -0700
-Message-ID: <573e55f2.miOV5a10GWdvaPtw%akpm@linux-foundation.org>
+Subject: [patch 033/117] mm/slub.c: replace kick_all_cpus_sync() with
+ synchronize_sched() in kmem_cache_shrink()
+Date: Thu, 19 May 2016 17:10:34 -0700
+Message-ID: <573e55fa.uWHbxyIy6glzVXXJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46002 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46021 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754063AbcETAK1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:10:27 -0400
+	with ESMTP id S1751646AbcETAKg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:10:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, cl@linux.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, penberg@kernel.org, peterz@infradead.org, rientjes@google.com
 
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: separate cache_grow() to two parts
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: mm/slub.c: replace kick_all_cpus_sync() with synchronize_sched() in kmem_cache_shrink()
 
-This is a preparation step to implement lockless allocation path when
-there is no free objects in kmem_cache.  What we'd like to do here is to
-refill cpu cache without holding a node lock.  To accomplish this purpose,
-refill should be done after new slab allocation but before attaching the
-slab to the management list.  So, this patch separates cache_grow() to two
-parts, allocation and attaching to the list in order to add some code
-inbetween them in the following patch.
+When we call __kmem_cache_shrink on memory cgroup removal, we need to
+synchronize kmem_cache->cpu_partial update with put_cpu_partial that might
+be running on other cpus.  Currently, we achieve that by using
+kick_all_cpus_sync, which works as a system wide memory barrier.  Though
+fast it is, this method has a flaw - it issues a lot of IPIs, which might
+hurt high performance or real-time workloads.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+To fix this, let's replace kick_all_cpus_sync with synchronize_sched. 
+Although the latter one may take much longer to finish, it shouldn't be a
+problem in this particular case, because memory cgroups are destroyed
+asynchronously from a workqueue so that no user visible effects should be
+introduced.  OTOH, it will save us from excessive IPIs when someone
+removes a cgroup.
+
+Anyway, even if using synchronize_sched turns out to take too long, we can
+always introduce a kind of __kmem_cache_shrink batching so that this
+method would only be called once per one cgroup destruction (not per each
+per memcg kmem cache as it is now).
+
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Reported-by: Peter Zijlstra <peterz@infradead.org>
+Suggested-by: Peter Zijlstra <peterz@infradead.org>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   74 ++++++++++++++++++++++++++++++++++++----------------
- 1 file changed, 52 insertions(+), 22 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~mm-slab-separate-cache_grow-to-two-parts mm/slab.c
---- a/mm/slab.c~mm-slab-separate-cache_grow-to-two-parts
-+++ a/mm/slab.c
-@@ -213,6 +213,11 @@ static void slabs_destroy(struct kmem_ca
- static int enable_cpucache(struct kmem_cache *cachep, gfp_t gfp);
- static void cache_reap(struct work_struct *unused);
- 
-+static inline void fixup_objfreelist_debug(struct kmem_cache *cachep,
-+						void **list);
-+static inline void fixup_slab_list(struct kmem_cache *cachep,
-+				struct kmem_cache_node *n, struct page *page,
-+				void **list);
- static int slab_early_init = 1;
- 
- #define INDEX_NODE kmalloc_index(sizeof(struct kmem_cache_node))
-@@ -1810,7 +1815,7 @@ static size_t calculate_slab_order(struc
- 
- 			/*
- 			 * Needed to avoid possible looping condition
--			 * in cache_grow()
-+			 * in cache_grow_begin()
- 			 */
- 			if (OFF_SLAB(freelist_cache))
- 				continue;
-@@ -2556,7 +2561,8 @@ static void slab_map_pages(struct kmem_c
-  * Grow (by 1) the number of slabs within a cache.  This is called by
-  * kmem_cache_alloc() when there are no active objs left in a cache.
-  */
--static int cache_grow(struct kmem_cache *cachep, gfp_t flags, int nodeid)
-+static struct page *cache_grow_begin(struct kmem_cache *cachep,
-+				gfp_t flags, int nodeid)
- {
- 	void *freelist;
- 	size_t offset;
-@@ -2622,21 +2628,40 @@ static int cache_grow(struct kmem_cache
- 
- 	if (gfpflags_allow_blocking(local_flags))
- 		local_irq_disable();
--	check_irq_off();
--	spin_lock(&n->list_lock);
- 
--	/* Make slab active. */
--	list_add_tail(&page->lru, &(n->slabs_free));
--	STATS_INC_GROWN(cachep);
--	n->free_objects += cachep->num;
--	spin_unlock(&n->list_lock);
--	return page_node;
-+	return page;
-+
- opps1:
- 	kmem_freepages(cachep, page);
- failed:
- 	if (gfpflags_allow_blocking(local_flags))
- 		local_irq_disable();
--	return -1;
-+	return NULL;
-+}
-+
-+static void cache_grow_end(struct kmem_cache *cachep, struct page *page)
-+{
-+	struct kmem_cache_node *n;
-+	void *list = NULL;
-+
-+	check_irq_off();
-+
-+	if (!page)
-+		return;
-+
-+	INIT_LIST_HEAD(&page->lru);
-+	n = get_node(cachep, page_to_nid(page));
-+
-+	spin_lock(&n->list_lock);
-+	if (!page->active)
-+		list_add_tail(&page->lru, &(n->slabs_free));
-+	else
-+		fixup_slab_list(cachep, n, page, &list);
-+	STATS_INC_GROWN(cachep);
-+	n->free_objects += cachep->num - page->active;
-+	spin_unlock(&n->list_lock);
-+
-+	fixup_objfreelist_debug(cachep, &list);
- }
- 
- #if DEBUG
-@@ -2847,6 +2872,7 @@ static void *cache_alloc_refill(struct k
- 	struct array_cache *ac;
- 	int node;
- 	void *list = NULL;
-+	struct page *page;
- 
- 	check_irq_off();
- 	node = numa_mem_id();
-@@ -2874,7 +2900,6 @@ retry:
+diff -puN mm/slub.c~mm-slub-replace-kick_all_cpus_sync-with-synchronize_sched-in-kmem_cache_shrink mm/slub.c
+--- a/mm/slub.c~mm-slub-replace-kick_all_cpus_sync-with-synchronize_sched-in-kmem_cache_shrink
++++ a/mm/slub.c
+@@ -3697,7 +3697,7 @@ int __kmem_cache_shrink(struct kmem_cach
+ 		 * s->cpu_partial is checked locklessly (see put_cpu_partial),
+ 		 * so we have to make sure the change is visible.
+ 		 */
+-		kick_all_cpus_sync();
++		synchronize_sched();
  	}
  
- 	while (batchcount > 0) {
--		struct page *page;
- 		/* Get slab alloc is to come from. */
- 		page = get_first_slab(n, false);
- 		if (!page)
-@@ -2907,8 +2932,6 @@ alloc_done:
- 	fixup_objfreelist_debug(cachep, &list);
- 
- 	if (unlikely(!ac->avail)) {
--		int x;
--
- 		/* Check if we can use obj in pfmemalloc slab */
- 		if (sk_memalloc_socks()) {
- 			void *obj = cache_alloc_pfmemalloc(cachep, n, flags);
-@@ -2917,14 +2940,18 @@ alloc_done:
- 				return obj;
- 		}
- 
--		x = cache_grow(cachep, gfp_exact_node(flags), node);
-+		page = cache_grow_begin(cachep, gfp_exact_node(flags), node);
-+		cache_grow_end(cachep, page);
- 
--		/* cache_grow can reenable interrupts, then ac could change. */
-+		/*
-+		 * cache_grow_begin() can reenable interrupts,
-+		 * then ac could change.
-+		 */
- 		ac = cpu_cache_get(cachep);
- 		node = numa_mem_id();
- 
- 		/* no objects in sight? abort */
--		if (x < 0 && ac->avail == 0)
-+		if (!page && ac->avail == 0)
- 			return NULL;
- 
- 		if (!ac->avail)		/* objects refilled by interrupt? */
-@@ -3057,6 +3084,7 @@ static void *fallback_alloc(struct kmem_
- 	struct zone *zone;
- 	enum zone_type high_zoneidx = gfp_zone(flags);
- 	void *obj = NULL;
-+	struct page *page;
- 	int nid;
- 	unsigned int cpuset_mems_cookie;
- 
-@@ -3092,8 +3120,10 @@ retry:
- 		 * We may trigger various forms of reclaim on the allowed
- 		 * set and go into memory reserves if necessary.
- 		 */
--		nid = cache_grow(cache, flags, numa_mem_id());
--		if (nid >= 0) {
-+		page = cache_grow_begin(cache, flags, numa_mem_id());
-+		cache_grow_end(cache, page);
-+		if (page) {
-+			nid = page_to_nid(page);
- 			obj = ____cache_alloc_node(cache,
- 				gfp_exact_node(flags), nid);
- 
-@@ -3121,7 +3151,6 @@ static void *____cache_alloc_node(struct
- 	struct kmem_cache_node *n;
- 	void *obj;
- 	void *list = NULL;
--	int x;
- 
- 	VM_BUG_ON(nodeid < 0 || nodeid >= MAX_NUMNODES);
- 	n = get_node(cachep, nodeid);
-@@ -3153,8 +3182,9 @@ retry:
- 
- must_grow:
- 	spin_unlock(&n->list_lock);
--	x = cache_grow(cachep, gfp_exact_node(flags), nodeid);
--	if (x >= 0)
-+	page = cache_grow_begin(cachep, gfp_exact_node(flags), nodeid);
-+	cache_grow_end(cachep, page);
-+	if (page)
- 		goto retry;
- 
- 	return fallback_alloc(cachep, flags);
+ 	flush_all(s);
 _
