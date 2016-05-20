@@ -1,52 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 103/117] mm, page_alloc: reduce cost of fair zone
- allocation policy retry
-Date: Thu, 19 May 2016 17:14:04 -0700
-Message-ID: <573e56cc.XOdVuUwLwzsHwl2J%akpm@linux-foundation.org>
+Subject: [patch 104/117] mm, page_alloc: shortcut watermark checks for
+ order-0 pages
+Date: Thu, 19 May 2016 17:14:07 -0700
+Message-ID: <573e56cf.j4q728Ai5ElVxDYm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46591 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46596 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755185AbcETAOF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:05 -0400
+	with ESMTP id S1755185AbcETAOI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: reduce cost of fair zone allocation policy retry
+Subject: mm, page_alloc: shortcut watermark checks for order-0 pages
 
-The fair zone allocation policy is not without cost but it can be reduced
-slightly.  This patch removes an unnecessary local variable, checks the
-likely conditions of the fair zone policy first, uses a bool instead of a
-flags check and falls through when a remote node is encountered instead of
-doing a full restart.  The benefit is marginal but it's there
+Watermarks have to be checked on every allocation including the number of
+pages being allocated and whether reserves can be accessed.  The reserves
+only matter if memory is limited and the free_pages adjustment only
+applies to high-order pages.  This patch adds a shortcut for order-0 pages
+that avoids numerous calculations if there is plenty of free memory
+yielding the following performance difference in a page allocator
+microbenchmark;
 
                                            4.6.0-rc2                  4.6.0-rc2
-                                       decstat-v1r20              optfair-v1r20
-Min      alloc-odr0-1               377.00 (  0.00%)           380.00 ( -0.80%)
-Min      alloc-odr0-2               273.00 (  0.00%)           273.00 (  0.00%)
-Min      alloc-odr0-4               226.00 (  0.00%)           227.00 ( -0.44%)
-Min      alloc-odr0-8               196.00 (  0.00%)           196.00 (  0.00%)
-Min      alloc-odr0-16              183.00 (  0.00%)           183.00 (  0.00%)
-Min      alloc-odr0-32              175.00 (  0.00%)           173.00 (  1.14%)
-Min      alloc-odr0-64              172.00 (  0.00%)           169.00 (  1.74%)
-Min      alloc-odr0-128             170.00 (  0.00%)           169.00 (  0.59%)
-Min      alloc-odr0-256             183.00 (  0.00%)           180.00 (  1.64%)
-Min      alloc-odr0-512             191.00 (  0.00%)           190.00 (  0.52%)
-Min      alloc-odr0-1024            199.00 (  0.00%)           198.00 (  0.50%)
-Min      alloc-odr0-2048            204.00 (  0.00%)           204.00 (  0.00%)
-Min      alloc-odr0-4096            210.00 (  0.00%)           209.00 (  0.48%)
-Min      alloc-odr0-8192            213.00 (  0.00%)           213.00 (  0.00%)
-Min      alloc-odr0-16384           214.00 (  0.00%)           214.00 (  0.00%)
-
-The benefit is marginal at best but one of the most important benefits,
-avoiding a second search when falling back to another node is not
-triggered by this particular test so the benefit for some corner cases is
-understated.
+                                       optfair-v1r20             fastmark-v1r20
+Min      alloc-odr0-1               380.00 (  0.00%)           364.00 (  4.21%)
+Min      alloc-odr0-2               273.00 (  0.00%)           262.00 (  4.03%)
+Min      alloc-odr0-4               227.00 (  0.00%)           214.00 (  5.73%)
+Min      alloc-odr0-8               196.00 (  0.00%)           186.00 (  5.10%)
+Min      alloc-odr0-16              183.00 (  0.00%)           173.00 (  5.46%)
+Min      alloc-odr0-32              173.00 (  0.00%)           165.00 (  4.62%)
+Min      alloc-odr0-64              169.00 (  0.00%)           161.00 (  4.73%)
+Min      alloc-odr0-128             169.00 (  0.00%)           159.00 (  5.92%)
+Min      alloc-odr0-256             180.00 (  0.00%)           168.00 (  6.67%)
+Min      alloc-odr0-512             190.00 (  0.00%)           180.00 (  5.26%)
+Min      alloc-odr0-1024            198.00 (  0.00%)           190.00 (  4.04%)
+Min      alloc-odr0-2048            204.00 (  0.00%)           196.00 (  3.92%)
+Min      alloc-odr0-4096            209.00 (  0.00%)           202.00 (  3.35%)
+Min      alloc-odr0-8192            213.00 (  0.00%)           206.00 (  3.29%)
+Min      alloc-odr0-16384           214.00 (  0.00%)           206.00 (  3.74%)
 
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -54,57 +51,52 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   32 ++++++++++++++------------------
- 1 file changed, 14 insertions(+), 18 deletions(-)
+ mm/page_alloc.c |   28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-reduce-cost-of-fair-zone-allocation-policy-retry mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-reduce-cost-of-fair-zone-allocation-policy-retry
+diff -puN mm/page_alloc.c~mm-page_alloc-shortcut-watermark-checks-for-order-0-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-shortcut-watermark-checks-for-order-0-pages
 +++ a/mm/page_alloc.c
-@@ -2680,12 +2680,10 @@ get_page_from_freelist(gfp_t gfp_mask, u
- {
- 	struct zoneref *z;
- 	struct zone *zone;
--	bool fair_skipped;
--	bool zonelist_rescan;
-+	bool fair_skipped = false;
-+	bool apply_fair = (alloc_flags & ALLOC_FAIR);
+@@ -2623,6 +2623,32 @@ bool zone_watermark_ok(struct zone *z, u
+ 					zone_page_state(z, NR_FREE_PAGES));
+ }
  
- zonelist_scan:
--	zonelist_rescan = false;
--
- 	/*
- 	 * Scan zonelist, looking for a zone with enough free.
- 	 * See also __cpuset_node_allowed() comment in kernel/cpuset.c.
-@@ -2705,13 +2703,16 @@ zonelist_scan:
- 		 * page was allocated in should have no effect on the
- 		 * time the page has in memory before being reclaimed.
- 		 */
--		if (alloc_flags & ALLOC_FAIR) {
--			if (!zone_local(ac->preferred_zone, zone))
--				break;
-+		if (apply_fair) {
- 			if (test_bit(ZONE_FAIR_DEPLETED, &zone->flags)) {
- 				fair_skipped = true;
- 				continue;
- 			}
-+			if (!zone_local(ac->preferred_zone, zone)) {
-+				if (fair_skipped)
-+					goto reset_fair;
-+				apply_fair = false;
-+			}
- 		}
- 		/*
- 		 * When allocating a page cache page for writing, we
-@@ -2800,18 +2801,13 @@ try_this_zone:
- 	 * include remote zones now, before entering the slowpath and waking
- 	 * kswapd: prefer spilling to a remote zone over swapping locally.
- 	 */
--	if (alloc_flags & ALLOC_FAIR) {
--		alloc_flags &= ~ALLOC_FAIR;
--		if (fair_skipped) {
--			zonelist_rescan = true;
--			reset_alloc_batches(ac->preferred_zone);
--		}
--		if (nr_online_nodes > 1)
--			zonelist_rescan = true;
--	}
++static inline bool zone_watermark_fast(struct zone *z, unsigned int order,
++		unsigned long mark, int classzone_idx, unsigned int alloc_flags)
++{
++	long free_pages = zone_page_state(z, NR_FREE_PAGES);
++	long cma_pages = 0;
++
++#ifdef CONFIG_CMA
++	/* If allocation can't use CMA areas don't use free CMA pages */
++	if (!(alloc_flags & ALLOC_CMA))
++		cma_pages = zone_page_state(z, NR_FREE_CMA_PAGES);
++#endif
++
++	/*
++	 * Fast check for order-0 only. If this fails then the reserves
++	 * need to be calculated. There is a corner case where the check
++	 * passes but only the high-order atomic reserve are free. If
++	 * the caller is !atomic then it'll uselessly search the free
++	 * list. That corner case is then slower but it is harmless.
++	 */
++	if (!order && (free_pages - cma_pages) > mark + z->lowmem_reserve[classzone_idx])
++		return true;
++
++	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
++					free_pages);
++}
++
+ bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
+ 			unsigned long mark, int classzone_idx)
+ {
+@@ -2744,7 +2770,7 @@ zonelist_scan:
+ 			continue;
+ 
+ 		mark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
+-		if (!zone_watermark_ok(zone, order, mark,
++		if (!zone_watermark_fast(zone, order, mark,
+ 				       ac->classzone_idx, alloc_flags)) {
+ 			int ret;
+ 
+_
