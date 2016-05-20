@@ -1,36 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_alloc-convert-alloc_flags-to-unsigned.patch
- removed from -mm tree
-Date: Fri, 20 May 2016 14:06:24 -0700
-Message-ID: <573f7c50.repdIVbMw9fbhhIL%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-inline-zone_statistics.patch removed from
+ -mm tree
+Date: Fri, 20 May 2016 14:06:16 -0700
+Message-ID: <573f7c48.hJJpgjFn9pEn2Cpx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47318 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47303 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751455AbcETVGZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:06:25 -0400
+	with ESMTP id S1751240AbcETVGR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:06:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: convert alloc_flags to unsigned
+     Subject: mm, page_alloc: inline zone_statistics
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-convert-alloc_flags-to-unsigned.patch
+     mm-page_alloc-inline-zone_statistics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: convert alloc_flags to unsigned
+Subject: mm, page_alloc: inline zone_statistics
 
-alloc_flags is a bitmask of flags but it is signed which does not
-necessarily generate the best code depending on the compiler.  Even
-without an impact, it makes more sense that this be unsigned.
+zone_statistics has one call-site but it's a public function.  Make it
+static and inline.
+
+The performance difference on a page allocator microbenchmark is;
+
+                                           4.6.0-rc2                  4.6.0-rc2
+                                    statbranch-v1r20           statinline-v1r20
+Min      alloc-odr0-1               419.00 (  0.00%)           412.00 (  1.67%)
+Min      alloc-odr0-2               305.00 (  0.00%)           301.00 (  1.31%)
+Min      alloc-odr0-4               250.00 (  0.00%)           247.00 (  1.20%)
+Min      alloc-odr0-8               219.00 (  0.00%)           215.00 (  1.83%)
+Min      alloc-odr0-16              203.00 (  0.00%)           199.00 (  1.97%)
+Min      alloc-odr0-32              195.00 (  0.00%)           191.00 (  2.05%)
+Min      alloc-odr0-64              191.00 (  0.00%)           187.00 (  2.09%)
+Min      alloc-odr0-128             189.00 (  0.00%)           185.00 (  2.12%)
+Min      alloc-odr0-256             198.00 (  0.00%)           193.00 (  2.53%)
+Min      alloc-odr0-512             210.00 (  0.00%)           207.00 (  1.43%)
+Min      alloc-odr0-1024            216.00 (  0.00%)           213.00 (  1.39%)
+Min      alloc-odr0-2048            221.00 (  0.00%)           220.00 (  0.45%)
+Min      alloc-odr0-4096            227.00 (  0.00%)           226.00 (  0.44%)
+Min      alloc-odr0-8192            232.00 (  0.00%)           229.00 (  1.29%)
+Min      alloc-odr0-16384           232.00 (  0.00%)           229.00 (  1.29%)
 
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -38,207 +57,99 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    6 +++---
- include/linux/mmzone.h     |    3 ++-
- mm/compaction.c            |   12 +++++++-----
- mm/internal.h              |    2 +-
- mm/page_alloc.c            |   26 ++++++++++++++------------
- 5 files changed, 27 insertions(+), 22 deletions(-)
+ include/linux/vmstat.h |    2 --
+ mm/page_alloc.c        |   31 +++++++++++++++++++++++++++++++
+ mm/vmstat.c            |   29 -----------------------------
+ 3 files changed, 31 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-page_alloc-convert-alloc_flags-to-unsigned include/linux/compaction.h
---- a/include/linux/compaction.h~mm-page_alloc-convert-alloc_flags-to-unsigned
-+++ a/include/linux/compaction.h
-@@ -39,12 +39,12 @@ extern int sysctl_compact_unevictable_al
+diff -puN include/linux/vmstat.h~mm-page_alloc-inline-zone_statistics include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-page_alloc-inline-zone_statistics
++++ a/include/linux/vmstat.h
+@@ -163,12 +163,10 @@ static inline unsigned long zone_page_st
+ #ifdef CONFIG_NUMA
  
- extern int fragmentation_index(struct zone *zone, unsigned int order);
- extern unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
--			int alloc_flags, const struct alloc_context *ac,
--			enum migrate_mode mode, int *contended);
-+		unsigned int alloc_flags, const struct alloc_context *ac,
-+		enum migrate_mode mode, int *contended);
- extern void compact_pgdat(pg_data_t *pgdat, int order);
- extern void reset_isolation_suitable(pg_data_t *pgdat);
- extern unsigned long compaction_suitable(struct zone *zone, int order,
--					int alloc_flags, int classzone_idx);
-+		unsigned int alloc_flags, int classzone_idx);
+ extern unsigned long node_page_state(int node, enum zone_stat_item item);
+-extern void zone_statistics(struct zone *, struct zone *, gfp_t gfp);
  
- extern void defer_compaction(struct zone *zone, int order);
- extern bool compaction_deferred(struct zone *zone, int order);
-diff -puN include/linux/mmzone.h~mm-page_alloc-convert-alloc_flags-to-unsigned include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-page_alloc-convert-alloc_flags-to-unsigned
-+++ a/include/linux/mmzone.h
-@@ -747,7 +747,8 @@ extern struct mutex zonelists_mutex;
- void build_all_zonelists(pg_data_t *pgdat, struct zone *zone);
- void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx);
- bool zone_watermark_ok(struct zone *z, unsigned int order,
--		unsigned long mark, int classzone_idx, int alloc_flags);
-+		unsigned long mark, int classzone_idx,
-+		unsigned int alloc_flags);
- bool zone_watermark_ok_safe(struct zone *z, unsigned int order,
- 		unsigned long mark, int classzone_idx);
- enum memmap_context {
-diff -puN mm/compaction.c~mm-page_alloc-convert-alloc_flags-to-unsigned mm/compaction.c
---- a/mm/compaction.c~mm-page_alloc-convert-alloc_flags-to-unsigned
-+++ a/mm/compaction.c
-@@ -1313,7 +1313,8 @@ static int compact_finished(struct zone
-  *   COMPACT_CONTINUE - If compaction should run now
-  */
- static unsigned long __compaction_suitable(struct zone *zone, int order,
--					int alloc_flags, int classzone_idx)
-+					unsigned int alloc_flags,
-+					int classzone_idx)
- {
- 	int fragindex;
- 	unsigned long watermark;
-@@ -1358,7 +1359,8 @@ static unsigned long __compaction_suitab
- }
- 
- unsigned long compaction_suitable(struct zone *zone, int order,
--					int alloc_flags, int classzone_idx)
-+					unsigned int alloc_flags,
-+					int classzone_idx)
- {
- 	unsigned long ret;
- 
-@@ -1530,7 +1532,7 @@ out:
- 
- static unsigned long compact_zone_order(struct zone *zone, int order,
- 		gfp_t gfp_mask, enum migrate_mode mode, int *contended,
--		int alloc_flags, int classzone_idx)
-+		unsigned int alloc_flags, int classzone_idx)
- {
- 	unsigned long ret;
- 	struct compact_control cc = {
-@@ -1571,8 +1573,8 @@ int sysctl_extfrag_threshold = 500;
-  * This is the main entry point for direct page compaction.
-  */
- unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
--			int alloc_flags, const struct alloc_context *ac,
--			enum migrate_mode mode, int *contended)
-+		unsigned int alloc_flags, const struct alloc_context *ac,
-+		enum migrate_mode mode, int *contended)
- {
- 	int may_enter_fs = gfp_mask & __GFP_FS;
- 	int may_perform_io = gfp_mask & __GFP_IO;
-diff -puN mm/internal.h~mm-page_alloc-convert-alloc_flags-to-unsigned mm/internal.h
---- a/mm/internal.h~mm-page_alloc-convert-alloc_flags-to-unsigned
-+++ a/mm/internal.h
-@@ -175,7 +175,7 @@ struct compact_control {
- 	bool direct_compaction;		/* False from kcompactd or /proc/... */
- 	int order;			/* order a direct compactor needs */
- 	const gfp_t gfp_mask;		/* gfp mask of a direct compactor */
--	const int alloc_flags;		/* alloc flags of a direct compactor */
-+	const unsigned int alloc_flags;	/* alloc flags of a direct compactor */
- 	const int classzone_idx;	/* zone index of a direct compactor */
- 	struct zone *zone;
- 	int contended;			/* Signal need_sched() or lock
-diff -puN mm/page_alloc.c~mm-page_alloc-convert-alloc_flags-to-unsigned mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-convert-alloc_flags-to-unsigned
-+++ a/mm/page_alloc.c
-@@ -1525,7 +1525,7 @@ static inline bool free_pages_prezeroed(
- }
- 
- static int prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags,
--								int alloc_flags)
-+							unsigned int alloc_flags)
- {
- 	int i;
- 	bool poisoned = true;
-@@ -2391,7 +2391,8 @@ static inline void zone_statistics(struc
- static inline
- struct page *buffered_rmqueue(struct zone *preferred_zone,
- 			struct zone *zone, unsigned int order,
--			gfp_t gfp_flags, int alloc_flags, int migratetype)
-+			gfp_t gfp_flags, unsigned int alloc_flags,
-+			int migratetype)
- {
- 	unsigned long flags;
- 	struct page *page;
-@@ -2545,12 +2546,13 @@ static inline bool should_fail_alloc_pag
-  * to check in the allocation paths if no pages are free.
-  */
- static bool __zone_watermark_ok(struct zone *z, unsigned int order,
--			unsigned long mark, int classzone_idx, int alloc_flags,
-+			unsigned long mark, int classzone_idx,
-+			unsigned int alloc_flags,
- 			long free_pages)
- {
- 	long min = mark;
- 	int o;
--	const int alloc_harder = (alloc_flags & ALLOC_HARDER);
-+	const bool alloc_harder = (alloc_flags & ALLOC_HARDER);
- 
- 	/* free_pages may go negative - that's OK */
- 	free_pages -= (1 << order) - 1;
-@@ -2613,7 +2615,7 @@ static bool __zone_watermark_ok(struct z
- }
- 
- bool zone_watermark_ok(struct zone *z, unsigned int order, unsigned long mark,
--		      int classzone_idx, int alloc_flags)
-+		      int classzone_idx, unsigned int alloc_flags)
- {
- 	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
- 					zone_page_state(z, NR_FREE_PAGES));
-@@ -2957,7 +2959,7 @@ out:
- /* Try memory compaction for high-order allocations before reclaim */
- static struct page *
- __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
--		int alloc_flags, const struct alloc_context *ac,
-+		unsigned int alloc_flags, const struct alloc_context *ac,
- 		enum migrate_mode mode, int *contended_compaction,
- 		bool *deferred_compaction)
- {
-@@ -3013,7 +3015,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
  #else
- static inline struct page *
- __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
--		int alloc_flags, const struct alloc_context *ac,
-+		unsigned int alloc_flags, const struct alloc_context *ac,
- 		enum migrate_mode mode, int *contended_compaction,
- 		bool *deferred_compaction)
- {
-@@ -3053,7 +3055,7 @@ __perform_reclaim(gfp_t gfp_mask, unsign
- /* The really slow allocator path where we enter direct reclaim */
- static inline struct page *
- __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
--		int alloc_flags, const struct alloc_context *ac,
-+		unsigned int alloc_flags, const struct alloc_context *ac,
- 		unsigned long *did_some_progress)
- {
- 	struct page *page = NULL;
-@@ -3092,10 +3094,10 @@ static void wake_all_kswapds(unsigned in
- 		wakeup_kswapd(zone, order, zone_idx(ac->preferred_zone));
+ 
+ #define node_page_state(node, item) global_page_state(item)
+-#define zone_statistics(_zl, _z, gfp) do { } while (0)
+ 
+ #endif /* CONFIG_NUMA */
+ 
+diff -puN mm/page_alloc.c~mm-page_alloc-inline-zone_statistics mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-inline-zone_statistics
++++ a/mm/page_alloc.c
+@@ -2355,6 +2355,37 @@ int split_free_page(struct page *page)
  }
  
--static inline int
-+static inline unsigned int
- gfp_to_alloc_flags(gfp_t gfp_mask)
- {
--	int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
-+	unsigned int alloc_flags = ALLOC_WMARK_MIN | ALLOC_CPUSET;
+ /*
++ * Update NUMA hit/miss statistics
++ *
++ * Must be called with interrupts disabled.
++ *
++ * When __GFP_OTHER_NODE is set assume the node of the preferred
++ * zone is the local node. This is useful for daemons who allocate
++ * memory on behalf of other processes.
++ */
++static inline void zone_statistics(struct zone *preferred_zone, struct zone *z,
++								gfp_t flags)
++{
++#ifdef CONFIG_NUMA
++	int local_nid = numa_node_id();
++	enum zone_stat_item local_stat = NUMA_LOCAL;
++
++	if (unlikely(flags & __GFP_OTHER_NODE)) {
++		local_stat = NUMA_OTHER;
++		local_nid = preferred_zone->node;
++	}
++
++	if (z->node == local_nid) {
++		__inc_zone_state(z, NUMA_HIT);
++		__inc_zone_state(z, local_stat);
++	} else {
++		__inc_zone_state(z, NUMA_MISS);
++		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
++	}
++#endif
++}
++
++/*
+  * Allocate a page from the given zone. Use pcplists for order-0 allocations.
+  */
+ static inline
+diff -puN mm/vmstat.c~mm-page_alloc-inline-zone_statistics mm/vmstat.c
+--- a/mm/vmstat.c~mm-page_alloc-inline-zone_statistics
++++ a/mm/vmstat.c
+@@ -570,35 +570,6 @@ void drain_zonestat(struct zone *zone, s
  
- 	/* __GFP_HIGH is assumed to be the same as ALLOC_HIGH to save a branch. */
- 	BUILD_BUG_ON(__GFP_HIGH != (__force gfp_t) ALLOC_HIGH);
-@@ -3156,7 +3158,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- {
- 	bool can_direct_reclaim = gfp_mask & __GFP_DIRECT_RECLAIM;
- 	struct page *page = NULL;
--	int alloc_flags;
-+	unsigned int alloc_flags;
- 	unsigned long pages_reclaimed = 0;
- 	unsigned long did_some_progress;
- 	enum migrate_mode migration_mode = MIGRATE_ASYNC;
-@@ -3348,7 +3350,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	struct zoneref *preferred_zoneref;
- 	struct page *page = NULL;
- 	unsigned int cpuset_mems_cookie;
--	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_FAIR;
-+	unsigned int alloc_flags = ALLOC_WMARK_LOW|ALLOC_FAIR;
- 	gfp_t alloc_mask; /* The gfp_t that was actually used for allocation */
- 	struct alloc_context ac = {
- 		.high_zoneidx = gfp_zone(gfp_mask),
-_
-
-Patches currently in -mm which might be from mgorman@techsingularity.net are
-
-
+ #ifdef CONFIG_NUMA
+ /*
+- * zonelist = the list of zones passed to the allocator
+- * z 	    = the zone from which the allocation occurred.
+- *
+- * Must be called with interrupts disabled.
+- *
+- * When __GFP_OTHER_NODE is set assume the node of the preferred
+- * zone is the local node. This is useful for daemons who allocate
+- * memory on behalf of other processes.
+- */
+-void zone_statistics(struct zone *preferred_zone, struct zone *z, gfp_t flags)
+-{
+-	int local_nid = numa_node_id();
+-	enum zone_stat_item local_stat = NUMA_LOCAL;
+-
+-	if (unlikely(flags & __GFP_OTHER_NODE)) {
+-		local_stat = NUMA_OTHER;
+-		local_nid = preferred_zone->node;
+-	}
+-
+-	if (z->node == local_nid) {
+-		__inc_zone_state(z, NUMA_HIT);
+-		__inc_zone_state(z, local_stat);
+-	} else {
+-		__inc_zone_state(z, NUMA_MISS);
+-		__inc_zone_state(preferred_zone, NUMA_FOREIGN);
+-	}
+-}
