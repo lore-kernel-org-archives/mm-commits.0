@@ -1,65 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmalloc-is_vmalloc_addr-can-be-boolean.patch removed
- from -mm tree
-Date: Fri, 20 May 2016 14:04:29 -0700
-Message-ID: <573f7bdd.zPSMtdqQ2msys+fk%akpm@linux-foundation.org>
+Subject: [merged] tile-mm-use-hugetlb_bad_size.patch removed from -mm tree
+Date: Fri, 20 May 2016 14:04:19 -0700
+Message-ID: <573f7bd3.iIUJAI1b05uTmSfu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46998 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46976 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbcETVEa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:30 -0400
+	with ESMTP id S1750961AbcETVEU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: baiyaowei@cmss.chinamobile.com, mm-commits@vger.kernel.org
+To: vaishali.thakkar@oracle.com, baiyaowei@cmss.chinamobile.com, dave.hansen@linux.intel.com, dingel@linux.vnet.ibm.com, hillf.zj@alibaba-inc.com, james.hogan@imgtec.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: is_vmalloc_addr() can return bool
+     Subject: tile: mm: use hugetlb_bad_size()
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-is_vmalloc_addr-can-be-boolean.patch
+     tile-mm-use-hugetlb_bad_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Subject: mm/vmalloc.c: is_vmalloc_addr() can return bool
+From: Vaishali Thakkar <vaishali.thakkar@oracle.com>
+Subject: tile: mm: use hugetlb_bad_size()
 
-Make is_vmalloc_addr() return bool to improve readability due to this
-particular function only using either one or zero as its return value.
+Update setup_hugepagesz() to call hugetlb_bad_size() when unsupported
+hugepage size is found.
 
-Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Signed-off-by: Vaishali Thakkar <vaishali.thakkar@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Cc: Dominik Dingel <dingel@linux.vnet.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: James Hogan <james.hogan@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/tile/mm/hugetlbpage.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-vmalloc-is_vmalloc_addr-can-be-boolean include/linux/mm.h
---- a/include/linux/mm.h~mm-vmalloc-is_vmalloc_addr-can-be-boolean
-+++ a/include/linux/mm.h
-@@ -447,14 +447,14 @@ unsigned long vmalloc_to_pfn(const void
-  * On nommu, vmalloc/vfree wrap through kmalloc/kfree directly, so there
-  * is no special casing required.
-  */
--static inline int is_vmalloc_addr(const void *x)
-+static inline bool is_vmalloc_addr(const void *x)
- {
- #ifdef CONFIG_MMU
- 	unsigned long addr = (unsigned long)x;
+diff -puN arch/tile/mm/hugetlbpage.c~tile-mm-use-hugetlb_bad_size arch/tile/mm/hugetlbpage.c
+--- a/arch/tile/mm/hugetlbpage.c~tile-mm-use-hugetlb_bad_size
++++ a/arch/tile/mm/hugetlbpage.c
+@@ -308,11 +308,16 @@ static bool saw_hugepagesz;
  
- 	return addr >= VMALLOC_START && addr < VMALLOC_END;
- #else
--	return 0;
-+	return false;
- #endif
+ static __init int setup_hugepagesz(char *opt)
+ {
++	int rc;
++
+ 	if (!saw_hugepagesz) {
+ 		saw_hugepagesz = true;
+ 		memset(huge_shift, 0, sizeof(huge_shift));
+ 	}
+-	return __setup_hugepagesz(memparse(opt, NULL));
++	rc = __setup_hugepagesz(memparse(opt, NULL));
++	if (rc)
++		hugetlb_bad_size();
++	return rc;
  }
- #ifdef CONFIG_MMU
+ __setup("hugepagesz=", setup_hugepagesz);
+ 
 _
 
-Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
+Patches currently in -mm which might be from vaishali.thakkar@oracle.com are
 
 
