@@ -1,49 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-update_lru_size-warn-and-reset-bad-lru_size.patch
- removed from -mm tree
-Date: Fri, 20 May 2016 14:05:26 -0700
-Message-ID: <573f7c16.TARSfVhgVk6+JNvK%akpm@linux-foundation.org>
+Subject: [merged] tmpfs-preliminary-minor-tidyups.patch removed from -mm
+ tree
+Date: Fri, 20 May 2016 14:05:35 -0700
+Message-ID: <573f7c1f.XkPvXxP7rcLIN1Mm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47179 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47203 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751070AbcETVF1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:27 -0400
+	with ESMTP id S1751280AbcETVFg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, mhocko@kernel.org, quning@gmail.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: update_lru_size warn and reset bad lru_size
+     Subject: tmpfs: preliminary minor tidyups
 has been removed from the -mm tree.  Its filename was
-     mm-update_lru_size-warn-and-reset-bad-lru_size.patch
+     tmpfs-preliminary-minor-tidyups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: update_lru_size warn and reset bad lru_size
+Subject: tmpfs: preliminary minor tidyups
 
-Though debug kernels have a VM_BUG_ON to help protect from misaccounting
-lru_size, non-debug kernels are liable to wrap it around: and then the
-vast unsigned long size draws page reclaim into a loop of repeatedly doing
-nothing on an empty list, without even a cond_resched().
+Make a few cleanups in mm/shmem.c, before going on to complicate it.
 
-That soft lockup looks confusingly like an over-busy reclaim scenario,
-with lots of contention on the lru_lock in shrink_inactive_list(): yet has
-a totally different origin.
+shmem_alloc_page() will become more complicated: we can't afford to to
+have that complication duplicated between a CONFIG_NUMA version and a
+!CONFIG_NUMA version, so rearrange the #ifdef'ery there to yield a single
+shmem_swapin() and a single shmem_alloc_page().
 
-Help differentiate with a custom warning in mem_cgroup_update_lru_size(),
-even in non-debug kernels; and reset the size to avoid the lockup.  But
-the particular bug which suggested this change was mine alone, and since
-fixed.
+Yes, it's a shame to inflict the horrid pseudo-vma on non-NUMA
+configurations, but eliminating it is a larger cleanup: I have an
+alloc_pages_mpol() patchset not yet ready - mpol handling is subtle and
+bug-prone, and changed yet again since my last version.
 
-Make it a WARN_ONCE: the first occurrence is the most informative, a
-flurry may follow, yet even when rate-limited little more is learnt.
+Move __SetPageLocked, __SetPageSwapBacked from shmem_getpage_gfp() to
+shmem_alloc_page(): that SwapBacked flag will be useful in future, to help
+to distinguish different cases appropriately.
+
+And the SGP_DIRTY variant of SGP_CACHE is hard to understand and of little
+use (IIRC it dates back to when shmem_getpage() returned the page
+unlocked): kill it and do the necessary in shmem_file_read_iter().
+
+But an arm64 build then complained that info may be uninitialized (where
+shmem_getpage_gfp() deletes a freshly alloced page beyond eof), and
+advancing to an "sgp <= SGP_CACHE" test jogged it back to reality.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -52,76 +59,189 @@ Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Yang Shi <yang.shi@linaro.org>
 Cc: Ning Qu <quning@gmail.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    2 +-
- mm/memcontrol.c           |   24 ++++++++++++++++++++----
- 2 files changed, 21 insertions(+), 5 deletions(-)
+ include/linux/mempolicy.h |    6 +++
+ mm/shmem.c                |   69 +++++++++++++-----------------------
+ 2 files changed, 32 insertions(+), 43 deletions(-)
 
-diff -puN include/linux/mm_inline.h~mm-update_lru_size-warn-and-reset-bad-lru_size include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~mm-update_lru_size-warn-and-reset-bad-lru_size
-+++ a/include/linux/mm_inline.h
-@@ -35,8 +35,8 @@ static __always_inline void del_page_fro
- 				struct lruvec *lruvec, enum lru_list lru)
+diff -puN include/linux/mempolicy.h~tmpfs-preliminary-minor-tidyups include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~tmpfs-preliminary-minor-tidyups
++++ a/include/linux/mempolicy.h
+@@ -228,6 +228,12 @@ static inline void mpol_free_shared_poli
  {
- 	int nr_pages = hpage_nr_pages(page);
--	mem_cgroup_update_lru_size(lruvec, lru, -nr_pages);
- 	list_del(&page->lru);
-+	mem_cgroup_update_lru_size(lruvec, lru, -nr_pages);
- 	__mod_zone_page_state(lruvec_zone(lruvec), NR_LRU_BASE + lru, -nr_pages);
  }
  
-diff -puN mm/memcontrol.c~mm-update_lru_size-warn-and-reset-bad-lru_size mm/memcontrol.c
---- a/mm/memcontrol.c~mm-update_lru_size-warn-and-reset-bad-lru_size
-+++ a/mm/memcontrol.c
-@@ -1023,22 +1023,38 @@ out:
-  * @lru: index of lru list the page is sitting on
-  * @nr_pages: positive when adding or negative when removing
-  *
-- * This function must be called when a page is added to or removed from an
-- * lru list.
-+ * This function must be called under lru_lock, just before a page is added
-+ * to or just after a page is removed from an lru list (that ordering being
-+ * so as to allow it to check that lru_size 0 is consistent with list_empty).
++static inline struct mempolicy *
++mpol_shared_policy_lookup(struct shared_policy *sp, unsigned long idx)
++{
++	return NULL;
++}
++
+ #define vma_policy(vma) NULL
+ 
+ static inline int
+diff -puN mm/shmem.c~tmpfs-preliminary-minor-tidyups mm/shmem.c
+--- a/mm/shmem.c~tmpfs-preliminary-minor-tidyups
++++ a/mm/shmem.c
+@@ -101,7 +101,6 @@ struct shmem_falloc {
+ enum sgp_type {
+ 	SGP_READ,	/* don't exceed i_size, don't allocate page */
+ 	SGP_CACHE,	/* don't exceed i_size, may allocate page */
+-	SGP_DIRTY,	/* like SGP_CACHE, but set new page dirty */
+ 	SGP_WRITE,	/* may exceed i_size, may allocate !Uptodate page */
+ 	SGP_FALLOC,	/* like SGP_WRITE, but make existing page Uptodate */
+ };
+@@ -169,7 +168,7 @@ static inline int shmem_reacct_size(unsi
+ 
+ /*
+  * ... whereas tmpfs objects are accounted incrementally as
+- * pages are allocated, in order to allow huge sparse files.
++ * pages are allocated, in order to allow large sparse files.
+  * shmem_getpage reports shmem_acct_block failure as -ENOSPC not -ENOMEM,
+  * so that a failure on a sparse tmpfs mapping will give SIGBUS not OOM.
   */
- void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
- 				int nr_pages)
- {
- 	struct mem_cgroup_per_zone *mz;
- 	unsigned long *lru_size;
-+	long size;
-+	bool empty;
- 
- 	if (mem_cgroup_disabled())
- 		return;
- 
- 	mz = container_of(lruvec, struct mem_cgroup_per_zone, lruvec);
- 	lru_size = mz->lru_size + lru;
--	*lru_size += nr_pages;
--	VM_BUG_ON((long)(*lru_size) < 0);
-+	empty = list_empty(lruvec->lists + lru);
-+
-+	if (nr_pages < 0)
-+		*lru_size += nr_pages;
-+
-+	size = *lru_size;
-+	if (WARN_ONCE(size < 0 || empty != !size,
-+		"%s(%p, %d, %d): lru_size %ld but %sempty\n",
-+		__func__, lruvec, lru, nr_pages, size, empty ? "" : "not ")) {
-+		VM_BUG_ON(1);
-+		*lru_size = 0;
-+	}
-+
-+	if (nr_pages > 0)
-+		*lru_size += nr_pages;
+@@ -947,8 +946,7 @@ redirty:
+ 	return 0;
  }
  
- bool task_in_mem_cgroup(struct task_struct *task, struct mem_cgroup *memcg)
+-#ifdef CONFIG_NUMA
+-#ifdef CONFIG_TMPFS
++#if defined(CONFIG_NUMA) && defined(CONFIG_TMPFS)
+ static void shmem_show_mpol(struct seq_file *seq, struct mempolicy *mpol)
+ {
+ 	char buffer[64];
+@@ -972,7 +970,18 @@ static struct mempolicy *shmem_get_sbmpo
+ 	}
+ 	return mpol;
+ }
+-#endif /* CONFIG_TMPFS */
++#else /* !CONFIG_NUMA || !CONFIG_TMPFS */
++static inline void shmem_show_mpol(struct seq_file *seq, struct mempolicy *mpol)
++{
++}
++static inline struct mempolicy *shmem_get_sbmpol(struct shmem_sb_info *sbinfo)
++{
++	return NULL;
++}
++#endif /* CONFIG_NUMA && CONFIG_TMPFS */
++#ifndef CONFIG_NUMA
++#define vm_policy vm_private_data
++#endif
+ 
+ static struct page *shmem_swapin(swp_entry_t swap, gfp_t gfp,
+ 			struct shmem_inode_info *info, pgoff_t index)
+@@ -1008,39 +1017,17 @@ static struct page *shmem_alloc_page(gfp
+ 	pvma.vm_ops = NULL;
+ 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
+ 
+-	page = alloc_page_vma(gfp, &pvma, 0);
++	page = alloc_pages_vma(gfp, 0, &pvma, 0, numa_node_id(), false);
++	if (page) {
++		__SetPageLocked(page);
++		__SetPageSwapBacked(page);
++	}
+ 
+ 	/* Drop reference taken by mpol_shared_policy_lookup() */
+ 	mpol_cond_put(pvma.vm_policy);
+ 
+ 	return page;
+ }
+-#else /* !CONFIG_NUMA */
+-#ifdef CONFIG_TMPFS
+-static inline void shmem_show_mpol(struct seq_file *seq, struct mempolicy *mpol)
+-{
+-}
+-#endif /* CONFIG_TMPFS */
+-
+-static inline struct page *shmem_swapin(swp_entry_t swap, gfp_t gfp,
+-			struct shmem_inode_info *info, pgoff_t index)
+-{
+-	return swapin_readahead(swap, gfp, NULL, 0);
+-}
+-
+-static inline struct page *shmem_alloc_page(gfp_t gfp,
+-			struct shmem_inode_info *info, pgoff_t index)
+-{
+-	return alloc_page(gfp);
+-}
+-#endif /* CONFIG_NUMA */
+-
+-#if !defined(CONFIG_NUMA) || !defined(CONFIG_TMPFS)
+-static inline struct mempolicy *shmem_get_sbmpol(struct shmem_sb_info *sbinfo)
+-{
+-	return NULL;
+-}
+-#endif
+ 
+ /*
+  * When a page is moved from swapcache to shmem filecache (either by the
+@@ -1084,8 +1071,6 @@ static int shmem_replace_page(struct pag
+ 	copy_highpage(newpage, oldpage);
+ 	flush_dcache_page(newpage);
+ 
+-	__SetPageLocked(newpage);
+-	__SetPageSwapBacked(newpage);
+ 	SetPageUptodate(newpage);
+ 	set_page_private(newpage, swap_index);
+ 	SetPageSwapCache(newpage);
+@@ -1155,7 +1140,7 @@ repeat:
+ 		page = NULL;
+ 	}
+ 
+-	if (sgp != SGP_WRITE && sgp != SGP_FALLOC &&
++	if (sgp <= SGP_CACHE &&
+ 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
+ 		error = -EINVAL;
+ 		goto unlock;
+@@ -1275,9 +1260,6 @@ repeat:
+ 			error = -ENOMEM;
+ 			goto decused;
+ 		}
+-
+-		__SetPageLocked(page);
+-		__SetPageSwapBacked(page);
+ 		if (sgp == SGP_WRITE)
+ 			__SetPageReferenced(page);
+ 
+@@ -1321,12 +1303,10 @@ clear:
+ 			flush_dcache_page(page);
+ 			SetPageUptodate(page);
+ 		}
+-		if (sgp == SGP_DIRTY)
+-			set_page_dirty(page);
+ 	}
+ 
+ 	/* Perhaps the file has been truncated since we checked */
+-	if (sgp != SGP_WRITE && sgp != SGP_FALLOC &&
++	if (sgp <= SGP_CACHE &&
+ 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
+ 		if (alloced) {
+ 			ClearPageDirty(page);
+@@ -1633,7 +1613,7 @@ static ssize_t shmem_file_read_iter(stru
+ 	 * and even mark them dirty, so it cannot exceed the max_blocks limit.
+ 	 */
+ 	if (!iter_is_iovec(to))
+-		sgp = SGP_DIRTY;
++		sgp = SGP_CACHE;
+ 
+ 	index = *ppos >> PAGE_SHIFT;
+ 	offset = *ppos & ~PAGE_MASK;
+@@ -1659,8 +1639,11 @@ static ssize_t shmem_file_read_iter(stru
+ 				error = 0;
+ 			break;
+ 		}
+-		if (page)
++		if (page) {
++			if (sgp == SGP_CACHE)
++				set_page_dirty(page);
+ 			unlock_page(page);
++		}
+ 
+ 		/*
+ 		 * We must evaluate after, since reads (unlike writes)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
