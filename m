@@ -1,62 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on.patch removed from
- -mm tree
-Date: Fri, 20 May 2016 14:04:42 -0700
-Message-ID: <573f7bea.VR4poOZRkbjE/3RK%akpm@linux-foundation.org>
+Subject: [merged] mm-compaction-reduce-spurious-pcplist-drains.patch
+ removed from -mm tree
+Date: Fri, 20 May 2016 14:04:47 -0700
+Message-ID: <573f7bef.zkeir3e45k/oUBdb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47014 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47030 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961AbcETVEn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:43 -0400
+	with ESMTP id S1750836AbcETVEs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, vbabka@suse.cz, vvs@virtuozzo.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: replace BUG_ON(anon_vma->degree) with VM_WARN_ON
+     Subject: mm, compaction: reduce spurious pcplist drains
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on.patch
+     mm-compaction-reduce-spurious-pcplist-drains.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: mm/rmap: replace BUG_ON(anon_vma->degree) with VM_WARN_ON
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: reduce spurious pcplist drains
 
-This check effectively catches anon vma hierarchy inconsistence and some
-vma corruptions.  It was effective for catching corner cases in anon vma
-reusing logic.  For now this code seems stable so check could be hidden
-under CONFIG_DEBUG_VM and replaced with WARN because it's not so fatal.
+Compaction drains the local pcplists each time migration scanner moves
+away from a cc->order aligned block where it isolated pages for migration,
+so that the pages freed by migrations can merge into higher orders.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Suggested-by: Vasily Averin <vvs@virtuozzo.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+The detection is currently coarser than it could be.  The
+cc->last_migrated_pfn variable should track the lowest pfn that was
+isolated for migration.  But it is set to the pfn where
+isolate_migratepages_block() starts scanning, which is typically the first
+pfn of the pageblock.  There, the scanner might fail to isolate several
+order-aligned blocks, and then isolate COMPACT_CLUSTER_MAX in another
+block.  This would cause the pcplists drain to be performed, although the
+scanner didn't yet finish the block where it isolated from.
+
+This patch thus makes cc->last_migrated_pfn handling more accurate by
+setting it to the pfn of an actually isolated page in
+isolate_migratepages_block().  Although practical effects of this patch
+are likely low, it arguably makes the intent of the code more obvious. 
+Also the next patch will make async direct compaction skip blocks more
+aggressively, and draining pcplists due to skipped blocks is wasteful.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN mm/rmap.c~mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on mm/rmap.c
---- a/mm/rmap.c~mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on
-+++ a/mm/rmap.c
-@@ -409,7 +409,7 @@ void unlink_anon_vmas(struct vm_area_str
- 	list_for_each_entry_safe(avc, next, &vma->anon_vma_chain, same_vma) {
- 		struct anon_vma *anon_vma = avc->anon_vma;
+diff -puN mm/compaction.c~mm-compaction-reduce-spurious-pcplist-drains mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-reduce-spurious-pcplist-drains
++++ a/mm/compaction.c
+@@ -787,6 +787,15 @@ isolate_success:
+ 		cc->nr_migratepages++;
+ 		nr_isolated++;
  
--		BUG_ON(anon_vma->degree);
-+		VM_WARN_ON(anon_vma->degree);
- 		put_anon_vma(anon_vma);
++		/*
++		 * Record where we could have freed pages by migration and not
++		 * yet flushed them to buddy allocator.
++		 * - this is the lowest page that was isolated and likely be
++		 * then freed by migration.
++		 */
++		if (!cc->last_migrated_pfn)
++			cc->last_migrated_pfn = low_pfn;
++
+ 		/* Avoid isolating too much */
+ 		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX) {
+ 			++low_pfn;
+@@ -1075,7 +1084,6 @@ static isolate_migrate_t isolate_migrate
+ 	unsigned long block_start_pfn;
+ 	unsigned long block_end_pfn;
+ 	unsigned long low_pfn;
+-	unsigned long isolate_start_pfn;
+ 	struct page *page;
+ 	const isolate_mode_t isolate_mode =
+ 		(sysctl_compact_unevictable_allowed ? ISOLATE_UNEVICTABLE : 0) |
+@@ -1130,7 +1138,6 @@ static isolate_migrate_t isolate_migrate
+ 			continue;
  
- 		list_del(&avc->same_vma);
-_
-
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
-
-
+ 		/* Perform the isolation */
+-		isolate_start_pfn = low_pfn;
+ 		low_pfn = isolate_migratepages_block(cc, low_pfn,
+ 						block_end_pfn, isolate_mode);
+ 
+@@ -1140,15 +1147,6 @@ static isolate_migrate_t isolate_migrate
+ 		}
+ 
+ 		/*
+-		 * Record where we could have freed pages by migration and not
+-		 * yet flushed them to buddy allocator.
+-		 * - this is the lowest page that could have been isolated and
+-		 * then freed by migration.
+-		 */
+-		if (cc->nr_migratepages && !cc->last_migrated_pfn)
+-			cc->last_migrated_pfn = isolate_start_pfn;
