@@ -1,66 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slubc-fix-sysfs-filename-in-comment.patch removed
- from -mm tree
-Date: Fri, 20 May 2016 14:03:47 -0700
-Message-ID: <573f7bb3.YeohAwRYLwoe931g%akpm@linux-foundation.org>
+Subject: [merged] mm-slab-remove-zone_dma_flag.patch removed from -mm tree
+Date: Fri, 20 May 2016 14:03:44 -0700
+Message-ID: <573f7bb0.x6Xu8t0/Uomc90du%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46875 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46869 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcETVDs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:03:48 -0400
+	with ESMTP id S1751065AbcETVDp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:03:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lip@dtdream.com, cl@linux.com, mm-commits@vger.kernel.org
+To: yang.shi@linaro.org, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub.c: fix sysfs filename in comment
+     Subject: mm: slab: remove ZONE_DMA_FLAG
 has been removed from the -mm tree.  Its filename was
-     mm-slubc-fix-sysfs-filename-in-comment.patch
+     mm-slab-remove-zone_dma_flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Li Peng <lip@dtdream.com>
-Subject: mm/slub.c: fix sysfs filename in comment
+From: Yang Shi <yang.shi@linaro.org>
+Subject: mm: slab: remove ZONE_DMA_FLAG
 
-/sys/kernel/slab/xx/defrag_ratio should be remote_node_defrag_ratio.
+Now we have IS_ENABLED helper to check if a Kconfig option is enabled or
+not, so ZONE_DMA_FLAG sounds no longer useful.
 
-Link: http://lkml.kernel.org/r/1463449242-5366-1-git-send-email-lip@dtdream.com
-Signed-off-by: Li Peng <lip@dtdream.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+And, the use of ZONE_DMA_FLAG in slab looks pointless according to the
+comment [1] from Johannes Weiner, so remove them and ORing passed in flags with
+the cache gfp flags has been done in kmem_getpages().
+
+[1] https://lkml.org/lkml/2014/9/25/553
+
+Link: http://lkml.kernel.org/r/1462381297-11009-1-git-send-email-yang.shi@linaro.org
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/Kconfig |    5 -----
+ mm/slab.c  |   23 +----------------------
+ 2 files changed, 1 insertion(+), 27 deletions(-)
 
-diff -puN mm/slub.c~mm-slubc-fix-sysfs-filename-in-comment mm/slub.c
---- a/mm/slub.c~mm-slubc-fix-sysfs-filename-in-comment
-+++ a/mm/slub.c
-@@ -1735,11 +1735,11 @@ static void *get_any_partial(struct kmem
- 	 * may return off node objects because partial slabs are obtained
- 	 * from other nodes and filled up.
- 	 *
--	 * If /sys/kernel/slab/xx/defrag_ratio is set to 100 (which makes
--	 * defrag_ratio = 1000) then every (well almost) allocation will
--	 * first attempt to defrag slab caches on other nodes. This means
--	 * scanning over all nodes to look for partial slabs which may be
--	 * expensive if we do it every time we are trying to find a slab
-+	 * If /sys/kernel/slab/xx/remote_node_defrag_ratio is set to 100
-+	 * (which makes defrag_ratio = 1000) then every (well almost)
-+	 * allocation will first attempt to defrag slab caches on other nodes.
-+	 * This means scanning over all nodes to look for partial slabs which
-+	 * may be expensive if we do it every time we are trying to find a slab
- 	 * with available objects.
- 	 */
- 	if (!s->remote_node_defrag_ratio ||
-_
-
-Patches currently in -mm which might be from lip@dtdream.com are
-
-
+diff -puN mm/Kconfig~mm-slab-remove-zone_dma_flag mm/Kconfig
+--- a/mm/Kconfig~mm-slab-remove-zone_dma_flag
++++ a/mm/Kconfig
+@@ -268,11 +268,6 @@ config ARCH_ENABLE_HUGEPAGE_MIGRATION
+ config PHYS_ADDR_T_64BIT
+ 	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
+ 
+-config ZONE_DMA_FLAG
+-	int
+-	default "0" if !ZONE_DMA
+-	default "1"
+-
+ config BOUNCE
+ 	bool "Enable bounce buffers"
+ 	default y
+diff -puN mm/slab.c~mm-slab-remove-zone_dma_flag mm/slab.c
+--- a/mm/slab.c~mm-slab-remove-zone_dma_flag
++++ a/mm/slab.c
+@@ -2236,7 +2236,7 @@ done:
+ 	cachep->freelist_size = cachep->num * sizeof(freelist_idx_t);
+ 	cachep->flags = flags;
+ 	cachep->allocflags = __GFP_COMP;
+-	if (CONFIG_ZONE_DMA_FLAG && (flags & SLAB_CACHE_DMA))
++	if (flags & SLAB_CACHE_DMA)
+ 		cachep->allocflags |= GFP_DMA;
+ 	cachep->size = size;
+ 	cachep->reciprocal_buffer_size = reciprocal_value(size);
+@@ -2664,16 +2664,6 @@ static void cache_init_objs(struct kmem_
+ 	}
+ }
+ 
+-static void kmem_flagcheck(struct kmem_cache *cachep, gfp_t flags)
+-{
+-	if (CONFIG_ZONE_DMA_FLAG) {
+-		if (flags & GFP_DMA)
+-			BUG_ON(!(cachep->allocflags & GFP_DMA));
+-		else
+-			BUG_ON(cachep->allocflags & GFP_DMA);
+-	}
+-}
+-
+ static void *slab_get_obj(struct kmem_cache *cachep, struct page *page)
+ {
+ 	void *objp;
+@@ -2753,14 +2743,6 @@ static struct page *cache_grow_begin(str
+ 		local_irq_enable();
+ 
+ 	/*
+-	 * The test for missing atomic flag is performed here, rather than
+-	 * the more obvious place, simply to reduce the critical path length
+-	 * in kmem_cache_alloc(). If a caller is seriously mis-behaving they
+-	 * will eventually be caught here (where it matters).
+-	 */
+-	kmem_flagcheck(cachep, flags);
