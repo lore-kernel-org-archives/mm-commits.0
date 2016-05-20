@@ -1,235 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [patch 076/117] tmpfs: preliminary minor tidyups
-Date: Thu, 19 May 2016 17:12:44 -0700
-Message-ID: <573e567c.iFeCp0L8+Yghl1+Z%akpm@linux-foundation.org>
+Subject: [patch 063/117] mm/hugetlb: add same zone check in
+ pfn_range_valid_gigantic()
+Date: Thu, 19 May 2016 17:12:03 -0700
+Message-ID: <573e5653.ObqpCdrogv7dctHn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46413 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46255 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932871AbcETAMq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:12:46 -0400
+	with ESMTP id S932455AbcETAMF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:12:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, mpe@ellerman.id.au, paulus@samba.org, riel@redhat.com, rjw@rjwysocki.net, vbabka@suse.cz
 
-From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: preliminary minor tidyups
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/hugetlb: add same zone check in pfn_range_valid_gigantic()
 
-Make a few cleanups in mm/shmem.c, before going on to complicate it.
+This patchset deals with some problematic sites that iterate pfn ranges.
 
-shmem_alloc_page() will become more complicated: we can't afford to to
-have that complication duplicated between a CONFIG_NUMA version and a
-!CONFIG_NUMA version, so rearrange the #ifdef'ery there to yield a single
-shmem_swapin() and a single shmem_alloc_page().
+There is a system thats node's pfns are overlapped as follows:
 
-Yes, it's a shame to inflict the horrid pseudo-vma on non-NUMA
-configurations, but eliminating it is a larger cleanup: I have an
-alloc_pages_mpol() patchset not yet ready - mpol handling is subtle and
-bug-prone, and changed yet again since my last version.
+-----pfn-------->
+N0 N1 N2 N0 N1 N2
 
-Move __SetPageLocked, __SetPageSwapBacked from shmem_getpage_gfp() to
-shmem_alloc_page(): that SwapBacked flag will be useful in future, to help
-to distinguish different cases appropriately.
+Therefore, we need to take care of this overlapping when iterating pfn
+range.
 
-And the SGP_DIRTY variant of SGP_CACHE is hard to understand and of little
-use (IIRC it dates back to when shmem_getpage() returned the page
-unlocked): kill it and do the necessary in shmem_file_read_iter().
+I audit many iterating sites that uses pfn_valid(), pfn_valid_within(),
+zone_start_pfn and etc.  and others looks safe to me.  This is a
+preparation step for a new CMA implementation, ZONE_CMA
+(https://lkml.org/lkml/2015/2/12/95), because it would be easily
+overlapped with other zones.  But, zone overlap check is also needed for
+the general case so I send it separately.
 
-But an arm64 build then complained that info may be uninitialized (where
-shmem_getpage_gfp() deletes a freshly alloced page beyond eof), and
-advancing to an "sgp <= SGP_CACHE" test jogged it back to reality.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Yang Shi <yang.shi@linaro.org>
-Cc: Ning Qu <quning@gmail.com>
+
+This patch (of 5):
+
+alloc_gigantic_page() uses alloc_contig_range() and this requires that the
+requested range is in a single zone.  To satisfy this requirement, add
+this check to pfn_range_valid_gigantic().
+
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    6 +++
- mm/shmem.c                |   69 +++++++++++++-----------------------
- 2 files changed, 32 insertions(+), 43 deletions(-)
+ mm/hugetlb.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mempolicy.h~tmpfs-preliminary-minor-tidyups include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~tmpfs-preliminary-minor-tidyups
-+++ a/include/linux/mempolicy.h
-@@ -228,6 +228,12 @@ static inline void mpol_free_shared_poli
- {
+diff -puN mm/hugetlb.c~mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic
++++ a/mm/hugetlb.c
+@@ -1031,8 +1031,8 @@ static int __alloc_gigantic_page(unsigne
+ 	return alloc_contig_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
  }
  
-+static inline struct mempolicy *
-+mpol_shared_policy_lookup(struct shared_policy *sp, unsigned long idx)
-+{
-+	return NULL;
-+}
+-static bool pfn_range_valid_gigantic(unsigned long start_pfn,
+-				unsigned long nr_pages)
++static bool pfn_range_valid_gigantic(struct zone *z,
++			unsigned long start_pfn, unsigned long nr_pages)
+ {
+ 	unsigned long i, end_pfn = start_pfn + nr_pages;
+ 	struct page *page;
+@@ -1043,6 +1043,9 @@ static bool pfn_range_valid_gigantic(uns
+ 
+ 		page = pfn_to_page(i);
+ 
++		if (page_zone(page) != z)
++			return false;
 +
- #define vma_policy(vma) NULL
+ 		if (PageReserved(page))
+ 			return false;
  
- static inline int
-diff -puN mm/shmem.c~tmpfs-preliminary-minor-tidyups mm/shmem.c
---- a/mm/shmem.c~tmpfs-preliminary-minor-tidyups
-+++ a/mm/shmem.c
-@@ -101,7 +101,6 @@ struct shmem_falloc {
- enum sgp_type {
- 	SGP_READ,	/* don't exceed i_size, don't allocate page */
- 	SGP_CACHE,	/* don't exceed i_size, may allocate page */
--	SGP_DIRTY,	/* like SGP_CACHE, but set new page dirty */
- 	SGP_WRITE,	/* may exceed i_size, may allocate !Uptodate page */
- 	SGP_FALLOC,	/* like SGP_WRITE, but make existing page Uptodate */
- };
-@@ -169,7 +168,7 @@ static inline int shmem_reacct_size(unsi
+@@ -1075,7 +1078,7 @@ static struct page *alloc_gigantic_page(
  
- /*
-  * ... whereas tmpfs objects are accounted incrementally as
-- * pages are allocated, in order to allow huge sparse files.
-+ * pages are allocated, in order to allow large sparse files.
-  * shmem_getpage reports shmem_acct_block failure as -ENOSPC not -ENOMEM,
-  * so that a failure on a sparse tmpfs mapping will give SIGBUS not OOM.
-  */
-@@ -947,8 +946,7 @@ redirty:
- 	return 0;
- }
- 
--#ifdef CONFIG_NUMA
--#ifdef CONFIG_TMPFS
-+#if defined(CONFIG_NUMA) && defined(CONFIG_TMPFS)
- static void shmem_show_mpol(struct seq_file *seq, struct mempolicy *mpol)
- {
- 	char buffer[64];
-@@ -972,7 +970,18 @@ static struct mempolicy *shmem_get_sbmpo
- 	}
- 	return mpol;
- }
--#endif /* CONFIG_TMPFS */
-+#else /* !CONFIG_NUMA || !CONFIG_TMPFS */
-+static inline void shmem_show_mpol(struct seq_file *seq, struct mempolicy *mpol)
-+{
-+}
-+static inline struct mempolicy *shmem_get_sbmpol(struct shmem_sb_info *sbinfo)
-+{
-+	return NULL;
-+}
-+#endif /* CONFIG_NUMA && CONFIG_TMPFS */
-+#ifndef CONFIG_NUMA
-+#define vm_policy vm_private_data
-+#endif
- 
- static struct page *shmem_swapin(swp_entry_t swap, gfp_t gfp,
- 			struct shmem_inode_info *info, pgoff_t index)
-@@ -1008,39 +1017,17 @@ static struct page *shmem_alloc_page(gfp
- 	pvma.vm_ops = NULL;
- 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
- 
--	page = alloc_page_vma(gfp, &pvma, 0);
-+	page = alloc_pages_vma(gfp, 0, &pvma, 0, numa_node_id(), false);
-+	if (page) {
-+		__SetPageLocked(page);
-+		__SetPageSwapBacked(page);
-+	}
- 
- 	/* Drop reference taken by mpol_shared_policy_lookup() */
- 	mpol_cond_put(pvma.vm_policy);
- 
- 	return page;
- }
--#else /* !CONFIG_NUMA */
--#ifdef CONFIG_TMPFS
--static inline void shmem_show_mpol(struct seq_file *seq, struct mempolicy *mpol)
--{
--}
--#endif /* CONFIG_TMPFS */
--
--static inline struct page *shmem_swapin(swp_entry_t swap, gfp_t gfp,
--			struct shmem_inode_info *info, pgoff_t index)
--{
--	return swapin_readahead(swap, gfp, NULL, 0);
--}
--
--static inline struct page *shmem_alloc_page(gfp_t gfp,
--			struct shmem_inode_info *info, pgoff_t index)
--{
--	return alloc_page(gfp);
--}
--#endif /* CONFIG_NUMA */
--
--#if !defined(CONFIG_NUMA) || !defined(CONFIG_TMPFS)
--static inline struct mempolicy *shmem_get_sbmpol(struct shmem_sb_info *sbinfo)
--{
--	return NULL;
--}
--#endif
- 
- /*
-  * When a page is moved from swapcache to shmem filecache (either by the
-@@ -1084,8 +1071,6 @@ static int shmem_replace_page(struct pag
- 	copy_highpage(newpage, oldpage);
- 	flush_dcache_page(newpage);
- 
--	__SetPageLocked(newpage);
--	__SetPageSwapBacked(newpage);
- 	SetPageUptodate(newpage);
- 	set_page_private(newpage, swap_index);
- 	SetPageSwapCache(newpage);
-@@ -1155,7 +1140,7 @@ repeat:
- 		page = NULL;
- 	}
- 
--	if (sgp != SGP_WRITE && sgp != SGP_FALLOC &&
-+	if (sgp <= SGP_CACHE &&
- 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
- 		error = -EINVAL;
- 		goto unlock;
-@@ -1275,9 +1260,6 @@ repeat:
- 			error = -ENOMEM;
- 			goto decused;
- 		}
--
--		__SetPageLocked(page);
--		__SetPageSwapBacked(page);
- 		if (sgp == SGP_WRITE)
- 			__SetPageReferenced(page);
- 
-@@ -1321,12 +1303,10 @@ clear:
- 			flush_dcache_page(page);
- 			SetPageUptodate(page);
- 		}
--		if (sgp == SGP_DIRTY)
--			set_page_dirty(page);
- 	}
- 
- 	/* Perhaps the file has been truncated since we checked */
--	if (sgp != SGP_WRITE && sgp != SGP_FALLOC &&
-+	if (sgp <= SGP_CACHE &&
- 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
- 		if (alloced) {
- 			ClearPageDirty(page);
-@@ -1633,7 +1613,7 @@ static ssize_t shmem_file_read_iter(stru
- 	 * and even mark them dirty, so it cannot exceed the max_blocks limit.
- 	 */
- 	if (!iter_is_iovec(to))
--		sgp = SGP_DIRTY;
-+		sgp = SGP_CACHE;
- 
- 	index = *ppos >> PAGE_SHIFT;
- 	offset = *ppos & ~PAGE_MASK;
-@@ -1659,8 +1639,11 @@ static ssize_t shmem_file_read_iter(stru
- 				error = 0;
- 			break;
- 		}
--		if (page)
-+		if (page) {
-+			if (sgp == SGP_CACHE)
-+				set_page_dirty(page);
- 			unlock_page(page);
-+		}
- 
- 		/*
- 		 * We must evaluate after, since reads (unlike writes)
+ 		pfn = ALIGN(z->zone_start_pfn, nr_pages);
+ 		while (zone_spans_last_pfn(z, pfn, nr_pages)) {
+-			if (pfn_range_valid_gigantic(pfn, nr_pages)) {
++			if (pfn_range_valid_gigantic(z, pfn, nr_pages)) {
+ 				/*
+ 				 * We release the zone lock here because
+ 				 * alloc_contig_range() will also lock the zone
 _
