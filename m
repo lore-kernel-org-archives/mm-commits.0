@@ -1,75 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [patch 042/117] mm/hugetlb: optimize minimum size (min_size)
- accounting
-Date: Thu, 19 May 2016 17:11:01 -0700
-Message-ID: <573e5615.w2sb+cp3wy3A/Hn3%akpm@linux-foundation.org>
+Subject: [patch 050/117] mm/memory_hotplug: is_mem_section_removable() can return bool
+Date: Thu, 19 May 2016 17:11:26 -0700
+Message-ID: <573e562e.gYsDLXXvCyF9UP/k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46181 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755298AbcETALD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:11:03 -0400
+	with ESMTP id S1755498AbcETAL1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:11:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mike.kravetz@oracle.com, dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, baiyaowei@cmss.chinamobile.com
 
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: optimize minimum size (min_size) accounting
+From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Subject: mm/memory_hotplug: is_mem_section_removable() can return bool
 
-It was observed that minimum size accounting associated with the
-hugetlbfs min_size mount option may not perform optimally and as
-expected.  As huge pages/reservations are released from the filesystem
-and given back to the global pools, they are reserved for subsequent
-filesystem use as long as the subpool reserved count is less than
-subpool minimum size.  It does not take into account used pages
-within the filesystem.  The filesystem size limits are not exceeded
-and this is technically not a bug.  However, better behavior would
-be to wait for the number of used pages/reservations associated with
-the filesystem to drop below the minimum size before taking reservations
-to satisfy minimum size.
+Make is_mem_section_removable() return bool to improve readability due to
+this particular function only using either one or zero as its return
+value.
 
-An optimization is also made to the hugepage_subpool_get_pages()
-routine which is called when pages/reservations are allocated.  This
-does not change behavior, but simply avoids the accounting if all
-reservations have already been taken (subpool reserved count == 0).
-
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/memory_hotplug.h |    6 +++---
+ mm/memory_hotplug.c            |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-optimize-minimum-size-min_size-accounting mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-optimize-minimum-size-min_size-accounting
-+++ a/mm/hugetlb.c
-@@ -144,7 +144,8 @@ static long hugepage_subpool_get_pages(s
- 		}
+diff -puN include/linux/memory_hotplug.h~mm-memory_hotplug-is_mem_section_removable-can-be-boolean include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-is_mem_section_removable-can-be-boolean
++++ a/include/linux/memory_hotplug.h
+@@ -247,16 +247,16 @@ static inline void mem_hotplug_done(void
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ 
+-extern int is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
++extern bool is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
+ extern void try_offline_node(int nid);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern void remove_memory(int nid, u64 start, u64 size);
+ 
+ #else
+-static inline int is_mem_section_removable(unsigned long pfn,
++static inline bool is_mem_section_removable(unsigned long pfn,
+ 					unsigned long nr_pages)
+ {
+-	return 0;
++	return false;
+ }
+ 
+ static inline void try_offline_node(int nid) {}
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-is_mem_section_removable-can-be-boolean mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-is_mem_section_removable-can-be-boolean
++++ a/mm/memory_hotplug.c
+@@ -1410,7 +1410,7 @@ static struct page *next_active_pagebloc
+ }
+ 
+ /* Checks if this range of memory is likely to be hot-removable. */
+-int is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
++bool is_mem_section_removable(unsigned long start_pfn, unsigned long nr_pages)
+ {
+ 	struct page *page = pfn_to_page(start_pfn);
+ 	struct page *end_page = page + nr_pages;
+@@ -1418,12 +1418,12 @@ int is_mem_section_removable(unsigned lo
+ 	/* Check the starting page of each pageblock within the range */
+ 	for (; page < end_page; page = next_active_pageblock(page)) {
+ 		if (!is_pageblock_removable_nolock(page))
+-			return 0;
++			return false;
+ 		cond_resched();
  	}
  
--	if (spool->min_hpages != -1) {		/* minimum size accounting */
-+	/* minimum size accounting */
-+	if (spool->min_hpages != -1 && spool->rsv_hpages) {
- 		if (delta > spool->rsv_hpages) {
- 			/*
- 			 * Asking for more reserves than those already taken on
-@@ -182,7 +183,8 @@ static long hugepage_subpool_put_pages(s
- 	if (spool->max_hpages != -1)		/* maximum size accounting */
- 		spool->used_hpages -= delta;
+ 	/* All pageblocks in the memory block are likely to be hot-removable */
+-	return 1;
++	return true;
+ }
  
--	if (spool->min_hpages != -1) {		/* minimum size accounting */
-+	 /* minimum size accounting */
-+	if (spool->min_hpages != -1 && spool->used_hpages < spool->min_hpages) {
- 		if (spool->rsv_hpages + delta <= spool->min_hpages)
- 			ret = 0;
- 		else
+ /*
 _
