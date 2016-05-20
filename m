@@ -1,84 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch removed from -mm tree
-Date: Fri, 20 May 2016 14:05:00 -0700
-Message-ID: <573f7bfc.uqzZjmYv2lzUglrQ%akpm@linux-foundation.org>
+ mm-writeback-correct-dirty-page-calculation-for-highmem.patch removed from
+ -mm tree
+Date: Fri, 20 May 2016 14:05:12 -0700
+Message-ID: <573f7c08.r6Kyn5yR4TnJdanB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47079 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47137 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcETVFB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:01 -0400
+	with ESMTP id S1751103AbcETVFN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, mpe@ellerman.id.au, paulus@samba.org, riel@redhat.com, rjw@rjwysocki.net, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: add comment to some functions related to memory hotplug
+     Subject: mm/writeback: correct dirty page calculation for highmem
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
+     mm-writeback-correct-dirty-page-calculation-for-highmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/memory_hotplug: add comment to some functions related to memory hotplug
+Subject: mm/writeback: correct dirty page calculation for highmem
 
-__offline_isolated_pages() and test_pages_isolated() are used by memory
-hotplug.  These functions require that range is in a single zone but there
-is no code to do this because memory hotplug checks it before calling
-these functions.  To avoid confusing future user of these functions, this
-patch adds comments to them.
+ZONE_MOVABLE could be treated as highmem so we need to consider it for
+accurate calculation of dirty pages.  And, in following patches, ZONE_CMA
+will be introduced and it can be treated as highmem, too.  So, instead of
+manually adding stat of ZONE_MOVABLE, looping all zones and check whether
+the zone is highmem or not and add stat of the zone which can be treated
+as highmem.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Laura Abbott <lauraa@codeaurora.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c     |    3 ++-
- mm/page_isolation.c |    1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ mm/page-writeback.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug
-+++ a/mm/page_alloc.c
-@@ -7176,7 +7176,8 @@ void zone_pcp_reset(struct zone *zone)
+diff -puN mm/page-writeback.c~mm-writeback-correct-dirty-page-calculation-for-highmem mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-writeback-correct-dirty-page-calculation-for-highmem
++++ a/mm/page-writeback.c
+@@ -296,11 +296,15 @@ static unsigned long highmem_dirtyable_m
+ #ifdef CONFIG_HIGHMEM
+ 	int node;
+ 	unsigned long x = 0;
++	int i;
  
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-- * All pages in the range must be isolated before calling this.
-+ * All pages in the range must be in a single zone and isolated
-+ * before calling this.
-  */
- void
- __offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
-diff -puN mm/page_isolation.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug mm/page_isolation.c
---- a/mm/page_isolation.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug
-+++ a/mm/page_isolation.c
-@@ -246,6 +246,7 @@ __test_page_isolated_in_pageblock(unsign
- 	return pfn;
- }
+ 	for_each_node_state(node, N_HIGH_MEMORY) {
+-		struct zone *z = &NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
++		for (i = 0; i < MAX_NR_ZONES; i++) {
++			struct zone *z = &NODE_DATA(node)->node_zones[i];
  
-+/* Caller should ensure that requested range is in a single zone */
- int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
- 			bool skip_hwpoisoned_pages)
- {
+-		x += zone_dirtyable_memory(z);
++			if (is_highmem(z))
++				x += zone_dirtyable_memory(z);
++		}
+ 	}
+ 	/*
+ 	 * Unreclaimable memory (kernel memory or anonymous memory
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
