@@ -1,57 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [patch 046/117] powerpc: mm: use hugetlb_bad_size()
-Date: Thu, 19 May 2016 17:11:14 -0700
-Message-ID: <573e5622.oFqd0dbi4Z8wDV3L%akpm@linux-foundation.org>
+Subject: [patch 057/117] mm/rmap: replace BUG_ON(anon_vma->degree) with
+ VM_WARN_ON
+Date: Thu, 19 May 2016 17:11:46 -0700
+Message-ID: <573e5642.VSDpFXg2Vz/Q0qO9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46141 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46208 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755498AbcETALP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:11:15 -0400
+	with ESMTP id S1755578AbcETALr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:11:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vaishali.thakkar@oracle.com, baiyaowei@cmss.chinamobile.com, benh@kernel.crashing.org, dave.hansen@linux.intel.com, dingel@linux.vnet.ibm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, khlebnikov@yandex-team.ru, vbabka@suse.cz, vvs@virtuozzo.com
 
-From: Vaishali Thakkar <vaishali.thakkar@oracle.com>
-Subject: powerpc: mm: use hugetlb_bad_size()
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: mm/rmap: replace BUG_ON(anon_vma->degree) with VM_WARN_ON
 
-Update setup_hugepagesz() to call hugetlb_bad_size() when unsupported
-hugepage size is found.
+This check effectively catches anon vma hierarchy inconsistence and some
+vma corruptions.  It was effective for catching corner cases in anon vma
+reusing logic.  For now this code seems stable so check could be hidden
+under CONFIG_DEBUG_VM and replaced with WARN because it's not so fatal.
 
-Signed-off-by: Vaishali Thakkar <vaishali.thakkar@oracle.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Cc: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Suggested-by: Vasily Averin <vvs@virtuozzo.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hugetlbpage.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/rmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/mm/hugetlbpage.c~powerpc-mm-use-hugetlb_bad_size arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~powerpc-mm-use-hugetlb_bad_size
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -772,8 +772,10 @@ static int __init hugepage_setup_sz(char
+diff -puN mm/rmap.c~mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-replace-bug_onanon_vma-degree-with-vm_warn_on
++++ a/mm/rmap.c
+@@ -409,7 +409,7 @@ void unlink_anon_vmas(struct vm_area_str
+ 	list_for_each_entry_safe(avc, next, &vma->anon_vma_chain, same_vma) {
+ 		struct anon_vma *anon_vma = avc->anon_vma;
  
- 	size = memparse(str, &str);
+-		BUG_ON(anon_vma->degree);
++		VM_WARN_ON(anon_vma->degree);
+ 		put_anon_vma(anon_vma);
  
--	if (add_huge_page_size(size) != 0)
--		printk(KERN_WARNING "Invalid huge page size specified(%llu)\n", size);
-+	if (add_huge_page_size(size) != 0) {
-+		hugetlb_bad_size();
-+		pr_err("Invalid huge page size specified(%llu)\n", size);
-+	}
- 
- 	return 1;
- }
+ 		list_del(&avc->same_vma);
 _
