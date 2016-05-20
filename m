@@ -1,102 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [patch 053/162] mm: page_is_guard(): return false when page_ext
- arrays are not allocated yet
-Date: Fri, 20 May 2016 16:58:59 -0700
-Message-ID: <573fa4c3.tQXKHZj3I9fJ0C2w%akpm@linux-foundation.org>
+Subject: [patch 054/162] mm/compaction.c: fix zoneindex in kcompactd()
+Date: Fri, 20 May 2016 16:59:02 -0700
+Message-ID: <573fa4c6.J9Z0R+stDsdkroxO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52395 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52403 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751513AbcETX7A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:59:00 -0400
+	with ESMTP id S1751645AbcETX7D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:59:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yang.shi@linaro.org, iamjoonsoo.kim@lge.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, puck.chen@hisilicon.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, stable@vger.kernel.org, suzhuangluan@hisilicon.com, tj@kernel.org, vbabka@suse.cz, xuyiping@hisilicon.com
 
-From: Yang Shi <yang.shi@linaro.org>
-Subject: mm: page_is_guard(): return false when page_ext arrays are not allocated yet
+From: Chen Feng <puck.chen@hisilicon.com>
+Subject: mm/compaction.c: fix zoneindex in kcompactd()
 
-When enabling the below kernel configs:
+While testing the kcompactd in my platform 3G MEM only DMA ZONE.  I found
+the kcompactd never wakeup.  It seems the zoneindex has already minus 1
+before.  So the traverse here should be <=.
 
-CONFIG_DEFERRED_STRUCT_PAGE_INIT
-CONFIG_DEBUG_PAGEALLOC
-CONFIG_PAGE_EXTENSION
-CONFIG_DEBUG_VM
+It fixes a regression where kswapd could previously compact, but
+kcompactd not.  Not a crash fix though.
 
-kernel bootup may fail due to the following oops:
-
-BUG: unable to handle kernel NULL pointer dereference at           (null)
-IP: [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
-PGD 0
-Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-Modules linked in:
-CPU: 11 PID: 106 Comm: pgdatinit1 Not tainted 4.6.0-rc5-next-20160427 #26
-Hardware name: Intel Corporation S5520HC/S5520HC, BIOS S5500.86B.01.10.0025.030220091519 03/02/2009
-task: ffff88017c080040 ti: ffff88017c084000 task.ti: ffff88017c084000
-RIP: 0010:[<ffffffff8118d982>]  [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
-RSP: 0000:ffff88017c087c48  EFLAGS: 00010046
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000001
-RDX: 0000000000000980 RSI: 0000000000000080 RDI: 0000000000660401
-RBP: ffff88017c087cd0 R08: 0000000000000401 R09: 0000000000000009
-R10: ffff88017c080040 R11: 000000000000000a R12: 0000000000000400
-R13: ffffea0019810000 R14: ffffea0019810040 R15: ffff88066cfe6080
-FS:  0000000000000000(0000) GS:ffff88066cd40000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000000 CR3: 0000000002406000 CR4: 00000000000006e0
-Stack:
- ffff88066cd5bbd8 ffff88066cfe6640 0000000000000000 0000000000000000
- 0000001f0000001f ffff88066cd5bbe8 ffffea0019810000 000000008118f53e
- 0000000000000009 0000000000000401 ffffffff0000000a 0000000000000001
-Call Trace:
- [<ffffffff8118f602>] free_hot_cold_page+0x192/0x1d0
- [<ffffffff8118f69c>] __free_pages+0x5c/0x90
- [<ffffffff8262a676>] __free_pages_boot_core+0x11a/0x14e
- [<ffffffff8262a6fa>] deferred_free_range+0x50/0x62
- [<ffffffff8262aa46>] deferred_init_memmap+0x220/0x3c3
- [<ffffffff8262a826>] ? setup_per_cpu_pageset+0x35/0x35
- [<ffffffff8108b1f8>] kthread+0xf8/0x110
- [<ffffffff81c1b732>] ret_from_fork+0x22/0x40
- [<ffffffff8108b100>] ? kthread_create_on_node+0x200/0x200
-Code: 49 89 d4 48 c1 e0 06 49 01 c5 e9 de fe ff ff 4c 89 f7 44 89 4d b8 4c 89 45 c0 44 89 5d c8 48 89 4d d0 e8 62 c7 07 00 48 8b 4d d0 <48> 8b 00 44 8b 5d c8 4c 8b 45 c0 44 8b 4d b8 a8 02 0f 84 05 ff
-RIP  [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
- RSP <ffff88017c087c48>
-CR2: 0000000000000000
-
-The problem is lookup_page_ext() returns NULL then page_is_guard() tried to
-access it in page freeing.
-
-page_is_guard() depends on PAGE_EXT_DEBUG_GUARD bit of page extension
-flag, but freeing page might reach here before the page_ext arrays are
-allocated when feeding a range of pages to the allocator for the first
-time during bootup or memory hotplug.
-
-When it returns NULL, page_is_guard() should just return false instead of
-checking PAGE_EXT_DEBUG_GUARD unconditionally.
-
-Link: http://lkml.kernel.org/r/1463610225-29060-1-git-send-email-yang.shi@linaro.org
-Signed-off-by: Yang Shi <yang.shi@linaro.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+[akpm@linux-foundation.org: fix kcompactd_do_work() as well, per Hugh]
+Link: http://lkml.kernel.org/r/1463659121-84124-1-git-send-email-puck.chen@hisilicon.com
+Fixes: accf62422b3a ("mm, kswapd: replace kswapd compaction with waking up kcompactd")
+Signed-off-by: Chen Feng <puck.chen@hisilicon.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zhuangluan Su <suzhuangluan@hisilicon.com>
+Cc: Yiping Xu <xuyiping@hisilicon.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/compaction.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet include/linux/mm.h
---- a/include/linux/mm.h~mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet
-+++ a/include/linux/mm.h
-@@ -2386,6 +2386,9 @@ static inline bool page_is_guard(struct
- 		return false;
+diff -puN mm/compaction.c~mm-compact-fix-zoneindex-in-compact mm/compaction.c
+--- a/mm/compaction.c~mm-compact-fix-zoneindex-in-compact
++++ a/mm/compaction.c
+@@ -1862,7 +1862,7 @@ static bool kcompactd_node_suitable(pg_d
+ 	struct zone *zone;
+ 	enum zone_type classzone_idx = pgdat->kcompactd_classzone_idx;
  
- 	page_ext = lookup_page_ext(page);
-+	if (unlikely(!page_ext))
-+		return false;
-+
- 	return test_bit(PAGE_EXT_DEBUG_GUARD, &page_ext->flags);
- }
- #else
+-	for (zoneid = 0; zoneid < classzone_idx; zoneid++) {
++	for (zoneid = 0; zoneid <= classzone_idx; zoneid++) {
+ 		zone = &pgdat->node_zones[zoneid];
+ 
+ 		if (!populated_zone(zone))
+@@ -1897,7 +1897,7 @@ static void kcompactd_do_work(pg_data_t
+ 							cc.classzone_idx);
+ 	count_vm_event(KCOMPACTD_WAKE);
+ 
+-	for (zoneid = 0; zoneid < cc.classzone_idx; zoneid++) {
++	for (zoneid = 0; zoneid <= cc.classzone_idx; zoneid++) {
+ 		int status;
+ 
+ 		zone = &pgdat->node_zones[zoneid];
 _
