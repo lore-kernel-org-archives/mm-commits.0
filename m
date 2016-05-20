@@ -1,74 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mempolicy-vma_migratable-can-be-boolean.patch removed from -mm tree
-Date: Fri, 20 May 2016 14:04:31 -0700
-Message-ID: <573f7bdf.pCIZuNh+DU/3EjeJ%akpm@linux-foundation.org>
+Subject: [merged] mm-hugetlb-is_vm_hugetlb_page-can-be-boolean.patch
+ removed from -mm tree
+Date: Fri, 20 May 2016 14:04:25 -0700
+Message-ID: <573f7bd9.klNbChhFLhY5tsXt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46994 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbcETVEc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:32 -0400
+	with ESMTP id S1751065AbcETVE0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:04:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: baiyaowei@cmss.chinamobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy.c: vma_migratable() can return bool
+     Subject: mm/hugetlb: is_vm_hugetlb_page() can return bool
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-vma_migratable-can-be-boolean.patch
+     mm-hugetlb-is_vm_hugetlb_page-can-be-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Subject: mm/mempolicy.c: vma_migratable() can return bool
+Subject: mm/hugetlb: is_vm_hugetlb_page() can return bool
 
-Make vma_migratable() return bool due to this particular function only
-using either one or zero as its return value.
+Make is_vm_hugetlb_page() return bool to improve readability due to this
+particular function only using either one or zero as its return value.
 
 Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/hugetlb_inline.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mm-mempolicy-vma_migratable-can-be-boolean include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-mempolicy-vma_migratable-can-be-boolean
-+++ a/include/linux/mempolicy.h
-@@ -172,14 +172,14 @@ extern int mpol_parse_str(char *str, str
- extern void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol);
+diff -puN include/linux/hugetlb_inline.h~mm-hugetlb-is_vm_hugetlb_page-can-be-boolean include/linux/hugetlb_inline.h
+--- a/include/linux/hugetlb_inline.h~mm-hugetlb-is_vm_hugetlb_page-can-be-boolean
++++ a/include/linux/hugetlb_inline.h
+@@ -5,16 +5,16 @@
  
- /* Check if a vma is migratable */
--static inline int vma_migratable(struct vm_area_struct *vma)
-+static inline bool vma_migratable(struct vm_area_struct *vma)
+ #include <linux/mm.h>
+ 
+-static inline int is_vm_hugetlb_page(struct vm_area_struct *vma)
++static inline bool is_vm_hugetlb_page(struct vm_area_struct *vma)
  {
- 	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
--		return 0;
-+		return false;
- 
- #ifndef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
- 	if (vma->vm_flags & VM_HUGETLB)
--		return 0;
-+		return false;
- #endif
- 
- 	/*
-@@ -190,8 +190,8 @@ static inline int vma_migratable(struct
- 	if (vma->vm_file &&
- 		gfp_zone(mapping_gfp_mask(vma->vm_file->f_mapping))
- 								< policy_zone)
--			return 0;
--	return 1;
-+			return false;
-+	return true;
+ 	return !!(vma->vm_flags & VM_HUGETLB);
  }
  
- extern int mpol_misplaced(struct page *, struct vm_area_struct *, unsigned long);
+ #else
+ 
+-static inline int is_vm_hugetlb_page(struct vm_area_struct *vma)
++static inline bool is_vm_hugetlb_page(struct vm_area_struct *vma)
+ {
+-	return 0;
++	return false;
+ }
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
