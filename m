@@ -1,113 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] huge-mm-move_huge_pmd-does-not-need-new_vma.patch
+Subject: [merged]
+ memory_hotplug-introduce-memhp_default_state=-command-line-parameter.patch
  removed from -mm tree
-Date: Fri, 20 May 2016 14:05:44 -0700
-Message-ID: <573f7c28.wo5i7E1VzyoRbVfz%akpm@linux-foundation.org>
+Date: Fri, 20 May 2016 14:05:56 -0700
+Message-ID: <573f7c34.KHXve63kmQ2wW/NZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47223 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47261 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751172AbcETVFp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:45 -0400
+	with ESMTP id S1751172AbcETVF5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: vkuznets@redhat.com, corbet@lwn.net, dan.j.williams@intel.com, david.vrabel@citrix.com, imammedo@redhat.com, kirill.shutemov@linux.intel.com, lennart@poettering.net, mgorman@techsingularity.net, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge mm: move_huge_pmd does not need new_vma
+     Subject: memory_hotplug: introduce memhp_default_state= command line parameter
 has been removed from the -mm tree.  Its filename was
-     huge-mm-move_huge_pmd-does-not-need-new_vma.patch
+     memory_hotplug-introduce-memhp_default_state=-command-line-parameter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: huge mm: move_huge_pmd does not need new_vma
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: memory_hotplug: introduce memhp_default_state= command line parameter
 
-Remove move_huge_pmd()'s redundant new_vma arg: all it was used for was a
-VM_NOHUGEPAGE check on new_vma flags, but the new_vma is cloned from the
-old vma, so a trans_huge_pmd in the new_vma will be as acceptable as it
-was in the old vma, alignment and size permitting.
+CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE specifies the default value for the
+memory hotplug onlining policy.  Add a command line parameter to make it
+possible to override the default.  It may come handy for debug and testing
+purposes.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Yang Shi <yang.shi@linaro.org>
-Cc: Ning Qu <quning@gmail.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Lennart Poettering <lennart@poettering.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    4 +---
- mm/huge_memory.c        |    7 ++-----
- mm/mremap.c             |    5 ++---
- 3 files changed, 5 insertions(+), 11 deletions(-)
+ Documentation/kernel-parameters.txt |    8 ++++++++
+ mm/memory_hotplug.c                 |   11 +++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff -puN include/linux/huge_mm.h~huge-mm-move_huge_pmd-does-not-need-new_vma include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~huge-mm-move_huge_pmd-does-not-need-new_vma
-+++ a/include/linux/huge_mm.h
-@@ -28,9 +28,7 @@ extern int zap_huge_pmd(struct mmu_gathe
- extern int mincore_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
- 			unsigned long addr, unsigned long end,
- 			unsigned char *vec);
--extern bool move_huge_pmd(struct vm_area_struct *vma,
--			 struct vm_area_struct *new_vma,
--			 unsigned long old_addr,
-+extern bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
- 			 unsigned long new_addr, unsigned long old_end,
- 			 pmd_t *old_pmd, pmd_t *new_pmd);
- extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
-diff -puN mm/huge_memory.c~huge-mm-move_huge_pmd-does-not-need-new_vma mm/huge_memory.c
---- a/mm/huge_memory.c~huge-mm-move_huge_pmd-does-not-need-new_vma
-+++ a/mm/huge_memory.c
-@@ -1698,20 +1698,17 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 	return 1;
- }
+diff -puN Documentation/kernel-parameters.txt~memory_hotplug-introduce-memhp_default_state=-command-line-parameter Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~memory_hotplug-introduce-memhp_default_state=-command-line-parameter
++++ a/Documentation/kernel-parameters.txt
+@@ -2161,6 +2161,14 @@ bytes respectively. Such letter suffixes
+ 			[KNL,SH] Allow user to override the default size for
+ 			per-device physically contiguous DMA buffers.
  
--bool move_huge_pmd(struct vm_area_struct *vma, struct vm_area_struct *new_vma,
--		  unsigned long old_addr,
-+bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
- 		  unsigned long new_addr, unsigned long old_end,
- 		  pmd_t *old_pmd, pmd_t *new_pmd)
++        memhp_default_state=online/offline
++			[KNL] Set the initial state for the memory hotplug
++			onlining policy. If not specified, the default value is
++			set according to the
++			CONFIG_MEMORY_HOTPLUG_DEFAULT_ONLINE kernel config
++			option.
++			See Documentation/memory-hotplug.txt.
++
+ 	memmap=exactmap	[KNL,X86] Enable setting of an exact
+ 			E820 memory map, as specified by the user.
+ 			Such memmap=exactmap lines can be constructed based on
+diff -puN mm/memory_hotplug.c~memory_hotplug-introduce-memhp_default_state=-command-line-parameter mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory_hotplug-introduce-memhp_default_state=-command-line-parameter
++++ a/mm/memory_hotplug.c
+@@ -85,6 +85,17 @@ bool memhp_auto_online = true;
+ #endif
+ EXPORT_SYMBOL_GPL(memhp_auto_online);
+ 
++static int __init setup_memhp_default_state(char *str)
++{
++	if (!strcmp(str, "online"))
++		memhp_auto_online = true;
++	else if (!strcmp(str, "offline"))
++		memhp_auto_online = false;
++
++	return 1;
++}
++__setup("memhp_default_state=", setup_memhp_default_state);
++
+ void get_online_mems(void)
  {
- 	spinlock_t *old_ptl, *new_ptl;
- 	pmd_t pmd;
--
- 	struct mm_struct *mm = vma->vm_mm;
- 
- 	if ((old_addr & ~HPAGE_PMD_MASK) ||
- 	    (new_addr & ~HPAGE_PMD_MASK) ||
--	    old_end - old_addr < HPAGE_PMD_SIZE ||
--	    (new_vma->vm_flags & VM_NOHUGEPAGE))
-+	    old_end - old_addr < HPAGE_PMD_SIZE)
- 		return false;
- 
- 	/*
-diff -puN mm/mremap.c~huge-mm-move_huge_pmd-does-not-need-new_vma mm/mremap.c
---- a/mm/mremap.c~huge-mm-move_huge_pmd-does-not-need-new_vma
-+++ a/mm/mremap.c
-@@ -198,9 +198,8 @@ unsigned long move_page_tables(struct vm
- 				/* See comment in move_ptes() */
- 				if (need_rmap_locks)
- 					anon_vma_lock_write(vma->anon_vma);
--				moved = move_huge_pmd(vma, new_vma, old_addr,
--						    new_addr, old_end,
--						    old_pmd, new_pmd);
-+				moved = move_huge_pmd(vma, old_addr, new_addr,
-+						    old_end, old_pmd, new_pmd);
- 				if (need_rmap_locks)
- 					anon_vma_unlock_write(vma->anon_vma);
- 				if (moved) {
+ 	might_sleep();
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from vkuznets@redhat.com are
 
-radix-tree-rewrite-radix_tree_locate_item-fix.patch
 
