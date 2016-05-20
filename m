@@ -1,141 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [patch 107/117] mm, page_alloc: check multiple page fields with a single branch
-Date: Thu, 19 May 2016 17:14:15 -0700
-Message-ID: <573e56d7.QH36KZaJV/74VtCL%akpm@linux-foundation.org>
+Subject: [patch 108/117] mm, page_alloc: un-inline the bad part of
+ free_pages_check
+Date: Thu, 19 May 2016 17:14:18 -0700
+Message-ID: <573e56da.A2Z6qhC4ei47rHFj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46611 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46614 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755185AbcETAOR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:17 -0400
+	with ESMTP id S1755185AbcETAOT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, brouer@redhat.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, vbabka@suse.cz
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: check multiple page fields with a single branch
+Subject: mm, page_alloc: un-inline the bad part of free_pages_check
 
-Every page allocated or freed is checked for sanity to avoid corruptions
-that are difficult to detect later.  A bad page could be due to a number
-of fields.  Instead of using multiple branches, this patch combines
-multiple fields into a single branch.  A detailed check is only necessary
-if that check fails.
+From: Vlastimil Babka <vbabka@suse.cz>
 
-                                           4.6.0-rc2                  4.6.0-rc2
-                                      initonce-v1r20            multcheck-v1r20
-Min      alloc-odr0-1               359.00 (  0.00%)           348.00 (  3.06%)
-Min      alloc-odr0-2               260.00 (  0.00%)           254.00 (  2.31%)
-Min      alloc-odr0-4               214.00 (  0.00%)           213.00 (  0.47%)
-Min      alloc-odr0-8               186.00 (  0.00%)           186.00 (  0.00%)
-Min      alloc-odr0-16              173.00 (  0.00%)           173.00 (  0.00%)
-Min      alloc-odr0-32              165.00 (  0.00%)           166.00 ( -0.61%)
-Min      alloc-odr0-64              162.00 (  0.00%)           162.00 (  0.00%)
-Min      alloc-odr0-128             161.00 (  0.00%)           160.00 (  0.62%)
-Min      alloc-odr0-256             170.00 (  0.00%)           169.00 (  0.59%)
-Min      alloc-odr0-512             181.00 (  0.00%)           180.00 (  0.55%)
-Min      alloc-odr0-1024            190.00 (  0.00%)           188.00 (  1.05%)
-Min      alloc-odr0-2048            196.00 (  0.00%)           194.00 (  1.02%)
-Min      alloc-odr0-4096            202.00 (  0.00%)           199.00 (  1.49%)
-Min      alloc-odr0-8192            205.00 (  0.00%)           202.00 (  1.46%)
-Min      alloc-odr0-16384           205.00 (  0.00%)           203.00 (  0.98%)
+!DEBUG_VM size and bloat-o-meter:
 
-Again, the benefit is marginal but avoiding excessive branches is
-important.  Ideally the paths would not have to check these conditions at
-all but regrettably abandoning the tests would make use-after-free bugs
-much harder to detect.
+add/remove: 1/0 grow/shrink: 0/2 up/down: 124/-370 (-246)
+function                                     old     new   delta
+free_pages_check_bad                           -     124    +124
+free_pcppages_bulk                          1288    1171    -117
+__free_pages_ok                              948     695    -253
 
+DEBUG_VM:
+
+add/remove: 1/0 grow/shrink: 0/1 up/down: 124/-214 (-90)
+function                                     old     new   delta
+free_pages_check_bad                           -     124    +124
+free_pages_prepare                          1112     898    -214
+
+[akpm@linux-foundation.org: fix whitespace]
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   55 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 43 insertions(+), 12 deletions(-)
+ mm/page_alloc.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-check-multiple-page-fields-with-a-single-branch mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-check-multiple-page-fields-with-a-single-branch
+diff -puN mm/page_alloc.c~mm-page_alloc-un-inline-the-bad-part-of-free_pages_check mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-un-inline-the-bad-part-of-free_pages_check
 +++ a/mm/page_alloc.c
-@@ -784,10 +784,42 @@ out:
- 	zone->free_area[order].nr_free++;
+@@ -806,18 +806,11 @@ static inline bool page_expected_state(s
+ 	return true;
  }
  
-+/*
-+ * A bad page could be due to a number of fields. Instead of multiple branches,
-+ * try and check multiple fields with one check. The caller must do a detailed
-+ * check if necessary.
-+ */
-+static inline bool page_expected_state(struct page *page,
-+					unsigned long check_flags)
-+{
-+	if (unlikely(atomic_read(&page->_mapcount) != -1))
-+		return false;
-+
-+	if (unlikely((unsigned long)page->mapping |
-+			page_ref_count(page) |
-+#ifdef CONFIG_MEMCG
-+			(unsigned long)page->mem_cgroup |
-+#endif
-+			(page->flags & check_flags)))
-+		return false;
-+
-+	return true;
-+}
-+
- static inline int free_pages_check(struct page *page)
+-static inline int free_pages_check(struct page *page)
++static void free_pages_check_bad(struct page *page)
  {
--	const char *bad_reason = NULL;
--	unsigned long bad_flags = 0;
-+	const char *bad_reason;
-+	unsigned long bad_flags;
-+
-+	if (page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE)) {
-+		page_cpupid_reset_last(page);
-+		page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-+		return 0;
-+	}
-+
-+	/* Something has gone sideways, find it */
-+	bad_reason = NULL;
-+	bad_flags = 0;
+ 	const char *bad_reason;
+ 	unsigned long bad_flags;
  
- 	if (unlikely(atomic_read(&page->_mapcount) != -1))
- 		bad_reason = "nonzero mapcount";
-@@ -803,14 +835,8 @@ static inline int free_pages_check(struc
- 	if (unlikely(page->mem_cgroup))
- 		bad_reason = "page still charged to cgroup";
- #endif
--	if (unlikely(bad_reason)) {
--		bad_page(page, bad_reason, bad_flags);
--		return 1;
--	}
--	page_cpupid_reset_last(page);
--	if (page->flags & PAGE_FLAGS_CHECK_AT_PREP)
+-	if (page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE)) {
+-		page_cpupid_reset_last(page);
 -		page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
--	return 0;
-+	bad_page(page, bad_reason, bad_flags);
-+	return 1;
- }
- 
- /*
-@@ -1492,9 +1518,14 @@ static inline void expand(struct zone *z
-  */
- static inline int check_new_page(struct page *page)
- {
--	const char *bad_reason = NULL;
--	unsigned long bad_flags = 0;
-+	const char *bad_reason;
-+	unsigned long bad_flags;
-+
-+	if (page_expected_state(page, PAGE_FLAGS_CHECK_AT_PREP|__PG_HWPOISON))
-+		return 0;
- 
-+	bad_reason = NULL;
-+	bad_flags = 0;
- 	if (unlikely(atomic_read(&page->_mapcount) != -1))
- 		bad_reason = "nonzero mapcount";
- 	if (unlikely(page->mapping != NULL))
-_
+-		return 0;
+-	}
