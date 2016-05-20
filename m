@@ -1,39 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [patch 062/162] x86/kasan: instrument user memory access API
-Date: Fri, 20 May 2016 16:59:31 -0700
-Message-ID: <573fa4e3.ElA7ili7US5xg/VX%akpm@linux-foundation.org>
+Subject: [patch 060/162] mm/kasan: print name of mem[set,cpy,move]()
+ caller in report
+Date: Fri, 20 May 2016 16:59:20 -0700
+Message-ID: <573fa4d8.CzTBAKe+hwf4Hndj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52453 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52437 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576AbcETX7c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:59:32 -0400
+	with ESMTP id S1751475AbcETX70 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:59:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
 
 From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: x86/kasan: instrument user memory access API
+Subject: mm/kasan: print name of mem[set,cpy,move]() caller in report
 
-Exchange between user and kernel memory is coded in assembly language. 
-Which means that such accesses won't be spotted by KASAN as a compiler
-instruments only C code.
+When bogus memory access happens in mem[set,cpy,move]() it's usually
+caller's fault.  So don't blame mem[set,cpy,move]() in bug report, blame
+the caller instead.
 
-Add explicit KASAN checks to user memory access API to ensure that
-userspace writes to (or reads from) a valid kernel memory.
+Before:
+BUG: KASAN: out-of-bounds access in memset+0x23/0x40 at <address>
+After:
+BUG: KASAN: out-of-bounds access in <memset_caller> at <address>
 
-Note: Unlike others strncpy_from_user() is written mostly in C and KASAN
-sees memory accesses in it.  However, it makes sense to add explicit check
-for all @count bytes that *potentially* could be written to the kernel.
-
-[aryabinin@virtuozzo.com: move kasan check under the condition]
-  Link: http://lkml.kernel.org/r/1462869209-21096-1-git-send-email-aryabinin@virtuozzo.com
-Link: http://lkml.kernel.org/r/1462538722-1574-4-git-send-email-aryabinin@virtuozzo.com
+Link: http://lkml.kernel.org/r/1462538722-1574-2-git-send-email-aryabinin@virtuozzo.com
 Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Acked-by: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -41,114 +38,134 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/uaccess.h    |    5 +++++
- arch/x86/include/asm/uaccess_64.h |    7 +++++++
- lib/strncpy_from_user.c           |    2 ++
- 3 files changed, 14 insertions(+)
+ mm/kasan/kasan.c |   64 +++++++++++++++++++++++----------------------
+ 1 file changed, 34 insertions(+), 30 deletions(-)
 
-diff -puN arch/x86/include/asm/uaccess.h~x86-kasan-instrument-user-memory-access-api arch/x86/include/asm/uaccess.h
---- a/arch/x86/include/asm/uaccess.h~x86-kasan-instrument-user-memory-access-api
-+++ a/arch/x86/include/asm/uaccess.h
-@@ -5,6 +5,7 @@
-  */
- #include <linux/errno.h>
- #include <linux/compiler.h>
-+#include <linux/kasan-checks.h>
- #include <linux/thread_info.h>
- #include <linux/string.h>
- #include <asm/asm.h>
-@@ -721,6 +722,8 @@ copy_from_user(void *to, const void __us
- 
- 	might_fault();
- 
-+	kasan_check_write(to, n);
-+
- 	/*
- 	 * While we would like to have the compiler do the checking for us
- 	 * even in the non-constant size case, any false positives there are
-@@ -754,6 +757,8 @@ copy_to_user(void __user *to, const void
- {
- 	int sz = __compiletime_object_size(from);
- 
-+	kasan_check_read(from, n);
-+
- 	might_fault();
- 
- 	/* See the comment in copy_from_user() above. */
-diff -puN arch/x86/include/asm/uaccess_64.h~x86-kasan-instrument-user-memory-access-api arch/x86/include/asm/uaccess_64.h
---- a/arch/x86/include/asm/uaccess_64.h~x86-kasan-instrument-user-memory-access-api
-+++ a/arch/x86/include/asm/uaccess_64.h
-@@ -7,6 +7,7 @@
- #include <linux/compiler.h>
- #include <linux/errno.h>
- #include <linux/lockdep.h>
-+#include <linux/kasan-checks.h>
- #include <asm/alternative.h>
- #include <asm/cpufeatures.h>
- #include <asm/page.h>
-@@ -109,6 +110,7 @@ static __always_inline __must_check
- int __copy_from_user(void *dst, const void __user *src, unsigned size)
- {
- 	might_fault();
-+	kasan_check_write(dst, size);
- 	return __copy_from_user_nocheck(dst, src, size);
+diff -puN mm/kasan/kasan.c~mm-kasan-print-name-of-mem-caller-in-report mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-print-name-of-mem-caller-in-report
++++ a/mm/kasan/kasan.c
+@@ -273,32 +273,36 @@ static __always_inline bool memory_is_po
+ 	return memory_is_poisoned_n(addr, size);
  }
  
-@@ -175,6 +177,7 @@ static __always_inline __must_check
- int __copy_to_user(void __user *dst, const void *src, unsigned size)
+-
+-static __always_inline void check_memory_region(unsigned long addr,
+-						size_t size, bool write)
++static __always_inline void check_memory_region_inline(unsigned long addr,
++						size_t size, bool write,
++						unsigned long ret_ip)
  {
- 	might_fault();
-+	kasan_check_read(src, size);
- 	return __copy_to_user_nocheck(dst, src, size);
+ 	if (unlikely(size == 0))
+ 		return;
+ 
+ 	if (unlikely((void *)addr <
+ 		kasan_shadow_to_mem((void *)KASAN_SHADOW_START))) {
+-		kasan_report(addr, size, write, _RET_IP_);
++		kasan_report(addr, size, write, ret_ip);
+ 		return;
+ 	}
+ 
+ 	if (likely(!memory_is_poisoned(addr, size)))
+ 		return;
+ 
+-	kasan_report(addr, size, write, _RET_IP_);
++	kasan_report(addr, size, write, ret_ip);
  }
  
-@@ -242,12 +245,14 @@ int __copy_in_user(void __user *dst, con
- static __must_check __always_inline int
- __copy_from_user_inatomic(void *dst, const void __user *src, unsigned size)
+-void __asan_loadN(unsigned long addr, size_t size);
+-void __asan_storeN(unsigned long addr, size_t size);
++static void check_memory_region(unsigned long addr,
++				size_t size, bool write,
++				unsigned long ret_ip)
++{
++	check_memory_region_inline(addr, size, write, ret_ip);
++}
+ 
+ #undef memset
+ void *memset(void *addr, int c, size_t len)
  {
-+	kasan_check_write(dst, size);
- 	return __copy_from_user_nocheck(dst, src, size);
- }
+-	__asan_storeN((unsigned long)addr, len);
++	check_memory_region((unsigned long)addr, len, true, _RET_IP_);
  
- static __must_check __always_inline int
- __copy_to_user_inatomic(void __user *dst, const void *src, unsigned size)
+ 	return __memset(addr, c, len);
+ }
+@@ -306,8 +310,8 @@ void *memset(void *addr, int c, size_t l
+ #undef memmove
+ void *memmove(void *dest, const void *src, size_t len)
  {
-+	kasan_check_read(src, size);
- 	return __copy_to_user_nocheck(dst, src, size);
- }
+-	__asan_loadN((unsigned long)src, len);
+-	__asan_storeN((unsigned long)dest, len);
++	check_memory_region((unsigned long)src, len, false, _RET_IP_);
++	check_memory_region((unsigned long)dest, len, true, _RET_IP_);
  
-@@ -258,6 +263,7 @@ static inline int
- __copy_from_user_nocache(void *dst, const void __user *src, unsigned size)
+ 	return __memmove(dest, src, len);
+ }
+@@ -315,8 +319,8 @@ void *memmove(void *dest, const void *sr
+ #undef memcpy
+ void *memcpy(void *dest, const void *src, size_t len)
  {
- 	might_fault();
-+	kasan_check_write(dst, size);
- 	return __copy_user_nocache(dst, src, size, 1);
- }
+-	__asan_loadN((unsigned long)src, len);
+-	__asan_storeN((unsigned long)dest, len);
++	check_memory_region((unsigned long)src, len, false, _RET_IP_);
++	check_memory_region((unsigned long)dest, len, true, _RET_IP_);
  
-@@ -265,6 +271,7 @@ static inline int
- __copy_from_user_inatomic_nocache(void *dst, const void __user *src,
- 				  unsigned size)
+ 	return __memcpy(dest, src, len);
+ }
+@@ -690,22 +694,22 @@ void __asan_unregister_globals(struct ka
+ }
+ EXPORT_SYMBOL(__asan_unregister_globals);
+ 
+-#define DEFINE_ASAN_LOAD_STORE(size)				\
+-	void __asan_load##size(unsigned long addr)		\
+-	{							\
+-		check_memory_region(addr, size, false);		\
+-	}							\
+-	EXPORT_SYMBOL(__asan_load##size);			\
+-	__alias(__asan_load##size)				\
+-	void __asan_load##size##_noabort(unsigned long);	\
+-	EXPORT_SYMBOL(__asan_load##size##_noabort);		\
+-	void __asan_store##size(unsigned long addr)		\
+-	{							\
+-		check_memory_region(addr, size, true);		\
+-	}							\
+-	EXPORT_SYMBOL(__asan_store##size);			\
+-	__alias(__asan_store##size)				\
+-	void __asan_store##size##_noabort(unsigned long);	\
++#define DEFINE_ASAN_LOAD_STORE(size)					\
++	void __asan_load##size(unsigned long addr)			\
++	{								\
++		check_memory_region_inline(addr, size, false, _RET_IP_);\
++	}								\
++	EXPORT_SYMBOL(__asan_load##size);				\
++	__alias(__asan_load##size)					\
++	void __asan_load##size##_noabort(unsigned long);		\
++	EXPORT_SYMBOL(__asan_load##size##_noabort);			\
++	void __asan_store##size(unsigned long addr)			\
++	{								\
++		check_memory_region_inline(addr, size, true, _RET_IP_);	\
++	}								\
++	EXPORT_SYMBOL(__asan_store##size);				\
++	__alias(__asan_store##size)					\
++	void __asan_store##size##_noabort(unsigned long);		\
+ 	EXPORT_SYMBOL(__asan_store##size##_noabort)
+ 
+ DEFINE_ASAN_LOAD_STORE(1);
+@@ -716,7 +720,7 @@ DEFINE_ASAN_LOAD_STORE(16);
+ 
+ void __asan_loadN(unsigned long addr, size_t size)
  {
-+	kasan_check_write(dst, size);
- 	return __copy_user_nocache(dst, src, size, 0);
+-	check_memory_region(addr, size, false);
++	check_memory_region(addr, size, false, _RET_IP_);
  }
+ EXPORT_SYMBOL(__asan_loadN);
  
-diff -puN lib/strncpy_from_user.c~x86-kasan-instrument-user-memory-access-api lib/strncpy_from_user.c
---- a/lib/strncpy_from_user.c~x86-kasan-instrument-user-memory-access-api
-+++ a/lib/strncpy_from_user.c
-@@ -1,5 +1,6 @@
- #include <linux/compiler.h>
- #include <linux/export.h>
-+#include <linux/kasan-checks.h>
- #include <linux/uaccess.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
-@@ -109,6 +110,7 @@ long strncpy_from_user(char *dst, const
- 		unsigned long max = max_addr - src_addr;
- 		long retval;
+@@ -726,7 +730,7 @@ EXPORT_SYMBOL(__asan_loadN_noabort);
  
-+		kasan_check_write(dst, count);
- 		user_access_begin();
- 		retval = do_strncpy_from_user(dst, src, count, max);
- 		user_access_end();
+ void __asan_storeN(unsigned long addr, size_t size)
+ {
+-	check_memory_region(addr, size, true);
++	check_memory_region(addr, size, true, _RET_IP_);
+ }
+ EXPORT_SYMBOL(__asan_storeN);
+ 
 _
