@@ -1,71 +1,87 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Fri, 20 May 2016 16:55:46 -0700
-Message-ID: <20160520165546.3c95a6dd8b108cef5632cf58@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [patch 001/162] mm: workingset: only do workingset activations on reads
+Date: Fri, 20 May 2016 16:56:25 -0700
+Message-ID: <573fa429.ZM77am0tcH2hmPF3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__20_May_2016_16_55_46_-0700_E7FNsS8Y.GAy2ZP8"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51975 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52014 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcETXzx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:55:53 -0400
+	with ESMTP id S1751065AbcETX41 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:56:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, riel@redhat.com, andres@anarazel.de, hannes@cmpxchg.org
 
---Signature=_Fri__20_May_2016_16_55_46_-0700_E7FNsS8Y.GAy2ZP8
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+From: Rik van Riel <riel@redhat.com>
+Subject: mm: workingset: only do workingset activations on reads
 
+This is a follow-up to
+http://www.spinics.net/lists/linux-mm/msg101739.html where Andres reported
+his database workingset being pushed out by the minimum size enforcement
+of the inactive file list - currently 50% of cache - as well as repeatedly
+written file pages that are never actually read.
 
-- the rest of MM
+Two changes fell out of the discussions.  The first change observes that
+pages that are only ever written don't benefit from caching beyond what
+the writeback cache does for partial page writes, and so we shouldn't
+promote them to the active file list where they compete with pages whose
+cached data is actually accessed repeatedly.  This change comes in two
+patches - one for in-cache write accesses and one for refaults triggered
+by writes, neither of which should promote a cache page.
 
-- KASAN updates
-
-- procfs updates
-
-- exit, fork updates
-
-- printk updates
-
-- lib/ updates
-
-- radix-tree testsuite updates
-
-- checkpatch updates
-
-- kprobes updates
-
-- a few other misc bits
-
-162 patches, based on 6eb59af580dcffc6f6982ac8ef6d27a1a5f26b27
+Second, with the refault detection we don't need to set 50% of the cache
+aside for used-once cache anymore since we can detect frequently used
+pages even when they are evicted between accesses.  We can allow the
+active list to be bigger and thus protect a bigger workingset that isn't
+challenged by streamers.  Depending on the access patterns, this can
+increase major faults during workingset transitions for better performance
+during stable phases.
 
 
 
---Signature=_Fri__20_May_2016_16_55_46_-0700_E7FNsS8Y.GAy2ZP8
-Content-Type: application/pgp-signature
+This patch (of 3):
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+When rewriting a page, the data in that page is replaced with new data. 
+This means that evicting something else from the active file list, in
+order to cache data that will be replaced by something else, is likely to
+be a waste of memory.
 
-iQIcBAEBAgAGBQJXP6QHAAoJEJxZ78cCqAIHVBUQAIakiK68EsJCmMrA9AMBCpJA
-m1GZls83CP9qczfROkJNyKdDiB/2DlDdbZEegRyzo3PtXqG0co59cQsu4sZ63X7W
-VrSDOMsfrbv7gvsSi+GU8ZzenzGAweY47W2lY9sCO9Dgvkh6VInc9lmlliWS0aR+
-1rBBDnQr6yT/XLwaQGMXSWILdlIkTLfN28YW4ZQKmVLu2jO8L2lnjzVkKW7wCLUN
-eBXb1dK7DQeUOTiCtu7+IwiIrD92Le0Op/o0hy0jDd8NCPZ3s9rTvZQQ8J4UYR3C
-XP0rICKCCB/WbqEF7y//bdW6U6sNmq54A7Wz54/z+gmeyjzHoHrIrFJkj8dIbh70
-8OcnUvpE8sXVn327dXfKRXDlk8OTBYabaUJcmhqwbAdpvv9ifOpKSe7NfXpvA1Sz
-N/zveibdN9yA5VI1pVfqxlO88VKar9Ehe04DGg7nawGIji6PrrjdBBoS+837qTay
-YQFHE6kNC51qiw7WpYyISr0uy7acKoSi1N4Yl1AKgE70YlEPuVHocdyCWUlV+0Wb
-SHrJyh50VgvyAuCeZ64429d7dp12tmFDosbxrt+VME0J4FQ+irgRQEEjal6F73hs
-ajqdTlxI2wz3qcrDWVrRiBS6bME1LVGv1CUh255Oiy3NBrdn4ovqopwp+/EzQPdV
-0p9c7DmNmlSqj7+d+1NP
-=TKlm
------END PGP SIGNATURE-----
+It is better to save the active list for frequently read pages, because
+reads actually use the data that is in the page.
 
---Signature=_Fri__20_May_2016_16_55_46_-0700_E7FNsS8Y.GAy2ZP8--
+This patch ignores partial writes, because it is unclear whether the
+complexity of identifying those is worth any potential performance gain
+obtained from better caching pages that see repeated partial writes at
+large enough intervals to not get caught by the use-twice promotion code
+used for the inactive file list.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Andres Freund <andres@anarazel.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/filemap.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff -puN mm/filemap.c~mm-workingset-only-do-workingset-activations-on-reads mm/filemap.c
+--- a/mm/filemap.c~mm-workingset-only-do-workingset-activations-on-reads
++++ a/mm/filemap.c
+@@ -713,8 +713,12 @@ int add_to_page_cache_lru(struct page *p
+ 		 * The page might have been evicted from cache only
+ 		 * recently, in which case it should be activated like
+ 		 * any other repeatedly accessed page.
++		 * The exception is pages getting rewritten; evicting other
++		 * data from the working set, only to cache data that will
++		 * get overwritten with something else, is a waste of memory.
+ 		 */
+-		if (shadow && workingset_refault(shadow)) {
++		if (!(gfp_mask & __GFP_WRITE) &&
++		    shadow && workingset_refault(shadow)) {
+ 			SetPageActive(page);
+ 			workingset_activation(page);
+ 		} else
+_
