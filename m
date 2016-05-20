@@ -1,45 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_owner-add-zone-range-overlapping-check.patch
- removed from -mm tree
-Date: Fri, 20 May 2016 14:05:06 -0700
-Message-ID: <573f7c02.qyCy8ER702Rr9Tq5%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch removed from -mm tree
+Date: Fri, 20 May 2016 14:05:00 -0700
+Message-ID: <573f7bfc.uqzZjmYv2lzUglrQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47112 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47079 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750836AbcETVFH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:07 -0400
+	with ESMTP id S1751065AbcETVFB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 17:05:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, mpe@ellerman.id.au, paulus@samba.org, riel@redhat.com, rjw@rjwysocki.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner: add zone range overlapping check
+     Subject: mm/memory_hotplug: add comment to some functions related to memory hotplug
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-add-zone-range-overlapping-check.patch
+     mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_owner: add zone range overlapping check
+Subject: mm/memory_hotplug: add comment to some functions related to memory hotplug
 
-There is a system thats node's pfns are overlapped as follows:
-
------pfn-------->
-N0 N1 N2 N0 N1 N2
-
-Therefore, we need to care this overlapping when iterating pfn range.
-
-There are one place in page_owner.c that iterates pfn range and
-it doesn't consider this overlapping. Add it.
-
-Without this patch, above system could over count early allocated
-page number before page_owner is activated.
+__offline_isolated_pages() and test_pages_isolated() are used by memory
+hotplug.  These functions require that range is in a single zone but there
+is no code to do this because memory hotplug checks it before calling
+these functions.  To avoid confusing future user of these functions, this
+patch adds comments to them.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -58,22 +51,34 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page_alloc.c     |    3 ++-
+ mm/page_isolation.c |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_owner.c~mm-page_owner-add-zone-range-overlapping-check mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-add-zone-range-overlapping-check
-+++ a/mm/page_owner.c
-@@ -301,6 +301,9 @@ static void init_pages_in_zone(pg_data_t
+diff -puN mm/page_alloc.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug
++++ a/mm/page_alloc.c
+@@ -7176,7 +7176,8 @@ void zone_pcp_reset(struct zone *zone)
  
- 			page = pfn_to_page(pfn);
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ /*
+- * All pages in the range must be isolated before calling this.
++ * All pages in the range must be in a single zone and isolated
++ * before calling this.
+  */
+ void
+ __offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
+diff -puN mm/page_isolation.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug
++++ a/mm/page_isolation.c
+@@ -246,6 +246,7 @@ __test_page_isolated_in_pageblock(unsign
+ 	return pfn;
+ }
  
-+			if (page_zone(page) != zone)
-+				continue;
-+
- 			/*
- 			 * We are safe to check buddy flag and order, because
- 			 * this is init stage and only single thread runs.
++/* Caller should ensure that requested range is in a single zone */
+ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
+ 			bool skip_hwpoisoned_pages)
+ {
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
