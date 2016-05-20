@@ -1,65 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [patch 108/117] mm, page_alloc: un-inline the bad part of
+Subject: [patch 109/117] mm, page_alloc: pull out side effects from
  free_pages_check
-Date: Thu, 19 May 2016 17:14:18 -0700
-Message-ID: <573e56da.A2Z6qhC4ei47rHFj%akpm@linux-foundation.org>
+Date: Thu, 19 May 2016 17:14:21 -0700
+Message-ID: <573e56dd.HdYvfxhjzf18MEto%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46614 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46618 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755185AbcETAOT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:19 -0400
+	with ESMTP id S1755185AbcETAOW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 May 2016 20:14:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, vbabka@suse.cz
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: un-inline the bad part of free_pages_check
+Subject: mm, page_alloc: pull out side effects from free_pages_check
 
-From: Vlastimil Babka <vbabka@suse.cz>
+Check without side-effects should be easier to maintain.  It also removes
+the duplicated cpupid and flags reset done in !DEBUG_VM variant of both
+free_pcp_prepare() and then bulkfree_pcp_prepare().  Finally, it enables
+the next patch.
 
-!DEBUG_VM size and bloat-o-meter:
+It shouldn't result in new branches, thanks to inlining of the check.
 
-add/remove: 1/0 grow/shrink: 0/2 up/down: 124/-370 (-246)
+!DEBUG_VM bloat-o-meter:
+
+add/remove: 0/0 grow/shrink: 0/2 up/down: 0/-27 (-27)
 function                                     old     new   delta
-free_pages_check_bad                           -     124    +124
-free_pcppages_bulk                          1288    1171    -117
-__free_pages_ok                              948     695    -253
+__free_pages_ok                              748     739      -9
+free_pcppages_bulk                          1403    1385     -18
 
 DEBUG_VM:
 
-add/remove: 1/0 grow/shrink: 0/1 up/down: 124/-214 (-90)
+add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-28 (-28)
 function                                     old     new   delta
-free_pages_check_bad                           -     124    +124
-free_pages_prepare                          1112     898    -214
+free_pages_prepare                           806     778     -28
 
-[akpm@linux-foundation.org: fix whitespace]
+This is also slightly faster because cpupid information is not set on tail
+pages so we can avoid resets there.
+
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-un-inline-the-bad-part-of-free_pages_check mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-un-inline-the-bad-part-of-free_pages_check
+diff -puN mm/page_alloc.c~mm-page_alloc-pull-out-side-effects-from-free_pages_check mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-pull-out-side-effects-from-free_pages_check
 +++ a/mm/page_alloc.c
-@@ -806,18 +806,11 @@ static inline bool page_expected_state(s
- 	return true;
- }
+@@ -833,11 +833,8 @@ static void free_pages_check_bad(struct
  
--static inline int free_pages_check(struct page *page)
-+static void free_pages_check_bad(struct page *page)
+ static inline int free_pages_check(struct page *page)
  {
- 	const char *bad_reason;
- 	unsigned long bad_flags;
- 
--	if (page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE)) {
+-	if (likely(page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE))) {
 -		page_cpupid_reset_last(page);
 -		page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
--		return 0;
++	if (likely(page_expected_state(page, PAGE_FLAGS_CHECK_AT_FREE)))
+ 		return 0;
 -	}
+ 
+ 	/* Something has gone sideways, find it */
+ 	free_pages_check_bad(page);
+@@ -1078,7 +1075,11 @@ static bool free_pages_prepare(struct pa
+ 		for (i = 1; i < (1 << order); i++) {
+ 			if (compound)
+ 				bad += free_tail_pages_check(page, page + i);
+-			bad += free_pages_check(page + i);
++			if (unlikely(free_pages_check(page + i))) {
++				bad++;
++				continue;
++			}
++			(page + i)->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+ 		}
+ 	}
+ 	if (PageAnonHead(page))
+@@ -1087,6 +1088,8 @@ static bool free_pages_prepare(struct pa
+ 	if (bad)
+ 		return false;
+ 
++	page_cpupid_reset_last(page);
++	page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+ 	reset_page_owner(page, order);
+ 
+ 	if (!PageHighMem(page)) {
+_
