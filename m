@@ -1,86 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [patch 152/162] checkpatch: whine about ACCESS_ONCE
-Date: Fri, 20 May 2016 17:04:08 -0700
-Message-ID: <573fa5f8.t+Y8YD9ArQnwxryN%akpm@linux-foundation.org>
+Subject: [patch 150/162] checkpatch: improve CONSTANT_COMPARISON test for
+ structure members
+Date: Fri, 20 May 2016 17:04:02 -0700
+Message-ID: <573fa5f2.kAJbpoTRLQRY13ud%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53193 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53186 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751560AbcEUAEJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:04:09 -0400
+	with ESMTP id S1751560AbcEUAEE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:04:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com, julia.lawall@lip6.fr
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com
 
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: whine about ACCESS_ONCE
+Subject: checkpatch: improve CONSTANT_COMPARISON test for structure members
 
-Add a test for use of ACCESS_ONCE that could be written using READ_ONCE or
-WRITE_ONCE.
+A "." dereference to an all uppercase structure member can be
+incorrectly reported as a CONSTANT_COMPARISON.
 
---fix it too if desired.
+ie: "if (table[i].PANELID == tempdx)"
 
-The WRITE_ONCE fixes are less correct than the coccinelle script below as
-checkpatch cannot have a completely correct "expression" mechanism because
-checkpatch works on patches and not complete files.
-
-$ cat access_once.cocci
-@@
-expression e1;
-expression e2;
-@@
-
--       ACCESS_ONCE(e1) = e2
-+       WRITE_ONCE(e1, e2)
-
-@@
-expression e1;
-@@
-
--       ACCESS_ONCE(e1)
-+       READ_ONCE(e1)
+Fix it by checking for "." before the constant test.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-whine-about-access_once scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-whine-about-access_once
+diff -puN scripts/checkpatch.pl~checkpatch-improve-constant_comparison-test-for-structure-members scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-constant_comparison-test-for-structure-members
 +++ a/scripts/checkpatch.pl
-@@ -5850,6 +5850,28 @@ sub process {
- 			}
- 		}
- 
-+# whine about ACCESS_ONCE
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $line =~ /\bACCESS_ONCE\s*$balanced_parens\s*(=(?!=))?\s*($FuncArg)?/) {
-+			my $par = $1;
-+			my $eq = $2;
-+			my $fun = $3;
-+			$par =~ s/^\(\s*(.*)\s*\)$/$1/;
-+			if (defined($eq)) {
-+				if (WARN("PREFER_WRITE_ONCE",
-+					 "Prefer WRITE_ONCE(<FOO>, <BAR>) over ACCESS_ONCE(<FOO>) = <BAR>\n" . $herecurr) &&
-+				    $fix) {
-+					$fixed[$fixlinenr] =~ s/\bACCESS_ONCE\s*\(\s*\Q$par\E\s*\)\s*$eq\s*\Q$fun\E/WRITE_ONCE($par, $fun)/;
-+				}
-+			} else {
-+				if (WARN("PREFER_READ_ONCE",
-+					 "Prefer READ_ONCE(<FOO>) over ACCESS_ONCE(<FOO>)\n" . $herecurr) &&
-+				    $fix) {
-+					$fixed[$fixlinenr] =~ s/\bACCESS_ONCE\s*\(\s*\Q$par\E\s*\)/READ_ONCE($par)/;
-+				}
-+			}
-+		}
-+
- # check for lockdep_set_novalidate_class
- 		if ($line =~ /^.\s*lockdep_set_novalidate_class\s*\(/ ||
- 		    $line =~ /__lockdep_no_validate__\s*\)/ ) {
+@@ -4291,7 +4291,7 @@ sub process {
+ 			my $comp = $3;
+ 			my $to = $4;
+ 			my $newcomp = $comp;
+-			if ($lead !~ /$Operators\s*$/ &&
++			if ($lead !~ /(?:$Operators|\.)\s*$/ &&
+ 			    $to !~ /^(?:Constant|[A-Z_][A-Z0-9_]*)$/ &&
+ 			    WARN("CONSTANT_COMPARISON",
+ 				 "Comparisons should place the constant on the right side of the test\n" . $herecurr) &&
 _
