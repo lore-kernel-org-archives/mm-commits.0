@@ -1,28 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: [patch 134/162] radix tree test suite: remove dependencies on
- height
-Date: Fri, 20 May 2016 17:03:16 -0700
-Message-ID: <573fa5c4.nJUKZEkP6RjuWG4X%akpm@linux-foundation.org>
+Subject: [patch 136/162] radix-tree: rename INDIRECT_PTR to INTERNAL_NODE
+Date: Fri, 20 May 2016 17:03:22 -0700
+Message-ID: <573fa5ca.scWPFCCYQ3h65Oa/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53096 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53107 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcEUADR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:03:17 -0400
+	with ESMTP id S1751314AbcEUADX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:03:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com
 
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix tree test suite: remove dependencies on height
+Subject: radix-tree: rename INDIRECT_PTR to INTERNAL_NODE
 
-verify_node() can use node->shift instead of the height.
-
-tree_verify_min_height() can be converted over to using node_maxindex()
-and shift_maxindex() instead of radix_tree_maxindex().
+The name RADIX_TREE_INDIRECT_PTR doesn't really match the meaning.
+RADIX_TREE_INTERNAL_NODE is a better name.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
@@ -33,91 +30,89 @@ Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/test.c |   34 ++++++++++++++++++++----------
- tools/testing/radix-tree/test.h |    3 +-
- 2 files changed, 25 insertions(+), 12 deletions(-)
+ include/linux/radix-tree.h |   30 +++++++++++++-----------------
+ lib/radix-tree.c           |    2 +-
+ 2 files changed, 14 insertions(+), 18 deletions(-)
 
-diff -puN tools/testing/radix-tree/test.c~radix-tree-test-suite-remove-dependencies-on-height tools/testing/radix-tree/test.c
---- a/tools/testing/radix-tree/test.c~radix-tree-test-suite-remove-dependencies-on-height
-+++ a/tools/testing/radix-tree/test.c
-@@ -143,7 +143,7 @@ void item_full_scan(struct radix_tree_ro
- }
+diff -puN include/linux/radix-tree.h~radix-tree-rename-indirect_ptr-to-internal_node include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-rename-indirect_ptr-to-internal_node
++++ a/include/linux/radix-tree.h
+@@ -29,20 +29,16 @@
+ #include <linux/rcupdate.h>
  
- static int verify_node(struct radix_tree_node *slot, unsigned int tag,
--			unsigned int height, int tagged)
-+			int tagged)
- {
- 	int anyset = 0;
- 	int i;
-@@ -159,7 +159,8 @@ static int verify_node(struct radix_tree
- 		}
- 	}
- 	if (tagged != anyset) {
--		printf("tag: %u, height %u, tagged: %d, anyset: %d\n", tag, height, tagged, anyset);
-+		printf("tag: %u, shift %u, tagged: %d, anyset: %d\n",
-+			tag, slot->shift, tagged, anyset);
- 		for (j = 0; j < RADIX_TREE_MAX_TAGS; j++) {
- 			printf("tag %d: ", j);
- 			for (i = 0; i < RADIX_TREE_TAG_LONGS; i++)
-@@ -171,10 +172,10 @@ static int verify_node(struct radix_tree
- 	assert(tagged == anyset);
- 
- 	/* Go for next level */
--	if (height > 1) {
-+	if (slot->shift > 0) {
- 		for (i = 0; i < RADIX_TREE_MAP_SIZE; i++)
- 			if (slot->slots[i])
--				if (verify_node(slot->slots[i], tag, height - 1,
-+				if (verify_node(slot->slots[i], tag,
- 					    !!test_bit(i, slot->tags[tag]))) {
- 					printf("Failure at off %d\n", i);
- 					for (j = 0; j < RADIX_TREE_MAX_TAGS; j++) {
-@@ -191,9 +192,10 @@ static int verify_node(struct radix_tree
- 
- void verify_tag_consistency(struct radix_tree_root *root, unsigned int tag)
- {
--	if (!root->height)
-+	struct radix_tree_node *node = root->rnode;
-+	if (!radix_tree_is_indirect_ptr(node))
- 		return;
--	verify_node(root->rnode, tag, root->height, !!root_tag_get(root, tag));
-+	verify_node(node, tag, !!root_tag_get(root, tag));
- }
- 
- void item_kill_tree(struct radix_tree_root *root)
-@@ -218,9 +220,19 @@ void item_kill_tree(struct radix_tree_ro
- 
- void tree_verify_min_height(struct radix_tree_root *root, int maxindex)
- {
--	assert(radix_tree_maxindex(root->height) >= maxindex);
--	if (root->height > 1)
--		assert(radix_tree_maxindex(root->height-1) < maxindex);
--	else if (root->height == 1)
--		assert(radix_tree_maxindex(root->height-1) <= maxindex);
-+	unsigned shift;
-+	struct radix_tree_node *node = root->rnode;
-+	if (!radix_tree_is_indirect_ptr(node)) {
-+		assert(maxindex == 0);
-+		return;
-+	}
+ /*
+- * An indirect pointer (root->rnode pointing to a radix_tree_node, rather
+- * than a data item) is signalled by the low bit set in the root->rnode
+- * pointer.
+- *
+- * In this case root->height is > 0, but the indirect pointer tests are
+- * needed for RCU lookups (because root->height is unreliable). The only
+- * time callers need worry about this is when doing a lookup_slot under
+- * RCU.
+- *
+- * Indirect pointer in fact is also used to tag the last pointer of a node
+- * when it is shrunk, before we rcu free the node. See shrink code for
+- * details.
++ * Entries in the radix tree have the low bit set if they refer to a
++ * radix_tree_node.  If the low bit is clear then the entry is user data.
++ *
++ * We also use the low bit to indicate that the slot will be freed in the
++ * next RCU idle period, and users need to re-walk the tree to find the
++ * new slot for the index that they were looking for.  See the comment in
++ * radix_tree_shrink() for details.
+  */
+-#define RADIX_TREE_INDIRECT_PTR		1
++#define RADIX_TREE_INTERNAL_NODE	1
 +
-+	node = indirect_to_ptr(node);
-+	assert(maxindex <= node_maxindex(node));
-+
-+	shift = node->shift;
-+	if (shift > 0)
-+		assert(maxindex > shift_maxindex(shift - RADIX_TREE_MAP_SHIFT));
-+	else
-+		assert(maxindex > 0);
+ /*
+  * A common use of the radix tree is to store pointers to struct pages;
+  * but shmem/tmpfs needs also to store swap entries in the same tree:
+@@ -63,7 +59,7 @@
+ 
+ static inline int radix_tree_is_indirect_ptr(void *ptr)
+ {
+-	return (int)((unsigned long)ptr & RADIX_TREE_INDIRECT_PTR);
++	return (int)((unsigned long)ptr & RADIX_TREE_INTERNAL_NODE);
  }
-diff -puN tools/testing/radix-tree/test.h~radix-tree-test-suite-remove-dependencies-on-height tools/testing/radix-tree/test.h
---- a/tools/testing/radix-tree/test.h~radix-tree-test-suite-remove-dependencies-on-height
-+++ a/tools/testing/radix-tree/test.h
-@@ -42,4 +42,5 @@ extern int nr_allocated;
- void *indirect_to_ptr(void *ptr);
- void radix_tree_dump(struct radix_tree_root *root);
- int root_tag_get(struct radix_tree_root *root, unsigned int tag);
--unsigned long radix_tree_maxindex(unsigned int height);
-+unsigned long node_maxindex(struct radix_tree_node *);
-+unsigned long shift_maxindex(unsigned int shift);
+ 
+ /*** radix-tree API starts here ***/
+@@ -228,7 +224,7 @@ static inline void *radix_tree_deref_slo
+  */
+ static inline int radix_tree_deref_retry(void *arg)
+ {
+-	return unlikely((unsigned long)arg & RADIX_TREE_INDIRECT_PTR);
++	return unlikely(radix_tree_is_indirect_ptr(arg));
+ }
+ 
+ /**
+@@ -250,7 +246,7 @@ static inline int radix_tree_exceptional
+ static inline int radix_tree_exception(void *arg)
+ {
+ 	return unlikely((unsigned long)arg &
+-		(RADIX_TREE_INDIRECT_PTR | RADIX_TREE_EXCEPTIONAL_ENTRY));
++		(RADIX_TREE_INTERNAL_NODE | RADIX_TREE_EXCEPTIONAL_ENTRY));
+ }
+ 
+ /**
+@@ -448,7 +444,7 @@ radix_tree_chunk_size(struct radix_tree_
+ 
+ static inline void *indirect_to_ptr(void *ptr)
+ {
+-	return (void *)((unsigned long)ptr & ~RADIX_TREE_INDIRECT_PTR);
++	return (void *)((unsigned long)ptr & ~RADIX_TREE_INTERNAL_NODE);
+ }
+ 
+ /**
+diff -puN lib/radix-tree.c~radix-tree-rename-indirect_ptr-to-internal_node lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-rename-indirect_ptr-to-internal_node
++++ a/lib/radix-tree.c
+@@ -68,7 +68,7 @@ static DEFINE_PER_CPU(struct radix_tree_
+ 
+ static inline void *ptr_to_indirect(void *ptr)
+ {
+-	return (void *)((unsigned long)ptr | RADIX_TREE_INDIRECT_PTR);
++	return (void *)((unsigned long)ptr | RADIX_TREE_INTERNAL_NODE);
+ }
+ 
+ #define RADIX_TREE_RETRY	ptr_to_indirect(NULL)
 _
