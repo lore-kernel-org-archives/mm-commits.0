@@ -1,44 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [patch 103/162] radix tree test suite: keep regression test runs
- short
-Date: Fri, 20 May 2016 17:01:45 -0700
-Message-ID: <573fa569.c5l07/6eOe52yME1%akpm@linux-foundation.org>
+Subject: [patch 106/162] raxix-tree: introduce
+ CONFIG_RADIX_TREE_MULTIORDER
+Date: Fri, 20 May 2016 17:01:54 -0700
+Message-ID: <573fa572.GQdux1eJw21TBgl7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52913 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52933 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466AbcEUABq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:01:46 -0400
+	with ESMTP id S1751263AbcEUABz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:01:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, willy@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: radix tree test suite: keep regression test runs short
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: raxix-tree: introduce CONFIG_RADIX_TREE_MULTIORDER
 
-Currently the full suite of regression tests take upwards of 30 minutes to
-run on my development machine.  The vast majority of this time is taken by
-the big_gang_check() and copy_tag_check() tests, which each run their
-tests through thousands of iterations...does this have value?
+I've been receiving increasingly concerned notes from 0day about how much
+my recent changes have been bloating the radix tree.  Make it happier by
+only including multiorder support if CONFIG_TRANSPARENT_HUGEPAGES is set. 
+This is an independent Kconfig option, so other radix tree users can also
+set it if they have a need.
 
-Without big_gang_check() and copy_tag_check(), the test suite runs in
-around 15 seconds on my box.
-
-Honestly the first time I ever ran through the entire test suite was to
-gather the timings for this email - it simply takes too long to be useful
-on a normal basis.
-
-Instead, hide the excessive iterations through big_gang_check() and
-copy_tag_check() tests behind an '-l' flag (for "long run") in case they
-are still useful, but allow the regression test suite to complete in a
-reasonable amount of time.  We still run each of these tests a few times
-(3 at present) to try and keep the test coverage.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Jan Kara <jack@suse.com>
@@ -46,71 +34,109 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/main.c |   22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ lib/Kconfig                             |    3 ++
+ lib/radix-tree.c                        |   26 +++++++++++++++-------
+ mm/Kconfig                              |    1 
+ tools/testing/radix-tree/linux/kernel.h |    1 
+ 4 files changed, 23 insertions(+), 8 deletions(-)
 
-diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-keep-regression-test-runs-short tools/testing/radix-tree/main.c
---- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-keep-regression-test-runs-short
-+++ a/tools/testing/radix-tree/main.c
-@@ -61,11 +61,11 @@ void __big_gang_check(void)
- 	} while (!wrapped);
- }
+diff -puN lib/Kconfig~introduce-config_radix_tree_multiorder lib/Kconfig
+--- a/lib/Kconfig~introduce-config_radix_tree_multiorder
++++ a/lib/Kconfig
+@@ -362,6 +362,9 @@ config INTERVAL_TREE
  
--void big_gang_check(void)
-+void big_gang_check(bool long_run)
- {
- 	int i;
+ 	  for more information.
  
--	for (i = 0; i < 1000; i++) {
-+	for (i = 0; i < (long_run ? 1000 : 3); i++) {
- 		__big_gang_check();
- 		srand(time(0));
- 		printf("%d ", i);
-@@ -270,7 +270,7 @@ static void locate_check(void)
- 	item_kill_tree(&tree);
- }
- 
--static void single_thread_tests(void)
-+static void single_thread_tests(bool long_run)
- {
- 	int i;
- 
-@@ -285,9 +285,9 @@ static void single_thread_tests(void)
- 	printf("after add_and_check: %d allocated\n", nr_allocated);
- 	dynamic_height_check();
- 	printf("after dynamic_height_check: %d allocated\n", nr_allocated);
--	big_gang_check();
-+	big_gang_check(long_run);
- 	printf("after big_gang_check: %d allocated\n", nr_allocated);
--	for (i = 0; i < 2000; i++) {
-+	for (i = 0; i < (long_run ? 2000 : 3); i++) {
- 		copy_tag_check();
- 		printf("%d ", i);
- 		fflush(stdout);
-@@ -295,15 +295,23 @@ static void single_thread_tests(void)
- 	printf("after copy_tag_check: %d allocated\n", nr_allocated);
- }
- 
--int main(void)
-+int main(int argc, char **argv)
- {
-+	bool long_run = false;
-+	int opt;
++config RADIX_TREE_MULTIORDER
++	bool
 +
-+	while ((opt = getopt(argc, argv, "l")) != -1) {
-+		if (opt == 'l')
-+			long_run = true;
+ config ASSOCIATIVE_ARRAY
+ 	bool
+ 	help
+diff -puN lib/radix-tree.c~introduce-config_radix_tree_multiorder lib/radix-tree.c
+--- a/lib/radix-tree.c~introduce-config_radix_tree_multiorder
++++ a/lib/radix-tree.c
+@@ -484,6 +484,7 @@ int __radix_tree_create(struct radix_tre
+ 		slot = node->slots[offset];
+ 	}
+ 
++#ifdef CONFIG_RADIX_TREE_MULTIORDER
+ 	/* Insert pointers to the canonical entry */
+ 	if ((shift - order) > 0) {
+ 		int i, n = 1 << (shift - order);
+@@ -499,6 +500,7 @@ int __radix_tree_create(struct radix_tre
+ 			node->count++;
+ 		}
+ 	}
++#endif
+ 
+ 	if (nodep)
+ 		*nodep = node;
+@@ -1469,6 +1471,20 @@ bool __radix_tree_delete_node(struct rad
+ 	return deleted;
+ }
+ 
++static inline void delete_sibling_entries(struct radix_tree_node *node,
++					void *ptr, unsigned offset)
++{
++#ifdef CONFIG_RADIX_TREE_MULTIORDER
++	int i;
++	for (i = 1; offset + i < RADIX_TREE_MAP_SIZE; i++) {
++		if (node->slots[offset + i] != ptr)
++			break;
++		node->slots[offset + i] = NULL;
++		node->count--;
 +	}
++#endif
++}
 +
- 	rcu_register_thread();
- 	radix_tree_init();
+ /**
+  *	radix_tree_delete_item    -    delete an item from a radix tree
+  *	@root:		radix tree root
+@@ -1484,7 +1500,7 @@ void *radix_tree_delete_item(struct radi
+ 			     unsigned long index, void *item)
+ {
+ 	struct radix_tree_node *node;
+-	unsigned int offset, i;
++	unsigned int offset;
+ 	void **slot;
+ 	void *entry;
+ 	int tag;
+@@ -1513,13 +1529,7 @@ void *radix_tree_delete_item(struct radi
+ 			radix_tree_tag_clear(root, index, tag);
+ 	}
  
- 	regression1_test();
- 	regression2_test();
- 	regression3_test();
--	single_thread_tests();
-+	single_thread_tests(long_run);
+-	/* Delete any sibling slots pointing to this slot */
+-	for (i = 1; offset + i < RADIX_TREE_MAP_SIZE; i++) {
+-		if (node->slots[offset + i] != ptr_to_indirect(slot))
+-			break;
+-		node->slots[offset + i] = NULL;
+-		node->count--;
+-	}
++	delete_sibling_entries(node, ptr_to_indirect(slot), offset);
+ 	node->slots[offset] = NULL;
+ 	node->count--;
  
- 	sleep(1);
- 	printf("after sleep(1): %d allocated\n", nr_allocated);
+diff -puN mm/Kconfig~introduce-config_radix_tree_multiorder mm/Kconfig
+--- a/mm/Kconfig~introduce-config_radix_tree_multiorder
++++ a/mm/Kconfig
+@@ -404,6 +404,7 @@ config TRANSPARENT_HUGEPAGE
+ 	bool "Transparent Hugepage Support"
+ 	depends on HAVE_ARCH_TRANSPARENT_HUGEPAGE
+ 	select COMPACTION
++	select RADIX_TREE_MULTIORDER
+ 	help
+ 	  Transparent Hugepages allows the kernel to use huge pages and
+ 	  huge tlb transparently to the applications whenever possible.
+diff -puN tools/testing/radix-tree/linux/kernel.h~introduce-config_radix_tree_multiorder tools/testing/radix-tree/linux/kernel.h
+--- a/tools/testing/radix-tree/linux/kernel.h~introduce-config_radix_tree_multiorder
++++ a/tools/testing/radix-tree/linux/kernel.h
+@@ -9,6 +9,7 @@
+ 
+ #include "../../include/linux/compiler.h"
+ 
++#define CONFIG_RADIX_TREE_MULTIORDER
+ #define CONFIG_SHMEM
+ #define CONFIG_SWAP
+ 
 _
