@@ -1,29 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: [patch 143/162] radix-tree: tidy up __radix_tree_create()
-Date: Fri, 20 May 2016 17:03:42 -0700
-Message-ID: <573fa5de.qj5eQ99HMCZbHCzv%akpm@linux-foundation.org>
+Subject: [patch 142/162] radix-tree: tidy up range_tag_if_tagged
+Date: Fri, 20 May 2016 17:03:39 -0700
+Message-ID: <573fa5db.6dfSt8v4ooduWD9F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53149 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53144 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696AbcEUADn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:03:43 -0400
+	with ESMTP id S1751687AbcEUADk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:03:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com
 
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree: tidy up __radix_tree_create()
+Subject: radix-tree: tidy up range_tag_if_tagged
 
-1. Rename the existing variable 'slot' to 'child'.
-2. Introduce a new variable called 'slot' which is the address of the
-   slot we're dealing with.  This lets us simplify the tree insertion,
-   and removes the recalculation of 'slot' at the end of the function.
-3. Using 'slot' in the sibling pointer insertion part makes the code
-   more readable.
+Convert radix_tree_range_tag_if_tagged to name the nodes parent, node and
+child instead of node & slot.
+
+Use parent->offset instead of playing games with 'upindex'.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
@@ -34,106 +32,82 @@ Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |   48 +++++++++++++++++++++------------------------
- 1 file changed, 23 insertions(+), 25 deletions(-)
+ lib/radix-tree.c |   39 +++++++++++++++++----------------------
+ 1 file changed, 17 insertions(+), 22 deletions(-)
 
-diff -puN lib/radix-tree.c~radix-tree-tidy-up-__radix_tree_create lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-tidy-up-__radix_tree_create
+diff -puN lib/radix-tree.c~radix-tree-tidy-up-range_tag_if_tagged lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-tidy-up-range_tag_if_tagged
 +++ a/lib/radix-tree.c
-@@ -499,12 +499,13 @@ int __radix_tree_create(struct radix_tre
- 			unsigned order, struct radix_tree_node **nodep,
- 			void ***slotp)
+@@ -1009,9 +1009,9 @@ unsigned long radix_tree_range_tag_if_ta
+ 		unsigned long nr_to_tag,
+ 		unsigned int iftag, unsigned int settag)
  {
--	struct radix_tree_node *node = NULL, *slot;
-+	struct radix_tree_node *node = NULL, *child;
-+	void **slot = (void **)&root->rnode;
+-	struct radix_tree_node *slot, *node = NULL;
++	struct radix_tree_node *parent, *node, *child;
  	unsigned long maxindex;
--	unsigned int shift, offset;
-+	unsigned int shift, offset = 0;
- 	unsigned long max = index | ((1UL << order) - 1);
+-	unsigned int shift = radix_tree_load_root(root, &slot, &maxindex);
++	unsigned int shift = radix_tree_load_root(root, &child, &maxindex);
+ 	unsigned long tagged = 0;
+ 	unsigned long index = *first_indexp;
  
--	shift = radix_tree_load_root(root, &slot, &maxindex);
-+	shift = radix_tree_load_root(root, &child, &maxindex);
- 
- 	/* Make sure the tree is high enough.  */
- 	if (max > maxindex) {
-@@ -512,51 +513,48 @@ int __radix_tree_create(struct radix_tre
- 		if (error < 0)
- 			return error;
- 		shift = error;
--		slot = root->rnode;
-+		child = root->rnode;
- 		if (order == shift)
- 			shift += RADIX_TREE_MAP_SHIFT;
+@@ -1024,28 +1024,25 @@ unsigned long radix_tree_range_tag_if_ta
+ 		*first_indexp = last_index + 1;
+ 		return 0;
+ 	}
+-	if (!radix_tree_is_internal_node(slot)) {
++	if (!radix_tree_is_internal_node(child)) {
+ 		*first_indexp = last_index + 1;
+ 		root_tag_set(root, settag);
+ 		return 1;
  	}
  
--	offset = 0;			/* uninitialised var warning */
- 	while (shift > order) {
- 		shift -= RADIX_TREE_MAP_SHIFT;
--		if (slot == NULL) {
-+		if (child == NULL) {
- 			/* Have to add a child node.  */
--			slot = radix_tree_node_alloc(root);
--			if (!slot)
-+			child = radix_tree_node_alloc(root);
-+			if (!child)
- 				return -ENOMEM;
--			slot->shift = shift;
--			slot->offset = offset;
--			slot->parent = node;
--			if (node) {
--				rcu_assign_pointer(node->slots[offset],
--							node_to_entry(slot));
-+			child->shift = shift;
-+			child->offset = offset;
-+			child->parent = node;
-+			rcu_assign_pointer(*slot, node_to_entry(child));
-+			if (node)
- 				node->count++;
--			} else
--				rcu_assign_pointer(root->rnode,
--							node_to_entry(slot));
--		} else if (!radix_tree_is_internal_node(slot))
-+		} else if (!radix_tree_is_internal_node(child))
- 			break;
+-	node = entry_to_node(slot);
++	node = entry_to_node(child);
+ 	shift -= RADIX_TREE_MAP_SHIFT;
  
- 		/* Go a level down */
--		node = entry_to_node(slot);
-+		node = entry_to_node(child);
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+ 	for (;;) {
+-		unsigned long upindex;
+-		unsigned offset;
+-
+-		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
 -		offset = radix_tree_descend(node, &slot, offset);
+-		if (!slot)
++		unsigned offset = (index >> shift) & RADIX_TREE_MAP_MASK;
 +		offset = radix_tree_descend(node, &child, offset);
-+		slot = &node->slots[offset];
- 	}
- 
- #ifdef CONFIG_RADIX_TREE_MULTIORDER
- 	/* Insert pointers to the canonical entry */
- 	if (order > shift) {
--		int i, n = 1 << (order - shift);
-+		unsigned i, n = 1 << (order - shift);
- 		offset = offset & ~(n - 1);
--		slot = node_to_entry(&node->slots[offset]);
-+		slot = &node->slots[offset];
-+		child = node_to_entry(slot);
- 		for (i = 0; i < n; i++) {
--			if (node->slots[offset + i])
-+			if (slot[i])
- 				return -EEXIST;
++		if (!child)
+ 			goto next;
+ 		if (!tag_get(node, iftag, offset))
+ 			goto next;
+ 		/* Sibling slots never have tags set on them */
+-		if (radix_tree_is_internal_node(slot)) {
+-			node = entry_to_node(slot);
++		if (radix_tree_is_internal_node(child)) {
++			node = entry_to_node(child);
+ 			shift -= RADIX_TREE_MAP_SHIFT;
+ 			continue;
  		}
+@@ -1054,20 +1051,18 @@ unsigned long radix_tree_range_tag_if_ta
+ 		tagged++;
+ 		tag_set(node, settag, offset);
  
- 		for (i = 1; i < n; i++) {
--			rcu_assign_pointer(node->slots[offset + i], slot);
-+			rcu_assign_pointer(slot[i], child);
- 			node->count++;
+-		slot = node->parent;
+ 		/* walk back up the path tagging interior nodes */
+-		upindex = index >> shift;
+-		while (slot) {
+-			upindex >>= RADIX_TREE_MAP_SHIFT;
+-			offset = upindex & RADIX_TREE_MAP_MASK;
+-
++		parent = node;
++		for (;;) {
++			offset = parent->offset;
++			parent = parent->parent;
++			if (!parent)
++				break;
+ 			/* stop if we find a node with the tag already set */
+-			if (tag_get(slot, settag, offset))
++			if (tag_get(parent, settag, offset))
+ 				break;
+-			tag_set(slot, settag, offset);
+-			slot = slot->parent;
++			tag_set(parent, settag, offset);
  		}
- 	}
-@@ -565,7 +563,7 @@ int __radix_tree_create(struct radix_tre
- 	if (nodep)
- 		*nodep = node;
- 	if (slotp)
--		*slotp = node ? node->slots + offset : (void **)&root->rnode;
-+		*slotp = slot;
- 	return 0;
- }
- 
-_
