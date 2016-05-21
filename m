@@ -1,33 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [patch 112/162] radix-tree: fix extending the tree for
- multi-order entries at offset 0
-Date: Fri, 20 May 2016 17:02:11 -0700
-Message-ID: <573fa583.bB58IZMCk+cCT7XW%akpm@linux-foundation.org>
+Subject: [patch 115/162] radix-tree: rewrite __radix_tree_lookup
+Date: Fri, 20 May 2016 17:02:20 -0700
+Message-ID: <573fa58c.o1deGOLf7bnGYbgP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52965 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52983 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcEUACN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:02:13 -0400
+	with ESMTP id S1751419AbcEUACV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:02:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com
 
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree: fix extending the tree for multi-order entries at offset 0
+Subject: radix-tree: rewrite __radix_tree_lookup
 
-The current code will insert entries at each level, as if we're going to
-add a new entry at the bottom level, so we then get an -EEXIST when we try
-to insert the entry into the tree.  The best way to fix this is to not
-check 'order' when inserting into an empty tree.
-
-We still need to 'extend' the tree to the height necessary for the maximum
-index corresponding to this entry, so pass that value to
-radix_tree_extend() rather than the index we're asked to create, or we
-won't create a tree that's deep enough.
+Use the new multi-order support functions to rewrite __radix_tree_lookup()
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
@@ -38,73 +29,71 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |   28 +++++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+ lib/radix-tree.c |   48 +++++++++++++++------------------------------
+ 1 file changed, 16 insertions(+), 32 deletions(-)
 
-diff -puN lib/radix-tree.c~radix-tree-fix-extending-the-tree-for-multi-order-entries-at-offset-0 lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-fix-extending-the-tree-for-multi-order-entries-at-offset-0
+diff -puN lib/radix-tree.c~radix-tree-rewrite-__radix_tree_lookup lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-rewrite-__radix_tree_lookup
 +++ a/lib/radix-tree.c
-@@ -432,7 +432,7 @@ static unsigned radix_tree_load_root(str
-  *	Extend a radix tree so it can store key @index.
-  */
- static int radix_tree_extend(struct radix_tree_root *root,
--				unsigned long index, unsigned order)
-+				unsigned long index)
+@@ -634,44 +634,28 @@ void *__radix_tree_lookup(struct radix_t
+ 			  struct radix_tree_node **nodep, void ***slotp)
  {
- 	struct radix_tree_node *node;
- 	struct radix_tree_node *slot;
-@@ -444,7 +444,7 @@ static int radix_tree_extend(struct radi
- 	while (index > radix_tree_maxindex(height))
- 		height++;
- 
--	if ((root->rnode == NULL) && (order == 0)) {
-+	if (root->rnode == NULL) {
- 		root->height = height;
- 		goto out;
- 	}
-@@ -467,7 +467,7 @@ static int radix_tree_extend(struct radi
- 		node->count = 1;
- 		node->parent = NULL;
- 		slot = root->rnode;
--		if (radix_tree_is_indirect_ptr(slot) && newheight > 1) {
-+		if (radix_tree_is_indirect_ptr(slot)) {
- 			slot = indirect_to_ptr(slot);
- 			slot->parent = node;
- 			slot = ptr_to_indirect(slot);
-@@ -478,7 +478,7 @@ static int radix_tree_extend(struct radi
- 		root->height = newheight;
- 	} while (height > root->height);
- out:
--	return 0;
-+	return height * RADIX_TREE_MAP_SHIFT;
- }
- 
- /**
-@@ -503,20 +503,26 @@ int __radix_tree_create(struct radix_tre
- 			void ***slotp)
- {
- 	struct radix_tree_node *node = NULL, *slot;
+ 	struct radix_tree_node *node, *parent;
+-	unsigned int height, shift;
 +	unsigned long maxindex;
- 	unsigned int height, shift, offset;
--	int error;
-+	unsigned long max = index | ((1UL << order) - 1);
-+
-+	shift = radix_tree_load_root(root, &slot, &maxindex);
++	unsigned int shift;
+ 	void **slot;
  
- 	/* Make sure the tree is high enough.  */
--	if (index > radix_tree_maxindex(root->height)) {
--		error = radix_tree_extend(root, index, order);
--		if (error)
-+	if (max > maxindex) {
-+		int error = radix_tree_extend(root, max);
-+		if (error < 0)
- 			return error;
-+		shift = error;
-+		slot = root->rnode;
-+		if (order == shift) {
-+			shift += RADIX_TREE_MAP_SHIFT;
-+			root->height++;
-+		}
- 	}
+-	node = rcu_dereference_raw(root->rnode);
+-	if (node == NULL)
++ restart:
++	parent = NULL;
++	slot = (void **)&root->rnode;
++	shift = radix_tree_load_root(root, &node, &maxindex);
++	if (index > maxindex)
+ 		return NULL;
  
--	slot = root->rnode;
+-	if (!radix_tree_is_indirect_ptr(node)) {
+-		if (index > 0)
+-			return NULL;
+-
+-		if (nodep)
+-			*nodep = NULL;
+-		if (slotp)
+-			*slotp = (void **)&root->rnode;
+-		return node;
+-	}
+-	node = indirect_to_ptr(node);
+-
+-	height = node->path & RADIX_TREE_HEIGHT_MASK;
+-	if (index > radix_tree_maxindex(height))
+-		return NULL;
+-
+-	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
+-
+-	do {
+-		parent = node;
+-		slot = node->slots + ((index >> shift) & RADIX_TREE_MAP_MASK);
+-		node = rcu_dereference_raw(*slot);
+-		if (node == NULL)
+-			return NULL;
+-		if (!radix_tree_is_indirect_ptr(node))
+-			break;
+-		node = indirect_to_ptr(node);
++	while (radix_tree_is_indirect_ptr(node)) {
++		unsigned offset;
+ 
++		if (node == RADIX_TREE_RETRY)
++			goto restart;
++		parent = indirect_to_ptr(node);
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+-		height--;
+-	} while (height > 0);
++		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
++		offset = radix_tree_descend(parent, &node, offset);
++		slot = parent->slots + offset;
++	}
+ 
+ 	if (nodep)
+ 		*nodep = parent;
+_
