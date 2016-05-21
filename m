@@ -1,45 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: [patch 126/162] radix-tree: fix radix_tree_range_tag_if_tagged()
- for multiorder entries
-Date: Fri, 20 May 2016 17:02:52 -0700
-Message-ID: <573fa5ac.rhcO2NjfA9+RgS5w%akpm@linux-foundation.org>
+Subject: [patch 124/162] radix-tree: rewrite radix_tree_locate_item
+Date: Fri, 20 May 2016 17:02:46 -0700
+Message-ID: <573fa5a6.IPub8nlVRrJCRHcr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53047 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53037 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466AbcEUACy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:02:54 -0400
+	with ESMTP id S1751419AbcEUACs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:02:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com
 
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree: fix radix_tree_range_tag_if_tagged() for multiorder entries
+Subject: radix-tree: rewrite radix_tree_locate_item
 
-I had previously decided that tagging a single multiorder entry would
-count as tagging 2^order entries for the purposes of 'nr_to_tag'.  I now
-believe that decision to be a mistake, and it should count as a single
-entry.  That's more likely to be what callers expect.
+Use the new multi-order support functions to rewrite
+radix_tree_locate_item().  Modify the locate tests to test multiorder
+entries too.
 
-When walking back up the tree from a newly-tagged entry, the current code
-assumed we were starting from the lowest level of the tree; if we have a
-multiorder entry with an order at least RADIX_TREE_MAP_SHIFT in size then
-we need to shift the index by 'shift' before we start walking back up the
-tree, or we will end up not setting tags on higher entries, and then
-mistakenly thinking that entries below a certain point in the tree are not
-tagged.
-
-If the first index we examine is a sibling entry of a tagged multiorder
-entry, we were not tagging it.  We need to examine the canonical entry,
-and the easiest way to do that is to use radix_tree_descend().  We then
-have to skip over sibling slots when looking for the next entry in the
-tree or we will end up walking back to the canonical entry.
-
-Add several tests for radix_tree_range_tag_if_tagged().
-
+[hughd@google.com: radix_tree_locate_item() is often returning the wrong index]
+  Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1605012108490.1166@eggly.anvils
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
@@ -49,244 +33,207 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c                      |   76 ++++++++++--------------
- tools/testing/radix-tree/multiorder.c |   25 +++++++
- tools/testing/radix-tree/tag_check.c  |   10 +++
- 3 files changed, 67 insertions(+), 44 deletions(-)
+ lib/radix-tree.c                |   87 ++++++++++++++----------------
+ tools/testing/radix-tree/main.c |   30 ++++++----
+ 2 files changed, 61 insertions(+), 56 deletions(-)
 
-diff -puN lib/radix-tree.c~radix-tree-fix-radix_tree_range_tag_if_tagged-for-multiorder-entries lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-fix-radix_tree_range_tag_if_tagged-for-multiorder-entries
+diff -puN lib/radix-tree.c~radix-tree-rewrite-radix_tree_locate_item lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-rewrite-radix_tree_locate_item
 +++ a/lib/radix-tree.c
-@@ -1033,14 +1033,13 @@ unsigned long radix_tree_range_tag_if_ta
- 		unsigned long nr_to_tag,
- 		unsigned int iftag, unsigned int settag)
+@@ -1303,58 +1303,54 @@ EXPORT_SYMBOL(radix_tree_gang_lookup_tag
+ #if defined(CONFIG_SHMEM) && defined(CONFIG_SWAP)
+ #include <linux/sched.h> /* for cond_resched() */
+ 
++struct locate_info {
++	unsigned long found_index;
++	bool stop;
++};
++
+ /*
+  * This linear search is at present only useful to shmem_unuse_inode().
+  */
+ static unsigned long __locate(struct radix_tree_node *slot, void *item,
+-			      unsigned long index, unsigned long *found_index)
++			      unsigned long index, struct locate_info *info)
  {
--	unsigned int height = root->height;
--	struct radix_tree_node *node = NULL;
--	struct radix_tree_node *slot;
--	unsigned int shift;
-+	struct radix_tree_node *slot, *node = NULL;
-+	unsigned long maxindex;
-+	unsigned int shift = radix_tree_load_root(root, &slot, &maxindex);
- 	unsigned long tagged = 0;
- 	unsigned long index = *first_indexp;
+ 	unsigned int shift, height;
+ 	unsigned long i;
  
--	last_index = min(last_index, radix_tree_maxindex(height));
-+	last_index = min(last_index, maxindex);
- 	if (index > last_index)
- 		return 0;
- 	if (!nr_to_tag)
-@@ -1049,80 +1048,71 @@ unsigned long radix_tree_range_tag_if_ta
- 		*first_indexp = last_index + 1;
- 		return 0;
- 	}
--	if (height == 0) {
-+	if (!radix_tree_is_indirect_ptr(slot)) {
- 		*first_indexp = last_index + 1;
- 		root_tag_set(root, settag);
- 		return 1;
- 	}
+ 	height = slot->path & RADIX_TREE_HEIGHT_MASK;
+-	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
++	shift = height * RADIX_TREE_MAP_SHIFT;
  
--	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
--	slot = indirect_to_ptr(root->rnode);
-+	node = indirect_to_ptr(slot);
-+	shift -= RADIX_TREE_MAP_SHIFT;
+-	for ( ; height > 1; height--) {
+-		i = (index >> shift) & RADIX_TREE_MAP_MASK;
+-		for (;;) {
+-			if (slot->slots[i] != NULL)
+-				break;
+-			index &= ~((1UL << shift) - 1);
+-			index += 1UL << shift;
+-			if (index == 0)
+-				goto out;	/* 32-bit wraparound */
+-			i++;
+-			if (i == RADIX_TREE_MAP_SIZE)
+-				goto out;
+-		}
++	do {
++		shift -= RADIX_TREE_MAP_SHIFT;
  
- 	for (;;) {
- 		unsigned long upindex;
--		int offset;
-+		unsigned offset;
- 
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
--		if (!slot->slots[offset])
-+		offset = radix_tree_descend(node, &slot, offset);
-+		if (!slot)
- 			goto next;
--		if (!tag_get(slot, iftag, offset))
-+		if (!tag_get(node, iftag, offset))
- 			goto next;
--		if (shift) {
--			node = slot;
--			slot = slot->slots[offset];
--			if (radix_tree_is_indirect_ptr(slot)) {
--				slot = indirect_to_ptr(slot);
--				shift -= RADIX_TREE_MAP_SHIFT;
--				continue;
+-		slot = rcu_dereference_raw(slot->slots[i]);
+-		if (slot == NULL)
+-			goto out;
+-		if (!radix_tree_is_indirect_ptr(slot)) {
+-			if (slot == item) {
+-				*found_index = index + i;
+-				index = 0;
 -			} else {
--				slot = node;
--				node = node->parent;
--			}
-+		/* Sibling slots never have tags set on them */
-+		if (radix_tree_is_indirect_ptr(slot)) {
-+			node = indirect_to_ptr(slot);
-+			shift -= RADIX_TREE_MAP_SHIFT;
-+			continue;
- 		}
- 
- 		/* tag the leaf */
--		tagged += 1 << shift;
--		tag_set(slot, settag, offset);
-+		tagged++;
-+		tag_set(node, settag, offset);
- 
-+		slot = node->parent;
- 		/* walk back up the path tagging interior nodes */
--		upindex = index;
--		while (node) {
-+		upindex = index >> shift;
-+		while (slot) {
- 			upindex >>= RADIX_TREE_MAP_SHIFT;
- 			offset = upindex & RADIX_TREE_MAP_MASK;
- 
- 			/* stop if we find a node with the tag already set */
--			if (tag_get(node, settag, offset))
-+			if (tag_get(slot, settag, offset))
- 				break;
--			tag_set(node, settag, offset);
--			node = node->parent;
-+			tag_set(slot, settag, offset);
-+			slot = slot->parent;
- 		}
- 
--		/*
--		 * Small optimization: now clear that node pointer.
--		 * Since all of this slot's ancestors now have the tag set
--		 * from setting it above, we have no further need to walk
--		 * back up the tree setting tags, until we update slot to
--		 * point to another radix_tree_node.
--		 */
--		node = NULL;
--
--next:
-+ next:
- 		/* Go to next item at level determined by 'shift' */
- 		index = ((index >> shift) + 1) << shift;
- 		/* Overflow can happen when last_index is ~0UL... */
- 		if (index > last_index || !index)
- 			break;
--		if (tagged >= nr_to_tag)
--			break;
--		while (((index >> shift) & RADIX_TREE_MAP_MASK) == 0) {
-+		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
-+		while (offset == 0) {
- 			/*
- 			 * We've fully scanned this node. Go up. Because
- 			 * last_index is guaranteed to be in the tree, what
- 			 * we do below cannot wander astray.
- 			 */
--			slot = slot->parent;
-+			node = node->parent;
- 			shift += RADIX_TREE_MAP_SHIFT;
-+			offset = (index >> shift) & RADIX_TREE_MAP_MASK;
- 		}
-+		if (is_sibling_entry(node, node->slots[offset]))
-+			goto next;
-+		if (tagged >= nr_to_tag)
+-				index += shift;
++		for (i = (index >> shift) & RADIX_TREE_MAP_MASK;
++		     i < RADIX_TREE_MAP_SIZE;
++		     i++, index += (1UL << shift)) {
++			struct radix_tree_node *node =
++					rcu_dereference_raw(slot->slots[i]);
++			if (node == RADIX_TREE_RETRY)
++				goto out;
++			if (!radix_tree_is_indirect_ptr(node)) {
++				if (node == item) {
++					info->found_index = index;
++					info->stop = true;
++					goto out;
++				}
++				continue;
+ 			}
+-			goto out;
++			node = indirect_to_ptr(node);
++			if (is_sibling_entry(slot, node))
++				continue;
++			slot = node;
 +			break;
- 	}
- 	/*
- 	 * We need not to tag the root tag if there is no tag which is set with
-diff -puN tools/testing/radix-tree/multiorder.c~radix-tree-fix-radix_tree_range_tag_if_tagged-for-multiorder-entries tools/testing/radix-tree/multiorder.c
---- a/tools/testing/radix-tree/multiorder.c~radix-tree-fix-radix_tree_range_tag_if_tagged-for-multiorder-entries
-+++ a/tools/testing/radix-tree/multiorder.c
-@@ -26,6 +26,7 @@ static void __multiorder_tag_test(int in
- {
- 	RADIX_TREE(tree, GFP_KERNEL);
- 	int base, err, i;
-+	unsigned long first = 0;
+ 		}
+-		slot = indirect_to_ptr(slot);
+-		shift -= RADIX_TREE_MAP_SHIFT;
+-	}
++		if (i == RADIX_TREE_MAP_SIZE)
++			break;
++	} while (shift);
  
- 	/* our canonical entry */
- 	base = index & ~((1 << order) - 1);
-@@ -59,13 +60,16 @@ static void __multiorder_tag_test(int in
- 		assert(!radix_tree_tag_get(&tree, i, 1));
- 	}
- 
-+	assert(radix_tree_range_tag_if_tagged(&tree, &first, ~0UL, 10, 0, 1) == 1);
- 	assert(radix_tree_tag_clear(&tree, index, 0));
- 
- 	for_each_index(i, base, order) {
- 		assert(!radix_tree_tag_get(&tree, i, 0));
--		assert(!radix_tree_tag_get(&tree, i, 1));
-+		assert(radix_tree_tag_get(&tree, i, 1));
- 	}
- 
-+	assert(radix_tree_tag_clear(&tree, index, 1));
-+
- 	assert(!radix_tree_tagged(&tree, 0));
- 	assert(!radix_tree_tagged(&tree, 1));
- 
-@@ -244,6 +248,7 @@ void multiorder_tagged_iteration(void)
- 	RADIX_TREE(tree, GFP_KERNEL);
- 	struct radix_tree_iter iter;
- 	void **slot;
-+	unsigned long first = 0;
- 	int i;
- 
- 	printf("Multiorder tagged iteration test\n");
-@@ -279,6 +284,24 @@ void multiorder_tagged_iteration(void)
- 		assert(iter.index == tag_index[i]);
- 		i++;
- 	}
-+
-+	radix_tree_range_tag_if_tagged(&tree, &first, ~0UL,
-+					MT_NUM_ENTRIES, 1, 2);
-+
-+	i = 0;
-+	radix_tree_for_each_tagged(slot, &tree, &iter, 1, 2) {
-+		assert(iter.index == tag_index[i]);
-+		i++;
-+	}
-+
-+	first = 1;
-+	radix_tree_range_tag_if_tagged(&tree, &first, ~0UL,
-+					MT_NUM_ENTRIES, 1, 0);
-+	i = 0;
-+	radix_tree_for_each_tagged(slot, &tree, &iter, 0, 0) {
-+		assert(iter.index == tag_index[i]);
-+		i++;
-+	}
- 
- 	item_kill_tree(&tree);
+-	/* Bottom level: check items */
+-	for (i = 0; i < RADIX_TREE_MAP_SIZE; i++) {
+-		if (slot->slots[i] == item) {
+-			*found_index = index + i;
+-			index = 0;
+-			goto out;
+-		}
+-	}
+-	index += RADIX_TREE_MAP_SIZE;
+ out:
++	if ((index == 0) && (i == RADIX_TREE_MAP_SIZE))
++		info->stop = true;
+ 	return index;
  }
-diff -puN tools/testing/radix-tree/tag_check.c~radix-tree-fix-radix_tree_range_tag_if_tagged-for-multiorder-entries tools/testing/radix-tree/tag_check.c
---- a/tools/testing/radix-tree/tag_check.c~radix-tree-fix-radix_tree_range_tag_if_tagged-for-multiorder-entries
-+++ a/tools/testing/radix-tree/tag_check.c
-@@ -12,6 +12,7 @@
- static void
- __simple_checks(struct radix_tree_root *tree, unsigned long index, int tag)
- {
-+	unsigned long first = 0;
- 	int ret;
  
- 	item_check_absent(tree, index);
-@@ -22,6 +23,10 @@ __simple_checks(struct radix_tree_root *
- 	item_tag_set(tree, index, tag);
- 	ret = item_tag_get(tree, index, tag);
- 	assert(ret != 0);
-+	ret = radix_tree_range_tag_if_tagged(tree, &first, ~0UL, 10, tag, !tag);
-+	assert(ret == 1);
-+	ret = item_tag_get(tree, index, !tag);
-+	assert(ret != 0);
- 	ret = item_delete(tree, index);
- 	assert(ret != 0);
- 	item_insert(tree, index);
-@@ -304,6 +309,7 @@ static void single_check(void)
- 	struct item *items[BATCH];
- 	RADIX_TREE(tree, GFP_KERNEL);
- 	int ret;
-+	unsigned long first = 0;
+@@ -1372,7 +1368,10 @@ unsigned long radix_tree_locate_item(str
+ 	struct radix_tree_node *node;
+ 	unsigned long max_index;
+ 	unsigned long cur_index = 0;
+-	unsigned long found_index = -1;
++	struct locate_info info = {
++		.found_index = -1,
++		.stop = false,
++	};
  
- 	item_insert(&tree, 0);
- 	item_tag_set(&tree, 0, 0);
-@@ -313,6 +319,10 @@ static void single_check(void)
- 	assert(ret == 0);
- 	verify_tag_consistency(&tree, 0);
- 	verify_tag_consistency(&tree, 1);
-+	ret = radix_tree_range_tag_if_tagged(&tree, &first, 10, 10, 0, 1);
-+	assert(ret == 1);
-+	ret = radix_tree_gang_lookup_tag(&tree, (void **)items, 0, BATCH, 1);
-+	assert(ret == 1);
+ 	do {
+ 		rcu_read_lock();
+@@ -1380,24 +1379,24 @@ unsigned long radix_tree_locate_item(str
+ 		if (!radix_tree_is_indirect_ptr(node)) {
+ 			rcu_read_unlock();
+ 			if (node == item)
+-				found_index = 0;
++				info.found_index = 0;
+ 			break;
+ 		}
+ 
+ 		node = indirect_to_ptr(node);
+-		max_index = radix_tree_maxindex(node->path &
+-						RADIX_TREE_HEIGHT_MASK);
++
++		max_index = node_maxindex(node);
+ 		if (cur_index > max_index) {
+ 			rcu_read_unlock();
+ 			break;
+ 		}
+ 
+-		cur_index = __locate(node, item, cur_index, &found_index);
++		cur_index = __locate(node, item, cur_index, &info);
+ 		rcu_read_unlock();
+ 		cond_resched();
+-	} while (cur_index != 0 && cur_index <= max_index);
++	} while (!info.stop && cur_index <= max_index);
+ 
+-	return found_index;
++	return info.found_index;
+ }
+ #else
+ unsigned long radix_tree_locate_item(struct radix_tree_root *root, void *item)
+diff -puN tools/testing/radix-tree/main.c~radix-tree-rewrite-radix_tree_locate_item tools/testing/radix-tree/main.c
+--- a/tools/testing/radix-tree/main.c~radix-tree-rewrite-radix_tree_locate_item
++++ a/tools/testing/radix-tree/main.c
+@@ -232,17 +232,18 @@ void copy_tag_check(void)
  	item_kill_tree(&tree);
  }
  
+-void __locate_check(struct radix_tree_root *tree, unsigned long index)
++void __locate_check(struct radix_tree_root *tree, unsigned long index,
++			unsigned order)
+ {
+ 	struct item *item;
+ 	unsigned long index2;
+ 
+-	item_insert(tree, index);
++	item_insert_order(tree, index, order);
+ 	item = item_lookup(tree, index);
+ 	index2 = radix_tree_locate_item(tree, item);
+ 	if (index != index2) {
+-		printf("index %ld inserted; found %ld\n",
+-			index, index2);
++		printf("index %ld order %d inserted; found %ld\n",
++			index, order, index2);
+ 		abort();
+ 	}
+ }
+@@ -250,21 +251,26 @@ void __locate_check(struct radix_tree_ro
+ static void locate_check(void)
+ {
+ 	RADIX_TREE(tree, GFP_KERNEL);
++	unsigned order;
+ 	unsigned long offset, index;
+ 
+-	for (offset = 0; offset < (1 << 3); offset++) {
+-		for (index = 0; index < (1UL << 5); index++) {
+-			__locate_check(&tree, index + offset);
+-		}
+-		if (radix_tree_locate_item(&tree, &tree) != -1)
+-			abort();
++	for (order = 0; order < 20; order++) {
++		for (offset = 0; offset < (1 << (order + 3));
++		     offset += (1UL << order)) {
++			for (index = 0; index < (1UL << (order + 5));
++			     index += (1UL << order)) {
++				__locate_check(&tree, index + offset, order);
++			}
++			if (radix_tree_locate_item(&tree, &tree) != -1)
++				abort();
+ 
+-		item_kill_tree(&tree);
++			item_kill_tree(&tree);
++		}
+ 	}
+ 
+ 	if (radix_tree_locate_item(&tree, &tree) != -1)
+ 		abort();
+-	__locate_check(&tree, -1);
++	__locate_check(&tree, -1, 0);
+ 	if (radix_tree_locate_item(&tree, &tree) != -1)
+ 		abort();
+ 	item_kill_tree(&tree);
 _
