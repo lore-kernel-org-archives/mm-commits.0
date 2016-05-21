@@ -1,48 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [patch 150/162] checkpatch: improve CONSTANT_COMPARISON test for
- structure members
-Date: Fri, 20 May 2016 17:04:02 -0700
-Message-ID: <573fa5f2.kAJbpoTRLQRY13ud%akpm@linux-foundation.org>
+Subject: [patch 154/162] checkpatch: add --list-types to show message
+ types to show or ignore
+Date: Fri, 20 May 2016 17:04:14 -0700
+Message-ID: <573fa5fe.wqS8UnFkFAYgyUDM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53199 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751560AbcEUAEE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:04:04 -0400
+	with ESMTP id S1751565AbcEUAEP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:04:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com
 
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve CONSTANT_COMPARISON test for structure members
+Subject: checkpatch: add --list-types to show message types to show or ignore
 
-A "." dereference to an all uppercase structure member can be
-incorrectly reported as a CONSTANT_COMPARISON.
-
-ie: "if (table[i].PANELID == tempdx)"
-
-Fix it by checking for "." before the constant test.
+The message types are not currently knowable without reading the code.
+Add a mechanism to see what they are.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   38 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 37 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-constant_comparison-test-for-structure-members scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-constant_comparison-test-for-structure-members
+diff -puN scripts/checkpatch.pl~checkpatch-add-list-types-to-show-message-types-to-show-or-ignore scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-list-types-to-show-message-types-to-show-or-ignore
 +++ a/scripts/checkpatch.pl
-@@ -4291,7 +4291,7 @@ sub process {
- 			my $comp = $3;
- 			my $to = $4;
- 			my $newcomp = $comp;
--			if ($lead !~ /$Operators\s*$/ &&
-+			if ($lead !~ /(?:$Operators|\.)\s*$/ &&
- 			    $to !~ /^(?:Constant|[A-Z_][A-Z0-9_]*)$/ &&
- 			    WARN("CONSTANT_COMPARISON",
- 				 "Comparisons should place the constant on the right side of the test\n" . $herecurr) &&
+@@ -33,6 +33,7 @@ my $summary = 1;
+ my $mailback = 0;
+ my $summary_file = 0;
+ my $show_types = 0;
++my $list_types = 0;
+ my $fix = 0;
+ my $fix_inplace = 0;
+ my $root;
+@@ -70,11 +71,12 @@ Options:
+   --showfile                 emit diffed file position, not input file position
+   -f, --file                 treat FILE as regular source file
+   --subjective, --strict     enable more subjective tests
++  --list-types               list the possible message types
+   --types TYPE(,TYPE2...)    show only these comma separated message types
+   --ignore TYPE(,TYPE2...)   ignore various comma separated message types
++  --show-types               show the specific message type in the output
+   --max-line-length=n        set the maximum line length, if exceeded, warn
+   --min-conf-desc-length=n   set the min description length, if shorter, warn
+-  --show-types               show the message "types" in the output
+   --root=PATH                PATH to the kernel tree root
+   --no-summary               suppress the per-file summary
+   --mailback                 only produce a report in case of warnings/errors
+@@ -106,6 +108,37 @@ EOM
+ 	exit($exitcode);
+ }
+ 
++sub uniq {
++	my %seen;
++	return grep { !$seen{$_}++ } @_;
++}
++
++sub list_types {
++	my ($exitcode) = @_;
++
++	my $count = 0;
++
++	local $/ = undef;
++
++	open(my $script, '<', abs_path($P)) or
++	    die "$P: Can't read '$P' $!\n";
++
++	my $text = <$script>;
++	close($script);
++
++	my @types = ();
++	for ($text =~ /\b(?:(?:CHK|WARN|ERROR)\s*\(\s*"([^"]+)")/g) {
++		push (@types, $_);
++	}
++	@types = sort(uniq(@types));
++	print("#\tMessage type\n\n");
++	foreach my $type (@types) {
++		print(++$count . "\t" . $type . "\n");
++	}
++
++	exit($exitcode);
++}
++
+ my $conf = which_conf($configuration_file);
+ if (-f $conf) {
+ 	my @conf_args;
+@@ -146,6 +179,7 @@ GetOptions(
+ 	'ignore=s'	=> \@ignore,
+ 	'types=s'	=> \@use,
+ 	'show-types!'	=> \$show_types,
++	'list-types!'	=> \$list_types,
+ 	'max-line-length=i' => \$max_line_length,
+ 	'min-conf-desc-length=i' => \$min_conf_desc_length,
+ 	'root=s'	=> \$root,
+@@ -166,6 +200,8 @@ GetOptions(
+ 
+ help(0) if ($help);
+ 
++list_types(0) if ($list_types);
++
+ $fix = 1 if ($fix_inplace);
+ $check_orig = $check;
+ 
 _
