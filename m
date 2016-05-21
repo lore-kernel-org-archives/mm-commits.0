@@ -1,30 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: [patch 138/162] radix-tree: rename indirect_to_ptr() to
- entry_to_node()
-Date: Fri, 20 May 2016 17:03:27 -0700
-Message-ID: <573fa5cf.M6MqJmPC82Ht2B3M%akpm@linux-foundation.org>
+Subject: [patch 139/162] radix-tree: rename radix_tree_is_indirect_ptr()
+Date: Fri, 20 May 2016 17:03:30 -0700
+Message-ID: <573fa5d2.vQKtlzYS3R1W6G1C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53119 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53126 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751419AbcEUAD3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:03:29 -0400
+	with ESMTP id S1751657AbcEUADc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:03:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com
 
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree: rename indirect_to_ptr() to entry_to_node()
+Subject: radix-tree: rename radix_tree_is_indirect_ptr()
 
-Mirrors the earlier commit introducing node_to_entry().
-
-Also change the type returned to be a struct radix_tree_node pointer. 
-That lets us simplify a couple of places in the radix tree shrink & extend
-paths where we could convert an entry into a pointer, modify the node,
-then convert the pointer back into an entry.
+As with indirect_to_ptr(), ptr_to_indirect() and RADIX_TREE_INDIRECT_PTR,
+change radix_tree_is_indirect_ptr() to radix_tree_is_internal_node().
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
@@ -35,261 +30,292 @@ Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h      |   12 +++----
- lib/radix-tree.c                |   48 +++++++++++++-----------------
+ include/linux/radix-tree.h      |   10 +++---
+ lib/radix-tree.c                |   48 +++++++++++++++---------------
  tools/testing/radix-tree/test.c |    4 +-
- tools/testing/radix-tree/test.h |    1 
- 4 files changed, 28 insertions(+), 37 deletions(-)
+ 3 files changed, 31 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-rename-indirect_to_ptr-to-entry_to_node include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-rename-indirect_to_ptr-to-entry_to_node
+diff -puN include/linux/radix-tree.h~radix-tree-rename-radix_tree_is_indirect_ptr include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-rename-radix_tree_is_indirect_ptr
 +++ a/include/linux/radix-tree.h
-@@ -442,7 +442,7 @@ radix_tree_chunk_size(struct radix_tree_
- 	return (iter->next_index - iter->index) >> iter_shift(iter);
+@@ -57,7 +57,7 @@
+ #define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
+ 		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE)))
+ 
+-static inline int radix_tree_is_indirect_ptr(void *ptr)
++static inline int radix_tree_is_internal_node(void *ptr)
+ {
+ 	return (int)((unsigned long)ptr & RADIX_TREE_INTERNAL_NODE);
+ }
+@@ -224,7 +224,7 @@ static inline void *radix_tree_deref_slo
+  */
+ static inline int radix_tree_deref_retry(void *arg)
+ {
+-	return unlikely(radix_tree_is_indirect_ptr(arg));
++	return unlikely(radix_tree_is_internal_node(arg));
  }
  
--static inline void *indirect_to_ptr(void *ptr)
-+static inline struct radix_tree_node *entry_to_node(void *ptr)
+ /**
+@@ -259,7 +259,7 @@ static inline int radix_tree_exception(v
+  */
+ static inline void radix_tree_replace_slot(void **pslot, void *item)
  {
- 	return (void *)((unsigned long)ptr & ~RADIX_TREE_INTERNAL_NODE);
+-	BUG_ON(radix_tree_is_indirect_ptr(item));
++	BUG_ON(radix_tree_is_internal_node(item));
+ 	rcu_assign_pointer(*pslot, item);
  }
-@@ -469,7 +469,7 @@ radix_tree_next_slot(void **slot, struct
+ 
+@@ -468,7 +468,7 @@ radix_tree_next_slot(void **slot, struct
+ 		if (unlikely(!iter->tags))
  			return NULL;
  		while (IS_ENABLED(CONFIG_RADIX_TREE_MULTIORDER) &&
- 					radix_tree_is_indirect_ptr(slot[1])) {
--			if (indirect_to_ptr(slot[1]) == canon) {
-+			if (entry_to_node(slot[1]) == canon) {
+-					radix_tree_is_indirect_ptr(slot[1])) {
++					radix_tree_is_internal_node(slot[1])) {
+ 			if (entry_to_node(slot[1]) == canon) {
  				iter->tags >>= 1;
  				iter->index = __radix_tree_iter_add(iter, 1);
- 				slot++;
-@@ -499,12 +499,10 @@ radix_tree_next_slot(void **slot, struct
+@@ -498,7 +498,7 @@ radix_tree_next_slot(void **slot, struct
+ 			iter->index = __radix_tree_iter_add(iter, 1);
  
  			if (IS_ENABLED(CONFIG_RADIX_TREE_MULTIORDER) &&
- 			    radix_tree_is_indirect_ptr(*slot)) {
--				if (indirect_to_ptr(*slot) == canon)
-+				if (entry_to_node(*slot) == canon)
+-			    radix_tree_is_indirect_ptr(*slot)) {
++			    radix_tree_is_internal_node(*slot)) {
+ 				if (entry_to_node(*slot) == canon)
  					continue;
--				else {
--					iter->next_index = iter->index;
--					break;
--				}
-+				iter->next_index = iter->index;
-+				break;
- 			}
- 
- 			if (likely(*slot))
-diff -puN lib/radix-tree.c~radix-tree-rename-indirect_to_ptr-to-entry_to_node lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-rename-indirect_to_ptr-to-entry_to_node
+ 				iter->next_index = iter->index;
+diff -puN lib/radix-tree.c~radix-tree-rename-radix_tree_is_indirect_ptr lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-rename-radix_tree_is_indirect_ptr
 +++ a/lib/radix-tree.c
-@@ -230,13 +230,13 @@ static void dump_node(struct radix_tree_
- 		if (is_sibling_entry(node, entry)) {
- 			pr_debug("radix sblng %p offset %ld val %p indices %ld-%ld\n",
+@@ -100,7 +100,7 @@ static unsigned radix_tree_descend(struc
+ 	void **entry = rcu_dereference_raw(parent->slots[offset]);
+ 
+ #ifdef CONFIG_RADIX_TREE_MULTIORDER
+-	if (radix_tree_is_indirect_ptr(entry)) {
++	if (radix_tree_is_internal_node(entry)) {
+ 		unsigned long siboff = get_slot_offset(parent, entry);
+ 		if (siboff < RADIX_TREE_MAP_SIZE) {
+ 			offset = siboff;
+@@ -232,7 +232,7 @@ static void dump_node(struct radix_tree_
  					entry, i,
--					*(void **)indirect_to_ptr(entry),
-+					*(void **)entry_to_node(entry),
+ 					*(void **)entry_to_node(entry),
  					first, last);
- 		} else if (!radix_tree_is_indirect_ptr(entry)) {
+-		} else if (!radix_tree_is_indirect_ptr(entry)) {
++		} else if (!radix_tree_is_internal_node(entry)) {
  			pr_debug("radix entry %p offset %ld indices %ld-%ld\n",
  					entry, i, first, last);
  		} else {
--			dump_node(indirect_to_ptr(entry), first);
-+			dump_node(entry_to_node(entry), first);
- 		}
- 	}
- }
-@@ -249,7 +249,7 @@ static void radix_tree_dump(struct radix
+@@ -247,7 +247,7 @@ static void radix_tree_dump(struct radix
+ 	pr_debug("radix root: %p rnode %p tags %x\n",
+ 			root, root->rnode,
  			root->gfp_mask >> __GFP_BITS_SHIFT);
- 	if (!radix_tree_is_indirect_ptr(root->rnode))
+-	if (!radix_tree_is_indirect_ptr(root->rnode))
++	if (!radix_tree_is_internal_node(root->rnode))
  		return;
--	dump_node(indirect_to_ptr(root->rnode), 0);
-+	dump_node(entry_to_node(root->rnode), 0);
+ 	dump_node(entry_to_node(root->rnode), 0);
  }
- #endif
+@@ -302,7 +302,7 @@ radix_tree_node_alloc(struct radix_tree_
+ 	ret = kmem_cache_alloc(radix_tree_node_cachep,
+ 			       gfp_mask | __GFP_ACCOUNT);
+ out:
+-	BUG_ON(radix_tree_is_indirect_ptr(ret));
++	BUG_ON(radix_tree_is_internal_node(ret));
+ 	return ret;
+ }
  
-@@ -422,7 +422,7 @@ static unsigned radix_tree_load_root(str
+@@ -421,7 +421,7 @@ static unsigned radix_tree_load_root(str
+ 
  	*nodep = node;
  
- 	if (likely(radix_tree_is_indirect_ptr(node))) {
--		node = indirect_to_ptr(node);
-+		node = entry_to_node(node);
+-	if (likely(radix_tree_is_indirect_ptr(node))) {
++	if (likely(radix_tree_is_internal_node(node))) {
+ 		node = entry_to_node(node);
  		*maxindex = node_maxindex(node);
  		return node->shift + RADIX_TREE_MAP_SHIFT;
- 	}
-@@ -467,11 +467,8 @@ static int radix_tree_extend(struct radi
+@@ -467,7 +467,7 @@ static int radix_tree_extend(struct radi
  		node->offset = 0;
  		node->count = 1;
  		node->parent = NULL;
--		if (radix_tree_is_indirect_ptr(slot)) {
--			slot = indirect_to_ptr(slot);
--			slot->parent = node;
--			slot = node_to_entry(slot);
--		}
-+		if (radix_tree_is_indirect_ptr(slot))
-+			entry_to_node(slot)->parent = node;
+-		if (radix_tree_is_indirect_ptr(slot))
++		if (radix_tree_is_internal_node(slot))
+ 			entry_to_node(slot)->parent = node;
  		node->slots[0] = slot;
  		slot = node_to_entry(node);
- 		rcu_assign_pointer(root->rnode, slot);
-@@ -542,7 +539,7 @@ int __radix_tree_create(struct radix_tre
+@@ -535,7 +535,7 @@ int __radix_tree_create(struct radix_tre
+ 			} else
+ 				rcu_assign_pointer(root->rnode,
+ 							node_to_entry(slot));
+-		} else if (!radix_tree_is_indirect_ptr(slot))
++		} else if (!radix_tree_is_internal_node(slot))
  			break;
  
  		/* Go a level down */
--		node = indirect_to_ptr(slot);
-+		node = entry_to_node(slot);
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
- 		offset = radix_tree_descend(node, &slot, offset);
- 	}
-@@ -645,7 +642,7 @@ void *__radix_tree_lookup(struct radix_t
+@@ -585,7 +585,7 @@ int __radix_tree_insert(struct radix_tre
+ 	void **slot;
+ 	int error;
  
- 		if (node == RADIX_TREE_RETRY)
- 			goto restart;
--		parent = indirect_to_ptr(node);
-+		parent = entry_to_node(node);
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
- 		offset = radix_tree_descend(parent, &node, offset);
-@@ -729,7 +726,7 @@ void *radix_tree_tag_set(struct radix_tr
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+-	BUG_ON(radix_tree_is_indirect_ptr(item));
++	BUG_ON(radix_tree_is_internal_node(item));
  
--		parent = indirect_to_ptr(node);
-+		parent = entry_to_node(node);
- 		offset = radix_tree_descend(parent, &node, offset);
- 		BUG_ON(!node);
- 
-@@ -777,7 +774,7 @@ void *radix_tree_tag_clear(struct radix_
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
- 
--		parent = indirect_to_ptr(node);
-+		parent = entry_to_node(node);
- 		offset = radix_tree_descend(parent, &node, offset);
- 	}
- 
-@@ -844,7 +841,7 @@ int radix_tree_tag_get(struct radix_tree
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
- 
--		parent = indirect_to_ptr(node);
-+		parent = entry_to_node(node);
- 		offset = radix_tree_descend(parent, &node, offset);
- 
- 		if (!node)
-@@ -904,7 +901,7 @@ void **radix_tree_next_chunk(struct radi
+ 	error = __radix_tree_create(root, index, order, &node, &slot);
+ 	if (error)
+@@ -637,7 +637,7 @@ void *__radix_tree_lookup(struct radix_t
+ 	if (index > maxindex)
  		return NULL;
  
- 	if (radix_tree_is_indirect_ptr(rnode)) {
--		rnode = indirect_to_ptr(rnode);
-+		rnode = entry_to_node(rnode);
- 	} else if (rnode) {
- 		/* Single-slot tree */
- 		iter->index = index;
-@@ -963,7 +960,7 @@ void **radix_tree_next_chunk(struct radi
- 		if (!radix_tree_is_indirect_ptr(slot))
- 			break;
+-	while (radix_tree_is_indirect_ptr(node)) {
++	while (radix_tree_is_internal_node(node)) {
+ 		unsigned offset;
  
--		node = indirect_to_ptr(slot);
-+		node = entry_to_node(slot);
+ 		if (node == RADIX_TREE_RETRY)
+@@ -720,7 +720,7 @@ void *radix_tree_tag_set(struct radix_tr
+ 	shift = radix_tree_load_root(root, &node, &maxindex);
+ 	BUG_ON(index > maxindex);
+ 
+-	while (radix_tree_is_indirect_ptr(node)) {
++	while (radix_tree_is_internal_node(node)) {
+ 		unsigned offset;
+ 
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+@@ -770,7 +770,7 @@ void *radix_tree_tag_clear(struct radix_
+ 
+ 	parent = NULL;
+ 
+-	while (radix_tree_is_indirect_ptr(node)) {
++	while (radix_tree_is_internal_node(node)) {
  		shift -= RADIX_TREE_MAP_SHIFT;
  		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+ 
+@@ -835,7 +835,7 @@ int radix_tree_tag_get(struct radix_tree
+ 	if (node == NULL)
+ 		return 0;
+ 
+-	while (radix_tree_is_indirect_ptr(node)) {
++	while (radix_tree_is_internal_node(node)) {
+ 		int offset;
+ 
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+@@ -900,7 +900,7 @@ void **radix_tree_next_chunk(struct radi
+ 	if (index > maxindex)
+ 		return NULL;
+ 
+-	if (radix_tree_is_indirect_ptr(rnode)) {
++	if (radix_tree_is_internal_node(rnode)) {
+ 		rnode = entry_to_node(rnode);
+ 	} else if (rnode) {
+ 		/* Single-slot tree */
+@@ -957,7 +957,7 @@ void **radix_tree_next_chunk(struct radi
+ 
+ 		if ((slot == NULL) || (slot == RADIX_TREE_RETRY))
+ 			goto restart;
+-		if (!radix_tree_is_indirect_ptr(slot))
++		if (!radix_tree_is_internal_node(slot))
+ 			break;
+ 
+ 		node = entry_to_node(slot);
+@@ -1039,7 +1039,7 @@ unsigned long radix_tree_range_tag_if_ta
+ 		*first_indexp = last_index + 1;
+ 		return 0;
  	}
-@@ -1048,7 +1045,7 @@ unsigned long radix_tree_range_tag_if_ta
+-	if (!radix_tree_is_indirect_ptr(slot)) {
++	if (!radix_tree_is_internal_node(slot)) {
+ 		*first_indexp = last_index + 1;
+ 		root_tag_set(root, settag);
  		return 1;
- 	}
- 
--	node = indirect_to_ptr(slot);
-+	node = entry_to_node(slot);
- 	shift -= RADIX_TREE_MAP_SHIFT;
- 
- 	for (;;) {
-@@ -1063,7 +1060,7 @@ unsigned long radix_tree_range_tag_if_ta
+@@ -1059,7 +1059,7 @@ unsigned long radix_tree_range_tag_if_ta
+ 		if (!tag_get(node, iftag, offset))
  			goto next;
  		/* Sibling slots never have tags set on them */
- 		if (radix_tree_is_indirect_ptr(slot)) {
--			node = indirect_to_ptr(slot);
-+			node = entry_to_node(slot);
+-		if (radix_tree_is_indirect_ptr(slot)) {
++		if (radix_tree_is_internal_node(slot)) {
+ 			node = entry_to_node(slot);
  			shift -= RADIX_TREE_MAP_SHIFT;
  			continue;
+@@ -1152,7 +1152,7 @@ radix_tree_gang_lookup(struct radix_tree
+ 		results[ret] = rcu_dereference_raw(*slot);
+ 		if (!results[ret])
+ 			continue;
+-		if (radix_tree_is_indirect_ptr(results[ret])) {
++		if (radix_tree_is_internal_node(results[ret])) {
+ 			slot = radix_tree_iter_retry(&iter);
+ 			continue;
  		}
-@@ -1322,7 +1319,7 @@ static unsigned long __locate(struct rad
- 				}
- 				continue;
- 			}
--			node = indirect_to_ptr(node);
-+			node = entry_to_node(node);
- 			if (is_sibling_entry(slot, node))
- 				continue;
- 			slot = node;
-@@ -1367,7 +1364,7 @@ unsigned long radix_tree_locate_item(str
- 			break;
+@@ -1235,7 +1235,7 @@ radix_tree_gang_lookup_tag(struct radix_
+ 		results[ret] = rcu_dereference_raw(*slot);
+ 		if (!results[ret])
+ 			continue;
+-		if (radix_tree_is_indirect_ptr(results[ret])) {
++		if (radix_tree_is_internal_node(results[ret])) {
+ 			slot = radix_tree_iter_retry(&iter);
+ 			continue;
  		}
+@@ -1311,7 +1311,7 @@ static unsigned long __locate(struct rad
+ 					rcu_dereference_raw(slot->slots[i]);
+ 			if (node == RADIX_TREE_RETRY)
+ 				goto out;
+-			if (!radix_tree_is_indirect_ptr(node)) {
++			if (!radix_tree_is_internal_node(node)) {
+ 				if (node == item) {
+ 					info->found_index = index;
+ 					info->stop = true;
+@@ -1357,7 +1357,7 @@ unsigned long radix_tree_locate_item(str
+ 	do {
+ 		rcu_read_lock();
+ 		node = rcu_dereference_raw(root->rnode);
+-		if (!radix_tree_is_indirect_ptr(node)) {
++		if (!radix_tree_is_internal_node(node)) {
+ 			rcu_read_unlock();
+ 			if (node == item)
+ 				info.found_index = 0;
+@@ -1398,7 +1398,7 @@ static inline bool radix_tree_shrink(str
+ 		struct radix_tree_node *to_free = root->rnode;
+ 		struct radix_tree_node *slot;
  
--		node = indirect_to_ptr(node);
-+		node = entry_to_node(node);
- 
- 		max_index = node_maxindex(node);
- 		if (cur_index > max_index) {
-@@ -1403,7 +1400,7 @@ static inline bool radix_tree_shrink(str
- 
- 		if (!radix_tree_is_indirect_ptr(to_free))
+-		if (!radix_tree_is_indirect_ptr(to_free))
++		if (!radix_tree_is_internal_node(to_free))
  			break;
--		to_free = indirect_to_ptr(to_free);
-+		to_free = entry_to_node(to_free);
+ 		to_free = entry_to_node(to_free);
+ 
+@@ -1412,10 +1412,10 @@ static inline bool radix_tree_shrink(str
+ 		slot = to_free->slots[0];
+ 		if (!slot)
+ 			break;
+-		if (!radix_tree_is_indirect_ptr(slot) && to_free->shift)
++		if (!radix_tree_is_internal_node(slot) && to_free->shift)
+ 			break;
+ 
+-		if (radix_tree_is_indirect_ptr(slot))
++		if (radix_tree_is_internal_node(slot))
+ 			entry_to_node(slot)->parent = NULL;
  
  		/*
- 		 * The candidate node has more than one child, or its child
-@@ -1418,11 +1415,8 @@ static inline bool radix_tree_shrink(str
- 		if (!radix_tree_is_indirect_ptr(slot) && to_free->shift)
- 			break;
+@@ -1445,7 +1445,7 @@ static inline bool radix_tree_shrink(str
+ 		 * also results in a stale slot). So tag the slot as indirect
+ 		 * to force callers to retry.
+ 		 */
+-		if (!radix_tree_is_indirect_ptr(slot))
++		if (!radix_tree_is_internal_node(slot))
+ 			to_free->slots[0] = RADIX_TREE_RETRY;
  
--		if (radix_tree_is_indirect_ptr(slot)) {
--			slot = indirect_to_ptr(slot);
--			slot->parent = NULL;
--			slot = node_to_entry(slot);
--		}
-+		if (radix_tree_is_indirect_ptr(slot))
-+			entry_to_node(slot)->parent = NULL;
- 
- 		/*
- 		 * We don't need rcu_assign_pointer(), since we are simply
-@@ -1481,7 +1475,7 @@ bool __radix_tree_delete_node(struct rad
- 		struct radix_tree_node *parent;
- 
- 		if (node->count) {
--			if (node == indirect_to_ptr(root->rnode))
-+			if (node == entry_to_node(root->rnode))
- 				deleted |= radix_tree_shrink(root);
- 			return deleted;
- 		}
-diff -puN tools/testing/radix-tree/test.c~radix-tree-rename-indirect_to_ptr-to-entry_to_node tools/testing/radix-tree/test.c
---- a/tools/testing/radix-tree/test.c~radix-tree-rename-indirect_to_ptr-to-entry_to_node
+ 		radix_tree_node_free(to_free);
+diff -puN tools/testing/radix-tree/test.c~radix-tree-rename-radix_tree_is_indirect_ptr tools/testing/radix-tree/test.c
+--- a/tools/testing/radix-tree/test.c~radix-tree-rename-radix_tree_is_indirect_ptr
 +++ a/tools/testing/radix-tree/test.c
-@@ -149,7 +149,7 @@ static int verify_node(struct radix_tree
- 	int i;
- 	int j;
- 
--	slot = indirect_to_ptr(slot);
-+	slot = entry_to_node(slot);
- 
- 	/* Verify consistency at this level */
- 	for (i = 0; i < RADIX_TREE_TAG_LONGS; i++) {
-@@ -227,7 +227,7 @@ void tree_verify_min_height(struct radix
+@@ -193,7 +193,7 @@ static int verify_node(struct radix_tree
+ void verify_tag_consistency(struct radix_tree_root *root, unsigned int tag)
+ {
+ 	struct radix_tree_node *node = root->rnode;
+-	if (!radix_tree_is_indirect_ptr(node))
++	if (!radix_tree_is_internal_node(node))
+ 		return;
+ 	verify_node(node, tag, !!root_tag_get(root, tag));
+ }
+@@ -222,7 +222,7 @@ void tree_verify_min_height(struct radix
+ {
+ 	unsigned shift;
+ 	struct radix_tree_node *node = root->rnode;
+-	if (!radix_tree_is_indirect_ptr(node)) {
++	if (!radix_tree_is_internal_node(node)) {
+ 		assert(maxindex == 0);
  		return;
  	}
- 
--	node = indirect_to_ptr(node);
-+	node = entry_to_node(node);
- 	assert(maxindex <= node_maxindex(node));
- 
- 	shift = node->shift;
-diff -puN tools/testing/radix-tree/test.h~radix-tree-rename-indirect_to_ptr-to-entry_to_node tools/testing/radix-tree/test.h
---- a/tools/testing/radix-tree/test.h~radix-tree-rename-indirect_to_ptr-to-entry_to_node
-+++ a/tools/testing/radix-tree/test.h
-@@ -39,7 +39,6 @@ void verify_tag_consistency(struct radix
- extern int nr_allocated;
- 
- /* Normally private parts of lib/radix-tree.c */
--void *indirect_to_ptr(void *ptr);
- void radix_tree_dump(struct radix_tree_root *root);
- int root_tag_get(struct radix_tree_root *root, unsigned int tag);
- unsigned long node_maxindex(struct radix_tree_node *);
 _
