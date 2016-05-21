@@ -1,56 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [patch 158/162] fs/efs/super.c: fix return value
-Date: Fri, 20 May 2016 17:04:25 -0700
-Message-ID: <573fa609.kDYNH7cK+1kHNvGB%akpm@linux-foundation.org>
+Subject: [patch 161/162] samples/kprobes: add a new module parameter
+Date: Fri, 20 May 2016 17:04:33 -0700
+Message-ID: <573fa611.QlkRcXLFCzZz4H6b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53211 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53230 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751582AbcEUAE0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:04:26 -0400
+	with ESMTP id S1751666AbcEUAEe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:04:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, os@iscas.ac.cn, firogm@gmail.com, hannes@cmpxchg.org, vdavydov@virtuozzo.com, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, shijie.huang@arm.com, pmladek@suse.com, steve.capper@arm.com
 
-From: Heloise <os@iscas.ac.cn>
-Subject: fs/efs/super.c: fix return value
+From: Huang Shijie <shijie.huang@arm.com>
+Subject: samples/kprobes: add a new module parameter
 
-When sb_bread() fails, the return value should be -EIO, fix it.
+Add a new module parameter which can be used as the symbol name.  Without
+this patch, we can only test the "_do_fork" function with this kernel
+module.  With this patch, the module becomes more flexible; we can test
+any functions with this module with
 
-Link: http://lkml.kernel.org/r/1463464943-4142-1-git-send-email-os@iscas.ac.cn
-Signed-off-by: Heloise <os@iscas.ac.cn>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Firo Yang <firogm@gmail.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+	# insmod kprobe_example.ko symbol="xxx"
+
+Link: http://lkml.kernel.org/r/1463535417-29637-1-git-send-email-shijie.huang@arm.com
+Signed-off-by: Huang Shijie <shijie.huang@arm.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Steve Capper <steve.capper@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/super.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ samples/kprobes/kprobe_example.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/efs/super.c~fs-efs-fix-return-value fs/efs/super.c
---- a/fs/efs/super.c~fs-efs-fix-return-value
-+++ a/fs/efs/super.c
-@@ -275,7 +275,7 @@ static int efs_fill_super(struct super_b
+diff -puN samples/kprobes/kprobe_example.c~kprobes-add-a-new-module-parameter samples/kprobes/kprobe_example.c
+--- a/samples/kprobes/kprobe_example.c~kprobes-add-a-new-module-parameter
++++ a/samples/kprobes/kprobe_example.c
+@@ -14,9 +14,13 @@
+ #include <linux/module.h>
+ #include <linux/kprobes.h>
  
- 	if (!bh) {
- 		pr_err("cannot read volume header\n");
--		return -EINVAL;
-+		return -EIO;
- 	}
++#define MAX_SYMBOL_LEN	64
++static char symbol[MAX_SYMBOL_LEN] = "_do_fork";
++module_param_string(symbol, symbol, sizeof(symbol), 0644);
++
+ /* For each probe you need to allocate a kprobe structure */
+ static struct kprobe kp = {
+-	.symbol_name	= "_do_fork",
++	.symbol_name	= symbol,
+ };
  
- 	/*
-@@ -293,7 +293,7 @@ static int efs_fill_super(struct super_b
- 	bh = sb_bread(s, sb->fs_start + EFS_SUPER);
- 	if (!bh) {
- 		pr_err("cannot read superblock\n");
--		return -EINVAL;
-+		return -EIO;
- 	}
- 		
- 	if (efs_validate_super(sb, (struct efs_super *) bh->b_data)) {
+ /* kprobe pre_handler: called just before the probed instruction is executed */
 _
