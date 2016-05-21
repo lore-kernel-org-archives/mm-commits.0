@@ -1,32 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: [patch 123/162] radix-tree: fix radix_tree_create for sibling
- entries
-Date: Fri, 20 May 2016 17:02:44 -0700
-Message-ID: <573fa5a4.nVcAeXbRoV5uGkiy%akpm@linux-foundation.org>
+Subject: [patch 121/162] radix-tree: rewrite radix_tree_tag_get
+Date: Fri, 20 May 2016 17:02:38 -0700
+Message-ID: <573fa59e.my38KgCGODB+EjU7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53031 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53019 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751589AbcEUACp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:02:45 -0400
+	with ESMTP id S1751065AbcEUACj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:02:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, willy@linux.intel.com
 
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree: fix radix_tree_create for sibling entries
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: radix-tree: rewrite radix_tree_tag_get
 
-If the radix tree user attempted to insert a colliding entry with an
-existing multiorder entry, then radix_tree_create() could encounter a
-sibling entry when walking down the tree to look for a slot.  Use
-radix_tree_descend() to fix the problem, and add a test-case to make sure
-the problem doesn't come back in future.
+Use the new multi-order support functions to rewrite radix_tree_tag_get()
 
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Jan Kara <jack@suse.com>
@@ -34,38 +29,53 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c                      |    4 ++--
- tools/testing/radix-tree/multiorder.c |    5 +++++
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ lib/radix-tree.c |   44 ++++++++++++++++++--------------------------
+ 1 file changed, 18 insertions(+), 26 deletions(-)
 
-diff -puN lib/radix-tree.c~radix-tree-fix-radix_tree_create-for-sibling-entries lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-fix-radix_tree_create-for-sibling-entries
+diff -puN lib/radix-tree.c~radix-tree-rewrite-radix_tree_tag_get lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-rewrite-radix_tree_tag_get
 +++ a/lib/radix-tree.c
-@@ -548,9 +548,9 @@ int __radix_tree_create(struct radix_tre
- 		/* Go a level down */
- 		height--;
- 		shift -= RADIX_TREE_MAP_SHIFT;
--		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
- 		node = indirect_to_ptr(slot);
--		slot = node->slots[offset];
+@@ -831,45 +831,37 @@ EXPORT_SYMBOL(radix_tree_tag_clear);
+ int radix_tree_tag_get(struct radix_tree_root *root,
+ 			unsigned long index, unsigned int tag)
+ {
+-	unsigned int height, shift;
+-	struct radix_tree_node *node;
++	struct radix_tree_node *node, *parent;
++	unsigned long maxindex;
++	unsigned int shift;
+ 
+-	/* check the root's tag bit */
+ 	if (!root_tag_get(root, tag))
+ 		return 0;
+ 
+-	node = rcu_dereference_raw(root->rnode);
++	shift = radix_tree_load_root(root, &node, &maxindex);
++	if (index > maxindex)
++		return 0;
+ 	if (node == NULL)
+ 		return 0;
+ 
+-	if (!radix_tree_is_indirect_ptr(node))
+-		return (index == 0);
+-	node = indirect_to_ptr(node);
++	while (radix_tree_is_indirect_ptr(node)) {
++		int offset;
+ 
+-	height = node->path & RADIX_TREE_HEIGHT_MASK;
+-	if (index > radix_tree_maxindex(height))
+-		return 0;
++		shift -= RADIX_TREE_MAP_SHIFT;
 +		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
-+		offset = radix_tree_descend(node, &slot, offset);
- 	}
  
- #ifdef CONFIG_RADIX_TREE_MULTIORDER
-diff -puN tools/testing/radix-tree/multiorder.c~radix-tree-fix-radix_tree_create-for-sibling-entries tools/testing/radix-tree/multiorder.c
---- a/tools/testing/radix-tree/multiorder.c~radix-tree-fix-radix_tree_create-for-sibling-entries
-+++ a/tools/testing/radix-tree/multiorder.c
-@@ -135,6 +135,11 @@ static void multiorder_check(unsigned lo
- 		item_check_absent(&tree, i);
- 	for (i = max; i < 2*max; i++)
- 		item_check_absent(&tree, i);
-+	for (i = min; i < max; i++) {
-+		static void *entry = (void *)
-+					(0xA0 | RADIX_TREE_EXCEPTIONAL_ENTRY);
-+		assert(radix_tree_insert(&tree, i, entry) == -EEXIST);
-+	}
+-	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
++		parent = indirect_to_ptr(node);
++		offset = radix_tree_descend(parent, &node, offset);
  
- 	assert(item_delete(&tree, index) != 0);
- 
-_
+-	for ( ; ; ) {
+-		int offset;
+-
+-		if (node == NULL)
++		if (!node)
+ 			return 0;
+-		node = indirect_to_ptr(node);
