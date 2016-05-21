@@ -1,110 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [patch 070/162] mm/zswap: use workqueue to destroy pool
-Date: Fri, 20 May 2016 16:59:54 -0700
-Message-ID: <573fa4fa.cm+ee7xa6TigmKy1%akpm@linux-foundation.org>
+Subject: [patch 074/162] procfs: expose umask in /proc/<PID>/status
+Date: Fri, 20 May 2016 17:00:05 -0700
+Message-ID: <573fa505.F9EfpNizNgLreURR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52511 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcETX7z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 19:59:55 -0400
+	with ESMTP id S1751647AbcEUAAG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:00:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ddstreet@ieee.org, dan.streetman@canonical.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, yuzhao@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rjones@redhat.com, jmarchan@redhat.com, keescook@chromium.org, koct9i@gmail.com, mhocko@kernel.org, pierre@spotify.com, tytso@mit.edu
 
-From: Dan Streetman <ddstreet@ieee.org>
-Subject: mm/zswap: use workqueue to destroy pool
+From: "Richard W.M. Jones" <rjones@redhat.com>
+Subject: procfs: expose umask in /proc/<PID>/status
 
-Add a work_struct to struct zswap_pool, and change __zswap_pool_empty to
-use the workqueue instead of using call_rcu().
+It's not possible to read the process umask without also modifying it,
+which is what umask(2) does.  A library cannot read umask safely,
+especially if the main program might be multithreaded.
 
-When zswap destroys a pool no longer in use, it uses call_rcu() to perform
-the destruction/freeing.  Since that executes in softirq context, it must
-not sleep.  However, actually destroying the pool involves freeing the
-per-cpu compressors (which requires locking the cpu_add_remove_lock mutex)
-and freeing the zpool, for which the implementation may sleep (e.g. 
-zsmalloc calls kmem_cache_destroy, which locks the slab_mutex).  So if
-either mutex is currently taken, or any other part of the compressor or
-zpool implementation sleeps, it will result in a BUG().
+Add a new status line ("Umask") in /proc/<PID>/status.  It contains
+the file mode creation mask (umask) in octal.  It is only shown for
+tasks which have task->fs.
 
-It's not easy to reproduce this when changing zswap's params normally.  In
-testing with a loaded system, this does not fail:
+This patch is adapted from one originally written by Pierre Carrier.
 
-$ cd /sys/module/zswap/parameters
-$ echo lz4 > compressor ; echo zsmalloc > zpool
 
-nor does this:
+The use case is that we have endless trouble with people setting weird
+umask() values (usually on the grounds of "security"), and then everything
+breaking.  I'm on the hook to fix these.  We'd like to add debugging to
+our program so we can dump out the umask in debug reports.
 
-$ while true ; do
-> echo lzo > compressor ; echo zbud > zpool
-> sleep 1
-> echo lz4 > compressor ; echo zsmalloc > zpool
-> sleep 1
-> done
+Previous versions of the patch used a syscall so you could only read your
+own umask.  That's all I need.  However there was quite a lot of push-back
+from those, so this new version exports it in /proc.
 
-although it's still possible either of those might fail, depending on
-whether anything else besides zswap has locked the mutexes.
+See:
 
-However, changing a parameter with no delay immediately causes the
-schedule while atomic BUG:
-
-$ while true ; do
-> echo lzo > compressor ; echo lz4 > compressor
-> done
-
-This is essentially the same as Yu Zhao's proposed patch to zsmalloc,
-but moved to zswap, to cover compressor and zpool freeing.
-
-Fixes: f1c54846ee45 ("zswap: dynamic pool creation")
-Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Reported-by: Yu Zhao <yuzhao@google.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Dan Streetman <dan.streetman@canonical.com>
+https://lkml.org/lkml/2016/4/13/704 [umask2]
+https://lkml.org/lkml/2016/4/13/487 [getumask]
+Signed-off-by: Richard W.M. Jones <rjones@redhat.com>
+Acked-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pierre Carrier <pierre@spotify.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ Documentation/filesystems/proc.txt |    1 +
+ fs/proc/array.c                    |   20 +++++++++++++++++++-
+ 2 files changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN mm/zswap.c~mm-zswap-use-workqueue-to-destroy-pool mm/zswap.c
---- a/mm/zswap.c~mm-zswap-use-workqueue-to-destroy-pool
-+++ a/mm/zswap.c
-@@ -117,7 +117,7 @@ struct zswap_pool {
- 	struct crypto_comp * __percpu *tfm;
- 	struct kref kref;
- 	struct list_head list;
--	struct rcu_head rcu_head;
-+	struct work_struct work;
- 	struct notifier_block notifier;
- 	char tfm_name[CRYPTO_MAX_ALG_NAME];
- };
-@@ -658,9 +658,11 @@ static int __must_check zswap_pool_get(s
- 	return kref_get_unless_zero(&pool->kref);
+diff -puN Documentation/filesystems/proc.txt~procfs-expose-umask-in-proc-pid-status Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~procfs-expose-umask-in-proc-pid-status
++++ a/Documentation/filesystems/proc.txt
+@@ -225,6 +225,7 @@ Table 1-2: Contents of the status files
+  TracerPid                   PID of process tracing this process (0 if not)
+  Uid                         Real, effective, saved set, and  file system UIDs
+  Gid                         Real, effective, saved set, and  file system GIDs
++ Umask                       file mode creation mask
+  FDSize                      number of file descriptor slots currently allocated
+  Groups                      supplementary group list
+  NStgid                      descendant namespace thread group ID hierarchy
+diff -puN fs/proc/array.c~procfs-expose-umask-in-proc-pid-status fs/proc/array.c
+--- a/fs/proc/array.c~procfs-expose-umask-in-proc-pid-status
++++ a/fs/proc/array.c
+@@ -83,6 +83,7 @@
+ #include <linux/tracehook.h>
+ #include <linux/string_helpers.h>
+ #include <linux/user_namespace.h>
++#include <linux/fs_struct.h>
+ 
+ #include <asm/pgtable.h>
+ #include <asm/processor.h>
+@@ -139,12 +140,25 @@ static inline const char *get_task_state
+ 	return task_state_array[fls(state)];
  }
  
--static void __zswap_pool_release(struct rcu_head *head)
-+static void __zswap_pool_release(struct work_struct *work)
++static inline int get_task_umask(struct task_struct *tsk)
++{
++	struct fs_struct *fs;
++	int umask = -ENOENT;
++
++	task_lock(tsk);
++	fs = tsk->fs;
++	if (fs)
++		umask = fs->umask;
++	task_unlock(tsk);
++	return umask;
++}
++
+ static inline void task_state(struct seq_file *m, struct pid_namespace *ns,
+ 				struct pid *pid, struct task_struct *p)
  {
--	struct zswap_pool *pool = container_of(head, typeof(*pool), rcu_head);
-+	struct zswap_pool *pool = container_of(work, typeof(*pool), work);
+ 	struct user_namespace *user_ns = seq_user_ns(m);
+ 	struct group_info *group_info;
+-	int g;
++	int g, umask;
+ 	struct task_struct *tracer;
+ 	const struct cred *cred;
+ 	pid_t ppid, tpid = 0, tgid, ngid;
+@@ -162,6 +176,10 @@ static inline void task_state(struct seq
+ 	ngid = task_numa_group_id(p);
+ 	cred = get_task_cred(p);
+ 
++	umask = get_task_umask(p);
++	if (umask >= 0)
++		seq_printf(m, "Umask:\t%#04o\n", umask);
 +
-+	synchronize_rcu();
- 
- 	/* nobody should have been able to get a kref... */
- 	WARN_ON(kref_get_unless_zero(&pool->kref));
-@@ -680,7 +682,9 @@ static void __zswap_pool_empty(struct kr
- 	WARN_ON(pool == zswap_pool_current());
- 
- 	list_del_rcu(&pool->list);
--	call_rcu(&pool->rcu_head, __zswap_pool_release);
-+
-+	INIT_WORK(&pool->work, __zswap_pool_release);
-+	schedule_work(&pool->work);
- 
- 	spin_unlock(&zswap_pools_lock);
- }
+ 	task_lock(p);
+ 	if (p->files)
+ 		max_fds = files_fdtable(p->files)->max_fds;
 _
