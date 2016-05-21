@@ -1,107 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [patch 100/162] radix tree test suite: fix build
-Date: Fri, 20 May 2016 17:01:36 -0700
-Message-ID: <573fa560.bOBhXMYrcd399dCN%akpm@linux-foundation.org>
+Subject: [patch 099/162] radix-tree: introduce radix_tree_empty
+Date: Fri, 20 May 2016 17:01:33 -0700
+Message-ID: <573fa55d.dEy16uRCKgHzaYiF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52890 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475AbcEUABh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:01:37 -0400
+	with ESMTP id S1751314AbcEUABe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:01:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, willy@linux.intel.com, jack@suse.cz, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com
 
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix tree test suite: fix build
+Subject: radix-tree: introduce radix_tree_empty
 
-Add an empty linux/init.h, and definitions for a few parts of the kernel
-API either in use now, or to be used in the near future.  Start using the
-common definitions in tools/include/linux, although more work needs to be
-done here.
+Commit e61452365372 ("radix_tree: add support for multi-order entries")
+left the impression that the support for multiorder radix tree entries was
+functional.  As soon as Ross tried to use it, it became apparent that my
+testing was completely inadequate, and it didn't even work a little bit
+for orders that were not a multiple of shift.
+
+This series of patches is the result of about 6 weeks of redesign,
+reimplementation, testing, arguing and hair-pulling.  The great news is
+that the test-suite is now far better than it was.  That's reflected in
+the diffstat for the test-suite alone:
+
+ 12 files changed, 436 insertions(+), 28 deletions(-)
+
+The highlight for users of the tree is that the restriction on the order
+of inserted entries being >= RADIX_TREE_MAP_SHIFT is now gone; the radix
+tree now supports any order between 0 and 64.
+
+For those who are interested in how the tree works, patch 9 is probably
+the most interesting one as it introduces the new machinery for handling
+sibling entries.
+
+I've tried to be fair in attributing authorship to the person who
+contributed the majority of the code in each patch; Ross has been an
+invaluable partner in the development of this support and it's fair to say
+that each of us has code in every commit.
+
+I should also express my appreciation of the 0day testing.  It prompted me
+that I was bloating the tinyconfig in an unacceptable way, and it bisected
+to a commit which contained a rather nasty memory-corruption bug.
+
+
+
+This patch (of 29):
+
+The irqdomain code was checking for 0 or 1 entries, not 0 entries like the
+comment said they were.  Introduce a new helper that will actually check
+for an empty tree.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Jan Kara <jack@suse.com>
 Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux/kernel.h |   12 ++++++++++--
- tools/testing/radix-tree/linux/slab.h   |    1 -
- tools/testing/radix-tree/linux/types.h  |    7 ++-----
- 3 files changed, 12 insertions(+), 8 deletions(-)
+ include/linux/radix-tree.h |    5 +++++
+ kernel/irq/irqdomain.c     |    7 +------
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-fix-build tools/testing/radix-tree/linux/kernel.h
---- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-fix-build
-+++ a/tools/testing/radix-tree/linux/kernel.h
-@@ -7,19 +7,25 @@
- #include <stddef.h>
- #include <limits.h>
+diff -puN include/linux/radix-tree.h~radix-tree-introduce-radix_tree_empty include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-introduce-radix_tree_empty
++++ a/include/linux/radix-tree.h
+@@ -136,6 +136,11 @@ do {									\
+ 	(root)->rnode = NULL;						\
+ } while (0)
  
-+#include "../../include/linux/compiler.h"
++static inline bool radix_tree_empty(struct radix_tree_root *root)
++{
++	return root->rnode == NULL;
++}
 +
- #ifndef NULL
- #define NULL	0
- #endif
- 
- #define BUG_ON(expr)	assert(!(expr))
-+#define WARN_ON(expr)	assert(!(expr))
- #define __init
- #define __must_check
- #define panic(expr)
- #define printk printf
- #define __force
--#define likely(c) (c)
--#define unlikely(c) (c)
- #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
-+#define pr_debug printk
-+
-+#define smp_rmb()	barrier()
-+#define smp_wmb()	barrier()
-+#define cpu_relax()	barrier()
- 
- #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
- 
-@@ -28,6 +34,8 @@
- 	(type *)( (char *)__mptr - offsetof(type, member) );})
- #define min(a, b) ((a) < (b) ? (a) : (b))
- 
-+#define cond_resched()	sched_yield()
-+
- static inline int in_interrupt(void)
+ /**
+  * Radix-tree synchronization
+  *
+diff -puN kernel/irq/irqdomain.c~radix-tree-introduce-radix_tree_empty kernel/irq/irqdomain.c
+--- a/kernel/irq/irqdomain.c~radix-tree-introduce-radix_tree_empty
++++ a/kernel/irq/irqdomain.c
+@@ -139,12 +139,7 @@ void irq_domain_remove(struct irq_domain
  {
- 	return 0;
-diff -puN tools/testing/radix-tree/linux/slab.h~radix-tree-test-suite-fix-build tools/testing/radix-tree/linux/slab.h
---- a/tools/testing/radix-tree/linux/slab.h~radix-tree-test-suite-fix-build
-+++ a/tools/testing/radix-tree/linux/slab.h
-@@ -3,7 +3,6 @@
+ 	mutex_lock(&irq_domain_mutex);
  
- #include <linux/types.h>
+-	/*
+-	 * radix_tree_delete() takes care of destroying the root
+-	 * node when all entries are removed. Shout if there are
+-	 * any mappings left.
+-	 */
+-	WARN_ON(domain->revmap_tree.height);
++	WARN_ON(!radix_tree_empty(&domain->revmap_tree));
  
--#define GFP_KERNEL 1
- #define SLAB_HWCACHE_ALIGN 1
- #define SLAB_PANIC 2
- #define SLAB_RECLAIM_ACCOUNT    0x00020000UL            /* Objects are reclaimable */
-diff -puN tools/testing/radix-tree/linux/types.h~radix-tree-test-suite-fix-build tools/testing/radix-tree/linux/types.h
---- a/tools/testing/radix-tree/linux/types.h~radix-tree-test-suite-fix-build
-+++ a/tools/testing/radix-tree/linux/types.h
-@@ -1,15 +1,13 @@
- #ifndef _TYPES_H
- #define _TYPES_H
+ 	list_del(&domain->link);
  
-+#include "../../include/linux/types.h"
-+
- #define __rcu
- #define __read_mostly
- 
- #define BITS_PER_LONG (sizeof(long) * 8)
- 
--struct list_head {
--	struct list_head *next, *prev;
--};
+_
