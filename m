@@ -1,112 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [patch 154/162] checkpatch: add --list-types to show message
- types to show or ignore
-Date: Fri, 20 May 2016 17:04:14 -0700
-Message-ID: <573fa5fe.wqS8UnFkFAYgyUDM%akpm@linux-foundation.org>
+Subject: [patch 155/162] checkpatch: add support to check already applied
+ git commits
+Date: Fri, 20 May 2016 17:04:16 -0700
+Message-ID: <573fa600.G8SOrR9DNq5RDos4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53199 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53202 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565AbcEUAEP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:04:15 -0400
+	with ESMTP id S1751475AbcEUAER (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:04:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, changbin.du@intel.com, joe@perches.com
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add --list-types to show message types to show or ignore
+From: "Du, Changbin" <changbin.du@intel.com>
+Subject: checkpatch: add support to check already applied git commits
 
-The message types are not currently knowable without reading the code.
-Add a mechanism to see what they are.
+It's sometimes useful to scan already committed patches.
 
+Add --git <revision range> to scan specific or multiple commits.
+
+Single commits are scanned with
+	--git <rev>
+Multiple commits are scanned with
+	--git <range>
+	--git <commit>-<count>
+
+[joe@perches.com:
+o Don't exec git for each <commit>-<count>,
+  use a single "git log -<count> <commit>"
+o Consolidate the git exec for the <range> and <commit>-<count> variants
+o Output 12 character commit hash ids
+o Don't scan git commit merges
+o Use -M to reduce the size of rename commits]
+
+Signed-off-by: "Du, Changbin" <changbin.du@intel.com>
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   38 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 37 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |   48 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 47 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-list-types-to-show-message-types-to-show-or-ignore scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-list-types-to-show-message-types-to-show-or-ignore
+diff -puN scripts/checkpatch.pl~checkpatch-add-support-to-check-already-applied-git-commits scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-support-to-check-already-applied-git-commits
 +++ a/scripts/checkpatch.pl
-@@ -33,6 +33,7 @@ my $summary = 1;
- my $mailback = 0;
- my $summary_file = 0;
- my $show_types = 0;
-+my $list_types = 0;
- my $fix = 0;
- my $fix_inplace = 0;
- my $root;
-@@ -70,11 +71,12 @@ Options:
+@@ -27,6 +27,7 @@ my $emacs = 0;
+ my $terse = 0;
+ my $showfile = 0;
+ my $file = 0;
++my $git = 0;
+ my $check = 0;
+ my $check_orig = 0;
+ my $summary = 1;
+@@ -69,6 +70,16 @@ Options:
+   --emacs                    emacs compile window format
+   --terse                    one line per report
    --showfile                 emit diffed file position, not input file position
++  -g, --git                  treat FILE as a single commit or git revision range
++                             single git commit with:
++                               <rev>
++                               <rev>^
++                               <rev>~n
++                             multiple git commits with:
++                               <rev1>..<rev2>
++                               <rev1>...<rev2>
++                               <rev>-<count>
++                             git merges are ignored
    -f, --file                 treat FILE as regular source file
    --subjective, --strict     enable more subjective tests
-+  --list-types               list the possible message types
-   --types TYPE(,TYPE2...)    show only these comma separated message types
-   --ignore TYPE(,TYPE2...)   ignore various comma separated message types
-+  --show-types               show the specific message type in the output
-   --max-line-length=n        set the maximum line length, if exceeded, warn
-   --min-conf-desc-length=n   set the min description length, if shorter, warn
--  --show-types               show the message "types" in the output
-   --root=PATH                PATH to the kernel tree root
-   --no-summary               suppress the per-file summary
-   --mailback                 only produce a report in case of warnings/errors
-@@ -106,6 +108,37 @@ EOM
- 	exit($exitcode);
- }
- 
-+sub uniq {
-+	my %seen;
-+	return grep { !$seen{$_}++ } @_;
-+}
-+
-+sub list_types {
-+	my ($exitcode) = @_;
-+
-+	my $count = 0;
-+
-+	local $/ = undef;
-+
-+	open(my $script, '<', abs_path($P)) or
-+	    die "$P: Can't read '$P' $!\n";
-+
-+	my $text = <$script>;
-+	close($script);
-+
-+	my @types = ();
-+	for ($text =~ /\b(?:(?:CHK|WARN|ERROR)\s*\(\s*"([^"]+)")/g) {
-+		push (@types, $_);
-+	}
-+	@types = sort(uniq(@types));
-+	print("#\tMessage type\n\n");
-+	foreach my $type (@types) {
-+		print(++$count . "\t" . $type . "\n");
-+	}
-+
-+	exit($exitcode);
-+}
-+
- my $conf = which_conf($configuration_file);
- if (-f $conf) {
- 	my @conf_args;
-@@ -146,6 +179,7 @@ GetOptions(
+   --list-types               list the possible message types
+@@ -174,6 +185,7 @@ GetOptions(
+ 	'terse!'	=> \$terse,
+ 	'showfile!'	=> \$showfile,
+ 	'f|file!'	=> \$file,
++	'g|git!'	=> \$git,
+ 	'subjective!'	=> \$check,
+ 	'strict!'	=> \$check,
  	'ignore=s'	=> \@ignore,
- 	'types=s'	=> \@use,
- 	'show-types!'	=> \$show_types,
-+	'list-types!'	=> \$list_types,
- 	'max-line-length=i' => \$max_line_length,
- 	'min-conf-desc-length=i' => \$min_conf_desc_length,
- 	'root=s'	=> \$root,
-@@ -166,6 +200,8 @@ GetOptions(
+@@ -788,10 +800,42 @@ my @fixed_inserted = ();
+ my @fixed_deleted = ();
+ my $fixlinenr = -1;
  
- help(0) if ($help);
- 
-+list_types(0) if ($list_types);
++# If input is git commits, extract all commits from the commit expressions.
++# For example, HEAD-3 means we need check 'HEAD, HEAD~1, HEAD~2'.
++die "$P: No git repository found\n" if ($git && !-e ".git");
 +
- $fix = 1 if ($fix_inplace);
- $check_orig = $check;
- 
++if ($git) {
++	my @commits = ();
++	for my $commit_expr (@ARGV) {
++		my $git_range;
++		if ($commit_expr =~ m/-/) {
++			my @tmp = split(/-/, $commit_expr);
++			die "$P: incorrect git commits expression $commit_expr$!\n"
++			    if (@tmp != 2);
++			$git_range = "-$tmp[1] $tmp[0]";
++		} elsif ($commit_expr =~ m/\.\./) {
++			$git_range = "$commit_expr";
++		}
++		if (defined $git_range) {
++			my $lines = `git log --no-merges --pretty=format:'%H' $git_range`;
++			foreach my $line (split(/\n/, $lines)) {
++				unshift(@commits, $line);
++			}
++		} else {
++			unshift(@commits, $commit_expr);
++		}
++	}
++	die "$P: no git commits after extraction!\n" if (@commits == 0);
++	@ARGV = @commits;
++}
++
+ my $vname;
+ for my $filename (@ARGV) {
+ 	my $FILE;
+-	if ($file) {
++	if ($git) {
++		open($FILE, '-|', "git format-patch -M --stdout -1 $filename") ||
++			die "$P: $filename: git format-patch failed - $!\n";
++	} elsif ($file) {
+ 		open($FILE, '-|', "diff -u /dev/null $filename") ||
+ 			die "$P: $filename: diff failed - $!\n";
+ 	} elsif ($filename eq '-') {
+@@ -802,6 +846,8 @@ for my $filename (@ARGV) {
+ 	}
+ 	if ($filename eq '-') {
+ 		$vname = 'Your patch';
++	} elsif ($git) {
++		$vname = "Commit " . substr($filename, 0, 12) . `git log -1 --pretty=format:' ("%s")' $filename`;
+ 	} else {
+ 		$vname = $filename;
+ 	}
 _
