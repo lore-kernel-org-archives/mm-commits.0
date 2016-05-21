@@ -1,25 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: [patch 093/162] kernel/sysctl_binary.c: use generic UUID library
-Date: Fri, 20 May 2016 17:01:10 -0700
-Message-ID: <573fa546.DyAd6HlNgX7WW3XS%akpm@linux-foundation.org>
+Subject: [patch 094/162] include/linux/efi.h: redefine type, constant,
+ macro from generic code
+Date: Fri, 20 May 2016 17:01:18 -0700
+Message-ID: <573fa54e.BGiCTjM2Oa8a+2Z/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52840 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52852 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcEUABQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:01:16 -0400
+	with ESMTP id S1751065AbcEUABT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:01:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, arnd@arndb.de, axboe@kernel.dk, dmitry.kasatkin@gmail.com, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, viro@zeniv.linux.org.uk, zohar@linux.vnet.ibm.com
 
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: kernel/sysctl_binary.c: use generic UUID library
+Subject: include/linux/efi.h: redefine type, constant, macro from generic code
 
-UUID library provides uuid_be type and uuid_be_to_bin() function.  This
-substitutes open coded variant by generic library calls.
+Generic UUID library defines structure type, macro to define UUID, and the
+length of the UUID string.  This patch removes duplicate data structure
+definition, UUID string length constant as well as macro for UUID
+handling.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Matt Fleming <matt@codeblueprint.co.uk>
@@ -33,38 +36,47 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_binary.c |   23 +++++++----------------
- 1 file changed, 7 insertions(+), 16 deletions(-)
+ include/linux/efi.h |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN kernel/sysctl_binary.c~sysctl-use-generic-uuid-library kernel/sysctl_binary.c
---- a/kernel/sysctl_binary.c~sysctl-use-generic-uuid-library
-+++ a/kernel/sysctl_binary.c
-@@ -13,6 +13,7 @@
- #include <linux/ctype.h>
- #include <linux/netdevice.h>
- #include <linux/kernel.h>
+diff -puN include/linux/efi.h~efi-redefine-type-constant-macro-from-generic-code include/linux/efi.h
+--- a/include/linux/efi.h~efi-redefine-type-constant-macro-from-generic-code
++++ a/include/linux/efi.h
+@@ -21,6 +21,7 @@
+ #include <linux/pfn.h>
+ #include <linux/pstore.h>
+ #include <linux/reboot.h>
 +#include <linux/uuid.h>
- #include <linux/slab.h>
- #include <linux/compat.h>
+ #include <linux/screen_info.h>
  
-@@ -1117,9 +1118,8 @@ static ssize_t bin_uuid(struct file *fil
+ #include <asm/page.h>
+@@ -44,17 +45,10 @@ typedef u16 efi_char16_t;		/* UNICODE ch
+ typedef u64 efi_physical_addr_t;
+ typedef void *efi_handle_t;
  
- 	/* Only supports reads */
- 	if (oldval && oldlen) {
--		char buf[40], *str = buf;
--		unsigned char uuid[16];
--		int i;
-+		char buf[UUID_STRING_LEN + 1];
-+		uuid_be uuid;
+-
+-typedef struct {
+-	u8 b[16];
+-} efi_guid_t;
++typedef uuid_le efi_guid_t;
  
- 		result = kernel_read(file, 0, buf, sizeof(buf) - 1);
- 		if (result < 0)
-@@ -1127,24 +1127,15 @@ static ssize_t bin_uuid(struct file *fil
+ #define EFI_GUID(a,b,c,d0,d1,d2,d3,d4,d5,d6,d7) \
+-((efi_guid_t) \
+-{{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
+-  (b) & 0xff, ((b) >> 8) & 0xff, \
+-  (c) & 0xff, ((c) >> 8) & 0xff, \
+-  (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
++	UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)
  
- 		buf[result] = '\0';
+ /*
+  * Generic EFI table header
+@@ -1117,7 +1111,7 @@ extern int efi_status_to_err(efi_status_
+  * Length of a GUID string (strlen("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
+  * not including trailing NUL
+  */
+-#define EFI_VARIABLE_GUID_LEN 36
++#define EFI_VARIABLE_GUID_LEN	UUID_STRING_LEN
  
--		/* Convert the uuid to from a string to binary */
--		for (i = 0; i < 16; i++) {
--			result = -EIO;
--			if (!isxdigit(str[0]) || !isxdigit(str[1]))
--				goto out;
+ /*
+  * The type of search to perform when calling boottime->locate_handle
+_
