@@ -1,119 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [patch 074/162] procfs: expose umask in /proc/<PID>/status
-Date: Fri, 20 May 2016 17:00:05 -0700
-Message-ID: <573fa505.F9EfpNizNgLreURR%akpm@linux-foundation.org>
+Subject: [patch 073/162] zram: introduce per-device debug_stat sysfs node
+Date: Fri, 20 May 2016 17:00:02 -0700
+Message-ID: <573fa502.CD8acWBOCOf0ULMz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52511 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52506 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647AbcEUAAG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:00:06 -0400
+	with ESMTP id S1751589AbcEUAAD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:00:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rjones@redhat.com, jmarchan@redhat.com, keescook@chromium.org, koct9i@gmail.com, mhocko@kernel.org, pierre@spotify.com, tytso@mit.edu
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sergey.senozhatsky@gmail.com, minchan@kernel.org
 
-From: "Richard W.M. Jones" <rjones@redhat.com>
-Subject: procfs: expose umask in /proc/<PID>/status
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: introduce per-device debug_stat sysfs node
 
-It's not possible to read the process umask without also modifying it,
-which is what umask(2) does.  A library cannot read umask safely,
-especially if the main program might be multithreaded.
+debug_stat sysfs is read-only and represents various debugging data that
+zram developers may need.  This file is not meant to be used by anyone
+else: its content is not documented and will change any time w/o any
+notice.  Therefore, the output of debug_stat file contains a version
+string.  To avoid any confusion, we will increase the version number every
+time we modify the output.
 
-Add a new status line ("Umask") in /proc/<PID>/status.  It contains
-the file mode creation mask (umask) in octal.  It is only shown for
-tasks which have task->fs.
+At the moment this file exports only one value -- the number of
+re-compressions, IOW, the number of times compression fast path has
+failed.  This stat is temporary any will be useful in case if any per-cpu
+compression streams regressions will be reported.
 
-This patch is adapted from one originally written by Pierre Carrier.
-
-
-The use case is that we have endless trouble with people setting weird
-umask() values (usually on the grounds of "security"), and then everything
-breaking.  I'm on the hook to fix these.  We'd like to add debugging to
-our program so we can dump out the umask in debug reports.
-
-Previous versions of the patch used a syscall so you could only read your
-own umask.  That's all I need.  However there was quite a lot of push-back
-from those, so this new version exports it in /proc.
-
-See:
-
-https://lkml.org/lkml/2016/4/13/704 [umask2]
-https://lkml.org/lkml/2016/4/13/487 [getumask]
-Signed-off-by: Richard W.M. Jones <rjones@redhat.com>
-Acked-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pierre Carrier <pierre@spotify.com>
+Link: http://lkml.kernel.org/r/20160513230834.GB26763@bbox
+Link: http://lkml.kernel.org/r/20160511134553.12655-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    1 +
- fs/proc/array.c                    |   20 +++++++++++++++++++-
- 2 files changed, 20 insertions(+), 1 deletion(-)
+ Documentation/ABI/testing/sysfs-block-zram |    9 ++++++++
+ Documentation/blockdev/zram.txt            |    1 
+ drivers/block/zram/zram_drv.c              |   21 +++++++++++++++++++
+ drivers/block/zram/zram_drv.h              |    1 
+ 4 files changed, 32 insertions(+)
 
-diff -puN Documentation/filesystems/proc.txt~procfs-expose-umask-in-proc-pid-status Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~procfs-expose-umask-in-proc-pid-status
-+++ a/Documentation/filesystems/proc.txt
-@@ -225,6 +225,7 @@ Table 1-2: Contents of the status files
-  TracerPid                   PID of process tracing this process (0 if not)
-  Uid                         Real, effective, saved set, and  file system UIDs
-  Gid                         Real, effective, saved set, and  file system GIDs
-+ Umask                       file mode creation mask
-  FDSize                      number of file descriptor slots currently allocated
-  Groups                      supplementary group list
-  NStgid                      descendant namespace thread group ID hierarchy
-diff -puN fs/proc/array.c~procfs-expose-umask-in-proc-pid-status fs/proc/array.c
---- a/fs/proc/array.c~procfs-expose-umask-in-proc-pid-status
-+++ a/fs/proc/array.c
-@@ -83,6 +83,7 @@
- #include <linux/tracehook.h>
- #include <linux/string_helpers.h>
- #include <linux/user_namespace.h>
-+#include <linux/fs_struct.h>
+diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-introduce-per-device-debug_stat-sysfs-node Documentation/ABI/testing/sysfs-block-zram
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-introduce-per-device-debug_stat-sysfs-node
++++ a/Documentation/ABI/testing/sysfs-block-zram
+@@ -166,3 +166,12 @@ Description:
+ 		The mm_stat file is read-only and represents device's mm
+ 		statistics (orig_data_size, compr_data_size, etc.) in a format
+ 		similar to block layer statistics file format.
++
++What:		/sys/block/zram<id>/debug_stat
++Date:		July 2016
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The debug_stat file is read-only and represents various
++		device's debugging info useful for kernel developers. Its
++		format is not documented intentionally and may change
++		anytime without any notice.
+diff -puN Documentation/blockdev/zram.txt~zram-introduce-per-device-debug_stat-sysfs-node Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-introduce-per-device-debug_stat-sysfs-node
++++ a/Documentation/blockdev/zram.txt
+@@ -172,6 +172,7 @@ mem_limit         RW    the maximum amou
+ pages_compacted   RO    the number of pages freed during compaction
+                         (available only via zram<id>/mm_stat node)
+ compact           WO    trigger memory compaction
++debug_stat        RO    this file is used for zram debugging purposes
  
- #include <asm/pgtable.h>
- #include <asm/processor.h>
-@@ -139,12 +140,25 @@ static inline const char *get_task_state
- 	return task_state_array[fls(state)];
+ WARNING
+ =======
+diff -puN drivers/block/zram/zram_drv.c~zram-introduce-per-device-debug_stat-sysfs-node drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-per-device-debug_stat-sysfs-node
++++ a/drivers/block/zram/zram_drv.c
+@@ -435,8 +435,26 @@ static ssize_t mm_stat_show(struct devic
+ 	return ret;
  }
  
-+static inline int get_task_umask(struct task_struct *tsk)
++static ssize_t debug_stat_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
 +{
-+	struct fs_struct *fs;
-+	int umask = -ENOENT;
++	int version = 1;
++	struct zram *zram = dev_to_zram(dev);
++	ssize_t ret;
 +
-+	task_lock(tsk);
-+	fs = tsk->fs;
-+	if (fs)
-+		umask = fs->umask;
-+	task_unlock(tsk);
-+	return umask;
++	down_read(&zram->init_lock);
++	ret = scnprintf(buf, PAGE_SIZE,
++			"version: %d\n%8llu\n",
++			version,
++			(u64)atomic64_read(&zram->stats.writestall));
++	up_read(&zram->init_lock);
++
++	return ret;
 +}
 +
- static inline void task_state(struct seq_file *m, struct pid_namespace *ns,
- 				struct pid *pid, struct task_struct *p)
- {
- 	struct user_namespace *user_ns = seq_user_ns(m);
- 	struct group_info *group_info;
--	int g;
-+	int g, umask;
- 	struct task_struct *tracer;
- 	const struct cred *cred;
- 	pid_t ppid, tpid = 0, tgid, ngid;
-@@ -162,6 +176,10 @@ static inline void task_state(struct seq
- 	ngid = task_numa_group_id(p);
- 	cred = get_task_cred(p);
+ static DEVICE_ATTR_RO(io_stat);
+ static DEVICE_ATTR_RO(mm_stat);
++static DEVICE_ATTR_RO(debug_stat);
+ ZRAM_ATTR_RO(num_reads);
+ ZRAM_ATTR_RO(num_writes);
+ ZRAM_ATTR_RO(failed_reads);
+@@ -719,6 +737,8 @@ compress_again:
+ 		zcomp_strm_release(zram->comp, zstrm);
+ 		zstrm = NULL;
  
-+	umask = get_task_umask(p);
-+	if (umask >= 0)
-+		seq_printf(m, "Umask:\t%#04o\n", umask);
++		atomic64_inc(&zram->stats.writestall);
 +
- 	task_lock(p);
- 	if (p->files)
- 		max_fds = files_fdtable(p->files)->max_fds;
+ 		handle = zs_malloc(meta->mem_pool, clen,
+ 				GFP_NOIO | __GFP_HIGHMEM);
+ 		if (handle)
+@@ -1181,6 +1201,7 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_comp_algorithm.attr,
+ 	&dev_attr_io_stat.attr,
+ 	&dev_attr_mm_stat.attr,
++	&dev_attr_debug_stat.attr,
+ 	NULL,
+ };
+ 
+diff -puN drivers/block/zram/zram_drv.h~zram-introduce-per-device-debug_stat-sysfs-node drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-introduce-per-device-debug_stat-sysfs-node
++++ a/drivers/block/zram/zram_drv.h
+@@ -85,6 +85,7 @@ struct zram_stats {
+ 	atomic64_t zero_pages;		/* no. of zero filled pages */
+ 	atomic64_t pages_stored;	/* no. of pages currently stored */
+ 	atomic_long_t max_used_pages;	/* no. of maximum pages stored */
++	atomic64_t writestall;		/* no. of write slow paths */
+ };
+ 
+ struct zram_meta {
 _
