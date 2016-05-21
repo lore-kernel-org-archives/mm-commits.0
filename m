@@ -1,121 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [patch 098/162] drivers/platform/x86/wmi.c: use generic UUID
- library
-Date: Fri, 20 May 2016 17:01:30 -0700
-Message-ID: <573fa55a.bM/WP3/qAfsDuRHT%akpm@linux-foundation.org>
+Subject: [patch 095/162] fs/efivarfs/inode.c: use generic UUID library
+Date: Fri, 20 May 2016 17:01:21 -0700
+Message-ID: <573fa551.cdlW7cya5orBmGWD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52884 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52861 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314AbcEUABb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:01:31 -0400
+	with ESMTP id S1751065AbcEUABX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 May 2016 20:01:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, dvhart@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, arnd@arndb.de, axboe@kernel.dk, dmitry.kasatkin@gmail.com, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, viro@zeniv.linux.org.uk, zohar@linux.vnet.ibm.com
 
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: drivers/platform/x86/wmi.c: use generic UUID library
+Subject: fs/efivarfs/inode.c: use generic UUID library
 
 Instead of opencoding let's use generic UUID library functions here.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Darren Hart <dvhart@linux.intel.com>
+Reviewed-by: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/wmi.c |  104 ++++-------------------------------
- 1 file changed, 13 insertions(+), 91 deletions(-)
+ fs/efivarfs/inode.c |   40 +++-------------------------------------
+ 1 file changed, 3 insertions(+), 37 deletions(-)
 
-diff -puN drivers/platform/x86/wmi.c~wmi-use-generic-uuid-library drivers/platform/x86/wmi.c
---- a/drivers/platform/x86/wmi.c~wmi-use-generic-uuid-library
-+++ a/drivers/platform/x86/wmi.c
-@@ -37,6 +37,7 @@
- #include <linux/acpi.h>
+diff -puN fs/efivarfs/inode.c~efivars-use-generic-uuid-library fs/efivarfs/inode.c
+--- a/fs/efivarfs/inode.c~efivars-use-generic-uuid-library
++++ a/fs/efivarfs/inode.c
+@@ -11,6 +11,7 @@
+ #include <linux/fs.h>
+ #include <linux/ctype.h>
  #include <linux/slab.h>
- #include <linux/module.h>
 +#include <linux/uuid.h>
  
- ACPI_MODULE_NAME("wmi");
- MODULE_AUTHOR("Carlos Corbacho");
-@@ -115,100 +116,21 @@ static struct acpi_driver acpi_wmi_drive
-  * GUID parsing functions
-  */
+ #include "internal.h"
  
--/**
-- * wmi_parse_hexbyte - Convert a ASCII hex number to a byte
-- * @src:  Pointer to at least 2 characters to convert.
-- *
-- * Convert a two character ASCII hex string to a number.
-- *
-- * Return:  0-255  Success, the byte was parsed correctly
-- *          -1     Error, an invalid character was supplied
-- */
--static int wmi_parse_hexbyte(const u8 *src)
--{
--	int h;
--	int value;
--
--	/* high part */
--	h = value = hex_to_bin(src[0]);
--	if (value < 0)
--		return -1;
--
--	/* low part */
--	value = hex_to_bin(src[1]);
--	if (value >= 0)
--		return (h << 4) | value;
--	return -1;
--}
--
--/**
-- * wmi_swap_bytes - Rearrange GUID bytes to match GUID binary
-- * @src:   Memory block holding binary GUID (16 bytes)
-- * @dest:  Memory block to hold byte swapped binary GUID (16 bytes)
-- *
-- * Byte swap a binary GUID to match it's real GUID value
-- */
--static void wmi_swap_bytes(u8 *src, u8 *dest)
--{
+@@ -46,11 +47,7 @@ struct inode *efivarfs_get_inode(struct
+  */
+ bool efivarfs_valid_name(const char *str, int len)
+ {
+-	static const char dashes[EFI_VARIABLE_GUID_LEN] = {
+-		[8] = 1, [13] = 1, [18] = 1, [23] = 1
+-	};
+ 	const char *s = str + len - EFI_VARIABLE_GUID_LEN;
 -	int i;
--
--	for (i = 0; i <= 3; i++)
--		memcpy(dest + i, src + (3 - i), 1);
--
--	for (i = 0; i <= 1; i++)
--		memcpy(dest + 4 + i, src + (5 - i), 1);
--
--	for (i = 0; i <= 1; i++)
--		memcpy(dest + 6 + i, src + (7 - i), 1);
--
--	memcpy(dest + 8, src + 8, 8);
--}
--
--/**
-- * wmi_parse_guid - Convert GUID from ASCII to binary
-- * @src:   36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
-- * @dest:  Memory block to hold binary GUID (16 bytes)
-- *
-- * N.B. The GUID need not be NULL terminated.
-- *
-- * Return:  'true'   @dest contains binary GUID
-- *          'false'  @dest contents are undefined
-- */
--static bool wmi_parse_guid(const u8 *src, u8 *dest)
--{
--	static const int size[] = { 4, 2, 2, 2, 6 };
--	int i, j, v;
--
--	if (src[8]  != '-' || src[13] != '-' ||
--		src[18] != '-' || src[23] != '-')
--		return false;
--
--	for (j = 0; j < 5; j++, src++) {
--		for (i = 0; i < size[j]; i++, src += 2, *dest++ = v) {
--			v = wmi_parse_hexbyte(src);
--			if (v < 0)
+ 
+ 	/*
+ 	 * We need a GUID, plus at least one letter for the variable name,
+@@ -68,37 +65,7 @@ bool efivarfs_valid_name(const char *str
+ 	 *
+ 	 *	12345678-1234-1234-1234-123456789abc
+ 	 */
+-	for (i = 0; i < EFI_VARIABLE_GUID_LEN; i++) {
+-		if (dashes[i]) {
+-			if (*s++ != '-')
+-				return false;
+-		} else {
+-			if (!isxdigit(*s++))
 -				return false;
 -		}
 -	}
@@ -123,76 +75,36 @@ diff -puN drivers/platform/x86/wmi.c~wmi-use-generic-uuid-library drivers/platfo
 -	return true;
 -}
 -
- static bool find_guid(const char *guid_string, struct wmi_block **out)
- {
--	char tmp[16], guid_input[16];
-+	uuid_le guid_input;
- 	struct wmi_block *wblock;
- 	struct guid_block *block;
- 	struct list_head *p;
+-static void efivarfs_hex_to_guid(const char *str, efi_guid_t *guid)
+-{
+-	guid->b[0] = hex_to_bin(str[6]) << 4 | hex_to_bin(str[7]);
+-	guid->b[1] = hex_to_bin(str[4]) << 4 | hex_to_bin(str[5]);
+-	guid->b[2] = hex_to_bin(str[2]) << 4 | hex_to_bin(str[3]);
+-	guid->b[3] = hex_to_bin(str[0]) << 4 | hex_to_bin(str[1]);
+-	guid->b[4] = hex_to_bin(str[11]) << 4 | hex_to_bin(str[12]);
+-	guid->b[5] = hex_to_bin(str[9]) << 4 | hex_to_bin(str[10]);
+-	guid->b[6] = hex_to_bin(str[16]) << 4 | hex_to_bin(str[17]);
+-	guid->b[7] = hex_to_bin(str[14]) << 4 | hex_to_bin(str[15]);
+-	guid->b[8] = hex_to_bin(str[19]) << 4 | hex_to_bin(str[20]);
+-	guid->b[9] = hex_to_bin(str[21]) << 4 | hex_to_bin(str[22]);
+-	guid->b[10] = hex_to_bin(str[24]) << 4 | hex_to_bin(str[25]);
+-	guid->b[11] = hex_to_bin(str[26]) << 4 | hex_to_bin(str[27]);
+-	guid->b[12] = hex_to_bin(str[28]) << 4 | hex_to_bin(str[29]);
+-	guid->b[13] = hex_to_bin(str[30]) << 4 | hex_to_bin(str[31]);
+-	guid->b[14] = hex_to_bin(str[32]) << 4 | hex_to_bin(str[33]);
+-	guid->b[15] = hex_to_bin(str[34]) << 4 | hex_to_bin(str[35]);
++	return uuid_is_valid(s);
+ }
  
--	wmi_parse_guid(guid_string, tmp);
--	wmi_swap_bytes(tmp, guid_input);
-+	if (uuid_le_to_bin(guid_string, &guid_input))
-+		return false;
+ static int efivarfs_create(struct inode *dir, struct dentry *dentry,
+@@ -119,8 +86,7 @@ static int efivarfs_create(struct inode
+ 	/* length of the variable name itself: remove GUID and separator */
+ 	namelen = dentry->d_name.len - EFI_VARIABLE_GUID_LEN - 1;
  
- 	list_for_each(p, &wmi_block_list) {
- 		wblock = list_entry(p, struct wmi_block, list);
- 		block = &wblock->gblock;
+-	efivarfs_hex_to_guid(dentry->d_name.name + namelen + 1,
+-			&var->var.VendorGuid);
++	uuid_le_to_bin(dentry->d_name.name + namelen + 1, &var->var.VendorGuid);
  
--		if (memcmp(block->guid, guid_input, 16) == 0) {
-+		if (memcmp(block->guid, &guid_input, 16) == 0) {
- 			if (out)
- 				*out = wblock;
- 			return true;
-@@ -498,20 +420,20 @@ wmi_notify_handler handler, void *data)
- {
- 	struct wmi_block *block;
- 	acpi_status status = AE_NOT_EXIST;
--	char tmp[16], guid_input[16];
-+	uuid_le guid_input;
- 	struct list_head *p;
- 
- 	if (!guid || !handler)
- 		return AE_BAD_PARAMETER;
- 
--	wmi_parse_guid(guid, tmp);
--	wmi_swap_bytes(tmp, guid_input);
-+	if (uuid_le_to_bin(guid, &guid_input))
-+		return AE_BAD_PARAMETER;
- 
- 	list_for_each(p, &wmi_block_list) {
- 		acpi_status wmi_status;
- 		block = list_entry(p, struct wmi_block, list);
- 
--		if (memcmp(block->gblock.guid, guid_input, 16) == 0) {
-+		if (memcmp(block->gblock.guid, &guid_input, 16) == 0) {
- 			if (block->handler &&
- 			    block->handler != wmi_notify_debug)
- 				return AE_ALREADY_ACQUIRED;
-@@ -539,20 +461,20 @@ acpi_status wmi_remove_notify_handler(co
- {
- 	struct wmi_block *block;
- 	acpi_status status = AE_NOT_EXIST;
--	char tmp[16], guid_input[16];
-+	uuid_le guid_input;
- 	struct list_head *p;
- 
- 	if (!guid)
- 		return AE_BAD_PARAMETER;
- 
--	wmi_parse_guid(guid, tmp);
--	wmi_swap_bytes(tmp, guid_input);
-+	if (uuid_le_to_bin(guid, &guid_input))
-+		return AE_BAD_PARAMETER;
- 
- 	list_for_each(p, &wmi_block_list) {
- 		acpi_status wmi_status;
- 		block = list_entry(p, struct wmi_block, list);
- 
--		if (memcmp(block->gblock.guid, guid_input, 16) == 0) {
-+		if (memcmp(block->gblock.guid, &guid_input, 16) == 0) {
- 			if (!block->handler ||
- 			    block->handler == wmi_notify_debug)
- 				return AE_NULL_ENTRY;
+ 	if (efivar_variable_is_removable(var->var.VendorGuid,
+ 					 dentry->d_name.name, namelen))
 _
