@@ -1,208 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch
- removed from -mm tree
-Date: Mon, 23 May 2016 12:46:47 -0700
-Message-ID: <57435e27.DWOw8rAx4uMPhnzL%akpm@linux-foundation.org>
+Subject: [merged] mm-make-faultaround-produce-old-ptes.patch removed from
+ -mm tree
+Date: Mon, 23 May 2016 12:46:52 -0700
+Message-ID: <57435e2c.iZOg2jY/Q4g1gOF3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37144 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37152 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754185AbcEWTqs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:46:48 -0400
+	with ESMTP id S1754185AbcEWTqx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:46:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, aarcange@redhat.com, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@kernel.org, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, vinmenon@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: don't pin the user memory in userfaultfd_file_create()
+     Subject: mm: make faultaround produce old ptes
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create.patch
+     mm-make-faultaround-produce-old-ptes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: userfaultfd: don't pin the user memory in userfaultfd_file_create()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: make faultaround produce old ptes
 
-userfaultfd_file_create() increments mm->mm_users; this means that the
-memory won't be unmapped/freed if mm owner exits/execs, and UFFDIO_COPY
-after that can populate the orphaned mm more.
+Currently, faultaround code produces young pte.  This can screw up vmscan
+behaviour[1], as it makes vmscan think that these pages are hot and not
+push them out on first round.
 
-Change userfaultfd_file_create() and userfaultfd_ctx_put() to use
-mm->mm_count to pin mm_struct.  This means that
-atomic_inc_not_zero(mm->mm_users) is needed when we are going to actually
-play with this memory.  Except handle_userfault() path doesn't need this,
-the caller must already have a reference.
+During sparse file access faultaround gets more pages mapped and all of
+them are young.  Under memory pressure, this makes vmscan swap out anon
+pages instead, or to drop other page cache pages which otherwise stay
+resident.
 
-The patch adds the new trivial helper, mmget_not_zero(), it can have more
-users.
+Modify faultaround to produce old ptes, so they can easily be reclaimed
+under memory pressure.
 
-Link: http://lkml.kernel.org/r/20160516172254.GA8595@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+This can to some extend defeat the purpose of faultaround on machines
+without hardware accessed bit as it will not help us with reducing the
+number of minor page faults.
+
+We may want to disable faultaround on such machines altogether, but that's
+subject for separate patchset.
+
+Minchan:
+
+I tested 512M mmap sequential word read test on non-HW access bit system
+(i.e., ARM) and confirmed it doesn't increase minor fault any more.
+
+old: 4096 fault_around
+minor fault: 131291
+elapsed time: 6747645 usec
+
+new: 65536 fault_around
+minor fault: 131291
+elapsed time: 6709263 usec
+
+0.56% benefit
+
+
+[1] https://lkml.kernel.org/r/1460992636-711-1-git-send-email-vinmenon@codeaurora.org
+
+Link: http://lkml.kernel.org/r/1463488366-47723-1-git-send-email-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Tested-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c      |   41 +++++++++++++++++++++++++++-------------
- include/linux/sched.h |    7 +++++-
- 2 files changed, 34 insertions(+), 14 deletions(-)
+ include/linux/mm.h |    2 +-
+ mm/filemap.c       |    2 +-
+ mm/memory.c        |   23 ++++++++++++++++++-----
+ 3 files changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create
-+++ a/fs/userfaultfd.c
-@@ -137,7 +137,7 @@ static void userfaultfd_ctx_put(struct u
- 		VM_BUG_ON(waitqueue_active(&ctx->fault_wqh));
- 		VM_BUG_ON(spin_is_locked(&ctx->fd_wqh.lock));
- 		VM_BUG_ON(waitqueue_active(&ctx->fd_wqh));
--		mmput(ctx->mm);
-+		mmdrop(ctx->mm);
- 		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
- 	}
+diff -puN include/linux/mm.h~mm-make-faultaround-produce-old-ptes include/linux/mm.h
+--- a/include/linux/mm.h~mm-make-faultaround-produce-old-ptes
++++ a/include/linux/mm.h
+@@ -596,7 +596,7 @@ static inline pte_t maybe_mkwrite(pte_t
  }
-@@ -434,6 +434,9 @@ static int userfaultfd_release(struct in
  
- 	ACCESS_ONCE(ctx->released) = true;
+ void do_set_pte(struct vm_area_struct *vma, unsigned long address,
+-		struct page *page, pte_t *pte, bool write, bool anon);
++		struct page *page, pte_t *pte, bool write, bool anon, bool old);
+ #endif
  
-+	if (!mmget_not_zero(mm))
-+		goto wakeup;
-+
- 	/*
- 	 * Flush page faults out of all CPUs. NOTE: all page faults
- 	 * must be retried without returning VM_FAULT_SIGBUS if
-@@ -466,7 +469,8 @@ static int userfaultfd_release(struct in
- 		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
- 	}
- 	up_write(&mm->mmap_sem);
--
-+	mmput(mm);
-+wakeup:
- 	/*
- 	 * After no new page faults can wait on this fault_*wqh, flush
- 	 * the last page faults that may have been already waiting on
-@@ -760,10 +764,12 @@ static int userfaultfd_register(struct u
- 	start = uffdio_register.range.start;
- 	end = start + uffdio_register.range.len;
- 
-+	ret = -ENOMEM;
-+	if (!mmget_not_zero(mm))
-+		goto out;
-+
- 	down_write(&mm->mmap_sem);
- 	vma = find_vma_prev(mm, start, &prev);
--
--	ret = -ENOMEM;
- 	if (!vma)
- 		goto out_unlock;
- 
-@@ -864,6 +870,7 @@ static int userfaultfd_register(struct u
- 	} while (vma && vma->vm_start < end);
- out_unlock:
- 	up_write(&mm->mmap_sem);
-+	mmput(mm);
- 	if (!ret) {
- 		/*
- 		 * Now that we scanned all vmas we can already tell
-@@ -902,10 +909,12 @@ static int userfaultfd_unregister(struct
- 	start = uffdio_unregister.start;
- 	end = start + uffdio_unregister.len;
- 
-+	ret = -ENOMEM;
-+	if (!mmget_not_zero(mm))
-+		goto out;
-+
- 	down_write(&mm->mmap_sem);
- 	vma = find_vma_prev(mm, start, &prev);
--
--	ret = -ENOMEM;
- 	if (!vma)
- 		goto out_unlock;
- 
-@@ -998,6 +1007,7 @@ static int userfaultfd_unregister(struct
- 	} while (vma && vma->vm_start < end);
- out_unlock:
- 	up_write(&mm->mmap_sem);
-+	mmput(mm);
- out:
- 	return ret;
- }
-@@ -1067,9 +1077,11 @@ static int userfaultfd_copy(struct userf
- 		goto out;
- 	if (uffdio_copy.mode & ~UFFDIO_COPY_MODE_DONTWAKE)
- 		goto out;
--
--	ret = mcopy_atomic(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
--			   uffdio_copy.len);
-+	if (mmget_not_zero(ctx->mm)) {
-+		ret = mcopy_atomic(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
-+				   uffdio_copy.len);
-+		mmput(ctx->mm);
-+	}
- 	if (unlikely(put_user(ret, &user_uffdio_copy->copy)))
- 		return -EFAULT;
- 	if (ret < 0)
-@@ -1110,8 +1122,11 @@ static int userfaultfd_zeropage(struct u
- 	if (uffdio_zeropage.mode & ~UFFDIO_ZEROPAGE_MODE_DONTWAKE)
- 		goto out;
- 
--	ret = mfill_zeropage(ctx->mm, uffdio_zeropage.range.start,
--			     uffdio_zeropage.range.len);
-+	if (mmget_not_zero(ctx->mm)) {
-+		ret = mfill_zeropage(ctx->mm, uffdio_zeropage.range.start,
-+				     uffdio_zeropage.range.len);
-+		mmput(ctx->mm);
-+	}
- 	if (unlikely(put_user(ret, &user_uffdio_zeropage->zeropage)))
- 		return -EFAULT;
- 	if (ret < 0)
-@@ -1289,12 +1304,12 @@ static struct file *userfaultfd_file_cre
- 	ctx->released = false;
- 	ctx->mm = current->mm;
- 	/* prevent the mm struct to be freed */
--	atomic_inc(&ctx->mm->mm_users);
-+	atomic_inc(&ctx->mm->mm_count);
- 
- 	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, ctx,
- 				  O_RDWR | (flags & UFFD_SHARED_FCNTL_FLAGS));
- 	if (IS_ERR(file)) {
--		mmput(ctx->mm);
-+		mmdrop(ctx->mm);
- 		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
- 	}
- out:
-diff -puN include/linux/sched.h~userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create include/linux/sched.h
---- a/include/linux/sched.h~userfaultfd-dont-pin-the-user-memory-in-userfaultfd_file_create
-+++ a/include/linux/sched.h
-@@ -2723,12 +2723,17 @@ extern struct mm_struct * mm_alloc(void)
- 
- /* mmdrop drops the mm and the page tables */
- extern void __mmdrop(struct mm_struct *);
--static inline void mmdrop(struct mm_struct * mm)
-+static inline void mmdrop(struct mm_struct *mm)
+ /*
+diff -puN mm/filemap.c~mm-make-faultaround-produce-old-ptes mm/filemap.c
+--- a/mm/filemap.c~mm-make-faultaround-produce-old-ptes
++++ a/mm/filemap.c
+@@ -2191,7 +2191,7 @@ repeat:
+ 		if (file->f_ra.mmap_miss > 0)
+ 			file->f_ra.mmap_miss--;
+ 		addr = address + (page->index - vmf->pgoff) * PAGE_SIZE;
+-		do_set_pte(vma, addr, page, pte, false, false);
++		do_set_pte(vma, addr, page, pte, false, false, true);
+ 		unlock_page(page);
+ 		goto next;
+ unlock:
+diff -puN mm/memory.c~mm-make-faultaround-produce-old-ptes mm/memory.c
+--- a/mm/memory.c~mm-make-faultaround-produce-old-ptes
++++ a/mm/memory.c
+@@ -2876,7 +2876,7 @@ static int __do_fault(struct vm_area_str
+  * vm_ops->map_pages.
+  */
+ void do_set_pte(struct vm_area_struct *vma, unsigned long address,
+-		struct page *page, pte_t *pte, bool write, bool anon)
++		struct page *page, pte_t *pte, bool write, bool anon, bool old)
  {
- 	if (unlikely(atomic_dec_and_test(&mm->mm_count)))
- 		__mmdrop(mm);
- }
+ 	pte_t entry;
  
-+static inline bool mmget_not_zero(struct mm_struct *mm)
-+{
-+	return atomic_inc_not_zero(&mm->mm_users);
-+}
-+
- /* mmput gets rid of the mappings and all user-space */
- extern void mmput(struct mm_struct *);
- /* same as above but performs the slow path from the async kontext. Can
+@@ -2884,6 +2884,8 @@ void do_set_pte(struct vm_area_struct *v
+ 	entry = mk_pte(page, vma->vm_page_prot);
+ 	if (write)
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
++	if (old)
++		entry = pte_mkold(entry);
+ 	if (anon) {
+ 		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
+ 		page_add_new_anon_rmap(page, vma, address, false);
+@@ -3021,9 +3023,20 @@ static int do_read_fault(struct mm_struc
+ 	 */
+ 	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1) {
+ 		pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+-		do_fault_around(vma, address, pte, pgoff, flags);
+ 		if (!pte_same(*pte, orig_pte))
+ 			goto unlock_out;
++		do_fault_around(vma, address, pte, pgoff, flags);
++		/* Check if the fault is handled by faultaround */
++		if (!pte_same(*pte, orig_pte)) {
++			/*
++			 * Faultaround produce old pte, but the pte we've
++			 * handler fault for should be young.
++			 */
++			pte_t entry = pte_mkyoung(*pte);
++			if (ptep_set_access_flags(vma, address, pte, entry, 0))
++				update_mmu_cache(vma, address, pte);
++			goto unlock_out;
++		}
+ 		pte_unmap_unlock(pte, ptl);
+ 	}
+ 
+@@ -3038,7 +3051,7 @@ static int do_read_fault(struct mm_struc
+ 		put_page(fault_page);
+ 		return ret;
+ 	}
+-	do_set_pte(vma, address, fault_page, pte, false, false);
++	do_set_pte(vma, address, fault_page, pte, false, false, false);
+ 	unlock_page(fault_page);
+ unlock_out:
+ 	pte_unmap_unlock(pte, ptl);
+@@ -3090,7 +3103,7 @@ static int do_cow_fault(struct mm_struct
+ 		}
+ 		goto uncharge_out;
+ 	}
+-	do_set_pte(vma, address, new_page, pte, true, true);
++	do_set_pte(vma, address, new_page, pte, true, true, false);
+ 	mem_cgroup_commit_charge(new_page, memcg, false, false);
+ 	lru_cache_add_active_or_unevictable(new_page, vma);
+ 	pte_unmap_unlock(pte, ptl);
+@@ -3147,7 +3160,7 @@ static int do_shared_fault(struct mm_str
+ 		put_page(fault_page);
+ 		return ret;
+ 	}
+-	do_set_pte(vma, address, fault_page, pte, true, false);
++	do_set_pte(vma, address, fault_page, pte, true, false, false);
+ 	pte_unmap_unlock(pte, ptl);
+ 
+ 	if (set_page_dirty(fault_page))
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-wait-ptrace-assume-__wall-if-the-child-is-traced.patch
-wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall.patch
-signal-move-the-sig-sigrtmin-check-into-siginmasksig.patch
-exec-remove-the-no-longer-needed-remove_arg_zero-free_arg_page.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
