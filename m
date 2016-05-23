@@ -1,218 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zsmalloc-reordering-function-parameter.patch removed
+Subject: [merged] mm-zswap-use-workqueue-to-destroy-pool.patch removed
  from -mm tree
-Date: Mon, 23 May 2016 12:47:42 -0700
-Message-ID: <57435e5e.ggxf4pyPGOsWktBL%akpm@linux-foundation.org>
+Date: Mon, 23 May 2016 12:47:51 -0700
+Message-ID: <57435e67.RVOj5kHAwE9Iy/go%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37533 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37547 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754306AbcEWTrn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:43 -0400
+	with ESMTP id S1753119AbcEWTrw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, dan.streetman@canonical.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, yuzhao@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: reorder function parameters
+     Subject: mm/zswap: use workqueue to destroy pool
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-reordering-function-parameter.patch
+     mm-zswap-use-workqueue-to-destroy-pool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: reorder function parameters
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: mm/zswap: use workqueue to destroy pool
 
-Clean up function parameter ordering to order higher data structure first.
+Add a work_struct to struct zswap_pool, and change __zswap_pool_empty to
+use the workqueue instead of using call_rcu().
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
+When zswap destroys a pool no longer in use, it uses call_rcu() to perform
+the destruction/freeing.  Since that executes in softirq context, it must
+not sleep.  However, actually destroying the pool involves freeing the
+per-cpu compressors (which requires locking the cpu_add_remove_lock mutex)
+and freeing the zpool, for which the implementation may sleep (e.g. 
+zsmalloc calls kmem_cache_destroy, which locks the slab_mutex).  So if
+either mutex is currently taken, or any other part of the compressor or
+zpool implementation sleeps, it will result in a BUG().
+
+It's not easy to reproduce this when changing zswap's params normally.  In
+testing with a loaded system, this does not fail:
+
+$ cd /sys/module/zswap/parameters
+$ echo lz4 > compressor ; echo zsmalloc > zpool
+
+nor does this:
+
+$ while true ; do
+> echo lzo > compressor ; echo zbud > zpool
+> sleep 1
+> echo lz4 > compressor ; echo zsmalloc > zpool
+> sleep 1
+> done
+
+although it's still possible either of those might fail, depending on
+whether anything else besides zswap has locked the mutexes.
+
+However, changing a parameter with no delay immediately causes the
+schedule while atomic BUG:
+
+$ while true ; do
+> echo lzo > compressor ; echo lz4 > compressor
+> done
+
+This is essentially the same as Yu Zhao's proposed patch to zsmalloc,
+but moved to zswap, to cover compressor and zpool freeing.
+
+Fixes: f1c54846ee45 ("zswap: dynamic pool creation")
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Reported-by: Yu Zhao <yuzhao@google.com>
 Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Dan Streetman <dan.streetman@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   50 ++++++++++++++++++++++++------------------------
- 1 file changed, 26 insertions(+), 24 deletions(-)
+ mm/zswap.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-reordering-function-parameter mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-reordering-function-parameter
-+++ a/mm/zsmalloc.c
-@@ -569,7 +569,7 @@ static const struct file_operations zs_s
- 	.release        = single_release,
+diff -puN mm/zswap.c~mm-zswap-use-workqueue-to-destroy-pool mm/zswap.c
+--- a/mm/zswap.c~mm-zswap-use-workqueue-to-destroy-pool
++++ a/mm/zswap.c
+@@ -117,7 +117,7 @@ struct zswap_pool {
+ 	struct crypto_comp * __percpu *tfm;
+ 	struct kref kref;
+ 	struct list_head list;
+-	struct rcu_head rcu_head;
++	struct work_struct work;
+ 	struct notifier_block notifier;
+ 	char tfm_name[CRYPTO_MAX_ALG_NAME];
  };
- 
--static int zs_pool_stat_create(const char *name, struct zs_pool *pool)
-+static int zs_pool_stat_create(struct zs_pool *pool, const char *name)
- {
- 	struct dentry *entry;
- 
-@@ -609,7 +609,7 @@ static void __exit zs_stat_exit(void)
- {
+@@ -658,9 +658,11 @@ static int __must_check zswap_pool_get(s
+ 	return kref_get_unless_zero(&pool->kref);
  }
  
--static inline int zs_pool_stat_create(const char *name, struct zs_pool *pool)
-+static inline int zs_pool_stat_create(struct zs_pool *pool, const char *name)
+-static void __zswap_pool_release(struct rcu_head *head)
++static void __zswap_pool_release(struct work_struct *work)
  {
- 	return 0;
+-	struct zswap_pool *pool = container_of(head, typeof(*pool), rcu_head);
++	struct zswap_pool *pool = container_of(work, typeof(*pool), work);
++
++	synchronize_rcu();
+ 
+ 	/* nobody should have been able to get a kref... */
+ 	WARN_ON(kref_get_unless_zero(&pool->kref));
+@@ -680,7 +682,9 @@ static void __zswap_pool_empty(struct kr
+ 	WARN_ON(pool == zswap_pool_current());
+ 
+ 	list_del_rcu(&pool->list);
+-	call_rcu(&pool->rcu_head, __zswap_pool_release);
++
++	INIT_WORK(&pool->work, __zswap_pool_release);
++	schedule_work(&pool->work);
+ 
+ 	spin_unlock(&zswap_pools_lock);
  }
-@@ -655,8 +655,9 @@ static enum fullness_group get_fullness_
-  * have. This functions inserts the given zspage into the freelist
-  * identified by <class, fullness_group>.
-  */
--static void insert_zspage(struct page *first_page, struct size_class *class,
--				enum fullness_group fullness)
-+static void insert_zspage(struct size_class *class,
-+				enum fullness_group fullness,
-+				struct page *first_page)
- {
- 	struct page **head;
- 
-@@ -687,8 +688,9 @@ static void insert_zspage(struct page *f
-  * This function removes the given zspage from the freelist identified
-  * by <class, fullness_group>.
-  */
--static void remove_zspage(struct page *first_page, struct size_class *class,
--				enum fullness_group fullness)
-+static void remove_zspage(struct size_class *class,
-+				enum fullness_group fullness,
-+				struct page *first_page)
- {
- 	struct page **head;
- 
-@@ -730,8 +732,8 @@ static enum fullness_group fix_fullness_
- 	if (newfg == currfg)
- 		goto out;
- 
--	remove_zspage(first_page, class, currfg);
--	insert_zspage(first_page, class, newfg);
-+	remove_zspage(class, currfg, first_page);
-+	insert_zspage(class, newfg, first_page);
- 	set_zspage_mapping(first_page, class_idx, newfg);
- 
- out:
-@@ -915,7 +917,7 @@ static void free_zspage(struct page *fir
- }
- 
- /* Initialize a newly allocated zspage */
--static void init_zspage(struct page *first_page, struct size_class *class)
-+static void init_zspage(struct size_class *class, struct page *first_page)
- {
- 	unsigned long off = 0;
- 	struct page *page = first_page;
-@@ -1003,7 +1005,7 @@ static struct page *alloc_zspage(struct
- 		prev_page = page;
- 	}
- 
--	init_zspage(first_page, class);
-+	init_zspage(class, first_page);
- 
- 	first_page->freelist = location_to_obj(first_page, 0);
- 	/* Maximum number of objects we can store in this zspage */
-@@ -1348,8 +1350,8 @@ void zs_unmap_object(struct zs_pool *poo
- }
- EXPORT_SYMBOL_GPL(zs_unmap_object);
- 
--static unsigned long obj_malloc(struct page *first_page,
--		struct size_class *class, unsigned long handle)
-+static unsigned long obj_malloc(struct size_class *class,
-+				struct page *first_page, unsigned long handle)
- {
- 	unsigned long obj;
- 	struct link_free *link;
-@@ -1426,7 +1428,7 @@ unsigned long zs_malloc(struct zs_pool *
- 				class->size, class->pages_per_zspage));
- 	}
- 
--	obj = obj_malloc(first_page, class, handle);
-+	obj = obj_malloc(class, first_page, handle);
- 	/* Now move the zspage to another fullness group, if required */
- 	fix_fullness_group(class, first_page);
- 	record_obj(handle, obj);
-@@ -1499,8 +1501,8 @@ void zs_free(struct zs_pool *pool, unsig
- }
- EXPORT_SYMBOL_GPL(zs_free);
- 
--static void zs_object_copy(unsigned long dst, unsigned long src,
--				struct size_class *class)
-+static void zs_object_copy(struct size_class *class, unsigned long dst,
-+				unsigned long src)
- {
- 	struct page *s_page, *d_page;
- 	unsigned long s_objidx, d_objidx;
-@@ -1566,8 +1568,8 @@ static void zs_object_copy(unsigned long
-  * Find alloced object in zspage from index object and
-  * return handle.
-  */
--static unsigned long find_alloced_obj(struct page *page, int index,
--					struct size_class *class)
-+static unsigned long find_alloced_obj(struct size_class *class,
-+					struct page *page, int index)
- {
- 	unsigned long head;
- 	int offset = 0;
-@@ -1617,7 +1619,7 @@ static int migrate_zspage(struct zs_pool
- 	int ret = 0;
- 
- 	while (1) {
--		handle = find_alloced_obj(s_page, index, class);
-+		handle = find_alloced_obj(class, s_page, index);
- 		if (!handle) {
- 			s_page = get_next_page(s_page);
- 			if (!s_page)
-@@ -1634,8 +1636,8 @@ static int migrate_zspage(struct zs_pool
- 		}
- 
- 		used_obj = handle_to_obj(handle);
--		free_obj = obj_malloc(d_page, class, handle);
--		zs_object_copy(free_obj, used_obj, class);
-+		free_obj = obj_malloc(class, d_page, handle);
-+		zs_object_copy(class, free_obj, used_obj);
- 		index++;
- 		/*
- 		 * record_obj updates handle's value to free_obj and it will
-@@ -1664,7 +1666,7 @@ static struct page *isolate_target_page(
- 	for (i = 0; i < _ZS_NR_FULLNESS_GROUPS; i++) {
- 		page = class->fullness_list[i];
- 		if (page) {
--			remove_zspage(page, class, i);
-+			remove_zspage(class, i, page);
- 			break;
- 		}
- 	}
-@@ -1687,7 +1689,7 @@ static enum fullness_group putback_zspag
- 	enum fullness_group fullness;
- 
- 	fullness = get_fullness_group(first_page);
--	insert_zspage(first_page, class, fullness);
-+	insert_zspage(class, fullness, first_page);
- 	set_zspage_mapping(first_page, class->index, fullness);
- 
- 	if (fullness == ZS_EMPTY) {
-@@ -1712,7 +1714,7 @@ static struct page *isolate_source_page(
- 		if (!page)
- 			continue;
- 
--		remove_zspage(page, class, i);
-+		remove_zspage(class, i, page);
- 		break;
- 	}
- 
-@@ -1949,7 +1951,7 @@ struct zs_pool *zs_create_pool(const cha
- 
- 	pool->flags = flags;
- 
--	if (zs_pool_stat_create(name, pool))
-+	if (zs_pool_stat_create(pool, name))
- 		goto err;
- 
- 	/*
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from ddstreet@ieee.org are
 
-zsmalloc-remove-unused-pool-param-in-obj_free.patch
+mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch
 
