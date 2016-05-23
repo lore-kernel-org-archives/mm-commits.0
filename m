@@ -1,48 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [patch 01/84] m32r: fix build failure
-Date: Mon, 23 May 2016 16:22:23 -0700
-Message-ID: <574390af.wlPReNBOxfQfEi7d%akpm@linux-foundation.org>
+Subject: [patch 02/84] ELF/MIPS build fix
+Date: Mon, 23 May 2016 16:22:26 -0700
+Message-ID: <574390b2.KLDcbkVOBd6Wcja3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42091 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751242AbcEWXWZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:22:25 -0400
+	with ESMTP id S1751242AbcEWXW2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:22:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sudipm.mukherjee@gmail.com, sudip.mukherjee@codethink.co.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ralf@linux-mips.org, james.hogan@imgtec.com, macro@linux-mips.org
 
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: fix build failure
+From: Ralf Baechle <ralf@linux-mips.org>
+Subject: ELF/MIPS build fix
 
-m32r allmodconfig build was failing with the error: ERROR:
-"smp_flush_cache_all" [drivers/misc/lkdtm.ko] undefined!
+CONFIG_MIPS32_N32=y but CONFIG_BINFMT_ELF disabled results in the following
+linker errors:
 
-lkdtm driver at drivers/misc is using flush_icache_range() which for m32r
-is defined as smp_flush_cache_all() if CONFIG_SMP is defined.  But as
-smp_flush_cache_all() was not exported so the build was failing with the
-error of undefined symbol.
+arch/mips/built-in.o: In function `elf_core_dump':
+binfmt_elfn32.c:(.text+0x23dbc): undefined reference to `elf_core_extra_phdrs'
+binfmt_elfn32.c:(.text+0x246e4): undefined reference to `elf_core_extra_data_size'
+binfmt_elfn32.c:(.text+0x248d0): undefined reference to `elf_core_write_extra_phdrs'
+binfmt_elfn32.c:(.text+0x24ac4): undefined reference to `elf_core_write_extra_data'
 
-Link: http://lkml.kernel.org/r/1464001182-8329-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
+CONFIG_MIPS32_O32=y but CONFIG_BINFMT_ELF disabled results in the following
+linker errors:
+
+arch/mips/built-in.o: In function `elf_core_dump':
+binfmt_elfo32.c:(.text+0x28a04): undefined reference to `elf_core_extra_phdrs'
+binfmt_elfo32.c:(.text+0x29330): undefined reference to `elf_core_extra_data_size'
+binfmt_elfo32.c:(.text+0x2951c): undefined reference to `elf_core_write_extra_phdrs'
+binfmt_elfo32.c:(.text+0x29710): undefined reference to `elf_core_write_extra_data'
+
+This is because binfmt_elfn32 and binfmt_elfo32 are using symbols from
+elfcore but for these configurations elfcore will not be built.
+
+Fixed by making elfcore selectable by a separate config symbol which
+unlike the current mechanism can also be used from other directories than
+kernel/, then having each flavor of ELF that relies on elfcore.o, select
+it in Kconfig, including CONFIG_MIPS32_N32 and CONFIG_MIPS32_O32 which
+fixes this issue.
+
+Link: http://lkml.kernel.org/r/20160520141705.GA1913@linux-mips.org
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Reviewed-by: James Hogan <james.hogan@imgtec.com>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/smp.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/mips/Kconfig |    1 +
+ fs/Kconfig.binfmt |    8 ++++++++
+ kernel/Makefile   |    4 +---
+ 3 files changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN arch/m32r/kernel/smp.c~m32r-fix-build-failure arch/m32r/kernel/smp.c
---- a/arch/m32r/kernel/smp.c~m32r-fix-build-failure
-+++ a/arch/m32r/kernel/smp.c
-@@ -164,6 +164,7 @@ void smp_flush_cache_all(void)
- 	spin_unlock(&flushcache_lock);
- 	preempt_enable();
- }
-+EXPORT_SYMBOL(smp_flush_cache_all);
+diff -puN arch/mips/Kconfig~elf-mips-build-fix arch/mips/Kconfig
+--- a/arch/mips/Kconfig~elf-mips-build-fix
++++ a/arch/mips/Kconfig
+@@ -3117,6 +3117,7 @@ config MIPS32_N32
+ config BINFMT_ELF32
+ 	bool
+ 	default y if MIPS32_O32 || MIPS32_N32
++	select ELFCORE
  
- void smp_flush_cache_all_interrupt(void)
- {
+ endmenu
+ 
+diff -puN fs/Kconfig.binfmt~elf-mips-build-fix fs/Kconfig.binfmt
+--- a/fs/Kconfig.binfmt~elf-mips-build-fix
++++ a/fs/Kconfig.binfmt
+@@ -1,6 +1,7 @@
+ config BINFMT_ELF
+ 	bool "Kernel support for ELF binaries"
+ 	depends on MMU && (BROKEN || !FRV)
++	select ELFCORE
+ 	default y
+ 	---help---
+ 	  ELF (Executable and Linkable Format) is a format for libraries and
+@@ -26,6 +27,7 @@ config BINFMT_ELF
+ config COMPAT_BINFMT_ELF
+ 	bool
+ 	depends on COMPAT && BINFMT_ELF
++	select ELFCORE
+ 
+ config ARCH_BINFMT_ELF_STATE
+ 	bool
+@@ -34,6 +36,7 @@ config BINFMT_ELF_FDPIC
+ 	bool "Kernel support for FDPIC ELF binaries"
+ 	default y
+ 	depends on (FRV || BLACKFIN || (SUPERH32 && !MMU) || C6X)
++	select ELFCORE
+ 	help
+ 	  ELF FDPIC binaries are based on ELF, but allow the individual load
+ 	  segments of a binary to be located in memory independently of each
+@@ -43,6 +46,11 @@ config BINFMT_ELF_FDPIC
+ 
+ 	  It is also possible to run FDPIC ELF binaries on MMU linux also.
+ 
++config ELFCORE
++	bool
++	help
++	  This option enables kernel/elfcore.o.
++
+ config CORE_DUMP_DEFAULT_ELF_HEADERS
+ 	bool "Write ELF core dumps with partial segments"
+ 	default y
+diff -puN kernel/Makefile~elf-mips-build-fix kernel/Makefile
+--- a/kernel/Makefile~elf-mips-build-fix
++++ a/kernel/Makefile
+@@ -91,9 +91,7 @@ obj-$(CONFIG_TASK_DELAY_ACCT) += delayac
+ obj-$(CONFIG_TASKSTATS) += taskstats.o tsacct.o
+ obj-$(CONFIG_TRACEPOINTS) += tracepoint.o
+ obj-$(CONFIG_LATENCYTOP) += latencytop.o
+-obj-$(CONFIG_BINFMT_ELF) += elfcore.o
+-obj-$(CONFIG_COMPAT_BINFMT_ELF) += elfcore.o
+-obj-$(CONFIG_BINFMT_ELF_FDPIC) += elfcore.o
++obj-$(CONFIG_ELFCORE) += elfcore.o
+ obj-$(CONFIG_FUNCTION_TRACER) += trace/
+ obj-$(CONFIG_TRACING) += trace/
+ obj-$(CONFIG_TRACE_CLOCK) += trace/
 _
