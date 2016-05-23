@@ -1,123 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable.patch removed from
+Subject: [merged] mn10300-let-exit_fpu-accept-a-task.patch removed from
  -mm tree
-Date: Mon, 23 May 2016 12:48:03 -0700
-Message-ID: <57435e73.9kNga6S92InKtduA%akpm@linux-foundation.org>
+Date: Mon, 23 May 2016 12:48:06 -0700
+Message-ID: <57435e76.8x9FUMepG8VR2UsX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37574 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37604 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754383AbcEWTsE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:48:04 -0400
+	with ESMTP id S1754388AbcEWTsJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:48:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdanis@google.com, adobriyan@gmail.com, calvinowens@fb.com, colin.king@canonical.com, gorcunov@openvz.org, jann@thejh.net, john.stultz@linaro.org, keescook@chromium.org, mnfhuang@gmail.com, rientjes@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: jslaby@suse.cz, a-jacquiot@ti.com, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, cmetcalf@mellanox.com, dalias@libc.org, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, fenghua.yu@intel.com, geert@linux-m68k.org, gxt@mprc.pku.edu.cn, heiko.carstens@de.ibm.com, hpa@zytor.com, hskinnemoen@gmail.com, ink@jurassic.park.msu.ru, james.hogan@imgtec.com, jcmvbkbc@gmail.com, jdike@addtoit.com, jejb@parisc-linux.org, jesper.nilsson@axis.com, jonas@southpole.se, lennox.wu@gmail.com, lftan@altera.com, linux@arm.linux.org.uk, liqin.linux@gmail.com, mattst88@gmail.com, mingo@redhat.com, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, realmz6@gmail.com, richard@nod.at, rkuo@codeaurora.org, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, tglx@linutroni
 
 
 The patch titled
-     Subject: procfs: fix pthread cross-thread naming if !PR_DUMPABLE
+     Subject: mn10300: let exit_fpu accept a task
 has been removed from the -mm tree.  Its filename was
-     procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable.patch
+     mn10300-let-exit_fpu-accept-a-task.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Janis Danisevskis <jdanis@google.com>
-Subject: procfs: fix pthread cross-thread naming if !PR_DUMPABLE
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: mn10300: let exit_fpu accept a task
 
-The PR_DUMPABLE flag causes the pid related paths of the proc file system
-to be owned by ROOT.  The implementation of pthread_set/getname_np however
-needs access to /proc/<pid>/task/<tid>/comm.  If PR_DUMPABLE is false this
-implementation is locked out.
+We need to call exit_thread from copy_process in a fail path.  Since
+exit_thread on mn10300 calls exit_thread_runtime_instr, make it accept
+task_struct as a parameter now.
 
-This patch installs a special permission function for the file "comm" that
-grants read and write access to all threads of the same group regardless
-of the ownership of the inode.  For all other threads the function falls
-back to the generic inode permission check.
-
-[akpm@linux-foundation.org: fix spello in comment]
-Signed-off-by: Janis Danisevskis <jdanis@google.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Minfei Huang <mnfhuang@gmail.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Calvin Owens <calvinowens@fb.com>
-Cc: Jann Horn <jann@thejh.net>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Chen Liqin <liqin.linux@gmail.com>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
+Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
+Cc: Ley Foon Tan <lftan@altera.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Richard Kuo <rkuo@codeaurora.org>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Steven Miao <realmz6@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   42 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
+ arch/mn10300/include/asm/fpu.h |    6 ++----
+ arch/mn10300/kernel/process.c  |    2 +-
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/base.c~procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable fs/proc/base.c
---- a/fs/proc/base.c~procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable
-+++ a/fs/proc/base.c
-@@ -3163,6 +3163,44 @@ int proc_pid_readdir(struct file *file,
+diff -puN arch/mn10300/include/asm/fpu.h~mn10300-let-exit_fpu-accept-a-task arch/mn10300/include/asm/fpu.h
+--- a/arch/mn10300/include/asm/fpu.h~mn10300-let-exit_fpu-accept-a-task
++++ a/arch/mn10300/include/asm/fpu.h
+@@ -76,11 +76,9 @@ static inline void unlazy_fpu(struct tas
+ 	preempt_enable();
  }
  
- /*
-+ * proc_tid_comm_permission is a special permission function exclusively
-+ * used for the node /proc/<pid>/task/<tid>/comm.
-+ * It bypasses generic permission checks in the case where a task of the same
-+ * task group attempts to access the node.
-+ * The rationale behind this is that glibc and bionic access this node for
-+ * cross thread naming (pthread_set/getname_np(!self)). However, if
-+ * PR_SET_DUMPABLE gets set to 0 this node among others becomes uid=0 gid=0,
-+ * which locks out the cross thread naming implementation.
-+ * This function makes sure that the node is always accessible for members of
-+ * same thread group.
-+ */
-+static int proc_tid_comm_permission(struct inode *inode, int mask)
-+{
-+	bool is_same_tgroup;
-+	struct task_struct *task;
-+
-+	task = get_proc_task(inode);
-+	if (!task)
-+		return -ESRCH;
-+	is_same_tgroup = same_thread_group(current, task);
-+	put_task_struct(task);
-+
-+	if (likely(is_same_tgroup && !(mask & MAY_EXEC))) {
-+		/* This file (/proc/<pid>/task/<tid>/comm) can always be
-+		 * read or written by the members of the corresponding
-+		 * thread group.
-+		 */
-+		return 0;
-+	}
-+
-+	return generic_permission(inode, mask);
-+}
-+
-+static const struct inode_operations proc_tid_comm_inode_operations = {
-+		.permission = proc_tid_comm_permission,
-+};
-+
-+/*
-  * Tasks
+-static inline void exit_fpu(void)
++static inline void exit_fpu(struct task_struct *tsk)
+ {
+ #ifdef CONFIG_LAZY_SAVE_FPU
+-	struct task_struct *tsk = current;
+-
+ 	preempt_disable();
+ 	if (fpu_state_owner == tsk)
+ 		fpu_state_owner = NULL;
+@@ -123,7 +121,7 @@ static inline void fpu_init_state(void)
+ static inline void fpu_save(struct fpu_state_struct *s) {}
+ static inline void fpu_kill_state(struct task_struct *tsk) {}
+ static inline void unlazy_fpu(struct task_struct *tsk) {}
+-static inline void exit_fpu(void) {}
++static inline void exit_fpu(struct task_struct *tsk) {}
+ static inline void flush_fpu(void) {}
+ static inline int fpu_setup_sigcontext(struct fpucontext *buf) { return 0; }
+ static inline int fpu_restore_sigcontext(struct fpucontext *buf) { return 0; }
+diff -puN arch/mn10300/kernel/process.c~mn10300-let-exit_fpu-accept-a-task arch/mn10300/kernel/process.c
+--- a/arch/mn10300/kernel/process.c~mn10300-let-exit_fpu-accept-a-task
++++ a/arch/mn10300/kernel/process.c
+@@ -105,7 +105,7 @@ void show_regs(struct pt_regs *regs)
   */
- static const struct pid_entry tid_base_stuff[] = {
-@@ -3180,7 +3218,9 @@ static const struct pid_entry tid_base_s
- #ifdef CONFIG_SCHED_DEBUG
- 	REG("sched",     S_IRUGO|S_IWUSR, proc_pid_sched_operations),
- #endif
--	REG("comm",      S_IRUGO|S_IWUSR, proc_pid_set_comm_operations),
-+	NOD("comm",      S_IFREG|S_IRUGO|S_IWUSR,
-+			 &proc_tid_comm_inode_operations,
-+			 &proc_pid_set_comm_operations, {}),
- #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
- 	ONE("syscall",   S_IRUSR, proc_pid_syscall),
- #endif
+ void exit_thread(void)
+ {
+-	exit_fpu();
++	exit_fpu(current);
+ }
+ 
+ void flush_thread(void)
 _
 
-Patches currently in -mm which might be from jdanis@google.com are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
+exit_thread-remove-empty-bodies.patch
+exit_thread-accept-a-task-parameter-to-be-exited.patch
+fork-free-thread-in-copy_process-on-failure.patch
+maintainers-remove-linux-listsopenriscnet.patch
+maintainers-remove-koichi-yasutake.patch
+kgdb-depends-on-vt.patch
 
