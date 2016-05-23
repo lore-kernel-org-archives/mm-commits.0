@@ -1,68 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [patch 71/84] mm: make vm_brk killable
-Date: Mon, 23 May 2016 16:25:42 -0700
-Message-ID: <57439176.rkG7G13EeEyhfKE8%akpm@linux-foundation.org>
+Subject: [patch 72/84] mm, proc: make clear_refs killable
+Date: Mon, 23 May 2016 16:25:45 -0700
+Message-ID: <57439179.eE6l4EPMZiM660IF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42396 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42397 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752247AbcEWXZn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:25:43 -0400
+	with ESMTP id S1752247AbcEWXZq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:25:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, oleg@redhat.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, oleg@redhat.com, petrcermak@chromium.org, vbabka@suse.cz
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: make vm_brk killable
+Subject: mm, proc: make clear_refs killable
 
-Now that all the callers handle vm_brk failure we can change it wait for
-mmap_sem killable to help oom_reaper to not get blocked just because
-vm_brk gets blocked behind mmap_sem readers.
+CLEAR_REFS_MM_HIWATER_RSS and CLEAR_REFS_SOFT_DIRTY are relying on
+mmap_sem for write.  If the waiting task gets killed by the oom killer and
+it would operate on the current's mm it would block oom_reaper from
+asynchronous address space reclaim and reduce the chances of timely OOM
+resolving.  Wait for the lock in the killable mode and return with EINTR
+if the task got killed while waiting.  This will also expedite the return
+to the userspace and do_exit even if the mm is remote.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Petr Cermak <petrcermak@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/mmap.c          |    9 +++------
- 2 files changed, 4 insertions(+), 7 deletions(-)
+ fs/proc/task_mmu.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-make-vm_brk-killable include/linux/mm.h
---- a/include/linux/mm.h~mm-make-vm_brk-killable
-+++ a/include/linux/mm.h
-@@ -2011,7 +2011,7 @@ static inline void mm_populate(unsigned
- #endif
+diff -puN fs/proc/task_mmu.c~mm-proc-make-clear_refs-killable fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-proc-make-clear_refs-killable
++++ a/fs/proc/task_mmu.c
+@@ -1027,11 +1027,15 @@ static ssize_t clear_refs_write(struct f
+ 		};
  
- /* These take the mm semaphore themselves */
--extern unsigned long vm_brk(unsigned long, unsigned long);
-+extern unsigned long __must_check vm_brk(unsigned long, unsigned long);
- extern int vm_munmap(unsigned long, size_t);
- extern unsigned long __must_check vm_mmap(struct file *, unsigned long,
-         unsigned long, unsigned long,
-diff -puN mm/mmap.c~mm-make-vm_brk-killable mm/mmap.c
---- a/mm/mmap.c~mm-make-vm_brk-killable
-+++ a/mm/mmap.c
-@@ -2712,12 +2712,9 @@ unsigned long vm_brk(unsigned long addr,
- 	unsigned long ret;
- 	bool populate;
- 
--	/*
--	 * XXX not all users are chcecking the return value, convert
--	 * to down_write_killable after they are able to cope with
--	 * error
--	 */
--	down_write(&mm->mmap_sem);
-+	if (down_write_killable(&mm->mmap_sem))
-+		return -EINTR;
+ 		if (type == CLEAR_REFS_MM_HIWATER_RSS) {
++			if (down_write_killable(&mm->mmap_sem)) {
++				count = -EINTR;
++				goto out_mm;
++			}
 +
- 	ret = do_brk(addr, len);
- 	populate = ((mm->def_flags & VM_LOCKED) != 0);
- 	up_write(&mm->mmap_sem);
+ 			/*
+ 			 * Writing 5 to /proc/pid/clear_refs resets the peak
+ 			 * resident set size to this mm's current rss value.
+ 			 */
+-			down_write(&mm->mmap_sem);
+ 			reset_mm_hiwater_rss(mm);
+ 			up_write(&mm->mmap_sem);
+ 			goto out_mm;
+@@ -1043,7 +1047,10 @@ static ssize_t clear_refs_write(struct f
+ 				if (!(vma->vm_flags & VM_SOFTDIRTY))
+ 					continue;
+ 				up_read(&mm->mmap_sem);
+-				down_write(&mm->mmap_sem);
++				if (down_write_killable(&mm->mmap_sem)) {
++					count = -EINTR;
++					goto out_mm;
++				}
+ 				for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 					vma->vm_flags &= ~VM_SOFTDIRTY;
+ 					vma_set_page_prot(vma);
 _
