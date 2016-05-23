@@ -1,116 +1,105 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet.patch removed from -mm tree
-Date: Mon, 23 May 2016 12:47:07 -0700
-Message-ID: <57435e3b.WMIaQa3zW5jQnNGN%akpm@linux-foundation.org>
+ mm-increase-safety-margin-provided-by-pf_less_throttle.patch removed from
+ -mm tree
+Date: Mon, 23 May 2016 12:47:02 -0700
+Message-ID: <57435e36.sbKef6sDxkcgE/Cp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37174 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37166 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752527AbcEWTrI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:08 -0400
+	with ESMTP id S1754185AbcEWTrD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yang.shi@linaro.org, iamjoonsoo.kim@lge.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: neilb@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_is_guard(): return false when page_ext arrays are not allocated yet
+     Subject: MM: increase safety margin provided by PF_LESS_THROTTLE
 has been removed from the -mm tree.  Its filename was
-     mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet.patch
+     mm-increase-safety-margin-provided-by-pf_less_throttle.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linaro.org>
-Subject: mm: page_is_guard(): return false when page_ext arrays are not allocated yet
+From: NeilBrown <neilb@suse.com>
+Subject: MM: increase safety margin provided by PF_LESS_THROTTLE
 
-When enabling the below kernel configs:
+When nfsd is exporting a filesystem over NFS which is then NFS-mounted on
+the local machine there is a risk of deadlock.  This happens when there
+are lots of dirty pages in the NFS filesystem and they cause NFSD to be
+throttled, either in throttle_vm_writeout() or in balance_dirty_pages().
 
-CONFIG_DEFERRED_STRUCT_PAGE_INIT
-CONFIG_DEBUG_PAGEALLOC
-CONFIG_PAGE_EXTENSION
-CONFIG_DEBUG_VM
+To avoid this problem the PF_LESS_THROTTLE flag is set for NFSD threads
+and it provides a 25% increase to the limits that affect NFSD.  Any
+process writing to an NFS filesystem will be throttled well before the
+number of dirty NFS pages reaches the limit imposed on NFSD, so NFSD will
+not deadlock on pages that it needs to write out.  At least it shouldn't.
 
-kernel bootup may fail due to the following oops:
+All processes are allowed a small excess margin to avoid performing too
+many calculations: ratelimit_pages.
 
-BUG: unable to handle kernel NULL pointer dereference at           (null)
-IP: [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
-PGD 0
-Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-Modules linked in:
-CPU: 11 PID: 106 Comm: pgdatinit1 Not tainted 4.6.0-rc5-next-20160427 #26
-Hardware name: Intel Corporation S5520HC/S5520HC, BIOS S5500.86B.01.10.0025.030220091519 03/02/2009
-task: ffff88017c080040 ti: ffff88017c084000 task.ti: ffff88017c084000
-RIP: 0010:[<ffffffff8118d982>]  [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
-RSP: 0000:ffff88017c087c48  EFLAGS: 00010046
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000001
-RDX: 0000000000000980 RSI: 0000000000000080 RDI: 0000000000660401
-RBP: ffff88017c087cd0 R08: 0000000000000401 R09: 0000000000000009
-R10: ffff88017c080040 R11: 000000000000000a R12: 0000000000000400
-R13: ffffea0019810000 R14: ffffea0019810040 R15: ffff88066cfe6080
-FS:  0000000000000000(0000) GS:ffff88066cd40000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000000 CR3: 0000000002406000 CR4: 00000000000006e0
-Stack:
- ffff88066cd5bbd8 ffff88066cfe6640 0000000000000000 0000000000000000
- 0000001f0000001f ffff88066cd5bbe8 ffffea0019810000 000000008118f53e
- 0000000000000009 0000000000000401 ffffffff0000000a 0000000000000001
-Call Trace:
- [<ffffffff8118f602>] free_hot_cold_page+0x192/0x1d0
- [<ffffffff8118f69c>] __free_pages+0x5c/0x90
- [<ffffffff8262a676>] __free_pages_boot_core+0x11a/0x14e
- [<ffffffff8262a6fa>] deferred_free_range+0x50/0x62
- [<ffffffff8262aa46>] deferred_init_memmap+0x220/0x3c3
- [<ffffffff8262a826>] ? setup_per_cpu_pageset+0x35/0x35
- [<ffffffff8108b1f8>] kthread+0xf8/0x110
- [<ffffffff81c1b732>] ret_from_fork+0x22/0x40
- [<ffffffff8108b100>] ? kthread_create_on_node+0x200/0x200
-Code: 49 89 d4 48 c1 e0 06 49 01 c5 e9 de fe ff ff 4c 89 f7 44 89 4d b8 4c 89 45 c0 44 89 5d c8 48 89 4d d0 e8 62 c7 07 00 48 8b 4d d0 <48> 8b 00 44 8b 5d c8 4c 8b 45 c0 44 8b 4d b8 a8 02 0f 84 05 ff
-RIP  [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
- RSP <ffff88017c087c48>
-CR2: 0000000000000000
+ratelimit_pages is set so that if a thread on every CPU uses the entire
+margin, the total will only go 3% over the limit, and this is much less
+than the 25% bonus that PF_LESS_THROTTLE provides, so this margin
+shouldn't be a problem.  But it is.
 
-The problem is lookup_page_ext() returns NULL then page_is_guard() tried to
-access it in page freeing.
+The "total memory" that these 3% and 25% are calculated against are not
+really total memory but are "global_dirtyable_memory()" which doesn't
+include anonymous memory, just free memory and page-cache memory.
 
-page_is_guard() depends on PAGE_EXT_DEBUG_GUARD bit of page extension
-flag, but freeing page might reach here before the page_ext arrays are
-allocated when feeding a range of pages to the allocator for the first
-time during bootup or memory hotplug.
+The "ratelimit_pages" number is based on whatever the
+global_dirtyable_memory was on the last CPU hot-plug, which might not be
+what you expect, but is probably close to the total freeable memory.
 
-When it returns NULL, page_is_guard() should just return false instead of
-checking PAGE_EXT_DEBUG_GUARD unconditionally.
+The throttle threshold uses the global_dirtable_memory at the moment when
+the throttling happens, which could be much less than at the last CPU
+hotplug.  So if lots of anonymous memory has been allocated, thus pushing
+out lots of page-cache pages, then NFSD might end up being throttled due
+to dirty NFS pages because the "25%" bonus it gets is calculated against a
+rather small amount of dirtyable memory, while the "3%" margin that other
+processes are allowed to dirty without penalty is calculated against a
+much larger number.
 
-Link: http://lkml.kernel.org/r/1463610225-29060-1-git-send-email-yang.shi@linaro.org
-Signed-off-by: Yang Shi <yang.shi@linaro.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+To remove this possibility of deadlock we need to make sure that the
+margin granted to PF_LESS_THROTTLE exceeds that rate-limit margin.  Simply
+adding ratelimit_pages isn't enough as that should be multiplied by the
+number of cpus.
+
+So add "global_wb_domain.dirty_limit / 32" as that more accurately
+reflects the current total over-shoot margin.  This ensures that the
+number of dirty NFS pages never gets so high that nfsd will be throttled
+waiting for them to be written.
+
+Link: http://lkml.kernel.org/r/87futgowwv.fsf@notabene.neil.brown.name
+Signed-off-by: NeilBrown <neilb@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page-writeback.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet include/linux/mm.h
---- a/include/linux/mm.h~mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet
-+++ a/include/linux/mm.h
-@@ -2386,6 +2386,9 @@ static inline bool page_is_guard(struct
- 		return false;
- 
- 	page_ext = lookup_page_ext(page);
-+	if (unlikely(!page_ext))
-+		return false;
-+
- 	return test_bit(PAGE_EXT_DEBUG_GUARD, &page_ext->flags);
- }
- #else
+diff -puN mm/page-writeback.c~mm-increase-safety-margin-provided-by-pf_less_throttle mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-increase-safety-margin-provided-by-pf_less_throttle
++++ a/mm/page-writeback.c
+@@ -411,8 +411,8 @@ static void domain_dirty_limits(struct d
+ 		bg_thresh = thresh / 2;
+ 	tsk = current;
+ 	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
+-		bg_thresh += bg_thresh / 4;
+-		thresh += thresh / 4;
++		bg_thresh += bg_thresh / 4 + global_wb_domain.dirty_limit / 32;
++		thresh += thresh / 4 + global_wb_domain.dirty_limit / 32;
+ 	}
+ 	dtc->thresh = thresh;
+ 	dtc->bg_thresh = bg_thresh;
 _
 
-Patches currently in -mm which might be from yang.shi@linaro.org are
+Patches currently in -mm which might be from neilb@suse.com are
 
-mm-move-page_ext_init-after-all-struct-pages-are-initialized-v2.patch
+dax-move-radix_dax_-definitions-to-daxc.patch
 
