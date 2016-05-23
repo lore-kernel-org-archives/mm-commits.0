@@ -1,216 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zsmalloc-use-first_page-rather-than-page.patch removed
- from -mm tree
-Date: Mon, 23 May 2016 12:47:38 -0700
-Message-ID: <57435e5a.5+XbB8uaKX+t7mXS%akpm@linux-foundation.org>
+Subject: [merged] x86-kasan-instrument-user-memory-access-api.patch
+ removed from -mm tree
+Date: Mon, 23 May 2016 12:47:32 -0700
+Message-ID: <57435e54.TQ1kPjHCR1+5V2J0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37527 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37518 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754294AbcEWTrj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:39 -0400
+	with ESMTP id S1754270AbcEWTrd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: use first_page rather than page
+     Subject: x86/kasan: instrument user memory access API
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-use-first_page-rather-than-page.patch
+     x86-kasan-instrument-user-memory-access-api.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: use first_page rather than page
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: x86/kasan: instrument user memory access API
 
-Clean up function parameter "struct page".  Many functions of zsmalloc
-expect that page paramter is "first_page" so use "first_page" rather than
-"page" for code readability.
+Exchange between user and kernel memory is coded in assembly language. 
+Which means that such accesses won't be spotted by KASAN as a compiler
+instruments only C code.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Add explicit KASAN checks to user memory access API to ensure that
+userspace writes to (or reads from) a valid kernel memory.
+
+Note: Unlike others strncpy_from_user() is written mostly in C and KASAN
+sees memory accesses in it.  However, it makes sense to add explicit check
+for all @count bytes that *potentially* could be written to the kernel.
+
+[aryabinin@virtuozzo.com: move kasan check under the condition]
+  Link: http://lkml.kernel.org/r/1462869209-21096-1-git-send-email-aryabinin@virtuozzo.com
+Link: http://lkml.kernel.org/r/1462538722-1574-4-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   62 ++++++++++++++++++++++++------------------------
- 1 file changed, 32 insertions(+), 30 deletions(-)
+ arch/x86/include/asm/uaccess.h    |    5 +++++
+ arch/x86/include/asm/uaccess_64.h |    7 +++++++
+ lib/strncpy_from_user.c           |    2 ++
+ 3 files changed, 14 insertions(+)
 
-diff -puN mm/zsmalloc.c~zsmalloc-use-first_page-rather-than-page mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-use-first_page-rather-than-page
-+++ a/mm/zsmalloc.c
-@@ -413,26 +413,28 @@ static int is_last_page(struct page *pag
- 	return PagePrivate2(page);
- }
- 
--static void get_zspage_mapping(struct page *page, unsigned int *class_idx,
-+static void get_zspage_mapping(struct page *first_page,
-+				unsigned int *class_idx,
- 				enum fullness_group *fullness)
- {
- 	unsigned long m;
--	BUG_ON(!is_first_page(page));
-+	BUG_ON(!is_first_page(first_page));
- 
--	m = (unsigned long)page->mapping;
-+	m = (unsigned long)first_page->mapping;
- 	*fullness = m & FULLNESS_MASK;
- 	*class_idx = (m >> FULLNESS_BITS) & CLASS_IDX_MASK;
- }
- 
--static void set_zspage_mapping(struct page *page, unsigned int class_idx,
-+static void set_zspage_mapping(struct page *first_page,
-+				unsigned int class_idx,
- 				enum fullness_group fullness)
- {
- 	unsigned long m;
--	BUG_ON(!is_first_page(page));
-+	BUG_ON(!is_first_page(first_page));
- 
- 	m = ((class_idx & CLASS_IDX_MASK) << FULLNESS_BITS) |
- 			(fullness & FULLNESS_MASK);
--	page->mapping = (struct address_space *)m;
-+	first_page->mapping = (struct address_space *)m;
- }
- 
- /*
-@@ -625,14 +627,14 @@ static inline void zs_pool_stat_destroy(
-  * the pool (not yet implemented). This function returns fullness
-  * status of the given page.
+diff -puN arch/x86/include/asm/uaccess.h~x86-kasan-instrument-user-memory-access-api arch/x86/include/asm/uaccess.h
+--- a/arch/x86/include/asm/uaccess.h~x86-kasan-instrument-user-memory-access-api
++++ a/arch/x86/include/asm/uaccess.h
+@@ -5,6 +5,7 @@
   */
--static enum fullness_group get_fullness_group(struct page *page)
-+static enum fullness_group get_fullness_group(struct page *first_page)
+ #include <linux/errno.h>
+ #include <linux/compiler.h>
++#include <linux/kasan-checks.h>
+ #include <linux/thread_info.h>
+ #include <linux/string.h>
+ #include <asm/asm.h>
+@@ -721,6 +722,8 @@ copy_from_user(void *to, const void __us
+ 
+ 	might_fault();
+ 
++	kasan_check_write(to, n);
++
+ 	/*
+ 	 * While we would like to have the compiler do the checking for us
+ 	 * even in the non-constant size case, any false positives there are
+@@ -754,6 +757,8 @@ copy_to_user(void __user *to, const void
  {
- 	int inuse, max_objects;
- 	enum fullness_group fg;
--	BUG_ON(!is_first_page(page));
-+	BUG_ON(!is_first_page(first_page));
+ 	int sz = __compiletime_object_size(from);
  
--	inuse = page->inuse;
--	max_objects = page->objects;
-+	inuse = first_page->inuse;
-+	max_objects = first_page->objects;
++	kasan_check_read(from, n);
++
+ 	might_fault();
  
- 	if (inuse == 0)
- 		fg = ZS_EMPTY;
-@@ -652,12 +654,12 @@ static enum fullness_group get_fullness_
-  * have. This functions inserts the given zspage into the freelist
-  * identified by <class, fullness_group>.
-  */
--static void insert_zspage(struct page *page, struct size_class *class,
-+static void insert_zspage(struct page *first_page, struct size_class *class,
- 				enum fullness_group fullness)
+ 	/* See the comment in copy_from_user() above. */
+diff -puN arch/x86/include/asm/uaccess_64.h~x86-kasan-instrument-user-memory-access-api arch/x86/include/asm/uaccess_64.h
+--- a/arch/x86/include/asm/uaccess_64.h~x86-kasan-instrument-user-memory-access-api
++++ a/arch/x86/include/asm/uaccess_64.h
+@@ -7,6 +7,7 @@
+ #include <linux/compiler.h>
+ #include <linux/errno.h>
+ #include <linux/lockdep.h>
++#include <linux/kasan-checks.h>
+ #include <asm/alternative.h>
+ #include <asm/cpufeatures.h>
+ #include <asm/page.h>
+@@ -109,6 +110,7 @@ static __always_inline __must_check
+ int __copy_from_user(void *dst, const void __user *src, unsigned size)
  {
- 	struct page **head;
- 
--	BUG_ON(!is_first_page(page));
-+	BUG_ON(!is_first_page(first_page));
- 
- 	if (fullness >= _ZS_NR_FULLNESS_GROUPS)
- 		return;
-@@ -667,7 +669,7 @@ static void insert_zspage(struct page *p
- 
- 	head = &class->fullness_list[fullness];
- 	if (!*head) {
--		*head = page;
-+		*head = first_page;
- 		return;
- 	}
- 
-@@ -675,21 +677,21 @@ static void insert_zspage(struct page *p
- 	 * We want to see more ZS_FULL pages and less almost
- 	 * empty/full. Put pages with higher ->inuse first.
- 	 */
--	list_add_tail(&page->lru, &(*head)->lru);
--	if (page->inuse >= (*head)->inuse)
--		*head = page;
-+	list_add_tail(&first_page->lru, &(*head)->lru);
-+	if (first_page->inuse >= (*head)->inuse)
-+		*head = first_page;
+ 	might_fault();
++	kasan_check_write(dst, size);
+ 	return __copy_from_user_nocheck(dst, src, size);
  }
  
- /*
-  * This function removes the given zspage from the freelist identified
-  * by <class, fullness_group>.
-  */
--static void remove_zspage(struct page *page, struct size_class *class,
-+static void remove_zspage(struct page *first_page, struct size_class *class,
- 				enum fullness_group fullness)
+@@ -175,6 +177,7 @@ static __always_inline __must_check
+ int __copy_to_user(void __user *dst, const void *src, unsigned size)
  {
- 	struct page **head;
- 
--	BUG_ON(!is_first_page(page));
-+	BUG_ON(!is_first_page(first_page));
- 
- 	if (fullness >= _ZS_NR_FULLNESS_GROUPS)
- 		return;
-@@ -698,11 +700,11 @@ static void remove_zspage(struct page *p
- 	BUG_ON(!*head);
- 	if (list_empty(&(*head)->lru))
- 		*head = NULL;
--	else if (*head == page)
-+	else if (*head == first_page)
- 		*head = (struct page *)list_entry((*head)->lru.next,
- 					struct page, lru);
- 
--	list_del_init(&page->lru);
-+	list_del_init(&first_page->lru);
- 	zs_stat_dec(class, fullness == ZS_ALMOST_EMPTY ?
- 			CLASS_ALMOST_EMPTY : CLASS_ALMOST_FULL, 1);
- }
-@@ -717,21 +719,21 @@ static void remove_zspage(struct page *p
-  * fullness group.
-  */
- static enum fullness_group fix_fullness_group(struct size_class *class,
--						struct page *page)
-+						struct page *first_page)
- {
- 	int class_idx;
- 	enum fullness_group currfg, newfg;
- 
--	BUG_ON(!is_first_page(page));
-+	BUG_ON(!is_first_page(first_page));
- 
--	get_zspage_mapping(page, &class_idx, &currfg);
--	newfg = get_fullness_group(page);
-+	get_zspage_mapping(first_page, &class_idx, &currfg);
-+	newfg = get_fullness_group(first_page);
- 	if (newfg == currfg)
- 		goto out;
- 
--	remove_zspage(page, class, currfg);
--	insert_zspage(page, class, newfg);
--	set_zspage_mapping(page, class_idx, newfg);
-+	remove_zspage(first_page, class, currfg);
-+	insert_zspage(first_page, class, newfg);
-+	set_zspage_mapping(first_page, class_idx, newfg);
- 
- out:
- 	return newfg;
-@@ -1234,11 +1236,11 @@ static bool can_merge(struct size_class
- 	return true;
+ 	might_fault();
++	kasan_check_read(src, size);
+ 	return __copy_to_user_nocheck(dst, src, size);
  }
  
--static bool zspage_full(struct page *page)
-+static bool zspage_full(struct page *first_page)
+@@ -242,12 +245,14 @@ int __copy_in_user(void __user *dst, con
+ static __must_check __always_inline int
+ __copy_from_user_inatomic(void *dst, const void __user *src, unsigned size)
  {
--	BUG_ON(!is_first_page(page));
-+	BUG_ON(!is_first_page(first_page));
- 
--	return page->inuse == page->objects;
-+	return first_page->inuse == first_page->objects;
++	kasan_check_write(dst, size);
+ 	return __copy_from_user_nocheck(dst, src, size);
  }
  
- unsigned long zs_get_total_pages(struct zs_pool *pool)
+ static __must_check __always_inline int
+ __copy_to_user_inatomic(void __user *dst, const void *src, unsigned size)
+ {
++	kasan_check_read(src, size);
+ 	return __copy_to_user_nocheck(dst, src, size);
+ }
+ 
+@@ -258,6 +263,7 @@ static inline int
+ __copy_from_user_nocache(void *dst, const void __user *src, unsigned size)
+ {
+ 	might_fault();
++	kasan_check_write(dst, size);
+ 	return __copy_user_nocache(dst, src, size, 1);
+ }
+ 
+@@ -265,6 +271,7 @@ static inline int
+ __copy_from_user_inatomic_nocache(void *dst, const void __user *src,
+ 				  unsigned size)
+ {
++	kasan_check_write(dst, size);
+ 	return __copy_user_nocache(dst, src, size, 0);
+ }
+ 
+diff -puN lib/strncpy_from_user.c~x86-kasan-instrument-user-memory-access-api lib/strncpy_from_user.c
+--- a/lib/strncpy_from_user.c~x86-kasan-instrument-user-memory-access-api
++++ a/lib/strncpy_from_user.c
+@@ -1,5 +1,6 @@
+ #include <linux/compiler.h>
+ #include <linux/export.h>
++#include <linux/kasan-checks.h>
+ #include <linux/uaccess.h>
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+@@ -109,6 +110,7 @@ long strncpy_from_user(char *dst, const
+ 		unsigned long max = max_addr - src_addr;
+ 		long retval;
+ 
++		kasan_check_write(dst, count);
+ 		user_access_begin();
+ 		retval = do_strncpy_from_user(dst, src, count, max);
+ 		user_access_end();
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-zsmalloc-clean-up-many-bug_on.patch
-zsmalloc-reordering-function-parameter.patch
-zsmalloc-remove-unused-pool-param-in-obj_free.patch
+kasan-tests-add-tests-for-user-memory-access-functions.patch
 
