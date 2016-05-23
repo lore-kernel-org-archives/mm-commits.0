@@ -1,103 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [patch 37/84] kernek/fork.c: allocate idle task for a CPU always
- on its local node
-Date: Mon, 23 May 2016 16:24:05 -0700
-Message-ID: <57439115.GkDabDz+zI6l0QIS%akpm@linux-foundation.org>
+Subject: [patch 38/84] exec: remove the no longer needed
+ remove_arg_zero()->free_arg_page()
+Date: Mon, 23 May 2016 16:24:08 -0700
+Message-ID: <57439118.WUoecEMCbbcOhSpo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42216 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859AbcEWXYG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:24:06 -0400
+	with ESMTP id S1752205AbcEWXYJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:24:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ak@linux.intel.com, tglx@linutronix.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, oleg@redhat.com
 
-From: Andi Kleen <ak@linux.intel.com>
-Subject: kernek/fork.c: allocate idle task for a CPU always on its local node
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: exec: remove the no longer needed remove_arg_zero()->free_arg_page()
 
-Linux preallocates the task structs of the idle tasks for all possible
-CPUs.  This currently means they all end up on node 0.  This also implies
-that the cache line of MWAIT, which is around the flags field in the task
-struct, are all located in node 0.
+remove_arg_zero() does free_arg_page() for no reason.  This was needed
+before and only if CONFIG_MMU=y: see the commit 4fc75ff4 ("exec: fix
+remove_arg_zero"), install_arg_page() was called for every page != NULL in
+bprm->page[] array.  Today install_arg_page() has already gone and
+free_arg_page() is nop after another commit b6a2fea39 ("mm: variable
+length argument support").
 
-We see a noticeable performance improvement on Knights Landing CPUs when
-the cache lines used for MWAIT are located in the local nodes of the CPUs
-using them.  I would expect this to give a (likely slight) improvement on
-other systems too.
+CONFIG_MMU=n does free_arg_pages() in free_bprm() and thus it doesn't need
+remove_arg_zero()->free_arg_page() too; apart from get_arg_page() it never
+checks if the page in bprm->page[] was allocated or not, so the "extra"
+non-freed page is fine.  OTOH, this free_arg_page() can add the minor
+pessimization, the caller is going to do copy_strings_kernel() right after
+remove_arg_zero() which will likely need to re-allocate the same page
+again.
 
-The patch implements placing the idle task in the node of its CPUs, by
-passing the right target node to copy_process()
+And as Hujunjie pointed out, the "offset == PAGE_SIZE" check is wrong
+because we are going to increment bprm->p once again before return, so
+CONFIG_MMU=n "leaks" the page anyway if '0' is the final byte in this
+page.
 
-[akpm@linux-foundation.org: use NUMA_NO_NODE, not a bare -1]
-Link: http://lkml.kernel.org/r/1463492694-15833-1-git-send-email-andi@firstfloor.org
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+NOTE: remove_arg_zero() assumes that argv[0] is null-terminated but this
+is not necessarily true.  copy_strings() does "len = strnlen_user(...)",
+then copy_from_user(len) but another thread or debuger can overwrite the
+trailing '0' in between.  Afaics nothing really bad can happen because we
+must always have the null-terminated bprm->filename copied by the 1st
+copy_strings_kernel(), but perhaps we should change this code to check
+"bprm->p < bprm->exec" anyway, and/or change copy_strings() to ensure that
+the last byte in string is always zero.
+
+Link: http://lkml.kernel.org/r/20160517155335.GA31435@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reported by: hujunjie <jj.net@163.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ fs/exec.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN kernel/fork.c~allocate-idle-task-for-a-cpu-always-on-its-local-node kernel/fork.c
---- a/kernel/fork.c~allocate-idle-task-for-a-cpu-always-on-its-local-node
-+++ a/kernel/fork.c
-@@ -340,13 +340,14 @@ void set_task_stack_end_magic(struct tas
- 	*stackend = STACK_END_MAGIC;	/* for overflow detection */
+diff -puN fs/exec.c~exec-remove-the-no-longer-needed-remove_arg_zero-free_arg_page fs/exec.c
+--- a/fs/exec.c~exec-remove-the-no-longer-needed-remove_arg_zero-free_arg_page
++++ a/fs/exec.c
+@@ -243,10 +243,6 @@ static void put_arg_page(struct page *pa
+ 	put_page(page);
  }
  
--static struct task_struct *dup_task_struct(struct task_struct *orig)
-+static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
+-static void free_arg_page(struct linux_binprm *bprm, int i)
+-{
+-}
+-
+ static void free_arg_pages(struct linux_binprm *bprm)
  {
- 	struct task_struct *tsk;
- 	struct thread_info *ti;
--	int node = tsk_fork_get_node(orig);
- 	int err;
+ }
+@@ -1499,9 +1495,6 @@ int remove_arg_zero(struct linux_binprm
  
-+	if (node == NUMA_NO_NODE)
-+		node = tsk_fork_get_node(orig);
- 	tsk = alloc_task_struct_node(node);
- 	if (!tsk)
- 		return NULL;
-@@ -1276,7 +1277,8 @@ static struct task_struct *copy_process(
- 					int __user *child_tidptr,
- 					struct pid *pid,
- 					int trace,
--					unsigned long tls)
-+					unsigned long tls,
-+					int node)
- {
- 	int retval;
- 	struct task_struct *p;
-@@ -1328,7 +1330,7 @@ static struct task_struct *copy_process(
- 		goto fork_out;
- 
- 	retval = -ENOMEM;
--	p = dup_task_struct(current);
-+	p = dup_task_struct(current, node);
- 	if (!p)
- 		goto fork_out;
- 
-@@ -1706,7 +1708,8 @@ static inline void init_idle_pids(struct
- struct task_struct *fork_idle(int cpu)
- {
- 	struct task_struct *task;
--	task = copy_process(CLONE_VM, 0, 0, NULL, &init_struct_pid, 0, 0);
-+	task = copy_process(CLONE_VM, 0, 0, NULL, &init_struct_pid, 0, 0,
-+			    cpu_to_node(cpu));
- 	if (!IS_ERR(task)) {
- 		init_idle_pids(task->pids);
- 		init_idle(task, cpu);
-@@ -1751,7 +1754,7 @@ long _do_fork(unsigned long clone_flags,
- 	}
- 
- 	p = copy_process(clone_flags, stack_start, stack_size,
--			 child_tidptr, NULL, trace, tls);
-+			 child_tidptr, NULL, trace, tls, NUMA_NO_NODE);
- 	/*
- 	 * Do this prior waking up the new thread - the thread pointer
- 	 * might get invalid after that point, if the thread exits quickly.
-_
+ 		kunmap_atomic(kaddr);
+ 		put_arg_page(page);
