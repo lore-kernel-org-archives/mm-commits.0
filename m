@@ -1,85 +1,98 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-use-phys_addr_t-for-reserve_bootmem_region-arguments.patch removed from
- -mm tree
-Date: Mon, 23 May 2016 12:46:50 -0700
-Message-ID: <57435e2a.iZaymbYZMALIDHCG%akpm@linux-foundation.org>
+ mm-disable-fault-around-on-emulated-access-bit-architecture.patch removed
+ from -mm tree
+Date: Mon, 23 May 2016 12:46:55 -0700
+Message-ID: <57435e2f.n8yY0vv9o8yVdepT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37147 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37155 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754185AbcEWTqv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:46:51 -0400
+	with ESMTP id S1754185AbcEWTq4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:46:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefan.bader@canonical.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, kirill@shutemov.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use phys_addr_t for reserve_bootmem_region() arguments
+     Subject: mm: disable fault around on emulated access bit architecture
 has been removed from the -mm tree.  Its filename was
-     mm-use-phys_addr_t-for-reserve_bootmem_region-arguments.patch
+     mm-disable-fault-around-on-emulated-access-bit-architecture.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stefan Bader <stefan.bader@canonical.com>
-Subject: mm: use phys_addr_t for reserve_bootmem_region() arguments
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: disable fault around on emulated access bit architecture
 
-Since 92923ca3aacef63 ("mm: meminit: only set page reserved in the
-memblock region") the reserved bit is set on reserved memblock regions. 
-However start and end address are passed as unsigned long.  This is only
-32bit on i386, so it can end up marking the wrong pages reserved for
-ranges at 4GB and above.
+fault_around aims to reduce minor faults of file-backed pages via
+speculative ahead pte mapping and relying on readahead logic.  However, on
+non-HW access bit architecture the benefit is highly limited because they
+should emulate the young bit with minor faults for reclaim's page aging
+algorithm.  IOW, we cannot reduce minor faults on those architectures.
 
-This was observed on a 32bit Xen dom0 which was booted with initial memory
-set to a value below 4G but allowing to balloon in memory (dom0_mem=1024M
-for example).  This would define a reserved bootmem region for the
-additional memory (for example on a 8GB system there was a reverved region
-covering the 4GB-8GB range).  But since the addresses were passed on as
-unsigned long, this was actually marking all pages from 0 to 4GB as
-reserved.
+I did quick a test on my ARM machine.
 
-Fixes: 92923ca3aacef63 ("mm: meminit: only set page reserved in the memblock region")
-Link: http://lkml.kernel.org/r/1463491221-10573-1-git-send-email-stefan.bader@canonical.com
-Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
-Cc: <stable@vger.kernel.org>	[4.2+]
+512M file mmap sequential every word read on eSATA drive 4 times.  stddev
+is stable.
+
+= fault_around 4096 =
+elapsed time(usec): 6747645
+
+= fault_around 65536 =
+elapsed time(usec): 6709263
+
+0.5% gain.
+
+Even when I tested it with eMMC there is no gain because I guess with slow
+storage the major fault is the dominant factor.
+
+Also, fault_around has the side effect of shrinking slab more aggressively
+and causes higher vmpressure, so if such speculation fails, it can evict
+slab more which can result in page I/O (e.g., inode cache).  In the end,
+it would make void any benefit of fault_around.
+
+So let's make the default "disabled" on those architectures.
+
+Link: http://lkml.kernel.org/r/20160518014229.GB21538@bbox
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/page_alloc.c    |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/memory.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN include/linux/mm.h~mm-use-phys_addr_t-for-reserve_bootmem_region-arguments include/linux/mm.h
---- a/include/linux/mm.h~mm-use-phys_addr_t-for-reserve_bootmem_region-arguments
-+++ a/include/linux/mm.h
-@@ -1763,7 +1763,7 @@ extern void free_highmem_page(struct pag
- extern void adjust_managed_page_count(struct page *page, long count);
- extern void mem_init_print_info(const char *str);
+diff -puN mm/memory.c~mm-disable-fault-around-on-emulated-access-bit-architecture mm/memory.c
+--- a/mm/memory.c~mm-disable-fault-around-on-emulated-access-bit-architecture
++++ a/mm/memory.c
+@@ -2899,8 +2899,16 @@ void do_set_pte(struct vm_area_struct *v
+ 	update_mmu_cache(vma, address, pte);
+ }
  
--extern void reserve_bootmem_region(unsigned long start, unsigned long end);
-+extern void reserve_bootmem_region(phys_addr_t start, phys_addr_t end);
++/*
++ * If architecture emulates "accessed" or "young" bit without HW support,
++ * there is no much gain with fault_around.
++ */
+ static unsigned long fault_around_bytes __read_mostly =
++#ifndef __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
++	PAGE_SIZE;
++#else
+ 	rounddown_pow_of_two(65536);
++#endif
  
- /* Free the reserved page into the buddy system, so it gets managed. */
- static inline void __free_reserved_page(struct page *page)
-diff -puN mm/page_alloc.c~mm-use-phys_addr_t-for-reserve_bootmem_region-arguments mm/page_alloc.c
---- a/mm/page_alloc.c~mm-use-phys_addr_t-for-reserve_bootmem_region-arguments
-+++ a/mm/page_alloc.c
-@@ -1205,7 +1205,7 @@ static inline void init_reserved_page(un
-  * marks the pages PageReserved. The remaining valid pages are later
-  * sent to the buddy page allocator.
-  */
--void __meminit reserve_bootmem_region(unsigned long start, unsigned long end)
-+void __meminit reserve_bootmem_region(phys_addr_t start, phys_addr_t end)
- {
- 	unsigned long start_pfn = PFN_DOWN(start);
- 	unsigned long end_pfn = PFN_UP(end);
+ #ifdef CONFIG_DEBUG_FS
+ static int fault_around_bytes_get(void *data, u64 *val)
 _
 
-Patches currently in -mm which might be from stefan.bader@canonical.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
+zsmalloc-use-first_page-rather-than-page.patch
+zsmalloc-clean-up-many-bug_on.patch
+zsmalloc-reordering-function-parameter.patch
+zsmalloc-remove-unused-pool-param-in-obj_free.patch
 
