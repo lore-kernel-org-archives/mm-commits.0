@@ -1,102 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2.patch
- removed from -mm tree
-Date: Mon, 23 May 2016 12:46:04 -0700
-Message-ID: <57435dfc.UT9we1Ch513ZJ0af%akpm@linux-foundation.org>
+ mm-enable-rlimit_data-by-default-with-workaround-for-valgrind.patch removed from -mm tree
+Date: Mon, 23 May 2016 12:46:07 -0700
+Message-ID: <57435dff.5LraTZv4gZ1ANbYY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37055 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37059 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143AbcEWTqF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:46:05 -0400
+	with ESMTP id S1754143AbcEWTqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:46:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xyjxie@linux.vnet.ibm.com, aarcange@redhat.com, dahi@linux.vnet.ibm.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, luto@kernel.org, matthew.r.wilcox@intel.com, mhocko@suse.com, mingo@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, borntraeger@de.ibm.com, gorcunov@openvz.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix incorrect pfn passed to untrack_pfn() in remap_pfn_range()
+     Subject: mm: enable RLIMIT_DATA by default with workaround for valgrind
 has been removed from the -mm tree.  Its filename was
-     mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2.patch
+     mm-enable-rlimit_data-by-default-with-workaround-for-valgrind.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yongji Xie <xyjxie@linux.vnet.ibm.com>
-Subject: mm: fix incorrect pfn passed to untrack_pfn() in remap_pfn_range()
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: mm: enable RLIMIT_DATA by default with workaround for valgrind
 
-We use generic hooks in remap_pfn_range() to help archs to
-track pfnmap regions. The code is something like:
+Since commit 84638335900f ("mm: rework virtual memory accounting")
+RLIMIT_DATA limits both brk() and private mmap() but this's disabled by
+default because of incompatibility with older versions of valgrind.
 
-int remap_pfn_range()
-{
-	...
-	track_pfn_remap(vma, &prot, pfn, addr, PAGE_ALIGN(size));
-	...
-	pfn -= addr >> PAGE_SHIFT;
-	...
-	untrack_pfn(vma, pfn, PAGE_ALIGN(size));
-	...
-}
+Valgrind always set limit to zero and fails if RLIMIT_DATA is enabled. 
+Fortunately it changes only rlim_cur and keeps rlim_max for reverting
+limit back when needed.
 
-Here we can easily find the pfn is changed but not recovered
-before untrack_pfn() is called. That's incorrect.
+This patch checks current usage also against rlim_max if rlim_cur is zero.
+This is safe because task anyway can increase rlim_cur up to rlim_max. 
+Size of brk is still checked against rlim_cur, so this part is completely
+compatible - zero rlim_cur forbids brk() but allows private mmap().
 
-There are no known runtime effects - this is from inspection.
-
-Signed-off-by: Yongji Xie <xyjxie@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: David Hildenbrand <dahi@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/56A28613.5070104@de.ibm.com
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/mmap.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory.c~mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2 mm/memory.c
---- a/mm/memory.c~mm-fix-incorrect-pfn-passed-to-untrack_pfn-in-remap_pfn_range-v2
-+++ a/mm/memory.c
-@@ -1744,6 +1744,7 @@ int remap_pfn_range(struct vm_area_struc
- 	unsigned long next;
- 	unsigned long end = addr + PAGE_ALIGN(size);
- 	struct mm_struct *mm = vma->vm_mm;
-+	unsigned long remap_pfn = pfn;
- 	int err;
+diff -puN mm/mmap.c~mm-enable-rlimit_data-by-default-with-workaround-for-valgrind mm/mmap.c
+--- a/mm/mmap.c~mm-enable-rlimit_data-by-default-with-workaround-for-valgrind
++++ a/mm/mmap.c
+@@ -66,7 +66,7 @@ const int mmap_rnd_compat_bits_max = CON
+ int mmap_rnd_compat_bits __read_mostly = CONFIG_ARCH_MMAP_RND_COMPAT_BITS;
+ #endif
  
- 	/*
-@@ -1770,7 +1771,7 @@ int remap_pfn_range(struct vm_area_struc
- 		vma->vm_pgoff = pfn;
+-static bool ignore_rlimit_data = true;
++static bool ignore_rlimit_data;
+ core_param(ignore_rlimit_data, ignore_rlimit_data, bool, 0644);
+ 
+ static void unmap_region(struct mm_struct *mm,
+@@ -2886,13 +2886,17 @@ bool may_expand_vm(struct mm_struct *mm,
+ 
+ 	if (is_data_mapping(flags) &&
+ 	    mm->data_vm + npages > rlimit(RLIMIT_DATA) >> PAGE_SHIFT) {
+-		if (ignore_rlimit_data)
+-			pr_warn_once("%s (%d): VmData %lu exceed data ulimit %lu. Will be forbidden soon.\n",
++		/* Workaround for Valgrind */
++		if (rlimit(RLIMIT_DATA) == 0 &&
++		    mm->data_vm + npages <= rlimit_max(RLIMIT_DATA) >> PAGE_SHIFT)
++			return true;
++		if (!ignore_rlimit_data) {
++			pr_warn_once("%s (%d): VmData %lu exceed data ulimit %lu. Update limits or use boot option ignore_rlimit_data.\n",
+ 				     current->comm, current->pid,
+ 				     (mm->data_vm + npages) << PAGE_SHIFT,
+ 				     rlimit(RLIMIT_DATA));
+-		else
+ 			return false;
++		}
  	}
  
--	err = track_pfn_remap(vma, &prot, pfn, addr, PAGE_ALIGN(size));
-+	err = track_pfn_remap(vma, &prot, remap_pfn, addr, PAGE_ALIGN(size));
- 	if (err)
- 		return -EINVAL;
- 
-@@ -1789,7 +1790,7 @@ int remap_pfn_range(struct vm_area_struc
- 	} while (pgd++, addr = next, addr != end);
- 
- 	if (err)
--		untrack_pfn(vma, pfn, PAGE_ALIGN(size));
-+		untrack_pfn(vma, remap_pfn, PAGE_ALIGN(size));
- 
- 	return err;
- }
+ 	return true;
 _
 
-Patches currently in -mm which might be from xyjxie@linux.vnet.ibm.com are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
+arch-defconfig-remove-config_resource_counters.patch
 
