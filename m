@@ -1,105 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-increase-safety-margin-provided-by-pf_less_throttle.patch removed from
+Subject: [merged] mm-compact-fix-zoneindex-in-compact.patch removed from
  -mm tree
-Date: Mon, 23 May 2016 12:47:02 -0700
-Message-ID: <57435e36.sbKef6sDxkcgE/Cp%akpm@linux-foundation.org>
+Date: Mon, 23 May 2016 12:47:10 -0700
+Message-ID: <57435e3e.9rXSfz8MHMheJgpC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37166 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37178 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754185AbcEWTrD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:03 -0400
+	with ESMTP id S1752527AbcEWTrL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.com, mm-commits@vger.kernel.org
+To: puck.chen@hisilicon.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, stable@vger.kernel.org, suzhuangluan@hisilicon.com, tj@kernel.org, vbabka@suse.cz, xuyiping@hisilicon.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MM: increase safety margin provided by PF_LESS_THROTTLE
+     Subject: mm/compaction.c: fix zoneindex in kcompactd()
 has been removed from the -mm tree.  Its filename was
-     mm-increase-safety-margin-provided-by-pf_less_throttle.patch
+     mm-compact-fix-zoneindex-in-compact.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.com>
-Subject: MM: increase safety margin provided by PF_LESS_THROTTLE
+From: Chen Feng <puck.chen@hisilicon.com>
+Subject: mm/compaction.c: fix zoneindex in kcompactd()
 
-When nfsd is exporting a filesystem over NFS which is then NFS-mounted on
-the local machine there is a risk of deadlock.  This happens when there
-are lots of dirty pages in the NFS filesystem and they cause NFSD to be
-throttled, either in throttle_vm_writeout() or in balance_dirty_pages().
+While testing the kcompactd in my platform 3G MEM only DMA ZONE.  I found
+the kcompactd never wakeup.  It seems the zoneindex has already minus 1
+before.  So the traverse here should be <=.
 
-To avoid this problem the PF_LESS_THROTTLE flag is set for NFSD threads
-and it provides a 25% increase to the limits that affect NFSD.  Any
-process writing to an NFS filesystem will be throttled well before the
-number of dirty NFS pages reaches the limit imposed on NFSD, so NFSD will
-not deadlock on pages that it needs to write out.  At least it shouldn't.
+It fixes a regression where kswapd could previously compact, but
+kcompactd not.  Not a crash fix though.
 
-All processes are allowed a small excess margin to avoid performing too
-many calculations: ratelimit_pages.
-
-ratelimit_pages is set so that if a thread on every CPU uses the entire
-margin, the total will only go 3% over the limit, and this is much less
-than the 25% bonus that PF_LESS_THROTTLE provides, so this margin
-shouldn't be a problem.  But it is.
-
-The "total memory" that these 3% and 25% are calculated against are not
-really total memory but are "global_dirtyable_memory()" which doesn't
-include anonymous memory, just free memory and page-cache memory.
-
-The "ratelimit_pages" number is based on whatever the
-global_dirtyable_memory was on the last CPU hot-plug, which might not be
-what you expect, but is probably close to the total freeable memory.
-
-The throttle threshold uses the global_dirtable_memory at the moment when
-the throttling happens, which could be much less than at the last CPU
-hotplug.  So if lots of anonymous memory has been allocated, thus pushing
-out lots of page-cache pages, then NFSD might end up being throttled due
-to dirty NFS pages because the "25%" bonus it gets is calculated against a
-rather small amount of dirtyable memory, while the "3%" margin that other
-processes are allowed to dirty without penalty is calculated against a
-much larger number.
-
-To remove this possibility of deadlock we need to make sure that the
-margin granted to PF_LESS_THROTTLE exceeds that rate-limit margin.  Simply
-adding ratelimit_pages isn't enough as that should be multiplied by the
-number of cpus.
-
-So add "global_wb_domain.dirty_limit / 32" as that more accurately
-reflects the current total over-shoot margin.  This ensures that the
-number of dirty NFS pages never gets so high that nfsd will be throttled
-waiting for them to be written.
-
-Link: http://lkml.kernel.org/r/87futgowwv.fsf@notabene.neil.brown.name
-Signed-off-by: NeilBrown <neilb@suse.com>
+[akpm@linux-foundation.org: fix kcompactd_do_work() as well, per Hugh]
+Link: http://lkml.kernel.org/r/1463659121-84124-1-git-send-email-puck.chen@hisilicon.com
+Fixes: accf62422b3a ("mm, kswapd: replace kswapd compaction with waking up kcompactd")
+Signed-off-by: Chen Feng <puck.chen@hisilicon.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Zhuangluan Su <suzhuangluan@hisilicon.com>
+Cc: Yiping Xu <xuyiping@hisilicon.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    4 ++--
+ mm/compaction.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-increase-safety-margin-provided-by-pf_less_throttle mm/page-writeback.c
---- a/mm/page-writeback.c~mm-increase-safety-margin-provided-by-pf_less_throttle
-+++ a/mm/page-writeback.c
-@@ -411,8 +411,8 @@ static void domain_dirty_limits(struct d
- 		bg_thresh = thresh / 2;
- 	tsk = current;
- 	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
--		bg_thresh += bg_thresh / 4;
--		thresh += thresh / 4;
-+		bg_thresh += bg_thresh / 4 + global_wb_domain.dirty_limit / 32;
-+		thresh += thresh / 4 + global_wb_domain.dirty_limit / 32;
- 	}
- 	dtc->thresh = thresh;
- 	dtc->bg_thresh = bg_thresh;
+diff -puN mm/compaction.c~mm-compact-fix-zoneindex-in-compact mm/compaction.c
+--- a/mm/compaction.c~mm-compact-fix-zoneindex-in-compact
++++ a/mm/compaction.c
+@@ -1862,7 +1862,7 @@ static bool kcompactd_node_suitable(pg_d
+ 	struct zone *zone;
+ 	enum zone_type classzone_idx = pgdat->kcompactd_classzone_idx;
+ 
+-	for (zoneid = 0; zoneid < classzone_idx; zoneid++) {
++	for (zoneid = 0; zoneid <= classzone_idx; zoneid++) {
+ 		zone = &pgdat->node_zones[zoneid];
+ 
+ 		if (!populated_zone(zone))
+@@ -1897,7 +1897,7 @@ static void kcompactd_do_work(pg_data_t
+ 							cc.classzone_idx);
+ 	count_vm_event(KCOMPACTD_WAKE);
+ 
+-	for (zoneid = 0; zoneid < cc.classzone_idx; zoneid++) {
++	for (zoneid = 0; zoneid <= cc.classzone_idx; zoneid++) {
+ 		int status;
+ 
+ 		zone = &pgdat->node_zones[zoneid];
 _
 
-Patches currently in -mm which might be from neilb@suse.com are
+Patches currently in -mm which might be from puck.chen@hisilicon.com are
 
-dax-move-radix_dax_-definitions-to-daxc.patch
 
