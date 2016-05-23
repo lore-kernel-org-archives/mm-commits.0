@@ -1,35 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix-tree-fix-sibling-entry-insertion.patch removed
+Subject: [merged]
+ radix-tree-fix-deleting-a-multi-order-entry-through-an-alias.patch removed
  from -mm tree
-Date: Mon, 23 May 2016 12:49:34 -0700
-Message-ID: <57435ece.4f/5GpHiw3/vBQEX%akpm@linux-foundation.org>
+Date: Mon, 23 May 2016 12:49:36 -0700
+Message-ID: <57435ed0.SDj3j6wv3GTFbx9m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37971 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37977 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932081AbcEWTtf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:49:35 -0400
+	with ESMTP id S1752099AbcEWTth (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:49:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: fix sibling entry insertion
+     Subject: radix-tree: fix deleting a multi-order entry through an alias
 has been removed from the -mm tree.  Its filename was
-     radix-tree-fix-sibling-entry-insertion.patch
+     radix-tree-fix-deleting-a-multi-order-entry-through-an-alias.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree: fix sibling entry insertion
+Subject: radix-tree: fix deleting a multi-order entry through an alias
 
-The subtraction was the wrong way round, leading to undefined behaviour
-(shift by an amount larger than the size of the type).
+If we deleted an entry through an index which looked up a sibling pointer,
+we'd end up zeroing out the wrong slots in the node.  Use
+get_slot_offset() to find the right slot.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
@@ -40,28 +42,25 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/radix-tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/radix-tree.c~radix-tree-fix-sibling-entry-insertion lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-fix-sibling-entry-insertion
+diff -puN lib/radix-tree.c~radix-tree-fix-deleting-a-multi-order-entry-through-an-alias lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-fix-deleting-a-multi-order-entry-through-an-alias
 +++ a/lib/radix-tree.c
-@@ -526,8 +526,8 @@ int __radix_tree_create(struct radix_tre
+@@ -1558,7 +1558,7 @@ void *radix_tree_delete_item(struct radi
+ 		return entry;
+ 	}
  
- #ifdef CONFIG_RADIX_TREE_MULTIORDER
- 	/* Insert pointers to the canonical entry */
--	if ((shift - order) > 0) {
--		int i, n = 1 << (shift - order);
-+	if (order > shift) {
-+		int i, n = 1 << (order - shift);
- 		offset = offset & ~(n - 1);
- 		slot = ptr_to_indirect(&node->slots[offset]);
- 		for (i = 0; i < n; i++) {
+-	offset = index & RADIX_TREE_MAP_MASK;
++	offset = get_slot_offset(node, slot);
+ 
+ 	/*
+ 	 * Clear all tags associated with the item to be deleted.
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
 
-radix-tree-fix-deleting-a-multi-order-entry-through-an-alias.patch
 radix-tree-remove-restriction-on-multi-order-entries.patch
 radix-tree-introduce-radix_tree_load_root.patch
 radix-tree-fix-extending-the-tree-for-multi-order-entries-at-offset-0.patch
