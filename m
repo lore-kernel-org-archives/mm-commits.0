@@ -1,95 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-hugetlb-clean-up-code.patch removed from
+Subject: [merged] mm-tighten-fault_in_pages_writeable.patch removed from
  -mm tree
-Date: Mon, 23 May 2016 12:46:19 -0700
-Message-ID: <57435e0b.nb/9xHmATlQPC+0s%akpm@linux-foundation.org>
+Date: Mon, 23 May 2016 12:46:15 -0700
+Message-ID: <57435e07.AQ9ff0O1zQWn8/cQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37089 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37075 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143AbcEWTqU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:46:20 -0400
+	with ESMTP id S1754143AbcEWTqQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:46:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
+To: edumazet@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/hugetlb*.h: clean up code
+     Subject: mm: tighten fault_in_pages_writeable()
 has been removed from the -mm tree.  Its filename was
-     include-linux-hugetlb-clean-up-code.patch
+     mm-tighten-fault_in_pages_writeable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen.5i5j@gmail.com>
-Subject: include/linux/hugetlb*.h: clean up code
+From: Eric Dumazet <edumazet@google.com>
+Subject: mm: tighten fault_in_pages_writeable()
 
-Macro HUGETLBFS_SB is clear enough, so one statement is clearer than 3
-lines statements.
+copy_page_to_iter_iovec() is currently the only user of
+fault_in_pages_writeable(), and it definitely can use fragments from high
+order pages.
 
-Remove redundant return statements for non-return functions, which can
-save lines, at least.
+Make sure fault_in_pages_writeable() is only touching two adjacent pages
+at most, as claimed.
 
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h        |    4 +---
- include/linux/hugetlb_cgroup.h |    4 ----
- 2 files changed, 1 insertion(+), 7 deletions(-)
+ include/linux/pagemap.h |   24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/hugetlb.h~include-linux-hugetlb-clean-up-code include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~include-linux-hugetlb-clean-up-code
-+++ a/include/linux/hugetlb.h
-@@ -353,9 +353,7 @@ extern unsigned int default_hstate_idx;
+diff -puN include/linux/pagemap.h~mm-tighten-fault_in_pages_writeable include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-tighten-fault_in_pages_writeable
++++ a/include/linux/pagemap.h
+@@ -518,33 +518,27 @@ void page_endio(struct page *page, int r
+ extern void add_page_wait_queue(struct page *page, wait_queue_t *waiter);
  
- static inline struct hstate *hstate_inode(struct inode *i)
+ /*
+- * Fault a userspace page into pagetables.  Return non-zero on a fault.
+- *
+- * This assumes that two userspace pages are always sufficient.
++ * Fault one or two userspace pages into pagetables.
++ * Return -EINVAL if more than two pages would be needed.
++ * Return non-zero on a fault.
+  */
+ static inline int fault_in_pages_writeable(char __user *uaddr, int size)
  {
--	struct hugetlbfs_sb_info *hsb;
--	hsb = HUGETLBFS_SB(i->i_sb);
--	return hsb->hstate;
-+	return HUGETLBFS_SB(i->i_sb)->hstate;
- }
+-	int ret;
++	int span, ret;
  
- static inline struct hstate *hstate_file(struct file *f)
-diff -puN include/linux/hugetlb_cgroup.h~include-linux-hugetlb-clean-up-code include/linux/hugetlb_cgroup.h
---- a/include/linux/hugetlb_cgroup.h~include-linux-hugetlb-clean-up-code
-+++ a/include/linux/hugetlb_cgroup.h
-@@ -93,20 +93,17 @@ hugetlb_cgroup_commit_charge(int idx, un
- 			     struct hugetlb_cgroup *h_cg,
- 			     struct page *page)
- {
--	return;
- }
+ 	if (unlikely(size == 0))
+ 		return 0;
  
- static inline void
- hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages, struct page *page)
- {
--	return;
- }
- 
- static inline void
- hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
- 			       struct hugetlb_cgroup *h_cg)
- {
--	return;
- }
- 
- static inline void hugetlb_cgroup_file_init(void)
-@@ -116,7 +113,6 @@ static inline void hugetlb_cgroup_file_i
- static inline void hugetlb_cgroup_migrate(struct page *oldhpage,
- 					  struct page *newhpage)
- {
--	return;
- }
- 
- #endif  /* CONFIG_MEM_RES_CTLR_HUGETLB */
-_
-
-Patches currently in -mm which might be from gang.chen.5i5j@gmail.com are
-
-
++	span = offset_in_page(uaddr) + size;
++	if (span > 2 * PAGE_SIZE)
++		return -EINVAL;
+ 	/*
+ 	 * Writing zeroes into userspace here is OK, because we know that if
+ 	 * the zero gets there, we'll be overwriting it.
+ 	 */
+ 	ret = __put_user(0, uaddr);
+-	if (ret == 0) {
+-		char __user *end = uaddr + size - 1;
