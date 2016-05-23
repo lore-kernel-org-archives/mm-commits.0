@@ -1,89 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] genhd-move-to-use-generic-uuid-library.patch removed
- from -mm tree
-Date: Mon, 23 May 2016 12:49:01 -0700
-Message-ID: <57435ead.X4MoZID/Yvn4VGLJ%akpm@linux-foundation.org>
+Subject: [merged]
+ radix-tree-test-suite-allow-testing-other-fan-out-values.patch removed from -mm tree
+Date: Mon, 23 May 2016 12:49:17 -0700
+Message-ID: <57435ebd.ga2junFzVC48fmgB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37898 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37933 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932076AbcEWTtC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:49:02 -0400
+	with ESMTP id S932081AbcEWTtS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:49:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, axboe@kernel.dk, dmitry.kasatkin@gmail.com, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, viro@zeniv.linux.org.uk, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/genhd.h: move to use generic UUID library
+     Subject: radix tree test suite: allow testing other fan-out values
 has been removed from the -mm tree.  Its filename was
-     genhd-move-to-use-generic-uuid-library.patch
+     radix-tree-test-suite-allow-testing-other-fan-out-values.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: include/linux/genhd.h: move to use generic UUID library
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: radix tree test suite: allow testing other fan-out values
 
-UUID library provides uuid_be type and uuid_be_to_bin() function.  This
-substitutes open coded variant by generic library calls.
+The defines in regression2.c are already in radix-tree.h and duplicating
+them in the test case makes experimenting with other values for the
+fan-out harder than necessary.  Allow the user of the radix tree to decide
+what the fan-out should be rather than fixing it to 8 for non-kernel uses.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genhd.h |   23 +++--------------------
- 1 file changed, 3 insertions(+), 20 deletions(-)
+ include/linux/radix-tree.h              |    4 +---
+ tools/testing/radix-tree/linux/kernel.h |    2 ++
+ tools/testing/radix-tree/regression2.c  |    7 -------
+ 3 files changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/genhd.h~genhd-move-to-use-generic-uuid-library include/linux/genhd.h
---- a/include/linux/genhd.h~genhd-move-to-use-generic-uuid-library
-+++ a/include/linux/genhd.h
-@@ -14,6 +14,7 @@
- #include <linux/rcupdate.h>
- #include <linux/slab.h>
- #include <linux/percpu-refcount.h>
-+#include <linux/uuid.h>
+diff -puN include/linux/radix-tree.h~radix-tree-test-suite-allow-testing-other-fan-out-values include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-test-suite-allow-testing-other-fan-out-values
++++ a/include/linux/radix-tree.h
+@@ -70,10 +70,8 @@ static inline int radix_tree_is_indirect
  
- #ifdef CONFIG_BLOCK
+ #define RADIX_TREE_MAX_TAGS 3
  
-@@ -93,7 +94,7 @@ struct disk_stats {
-  * Enough for the string representation of any kind of UUID plus NULL.
-  * EFI UUID is 36 characters. MSDOS UUID is 11 characters.
-  */
--#define PARTITION_META_INFO_UUIDLTH	37
-+#define PARTITION_META_INFO_UUIDLTH	(UUID_STRING_LEN + 1)
+-#ifdef __KERNEL__
++#ifndef RADIX_TREE_MAP_SHIFT
+ #define RADIX_TREE_MAP_SHIFT	(CONFIG_BASE_SMALL ? 4 : 6)
+-#else
+-#define RADIX_TREE_MAP_SHIFT	3	/* For more stressful testing */
+ #endif
  
- struct partition_meta_info {
- 	char uuid[PARTITION_META_INFO_UUIDLTH];
-@@ -228,27 +229,9 @@ static inline struct gendisk *part_to_di
- 	return NULL;
- }
+ #define RADIX_TREE_MAP_SIZE	(1UL << RADIX_TREE_MAP_SHIFT)
+diff -puN tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-allow-testing-other-fan-out-values tools/testing/radix-tree/linux/kernel.h
+--- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-allow-testing-other-fan-out-values
++++ a/tools/testing/radix-tree/linux/kernel.h
+@@ -12,6 +12,8 @@
+ #define CONFIG_SHMEM
+ #define CONFIG_SWAP
  
--static inline void part_pack_uuid(const u8 *uuid_str, u8 *to)
--{
--	int i;
--	for (i = 0; i < 16; ++i) {
--		*to++ = (hex_to_bin(*uuid_str) << 4) |
--			(hex_to_bin(*(uuid_str + 1)));
--		uuid_str += 2;
--		switch (i) {
--		case 3:
--		case 5:
--		case 7:
--		case 9:
--			uuid_str++;
--			continue;
--		}
--	}
--}
++#define RADIX_TREE_MAP_SHIFT	3
++
+ #ifndef NULL
+ #define NULL	0
+ #endif
+diff -puN tools/testing/radix-tree/regression2.c~radix-tree-test-suite-allow-testing-other-fan-out-values tools/testing/radix-tree/regression2.c
+--- a/tools/testing/radix-tree/regression2.c~radix-tree-test-suite-allow-testing-other-fan-out-values
++++ a/tools/testing/radix-tree/regression2.c
+@@ -51,13 +51,6 @@
+ 
+ #include "regression.h"
+ 
+-#ifdef __KERNEL__
+-#define RADIX_TREE_MAP_SHIFT    (CONFIG_BASE_SMALL ? 4 : 6)
+-#else
+-#define RADIX_TREE_MAP_SHIFT    3       /* For more stressful testing */
+-#endif
