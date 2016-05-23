@@ -1,77 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [patch 62/84] scripts/gdb: improve types abstraction for gdb
- python scripts
-Date: Mon, 23 May 2016 16:25:16 -0700
-Message-ID: <5743915c.0O1TpCMqJY/Lf9kS%akpm@linux-foundation.org>
+Subject: [patch 61/84] scripts/gdb: add lx_thread_info_by_pid helper
+Date: Mon, 23 May 2016 16:25:13 -0700
+Message-ID: <57439159.n6ljjdXQ/2Q2sWb9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42325 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42321 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752458AbcEWXZR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:25:17 -0400
+	with ESMTP id S1752458AbcEWXZO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:25:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, buzdelabuz2+git@gmail.com, jan.kiszka@siemens.com, kieran@ksquared.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kieran.bingham@linaro.org, jan.kiszka@siemens.com
 
-From: Dom Cote <buzdelabuz2+git@gmail.com>
-Subject: scripts/gdb: improve types abstraction for gdb python scripts
+From: Kieran Bingham <kieran.bingham@linaro.org>
+Subject: scripts/gdb: add lx_thread_info_by_pid helper
 
-Change the read_u16 function so it accepts both 'str' and 'byte'
-as type for the arguments.
+The tasks module already provides helpers to find the task struct by
+pid, and the thread_info by task struct; however this is cumbersome to
+utilise on the gdb commandline.
 
-When calling read_memory() from gdb API, depending on if
-it was built with 2.7 or 3.X, the format used to return the
-data will differ ( 'str' for 2.7, and 'byte' for 3.X ).
+Wrap these two functionalities together in an extra single helper to
+allow exploring the thread info, from a PID value
 
-Add a function read_memoryview() to be able to get a
-'memoryview' object back from read_memory() both with
-python 2.7 and 3.X .
-
-Tested with python 3.4 and 2.7
-Tested with gdb 7.7
-
-Link: http://lkml.kernel.org/r/73621f564503137a002a639d174e4fb35f73f462.1462865983.git.jan.kiszka@siemens.com
-Signed-off-by: Dom Cote <buzdelabuz2+git@gmail.com>
-Tested-by: Kieran Bingham <kieran@bingham.xyz> (Py2.7,Py3.4,GDB10)
-Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+Link: http://lkml.kernel.org/r/dadc5667f053ec811eb3e3033d99d937fedbc93b.1462865983.git.jan.kiszka@siemens.com
+Signed-off-by: Kieran Bingham <kieran.bingham@linaro.org>
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/utils.py |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ scripts/gdb/linux/tasks.py |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff -puN scripts/gdb/linux/utils.py~scripts-gdb-improve-types-abstraction-for-gdb-python-scripts scripts/gdb/linux/utils.py
---- a/scripts/gdb/linux/utils.py~scripts-gdb-improve-types-abstraction-for-gdb-python-scripts
-+++ a/scripts/gdb/linux/utils.py
-@@ -87,11 +87,24 @@ def get_target_endianness():
-     return target_endianness
+diff -puN scripts/gdb/linux/tasks.py~scripts-gdb-add-lx_thread_info_by_pid-helper scripts/gdb/linux/tasks.py
+--- a/scripts/gdb/linux/tasks.py~scripts-gdb-add-lx_thread_info_by_pid-helper
++++ a/scripts/gdb/linux/tasks.py
+@@ -114,3 +114,22 @@ variable."""
  
  
-+def read_memoryview(inf, start, length):
-+    return memoryview(inf.read_memory(start, length))
+ LxThreadInfoFunc()
 +
 +
- def read_u16(buffer):
-+    value = [0, 0]
++class LxThreadInfoByPidFunc (gdb.Function):
++    """Calculate Linux thread_info from task variable found by pid
 +
-+    if type(buffer[0]) is str:
-+        value[0] = ord(buffer[0])
-+        value[1] = ord(buffer[1])
-+    else:
-+        value[0] = buffer[0]
-+        value[1] = buffer[1]
++$lx_thread_info_by_pid(PID): Given PID, return the corresponding thread_info
++variable."""
 +
-     if get_target_endianness() == LITTLE_ENDIAN:
--        return ord(buffer[0]) + (ord(buffer[1]) << 8)
-+        return value[0] + (value[1] << 8)
-     else:
--        return ord(buffer[1]) + (ord(buffer[0]) << 8)
-+        return value[1] + (value[0] << 8)
- 
- 
- def read_u32(buffer):
++    def __init__(self):
++        super(LxThreadInfoByPidFunc, self).__init__("lx_thread_info_by_pid")
++
++    def invoke(self, pid):
++        task = get_task_by_pid(pid)
++        if task:
++            return get_thread_info(task.dereference())
++        else:
++            raise gdb.GdbError("No task of PID " + str(pid))
++
++LxThreadInfoByPidFunc()
 _
