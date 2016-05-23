@@ -1,82 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [patch 57/84] scripts/gdb: add cpu iterators
-Date: Mon, 23 May 2016 16:25:02 -0700
-Message-ID: <5743914e.vYKUBsx2Vatt7D/H%akpm@linux-foundation.org>
+Subject: [patch 60/84] scripts/gdb: add documentation example for radix
+ tree
+Date: Mon, 23 May 2016 16:25:10 -0700
+Message-ID: <57439156.JooM0lSR81Yqs5ui%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42302 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42317 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752398AbcEWXZD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:25:03 -0400
+	with ESMTP id S1752458AbcEWXZL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:25:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kieran.bingham@linaro.org, jan.kiszka@siemens.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kieran.bingham@linaro.org, corbet@lwn.net, jan.kiszka@siemens.com
 
 From: Kieran Bingham <kieran.bingham@linaro.org>
-Subject: scripts/gdb: add cpu iterators
+Subject: scripts/gdb: add documentation example for radix tree
 
-The linux kernel provides macro's for iterating against values from the
-cpu_list masks. By providing some commonly used masks, we can mirror the
-kernels helper macros with easy to use generators.
+Provide a worked example for utilising the lx_radix_tree_lookup function
 
-Link: http://lkml.kernel.org/r/d045c6599771ada1999d49612ee30fd2f9acf17f.1462865983.git.jan.kiszka@siemens.com
+Link: http://lkml.kernel.org/r/e786008ac5aec4b84198812805b326d718bdeb4b.1462865983.git.jan.kiszka@siemens.com
 Signed-off-by: Kieran Bingham <kieran.bingham@linaro.org>
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/cpus.py |   38 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ Documentation/gdb-kernel-debugging.txt |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN scripts/gdb/linux/cpus.py~scripts-gdb-add-cpu-iterators scripts/gdb/linux/cpus.py
---- a/scripts/gdb/linux/cpus.py~scripts-gdb-add-cpu-iterators
-+++ a/scripts/gdb/linux/cpus.py
-@@ -100,6 +100,44 @@ def cpu_list(mask_name):
-         yield cpu
+diff -puN Documentation/gdb-kernel-debugging.txt~scripts-gdb-add-documentation-example-for-radix-tree Documentation/gdb-kernel-debugging.txt
+--- a/Documentation/gdb-kernel-debugging.txt~scripts-gdb-add-documentation-example-for-radix-tree
++++ a/Documentation/gdb-kernel-debugging.txt
+@@ -139,6 +139,27 @@ Examples of using the Linux-provided gdb
+       start_comm = "swapper/2\000\000\000\000\000\000"
+     }
  
++ o Dig into a radix tree data structure, such as the IRQ descriptors:
++    (gdb) print (struct irq_desc)$lx_radix_tree_lookup(irq_desc_tree, 18)
++    $6 = {
++      irq_common_data = {
++        state_use_accessors = 67584,
++        handler_data = 0x0 <__vectors_start>,
++        msi_desc = 0x0 <__vectors_start>,
++        affinity = {{
++            bits = {65535}
++          }}
++      },
++      irq_data = {
++        mask = 0,
++        irq = 18,
++        hwirq = 27,
++        common = 0xee803d80,
++        chip = 0xc0eb0854 <gic_data>,
++        domain = 0xee808000,
++        parent_data = 0x0 <__vectors_start>,
++        chip_data = 0xc0eb0854 <gic_data>
++      } <... trimmed ...>
  
-+def each_online_cpu():
-+    for cpu in cpu_list("__cpu_online_mask"):
-+        yield cpu
-+
-+
-+def each_present_cpu():
-+    for cpu in cpu_list("__cpu_present_mask"):
-+        yield cpu
-+
-+
-+def each_possible_cpu():
-+    for cpu in cpu_list("__cpu_possible_mask"):
-+        yield cpu
-+
-+
-+def each_active_cpu():
-+    for cpu in cpu_list("__cpu_active_mask"):
-+        yield cpu
-+
-+
-+class LxCpus(gdb.Command):
-+    """List CPU status arrays
-+
-+Displays the known state of each CPU based on the kernel masks
-+and can help identify the state of hotplugged CPUs"""
-+
-+    def __init__(self):
-+        super(LxCpus, self).__init__("lx-cpus", gdb.COMMAND_DATA)
-+
-+    def invoke(self, arg, from_tty):
-+        gdb.write("Possible CPUs : {}\n".format(list(each_possible_cpu())))
-+        gdb.write("Present CPUs  : {}\n".format(list(each_present_cpu())))
-+        gdb.write("Online CPUs   : {}\n".format(list(each_online_cpu())))
-+        gdb.write("Active CPUs   : {}\n".format(list(each_active_cpu())))
-+
-+LxCpus()
-+
-+
- class PerCpu(gdb.Function):
-     """Return per-cpu variable.
- 
+ List of commands and functions
+ ------------------------------
 _
