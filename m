@@ -1,89 +1,226 @@
 From: akpm@linux-foundation.org
-Subject: [patch 40/84] kexec: provide
- arch_kexec_protect(unprotect)_crashkres()
-Date: Mon, 23 May 2016 16:24:13 -0700
-Message-ID: <5743911d.iNwRMHMnXE8JaJGm%akpm@linux-foundation.org>
+Subject: [patch 44/84] kdump: fix gdb macros work work with newer and
+ 64-bit kernels
+Date: Mon, 23 May 2016 16:24:25 -0700
+Message-ID: <57439129.guYCDAe+C2cpejFL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42225 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42246 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752271AbcEWXYP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:24:15 -0400
+	with ESMTP id S1751759AbcEWXY1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:24:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xlpang@redhat.com, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, mhuang@redhat.com, vgoyal@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, cminyard@mvista.com, bhe@redhat.com, hbabu@us.ibm.com, vgoyal@redhat.com
 
-From: Xunlei Pang <xlpang@redhat.com>
-Subject: kexec: provide arch_kexec_protect(unprotect)_crashkres()
+From: Corey Minyard <cminyard@mvista.com>
+Subject: kdump: fix gdb macros work work with newer and 64-bit kernels
 
-Implement the protection method for the crash kernel memory reservation
-for the 64-bit x86 kdump.
+Lots of little changes needed to be made to clean these up, remove the
+four byte pointer assumption and traverse the pid queue properly.  Also
+consolidate the traceback code into a single function instead of having
+three copies of it.
 
-Signed-off-by: Xunlei Pang <xlpang@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Minfei Huang <mhuang@redhat.com>
+Link: http://lkml.kernel.org/r/1462926655-9390-1-git-send-email-minyard@acm.org
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Acked-by: Baoquan He <bhe@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
+Cc: Haren Myneni <hbabu@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |   45 +++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ Documentation/kdump/gdbmacros.txt |   96 ++++++++++++----------------
+ 1 file changed, 44 insertions(+), 52 deletions(-)
 
-diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-provide-arch_kexec_protectunprotect_crashkres arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~kexec-provide-arch_kexec_protectunprotect_crashkres
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -538,3 +538,48 @@ overflow:
- 	return -ENOEXEC;
- }
- #endif /* CONFIG_KEXEC_FILE */
+diff -puN Documentation/kdump/gdbmacros.txt~kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels Documentation/kdump/gdbmacros.txt
+--- a/Documentation/kdump/gdbmacros.txt~kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels
++++ a/Documentation/kdump/gdbmacros.txt
+@@ -15,15 +15,16 @@
+ 
+ define bttnobp
+ 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
+-	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
++	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
+ 	set $init_t=&init_task
+ 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
++	set var $stacksize = sizeof(union thread_union)
+ 	while ($next_t != $init_t)
+ 		set $next_t=(struct task_struct *)$next_t
+ 		printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
+ 		printf "===================\n"
+-		set var $stackp = $next_t.thread.esp
+-		set var $stack_top = ($stackp & ~4095) + 4096
++		set var $stackp = $next_t.thread.sp
++		set var $stack_top = ($stackp & ~($stacksize - 1)) + $stacksize
+ 
+ 		while ($stackp < $stack_top)
+ 			if (*($stackp) > _stext && *($stackp) < _sinittext)
+@@ -31,13 +32,13 @@ define bttnobp
+ 			end
+ 			set $stackp += 4
+ 		end
+-		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
++		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
+ 		while ($next_th != $next_t)
+ 			set $next_th=(struct task_struct *)$next_th
+ 			printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
+ 			printf "===================\n"
+-			set var $stackp = $next_t.thread.esp
+-			set var $stack_top = ($stackp & ~4095) + 4096
++			set var $stackp = $next_t.thread.sp
++			set var $stack_top = ($stackp & ~($stacksize - 1)) + stacksize
+ 
+ 			while ($stackp < $stack_top)
+ 				if (*($stackp) > _stext && *($stackp) < _sinittext)
+@@ -45,7 +46,7 @@ define bttnobp
+ 				end
+ 				set $stackp += 4
+ 			end
+-			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
++			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
+ 		end
+ 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
+ 	end
+@@ -54,42 +55,44 @@ document bttnobp
+ 	dump all thread stack traces on a kernel compiled with !CONFIG_FRAME_POINTER
+ end
+ 
++define btthreadstack
++	set var $pid_task = $arg0
 +
-+static int
-+kexec_mark_range(unsigned long start, unsigned long end, bool protect)
-+{
-+	struct page *page;
-+	unsigned int nr_pages;
++	printf "\npid %d; comm %s:\n", $pid_task.pid, $pid_task.comm
++	printf "task struct: "
++	print $pid_task
++	printf "===================\n"
++	set var $stackp = $pid_task.thread.sp
++	set var $stacksize = sizeof(union thread_union)
++	set var $stack_top = ($stackp & ~($stacksize - 1)) + $stacksize
++	set var $stack_bot = ($stackp & ~($stacksize - 1))
 +
-+	/*
-+	 * For physical range: [start, end]. We must skip the unassigned
-+	 * crashk resource with zero-valued "end" member.
-+	 */
-+	if (!end || start > end)
-+		return 0;
++	set $stackp = *((unsigned long *) $stackp)
++	while (($stackp < $stack_top) && ($stackp > $stack_bot))
++		set var $addr = *(((unsigned long *) $stackp) + 1)
++		info symbol $addr
++		set $stackp = *((unsigned long *) $stackp)
++	end
++end
++document btthreadstack
++	 dump a thread stack using the given task structure pointer
++end
 +
-+	page = pfn_to_page(start >> PAGE_SHIFT);
-+	nr_pages = (end >> PAGE_SHIFT) - (start >> PAGE_SHIFT) + 1;
-+	if (protect)
-+		return set_pages_ro(page, nr_pages);
-+	else
-+		return set_pages_rw(page, nr_pages);
-+}
 +
-+static void kexec_mark_crashkres(bool protect)
-+{
-+	unsigned long control;
-+
-+	kexec_mark_range(crashk_low_res.start, crashk_low_res.end, protect);
-+
-+	/* Don't touch the control code page used in crash_kexec().*/
-+	control = PFN_PHYS(page_to_pfn(kexec_crash_image->control_code_page));
-+	/* Control code page is located in the 2nd page. */
-+	kexec_mark_range(crashk_res.start, control + PAGE_SIZE - 1, protect);
-+	control += KEXEC_CONTROL_PAGE_SIZE;
-+	kexec_mark_range(control, crashk_res.end, protect);
-+}
-+
-+void arch_kexec_protect_crashkres(void)
-+{
-+	kexec_mark_crashkres(true);
-+}
-+
-+void arch_kexec_unprotect_crashkres(void)
-+{
-+	kexec_mark_crashkres(false);
-+}
+ define btt
+ 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
+-	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
++	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
+ 	set $init_t=&init_task
+ 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
+ 	while ($next_t != $init_t)
+ 		set $next_t=(struct task_struct *)$next_t
+-		printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
+-		printf "===================\n"
+-		set var $stackp = $next_t.thread.esp
+-		set var $stack_top = ($stackp & ~4095) + 4096
+-		set var $stack_bot = ($stackp & ~4095)
+-
+-		set $stackp = *($stackp)
+-		while (($stackp < $stack_top) && ($stackp > $stack_bot))
+-			set var $addr = *($stackp + 4)
+-			info symbol $addr
+-			set $stackp = *($stackp)
+-		end
++		btthreadstack $next_t
+ 
+-		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
++		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
+ 		while ($next_th != $next_t)
+ 			set $next_th=(struct task_struct *)$next_th
+-			printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
+-			printf "===================\n"
+-			set var $stackp = $next_t.thread.esp
+-			set var $stack_top = ($stackp & ~4095) + 4096
+-			set var $stack_bot = ($stackp & ~4095)
+-
+-			set $stackp = *($stackp)
+-			while (($stackp < $stack_top) && ($stackp > $stack_bot))
+-				set var $addr = *($stackp + 4)
+-				info symbol $addr
+-				set $stackp = *($stackp)
+-			end
+-			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
++			btthreadstack $next_th
++			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
+ 		end
+ 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
+ 	end
+@@ -101,7 +104,7 @@ end
+ define btpid
+ 	set var $pid = $arg0
+ 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
+-	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
++	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
+ 	set $init_t=&init_task
+ 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
+ 	set var $pid_task = 0
+@@ -113,29 +116,18 @@ define btpid
+ 			set $pid_task = $next_t
+ 		end
+ 
+-		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
++		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
+ 		while ($next_th != $next_t)
+ 			set $next_th=(struct task_struct *)$next_th
+ 			if ($next_th.pid == $pid)
+ 				set $pid_task = $next_th
+ 			end
+-			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
++			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
+ 		end
+ 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
+ 	end
+ 
+-	printf "\npid %d; comm %s:\n", $pid_task.pid, $pid_task.comm
+-	printf "===================\n"
+-	set var $stackp = $pid_task.thread.esp
+-	set var $stack_top = ($stackp & ~4095) + 4096
+-	set var $stack_bot = ($stackp & ~4095)
+-
+-	set $stackp = *($stackp)
+-	while (($stackp < $stack_top) && ($stackp > $stack_bot))
+-		set var $addr = *($stackp + 4)
+-		info symbol $addr
+-		set $stackp = *($stackp)
+-	end
++	btthreadstack $pid_task
+ end
+ document btpid
+ 	backtrace of pid
+@@ -145,7 +137,7 @@ end
+ define trapinfo
+ 	set var $pid = $arg0
+ 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
+-	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
++	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
+ 	set $init_t=&init_task
+ 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
+ 	set var $pid_task = 0
+@@ -157,13 +149,13 @@ define trapinfo
+ 			set $pid_task = $next_t
+ 		end
+ 
+-		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
++		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
+ 		while ($next_th != $next_t)
+ 			set $next_th=(struct task_struct *)$next_th
+ 			if ($next_th.pid == $pid)
+ 				set $pid_task = $next_th
+ 			end
+-			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
++			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
+ 		end
+ 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
+ 	end
 _
