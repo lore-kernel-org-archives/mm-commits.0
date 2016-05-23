@@ -1,77 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-tighten-fault_in_pages_writeable.patch removed from
- -mm tree
-Date: Mon, 23 May 2016 12:46:15 -0700
-Message-ID: <57435e07.AQ9ff0O1zQWn8/cQ%akpm@linux-foundation.org>
+Subject: [merged]
+ include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported.patch removed from -mm tree
+Date: Mon, 23 May 2016 12:46:21 -0700
+Message-ID: <57435e0d.X2tq1ofQAF6ppOBI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37075 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37095 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143AbcEWTqQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:46:16 -0400
+	with ESMTP id S1754143AbcEWTqW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:46:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edumazet@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: chengang@emindsoft.com.cn, gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: tighten fault_in_pages_writeable()
+     Subject: include/linux/hugetlb.h: use bool instead of int for hugepage_migration_supported()
 has been removed from the -mm tree.  Its filename was
-     mm-tighten-fault_in_pages_writeable.patch
+     include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric Dumazet <edumazet@google.com>
-Subject: mm: tighten fault_in_pages_writeable()
+From: Chen Gang <chengang@emindsoft.com.cn>
+Subject: include/linux/hugetlb.h: use bool instead of int for hugepage_migration_supported()
 
-copy_page_to_iter_iovec() is currently the only user of
-fault_in_pages_writeable(), and it definitely can use fragments from high
-order pages.
+It is used as a pure bool function within kernel source wide.
 
-Make sure fault_in_pages_writeable() is only touching two adjacent pages
-at most, as claimed.
-
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
+ include/linux/hugetlb.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-tighten-fault_in_pages_writeable include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-tighten-fault_in_pages_writeable
-+++ a/include/linux/pagemap.h
-@@ -518,33 +518,27 @@ void page_endio(struct page *page, int r
- extern void add_page_wait_queue(struct page *page, wait_queue_t *waiter);
+diff -puN include/linux/hugetlb.h~include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~include-linux-hugetlbh-use-bool-instead-of-int-for-hugepage_migration_supported
++++ a/include/linux/hugetlb.h
+@@ -452,12 +452,12 @@ static inline pgoff_t basepage_index(str
  
- /*
-- * Fault a userspace page into pagetables.  Return non-zero on a fault.
-- *
-- * This assumes that two userspace pages are always sufficient.
-+ * Fault one or two userspace pages into pagetables.
-+ * Return -EINVAL if more than two pages would be needed.
-+ * Return non-zero on a fault.
-  */
- static inline int fault_in_pages_writeable(char __user *uaddr, int size)
+ extern void dissolve_free_huge_pages(unsigned long start_pfn,
+ 				     unsigned long end_pfn);
+-static inline int hugepage_migration_supported(struct hstate *h)
++static inline bool hugepage_migration_supported(struct hstate *h)
  {
--	int ret;
-+	int span, ret;
+ #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+ 	return huge_page_shift(h) == PMD_SHIFT;
+ #else
+-	return 0;
++	return false;
+ #endif
+ }
  
- 	if (unlikely(size == 0))
- 		return 0;
+@@ -519,7 +519,7 @@ static inline pgoff_t basepage_index(str
+ 	return page->index;
+ }
+ #define dissolve_free_huge_pages(s, e)	do {} while (0)
+-#define hugepage_migration_supported(h)	0
++#define hugepage_migration_supported(h)	false
  
-+	span = offset_in_page(uaddr) + size;
-+	if (span > 2 * PAGE_SIZE)
-+		return -EINVAL;
- 	/*
- 	 * Writing zeroes into userspace here is OK, because we know that if
- 	 * the zero gets there, we'll be overwriting it.
- 	 */
- 	ret = __put_user(0, uaddr);
--	if (ret == 0) {
--		char __user *end = uaddr + size - 1;
+ static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
+ 					   struct mm_struct *mm, pte_t *pte)
+_
+
+Patches currently in -mm which might be from chengang@emindsoft.com.cn are
+
+
