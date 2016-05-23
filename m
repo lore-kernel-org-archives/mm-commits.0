@@ -1,188 +1,319 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
+Subject: [merged] mm-vmscan-reduce-size-of-inactive-file-list.patch
  removed from -mm tree
-Date: Mon, 23 May 2016 12:45:20 -0700
-Message-ID: <57435dd0.toqSstL/n8KQkuAd%akpm@linux-foundation.org>
+Date: Mon, 23 May 2016 12:45:08 -0700
+Message-ID: <57435dc4./b7uhXJNRu1AL5Wv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36849 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36794 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750882AbcEWTpV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:21 -0400
+	with ESMTP id S1753796AbcEWTpJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@techsingularity.net, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: riel@redhat.com, andres@anarazel.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: distinguish between full and partial COMPACT_COMPLETE
+     Subject: mm: vmscan: reduce size of inactive file list
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
+     mm-vmscan-reduce-size-of-inactive-file-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, compaction: distinguish between full and partial COMPACT_COMPLETE
+From: Rik van Riel <riel@redhat.com>
+Subject: mm: vmscan: reduce size of inactive file list
 
-COMPACT_COMPLETE now means that compaction and free scanner met.  This is
-not very useful information if somebody just wants to use this feedback
-and make any decisions based on that.  The current caller might be a poor
-guy who just happened to scan tiny portion of the zone and that could be
-the reason no suitable pages were compacted.  Make sure we distinguish the
-full and partial zone walks.
+The inactive file list should still be large enough to contain readahead
+windows and freshly written file data, but it no longer is the only source
+for detecting multiple accesses to file pages.  The workingset refault
+measurement code causes recently evicted file pages that get accessed
+again after a shorter interval to be promoted directly to the active list.
 
-Consumers should treat COMPACT_PARTIAL_SKIPPED as a potential success and
-be optimistic in retrying.
+With that mechanism in place, we can afford to (on a larger system)
+dedicate more memory to the active file list, so we can actually cache
+more of the frequently used file pages in memory, and not have them pushed
+out by streaming writes, once-used streaming file reads, etc.
 
-The existing users of COMPACT_COMPLETE are conservatively changed to use
-COMPACT_PARTIAL_SKIPPED as well but some of them should be probably
-reconsidered and only defer the compaction only for COMPACT_COMPLETE with
-the new semantic.
+This can help things like database workloads, where only half the page
+cache can currently be used to cache the database working set.  This patch
+automatically increases that fraction on larger systems, using the same
+ratio that has already been used for anonymous memory.
 
-This patch shouldn't introduce any functional changes.
-
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+[hannes@cmpxchg.org: cgroup-awareness]
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Andres Freund <andres@anarazel.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h        |   10 +++++++++-
- include/trace/events/compaction.h |    1 +
- mm/compaction.c                   |   14 +++++++++++---
- mm/internal.h                     |    1 +
- 4 files changed, 22 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |   25 --------
+ mm/page_alloc.c            |   44 --------------
+ mm/vmscan.c                |  104 ++++++++++++++---------------------
+ 3 files changed, 42 insertions(+), 131 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-distinguish-between-full-and-partial-compact_complete include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-distinguish-between-full-and-partial-compact_complete
-+++ a/include/linux/compaction.h
-@@ -21,7 +21,15 @@ enum compact_result {
- 	 * pages
+diff -puN include/linux/memcontrol.h~mm-vmscan-reduce-size-of-inactive-file-list include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-vmscan-reduce-size-of-inactive-file-list
++++ a/include/linux/memcontrol.h
+@@ -415,25 +415,6 @@ unsigned long mem_cgroup_get_lru_size(st
+ 	return mz->lru_size[lru];
+ }
+ 
+-static inline bool mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
+-{
+-	unsigned long inactive_ratio;
+-	unsigned long inactive;
+-	unsigned long active;
+-	unsigned long gb;
+-
+-	inactive = mem_cgroup_get_lru_size(lruvec, LRU_INACTIVE_ANON);
+-	active = mem_cgroup_get_lru_size(lruvec, LRU_ACTIVE_ANON);
+-
+-	gb = (inactive + active) >> (30 - PAGE_SHIFT);
+-	if (gb)
+-		inactive_ratio = int_sqrt(10 * gb);
+-	else
+-		inactive_ratio = 1;
+-
+-	return inactive * inactive_ratio < active;
+-}
+-
+ void mem_cgroup_handle_over_high(void);
+ 
+ void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
+@@ -645,12 +626,6 @@ static inline bool mem_cgroup_online(str
+ {
+ 	return true;
+ }
+-
+-static inline bool
+-mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
+-{
+-	return true;
+-}
+ 
+ static inline unsigned long
+ mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
+diff -puN mm/page_alloc.c~mm-vmscan-reduce-size-of-inactive-file-list mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-vmscan-reduce-size-of-inactive-file-list
++++ a/mm/page_alloc.c
+@@ -6671,49 +6671,6 @@ void setup_per_zone_wmarks(void)
+ }
+ 
+ /*
+- * The inactive anon list should be small enough that the VM never has to
+- * do too much work, but large enough that each inactive page has a chance
+- * to be referenced again before it is swapped out.
+- *
+- * The inactive_anon ratio is the target ratio of ACTIVE_ANON to
+- * INACTIVE_ANON pages on this zone's LRU, maintained by the
+- * pageout code. A zone->inactive_ratio of 3 means 3:1 or 25% of
+- * the anonymous pages are kept on the inactive list.
+- *
+- * total     target    max
+- * memory    ratio     inactive anon
+- * -------------------------------------
+- *   10MB       1         5MB
+- *  100MB       1        50MB
+- *    1GB       3       250MB
+- *   10GB      10       0.9GB
+- *  100GB      31         3GB
+- *    1TB     101        10GB
+- *   10TB     320        32GB
+- */
+-static void __meminit calculate_zone_inactive_ratio(struct zone *zone)
+-{
+-	unsigned int gb, ratio;
+-
+-	/* Zone size in gigabytes */
+-	gb = zone->managed_pages >> (30 - PAGE_SHIFT);
+-	if (gb)
+-		ratio = int_sqrt(10 * gb);
+-	else
+-		ratio = 1;
+-
+-	zone->inactive_ratio = ratio;
+-}
+-
+-static void __meminit setup_per_zone_inactive_ratio(void)
+-{
+-	struct zone *zone;
+-
+-	for_each_zone(zone)
+-		calculate_zone_inactive_ratio(zone);
+-}
+-
+-/*
+  * Initialise min_free_kbytes.
+  *
+  * For small machines we want it small (128k min).  For large machines
+@@ -6758,7 +6715,6 @@ int __meminit init_per_zone_wmark_min(vo
+ 	setup_per_zone_wmarks();
+ 	refresh_zone_stat_thresholds();
+ 	setup_per_zone_lowmem_reserve();
+-	setup_per_zone_inactive_ratio();
+ 	return 0;
+ }
+ core_initcall(init_per_zone_wmark_min)
+diff -puN mm/vmscan.c~mm-vmscan-reduce-size-of-inactive-file-list mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-reduce-size-of-inactive-file-list
++++ a/mm/vmscan.c
+@@ -1862,83 +1862,63 @@ static void shrink_active_list(unsigned
+ 	free_hot_cold_page_list(&l_hold, true);
+ }
+ 
+-#ifdef CONFIG_SWAP
+-static bool inactive_anon_is_low_global(struct zone *zone)
+-{
+-	unsigned long active, inactive;
+-
+-	active = zone_page_state(zone, NR_ACTIVE_ANON);
+-	inactive = zone_page_state(zone, NR_INACTIVE_ANON);
+-
+-	return inactive * zone->inactive_ratio < active;
+-}
+-
+-/**
+- * inactive_anon_is_low - check if anonymous pages need to be deactivated
+- * @lruvec: LRU vector to check
++/*
++ * The inactive anon list should be small enough that the VM never has
++ * to do too much work.
+  *
+- * Returns true if the zone does not have enough inactive anon pages,
+- * meaning some active anon pages need to be deactivated.
+- */
+-static bool inactive_anon_is_low(struct lruvec *lruvec)
+-{
+-	/*
+-	 * If we don't have swap space, anonymous page deactivation
+-	 * is pointless.
+-	 */
+-	if (!total_swap_pages)
+-		return false;
+-
+-	if (!mem_cgroup_disabled())
+-		return mem_cgroup_inactive_anon_is_low(lruvec);
+-
+-	return inactive_anon_is_low_global(lruvec_zone(lruvec));
+-}
+-#else
+-static inline bool inactive_anon_is_low(struct lruvec *lruvec)
+-{
+-	return false;
+-}
+-#endif
+-
+-/**
+- * inactive_file_is_low - check if file pages need to be deactivated
+- * @lruvec: LRU vector to check
++ * The inactive file list should be small enough to leave most memory
++ * to the established workingset on the scan-resistant active list,
++ * but large enough to avoid thrashing the aggregate readahead window.
+  *
+- * When the system is doing streaming IO, memory pressure here
+- * ensures that active file pages get deactivated, until more
+- * than half of the file pages are on the inactive list.
++ * Both inactive lists should also be large enough that each inactive
++ * page has a chance to be referenced again before it is reclaimed.
+  *
+- * Once we get to that situation, protect the system's working
+- * set from being evicted by disabling active file page aging.
++ * The inactive_ratio is the target ratio of ACTIVE to INACTIVE pages
++ * on this LRU, maintained by the pageout code. A zone->inactive_ratio
++ * of 3 means 3:1 or 25% of the pages are kept on the inactive list.
+  *
+- * This uses a different ratio than the anonymous pages, because
+- * the page cache uses a use-once replacement algorithm.
++ * total     target    max
++ * memory    ratio     inactive
++ * -------------------------------------
++ *   10MB       1         5MB
++ *  100MB       1        50MB
++ *    1GB       3       250MB
++ *   10GB      10       0.9GB
++ *  100GB      31         3GB
++ *    1TB     101        10GB
++ *   10TB     320        32GB
+  */
+-static bool inactive_file_is_low(struct lruvec *lruvec)
++static bool inactive_list_is_low(struct lruvec *lruvec, bool file)
+ {
++	unsigned long inactive_ratio;
+ 	unsigned long inactive;
+ 	unsigned long active;
++	unsigned long gb;
+ 
+-	inactive = lruvec_lru_size(lruvec, LRU_INACTIVE_FILE);
+-	active = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE);
++	/*
++	 * If we don't have swap space, anonymous page deactivation
++	 * is pointless.
++	 */
++	if (!file && !total_swap_pages)
++		return false;
+ 
+-	return active > inactive;
+-}
++	inactive = lruvec_lru_size(lruvec, file * LRU_FILE);
++	active = lruvec_lru_size(lruvec, file * LRU_FILE + LRU_ACTIVE);
+ 
+-static bool inactive_list_is_low(struct lruvec *lruvec, enum lru_list lru)
+-{
+-	if (is_file_lru(lru))
+-		return inactive_file_is_low(lruvec);
++	gb = (inactive + active) >> (30 - PAGE_SHIFT);
++	if (gb)
++		inactive_ratio = int_sqrt(10 * gb);
+ 	else
+-		return inactive_anon_is_low(lruvec);
++		inactive_ratio = 1;
++
++	return inactive * inactive_ratio < active;
+ }
+ 
+ static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
+ 				 struct lruvec *lruvec, struct scan_control *sc)
+ {
+ 	if (is_active_lru(lru)) {
+-		if (inactive_list_is_low(lruvec, lru))
++		if (inactive_list_is_low(lruvec, is_file_lru(lru)))
+ 			shrink_active_list(nr_to_scan, lruvec, sc, lru);
+ 		return 0;
+ 	}
+@@ -2059,7 +2039,7 @@ static void get_scan_count(struct lruvec
+ 	 * lruvec even if it has plenty of old anonymous pages unless the
+ 	 * system is under heavy pressure.
  	 */
- 	COMPACT_PARTIAL,
--	/* The full zone was compacted */
-+	/*
-+	 * direct compaction has scanned part of the zone but wasn't successfull
-+	 * to compact suitable pages.
-+	 */
-+	COMPACT_PARTIAL_SKIPPED,
-+	/*
-+	 * The full zone was compacted scanned but wasn't successfull to compact
-+	 * suitable pages.
-+	 */
- 	COMPACT_COMPLETE,
- 	/* For more detailed tracepoint output */
- 	COMPACT_NO_SUITABLE_PAGE,
-diff -puN include/trace/events/compaction.h~mm-compaction-distinguish-between-full-and-partial-compact_complete include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-compaction-distinguish-between-full-and-partial-compact_complete
-+++ a/include/trace/events/compaction.h
-@@ -14,6 +14,7 @@
- 	EM( COMPACT_DEFERRED,		"deferred")		\
- 	EM( COMPACT_CONTINUE,		"continue")		\
- 	EM( COMPACT_PARTIAL,		"partial")		\
-+	EM( COMPACT_PARTIAL_SKIPPED,	"partial_skipped")	\
- 	EM( COMPACT_COMPLETE,		"complete")		\
- 	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
- 	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
-diff -puN mm/compaction.c~mm-compaction-distinguish-between-full-and-partial-compact_complete mm/compaction.c
---- a/mm/compaction.c~mm-compaction-distinguish-between-full-and-partial-compact_complete
-+++ a/mm/compaction.c
-@@ -1252,7 +1252,10 @@ static enum compact_result __compact_fin
- 		if (cc->direct_compaction)
- 			zone->compact_blockskip_flush = true;
+-	if (!inactive_file_is_low(lruvec) &&
++	if (!inactive_list_is_low(lruvec, true) &&
+ 	    lruvec_lru_size(lruvec, LRU_INACTIVE_FILE) >> sc->priority) {
+ 		scan_balance = SCAN_FILE;
+ 		goto out;
+@@ -2301,7 +2281,7 @@ static void shrink_zone_memcg(struct zon
+ 	 * Even if we did not try to evict anon pages at all, we want to
+ 	 * rebalance the anon lru active/inactive ratio.
+ 	 */
+-	if (inactive_anon_is_low(lruvec))
++	if (inactive_list_is_low(lruvec, false))
+ 		shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
+ 				   sc, LRU_ACTIVE_ANON);
  
--		return COMPACT_COMPLETE;
-+		if (cc->whole_zone)
-+			return COMPACT_COMPLETE;
-+		else
-+			return COMPACT_PARTIAL_SKIPPED;
- 	}
+@@ -2962,7 +2942,7 @@ static void age_active_anon(struct zone
+ 	do {
+ 		struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
  
- 	if (is_via_compact_memory(cc->order))
-@@ -1413,6 +1416,10 @@ static enum compact_result compact_zone(
- 		zone->compact_cached_migrate_pfn[0] = cc->migrate_pfn;
- 		zone->compact_cached_migrate_pfn[1] = cc->migrate_pfn;
- 	}
-+
-+	if (cc->migrate_pfn == start_pfn)
-+		cc->whole_zone = true;
-+
- 	cc->last_migrated_pfn = 0;
+-		if (inactive_anon_is_low(lruvec))
++		if (inactive_list_is_low(lruvec, false))
+ 			shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
+ 					   sc, LRU_ACTIVE_ANON);
  
- 	trace_mm_compaction_begin(start_pfn, cc->migrate_pfn,
-@@ -1634,7 +1641,8 @@ enum compact_result try_to_compact_pages
- 			goto break_loop;
- 		}
- 
--		if (mode != MIGRATE_ASYNC && status == COMPACT_COMPLETE) {
-+		if (mode != MIGRATE_ASYNC && (status == COMPACT_COMPLETE ||
-+					status == COMPACT_PARTIAL_SKIPPED)) {
- 			/*
- 			 * We think that allocation won't succeed in this zone
- 			 * so we defer compaction there. If it ends up
-@@ -1881,7 +1889,7 @@ static void kcompactd_do_work(pg_data_t
- 						cc.classzone_idx, 0)) {
- 			success = true;
- 			compaction_defer_reset(zone, cc.order, false);
--		} else if (status == COMPACT_COMPLETE) {
-+		} else if (status == COMPACT_PARTIAL_SKIPPED || status == COMPACT_COMPLETE) {
- 			/*
- 			 * We use sync migration mode here, so we defer like
- 			 * sync direct compaction does.
-diff -puN mm/internal.h~mm-compaction-distinguish-between-full-and-partial-compact_complete mm/internal.h
---- a/mm/internal.h~mm-compaction-distinguish-between-full-and-partial-compact_complete
-+++ a/mm/internal.h
-@@ -174,6 +174,7 @@ struct compact_control {
- 	enum migrate_mode mode;		/* Async or sync migration mode */
- 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
- 	bool direct_compaction;		/* False from kcompactd or /proc/... */
-+	bool whole_zone;		/* Whole zone has been scanned */
- 	int order;			/* order a direct compactor needs */
- 	const gfp_t gfp_mask;		/* gfp mask of a direct compactor */
- 	const unsigned int alloc_flags;	/* alloc flags of a direct compactor */
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
-mm-compaction-update-compaction_result-ordering.patch
-mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
-mm-compaction-abstract-compaction-feedback-to-helpers.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-oom-protect-costly-allocations-some-more.patch
-mm-consider-compaction-feedback-also-for-costly-allocation.patch
-mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
-mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
-mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
-oom-consider-multi-threaded-tasks-in-task_will_free_mem.patch
-mm-make-mmap_sem-for-write-waits-killable-for-mm-syscalls.patch
-mm-make-vm_mmap-killable.patch
-mm-make-vm_munmap-killable.patch
-mm-aout-handle-vm_brk-failures.patch
-mm-elf-handle-vm_brk-error.patch
-mm-make-vm_brk-killable.patch
-mm-proc-make-clear_refs-killable.patch
-mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
-ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
-vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable.patch
-coredump-make-coredump_wait-wait-for-mmap_sem-for-write-killable.patch
-aio-make-aio_setup_ring-killable.patch
-exec-make-exec-path-waiting-for-mmap_sem-killable.patch
-prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
-uprobes-wait-for-mmap_sem-for-write-killable.patch
-drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
-drm-radeon-make-radeon_mn_get-wait-for-mmap_sem-killable.patch
-drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable.patch
 
