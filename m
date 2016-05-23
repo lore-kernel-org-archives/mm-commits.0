@@ -1,122 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-uuid-remove-fsf-address.patch removed from -mm tree
-Date: Mon, 23 May 2016 12:48:53 -0700
-Message-ID: <57435ea5.yObwh+OKaTNFh4Ul%akpm@linux-foundation.org>
+Subject: [merged] radix-tree-test-suite-rebuild-when-headers-change.patch
+ removed from -mm tree
+Date: Mon, 23 May 2016 12:49:23 -0700
+Message-ID: <57435ec3.mqKRxjUx8uQdrNx3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37946 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932067AbcEWTs7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:48:59 -0400
+	with ESMTP id S932081AbcEWTtY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:49:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, axboe@kernel.dk, dmitry.kasatkin@gmail.com, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, viro@zeniv.linux.org.uk, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/uuid.c: remove FSF address
+     Subject: radix tree test suite: rebuild when headers change
 has been removed from the -mm tree.  Its filename was
-     lib-uuid-remove-fsf-address.patch
+     radix-tree-test-suite-rebuild-when-headers-change.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/uuid.c: remove FSF address
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: radix tree test suite: rebuild when headers change
 
-There is no point in keeping an address in the file since it's subject to
-change.
+When we make changes to radix-tree.h in the regular kernel source
+(include/linux/radix-tree.h), we really want our test code to be rebuilt.
 
-While here, update Intel Copyright years.
+We also include a few other headers from tools/include and probably want
+to rebuild if these have been changed.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <axboe@kernel.dk>
+Update the makefile so that all of our objects will be rebuilt when any of
+the headers we depend on are changed.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uuid.h      |    6 +-----
- include/uapi/linux/uuid.h |    4 ----
- lib/uuid.c                |    6 +-----
- 3 files changed, 2 insertions(+), 14 deletions(-)
+ tools/testing/radix-tree/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/uuid.h~lib-uuid-remove-fsf-address include/linux/uuid.h
---- a/include/linux/uuid.h~lib-uuid-remove-fsf-address
-+++ a/include/linux/uuid.h
-@@ -1,7 +1,7 @@
- /*
-  * UUID/GUID definition
-  *
-- * Copyright (C) 2010, Intel Corp.
-+ * Copyright (C) 2010, 2016 Intel Corp.
-  *	Huang Ying <ying.huang@intel.com>
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -12,10 +12,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- #ifndef _LINUX_UUID_H_
- #define _LINUX_UUID_H_
-diff -puN include/uapi/linux/uuid.h~lib-uuid-remove-fsf-address include/uapi/linux/uuid.h
---- a/include/uapi/linux/uuid.h~lib-uuid-remove-fsf-address
-+++ a/include/uapi/linux/uuid.h
-@@ -12,10 +12,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
+diff -puN tools/testing/radix-tree/Makefile~radix-tree-test-suite-rebuild-when-headers-change tools/testing/radix-tree/Makefile
+--- a/tools/testing/radix-tree/Makefile~radix-tree-test-suite-rebuild-when-headers-change
++++ a/tools/testing/radix-tree/Makefile
+@@ -13,7 +13,7 @@ main:	$(OFILES)
+ clean:
+ 	$(RM) -f $(TARGETS) *.o radix-tree.c
  
- #ifndef _UAPI_LINUX_UUID_H_
-diff -puN lib/uuid.c~lib-uuid-remove-fsf-address lib/uuid.c
---- a/lib/uuid.c~lib-uuid-remove-fsf-address
-+++ a/lib/uuid.c
-@@ -1,7 +1,7 @@
- /*
-  * Unified UUID/GUID definition
-  *
-- * Copyright (C) 2009, Intel Corp.
-+ * Copyright (C) 2009, 2016 Intel Corp.
-  *	Huang Ying <ying.huang@intel.com>
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -12,10 +12,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
+-$(OFILES): *.h */*.h
++$(OFILES): *.h */*.h ../../../include/linux/radix-tree.h ../../include/linux/*.h
  
- #include <linux/kernel.h>
+ radix-tree.c: ../../../lib/radix-tree.c
+ 	sed -e 's/^static //' -e 's/__always_inline //' -e 's/inline //' < $< > $@
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-sysctl-use-generic-uuid-library.patch
-efi-redefine-type-constant-macro-from-generic-code.patch
-efivars-use-generic-uuid-library.patch
-genhd-move-to-use-generic-uuid-library.patch
-ldm-use-generic-uuid-library.patch
-wmi-use-generic-uuid-library.patch
+radix-tree-remove-unused-looping-macros.patch
+radix-tree-add-support-for-multi-order-iterating.patch
+radix-tree-test-suite-multi-order-iteration-test.patch
+radix-tree-rewrite-radix_tree_tag_set.patch
+radix-tree-rewrite-radix_tree_tag_clear.patch
+radix-tree-rewrite-radix_tree_tag_get.patch
+radix-tree-test-suite-add-multi-order-tag-test.patch
+radix-tree-add-test-for-radix_tree_locate_item.patch
+radix-tree-fix-radix_tree_dump-for-multi-order-entries.patch
 
