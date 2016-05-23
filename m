@@ -1,41 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- radix-tree-fix-radix_tree_dump-for-multi-order-entries.patch removed from
+Subject: [merged] radix-tree-add-copyright-statements.patch removed from
  -mm tree
-Date: Mon, 23 May 2016 12:50:27 -0700
-Message-ID: <57435f03.nxlHNZPRyxBfq9kB%akpm@linux-foundation.org>
+Date: Mon, 23 May 2016 12:50:30 -0700
+Message-ID: <57435f06.8QQvLb3t7M7xCt2L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38083 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38088 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754278AbcEWTu2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:50:28 -0400
+	with ESMTP id S1754278AbcEWTub (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:50:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: fix radix_tree_dump() for multi-order entries
+     Subject: radix-tree: add copyright statements
 has been removed from the -mm tree.  Its filename was
-     radix-tree-fix-radix_tree_dump-for-multi-order-entries.patch
+     radix-tree-add-copyright-statements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: radix-tree: fix radix_tree_dump() for multi-order entries
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: radix-tree: add copyright statements
 
- - Print which indices are covered by every leaf entry
- - Print sibling entries
- - Print the node pointer instead of the slot entry
- - Build by default in userspace, and make it accessible to the test-suite
+The multiorder support is a sufficiently large feature to be worth adding
+copyrigt lines for.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Jan Kara <jack@suse.com>
@@ -43,90 +40,41 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c                |   48 ++++++++++++++++++------------
- tools/testing/radix-tree/test.h |    1 
- 2 files changed, 30 insertions(+), 19 deletions(-)
+ lib/radix-tree.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN lib/radix-tree.c~radix-tree-fix-radix_tree_dump-for-multi-order-entries lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-fix-radix_tree_dump-for-multi-order-entries
+diff -puN lib/radix-tree.c~radix-tree-add-copyright-statements lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-add-copyright-statements
 +++ a/lib/radix-tree.c
-@@ -215,27 +215,36 @@ radix_tree_find_next_bit(const unsigned
- 	return size;
- }
- 
--#if 0
--static void dump_node(void *slot, int height, int offset)
-+#ifndef __KERNEL__
-+static void dump_node(struct radix_tree_node *node, unsigned offset,
-+				unsigned shift, unsigned long index)
- {
--	struct radix_tree_node *node;
--	int i;
-+	unsigned long i;
- 
--	if (!slot)
--		return;
--
--	if (height == 0) {
--		pr_debug("radix entry %p offset %d\n", slot, offset);
--		return;
--	}
--
--	node = indirect_to_ptr(slot);
- 	pr_debug("radix node: %p offset %d tags %lx %lx %lx path %x count %d parent %p\n",
--		slot, offset, node->tags[0][0], node->tags[1][0],
--		node->tags[2][0], node->path, node->count, node->parent);
--
--	for (i = 0; i < RADIX_TREE_MAP_SIZE; i++)
--		dump_node(node->slots[i], height - 1, i);
-+		node, offset,
-+		node->tags[0][0], node->tags[1][0], node->tags[2][0],
-+		node->path, node->count, node->parent);
-+
-+	for (i = 0; i < RADIX_TREE_MAP_SIZE; i++) {
-+		unsigned long first = index | (i << shift);
-+		unsigned long last = first | ((1UL << shift) - 1);
-+		void *entry = node->slots[i];
-+		if (!entry)
-+			continue;
-+		if (is_sibling_entry(node, entry)) {
-+			pr_debug("radix sblng %p offset %ld val %p indices %ld-%ld\n",
-+					entry, i,
-+					*(void **)indirect_to_ptr(entry),
-+					first, last);
-+		} else if (!radix_tree_is_indirect_ptr(entry)) {
-+			pr_debug("radix entry %p offset %ld indices %ld-%ld\n",
-+					entry, i, first, last);
-+		} else {
-+			dump_node(indirect_to_ptr(entry), i,
-+					shift - RADIX_TREE_MAP_SHIFT, first);
-+		}
-+	}
- }
- 
- /* For debug */
-@@ -246,7 +255,8 @@ static void radix_tree_dump(struct radix
- 			root->gfp_mask >> __GFP_BITS_SHIFT);
- 	if (!radix_tree_is_indirect_ptr(root->rnode))
- 		return;
--	dump_node(root->rnode, root->height, 0);
-+	dump_node(indirect_to_ptr(root->rnode), 0,
-+				(root->height - 1) * RADIX_TREE_MAP_SHIFT, 0);
- }
- #endif
- 
-diff -puN tools/testing/radix-tree/test.h~radix-tree-fix-radix_tree_dump-for-multi-order-entries tools/testing/radix-tree/test.h
---- a/tools/testing/radix-tree/test.h~radix-tree-fix-radix_tree_dump-for-multi-order-entries
-+++ a/tools/testing/radix-tree/test.h
-@@ -40,5 +40,6 @@ extern int nr_allocated;
- 
- /* Normally private parts of lib/radix-tree.c */
- void *indirect_to_ptr(void *ptr);
-+void radix_tree_dump(struct radix_tree_root *root);
- int root_tag_get(struct radix_tree_root *root, unsigned int tag);
- unsigned long radix_tree_maxindex(unsigned int height);
+@@ -4,6 +4,8 @@
+  * Copyright (C) 2005 SGI, Christoph Lameter
+  * Copyright (C) 2006 Nick Piggin
+  * Copyright (C) 2012 Konstantin Khlebnikov
++ * Copyright (C) 2016 Intel, Matthew Wilcox
++ * Copyright (C) 2016 Intel, Ross Zwisler
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License as
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from willy@linux.intel.com are
 
+drivers-hwspinlock-use-correct-radix-tree-api.patch
+radix-tree-miscellaneous-fixes.patch
+radix-tree-split-node-path-into-offset-and-height.patch
+radix-tree-replace-node-height-with-node-shift.patch
+radix-tree-remove-a-use-of-root-height-from-delete_node.patch
+radix-tree-test-suite-remove-dependencies-on-height.patch
+radix-tree-remove-root-height.patch
+radix-tree-rename-indirect_ptr-to-internal_node.patch
+radix-tree-rename-ptr_to_indirect-to-node_to_entry.patch
+radix-tree-rename-indirect_to_ptr-to-entry_to_node.patch
+radix-tree-rename-radix_tree_is_indirect_ptr.patch
+radix-tree-change-naming-conventions-in-radix_tree_shrink.patch
+radix-tree-tidy-up-next_chunk.patch
+radix-tree-tidy-up-range_tag_if_tagged.patch
+radix-tree-tidy-up-__radix_tree_create.patch
+radix-tree-introduce-radix_tree_replace_clear_tags.patch
+radix-tree-make-radix_tree_descend-more-useful.patch
+radix-tree-free-up-the-bottom-bit-of-exceptional-entries-for-reuse.patch
 
