@@ -1,37 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mn10300-let-exit_fpu-accept-a-task.patch removed from
- -mm tree
-Date: Mon, 23 May 2016 12:48:06 -0700
-Message-ID: <57435e76.8x9FUMepG8VR2UsX%akpm@linux-foundation.org>
+Subject: [merged] exit_thread-accept-a-task-parameter-to-be-exited.patch
+ removed from -mm tree
+Date: Mon, 23 May 2016 12:48:14 -0700
+Message-ID: <57435e7e.Qb6mCYS6AWi8PJaD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37604 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37693 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754388AbcEWTsJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:48:09 -0400
+	with ESMTP id S1754402AbcEWTsT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:48:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jslaby@suse.cz, a-jacquiot@ti.com, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, cmetcalf@mellanox.com, dalias@libc.org, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, fenghua.yu@intel.com, geert@linux-m68k.org, gxt@mprc.pku.edu.cn, heiko.carstens@de.ibm.com, hpa@zytor.com, hskinnemoen@gmail.com, ink@jurassic.park.msu.ru, james.hogan@imgtec.com, jcmvbkbc@gmail.com, jdike@addtoit.com, jejb@parisc-linux.org, jesper.nilsson@axis.com, jonas@southpole.se, lennox.wu@gmail.com, lftan@altera.com, linux@arm.linux.org.uk, liqin.linux@gmail.com, mattst88@gmail.com, mingo@redhat.com, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, realmz6@gmail.com, richard@nod.at, rkuo@codeaurora.org, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, tglx@linutroni
 
 
 The patch titled
-     Subject: mn10300: let exit_fpu accept a task
+     Subject: exit_thread: accept a task parameter to be exited
 has been removed from the -mm tree.  Its filename was
-     mn10300-let-exit_fpu-accept-a-task.patch
+     exit_thread-accept-a-task-parameter-to-be-exited.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jiri Slaby <jslaby@suse.cz>
-Subject: mn10300: let exit_fpu accept a task
+Subject: exit_thread: accept a task parameter to be exited
 
-We need to call exit_thread from copy_process in a fail path.  Since
-exit_thread on mn10300 calls exit_thread_runtime_instr, make it accept
-task_struct as a parameter now.
+We need to call exit_thread from copy_process in a fail path.  So make it
+accept task_struct as a parameter.
 
+[v2]
+* s390: exit_thread_runtime_instr doesn't make sense to be called for
+  non-current tasks.
+* arm: fix the comment in vfp_thread_copy
+* change 'me' to 'tsk' for task_struct
+* now we can change only archs that actually have exit_thread
+
+[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Jiri Slaby <jslaby@suse.cz>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -84,53 +91,332 @@ Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/fpu.h |    6 ++----
- arch/mn10300/kernel/process.c  |    2 +-
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ arch/arm/kernel/process.c           |    4 ++--
+ arch/arm/vfp/vfpmodule.c            |    4 ----
+ arch/avr32/kernel/process.c         |    4 ++--
+ arch/cris/arch-v32/kernel/process.c |    4 ++--
+ arch/ia64/kernel/perfmon.c          |    4 ++--
+ arch/ia64/kernel/process.c          |   14 +++++++-------
+ arch/metag/kernel/process.c         |    6 +++---
+ arch/mn10300/kernel/process.c       |    4 ++--
+ arch/s390/kernel/process.c          |    5 +++--
+ arch/sh/kernel/process_64.c         |    5 ++---
+ arch/sparc/kernel/process_32.c      |   12 ++++++------
+ arch/sparc/kernel/process_64.c      |    4 ++--
+ arch/tile/kernel/process.c          |    4 ++--
+ arch/x86/kernel/process.c           |    5 ++---
+ arch/xtensa/kernel/process.c        |    4 ++--
+ include/linux/sched.h               |    4 ++--
+ kernel/exit.c                       |    2 +-
+ 17 files changed, 42 insertions(+), 47 deletions(-)
 
-diff -puN arch/mn10300/include/asm/fpu.h~mn10300-let-exit_fpu-accept-a-task arch/mn10300/include/asm/fpu.h
---- a/arch/mn10300/include/asm/fpu.h~mn10300-let-exit_fpu-accept-a-task
-+++ a/arch/mn10300/include/asm/fpu.h
-@@ -76,11 +76,9 @@ static inline void unlazy_fpu(struct tas
- 	preempt_enable();
- }
- 
--static inline void exit_fpu(void)
-+static inline void exit_fpu(struct task_struct *tsk)
- {
- #ifdef CONFIG_LAZY_SAVE_FPU
--	struct task_struct *tsk = current;
--
- 	preempt_disable();
- 	if (fpu_state_owner == tsk)
- 		fpu_state_owner = NULL;
-@@ -123,7 +121,7 @@ static inline void fpu_init_state(void)
- static inline void fpu_save(struct fpu_state_struct *s) {}
- static inline void fpu_kill_state(struct task_struct *tsk) {}
- static inline void unlazy_fpu(struct task_struct *tsk) {}
--static inline void exit_fpu(void) {}
-+static inline void exit_fpu(struct task_struct *tsk) {}
- static inline void flush_fpu(void) {}
- static inline int fpu_setup_sigcontext(struct fpucontext *buf) { return 0; }
- static inline int fpu_restore_sigcontext(struct fpucontext *buf) { return 0; }
-diff -puN arch/mn10300/kernel/process.c~mn10300-let-exit_fpu-accept-a-task arch/mn10300/kernel/process.c
---- a/arch/mn10300/kernel/process.c~mn10300-let-exit_fpu-accept-a-task
-+++ a/arch/mn10300/kernel/process.c
-@@ -105,7 +105,7 @@ void show_regs(struct pt_regs *regs)
+diff -puN arch/arm/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited arch/arm/kernel/process.c
+--- a/arch/arm/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/arm/kernel/process.c
+@@ -193,9 +193,9 @@ EXPORT_SYMBOL_GPL(thread_notify_head);
+ /*
+  * Free current thread data structures etc..
   */
- void exit_thread(void)
+-void exit_thread(void)
++void exit_thread(struct task_struct *tsk)
  {
--	exit_fpu();
-+	exit_fpu(current);
+-	thread_notify(THREAD_NOTIFY_EXIT, current_thread_info());
++	thread_notify(THREAD_NOTIFY_EXIT, task_thread_info(tsk));
  }
  
  void flush_thread(void)
+diff -puN arch/arm/vfp/vfpmodule.c~exit_thread-accept-a-task-parameter-to-be-exited arch/arm/vfp/vfpmodule.c
+--- a/arch/arm/vfp/vfpmodule.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/arm/vfp/vfpmodule.c
+@@ -156,10 +156,6 @@ static void vfp_thread_copy(struct threa
+  *   - we could be preempted if tree preempt rcu is enabled, so
+  *	it is unsafe to use thread->cpu.
+  *  THREAD_NOTIFY_EXIT
+- *   - the thread (v) will be running on the local CPU, so
+- *	v === current_thread_info()
+- *   - thread->cpu is the local CPU number at the time it is accessed,
+- *	but may change at any time.
+  *   - we could be preempted if tree preempt rcu is enabled, so
+  *	it is unsafe to use thread->cpu.
+  */
+diff -puN arch/avr32/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited arch/avr32/kernel/process.c
+--- a/arch/avr32/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/avr32/kernel/process.c
+@@ -62,9 +62,9 @@ void machine_restart(char *cmd)
+ /*
+  * Free current thread data structures etc
+  */
+-void exit_thread(void)
++void exit_thread(struct task_struct *tsk)
+ {
+-	ocd_disable(current);
++	ocd_disable(tsk);
+ }
+ 
+ void flush_thread(void)
+diff -puN arch/cris/arch-v32/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited arch/cris/arch-v32/kernel/process.c
+--- a/arch/cris/arch-v32/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/cris/arch-v32/kernel/process.c
+@@ -33,9 +33,9 @@ void default_idle(void)
+  */
+ 
+ extern void deconfigure_bp(long pid);
+-void exit_thread(void)
++void exit_thread(struct task_struct *tsk)
+ {
+-	deconfigure_bp(current->pid);
++	deconfigure_bp(tsk->pid);
+ }
+ 
+ /*
+diff -puN arch/ia64/kernel/perfmon.c~exit_thread-accept-a-task-parameter-to-be-exited arch/ia64/kernel/perfmon.c
+--- a/arch/ia64/kernel/perfmon.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/ia64/kernel/perfmon.c
+@@ -4542,8 +4542,8 @@ pfm_context_unload(pfm_context_t *ctx, v
+ 
+ 
+ /*
+- * called only from exit_thread(): task == current
+- * we come here only if current has a context attached (loaded or masked)
++ * called only from exit_thread()
++ * we come here only if the task has a context attached (loaded or masked)
+  */
+ void
+ pfm_exit_thread(struct task_struct *task)
+diff -puN arch/ia64/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited arch/ia64/kernel/process.c
+--- a/arch/ia64/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/ia64/kernel/process.c
+@@ -570,22 +570,22 @@ flush_thread (void)
+ }
+ 
+ /*
+- * Clean up state associated with current thread.  This is called when
++ * Clean up state associated with a thread.  This is called when
+  * the thread calls exit().
+  */
+ void
+-exit_thread (void)
++exit_thread (struct task_struct *tsk)
+ {
+ 
+-	ia64_drop_fpu(current);
++	ia64_drop_fpu(tsk);
+ #ifdef CONFIG_PERFMON
+        /* if needed, stop monitoring and flush state to perfmon context */
+-	if (current->thread.pfm_context)
+-		pfm_exit_thread(current);
++	if (tsk->thread.pfm_context)
++		pfm_exit_thread(tsk);
+ 
+ 	/* free debug register resources */
+-	if (current->thread.flags & IA64_THREAD_DBG_VALID)
+-		pfm_release_debug_registers(current);
++	if (tsk->thread.flags & IA64_THREAD_DBG_VALID)
++		pfm_release_debug_registers(tsk);
+ #endif
+ }
+ 
+diff -puN arch/metag/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited arch/metag/kernel/process.c
+--- a/arch/metag/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/metag/kernel/process.c
+@@ -345,10 +345,10 @@ void flush_thread(void)
+ /*
+  * Free current thread data structures etc.
+  */
+-void exit_thread(void)
++void exit_thread(struct task_struct *tsk)
+ {
+-	clear_fpu(&current->thread);
+-	clear_dsp(&current->thread);
++	clear_fpu(&tsk->thread);
++	clear_dsp(&tsk->thread);
+ }
+ 
+ /* TODO: figure out how to unwind the kernel stack here to figure out
+diff -puN arch/mn10300/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited arch/mn10300/kernel/process.c
+--- a/arch/mn10300/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/mn10300/kernel/process.c
+@@ -103,9 +103,9 @@ void show_regs(struct pt_regs *regs)
+ /*
+  * free current thread data structures etc..
+  */
+-void exit_thread(void)
++void exit_thread(struct task_struct *tsk)
+ {
+-	exit_fpu(current);
++	exit_fpu(tsk);
+ }
+ 
+ void flush_thread(void)
+diff -puN arch/s390/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited arch/s390/kernel/process.c
+--- a/arch/s390/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/s390/kernel/process.c
+@@ -68,9 +68,10 @@ extern void kernel_thread_starter(void);
+ /*
+  * Free current thread data structures etc..
+  */
+-void exit_thread(void)
++void exit_thread(struct task_struct *tsk)
+ {
+-	exit_thread_runtime_instr();
++	if (tsk == current)
++		exit_thread_runtime_instr();
+ }
+ 
+ void flush_thread(void)
+diff -puN arch/sh/kernel/process_64.c~exit_thread-accept-a-task-parameter-to-be-exited arch/sh/kernel/process_64.c
+--- a/arch/sh/kernel/process_64.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/sh/kernel/process_64.c
+@@ -288,7 +288,7 @@ void show_regs(struct pt_regs *regs)
+ /*
+  * Free current thread data structures etc..
+  */
+-void exit_thread(void)
++void exit_thread(struct task_struct *tsk)
+ {
+ 	/*
+ 	 * See arch/sparc/kernel/process.c for the precedent for doing
+@@ -307,9 +307,8 @@ void exit_thread(void)
+ 	 * which it would get safely nulled.
+ 	 */
+ #ifdef CONFIG_SH_FPU
+-	if (last_task_used_math == current) {
++	if (last_task_used_math == tsk)
+ 		last_task_used_math = NULL;
+-	}
+ #endif
+ }
+ 
+diff -puN arch/sparc/kernel/process_32.c~exit_thread-accept-a-task-parameter-to-be-exited arch/sparc/kernel/process_32.c
+--- a/arch/sparc/kernel/process_32.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/sparc/kernel/process_32.c
+@@ -184,21 +184,21 @@ unsigned long thread_saved_pc(struct tas
+ /*
+  * Free current thread data structures etc..
+  */
+-void exit_thread(void)
++void exit_thread(struct task_struct *tsk)
+ {
+ #ifndef CONFIG_SMP
+-	if(last_task_used_math == current) {
++	if (last_task_used_math == tsk) {
+ #else
+-	if (test_thread_flag(TIF_USEDFPU)) {
++	if (test_ti_thread_flag(task_thread_info(tsk), TIF_USEDFPU)) {
+ #endif
+ 		/* Keep process from leaving FPU in a bogon state. */
+ 		put_psr(get_psr() | PSR_EF);
+-		fpsave(&current->thread.float_regs[0], &current->thread.fsr,
+-		       &current->thread.fpqueue[0], &current->thread.fpqdepth);
++		fpsave(&tsk->thread.float_regs[0], &tsk->thread.fsr,
++		       &tsk->thread.fpqueue[0], &tsk->thread.fpqdepth);
+ #ifndef CONFIG_SMP
+ 		last_task_used_math = NULL;
+ #else
+-		clear_thread_flag(TIF_USEDFPU);
++		clear_ti_thread_flag(task_thread_info(tsk), TIF_USEDFPU);
+ #endif
+ 	}
+ }
+diff -puN arch/sparc/kernel/process_64.c~exit_thread-accept-a-task-parameter-to-be-exited arch/sparc/kernel/process_64.c
+--- a/arch/sparc/kernel/process_64.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/sparc/kernel/process_64.c
+@@ -417,9 +417,9 @@ unsigned long thread_saved_pc(struct tas
+ }
+ 
+ /* Free current thread data structures etc.. */
+-void exit_thread(void)
++void exit_thread(struct task_struct *tsk)
+ {
+-	struct thread_info *t = current_thread_info();
++	struct thread_info *t = task_thread_info(tsk);
+ 
+ 	if (t->utraps) {
+ 		if (t->utraps[0] < 2)
+diff -puN arch/tile/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited arch/tile/kernel/process.c
+--- a/arch/tile/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/tile/kernel/process.c
+@@ -541,7 +541,7 @@ void flush_thread(void)
+ /*
+  * Free current thread data structures etc..
+  */
+-void exit_thread(void)
++void exit_thread(struct task_struct *tsk)
+ {
+ #ifdef CONFIG_HARDWALL
+ 	/*
+@@ -550,7 +550,7 @@ void exit_thread(void)
+ 	 * the last reference to a hardwall fd, it would already have
+ 	 * been released and deactivated at this point.)
+ 	 */
+-	hardwall_deactivate_all(current);
++	hardwall_deactivate_all(tsk);
+ #endif
+ }
+ 
+diff -puN arch/x86/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited arch/x86/kernel/process.c
+--- a/arch/x86/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/x86/kernel/process.c
+@@ -97,10 +97,9 @@ int arch_dup_task_struct(struct task_str
+ /*
+  * Free current thread data structures etc..
+  */
+-void exit_thread(void)
++void exit_thread(struct task_struct *tsk)
+ {
+-	struct task_struct *me = current;
+-	struct thread_struct *t = &me->thread;
++	struct thread_struct *t = &tsk->thread;
+ 	unsigned long *bp = t->io_bitmap_ptr;
+ 	struct fpu *fpu = &t->fpu;
+ 
+diff -puN arch/xtensa/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited arch/xtensa/kernel/process.c
+--- a/arch/xtensa/kernel/process.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/arch/xtensa/kernel/process.c
+@@ -115,10 +115,10 @@ void arch_cpu_idle(void)
+ /*
+  * This is called when the thread calls exit().
+  */
+-void exit_thread(void)
++void exit_thread(struct task_struct *tsk)
+ {
+ #if XTENSA_HAVE_COPROCESSORS
+-	coprocessor_release_all(current_thread_info());
++	coprocessor_release_all(task_thread_info(tsk));
+ #endif
+ }
+ 
+diff -puN include/linux/sched.h~exit_thread-accept-a-task-parameter-to-be-exited include/linux/sched.h
+--- a/include/linux/sched.h~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/include/linux/sched.h
+@@ -2771,9 +2771,9 @@ static inline int copy_thread_tls(
+ extern void flush_thread(void);
+ 
+ #ifdef CONFIG_HAVE_EXIT_THREAD
+-extern void exit_thread(void);
++extern void exit_thread(struct task_struct *tsk);
+ #else
+-static inline void exit_thread(void)
++static inline void exit_thread(struct task_struct *tsk)
+ {
+ }
+ #endif
+diff -puN kernel/exit.c~exit_thread-accept-a-task-parameter-to-be-exited kernel/exit.c
+--- a/kernel/exit.c~exit_thread-accept-a-task-parameter-to-be-exited
++++ a/kernel/exit.c
+@@ -746,7 +746,7 @@ void do_exit(long code)
+ 		disassociate_ctty(1);
+ 	exit_task_namespaces(tsk);
+ 	exit_task_work(tsk);
+-	exit_thread();
++	exit_thread(tsk);
+ 
+ 	/*
+ 	 * Flush inherited counters to the parent - before the parent
 _
 
 Patches currently in -mm which might be from jslaby@suse.cz are
 
-exit_thread-remove-empty-bodies.patch
-exit_thread-accept-a-task-parameter-to-be-exited.patch
 fork-free-thread-in-copy_process-on-failure.patch
 maintainers-remove-linux-listsopenriscnet.patch
 maintainers-remove-koichi-yasutake.patch
