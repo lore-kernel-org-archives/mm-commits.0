@@ -1,229 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zsmalloc-clean-up-many-bug_on.patch removed from -mm
- tree
-Date: Mon, 23 May 2016 12:47:40 -0700
-Message-ID: <57435e5c.lBzqWF1EjGonPDK/%akpm@linux-foundation.org>
+Subject: [merged] procfs-expose-umask-in-proc-pid-status.patch removed
+ from -mm tree
+Date: Mon, 23 May 2016 12:48:00 -0700
+Message-ID: <57435e70.ZrNcLkKnQtWeguiH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37564 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752735AbcEWTrl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:41 -0400
+	with ESMTP id S1754368AbcEWTsB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:48:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: rjones@redhat.com, jmarchan@redhat.com, keescook@chromium.org, koct9i@gmail.com, mhocko@kernel.org, pierre@spotify.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: clean up many BUG_ON
+     Subject: procfs: expose umask in /proc/<PID>/status
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-clean-up-many-bug_on.patch
+     procfs-expose-umask-in-proc-pid-status.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: clean up many BUG_ON
+From: "Richard W.M. Jones" <rjones@redhat.com>
+Subject: procfs: expose umask in /proc/<PID>/status
 
-There are many BUG_ON in zsmalloc.c which is not recommened so
-change them as alternatives.
+It's not possible to read the process umask without also modifying it,
+which is what umask(2) does.  A library cannot read umask safely,
+especially if the main program might be multithreaded.
 
-Normal rule is as follows:
+Add a new status line ("Umask") in /proc/<PID>/status.  It contains
+the file mode creation mask (umask) in octal.  It is only shown for
+tasks which have task->fs.
 
-1. avoid BUG_ON if possible. Instead, use VM_BUG_ON or VM_BUG_ON_PAGE
+This patch is adapted from one originally written by Pierre Carrier.
 
-2. use VM_BUG_ON_PAGE if we need to see struct page's fields
 
-3. use those assertion in primitive functions so higher functions can
-   rely on the assertion in the primitive function.
+The use case is that we have endless trouble with people setting weird
+umask() values (usually on the grounds of "security"), and then everything
+breaking.  I'm on the hook to fix these.  We'd like to add debugging to
+our program so we can dump out the umask in debug reports.
 
-4. Don't use assertion if following instruction can trigger Oops
+Previous versions of the patch used a syscall so you could only read your
+own umask.  That's all I need.  However there was quite a lot of push-back
+from those, so this new version exports it in /proc.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+See:
+
+https://lkml.org/lkml/2016/4/13/704 [umask2]
+https://lkml.org/lkml/2016/4/13/487 [getumask]
+Signed-off-by: Richard W.M. Jones <rjones@redhat.com>
+Acked-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Pierre Carrier <pierre@spotify.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   42 +++++++++++++++---------------------------
- 1 file changed, 15 insertions(+), 27 deletions(-)
+ Documentation/filesystems/proc.txt |    1 +
+ fs/proc/array.c                    |   20 +++++++++++++++++++-
+ 2 files changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-clean-up-many-bug_on mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-clean-up-many-bug_on
-+++ a/mm/zsmalloc.c
-@@ -418,7 +418,7 @@ static void get_zspage_mapping(struct pa
- 				enum fullness_group *fullness)
- {
- 	unsigned long m;
--	BUG_ON(!is_first_page(first_page));
-+	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
+diff -puN Documentation/filesystems/proc.txt~procfs-expose-umask-in-proc-pid-status Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~procfs-expose-umask-in-proc-pid-status
++++ a/Documentation/filesystems/proc.txt
+@@ -225,6 +225,7 @@ Table 1-2: Contents of the status files
+  TracerPid                   PID of process tracing this process (0 if not)
+  Uid                         Real, effective, saved set, and  file system UIDs
+  Gid                         Real, effective, saved set, and  file system GIDs
++ Umask                       file mode creation mask
+  FDSize                      number of file descriptor slots currently allocated
+  Groups                      supplementary group list
+  NStgid                      descendant namespace thread group ID hierarchy
+diff -puN fs/proc/array.c~procfs-expose-umask-in-proc-pid-status fs/proc/array.c
+--- a/fs/proc/array.c~procfs-expose-umask-in-proc-pid-status
++++ a/fs/proc/array.c
+@@ -83,6 +83,7 @@
+ #include <linux/tracehook.h>
+ #include <linux/string_helpers.h>
+ #include <linux/user_namespace.h>
++#include <linux/fs_struct.h>
  
- 	m = (unsigned long)first_page->mapping;
- 	*fullness = m & FULLNESS_MASK;
-@@ -430,7 +430,7 @@ static void set_zspage_mapping(struct pa
- 				enum fullness_group fullness)
- {
- 	unsigned long m;
--	BUG_ON(!is_first_page(first_page));
-+	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
- 	m = ((class_idx & CLASS_IDX_MASK) << FULLNESS_BITS) |
- 			(fullness & FULLNESS_MASK);
-@@ -631,7 +631,8 @@ static enum fullness_group get_fullness_
- {
- 	int inuse, max_objects;
- 	enum fullness_group fg;
--	BUG_ON(!is_first_page(first_page));
-+
-+	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
- 	inuse = first_page->inuse;
- 	max_objects = first_page->objects;
-@@ -659,7 +660,7 @@ static void insert_zspage(struct page *f
- {
- 	struct page **head;
- 
--	BUG_ON(!is_first_page(first_page));
-+	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
- 	if (fullness >= _ZS_NR_FULLNESS_GROUPS)
- 		return;
-@@ -691,13 +692,13 @@ static void remove_zspage(struct page *f
- {
- 	struct page **head;
- 
--	BUG_ON(!is_first_page(first_page));
-+	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
- 	if (fullness >= _ZS_NR_FULLNESS_GROUPS)
- 		return;
- 
- 	head = &class->fullness_list[fullness];
--	BUG_ON(!*head);
-+	VM_BUG_ON_PAGE(!*head, first_page);
- 	if (list_empty(&(*head)->lru))
- 		*head = NULL;
- 	else if (*head == first_page)
-@@ -724,8 +725,6 @@ static enum fullness_group fix_fullness_
- 	int class_idx;
- 	enum fullness_group currfg, newfg;
- 
--	BUG_ON(!is_first_page(first_page));
--
- 	get_zspage_mapping(first_page, &class_idx, &currfg);
- 	newfg = get_fullness_group(first_page);
- 	if (newfg == currfg)
-@@ -811,7 +810,7 @@ static void *location_to_obj(struct page
- 	unsigned long obj;
- 
- 	if (!page) {
--		BUG_ON(obj_idx);
-+		VM_BUG_ON(obj_idx);
- 		return NULL;
- 	}
- 
-@@ -844,7 +843,7 @@ static unsigned long obj_to_head(struct
- 			void *obj)
- {
- 	if (class->huge) {
--		VM_BUG_ON(!is_first_page(page));
-+		VM_BUG_ON_PAGE(!is_first_page(page), page);
- 		return page_private(page);
- 	} else
- 		return *(unsigned long *)obj;
-@@ -894,8 +893,8 @@ static void free_zspage(struct page *fir
- {
- 	struct page *nextp, *tmp, *head_extra;
- 
--	BUG_ON(!is_first_page(first_page));
--	BUG_ON(first_page->inuse);
-+	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
-+	VM_BUG_ON_PAGE(first_page->inuse, first_page);
- 
- 	head_extra = (struct page *)page_private(first_page);
- 
-@@ -921,7 +920,8 @@ static void init_zspage(struct page *fir
- 	unsigned long off = 0;
- 	struct page *page = first_page;
- 
--	BUG_ON(!is_first_page(first_page));
-+	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
-+
- 	while (page) {
- 		struct page *next_page;
- 		struct link_free *link;
-@@ -1238,7 +1238,7 @@ static bool can_merge(struct size_class
- 
- static bool zspage_full(struct page *first_page)
- {
--	BUG_ON(!is_first_page(first_page));
-+	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
- 	return first_page->inuse == first_page->objects;
+ #include <asm/pgtable.h>
+ #include <asm/processor.h>
+@@ -139,12 +140,25 @@ static inline const char *get_task_state
+ 	return task_state_array[fls(state)];
  }
-@@ -1276,14 +1276,12 @@ void *zs_map_object(struct zs_pool *pool
- 	struct page *pages[2];
- 	void *ret;
  
--	BUG_ON(!handle);
--
- 	/*
- 	 * Because we use per-cpu mapping areas shared among the
- 	 * pools/users, we can't allow mapping in interrupt context
- 	 * because it can corrupt another users mappings.
- 	 */
--	BUG_ON(in_interrupt());
-+	WARN_ON_ONCE(in_interrupt());
- 
- 	/* From now on, migration cannot move the object */
- 	pin_tag(handle);
-@@ -1327,8 +1325,6 @@ void zs_unmap_object(struct zs_pool *poo
- 	struct size_class *class;
- 	struct mapping_area *area;
- 
--	BUG_ON(!handle);
--
- 	obj = handle_to_obj(handle);
- 	obj_to_location(obj, &page, &obj_idx);
- 	get_zspage_mapping(get_first_page(page), &class_idx, &fg);
-@@ -1448,8 +1444,6 @@ static void obj_free(struct zs_pool *poo
- 	unsigned long f_objidx, f_offset;
- 	void *vaddr;
- 
--	BUG_ON(!obj);
--
- 	obj &= ~OBJ_ALLOCATED_TAG;
- 	obj_to_location(obj, &f_page, &f_objidx);
- 	first_page = get_first_page(f_page);
-@@ -1549,7 +1543,6 @@ static void zs_object_copy(unsigned long
- 			kunmap_atomic(d_addr);
- 			kunmap_atomic(s_addr);
- 			s_page = get_next_page(s_page);
--			BUG_ON(!s_page);
- 			s_addr = kmap_atomic(s_page);
- 			d_addr = kmap_atomic(d_page);
- 			s_size = class->size - written;
-@@ -1559,7 +1552,6 @@ static void zs_object_copy(unsigned long
- 		if (d_off >= PAGE_SIZE) {
- 			kunmap_atomic(d_addr);
- 			d_page = get_next_page(d_page);
--			BUG_ON(!d_page);
- 			d_addr = kmap_atomic(d_page);
- 			d_size = class->size - written;
- 			d_off = 0;
-@@ -1694,8 +1686,6 @@ static enum fullness_group putback_zspag
++static inline int get_task_umask(struct task_struct *tsk)
++{
++	struct fs_struct *fs;
++	int umask = -ENOENT;
++
++	task_lock(tsk);
++	fs = tsk->fs;
++	if (fs)
++		umask = fs->umask;
++	task_unlock(tsk);
++	return umask;
++}
++
+ static inline void task_state(struct seq_file *m, struct pid_namespace *ns,
+ 				struct pid *pid, struct task_struct *p)
  {
- 	enum fullness_group fullness;
+ 	struct user_namespace *user_ns = seq_user_ns(m);
+ 	struct group_info *group_info;
+-	int g;
++	int g, umask;
+ 	struct task_struct *tracer;
+ 	const struct cred *cred;
+ 	pid_t ppid, tpid = 0, tgid, ngid;
+@@ -162,6 +176,10 @@ static inline void task_state(struct seq
+ 	ngid = task_numa_group_id(p);
+ 	cred = get_task_cred(p);
  
--	BUG_ON(!is_first_page(first_page));
--
- 	fullness = get_fullness_group(first_page);
- 	insert_zspage(first_page, class, fullness);
- 	set_zspage_mapping(first_page, class->index, fullness);
-@@ -1759,8 +1749,6 @@ static void __zs_compact(struct zs_pool
- 	spin_lock(&class->lock);
- 	while ((src_page = isolate_source_page(class))) {
- 
--		BUG_ON(!is_first_page(src_page));
++	umask = get_task_umask(p);
++	if (umask >= 0)
++		seq_printf(m, "Umask:\t%#04o\n", umask);
++
+ 	task_lock(p);
+ 	if (p->files)
+ 		max_fds = files_fdtable(p->files)->max_fds;
+_
+
+Patches currently in -mm which might be from rjones@redhat.com are
+
+
