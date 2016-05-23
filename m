@@ -1,82 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [patch 13/84] nilfs2: constify nilfs_sc_operations structures
-Date: Mon, 23 May 2016 16:22:57 -0700
-Message-ID: <574390d1.H9JKhWPutT6g8xV8%akpm@linux-foundation.org>
+Subject: [patch 14/84] nilfs2: fix white space issue in nilfs_mount()
+Date: Mon, 23 May 2016 16:23:00 -0700
+Message-ID: <574390d4.ceQVnBfLE6O2SLHw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42129 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42132 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751669AbcEWXW7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:22:59 -0400
+	with ESMTP id S1751669AbcEWXXB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:23:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, Julia.Lawall@lip6.fr, konishi.ryusuke@lab.ntt.co.jp
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: nilfs2: constify nilfs_sc_operations structures
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: fix white space issue in nilfs_mount()
 
-The nilfs_sc_operations structures are never modified, so declare them
-as const.
+Fix the following checkpatch.pl error and warnings:
 
-Done with the help of Coccinelle.
+ERROR: code indent should use tabs where possible
+#1317: FILE: super.c:1317:
++ ^I^Is_new = true;$
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+WARNING: please, no space before tabs
+#1317: FILE: super.c:1317:
++ ^I^Is_new = true;$
+
+WARNING: please, no spaces at the start of a line
+#1317: FILE: super.c:1317:
++ ^I^Is_new = true;$
+
+Link: http://lkml.kernel.org/r/1461935747-10380-2-git-send-email-konishi.ryusuke@lab.ntt.co.jp
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/nilfs2/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/segment.c~nilfs2-constify-nilfs_sc_operations-structures fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-constify-nilfs_sc_operations-structures
-+++ a/fs/nilfs2/segment.c
-@@ -617,7 +617,7 @@ static void nilfs_write_file_node_binfo(
- 	*vblocknr = binfo->bi_v.bi_vblocknr;
- }
+diff -puN fs/nilfs2/super.c~nilfs2-fix-white-space-issue-in-nilfs_mount fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-fix-white-space-issue-in-nilfs_mount
++++ a/fs/nilfs2/super.c
+@@ -1316,7 +1316,7 @@ nilfs_mount(struct file_system_type *fs_
+ 	}
  
--static struct nilfs_sc_operations nilfs_sc_file_ops = {
-+static const struct nilfs_sc_operations nilfs_sc_file_ops = {
- 	.collect_data = nilfs_collect_file_data,
- 	.collect_node = nilfs_collect_file_node,
- 	.collect_bmap = nilfs_collect_file_bmap,
-@@ -666,7 +666,7 @@ static void nilfs_write_dat_node_binfo(s
- 	*binfo_dat = binfo->bi_dat;
- }
+ 	if (!s->s_root) {
+- 		s_new = true;
++		s_new = true;
  
--static struct nilfs_sc_operations nilfs_sc_dat_ops = {
-+static const struct nilfs_sc_operations nilfs_sc_dat_ops = {
- 	.collect_data = nilfs_collect_dat_data,
- 	.collect_node = nilfs_collect_file_node,
- 	.collect_bmap = nilfs_collect_dat_bmap,
-@@ -674,7 +674,7 @@ static struct nilfs_sc_operations nilfs_
- 	.write_node_binfo = nilfs_write_dat_node_binfo,
- };
- 
--static struct nilfs_sc_operations nilfs_sc_dsync_ops = {
-+static const struct nilfs_sc_operations nilfs_sc_dsync_ops = {
- 	.collect_data = nilfs_collect_file_data,
- 	.collect_node = NULL,
- 	.collect_bmap = NULL,
-@@ -1043,7 +1043,7 @@ static size_t nilfs_segctor_buffer_rest(
- 
- static int nilfs_segctor_scan_file(struct nilfs_sc_info *sci,
- 				   struct inode *inode,
--				   struct nilfs_sc_operations *sc_ops)
-+				   const struct nilfs_sc_operations *sc_ops)
- {
- 	LIST_HEAD(data_buffers);
- 	LIST_HEAD(node_buffers);
-@@ -1550,7 +1550,7 @@ nilfs_segctor_update_payload_blocknr(str
- 	sector_t blocknr;
- 	unsigned long nfinfo = segbuf->sb_sum.nfinfo;
- 	unsigned long nblocks = 0, ndatablk = 0;
--	struct nilfs_sc_operations *sc_op = NULL;
-+	const struct nilfs_sc_operations *sc_op = NULL;
- 	struct nilfs_segsum_pointer ssp;
- 	struct nilfs_finfo *finfo = NULL;
- 	union nilfs_binfo binfo;
+ 		/* New superblock instance created */
+ 		s->s_mode = mode;
 _
