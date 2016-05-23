@@ -1,96 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-fix-vm_mayshare-mappings-for-nommu.patch removed
- from -mm tree
-Date: Mon, 23 May 2016 12:46:10 -0700
-Message-ID: <57435e02.IcgfYyJYmD+kkFkC%akpm@linux-foundation.org>
+Subject: [merged] include-linux-hugetlb-clean-up-code.patch removed from
+ -mm tree
+Date: Mon, 23 May 2016 12:46:19 -0700
+Message-ID: <57435e0b.nb/9xHmATlQPC+0s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37064 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37089 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143AbcEWTqL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:46:11 -0400
+	with ESMTP id S1754143AbcEWTqU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:46:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dalias@libc.org, geert@linux-m68k.org, gerg@uclinux.org, mhocko@suse.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs/ramfs: fix VM_MAYSHARE mappings for NOMMU
+     Subject: include/linux/hugetlb*.h: clean up code
 has been removed from the -mm tree.  Its filename was
-     tmpfs-fix-vm_mayshare-mappings-for-nommu.patch
+     include-linux-hugetlb-clean-up-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rich Felker <dalias@libc.org>
-Subject: tmpfs/ramfs: fix VM_MAYSHARE mappings for NOMMU
+From: Chen Gang <gang.chen.5i5j@gmail.com>
+Subject: include/linux/hugetlb*.h: clean up code
 
-The nommu do_mmap expects f_op->get_unmapped_area to either succeed or
-return -ENOSYS for VM_MAYSHARE (e.g.  private read-only) mappings. 
-Returning addr in the non-MAP_SHARED case was completely wrong, and only
-happened to work because addr was 0.  However, it prevented VM_MAYSHARE
-mappings from sharing backing with the fs cache, and forced such mappings
-(including shareable program text) to be copied whenever the number of
-mappings transitioned from 0 to 1, impacting performance and memory usage.
-Subsequent mappings beyond the first still correctly shared memory with
-the first.
+Macro HUGETLBFS_SB is clear enough, so one statement is clearer than 3
+lines statements.
 
-Instead, treat VM_MAYSHARE identically to VM_SHARED at the file ops level;
-do_mmap already handles the semantic differences between them.
+Remove redundant return statements for non-return functions, which can
+save lines, at least.
 
-Signed-off-by: Rich Felker <dalias@libc.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ include/linux/hugetlb.h        |    4 +---
+ include/linux/hugetlb_cgroup.h |    4 ----
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN fs/ramfs/file-nommu.c~tmpfs-fix-vm_mayshare-mappings-for-nommu fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~tmpfs-fix-vm_mayshare-mappings-for-nommu
-+++ a/fs/ramfs/file-nommu.c
-@@ -211,14 +211,11 @@ static unsigned long ramfs_nommu_get_unm
- 	struct page **pages = NULL, **ptr, *page;
- 	loff_t isize;
+diff -puN include/linux/hugetlb.h~include-linux-hugetlb-clean-up-code include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~include-linux-hugetlb-clean-up-code
++++ a/include/linux/hugetlb.h
+@@ -353,9 +353,7 @@ extern unsigned int default_hstate_idx;
  
--	if (!(flags & MAP_SHARED))
--		return addr;
--
- 	/* the mapping mustn't extend beyond the EOF */
- 	lpages = (len + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	isize = i_size_read(inode);
- 
--	ret = -EINVAL;
-+	ret = -ENOSYS;
- 	maxpages = (isize + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (pgoff >= maxpages)
- 		goto out;
-@@ -227,7 +224,6 @@ static unsigned long ramfs_nommu_get_unm
- 		goto out;
- 
- 	/* gang-find the pages */
--	ret = -ENOMEM;
- 	pages = kcalloc(lpages, sizeof(struct page *), GFP_KERNEL);
- 	if (!pages)
- 		goto out_free;
-@@ -263,7 +259,7 @@ out:
-  */
- static int ramfs_nommu_mmap(struct file *file, struct vm_area_struct *vma)
+ static inline struct hstate *hstate_inode(struct inode *i)
  {
--	if (!(vma->vm_flags & VM_SHARED))
-+	if (!(vma->vm_flags & (VM_SHARED | VM_MAYSHARE)))
- 		return -ENOSYS;
+-	struct hugetlbfs_sb_info *hsb;
+-	hsb = HUGETLBFS_SB(i->i_sb);
+-	return hsb->hstate;
++	return HUGETLBFS_SB(i->i_sb)->hstate;
+ }
  
- 	file_accessed(file);
+ static inline struct hstate *hstate_file(struct file *f)
+diff -puN include/linux/hugetlb_cgroup.h~include-linux-hugetlb-clean-up-code include/linux/hugetlb_cgroup.h
+--- a/include/linux/hugetlb_cgroup.h~include-linux-hugetlb-clean-up-code
++++ a/include/linux/hugetlb_cgroup.h
+@@ -93,20 +93,17 @@ hugetlb_cgroup_commit_charge(int idx, un
+ 			     struct hugetlb_cgroup *h_cg,
+ 			     struct page *page)
+ {
+-	return;
+ }
+ 
+ static inline void
+ hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages, struct page *page)
+ {
+-	return;
+ }
+ 
+ static inline void
+ hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
+ 			       struct hugetlb_cgroup *h_cg)
+ {
+-	return;
+ }
+ 
+ static inline void hugetlb_cgroup_file_init(void)
+@@ -116,7 +113,6 @@ static inline void hugetlb_cgroup_file_i
+ static inline void hugetlb_cgroup_migrate(struct page *oldhpage,
+ 					  struct page *newhpage)
+ {
+-	return;
+ }
+ 
+ #endif  /* CONFIG_MEM_RES_CTLR_HUGETLB */
 _
 
-Patches currently in -mm which might be from dalias@libc.org are
+Patches currently in -mm which might be from gang.chen.5i5j@gmail.com are
 
-futex-fix-shared-futex-operations-on-nommu.patch
 
