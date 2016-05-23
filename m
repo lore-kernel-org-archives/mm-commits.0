@@ -1,46 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix-tree-test-suite-multi-order-iteration-test.patch
- removed from -mm tree
-Date: Mon, 23 May 2016 12:50:03 -0700
-Message-ID: <57435eeb.yEc4507HLjEJa09m%akpm@linux-foundation.org>
+Subject: [merged] radix-tree-rewrite-radix_tree_tag_set.patch removed from -mm tree
+Date: Mon, 23 May 2016 12:50:06 -0700
+Message-ID: <57435eee.xNcNPPca65L/cXJM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38033 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38038 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754227AbcEWTuE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:50:04 -0400
+	with ESMTP id S1754227AbcEWTuH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:50:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ross.zwisler@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: multi-order iteration test
+     Subject: radix-tree: rewrite radix_tree_tag_set
 has been removed from the -mm tree.  Its filename was
-     radix-tree-test-suite-multi-order-iteration-test.patch
+     radix-tree-rewrite-radix_tree_tag_set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: radix tree test suite: multi-order iteration test
+Subject: radix-tree: rewrite radix_tree_tag_set
 
-Add a unit test to verify that we can iterate over multi-order entries
-properly via a radix_tree_for_each_slot() loop.
-
-This was done with a single, somewhat complicated configuration that was
-meant to test many of the various corner cases having to do with
-multi-order entries:
-
-- An iteration could begin at a sibling entry, and we need to return the
-  canonical entry.
-- We could have entries of various orders in the same slots[] array.
-- We could have multi-order entries at a nonzero height, followed by
-  indirect pointers to more radix tree nodes later in that same slots[]
-  array.
+Use the new multi-order support functions to rewrite radix_tree_tag_set()
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
@@ -51,121 +38,69 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/multiorder.c |   92 ++++++++++++++++++++++++
- 1 file changed, 92 insertions(+)
+ lib/radix-tree.c |   37 +++++++++++++++++--------------------
+ 1 file changed, 17 insertions(+), 20 deletions(-)
 
-diff -puN tools/testing/radix-tree/multiorder.c~radix-tree-test-suite-multi-order-iteration-test tools/testing/radix-tree/multiorder.c
---- a/tools/testing/radix-tree/multiorder.c~radix-tree-test-suite-multi-order-iteration-test
-+++ a/tools/testing/radix-tree/multiorder.c
-@@ -92,6 +92,96 @@ static void multiorder_insert_bug(void)
- 	item_kill_tree(&tree);
- }
- 
-+void multiorder_iteration(void)
-+{
-+	RADIX_TREE(tree, GFP_KERNEL);
-+	struct radix_tree_iter iter;
-+	void **slot;
-+	int i, err;
-+
-+	printf("Multiorder iteration test\n");
-+
-+#define NUM_ENTRIES 11
-+	int index[NUM_ENTRIES] = {0, 2, 4, 8, 16, 32, 34, 36, 64, 72, 128};
-+	int order[NUM_ENTRIES] = {1, 1, 2, 3,  4,  1,  0,  1,  3,  0, 7};
-+
-+	for (i = 0; i < NUM_ENTRIES; i++) {
-+		err = item_insert_order(&tree, index[i], order[i]);
-+		assert(!err);
-+	}
-+
-+	i = 0;
-+	/* start from index 1 to verify we find the multi-order entry at 0 */
-+	radix_tree_for_each_slot(slot, &tree, &iter, 1) {
-+		int height = order[i] / RADIX_TREE_MAP_SHIFT;
-+		int shift = height * RADIX_TREE_MAP_SHIFT;
-+
-+		assert(iter.index == index[i]);
-+		assert(iter.shift == shift);
-+		i++;
-+	}
-+
-+	/*
-+	 * Now iterate through the tree starting at an elevated multi-order
-+	 * entry, beginning at an index in the middle of the range.
-+	 */
-+	i = 8;
-+	radix_tree_for_each_slot(slot, &tree, &iter, 70) {
-+		int height = order[i] / RADIX_TREE_MAP_SHIFT;
-+		int shift = height * RADIX_TREE_MAP_SHIFT;
-+
-+		assert(iter.index == index[i]);
-+		assert(iter.shift == shift);
-+		i++;
-+	}
-+
-+	item_kill_tree(&tree);
-+}
-+
-+void multiorder_tagged_iteration(void)
-+{
-+	RADIX_TREE(tree, GFP_KERNEL);
-+	struct radix_tree_iter iter;
-+	void **slot;
-+	int i;
-+
-+	printf("Multiorder tagged iteration test\n");
-+
-+#define MT_NUM_ENTRIES 9
-+	int index[MT_NUM_ENTRIES] = {0, 2, 4, 16, 32, 40, 64, 72, 128};
-+	int order[MT_NUM_ENTRIES] = {1, 0, 2, 4,  3,  1,  3,  0,   7};
-+
-+#define TAG_ENTRIES 7
-+	int tag_index[TAG_ENTRIES] = {0, 4, 16, 40, 64, 72, 128};
-+
-+	for (i = 0; i < MT_NUM_ENTRIES; i++)
-+		assert(!item_insert_order(&tree, index[i], order[i]));
-+
-+	assert(!radix_tree_tagged(&tree, 1));
-+
-+	for (i = 0; i < TAG_ENTRIES; i++)
-+		assert(radix_tree_tag_set(&tree, tag_index[i], 1));
-+
-+	i = 0;
-+	/* start from index 1 to verify we find the multi-order entry at 0 */
-+	radix_tree_for_each_tagged(slot, &tree, &iter, 1, 1) {
-+		assert(iter.index == tag_index[i]);
-+		i++;
-+	}
-+
-+	/*
-+	 * Now iterate through the tree starting at an elevated multi-order
-+	 * entry, beginning at an index in the middle of the range.
-+	 */
-+	i = 4;
-+	radix_tree_for_each_slot(slot, &tree, &iter, 70) {
-+		assert(iter.index == tag_index[i]);
-+		i++;
-+	}
-+
-+	item_kill_tree(&tree);
-+}
-+
- void multiorder_checks(void)
+diff -puN lib/radix-tree.c~radix-tree-rewrite-radix_tree_tag_set lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-rewrite-radix_tree_tag_set
++++ a/lib/radix-tree.c
+@@ -722,35 +722,32 @@ EXPORT_SYMBOL(radix_tree_lookup);
+ void *radix_tree_tag_set(struct radix_tree_root *root,
+ 			unsigned long index, unsigned int tag)
  {
- 	int i;
-@@ -106,4 +196,6 @@ void multiorder_checks(void)
- 		multiorder_shrink((1UL << (i + RADIX_TREE_MAP_SHIFT)), i);
+-	unsigned int height, shift;
+-	struct radix_tree_node *slot;
++	struct radix_tree_node *node, *parent;
++	unsigned long maxindex;
++	unsigned int shift;
  
- 	multiorder_insert_bug();
-+	multiorder_iteration();
-+	multiorder_tagged_iteration();
+-	height = root->height;
+-	BUG_ON(index > radix_tree_maxindex(height));
++	shift = radix_tree_load_root(root, &node, &maxindex);
++	BUG_ON(index > maxindex);
+ 
+-	slot = indirect_to_ptr(root->rnode);
+-	shift = (height - 1) * RADIX_TREE_MAP_SHIFT;
++	while (radix_tree_is_indirect_ptr(node)) {
++		unsigned offset;
+ 
+-	while (height > 0) {
+-		int offset;
+-
+-		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+-		if (!tag_get(slot, tag, offset))
+-			tag_set(slot, tag, offset);
+-		slot = slot->slots[offset];
+-		BUG_ON(slot == NULL);
+-		if (!radix_tree_is_indirect_ptr(slot))
+-			break;
+-		slot = indirect_to_ptr(slot);
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+-		height--;
++		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
++
++		parent = indirect_to_ptr(node);
++		offset = radix_tree_descend(parent, &node, offset);
++		BUG_ON(!node);
++
++		if (!tag_get(parent, tag, offset))
++			tag_set(parent, tag, offset);
+ 	}
+ 
+ 	/* set the root's tag bit */
+-	if (slot && !root_tag_get(root, tag))
++	if (!root_tag_get(root, tag))
+ 		root_tag_set(root, tag);
+ 
+-	return slot;
++	return node;
  }
+ EXPORT_SYMBOL(radix_tree_tag_set);
+ 
 _
 
 Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-radix-tree-rewrite-radix_tree_tag_set.patch
 radix-tree-rewrite-radix_tree_tag_clear.patch
 radix-tree-rewrite-radix_tree_tag_get.patch
 radix-tree-test-suite-add-multi-order-tag-test.patch
