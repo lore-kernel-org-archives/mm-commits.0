@@ -1,154 +1,210 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- radix-tree-test-suite-add-tests-for-radix_tree_locate_item.patch removed
- from -mm tree
-Date: Mon, 23 May 2016 12:49:14 -0700
-Message-ID: <57435eba.aXnLheDa4FyEMP+E%akpm@linux-foundation.org>
+Subject: [merged] wmi-use-generic-uuid-library.patch removed from -mm tree
+Date: Mon, 23 May 2016 12:49:06 -0700
+Message-ID: <57435eb2.7nPd+UzyybUxoNiK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37926 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37909 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932081AbcEWTtP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:49:15 -0400
+	with ESMTP id S932088AbcEWTtH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:49:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, dvhart@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: add tests for radix_tree_locate_item()
+     Subject: drivers/platform/x86/wmi.c: use generic UUID library
 has been removed from the -mm tree.  Its filename was
-     radix-tree-test-suite-add-tests-for-radix_tree_locate_item.patch
+     wmi-use-generic-uuid-library.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix tree test suite: add tests for radix_tree_locate_item()
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: drivers/platform/x86/wmi.c: use generic UUID library
 
-Fairly simple tests; add various items to the tree, then make sure we can
-find them again.  Also check that a pointer that we know isn't in the tree
-is not found.
+Instead of opencoding let's use generic UUID library functions here.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Darren Hart <dvhart@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux/kernel.h |    3 +
- tools/testing/radix-tree/main.c         |   41 ++++++++++++++++++++++
- 2 files changed, 44 insertions(+)
+ drivers/platform/x86/wmi.c |  104 ++++-------------------------------
+ 1 file changed, 13 insertions(+), 91 deletions(-)
 
-diff -puN tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-add-tests-for-radix_tree_locate_item tools/testing/radix-tree/linux/kernel.h
---- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-test-suite-add-tests-for-radix_tree_locate_item
-+++ a/tools/testing/radix-tree/linux/kernel.h
-@@ -9,6 +9,9 @@
+diff -puN drivers/platform/x86/wmi.c~wmi-use-generic-uuid-library drivers/platform/x86/wmi.c
+--- a/drivers/platform/x86/wmi.c~wmi-use-generic-uuid-library
++++ a/drivers/platform/x86/wmi.c
+@@ -37,6 +37,7 @@
+ #include <linux/acpi.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
++#include <linux/uuid.h>
  
- #include "../../include/linux/compiler.h"
+ ACPI_MODULE_NAME("wmi");
+ MODULE_AUTHOR("Carlos Corbacho");
+@@ -115,100 +116,21 @@ static struct acpi_driver acpi_wmi_drive
+  * GUID parsing functions
+  */
  
-+#define CONFIG_SHMEM
-+#define CONFIG_SWAP
-+
- #ifndef NULL
- #define NULL	0
- #endif
-diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-add-tests-for-radix_tree_locate_item tools/testing/radix-tree/main.c
---- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-add-tests-for-radix_tree_locate_item
-+++ a/tools/testing/radix-tree/main.c
-@@ -232,10 +232,51 @@ void copy_tag_check(void)
- 	item_kill_tree(&tree);
- }
- 
-+void __locate_check(struct radix_tree_root *tree, unsigned long index)
-+{
-+	struct item *item;
-+	unsigned long index2;
-+
-+	item_insert(tree, index);
-+	item = item_lookup(tree, index);
-+	index2 = radix_tree_locate_item(tree, item);
-+	if (index != index2) {
-+		printf("index %ld inserted; found %ld\n",
-+			index, index2);
-+		abort();
-+	}
-+}
-+
-+static void locate_check(void)
-+{
-+	RADIX_TREE(tree, GFP_KERNEL);
-+	unsigned long offset, index;
-+
-+	for (offset = 0; offset < (1 << 3); offset++) {
-+		for (index = 0; index < (1UL << 5); index++) {
-+			__locate_check(&tree, index + offset);
-+		}
-+		if (radix_tree_locate_item(&tree, &tree) != -1)
-+			abort();
-+
-+		item_kill_tree(&tree);
-+	}
-+
-+	if (radix_tree_locate_item(&tree, &tree) != -1)
-+		abort();
-+	__locate_check(&tree, -1);
-+	if (radix_tree_locate_item(&tree, &tree) != -1)
-+		abort();
-+	item_kill_tree(&tree);
-+}
-+
- static void single_thread_tests(void)
+-/**
+- * wmi_parse_hexbyte - Convert a ASCII hex number to a byte
+- * @src:  Pointer to at least 2 characters to convert.
+- *
+- * Convert a two character ASCII hex string to a number.
+- *
+- * Return:  0-255  Success, the byte was parsed correctly
+- *          -1     Error, an invalid character was supplied
+- */
+-static int wmi_parse_hexbyte(const u8 *src)
+-{
+-	int h;
+-	int value;
+-
+-	/* high part */
+-	h = value = hex_to_bin(src[0]);
+-	if (value < 0)
+-		return -1;
+-
+-	/* low part */
+-	value = hex_to_bin(src[1]);
+-	if (value >= 0)
+-		return (h << 4) | value;
+-	return -1;
+-}
+-
+-/**
+- * wmi_swap_bytes - Rearrange GUID bytes to match GUID binary
+- * @src:   Memory block holding binary GUID (16 bytes)
+- * @dest:  Memory block to hold byte swapped binary GUID (16 bytes)
+- *
+- * Byte swap a binary GUID to match it's real GUID value
+- */
+-static void wmi_swap_bytes(u8 *src, u8 *dest)
+-{
+-	int i;
+-
+-	for (i = 0; i <= 3; i++)
+-		memcpy(dest + i, src + (3 - i), 1);
+-
+-	for (i = 0; i <= 1; i++)
+-		memcpy(dest + 4 + i, src + (5 - i), 1);
+-
+-	for (i = 0; i <= 1; i++)
+-		memcpy(dest + 6 + i, src + (7 - i), 1);
+-
+-	memcpy(dest + 8, src + 8, 8);
+-}
+-
+-/**
+- * wmi_parse_guid - Convert GUID from ASCII to binary
+- * @src:   36 char string of the form fa50ff2b-f2e8-45de-83fa-65417f2f49ba
+- * @dest:  Memory block to hold binary GUID (16 bytes)
+- *
+- * N.B. The GUID need not be NULL terminated.
+- *
+- * Return:  'true'   @dest contains binary GUID
+- *          'false'  @dest contents are undefined
+- */
+-static bool wmi_parse_guid(const u8 *src, u8 *dest)
+-{
+-	static const int size[] = { 4, 2, 2, 2, 6 };
+-	int i, j, v;
+-
+-	if (src[8]  != '-' || src[13] != '-' ||
+-		src[18] != '-' || src[23] != '-')
+-		return false;
+-
+-	for (j = 0; j < 5; j++, src++) {
+-		for (i = 0; i < size[j]; i++, src += 2, *dest++ = v) {
+-			v = wmi_parse_hexbyte(src);
+-			if (v < 0)
+-				return false;
+-		}
+-	}
+-
+-	return true;
+-}
+-
+ static bool find_guid(const char *guid_string, struct wmi_block **out)
  {
- 	int i;
+-	char tmp[16], guid_input[16];
++	uuid_le guid_input;
+ 	struct wmi_block *wblock;
+ 	struct guid_block *block;
+ 	struct list_head *p;
  
-+	printf("starting single_thread_tests: %d allocated\n", nr_allocated);
-+	locate_check();
-+	printf("after locate_check: %d allocated\n", nr_allocated);
- 	tag_check();
- 	printf("after tag_check: %d allocated\n", nr_allocated);
- 	gang_check();
+-	wmi_parse_guid(guid_string, tmp);
+-	wmi_swap_bytes(tmp, guid_input);
++	if (uuid_le_to_bin(guid_string, &guid_input))
++		return false;
+ 
+ 	list_for_each(p, &wmi_block_list) {
+ 		wblock = list_entry(p, struct wmi_block, list);
+ 		block = &wblock->gblock;
+ 
+-		if (memcmp(block->guid, guid_input, 16) == 0) {
++		if (memcmp(block->guid, &guid_input, 16) == 0) {
+ 			if (out)
+ 				*out = wblock;
+ 			return true;
+@@ -498,20 +420,20 @@ wmi_notify_handler handler, void *data)
+ {
+ 	struct wmi_block *block;
+ 	acpi_status status = AE_NOT_EXIST;
+-	char tmp[16], guid_input[16];
++	uuid_le guid_input;
+ 	struct list_head *p;
+ 
+ 	if (!guid || !handler)
+ 		return AE_BAD_PARAMETER;
+ 
+-	wmi_parse_guid(guid, tmp);
+-	wmi_swap_bytes(tmp, guid_input);
++	if (uuid_le_to_bin(guid, &guid_input))
++		return AE_BAD_PARAMETER;
+ 
+ 	list_for_each(p, &wmi_block_list) {
+ 		acpi_status wmi_status;
+ 		block = list_entry(p, struct wmi_block, list);
+ 
+-		if (memcmp(block->gblock.guid, guid_input, 16) == 0) {
++		if (memcmp(block->gblock.guid, &guid_input, 16) == 0) {
+ 			if (block->handler &&
+ 			    block->handler != wmi_notify_debug)
+ 				return AE_ALREADY_ACQUIRED;
+@@ -539,20 +461,20 @@ acpi_status wmi_remove_notify_handler(co
+ {
+ 	struct wmi_block *block;
+ 	acpi_status status = AE_NOT_EXIST;
+-	char tmp[16], guid_input[16];
++	uuid_le guid_input;
+ 	struct list_head *p;
+ 
+ 	if (!guid)
+ 		return AE_BAD_PARAMETER;
+ 
+-	wmi_parse_guid(guid, tmp);
+-	wmi_swap_bytes(tmp, guid_input);
++	if (uuid_le_to_bin(guid, &guid_input))
++		return AE_BAD_PARAMETER;
+ 
+ 	list_for_each(p, &wmi_block_list) {
+ 		acpi_status wmi_status;
+ 		block = list_entry(p, struct wmi_block, list);
+ 
+-		if (memcmp(block->gblock.guid, guid_input, 16) == 0) {
++		if (memcmp(block->gblock.guid, &guid_input, 16) == 0) {
+ 			if (!block->handler ||
+ 			    block->handler == wmi_notify_debug)
+ 				return AE_NULL_ENTRY;
 _
 
-Patches currently in -mm which might be from willy@linux.intel.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-introduce-config_radix_tree_multiorder.patch
-radix-tree-add-missing-sibling-entry-functionality.patch
-radix-tree-fix-sibling-entry-insertion.patch
-radix-tree-fix-deleting-a-multi-order-entry-through-an-alias.patch
-radix-tree-remove-restriction-on-multi-order-entries.patch
-radix-tree-introduce-radix_tree_load_root.patch
-radix-tree-fix-extending-the-tree-for-multi-order-entries-at-offset-0.patch
-radix-tree-test-suite-start-adding-multiorder-tests.patch
-radix-tree-fix-several-shrinking-bugs-with-multiorder-entries.patch
-radix-tree-rewrite-__radix_tree_lookup.patch
-radix-tree-fix-multiorder-bug_on-in-radix_tree_insert.patch
-radix-tree-fix-radix_tree_create-for-sibling-entries.patch
-radix-tree-rewrite-radix_tree_locate_item.patch
-radix-tree-fix-radix_tree_range_tag_if_tagged-for-multiorder-entries.patch
-radix-tree-add-copyright-statements.patch
-drivers-hwspinlock-use-correct-radix-tree-api.patch
-radix-tree-miscellaneous-fixes.patch
-radix-tree-split-node-path-into-offset-and-height.patch
-radix-tree-replace-node-height-with-node-shift.patch
-radix-tree-remove-a-use-of-root-height-from-delete_node.patch
-radix-tree-test-suite-remove-dependencies-on-height.patch
-radix-tree-remove-root-height.patch
-radix-tree-rename-indirect_ptr-to-internal_node.patch
-radix-tree-rename-ptr_to_indirect-to-node_to_entry.patch
-radix-tree-rename-indirect_to_ptr-to-entry_to_node.patch
-radix-tree-rename-radix_tree_is_indirect_ptr.patch
-radix-tree-change-naming-conventions-in-radix_tree_shrink.patch
-radix-tree-tidy-up-next_chunk.patch
-radix-tree-tidy-up-range_tag_if_tagged.patch
-radix-tree-tidy-up-__radix_tree_create.patch
-radix-tree-introduce-radix_tree_replace_clear_tags.patch
-radix-tree-make-radix_tree_descend-more-useful.patch
-radix-tree-free-up-the-bottom-bit-of-exceptional-entries-for-reuse.patch
 
