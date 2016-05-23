@@ -1,329 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memory-failure-replace-mce-with-memory-failure.patch
+Subject: [merged]
+ mm-memblock-move-memblock_addreserve_region-into-memblock_addreserve.patch
  removed from -mm tree
-Date: Mon, 23 May 2016 12:45:56 -0700
-Message-ID: <57435df4.M09gImMzWAfhzTmn%akpm@linux-foundation.org>
+Date: Mon, 23 May 2016 12:45:58 -0700
+Message-ID: <57435df6.NSxVI5BpDpii8xxe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37031 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37035 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143AbcEWTp5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:57 -0400
+	with ESMTP id S1754143AbcEWTp7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: slaoub@gmail.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: kuleshovmail@gmail.com, ard.biesheuvel@linaro.org, david@gibson.dropbear.id.au, mgorman@techsingularity.net, penberg@kernel.org, tangchen@cn.fujitsu.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure.c: replace "MCE" with "Memory failure"
+     Subject: mm/memblock.c: move memblock_{add,reserve}_region into memblock_{add,reserve}
 has been removed from the -mm tree.  Its filename was
-     memory-failure-replace-mce-with-memory-failure.patch
+     mm-memblock-move-memblock_addreserve_region-into-memblock_addreserve.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Yucong <slaoub@gmail.com>
-Subject: mm/memory-failure.c: replace "MCE" with "Memory failure"
+From: Alexander Kuleshov <kuleshovmail@gmail.com>
+Subject: mm/memblock.c: move memblock_{add,reserve}_region into memblock_{add,reserve}
 
-HWPoison was specific to some particular x86 platforms.  And it is often
-seen as high level machine check handler.  And therefore, 'MCE' is used
-for the format prefix of printk().  However, 'PowerNV' has also used
-HWPoison for handling memory errors[1], so 'MCE' is no longer suitable to
-memory_failure.c.
+memblock_add_region() and memblock_reserve_region() do nothing specific
+before the call of memblock_add_range(), only print debug output.
 
-Additionally, 'MCE' and 'Memory failure' have different context.  The
-former belongs to exception context and the latter belongs to process
-context.  Furthermore, HWPoison can also be used for off-lining those
-sub-health pages that do not trigger any machine check exception.
+We can do the same in memblock_add() and memblock_reserve() since both
+memblock_add_region() and memblock_reserve_region() are not used by
+anybody outside of memblock.c and memblock_{add,reserve}() have the same
+set of flags and nids.
 
-This patch aims to replace 'MCE' with a more appropriate prefix.
+Since memblock_add_region() and memblock_reserve_region() will be inlined,
+there will not be functional changes, but will improve code readability a
+little.
 
-[1] commit 75eb3d9b60c2 ("powerpc/powernv: Get FSP memory errors
-and plumb into memory poison infrastructure.")
-
-Signed-off-by: Chen Yucong <slaoub@gmail.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
+Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   72 +++++++++++++++++++++++-------------------
- 1 file changed, 40 insertions(+), 32 deletions(-)
+ mm/memblock.c |   28 ++++++----------------------
+ 1 file changed, 6 insertions(+), 22 deletions(-)
 
-diff -puN mm/memory-failure.c~memory-failure-replace-mce-with-memory-failure mm/memory-failure.c
---- a/mm/memory-failure.c~memory-failure-replace-mce-with-memory-failure
-+++ a/mm/memory-failure.c
-@@ -184,8 +184,8 @@ static int kill_proc(struct task_struct
- 	struct siginfo si;
- 	int ret;
- 
--	pr_err("MCE %#lx: Killing %s:%d due to hardware memory corruption\n",
--	       pfn, t->comm, t->pid);
-+	pr_err("Memory failure: %#lx: Killing %s:%d due to hardware memory corruption\n",
-+		pfn, t->comm, t->pid);
- 	si.si_signo = SIGBUS;
- 	si.si_errno = 0;
- 	si.si_addr = (void *)addr;
-@@ -208,7 +208,7 @@ static int kill_proc(struct task_struct
- 		ret = send_sig_info(SIGBUS, &si, t);  /* synchronous? */
- 	}
- 	if (ret < 0)
--		pr_info("MCE: Error sending signal to %s:%d: %d\n",
-+		pr_info("Memory failure: Error sending signal to %s:%d: %d\n",
- 			t->comm, t->pid, ret);
- 	return ret;
+diff -puN mm/memblock.c~mm-memblock-move-memblock_addreserve_region-into-memblock_addreserve mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-move-memblock_addreserve_region-into-memblock_addreserve
++++ a/mm/memblock.c
+@@ -606,22 +606,14 @@ int __init_memblock memblock_add_node(ph
+ 	return memblock_add_range(&memblock.memory, base, size, nid, 0);
  }
-@@ -289,7 +289,7 @@ static void add_to_kill(struct task_stru
- 	} else {
- 		tk = kmalloc(sizeof(struct to_kill), GFP_ATOMIC);
- 		if (!tk) {
--			pr_err("MCE: Out of memory while machine check handling\n");
-+			pr_err("Memory failure: Out of memory while machine check handling\n");
- 			return;
- 		}
- 	}
-@@ -303,7 +303,7 @@ static void add_to_kill(struct task_stru
- 	 * a SIGKILL because the error is not contained anymore.
- 	 */
- 	if (tk->addr == -EFAULT) {
--		pr_info("MCE: Unable to find user space address %lx in %s\n",
-+		pr_info("Memory failure: Unable to find user space address %lx in %s\n",
- 			page_to_pfn(p), tsk->comm);
- 		tk->addr_valid = 0;
- 	}
-@@ -334,7 +334,7 @@ static void kill_procs(struct list_head
- 			 * signal and then access the memory. Just kill it.
- 			 */
- 			if (fail || tk->addr_valid == 0) {
--				pr_err("MCE %#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
-+				pr_err("Memory failure: %#lx: forcibly killing %s:%d because of failure to unmap corrupted page\n",
- 				       pfn, tk->tsk->comm, tk->tsk->pid);
- 				force_sig(SIGKILL, tk->tsk);
- 			}
-@@ -347,7 +347,7 @@ static void kill_procs(struct list_head
- 			 */
- 			else if (kill_proc(tk->tsk, tk->addr, trapno,
- 					      pfn, page, flags) < 0)
--				pr_err("MCE %#lx: Cannot send advisory machine check signal to %s:%d\n",
-+				pr_err("Memory failure: %#lx: Cannot send advisory machine check signal to %s:%d\n",
- 				       pfn, tk->tsk->comm, tk->tsk->pid);
- 		}
- 		put_task_struct(tk->tsk);
-@@ -559,7 +559,7 @@ static int me_kernel(struct page *p, uns
-  */
- static int me_unknown(struct page *p, unsigned long pfn)
+ 
+-static int __init_memblock memblock_add_region(phys_addr_t base,
+-						phys_addr_t size,
+-						int nid,
+-						unsigned long flags)
++int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
  {
--	pr_err("MCE %#lx: Unknown page state\n", pfn);
-+	pr_err("Memory failure: %#lx: Unknown page state\n", pfn);
- 	return MF_FAILED;
+ 	memblock_dbg("memblock_add: [%#016llx-%#016llx] flags %#02lx %pF\n",
+ 		     (unsigned long long)base,
+ 		     (unsigned long long)base + size - 1,
+-		     flags, (void *)_RET_IP_);
+-
+-	return memblock_add_range(&memblock.memory, base, size, nid, flags);
+-}
++		     0UL, (void *)_RET_IP_);
+ 
+-int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
+-{
+-	return memblock_add_region(base, size, MAX_NUMNODES, 0);
++	return memblock_add_range(&memblock.memory, base, size, MAX_NUMNODES, 0);
  }
  
-@@ -604,11 +604,12 @@ static int me_pagecache_clean(struct pag
- 	if (mapping->a_ops->error_remove_page) {
- 		err = mapping->a_ops->error_remove_page(mapping, p);
- 		if (err != 0) {
--			pr_info("MCE %#lx: Failed to punch page: %d\n",
-+			pr_info("Memory failure: %#lx: Failed to punch page: %d\n",
- 				pfn, err);
- 		} else if (page_has_private(p) &&
- 				!try_to_release_page(p, GFP_NOIO)) {
--			pr_info("MCE %#lx: failed to release buffers\n", pfn);
-+			pr_info("Memory failure: %#lx: failed to release buffers\n",
-+				pfn);
- 		} else {
- 			ret = MF_RECOVERED;
- 		}
-@@ -620,7 +621,8 @@ static int me_pagecache_clean(struct pag
- 		if (invalidate_inode_page(p))
- 			ret = MF_RECOVERED;
- 		else
--			pr_info("MCE %#lx: Failed to invalidate\n", pfn);
-+			pr_info("Memory failure: %#lx: Failed to invalidate\n",
-+				pfn);
- 	}
- 	return ret;
+ /**
+@@ -732,22 +724,14 @@ int __init_memblock memblock_free(phys_a
+ 	return memblock_remove_range(&memblock.reserved, base, size);
  }
-@@ -833,7 +835,7 @@ static void action_result(unsigned long
+ 
+-static int __init_memblock memblock_reserve_region(phys_addr_t base,
+-						   phys_addr_t size,
+-						   int nid,
+-						   unsigned long flags)
++int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
  {
- 	trace_memory_failure_event(pfn, type, result);
- 
--	pr_err("MCE %#lx: recovery action for %s: %s\n",
-+	pr_err("Memory failure: %#lx: recovery action for %s: %s\n",
- 		pfn, action_page_types[type], action_name[result]);
- }
- 
-@@ -849,7 +851,7 @@ static int page_action(struct page_state
- 	if (ps->action == me_swapcache_dirty && result == MF_DELAYED)
- 		count--;
- 	if (count != 0) {
--		pr_err("MCE %#lx: %s still referenced by %d users\n",
-+		pr_err("Memory failure: %#lx: %s still referenced by %d users\n",
- 		       pfn, action_page_types[ps->type], count);
- 		result = MF_FAILED;
- 	}
-@@ -882,7 +884,7 @@ int get_hwpoison_page(struct page *page)
- 		 * tries to touch the "partially handled" page.
- 		 */
- 		if (!PageAnon(head)) {
--			pr_err("MCE: %#lx: non anonymous thp\n",
-+			pr_err("Memory failure: %#lx: non anonymous thp\n",
- 				page_to_pfn(page));
- 			return 0;
- 		}
-@@ -892,7 +894,8 @@ int get_hwpoison_page(struct page *page)
- 		if (head == compound_head(page))
- 			return 1;
- 
--		pr_info("MCE: %#lx cannot catch tail\n", page_to_pfn(page));
-+		pr_info("Memory failure: %#lx cannot catch tail\n",
-+			page_to_pfn(page));
- 		put_page(head);
- 	}
- 
-@@ -931,12 +934,13 @@ static int hwpoison_user_mappings(struct
- 		return SWAP_SUCCESS;
- 
- 	if (PageKsm(p)) {
--		pr_err("MCE %#lx: can't handle KSM pages.\n", pfn);
-+		pr_err("Memory failure: %#lx: can't handle KSM pages.\n", pfn);
- 		return SWAP_FAIL;
- 	}
- 
- 	if (PageSwapCache(p)) {
--		pr_err("MCE %#lx: keeping poisoned page in swap cache\n", pfn);
-+		pr_err("Memory failure: %#lx: keeping poisoned page in swap cache\n",
-+			pfn);
- 		ttu |= TTU_IGNORE_HWPOISON;
- 	}
- 
-@@ -954,7 +958,7 @@ static int hwpoison_user_mappings(struct
- 		} else {
- 			kill = 0;
- 			ttu |= TTU_IGNORE_HWPOISON;
--			pr_info("MCE %#lx: corrupted page was clean: dropped without side effects\n",
-+			pr_info("Memory failure: %#lx: corrupted page was clean: dropped without side effects\n",
- 				pfn);
- 		}
- 	}
-@@ -972,7 +976,7 @@ static int hwpoison_user_mappings(struct
- 
- 	ret = try_to_unmap(hpage, ttu);
- 	if (ret != SWAP_SUCCESS)
--		pr_err("MCE %#lx: failed to unmap page (mapcount=%d)\n",
-+		pr_err("Memory failure: %#lx: failed to unmap page (mapcount=%d)\n",
- 		       pfn, page_mapcount(hpage));
- 
- 	/*
-@@ -1040,14 +1044,16 @@ int memory_failure(unsigned long pfn, in
- 		panic("Memory failure from trap %d on page %lx", trapno, pfn);
- 
- 	if (!pfn_valid(pfn)) {
--		pr_err("MCE %#lx: memory outside kernel control\n", pfn);
-+		pr_err("Memory failure: %#lx: memory outside kernel control\n",
-+			pfn);
- 		return -ENXIO;
- 	}
- 
- 	p = pfn_to_page(pfn);
- 	orig_head = hpage = compound_head(p);
- 	if (TestSetPageHWPoison(p)) {
--		pr_err("MCE %#lx: already hardware poisoned\n", pfn);
-+		pr_err("Memory failure: %#lx: already hardware poisoned\n",
-+			pfn);
- 		return 0;
- 	}
- 
-@@ -1112,9 +1118,11 @@ int memory_failure(unsigned long pfn, in
- 		if (!PageAnon(hpage) || unlikely(split_huge_page(hpage))) {
- 			unlock_page(hpage);
- 			if (!PageAnon(hpage))
--				pr_err("MCE: %#lx: non anonymous thp\n", pfn);
-+				pr_err("Memory failure: %#lx: non anonymous thp\n",
-+					pfn);
- 			else
--				pr_err("MCE: %#lx: thp split failed\n", pfn);
-+				pr_err("Memory failure: %#lx: thp split failed\n",
-+					pfn);
- 			if (TestClearPageHWPoison(p))
- 				num_poisoned_pages_sub(nr_pages);
- 			put_hwpoison_page(p);
-@@ -1178,7 +1186,7 @@ int memory_failure(unsigned long pfn, in
- 	 * unpoison always clear PG_hwpoison inside page lock
- 	 */
- 	if (!PageHWPoison(p)) {
--		pr_err("MCE %#lx: just unpoisoned\n", pfn);
-+		pr_err("Memory failure: %#lx: just unpoisoned\n", pfn);
- 		num_poisoned_pages_sub(nr_pages);
- 		unlock_page(hpage);
- 		put_hwpoison_page(hpage);
-@@ -1395,25 +1403,25 @@ int unpoison_memory(unsigned long pfn)
- 	page = compound_head(p);
- 
- 	if (!PageHWPoison(p)) {
--		unpoison_pr_info("MCE: Page was already unpoisoned %#lx\n",
-+		unpoison_pr_info("Unpoison: Page was already unpoisoned %#lx\n",
- 				 pfn, &unpoison_rs);
- 		return 0;
- 	}
- 
- 	if (page_count(page) > 1) {
--		unpoison_pr_info("MCE: Someone grabs the hwpoison page %#lx\n",
-+		unpoison_pr_info("Unpoison: Someone grabs the hwpoison page %#lx\n",
- 				 pfn, &unpoison_rs);
- 		return 0;
- 	}
- 
- 	if (page_mapped(page)) {
--		unpoison_pr_info("MCE: Someone maps the hwpoison page %#lx\n",
-+		unpoison_pr_info("Unpoison: Someone maps the hwpoison page %#lx\n",
- 				 pfn, &unpoison_rs);
- 		return 0;
- 	}
- 
- 	if (page_mapping(page)) {
--		unpoison_pr_info("MCE: the hwpoison page has non-NULL mapping %#lx\n",
-+		unpoison_pr_info("Unpoison: the hwpoison page has non-NULL mapping %#lx\n",
- 				 pfn, &unpoison_rs);
- 		return 0;
- 	}
-@@ -1424,7 +1432,7 @@ int unpoison_memory(unsigned long pfn)
- 	 * In such case, we yield to memory_failure() and make unpoison fail.
- 	 */
- 	if (!PageHuge(page) && PageTransHuge(page)) {
--		unpoison_pr_info("MCE: Memory failure is now running on %#lx\n",
-+		unpoison_pr_info("Unpoison: Memory failure is now running on %#lx\n",
- 				 pfn, &unpoison_rs);
- 		return 0;
- 	}
-@@ -1439,13 +1447,13 @@ int unpoison_memory(unsigned long pfn)
- 		 * to the end.
- 		 */
- 		if (PageHuge(page)) {
--			unpoison_pr_info("MCE: Memory failure is now running on free hugepage %#lx\n",
-+			unpoison_pr_info("Unpoison: Memory failure is now running on free hugepage %#lx\n",
- 					 pfn, &unpoison_rs);
- 			return 0;
- 		}
- 		if (TestClearPageHWPoison(p))
- 			num_poisoned_pages_dec();
--		unpoison_pr_info("MCE: Software-unpoisoned free page %#lx\n",
-+		unpoison_pr_info("Unpoison: Software-unpoisoned free page %#lx\n",
- 				 pfn, &unpoison_rs);
- 		return 0;
- 	}
-@@ -1458,7 +1466,7 @@ int unpoison_memory(unsigned long pfn)
- 	 * the free buddy page pool.
- 	 */
- 	if (TestClearPageHWPoison(page)) {
--		unpoison_pr_info("MCE: Software-unpoisoned page %#lx\n",
-+		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
- 				 pfn, &unpoison_rs);
- 		num_poisoned_pages_sub(nr_pages);
- 		freeit = 1;
-_
-
-Patches currently in -mm which might be from slaoub@gmail.com are
-
-
+ 	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] flags %#02lx %pF\n",
+ 		     (unsigned long long)base,
+ 		     (unsigned long long)base + size - 1,
+-		     flags, (void *)_RET_IP_);
