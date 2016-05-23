@@ -1,102 +1,194 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
+ mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
  removed from -mm tree
-Date: Mon, 23 May 2016 12:45:42 -0700
-Message-ID: <57435de6.eYB23FMJmd0DRrHM%akpm@linux-foundation.org>
+Date: Mon, 23 May 2016 12:45:45 -0700
+Message-ID: <57435de9.hE0qbedKWg1H3fAS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36930 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36939 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754126AbcEWTpn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:43 -0400
+	with ESMTP id S1753182AbcEWTpq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom_reaper: hide oom reaped tasks from OOM killer more carefully
+     Subject: mm, oom_reaper: do not mmput synchronously from the oom reaper context
 has been removed from the -mm tree.  Its filename was
-     mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
+     mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom_reaper: hide oom reaped tasks from OOM killer more carefully
+Subject: mm, oom_reaper: do not mmput synchronously from the oom reaper context
 
-36324a990cf5 ("oom: clear TIF_MEMDIE after oom_reaper managed to unmap the
-address space") not only clears TIF_MEMDIE for oom reaped task but also
-set OOM_SCORE_ADJ_MIN for the target task to hide it from the oom killer. 
-This works in simple cases but it is not sufficient for (unlikely) cases
-where the mm is shared between independent processes (as they do not share
-signal struct).  If the mm had only small amount of memory which could be
-reaped then another task sharing the mm could be selected and that
-wouldn't help to move out from the oom situation.
+Tetsuo has properly noted that mmput slow path might get blocked waiting
+for another party (e.g.  exit_aio waits for an IO).  If that happens the
+oom_reaper would be put out of the way and will not be able to process
+next oom victim.  We should strive for making this context as reliable and
+independent on other subsystems as much as possible.
 
-Introduce MMF_OOM_REAPED mm flag which is checked in oom_badness (same as
-OOM_SCORE_ADJ_MIN) and task is skipped if the flag is set.  Set the flag
-after __oom_reap_task is done with a task.  This will force the
-select_bad_process() to ignore all already oom reaped tasks as well as no
-such task is sacrificed for its parent.
+Introduce mmput_async which will perform the slow path from an async (WQ)
+context.  This will delay the operation but that shouldn't be a problem
+because the oom_reaper has reclaimed the victim's address space for most
+cases as much as possible and the remaining context shouldn't bind too
+much memory anymore.  The only exception is when mmap_sem trylock has
+failed which shouldn't happen too often.
+
+The issue is only theoretical but not impossible.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 +
- mm/oom_kill.c         |    9 +++++++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ include/linux/mm_types.h |    2 +
+ include/linux/sched.h    |    5 +++
+ kernel/fork.c            |   50 +++++++++++++++++++++++++------------
+ mm/oom_kill.c            |    8 ++++-
+ 4 files changed, 48 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/sched.h~mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully include/linux/sched.h
---- a/include/linux/sched.h~mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully
+diff -puN include/linux/mm_types.h~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context
++++ a/include/linux/mm_types.h
+@@ -12,6 +12,7 @@
+ #include <linux/cpumask.h>
+ #include <linux/uprobes.h>
+ #include <linux/page-flags-layout.h>
++#include <linux/workqueue.h>
+ #include <asm/page.h>
+ #include <asm/mmu.h>
+ 
+@@ -513,6 +514,7 @@ struct mm_struct {
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	atomic_long_t hugetlb_usage;
+ #endif
++	struct work_struct async_put_work;
+ };
+ 
+ static inline void mm_init_cpumask(struct mm_struct *mm)
+diff -puN include/linux/sched.h~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context include/linux/sched.h
+--- a/include/linux/sched.h~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context
 +++ a/include/linux/sched.h
-@@ -521,6 +521,7 @@ static inline int get_dumpable(struct mm
+@@ -2730,6 +2730,11 @@ static inline void mmdrop(struct mm_stru
  
- #define MMF_HAS_UPROBES		19	/* has uprobes */
- #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
-+#define MMF_OOM_REAPED		21	/* mm has been already reaped */
+ /* mmput gets rid of the mappings and all user-space */
+ extern void mmput(struct mm_struct *);
++/* same as above but performs the slow path from the async kontext. Can
++ * be called from the atomic context as well
++ */
++extern void mmput_async(struct mm_struct *);
++
+ /* Grab a reference to a task's mm, if it is not already going away */
+ extern struct mm_struct *get_task_mm(struct task_struct *task);
+ /*
+diff -puN kernel/fork.c~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context kernel/fork.c
+--- a/kernel/fork.c~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context
++++ a/kernel/fork.c
+@@ -699,6 +699,26 @@ void __mmdrop(struct mm_struct *mm)
+ }
+ EXPORT_SYMBOL_GPL(__mmdrop);
  
- #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
++static inline void __mmput(struct mm_struct *mm)
++{
++	VM_BUG_ON(atomic_read(&mm->mm_users));
++
++	uprobe_clear_state(mm);
++	exit_aio(mm);
++	ksm_exit(mm);
++	khugepaged_exit(mm); /* must run before exit_mmap */
++	exit_mmap(mm);
++	set_mm_exe_file(mm, NULL);
++	if (!list_empty(&mm->mmlist)) {
++		spin_lock(&mmlist_lock);
++		list_del(&mm->mmlist);
++		spin_unlock(&mmlist_lock);
++	}
++	if (mm->binfmt)
++		module_put(mm->binfmt->module);
++	mmdrop(mm);
++}
++
+ /*
+  * Decrement the use count and release all resources for an mm.
+  */
+@@ -706,24 +726,24 @@ void mmput(struct mm_struct *mm)
+ {
+ 	might_sleep();
  
-diff -puN mm/oom_kill.c~mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully
-+++ a/mm/oom_kill.c
-@@ -174,8 +174,13 @@ unsigned long oom_badness(struct task_st
- 	if (!p)
- 		return 0;
- 
-+	/*
-+	 * Do not even consider tasks which are explicitly marked oom
-+	 * unkillable or have been already oom reaped.
-+	 */
- 	adj = (long)p->signal->oom_score_adj;
--	if (adj == OOM_SCORE_ADJ_MIN) {
-+	if (adj == OOM_SCORE_ADJ_MIN ||
-+			test_bit(MMF_OOM_REAPED, &p->mm->flags)) {
- 		task_unlock(p);
- 		return 0;
++	if (atomic_dec_and_test(&mm->mm_users))
++		__mmput(mm);
++}
++EXPORT_SYMBOL_GPL(mmput);
++
++static void mmput_async_fn(struct work_struct *work)
++{
++	struct mm_struct *mm = container_of(work, struct mm_struct, async_put_work);
++	__mmput(mm);
++}
++
++void mmput_async(struct mm_struct *mm)
++{
+ 	if (atomic_dec_and_test(&mm->mm_users)) {
+-		uprobe_clear_state(mm);
+-		exit_aio(mm);
+-		ksm_exit(mm);
+-		khugepaged_exit(mm); /* must run before exit_mmap */
+-		exit_mmap(mm);
+-		set_mm_exe_file(mm, NULL);
+-		if (!list_empty(&mm->mmlist)) {
+-			spin_lock(&mmlist_lock);
+-			list_del(&mm->mmlist);
+-			spin_unlock(&mmlist_lock);
+-		}
+-		if (mm->binfmt)
+-			module_put(mm->binfmt->module);
+-		mmdrop(mm);
++		INIT_WORK(&mm->async_put_work, mmput_async_fn);
++		schedule_work(&mm->async_put_work);
  	}
-@@ -513,7 +518,7 @@ static bool __oom_reap_task(struct task_
- 	 * This task can be safely ignored because we cannot do much more
- 	 * to release its memory.
+ }
+-EXPORT_SYMBOL_GPL(mmput);
+ 
+ /**
+  * set_mm_exe_file - change a reference to the mm's executable file
+diff -puN mm/oom_kill.c~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context
++++ a/mm/oom_kill.c
+@@ -446,7 +446,6 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_reape
+ static struct task_struct *oom_reaper_list;
+ static DEFINE_SPINLOCK(oom_reaper_lock);
+ 
+-
+ static bool __oom_reap_task(struct task_struct *tsk)
+ {
+ 	struct mmu_gather tlb;
+@@ -520,7 +519,12 @@ static bool __oom_reap_task(struct task_
  	 */
--	tsk->signal->oom_score_adj = OOM_SCORE_ADJ_MIN;
-+	set_bit(MMF_OOM_REAPED, &mm->flags);
+ 	set_bit(MMF_OOM_REAPED, &mm->flags);
  out:
- 	mmput(mm);
+-	mmput(mm);
++	/*
++	 * Drop our reference but make sure the mmput slow path is called from a
++	 * different context because we shouldn't risk we get stuck there and
++	 * put the oom_reaper out of the way.
++	 */
++	mmput_async(mm);
  	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
 oom-consider-multi-threaded-tasks-in-task_will_free_mem.patch
 mm-make-mmap_sem-for-write-waits-killable-for-mm-syscalls.patch
 mm-make-vm_mmap-killable.patch
