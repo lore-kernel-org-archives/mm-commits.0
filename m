@@ -1,125 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-zswap-use-workqueue-to-destroy-pool.patch removed
- from -mm tree
-Date: Mon, 23 May 2016 12:47:51 -0700
-Message-ID: <57435e67.RVOj5kHAwE9Iy/go%akpm@linux-foundation.org>
+Subject: [merged] mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch
+ removed from -mm tree
+Date: Mon, 23 May 2016 12:47:54 -0700
+Message-ID: <57435e6a.VBwokUQ/dcd/H6bo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37547 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37553 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753119AbcEWTrw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:52 -0400
+	with ESMTP id S1754357AbcEWTrz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddstreet@ieee.org, dan.streetman@canonical.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, yuzhao@google.com, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, dan.streetman@canonical.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zswap: use workqueue to destroy pool
+     Subject: mm/zsmalloc: don't fail if can't create debugfs info
 has been removed from the -mm tree.  Its filename was
-     mm-zswap-use-workqueue-to-destroy-pool.patch
+     mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dan Streetman <ddstreet@ieee.org>
-Subject: mm/zswap: use workqueue to destroy pool
+Subject: mm/zsmalloc: don't fail if can't create debugfs info
 
-Add a work_struct to struct zswap_pool, and change __zswap_pool_empty to
-use the workqueue instead of using call_rcu().
+Change the return type of zs_pool_stat_create() to void, and
+remove the logic to abort pool creation if the stat debugfs
+dir/file could not be created.
 
-When zswap destroys a pool no longer in use, it uses call_rcu() to perform
-the destruction/freeing.  Since that executes in softirq context, it must
-not sleep.  However, actually destroying the pool involves freeing the
-per-cpu compressors (which requires locking the cpu_add_remove_lock mutex)
-and freeing the zpool, for which the implementation may sleep (e.g. 
-zsmalloc calls kmem_cache_destroy, which locks the slab_mutex).  So if
-either mutex is currently taken, or any other part of the compressor or
-zpool implementation sleeps, it will result in a BUG().
+The debugfs stat file is for debugging/information only, and doesn't
+affect operation of zsmalloc; there is no reason to abort creating
+the pool if the stat file can't be created.  This was seen with
+zswap, which used the same name for all pool creations, which caused
+zsmalloc to fail to create a second pool for zswap if
+CONFIG_ZSMALLOC_STAT was enabled.
 
-It's not easy to reproduce this when changing zswap's params normally.  In
-testing with a loaded system, this does not fail:
-
-$ cd /sys/module/zswap/parameters
-$ echo lz4 > compressor ; echo zsmalloc > zpool
-
-nor does this:
-
-$ while true ; do
-> echo lzo > compressor ; echo zbud > zpool
-> sleep 1
-> echo lz4 > compressor ; echo zsmalloc > zpool
-> sleep 1
-> done
-
-although it's still possible either of those might fail, depending on
-whether anything else besides zswap has locked the mutexes.
-
-However, changing a parameter with no delay immediately causes the
-schedule while atomic BUG:
-
-$ while true ; do
-> echo lzo > compressor ; echo lz4 > compressor
-> done
-
-This is essentially the same as Yu Zhao's proposed patch to zsmalloc,
-but moved to zswap, to cover compressor and zpool freeing.
-
-Fixes: f1c54846ee45 ("zswap: dynamic pool creation")
 Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Reported-by: Yu Zhao <yuzhao@google.com>
 Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Dan Streetman <dan.streetman@canonical.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/zsmalloc.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-diff -puN mm/zswap.c~mm-zswap-use-workqueue-to-destroy-pool mm/zswap.c
---- a/mm/zswap.c~mm-zswap-use-workqueue-to-destroy-pool
-+++ a/mm/zswap.c
-@@ -117,7 +117,7 @@ struct zswap_pool {
- 	struct crypto_comp * __percpu *tfm;
- 	struct kref kref;
- 	struct list_head list;
--	struct rcu_head rcu_head;
-+	struct work_struct work;
- 	struct notifier_block notifier;
- 	char tfm_name[CRYPTO_MAX_ALG_NAME];
+diff -puN mm/zsmalloc.c~mm-zsmalloc-dont-fail-if-cant-create-debugfs-info mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-dont-fail-if-cant-create-debugfs-info
++++ a/mm/zsmalloc.c
+@@ -573,17 +573,17 @@ static const struct file_operations zs_s
+ 	.release        = single_release,
  };
-@@ -658,9 +658,11 @@ static int __must_check zswap_pool_get(s
- 	return kref_get_unless_zero(&pool->kref);
- }
  
--static void __zswap_pool_release(struct rcu_head *head)
-+static void __zswap_pool_release(struct work_struct *work)
+-static int zs_pool_stat_create(struct zs_pool *pool, const char *name)
++static void zs_pool_stat_create(struct zs_pool *pool, const char *name)
  {
--	struct zswap_pool *pool = container_of(head, typeof(*pool), rcu_head);
-+	struct zswap_pool *pool = container_of(work, typeof(*pool), work);
-+
-+	synchronize_rcu();
+ 	struct dentry *entry;
  
- 	/* nobody should have been able to get a kref... */
- 	WARN_ON(kref_get_unless_zero(&pool->kref));
-@@ -680,7 +682,9 @@ static void __zswap_pool_empty(struct kr
- 	WARN_ON(pool == zswap_pool_current());
+ 	if (!zs_stat_root)
+-		return -ENODEV;
++		return;
  
- 	list_del_rcu(&pool->list);
--	call_rcu(&pool->rcu_head, __zswap_pool_release);
-+
-+	INIT_WORK(&pool->work, __zswap_pool_release);
-+	schedule_work(&pool->work);
+ 	entry = debugfs_create_dir(name, zs_stat_root);
+ 	if (!entry) {
+ 		pr_warn("debugfs dir <%s> creation failed\n", name);
+-		return -ENOMEM;
++		return;
+ 	}
+ 	pool->stat_dentry = entry;
  
- 	spin_unlock(&zswap_pools_lock);
+@@ -592,10 +592,8 @@ static int zs_pool_stat_create(struct zs
+ 	if (!entry) {
+ 		pr_warn("%s: debugfs file entry <%s> creation failed\n",
+ 				name, "classes");
+-		return -ENOMEM;
++		return;
+ 	}
+-
+-	return 0;
  }
-_
-
-Patches currently in -mm which might be from ddstreet@ieee.org are
-
-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch
-
+ 
+ static void zs_pool_stat_destroy(struct zs_pool *pool)
+@@ -613,9 +611,8 @@ static void __exit zs_stat_exit(void)
+ {
+ }
+ 
+-static inline int zs_pool_stat_create(struct zs_pool *pool, const char *name)
++static inline void zs_pool_stat_create(struct zs_pool *pool, const char *name)
+ {
+-	return 0;
+ }
+ 
+ static inline void zs_pool_stat_destroy(struct zs_pool *pool)
+@@ -623,7 +620,6 @@ static inline void zs_pool_stat_destroy(
+ }
+ #endif
+ 
