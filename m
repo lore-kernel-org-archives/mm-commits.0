@@ -1,42 +1,55 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- radix-tree-test-suite-start-adding-multiorder-tests.patch removed from -mm
- tree
-Date: Mon, 23 May 2016 12:49:48 -0700
-Message-ID: <57435edc.uzCBPWQq7zpyJO4i%akpm@linux-foundation.org>
+ radix-tree-fix-several-shrinking-bugs-with-multiorder-entries.patch removed from -mm tree
+Date: Mon, 23 May 2016 12:49:51 -0700
+Message-ID: <57435edf.EZb2Duk0fixSSLLg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37997 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38005 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753010AbcEWTtt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:49:49 -0400
+	with ESMTP id S1754221AbcEWTtw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:49:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: start adding multiorder tests
+     Subject: radix-tree: fix several shrinking bugs with multiorder entries
 has been removed from the -mm tree.  Its filename was
-     radix-tree-test-suite-start-adding-multiorder-tests.patch
+     radix-tree-fix-several-shrinking-bugs-with-multiorder-entries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix tree test suite: start adding multiorder tests
+Subject: radix-tree: fix several shrinking bugs with multiorder entries
 
-Test suite infrastructure for working with multiorder entries.
+Setting the indirect bit on the user data entry used to be unambiguous
+because the tree walking code knew not to expect internal nodes in the
+last level of the tree.  Multiorder entries can appear at any level of the
+tree, and a leaf with the indirect bit set is indistinguishable from a
+pointer to a node.
 
-The test itself is pretty basic: Add an entry, check that all expected
-indices return that entry and that indices around that entry don't return
-an entry.  Then delete the entry and check no index returns that entry. 
-Tests a few edge conditions including the multiorder entry at index 0 and
-at a higher index.  Also tests deleting through an alias as well as
-through the canonical index.
+Introduce a special entry (RADIX_TREE_RETRY) which is neither a valid user
+entry, nor a valid pointer to a node.  The radix_tree_deref_retry()
+function continues to work the same way, but tree walking code can
+distinguish it from a pointer to a node.
+
+Also fix the condition for setting slot->parent to NULL; it does not
+matter what height the tree is, it only matters whether slot is an
+indirect pointer.  Move this code above the comment which is referring to
+the assignment to root->rnode.
+
+Also fix the condition for preventing the tree from shrinking to a single
+entry if it's a multiorder entry.
+
+Add a test-case to the test suite that checks that the tree goes back down
+to its original height after an item is inserted & deleted from a higher
+index in the tree.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
@@ -47,156 +60,122 @@ Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/Makefile     |    2 
- tools/testing/radix-tree/main.c       |    2 
- tools/testing/radix-tree/multiorder.c |   58 ++++++++++++++++++++++++
- tools/testing/radix-tree/test.c       |   13 ++++-
- tools/testing/radix-tree/test.h       |    6 ++
- 5 files changed, 76 insertions(+), 5 deletions(-)
+ lib/radix-tree.c                      |   23 +++++++-------
+ tools/testing/radix-tree/multiorder.c |   39 ++++++++++++++++++++++++
+ 2 files changed, 51 insertions(+), 11 deletions(-)
 
-diff -puN tools/testing/radix-tree/Makefile~radix-tree-test-suite-start-adding-multiorder-tests tools/testing/radix-tree/Makefile
---- a/tools/testing/radix-tree/Makefile~radix-tree-test-suite-start-adding-multiorder-tests
-+++ a/tools/testing/radix-tree/Makefile
-@@ -3,7 +3,7 @@ CFLAGS += -I. -g -Wall -D_LGPL_SOURCE
- LDFLAGS += -lpthread -lurcu
- TARGETS = main
- OFILES = main.o radix-tree.o linux.o test.o tag_check.o find_next_bit.o \
--	 regression1.o regression2.o regression3.o
-+	 regression1.o regression2.o regression3.o multiorder.o
+diff -puN lib/radix-tree.c~radix-tree-fix-several-shrinking-bugs-with-multiorder-entries lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-fix-several-shrinking-bugs-with-multiorder-entries
++++ a/lib/radix-tree.c
+@@ -80,6 +80,8 @@ static inline void *indirect_to_ptr(void
+ 	return (void *)((unsigned long)ptr & ~RADIX_TREE_INDIRECT_PTR);
+ }
  
- targets: $(TARGETS)
++#define RADIX_TREE_RETRY	ptr_to_indirect(NULL)
++
+ #ifdef CONFIG_RADIX_TREE_MULTIORDER
+ /* Sibling slots point directly to another slot in the same node */
+ static inline bool is_sibling_entry(struct radix_tree_node *parent, void *node)
+@@ -1443,6 +1445,14 @@ static inline void radix_tree_shrink(str
+ 		slot = to_free->slots[0];
+ 		if (!slot)
+ 			break;
++		if (!radix_tree_is_indirect_ptr(slot) && (root->height > 1))
++			break;
++
++		if (radix_tree_is_indirect_ptr(slot)) {
++			slot = indirect_to_ptr(slot);
++			slot->parent = NULL;
++			slot = ptr_to_indirect(slot);
++		}
  
-diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-start-adding-multiorder-tests tools/testing/radix-tree/main.c
---- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-start-adding-multiorder-tests
-+++ a/tools/testing/radix-tree/main.c
-@@ -275,6 +275,8 @@ static void single_thread_tests(bool lon
- 	int i;
+ 		/*
+ 		 * We don't need rcu_assign_pointer(), since we are simply
+@@ -1451,14 +1461,6 @@ static inline void radix_tree_shrink(str
+ 		 * (to_free->slots[0]), it will be safe to dereference the new
+ 		 * one (root->rnode) as far as dependent read barriers go.
+ 		 */
+-		if (root->height > 1) {
+-			if (!radix_tree_is_indirect_ptr(slot))
+-				break;
+-
+-			slot = indirect_to_ptr(slot);
+-			slot->parent = NULL;
+-			slot = ptr_to_indirect(slot);
+-		}
+ 		root->rnode = slot;
+ 		root->height--;
  
- 	printf("starting single_thread_tests: %d allocated\n", nr_allocated);
-+	multiorder_checks();
-+	printf("after multiorder_check: %d allocated\n", nr_allocated);
- 	locate_check();
- 	printf("after locate_check: %d allocated\n", nr_allocated);
- 	tag_check();
-diff -puN /dev/null tools/testing/radix-tree/multiorder.c
---- /dev/null
+@@ -1480,9 +1482,8 @@ static inline void radix_tree_shrink(str
+ 		 * also results in a stale slot). So tag the slot as indirect
+ 		 * to force callers to retry.
+ 		 */
+-		if (root->height == 0)
+-			*((unsigned long *)&to_free->slots[0]) |=
+-						RADIX_TREE_INDIRECT_PTR;
++		if (!radix_tree_is_indirect_ptr(slot))
++			to_free->slots[0] = RADIX_TREE_RETRY;
+ 
+ 		radix_tree_node_free(to_free);
+ 	}
+diff -puN tools/testing/radix-tree/multiorder.c~radix-tree-fix-several-shrinking-bugs-with-multiorder-entries tools/testing/radix-tree/multiorder.c
+--- a/tools/testing/radix-tree/multiorder.c~radix-tree-fix-several-shrinking-bugs-with-multiorder-entries
 +++ a/tools/testing/radix-tree/multiorder.c
-@@ -0,0 +1,58 @@
-+/*
-+ * multiorder.c: Multi-order radix tree entry testing
-+ * Copyright (c) 2016 Intel Corporation
-+ * Author: Ross Zwisler <ross.zwisler@linux.intel.com>
-+ * Author: Matthew Wilcox <matthew.r.wilcox@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms and conditions of the GNU General Public License,
-+ * version 2, as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ */
-+#include <linux/radix-tree.h>
-+#include <linux/slab.h>
-+#include <linux/errno.h>
-+
-+#include "test.h"
-+
-+static void multiorder_check(unsigned long index, int order)
+@@ -46,6 +46,41 @@ static void multiorder_check(unsigned lo
+ 		item_check_absent(&tree, i);
+ }
+ 
++static void multiorder_shrink(unsigned long index, int order)
 +{
 +	unsigned long i;
-+	unsigned long min = index & ~((1UL << order) - 1);
-+	unsigned long max = min + (1UL << order);
++	unsigned long max = 1 << order;
 +	RADIX_TREE(tree, GFP_KERNEL);
++	struct radix_tree_node *node;
 +
-+	printf("Multiorder index %ld, order %d\n", index, order);
++	printf("Multiorder shrink index %ld, order %d\n", index, order);
 +
-+	assert(item_insert_order(&tree, index, order) == 0);
++	assert(item_insert_order(&tree, 0, order) == 0);
 +
-+	for (i = min; i < max; i++) {
++	node = tree.rnode;
++
++	assert(item_insert(&tree, index) == 0);
++	assert(node != tree.rnode);
++
++	assert(item_delete(&tree, index) != 0);
++	assert(node == tree.rnode);
++
++	for (i = 0; i < max; i++) {
 +		struct item *item = item_lookup(&tree, i);
 +		assert(item != 0);
-+		assert(item->index == index);
++		assert(item->index == 0);
 +	}
-+	for (i = 0; i < min; i++)
-+		item_check_absent(&tree, i);
 +	for (i = max; i < 2*max; i++)
 +		item_check_absent(&tree, i);
 +
-+	assert(item_delete(&tree, index) != 0);
++	if (!item_delete(&tree, 0)) {
++		printf("failed to delete index %ld (order %d)\n", index, order);		abort();
++	}
 +
 +	for (i = 0; i < 2*max; i++)
 +		item_check_absent(&tree, i);
 +}
 +
-+void multiorder_checks(void)
-+{
-+	int i;
-+
-+	for (i = 0; i < 20; i++) {
-+		multiorder_check(200, i);
-+		multiorder_check(0, i);
-+		multiorder_check((1UL << i) + 1, i);
-+	}
-+}
-diff -puN tools/testing/radix-tree/test.c~radix-tree-test-suite-start-adding-multiorder-tests tools/testing/radix-tree/test.c
---- a/tools/testing/radix-tree/test.c~radix-tree-test-suite-start-adding-multiorder-tests
-+++ a/tools/testing/radix-tree/test.c
-@@ -24,14 +24,21 @@ int item_tag_get(struct radix_tree_root
- 	return radix_tree_tag_get(root, index, tag);
- }
- 
--int __item_insert(struct radix_tree_root *root, struct item *item)
-+int __item_insert(struct radix_tree_root *root, struct item *item,
-+			unsigned order)
+ void multiorder_checks(void)
  {
--	return radix_tree_insert(root, item->index, item);
-+	return __radix_tree_insert(root, item->index, order, item);
- }
- 
- int item_insert(struct radix_tree_root *root, unsigned long index)
- {
--	return __item_insert(root, item_create(index));
-+	return __item_insert(root, item_create(index), 0);
-+}
+ 	int i;
+@@ -55,4 +90,8 @@ void multiorder_checks(void)
+ 		multiorder_check(0, i);
+ 		multiorder_check((1UL << i) + 1, i);
+ 	}
 +
-+int item_insert_order(struct radix_tree_root *root, unsigned long index,
-+			unsigned order)
-+{
-+	return __item_insert(root, item_create(index), order);
++	for (i = 0; i < 15; i++)
++		multiorder_shrink((1UL << (i + RADIX_TREE_MAP_SHIFT)), i);
++
  }
- 
- int item_delete(struct radix_tree_root *root, unsigned long index)
-diff -puN tools/testing/radix-tree/test.h~radix-tree-test-suite-start-adding-multiorder-tests tools/testing/radix-tree/test.h
---- a/tools/testing/radix-tree/test.h~radix-tree-test-suite-start-adding-multiorder-tests
-+++ a/tools/testing/radix-tree/test.h
-@@ -8,8 +8,11 @@ struct item {
- };
- 
- struct item *item_create(unsigned long index);
--int __item_insert(struct radix_tree_root *root, struct item *item);
-+int __item_insert(struct radix_tree_root *root, struct item *item,
-+			unsigned order);
- int item_insert(struct radix_tree_root *root, unsigned long index);
-+int item_insert_order(struct radix_tree_root *root, unsigned long index,
-+			unsigned order);
- int item_delete(struct radix_tree_root *root, unsigned long index);
- struct item *item_lookup(struct radix_tree_root *root, unsigned long index);
- 
-@@ -23,6 +26,7 @@ void item_full_scan(struct radix_tree_ro
- void item_kill_tree(struct radix_tree_root *root);
- 
- void tag_check(void);
-+void multiorder_checks(void);
- 
- struct item *
- item_tag_set(struct radix_tree_root *root, unsigned long index, int tag);
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
 
-radix-tree-fix-several-shrinking-bugs-with-multiorder-entries.patch
 radix-tree-rewrite-__radix_tree_lookup.patch
 radix-tree-fix-multiorder-bug_on-in-radix_tree_insert.patch
 radix-tree-fix-radix_tree_create-for-sibling-entries.patch
