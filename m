@@ -1,113 +1,116 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-thp-khugepaged-should-scan-when-sleep-value-is-written.patch removed
- from -mm tree
-Date: Mon, 23 May 2016 12:47:04 -0700
-Message-ID: <57435e38.Lx9mLJOIksQupI7i%akpm@linux-foundation.org>
+ mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet.patch removed from -mm tree
+Date: Mon, 23 May 2016 12:47:07 -0700
+Message-ID: <57435e3b.WMIaQa3zW5jQnNGN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37169 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37174 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752527AbcEWTrF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:05 -0400
+	with ESMTP id S1752527AbcEWTrI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: yang.shi@linaro.org, iamjoonsoo.kim@lge.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: khugepaged should scan when sleep value is written
+     Subject: mm: page_is_guard(): return false when page_ext arrays are not allocated yet
 has been removed from the -mm tree.  Its filename was
-     mm-thp-khugepaged-should-scan-when-sleep-value-is-written.patch
+     mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: khugepaged should scan when sleep value is written
+From: Yang Shi <yang.shi@linaro.org>
+Subject: mm: page_is_guard(): return false when page_ext arrays are not allocated yet
 
-If a large value is written to scan_sleep_millisecs, for example, that
-period must lapse before khugepaged will wake up for periodic collapsing.
+When enabling the below kernel configs:
 
-If this value is tuned to 1 day, for example, and then re-tuned to its
-default 10s, khugepaged will still wait for a day before scanning again.
+CONFIG_DEFERRED_STRUCT_PAGE_INIT
+CONFIG_DEBUG_PAGEALLOC
+CONFIG_PAGE_EXTENSION
+CONFIG_DEBUG_VM
 
-This patch causes khugepaged to wakeup immediately when the value is
-changed and then sleep until that value is rewritten or the new value
-lapses.
+kernel bootup may fail due to the following oops:
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1605181453200.4786@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+BUG: unable to handle kernel NULL pointer dereference at           (null)
+IP: [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
+PGD 0
+Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
+Modules linked in:
+CPU: 11 PID: 106 Comm: pgdatinit1 Not tainted 4.6.0-rc5-next-20160427 #26
+Hardware name: Intel Corporation S5520HC/S5520HC, BIOS S5500.86B.01.10.0025.030220091519 03/02/2009
+task: ffff88017c080040 ti: ffff88017c084000 task.ti: ffff88017c084000
+RIP: 0010:[<ffffffff8118d982>]  [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
+RSP: 0000:ffff88017c087c48  EFLAGS: 00010046
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000001
+RDX: 0000000000000980 RSI: 0000000000000080 RDI: 0000000000660401
+RBP: ffff88017c087cd0 R08: 0000000000000401 R09: 0000000000000009
+R10: ffff88017c080040 R11: 000000000000000a R12: 0000000000000400
+R13: ffffea0019810000 R14: ffffea0019810040 R15: ffff88066cfe6080
+FS:  0000000000000000(0000) GS:ffff88066cd40000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000000002406000 CR4: 00000000000006e0
+Stack:
+ ffff88066cd5bbd8 ffff88066cfe6640 0000000000000000 0000000000000000
+ 0000001f0000001f ffff88066cd5bbe8 ffffea0019810000 000000008118f53e
+ 0000000000000009 0000000000000401 ffffffff0000000a 0000000000000001
+Call Trace:
+ [<ffffffff8118f602>] free_hot_cold_page+0x192/0x1d0
+ [<ffffffff8118f69c>] __free_pages+0x5c/0x90
+ [<ffffffff8262a676>] __free_pages_boot_core+0x11a/0x14e
+ [<ffffffff8262a6fa>] deferred_free_range+0x50/0x62
+ [<ffffffff8262aa46>] deferred_init_memmap+0x220/0x3c3
+ [<ffffffff8262a826>] ? setup_per_cpu_pageset+0x35/0x35
+ [<ffffffff8108b1f8>] kthread+0xf8/0x110
+ [<ffffffff81c1b732>] ret_from_fork+0x22/0x40
+ [<ffffffff8108b100>] ? kthread_create_on_node+0x200/0x200
+Code: 49 89 d4 48 c1 e0 06 49 01 c5 e9 de fe ff ff 4c 89 f7 44 89 4d b8 4c 89 45 c0 44 89 5d c8 48 89 4d d0 e8 62 c7 07 00 48 8b 4d d0 <48> 8b 00 44 8b 5d c8 4c 8b 45 c0 44 8b 4d b8 a8 02 0f 84 05 ff
+RIP  [<ffffffff8118d982>] free_pcppages_bulk+0x2d2/0x8d0
+ RSP <ffff88017c087c48>
+CR2: 0000000000000000
+
+The problem is lookup_page_ext() returns NULL then page_is_guard() tried to
+access it in page freeing.
+
+page_is_guard() depends on PAGE_EXT_DEBUG_GUARD bit of page extension
+flag, but freeing page might reach here before the page_ext arrays are
+allocated when feeding a range of pages to the allocator for the first
+time during bootup or memory hotplug.
+
+When it returns NULL, page_is_guard() should just return false instead of
+checking PAGE_EXT_DEBUG_GUARD unconditionally.
+
+Link: http://lkml.kernel.org/r/1463610225-29060-1-git-send-email-yang.shi@linaro.org
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ include/linux/mm.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/huge_memory.c~mm-thp-khugepaged-should-scan-when-sleep-value-is-written mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-khugepaged-should-scan-when-sleep-value-is-written
-+++ a/mm/huge_memory.c
-@@ -89,6 +89,7 @@ static unsigned int khugepaged_full_scan
- static unsigned int khugepaged_scan_sleep_millisecs __read_mostly = 10000;
- /* during fragmentation poll the hugepage allocator once every minute */
- static unsigned int khugepaged_alloc_sleep_millisecs __read_mostly = 60000;
-+static unsigned long khugepaged_sleep_expire;
- static struct task_struct *khugepaged_thread __read_mostly;
- static DEFINE_MUTEX(khugepaged_mutex);
- static DEFINE_SPINLOCK(khugepaged_mm_lock);
-@@ -467,6 +468,7 @@ static ssize_t scan_sleep_millisecs_stor
- 		return -EINVAL;
+diff -puN include/linux/mm.h~mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet include/linux/mm.h
+--- a/include/linux/mm.h~mm-page_is_guard-return-false-when-page_ext-arrays-are-not-allocated-yet
++++ a/include/linux/mm.h
+@@ -2386,6 +2386,9 @@ static inline bool page_is_guard(struct
+ 		return false;
  
- 	khugepaged_scan_sleep_millisecs = msecs;
-+	khugepaged_sleep_expire = 0;
- 	wake_up_interruptible(&khugepaged_wait);
- 
- 	return count;
-@@ -494,6 +496,7 @@ static ssize_t alloc_sleep_millisecs_sto
- 		return -EINVAL;
- 
- 	khugepaged_alloc_sleep_millisecs = msecs;
-+	khugepaged_sleep_expire = 0;
- 	wake_up_interruptible(&khugepaged_wait);
- 
- 	return count;
-@@ -2791,15 +2794,25 @@ static void khugepaged_do_scan(void)
- 		put_page(hpage);
+ 	page_ext = lookup_page_ext(page);
++	if (unlikely(!page_ext))
++		return false;
++
+ 	return test_bit(PAGE_EXT_DEBUG_GUARD, &page_ext->flags);
  }
- 
-+static bool khugepaged_should_wakeup(void)
-+{
-+	return kthread_should_stop() ||
-+	       time_after_eq(jiffies, khugepaged_sleep_expire);
-+}
-+
- static void khugepaged_wait_work(void)
- {
- 	if (khugepaged_has_work()) {
--		if (!khugepaged_scan_sleep_millisecs)
-+		const unsigned long scan_sleep_jiffies =
-+			msecs_to_jiffies(khugepaged_scan_sleep_millisecs);
-+
-+		if (!scan_sleep_jiffies)
- 			return;
- 
-+		khugepaged_sleep_expire = jiffies + scan_sleep_jiffies;
- 		wait_event_freezable_timeout(khugepaged_wait,
--					     kthread_should_stop(),
--			msecs_to_jiffies(khugepaged_scan_sleep_millisecs));
-+					     khugepaged_should_wakeup(),
-+					     scan_sleep_jiffies);
- 		return;
- 	}
- 
+ #else
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from yang.shi@linaro.org are
 
-mm-migrate-increment-fail-count-on-enomem.patch
+mm-move-page_ext_init-after-all-struct-pages-are-initialized-v2.patch
 
