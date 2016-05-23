@@ -1,182 +1,170 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch removed from -mm tree
-Date: Mon, 23 May 2016 12:45:30 -0700
-Message-ID: <57435dda.u2iNjF+kFUcc/RtJ%akpm@linux-foundation.org>
+ mm-compaction-abstract-compaction-feedback-to-helpers.patch removed from
+ -mm tree
+Date: Mon, 23 May 2016 12:45:26 -0700
+Message-ID: <57435dd6.qCpRHXT/PuItdTlk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36877 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751957AbcEWTpb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:31 -0400
+	with ESMTP id S1751957AbcEWTp1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@techsingularity.net, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: throttle on IO only when there are too many dirty and writeback pages
+     Subject: mm, compaction: abstract compaction feedback to helpers
 has been removed from the -mm tree.  Its filename was
-     mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+     mm-compaction-abstract-compaction-feedback-to-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: throttle on IO only when there are too many dirty and writeback pages
+Subject: mm, compaction: abstract compaction feedback to helpers
 
-wait_iff_congested has been used to throttle allocator before it retried
-another round of direct reclaim to allow the writeback to make some
-progress and prevent reclaim from looping over dirty/writeback pages
-without making any progress.  We used to do congestion_wait before
-0e093d99763e ("writeback: do not sleep on the congestion queue if there
-are no congested BDIs or if significant congestion is not being
-encountered in the current zone") but that led to undesirable stalls and
-sleeping for the full timeout even when the BDI wasn't congested.  Hence
-wait_iff_congested was used instead.  But it seems that even
-wait_iff_congested doesn't work as expected.  We might have a small file
-LRU list with all pages dirty/writeback and yet the bdi is not congested
-so this is just a cond_resched in the end and can end up triggering pre
-mature OOM.
+Compaction can provide a wild variation of feedback to the caller.  Many
+of them are implementation specific and the caller of the compaction
+(especially the page allocator) shouldn't be bound to specifics of the
+current implementation.
 
-This patch replaces the unconditional wait_iff_congested by
-congestion_wait which is executed only if we _know_ that the last round of
-direct reclaim didn't make any progress and dirty+writeback pages are more
-than a half of the reclaimable pages on the zone which might be usable for
-our target allocation.  This shouldn't reintroduce stalls fixed by
-0e093d99763e because congestion_wait is called only when we are getting
-hopeless when sleeping is a better choice than OOM with many pages under
-IO.
+This patch abstracts the feedback into three basic types:
+	- compaction_made_progress - compaction was active and made some
+	  progress.
+	- compaction_failed - compaction failed and further attempts to
+	  invoke it would most probably fail and therefore it is not
+	  worth retrying
+	- compaction_withdrawn - compaction wasn't invoked for an
+          implementation specific reasons. In the current implementation
+          it means that the compaction was deferred, contended or the
+          page scanners met too early without any progress. Retrying is
+          still worthwhile.
 
-We have to preserve logic introduced by 373ccbe59270 ("mm, vmstat: allow
-WQ concurrency to discover memory reclaim doesn't make any progress") into
-the __alloc_pages_slowpath now that wait_iff_congested is not used
-anymore.  As the only remaining user of wait_iff_congested is
-shrink_inactive_list we can remove the WQ specific short sleep from
-wait_iff_congested because the sleep is needed to be done only once in the
-allocation retry cycle.
-
-[mhocko@suse.com: high_zoneidx->ac_classzone_idx to evaluate memory reserves properly]
- Link: http://lkml.kernel.org/r/1463051677-29418-2-git-send-email-mhocko@kernel.org
+[vbabka@suse.cz: do not change thp back off behavior]
+[akpm@linux-foundation.org: fix typo in comment, per Hillf]
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |   20 +++-----------------
- mm/page_alloc.c  |   41 +++++++++++++++++++++++++++++++++++++----
- 2 files changed, 40 insertions(+), 21 deletions(-)
+ include/linux/compaction.h |   79 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 79 insertions(+)
 
-diff -puN mm/backing-dev.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages mm/backing-dev.c
---- a/mm/backing-dev.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages
-+++ a/mm/backing-dev.c
-@@ -957,9 +957,8 @@ EXPORT_SYMBOL(congestion_wait);
-  * jiffies for either a BDI to exit congestion of the given @sync queue
-  * or a write to complete.
-  *
-- * In the absence of zone congestion, a short sleep or a cond_resched is
-- * performed to yield the processor and to allow other subsystems to make
-- * a forward progress.
-+ * In the absence of zone congestion, cond_resched() is called to yield
-+ * the processor if necessary but otherwise does not sleep.
-  *
-  * The return value is 0 if the sleep is for the full timeout. Otherwise,
-  * it is the number of jiffies that were still remaining when the function
-@@ -979,20 +978,7 @@ long wait_iff_congested(struct zone *zon
- 	 */
- 	if (atomic_read(&nr_wb_congested[sync]) == 0 ||
- 	    !test_bit(ZONE_CONGESTED, &zone->flags)) {
--
--		/*
--		 * Memory allocation/reclaim might be called from a WQ
--		 * context and the current implementation of the WQ
--		 * concurrency control doesn't recognize that a particular
--		 * WQ is congested if the worker thread is looping without
--		 * ever sleeping. Therefore we have to do a short sleep
--		 * here rather than calling cond_resched().
--		 */
--		if (current->flags & PF_WQ_WORKER)
--			schedule_timeout_uninterruptible(1);
--		else
--			cond_resched();
--
-+		cond_resched();
- 		/* In case we scheduled, work out time remaining */
- 		ret = timeout - (jiffies - start);
- 		if (ret < 0)
-diff -puN mm/page_alloc.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages
-+++ a/mm/page_alloc.c
-@@ -3436,8 +3436,9 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
- 					ac->nodemask) {
- 		unsigned long available;
-+		unsigned long reclaimable;
+diff -puN include/linux/compaction.h~mm-compaction-abstract-compaction-feedback-to-helpers include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-abstract-compaction-feedback-to-helpers
++++ a/include/linux/compaction.h
+@@ -78,6 +78,70 @@ extern void compaction_defer_reset(struc
+ 				bool alloc_success);
+ extern bool compaction_restarting(struct zone *zone, int order);
  
--		available = zone_reclaimable_pages(zone);
-+		available = reclaimable = zone_reclaimable_pages(zone);
- 		available -= DIV_ROUND_UP(no_progress_loops * available,
- 					  MAX_RECLAIM_RETRIES);
- 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
-@@ -3447,9 +3448,41 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 		 * available?
- 		 */
- 		if (__zone_watermark_ok(zone, order, min_wmark_pages(zone),
--				ac->high_zoneidx, alloc_flags, available)) {
--			/* Wait for some write requests to complete then retry */
--			wait_iff_congested(zone, BLK_RW_ASYNC, HZ/50);
-+				ac_classzone_idx(ac), alloc_flags, available)) {
-+			/*
-+			 * If we didn't make any progress and have a lot of
-+			 * dirty + writeback pages then we should wait for
-+			 * an IO to complete to slow down the reclaim and
-+			 * prevent from pre mature OOM
-+			 */
-+			if (!did_some_progress) {
-+				unsigned long writeback;
-+				unsigned long dirty;
++/* Compaction has made some progress and retrying makes sense */
++static inline bool compaction_made_progress(enum compact_result result)
++{
++	/*
++	 * Even though this might sound confusing this in fact tells us
++	 * that the compaction successfully isolated and migrated some
++	 * pageblocks.
++	 */
++	if (result == COMPACT_PARTIAL)
++		return true;
 +
-+				writeback = zone_page_state_snapshot(zone,
-+								     NR_WRITEBACK);
-+				dirty = zone_page_state_snapshot(zone, NR_FILE_DIRTY);
++	return false;
++}
 +
-+				if (2*(writeback + dirty) > reclaimable) {
-+					congestion_wait(BLK_RW_ASYNC, HZ/10);
-+					return true;
-+				}
-+			}
++/* Compaction has failed and it doesn't make much sense to keep retrying. */
++static inline bool compaction_failed(enum compact_result result)
++{
++	/* All zones were scanned completely and still not result. */
++	if (result == COMPACT_COMPLETE)
++		return true;
 +
-+			/*
-+			 * Memory allocation/reclaim might be called from a WQ
-+			 * context and the current implementation of the WQ
-+			 * concurrency control doesn't recognize that
-+			 * a particular WQ is congested if the worker thread is
-+			 * looping without ever sleeping. Therefore we have to
-+			 * do a short sleep here rather than calling
-+			 * cond_resched().
-+			 */
-+			if (current->flags & PF_WQ_WORKER)
-+				schedule_timeout_uninterruptible(1);
-+			else
-+				cond_resched();
++	return false;
++}
 +
- 			return true;
- 		}
- 	}
++/*
++ * Compaction  has backed off for some reason. It might be throttling or
++ * lock contention. Retrying is still worthwhile.
++ */
++static inline bool compaction_withdrawn(enum compact_result result)
++{
++	/*
++	 * Compaction backed off due to watermark checks for order-0
++	 * so the regular reclaim has to try harder and reclaim something.
++	 */
++	if (result == COMPACT_SKIPPED)
++		return true;
++
++	/*
++	 * If compaction is deferred for high-order allocations, it is
++	 * because sync compaction recently failed. If this is the case
++	 * and the caller requested a THP allocation, we do not want
++	 * to heavily disrupt the system, so we fail the allocation
++	 * instead of entering direct reclaim.
++	 */
++	if (result == COMPACT_DEFERRED)
++		return true;
++
++	/*
++	 * If compaction in async mode encounters contention or blocks higher
++	 * priority task we back off early rather than cause stalls.
++	 */
++	if (result == COMPACT_CONTENDED)
++		return true;
++
++	/*
++	 * Page scanners have met but we haven't scanned full zones so this
++	 * is a back off in fact.
++	 */
++	if (result == COMPACT_PARTIAL_SKIPPED)
++		return true;
++
++	return false;
++}
++
+ extern int kcompactd_run(int nid);
+ extern void kcompactd_stop(int nid);
+ extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx);
+@@ -113,6 +177,21 @@ static inline bool compaction_deferred(s
+ {
+ 	return true;
+ }
++
++static inline bool compaction_made_progress(enum compact_result result)
++{
++	return false;
++}
++
++static inline bool compaction_failed(enum compact_result result)
++{
++	return false;
++}
++
++static inline bool compaction_withdrawn(enum compact_result result)
++{
++	return true;
++}
+ 
+ static inline int kcompactd_run(int nid)
+ {
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
 mm-oom-protect-costly-allocations-some-more.patch
 mm-consider-compaction-feedback-also-for-costly-allocation.patch
 mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
