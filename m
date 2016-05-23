@@ -1,200 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [patch 42/84] kexec: do a cleanup for function kexec_load
-Date: Mon, 23 May 2016 16:24:19 -0700
-Message-ID: <57439123.1Tom7EytJni5y9aX%akpm@linux-foundation.org>
+Subject: [patch 40/84] kexec: provide
+ arch_kexec_protect(unprotect)_crashkres()
+Date: Mon, 23 May 2016 16:24:13 -0700
+Message-ID: <5743911d.iNwRMHMnXE8JaJGm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42235 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42225 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751835AbcEWXYV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:24:21 -0400
+	with ESMTP id S1752271AbcEWXYP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:24:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mnfhuang@gmail.com, bhe@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, xlpang@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xlpang@redhat.com, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, mhuang@redhat.com, vgoyal@redhat.com
 
-From: Minfei Huang <mnfhuang@gmail.com>
-Subject: kexec: do a cleanup for function kexec_load
+From: Xunlei Pang <xlpang@redhat.com>
+Subject: kexec: provide arch_kexec_protect(unprotect)_crashkres()
 
-There are a lof of work to be done in function kexec_load, not only for
-allocating structs and loading initram, but also for some misc.
+Implement the protection method for the crash kernel memory reservation
+for the 64-bit x86 kdump.
 
-To make it more clear, wrap a new function do_kexec_load which is used to
-allocate structs and load initram.  And the pre-work will be done in
-kexec_load.
-
-Signed-off-by: Minfei Huang <mnfhuang@gmail.com>
+Signed-off-by: Xunlei Pang <xlpang@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Minfei Huang <mhuang@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Xunlei Pang <xlpang@redhat.com>
 Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |  125 +++++++++++++++++++++++++----------------------
- 1 file changed, 69 insertions(+), 56 deletions(-)
+ arch/x86/kernel/machine_kexec_64.c |   45 +++++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
 
-diff -puN kernel/kexec.c~kexec-do-a-cleanup-for-function-kexec_load kernel/kexec.c
---- a/kernel/kexec.c~kexec-do-a-cleanup-for-function-kexec_load
-+++ a/kernel/kexec.c
-@@ -103,6 +103,74 @@ out_free_image:
- 	return ret;
+diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-provide-arch_kexec_protectunprotect_crashkres arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~kexec-provide-arch_kexec_protectunprotect_crashkres
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -538,3 +538,48 @@ overflow:
+ 	return -ENOEXEC;
  }
- 
-+static int do_kexec_load(unsigned long entry, unsigned long nr_segments,
-+		struct kexec_segment __user *segments, unsigned long flags)
+ #endif /* CONFIG_KEXEC_FILE */
++
++static int
++kexec_mark_range(unsigned long start, unsigned long end, bool protect)
 +{
-+	struct kimage **dest_image, *image;
-+	unsigned long i;
-+	int ret;
-+
-+	if (flags & KEXEC_ON_CRASH) {
-+		dest_image = &kexec_crash_image;
-+		if (kexec_crash_image)
-+			arch_kexec_unprotect_crashkres();
-+	} else {
-+		dest_image = &kexec_image;
-+	}
-+
-+	if (nr_segments == 0) {
-+		/* Uninstall image */
-+		kimage_free(xchg(dest_image, NULL));
-+		return 0;
-+	}
-+	if (flags & KEXEC_ON_CRASH) {
-+		/*
-+		 * Loading another kernel to switch to if this one
-+		 * crashes.  Free any current crash dump kernel before
-+		 * we corrupt it.
-+		 */
-+		kimage_free(xchg(&kexec_crash_image, NULL));
-+	}
-+
-+	ret = kimage_alloc_init(&image, entry, nr_segments, segments, flags);
-+	if (ret)
-+		return ret;
-+
-+	if (flags & KEXEC_ON_CRASH)
-+		crash_map_reserved_pages();
-+
-+	if (flags & KEXEC_PRESERVE_CONTEXT)
-+		image->preserve_context = 1;
-+
-+	ret = machine_kexec_prepare(image);
-+	if (ret)
-+		goto out;
-+
-+	for (i = 0; i < nr_segments; i++) {
-+		ret = kimage_load_segment(image, &image->segment[i]);
-+		if (ret)
-+			goto out;
-+	}
-+
-+	kimage_terminate(image);
-+
-+	/* Install the new kernel and uninstall the old */
-+	image = xchg(dest_image, image);
-+
-+out:
-+	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
-+		arch_kexec_protect_crashkres();
++	struct page *page;
++	unsigned int nr_pages;
 +
 +	/*
-+	 * Once the reserved memory is mapped, we should unmap this memory
-+	 * before returning
++	 * For physical range: [start, end]. We must skip the unassigned
++	 * crashk resource with zero-valued "end" member.
 +	 */
-+	if (flags & KEXEC_ON_CRASH)
-+		crash_unmap_reserved_pages();
-+	kimage_free(image);
-+	return ret;
++	if (!end || start > end)
++		return 0;
++
++	page = pfn_to_page(start >> PAGE_SHIFT);
++	nr_pages = (end >> PAGE_SHIFT) - (start >> PAGE_SHIFT) + 1;
++	if (protect)
++		return set_pages_ro(page, nr_pages);
++	else
++		return set_pages_rw(page, nr_pages);
 +}
 +
- /*
-  * Exec Kernel system call: for obvious reasons only root may call it.
-  *
-@@ -127,7 +195,6 @@ out_free_image:
- SYSCALL_DEFINE4(kexec_load, unsigned long, entry, unsigned long, nr_segments,
- 		struct kexec_segment __user *, segments, unsigned long, flags)
- {
--	struct kimage **dest_image, *image;
- 	int result;
- 
- 	/* We only trust the superuser with rebooting the system. */
-@@ -152,9 +219,6 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
- 	if (nr_segments > KEXEC_SEGMENT_MAX)
- 		return -EINVAL;
- 
--	image = NULL;
--	result = 0;
--
- 	/* Because we write directly to the reserved memory
- 	 * region when loading crash kernels we need a mutex here to
- 	 * prevent multiple crash  kernels from attempting to load
-@@ -166,63 +230,12 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
- 	if (!mutex_trylock(&kexec_mutex))
- 		return -EBUSY;
- 
--	dest_image = &kexec_image;
--	if (flags & KEXEC_ON_CRASH) {
--		dest_image = &kexec_crash_image;
--		if (kexec_crash_image)
--			arch_kexec_unprotect_crashkres();
--	}
--
--	if (nr_segments > 0) {
--		unsigned long i;
--
--		if (flags & KEXEC_ON_CRASH) {
--			/*
--			 * Loading another kernel to switch to if this one
--			 * crashes.  Free any current crash dump kernel before
--			 * we corrupt it.
--			 */
--
--			kimage_free(xchg(&kexec_crash_image, NULL));
--			result = kimage_alloc_init(&image, entry, nr_segments,
--						   segments, flags);
--			crash_map_reserved_pages();
--		} else {
--			/* Loading another kernel to reboot into. */
--
--			result = kimage_alloc_init(&image, entry, nr_segments,
--						   segments, flags);
--		}
--		if (result)
--			goto unmap_page;
--
--		if (flags & KEXEC_PRESERVE_CONTEXT)
--			image->preserve_context = 1;
--		result = machine_kexec_prepare(image);
--		if (result)
--			goto unmap_page;
--
--		for (i = 0; i < nr_segments; i++) {
--			result = kimage_load_segment(image, &image->segment[i]);
--			if (result)
--				goto unmap_page;
--		}
--		kimage_terminate(image);
--unmap_page:
--		if (flags & KEXEC_ON_CRASH)
--			crash_unmap_reserved_pages();
--		if (result)
--			goto out;
--	}
--	/* Install the new kernel, and  Uninstall the old */
--	image = xchg(dest_image, image);
-+	result = do_kexec_load(entry, nr_segments, segments, flags);
- 
--out:
- 	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
- 		arch_kexec_protect_crashkres();
- 
- 	mutex_unlock(&kexec_mutex);
--	kimage_free(image);
- 
- 	return result;
- }
++static void kexec_mark_crashkres(bool protect)
++{
++	unsigned long control;
++
++	kexec_mark_range(crashk_low_res.start, crashk_low_res.end, protect);
++
++	/* Don't touch the control code page used in crash_kexec().*/
++	control = PFN_PHYS(page_to_pfn(kexec_crash_image->control_code_page));
++	/* Control code page is located in the 2nd page. */
++	kexec_mark_range(crashk_res.start, control + PAGE_SIZE - 1, protect);
++	control += KEXEC_CONTROL_PAGE_SIZE;
++	kexec_mark_range(control, crashk_res.end, protect);
++}
++
++void arch_kexec_protect_crashkres(void)
++{
++	kexec_mark_crashkres(true);
++}
++
++void arch_kexec_unprotect_crashkres(void)
++{
++	kexec_mark_crashkres(false);
++}
 _
