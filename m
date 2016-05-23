@@ -1,140 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- radix-tree-test-suite-keep-regression-test-runs-short.patch removed from
- -mm tree
-Date: Mon, 23 May 2016 12:49:20 -0700
-Message-ID: <57435ec0.DTCXxjWEuyaNp7wO%akpm@linux-foundation.org>
+Subject: [merged] efivars-use-generic-uuid-library.patch removed from -mm
+ tree
+Date: Mon, 23 May 2016 12:48:59 -0700
+Message-ID: <57435eab.9J1VnnDU1Q+ByNNY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37939 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37889 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932081AbcEWTtV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:49:21 -0400
+	with ESMTP id S932081AbcEWTtF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:49:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, axboe@kernel.dk, dmitry.kasatkin@gmail.com, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, viro@zeniv.linux.org.uk, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix tree test suite: keep regression test runs short
+     Subject: fs/efivarfs/inode.c: use generic UUID library
 has been removed from the -mm tree.  Its filename was
-     radix-tree-test-suite-keep-regression-test-runs-short.patch
+     efivars-use-generic-uuid-library.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: radix tree test suite: keep regression test runs short
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: fs/efivarfs/inode.c: use generic UUID library
 
-Currently the full suite of regression tests take upwards of 30 minutes to
-run on my development machine.  The vast majority of this time is taken by
-the big_gang_check() and copy_tag_check() tests, which each run their
-tests through thousands of iterations...does this have value?
+Instead of opencoding let's use generic UUID library functions here.
 
-Without big_gang_check() and copy_tag_check(), the test suite runs in
-around 15 seconds on my box.
-
-Honestly the first time I ever ran through the entire test suite was to
-gather the timings for this email - it simply takes too long to be useful
-on a normal basis.
-
-Instead, hide the excessive iterations through big_gang_check() and
-copy_tag_check() tests behind an '-l' flag (for "long run") in case they
-are still useful, but allow the regression test suite to complete in a
-reasonable amount of time.  We still run each of these tests a few times
-(3 at present) to try and keep the test coverage.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/main.c |   22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ fs/efivarfs/inode.c |   40 +++-------------------------------------
+ 1 file changed, 3 insertions(+), 37 deletions(-)
 
-diff -puN tools/testing/radix-tree/main.c~radix-tree-test-suite-keep-regression-test-runs-short tools/testing/radix-tree/main.c
---- a/tools/testing/radix-tree/main.c~radix-tree-test-suite-keep-regression-test-runs-short
-+++ a/tools/testing/radix-tree/main.c
-@@ -61,11 +61,11 @@ void __big_gang_check(void)
- 	} while (!wrapped);
+diff -puN fs/efivarfs/inode.c~efivars-use-generic-uuid-library fs/efivarfs/inode.c
+--- a/fs/efivarfs/inode.c~efivars-use-generic-uuid-library
++++ a/fs/efivarfs/inode.c
+@@ -11,6 +11,7 @@
+ #include <linux/fs.h>
+ #include <linux/ctype.h>
+ #include <linux/slab.h>
++#include <linux/uuid.h>
+ 
+ #include "internal.h"
+ 
+@@ -46,11 +47,7 @@ struct inode *efivarfs_get_inode(struct
+  */
+ bool efivarfs_valid_name(const char *str, int len)
+ {
+-	static const char dashes[EFI_VARIABLE_GUID_LEN] = {
+-		[8] = 1, [13] = 1, [18] = 1, [23] = 1
+-	};
+ 	const char *s = str + len - EFI_VARIABLE_GUID_LEN;
+-	int i;
+ 
+ 	/*
+ 	 * We need a GUID, plus at least one letter for the variable name,
+@@ -68,37 +65,7 @@ bool efivarfs_valid_name(const char *str
+ 	 *
+ 	 *	12345678-1234-1234-1234-123456789abc
+ 	 */
+-	for (i = 0; i < EFI_VARIABLE_GUID_LEN; i++) {
+-		if (dashes[i]) {
+-			if (*s++ != '-')
+-				return false;
+-		} else {
+-			if (!isxdigit(*s++))
+-				return false;
+-		}
+-	}
+-
+-	return true;
+-}
+-
+-static void efivarfs_hex_to_guid(const char *str, efi_guid_t *guid)
+-{
+-	guid->b[0] = hex_to_bin(str[6]) << 4 | hex_to_bin(str[7]);
+-	guid->b[1] = hex_to_bin(str[4]) << 4 | hex_to_bin(str[5]);
+-	guid->b[2] = hex_to_bin(str[2]) << 4 | hex_to_bin(str[3]);
+-	guid->b[3] = hex_to_bin(str[0]) << 4 | hex_to_bin(str[1]);
+-	guid->b[4] = hex_to_bin(str[11]) << 4 | hex_to_bin(str[12]);
+-	guid->b[5] = hex_to_bin(str[9]) << 4 | hex_to_bin(str[10]);
+-	guid->b[6] = hex_to_bin(str[16]) << 4 | hex_to_bin(str[17]);
+-	guid->b[7] = hex_to_bin(str[14]) << 4 | hex_to_bin(str[15]);
+-	guid->b[8] = hex_to_bin(str[19]) << 4 | hex_to_bin(str[20]);
+-	guid->b[9] = hex_to_bin(str[21]) << 4 | hex_to_bin(str[22]);
+-	guid->b[10] = hex_to_bin(str[24]) << 4 | hex_to_bin(str[25]);
+-	guid->b[11] = hex_to_bin(str[26]) << 4 | hex_to_bin(str[27]);
+-	guid->b[12] = hex_to_bin(str[28]) << 4 | hex_to_bin(str[29]);
+-	guid->b[13] = hex_to_bin(str[30]) << 4 | hex_to_bin(str[31]);
+-	guid->b[14] = hex_to_bin(str[32]) << 4 | hex_to_bin(str[33]);
+-	guid->b[15] = hex_to_bin(str[34]) << 4 | hex_to_bin(str[35]);
++	return uuid_is_valid(s);
  }
  
--void big_gang_check(void)
-+void big_gang_check(bool long_run)
- {
- 	int i;
+ static int efivarfs_create(struct inode *dir, struct dentry *dentry,
+@@ -119,8 +86,7 @@ static int efivarfs_create(struct inode
+ 	/* length of the variable name itself: remove GUID and separator */
+ 	namelen = dentry->d_name.len - EFI_VARIABLE_GUID_LEN - 1;
  
--	for (i = 0; i < 1000; i++) {
-+	for (i = 0; i < (long_run ? 1000 : 3); i++) {
- 		__big_gang_check();
- 		srand(time(0));
- 		printf("%d ", i);
-@@ -270,7 +270,7 @@ static void locate_check(void)
- 	item_kill_tree(&tree);
- }
+-	efivarfs_hex_to_guid(dentry->d_name.name + namelen + 1,
+-			&var->var.VendorGuid);
++	uuid_le_to_bin(dentry->d_name.name + namelen + 1, &var->var.VendorGuid);
  
--static void single_thread_tests(void)
-+static void single_thread_tests(bool long_run)
- {
- 	int i;
- 
-@@ -285,9 +285,9 @@ static void single_thread_tests(void)
- 	printf("after add_and_check: %d allocated\n", nr_allocated);
- 	dynamic_height_check();
- 	printf("after dynamic_height_check: %d allocated\n", nr_allocated);
--	big_gang_check();
-+	big_gang_check(long_run);
- 	printf("after big_gang_check: %d allocated\n", nr_allocated);
--	for (i = 0; i < 2000; i++) {
-+	for (i = 0; i < (long_run ? 2000 : 3); i++) {
- 		copy_tag_check();
- 		printf("%d ", i);
- 		fflush(stdout);
-@@ -295,15 +295,23 @@ static void single_thread_tests(void)
- 	printf("after copy_tag_check: %d allocated\n", nr_allocated);
- }
- 
--int main(void)
-+int main(int argc, char **argv)
- {
-+	bool long_run = false;
-+	int opt;
-+
-+	while ((opt = getopt(argc, argv, "l")) != -1) {
-+		if (opt == 'l')
-+			long_run = true;
-+	}
-+
- 	rcu_register_thread();
- 	radix_tree_init();
- 
- 	regression1_test();
- 	regression2_test();
- 	regression3_test();
--	single_thread_tests();
-+	single_thread_tests(long_run);
- 
- 	sleep(1);
- 	printf("after sleep(1): %d allocated\n", nr_allocated);
+ 	if (efivar_variable_is_removable(var->var.VendorGuid,
+ 					 dentry->d_name.name, namelen))
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-radix-tree-test-suite-rebuild-when-headers-change.patch
-radix-tree-remove-unused-looping-macros.patch
-radix-tree-add-support-for-multi-order-iterating.patch
-radix-tree-test-suite-multi-order-iteration-test.patch
-radix-tree-rewrite-radix_tree_tag_set.patch
-radix-tree-rewrite-radix_tree_tag_clear.patch
-radix-tree-rewrite-radix_tree_tag_get.patch
-radix-tree-test-suite-add-multi-order-tag-test.patch
-radix-tree-add-test-for-radix_tree_locate_item.patch
-radix-tree-fix-radix_tree_dump-for-multi-order-entries.patch
+genhd-move-to-use-generic-uuid-library.patch
+ldm-use-generic-uuid-library.patch
+wmi-use-generic-uuid-library.patch
 
