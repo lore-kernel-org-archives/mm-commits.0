@@ -1,102 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [patch 55/84] scripts/gdb: add io resource readers
-Date: Mon, 23 May 2016 16:24:56 -0700
-Message-ID: <57439148.nUvzcmrhUvF1S5o1%akpm@linux-foundation.org>
+Subject: [patch 57/84] scripts/gdb: add cpu iterators
+Date: Mon, 23 May 2016 16:25:02 -0700
+Message-ID: <5743914e.vYKUBsx2Vatt7D/H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42302 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752398AbcEWXY5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:24:57 -0400
+	with ESMTP id S1752398AbcEWXZD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:25:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kieran.bingham@linaro.org, jan.kiszka@siemens.com
 
 From: Kieran Bingham <kieran.bingham@linaro.org>
-Subject: scripts/gdb: add io resource readers
+Subject: scripts/gdb: add cpu iterators
 
-Provide iomem_resource and ioports_resource printers and command hooks
+The linux kernel provides macro's for iterating against values from the
+cpu_list masks. By providing some commonly used masks, we can mirror the
+kernels helper macros with easy to use generators.
 
-It can be quite interesting to halt the kernel as it's booting and check
-to see this list as it is being populated.
-
-It should be useful in the event that a kernel is not booting, you
-can identify what memory resources have been registered
-
-Link: http://lkml.kernel.org/r/f0a6b9fa9c92af4d7ed2e7343ccc84150e9c6fc5.1462865983.git.jan.kiszka@siemens.com
+Link: http://lkml.kernel.org/r/d045c6599771ada1999d49612ee30fd2f9acf17f.1462865983.git.jan.kiszka@siemens.com
 Signed-off-by: Kieran Bingham <kieran.bingham@linaro.org>
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/proc.py |   57 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
+ scripts/gdb/linux/cpus.py |   38 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff -puN scripts/gdb/linux/proc.py~scripts-gdb-add-io-resource-readers scripts/gdb/linux/proc.py
---- a/scripts/gdb/linux/proc.py~scripts-gdb-add-io-resource-readers
-+++ a/scripts/gdb/linux/proc.py
-@@ -39,3 +39,60 @@ class LxVersion(gdb.Command):
-         gdb.write(gdb.parse_and_eval("linux_banner").string())
+diff -puN scripts/gdb/linux/cpus.py~scripts-gdb-add-cpu-iterators scripts/gdb/linux/cpus.py
+--- a/scripts/gdb/linux/cpus.py~scripts-gdb-add-cpu-iterators
++++ a/scripts/gdb/linux/cpus.py
+@@ -100,6 +100,44 @@ def cpu_list(mask_name):
+         yield cpu
  
- LxVersion()
+ 
++def each_online_cpu():
++    for cpu in cpu_list("__cpu_online_mask"):
++        yield cpu
 +
 +
-+# Resource Structure Printers
-+#  /proc/iomem
-+#  /proc/ioports
-+
-+def get_resources(resource, depth):
-+    while resource:
-+        yield resource, depth
-+
-+        child = resource['child']
-+        if child:
-+            for res, deep in get_resources(child, depth + 1):
-+                yield res, deep
-+
-+        resource = resource['sibling']
++def each_present_cpu():
++    for cpu in cpu_list("__cpu_present_mask"):
++        yield cpu
 +
 +
-+def show_lx_resources(resource_str):
-+        resource = gdb.parse_and_eval(resource_str)
-+        width = 4 if resource['end'] < 0x10000 else 8
-+        # Iterate straight to the first child
-+        for res, depth in get_resources(resource['child'], 0):
-+            start = int(res['start'])
-+            end = int(res['end'])
-+            gdb.write(" " * depth * 2 +
-+                      "{0:0{1}x}-".format(start, width) +
-+                      "{0:0{1}x} : ".format(end, width) +
-+                      res['name'].string() + "\n")
++def each_possible_cpu():
++    for cpu in cpu_list("__cpu_possible_mask"):
++        yield cpu
 +
 +
-+class LxIOMem(gdb.Command):
-+    """Identify the IO memory resource locations defined by the kernel
++def each_active_cpu():
++    for cpu in cpu_list("__cpu_active_mask"):
++        yield cpu
 +
-+Equivalent to cat /proc/iomem on a running target"""
++
++class LxCpus(gdb.Command):
++    """List CPU status arrays
++
++Displays the known state of each CPU based on the kernel masks
++and can help identify the state of hotplugged CPUs"""
 +
 +    def __init__(self):
-+        super(LxIOMem, self).__init__("lx-iomem", gdb.COMMAND_DATA)
++        super(LxCpus, self).__init__("lx-cpus", gdb.COMMAND_DATA)
 +
 +    def invoke(self, arg, from_tty):
-+        return show_lx_resources("iomem_resource")
++        gdb.write("Possible CPUs : {}\n".format(list(each_possible_cpu())))
++        gdb.write("Present CPUs  : {}\n".format(list(each_present_cpu())))
++        gdb.write("Online CPUs   : {}\n".format(list(each_online_cpu())))
++        gdb.write("Active CPUs   : {}\n".format(list(each_active_cpu())))
 +
-+LxIOMem()
++LxCpus()
 +
 +
-+class LxIOPorts(gdb.Command):
-+    """Identify the IO port resource locations defined by the kernel
-+
-+Equivalent to cat /proc/ioports on a running target"""
-+
-+    def __init__(self):
-+        super(LxIOPorts, self).__init__("lx-ioports", gdb.COMMAND_DATA)
-+
-+    def invoke(self, arg, from_tty):
-+        return show_lx_resources("ioport_resource")
-+
-+LxIOPorts()
+ class PerCpu(gdb.Function):
+     """Return per-cpu variable.
+ 
 _
