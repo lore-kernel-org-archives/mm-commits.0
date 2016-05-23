@@ -1,65 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [patch 68/84] mm: make vm_munmap killable
-Date: Mon, 23 May 2016 16:25:33 -0700
-Message-ID: <5743916d.r/qDxaNkzOAq3Wj3%akpm@linux-foundation.org>
+Subject: [patch 70/84] mm, elf: handle vm_brk error
+Date: Mon, 23 May 2016 16:25:39 -0700
+Message-ID: <57439173.2EhmqKyLFg5+vZrE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42371 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42389 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753027AbcEWXZf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:25:35 -0400
+	with ESMTP id S1752247AbcEWXZl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:25:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, oleg@redhat.com, vbabka@suse.cz, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, vbabka@suse.cz, viro@zeniv.linux.org.uk
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: make vm_munmap killable
+Subject: mm, elf: handle vm_brk error
 
-Almost all current users of vm_munmap are ignoring the return value and so
-they do not handle potential error.  This means that some VMAs might stay
-behind.  This patch doesn't try to solve those potential problems.  Quite
-contrary it adds a new failure mode by using down_write_killable in
-vm_munmap.  This should be safer than other failure modes, though, because
-the process is guaranteed to die as soon as it leaves the kernel and
-exit_mmap will clean the whole address space.
-
-This will help in the OOM conditions when the oom victim might be stuck
-waiting for the mmap_sem for write which in turn can block oom_reaper
-which relies on the mmap_sem for read to make a forward progress and
-reclaim the address space of the victim.
+load_elf_library doesn't handle vm_brk failure although nothing really
+indicates it cannot do that because the function is allowed to fail due to
+vm_mmap failures already.  This might be not a problem now but later patch
+will make vm_brk killable (resp.  mmap_sem for write waiting will become
+killable) and so the failure will be more probable.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/binfmt_elf.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-make-vm_munmap-killable mm/mmap.c
---- a/mm/mmap.c~mm-make-vm_munmap-killable
-+++ a/mm/mmap.c
-@@ -2494,11 +2494,9 @@ int vm_munmap(unsigned long start, size_
- 	int ret;
- 	struct mm_struct *mm = current->mm;
+diff -puN fs/binfmt_elf.c~mm-elf-handle-vm_brk-error fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~mm-elf-handle-vm_brk-error
++++ a/fs/binfmt_elf.c
+@@ -1176,8 +1176,11 @@ static int load_elf_library(struct file
+ 	len = ELF_PAGESTART(eppnt->p_filesz + eppnt->p_vaddr +
+ 			    ELF_MIN_ALIGN - 1);
+ 	bss = eppnt->p_memsz + eppnt->p_vaddr;
+-	if (bss > len)
+-		vm_brk(len, bss - len);
++	if (bss > len) {
++		error = vm_brk(len, bss - len);
++		if (BAD_ADDR(error))
++			goto out_free_ph;
++	}
+ 	error = 0;
  
--	/*
--	 * XXX convert to down_write_killable as soon as all users are able
--	 * to handle the error.
--	 */
--	down_write(&mm->mmap_sem);
-+	if (down_write_killable(&mm->mmap_sem))
-+		return -EINTR;
-+
- 	ret = do_munmap(mm, start, len);
- 	up_write(&mm->mmap_sem);
- 	return ret;
+ out_free_ph:
 _
