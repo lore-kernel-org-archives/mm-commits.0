@@ -1,71 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kprobes-add-a-new-module-parameter.patch removed from
- -mm tree
-Date: Mon, 23 May 2016 12:51:57 -0700
-Message-ID: <57435f5d.VIQXwCgEo33u2Ch8%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 23 May 2016 13:03:06 -0700
+Message-ID: <574361fa.moWSwfsFp22H8jta%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38244 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38574 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932152AbcEWTv6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:51:58 -0400
+	with ESMTP id S1752577AbcEWUDH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 16:03:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shijie.huang@arm.com, pmladek@suse.com, steve.capper@arm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: samples/kprobes: add a new module parameter
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     kprobes-add-a-new-module-parameter.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Huang Shijie <shijie.huang@arm.com>
-Subject: samples/kprobes: add a new module parameter
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Add a new module parameter which can be used as the symbol name.  Without
-this patch, we can only test the "_do_fork" function with this kernel
-module.  With this patch, the module becomes more flexible; we can test
-any functions with this module with
-
-	# insmod kprobe_example.ko symbol="xxx"
-
-Link: http://lkml.kernel.org/r/1463535417-29637-1-git-send-email-shijie.huang@arm.com
-Signed-off-by: Huang Shijie <shijie.huang@arm.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Steve Capper <steve.capper@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/kprobes/kprobe_example.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/powerpc/include/asm/book3s/64/pgtable.h |    4 ----
+ drivers/iommu/arm-smmu.c                     |    3 ---
+ 2 files changed, 7 deletions(-)
 
-diff -puN samples/kprobes/kprobe_example.c~kprobes-add-a-new-module-parameter samples/kprobes/kprobe_example.c
---- a/samples/kprobes/kprobe_example.c~kprobes-add-a-new-module-parameter
-+++ a/samples/kprobes/kprobe_example.c
-@@ -14,9 +14,13 @@
- #include <linux/module.h>
- #include <linux/kprobes.h>
+diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~linux-next-git-rejects arch/powerpc/include/asm/book3s/64/pgtable.h
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~linux-next-git-rejects
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -835,10 +835,6 @@ static inline int has_transparent_hugepa
+ 		return radix__has_transparent_hugepage();
+ 	return hash__has_transparent_hugepage();
+ }
+-<<<<<<< HEAD
+-#define has_transparent_hugepage has_transparent_hugepage
+-=======
+->>>>>>> linux-next/akpm-base
  
-+#define MAX_SYMBOL_LEN	64
-+static char symbol[MAX_SYMBOL_LEN] = "_do_fork";
-+module_param_string(symbol, symbol, sizeof(symbol), 0644);
-+
- /* For each probe you need to allocate a kprobe structure */
- static struct kprobe kp = {
--	.symbol_name	= "_do_fork",
-+	.symbol_name	= symbol,
+ static inline unsigned long
+ pmd_hugepage_update(struct mm_struct *mm, unsigned long addr, pmd_t *pmdp,
+diff -puN drivers/iommu/arm-smmu.c~linux-next-git-rejects drivers/iommu/arm-smmu.c
+--- a/drivers/iommu/arm-smmu.c~linux-next-git-rejects
++++ a/drivers/iommu/arm-smmu.c
+@@ -397,15 +397,12 @@ struct arm_smmu_domain {
+ 	struct iommu_domain		domain;
  };
  
- /* kprobe pre_handler: called just before the probed instruction is executed */
+-<<<<<<< HEAD
+-=======
+ struct arm_smmu_phandle_args {
+ 	struct device_node *np;
+ 	int args_count;
+ 	uint32_t args[MAX_MASTER_STREAMIDS];
+ };
+ 
+->>>>>>> linux-next/akpm-base
+ static DEFINE_SPINLOCK(arm_smmu_devices_lock);
+ static LIST_HEAD(arm_smmu_devices);
+ 
 _
 
-Patches currently in -mm which might be from shijie.huang@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kprobes-print-out-the-symbol-name-for-the-hooks.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+allocate-idle-task-for-a-cpu-always-on-its-local-node-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
