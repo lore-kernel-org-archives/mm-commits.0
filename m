@@ -1,215 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fork-free-thread-in-copy_process-on-failure.patch
+Subject: [merged]
+ printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
  removed from -mm tree
-Date: Mon, 23 May 2016 12:48:18 -0700
-Message-ID: <57435e82.P407QZrvm8ksIHMC%akpm@linux-foundation.org>
+Date: Mon, 23 May 2016 12:48:28 -0700
+Message-ID: <57435e8c.8vNThQOPBS8srM1Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37731 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37762 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754404AbcEWTsX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:48:23 -0400
+	with ESMTP id S1754430AbcEWTs3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:48:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, a-jacquiot@ti.com, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, cmetcalf@mellanox.com, dalias@libc.org, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, fenghua.yu@intel.com, geert@linux-m68k.org, gxt@mprc.pku.edu.cn, heiko.carstens@de.ibm.com, hpa@zytor.com, hskinnemoen@gmail.com, ink@jurassic.park.msu.ru, james.hogan@imgtec.com, jcmvbkbc@gmail.com, jdike@addtoit.com, jejb@parisc-linux.org, jesper.nilsson@axis.com, jonas@southpole.se, lennox.wu@gmail.com, lftan@altera.com, linux@arm.linux.org.uk, liqin.linux@gmail.com, mattst88@gmail.com, mingo@redhat.com, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, realmz6@gmail.com, richard@nod.at, rkuo@codeaurora.org, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, tglx@linutroni
+To: pmladek@suse.com, benh@kernel.crashing.org, daniel.thompson@linaro.org, davem@davemloft.net, jack@suse.cz, jkosina@suse.com, mingo@redhat.com, peterz@infradead.org, ralf@linux-mips.org, rmk+kernel@arm.linux.org.uk, rostedt@goodmis.org, schwidefsky@de.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fork: free thread in copy_process on failure
+     Subject: printk/nmi: warn when some message has been lost in NMI context
 has been removed from the -mm tree.  Its filename was
-     fork-free-thread-in-copy_process-on-failure.patch
+     printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: fork: free thread in copy_process on failure
+From: Petr Mladek <pmladek@suse.com>
+Subject: printk/nmi: warn when some message has been lost in NMI context
 
-When using this program (as root):
-	#include <err.h>
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <unistd.h>
+We could not resize the temporary buffer in NMI context.  Let's warn if a
+message is lost.
 
-	#include <sys/io.h>
-	#include <sys/types.h>
-	#include <sys/wait.h>
+This is rather theoretical.  printk() should not be used in NMI.  The only
+sensible use is when we want to print backtrace from all CPUs.  The
+current buffer should be enough for this purpose.
 
-	#define ITER 1000
-	#define FORKERS 15
-	#define THREADS (6000/FORKERS) // 1850 is proc max
-
-	static void fork_100_wait()
-	{
-		unsigned a, to_wait = 0;
-
-		printf("\t%d forking %d\n", THREADS, getpid());
-
-		for (a = 0; a < THREADS; a++) {
-			switch (fork()) {
-			case 0:
-				usleep(1000);
-				exit(0);
-				break;
-			case -1:
-				break;
-			default:
-				to_wait++;
-				break;
-			}
-		}
-
-		printf("\t%d forked from %d, waiting for %d\n", THREADS, getpid(),
-				to_wait);
-
-		for (a = 0; a < to_wait; a++)
-			wait(NULL);
-
-		printf("\t%d waited from %d\n", THREADS, getpid());
-	}
-
-	static void run_forkers()
-	{
-		pid_t forkers[FORKERS];
-		unsigned a;
-
-		for (a = 0; a < FORKERS; a++) {
-			switch ((forkers[a] = fork())) {
-			case 0:
-				fork_100_wait();
-				exit(0);
-				break;
-			case -1:
-				err(1, "DIE fork of %d'th forker", a);
-				break;
-			default:
-				break;
-			}
-		}
-
-		for (a = 0; a < FORKERS; a++)
-			waitpid(forkers[a], NULL, 0);
-	}
-
-	int main()
-	{
-		unsigned a;
-		int ret;
-
-		ret = ioperm(10, 20, 0);
-		if (ret < 0)
-			err(1, "ioperm");
-
-		for (a = 0; a < ITER; a++)
-			run_forkers();
-
-		return 0;
-	}
-
-kmemleak reports many occurences of this leak:
-unreferenced object 0xffff8805917c8000 (size 8192):
-  comm "fork-leak", pid 2932, jiffies 4295354292 (age 1871.028s)
-  hex dump (first 32 bytes):
-    ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  ................
-    ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  ................
-  backtrace:
-    [<ffffffff814cfbf5>] kmemdup+0x25/0x50
-    [<ffffffff8103ab43>] copy_thread_tls+0x6c3/0x9a0
-    [<ffffffff81150174>] copy_process+0x1a84/0x5790
-    [<ffffffff811dc375>] wake_up_new_task+0x2d5/0x6f0
-    [<ffffffff8115411d>] _do_fork+0x12d/0x820
-...
-
-Due to the leakage of the memory items which should have been freed in
-arch/x86/kernel/process.c:exit_thread().
-
-Make sure the memory is freed when fork fails later in copy_process.
-This is done by calling exit_thread with the thread to kill.
-
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chen Liqin <liqin.linux@gmail.com>
-Cc: Chris Metcalf <cmetcalf@mellanox.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
-Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Cc: Lennox Wu <lennox.wu@gmail.com>
-Cc: Ley Foon Tan <lftan@altera.com>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Paul Mackerras <paulus@samba.org>
+[akpm@linux-foundation.org: whitespace fixlet]
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Richard Kuo <rkuo@codeaurora.org>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Steven Miao <realmz6@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Jiri Kosina <jkosina@suse.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/printk/internal.h |   11 +++++++++++
+ kernel/printk/nmi.c      |    5 ++++-
+ kernel/printk/printk.c   |   10 ++++++++++
+ 3 files changed, 25 insertions(+), 1 deletion(-)
 
-diff -puN kernel/fork.c~fork-free-thread-in-copy_process-on-failure kernel/fork.c
---- a/kernel/fork.c~fork-free-thread-in-copy_process-on-failure
-+++ a/kernel/fork.c
-@@ -1490,7 +1490,7 @@ static struct task_struct *copy_process(
- 		pid = alloc_pid(p->nsproxy->pid_ns_for_children);
- 		if (IS_ERR(pid)) {
- 			retval = PTR_ERR(pid);
--			goto bad_fork_cleanup_io;
-+			goto bad_fork_cleanup_thread;
- 		}
+diff -puN kernel/printk/internal.h~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context kernel/printk/internal.h
+--- a/kernel/printk/internal.h~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context
++++ a/kernel/printk/internal.h
+@@ -34,6 +34,12 @@ static inline __printf(1, 0) int vprintk
+ 	return this_cpu_read(printk_func)(fmt, args);
+ }
+ 
++extern atomic_t nmi_message_lost;
++static inline int get_nmi_message_lost(void)
++{
++	return atomic_xchg(&nmi_message_lost, 0);
++}
++
+ #else /* CONFIG_PRINTK_NMI */
+ 
+ static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
+@@ -41,4 +47,9 @@ static inline __printf(1, 0) int vprintk
+ 	return vprintk_default(fmt, args);
+ }
+ 
++static inline int get_nmi_message_lost(void)
++{
++	return 0;
++}
++
+ #endif /* CONFIG_PRINTK_NMI */
+diff -puN kernel/printk/nmi.c~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context kernel/printk/nmi.c
+--- a/kernel/printk/nmi.c~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context
++++ a/kernel/printk/nmi.c
+@@ -39,6 +39,7 @@
+  */
+ DEFINE_PER_CPU(printk_func_t, printk_func) = vprintk_default;
+ static int printk_nmi_irq_ready;
++atomic_t nmi_message_lost;
+ 
+ #define NMI_LOG_BUF_LEN (4096 - sizeof(atomic_t) - sizeof(struct irq_work))
+ 
+@@ -64,8 +65,10 @@ static int vprintk_nmi(const char *fmt,
+ again:
+ 	len = atomic_read(&s->len);
+ 
+-	if (len >= sizeof(s->buffer))
++	if (len >= sizeof(s->buffer)) {
++		atomic_inc(&nmi_message_lost);
+ 		return 0;
++	}
+ 
+ 	/*
+ 	 * Make sure that all old data have been read before the buffer was
+diff -puN kernel/printk/printk.c~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context
++++ a/kernel/printk/printk.c
+@@ -1617,6 +1617,7 @@ asmlinkage int vprintk_emit(int facility
+ 	unsigned long flags;
+ 	int this_cpu;
+ 	int printed_len = 0;
++	int nmi_message_lost;
+ 	bool in_sched = false;
+ 	/* cpu currently holding logbuf_lock in this function */
+ 	static unsigned int logbuf_cpu = UINT_MAX;
+@@ -1667,6 +1668,15 @@ asmlinkage int vprintk_emit(int facility
+ 					 strlen(recursion_msg));
  	}
  
-@@ -1652,6 +1652,8 @@ bad_fork_cancel_cgroup:
- bad_fork_free_pid:
- 	if (pid != &init_struct_pid)
- 		free_pid(pid);
-+bad_fork_cleanup_thread:
-+	exit_thread(p);
- bad_fork_cleanup_io:
- 	if (p->io_context)
- 		exit_io_context(p);
++	nmi_message_lost = get_nmi_message_lost();
++	if (unlikely(nmi_message_lost)) {
++		text_len = scnprintf(textbuf, sizeof(textbuf),
++				     "BAD LUCK: lost %d message(s) from NMI context!",
++				     nmi_message_lost);
++		printed_len += log_store(0, 2, LOG_PREFIX|LOG_NEWLINE, 0,
++					 NULL, 0, textbuf, text_len);
++	}
++
+ 	/*
+ 	 * The printf needs to come first; we need the syslog
+ 	 * prefix which might be passed-in as a parameter.
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from pmladek@suse.com are
 
-maintainers-remove-linux-listsopenriscnet.patch
-maintainers-remove-koichi-yasutake.patch
-kgdb-depends-on-vt.patch
+printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable.patch
+printk-nmi-flush-nmi-messages-on-the-system-panic.patch
 
