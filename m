@@ -1,81 +1,288 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-filemap-only-do-access-activations-on-reads.patch
+Subject: [merged] mm-compaction-change-compact_-constants-into-enum.patch
  removed from -mm tree
-Date: Mon, 23 May 2016 12:45:06 -0700
-Message-ID: <57435dc2.BAs9PpkgZqr7qXhr%akpm@linux-foundation.org>
+Date: Mon, 23 May 2016 12:45:14 -0700
+Message-ID: <57435dca.GNFS9Lx7fHSIuH6H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36791 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36816 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753796AbcEWTpH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:07 -0400
+	with ESMTP id S1750882AbcEWTpP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, andres@anarazel.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@techsingularity.net, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: filemap: only do access activations on reads
+     Subject: mm, compaction: change COMPACT_ constants into enum
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-only-do-access-activations-on-reads.patch
+     mm-compaction-change-compact_-constants-into-enum.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: filemap: only do access activations on reads
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, compaction: change COMPACT_ constants into enum
 
-Andres observed that his database workload is struggling with the
-transaction journal creating pressure on frequently read pages.
+Compaction code is doing weird dances between COMPACT_FOO -> int ->
+unsigned long
 
-Access patterns like transaction journals frequently write the same pages
-over and over, but in the majority of cases those pages are never read
-back.  There are no caching benefits to be had for those pages, so
-activating them and having them put pressure on pages that do benefit from
-caching is a bad choice.
+But there doesn't seem to be any reason for that.  All functions which
+return/use one of those constants are not expecting any other value so it
+really makes sense to define an enum for them and make it clear that no
+other values are expected.
 
-Leave page activations to read accesses and don't promote pages based on
-writes alone.
+This is a pure cleanup and shouldn't introduce any functional changes.
 
-It could be said that partially written pages do contain cache-worthy
-data, because even if *userspace* does not access the unwritten part, the
-kernel still has to read it from the filesystem for correctness.  However,
-a counter argument is that these pages enjoy at least *some* protection
-over other inactive file pages through the writeback cache, in the sense
-that dirty pages are written back with a delay and cache reclaim leaves
-them alone until they have been written back to disk.  Should that turn
-out to be insufficient and we see increased read IO from partial writes
-under memory pressure, we can always go back and update
-grab_cache_page_write_begin() to take (pos, len) so that it can tell
-partial writes from pages that don't need partial reads.  But for now,
-keep it simple.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Andres Freund <andres@anarazel.de>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compaction.h |   45 +++++++++++++++++++++--------------
+ mm/compaction.c            |   27 ++++++++++-----------
+ mm/page_alloc.c            |    2 -
+ 3 files changed, 42 insertions(+), 32 deletions(-)
 
-diff -puN mm/filemap.c~mm-filemap-only-do-access-activations-on-reads mm/filemap.c
---- a/mm/filemap.c~mm-filemap-only-do-access-activations-on-reads
-+++ a/mm/filemap.c
-@@ -2578,7 +2578,7 @@ struct page *grab_cache_page_write_begin
- 					pgoff_t index, unsigned flags)
- {
- 	struct page *page;
--	int fgp_flags = FGP_LOCK|FGP_ACCESSED|FGP_WRITE|FGP_CREAT;
-+	int fgp_flags = FGP_LOCK|FGP_WRITE|FGP_CREAT;
+diff -puN include/linux/compaction.h~mm-compaction-change-compact_-constants-into-enum include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-change-compact_-constants-into-enum
++++ a/include/linux/compaction.h
+@@ -2,21 +2,29 @@
+ #define _LINUX_COMPACTION_H
  
- 	if (flags & AOP_FLAG_NOFS)
- 		fgp_flags |= FGP_NOFS;
+ /* Return values for compact_zone() and try_to_compact_pages() */
+-/* compaction didn't start as it was deferred due to past failures */
+-#define COMPACT_DEFERRED	0
+-/* compaction didn't start as it was not possible or direct reclaim was more suitable */
+-#define COMPACT_SKIPPED		1
+-/* compaction should continue to another pageblock */
+-#define COMPACT_CONTINUE	2
+-/* direct compaction partially compacted a zone and there are suitable pages */
+-#define COMPACT_PARTIAL		3
+-/* The full zone was compacted */
+-#define COMPACT_COMPLETE	4
+-/* For more detailed tracepoint output */
+-#define COMPACT_NO_SUITABLE_PAGE	5
+-#define COMPACT_NOT_SUITABLE_ZONE	6
+-#define COMPACT_CONTENDED		7
+ /* When adding new states, please adjust include/trace/events/compaction.h */
++enum compact_result {
++	/* compaction didn't start as it was deferred due to past failures */
++	COMPACT_DEFERRED,
++	/*
++	 * compaction didn't start as it was not possible or direct reclaim
++	 * was more suitable
++	 */
++	COMPACT_SKIPPED,
++	/* compaction should continue to another pageblock */
++	COMPACT_CONTINUE,
++	/*
++	 * direct compaction partially compacted a zone and there are suitable
++	 * pages
++	 */
++	COMPACT_PARTIAL,
++	/* The full zone was compacted */
++	COMPACT_COMPLETE,
++	/* For more detailed tracepoint output */
++	COMPACT_NO_SUITABLE_PAGE,
++	COMPACT_NOT_SUITABLE_ZONE,
++	COMPACT_CONTENDED,
++};
+ 
+ /* Used to signal whether compaction detected need_sched() or lock contention */
+ /* No contention detected */
+@@ -38,12 +46,13 @@ extern int sysctl_extfrag_handler(struct
+ extern int sysctl_compact_unevictable_allowed;
+ 
+ extern int fragmentation_index(struct zone *zone, unsigned int order);
+-extern unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
++extern enum compact_result try_to_compact_pages(gfp_t gfp_mask,
++			unsigned int order,
+ 		unsigned int alloc_flags, const struct alloc_context *ac,
+ 		enum migrate_mode mode, int *contended);
+ extern void compact_pgdat(pg_data_t *pgdat, int order);
+ extern void reset_isolation_suitable(pg_data_t *pgdat);
+-extern unsigned long compaction_suitable(struct zone *zone, int order,
++extern enum compact_result compaction_suitable(struct zone *zone, int order,
+ 		unsigned int alloc_flags, int classzone_idx);
+ 
+ extern void defer_compaction(struct zone *zone, int order);
+@@ -57,7 +66,7 @@ extern void kcompactd_stop(int nid);
+ extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx);
+ 
+ #else
+-static inline unsigned long try_to_compact_pages(gfp_t gfp_mask,
++static inline enum compact_result try_to_compact_pages(gfp_t gfp_mask,
+ 			unsigned int order, int alloc_flags,
+ 			const struct alloc_context *ac,
+ 			enum migrate_mode mode, int *contended)
+@@ -73,7 +82,7 @@ static inline void reset_isolation_suita
+ {
+ }
+ 
+-static inline unsigned long compaction_suitable(struct zone *zone, int order,
++static inline enum compact_result compaction_suitable(struct zone *zone, int order,
+ 					int alloc_flags, int classzone_idx)
+ {
+ 	return COMPACT_SKIPPED;
+diff -puN mm/compaction.c~mm-compaction-change-compact_-constants-into-enum mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-change-compact_-constants-into-enum
++++ a/mm/compaction.c
+@@ -1229,7 +1229,7 @@ static inline bool is_via_compact_memory
+ 	return order == -1;
+ }
+ 
+-static int __compact_finished(struct zone *zone, struct compact_control *cc,
++static enum compact_result __compact_finished(struct zone *zone, struct compact_control *cc,
+ 			    const int migratetype)
+ {
+ 	unsigned int order;
+@@ -1292,8 +1292,9 @@ static int __compact_finished(struct zon
+ 	return COMPACT_NO_SUITABLE_PAGE;
+ }
+ 
+-static int compact_finished(struct zone *zone, struct compact_control *cc,
+-			    const int migratetype)
++static enum compact_result compact_finished(struct zone *zone,
++			struct compact_control *cc,
++			const int migratetype)
+ {
+ 	int ret;
+ 
+@@ -1312,7 +1313,7 @@ static int compact_finished(struct zone
+  *   COMPACT_PARTIAL  - If the allocation would succeed without compaction
+  *   COMPACT_CONTINUE - If compaction should run now
+  */
+-static unsigned long __compaction_suitable(struct zone *zone, int order,
++static enum compact_result __compaction_suitable(struct zone *zone, int order,
+ 					unsigned int alloc_flags,
+ 					int classzone_idx)
+ {
+@@ -1358,11 +1359,11 @@ static unsigned long __compaction_suitab
+ 	return COMPACT_CONTINUE;
+ }
+ 
+-unsigned long compaction_suitable(struct zone *zone, int order,
++enum compact_result compaction_suitable(struct zone *zone, int order,
+ 					unsigned int alloc_flags,
+ 					int classzone_idx)
+ {
+-	unsigned long ret;
++	enum compact_result ret;
+ 
+ 	ret = __compaction_suitable(zone, order, alloc_flags, classzone_idx);
+ 	trace_mm_compaction_suitable(zone, order, ret);
+@@ -1372,9 +1373,9 @@ unsigned long compaction_suitable(struct
+ 	return ret;
+ }
+ 
+-static int compact_zone(struct zone *zone, struct compact_control *cc)
++static enum compact_result compact_zone(struct zone *zone, struct compact_control *cc)
+ {
+-	int ret;
++	enum compact_result ret;
+ 	unsigned long start_pfn = zone->zone_start_pfn;
+ 	unsigned long end_pfn = zone_end_pfn(zone);
+ 	const int migratetype = gfpflags_to_migratetype(cc->gfp_mask);
+@@ -1530,11 +1531,11 @@ out:
+ 	return ret;
+ }
+ 
+-static unsigned long compact_zone_order(struct zone *zone, int order,
++static enum compact_result compact_zone_order(struct zone *zone, int order,
+ 		gfp_t gfp_mask, enum migrate_mode mode, int *contended,
+ 		unsigned int alloc_flags, int classzone_idx)
+ {
+-	unsigned long ret;
++	enum compact_result ret;
+ 	struct compact_control cc = {
+ 		.nr_freepages = 0,
+ 		.nr_migratepages = 0,
+@@ -1572,7 +1573,7 @@ int sysctl_extfrag_threshold = 500;
+  *
+  * This is the main entry point for direct page compaction.
+  */
+-unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
++enum compact_result try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
+ 		unsigned int alloc_flags, const struct alloc_context *ac,
+ 		enum migrate_mode mode, int *contended)
+ {
+@@ -1580,7 +1581,7 @@ unsigned long try_to_compact_pages(gfp_t
+ 	int may_perform_io = gfp_mask & __GFP_IO;
+ 	struct zoneref *z;
+ 	struct zone *zone;
+-	int rc = COMPACT_DEFERRED;
++	enum compact_result rc = COMPACT_DEFERRED;
+ 	int all_zones_contended = COMPACT_CONTENDED_LOCK; /* init for &= op */
+ 
+ 	*contended = COMPACT_CONTENDED_NONE;
+@@ -1594,7 +1595,7 @@ unsigned long try_to_compact_pages(gfp_t
+ 	/* Compact each zone in the list */
+ 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
+ 								ac->nodemask) {
+-		int status;
++		enum compact_result status;
+ 		int zone_contended;
+ 
+ 		if (compaction_deferred(zone, order))
+diff -puN mm/page_alloc.c~mm-compaction-change-compact_-constants-into-enum mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-change-compact_-constants-into-enum
++++ a/mm/page_alloc.c
+@@ -3188,7 +3188,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 		enum migrate_mode mode, int *contended_compaction,
+ 		bool *deferred_compaction)
+ {
+-	unsigned long compact_result;
++	enum compact_result compact_result;
+ 	struct page *page;
+ 
+ 	if (!order)
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
+mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
+mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
+mm-compaction-update-compaction_result-ordering.patch
+mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
+mm-compaction-abstract-compaction-feedback-to-helpers.patch
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+mm-oom-protect-costly-allocations-some-more.patch
+mm-consider-compaction-feedback-also-for-costly-allocation.patch
+mm-oom-compaction-prevent-from-should_compact_retry-looping-for-ever-for-costly-orders.patch
+mm-oom-protect-costly-allocations-some-more-for-config_compaction.patch
+mm-oom_reaper-hide-oom-reaped-tasks-from-oom-killer-more-carefully.patch
+mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context.patch
+oom-consider-multi-threaded-tasks-in-task_will_free_mem.patch
+mm-make-mmap_sem-for-write-waits-killable-for-mm-syscalls.patch
+mm-make-vm_mmap-killable.patch
+mm-make-vm_munmap-killable.patch
+mm-aout-handle-vm_brk-failures.patch
+mm-elf-handle-vm_brk-error.patch
+mm-make-vm_brk-killable.patch
+mm-proc-make-clear_refs-killable.patch
+mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
+ipc-shm-make-shmem-attach-detach-wait-for-mmap_sem-killable.patch
+vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable.patch
+coredump-make-coredump_wait-wait-for-mmap_sem-for-write-killable.patch
+aio-make-aio_setup_ring-killable.patch
+exec-make-exec-path-waiting-for-mmap_sem-killable.patch
+prctl-make-pr_set_thp_disable-wait-for-mmap_sem-killable.patch
+uprobes-wait-for-mmap_sem-for-write-killable.patch
+drm-i915-make-i915_gem_mmap_ioctl-wait-for-mmap_sem-killable.patch
+drm-radeon-make-radeon_mn_get-wait-for-mmap_sem-killable.patch
+drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable.patch
 
