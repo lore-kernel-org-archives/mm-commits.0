@@ -1,69 +1,58 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- allocate-idle-task-for-a-cpu-always-on-its-local-node-fix.patch removed
- from -mm tree
-Date: Mon, 23 May 2016 16:15:24 -0700
-Message-ID: <57438f0c.txxG7PmDJ5VfWFiG%akpm@linux-foundation.org>
+ drivers-memstick-core-mspro_block-use-kmemdup-fix.patch removed from -mm
+ tree
+Date: Mon, 23 May 2016 16:16:03 -0700
+Message-ID: <57438f33./NUDa7BdboMagox4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42063 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751501AbcEWXPZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:15:25 -0400
+	with ESMTP id S1752063AbcEWXQE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:16:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, falakreyaz@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: allocate-idle-task-for-a-cpu-always-on-its-local-node-fix
+     Subject: drivers-memstick-core-mspro_block-use-kmemdup-fix
 has been removed from the -mm tree.  Its filename was
-     allocate-idle-task-for-a-cpu-always-on-its-local-node-fix.patch
+     drivers-memstick-core-mspro_block-use-kmemdup-fix.patch
 
-This patch was dropped because it was folded into allocate-idle-task-for-a-cpu-always-on-its-local-node.patch
+This patch was dropped because it was folded into drivers-memstick-core-mspro_block-use-kmemdup.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: allocate-idle-task-for-a-cpu-always-on-its-local-node-fix
+Subject: drivers-memstick-core-mspro_block-use-kmemdup-fix
 
-use NUMA_NO_NODE, not a bare -1
+remove unneeded cast to void*
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Muhammad Falak R Wani <falakreyaz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/memstick/core/mspro_block.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/fork.c~allocate-idle-task-for-a-cpu-always-on-its-local-node-fix kernel/fork.c
---- a/kernel/fork.c~allocate-idle-task-for-a-cpu-always-on-its-local-node-fix
-+++ a/kernel/fork.c
-@@ -346,7 +346,7 @@ static struct task_struct *dup_task_stru
- 	struct thread_info *ti;
- 	int err;
- 
--	if (node < 0)
-+	if (node == NUMA_NO_NODE)
- 		node = tsk_fork_get_node(orig);
- 	tsk = alloc_task_struct_node(node);
- 	if (!tsk)
-@@ -1754,7 +1754,7 @@ long _do_fork(unsigned long clone_flags,
+diff -puN drivers/memstick/core/mspro_block.c~drivers-memstick-core-mspro_block-use-kmemdup-fix drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~drivers-memstick-core-mspro_block-use-kmemdup-fix
++++ a/drivers/memstick/core/mspro_block.c
+@@ -1033,7 +1033,7 @@ static int mspro_block_read_attributes(s
  	}
+ 	msb->attr_group.name = "media_attributes";
  
- 	p = copy_process(clone_flags, stack_start, stack_size,
--			 child_tidptr, NULL, trace, tls, -1);
-+			 child_tidptr, NULL, trace, tls, NUMA_NO_NODE);
- 	/*
- 	 * Do this prior waking up the new thread - the thread pointer
- 	 * might get invalid after that point, if the thread exits quickly.
+-	buffer = kmemdup((char *)attr, attr_len, GFP_KERNEL);
++	buffer = kmemdup(attr, attr_len, GFP_KERNEL);
+ 	if (!buffer) {
+ 		rc = -ENOMEM;
+ 		goto out_free_attr;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-allocate-idle-task-for-a-cpu-always-on-its-local-node.patch
-drivers-memstick-core-mspro_block-use-kmemdup-fix.patch
+drivers-memstick-core-mspro_block-use-kmemdup.patch
 
