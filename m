@@ -1,49 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-cover-all-compaction-mode-in-compact_zone.patch removed from
- -mm tree
-Date: Mon, 23 May 2016 12:45:16 -0700
-Message-ID: <57435dcc.ClF/Vyww1lFZ4uHl%akpm@linux-foundation.org>
+Subject: [merged] mm-compaction-update-compaction_result-ordering.patch
+ removed from -mm tree
+Date: Mon, 23 May 2016 12:45:22 -0700
+Message-ID: <57435dd2.eIwwbnJxuCzK4MdY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36828 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36859 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750882AbcEWTpS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:18 -0400
+	with ESMTP id S1750882AbcEWTpY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@techsingularity.net, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: cover all compaction mode in compact_zone
+     Subject: mm, compaction: update compaction_result ordering
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
+     mm-compaction-update-compaction_result-ordering.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, compaction: cover all compaction mode in compact_zone
+Subject: mm, compaction: update compaction_result ordering
 
-The compiler is complaining after "mm, compaction: change COMPACT_
-constants into enum"
-
-mm/compaction.c: In function `compact_zone':
-mm/compaction.c:1350:2: warning: enumeration value `COMPACT_DEFERRED' not handled in switch [-Wswitch]
-  switch (ret) {
-  ^
-mm/compaction.c:1350:2: warning: enumeration value `COMPACT_COMPLETE' not handled in switch [-Wswitch]
-mm/compaction.c:1350:2: warning: enumeration value `COMPACT_NO_SUITABLE_PAGE' not handled in switch [-Wswitch]
-mm/compaction.c:1350:2: warning: enumeration value `COMPACT_NOT_SUITABLE_ZONE' not handled in switch [-Wswitch]
-mm/compaction.c:1350:2: warning: enumeration value `COMPACT_CONTENDED' not handled in switch [-Wswitch]
-
-compaction_suitable is allowed to return only COMPACT_PARTIAL,
-COMPACT_SKIPPED and COMPACT_CONTINUE so other cases are simply
-impossible. Put a VM_BUG_ON to catch an impossible return value.
+compaction_result will be used as the primary feedback channel for
+compaction users.  At the same time try_to_compact_pages (and potentially
+others) assume a certain ordering where a more specific feedback takes
+precendence.  This gets a bit awkward when we have conflicting feedback
+from different zones.  E.g one returing COMPACT_COMPLETE meaning the full
+zone has been scanned without any outcome while other returns with
+COMPACT_PARTIAL aka made some progress.  The caller should get
+COMPACT_PARTIAL because that means that the compaction still can make some
+progress.  The same applies for COMPACT_PARTIAL vs. 
+COMPACT_PARTIAL_SKIPPED.  Reorder PARTIAL to be the largest one so the
+larger the value is the more progress we have done.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -57,40 +52,70 @@ Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ include/linux/compaction.h |   26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-cover-all-compaction-mode-in-compact_zone mm/compaction.c
---- a/mm/compaction.c~mm-compaction-cover-all-compaction-mode-in-compact_zone
-+++ a/mm/compaction.c
-@@ -1383,15 +1383,12 @@ static enum compact_result compact_zone(
- 
- 	ret = compaction_suitable(zone, cc->order, cc->alloc_flags,
- 							cc->classzone_idx);
--	switch (ret) {
--	case COMPACT_PARTIAL:
--	case COMPACT_SKIPPED:
--		/* Compaction is likely to fail */
-+	/* Compaction is likely to fail */
-+	if (ret == COMPACT_PARTIAL || ret == COMPACT_SKIPPED)
- 		return ret;
--	case COMPACT_CONTINUE:
--		/* Fall through to compaction */
--		;
--	}
-+
-+	/* huh, compaction_suitable is returning something unexpected */
-+	VM_BUG_ON(ret != COMPACT_CONTINUE);
- 
+diff -puN include/linux/compaction.h~mm-compaction-update-compaction_result-ordering include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-update-compaction_result-ordering
++++ a/include/linux/compaction.h
+@@ -4,6 +4,8 @@
+ /* Return values for compact_zone() and try_to_compact_pages() */
+ /* When adding new states, please adjust include/trace/events/compaction.h */
+ enum compact_result {
++	/* For more detailed tracepoint output - internal to compaction */
++	COMPACT_NOT_SUITABLE_ZONE,
  	/*
- 	 * Clear pageblock skip if there were failures recently and compaction
+ 	 * compaction didn't start as it was not possible or direct reclaim
+ 	 * was more suitable
+@@ -11,30 +13,34 @@ enum compact_result {
+ 	COMPACT_SKIPPED,
+ 	/* compaction didn't start as it was deferred due to past failures */
+ 	COMPACT_DEFERRED,
++
+ 	/* compaction not active last round */
+ 	COMPACT_INACTIVE = COMPACT_DEFERRED,
+ 
++	/* For more detailed tracepoint output - internal to compaction */
++	COMPACT_NO_SUITABLE_PAGE,
+ 	/* compaction should continue to another pageblock */
+ 	COMPACT_CONTINUE,
++
+ 	/*
+-	 * direct compaction partially compacted a zone and there are suitable
+-	 * pages
++	 * The full zone was compacted scanned but wasn't successfull to compact
++	 * suitable pages.
+ 	 */
+-	COMPACT_PARTIAL,
++	COMPACT_COMPLETE,
+ 	/*
+ 	 * direct compaction has scanned part of the zone but wasn't successfull
+ 	 * to compact suitable pages.
+ 	 */
+ 	COMPACT_PARTIAL_SKIPPED,
++
++	/* compaction terminated prematurely due to lock contentions */
++	COMPACT_CONTENDED,
++
+ 	/*
+-	 * The full zone was compacted scanned but wasn't successfull to compact
+-	 * suitable pages.
++	 * direct compaction partially compacted a zone and there might be
++	 * suitable pages
+ 	 */
+-	COMPACT_COMPLETE,
+-	/* For more detailed tracepoint output */
+-	COMPACT_NO_SUITABLE_PAGE,
+-	COMPACT_NOT_SUITABLE_ZONE,
+-	COMPACT_CONTENDED,
++	COMPACT_PARTIAL,
+ };
+ 
+ /* Used to signal whether compaction detected need_sched() or lock contention */
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
-mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
-mm-compaction-update-compaction_result-ordering.patch
 mm-compaction-simplify-__alloc_pages_direct_compact-feedback-interface.patch
 mm-compaction-abstract-compaction-feedback-to-helpers.patch
 mm-oom-rework-oom-detection.patch
