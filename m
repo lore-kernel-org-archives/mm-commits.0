@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + update-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch
- added to -mm tree
-Date: Mon, 23 May 2016 15:13:10 -0700
-Message-ID: <57438076.k1H7pILqotPsQUep%akpm@linux-foundation.org>
+Subject: + drivers-memstick-core-mspro_block-use-kmemdup.patch added to
+ -mm tree
+Date: Mon, 23 May 2016 15:14:02 -0700
+Message-ID: <574380aa.u7Ud7d6RIAT/7ukf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41457 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41459 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752063AbcEWWNM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 18:13:12 -0400
+	with ESMTP id S1751581AbcEWWOD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 18:14:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddstreet@ieee.org, dan.streetman@canonical.com, minchan@kernel.org, opensource.ganesh@gmail.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: falakreyaz@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: update "mm/zsmalloc: don't fail if can't create debugfs info"
+     Subject: drivers/memstick/core/mspro_block: use kmemdup
 has been added to the -mm tree.  Its filename is
-     update-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch
+     drivers-memstick-core-mspro_block-use-kmemdup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/update-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-memstick-core-mspro_block-use-kmemdup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/update-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-memstick-core-mspro_block-use-kmemdup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,118 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Streetman <ddstreet@ieee.org>
-Subject: update "mm/zsmalloc: don't fail if can't create debugfs info"
+From: Muhammad Falak R Wani <falakreyaz@gmail.com>
+Subject: drivers/memstick/core/mspro_block: use kmemdup
 
-Some updates to d34f615720d17c49 ("mm/zsmalloc: don't fail if can't create
-debugfs info"):
+Use kmemdup when some other buffer is immediately copied into allocated
+region.  It replaces call to allocation followed by memcpy, by a single
+call to kmemdup.
 
-- add pr_warn to all stat failure cases
-- do not prevent module loading on stat failure
-
-Link: http://lkml.kernel.org/r/1463671123-5479-1-git-send-email-ddstreet@ieee.org
-Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Reviewed-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Dan Streetman <dan.streetman@canonical.com>
+Link: http://lkml.kernel.org/r/1463665743-16269-1-git-send-email-falakreyaz@gmail.com
+Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   35 ++++++++++++++++-------------------
- 1 file changed, 16 insertions(+), 19 deletions(-)
+ drivers/memstick/core/mspro_block.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/zsmalloc.c~update-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info mm/zsmalloc.c
---- a/mm/zsmalloc.c~update-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info
-+++ a/mm/zsmalloc.c
-@@ -45,6 +45,8 @@
-  *
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/sched.h>
-@@ -483,16 +485,16 @@ static inline unsigned long zs_stat_get(
- 
- #ifdef CONFIG_ZSMALLOC_STAT
- 
--static int __init zs_stat_init(void)
-+static void __init zs_stat_init(void)
- {
--	if (!debugfs_initialized())
--		return -ENODEV;
-+	if (!debugfs_initialized()) {
-+		pr_warn("debugfs not available, stat dir not created\n");
-+		return;
-+	}
- 
- 	zs_stat_root = debugfs_create_dir("zsmalloc", NULL);
- 	if (!zs_stat_root)
--		return -ENOMEM;
--
--	return 0;
-+		pr_warn("debugfs 'zsmalloc' stat dir creation failed\n");
- }
- 
- static void __exit zs_stat_exit(void)
-@@ -577,8 +579,10 @@ static void zs_pool_stat_create(struct z
- {
- 	struct dentry *entry;
- 
--	if (!zs_stat_root)
-+	if (!zs_stat_root) {
-+		pr_warn("no root stat dir, not creating <%s> stat dir\n", name);
- 		return;
-+	}
- 
- 	entry = debugfs_create_dir(name, zs_stat_root);
- 	if (!entry) {
-@@ -592,7 +596,8 @@ static void zs_pool_stat_create(struct z
- 	if (!entry) {
- 		pr_warn("%s: debugfs file entry <%s> creation failed\n",
- 				name, "classes");
--		return;
-+		debugfs_remove_recursive(pool->stat_dentry);
-+		pool->stat_dentry = NULL;
+diff -puN drivers/memstick/core/mspro_block.c~drivers-memstick-core-mspro_block-use-kmemdup drivers/memstick/core/mspro_block.c
+--- a/drivers/memstick/core/mspro_block.c~drivers-memstick-core-mspro_block-use-kmemdup
++++ a/drivers/memstick/core/mspro_block.c
+@@ -1033,12 +1033,11 @@ static int mspro_block_read_attributes(s
  	}
- }
+ 	msb->attr_group.name = "media_attributes";
  
-@@ -602,9 +607,8 @@ static void zs_pool_stat_destroy(struct
- }
+-	buffer = kmalloc(attr_len, GFP_KERNEL);
++	buffer = kmemdup((char *)attr, attr_len, GFP_KERNEL);
+ 	if (!buffer) {
+ 		rc = -ENOMEM;
+ 		goto out_free_attr;
+ 	}
+-	memcpy(buffer, (char *)attr, attr_len);
  
- #else /* CONFIG_ZSMALLOC_STAT */
--static int __init zs_stat_init(void)
-+static void __init zs_stat_init(void)
- {
--	return 0;
- }
- 
- static void __exit zs_stat_exit(void)
-@@ -2011,17 +2015,10 @@ static int __init zs_init(void)
- 	zpool_register_driver(&zs_zpool_driver);
- #endif
- 
--	ret = zs_stat_init();
--	if (ret) {
--		pr_err("zs stat initialization failed\n");
--		goto stat_fail;
--	}
-+	zs_stat_init();
-+
- 	return 0;
- 
--stat_fail:
--#ifdef CONFIG_ZPOOL
--	zpool_unregister_driver(&zs_zpool_driver);
--#endif
- notifier_fail:
- 	zs_unregister_cpu_notifier();
- 
+ 	for (cnt = 0; cnt < attr_count; ++cnt) {
+ 		s_attr = kzalloc(sizeof(struct mspro_sys_attr), GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from ddstreet@ieee.org are
+Patches currently in -mm which might be from falakreyaz@gmail.com are
 
-update-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch
+drivers-memstick-core-mspro_block-use-kmemdup.patch
 
