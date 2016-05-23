@@ -1,105 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-reduce-number-of-git-log-calls-with-git.patch removed from -mm tree
-Date: Mon, 23 May 2016 12:51:45 -0700
-Message-ID: <57435f51./KHUIlXfT3R2LO/K%akpm@linux-foundation.org>
+Subject: [merged] init-mainc-simplify-initcall_blacklisted.patch removed
+ from -mm tree
+Date: Mon, 23 May 2016 12:51:52 -0700
+Message-ID: <57435f58.rEp1DpMycUVzrPcS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38234 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753304AbcEWTvq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:51:46 -0400
+	with ESMTP id S932152AbcEWTvx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:51:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, oleg@redhat.com, prarit@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: reduce number of `git log` calls with --git
+     Subject: init/main.c: simplify initcall_blacklisted()
 has been removed from the -mm tree.  Its filename was
-     checkpatch-reduce-number-of-git-log-calls-with-git.patch
+     init-mainc-simplify-initcall_blacklisted.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: reduce number of `git log` calls with --git
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: init/main.c: simplify initcall_blacklisted()
 
-checkpatch currently calls git log multiple times to first get the
-<revision range> sha1 values and again to get the subject for each
-individual sha1 commit.
+Using kasprintf to get the function name makes us look up the name twice,
+along with all the vsnprintf overhead of parsing the format string etc. 
+It also means there is an allocation failure case to deal with.  Since
+symbol_string in vsprintf.c would anyway allocate an array of size
+KSYM_SYMBOL_LEN on the stack, that might as well be done up here.
 
-Always get the sha1 and subject at the same time instead.  Store the
-subject in a sha1 hash to avoid the second git log exec.
+Moreover, since this is a debug feature and the blacklisted_initcalls list
+is usually empty, we might as well test that and thus avoid looking up the
+symbol name even once in the common case.
 
-Link: http://lkml.kernel.org/r/274efab2332ad2308ab5de85a95d255f6e2de5f3.1462711962.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Prarit Bhargava <prarit@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ init/main.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-reduce-number-of-git-log-calls-with-git scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-reduce-number-of-git-log-calls-with-git
-+++ a/scripts/checkpatch.pl
-@@ -28,6 +28,7 @@ my $terse = 0;
- my $showfile = 0;
- my $file = 0;
- my $git = 0;
-+my %git_commits = ();
- my $check = 0;
- my $check_orig = 0;
- my $summary = 1;
-@@ -806,23 +807,25 @@ die "$P: No git repository found\n" if (
+diff -puN init/main.c~init-mainc-simplify-initcall_blacklisted init/main.c
+--- a/init/main.c~init-mainc-simplify-initcall_blacklisted
++++ a/init/main.c
+@@ -706,21 +706,20 @@ static int __init initcall_blacklist(cha
+ static bool __init_or_module initcall_blacklisted(initcall_t fn)
+ {
+ 	struct blacklist_entry *entry;
+-	char *fn_name;
++	char fn_name[KSYM_SYMBOL_LEN];
  
- if ($git) {
- 	my @commits = ();
--	for my $commit_expr (@ARGV) {
-+	foreach my $commit_expr (@ARGV) {
- 		my $git_range;
- 		if ($commit_expr =~ m/-/) {
- 			my @tmp = split(/-/, $commit_expr);
--			die "$P: incorrect git commits expression $commit_expr$!\n"
-+			die "$P: incorrect git commit expression '$commit_expr' $!\n"
- 			    if (@tmp != 2);
- 			$git_range = "-$tmp[1] $tmp[0]";
- 		} elsif ($commit_expr =~ m/\.\./) {
- 			$git_range = "$commit_expr";
--		}
--		if (defined $git_range) {
--			my $lines = `git log --no-merges --pretty=format:'%H' $git_range`;
--			foreach my $line (split(/\n/, $lines)) {
--				unshift(@commits, $line);
--			}
- 		} else {
--			unshift(@commits, $commit_expr);
-+			$git_range = "-1 $commit_expr";
-+		}
-+		my $lines = `git log --no-color --no-merges --pretty=format:'%H %s' $git_range`;
-+		foreach my $line (split(/\n/, $lines)) {
-+			$line =~ /(^\w+) (.*)/;
-+			my $sha1 = $1;
-+			my $subject = $2;
-+			unshift(@commits, $sha1);
-+			$git_commits{$sha1} = $subject;
+-	fn_name = kasprintf(GFP_KERNEL, "%pf", fn);
+-	if (!fn_name)
++	if (list_empty(&blacklisted_initcalls))
+ 		return false;
+ 
++	sprint_symbol_no_offset(fn_name, (unsigned long)fn);
++
+ 	list_for_each_entry(entry, &blacklisted_initcalls, next) {
+ 		if (!strcmp(fn_name, entry->buf)) {
+ 			pr_debug("initcall %s blacklisted\n", fn_name);
+-			kfree(fn_name);
+ 			return true;
  		}
  	}
- 	die "$P: no git commits after extraction!\n" if (@commits == 0);
-@@ -847,7 +850,7 @@ for my $filename (@ARGV) {
- 	if ($filename eq '-') {
- 		$vname = 'Your patch';
- 	} elsif ($git) {
--		$vname = "Commit " . substr($filename, 0, 12) . `git log -1 --pretty=format:' ("%s")' $filename`;
-+		$vname = "Commit " . substr($filename, 0, 12) . ' ("' . $git_commits{$filename} . '")';
- 	} else {
- 		$vname = $filename;
- 	}
+ 
+-	kfree(fn_name);
+ 	return false;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-checkpatch-improve-git-commit-count-shortcut.patch
 
