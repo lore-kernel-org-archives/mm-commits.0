@@ -1,226 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: [patch 44/84] kdump: fix gdb macros work work with newer and
- 64-bit kernels
-Date: Mon, 23 May 2016 16:24:25 -0700
-Message-ID: <57439129.guYCDAe+C2cpejFL%akpm@linux-foundation.org>
+Subject: [patch 43/84] s390/kexec: consolidate
+ crash_map/unmap_reserved_pages() and
+ arch_kexec_protect(unprotect)_crashkres()
+Date: Mon, 23 May 2016 16:24:22 -0700
+Message-ID: <57439126.1SY26xUMM3ixdALP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42246 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42240 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751759AbcEWXY1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:24:27 -0400
+	with ESMTP id S1751759AbcEWXYY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:24:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, cminyard@mvista.com, bhe@redhat.com, hbabu@us.ibm.com, vgoyal@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xlpang@redhat.com, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, mhuang@redhat.com, vgoyal@redhat.com
 
-From: Corey Minyard <cminyard@mvista.com>
-Subject: kdump: fix gdb macros work work with newer and 64-bit kernels
+From: Xunlei Pang <xlpang@redhat.com>
+Subject: s390/kexec: consolidate crash_map/unmap_reserved_pages() and arch_kexec_protect(unprotect)_crashkres()
 
-Lots of little changes needed to be made to clean these up, remove the
-four byte pointer assumption and traverse the pid queue properly.  Also
-consolidate the traceback code into a single function instead of having
-three copies of it.
+Commit 3f625002581b ("kexec: introduce a protection mechanism for the
+crashkernel reserved memory") is a similar mechanism for protecting the
+crash kernel reserved memory to previous crash_map/unmap_reserved_pages()
+implementation, the new one is more generic in name and cleaner in code
+(besides, some arch may not be allowed to unmap the pgtable).
 
-Link: http://lkml.kernel.org/r/1462926655-9390-1-git-send-email-minyard@acm.org
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
-Acked-by: Baoquan He <bhe@redhat.com>
+Therefore, this patch consolidates them, and uses the new
+arch_kexec_protect(unprotect)_crashkres() to replace former
+crash_map/unmap_reserved_pages() which by now has been only used by S390.
+
+The consolidation work needs the crash memory to be mapped initially, this
+is done in machine_kdump_pm_init() which is after reserve_crashkernel(). 
+Once kdump kernel is loaded, the new arch_kexec_protect_crashkres()
+implemented for S390 will actually unmap the pgtable like before.
+
+Signed-off-by: Xunlei Pang <xlpang@redhat.com>
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Acked-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Minfei Huang <mhuang@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Haren Myneni <hbabu@us.ibm.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/gdbmacros.txt |   96 ++++++++++++----------------
- 1 file changed, 44 insertions(+), 52 deletions(-)
+ arch/s390/kernel/machine_kexec.c |   28 ++++++++++++++++++----------
+ include/linux/kexec.h            |    2 --
+ kernel/kexec.c                   |   12 ------------
+ kernel/kexec_core.c              |   11 ++---------
+ 4 files changed, 20 insertions(+), 33 deletions(-)
 
-diff -puN Documentation/kdump/gdbmacros.txt~kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels Documentation/kdump/gdbmacros.txt
---- a/Documentation/kdump/gdbmacros.txt~kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels
-+++ a/Documentation/kdump/gdbmacros.txt
-@@ -15,15 +15,16 @@
+diff -puN arch/s390/kernel/machine_kexec.c~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres arch/s390/kernel/machine_kexec.c
+--- a/arch/s390/kernel/machine_kexec.c~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres
++++ a/arch/s390/kernel/machine_kexec.c
+@@ -43,13 +43,13 @@ static int machine_kdump_pm_cb(struct no
+ 	switch (action) {
+ 	case PM_SUSPEND_PREPARE:
+ 	case PM_HIBERNATION_PREPARE:
+-		if (crashk_res.start)
+-			crash_map_reserved_pages();
++		if (kexec_crash_image)
++			arch_kexec_unprotect_crashkres();
+ 		break;
+ 	case PM_POST_SUSPEND:
+ 	case PM_POST_HIBERNATION:
+-		if (crashk_res.start)
+-			crash_unmap_reserved_pages();
++		if (kexec_crash_image)
++			arch_kexec_protect_crashkres();
+ 		break;
+ 	default:
+ 		return NOTIFY_DONE;
+@@ -60,6 +60,8 @@ static int machine_kdump_pm_cb(struct no
+ static int __init machine_kdump_pm_init(void)
+ {
+ 	pm_notifier(machine_kdump_pm_cb, 0);
++	/* Create initial mapping for crashkernel memory */
++	arch_kexec_unprotect_crashkres();
+ 	return 0;
+ }
+ arch_initcall(machine_kdump_pm_init);
+@@ -146,6 +148,8 @@ static int kdump_csum_valid(struct kimag
+ #endif
+ }
  
- define bttnobp
- 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
--	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
-+	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
- 	set $init_t=&init_task
- 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
-+	set var $stacksize = sizeof(union thread_union)
- 	while ($next_t != $init_t)
- 		set $next_t=(struct task_struct *)$next_t
- 		printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
- 		printf "===================\n"
--		set var $stackp = $next_t.thread.esp
--		set var $stack_top = ($stackp & ~4095) + 4096
-+		set var $stackp = $next_t.thread.sp
-+		set var $stack_top = ($stackp & ~($stacksize - 1)) + $stacksize
++#ifdef CONFIG_CRASH_DUMP
++
+ /*
+  * Map or unmap crashkernel memory
+  */
+@@ -167,21 +171,25 @@ static void crash_map_pages(int enable)
+ }
  
- 		while ($stackp < $stack_top)
- 			if (*($stackp) > _stext && *($stackp) < _sinittext)
-@@ -31,13 +32,13 @@ define bttnobp
- 			end
- 			set $stackp += 4
- 		end
--		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
-+		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
- 		while ($next_th != $next_t)
- 			set $next_th=(struct task_struct *)$next_th
- 			printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
- 			printf "===================\n"
--			set var $stackp = $next_t.thread.esp
--			set var $stack_top = ($stackp & ~4095) + 4096
-+			set var $stackp = $next_t.thread.sp
-+			set var $stack_top = ($stackp & ~($stacksize - 1)) + stacksize
+ /*
+- * Map crashkernel memory
++ * Unmap crashkernel memory
+  */
+-void crash_map_reserved_pages(void)
++void arch_kexec_protect_crashkres(void)
+ {
+-	crash_map_pages(1);
++	if (crashk_res.end)
++		crash_map_pages(0);
+ }
  
- 			while ($stackp < $stack_top)
- 				if (*($stackp) > _stext && *($stackp) < _sinittext)
-@@ -45,7 +46,7 @@ define bttnobp
- 				end
- 				set $stackp += 4
- 			end
--			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
-+			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
- 		end
- 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
- 	end
-@@ -54,42 +55,44 @@ document bttnobp
- 	dump all thread stack traces on a kernel compiled with !CONFIG_FRAME_POINTER
- end
+ /*
+- * Unmap crashkernel memory
++ * Map crashkernel memory
+  */
+-void crash_unmap_reserved_pages(void)
++void arch_kexec_unprotect_crashkres(void)
+ {
+-	crash_map_pages(0);
++	if (crashk_res.end)
++		crash_map_pages(1);
+ }
  
-+define btthreadstack
-+	set var $pid_task = $arg0
++#endif
 +
-+	printf "\npid %d; comm %s:\n", $pid_task.pid, $pid_task.comm
-+	printf "task struct: "
-+	print $pid_task
-+	printf "===================\n"
-+	set var $stackp = $pid_task.thread.sp
-+	set var $stacksize = sizeof(union thread_union)
-+	set var $stack_top = ($stackp & ~($stacksize - 1)) + $stacksize
-+	set var $stack_bot = ($stackp & ~($stacksize - 1))
-+
-+	set $stackp = *((unsigned long *) $stackp)
-+	while (($stackp < $stack_top) && ($stackp > $stack_bot))
-+		set var $addr = *(((unsigned long *) $stackp) + 1)
-+		info symbol $addr
-+		set $stackp = *((unsigned long *) $stackp)
-+	end
-+end
-+document btthreadstack
-+	 dump a thread stack using the given task structure pointer
-+end
-+
-+
- define btt
- 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
--	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
-+	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
- 	set $init_t=&init_task
- 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
- 	while ($next_t != $init_t)
- 		set $next_t=(struct task_struct *)$next_t
--		printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
--		printf "===================\n"
--		set var $stackp = $next_t.thread.esp
--		set var $stack_top = ($stackp & ~4095) + 4096
--		set var $stack_bot = ($stackp & ~4095)
+ /*
+  * Give back memory to hypervisor before new kdump is loaded
+  */
+diff -puN include/linux/kexec.h~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres include/linux/kexec.h
+--- a/include/linux/kexec.h~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres
++++ a/include/linux/kexec.h
+@@ -230,8 +230,6 @@ extern void crash_kexec(struct pt_regs *
+ int kexec_should_crash(struct task_struct *);
+ void crash_save_cpu(struct pt_regs *regs, int cpu);
+ void crash_save_vmcoreinfo(void);
+-void crash_map_reserved_pages(void);
+-void crash_unmap_reserved_pages(void);
+ void arch_crash_save_vmcoreinfo(void);
+ __printf(1, 2)
+ void vmcoreinfo_append_str(const char *fmt, ...);
+diff -puN kernel/kexec.c~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres kernel/kexec.c
+--- a/kernel/kexec.c~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres
++++ a/kernel/kexec.c
+@@ -136,9 +136,6 @@ static int do_kexec_load(unsigned long e
+ 	if (ret)
+ 		return ret;
+ 
+-	if (flags & KEXEC_ON_CRASH)
+-		crash_map_reserved_pages();
 -
--		set $stackp = *($stackp)
--		while (($stackp < $stack_top) && ($stackp > $stack_bot))
--			set var $addr = *($stackp + 4)
--			info symbol $addr
--			set $stackp = *($stackp)
--		end
-+		btthreadstack $next_t
+ 	if (flags & KEXEC_PRESERVE_CONTEXT)
+ 		image->preserve_context = 1;
  
--		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
-+		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
- 		while ($next_th != $next_t)
- 			set $next_th=(struct task_struct *)$next_th
--			printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
--			printf "===================\n"
--			set var $stackp = $next_t.thread.esp
--			set var $stack_top = ($stackp & ~4095) + 4096
--			set var $stack_bot = ($stackp & ~4095)
+@@ -161,12 +158,6 @@ out:
+ 	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
+ 		arch_kexec_protect_crashkres();
+ 
+-	/*
+-	 * Once the reserved memory is mapped, we should unmap this memory
+-	 * before returning
+-	 */
+-	if (flags & KEXEC_ON_CRASH)
+-		crash_unmap_reserved_pages();
+ 	kimage_free(image);
+ 	return ret;
+ }
+@@ -232,9 +223,6 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
+ 
+ 	result = do_kexec_load(entry, nr_segments, segments, flags);
+ 
+-	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
+-		arch_kexec_protect_crashkres();
 -
--			set $stackp = *($stackp)
--			while (($stackp < $stack_top) && ($stackp > $stack_bot))
--				set var $addr = *($stackp + 4)
--				info symbol $addr
--				set $stackp = *($stackp)
--			end
--			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
-+			btthreadstack $next_th
-+			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
- 		end
- 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
- 	end
-@@ -101,7 +104,7 @@ end
- define btpid
- 	set var $pid = $arg0
- 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
--	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
-+	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
- 	set $init_t=&init_task
- 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
- 	set var $pid_task = 0
-@@ -113,29 +116,18 @@ define btpid
- 			set $pid_task = $next_t
- 		end
+ 	mutex_unlock(&kexec_mutex);
  
--		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
-+		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
- 		while ($next_th != $next_t)
- 			set $next_th=(struct task_struct *)$next_th
- 			if ($next_th.pid == $pid)
- 				set $pid_task = $next_th
- 			end
--			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
-+			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
- 		end
- 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
- 	end
+ 	return result;
+diff -puN kernel/kexec_core.c~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres kernel/kexec_core.c
+--- a/kernel/kexec_core.c~s390-kexec-consolidate-crash_map-unmap_reserved_pages-and-arch_kexec_protectunprotect_crashkres
++++ a/kernel/kexec_core.c
+@@ -954,7 +954,6 @@ int crash_shrink_memory(unsigned long ne
+ 	start = roundup(start, KEXEC_CRASH_MEM_ALIGN);
+ 	end = roundup(start + new_size, KEXEC_CRASH_MEM_ALIGN);
  
--	printf "\npid %d; comm %s:\n", $pid_task.pid, $pid_task.comm
--	printf "===================\n"
--	set var $stackp = $pid_task.thread.esp
--	set var $stack_top = ($stackp & ~4095) + 4096
--	set var $stack_bot = ($stackp & ~4095)
+-	crash_map_reserved_pages();
+ 	crash_free_reserved_phys_range(end, crashk_res.end);
+ 
+ 	if ((start == end) && (crashk_res.parent != NULL))
+@@ -968,7 +967,6 @@ int crash_shrink_memory(unsigned long ne
+ 	crashk_res.end = end - 1;
+ 
+ 	insert_resource(&iomem_resource, ram_res);
+-	crash_unmap_reserved_pages();
+ 
+ unlock:
+ 	mutex_unlock(&kexec_mutex);
+@@ -1553,17 +1551,12 @@ int kernel_kexec(void)
+ }
+ 
+ /*
+- * Add and remove page tables for crashkernel memory
++ * Protection mechanism for crashkernel reserved memory after
++ * the kdump kernel is loaded.
+  *
+  * Provide an empty default implementation here -- architecture
+  * code may override this
+  */
+-void __weak crash_map_reserved_pages(void)
+-{}
 -
--	set $stackp = *($stackp)
--	while (($stackp < $stack_top) && ($stackp > $stack_bot))
--		set var $addr = *($stackp + 4)
--		info symbol $addr
--		set $stackp = *($stackp)
--	end
-+	btthreadstack $pid_task
- end
- document btpid
- 	backtrace of pid
-@@ -145,7 +137,7 @@ end
- define trapinfo
- 	set var $pid = $arg0
- 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
--	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
-+	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
- 	set $init_t=&init_task
- 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
- 	set var $pid_task = 0
-@@ -157,13 +149,13 @@ define trapinfo
- 			set $pid_task = $next_t
- 		end
- 
--		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
-+		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
- 		while ($next_th != $next_t)
- 			set $next_th=(struct task_struct *)$next_th
- 			if ($next_th.pid == $pid)
- 				set $pid_task = $next_th
- 			end
--			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
-+			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
- 		end
- 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
- 	end
-_
+-void __weak crash_unmap_reserved_pages(void)
+-{}
