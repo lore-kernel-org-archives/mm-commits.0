@@ -1,77 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-a-redundant-re-initialization.patch added to -mm tree
-Date: Mon, 23 May 2016 14:34:47 -0700
-Message-ID: <57437777.Iucb16rUSIY5Y740%akpm@linux-foundation.org>
+Subject: [folded-merged] ocfs2-o2hb-add-negotiate-timer-v2.patch removed
+ from -mm tree
+Date: Mon, 23 May 2016 14:36:55 -0700
+Message-ID: <574377f7.w13PsaabZRRElg9U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41018 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41033 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750882AbcEWVes (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 17:34:48 -0400
+	with ESMTP id S1751969AbcEWVg4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 17:36:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zren@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, rwxybh@126.com, ryan.ding@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix a redundant re-initialization
-has been added to the -mm tree.  Its filename is
-     ocfs2-fix-a-redundant-re-initialization.patch
+     Subject: ocfs2-o2hb-add-negotiate-timer-v2
+has been removed from the -mm tree.  Its filename was
+     ocfs2-o2hb-add-negotiate-timer-v2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-a-redundant-re-initialization.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-a-redundant-re-initialization.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into ocfs2-o2hb-add-negotiate-timer.patch
 
 ------------------------------------------------------
-From: Eric Ren <zren@suse.com>
-Subject: ocfs2: fix a redundant re-initialization
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2-o2hb-add-negotiate-timer-v2
 
-Obviously, memset() has zeroed the whole struct locking_max_version.
-So, it's no need to zero its two fields individually.
-
-Link: http://lkml.kernel.org/r/1463970605-18354-1-git-send-email-zren@suse.com
-Signed-off-by: Eric Ren <zren@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Ryan Ding <ryan.ding@oracle.com>
+Cc: Gang He <ghe@suse.com>
+Cc: rwxybh <rwxybh@126.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stackglue.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/stackglue.c~ocfs2-fix-a-redundant-re-initialization fs/ocfs2/stackglue.c
---- a/fs/ocfs2/stackglue.c~ocfs2-fix-a-redundant-re-initialization
-+++ a/fs/ocfs2/stackglue.c
-@@ -735,8 +735,6 @@ static void __exit ocfs2_stack_glue_exit
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-add-negotiate-timer-v2 fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-add-negotiate-timer-v2
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -357,12 +357,11 @@ static void o2hb_disarm_timeout(struct o
+ 
+ static void o2hb_nego_timeout(struct work_struct *work)
  {
- 	memset(&locking_max_version, 0,
- 	       sizeof(struct ocfs2_protocol_version));
--	locking_max_version.pv_major = 0;
--	locking_max_version.pv_minor = 0;
- 	ocfs2_sysfs_exit();
- 	if (ocfs2_table_header)
- 		unregister_sysctl_table(ocfs2_table_header);
+-	struct o2hb_region *reg =
+-		container_of(work, struct o2hb_region,
+-			     hr_nego_timeout_work.work);
+ 	unsigned long live_node_bitmap[BITS_TO_LONGS(O2NM_MAX_NODES)];
+ 	int master_node;
++	struct o2hb_region *reg;
+ 
++	reg = container_of(work, struct o2hb_region, hr_nego_timeout_work.work);
+ 	o2hb_fill_node_map(live_node_bitmap, sizeof(live_node_bitmap));
+ 	/* lowest node as master node to make negotiate decision. */
+ 	master_node = find_next_bit(live_node_bitmap, O2NM_MAX_NODES, 0);
 _
 
-Patches currently in -mm which might be from zren@suse.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-ocfs2-fix-improper-handling-of-return-errno.patch
-ocfs2-fix-a-redundant-re-initialization.patch
+ocfs2-o2hb-add-negotiate-timer.patch
+ocfs2-o2hb-add-nego_timeout-message.patch
+ocfs2-o2hb-add-nego_timeout-message-v2.patch
+ocfs2-o2hb-add-negotiate_approve-message.patch
+ocfs2-o2hb-add-negotiate_approve-message-v2.patch
+ocfs2-o2hb-add-some-user-debug-log.patch
+ocfs2-o2hb-add-some-user-debug-log-v2.patch
+ocfs2-o2hb-dont-negotiate-if-last-hb-fail.patch
+ocfs2-o2hb-fix-hb-hung-time.patch
 
