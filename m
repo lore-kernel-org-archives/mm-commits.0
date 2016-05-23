@@ -1,257 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-compaction-change-compact_-constants-into-enum.patch
+Subject: [merged] vmscan-consider-classzone_idx-in-compaction_ready.patch
  removed from -mm tree
-Date: Mon, 23 May 2016 12:45:14 -0700
-Message-ID: <57435dca.GNFS9Lx7fHSIuH6H%akpm@linux-foundation.org>
+Date: Mon, 23 May 2016 12:45:11 -0700
+Message-ID: <57435dc7.Uh1mNLh6kyec3Uv5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36816 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36801 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750882AbcEWTpP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:15 -0400
+	with ESMTP id S1750882AbcEWTpM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:45:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@techsingularity.net, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: change COMPACT_ constants into enum
+     Subject: vmscan: consider classzone_idx in compaction_ready
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-change-compact_-constants-into-enum.patch
+     vmscan-consider-classzone_idx-in-compaction_ready.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, compaction: change COMPACT_ constants into enum
+Subject: vmscan: consider classzone_idx in compaction_ready
 
-Compaction code is doing weird dances between COMPACT_FOO -> int ->
-unsigned long
+Motivation:
+As pointed by Linus [3][4] relying on zone_reclaimable as a way to
+communicate the reclaim progress is rater dubious. I tend to agree,
+not only it is really obscure, it is not hard to imagine cases where a
+single page freed in the loop keeps all the reclaimers looping without
+getting any progress because their gfp_mask wouldn't allow to get that
+page anyway (e.g. single GFP_ATOMIC alloc and free loop). This is rather
+rare so it doesn't happen in the practice but the current logic which we
+have is rather obscure and hard to follow a also non-deterministic.
 
-But there doesn't seem to be any reason for that.  All functions which
-return/use one of those constants are not expecting any other value so it
-really makes sense to define an enum for them and make it clear that no
-other values are expected.
+This is an attempt to make the OOM detection more deterministic and
+easier to follow because each reclaimer basically tracks its own
+progress which is implemented at the page allocator layer rather spread
+out between the allocator and the reclaim. The more on the implementation
+is described in the first patch.
 
-This is a pure cleanup and shouldn't introduce any functional changes.
+I have tested several different scenarios but it should be clear that
+testing OOM killer is quite hard to be representative. There is usually
+a tiny gap between almost OOM and full blown OOM which is often time
+sensitive. Anyway, I have tested the following 2 scenarios and I would
+appreciate if there are more to test.
+
+Testing environment: a virtual machine with 2G of RAM and 2CPUs without
+any swap to make the OOM more deterministic.
+
+1) 2 writers (each doing dd with 4M blocks to an xfs partition with 1G
+   file size, removes the files and starts over again) running in
+   parallel for 10s to build up a lot of dirty pages when 100 parallel
+   mem_eaters (anon private populated mmap which waits until it gets
+   signal) with 80M each.
+
+   This causes an OOM flood of course and I have compared both patched
+   and unpatched kernels. The test is considered finished after there
+   are no OOM conditions detected. This should tell us whether there are
+   any excessive kills or some of them premature (e.g. due to dirty pages):
+
+I have performed two runs this time each after a fresh boot.
+
+* base kernel
+$ grep "Out of memory:" base-oom-run1.log | wc -l
+78
+$ grep "Out of memory:" base-oom-run2.log | wc -l
+78
+
+$ grep "Kill process" base-oom-run1.log | tail -n1
+[   91.391203] Out of memory: Kill process 3061 (mem_eater) score 39 or sacrifice child
+$ grep "Kill process" base-oom-run2.log | tail -n1
+[   82.141919] Out of memory: Kill process 3086 (mem_eater) score 39 or sacrifice child
+
+$ grep "DMA32 free:" base-oom-run1.log | sed 's@.*free:\([0-9]*\)kB.*@\1@' | calc_min_max.awk 
+min: 5376.00 max: 6776.00 avg: 5530.75 std: 166.50 nr: 61
+$ grep "DMA32 free:" base-oom-run2.log | sed 's@.*free:\([0-9]*\)kB.*@\1@' | calc_min_max.awk 
+min: 5416.00 max: 5608.00 avg: 5514.15 std: 42.94 nr: 52
+
+$ grep "DMA32.*all_unreclaimable? no" base-oom-run1.log | wc -l
+1
+$ grep "DMA32.*all_unreclaimable? no" base-oom-run2.log | wc -l
+3
+
+* patched kernel
+$ grep "Out of memory:" patched-oom-run1.log | wc -l
+78
+miso@tiehlicka /mnt/share/devel/miso/kvm $ grep "Out of memory:" patched-oom-run2.log | wc -l
+77
+
+e grep "Kill process" patched-oom-run1.log | tail -n1
+[  497.317732] Out of memory: Kill process 3108 (mem_eater) score 39 or sacrifice child
+$ grep "Kill process" patched-oom-run2.log | tail -n1
+[  316.169920] Out of memory: Kill process 3093 (mem_eater) score 39 or sacrifice child
+
+$ grep "DMA32 free:" patched-oom-run1.log | sed 's@.*free:\([0-9]*\)kB.*@\1@' | calc_min_max.awk 
+min: 5420.00 max: 5808.00 avg: 5513.90 std: 60.45 nr: 78
+$ grep "DMA32 free:" patched-oom-run2.log | sed 's@.*free:\([0-9]*\)kB.*@\1@' | calc_min_max.awk 
+min: 5380.00 max: 6384.00 avg: 5520.94 std: 136.84 nr: 77
+
+e grep "DMA32.*all_unreclaimable? no" patched-oom-run1.log | wc -l
+2
+$ grep "DMA32.*all_unreclaimable? no" patched-oom-run2.log | wc -l
+3
+
+The patched kernel run noticeably longer while invoking OOM killer same
+number of times. This means that the original implementation is much
+more aggressive and triggers the OOM killer sooner. free pages stats
+show that neither kernels went OOM too early most of the time, though. I
+guess the difference is in the backoff when retries without any progress
+do sleep for a while if there is memory under writeback or dirty which
+is highly likely considering the parallel IO.
+Both kernels have seen races where zone wasn't marked unreclaimable
+and we still hit the OOM killer. This is most likely a race where
+a task managed to exit between the last allocation attempt and the oom
+killer invocation.
+
+2) 2 writers again with 10s of run and then 10 mem_eaters to consume as much
+   memory as possible without triggering the OOM killer. This required a lot
+   of tuning but I've considered 3 consecutive runs in three different boots
+   without OOM as a success.
+
+* base kernel
+size=$(awk '/MemFree/{printf "%dK", ($2/10)-(16*1024)}' /proc/meminfo)
+
+* patched kernel
+size=$(awk '/MemFree/{printf "%dK", ($2/10)-(12*1024)}' /proc/meminfo)
+
+That means 40M more memory was usable without triggering OOM killer. The
+base kernel sometimes managed to handle the same as patched but it
+wasn't consistent and failed in at least on of the 3 runs. This seems
+like a minor improvement.
+
+I was testing also GPF_REPEAT costly requests (hughetlb) with fragmented
+memory and under memory pressure. The results are in patch 11 where the
+logic is implemented. In short I can see huge improvement there.
+
+I am certainly interested in other usecases as well as well as any
+feedback. Especially those which require higher order requests.
+
+
+This patch (of 14):
+
+While playing with the oom detection rework [1] I have noticed that my
+heavy order-9 (hugetlb) load close to OOM ended up in an endless loop
+where the reclaim hasn't made any progress but did_some_progress didn't
+reflect that and compaction_suitable was backing off because no zone is
+above low wmark + 1 << order.
+
+It turned out that this is in fact an old standing bug in
+compaction_ready which ignores the requested_highidx and did the
+watermark check for 0 classzone_idx.  This succeeds for zone DMA most
+of the time as the zone is mostly unused because of lowmem protection. 
+As a result costly high order allocatios always report a successfull
+progress even when there was none.  This wasn't a problem so far
+because these allocations usually fail quite early or retry only few
+times with __GFP_REPEAT but this will change after later patch in this
+series so make sure to not lie about the progress and propagate
+requested_highidx down to compaction_ready and use it for both the
+watermak check and compaction_suitable to fix this issue.
+
+[1] http://lkml.kernel.org/r/1459855533-4600-1-git-send-email-mhocko@kernel.org
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |   45 +++++++++++++++++++++--------------
- mm/compaction.c            |   27 ++++++++++-----------
- mm/page_alloc.c            |    2 -
- 3 files changed, 42 insertions(+), 32 deletions(-)
+ mm/vmscan.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-change-compact_-constants-into-enum include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-change-compact_-constants-into-enum
-+++ a/include/linux/compaction.h
-@@ -2,21 +2,29 @@
- #define _LINUX_COMPACTION_H
- 
- /* Return values for compact_zone() and try_to_compact_pages() */
--/* compaction didn't start as it was deferred due to past failures */
--#define COMPACT_DEFERRED	0
--/* compaction didn't start as it was not possible or direct reclaim was more suitable */
--#define COMPACT_SKIPPED		1
--/* compaction should continue to another pageblock */
--#define COMPACT_CONTINUE	2
--/* direct compaction partially compacted a zone and there are suitable pages */
--#define COMPACT_PARTIAL		3
--/* The full zone was compacted */
--#define COMPACT_COMPLETE	4
--/* For more detailed tracepoint output */
--#define COMPACT_NO_SUITABLE_PAGE	5
--#define COMPACT_NOT_SUITABLE_ZONE	6
--#define COMPACT_CONTENDED		7
- /* When adding new states, please adjust include/trace/events/compaction.h */
-+enum compact_result {
-+	/* compaction didn't start as it was deferred due to past failures */
-+	COMPACT_DEFERRED,
-+	/*
-+	 * compaction didn't start as it was not possible or direct reclaim
-+	 * was more suitable
-+	 */
-+	COMPACT_SKIPPED,
-+	/* compaction should continue to another pageblock */
-+	COMPACT_CONTINUE,
-+	/*
-+	 * direct compaction partially compacted a zone and there are suitable
-+	 * pages
-+	 */
-+	COMPACT_PARTIAL,
-+	/* The full zone was compacted */
-+	COMPACT_COMPLETE,
-+	/* For more detailed tracepoint output */
-+	COMPACT_NO_SUITABLE_PAGE,
-+	COMPACT_NOT_SUITABLE_ZONE,
-+	COMPACT_CONTENDED,
-+};
- 
- /* Used to signal whether compaction detected need_sched() or lock contention */
- /* No contention detected */
-@@ -38,12 +46,13 @@ extern int sysctl_extfrag_handler(struct
- extern int sysctl_compact_unevictable_allowed;
- 
- extern int fragmentation_index(struct zone *zone, unsigned int order);
--extern unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
-+extern enum compact_result try_to_compact_pages(gfp_t gfp_mask,
-+			unsigned int order,
- 		unsigned int alloc_flags, const struct alloc_context *ac,
- 		enum migrate_mode mode, int *contended);
- extern void compact_pgdat(pg_data_t *pgdat, int order);
- extern void reset_isolation_suitable(pg_data_t *pgdat);
--extern unsigned long compaction_suitable(struct zone *zone, int order,
-+extern enum compact_result compaction_suitable(struct zone *zone, int order,
- 		unsigned int alloc_flags, int classzone_idx);
- 
- extern void defer_compaction(struct zone *zone, int order);
-@@ -57,7 +66,7 @@ extern void kcompactd_stop(int nid);
- extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx);
- 
- #else
--static inline unsigned long try_to_compact_pages(gfp_t gfp_mask,
-+static inline enum compact_result try_to_compact_pages(gfp_t gfp_mask,
- 			unsigned int order, int alloc_flags,
- 			const struct alloc_context *ac,
- 			enum migrate_mode mode, int *contended)
-@@ -73,7 +82,7 @@ static inline void reset_isolation_suita
- {
- }
- 
--static inline unsigned long compaction_suitable(struct zone *zone, int order,
-+static inline enum compact_result compaction_suitable(struct zone *zone, int order,
- 					int alloc_flags, int classzone_idx)
- {
- 	return COMPACT_SKIPPED;
-diff -puN mm/compaction.c~mm-compaction-change-compact_-constants-into-enum mm/compaction.c
---- a/mm/compaction.c~mm-compaction-change-compact_-constants-into-enum
-+++ a/mm/compaction.c
-@@ -1229,7 +1229,7 @@ static inline bool is_via_compact_memory
- 	return order == -1;
- }
- 
--static int __compact_finished(struct zone *zone, struct compact_control *cc,
-+static enum compact_result __compact_finished(struct zone *zone, struct compact_control *cc,
- 			    const int migratetype)
- {
- 	unsigned int order;
-@@ -1292,8 +1292,9 @@ static int __compact_finished(struct zon
- 	return COMPACT_NO_SUITABLE_PAGE;
- }
- 
--static int compact_finished(struct zone *zone, struct compact_control *cc,
--			    const int migratetype)
-+static enum compact_result compact_finished(struct zone *zone,
-+			struct compact_control *cc,
-+			const int migratetype)
- {
- 	int ret;
- 
-@@ -1312,7 +1313,7 @@ static int compact_finished(struct zone
-  *   COMPACT_PARTIAL  - If the allocation would succeed without compaction
-  *   COMPACT_CONTINUE - If compaction should run now
+diff -puN mm/vmscan.c~vmscan-consider-classzone_idx-in-compaction_ready mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-consider-classzone_idx-in-compaction_ready
++++ a/mm/vmscan.c
+@@ -2459,7 +2459,7 @@ static bool shrink_zone(struct zone *zon
+  * Returns true if compaction should go ahead for a high-order request, or
+  * the high-order allocation would succeed without compaction.
   */
--static unsigned long __compaction_suitable(struct zone *zone, int order,
-+static enum compact_result __compaction_suitable(struct zone *zone, int order,
- 					unsigned int alloc_flags,
- 					int classzone_idx)
+-static inline bool compaction_ready(struct zone *zone, int order)
++static inline bool compaction_ready(struct zone *zone, int order, int classzone_idx)
  {
-@@ -1358,11 +1359,11 @@ static unsigned long __compaction_suitab
- 	return COMPACT_CONTINUE;
- }
+ 	unsigned long balance_gap, watermark;
+ 	bool watermark_ok;
+@@ -2473,7 +2473,7 @@ static inline bool compaction_ready(stru
+ 	balance_gap = min(low_wmark_pages(zone), DIV_ROUND_UP(
+ 			zone->managed_pages, KSWAPD_ZONE_BALANCE_GAP_RATIO));
+ 	watermark = high_wmark_pages(zone) + balance_gap + (2UL << order);
+-	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, 0);
++	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, classzone_idx);
  
--unsigned long compaction_suitable(struct zone *zone, int order,
-+enum compact_result compaction_suitable(struct zone *zone, int order,
- 					unsigned int alloc_flags,
- 					int classzone_idx)
- {
--	unsigned long ret;
-+	enum compact_result ret;
+ 	/*
+ 	 * If compaction is deferred, reclaim up to a point where
+@@ -2486,7 +2486,7 @@ static inline bool compaction_ready(stru
+ 	 * If compaction is not ready to start and allocation is not likely
+ 	 * to succeed without it, then keep reclaiming.
+ 	 */
+-	if (compaction_suitable(zone, order, 0, 0) == COMPACT_SKIPPED)
++	if (compaction_suitable(zone, order, 0, classzone_idx) == COMPACT_SKIPPED)
+ 		return false;
  
- 	ret = __compaction_suitable(zone, order, alloc_flags, classzone_idx);
- 	trace_mm_compaction_suitable(zone, order, ret);
-@@ -1372,9 +1373,9 @@ unsigned long compaction_suitable(struct
- 	return ret;
- }
- 
--static int compact_zone(struct zone *zone, struct compact_control *cc)
-+static enum compact_result compact_zone(struct zone *zone, struct compact_control *cc)
- {
--	int ret;
-+	enum compact_result ret;
- 	unsigned long start_pfn = zone->zone_start_pfn;
- 	unsigned long end_pfn = zone_end_pfn(zone);
- 	const int migratetype = gfpflags_to_migratetype(cc->gfp_mask);
-@@ -1530,11 +1531,11 @@ out:
- 	return ret;
- }
- 
--static unsigned long compact_zone_order(struct zone *zone, int order,
-+static enum compact_result compact_zone_order(struct zone *zone, int order,
- 		gfp_t gfp_mask, enum migrate_mode mode, int *contended,
- 		unsigned int alloc_flags, int classzone_idx)
- {
--	unsigned long ret;
-+	enum compact_result ret;
- 	struct compact_control cc = {
- 		.nr_freepages = 0,
- 		.nr_migratepages = 0,
-@@ -1572,7 +1573,7 @@ int sysctl_extfrag_threshold = 500;
-  *
-  * This is the main entry point for direct page compaction.
-  */
--unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
-+enum compact_result try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
- 		unsigned int alloc_flags, const struct alloc_context *ac,
- 		enum migrate_mode mode, int *contended)
- {
-@@ -1580,7 +1581,7 @@ unsigned long try_to_compact_pages(gfp_t
- 	int may_perform_io = gfp_mask & __GFP_IO;
- 	struct zoneref *z;
- 	struct zone *zone;
--	int rc = COMPACT_DEFERRED;
-+	enum compact_result rc = COMPACT_DEFERRED;
- 	int all_zones_contended = COMPACT_CONTENDED_LOCK; /* init for &= op */
- 
- 	*contended = COMPACT_CONTENDED_NONE;
-@@ -1594,7 +1595,7 @@ unsigned long try_to_compact_pages(gfp_t
- 	/* Compact each zone in the list */
- 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
- 								ac->nodemask) {
--		int status;
-+		enum compact_result status;
- 		int zone_contended;
- 
- 		if (compaction_deferred(zone, order))
-diff -puN mm/page_alloc.c~mm-compaction-change-compact_-constants-into-enum mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-change-compact_-constants-into-enum
-+++ a/mm/page_alloc.c
-@@ -3188,7 +3188,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 		enum migrate_mode mode, int *contended_compaction,
- 		bool *deferred_compaction)
- {
--	unsigned long compact_result;
-+	enum compact_result compact_result;
- 	struct page *page;
- 
- 	if (!order)
+ 	return watermark_ok;
+@@ -2566,7 +2566,7 @@ static bool shrink_zones(struct zonelist
+ 			if (IS_ENABLED(CONFIG_COMPACTION) &&
+ 			    sc->order > PAGE_ALLOC_COSTLY_ORDER &&
+ 			    zonelist_zone_idx(z) <= requested_highidx &&
+-			    compaction_ready(zone, sc->order)) {
++			    compaction_ready(zone, sc->order, requested_highidx)) {
+ 				sc->compaction_ready = true;
+ 				continue;
+ 			}
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-compaction-change-compact_-constants-into-enum.patch
 mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
 mm-compaction-distinguish-compact_deferred-from-compact_skipped.patch
 mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
