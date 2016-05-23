@@ -1,127 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kasan-tests-add-tests-for-user-memory-access-functions.patch removed from
- -mm tree
-Date: Mon, 23 May 2016 12:47:35 -0700
-Message-ID: <57435e57.Y2oFXAtNzNrcq9RH%akpm@linux-foundation.org>
+Subject: [merged] zsmalloc-remove-unused-pool-param-in-obj_free.patch
+ removed from -mm tree
+Date: Mon, 23 May 2016 12:47:44 -0700
+Message-ID: <57435e60.kDzJ1rXCfaWIVlLx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37536 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754286AbcEWTrg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:36 -0400
+	with ESMTP id S1754310AbcEWTrp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:47:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan/tests: add tests for user memory access functions
+     Subject: zsmalloc: remove unused pool param in obj_free
 has been removed from the -mm tree.  Its filename was
-     kasan-tests-add-tests-for-user-memory-access-functions.patch
+     zsmalloc-remove-unused-pool-param-in-obj_free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: kasan/tests: add tests for user memory access functions
+From: Minchan Kim <minchan@kernel.org>
+Subject: zsmalloc: remove unused pool param in obj_free
 
-Add some tests for the newly-added user memory access API.
+Let's remove unused pool param in obj_free
 
-Link: http://lkml.kernel.org/r/1462538722-1574-1-git-send-email-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   49 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ mm/zsmalloc.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN lib/test_kasan.c~kasan-tests-add-tests-for-user-memory-access-functions lib/test_kasan.c
---- a/lib/test_kasan.c~kasan-tests-add-tests-for-user-memory-access-functions
-+++ a/lib/test_kasan.c
-@@ -12,9 +12,12 @@
- #define pr_fmt(fmt) "kasan test: %s " fmt, __func__
- 
- #include <linux/kernel.h>
-+#include <linux/mman.h>
-+#include <linux/mm.h>
- #include <linux/printk.h>
- #include <linux/slab.h>
- #include <linux/string.h>
-+#include <linux/uaccess.h>
- #include <linux/module.h>
- 
- static noinline void __init kmalloc_oob_right(void)
-@@ -363,6 +366,51 @@ static noinline void __init ksize_unpois
- 	kfree(ptr);
+diff -puN mm/zsmalloc.c~zsmalloc-remove-unused-pool-param-in-obj_free mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-remove-unused-pool-param-in-obj_free
++++ a/mm/zsmalloc.c
+@@ -1438,8 +1438,7 @@ unsigned long zs_malloc(struct zs_pool *
  }
+ EXPORT_SYMBOL_GPL(zs_malloc);
  
-+static noinline void __init copy_user_test(void)
-+{
-+	char *kmem;
-+	char __user *usermem;
-+	size_t size = 10;
-+	int unused;
-+
-+	kmem = kmalloc(size, GFP_KERNEL);
-+	if (!kmem)
-+		return;
-+
-+	usermem = (char __user *)vm_mmap(NULL, 0, PAGE_SIZE,
-+			    PROT_READ | PROT_WRITE | PROT_EXEC,
-+			    MAP_ANONYMOUS | MAP_PRIVATE, 0);
-+	if (IS_ERR(usermem)) {
-+		pr_err("Failed to allocate user memory\n");
-+		kfree(kmem);
-+		return;
-+	}
-+
-+	pr_info("out-of-bounds in copy_from_user()\n");
-+	unused = copy_from_user(kmem, usermem, size + 1);
-+
-+	pr_info("out-of-bounds in copy_to_user()\n");
-+	unused = copy_to_user(usermem, kmem, size + 1);
-+
-+	pr_info("out-of-bounds in __copy_from_user()\n");
-+	unused = __copy_from_user(kmem, usermem, size + 1);
-+
-+	pr_info("out-of-bounds in __copy_to_user()\n");
-+	unused = __copy_to_user(usermem, kmem, size + 1);
-+
-+	pr_info("out-of-bounds in __copy_from_user_inatomic()\n");
-+	unused = __copy_from_user_inatomic(kmem, usermem, size + 1);
-+
-+	pr_info("out-of-bounds in __copy_to_user_inatomic()\n");
-+	unused = __copy_to_user_inatomic(usermem, kmem, size + 1);
-+
-+	pr_info("out-of-bounds in strncpy_from_user()\n");
-+	unused = strncpy_from_user(kmem, usermem, size + 1);
-+
-+	vm_munmap((unsigned long)usermem, PAGE_SIZE);
-+	kfree(kmem);
-+}
-+
- static int __init kmalloc_tests_init(void)
+-static void obj_free(struct zs_pool *pool, struct size_class *class,
+-			unsigned long obj)
++static void obj_free(struct size_class *class, unsigned long obj)
  {
- 	kmalloc_oob_right();
-@@ -387,6 +435,7 @@ static int __init kmalloc_tests_init(voi
- 	kasan_stack_oob();
- 	kasan_global_oob();
- 	ksize_unpoisons_memory();
-+	copy_user_test();
- 	return -EAGAIN;
- }
+ 	struct link_free *link;
+ 	struct page *first_page, *f_page;
+@@ -1485,7 +1484,7 @@ void zs_free(struct zs_pool *pool, unsig
+ 	class = pool->size_class[class_idx];
  
+ 	spin_lock(&class->lock);
+-	obj_free(pool, class, obj);
++	obj_free(class, obj);
+ 	fullness = fix_fullness_group(class, first_page);
+ 	if (fullness == ZS_EMPTY) {
+ 		zs_stat_dec(class, OBJ_ALLOCATED, get_maxobj_per_zspage(
+@@ -1648,7 +1647,7 @@ static int migrate_zspage(struct zs_pool
+ 		free_obj |= BIT(HANDLE_PIN_BIT);
+ 		record_obj(handle, free_obj);
+ 		unpin_tag(handle);
+-		obj_free(pool, class, used_obj);
++		obj_free(class, used_obj);
+ 	}
+ 
+ 	/* Remember last position in this iteration */
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 
