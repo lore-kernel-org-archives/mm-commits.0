@@ -1,39 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix-tree-introduce-radix_tree_replace_clear_tags.patch removed from -mm tree
-Date: Mon, 23 May 2016 12:51:16 -0700
-Message-ID: <57435f34.2oZxLgqZOtHZOQuP%akpm@linux-foundation.org>
+Subject: [merged] radix-tree-make-radix_tree_descend-more-useful.patch
+ removed from -mm tree
+Date: Mon, 23 May 2016 12:51:19 -0700
+Message-ID: <57435f37.fsaexKeLTrXtlLt3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38182 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38189 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932152AbcEWTvR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:51:17 -0400
+	with ESMTP id S932152AbcEWTvU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:51:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, jack@suse.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, neilb@suse.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: introduce radix_tree_replace_clear_tags()
+     Subject: radix-tree: make radix_tree_descend() more useful
 has been removed from the -mm tree.  Its filename was
-     radix-tree-introduce-radix_tree_replace_clear_tags.patch
+     radix-tree-make-radix_tree_descend-more-useful.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree: introduce radix_tree_replace_clear_tags()
+Subject: radix-tree: make radix_tree_descend() more useful
 
-In addition to replacing the entry, we also clear all associated tags. 
-This is really a one-off special for page_cache_tree_delete() which had
-far too much detailed knowledge about how the radix tree works.
-
-For efficiency, factor node_tag_clear() out of radix_tree_tag_clear() It
-can be used by radix_tree_delete_item() as well as
-radix_tree_replace_clear_tags().
+Now that the shift amount is stored in the node, radix_tree_descend() can
+calculate offset itself from index, which removes several lines of code
+from each of the tree walkers.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
@@ -44,166 +41,247 @@ Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    9 ++--
- lib/radix-tree.c           |   76 +++++++++++++++++++++--------------
- mm/filemap.c               |   23 +---------
- 3 files changed, 56 insertions(+), 52 deletions(-)
+ lib/radix-tree.c |   78 +++++++++++++++------------------------------
+ 1 file changed, 26 insertions(+), 52 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-introduce-radix_tree_replace_clear_tags include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-introduce-radix_tree_replace_clear_tags
-+++ a/include/linux/radix-tree.h
-@@ -281,9 +281,12 @@ bool __radix_tree_delete_node(struct rad
- 			      struct radix_tree_node *node);
- void *radix_tree_delete_item(struct radix_tree_root *, unsigned long, void *);
- void *radix_tree_delete(struct radix_tree_root *, unsigned long);
--unsigned int
--radix_tree_gang_lookup(struct radix_tree_root *root, void **results,
--			unsigned long first_index, unsigned int max_items);
-+struct radix_tree_node *radix_tree_replace_clear_tags(
-+				struct radix_tree_root *root,
-+				unsigned long index, void *entry);
-+unsigned int radix_tree_gang_lookup(struct radix_tree_root *root,
-+			void **results, unsigned long first_index,
-+			unsigned int max_items);
- unsigned int radix_tree_gang_lookup_slot(struct radix_tree_root *root,
- 			void ***results, unsigned long *indices,
- 			unsigned long first_index, unsigned int max_items);
-diff -puN lib/radix-tree.c~radix-tree-introduce-radix_tree_replace_clear_tags lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-introduce-radix_tree_replace_clear_tags
+diff -puN lib/radix-tree.c~radix-tree-make-radix_tree_descend-more-useful lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-make-radix_tree_descend-more-useful
 +++ a/lib/radix-tree.c
-@@ -740,6 +740,26 @@ void *radix_tree_tag_set(struct radix_tr
+@@ -94,9 +94,10 @@ static inline unsigned long get_slot_off
+ 	return slot - parent->slots;
  }
- EXPORT_SYMBOL(radix_tree_tag_set);
  
-+static void node_tag_clear(struct radix_tree_root *root,
-+				struct radix_tree_node *node,
-+				unsigned int tag, unsigned int offset)
-+{
-+	while (node) {
-+		if (!tag_get(node, tag, offset))
-+			return;
-+		tag_clear(node, tag, offset);
-+		if (any_tag_set(node, tag))
-+			return;
-+
-+		offset = node->offset;
-+		node = node->parent;
-+	}
-+
-+	/* clear the root's tag bit */
-+	if (root_tag_get(root, tag))
-+		root_tag_clear(root, tag);
-+}
-+
- /**
-  *	radix_tree_tag_clear - clear a tag on a radix tree node
-  *	@root:		radix tree root
-@@ -776,28 +796,9 @@ void *radix_tree_tag_clear(struct radix_
- 		offset = radix_tree_descend(parent, &node, offset);
- 	}
- 
--	if (node == NULL)
--		goto out;
--
--	index >>= shift;
--
--	while (parent) {
--		if (!tag_get(parent, tag, offset))
--			goto out;
--		tag_clear(parent, tag, offset);
--		if (any_tag_set(parent, tag))
--			goto out;
--
--		index >>= RADIX_TREE_MAP_SHIFT;
--		offset = index & RADIX_TREE_MAP_MASK;
--		parent = parent->parent;
--	}
-+	if (node)
-+		node_tag_clear(root, parent, tag, offset);
- 
--	/* clear the root's tag bit */
--	if (root_tag_get(root, tag))
--		root_tag_clear(root, tag);
--
--out:
- 	return node;
- }
- EXPORT_SYMBOL(radix_tree_tag_clear);
-@@ -1525,14 +1526,9 @@ void *radix_tree_delete_item(struct radi
- 
- 	offset = get_slot_offset(node, slot);
- 
--	/*
--	 * Clear all tags associated with the item to be deleted.
--	 * This way of doing it would be inefficient, but seldom is any set.
--	 */
--	for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++) {
--		if (tag_get(node, tag, offset))
--			radix_tree_tag_clear(root, index, tag);
--	}
-+	/* Clear all tags associated with the item to be deleted.  */
-+	for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++)
-+		node_tag_clear(root, node, tag, offset);
- 
- 	delete_sibling_entries(node, node_to_entry(slot), offset);
- 	node->slots[offset] = NULL;
-@@ -1559,6 +1555,28 @@ void *radix_tree_delete(struct radix_tre
- }
- EXPORT_SYMBOL(radix_tree_delete);
- 
-+struct radix_tree_node *radix_tree_replace_clear_tags(
-+			struct radix_tree_root *root,
-+			unsigned long index, void *entry)
-+{
-+	struct radix_tree_node *node;
-+	void **slot;
-+
-+	__radix_tree_lookup(root, index, &node, &slot);
-+
-+	if (node) {
-+		unsigned int tag, offset = get_slot_offset(node, slot);
-+		for (tag = 0; tag < RADIX_TREE_MAX_TAGS; tag++)
-+			node_tag_clear(root, node, tag, offset);
-+	} else {
-+		/* Clear root node tags */
-+		root->gfp_mask &= __GFP_BITS_MASK;
-+	}
-+
-+	radix_tree_replace_slot(slot, entry);
-+	return node;
-+}
-+
- /**
-  *	radix_tree_tagged - test whether any items in the tree are tagged
-  *	@root:		radix tree root
-diff -puN mm/filemap.c~radix-tree-introduce-radix_tree_replace_clear_tags mm/filemap.c
---- a/mm/filemap.c~radix-tree-introduce-radix_tree_replace_clear_tags
-+++ a/mm/filemap.c
-@@ -114,14 +114,11 @@ static void page_cache_tree_delete(struc
- 				   struct page *page, void *shadow)
+-static unsigned radix_tree_descend(struct radix_tree_node *parent,
+-				struct radix_tree_node **nodep, unsigned offset)
++static unsigned int radix_tree_descend(struct radix_tree_node *parent,
++			struct radix_tree_node **nodep, unsigned long index)
  {
- 	struct radix_tree_node *node;
--	unsigned long index;
--	unsigned int offset;
--	unsigned int tag;
--	void **slot;
++	unsigned int offset = (index >> parent->shift) & RADIX_TREE_MAP_MASK;
+ 	void **entry = rcu_dereference_raw(parent->slots[offset]);
  
- 	VM_BUG_ON(!PageLocked(page));
+ #ifdef CONFIG_RADIX_TREE_MULTIORDER
+@@ -536,8 +537,7 @@ int __radix_tree_create(struct radix_tre
  
--	__radix_tree_lookup(&mapping->page_tree, page->index, &node, &slot);
-+	node = radix_tree_replace_clear_tags(&mapping->page_tree, page->index,
-+								shadow);
- 
- 	if (shadow) {
- 		mapping->nrexceptional++;
-@@ -135,23 +132,9 @@ static void page_cache_tree_delete(struc
+ 		/* Go a level down */
+ 		node = entry_to_node(child);
+-		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+-		offset = radix_tree_descend(node, &child, offset);
++		offset = radix_tree_descend(node, &child, index);
+ 		slot = &node->slots[offset];
  	}
- 	mapping->nrpages--;
  
--	if (!node) {
--		/* Clear direct pointer tags in root node */
--		mapping->page_tree.gfp_mask &= __GFP_BITS_MASK;
--		radix_tree_replace_slot(slot, shadow);
-+	if (!node)
- 		return;
--	}
+@@ -625,13 +625,12 @@ void *__radix_tree_lookup(struct radix_t
+ {
+ 	struct radix_tree_node *node, *parent;
+ 	unsigned long maxindex;
+-	unsigned int shift;
+ 	void **slot;
+ 
+  restart:
+ 	parent = NULL;
+ 	slot = (void **)&root->rnode;
+-	shift = radix_tree_load_root(root, &node, &maxindex);
++	radix_tree_load_root(root, &node, &maxindex);
+ 	if (index > maxindex)
+ 		return NULL;
+ 
+@@ -641,9 +640,7 @@ void *__radix_tree_lookup(struct radix_t
+ 		if (node == RADIX_TREE_RETRY)
+ 			goto restart;
+ 		parent = entry_to_node(node);
+-		shift -= RADIX_TREE_MAP_SHIFT;
+-		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+-		offset = radix_tree_descend(parent, &node, offset);
++		offset = radix_tree_descend(parent, &node, index);
+ 		slot = parent->slots + offset;
+ 	}
+ 
+@@ -713,19 +710,15 @@ void *radix_tree_tag_set(struct radix_tr
+ {
+ 	struct radix_tree_node *node, *parent;
+ 	unsigned long maxindex;
+-	unsigned int shift;
+ 
+-	shift = radix_tree_load_root(root, &node, &maxindex);
++	radix_tree_load_root(root, &node, &maxindex);
+ 	BUG_ON(index > maxindex);
+ 
+ 	while (radix_tree_is_internal_node(node)) {
+ 		unsigned offset;
+ 
+-		shift -= RADIX_TREE_MAP_SHIFT;
+-		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+-
+ 		parent = entry_to_node(node);
+-		offset = radix_tree_descend(parent, &node, offset);
++		offset = radix_tree_descend(parent, &node, index);
+ 		BUG_ON(!node);
+ 
+ 		if (!tag_get(parent, tag, offset))
+@@ -779,21 +772,17 @@ void *radix_tree_tag_clear(struct radix_
+ {
+ 	struct radix_tree_node *node, *parent;
+ 	unsigned long maxindex;
+-	unsigned int shift;
+ 	int uninitialized_var(offset);
+ 
+-	shift = radix_tree_load_root(root, &node, &maxindex);
++	radix_tree_load_root(root, &node, &maxindex);
+ 	if (index > maxindex)
+ 		return NULL;
+ 
+ 	parent = NULL;
+ 
+ 	while (radix_tree_is_internal_node(node)) {
+-		shift -= RADIX_TREE_MAP_SHIFT;
+-		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+-
+ 		parent = entry_to_node(node);
+-		offset = radix_tree_descend(parent, &node, offset);
++		offset = radix_tree_descend(parent, &node, index);
+ 	}
+ 
+ 	if (node)
+@@ -823,25 +812,21 @@ int radix_tree_tag_get(struct radix_tree
+ {
+ 	struct radix_tree_node *node, *parent;
+ 	unsigned long maxindex;
+-	unsigned int shift;
+ 
+ 	if (!root_tag_get(root, tag))
+ 		return 0;
+ 
+-	shift = radix_tree_load_root(root, &node, &maxindex);
++	radix_tree_load_root(root, &node, &maxindex);
+ 	if (index > maxindex)
+ 		return 0;
+ 	if (node == NULL)
+ 		return 0;
+ 
+ 	while (radix_tree_is_internal_node(node)) {
+-		int offset;
+-
+-		shift -= RADIX_TREE_MAP_SHIFT;
+-		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
++		unsigned offset;
+ 
+ 		parent = entry_to_node(node);
+-		offset = radix_tree_descend(parent, &node, offset);
++		offset = radix_tree_descend(parent, &node, index);
+ 
+ 		if (!node)
+ 			return 0;
+@@ -874,7 +859,7 @@ static inline void __set_iter_shift(stru
+ void **radix_tree_next_chunk(struct radix_tree_root *root,
+ 			     struct radix_tree_iter *iter, unsigned flags)
+ {
+-	unsigned shift, tag = flags & RADIX_TREE_ITER_TAG_MASK;
++	unsigned tag = flags & RADIX_TREE_ITER_TAG_MASK;
+ 	struct radix_tree_node *node, *child;
+ 	unsigned long index, offset, maxindex;
+ 
+@@ -895,7 +880,7 @@ void **radix_tree_next_chunk(struct radi
+ 		return NULL;
+ 
+  restart:
+-	shift = radix_tree_load_root(root, &child, &maxindex);
++	radix_tree_load_root(root, &child, &maxindex);
+ 	if (index > maxindex)
+ 		return NULL;
+ 	if (!child)
+@@ -912,9 +897,7 @@ void **radix_tree_next_chunk(struct radi
+ 
+ 	do {
+ 		node = entry_to_node(child);
+-		shift -= RADIX_TREE_MAP_SHIFT;
+-		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+-		offset = radix_tree_descend(node, &child, offset);
++		offset = radix_tree_descend(node, &child, index);
+ 
+ 		if ((flags & RADIX_TREE_ITER_TAGGED) ?
+ 				!tag_get(node, tag, offset) : !child) {
+@@ -936,7 +919,7 @@ void **radix_tree_next_chunk(struct radi
+ 						break;
+ 				}
+ 			index &= ~node_maxindex(node);
+-			index += offset << shift;
++			index += offset << node->shift;
+ 			/* Overflow after ~0UL */
+ 			if (!index)
+ 				return NULL;
+@@ -952,7 +935,7 @@ void **radix_tree_next_chunk(struct radi
+ 	/* Update the iterator state */
+ 	iter->index = (index &~ node_maxindex(node)) | (offset << node->shift);
+ 	iter->next_index = (index | node_maxindex(node)) + 1;
+-	__set_iter_shift(iter, shift);
++	__set_iter_shift(iter, node->shift);
+ 
+ 	/* Construct iter->tags bit-mask from node->tags[tag] array */
+ 	if (flags & RADIX_TREE_ITER_TAGGED) {
+@@ -1010,10 +993,10 @@ unsigned long radix_tree_range_tag_if_ta
+ {
+ 	struct radix_tree_node *parent, *node, *child;
+ 	unsigned long maxindex;
+-	unsigned int shift = radix_tree_load_root(root, &child, &maxindex);
+ 	unsigned long tagged = 0;
+ 	unsigned long index = *first_indexp;
+ 
++	radix_tree_load_root(root, &child, &maxindex);
+ 	last_index = min(last_index, maxindex);
+ 	if (index > last_index)
+ 		return 0;
+@@ -1030,11 +1013,9 @@ unsigned long radix_tree_range_tag_if_ta
+ 	}
+ 
+ 	node = entry_to_node(child);
+-	shift -= RADIX_TREE_MAP_SHIFT;
+ 
+ 	for (;;) {
+-		unsigned offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+-		offset = radix_tree_descend(node, &child, offset);
++		unsigned offset = radix_tree_descend(node, &child, index);
+ 		if (!child)
+ 			goto next;
+ 		if (!tag_get(node, iftag, offset))
+@@ -1042,7 +1023,6 @@ unsigned long radix_tree_range_tag_if_ta
+ 		/* Sibling slots never have tags set on them */
+ 		if (radix_tree_is_internal_node(child)) {
+ 			node = entry_to_node(child);
+-			shift -= RADIX_TREE_MAP_SHIFT;
+ 			continue;
+ 		}
+ 
+@@ -1063,12 +1043,12 @@ unsigned long radix_tree_range_tag_if_ta
+ 			tag_set(parent, settag, offset);
+ 		}
+  next:
+-		/* Go to next item at level determined by 'shift' */
+-		index = ((index >> shift) + 1) << shift;
++		/* Go to next entry in node */
++		index = ((index >> node->shift) + 1) << node->shift;
+ 		/* Overflow can happen when last_index is ~0UL... */
+ 		if (index > last_index || !index)
+ 			break;
+-		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
++		offset = (index >> node->shift) & RADIX_TREE_MAP_MASK;
+ 		while (offset == 0) {
+ 			/*
+ 			 * We've fully scanned this node. Go up. Because
+@@ -1076,8 +1056,7 @@ unsigned long radix_tree_range_tag_if_ta
+ 			 * we do below cannot wander astray.
+ 			 */
+ 			node = node->parent;
+-			shift += RADIX_TREE_MAP_SHIFT;
+-			offset = (index >> shift) & RADIX_TREE_MAP_MASK;
++			offset = (index >> node->shift) & RADIX_TREE_MAP_MASK;
+ 		}
+ 		if (is_sibling_entry(node, node->slots[offset]))
+ 			goto next;
+@@ -1275,13 +1254,10 @@ struct locate_info {
+ static unsigned long __locate(struct radix_tree_node *slot, void *item,
+ 			      unsigned long index, struct locate_info *info)
+ {
+-	unsigned int shift;
+ 	unsigned long i;
+ 
+-	shift = slot->shift + RADIX_TREE_MAP_SHIFT;
