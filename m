@@ -1,133 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] procfs-expose-umask-in-proc-pid-status.patch removed
- from -mm tree
-Date: Mon, 23 May 2016 12:48:00 -0700
-Message-ID: <57435e70.ZrNcLkKnQtWeguiH%akpm@linux-foundation.org>
+Subject: [merged]
+ procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable.patch removed from
+ -mm tree
+Date: Mon, 23 May 2016 12:48:03 -0700
+Message-ID: <57435e73.9kNga6S92InKtduA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37574 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754368AbcEWTsB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:48:01 -0400
+	with ESMTP id S1754383AbcEWTsE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 15:48:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjones@redhat.com, jmarchan@redhat.com, keescook@chromium.org, koct9i@gmail.com, mhocko@kernel.org, pierre@spotify.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: jdanis@google.com, adobriyan@gmail.com, calvinowens@fb.com, colin.king@canonical.com, gorcunov@openvz.org, jann@thejh.net, john.stultz@linaro.org, keescook@chromium.org, mnfhuang@gmail.com, rientjes@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: expose umask in /proc/<PID>/status
+     Subject: procfs: fix pthread cross-thread naming if !PR_DUMPABLE
 has been removed from the -mm tree.  Its filename was
-     procfs-expose-umask-in-proc-pid-status.patch
+     procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Richard W.M. Jones" <rjones@redhat.com>
-Subject: procfs: expose umask in /proc/<PID>/status
+From: Janis Danisevskis <jdanis@google.com>
+Subject: procfs: fix pthread cross-thread naming if !PR_DUMPABLE
 
-It's not possible to read the process umask without also modifying it,
-which is what umask(2) does.  A library cannot read umask safely,
-especially if the main program might be multithreaded.
+The PR_DUMPABLE flag causes the pid related paths of the proc file system
+to be owned by ROOT.  The implementation of pthread_set/getname_np however
+needs access to /proc/<pid>/task/<tid>/comm.  If PR_DUMPABLE is false this
+implementation is locked out.
 
-Add a new status line ("Umask") in /proc/<PID>/status.  It contains
-the file mode creation mask (umask) in octal.  It is only shown for
-tasks which have task->fs.
+This patch installs a special permission function for the file "comm" that
+grants read and write access to all threads of the same group regardless
+of the ownership of the inode.  For all other threads the function falls
+back to the generic inode permission check.
 
-This patch is adapted from one originally written by Pierre Carrier.
-
-
-The use case is that we have endless trouble with people setting weird
-umask() values (usually on the grounds of "security"), and then everything
-breaking.  I'm on the hook to fix these.  We'd like to add debugging to
-our program so we can dump out the umask in debug reports.
-
-Previous versions of the patch used a syscall so you could only read your
-own umask.  That's all I need.  However there was quite a lot of push-back
-from those, so this new version exports it in /proc.
-
-See:
-
-https://lkml.org/lkml/2016/4/13/704 [umask2]
-https://lkml.org/lkml/2016/4/13/487 [getumask]
-Signed-off-by: Richard W.M. Jones <rjones@redhat.com>
-Acked-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
+[akpm@linux-foundation.org: fix spello in comment]
+Signed-off-by: Janis Danisevskis <jdanis@google.com>
 Acked-by: Kees Cook <keescook@chromium.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Pierre Carrier <pierre@spotify.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Minfei Huang <mnfhuang@gmail.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Calvin Owens <calvinowens@fb.com>
+Cc: Jann Horn <jann@thejh.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    1 +
- fs/proc/array.c                    |   20 +++++++++++++++++++-
- 2 files changed, 20 insertions(+), 1 deletion(-)
+ fs/proc/base.c |   42 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 41 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/proc.txt~procfs-expose-umask-in-proc-pid-status Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~procfs-expose-umask-in-proc-pid-status
-+++ a/Documentation/filesystems/proc.txt
-@@ -225,6 +225,7 @@ Table 1-2: Contents of the status files
-  TracerPid                   PID of process tracing this process (0 if not)
-  Uid                         Real, effective, saved set, and  file system UIDs
-  Gid                         Real, effective, saved set, and  file system GIDs
-+ Umask                       file mode creation mask
-  FDSize                      number of file descriptor slots currently allocated
-  Groups                      supplementary group list
-  NStgid                      descendant namespace thread group ID hierarchy
-diff -puN fs/proc/array.c~procfs-expose-umask-in-proc-pid-status fs/proc/array.c
---- a/fs/proc/array.c~procfs-expose-umask-in-proc-pid-status
-+++ a/fs/proc/array.c
-@@ -83,6 +83,7 @@
- #include <linux/tracehook.h>
- #include <linux/string_helpers.h>
- #include <linux/user_namespace.h>
-+#include <linux/fs_struct.h>
- 
- #include <asm/pgtable.h>
- #include <asm/processor.h>
-@@ -139,12 +140,25 @@ static inline const char *get_task_state
- 	return task_state_array[fls(state)];
+diff -puN fs/proc/base.c~procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable fs/proc/base.c
+--- a/fs/proc/base.c~procfs-fixes-pthread-cross-thread-naming-if-pr_dumpable
++++ a/fs/proc/base.c
+@@ -3163,6 +3163,44 @@ int proc_pid_readdir(struct file *file,
  }
  
-+static inline int get_task_umask(struct task_struct *tsk)
+ /*
++ * proc_tid_comm_permission is a special permission function exclusively
++ * used for the node /proc/<pid>/task/<tid>/comm.
++ * It bypasses generic permission checks in the case where a task of the same
++ * task group attempts to access the node.
++ * The rationale behind this is that glibc and bionic access this node for
++ * cross thread naming (pthread_set/getname_np(!self)). However, if
++ * PR_SET_DUMPABLE gets set to 0 this node among others becomes uid=0 gid=0,
++ * which locks out the cross thread naming implementation.
++ * This function makes sure that the node is always accessible for members of
++ * same thread group.
++ */
++static int proc_tid_comm_permission(struct inode *inode, int mask)
 +{
-+	struct fs_struct *fs;
-+	int umask = -ENOENT;
++	bool is_same_tgroup;
++	struct task_struct *task;
 +
-+	task_lock(tsk);
-+	fs = tsk->fs;
-+	if (fs)
-+		umask = fs->umask;
-+	task_unlock(tsk);
-+	return umask;
++	task = get_proc_task(inode);
++	if (!task)
++		return -ESRCH;
++	is_same_tgroup = same_thread_group(current, task);
++	put_task_struct(task);
++
++	if (likely(is_same_tgroup && !(mask & MAY_EXEC))) {
++		/* This file (/proc/<pid>/task/<tid>/comm) can always be
++		 * read or written by the members of the corresponding
++		 * thread group.
++		 */
++		return 0;
++	}
++
++	return generic_permission(inode, mask);
 +}
 +
- static inline void task_state(struct seq_file *m, struct pid_namespace *ns,
- 				struct pid *pid, struct task_struct *p)
- {
- 	struct user_namespace *user_ns = seq_user_ns(m);
- 	struct group_info *group_info;
--	int g;
-+	int g, umask;
- 	struct task_struct *tracer;
- 	const struct cred *cred;
- 	pid_t ppid, tpid = 0, tgid, ngid;
-@@ -162,6 +176,10 @@ static inline void task_state(struct seq
- 	ngid = task_numa_group_id(p);
- 	cred = get_task_cred(p);
- 
-+	umask = get_task_umask(p);
-+	if (umask >= 0)
-+		seq_printf(m, "Umask:\t%#04o\n", umask);
++static const struct inode_operations proc_tid_comm_inode_operations = {
++		.permission = proc_tid_comm_permission,
++};
 +
- 	task_lock(p);
- 	if (p->files)
- 		max_fds = files_fdtable(p->files)->max_fds;
++/*
+  * Tasks
+  */
+ static const struct pid_entry tid_base_stuff[] = {
+@@ -3180,7 +3218,9 @@ static const struct pid_entry tid_base_s
+ #ifdef CONFIG_SCHED_DEBUG
+ 	REG("sched",     S_IRUGO|S_IWUSR, proc_pid_sched_operations),
+ #endif
+-	REG("comm",      S_IRUGO|S_IWUSR, proc_pid_set_comm_operations),
++	NOD("comm",      S_IFREG|S_IRUGO|S_IWUSR,
++			 &proc_tid_comm_inode_operations,
++			 &proc_pid_set_comm_operations, {}),
+ #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
+ 	ONE("syscall",   S_IRUSR, proc_pid_syscall),
+ #endif
 _
 
-Patches currently in -mm which might be from rjones@redhat.com are
+Patches currently in -mm which might be from jdanis@google.com are
 
 
