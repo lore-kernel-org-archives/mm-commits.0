@@ -1,182 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [patch 59/84] scripts/gdb: add a Radix Tree Parser
-Date: Mon, 23 May 2016 16:25:07 -0700
-Message-ID: <57439153.VVtcO+gKbsMUohUM%akpm@linux-foundation.org>
+Subject: [patch 62/84] scripts/gdb: improve types abstraction for gdb
+ python scripts
+Date: Mon, 23 May 2016 16:25:16 -0700
+Message-ID: <5743915c.0O1TpCMqJY/Lf9kS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42309 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42325 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751390AbcEWXZJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:25:09 -0400
+	with ESMTP id S1752458AbcEWXZR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 May 2016 19:25:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kieran.bingham@linaro.org, jan.kiszka@siemens.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, buzdelabuz2+git@gmail.com, jan.kiszka@siemens.com, kieran@ksquared.org.uk
 
-From: Kieran Bingham <kieran.bingham@linaro.org>
-Subject: scripts/gdb: add a Radix Tree Parser
+From: Dom Cote <buzdelabuz2+git@gmail.com>
+Subject: scripts/gdb: improve types abstraction for gdb python scripts
 
-Linux makes use of the Radix Tree data structure to store pointers indexed
-by integer values. This structure is utilised across many structures in
-the kernel including the IRQ descriptor tables, and several filesystems.
+Change the read_u16 function so it accepts both 'str' and 'byte'
+as type for the arguments.
 
-This module provides a method to lookup values from a structure given
-its head node.
+When calling read_memory() from gdb API, depending on if
+it was built with 2.7 or 3.X, the format used to return the
+data will differ ( 'str' for 2.7, and 'byte' for 3.X ).
 
-Usage:
+Add a function read_memoryview() to be able to get a
+'memoryview' object back from read_memory() both with
+python 2.7 and 3.X .
 
-The function lx_radix_tree_lookup, must be given a symbol of type
-struct radix_tree_root, and an index into that tree.
+Tested with python 3.4 and 2.7
+Tested with gdb 7.7
 
-The object returned is a generic integer value, and must be cast
-correctly to the type based on the storage in the data structure.
-
-For example, to print the irq descriptor in the sparse irq_desc_tree at
-index 18, try the following:
-
- (gdb) print (struct irq_desc)$lx_radix_tree_lookup(irq_desc_tree, 18)
-
-Link: http://lkml.kernel.org/r/d2028c55e50cf95a9b7f8ca0d11885174b0cc709.1462865983.git.jan.kiszka@siemens.com
-Signed-off-by: Kieran Bingham <kieran.bingham@linaro.org>
+Link: http://lkml.kernel.org/r/73621f564503137a002a639d174e4fb35f73f462.1462865983.git.jan.kiszka@siemens.com
+Signed-off-by: Dom Cote <buzdelabuz2+git@gmail.com>
+Tested-by: Kieran Bingham <kieran@bingham.xyz> (Py2.7,Py3.4,GDB10)
+Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/constants.py.in |    7 ++
- scripts/gdb/linux/radixtree.py    |   97 ++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py        |    1 
- 3 files changed, 105 insertions(+)
+ scripts/gdb/linux/utils.py |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN scripts/gdb/linux/constants.py.in~scripts-gdb-add-a-radix-tree-parser scripts/gdb/linux/constants.py.in
---- a/scripts/gdb/linux/constants.py.in~scripts-gdb-add-a-radix-tree-parser
-+++ a/scripts/gdb/linux/constants.py.in
-@@ -14,6 +14,7 @@
+diff -puN scripts/gdb/linux/utils.py~scripts-gdb-improve-types-abstraction-for-gdb-python-scripts scripts/gdb/linux/utils.py
+--- a/scripts/gdb/linux/utils.py~scripts-gdb-improve-types-abstraction-for-gdb-python-scripts
++++ a/scripts/gdb/linux/utils.py
+@@ -87,11 +87,24 @@ def get_target_endianness():
+     return target_endianness
  
- #include <linux/fs.h>
- #include <linux/mount.h>
-+#include <linux/radix-tree.h>
  
- /* We need to stringify expanded macros so that they can be parsed */
++def read_memoryview(inf, start, length):
++    return memoryview(inf.read_memory(start, length))
++
++
+ def read_u16(buffer):
++    value = [0, 0]
++
++    if type(buffer[0]) is str:
++        value[0] = ord(buffer[0])
++        value[1] = ord(buffer[1])
++    else:
++        value[0] = buffer[0]
++        value[1] = buffer[1]
++
+     if get_target_endianness() == LITTLE_ENDIAN:
+-        return ord(buffer[0]) + (ord(buffer[1]) << 8)
++        return value[0] + (value[1] << 8)
+     else:
+-        return ord(buffer[1]) + (ord(buffer[0]) << 8)
++        return value[1] + (value[0] << 8)
  
-@@ -50,3 +51,9 @@ LX_VALUE(MNT_NOEXEC)
- LX_VALUE(MNT_NOATIME)
- LX_VALUE(MNT_NODIRATIME)
- LX_VALUE(MNT_RELATIME)
-+
-+/* linux/radix-tree.h */
-+LX_VALUE(RADIX_TREE_INDIRECT_PTR)
-+LX_GDBPARSED(RADIX_TREE_HEIGHT_MASK)
-+LX_GDBPARSED(RADIX_TREE_MAP_SHIFT)
-+LX_GDBPARSED(RADIX_TREE_MAP_MASK)
-diff -puN /dev/null scripts/gdb/linux/radixtree.py
---- /dev/null
-+++ a/scripts/gdb/linux/radixtree.py
-@@ -0,0 +1,97 @@
-+#
-+# gdb helper commands and functions for Linux kernel debugging
-+#
-+#  Radix Tree Parser
-+#
-+# Copyright (c) 2016 Linaro Ltd
-+#
-+# Authors:
-+#  Kieran Bingham <kieran.bingham@linaro.org>
-+#
-+# This work is licensed under the terms of the GNU GPL version 2.
-+#
-+
-+import gdb
-+
-+from linux import utils
-+from linux import constants
-+
-+radix_tree_root_type = utils.CachedType("struct radix_tree_root")
-+radix_tree_node_type = utils.CachedType("struct radix_tree_node")
-+
-+
-+def is_indirect_ptr(node):
-+    long_type = utils.get_long_type()
-+    return (node.cast(long_type) & constants.LX_RADIX_TREE_INDIRECT_PTR)
-+
-+
-+def indirect_to_ptr(node):
-+    long_type = utils.get_long_type()
-+    node_type = node.type
-+    indirect_ptr = node.cast(long_type) & ~constants.LX_RADIX_TREE_INDIRECT_PTR
-+    return indirect_ptr.cast(node_type)
-+
-+
-+def maxindex(height):
-+    height = height & constants.LX_RADIX_TREE_HEIGHT_MASK
-+    return gdb.parse_and_eval("height_to_maxindex["+str(height)+"]")
-+
-+
-+def lookup(root, index):
-+    if root.type == radix_tree_root_type.get_type().pointer():
-+        root = root.dereference()
-+    elif root.type != radix_tree_root_type.get_type():
-+        raise gdb.GdbError("Must be struct radix_tree_root not {}"
-+                           .format(root.type))
-+
-+    node = root['rnode']
-+    if node is 0:
-+        return None
-+
-+    if not (is_indirect_ptr(node)):
-+        if (index > 0):
-+            return None
-+        return node
-+
-+    node = indirect_to_ptr(node)
-+
-+    height = node['path'] & constants.LX_RADIX_TREE_HEIGHT_MASK
-+    if (index > maxindex(height)):
-+        return None
-+
-+    shift = (height-1) * constants.LX_RADIX_TREE_MAP_SHIFT
-+
-+    while True:
-+        new_index = (index >> shift) & constants.LX_RADIX_TREE_MAP_MASK
-+        slot = node['slots'][new_index]
-+
-+        node = slot.cast(node.type.pointer()).dereference()
-+        if node is 0:
-+            return None
-+
-+        shift -= constants.LX_RADIX_TREE_MAP_SHIFT
-+        height -= 1
-+
-+        if (height <= 0):
-+            break
-+
-+    return node
-+
-+
-+class LxRadixTree(gdb.Function):
-+    """ Lookup and return a node from a RadixTree.
-+
-+$lx_radix_tree_lookup(root_node [, index]): Return the node at the given index.
-+If index is omitted, the root node is dereferenced and returned."""
-+
-+    def __init__(self):
-+        super(LxRadixTree, self).__init__("lx_radix_tree_lookup")
-+
-+    def invoke(self, root, index=0):
-+        result = lookup(root, index)
-+        if result is None:
-+            raise gdb.GdbError("No entry in tree at index {}".format(index))
-+
-+        return result
-+
-+LxRadixTree()
-diff -puN scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-a-radix-tree-parser scripts/gdb/vmlinux-gdb.py
---- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-a-radix-tree-parser
-+++ a/scripts/gdb/vmlinux-gdb.py
-@@ -31,3 +31,4 @@ else:
-     import linux.lists
-     import linux.proc
-     import linux.constants
-+    import linux.radixtree
+ 
+ def read_u32(buffer):
 _
