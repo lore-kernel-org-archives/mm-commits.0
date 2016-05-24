@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read.patch added to -mm tree
-Date: Tue, 24 May 2016 12:24:58 -0700
-Message-ID: <5744aa8a.yyLfw3EeJtx5YShV%akpm@linux-foundation.org>
+ mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix-2.patch added to -mm tree
+Date: Tue, 24 May 2016 12:46:43 -0700
+Message-ID: <5744afa3./yuvuS6F8KYG9C8o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34840 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35264 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932195AbcEXTY7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 May 2016 15:24:59 -0400
+	with ESMTP id S1753859AbcEXTqo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 May 2016 15:46:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guaneryu@gmail.com, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: arnd@arndb.de, iamjoonsoo.kim@lge.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: direct-io: fix direct write stale data exposure from concurrent buffered read
+     Subject: mm: fix build problems from lookup_page_ext
 has been added to the -mm tree.  Its filename is
-     direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read.patch
+     mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,92 +39,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eryu Guan <guaneryu@gmail.com>
-Subject: direct-io: fix direct write stale data exposure from concurrent buffered read
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: fix build problems from lookup_page_ext
 
-Currently direct writes inside i_size on a DIO_SKIP_HOLES filesystem are
-not allowed to allocate blocks(get_more_blocks() sets 'create' to 0 before
-calling get_block() callback), if it's a sparse file, direct writes fall
-back to buffered writes to avoid stale data exposure from concurrent
-buffered read.  But there're two cases that can result in stale data
-exposure are not correctly detected.
+A patch for lookup_page_ext introduced several build errors and
+warnings, e.g.
 
-1. The detection for "writing inside i_size" is not sufficient, writes
-   can be treated as "extending writes" wrongly.  For example, direct
-   write 1FSB to a 1FSB sparse file on ext2/3/4, starting from offset 0,
-   in this case it's writing inside i_size, but 'create' is non-zero,
-   because 'block_in_file' and '(i_size_read(inode) >> blkbits' are both
-   zero.
+mm/page_owner.c: In function '__set_page_owner':
+mm/page_owner.c:71:2: error: ISO C90 forbids mixed declarations and code [-Werror=declaration-after-statement]
+include/linux/page_idle.h: In function 'set_page_young':
+include/linux/page_idle.h:62:3: error: expected ')' before 'return'
 
-2. Direct writes starting from or beyong i_size (not inside i_size)
-   also could trigger block allocation and expose stale data.  For
-   example, consider a sparse file with i_size of 2k, and a write to
-   offset 2k or 3k into the file, with a filesystem block size of 4k. 
-   (Thanks to Jeff Moyer for pointing this case out in his review.)
+This fixes all of them. Please fold into the original patch.
 
-The first problem can be demostrated by running ltp-aiodio test ADSP045
-many times.  When testing on extN filesystems, I see test failures
-occasionally, buffered read could read non-zero (stale) data.
-
-ADSP045: dio_sparse -a 4k -w 4k -s 2k -n 1
-
-dio_sparse    0  TINFO  :  Dirtying free blocks
-dio_sparse    0  TINFO  :  Starting I/O tests
-non zero buffer at buf[0] => 0xffffffaa,ffffffaa,ffffffaa,ffffffaa
-non-zero read at offset 0
-dio_sparse    0  TINFO  :  Killing childrens(s)
-dio_sparse    1  TFAIL  :  dio_sparse.c:191: 1 children(s) exited abnormally
-
-The second problem can also be reproduced easily by a hacked dio_sparse
-program, which accepts an option to specify the write offset.
-
-What we should really do is to disable block allocation for writes that
-could result in filling holes inside i_size.
-
-Link: http://lkml.kernel.org/r/1463156728-13357-1-git-send-email-guaneryu@gmail.com
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Eryu Guan <guaneryu@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Fixes: 38c4fffbad3c ("mm: check the return value of lookup_page_ext for all call sites")
+Link: http://lkml.kernel.org/r/6285269.2CksypHdYp@wuerfel
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Yang Shi <yang.shi@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/page_owner.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN fs/direct-io.c~direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read fs/direct-io.c
---- a/fs/direct-io.c~direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read
-+++ a/fs/direct-io.c
-@@ -628,11 +628,11 @@ static int get_more_blocks(struct dio *d
- 		map_bh->b_size = fs_count << i_blkbits;
+diff -puN mm/page_owner.c~mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix-2 mm/page_owner.c
+--- a/mm/page_owner.c~mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix-2
++++ a/mm/page_owner.c
+@@ -65,9 +65,6 @@ void __set_page_owner(struct page *page,
+ {
+ 	struct page_ext *page_ext = lookup_page_ext(page);
  
- 		/*
--		 * For writes inside i_size on a DIO_SKIP_HOLES filesystem we
--		 * forbid block creations: only overwrites are permitted.
--		 * We will return early to the caller once we see an
--		 * unmapped buffer head returned, and the caller will fall
--		 * back to buffered I/O.
-+		 * For writes that could fill holes inside i_size on a
-+		 * DIO_SKIP_HOLES filesystem we forbid block creations: only
-+		 * overwrites are permitted. We will return early to the caller
-+		 * once we see an unmapped buffer head returned, and the caller
-+		 * will fall back to buffered I/O.
- 		 *
- 		 * Otherwise the decision is left to the get_blocks method,
- 		 * which may decide to handle it or also return an unmapped
-@@ -640,8 +640,8 @@ static int get_more_blocks(struct dio *d
- 		 */
- 		create = dio->rw & WRITE;
- 		if (dio->flags & DIO_SKIP_HOLES) {
--			if (sdio->block_in_file < (i_size_read(dio->inode) >>
--							sdio->blkbits))
-+			if (fs_startblk <= ((i_size_read(dio->inode) - 1) >>
-+							i_blkbits))
- 				create = 0;
- 		}
+-	if (unlikely(!page_ext))
+-		return;
+-
+ 	struct stack_trace trace = {
+ 		.nr_entries = 0,
+ 		.max_entries = ARRAY_SIZE(page_ext->trace_entries),
+@@ -75,6 +72,9 @@ void __set_page_owner(struct page *page,
+ 		.skip = 3,
+ 	};
  
-_
-
-Patches currently in -mm which might be from guaneryu@gmail.com are
-
-direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read.patch
-
++	if (unlikely(!page_ext))
++		return;
++
+ 	save_stack_trace(&trace);
+ 
+ 	page_ext->order = order;
+@@ -111,12 +111,11 @@ void __copy_page_owner(struct page *oldp
+ {
+ 	struct page_ext *old_ext = lookup_page_ext(oldpage);
+ 	struct page_ext *new_ext = lookup_page_ext(newpage);
++	int i;
+ 
+ 	if (unlikely(!old_ext || !new_ext))
+ 		return;
+ 
+-	int i;
+-
+ 	new_ext->order = old_ext->order;
+ 	new_ext->gfp_mask = old_ext->gfp_mask;
+ 	new_ext->nr_entries = old_ext->nr_entries;
+@@ -204,11 +203,6 @@ err:
+ void __dump_page_owner(struct page *page)
+ {
+ 	struct page_ext *page_ext = lookup_page_ext(page);
+-	if (unlikely(!page_ext)) {
+-		pr_alert("There is not page extension available.\n");
+-		return;
+-	}
