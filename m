@@ -1,98 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-pinctrl-intel-pinctrl-baytrailc-fix-build-with-gcc-44.patch added
- to -mm tree
-Date: Tue, 24 May 2016 14:49:01 -0700
-Message-ID: <5744cc4d.0Sw29htj2iEdnf2f%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 25 May 2016 12:12:22 -0700
+Message-ID: <5745f916.MSqpmOGzAQiTiwAF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36575 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37178 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751411AbcEXVtD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 May 2016 17:49:03 -0400
+	with ESMTP id S1751284AbcEYTMX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2016 15:12:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, heikki.krogerus@linux.intel.com, linus.walleij@linaro.org, mika.westerberg@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/pinctrl/intel/pinctrl-baytrail.c: fix build with gcc-4.4
-has been added to the -mm tree.  Its filename is
-     drivers-pinctrl-intel-pinctrl-baytrailc-fix-build-with-gcc-44.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-pinctrl-intel-pinctrl-baytrailc-fix-build-with-gcc-44.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-pinctrl-intel-pinctrl-baytrailc-fix-build-with-gcc-44.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/pinctrl/intel/pinctrl-baytrail.c: fix build with gcc-4.4
+Subject: linux-next-git-rejects
 
-
-drivers/pinctrl/intel/pinctrl-baytrail.c:413: error: unknown field 'simple_funcs' specified in initializer
-drivers/pinctrl/intel/pinctrl-baytrail.c:413: warning: missing braces around initializer
-drivers/pinctrl/intel/pinctrl-baytrail.c:413: warning: (near initialization for 'byt_score_groups[0].<anonymous>')
-drivers/pinctrl/intel/pinctrl-baytrail.c:415: error: unknown field 'simple_funcs' specified in initializer
-drivers/pinctrl/intel/pinctrl-baytrail.c:417: error: unknown field 'simple_funcs' specified in initializer
-drivers/pinctrl/intel/pinctrl-baytrail.c:419: error: unknown field 'simple_funcs' specified in initializer
-drivers/pinctrl/intel/pinctrl-baytrail.c:421: error: unknown field 'simple_funcs' specified in initializer
-
-... etc
-
-gcc-4.4 and thereabouts has issues with initializers of anonymous unions. 
-Work around this.
-
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pinctrl/intel/pinctrl-baytrail.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ tools/virtio/ringtest/Makefile |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN drivers/pinctrl/intel/pinctrl-baytrail.c~drivers-pinctrl-intel-pinctrl-baytrailc-fix-build-with-gcc-44 drivers/pinctrl/intel/pinctrl-baytrail.c
---- a/drivers/pinctrl/intel/pinctrl-baytrail.c~drivers-pinctrl-intel-pinctrl-baytrailc-fix-build-with-gcc-44
-+++ a/drivers/pinctrl/intel/pinctrl-baytrail.c
-@@ -153,8 +153,10 @@ struct byt_community {
- 		.name			= (n),			\
- 		.pins			= (p),			\
- 		.npins			= ARRAY_SIZE((p)),	\
--		.has_simple_funcs	= 1,		\
--		.simple_funcs		= (f),			\
-+		.has_simple_funcs	= 1,			\
-+		{						\
-+			.simple_funcs		= (f),		\
-+		},						\
- 		.nfuncs			= ARRAY_SIZE((f)),	\
- 	}
- #define PIN_GROUP_MIXED(n, p, f)				\
-@@ -163,7 +165,9 @@ struct byt_community {
- 		.pins			= (p),			\
- 		.npins			= ARRAY_SIZE((p)),	\
- 		.has_simple_funcs	= 0,			\
--		.mixed_funcs		= (f),			\
-+		{						\
-+			.mixed_funcs		= (f),		\
-+		},						\
- 		.nfuncs			= ARRAY_SIZE((f)),	\
- 	}
+diff -puN tools/virtio/ringtest/Makefile~linux-next-git-rejects tools/virtio/ringtest/Makefile
+--- a/tools/virtio/ringtest/Makefile~linux-next-git-rejects
++++ a/tools/virtio/ringtest/Makefile
+@@ -1,10 +1,6 @@
+ all:
  
+-<<<<<<< HEAD
+-all: ring virtio_ring_0_9 virtio_ring_poll virtio_ring_inorder
+-=======
+ all: ring virtio_ring_0_9 virtio_ring_poll virtio_ring_inorder skb_array
+->>>>>>> linux-next/akpm-base
+ 
+ CFLAGS += -Wall
+ CFLAGS += -pthread -O2 -ggdb
+@@ -20,10 +16,7 @@ ring: ring.o main.o
+ virtio_ring_0_9: virtio_ring_0_9.o main.o
+ virtio_ring_poll: virtio_ring_poll.o main.o
+ virtio_ring_inorder: virtio_ring_inorder.o main.o
+-<<<<<<< HEAD
+-=======
+ skb_array: skb_array.o main.o
+->>>>>>> linux-next/akpm-base
+ clean:
+ 	-rm main.o
+ 	-rm ring.o ring
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,7 +71,6 @@ mm.patch
 mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix.patch
 mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-checkpatch-fixes.patch
 mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-linux-next-git-rejects.patch
 drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
 fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
