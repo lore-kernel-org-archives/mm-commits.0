@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-kexec_corec-and-kexec_filec.patch added to -mm
- tree
-Date: Wed, 25 May 2016 15:26:09 -0700
-Message-ID: <57462681.gbx0KHNQu+IF98tu%akpm@linux-foundation.org>
+Subject: + maintainers-kdump-maintainers-update.patch added to -mm tree
+Date: Wed, 25 May 2016 15:33:03 -0700
+Message-ID: <5746281f.g02W/mMOMmycvPu3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41889 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42259 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752317AbcEYW0K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2016 18:26:10 -0400
+	with ESMTP id S1750937AbcEYWdE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2016 18:33:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mnghuan@gmail.com, mm-commits@vger.kernel.org
+To: vgoyal@redhat.com, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, hbabu@us.ibm.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add kexec_core.c and kexec_file.c
+     Subject: MAINTAINERS: Kdump maintainers update
 has been added to the -mm tree.  Its filename is
-     maintainers-add-kexec_corec-and-kexec_filec.patch
+     maintainers-kdump-maintainers-update.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-kexec_corec-and-kexec_filec.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-kdump-maintainers-update.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-kexec_corec-and-kexec_filec.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-kdump-maintainers-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +38,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minfei Huang <mnghuan@gmail.com>
-Subject: MAINTAINERS: add kexec_core.c and kexec_file.c
+From: Vivek Goyal <vgoyal@redhat.com>
+Subject: MAINTAINERS: Kdump maintainers update
 
-In the below commits kexec.c was split to kexec.c, kexec_file.c and
-kexec_core.c.
+I am proposing following updates to kdump maintainership.  I have got busy
+in other things and not getting time to spend on kdump.
 
-commit a43cac0d9dc2 ("kexec: split kexec_file syscall code to kexec_file.c")
-commit 2965faa5e03d ("kexec: split kexec_load syscall from kexec core code")
+Remove Haren Myneni as he has not participated in kdump development for a
+long time now.
 
-Both kexec_file.c and kexec_core.c still belong to the kexec component. 
-In order to get correct mail lists by using the script get_maintainer.pl,
-add these files to MAINTAINERS.
+Add the names of Dave and Baoquan as kdump maintainers as they have been
+contributing to kdump for a long time now and they are in a much better
+position to spend time on this than me.
 
-Link: http://lkml.kernel.org/r/1464189735-59113-1-git-send-email-mnghuan@gmail.com
-Signed-off-by: Minfei Huang <mnghuan@gmail.com>
+Mark myself as a reviewer.
+
+Link: http://lkml.kernel.org/r/20160525131616.GB27291@redhat.com
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Haren Myneni <hbabu@us.ibm.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-kexec_corec-and-kexec_filec MAINTAINERS
---- a/MAINTAINERS~maintainers-add-kexec_corec-and-kexec_filec
+diff -puN MAINTAINERS~maintainers-kdump-maintainers-update MAINTAINERS
+--- a/MAINTAINERS~maintainers-kdump-maintainers-update
 +++ a/MAINTAINERS
-@@ -6559,7 +6559,7 @@ L:	kexec@lists.infradead.org
- S:	Maintained
- F:	include/linux/kexec.h
- F:	include/uapi/linux/kexec.h
--F:	kernel/kexec.c
-+F:	kernel/kexec*
+@@ -6413,8 +6413,9 @@ F:	Documentation/kbuild/kconfig-language
+ F:	scripts/kconfig/
  
- KEYS/KEYRINGS:
- M:	David Howells <dhowells@redhat.com>
+ KDUMP
+-M:	Vivek Goyal <vgoyal@redhat.com>
+-M:	Haren Myneni <hbabu@us.ibm.com>
++M:	Dave Young <dyoung@redhat.com>
++M:	Baoquan He <bhe@redhat.com>
++R:	Vivek Goyal <vgoyal@redhat.com>
+ L:	kexec@lists.infradead.org
+ W:	http://lse.sourceforge.net/kdump/
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from mnghuan@gmail.com are
+Patches currently in -mm which might be from vgoyal@redhat.com are
 
-maintainers-add-kexec_corec-and-kexec_filec.patch
+maintainers-kdump-maintainers-update.patch
 
