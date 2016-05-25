@@ -1,78 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 25 May 2016 12:12:22 -0700
-Message-ID: <5745f916.MSqpmOGzAQiTiwAF%akpm@linux-foundation.org>
+Subject: + maintainers-add-kexec_corec-and-kexec_filec.patch added to -mm
+ tree
+Date: Wed, 25 May 2016 15:26:09 -0700
+Message-ID: <57462681.gbx0KHNQu+IF98tu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37178 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41889 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751284AbcEYTMX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2016 15:12:23 -0400
+	with ESMTP id S1752317AbcEYW0K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2016 18:26:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mnghuan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: MAINTAINERS: add kexec_core.c and kexec_file.c
+has been added to the -mm tree.  Its filename is
+     maintainers-add-kexec_corec-and-kexec_filec.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-kexec_corec-and-kexec_filec.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-kexec_corec-and-kexec_filec.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Minfei Huang <mnghuan@gmail.com>
+Subject: MAINTAINERS: add kexec_core.c and kexec_file.c
 
+In the below commits kexec.c was split to kexec.c, kexec_file.c and
+kexec_core.c.
+
+commit a43cac0d9dc2 ("kexec: split kexec_file syscall code to kexec_file.c")
+commit 2965faa5e03d ("kexec: split kexec_load syscall from kexec core code")
+
+Both kexec_file.c and kexec_core.c still belong to the kexec component. 
+In order to get correct mail lists by using the script get_maintainer.pl,
+add these files to MAINTAINERS.
+
+Link: http://lkml.kernel.org/r/1464189735-59113-1-git-send-email-mnghuan@gmail.com
+Signed-off-by: Minfei Huang <mnghuan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/virtio/ringtest/Makefile |    7 -------
- 1 file changed, 7 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/virtio/ringtest/Makefile~linux-next-git-rejects tools/virtio/ringtest/Makefile
---- a/tools/virtio/ringtest/Makefile~linux-next-git-rejects
-+++ a/tools/virtio/ringtest/Makefile
-@@ -1,10 +1,6 @@
- all:
+diff -puN MAINTAINERS~maintainers-add-kexec_corec-and-kexec_filec MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-kexec_corec-and-kexec_filec
++++ a/MAINTAINERS
+@@ -6559,7 +6559,7 @@ L:	kexec@lists.infradead.org
+ S:	Maintained
+ F:	include/linux/kexec.h
+ F:	include/uapi/linux/kexec.h
+-F:	kernel/kexec.c
++F:	kernel/kexec*
  
--<<<<<<< HEAD
--all: ring virtio_ring_0_9 virtio_ring_poll virtio_ring_inorder
--=======
- all: ring virtio_ring_0_9 virtio_ring_poll virtio_ring_inorder skb_array
-->>>>>>> linux-next/akpm-base
- 
- CFLAGS += -Wall
- CFLAGS += -pthread -O2 -ggdb
-@@ -20,10 +16,7 @@ ring: ring.o main.o
- virtio_ring_0_9: virtio_ring_0_9.o main.o
- virtio_ring_poll: virtio_ring_poll.o main.o
- virtio_ring_inorder: virtio_ring_inorder.o main.o
--<<<<<<< HEAD
--=======
- skb_array: skb_array.o main.o
-->>>>>>> linux-next/akpm-base
- clean:
- 	-rm main.o
- 	-rm ring.o ring
+ KEYS/KEYRINGS:
+ M:	David Howells <dhowells@redhat.com>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mnghuan@gmail.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix.patch
-drivers-pinctrl-intel-pinctrl-baytrailc-fix-build-with-gcc-44.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix.patch
-mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-checkpatch-fixes.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+maintainers-add-kexec_corec-and-kexec_filec.patch
 
