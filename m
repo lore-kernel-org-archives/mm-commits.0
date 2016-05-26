@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-add-rcu-locking-around-css_for_each_descendant_pre-in-memcg_offline_kmem.patch added to -mm tree
-Date: Thu, 26 May 2016 14:02:17 -0700
-Message-ID: <57476459.Rw9i442FWobp7cH/%akpm@linux-foundation.org>
+Subject: + oom_reaper-close-race-with-exiting-task.patch added to -mm tree
+Date: Thu, 26 May 2016 14:03:12 -0700
+Message-ID: <57476490.ccWTdgRR+kNpa5YD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48064 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755126AbcEZVCS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 17:02:18 -0400
+	with ESMTP id S1755112AbcEZVDN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 17:03:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: add RCU locking around css_for_each_descendant_pre() in memcg_offline_kmem()
+     Subject: oom_reaper: close race with exiting task
 has been added to the -mm tree.  Its filename is
-     memcg-add-rcu-locking-around-css_for_each_descendant_pre-in-memcg_offline_kmem.patch
+     oom_reaper-close-race-with-exiting-task.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-add-rcu-locking-around-css_for_each_descendant_pre-in-memcg_offline_kmem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom_reaper-close-race-with-exiting-task.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-add-rcu-locking-around-css_for_each_descendant_pre-in-memcg_offline_kmem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom_reaper-close-race-with-exiting-task.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,87 +38,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: memcg: add RCU locking around css_for_each_descendant_pre() in memcg_offline_kmem()
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom_reaper: close race with exiting task
 
-memcg_offline_kmem() may be called from memcg_free_kmem() after a css init
-failure.  memcg_free_kmem() is a ->css_free callback which is called
-without cgroup_mutex and memcg_offline_kmem() ends up using
-css_for_each_descendant_pre() without any locking.  Fix it by adding rcu
-read locking around it.
+Tetsuo has reported:
+[   74.453958] Out of memory: Kill process 443 (oleg's-test) score 855 or sacrifice child
+[   74.456234] Killed process 443 (oleg's-test) total-vm:493248kB, anon-rss:423880kB, file-rss:4kB, shmem-rss:0kB
+[   74.459219] sh invoked oom-killer: gfp_mask=0x24201ca(GFP_HIGHUSER_MOVABLE|__GFP_COLD), order=0, oom_score_adj=0
+[   74.462813] sh cpuset=/ mems_allowed=0
+[   74.465221] CPU: 2 PID: 1 Comm: sh Not tainted 4.6.0-rc7+ #51
+[   74.467037] Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 07/31/2013
+[   74.470207]  0000000000000286 00000000a17a86b0 ffff88001e673a18 ffffffff812c7cbd
+[   74.473422]  0000000000000000 ffff88001e673bd0 ffff88001e673ab8 ffffffff811b9e94
+[   74.475704]  ffff88001e66cbe0 ffff88001e673ab8 0000000000000246 0000000000000000
+[   74.477990] Call Trace:
+[   74.479170]  [<ffffffff812c7cbd>] dump_stack+0x85/0xc8
+[   74.480872]  [<ffffffff811b9e94>] dump_header+0x5b/0x394
+[   74.481837] oom_reaper: reaped process 443 (oleg's-test), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
 
- mkdir: cannot create directory `65530': No space left on device
- [  527.241361] ===============================
- [  527.241845] [ INFO: suspicious RCU usage. ]
- [  527.242367] 4.6.0-work+ #321 Not tainted
- [  527.242730] -------------------------------
- [  527.243220] kernel/cgroup.c:4008 cgroup_mutex or RCU read lock required!
- [  527.243970]
- [  527.243970] other info that might help us debug this:
- [  527.243970]
- [  527.244715]
- [  527.244715] rcu_scheduler_active = 1, debug_locks = 0
- [  527.245463] 2 locks held by kworker/0:5/1664:
- [  527.245939]  #0:  ("cgroup_destroy"){.+.+..}, at: [<ffffffff81060ab5>] process_one_work+0x165/0x4a0
- [  527.246958]  #1:  ((&css->destroy_work)#3){+.+...}, at: [<ffffffff81060ab5>] process_one_work+0x165/0x4a0
- [  527.248098]
- [  527.248098] stack backtrace:
- [  527.249565] CPU: 0 PID: 1664 Comm: kworker/0:5 Not tainted 4.6.0-work+ #321
- [  527.250429] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.9.1-1.fc24 04/01/2014
- [  527.250555] Workqueue: cgroup_destroy css_free_work_fn
- [  527.250555]  0000000000000000 ffff880178747c68 ffffffff8128bfc7 ffff880178b8ac40
- [  527.250555]  0000000000000001 ffff880178747c98 ffffffff8108c297 0000000000000000
- [  527.250555]  ffff88010de54138 000000000000fffb ffff88010de537e8 ffff880178747cc0
- [  527.250555] Call Trace:
- [  527.250555]  [<ffffffff8128bfc7>] dump_stack+0x68/0xa1
- [  527.250555]  [<ffffffff8108c297>] lockdep_rcu_suspicious+0xd7/0x110
- [  527.250555]  [<ffffffff810ca03d>] css_next_descendant_pre+0x7d/0xb0
- [  527.250555]  [<ffffffff8114d14a>] memcg_offline_kmem.part.44+0x4a/0xc0
- [  527.250555]  [<ffffffff8114d3ac>] mem_cgroup_css_free+0x1ec/0x200
- [  527.250555]  [<ffffffff810ccdc9>] css_free_work_fn+0x49/0x5e0
- [  527.250555]  [<ffffffff81060b15>] process_one_work+0x1c5/0x4a0
- [  527.250555]  [<ffffffff81060ab5>] ? process_one_work+0x165/0x4a0
- [  527.250555]  [<ffffffff81060e39>] worker_thread+0x49/0x490
- [  527.250555]  [<ffffffff81060df0>] ? process_one_work+0x4a0/0x4a0
- [  527.250555]  [<ffffffff81060df0>] ? process_one_work+0x4a0/0x4a0
- [  527.250555]  [<ffffffff810672ba>] kthread+0xea/0x100
- [  527.250555]  [<ffffffff814cbcff>] ret_from_fork+0x1f/0x40
- [  527.250555]  [<ffffffff810671d0>] ? kthread_create_on_node+0x200/0x200
+In other words:
+__oom_reap_task			exit_mm
+  atomic_inc_not_zero
+				  tsk->mm = NULL
+				  mmput
+				    atomic_dec_and_test # > 0
+				  exit_oom_victim # New victim will be
+						  # selected
+				<OOM killer invoked>
+				  # no TIF_MEMDIE task so we can select a new one
+  unmap_page_range # to release the memory
 
-Link: http://lkml.kernel.org/r/20160526203018.GG23194@mtj.duckdns.org
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+The race exists even without the oom_reaper because anybody who pins the
+address space and gets preempted might race with exit_mm but oom_reaper
+made this race more probable.
+
+We can address the oom_reaper part by using oom_lock for __oom_reap_task
+because this would guarantee that a new oom victim will not be selected if
+the oom reaper might race with the exit path.  This doesn't solve the
+original issue, though, because somebody else still might be pinning
+mm_users and so __mmput won't be called to release the memory but that is
+not really realiably solvable because the task will get away from the oom
+sight as soon as it is unhashed from the task_list and so we cannot
+guarantee a new victim won't be selected.
+
+Fixes: aac453635549 ("mm, oom: introduce oom reaper")
+Link: http://lkml.kernel.org/r/1464271493-20008-1-git-send-email-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/oom_kill.c |   25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-rcu-locking-around-css_for_each_descendant_pre-in-memcg_offline_kmem mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-rcu-locking-around-css_for_each_descendant_pre-in-memcg_offline_kmem
-+++ a/mm/memcontrol.c
-@@ -2894,6 +2894,7 @@ static void memcg_offline_kmem(struct me
- 	 * ordering is imposed by list_lru_node->lock taken by
- 	 * memcg_drain_all_list_lrus().
- 	 */
-+	rcu_read_lock(); /* can be called from css_free w/o cgroup_mutex */
- 	css_for_each_descendant_pre(css, &memcg->css) {
- 		child = mem_cgroup_from_css(css);
- 		BUG_ON(child->kmemcg_id != kmemcg_id);
-@@ -2901,6 +2902,8 @@ static void memcg_offline_kmem(struct me
- 		if (!memcg->use_hierarchy)
- 			break;
- 	}
-+	rcu_read_unlock();
-+
- 	memcg_drain_all_list_lrus(kmemcg_id, parent->kmemcg_id);
+diff -puN mm/oom_kill.c~oom_reaper-close-race-with-exiting-task mm/oom_kill.c
+--- a/mm/oom_kill.c~oom_reaper-close-race-with-exiting-task
++++ a/mm/oom_kill.c
+@@ -450,6 +450,22 @@ static bool __oom_reap_task(struct task_
+ 	bool ret = true;
  
- 	memcg_free_cache_id(kmemcg_id);
+ 	/*
++	 * We have to make sure to not race with the victim exit path
++	 * and cause premature new oom victim selection:
++	 * __oom_reap_task		exit_mm
++	 *   atomic_inc_not_zero
++	 *   				  mmput
++	 *   				    atomic_dec_and_test
++	 *				  exit_oom_victim
++	 *				[...]
++	 *				out_of_memory
++	 *				  select_bad_process
++	 *				    # no TIF_MEMDIE task select new victim
++	 *  unmap_page_range # frees some memory
++	 */
++	mutex_lock(&oom_lock);
++
++	/*
+ 	 * Make sure we find the associated mm_struct even when the particular
+ 	 * thread has already terminated and cleared its mm.
+ 	 * We might have race with exit path so consider our work done if there
+@@ -457,19 +473,19 @@ static bool __oom_reap_task(struct task_
+ 	 */
+ 	p = find_lock_task_mm(tsk);
+ 	if (!p)
+-		return true;
++		goto unlock_oom;
+ 
+ 	mm = p->mm;
+ 	if (!atomic_inc_not_zero(&mm->mm_users)) {
+ 		task_unlock(p);
+-		return true;
++		goto unlock_oom;
+ 	}
+ 
+ 	task_unlock(p);
+ 
+ 	if (!down_read_trylock(&mm->mmap_sem)) {
+ 		ret = false;
+-		goto out;
++		goto unlock_oom;
+ 	}
+ 
+ 	tlb_gather_mmu(&tlb, mm, 0, -1);
+@@ -511,7 +527,8 @@ static bool __oom_reap_task(struct task_
+ 	 * to release its memory.
+ 	 */
+ 	set_bit(MMF_OOM_REAPED, &mm->flags);
+-out:
++unlock_oom:
++	mutex_unlock(&oom_lock);
+ 	/*
+ 	 * Drop our reference but make sure the mmput slow path is called from a
+ 	 * different context because we shouldn't risk we get stuck there and
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-memcg-add-rcu-locking-around-css_for_each_descendant_pre-in-memcg_offline_kmem.patch
+mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
+oom_reaper-close-race-with-exiting-task.patch
 
