@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-overflow-in-vm_map_ram.patch added to -mm tree
-Date: Thu, 26 May 2016 14:28:50 -0700
-Message-ID: <57476a92.hV/kxNqp0tubMd8N%akpm@linux-foundation.org>
+Subject: + mm-disable-deferred_struct_page_init-on-no_bootmem.patch added
+ to -mm tree
+Date: Thu, 26 May 2016 14:30:33 -0700
+Message-ID: <57476af9.fq+igtLu/RcWuJuF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48354 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754733AbcEZV2v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 17:28:51 -0400
+	with ESMTP id S1754733AbcEZVae (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 17:30:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guillermo.julian@naudit.es, mm-commits@vger.kernel.org
+To: gwshan@linux.vnet.ibm.com, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix overflow in vm_map_ram()
+     Subject: mm: disable DEFERRED_STRUCT_PAGE_INIT on !NO_BOOTMEM
 has been added to the -mm tree.  Its filename is
-     mm-fix-overflow-in-vm_map_ram.patch
+     mm-disable-deferred_struct_page_init-on-no_bootmem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-overflow-in-vm_map_=
-ram.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-disable-deferred_struct_page_init-on-no_bootmem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-overflow-in-vm_map_=
-ram.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-disable-deferred_struct_page_init-on-no_bootmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +33,47 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Guillermo Juli=E1n Moreno <guillermo.julian@naudit.es>
-Subject: mm: fix overflow in vm_map_ram()
+From: Gavin Shan <gwshan@linux.vnet.ibm.com>
+Subject: mm: disable DEFERRED_STRUCT_PAGE_INIT on !NO_BOOTMEM
 
-When remapping pages accounting for 4G or more memory space, the
-operation 'count << PAGE_SHIFT' overflows as it is performed on an
-integer. Solution: cast before doing the bitshift.
+When we have !NO_BOOTMEM, the deferred page struct initialization doesn't
+work well because the pages reserved in bootmem are released to the page
+allocator uncoditionally.  It causes memory corruption and system crash
+eventually.
 
-[akpm@linux-foundation.org: fix vm_unmap_ram() also]
-Link: http://lkml.kernel.org/r/etPan.57175fb3.7a271c6b.2bd@naudit.es
-Signed-off-by: Guillermo Juli=E1n Moreno <guillermo.julian@naudit.es>
+As Mel suggested, the bootmem is retiring slowly.  We fix the issue by
+simply hiding DEFERRED_STRUCT_PAGE_INIT when bootmem is enabled.
+
+Link: http://lkml.kernel.org/r/1460602170-5821-1-git-send-email-gwshan@linux.vnet.ibm.com
+Signed-off-by: Gavin Shan <gwshan@linux.vnet.ibm.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~mm-fix-overflow-in-vm_map_ram mm/vmalloc.c
---- a/mm/vmalloc.c~mm-fix-overflow-in-vm_map_ram
-+++ a/mm/vmalloc.c
-@@ -1105,7 +1105,7 @@ EXPORT_SYMBOL_GPL(vm_unmap_aliases);
-  */
- void vm_unmap_ram(const void *mem, unsigned int count)
- {
--	unsigned long size =3D count << PAGE_SHIFT;
-+	unsigned long size =3D (unsigned long)count << PAGE_SHIFT;
- 	unsigned long addr =3D (unsigned long)mem;
-=20
- 	BUG_ON(!addr);
-@@ -1140,7 +1140,7 @@ EXPORT_SYMBOL(vm_unmap_ram);
-  */
- void *vm_map_ram(struct page **pages, unsigned int count, int node, pg=
-prot_t prot)
- {
--	unsigned long size =3D count << PAGE_SHIFT;
-+	unsigned long size =3D (unsigned long)count << PAGE_SHIFT;
- 	unsigned long addr;
- 	void *mem;
-=20
+diff -puN mm/Kconfig~mm-disable-deferred_struct_page_init-on-no_bootmem mm/Kconfig
+--- a/mm/Kconfig~mm-disable-deferred_struct_page_init-on-no_bootmem
++++ a/mm/Kconfig
+@@ -648,7 +648,7 @@ config DEFERRED_STRUCT_PAGE_INIT
+ 	bool "Defer initialisation of struct pages to kthreads"
+ 	default n
+ 	depends on ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
+-	depends on MEMORY_HOTPLUG
++	depends on NO_BOOTMEM && MEMORY_HOTPLUG
+ 	depends on !FLATMEM
+ 	help
+ 	  Ordinarily all struct pages are initialised during early boot in a
 _
 
-Patches currently in -mm which might be from guillermo.julian@naudit.es=
- are
+Patches currently in -mm which might be from gwshan@linux.vnet.ibm.com are
 
-mm-fix-overflow-in-vm_map_ram.patch
+mm-disable-deferred_struct_page_init-on-no_bootmem.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
