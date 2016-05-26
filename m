@@ -1,171 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + kdump-fix-dmesg-gdbmacro-to-work-with-record-based-printk.patch added to -mm tree
-Date: Thu, 26 May 2016 14:31:58 -0700
-Message-ID: <57476b4e.wEgblE43zilqrE2W%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix.patch removed from -mm tree
+Date: Thu, 26 May 2016 15:13:47 -0700
+Message-ID: <5747751b.fOtIQqewvwdiCehX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48374 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49130 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755180AbcEZVb7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 17:31:59 -0400
+	with ESMTP id S1755289AbcEZWNt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 18:13:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cminyard@mvista.com, bhe@redhat.com, dyoung@redhat.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, minchan@kernel.org, penguin-kernel@i-love.sakura.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdump: fix dmesg gdbmacro to work with record based printk
-has been added to the -mm tree.  Its filename is
-     kdump-fix-dmesg-gdbmacro-to-work-with-record-based-printk.patch
+     Subject: mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix
+has been removed from the -mm tree.  Its filename was
+     mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kdump-fix-dmesg-gdbmacro-to-work-with-record-based-printk.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kdump-fix-dmesg-gdbmacro-to-work-with-record-based-printk.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
 
 ------------------------------------------------------
-From: Corey Minyard <cminyard@mvista.com>
-Subject: kdump: fix dmesg gdbmacro to work with record based printk
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix
 
-7ff9554bb578ba02 ("printk: convert byte-buffer to variable-length record
-buffer") introduced a record based printk buffer.  Modify gdbmacros.txt to
-parse this new structure so dmesg will work properly.
+fix typo, per Minchan
 
-Link: http://lkml.kernel.org/r/1463515794-1599-1-git-send-email-minyard@acm.org
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/gdbmacros.txt |   93 ++++++++++++++++++++++++----
- 1 file changed, 82 insertions(+), 11 deletions(-)
+ include/linux/sched.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/kdump/gdbmacros.txt~kdump-fix-dmesg-gdbmacro-to-work-with-record-based-printk Documentation/kdump/gdbmacros.txt
---- a/Documentation/kdump/gdbmacros.txt~kdump-fix-dmesg-gdbmacro-to-work-with-record-based-printk
-+++ a/Documentation/kdump/gdbmacros.txt
-@@ -170,21 +170,92 @@ document trapinfo
- 	address the kernel panicked.
- end
- 
-+define dump_log_idx
-+	set $idx = $arg0
-+	if ($argc > 1)
-+		set $prev_flags = $arg1
-+	else
-+		set $prev_flags = 0
-+	end
-+	set $msg = ((struct printk_log *) (log_buf + $idx))
-+	set $prefix = 1
-+	set $newline = 1
-+	set $log = log_buf + $idx + sizeof(*$msg)
- 
--define dmesg
--	set $i = 0
--	set $end_idx = (log_end - 1) & (log_buf_len - 1)
-+	# prev & LOG_CONT && !(msg->flags & LOG_PREIX)
-+	if (($prev_flags & 8) && !($msg->flags & 4))
-+		set $prefix = 0
-+	end
- 
--	while ($i < logged_chars)
--		set $idx = (log_end - 1 - logged_chars + $i) & (log_buf_len - 1)
-+	# msg->flags & LOG_CONT
-+	if ($msg->flags & 8)
-+		# (prev & LOG_CONT && !(prev & LOG_NEWLINE))
-+		if (($prev_flags & 8) && !($prev_flags & 2))
-+			set $prefix = 0
-+		end
-+		# (!(msg->flags & LOG_NEWLINE))
-+		if (!($msg->flags & 2))
-+			set $newline = 0
-+		end
-+	end
- 
--		if ($idx + 100 <= $end_idx) || \
--		   ($end_idx <= $idx && $idx + 100 < log_buf_len)
--			printf "%.100s", &log_buf[$idx]
--			set $i = $i + 100
-+	if ($prefix)
-+		printf "[%5lu.%06lu] ", $msg->ts_nsec / 1000000000, $msg->ts_nsec % 1000000000
-+	end
-+	if ($msg->text_len != 0)
-+		eval "printf \"%%%d.%ds\", $log", $msg->text_len, $msg->text_len
-+	end
-+	if ($newline)
-+		printf "\n"
-+	end
-+	if ($msg->dict_len > 0)
-+		set $dict = $log + $msg->text_len
-+		set $idx = 0
-+		set $line = 1
-+		while ($idx < $msg->dict_len)
-+			if ($line)
-+				printf " "
-+				set $line = 0
-+			end
-+			set $c = $dict[$idx]
-+			if ($c == '\0')
-+				printf "\n"
-+				set $line = 1
-+			else
-+				if ($c < ' ' || $c >= 127 || $c == '\\')
-+					printf "\\x%02x", $c
-+				else
-+					printf "%c", $c
-+				end
-+			end
-+			set $idx = $idx + 1
-+		end
-+		printf "\n"
-+	end
-+end
-+document dump_log_idx
-+	Dump a single log given its index in the log buffer.  The first
-+	parameter is the index into log_buf, the second is optional and
-+	specified the previous log buffer's flags, used for properly
-+	formatting continued lines.
-+end
-+
-+define dmesg
-+	set $i = log_first_idx
-+	set $end_idx = log_first_idx
-+	set $prev_flags = 0
-+
-+	while (1)
-+		set $msg = ((struct printk_log *) (log_buf + $i))
-+		if ($msg->len == 0)
-+			set $i = 0
- 		else
--			printf "%c", log_buf[$idx]
--			set $i = $i + 1
-+			dump_log_idx $i $prev_flags
-+			set $i = $i + $msg->len
-+			set $prev_flags = $msg->flags
-+		end
-+		if ($i == $end_idx)
-+			loop_break
- 		end
- 	end
- end
+diff -puN include/linux/sched.h~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix include/linux/sched.h
+--- a/include/linux/sched.h~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix
++++ a/include/linux/sched.h
+@@ -2745,7 +2745,7 @@ static inline bool mmget_not_zero(struct
+ /* mmput gets rid of the mappings and all user-space */
+ extern void mmput(struct mm_struct *);
+ #ifdef CONFIG_MMU
+-/* same as above but performs the slow path from the async kontext. Can
++/* same as above but performs the slow path from the async context. Can
+  * be called from the atomic context as well
+  */
+ extern void mmput_async(struct mm_struct *);
 _
 
-Patches currently in -mm which might be from cminyard@mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kdump-fix-dmesg-gdbmacro-to-work-with-record-based-printk.patch
+mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
+drivers-pinctrl-intel-pinctrl-baytrailc-fix-build-with-gcc-44.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+oom_reaper-close-race-with-exiting-task-checkpatch-fixes.patch
+mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix.patch
+mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-checkpatch-fixes.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
