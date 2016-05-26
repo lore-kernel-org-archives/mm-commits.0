@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + samples-kretprobe-fix-the-wrong-type.patch added to -mm tree
-Date: Wed, 25 May 2016 15:38:08 -0700
-Message-ID: <57462950.gu+dJjcGDyXjgS8J%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 26 May 2016 11:10:26 -0700
+Message-ID: <57473c12.cJK0rKeIb5Q7HtCd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44772 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751480AbcEYWiJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 May 2016 18:38:09 -0400
+	with ESMTP id S1754008AbcEZSK1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 14:10:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shijie.huang@arm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, mhiramat@kernel.org, pmladek@suse.com, steve.capper@arm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: samples/kretprobe: fix the wrong type
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     samples-kretprobe-fix-the-wrong-type.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/samples-kretprobe-fix-the-wrong-type.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/samples-kretprobe-fix-the-wrong-type.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,58 +38,158 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Shijie <shijie.huang@arm.com>
-Subject: samples/kretprobe: fix the wrong type
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The regs_return_value() returns "unsigned long" or "long" value.  But the
-retval is int type now, it may cause overflow, the log may becomes:
-.................
-
-    [ 2911.078869] do_brk returned -2003877888 and took 4620 ns to execute
-    ................
-
-This patch converts the retval to "unsigned long" type, and fixes the
-overflow issue.
-
-Link: http://lkml.kernel.org/r/1464143083-3877-4-git-send-email-shijie.huang@arm.com
-Signed-off-by: Huang Shijie <shijie.huang@arm.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/kprobes/kretprobe_example.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/nfs/flexfilelayout/flexfilelayout.h    |    5 -----
+ fs/nfs/flexfilelayout/flexfilelayoutdev.c |    9 ---------
+ fs/nfs/pnfs.c                             |    4 ----
+ fs/nfs/write.c                            |    5 -----
+ tools/perf/util/machine.c                 |   17 -----------------
+ 5 files changed, 40 deletions(-)
 
-diff -puN samples/kprobes/kretprobe_example.c~samples-kretprobe-fix-the-wrong-type samples/kprobes/kretprobe_example.c
---- a/samples/kprobes/kretprobe_example.c~samples-kretprobe-fix-the-wrong-type
-+++ a/samples/kprobes/kretprobe_example.c
-@@ -55,14 +55,14 @@ static int entry_handler(struct kretprob
-  */
- static int ret_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
- {
--	int retval = regs_return_value(regs);
-+	unsigned long retval = regs_return_value(regs);
- 	struct my_data *data = (struct my_data *)ri->data;
- 	s64 delta;
- 	ktime_t now;
- 
- 	now = ktime_get();
- 	delta = ktime_to_ns(ktime_sub(now, data->entry_stamp));
--	pr_info("%s returned %d and took %lld ns to execute\n",
-+	pr_info("%s returned %lu and took %lld ns to execute\n",
- 			func_name, retval, (long long)delta);
- 	return 0;
+diff -puN fs/nfs/flexfilelayout/flexfilelayout.h~linux-next-git-rejects fs/nfs/flexfilelayout/flexfilelayout.h
+--- a/fs/nfs/flexfilelayout/flexfilelayout.h~linux-next-git-rejects
++++ a/fs/nfs/flexfilelayout/flexfilelayout.h
+@@ -199,9 +199,4 @@ struct rpc_cred *ff_layout_get_ds_cred(s
+ 				       u32 ds_idx, struct rpc_cred *mdscred);
+ bool ff_layout_has_available_ds(struct pnfs_layout_segment *lseg);
+ bool ff_layout_avoid_mds_available_ds(struct pnfs_layout_segment *lseg);
+-<<<<<<< HEAD
+-bool ff_layout_avoid_read_on_rw(struct pnfs_layout_segment *lseg);
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ #endif /* FS_NFS_NFS4FLEXFILELAYOUT_H */
+diff -puN fs/nfs/flexfilelayout/flexfilelayoutdev.c~linux-next-git-rejects fs/nfs/flexfilelayout/flexfilelayoutdev.c
+--- a/fs/nfs/flexfilelayout/flexfilelayoutdev.c~linux-next-git-rejects
++++ a/fs/nfs/flexfilelayout/flexfilelayoutdev.c
+@@ -557,15 +557,6 @@ bool ff_layout_avoid_mds_available_ds(st
+ 	       ff_layout_has_available_ds(lseg);
  }
+ 
+-<<<<<<< HEAD
+-bool ff_layout_avoid_read_on_rw(struct pnfs_layout_segment *lseg)
+-{
+-	return lseg->pls_range.iomode == IOMODE_RW &&
+-	       ff_layout_no_read_on_rw(lseg);
+-}
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ module_param(dataserver_retrans, uint, 0644);
+ MODULE_PARM_DESC(dataserver_retrans, "The  number of times the NFSv4.1 client "
+ 			"retries a request before it attempts further "
+diff -puN fs/nfs/pnfs.c~linux-next-git-rejects fs/nfs/pnfs.c
+--- a/fs/nfs/pnfs.c~linux-next-git-rejects
++++ a/fs/nfs/pnfs.c
+@@ -1547,11 +1547,7 @@ lookup_again:
+ 		goto out_unlock;
+ 	}
+ 
+-<<<<<<< HEAD
+-	lseg = pnfs_find_lseg(lo, &arg, strict_iomode);
+-=======
+ 	lseg = pnfs_find_lseg(lo, &arg);
+->>>>>>> linux-next/akpm-base
+ 	if (lseg) {
+ 		trace_pnfs_update_layout(ino, pos, count, iomode, lo, lseg,
+ 				PNFS_UPDATE_LAYOUT_FOUND_CACHED);
+diff -puN fs/nfs/write.c~linux-next-git-rejects fs/nfs/write.c
+--- a/fs/nfs/write.c~linux-next-git-rejects
++++ a/fs/nfs/write.c
+@@ -1739,13 +1739,8 @@ int nfs_commit_file(struct file *file, s
+ 
+ 	open = get_nfs_open_context(nfs_file_open_context(file));
+ 	req  = nfs_create_request(open, NULL, NULL, 0, i_size_read(inode));
+-<<<<<<< HEAD
+-	if (IS_ERR(req)) {
+-		ret = PTR_ERR(req);
+-=======
+ 	if (!req) {
+ 		ret = -ENOMEM;
+->>>>>>> linux-next/akpm-base
+ 		goto out_put;
+ 	}
+ 
+diff -puN tools/perf/util/machine.c~linux-next-git-rejects tools/perf/util/machine.c
+--- a/tools/perf/util/machine.c~linux-next-git-rejects
++++ a/tools/perf/util/machine.c
+@@ -1810,11 +1810,7 @@ static int thread__resolve_callchain_sam
+ 	struct ip_callchain *chain = sample->callchain;
+ 	int chain_nr = chain->nr;
+ 	u8 cpumode = PERF_RECORD_MISC_USER;
+-<<<<<<< HEAD
+-	int i, j, err, nr_entries;
+-=======
+ 	int i, j, err, nr_entries, nr_contexts;
+->>>>>>> linux-next/akpm-base
+ 	int skip_idx = -1;
+ 	int first_call = 0;
+ 
+@@ -1829,12 +1825,8 @@ static int thread__resolve_callchain_sam
+ 	 * Based on DWARF debug information, some architectures skip
+ 	 * a callchain entry saved by the kernel.
+ 	 */
+-<<<<<<< HEAD
+-	skip_idx = arch_skip_callchain_idx(thread, chain);
+-=======
+ 	if (chain_nr < sysctl_perf_event_max_stack)
+ 		skip_idx = arch_skip_callchain_idx(thread, chain);
+->>>>>>> linux-next/akpm-base
+ 
+ 	/*
+ 	 * Add branches to call stack for easier browsing. This gives
+@@ -1894,11 +1886,7 @@ static int thread__resolve_callchain_sam
+ 	}
+ 
+ check_calls:
+-<<<<<<< HEAD
+-	for (i = first_call, nr_entries = 0;
+-=======
+ 	for (i = first_call, nr_entries = 0, nr_contexts = 0;
+->>>>>>> linux-next/akpm-base
+ 	     i < chain_nr && nr_entries < max_stack; i++) {
+ 		u64 ip;
+ 
+@@ -1913,10 +1901,6 @@ check_calls:
+ #endif
+ 		ip = chain->ips[j];
+ 
+-<<<<<<< HEAD
+-		if (ip < PERF_CONTEXT_MAX)
+-                       ++nr_entries;
+-=======
+ 		if (ip >= PERF_CONTEXT_MAX) {
+ 			if (++nr_contexts > sysctl_perf_event_max_contexts_per_stack)
+ 				goto out_corrupted_callchain;
+@@ -1924,7 +1908,6 @@ check_calls:
+ 			if (++nr_entries > sysctl_perf_event_max_stack)
+ 				goto out_corrupted_callchain;
+ 		}
+->>>>>>> linux-next/akpm-base
+ 
+ 		err = add_callchain_ip(thread, cursor, parent, root_al, &cpumode, ip);
+ 
 _
 
-Patches currently in -mm which might be from shijie.huang@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-samples-kprobe-convert-the-printk-to-pr_info-pr_err.patch
-samples-jprobe-convert-the-printk-to-pr_info-pr_err.patch
-samples-kretprobe-convert-the-printk-to-pr_info-pr_err.patch
-samples-kretprobe-fix-the-wrong-type.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix.patch
+mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-checkpatch-fixes.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch
+drivers-pinctrl-intel-pinctrl-baytrailc-fix-build-with-gcc-44.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
