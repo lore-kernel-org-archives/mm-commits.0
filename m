@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap.patch
- added to -mm tree
-Date: Thu, 26 May 2016 14:06:23 -0700
-Message-ID: <5747654f.mHR/mD+TxxvcCuKf%akpm__7632.85474754429$1464296800$gmane$org@linux-foundation.org>
+Subject: + mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 26 May 2016 14:10:58 -0700
+Message-ID: <57476662.QCE1Fc4dk7U1KhOc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48075 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48093 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754727AbcEZVGY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 17:06:24 -0400
+	with ESMTP id S1755114AbcEZVK7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 17:10:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mika.westerberg@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: avoid false positive VM_BUG_ON_PAGE in page_move_anon_rmap()
+     Subject: mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap.patch
+     mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,44 +38,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: thp: avoid false positive VM_BUG_ON_PAGE in page_move_anon_rmap()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes
 
-If page_move_anon_rmap() is refiling a pmd-splitted THP mapped in a tail
-page from a pte, the "address" must be THP aligned in order for the
-page->index bugcheck to pass in the CONFIG_DEBUG_VM=y builds.
+WARNING: line over 80 characters
+#128: FILE: mm/cma.c:186:
++	alignment = PAGE_SIZE << max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
 
-Link: http://lkml.kernel.org/r/1464253620-106404-1-git-send-email-kirill.shutemov@linux.intel.com
-Fixes: 6d0a07edd17c ("mm: thp: calculate the mapcount correctly for THP pages during WP faults")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com
-Cc: <stable@vger.kernel.org>        [4.5]
+WARNING: line over 80 characters
+#137: FILE: mm/cma.c:270:
++		(phys_addr_t)PAGE_SIZE << max_t(unsigned long, MAX_ORDER - 1, pageblock_order));
+
+total: 0 errors, 2 warnings, 16 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-cma-silence-warnings-due-to-max-usage.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/cma.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/rmap.c~mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap mm/rmap.c
---- a/mm/rmap.c~mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap
-+++ a/mm/rmap.c
-@@ -1098,6 +1098,8 @@ void page_move_anon_rmap(struct page *pa
+diff -puN mm/cma.c~mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes mm/cma.c
+--- a/mm/cma.c~mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes
++++ a/mm/cma.c
+@@ -183,7 +183,8 @@ int __init cma_init_reserved_mem(phys_ad
+ 		return -EINVAL;
  
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_VMA(!anon_vma, vma);
-+	if (IS_ENABLED(CONFIG_DEBUG_VM) && PageTransHuge(page))
-+		address &= HPAGE_PMD_MASK;
- 	VM_BUG_ON_PAGE(page->index != linear_page_index(vma, address), page);
+ 	/* ensure minimal alignment required by mm core */
+-	alignment = PAGE_SIZE << max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
++	alignment = PAGE_SIZE <<
++			max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
  
- 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
+ 	/* alignment should be aligned with order_per_bit */
+ 	if (!IS_ALIGNED(alignment >> PAGE_SHIFT, 1 << order_per_bit))
+@@ -266,8 +267,8 @@ int __init cma_declare_contiguous(phys_a
+ 	 * migratetype page by page allocator's buddy algorithm. In the case,
+ 	 * you couldn't get a contiguous memory, which is not what we want.
+ 	 */
+-	alignment = max(alignment,
+-		(phys_addr_t)PAGE_SIZE << max_t(unsigned long, MAX_ORDER - 1, pageblock_order));
++	alignment = max(alignment,  (phys_addr_t)PAGE_SIZE <<
++			  max_t(unsigned long, MAX_ORDER - 1, pageblock_order));
+ 	base = ALIGN(base, alignment);
+ 	size = ALIGN(size, alignment);
+ 	limit &= ~(alignment - 1);
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix.patch
+drivers-pinctrl-intel-pinctrl-baytrailc-fix-build-with-gcc-44.patch
+oom_reaper-close-race-with-exiting-task-checkpatch-fixes.patch
+mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix.patch
+mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-checkpatch-fixes.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
