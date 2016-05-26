@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + fs-nfs-pnfsc-fix-build.patch added to -mm tree
-Date: Thu, 26 May 2016 15:34:53 -0700
-Message-ID: <57477a0d.rx+TuRfMrz5iuTi1%akpm@linux-foundation.org>
+Subject: [obsolete] fs-nfs-pnfsc-fix-build.patch removed from -mm tree
+Date: Thu, 26 May 2016 15:39:11 -0700
+Message-ID: <57477b0f.J2g/em5iMfykhmkM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49668 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49672 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754898AbcEZWey (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 18:34:54 -0400
+	with ESMTP id S1754857AbcEZWjM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 18:39:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
@@ -18,24 +18,10 @@ To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 The patch titled
      Subject: fs/nfs/pnfs.c: fix build
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      fs-nfs-pnfsc-fix-build.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-nfs-pnfsc-fix-build.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-nfs-pnfsc-fix-build.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -81,5 +67,5 @@ drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
 fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
-fs-nfs-pnfsc-fix-build.patch
+a.patch
 
