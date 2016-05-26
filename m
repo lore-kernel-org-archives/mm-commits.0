@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + oom_reaper-close-race-with-exiting-task.patch added to -mm tree
-Date: Thu, 26 May 2016 14:03:12 -0700
-Message-ID: <57476490.ccWTdgRR+kNpa5YD%akpm@linux-foundation.org>
+Subject: + oom_reaper-close-race-with-exiting-task-checkpatch-fixes.patch
+ added to -mm tree
+Date: Thu, 26 May 2016 14:05:19 -0700
+Message-ID: <5747650f.FBch6/gcj/V2h5iH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48064 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48069 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755112AbcEZVDN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 17:03:13 -0400
+	with ESMTP id S1755117AbcEZVFU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 17:05:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom_reaper: close race with exiting task
+     Subject: oom_reaper-close-race-with-exiting-task-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     oom_reaper-close-race-with-exiting-task.patch
+     oom_reaper-close-race-with-exiting-task-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom_reaper-close-race-with-exiting-task.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom_reaper-close-race-with-exiting-task-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom_reaper-close-race-with-exiting-task.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom_reaper-close-race-with-exiting-task-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,122 +39,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom_reaper: close race with exiting task
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: oom_reaper-close-race-with-exiting-task-checkpatch-fixes
 
-Tetsuo has reported:
-[   74.453958] Out of memory: Kill process 443 (oleg's-test) score 855 or sacrifice child
-[   74.456234] Killed process 443 (oleg's-test) total-vm:493248kB, anon-rss:423880kB, file-rss:4kB, shmem-rss:0kB
-[   74.459219] sh invoked oom-killer: gfp_mask=0x24201ca(GFP_HIGHUSER_MOVABLE|__GFP_COLD), order=0, oom_score_adj=0
-[   74.462813] sh cpuset=/ mems_allowed=0
-[   74.465221] CPU: 2 PID: 1 Comm: sh Not tainted 4.6.0-rc7+ #51
-[   74.467037] Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 07/31/2013
-[   74.470207]  0000000000000286 00000000a17a86b0 ffff88001e673a18 ffffffff812c7cbd
-[   74.473422]  0000000000000000 ffff88001e673bd0 ffff88001e673ab8 ffffffff811b9e94
-[   74.475704]  ffff88001e66cbe0 ffff88001e673ab8 0000000000000246 0000000000000000
-[   74.477990] Call Trace:
-[   74.479170]  [<ffffffff812c7cbd>] dump_stack+0x85/0xc8
-[   74.480872]  [<ffffffff811b9e94>] dump_header+0x5b/0x394
-[   74.481837] oom_reaper: reaped process 443 (oleg's-test), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
+WARNING: please, no space before tabs
+#65: FILE: mm/oom_kill.c:457:
++^I *   ^I^I^I^I  mmput$
 
-In other words:
-__oom_reap_task			exit_mm
-  atomic_inc_not_zero
-				  tsk->mm = NULL
-				  mmput
-				    atomic_dec_and_test # > 0
-				  exit_oom_victim # New victim will be
-						  # selected
-				<OOM killer invoked>
-				  # no TIF_MEMDIE task so we can select a new one
-  unmap_page_range # to release the memory
+WARNING: please, no space before tabs
+#66: FILE: mm/oom_kill.c:458:
++^I *   ^I^I^I^I    atomic_dec_and_test$
 
-The race exists even without the oom_reaper because anybody who pins the
-address space and gets preempted might race with exit_mm but oom_reaper
-made this race more probable.
+WARNING: line over 80 characters
+#71: FILE: mm/oom_kill.c:463:
++	 *				    # no TIF_MEMDIE task select new victim
 
-We can address the oom_reaper part by using oom_lock for __oom_reap_task
-because this would guarantee that a new oom victim will not be selected if
-the oom reaper might race with the exit path.  This doesn't solve the
-original issue, though, because somebody else still might be pinning
-mm_users and so __mmput won't be called to release the memory but that is
-not really realiably solvable because the task will get away from the oom
-sight as soon as it is unhashed from the task_list and so we cannot
-guarantee a new victim won't be selected.
+total: 0 errors, 3 warnings, 53 lines checked
 
-Fixes: aac453635549 ("mm, oom: introduce oom reaper")
-Link: http://lkml.kernel.org/r/1464271493-20008-1-git-send-email-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/oom_reaper-close-race-with-exiting-task.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
+ mm/oom_kill.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/oom_kill.c~oom_reaper-close-race-with-exiting-task mm/oom_kill.c
---- a/mm/oom_kill.c~oom_reaper-close-race-with-exiting-task
+diff -puN mm/oom_kill.c~oom_reaper-close-race-with-exiting-task-checkpatch-fixes mm/oom_kill.c
+--- a/mm/oom_kill.c~oom_reaper-close-race-with-exiting-task-checkpatch-fixes
 +++ a/mm/oom_kill.c
-@@ -450,6 +450,22 @@ static bool __oom_reap_task(struct task_
- 	bool ret = true;
- 
- 	/*
-+	 * We have to make sure to not race with the victim exit path
-+	 * and cause premature new oom victim selection:
-+	 * __oom_reap_task		exit_mm
-+	 *   atomic_inc_not_zero
-+	 *   				  mmput
-+	 *   				    atomic_dec_and_test
-+	 *				  exit_oom_victim
-+	 *				[...]
-+	 *				out_of_memory
-+	 *				  select_bad_process
-+	 *				    # no TIF_MEMDIE task select new victim
-+	 *  unmap_page_range # frees some memory
-+	 */
-+	mutex_lock(&oom_lock);
-+
-+	/*
- 	 * Make sure we find the associated mm_struct even when the particular
- 	 * thread has already terminated and cleared its mm.
- 	 * We might have race with exit path so consider our work done if there
-@@ -457,19 +473,19 @@ static bool __oom_reap_task(struct task_
+@@ -454,13 +454,13 @@ static bool __oom_reap_task(struct task_
+ 	 * and cause premature new oom victim selection:
+ 	 * __oom_reap_task		exit_mm
+ 	 *   atomic_inc_not_zero
+-	 *   				  mmput
+-	 *   				    atomic_dec_and_test
++	 *				  mmput
++	 *				    atomic_dec_and_test
+ 	 *				  exit_oom_victim
+ 	 *				[...]
+ 	 *				out_of_memory
+ 	 *				  select_bad_process
+-	 *				    # no TIF_MEMDIE task select new victim
++	 *				    # no TIF_MEMDIE task selects new victim
+ 	 *  unmap_page_range # frees some memory
  	 */
- 	p = find_lock_task_mm(tsk);
- 	if (!p)
--		return true;
-+		goto unlock_oom;
- 
- 	mm = p->mm;
- 	if (!atomic_inc_not_zero(&mm->mm_users)) {
- 		task_unlock(p);
--		return true;
-+		goto unlock_oom;
- 	}
- 
- 	task_unlock(p);
- 
- 	if (!down_read_trylock(&mm->mmap_sem)) {
- 		ret = false;
--		goto out;
-+		goto unlock_oom;
- 	}
- 
- 	tlb_gather_mmu(&tlb, mm, 0, -1);
-@@ -511,7 +527,8 @@ static bool __oom_reap_task(struct task_
- 	 * to release its memory.
- 	 */
- 	set_bit(MMF_OOM_REAPED, &mm->flags);
--out:
-+unlock_oom:
-+	mutex_unlock(&oom_lock);
- 	/*
- 	 * Drop our reference but make sure the mmput slow path is called from a
- 	 * different context because we shouldn't risk we get stuck there and
+ 	mutex_lock(&oom_lock);
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
-oom_reaper-close-race-with-exiting-task.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix.patch
+drivers-pinctrl-intel-pinctrl-baytrailc-fix-build-with-gcc-44.patch
+oom_reaper-close-race-with-exiting-task-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix.patch
+mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-checkpatch-fixes.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
