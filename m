@@ -1,74 +1,62 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix.patch removed from -mm tree
-Date: Thu, 26 May 2016 15:13:47 -0700
-Message-ID: <5747751b.fOtIQqewvwdiCehX%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Thu, 26 May 2016 15:15:37 -0700
+Message-ID: <20160526151537.f0785f200fa74c72c5206ef7@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Thu__26_May_2016_15_15_37_-0700_fBbNlIPPGblddV3z"
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49369 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755289AbcEZWNt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 18:13:49 -0400
+	with ESMTP id S1754733AbcEZWPp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 May 2016 18:15:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, minchan@kernel.org, penguin-kernel@i-love.sakura.ne.jp, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
+
+--Signature=_Thu__26_May_2016_15_15_37_-0700_fBbNlIPPGblddV3z
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+10 fixes, based on ea8ea737c46cffa5d0ee74309f81e55a7e5e9c2a:
+
+Subject: seqlock: fix raw_read_seqcount_latch()
+Subject: mm: make CONFIG_DEFERRED_STRUCT_PAGE_INIT depends on !FLATMEM expl=
+icitly
+Subject: mm: kasan: remove unused 'reserved' field from struct kasan_alloc_=
+meta
+Subject: mm: slub: remove unused virt_to_obj()
+Subject: ocfs2: fix improper handling of return errno
+Subject: memcg: fix mem_cgroup_out_of_memory() return value.
+Subject: mm: oom_reaper: remove some bloat
+Subject: dma-debug: avoid spinlock recursion when disabling dma-debug
+Subject: update "mm/zsmalloc: don't fail if can't create debugfs info"
+Subject: drivers/pinctrl/intel/pinctrl-baytrail.c: fix build with gcc-4.4
 
 
-The patch titled
-     Subject: mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix
-has been removed from the -mm tree.  Its filename was
-     mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix.patch
+--Signature=_Thu__26_May_2016_15_15_37_-0700_fBbNlIPPGblddV3z
+Content-Type: application/pgp-signature
 
-This patch was dropped because it was folded into mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix
+iQIcBAEBAgAGBQJXR3WQAAoJEJxZ78cCqAIH9tQP/2h68t5hXid4SHESBHCWdRXK
+p7rvhYdBiakhJuUm8SHqZ4Dac1tp8e6c9ZsThnaPPJvsJOs0rTMcs6d5PVyuZO3k
+gVRIgV9C5yLtGlpMZkDk2P59XTedHq+8eImR1NBCHMajviaUoIWsO5XNQKD3YeGt
+wQzEenpyKVfseW1ts5GtYjA/x503o9hZS+LX8obSytREMwuzdHCDA/cTCa/olNhZ
+28MjC+56Yj9TsbJEjAlioYr0HYvZaHMIQ2BmgkM7zqBIYFpCkoudhFidhQg+BPG8
+X5v9hc27ZOliHuOe04u6XxMI9LjyyV5YslNsp99MsK9GiyxHchC93kKHd6kjE5mR
+kAOkW0CUquHQObfdClkQVzuW+o98nSy0OH3E8EnfSQMAIWSax2USmefEBayjOcKq
+DK6S5vW8KYNg1Ca/BIIY7evaNKUJbOReTAB2M2UCPrzf6x6ktb+kcNfyP6HwhCLy
+zOep1E3ajQGeHp2MIrNv3UBAQ/wAJxw/aEGTNW6uLSBfrDG8eC8/yJl/7OIxjOKA
+m1sxKVoK1XSA8sUrmTbYF0oeJph0RNQLaeeqDOv7YPQdmHMToJbDuFph/0EI9kCO
+bEpOKfoFq62OhlIIIPzTfpCpTLSVYyE5XsDr0KicoK3n3tX2DLCF2P3u2D5IpSId
+ahC2+meSp53IAP6cATI+
+=CF+9
+-----END PGP SIGNATURE-----
 
-fix typo, per Minchan
-
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/sched.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff -puN include/linux/sched.h~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix include/linux/sched.h
---- a/include/linux/sched.h~mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix-fix
-+++ a/include/linux/sched.h
-@@ -2745,7 +2745,7 @@ static inline bool mmget_not_zero(struct
- /* mmput gets rid of the mappings and all user-space */
- extern void mmput(struct mm_struct *);
- #ifdef CONFIG_MMU
--/* same as above but performs the slow path from the async kontext. Can
-+/* same as above but performs the slow path from the async context. Can
-  * be called from the atomic context as well
-  */
- extern void mmput_async(struct mm_struct *);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-oom_reaper-do-not-mmput-synchronously-from-the-oom-reaper-context-fix.patch
-drivers-pinctrl-intel-pinctrl-baytrailc-fix-build-with-gcc-44.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-oom_reaper-close-race-with-exiting-task-checkpatch-fixes.patch
-mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix.patch
-mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-checkpatch-fixes.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
+--Signature=_Thu__26_May_2016_15_15_37_-0700_fBbNlIPPGblddV3z--
