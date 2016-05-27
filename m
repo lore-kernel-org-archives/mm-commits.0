@@ -1,160 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-make-vm_mmap-killable.patch removed from -mm tree
-Date: Fri, 27 May 2016 11:44:35 -0700
-Message-ID: <57489593.IKv+oww4Ii722xhJ%akpm@linux-foundation.org>
+Subject: [merged] mm-aout-handle-vm_brk-failures.patch removed from -mm
+ tree
+Date: Fri, 27 May 2016 11:44:41 -0700
+Message-ID: <57489599.x5/AcEudP1glv0oE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42612 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42625 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575AbcE0Sog (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:44:36 -0400
+	with ESMTP id S1751575AbcE0Som (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:44:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, aarcange@redhat.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mgorman@suse.de, oleg@redhat.com, vbabka@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hpa@zytor.com, mingo@kernel.org, tglx@linutronix.de, vbabka@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make vm_mmap killable
+     Subject: mm, aout: handle vm_brk failures
 has been removed from the -mm tree.  Its filename was
-     mm-make-vm_mmap-killable.patch
+     mm-aout-handle-vm_brk-failures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: make vm_mmap killable
+Subject: mm, aout: handle vm_brk failures
 
-All the callers of vm_mmap seem to check for the failure already and bail
-out in one way or another on the error which means that we can change it
-to use killable version of vm_mmap_pgoff and return -EINTR if the current
-task gets killed while waiting for mmap_sem.  This also means that
-vm_mmap_pgoff can be killable by default and drop the additional
-parameter.
+vm_brk is allowed to fail but load_aout_binary simply ignores the error
+and happily continues.  I haven't noticed any problem from that in real
+life but later patches will make the failure more likely because vm_brk
+will become killable (resp.  mmap_sem for write waiting will become
+killable) so we should be more careful now.
 
-This will help in the OOM conditions when the oom victim might be stuck
-waiting for the mmap_sem for write which in turn can block oom_reaper
-which relies on the mmap_sem for read to make a forward progress and
-reclaim the address space of the victim.
-
-Please note that load_elf_binary is ignoring vm_mmap error for
-current->personality & MMAP_PAGE_ZERO case but that shouldn't be a problem
-because the address is not used anywhere and we never return to the
-userspace if we got killed.
+The error handling should be quite straightforward because there are calls
+to vm_mmap which check the error properly already.  The only notable
+exception is set_brk which is called after beyond_if label.  But nothing
+indicates that we cannot move it above set_binfmt as the two do not depend
+on each other and fail before we do set_binfmt and alter reference
+counting.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/internal.h      |    3 +--
- mm/mmap.c          |    2 +-
- mm/nommu.c         |    2 +-
- mm/util.c          |   13 ++++---------
- 5 files changed, 8 insertions(+), 14 deletions(-)
+ arch/x86/ia32/ia32_aout.c |   22 +++++++++++++++-------
+ fs/binfmt_aout.c          |   11 ++++++++---
+ 2 files changed, 23 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/mm.h~mm-make-vm_mmap-killable include/linux/mm.h
---- a/include/linux/mm.h~mm-make-vm_mmap-killable
-+++ a/include/linux/mm.h
-@@ -2013,7 +2013,7 @@ static inline void mm_populate(unsigned
- /* These take the mm semaphore themselves */
- extern unsigned long vm_brk(unsigned long, unsigned long);
- extern int vm_munmap(unsigned long, size_t);
--extern unsigned long vm_mmap(struct file *, unsigned long,
-+extern unsigned long __must_check vm_mmap(struct file *, unsigned long,
-         unsigned long, unsigned long,
-         unsigned long, unsigned long);
+diff -puN arch/x86/ia32/ia32_aout.c~mm-aout-handle-vm_brk-failures arch/x86/ia32/ia32_aout.c
+--- a/arch/x86/ia32/ia32_aout.c~mm-aout-handle-vm_brk-failures
++++ a/arch/x86/ia32/ia32_aout.c
+@@ -116,13 +116,13 @@ static struct linux_binfmt aout_format =
+ 	.min_coredump	= PAGE_SIZE
+ };
  
-diff -puN mm/internal.h~mm-make-vm_mmap-killable mm/internal.h
---- a/mm/internal.h~mm-make-vm_mmap-killable
-+++ a/mm/internal.h
-@@ -444,8 +444,7 @@ extern u32 hwpoison_filter_enable;
- 
- extern unsigned long  __must_check vm_mmap_pgoff(struct file *, unsigned long,
-         unsigned long, unsigned long,
--        unsigned long, unsigned long,
--        bool);
-+        unsigned long, unsigned long);
- 
- extern void set_pageblock_order(void);
- unsigned long reclaim_clean_pages_from_list(struct zone *zone,
-diff -puN mm/mmap.c~mm-make-vm_mmap-killable mm/mmap.c
---- a/mm/mmap.c~mm-make-vm_mmap-killable
-+++ a/mm/mmap.c
-@@ -1333,7 +1333,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
- 
- 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
- 
--	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff, true);
-+	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
- out_fput:
- 	if (file)
- 		fput(file);
-diff -puN mm/nommu.c~mm-make-vm_mmap-killable mm/nommu.c
---- a/mm/nommu.c~mm-make-vm_mmap-killable
-+++ a/mm/nommu.c
-@@ -1446,7 +1446,7 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
- 
- 	flags &= ~(MAP_EXECUTABLE | MAP_DENYWRITE);
- 
--	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff, true);
-+	retval = vm_mmap_pgoff(file, addr, len, prot, flags, pgoff);
- 
- 	if (file)
- 		fput(file);
-diff -puN mm/util.c~mm-make-vm_mmap-killable mm/util.c
---- a/mm/util.c~mm-make-vm_mmap-killable
-+++ a/mm/util.c
-@@ -289,7 +289,7 @@ EXPORT_SYMBOL_GPL(get_user_pages_fast);
- 
- unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot,
--	unsigned long flag, unsigned long pgoff, bool killable)
-+	unsigned long flag, unsigned long pgoff)
+-static void set_brk(unsigned long start, unsigned long end)
++static unsigned long set_brk(unsigned long start, unsigned long end)
  {
- 	unsigned long ret;
- 	struct mm_struct *mm = current->mm;
-@@ -297,12 +297,8 @@ unsigned long vm_mmap_pgoff(struct file
- 
- 	ret = security_mmap_file(file, prot, flag);
- 	if (!ret) {
--		if (killable) {
--			if (down_write_killable(&mm->mmap_sem))
--				return -EINTR;
--		} else {
--			down_write(&mm->mmap_sem);
--		}
-+		if (down_write_killable(&mm->mmap_sem))
-+			return -EINTR;
- 		ret = do_mmap_pgoff(file, addr, len, prot, flag, pgoff,
- 				    &populate);
- 		up_write(&mm->mmap_sem);
-@@ -312,7 +308,6 @@ unsigned long vm_mmap_pgoff(struct file
- 	return ret;
+ 	start = PAGE_ALIGN(start);
+ 	end = PAGE_ALIGN(end);
+ 	if (end <= start)
+-		return;
+-	vm_brk(start, end - start);
++		return start;
++	return vm_brk(start, end - start);
  }
  
--/* XXX are all callers checking an error */
- unsigned long vm_mmap(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot,
- 	unsigned long flag, unsigned long offset)
-@@ -322,7 +317,7 @@ unsigned long vm_mmap(struct file *file,
- 	if (unlikely(offset_in_page(offset)))
- 		return -EINVAL;
+ #ifdef CONFIG_COREDUMP
+@@ -349,7 +349,10 @@ static int load_aout_binary(struct linux
+ #endif
  
--	return vm_mmap_pgoff(file, addr, len, prot, flag, offset >> PAGE_SHIFT, false);
-+	return vm_mmap_pgoff(file, addr, len, prot, flag, offset >> PAGE_SHIFT);
- }
- EXPORT_SYMBOL(vm_mmap);
+ 		if (!bprm->file->f_op->mmap || (fd_offset & ~PAGE_MASK) != 0) {
+-			vm_brk(N_TXTADDR(ex), ex.a_text+ex.a_data);
++			error = vm_brk(N_TXTADDR(ex), ex.a_text+ex.a_data);
++			if (IS_ERR_VALUE(error))
++				return error;
++
+ 			read_code(bprm->file, N_TXTADDR(ex), fd_offset,
+ 					ex.a_text+ex.a_data);
+ 			goto beyond_if;
+@@ -372,10 +375,13 @@ static int load_aout_binary(struct linux
+ 		if (error != N_DATADDR(ex))
+ 			return error;
+ 	}
++
+ beyond_if:
+-	set_binfmt(&aout_format);
++	error = set_brk(current->mm->start_brk, current->mm->brk);
++	if (IS_ERR_VALUE(error))
++		return error;
  
+-	set_brk(current->mm->start_brk, current->mm->brk);
++	set_binfmt(&aout_format);
+ 
+ 	current->mm->start_stack =
+ 		(unsigned long)create_aout_tables((char __user *)bprm->p, bprm);
+@@ -434,7 +440,9 @@ static int load_aout_library(struct file
+ 			error_time = jiffies;
+ 		}
+ #endif
+-		vm_brk(start_addr, ex.a_text + ex.a_data + ex.a_bss);
++		retval = vm_brk(start_addr, ex.a_text + ex.a_data + ex.a_bss);
++		if (IS_ERR_VALUE(retval))
++			goto out;
+ 
+ 		read_code(file, start_addr, N_TXTOFF(ex),
+ 			  ex.a_text + ex.a_data);
+diff -puN fs/binfmt_aout.c~mm-aout-handle-vm_brk-failures fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~mm-aout-handle-vm_brk-failures
++++ a/fs/binfmt_aout.c
+@@ -297,7 +297,10 @@ static int load_aout_binary(struct linux
+ 		}
+ 
+ 		if (!bprm->file->f_op->mmap||((fd_offset & ~PAGE_MASK) != 0)) {
+-			vm_brk(N_TXTADDR(ex), ex.a_text+ex.a_data);
++			error = vm_brk(N_TXTADDR(ex), ex.a_text+ex.a_data);
++			if (IS_ERR_VALUE(error))
++				return error;
++
+ 			read_code(bprm->file, N_TXTADDR(ex), fd_offset,
+ 				  ex.a_text + ex.a_data);
+ 			goto beyond_if;
+@@ -378,8 +381,10 @@ static int load_aout_library(struct file
+ 			       "N_TXTOFF is not page aligned. Please convert library: %pD\n",
+ 			       file);
+ 		}
+-		vm_brk(start_addr, ex.a_text + ex.a_data + ex.a_bss);
+-		
++		retval = vm_brk(start_addr, ex.a_text + ex.a_data + ex.a_bss);
++		if (IS_ERR_VALUE(retval))
++			goto out;
++
+ 		read_code(file, start_addr, N_TXTOFF(ex),
+ 			  ex.a_text + ex.a_data);
+ 		retval = 0;
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
