@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-overflow-in-vm_map_ram-fix.patch added to -mm tree
-Date: Fri, 27 May 2016 13:20:39 -0700
-Message-ID: <5748ac17.j7af5TPiut7zSqdi%akpm@linux-foundation.org>
+Subject: + reiserfs-avoid-uninitialized-variable-use.patch added to -mm
+ tree
+Date: Fri, 27 May 2016 13:31:50 -0700
+Message-ID: <5748aeb6.fN9D/KJvuQPxmFHi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44303 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44482 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756577AbcE0UUp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 16:20:45 -0400
+	with ESMTP id S1752315AbcE0Ubv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 16:31:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, guillermo.julian@naudit.es, mm-commits@vger.kernel.org
+To: arnd@arndb.de, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fix-overflow-in-vm_map_ram-fix
+     Subject: reiserfs: avoid uninitialized variable use
 has been added to the -mm tree.  Its filename is
-     mm-fix-overflow-in-vm_map_ram-fix.patch
+     reiserfs-avoid-uninitialized-variable-use.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-overflow-in-vm_map_=
-ram-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/reiserfs-avoid-uninitialized-variable-use.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-overflow-in-vm_map_=
-ram-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/reiserfs-avoid-uninitialized-variable-use.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +33,62 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-overflow-in-vm_map_ram-fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: reiserfs: avoid uninitialized variable use
 
-fix vmap() as well, per Guillermo
+I got this warning on an ARM64 allmodconfig build with gcc-5.3:
 
-Cc: Guillermo Juli=E1n Moreno <guillermo.julian@naudit.es>
+fs/reiserfs/ibalance.c: In function 'balance_internal':
+fs/reiserfs/ibalance.c:1158:3: error: 'new_insert_key' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+   memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
+
+The warning is correct, in fact both new_insert_key and new_insert_ptr are
+only updated inside of an if() block, but used at the end of the function.
+
+Looking at how the balance_internal() function gets called, it is clear
+that this is harmless because the caller never uses the updated arrays,
+they are initialized from balance_leaf_new_nodes() and then passed into
+balance_internal().
+
+This has not changed at all since the start of the git history, but
+apparently the warning has only recently appeared.
+
+This modifies the function to only update the two argument variables when
+the new_insert_key and new_insert_ptr have been updated, to get rid of the
+warning.
+
+Link: http://lkml.kernel.org/r/1464380569-3493380-1-git-send-email-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/reiserfs/ibalance.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-fix-overflow-in-vm_map_ram-fix mm/vmalloc.c
---- a/mm/vmalloc.c~mm-fix-overflow-in-vm_map_ram-fix
-+++ a/mm/vmalloc.c
-@@ -1574,14 +1574,15 @@ void *vmap(struct page **pages, unsigned
- 		unsigned long flags, pgprot_t prot)
- {
- 	struct vm_struct *area;
-+	unsigned long size;		/* In bytes */
-=20
- 	might_sleep();
-=20
- 	if (count > totalram_pages)
- 		return NULL;
-=20
--	area =3D get_vm_area_caller((count << PAGE_SHIFT), flags,
--					__builtin_return_address(0));
-+	size =3D (unsigned long)count << PAGE_SHIFT;
-+	area =3D get_vm_area_caller(size, flags, __builtin_return_address(0))=
-;
- 	if (!area)
- 		return NULL;
-=20
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org =
-are
-
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-oom_reaper-close-race-with-exiting-task-fix.patch
-oom_reaper-close-race-with-exiting-task-checkpatch-fixes.patch
-mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes.patch
-mm-fix-overflow-in-vm_map_ram-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff -puN fs/reiserfs/ibalance.c~reiserfs-avoid-uninitialized-variable-use fs/reiserfs/ibalance.c
+--- a/fs/reiserfs/ibalance.c~reiserfs-avoid-uninitialized-variable-use
++++ a/fs/reiserfs/ibalance.c
+@@ -1138,6 +1138,9 @@ int balance_internal(struct tree_balance
+ 		       S_new);
+ 
+ 		/* S_new is released in unfix_nodes */
++
++		memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
++		insert_ptr[0] = new_insert_ptr;
+ 	}
+ 
+ 	n = B_NR_ITEMS(tbSh);	/*number of items in S[h] */
+@@ -1153,8 +1156,5 @@ int balance_internal(struct tree_balance
+ 				       insert_ptr);
+ 	}
+ 
+-	memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
+-	insert_ptr[0] = new_insert_ptr;
