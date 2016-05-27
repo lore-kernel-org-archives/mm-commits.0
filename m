@@ -1,81 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable.patch removed from -mm tree
-Date: Fri, 27 May 2016 11:45:15 -0700
-Message-ID: <574895bb.Dfa4koCyXPPtDVi8%akpm@linux-foundation.org>
+Subject: [merged] kgdb-depends-on-vt.patch removed from -mm tree
+Date: Fri, 27 May 2016 11:45:18 -0700
+Message-ID: <574895be.xoHW7hq9FZaJEmnN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42695 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42699 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752237AbcE0SpQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:45:16 -0400
+	with ESMTP id S1752237AbcE0SpT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:45:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, airlied@linux.ie, alexander.deucher@amd.com, arnd@arndb.de, christian.koenig@amd.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: jslaby@suse.cz, jason.wessel@windriver.com, jim.epost@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/amdgpu: make amdgpu_mn_get wait for mmap_sem killable
+     Subject: kgdb: depends on VT
 has been removed from the -mm tree.  Its filename was
-     drm-amdgpu-make-amdgpu_mn_get-wait-for-mmap_sem-killable.patch
+     kgdb-depends-on-vt.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Michal Hocko <mhocko@suse.com>
-Subject: drm/amdgpu: make amdgpu_mn_get wait for mmap_sem killable
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: kgdb: depends on VT
 
-amdgpu_mn_get which is called during ioct path relies on mmap_sem for
-write.  If the waiting task gets killed by the oom killer it would bloc=
-k
-oom_reaper from asynchronous address space reclaim and reduce the chanc=
-es
-of timely OOM resolving.  Wait for the lock in the killable mode and
-return with EINTR if the task got killed while waiting.
+With VT=n, the kernel build fails with:
+drivers/built-in.o: In function `kgdboc_pre_exp_handler':
+kgdboc.c:(.text+0x7b5aa): undefined reference to `fg_console'
+kgdboc.c:(.text+0x7b5ce): undefined reference to `vc_cons'
+kgdboc.c:(.text+0x7b5d5): undefined reference to `vc_cons'
 
-[arnd@arndb.de: use ERR_PTR() to return from amdgpu_mn_get]
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Christian K=F6nig <christian.koenig@amd.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Alex Deucher <alexander.deucher@amd.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+kgdboc.o is built when KGDB_SERIAL_CONSOLE is set. So make
+KGDB_SERIAL_CONSOLE depend on HW_CONSOLE which includes those symbols.
+
+Link: http://lkml.kernel.org/r/1459412955-4696-1-git-send-email-jslaby@suse.cz
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Reported-by: "Jim Davis" <jim.epost@gmail.com>
+Acked-by: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ lib/Kconfig.kgdb |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c~drm-amdgpu-make-amdgpu=
-_mn_get-wait-for-mmap_sem-killable drivers/gpu/drm/amd/amdgpu/amdgpu_mn=
-=2Ec
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c~drm-amdgpu-make-amdgpu_mn_=
-get-wait-for-mmap_sem-killable
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
-@@ -232,7 +232,10 @@ static struct amdgpu_mn *amdgpu_mn_get(s
- 	int r;
-=20
- 	mutex_lock(&adev->mn_lock);
--	down_write(&mm->mmap_sem);
-+	if (down_write_killable(&mm->mmap_sem)) {
-+		mutex_unlock(&adev->mn_lock);
-+		return ERR_PTR(-EINTR);
-+	}
-=20
- 	hash_for_each_possible(adev->mn_hash, rmn, node, (unsigned long)mm)
- 		if (rmn->mm =3D=3D mm)
+diff -puN lib/Kconfig.kgdb~kgdb-depends-on-vt lib/Kconfig.kgdb
+--- a/lib/Kconfig.kgdb~kgdb-depends-on-vt
++++ a/lib/Kconfig.kgdb
+@@ -22,7 +22,7 @@ config KGDB_SERIAL_CONSOLE
+ 	tristate "KGDB: use kgdb over the serial console"
+ 	select CONSOLE_POLL
+ 	select MAGIC_SYSRQ
+-	depends on TTY
++	depends on TTY && HW_CONSOLE
+ 	default y
+ 	help
+ 	  Share a serial console with kgdb. Sysrq-g must be used
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
-oom_reaper-close-race-with-exiting-task.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
