@@ -1,76 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-make-vm_munmap-killable.patch removed from -mm tree
-Date: Fri, 27 May 2016 11:44:38 -0700
-Message-ID: <57489596.Kcbp6z2cAkUPfmcc%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch removed
+ from -mm tree
+Date: Fri, 27 May 2016 11:44:51 -0700
+Message-ID: <574895a3.VBD5AQ+teg4eXZz0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42644 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575AbcE0Soj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:44:39 -0400
+	with ESMTP id S1752237AbcE0Sow (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:44:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, oleg@redhat.com, vbabka@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mhocko@suse.com, koct9i@gmail.com, mingo@kernel.org, oleg@redhat.com, peterz@infradead.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make vm_munmap killable
+     Subject: mm, fork: make dup_mmap wait for mmap_sem for write killable
 has been removed from the -mm tree.  Its filename was
-     mm-make-vm_munmap-killable.patch
+     mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: make vm_munmap killable
+Subject: mm, fork: make dup_mmap wait for mmap_sem for write killable
 
-Almost all current users of vm_munmap are ignoring the return value and so
-they do not handle potential error.  This means that some VMAs might stay
-behind.  This patch doesn't try to solve those potential problems.  Quite
-contrary it adds a new failure mode by using down_write_killable in
-vm_munmap.  This should be safer than other failure modes, though, because
-the process is guaranteed to die as soon as it leaves the kernel and
-exit_mmap will clean the whole address space.
-
-This will help in the OOM conditions when the oom victim might be stuck
-waiting for the mmap_sem for write which in turn can block oom_reaper
-which relies on the mmap_sem for read to make a forward progress and
-reclaim the address space of the victim.
+dup_mmap needs to lock current's mm mmap_sem for write.  If the waiting
+task gets killed by the oom killer it would block oom_reaper from
+asynchronous address space reclaim and reduce the chances of timely OOM
+resolving.  Wait for the lock in the killable mode and return with EINTR
+if the task got killed while waiting.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ kernel/fork.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-make-vm_munmap-killable mm/mmap.c
---- a/mm/mmap.c~mm-make-vm_munmap-killable
-+++ a/mm/mmap.c
-@@ -2494,11 +2494,9 @@ int vm_munmap(unsigned long start, size_
- 	int ret;
- 	struct mm_struct *mm = current->mm;
+diff -puN kernel/fork.c~mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable kernel/fork.c
+--- a/kernel/fork.c~mm-fork-make-dup_mmap-wait-for-mmap_sem-for-write-killable
++++ a/kernel/fork.c
+@@ -414,7 +414,10 @@ static int dup_mmap(struct mm_struct *mm
+ 	unsigned long charge;
  
--	/*
--	 * XXX convert to down_write_killable as soon as all users are able
--	 * to handle the error.
--	 */
--	down_write(&mm->mmap_sem);
-+	if (down_write_killable(&mm->mmap_sem))
-+		return -EINTR;
-+
- 	ret = do_munmap(mm, start, len);
+ 	uprobe_start_dup_mmap();
+-	down_write(&oldmm->mmap_sem);
++	if (down_write_killable(&oldmm->mmap_sem)) {
++		retval = -EINTR;
++		goto fail_uprobe_end;
++	}
+ 	flush_cache_dup_mm(oldmm);
+ 	uprobe_dup_mmap(oldmm, mm);
+ 	/*
+@@ -526,6 +529,7 @@ out:
  	up_write(&mm->mmap_sem);
- 	return ret;
+ 	flush_tlb_mm(oldmm);
+ 	up_write(&oldmm->mmap_sem);
++fail_uprobe_end:
+ 	uprobe_end_dup_mmap();
+ 	return retval;
+ fail_nomem_anon_vma_fork:
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
