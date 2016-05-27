@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-bump-up-o2cb-network-protocol-version.patch added to -mm
+Subject: + oom_reaper-close-race-with-exiting-task-fix.patch added to -mm
  tree
-Date: Fri, 27 May 2016 12:49:07 -0700
-Message-ID: <5748a4b3.EoQTv7Wj7RpZXbHa%akpm@linux-foundation.org>
+Date: Fri, 27 May 2016 12:53:20 -0700
+Message-ID: <5748a5b0.y+Hch8nrnDDJlJgw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43771 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43852 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751533AbcE0TtI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 15:49:08 -0400
+	with ESMTP id S1756117AbcE0TxV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 15:53:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: bump up o2cb network protocol version
+     Subject: oom_reaper-close-race-with-exiting-task-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-bump-up-o2cb-network-protocol-version.patch
+     oom_reaper-close-race-with-exiting-task-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-bump-up-o2cb-network-protocol-version.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom_reaper-close-race-with-exiting-task-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-bump-up-o2cb-network-protocol-version.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom_reaper-close-race-with-exiting-task-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,55 +39,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: bump up o2cb network protocol version
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: oom_reaper-close-race-with-exiting-task-fix
 
-Two new messages are added to support negotiating hb timeout.  Stop nodes
-frmo talking an old version to mount as they will cause the negotiation to
-fail.
+fix use of unused `mm', Per Stephen
 
-Link: http://lkml.kernel.org/r/1464231615-27939-1-git-send-email-junxiao.bi@oracle.com
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp_internal.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/cluster/tcp_internal.h~ocfs2-bump-up-o2cb-network-protocol-version fs/ocfs2/cluster/tcp_internal.h
---- a/fs/ocfs2/cluster/tcp_internal.h~ocfs2-bump-up-o2cb-network-protocol-version
-+++ a/fs/ocfs2/cluster/tcp_internal.h
-@@ -44,6 +44,9 @@
-  * version here in tcp_internal.h should not need to be bumped for
-  * filesystem locking changes.
-  *
-+ * New in version 12
-+ *	- Negotiate hb timeout when storage is down.
-+ *
-  * New in version 11
-  * 	- Negotiation of filesystem locking in the dlm join.
-  *
-@@ -75,7 +78,7 @@
-  * 	- full 64 bit i_size in the metadata lock lvbs
-  * 	- introduction of "rw" lock and pushing meta/data locking down
-  */
--#define O2NET_PROTOCOL_VERSION 11ULL
-+#define O2NET_PROTOCOL_VERSION 12ULL
- struct o2net_handshake {
- 	__be64	protocol_version;
- 	__be64	connector_id;
+diff -puN mm/oom_kill.c~oom_reaper-close-race-with-exiting-task-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~oom_reaper-close-race-with-exiting-task-fix
++++ a/mm/oom_kill.c
+@@ -443,7 +443,7 @@ static bool __oom_reap_task(struct task_
+ {
+ 	struct mmu_gather tlb;
+ 	struct vm_area_struct *vma;
+-	struct mm_struct *mm;
++	struct mm_struct *mm = NULL;
+ 	struct task_struct *p;
+ 	struct zap_details details = {.check_swap_entries = true,
+ 				      .ignore_dirty = true};
+@@ -534,7 +534,8 @@ unlock_oom:
+ 	 * different context because we shouldn't risk we get stuck there and
+ 	 * put the oom_reaper out of the way.
+ 	 */
+-	mmput_async(mm);
++	if (mm)
++		mmput_async(mm);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-o2hb-add-negotiate-timer.patch
-ocfs2-o2hb-add-nego_timeout-message.patch
-ocfs2-o2hb-add-negotiate_approve-message.patch
-ocfs2-o2hb-add-some-user-debug-log.patch
-ocfs2-o2hb-dont-negotiate-if-last-hb-fail.patch
-ocfs2-o2hb-fix-hb-hung-time.patch
-ocfs2-bump-up-o2cb-network-protocol-version.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+oom_reaper-close-race-with-exiting-task-fix.patch
+oom_reaper-close-race-with-exiting-task-checkpatch-fixes.patch
+mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-fix.patch
+mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites-checkpatch-fixes.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
