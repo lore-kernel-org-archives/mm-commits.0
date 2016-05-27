@@ -1,98 +1,79 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes.patch removed
- from -mm tree
-Date: Fri, 27 May 2016 14:24:34 -0700
-Message-ID: <5748bb12.RbVhQSSpx7g1PI86%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Fri, 27 May 2016 14:26:44 -0700
+Message-ID: <20160527142644.87509a5edaf9ccd5cd39b832@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Fri__27_May_2016_14_26_44_-0700_FqACgNBarXl26nfH"
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45038 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45464 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756647AbcE0VYf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 17:24:35 -0400
+	with ESMTP id S1756091AbcE0V0v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 17:26:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
+
+--Signature=_Fri__27_May_2016_14_26_44_-0700_FqACgNBarXl26nfH
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 
-The patch titled
-     Subject: mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes.patch
+- late-breaking ocfs2 updates
 
-This patch was dropped because it was folded into mm-cma-silence-warnings-due-to-max-usage.patch
+- random bunch of fixes
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes
+19 patches, based on dc03c0f9d12d85286d5e3623aa96d5c2a271b8e6:
 
-WARNING: line over 80 characters
-#128: FILE: mm/cma.c:186:
-+	alignment = PAGE_SIZE << max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
+Subject: ocfs2: o2hb: add negotiate timer
+Subject: ocfs2: o2hb: add NEGO_TIMEOUT message
+Subject: ocfs2: o2hb: add NEGOTIATE_APPROVE message
+Subject: ocfs2: o2hb: add some user/debug log
+Subject: ocfs2: o2hb: don't negotiate if last hb fail
+Subject: ocfs2: o2hb: fix hb hung time
+Subject: ocfs2: bump up o2cb network protocol version
+Subject: direct-io: fix direct write stale data exposure from concurrent bu=
+ffered read
+Subject: mm: oom: do not reap task if there are live threads in threadgroup
+Subject: MAINTAINERS: add kexec_core.c and kexec_file.c
+Subject: MAINTAINERS: Kdump maintainers update
+Subject: mm: use early_pfn_to_nid in page_ext_init
+Subject: mm: use early_pfn_to_nid in register_page_bootmem_info_node
+Subject: oom_reaper: close race with exiting task
+Subject: mm: thp: avoid false positive VM_BUG_ON_PAGE in page_move_anon_rma=
+p()
+Subject: mm/cma: silence warnings due to max() usage
+Subject: mm/memcontrol.c: fix the margin computation in mem_cgroup_margin()
+Subject: mm/memcontrol.c: move comments for get_mctgt_type() to proper posi=
+tion
+Subject: mm: disable DEFERRED_STRUCT_PAGE_INIT on !NO_BOOTMEM
 
-WARNING: line over 80 characters
-#137: FILE: mm/cma.c:270:
-+		(phys_addr_t)PAGE_SIZE << max_t(unsigned long, MAX_ORDER - 1, pageblock_order));
 
-total: 0 errors, 2 warnings, 16 lines checked
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
 
-./patches/mm-cma-silence-warnings-due-to-max-usage.patch has style problems, please review.
+--Signature=_Fri__27_May_2016_14_26_44_-0700_FqACgNBarXl26nfH
+Content-Type: application/pgp-signature
 
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-Please run checkpatch prior to sending patches
+iQIcBAEBAgAGBQJXSLuaAAoJEJxZ78cCqAIHylEP/jKSNnqtwV0+xRKbXktD+VS8
+qx3fQY3at6na1Q7ZktI4KDtrGYV2NrO9hmaTdIyFMz4XJHYTmudWMrlXlJCnS3S6
+HwrkeasiN5I9zNFNGiA2zQcnr6V1M2LRH4CoRgfd4mhiCMSM+b7lsSFuOUgpLlQC
+9+t3Q+ERXNten+ezuhfbOAntmMulkMBvZDaVL8Dk+Kyh6VL8R8PSTfARHsHKH7Tc
+8ERDi5R1orhhL78l1Pjz8ivA2UAIa1zeG3we5yhyMh0ldxfSQvx4cYVtnw3bNbnG
+QaT4rosDYE29ZFeb0jRJBsWIgYpSNnFPmcdQUWgh2/CtR690p/XP4DQ8WVOkD/pL
+CnQ1HCXWY3PJgMvY9dvKF1skPsqK70r+Lmty4A7+U927LrqCJ6yx28cE8o4YonqE
+lIQZryUJ6Lrm5sDlZE3qwtOAv8/ELhkdMHHFgLcdRWgb6mpXhUPKVg2r/AI0BOr+
+w9nvDhf5CfCNPlfnhuSAyrFr5nJ5tEmBkF/DYZxDcLwhB2vv2VmVLJsAPKrbl1X+
+j/7WsocD+DqblHN2BKpjIGz5RbpcJmi/4H0FNzLGuw6DjpHsnjX/EYQ1JQ9Le/6O
+IU+TW5M2tSXGeJp58OmiazgfQ2tEyXhINHcZneZjyrkvnZ3mGXmb9jJiI2LuNFLG
+7mhIoGnez9+hEgYKTE8v
+=sjd6
+-----END PGP SIGNATURE-----
 
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/cma.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff -puN mm/cma.c~mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes mm/cma.c
---- a/mm/cma.c~mm-cma-silence-warnings-due-to-max-usage-checkpatch-fixes
-+++ a/mm/cma.c
-@@ -183,7 +183,8 @@ int __init cma_init_reserved_mem(phys_ad
- 		return -EINVAL;
- 
- 	/* ensure minimal alignment required by mm core */
--	alignment = PAGE_SIZE << max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
-+	alignment = PAGE_SIZE <<
-+			max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
- 
- 	/* alignment should be aligned with order_per_bit */
- 	if (!IS_ALIGNED(alignment >> PAGE_SHIFT, 1 << order_per_bit))
-@@ -266,8 +267,8 @@ int __init cma_declare_contiguous(phys_a
- 	 * migratetype page by page allocator's buddy algorithm. In the case,
- 	 * you couldn't get a contiguous memory, which is not what we want.
- 	 */
--	alignment = max(alignment,
--		(phys_addr_t)PAGE_SIZE << max_t(unsigned long, MAX_ORDER - 1, pageblock_order));
-+	alignment = max(alignment,  (phys_addr_t)PAGE_SIZE <<
-+			  max_t(unsigned long, MAX_ORDER - 1, pageblock_order));
- 	base = ALIGN(base, alignment);
- 	size = ALIGN(size, alignment);
- 	limit &= ~(alignment - 1);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-cma-silence-warnings-due-to-max-usage.patch
-mm-fix-overflow-in-vm_map_ram-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
+--Signature=_Fri__27_May_2016_14_26_44_-0700_FqACgNBarXl26nfH--
