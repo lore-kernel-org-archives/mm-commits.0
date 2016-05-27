@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-avoid-uninitialized-variable-use.patch added to -mm
- tree
-Date: Fri, 27 May 2016 13:31:50 -0700
-Message-ID: <5748aeb6.fN9D/KJvuQPxmFHi%akpm@linux-foundation.org>
+Subject: + mm-zap-zone_oom_locked.patch added to -mm tree
+Date: Fri, 27 May 2016 13:40:33 -0700
+Message-ID: <5748b0c1.4Mdh9tVX9atwF7rp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44482 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44673 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752315AbcE0Ubv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 16:31:51 -0400
+	with ESMTP id S1756507AbcE0Uke (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 16:40:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: reiserfs: avoid uninitialized variable use
+     Subject: mm: zap ZONE_OOM_LOCKED
 has been added to the -mm tree.  Its filename is
-     reiserfs-avoid-uninitialized-variable-use.patch
+     mm-zap-zone_oom_locked.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/reiserfs-avoid-uninitialized-variable-use.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zap-zone_oom_locked.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/reiserfs-avoid-uninitialized-variable-use.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zap-zone_oom_locked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,56 +38,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: reiserfs: avoid uninitialized variable use
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: mm: zap ZONE_OOM_LOCKED
 
-I got this warning on an ARM64 allmodconfig build with gcc-5.3:
+Not used since oom_lock was instroduced.
 
-fs/reiserfs/ibalance.c: In function 'balance_internal':
-fs/reiserfs/ibalance.c:1158:3: error: 'new_insert_key' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-   memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
-
-The warning is correct, in fact both new_insert_key and new_insert_ptr are
-only updated inside of an if() block, but used at the end of the function.
-
-Looking at how the balance_internal() function gets called, it is clear
-that this is harmless because the caller never uses the updated arrays,
-they are initialized from balance_leaf_new_nodes() and then passed into
-balance_internal().
-
-This has not changed at all since the start of the git history, but
-apparently the warning has only recently appeared.
-
-This modifies the function to only update the two argument variables when
-the new_insert_key and new_insert_ptr have been updated, to get rid of the
-warning.
-
-Link: http://lkml.kernel.org/r/1464380569-3493380-1-git-send-email-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jan Kara <jack@suse.cz>
+Link: http://lkml.kernel.org/r/1464358093-22663-1-git-send-email-vdavydov@virtuozzo.com
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/ibalance.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    1 -
+ mm/oom_kill.c          |    4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/reiserfs/ibalance.c~reiserfs-avoid-uninitialized-variable-use fs/reiserfs/ibalance.c
---- a/fs/reiserfs/ibalance.c~reiserfs-avoid-uninitialized-variable-use
-+++ a/fs/reiserfs/ibalance.c
-@@ -1138,6 +1138,9 @@ int balance_internal(struct tree_balance
- 		       S_new);
+diff -puN include/linux/mmzone.h~mm-zap-zone_oom_locked include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-zap-zone_oom_locked
++++ a/include/linux/mmzone.h
+@@ -524,7 +524,6 @@ struct zone {
  
- 		/* S_new is released in unfix_nodes */
-+
-+		memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
-+		insert_ptr[0] = new_insert_ptr;
- 	}
+ enum zone_flags {
+ 	ZONE_RECLAIM_LOCKED,		/* prevents concurrent reclaim */
+-	ZONE_OOM_LOCKED,		/* zone is in OOM killer zonelist */
+ 	ZONE_CONGESTED,			/* zone has many dirty pages backed by
+ 					 * a congested BDI
+ 					 */
+diff -puN mm/oom_kill.c~mm-zap-zone_oom_locked mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-zap-zone_oom_locked
++++ a/mm/oom_kill.c
+@@ -998,8 +998,8 @@ bool out_of_memory(struct oom_control *o
  
- 	n = B_NR_ITEMS(tbSh);	/*number of items in S[h] */
-@@ -1153,8 +1156,5 @@ int balance_internal(struct tree_balance
- 				       insert_ptr);
- 	}
- 
--	memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
--	insert_ptr[0] = new_insert_ptr;
+ /*
+  * The pagefault handler calls here because it is out of memory, so kill a
+- * memory-hogging task.  If any populated zone has ZONE_OOM_LOCKED set, a
+- * parallel oom killing is already in progress so do nothing.
++ * memory-hogging task. If oom_lock is held by somebody else, a parallel oom
++ * killing is already in progress so do nothing.
+  */
+ void pagefault_out_of_memory(void)
+ {
+_
+
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+
+mm-oom-do-not-reap-task-if-there-are-live-threads-in-threadgroup.patch
+mm-zap-zone_oom_locked.patch
+
