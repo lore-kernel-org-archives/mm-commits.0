@@ -1,141 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- update-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch removed from -mm tree
-Date: Fri, 27 May 2016 11:45:39 -0700
-Message-ID: <574895d3.Avb+3JSn2gvOb6qQ%akpm@linux-foundation.org>
+ dma-debug-avoid-spinlock-recursion-when-disabling-dma-debug.patch removed
+ from -mm tree
+Date: Fri, 27 May 2016 11:45:36 -0700
+Message-ID: <574895d0.dLbPwQ4DdOco8bXn%akpm__36563.9787436978$1464374745$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42733 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752616AbcE0Spk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:45:40 -0400
+	with ESMTP id S1752237AbcE0Sph (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:45:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddstreet@ieee.org, dan.streetman@canonical.com, minchan@kernel.org, opensource.ganesh@gmail.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: ville.syrjala@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: update "mm/zsmalloc: don't fail if can't create debugfs info"
+     Subject: dma-debug: avoid spinlock recursion when disabling dma-de=
+bug
 has been removed from the -mm tree.  Its filename was
-     update-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info.patch
+     dma-debug-avoid-spinlock-recursion-when-disabling-dma-debug.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Dan Streetman <ddstreet@ieee.org>
-Subject: update "mm/zsmalloc: don't fail if can't create debugfs info"
+=46rom:  Ville Syrj=E4l=E4 <ville.syrjala@linux.intel.com>
+Subject: dma-debug: avoid spinlock recursion when disabling dma-debug
 
-Some updates to d34f615720d17c49 ("mm/zsmalloc: don't fail if can't create
-debugfs info"):
+With netconsole (at least) the pr_err("...  disablingn") call can recur=
+se
+back into the dma-debug code, where it'll try to grab free_entries_lock
+again.  Avoid the problem by doing the printk after dropping the lock.
 
-- add pr_warn to all stat failure cases
-- do not prevent module loading on stat failure
-
-Link: http://lkml.kernel.org/r/1463671123-5479-1-git-send-email-ddstreet@ieee.org
-Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Reviewed-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Dan Streetman <dan.streetman@canonical.com>
+Link: http://lkml.kernel.org/r/1463678421-18683-1-git-send-email-ville.=
+syrjala@linux.intel.com
+Signed-off-by: Ville Syrj=E4l=E4 <ville.syrjala@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   35 ++++++++++++++++-------------------
- 1 file changed, 16 insertions(+), 19 deletions(-)
+ lib/dma-debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~update-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info mm/zsmalloc.c
---- a/mm/zsmalloc.c~update-mm-zsmalloc-dont-fail-if-cant-create-debugfs-info
-+++ a/mm/zsmalloc.c
-@@ -45,6 +45,8 @@
-  *
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/sched.h>
-@@ -483,16 +485,16 @@ static inline unsigned long zs_stat_get(
- 
- #ifdef CONFIG_ZSMALLOC_STAT
- 
--static int __init zs_stat_init(void)
-+static void __init zs_stat_init(void)
- {
--	if (!debugfs_initialized())
--		return -ENODEV;
-+	if (!debugfs_initialized()) {
-+		pr_warn("debugfs not available, stat dir not created\n");
-+		return;
-+	}
- 
- 	zs_stat_root = debugfs_create_dir("zsmalloc", NULL);
- 	if (!zs_stat_root)
--		return -ENOMEM;
--
--	return 0;
-+		pr_warn("debugfs 'zsmalloc' stat dir creation failed\n");
- }
- 
- static void __exit zs_stat_exit(void)
-@@ -577,8 +579,10 @@ static void zs_pool_stat_create(struct z
- {
- 	struct dentry *entry;
- 
--	if (!zs_stat_root)
-+	if (!zs_stat_root) {
-+		pr_warn("no root stat dir, not creating <%s> stat dir\n", name);
- 		return;
-+	}
- 
- 	entry = debugfs_create_dir(name, zs_stat_root);
- 	if (!entry) {
-@@ -592,7 +596,8 @@ static void zs_pool_stat_create(struct z
- 	if (!entry) {
- 		pr_warn("%s: debugfs file entry <%s> creation failed\n",
- 				name, "classes");
--		return;
-+		debugfs_remove_recursive(pool->stat_dentry);
-+		pool->stat_dentry = NULL;
+diff -puN lib/dma-debug.c~dma-debug-avoid-spinlock-recursion-when-disab=
+ling-dma-debug lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-avoid-spinlock-recursion-when-disabling=
+-dma-debug
++++ a/lib/dma-debug.c
+@@ -657,9 +657,9 @@ static struct dma_debug_entry *dma_entry
+ 	spin_lock_irqsave(&free_entries_lock, flags);
+=20
+ 	if (list_empty(&free_entries)) {
+-		pr_err("DMA-API: debugging out of memory - disabling\n");
+ 		global_disable =3D true;
+ 		spin_unlock_irqrestore(&free_entries_lock, flags);
++		pr_err("DMA-API: debugging out of memory - disabling\n");
+ 		return NULL;
  	}
- }
- 
-@@ -602,9 +607,8 @@ static void zs_pool_stat_destroy(struct
- }
- 
- #else /* CONFIG_ZSMALLOC_STAT */
--static int __init zs_stat_init(void)
-+static void __init zs_stat_init(void)
- {
--	return 0;
- }
- 
- static void __exit zs_stat_exit(void)
-@@ -2011,17 +2015,10 @@ static int __init zs_init(void)
- 	zpool_register_driver(&zs_zpool_driver);
- #endif
- 
--	ret = zs_stat_init();
--	if (ret) {
--		pr_err("zs stat initialization failed\n");
--		goto stat_fail;
--	}
-+	zs_stat_init();
-+
- 	return 0;
- 
--stat_fail:
--#ifdef CONFIG_ZPOOL
--	zpool_unregister_driver(&zs_zpool_driver);
--#endif
- notifier_fail:
- 	zs_unregister_cpu_notifier();
- 
+=20
 _
 
-Patches currently in -mm which might be from ddstreet@ieee.org are
+Patches currently in -mm which might be from ville.syrjala@linux.intel.=
+com are
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
