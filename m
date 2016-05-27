@@ -1,80 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-gdb-support-config_modules-gracefully.patch
+Subject: [merged] scripts-gdb-provide-a-dentry_name-vfs-path-helper.patch
  removed from -mm tree
-Date: Fri, 27 May 2016 11:44:06 -0700
-Message-ID: <57489576.GVQhRW3glwObUepe%akpm@linux-foundation.org>
+Date: Fri, 27 May 2016 11:44:08 -0700
+Message-ID: <57489578.aQAO+PmO9+ObxaPs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42555 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42558 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753783AbcE0SoH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:44:07 -0400
+	with ESMTP id S1754774AbcE0SoJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:44:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kieran.bingham@linaro.org, jan.kiszka@siemens.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: support !CONFIG_MODULES gracefully
+     Subject: scripts/gdb: provide a dentry_name VFS path helper
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-support-config_modules-gracefully.patch
+     scripts-gdb-provide-a-dentry_name-vfs-path-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Kieran Bingham <kieran.bingham@linaro.org>
-Subject: scripts/gdb: support !CONFIG_MODULES gracefully
+Subject: scripts/gdb: provide a dentry_name VFS path helper
 
-If CONFIG_MODULES is not enabled, lx-lsmod tries to find
-a non-existent symbol and generates an unfriendly traceback:
+Walk the VFS entries, pre-pending the iname strings to generate a full
+VFS path name from a dentry.
 
-(gdb) lx-lsmod
-Address    Module                  Size  Used by
-Traceback (most recent call last):
-  File "scripts/gdb/linux/modules.py", line 75, in invoke
-    for module in module_list():
-  File "scripts/gdb/linux/modules.py", line 24, in module_list
-    module_ptr_type = module_type.get_type().pointer()
-  File "scripts/gdb/linux/utils.py", line 28, in get_type
-    self._type = gdb.lookup_type(self._name)
-gdb.error: No struct type named module.
-Error occurred in Python command: No struct type named module.
-
-Catch the error and return an empty module_list() for a clean command
-output as follows:
-
-(gdb) lx-lsmod
-Address    Module                  Size  Used by
-(gdb)
-
-Link: http://lkml.kernel.org/r/94d533819437408b85ae5864f939dd7ca6fbfcd6.1462865983.git.jan.kiszka@siemens.com
+Link: http://lkml.kernel.org/r/4328fdb2d15ba7f1b21ad21c2eecc38d9cfc4d13.1462865983.git.jan.kiszka@siemens.com
 Signed-off-by: Kieran Bingham <kieran.bingham@linaro.org>
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/modules.py |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ scripts/gdb/linux/utils.py |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN scripts/gdb/linux/modules.py~scripts-gdb-support-config_modules-gracefully scripts/gdb/linux/modules.py
---- a/scripts/gdb/linux/modules.py~scripts-gdb-support-config_modules-gracefully
-+++ a/scripts/gdb/linux/modules.py
-@@ -21,8 +21,11 @@ module_type = utils.CachedType("struct m
- 
- def module_list():
-     global module_type
-+    modules = utils.gdb_eval_or_none("modules")
-+    if modules is None:
-+        return
+diff -puN scripts/gdb/linux/utils.py~scripts-gdb-provide-a-dentry_name-vfs-path-helper scripts/gdb/linux/utils.py
+--- a/scripts/gdb/linux/utils.py~scripts-gdb-provide-a-dentry_name-vfs-path-helper
++++ a/scripts/gdb/linux/utils.py
+@@ -161,3 +161,11 @@ def gdb_eval_or_none(expresssion):
+         return gdb.parse_and_eval(expresssion)
+     except:
+         return None
 +
-     module_ptr_type = module_type.get_type().pointer()
--    modules = gdb.parse_and_eval("modules")
- 
-     for module in lists.list_for_each_entry(modules, module_ptr_type, "list"):
-         yield module
++
++def dentry_name(d):
++    parent = d['d_parent']
++    if parent == d or parent == 0:
++        return ""
++    p = dentry_name(d['d_parent']) + "/"
++    return p + d['d_iname'].string()
 _
 
 Patches currently in -mm which might be from kieran.bingham@linaro.org are
