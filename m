@@ -1,83 +1,117 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernel-signalc-convert-printkkern_level-to-pr_level.patch removed from -mm
- tree
-Date: Fri, 27 May 2016 11:43:24 -0700
-Message-ID: <5748954c.rJGWEBbRjBSAhsom%akpm@linux-foundation.org>
+ allocate-idle-task-for-a-cpu-always-on-its-local-node.patch removed from
+ -mm tree
+Date: Fri, 27 May 2016 11:43:28 -0700
+Message-ID: <57489550.deryGcUYe5zmPxHo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42493 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42498 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753221AbcE0SnZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:43:25 -0400
+	with ESMTP id S1754400AbcE0Sn3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:43:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/signal.c: convert printk(KERN_<LEVEL> ...) to pr_<level>(...)
+     Subject: kernek/fork.c: allocate idle task for a CPU always on its local node
 has been removed from the -mm tree.  Its filename was
-     kernel-signalc-convert-printkkern_level-to-pr_level.patch
+     allocate-idle-task-for-a-cpu-always-on-its-local-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
-Subject: kernel/signal.c: convert printk(KERN_<LEVEL> ...) to pr_<level>(...)
+From: Andi Kleen <ak@linux.intel.com>
+Subject: kernek/fork.c: allocate idle task for a CPU always on its local node
 
-Use pr_<level> instead of printk(KERN_<LEVEL> ).
+Linux preallocates the task structs of the idle tasks for all possible
+CPUs.  This currently means they all end up on node 0.  This also implies
+that the cache line of MWAIT, which is around the flags field in the task
+struct, are all located in node 0.
 
-Signed-off-by: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
+We see a noticeable performance improvement on Knights Landing CPUs when
+the cache lines used for MWAIT are located in the local nodes of the CPUs
+using them.  I would expect this to give a (likely slight) improvement on
+other systems too.
+
+The patch implements placing the idle task in the node of its CPUs, by
+passing the right target node to copy_process()
+
+[akpm@linux-foundation.org: use NUMA_NO_NODE, not a bare -1]
+Link: http://lkml.kernel.org/r/1463492694-15833-1-git-send-email-andi@firstfloor.org
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/fork.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN kernel/signal.c~kernel-signalc-convert-printkkern_level-to-pr_level kernel/signal.c
---- a/kernel/signal.c~kernel-signalc-convert-printkkern_level-to-pr_level
-+++ a/kernel/signal.c
-@@ -224,7 +224,7 @@ static inline void print_dropped_signal(
- 	if (!__ratelimit(&ratelimit_state))
- 		return;
- 
--	printk(KERN_INFO "%s/%d: reached RLIMIT_SIGPENDING, dropped signal %d\n",
-+	pr_info("%s/%d: reached RLIMIT_SIGPENDING, dropped signal %d\n",
- 				current->comm, current->pid, sig);
+diff -puN kernel/fork.c~allocate-idle-task-for-a-cpu-always-on-its-local-node kernel/fork.c
+--- a/kernel/fork.c~allocate-idle-task-for-a-cpu-always-on-its-local-node
++++ a/kernel/fork.c
+@@ -340,13 +340,14 @@ void set_task_stack_end_magic(struct tas
+ 	*stackend = STACK_END_MAGIC;	/* for overflow detection */
  }
  
-@@ -1089,10 +1089,10 @@ static int send_signal(int sig, struct s
- static void print_fatal_signal(int signr)
+-static struct task_struct *dup_task_struct(struct task_struct *orig)
++static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
  {
- 	struct pt_regs *regs = signal_pt_regs();
--	printk(KERN_INFO "potentially unexpected fatal signal %d.\n", signr);
-+	pr_info("potentially unexpected fatal signal %d.\n", signr);
+ 	struct task_struct *tsk;
+ 	struct thread_info *ti;
+-	int node = tsk_fork_get_node(orig);
+ 	int err;
  
- #if defined(__i386__) && !defined(__arch_um__)
--	printk(KERN_INFO "code at %08lx: ", regs->ip);
-+	pr_info("code at %08lx: ", regs->ip);
- 	{
- 		int i;
- 		for (i = 0; i < 16; i++) {
-@@ -1100,10 +1100,10 @@ static void print_fatal_signal(int signr
++	if (node == NUMA_NO_NODE)
++		node = tsk_fork_get_node(orig);
+ 	tsk = alloc_task_struct_node(node);
+ 	if (!tsk)
+ 		return NULL;
+@@ -1276,7 +1277,8 @@ static struct task_struct *copy_process(
+ 					int __user *child_tidptr,
+ 					struct pid *pid,
+ 					int trace,
+-					unsigned long tls)
++					unsigned long tls,
++					int node)
+ {
+ 	int retval;
+ 	struct task_struct *p;
+@@ -1328,7 +1330,7 @@ static struct task_struct *copy_process(
+ 		goto fork_out;
  
- 			if (get_user(insn, (unsigned char *)(regs->ip + i)))
- 				break;
--			printk(KERN_CONT "%02x ", insn);
-+			pr_cont("%02x ", insn);
- 		}
+ 	retval = -ENOMEM;
+-	p = dup_task_struct(current);
++	p = dup_task_struct(current, node);
+ 	if (!p)
+ 		goto fork_out;
+ 
+@@ -1706,7 +1708,8 @@ static inline void init_idle_pids(struct
+ struct task_struct *fork_idle(int cpu)
+ {
+ 	struct task_struct *task;
+-	task = copy_process(CLONE_VM, 0, 0, NULL, &init_struct_pid, 0, 0);
++	task = copy_process(CLONE_VM, 0, 0, NULL, &init_struct_pid, 0, 0,
++			    cpu_to_node(cpu));
+ 	if (!IS_ERR(task)) {
+ 		init_idle_pids(task->pids);
+ 		init_idle(task, cpu);
+@@ -1751,7 +1754,7 @@ long _do_fork(unsigned long clone_flags,
  	}
--	printk(KERN_CONT "\n");
-+	pr_cont("\n");
- #endif
- 	preempt_disable();
- 	show_regs(regs);
+ 
+ 	p = copy_process(clone_flags, stack_start, stack_size,
+-			 child_tidptr, NULL, trace, tls);
++			 child_tidptr, NULL, trace, tls, NUMA_NO_NODE);
+ 	/*
+ 	 * Do this prior waking up the new thread - the thread pointer
+ 	 * might get invalid after that point, if the thread exits quickly.
 _
 
-Patches currently in -mm which might be from wangxq10@lzu.edu.cn are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 
