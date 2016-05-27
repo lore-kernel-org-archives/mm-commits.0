@@ -1,86 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: [merged] exec-make-exec-path-waiting-for-mmap_sem-killable.patch
- removed from -mm tree
-Date: Fri, 27 May 2016 11:45:02 -0700
-Message-ID: <574895ae.GK1mVtapyve0MSll%akpm@linux-foundation.org>
+Subject: [merged]
+ vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable.patch removed from -mm tree
+Date: Fri, 27 May 2016 11:44:56 -0700
+Message-ID: <574895a8.105xmN6x02rTfwTV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42672 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42655 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752237AbcE0SpD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:45:03 -0400
+	with ESMTP id S1752237AbcE0So5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:44:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, oleg@redhat.com, vbabka@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mhocko@suse.com, luto@amacapital.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exec: make exec path waiting for mmap_sem killable
+     Subject: vdso: make arch_setup_additional_pages wait for mmap_sem for write killable
 has been removed from the -mm tree.  Its filename was
-     exec-make-exec-path-waiting-for-mmap_sem-killable.patch
+     vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: exec: make exec path waiting for mmap_sem killable
+Subject: vdso: make arch_setup_additional_pages wait for mmap_sem for write killable
 
-setup_arg_pages requires mmap_sem for write.  If the waiting task gets
-killed by the oom killer it would block oom_reaper from asynchronous
-address space reclaim and reduce the chances of timely OOM resolving. 
-Wait for the lock in the killable mode and return with EINTR if the task
-got killed while waiting.  All the callers are already handling error path
-and the fatal signal doesn't need any additional treatment.
-
-The same applies to __bprm_mm_init.
+most architectures are relying on mmap_sem for write in their
+arch_setup_additional_pages.  If the waiting task gets killed by the oom
+killer it would block oom_reaper from asynchronous address space reclaim
+and reduce the chances of timely OOM resolving.  Wait for the lock in the
+killable mode and return with EINTR if the task got killed while waiting.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Andy Lutomirski <luto@amacapital.net>	[x86 vdso]
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/arm/kernel/process.c          |    3 ++-
+ arch/arm64/kernel/vdso.c           |    6 ++++--
+ arch/hexagon/kernel/vdso.c         |    3 ++-
+ arch/mips/kernel/vdso.c            |    3 ++-
+ arch/powerpc/kernel/vdso.c         |    3 ++-
+ arch/s390/kernel/vdso.c            |    3 ++-
+ arch/sh/kernel/vsyscall/vsyscall.c |    4 +++-
+ arch/x86/entry/vdso/vma.c          |    3 ++-
+ arch/x86/um/vdso/vma.c             |    3 ++-
+ 9 files changed, 21 insertions(+), 10 deletions(-)
 
-diff -puN fs/exec.c~exec-make-exec-path-waiting-for-mmap_sem-killable fs/exec.c
---- a/fs/exec.c~exec-make-exec-path-waiting-for-mmap_sem-killable
-+++ a/fs/exec.c
-@@ -263,7 +263,10 @@ static int __bprm_mm_init(struct linux_b
- 	if (!vma)
- 		return -ENOMEM;
+diff -puN arch/arm/kernel/process.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable arch/arm/kernel/process.c
+--- a/arch/arm/kernel/process.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable
++++ a/arch/arm/kernel/process.c
+@@ -420,7 +420,8 @@ int arch_setup_additional_pages(struct l
+ 	npages = 1; /* for sigpage */
+ 	npages += vdso_total_pages;
  
 -	down_write(&mm->mmap_sem);
-+	if (down_write_killable(&mm->mmap_sem)) {
-+		err = -EINTR;
-+		goto err_free;
-+	}
- 	vma->vm_mm = mm;
++	if (down_write_killable(&mm->mmap_sem))
++		return -EINTR;
+ 	hint = sigpage_addr(mm, npages);
+ 	addr = get_unmapped_area(NULL, hint, npages << PAGE_SHIFT, 0, 0);
+ 	if (IS_ERR_VALUE(addr)) {
+diff -puN arch/arm64/kernel/vdso.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable arch/arm64/kernel/vdso.c
+--- a/arch/arm64/kernel/vdso.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable
++++ a/arch/arm64/kernel/vdso.c
+@@ -95,7 +95,8 @@ int aarch32_setup_vectors_page(struct li
+ 	};
+ 	void *ret;
+ 
+-	down_write(&mm->mmap_sem);
++	if (down_write_killable(&mm->mmap_sem))
++		return -EINTR;
+ 	current->mm->context.vdso = (void *)addr;
+ 
+ 	/* Map vectors page at the high address. */
+@@ -163,7 +164,8 @@ int arch_setup_additional_pages(struct l
+ 	/* Be sure to map the data page */
+ 	vdso_mapping_len = vdso_text_len + PAGE_SIZE;
+ 
+-	down_write(&mm->mmap_sem);
++	if (down_write_killable(&mm->mmap_sem))
++		return -EINTR;
+ 	vdso_base = get_unmapped_area(NULL, 0, vdso_mapping_len, 0, 0);
+ 	if (IS_ERR_VALUE(vdso_base)) {
+ 		ret = ERR_PTR(vdso_base);
+diff -puN arch/hexagon/kernel/vdso.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable arch/hexagon/kernel/vdso.c
+--- a/arch/hexagon/kernel/vdso.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable
++++ a/arch/hexagon/kernel/vdso.c
+@@ -65,7 +65,8 @@ int arch_setup_additional_pages(struct l
+ 	unsigned long vdso_base;
+ 	struct mm_struct *mm = current->mm;
+ 
+-	down_write(&mm->mmap_sem);
++	if (down_write_killable(&mm->mmap_sem))
++		return -EINTR;
+ 
+ 	/* Try to get it loaded right near ld.so/glibc. */
+ 	vdso_base = STACK_TOP;
+diff -puN arch/mips/kernel/vdso.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable arch/mips/kernel/vdso.c
+--- a/arch/mips/kernel/vdso.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable
++++ a/arch/mips/kernel/vdso.c
+@@ -104,7 +104,8 @@ int arch_setup_additional_pages(struct l
+ 	struct resource gic_res;
+ 	int ret;
+ 
+-	down_write(&mm->mmap_sem);
++	if (down_write_killable(&mm->mmap_sem))
++		return -EINTR;
  
  	/*
-@@ -290,6 +293,7 @@ static int __bprm_mm_init(struct linux_b
- 	return 0;
- err:
- 	up_write(&mm->mmap_sem);
-+err_free:
- 	bprm->vma = NULL;
- 	kmem_cache_free(vm_area_cachep, vma);
- 	return err;
-@@ -696,7 +700,9 @@ int setup_arg_pages(struct linux_binprm
- 		bprm->loader -= stack_shift;
- 	bprm->exec -= stack_shift;
+ 	 * Determine total area size. This includes the VDSO data itself, the
+diff -puN arch/powerpc/kernel/vdso.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable arch/powerpc/kernel/vdso.c
+--- a/arch/powerpc/kernel/vdso.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable
++++ a/arch/powerpc/kernel/vdso.c
+@@ -195,7 +195,8 @@ int arch_setup_additional_pages(struct l
+ 	 * and end up putting it elsewhere.
+ 	 * Add enough to the size so that the result can be aligned.
+ 	 */
+-	down_write(&mm->mmap_sem);
++	if (down_write_killable(&mm->mmap_sem))
++		return -EINTR;
+ 	vdso_base = get_unmapped_area(NULL, vdso_base,
+ 				      (vdso_pages << PAGE_SHIFT) +
+ 				      ((VDSO_ALIGNMENT - 1) & PAGE_MASK),
+diff -puN arch/s390/kernel/vdso.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable arch/s390/kernel/vdso.c
+--- a/arch/s390/kernel/vdso.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable
++++ a/arch/s390/kernel/vdso.c
+@@ -216,7 +216,8 @@ int arch_setup_additional_pages(struct l
+ 	 * it at vdso_base which is the "natural" base for it, but we might
+ 	 * fail and end up putting it elsewhere.
+ 	 */
+-	down_write(&mm->mmap_sem);
++	if (down_write_killable(&mm->mmap_sem))
++		return -EINTR;
+ 	vdso_base = get_unmapped_area(NULL, 0, vdso_pages << PAGE_SHIFT, 0, 0);
+ 	if (IS_ERR_VALUE(vdso_base)) {
+ 		rc = vdso_base;
+diff -puN arch/sh/kernel/vsyscall/vsyscall.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable arch/sh/kernel/vsyscall/vsyscall.c
+--- a/arch/sh/kernel/vsyscall/vsyscall.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable
++++ a/arch/sh/kernel/vsyscall/vsyscall.c
+@@ -64,7 +64,9 @@ int arch_setup_additional_pages(struct l
+ 	unsigned long addr;
+ 	int ret;
  
 -	down_write(&mm->mmap_sem);
 +	if (down_write_killable(&mm->mmap_sem))
 +		return -EINTR;
 +
- 	vm_flags = VM_STACK_FLAGS;
+ 	addr = get_unmapped_area(NULL, 0, PAGE_SIZE, 0, 0);
+ 	if (IS_ERR_VALUE(addr)) {
+ 		ret = addr;
+diff -puN arch/x86/entry/vdso/vma.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable arch/x86/entry/vdso/vma.c
+--- a/arch/x86/entry/vdso/vma.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable
++++ a/arch/x86/entry/vdso/vma.c
+@@ -163,7 +163,8 @@ static int map_vdso(const struct vdso_im
+ 		addr = 0;
+ 	}
  
- 	/*
+-	down_write(&mm->mmap_sem);
++	if (down_write_killable(&mm->mmap_sem))
++		return -EINTR;
+ 
+ 	addr = get_unmapped_area(NULL, addr,
+ 				 image->size - image->sym_vvar_start, 0, 0);
+diff -puN arch/x86/um/vdso/vma.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable arch/x86/um/vdso/vma.c
+--- a/arch/x86/um/vdso/vma.c~vdso-make-arch_setup_additional_pages-wait-for-mmap_sem-for-write-killable
++++ a/arch/x86/um/vdso/vma.c
+@@ -61,7 +61,8 @@ int arch_setup_additional_pages(struct l
+ 	if (!vdso_enabled)
+ 		return 0;
+ 
+-	down_write(&mm->mmap_sem);
++	if (down_write_killable(&mm->mmap_sem))
++		return -EINTR;
+ 
+ 	err = install_special_mapping(mm, um_vdso_addr, PAGE_SIZE,
+ 		VM_READ|VM_EXEC|
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
