@@ -1,79 +1,167 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Fri, 27 May 2016 14:26:44 -0700
-Message-ID: <20160527142644.87509a5edaf9ccd5cd39b832@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [patch 01/19] ocfs2: o2hb: add negotiate timer
+Date: Fri, 27 May 2016 14:26:58 -0700
+Message-ID: <5748bba2.skytJkPabqDOdl0H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__27_May_2016_14_26_44_-0700_FqACgNBarXl26nfH"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45464 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45470 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756091AbcE0V0v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 17:26:51 -0400
+	with ESMTP id S1756091AbcE0V07 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 17:26:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, junxiao.bi@oracle.com, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, rwxybh@126.com, ryan.ding@oracle.com
 
---Signature=_Fri__27_May_2016_14_26_44_-0700_FqACgNBarXl26nfH
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-
-- late-breaking ocfs2 updates
-
-- random bunch of fixes
-
-19 patches, based on dc03c0f9d12d85286d5e3623aa96d5c2a271b8e6:
-
+From: Junxiao Bi <junxiao.bi@oracle.com>
 Subject: ocfs2: o2hb: add negotiate timer
-Subject: ocfs2: o2hb: add NEGO_TIMEOUT message
-Subject: ocfs2: o2hb: add NEGOTIATE_APPROVE message
-Subject: ocfs2: o2hb: add some user/debug log
-Subject: ocfs2: o2hb: don't negotiate if last hb fail
-Subject: ocfs2: o2hb: fix hb hung time
-Subject: ocfs2: bump up o2cb network protocol version
-Subject: direct-io: fix direct write stale data exposure from concurrent bu=
-ffered read
-Subject: mm: oom: do not reap task if there are live threads in threadgroup
-Subject: MAINTAINERS: add kexec_core.c and kexec_file.c
-Subject: MAINTAINERS: Kdump maintainers update
-Subject: mm: use early_pfn_to_nid in page_ext_init
-Subject: mm: use early_pfn_to_nid in register_page_bootmem_info_node
-Subject: oom_reaper: close race with exiting task
-Subject: mm: thp: avoid false positive VM_BUG_ON_PAGE in page_move_anon_rma=
-p()
-Subject: mm/cma: silence warnings due to max() usage
-Subject: mm/memcontrol.c: fix the margin computation in mem_cgroup_margin()
-Subject: mm/memcontrol.c: move comments for get_mctgt_type() to proper posi=
-tion
-Subject: mm: disable DEFERRED_STRUCT_PAGE_INIT on !NO_BOOTMEM
 
+This series of patches is to fix the issue that when storage down, all
+nodes will fence self due to write timeout.
 
+With this patch set, all nodes will keep going until storage back online,
+except if the following issue happens, then all nodes will do as before to
+fence self.
 
+1. io error got
+2. network between nodes down
+3. nodes panic
 
---Signature=_Fri__27_May_2016_14_26_44_-0700_FqACgNBarXl26nfH
-Content-Type: application/pgp-signature
+This patch (of 6):
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+When storage down, all nodes will fence self due to write timeout.  The
+negotiate timer is designed to avoid this, with it node will wait until
+storage up again.
 
-iQIcBAEBAgAGBQJXSLuaAAoJEJxZ78cCqAIHylEP/jKSNnqtwV0+xRKbXktD+VS8
-qx3fQY3at6na1Q7ZktI4KDtrGYV2NrO9hmaTdIyFMz4XJHYTmudWMrlXlJCnS3S6
-HwrkeasiN5I9zNFNGiA2zQcnr6V1M2LRH4CoRgfd4mhiCMSM+b7lsSFuOUgpLlQC
-9+t3Q+ERXNten+ezuhfbOAntmMulkMBvZDaVL8Dk+Kyh6VL8R8PSTfARHsHKH7Tc
-8ERDi5R1orhhL78l1Pjz8ivA2UAIa1zeG3we5yhyMh0ldxfSQvx4cYVtnw3bNbnG
-QaT4rosDYE29ZFeb0jRJBsWIgYpSNnFPmcdQUWgh2/CtR690p/XP4DQ8WVOkD/pL
-CnQ1HCXWY3PJgMvY9dvKF1skPsqK70r+Lmty4A7+U927LrqCJ6yx28cE8o4YonqE
-lIQZryUJ6Lrm5sDlZE3qwtOAv8/ELhkdMHHFgLcdRWgb6mpXhUPKVg2r/AI0BOr+
-w9nvDhf5CfCNPlfnhuSAyrFr5nJ5tEmBkF/DYZxDcLwhB2vv2VmVLJsAPKrbl1X+
-j/7WsocD+DqblHN2BKpjIGz5RbpcJmi/4H0FNzLGuw6DjpHsnjX/EYQ1JQ9Le/6O
-IU+TW5M2tSXGeJp58OmiazgfQ2tEyXhINHcZneZjyrkvnZ3mGXmb9jJiI2LuNFLG
-7mhIoGnez9+hEgYKTE8v
-=sjd6
------END PGP SIGNATURE-----
+Negotiate timer working in the following way:
 
---Signature=_Fri__27_May_2016_14_26_44_-0700_FqACgNBarXl26nfH--
+1. The timer expires before write timeout timer, its timeout is half
+   of write timeout now.  It is re-queued along with write timeout timer.
+   If expires, it will send NEGO_TIMEOUT message to master node(node with
+   lowest node number).  This message does nothing but marks a bit in a
+   bitmap recording which nodes are negotiating timeout on master node.
+
+2. If storage down, nodes will send this message to master node, then
+   when master node finds its bitmap including all online nodes, it sends
+   NEGO_APPROVL message to all nodes one by one, this message will
+   re-queue write timeout timer and negotiate timer.  For any node doesn't
+   receive this message or meets some issue when handling this message, it
+   will be fenced.  If storage up at any time, o2hb_thread will run and
+   re-queue all the timer, nothing will be affected by these two steps.
+
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Ryan Ding <ryan.ding@oracle.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Cc: Gang He <ghe@suse.com>
+Cc: rwxybh <rwxybh@126.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/ocfs2/cluster/heartbeat.c |   51 ++++++++++++++++++++++++++++++---
+ 1 file changed, 47 insertions(+), 4 deletions(-)
+
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-add-negotiate-timer fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-add-negotiate-timer
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -272,6 +272,10 @@ struct o2hb_region {
+ 	struct delayed_work	hr_write_timeout_work;
+ 	unsigned long		hr_last_timeout_start;
+ 
++	/* negotiate timer, used to negotiate extending hb timeout. */
++	struct delayed_work	hr_nego_timeout_work;
++	unsigned long		hr_nego_node_bitmap[BITS_TO_LONGS(O2NM_MAX_NODES)];
++
+ 	/* Used during o2hb_check_slot to hold a copy of the block
+ 	 * being checked because we temporarily have to zero out the
+ 	 * crc field. */
+@@ -319,7 +323,7 @@ static void o2hb_write_timeout(struct wo
+ 	o2quo_disk_timeout();
+ }
+ 
+-static void o2hb_arm_write_timeout(struct o2hb_region *reg)
++static void o2hb_arm_timeout(struct o2hb_region *reg)
+ {
+ 	/* Arm writeout only after thread reaches steady state */
+ 	if (atomic_read(&reg->hr_steady_iterations) != 0)
+@@ -337,11 +341,49 @@ static void o2hb_arm_write_timeout(struc
+ 	reg->hr_last_timeout_start = jiffies;
+ 	schedule_delayed_work(&reg->hr_write_timeout_work,
+ 			      msecs_to_jiffies(O2HB_MAX_WRITE_TIMEOUT_MS));
++
++	cancel_delayed_work(&reg->hr_nego_timeout_work);
++	/* negotiate timeout must be less than write timeout. */
++	schedule_delayed_work(&reg->hr_nego_timeout_work,
++			      msecs_to_jiffies(O2HB_MAX_WRITE_TIMEOUT_MS)/2);
++	memset(reg->hr_nego_node_bitmap, 0, sizeof(reg->hr_nego_node_bitmap));
+ }
+ 
+-static void o2hb_disarm_write_timeout(struct o2hb_region *reg)
++static void o2hb_disarm_timeout(struct o2hb_region *reg)
+ {
+ 	cancel_delayed_work_sync(&reg->hr_write_timeout_work);
++	cancel_delayed_work_sync(&reg->hr_nego_timeout_work);
++}
++
++static void o2hb_nego_timeout(struct work_struct *work)
++{
++	unsigned long live_node_bitmap[BITS_TO_LONGS(O2NM_MAX_NODES)];
++	int master_node;
++	struct o2hb_region *reg;
++
++	reg = container_of(work, struct o2hb_region, hr_nego_timeout_work.work);
++	o2hb_fill_node_map(live_node_bitmap, sizeof(live_node_bitmap));
++	/* lowest node as master node to make negotiate decision. */
++	master_node = find_next_bit(live_node_bitmap, O2NM_MAX_NODES, 0);
++
++	if (master_node == o2nm_this_node()) {
++		set_bit(master_node, reg->hr_nego_node_bitmap);
++		if (memcmp(reg->hr_nego_node_bitmap, live_node_bitmap,
++				sizeof(reg->hr_nego_node_bitmap))) {
++			/* check negotiate bitmap every second to do timeout
++			 * approve decision.
++			 */
++			schedule_delayed_work(&reg->hr_nego_timeout_work,
++				msecs_to_jiffies(1000));
++
++			return;
++		}
++
++		/* approve negotiate timeout request. */
++	} else {
++		/* negotiate timeout with master node. */
++	}
++
+ }
+ 
+ static inline void o2hb_bio_wait_init(struct o2hb_bio_wait_ctxt *wc)
+@@ -1032,7 +1074,7 @@ static int o2hb_do_disk_heartbeat(struct
+ 	/* Skip disarming the timeout if own slot has stale/bad data */
+ 	if (own_slot_ok) {
+ 		o2hb_set_quorum_device(reg);
+-		o2hb_arm_write_timeout(reg);
++		o2hb_arm_timeout(reg);
+ 	}
+ 
+ bail:
+@@ -1114,7 +1156,7 @@ static int o2hb_thread(void *data)
+ 		}
+ 	}
+ 
+-	o2hb_disarm_write_timeout(reg);
++	o2hb_disarm_timeout(reg);
+ 
+ 	/* unclean stop is only used in very bad situation */
+ 	for(i = 0; !reg->hr_unclean_stop && i < reg->hr_blocks; i++)
+@@ -1762,6 +1804,7 @@ static ssize_t o2hb_region_dev_store(str
+ 	}
+ 
+ 	INIT_DELAYED_WORK(&reg->hr_write_timeout_work, o2hb_write_timeout);
++	INIT_DELAYED_WORK(&reg->hr_nego_timeout_work, o2hb_nego_timeout);
+ 
+ 	/*
+ 	 * A node is considered live after it has beat LIVE_THRESHOLD
+_
