@@ -1,58 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [patch 07/19] ocfs2: bump up o2cb network protocol version
-Date: Fri, 27 May 2016 14:27:16 -0700
-Message-ID: <5748bbb4.6RGti2yvg8UA7UfV%akpm@linux-foundation.org>
+Subject: [patch 13/19] mm: use early_pfn_to_nid in
+ register_page_bootmem_info_node
+Date: Fri, 27 May 2016 14:27:32 -0700
+Message-ID: <5748bbc4.QUVpKKSkYBXYAVFg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45656 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756720AbcE0V1U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 17:27:20 -0400
+	with ESMTP id S1753676AbcE0V1d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 17:27:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yang.shi@linaro.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net
 
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: bump up o2cb network protocol version
+From: Yang Shi <yang.shi@linaro.org>
+Subject: mm: use early_pfn_to_nid in register_page_bootmem_info_node
 
-Two new messages are added to support negotiating hb timeout.  Stop nodes
-frmo talking an old version to mount as they will cause the negotiation to
-fail.
+register_page_bootmem_info_node() is invoked in mem_init(), so it will be
+called before page_alloc_init_late() if CONFIG_DEFERRED_STRUCT_PAGE_INIT
+is enabled.  But, pfn_to_nid() depends on memmap which won't be fully
+setup until page_alloc_init_late() is done, so replace pfn_to_nid() by
+early_pfn_to_nid().
 
-Link: http://lkml.kernel.org/r/1464231615-27939-1-git-send-email-junxiao.bi@oracle.com
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Link: http://lkml.kernel.org/r/1464210007-30930-1-git-send-email-yang.shi@linaro.org
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp_internal.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/cluster/tcp_internal.h~ocfs2-bump-up-o2cb-network-protocol-version fs/ocfs2/cluster/tcp_internal.h
---- a/fs/ocfs2/cluster/tcp_internal.h~ocfs2-bump-up-o2cb-network-protocol-version
-+++ a/fs/ocfs2/cluster/tcp_internal.h
-@@ -44,6 +44,9 @@
-  * version here in tcp_internal.h should not need to be bumped for
-  * filesystem locking changes.
-  *
-+ * New in version 12
-+ *	- Negotiate hb timeout when storage is down.
-+ *
-  * New in version 11
-  * 	- Negotiation of filesystem locking in the dlm join.
-  *
-@@ -75,7 +78,7 @@
-  * 	- full 64 bit i_size in the metadata lock lvbs
-  * 	- introduction of "rw" lock and pushing meta/data locking down
-  */
--#define O2NET_PROTOCOL_VERSION 11ULL
-+#define O2NET_PROTOCOL_VERSION 12ULL
- struct o2net_handshake {
- 	__be64	protocol_version;
- 	__be64	connector_id;
+diff -puN mm/memory_hotplug.c~mm-use-early_pfn_to_nid-in-register_page_bootmem_info_node mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-use-early_pfn_to_nid-in-register_page_bootmem_info_node
++++ a/mm/memory_hotplug.c
+@@ -300,7 +300,7 @@ void register_page_bootmem_info_node(str
+ 		 * multiple nodes we check that this pfn does not already
+ 		 * reside in some other nodes.
+ 		 */
+-		if (pfn_valid(pfn) && (pfn_to_nid(pfn) == node))
++		if (pfn_valid(pfn) && (early_pfn_to_nid(pfn) == node))
+ 			register_page_bootmem_info_section(pfn);
+ 	}
+ }
 _
