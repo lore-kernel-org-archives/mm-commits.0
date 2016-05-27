@@ -1,60 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-kasan-remove-unused-reserved-field-from-struct-kasan_alloc_meta.patch
+Subject: [merged] memcg-fix-mem_cgroup_out_of_memory-return-value.patch
  removed from -mm tree
-Date: Fri, 27 May 2016 11:45:24 -0700
-Message-ID: <574895c4./nAsCctKd6Fjm0po%akpm@linux-foundation.org>
+Date: Fri, 27 May 2016 11:45:32 -0700
+Message-ID: <574895cc.yXCkGPNSx72VuidN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42708 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42725 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752237AbcE0SpZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:45:25 -0400
+	with ESMTP id S1752237AbcE0Spd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:45:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: penguin-kernel@I-love.SAKURA.ne.jp, hannes@cmpxchg.org, mhocko@suse.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kasan: remove unused 'reserved' field from struct kasan_alloc_meta
+     Subject: memcg: fix mem_cgroup_out_of_memory() return value.
 has been removed from the -mm tree.  Its filename was
-     mm-kasan-remove-unused-reserved-field-from-struct-kasan_alloc_meta.patch
+     memcg-fix-mem_cgroup_out_of_memory-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm: kasan: remove unused 'reserved' field from struct kasan_alloc_meta
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: memcg: fix mem_cgroup_out_of_memory() return value.
 
-Commit cd11016e5f52 ("mm, kasan: stackdepot implementation. Enable stackdepot for SLAB")
-added 'reserved' field, but never used it.
+mem_cgroup_out_of_memory() is returning "true" if it finds a TIF_MEMDIE
+task after an eligible task was found, "false" if it found a TIF_MEMDIE
+task before an eligible task is found.
 
-Link: http://lkml.kernel.org/r/1464021054-2307-1-git-send-email-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+This difference confuses memory_max_write() which checks the return value
+of mem_cgroup_out_of_memory().  Since memory_max_write() wants to continue
+looping, mem_cgroup_out_of_memory() should return "true" in this case.
+
+This patch sets a dummy pointer in order to return "true".
+
+Link: http://lkml.kernel.org/r/1463753327-5170-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memcontrol.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/kasan/kasan.h~mm-kasan-remove-unused-reserved-field-from-struct-kasan_alloc_meta mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~mm-kasan-remove-unused-reserved-field-from-struct-kasan_alloc_meta
-+++ a/mm/kasan/kasan.h
-@@ -77,7 +77,6 @@ struct kasan_alloc_meta {
- 	struct kasan_track track;
- 	u32 state : 2;	/* enum kasan_state */
- 	u32 alloc_size : 30;
--	u32 reserved;
- };
- 
- struct qlist_node {
+diff -puN mm/memcontrol.c~memcg-fix-mem_cgroup_out_of_memory-return-value mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-mem_cgroup_out_of_memory-return-value
++++ a/mm/memcontrol.c
+@@ -1302,6 +1302,8 @@ static bool mem_cgroup_out_of_memory(str
+ 				mem_cgroup_iter_break(memcg, iter);
+ 				if (chosen)
+ 					put_task_struct(chosen);
++				/* Set a dummy value to return "true". */
++				chosen = (void *) 1;
+ 				goto unlock;
+ 			case OOM_SCAN_OK:
+ 				break;
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
 
