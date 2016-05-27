@@ -1,75 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-gdb-fix-issue-with-dmesgpy-and-python-3x.patch
- removed from -mm tree
-Date: Fri, 27 May 2016 11:44:26 -0700
-Message-ID: <5748958a.pY3Xj6Ij6A0f69wT%akpm@linux-foundation.org>
+Subject: [merged] scripts-gdb-decode-bytestream-on-dmesg-for-python3.patch removed from -mm tree
+Date: Fri, 27 May 2016 11:44:28 -0700
+Message-ID: <5748958c.yLU44vXY438JHni8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42590 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754285AbcE0So1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:44:27 -0400
+	with ESMTP id S1754285AbcE0So3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:44:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: buzdelabuz2+git@gmail.com, jan.kiszka@siemens.com, kieran@ksquared.org.uk, mm-commits@vger.kernel.org
+To: kieran@ksquared.org.uk, buzdelabuz2@gmail.com, jan.kiszka@siemens.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: fix issue with dmesg.py and python 3.X
+     Subject: scripts/gdb: decode bytestream on dmesg for Python3
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-fix-issue-with-dmesgpy-and-python-3x.patch
+     scripts-gdb-decode-bytestream-on-dmesg-for-python3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dom Cote <buzdelabuz2+git@gmail.com>
-Subject: scripts/gdb: fix issue with dmesg.py and python 3.X
+From: Kieran Bingham <kieran@bingham.xyz>
+Subject: scripts/gdb: decode bytestream on dmesg for Python3
 
-When built against Python 3, GDB differs in the return type for its
-read_memory function, causing the lx-dmesg command to fail.
+The recent fixes to lx-dmesg, now allow the command to print
+successfully on Python3, however the python interpreter wraps the bytes
+for each line with a b'<text>' marker.
 
-Now that we have an improved read_16() we can use the new read_memoryview()
-abstraction to make lx-dmesg return valid data on both current Python APIs
+To remove this, we need to decode the line, where .decode() will default
+to 'UTF-8'
 
-Tested with python 3.4 and 2.7
-Tested with gdb 7.7
-
-Link: http://lkml.kernel.org/r/28477b727ff7fe3101fd4e426060e8a68317a639.1462865983.git.jan.kiszka@siemens.com
-Signed-off-by: Dom Cote <buzdelabuz2+git@gmail.com>
-[kieran@bingham.xyz: Adjusted commit log to better reflect code changes]
-Tested-by: Kieran Bingham <kieran@bingham.xyz> (Py2.7,Py3.4,GDB10)
+Link: http://lkml.kernel.org/r/d67ccf93f2479c94cb3399262b9b796e0dbefcf2.1462865983.git.jan.kiszka@siemens.com
 Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+Acked-by: Dom Cote <buzdelabuz2@gmail.com>
+Tested-by: Dom Cote <buzdelabuz2@gmail.com>
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/dmesg.py |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ scripts/gdb/linux/dmesg.py |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/gdb/linux/dmesg.py~scripts-gdb-fix-issue-with-dmesgpy-and-python-3x scripts/gdb/linux/dmesg.py
---- a/scripts/gdb/linux/dmesg.py~scripts-gdb-fix-issue-with-dmesgpy-and-python-3x
+diff -puN scripts/gdb/linux/dmesg.py~scripts-gdb-decode-bytestream-on-dmesg-for-python3 scripts/gdb/linux/dmesg.py
+--- a/scripts/gdb/linux/dmesg.py~scripts-gdb-decode-bytestream-on-dmesg-for-python3
 +++ a/scripts/gdb/linux/dmesg.py
-@@ -33,11 +33,12 @@ class LxDmesg(gdb.Command):
-         if log_first_idx < log_next_idx:
-             log_buf_2nd_half = -1
-             length = log_next_idx - log_first_idx
--            log_buf = inf.read_memory(start, length)
-+            log_buf = utils.read_memoryview(inf, start, length).tobytes()
-         else:
-             log_buf_2nd_half = log_buf_len - log_first_idx
--            log_buf = inf.read_memory(start, log_buf_2nd_half) + \
--                inf.read_memory(log_buf_addr, log_next_idx)
-+            a = utils.read_memoryview(inf, start, log_buf_2nd_half)
-+            b = utils.read_memoryview(inf, log_buf_addr, log_next_idx)
-+            log_buf = a.tobytes() + b.tobytes()
+@@ -51,10 +51,10 @@ class LxDmesg(gdb.Command):
+                 continue
  
-         pos = 0
-         while pos < log_buf.__len__():
+             text_len = utils.read_u16(log_buf[pos + 10:pos + 12])
+-            text = log_buf[pos + 16:pos + 16 + text_len]
++            text = log_buf[pos + 16:pos + 16 + text_len].decode()
+             time_stamp = utils.read_u64(log_buf[pos:pos + 8])
+ 
+-            for line in memoryview(text).tobytes().splitlines():
++            for line in text.splitlines():
+                 gdb.write("[{time:12.6f}] {line}\n".format(
+                     time=time_stamp / 1000000000.0,
+                     line=line))
 _
 
-Patches currently in -mm which might be from buzdelabuz2+git@gmail.com are
+Patches currently in -mm which might be from kieran@bingham.xyz are
 
 
