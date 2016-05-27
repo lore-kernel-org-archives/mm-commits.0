@@ -1,113 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] signal-make-oom_flags-a-bool.patch removed from -mm tree
-Date: Fri, 27 May 2016 11:43:22 -0700
-Message-ID: <5748954a.Eyqzu64amI8BqyF6%akpm@linux-foundation.org>
+Subject: [merged]
+ kernel-signalc-convert-printkkern_level-to-pr_level.patch removed from -mm
+ tree
+Date: Fri, 27 May 2016 11:43:24 -0700
+Message-ID: <5748954c.rJGWEBbRjBSAhsom%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42487 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42493 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753221AbcE0SnX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:43:23 -0400
+	with ESMTP id S1753221AbcE0SnZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:43:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, hughd@google.com, mm-commits@vger.kernel.org
+To: wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: make oom_flags a bool
+     Subject: kernel/signal.c: convert printk(KERN_<LEVEL> ...) to pr_<level>(...)
 has been removed from the -mm tree.  Its filename was
-     signal-make-oom_flags-a-bool.patch
+     kernel-signalc-convert-printkkern_level-to-pr_level.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: signal: make oom_flags a bool
+From: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
+Subject: kernel/signal.c: convert printk(KERN_<LEVEL> ...) to pr_<level>(...)
 
-Currently the size of "struct signal_struct"->oom_flags member is
-sizeof(unsigned) bytes, but only one flag OOM_FLAG_ORIGIN which is
-updated by current thread is defined. We can convert OOM_FLAG_ORIGIN
-into a bool, and reuse the saved bytes for updating from the OOM killer
-and/or the OOM reaper thread.
+Use pr_<level> instead of printk(KERN_<LEVEL> ).
 
-By the way, do we care about a race window between run_store() and
-swapoff() because it would be theoretically possible that two threads
-sharing the "struct signal_struct" concurrently call respective
-functions? If we care, we can make oom_flags an atomic_t.
-
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h   |    9 +++------
- include/linux/sched.h |    6 +++++-
- include/linux/types.h |    1 -
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ kernel/signal.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/oom.h~signal-make-oom_flags-a-bool include/linux/oom.h
---- a/include/linux/oom.h~signal-make-oom_flags-a-bool
-+++ a/include/linux/oom.h
-@@ -50,24 +50,21 @@ enum oom_scan_t {
- 	OOM_SCAN_SELECT,	/* always select this thread first */
- };
+diff -puN kernel/signal.c~kernel-signalc-convert-printkkern_level-to-pr_level kernel/signal.c
+--- a/kernel/signal.c~kernel-signalc-convert-printkkern_level-to-pr_level
++++ a/kernel/signal.c
+@@ -224,7 +224,7 @@ static inline void print_dropped_signal(
+ 	if (!__ratelimit(&ratelimit_state))
+ 		return;
  
--/* Thread is the potential origin of an oom condition; kill first on oom */
--#define OOM_FLAG_ORIGIN		((__force oom_flags_t)0x1)
--
- extern struct mutex oom_lock;
- 
- static inline void set_current_oom_origin(void)
- {
--	current->signal->oom_flags |= OOM_FLAG_ORIGIN;
-+	current->signal->oom_flag_origin = true;
+-	printk(KERN_INFO "%s/%d: reached RLIMIT_SIGPENDING, dropped signal %d\n",
++	pr_info("%s/%d: reached RLIMIT_SIGPENDING, dropped signal %d\n",
+ 				current->comm, current->pid, sig);
  }
  
- static inline void clear_current_oom_origin(void)
+@@ -1089,10 +1089,10 @@ static int send_signal(int sig, struct s
+ static void print_fatal_signal(int signr)
  {
--	current->signal->oom_flags &= ~OOM_FLAG_ORIGIN;
-+	current->signal->oom_flag_origin = false;
- }
+ 	struct pt_regs *regs = signal_pt_regs();
+-	printk(KERN_INFO "potentially unexpected fatal signal %d.\n", signr);
++	pr_info("potentially unexpected fatal signal %d.\n", signr);
  
- static inline bool oom_task_origin(const struct task_struct *p)
- {
--	return !!(p->signal->oom_flags & OOM_FLAG_ORIGIN);
-+	return p->signal->oom_flag_origin;
- }
+ #if defined(__i386__) && !defined(__arch_um__)
+-	printk(KERN_INFO "code at %08lx: ", regs->ip);
++	pr_info("code at %08lx: ", regs->ip);
+ 	{
+ 		int i;
+ 		for (i = 0; i < 16; i++) {
+@@ -1100,10 +1100,10 @@ static void print_fatal_signal(int signr
  
- extern void mark_oom_victim(struct task_struct *tsk);
-diff -puN include/linux/sched.h~signal-make-oom_flags-a-bool include/linux/sched.h
---- a/include/linux/sched.h~signal-make-oom_flags-a-bool
-+++ a/include/linux/sched.h
-@@ -794,7 +794,11 @@ struct signal_struct {
- 	struct tty_audit_buf *tty_audit_buf;
+ 			if (get_user(insn, (unsigned char *)(regs->ip + i)))
+ 				break;
+-			printk(KERN_CONT "%02x ", insn);
++			pr_cont("%02x ", insn);
+ 		}
+ 	}
+-	printk(KERN_CONT "\n");
++	pr_cont("\n");
  #endif
- 
--	oom_flags_t oom_flags;
-+	/*
-+	 * Thread is the potential origin of an oom condition; kill first on
-+	 * oom
-+	 */
-+	bool oom_flag_origin;
- 	short oom_score_adj;		/* OOM kill score adjustment */
- 	short oom_score_adj_min;	/* OOM kill score adjustment min value.
- 					 * Only settable by CAP_SYS_RESOURCE. */
-diff -puN include/linux/types.h~signal-make-oom_flags-a-bool include/linux/types.h
---- a/include/linux/types.h~signal-make-oom_flags-a-bool
-+++ a/include/linux/types.h
-@@ -156,7 +156,6 @@ typedef u32 dma_addr_t;
- 
- typedef unsigned __bitwise__ gfp_t;
- typedef unsigned __bitwise__ fmode_t;
--typedef unsigned __bitwise__ oom_flags_t;
- 
- #ifdef CONFIG_PHYS_ADDR_T_64BIT
- typedef u64 phys_addr_t;
+ 	preempt_disable();
+ 	show_regs(regs);
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from wangxq10@lzu.edu.cn are
 
 
