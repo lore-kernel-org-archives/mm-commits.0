@@ -1,96 +1,564 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-clean-trailing-semicolons-in-macros.patch removed from -mm tree
-Date: Fri, 27 May 2016 11:43:00 -0700
-Message-ID: <57489534.7re2b/UfKRny4DnL%akpm@linux-foundation.org>
+Subject: [merged] nilfs2-clean-up-old-e-mail-addresses.patch removed from
+ -mm tree
+Date: Fri, 27 May 2016 11:42:46 -0700
+Message-ID: <57489526.ewwIBOj5w+9tbPcx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42458 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42443 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754266AbcE0SnB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:43:01 -0400
+	with ESMTP id S1754279AbcE0Smr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:42:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: clean trailing semicolons in macros
+     Subject: nilfs2: clean up old e-mail addresses
 has been removed from the -mm tree.  Its filename was
-     nilfs2-clean-trailing-semicolons-in-macros.patch
+     nilfs2-clean-up-old-e-mail-addresses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: clean trailing semicolons in macros
+Subject: nilfs2: clean up old e-mail addresses
 
-Remove trailing semicolons from macros, as suggested by checkpatch.pl.
+E-mail addresses of osrg.net domain are no longer available.  This
+removes them from authorship notices and prevents reporters from being
+confused.
 
-Link: http://lkml.kernel.org/r/1461935747-10380-12-git-send-email-konishi.ryusuke@lab.ntt.co.jp
-[konishi.ryusuke@lab.ntt.co.jp: fix style issues]
-  Link: http://lkml.kernel.org/r/20160509.231703.1481729973362188932.konishi.ryusuke@lab.ntt.co.jp
+Link: http://lkml.kernel.org/r/1461935747-10380-5-git-send-email-konishi.ryusuke@lab.ntt.co.jp
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sysfs.c |    4 ++--
- fs/nilfs2/sysfs.h |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ fs/nilfs2/alloc.c         |    5 ++---
+ fs/nilfs2/alloc.h         |    5 ++---
+ fs/nilfs2/bmap.c          |    2 +-
+ fs/nilfs2/bmap.h          |    2 +-
+ fs/nilfs2/btnode.c        |    5 ++---
+ fs/nilfs2/btnode.h        |    4 ++--
+ fs/nilfs2/btree.c         |    2 +-
+ fs/nilfs2/btree.h         |    2 +-
+ fs/nilfs2/cpfile.c        |    2 +-
+ fs/nilfs2/cpfile.h        |    2 +-
+ fs/nilfs2/dat.c           |    2 +-
+ fs/nilfs2/dat.h           |    2 +-
+ fs/nilfs2/dir.c           |    2 +-
+ fs/nilfs2/direct.c        |    2 +-
+ fs/nilfs2/direct.h        |    2 +-
+ fs/nilfs2/file.c          |    3 +--
+ fs/nilfs2/gcinode.c       |    5 ++---
+ fs/nilfs2/ifile.c         |    4 ++--
+ fs/nilfs2/ifile.h         |    4 ++--
+ fs/nilfs2/inode.c         |    2 +-
+ fs/nilfs2/ioctl.c         |    2 +-
+ fs/nilfs2/mdt.c           |    2 +-
+ fs/nilfs2/mdt.h           |    2 +-
+ fs/nilfs2/namei.c         |    3 +--
+ fs/nilfs2/nilfs.h         |    3 +--
+ fs/nilfs2/page.c          |    3 +--
+ fs/nilfs2/page.h          |    3 +--
+ fs/nilfs2/recovery.c      |    2 +-
+ fs/nilfs2/segbuf.c        |    2 +-
+ fs/nilfs2/segbuf.h        |    2 +-
+ fs/nilfs2/segment.c       |    2 +-
+ fs/nilfs2/segment.h       |    2 +-
+ fs/nilfs2/sufile.c        |    4 ++--
+ fs/nilfs2/sufile.h        |    2 +-
+ fs/nilfs2/super.c         |    2 +-
+ fs/nilfs2/the_nilfs.c     |    2 +-
+ fs/nilfs2/the_nilfs.h     |    2 +-
+ include/linux/nilfs2_fs.h |    3 +--
+ 38 files changed, 46 insertions(+), 56 deletions(-)
 
-diff -puN fs/nilfs2/sysfs.c~nilfs2-clean-trailing-semicolons-in-macros fs/nilfs2/sysfs.c
---- a/fs/nilfs2/sysfs.c~nilfs2-clean-trailing-semicolons-in-macros
-+++ a/fs/nilfs2/sysfs.c
-@@ -68,7 +68,7 @@ static ssize_t nilfs_##name##_attr_store
- static const struct sysfs_ops nilfs_##name##_attr_ops = { \
- 	.show	= nilfs_##name##_attr_show, \
- 	.store	= nilfs_##name##_attr_store, \
--};
-+}
+diff -puN fs/nilfs2/alloc.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/alloc.c
+--- a/fs/nilfs2/alloc.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/alloc.c
+@@ -13,9 +13,8 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Original code was written by Koji Sato <koji@osrg.net>.
+- * Two allocators were unified by Ryusuke Konishi <ryusuke@osrg.net>,
+- *                                Amagai Yoshiji <amagai@osrg.net>.
++ * Originally written by Koji Sato.
++ * Two allocators were unified by Ryusuke Konishi and Amagai Yoshiji.
+  */
  
- #define NILFS_DEV_INT_GROUP_TYPE(name, parent_name) \
- static void nilfs_##name##_attr_release(struct kobject *kobj) \
-@@ -84,7 +84,7 @@ static struct kobj_type nilfs_##name##_k
- 	.default_attrs	= nilfs_##name##_attrs, \
- 	.sysfs_ops	= &nilfs_##name##_attr_ops, \
- 	.release	= nilfs_##name##_attr_release, \
--};
-+}
+ #include <linux/types.h>
+diff -puN fs/nilfs2/alloc.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/alloc.h
+--- a/fs/nilfs2/alloc.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/alloc.h
+@@ -13,9 +13,8 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Original code was written by Koji Sato <koji@osrg.net>.
+- * Two allocators were unified by Ryusuke Konishi <ryusuke@osrg.net>,
+- *                                Amagai Yoshiji <amagai@osrg.net>.
++ * Originally written by Koji Sato.
++ * Two allocators were unified by Ryusuke Konishi and Amagai Yoshiji.
+  */
  
- #define NILFS_DEV_INT_GROUP_FNS(name, parent_name) \
- static int nilfs_sysfs_create_##name##_group(struct the_nilfs *nilfs) \
-diff -puN fs/nilfs2/sysfs.h~nilfs2-clean-trailing-semicolons-in-macros fs/nilfs2/sysfs.h
---- a/fs/nilfs2/sysfs.h~nilfs2-clean-trailing-semicolons-in-macros
-+++ a/fs/nilfs2/sysfs.h
-@@ -66,7 +66,7 @@ struct nilfs_##name##_attr { \
- 			char *); \
- 	ssize_t (*store)(struct kobject *, struct attribute *, \
- 			 const char *, size_t); \
--};
-+}
+ #ifndef _NILFS_ALLOC_H
+diff -puN fs/nilfs2/bmap.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/bmap.c
+--- a/fs/nilfs2/bmap.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/bmap.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
++ * Written by Koji Sato.
+  */
  
- NILFS_COMMON_ATTR_STRUCT(feature);
+ #include <linux/fs.h>
+diff -puN fs/nilfs2/bmap.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/bmap.h
+--- a/fs/nilfs2/bmap.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/bmap.h
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
++ * Written by Koji Sato.
+  */
  
-@@ -77,7 +77,7 @@ struct nilfs_##name##_attr { \
- 			char *); \
- 	ssize_t (*store)(struct nilfs_##name##_attr *, struct the_nilfs *, \
- 			 const char *, size_t); \
--};
-+}
+ #ifndef _NILFS_BMAP_H
+diff -puN fs/nilfs2/btnode.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/btnode.c
+--- a/fs/nilfs2/btnode.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/btnode.c
+@@ -13,9 +13,8 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * This file was originally written by Seiji Kihara <kihara@osrg.net>
+- * and fully revised by Ryusuke Konishi <ryusuke@osrg.net> for
+- * stabilization and simplification.
++ * Originally written by Seiji Kihara.
++ * Fully revised by Ryusuke Konishi for stabilization and simplification.
+  *
+  */
  
- NILFS_DEV_ATTR_STRUCT(dev);
- NILFS_DEV_ATTR_STRUCT(segments);
-@@ -93,7 +93,7 @@ struct nilfs_##name##_attr { \
- 			char *); \
- 	ssize_t (*store)(struct nilfs_##name##_attr *, struct nilfs_root *, \
- 			 const char *, size_t); \
--};
-+}
+diff -puN fs/nilfs2/btnode.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/btnode.h
+--- a/fs/nilfs2/btnode.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/btnode.h
+@@ -13,8 +13,8 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Seiji Kihara <kihara@osrg.net>
+- * Revised by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Seiji Kihara.
++ * Revised by Ryusuke Konishi.
+  */
  
- NILFS_CP_ATTR_STRUCT(snapshot);
+ #ifndef _NILFS_BTNODE_H
+diff -puN fs/nilfs2/btree.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/btree.c
+--- a/fs/nilfs2/btree.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/btree.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
++ * Written by Koji Sato.
+  */
  
+ #include <linux/slab.h>
+diff -puN fs/nilfs2/btree.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/btree.h
+--- a/fs/nilfs2/btree.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/btree.h
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
++ * Written by Koji Sato.
+  */
+ 
+ #ifndef _NILFS_BTREE_H
+diff -puN fs/nilfs2/cpfile.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/cpfile.c
+--- a/fs/nilfs2/cpfile.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/cpfile.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
++ * Written by Koji Sato.
+  */
+ 
+ #include <linux/kernel.h>
+diff -puN fs/nilfs2/cpfile.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/cpfile.h
+--- a/fs/nilfs2/cpfile.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/cpfile.h
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
++ * Written by Koji Sato.
+  */
+ 
+ #ifndef _NILFS_CPFILE_H
+diff -puN fs/nilfs2/dat.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/dat.c
+--- a/fs/nilfs2/dat.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/dat.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
++ * Written by Koji Sato.
+  */
+ 
+ #include <linux/types.h>
+diff -puN fs/nilfs2/dat.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/dat.h
+--- a/fs/nilfs2/dat.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/dat.h
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
++ * Written by Koji Sato.
+  */
+ 
+ #ifndef _NILFS_DAT_H
+diff -puN fs/nilfs2/dir.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/dir.c
+--- a/fs/nilfs2/dir.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/dir.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Modified for NILFS by Amagai Yoshiji <amagai@osrg.net>
++ * Modified for NILFS by Amagai Yoshiji.
+  */
+ /*
+  *  linux/fs/ext2/dir.c
+diff -puN fs/nilfs2/direct.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/direct.c
+--- a/fs/nilfs2/direct.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/direct.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
++ * Written by Koji Sato.
+  */
+ 
+ #include <linux/errno.h>
+diff -puN fs/nilfs2/direct.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/direct.h
+--- a/fs/nilfs2/direct.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/direct.h
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
++ * Written by Koji Sato.
+  */
+ 
+ #ifndef _NILFS_DIRECT_H
+diff -puN fs/nilfs2/file.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/file.c
+--- a/fs/nilfs2/file.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/file.c
+@@ -13,8 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Amagai Yoshiji <amagai@osrg.net>,
+- *            Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Amagai Yoshiji and Ryusuke Konishi.
+  */
+ 
+ #include <linux/fs.h>
+diff -puN fs/nilfs2/gcinode.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/gcinode.c
+--- a/fs/nilfs2/gcinode.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/gcinode.c
+@@ -13,9 +13,8 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Seiji Kihara <kihara@osrg.net>, Amagai Yoshiji <amagai@osrg.net>,
+- *            and Ryusuke Konishi <ryusuke@osrg.net>.
+- * Revised by Ryusuke Konishi <ryusuke@osrg.net>.
++ * Written by Seiji Kihara, Amagai Yoshiji, and Ryusuke Konishi.
++ * Revised by Ryusuke Konishi.
+  *
+  */
+ /*
+diff -puN fs/nilfs2/ifile.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/ifile.c
+--- a/fs/nilfs2/ifile.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/ifile.c
+@@ -13,8 +13,8 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Amagai Yoshiji <amagai@osrg.net>.
+- * Revised by Ryusuke Konishi <ryusuke@osrg.net>.
++ * Written by Amagai Yoshiji.
++ * Revised by Ryusuke Konishi.
+  *
+  */
+ 
+diff -puN fs/nilfs2/ifile.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/ifile.h
+--- a/fs/nilfs2/ifile.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/ifile.h
+@@ -13,8 +13,8 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Amagai Yoshiji <amagai@osrg.net>
+- * Revised by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Amagai Yoshiji.
++ * Revised by Ryusuke Konishi.
+  *
+  */
+ 
+diff -puN fs/nilfs2/inode.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/inode.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Ryusuke Konishi.
+  *
+  */
+ 
+diff -puN fs/nilfs2/ioctl.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/ioctl.c
+--- a/fs/nilfs2/ioctl.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/ioctl.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
++ * Written by Koji Sato.
+  */
+ 
+ #include <linux/fs.h>
+diff -puN fs/nilfs2/mdt.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/mdt.c
+--- a/fs/nilfs2/mdt.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/mdt.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Ryusuke Konishi.
+  */
+ 
+ #include <linux/buffer_head.h>
+diff -puN fs/nilfs2/mdt.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/mdt.h
+--- a/fs/nilfs2/mdt.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/mdt.h
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Ryusuke Konishi.
+  */
+ 
+ #ifndef _NILFS_MDT_H
+diff -puN fs/nilfs2/namei.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/namei.c
+--- a/fs/nilfs2/namei.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/namei.c
+@@ -13,8 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Modified for NILFS by Amagai Yoshiji <amagai@osrg.net>,
+- *                       Ryusuke Konishi <ryusuke@osrg.net>
++ * Modified for NILFS by Amagai Yoshiji and Ryusuke Konishi.
+  */
+ /*
+  *  linux/fs/ext2/namei.c
+diff -puN fs/nilfs2/nilfs.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/nilfs.h
+--- a/fs/nilfs2/nilfs.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/nilfs.h
+@@ -13,8 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>
+- *            Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Koji Sato and Ryusuke Konishi.
+  */
+ 
+ #ifndef _NILFS_H
+diff -puN fs/nilfs2/page.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/page.c
+--- a/fs/nilfs2/page.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/page.c
+@@ -13,8 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>,
+- *            Seiji Kihara <kihara@osrg.net>.
++ * Written by Ryusuke Konishi and Seiji Kihara.
+  */
+ 
+ #include <linux/pagemap.h>
+diff -puN fs/nilfs2/page.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/page.h
+--- a/fs/nilfs2/page.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/page.h
+@@ -13,8 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>,
+- *            Seiji Kihara <kihara@osrg.net>.
++ * Written by Ryusuke Konishi and Seiji Kihara.
+  */
+ 
+ #ifndef _NILFS_PAGE_H
+diff -puN fs/nilfs2/recovery.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/recovery.c
+--- a/fs/nilfs2/recovery.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/recovery.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Ryusuke Konishi.
+  */
+ 
+ #include <linux/buffer_head.h>
+diff -puN fs/nilfs2/segbuf.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/segbuf.c
+--- a/fs/nilfs2/segbuf.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/segbuf.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Ryusuke Konishi.
+  *
+  */
+ 
+diff -puN fs/nilfs2/segbuf.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/segbuf.h
+--- a/fs/nilfs2/segbuf.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/segbuf.h
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Ryusuke Konishi.
+  *
+  */
+ #ifndef _NILFS_SEGBUF_H
+diff -puN fs/nilfs2/segment.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/segment.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Ryusuke Konishi.
+  *
+  */
+ 
+diff -puN fs/nilfs2/segment.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/segment.h
+--- a/fs/nilfs2/segment.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/segment.h
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Ryusuke Konishi.
+  *
+  */
+ #ifndef _NILFS_SEGMENT_H
+diff -puN fs/nilfs2/sufile.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/sufile.c
+--- a/fs/nilfs2/sufile.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/sufile.c
+@@ -13,8 +13,8 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
+- * Revised by Ryusuke Konishi <ryusuke@osrg.net>.
++ * Written by Koji Sato.
++ * Revised by Ryusuke Konishi.
+  */
+ 
+ #include <linux/kernel.h>
+diff -puN fs/nilfs2/sufile.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/sufile.h
+--- a/fs/nilfs2/sufile.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/sufile.h
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>.
++ * Written by Koji Sato.
+  */
+ 
+ #ifndef _NILFS_SUFILE_H
+diff -puN fs/nilfs2/super.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/super.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Ryusuke Konishi.
+  */
+ /*
+  *  linux/fs/ext2/super.c
+diff -puN fs/nilfs2/the_nilfs.c~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/the_nilfs.c
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/the_nilfs.c
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Ryusuke Konishi.
+  *
+  */
+ 
+diff -puN fs/nilfs2/the_nilfs.h~nilfs2-clean-up-old-e-mail-addresses fs/nilfs2/the_nilfs.h
+--- a/fs/nilfs2/the_nilfs.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/fs/nilfs2/the_nilfs.h
+@@ -13,7 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Written by Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Ryusuke Konishi.
+  *
+  */
+ 
+diff -puN include/linux/nilfs2_fs.h~nilfs2-clean-up-old-e-mail-addresses include/linux/nilfs2_fs.h
+--- a/include/linux/nilfs2_fs.h~nilfs2-clean-up-old-e-mail-addresses
++++ a/include/linux/nilfs2_fs.h
+@@ -13,8 +13,7 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU Lesser General Public License for more details.
+  *
+- * Written by Koji Sato <koji@osrg.net>
+- *            Ryusuke Konishi <ryusuke@osrg.net>
++ * Written by Koji Sato and Ryusuke Konishi.
+  */
+ /*
+  *  linux/include/linux/ext2_fs.h
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
