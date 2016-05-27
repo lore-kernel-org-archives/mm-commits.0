@@ -1,71 +1,130 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall.patch removed
- from -mm tree
-Date: Fri, 27 May 2016 11:43:19 -0700
-Message-ID: <57489547.73/QThtEpHoIIGlT%akpm@linux-foundation.org>
+ nilfs2-remove-unnecessary-else-after-return-or-break.patch removed from -mm tree
+Date: Fri, 27 May 2016 11:43:10 -0700
+Message-ID: <5748953e.on8BX6epKtWyAwND%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42482 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42467 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754285AbcE0SnU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:43:20 -0400
+	with ESMTP id S1753783AbcE0SnL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:43:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, dvlasenk@redhat.com, dvyukov@google.com, jan.kratochvil@redhat.com, mtk.manpages@gmail.com, palves@redhat.com, roland@hack.frob.com, syzkaller@googlegroups.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: wait: allow sys_waitid() to accept __WNOTHREAD/__WCLONE/__WALL
+     Subject: nilfs2: remove unnecessary else after return or break
 has been removed from the -mm tree.  Its filename was
-     wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall.patch
+     nilfs2-remove-unnecessary-else-after-return-or-break.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: wait: allow sys_waitid() to accept __WNOTHREAD/__WCLONE/__WALL
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: remove unnecessary else after return or break
 
-I see no reason why waitid() can't support other linux-specific flags
-allowed in sys_wait4().
+This fixes the checkpatch.pl warning that suggests else is not
+generally useful after a break or return.
 
-In particular this change can help if we reconsider the previous change
-("wait/ptrace: assume __WALL if the child is traced") which adds the
-"automagical" __WALL for debugger.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
-Cc: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Cc: Pedro Alves <palves@redhat.com>
-Cc: Roland McGrath <roland@hack.frob.com>
-Cc: <syzkaller@googlegroups.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Link: http://lkml.kernel.org/r/1462886671-3521-6-git-send-email-konishi.ryusuke@lab.ntt.co.jp
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/nilfs2/btree.c   |   12 ++++++------
+ fs/nilfs2/direct.c  |    6 +++---
+ fs/nilfs2/segment.c |   26 ++++++++++++--------------
+ 3 files changed, 21 insertions(+), 23 deletions(-)
 
-diff -puN kernel/exit.c~wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall kernel/exit.c
---- a/kernel/exit.c~wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall
-+++ a/kernel/exit.c
-@@ -1535,7 +1535,8 @@ SYSCALL_DEFINE5(waitid, int, which, pid_
- 	enum pid_type type;
- 	long ret;
+diff -puN fs/nilfs2/btree.c~nilfs2-remove-unnecessary-else-after-return-or-break fs/nilfs2/btree.c
+--- a/fs/nilfs2/btree.c~nilfs2-remove-unnecessary-else-after-return-or-break
++++ a/fs/nilfs2/btree.c
+@@ -1029,12 +1029,12 @@ static __u64 nilfs_btree_find_target_v(c
+ 	if (ptr != NILFS_BMAP_INVALID_PTR)
+ 		/* sequential access */
+ 		return ptr;
+-	else {
+-		ptr = nilfs_btree_find_near(btree, path);
+-		if (ptr != NILFS_BMAP_INVALID_PTR)
+-			/* near */
+-			return ptr;
+-	}
++
++	ptr = nilfs_btree_find_near(btree, path);
++	if (ptr != NILFS_BMAP_INVALID_PTR)
++		/* near */
++		return ptr;
++
+ 	/* block group */
+ 	return nilfs_bmap_find_target_in_group(btree);
+ }
+diff -puN fs/nilfs2/direct.c~nilfs2-remove-unnecessary-else-after-return-or-break fs/nilfs2/direct.c
+--- a/fs/nilfs2/direct.c~nilfs2-remove-unnecessary-else-after-return-or-break
++++ a/fs/nilfs2/direct.c
+@@ -107,9 +107,9 @@ nilfs_direct_find_target_v(const struct
+ 	if (ptr != NILFS_BMAP_INVALID_PTR)
+ 		/* sequential access */
+ 		return ptr;
+-	else
+-		/* block group */
+-		return nilfs_bmap_find_target_in_group(direct);
++
++	/* block group */
++	return nilfs_bmap_find_target_in_group(direct);
+ }
  
--	if (options & ~(WNOHANG|WNOWAIT|WEXITED|WSTOPPED|WCONTINUED))
-+	if (options & ~(WNOHANG|WNOWAIT|WEXITED|WSTOPPED|WCONTINUED|
-+			__WNOTHREAD|__WCLONE|__WALL))
- 		return -EINVAL;
- 	if (!(options & (WEXITED|WSTOPPED|WCONTINUED)))
- 		return -EINVAL;
+ static int nilfs_direct_insert(struct nilfs_bmap *bmap, __u64 key, __u64 ptr)
+diff -puN fs/nilfs2/segment.c~nilfs2-remove-unnecessary-else-after-return-or-break fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-remove-unnecessary-else-after-return-or-break
++++ a/fs/nilfs2/segment.c
+@@ -150,17 +150,15 @@ static int nilfs_prepare_segment_lock(st
+ 	if (cur_ti) {
+ 		if (cur_ti->ti_magic == NILFS_TI_MAGIC)
+ 			return ++cur_ti->ti_count;
+-		else {
+-			/*
+-			 * If journal_info field is occupied by other FS,
+-			 * it is saved and will be restored on
+-			 * nilfs_transaction_commit().
+-			 */
+-			printk(KERN_WARNING
+-			       "NILFS warning: journal info from a different "
+-			       "FS\n");
+-			save = current->journal_info;
+-		}
++
++		/*
++		 * If journal_info field is occupied by other FS,
++		 * it is saved and will be restored on
++		 * nilfs_transaction_commit().
++		 */
++		printk(KERN_WARNING
++		       "NILFS warning: journal info from a different FS\n");
++		save = current->journal_info;
+ 	}
+ 	if (!ti) {
+ 		ti = kmem_cache_alloc(nilfs_transaction_cachep, GFP_NOFS);
+@@ -2552,10 +2550,10 @@ static int nilfs_segctor_thread(void *ar
+ 
+ 		if (timeout || sci->sc_seq_request != sci->sc_seq_done)
+ 			mode = SC_LSEG_SR;
+-		else if (!sci->sc_flush_request)
+-			break;
+-		else
++		else if (sci->sc_flush_request)
+ 			mode = nilfs_segctor_flush_mode(sci);
++		else
++			break;
+ 
+ 		spin_unlock(&sci->sc_state_lock);
+ 		nilfs_segctor_thread_construct(sci, mode);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
 
