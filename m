@@ -1,213 +1,241 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-do-a-cleanup-for-function-kexec_load.patch removed from -mm tree
-Date: Fri, 27 May 2016 11:43:42 -0700
-Message-ID: <5748955e.KJyFB/DAlcKSzngk%akpm@linux-foundation.org>
+Subject: [merged]
+ kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels.patch removed
+ from -mm tree
+Date: Fri, 27 May 2016 11:43:47 -0700
+Message-ID: <57489563.gCAoz+2ek0f8n7Ac%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42515 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42524 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753187AbcE0Snn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:43:43 -0400
+	with ESMTP id S1754400AbcE0Sns (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:43:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mnfhuang@gmail.com, bhe@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, xlpang@redhat.com, mm-commits@vger.kernel.org
+To: cminyard@mvista.com, bhe@redhat.com, hbabu@us.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: do a cleanup for function kexec_load
+     Subject: kdump: fix gdb macros work work with newer and 64-bit kernels
 has been removed from the -mm tree.  Its filename was
-     kexec-do-a-cleanup-for-function-kexec_load.patch
+     kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minfei Huang <mnfhuang@gmail.com>
-Subject: kexec: do a cleanup for function kexec_load
+From: Corey Minyard <cminyard@mvista.com>
+Subject: kdump: fix gdb macros work work with newer and 64-bit kernels
 
-There are a lof of work to be done in function kexec_load, not only for
-allocating structs and loading initram, but also for some misc.
+Lots of little changes needed to be made to clean these up, remove the
+four byte pointer assumption and traverse the pid queue properly.  Also
+consolidate the traceback code into a single function instead of having
+three copies of it.
 
-To make it more clear, wrap a new function do_kexec_load which is used to
-allocate structs and load initram.  And the pre-work will be done in
-kexec_load.
-
-Signed-off-by: Minfei Huang <mnfhuang@gmail.com>
+Link: http://lkml.kernel.org/r/1462926655-9390-1-git-send-email-minyard@acm.org
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Acked-by: Baoquan He <bhe@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Xunlei Pang <xlpang@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
+Cc: Haren Myneni <hbabu@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |  125 +++++++++++++++++++++++++----------------------
- 1 file changed, 69 insertions(+), 56 deletions(-)
+ Documentation/kdump/gdbmacros.txt |   96 ++++++++++++----------------
+ 1 file changed, 44 insertions(+), 52 deletions(-)
 
-diff -puN kernel/kexec.c~kexec-do-a-cleanup-for-function-kexec_load kernel/kexec.c
---- a/kernel/kexec.c~kexec-do-a-cleanup-for-function-kexec_load
-+++ a/kernel/kexec.c
-@@ -103,6 +103,74 @@ out_free_image:
- 	return ret;
- }
+diff -puN Documentation/kdump/gdbmacros.txt~kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels Documentation/kdump/gdbmacros.txt
+--- a/Documentation/kdump/gdbmacros.txt~kdump-fix-gdb-macros-work-work-with-newer-and-64-bit-kernels
++++ a/Documentation/kdump/gdbmacros.txt
+@@ -15,15 +15,16 @@
  
-+static int do_kexec_load(unsigned long entry, unsigned long nr_segments,
-+		struct kexec_segment __user *segments, unsigned long flags)
-+{
-+	struct kimage **dest_image, *image;
-+	unsigned long i;
-+	int ret;
-+
-+	if (flags & KEXEC_ON_CRASH) {
-+		dest_image = &kexec_crash_image;
-+		if (kexec_crash_image)
-+			arch_kexec_unprotect_crashkres();
-+	} else {
-+		dest_image = &kexec_image;
-+	}
-+
-+	if (nr_segments == 0) {
-+		/* Uninstall image */
-+		kimage_free(xchg(dest_image, NULL));
-+		return 0;
-+	}
-+	if (flags & KEXEC_ON_CRASH) {
-+		/*
-+		 * Loading another kernel to switch to if this one
-+		 * crashes.  Free any current crash dump kernel before
-+		 * we corrupt it.
-+		 */
-+		kimage_free(xchg(&kexec_crash_image, NULL));
-+	}
-+
-+	ret = kimage_alloc_init(&image, entry, nr_segments, segments, flags);
-+	if (ret)
-+		return ret;
-+
-+	if (flags & KEXEC_ON_CRASH)
-+		crash_map_reserved_pages();
-+
-+	if (flags & KEXEC_PRESERVE_CONTEXT)
-+		image->preserve_context = 1;
-+
-+	ret = machine_kexec_prepare(image);
-+	if (ret)
-+		goto out;
-+
-+	for (i = 0; i < nr_segments; i++) {
-+		ret = kimage_load_segment(image, &image->segment[i]);
-+		if (ret)
-+			goto out;
-+	}
-+
-+	kimage_terminate(image);
-+
-+	/* Install the new kernel and uninstall the old */
-+	image = xchg(dest_image, image);
-+
-+out:
-+	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
-+		arch_kexec_protect_crashkres();
-+
-+	/*
-+	 * Once the reserved memory is mapped, we should unmap this memory
-+	 * before returning
-+	 */
-+	if (flags & KEXEC_ON_CRASH)
-+		crash_unmap_reserved_pages();
-+	kimage_free(image);
-+	return ret;
-+}
-+
- /*
-  * Exec Kernel system call: for obvious reasons only root may call it.
-  *
-@@ -127,7 +195,6 @@ out_free_image:
- SYSCALL_DEFINE4(kexec_load, unsigned long, entry, unsigned long, nr_segments,
- 		struct kexec_segment __user *, segments, unsigned long, flags)
- {
--	struct kimage **dest_image, *image;
- 	int result;
+ define bttnobp
+ 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
+-	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
++	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
+ 	set $init_t=&init_task
+ 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
++	set var $stacksize = sizeof(union thread_union)
+ 	while ($next_t != $init_t)
+ 		set $next_t=(struct task_struct *)$next_t
+ 		printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
+ 		printf "===================\n"
+-		set var $stackp = $next_t.thread.esp
+-		set var $stack_top = ($stackp & ~4095) + 4096
++		set var $stackp = $next_t.thread.sp
++		set var $stack_top = ($stackp & ~($stacksize - 1)) + $stacksize
  
- 	/* We only trust the superuser with rebooting the system. */
-@@ -152,9 +219,6 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
- 	if (nr_segments > KEXEC_SEGMENT_MAX)
- 		return -EINVAL;
+ 		while ($stackp < $stack_top)
+ 			if (*($stackp) > _stext && *($stackp) < _sinittext)
+@@ -31,13 +32,13 @@ define bttnobp
+ 			end
+ 			set $stackp += 4
+ 		end
+-		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
++		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
+ 		while ($next_th != $next_t)
+ 			set $next_th=(struct task_struct *)$next_th
+ 			printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
+ 			printf "===================\n"
+-			set var $stackp = $next_t.thread.esp
+-			set var $stack_top = ($stackp & ~4095) + 4096
++			set var $stackp = $next_t.thread.sp
++			set var $stack_top = ($stackp & ~($stacksize - 1)) + stacksize
  
--	image = NULL;
--	result = 0;
--
- 	/* Because we write directly to the reserved memory
- 	 * region when loading crash kernels we need a mutex here to
- 	 * prevent multiple crash  kernels from attempting to load
-@@ -166,63 +230,12 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
- 	if (!mutex_trylock(&kexec_mutex))
- 		return -EBUSY;
+ 			while ($stackp < $stack_top)
+ 				if (*($stackp) > _stext && *($stackp) < _sinittext)
+@@ -45,7 +46,7 @@ define bttnobp
+ 				end
+ 				set $stackp += 4
+ 			end
+-			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
++			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
+ 		end
+ 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
+ 	end
+@@ -54,42 +55,44 @@ document bttnobp
+ 	dump all thread stack traces on a kernel compiled with !CONFIG_FRAME_POINTER
+ end
  
--	dest_image = &kexec_image;
--	if (flags & KEXEC_ON_CRASH) {
--		dest_image = &kexec_crash_image;
--		if (kexec_crash_image)
--			arch_kexec_unprotect_crashkres();
--	}
++define btthreadstack
++	set var $pid_task = $arg0
++
++	printf "\npid %d; comm %s:\n", $pid_task.pid, $pid_task.comm
++	printf "task struct: "
++	print $pid_task
++	printf "===================\n"
++	set var $stackp = $pid_task.thread.sp
++	set var $stacksize = sizeof(union thread_union)
++	set var $stack_top = ($stackp & ~($stacksize - 1)) + $stacksize
++	set var $stack_bot = ($stackp & ~($stacksize - 1))
++
++	set $stackp = *((unsigned long *) $stackp)
++	while (($stackp < $stack_top) && ($stackp > $stack_bot))
++		set var $addr = *(((unsigned long *) $stackp) + 1)
++		info symbol $addr
++		set $stackp = *((unsigned long *) $stackp)
++	end
++end
++document btthreadstack
++	 dump a thread stack using the given task structure pointer
++end
++
++
+ define btt
+ 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
+-	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
++	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
+ 	set $init_t=&init_task
+ 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
+ 	while ($next_t != $init_t)
+ 		set $next_t=(struct task_struct *)$next_t
+-		printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
+-		printf "===================\n"
+-		set var $stackp = $next_t.thread.esp
+-		set var $stack_top = ($stackp & ~4095) + 4096
+-		set var $stack_bot = ($stackp & ~4095)
 -
--	if (nr_segments > 0) {
--		unsigned long i;
--
--		if (flags & KEXEC_ON_CRASH) {
--			/*
--			 * Loading another kernel to switch to if this one
--			 * crashes.  Free any current crash dump kernel before
--			 * we corrupt it.
--			 */
--
--			kimage_free(xchg(&kexec_crash_image, NULL));
--			result = kimage_alloc_init(&image, entry, nr_segments,
--						   segments, flags);
--			crash_map_reserved_pages();
--		} else {
--			/* Loading another kernel to reboot into. */
--
--			result = kimage_alloc_init(&image, entry, nr_segments,
--						   segments, flags);
--		}
--		if (result)
--			goto unmap_page;
--
--		if (flags & KEXEC_PRESERVE_CONTEXT)
--			image->preserve_context = 1;
--		result = machine_kexec_prepare(image);
--		if (result)
--			goto unmap_page;
--
--		for (i = 0; i < nr_segments; i++) {
--			result = kimage_load_segment(image, &image->segment[i]);
--			if (result)
--				goto unmap_page;
--		}
--		kimage_terminate(image);
--unmap_page:
--		if (flags & KEXEC_ON_CRASH)
--			crash_unmap_reserved_pages();
--		if (result)
--			goto out;
--	}
--	/* Install the new kernel, and  Uninstall the old */
--	image = xchg(dest_image, image);
-+	result = do_kexec_load(entry, nr_segments, segments, flags);
+-		set $stackp = *($stackp)
+-		while (($stackp < $stack_top) && ($stackp > $stack_bot))
+-			set var $addr = *($stackp + 4)
+-			info symbol $addr
+-			set $stackp = *($stackp)
+-		end
++		btthreadstack $next_t
  
--out:
- 	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
- 		arch_kexec_protect_crashkres();
+-		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
++		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
+ 		while ($next_th != $next_t)
+ 			set $next_th=(struct task_struct *)$next_th
+-			printf "\npid %d; comm %s:\n", $next_t.pid, $next_t.comm
+-			printf "===================\n"
+-			set var $stackp = $next_t.thread.esp
+-			set var $stack_top = ($stackp & ~4095) + 4096
+-			set var $stack_bot = ($stackp & ~4095)
+-
+-			set $stackp = *($stackp)
+-			while (($stackp < $stack_top) && ($stackp > $stack_bot))
+-				set var $addr = *($stackp + 4)
+-				info symbol $addr
+-				set $stackp = *($stackp)
+-			end
+-			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
++			btthreadstack $next_th
++			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
+ 		end
+ 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
+ 	end
+@@ -101,7 +104,7 @@ end
+ define btpid
+ 	set var $pid = $arg0
+ 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
+-	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
++	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
+ 	set $init_t=&init_task
+ 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
+ 	set var $pid_task = 0
+@@ -113,29 +116,18 @@ define btpid
+ 			set $pid_task = $next_t
+ 		end
  
- 	mutex_unlock(&kexec_mutex);
--	kimage_free(image);
+-		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
++		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
+ 		while ($next_th != $next_t)
+ 			set $next_th=(struct task_struct *)$next_th
+ 			if ($next_th.pid == $pid)
+ 				set $pid_task = $next_th
+ 			end
+-			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
++			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
+ 		end
+ 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
+ 	end
  
- 	return result;
- }
+-	printf "\npid %d; comm %s:\n", $pid_task.pid, $pid_task.comm
+-	printf "===================\n"
+-	set var $stackp = $pid_task.thread.esp
+-	set var $stack_top = ($stackp & ~4095) + 4096
+-	set var $stack_bot = ($stackp & ~4095)
+-
+-	set $stackp = *($stackp)
+-	while (($stackp < $stack_top) && ($stackp > $stack_bot))
+-		set var $addr = *($stackp + 4)
+-		info symbol $addr
+-		set $stackp = *($stackp)
+-	end
++	btthreadstack $pid_task
+ end
+ document btpid
+ 	backtrace of pid
+@@ -145,7 +137,7 @@ end
+ define trapinfo
+ 	set var $pid = $arg0
+ 	set $tasks_off=((size_t)&((struct task_struct *)0)->tasks)
+-	set $pid_off=((size_t)&((struct task_struct *)0)->pids[1].pid_list.next)
++	set $pid_off=((size_t)&((struct task_struct *)0)->thread_group.next)
+ 	set $init_t=&init_task
+ 	set $next_t=(((char *)($init_t->tasks).next) - $tasks_off)
+ 	set var $pid_task = 0
+@@ -157,13 +149,13 @@ define trapinfo
+ 			set $pid_task = $next_t
+ 		end
+ 
+-		set $next_th=(((char *)$next_t->pids[1].pid_list.next) - $pid_off)
++		set $next_th=(((char *)$next_t->thread_group.next) - $pid_off)
+ 		while ($next_th != $next_t)
+ 			set $next_th=(struct task_struct *)$next_th
+ 			if ($next_th.pid == $pid)
+ 				set $pid_task = $next_th
+ 			end
+-			set $next_th=(((char *)$next_th->pids[1].pid_list.next) - $pid_off)
++			set $next_th=(((char *)$next_th->thread_group.next) - $pid_off)
+ 		end
+ 		set $next_t=(char *)($next_t->tasks.next) - $tasks_off
+ 	end
 _
 
-Patches currently in -mm which might be from mnfhuang@gmail.com are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
+kdump-fix-dmesg-gdbmacro-to-work-with-record-based-printk.patch
 
