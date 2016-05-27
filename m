@@ -1,62 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [patch 11/19] MAINTAINERS: Kdump maintainers update
-Date: Fri, 27 May 2016 14:27:27 -0700
-Message-ID: <5748bbbf.eC9rC7bh3iSlAk+L%akpm@linux-foundation.org>
+Subject: [patch 12/19] mm: use early_pfn_to_nid in page_ext_init
+Date: Fri, 27 May 2016 14:27:30 -0700
+Message-ID: <5748bbc2.rkRf6LluJcFW32vt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45650 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753676AbcE0V12 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 17:27:28 -0400
+	with ESMTP id S1753676AbcE0V1b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 17:27:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vgoyal@redhat.com, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, hbabu@us.ibm.com, horms@verge.net.au, joe@perches.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yang.shi@linaro.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net
 
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: MAINTAINERS: Kdump maintainers update
+From: Yang Shi <yang.shi@linaro.org>
+Subject: mm: use early_pfn_to_nid in page_ext_init
 
-I am proposing following updates to kdump maintainership.  I have got busy
-in other things and not getting time to spend on kdump.
+page_ext_init() checks suitable pages with pfn_to_nid(), but pfn_to_nid()
+depends on memmap which will not be setup fully until
+page_alloc_init_late() is done.  Use early_pfn_to_nid() instead of
+pfn_to_nid() so that page extension could be still used early even though
+CONFIG_ DEFERRED_STRUCT_PAGE_INIT is enabled and catch early page
+allocation call sites.
 
-Remove Haren Myneni as he has not participated in kdump development for a
-long time now.
+Suggested by Joonsoo Kim [1], this fix basically undoes the change
+introduced by commit b8f1a75d61d840 ("mm: call page_ext_init() after all
+struct pages are initialized") and fixes the same problem with a better
+approach.
 
-Add the names of Dave and Baoquan as kdump maintainers as they have been
-contributing to kdump for a long time now and they are in a much better
-position to spend time on this than me.
+[1] http://lkml.kernel.org/r/CAAmzW4OUmyPwQjvd7QUfc6W1Aic__TyAuH80MLRZNMxKy0-wPQ@mail.gmail.com
 
-Mark myself as a reviewer.
-
-Link: http://lkml.kernel.org/r/20160525131616.GB27291@redhat.com
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Acked-by: Simon Horman <horms@verge.net.au>
-Cc: Haren Myneni <hbabu@us.ibm.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/1464198689-23458-1-git-send-email-yang.shi@linaro.org
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ init/main.c   |    3 +--
+ mm/page_ext.c |    4 +++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-kdump-maintainers-update MAINTAINERS
---- a/MAINTAINERS~maintainers-kdump-maintainers-update
-+++ a/MAINTAINERS
-@@ -6413,8 +6413,9 @@ F:	Documentation/kbuild/kconfig-language
- F:	scripts/kconfig/
+diff -puN init/main.c~mm-use-early_pfn_to_nid-in-page_ext_init init/main.c
+--- a/init/main.c~mm-use-early_pfn_to_nid-in-page_ext_init
++++ a/init/main.c
+@@ -607,6 +607,7 @@ asmlinkage __visible void __init start_k
+ 		initrd_start = 0;
+ 	}
+ #endif
++	page_ext_init();
+ 	debug_objects_mem_init();
+ 	kmemleak_init();
+ 	setup_per_cpu_pageset();
+@@ -1003,8 +1004,6 @@ static noinline void __init kernel_init_
+ 	sched_init_smp();
  
- KDUMP
--M:	Vivek Goyal <vgoyal@redhat.com>
--M:	Haren Myneni <hbabu@us.ibm.com>
-+M:	Dave Young <dyoung@redhat.com>
-+M:	Baoquan He <bhe@redhat.com>
-+R:	Vivek Goyal <vgoyal@redhat.com>
- L:	kexec@lists.infradead.org
- W:	http://lse.sourceforge.net/kdump/
- S:	Maintained
+ 	page_alloc_init_late();
+-	/* Initialize page ext after all struct pages are initializaed */
+-	page_ext_init();
+ 
+ 	do_basic_setup();
+ 
+diff -puN mm/page_ext.c~mm-use-early_pfn_to_nid-in-page_ext_init mm/page_ext.c
+--- a/mm/page_ext.c~mm-use-early_pfn_to_nid-in-page_ext_init
++++ a/mm/page_ext.c
+@@ -390,8 +390,10 @@ void __init page_ext_init(void)
+ 			 * We know some arch can have a nodes layout such as
+ 			 * -------------pfn-------------->
+ 			 * N0 | N1 | N2 | N0 | N1 | N2|....
++			 *
++			 * Take into account DEFERRED_STRUCT_PAGE_INIT.
+ 			 */
+-			if (pfn_to_nid(pfn) != nid)
++			if (early_pfn_to_nid(pfn) != nid)
+ 				continue;
+ 			if (init_section_page_ext(pfn, nid))
+ 				goto oom;
 _
