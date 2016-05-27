@@ -1,102 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 08/19] direct-io: fix direct write stale data exposure
- from concurrent buffered read
-Date: Fri, 27 May 2016 14:27:18 -0700
-Message-ID: <5748bbb6.6teyS7hOogqqJogH%akpm@linux-foundation.org>
+Subject: [patch 07/19] ocfs2: bump up o2cb network protocol version
+Date: Fri, 27 May 2016 14:27:16 -0700
+Message-ID: <5748bbb4.6RGti2yvg8UA7UfV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45624 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756691AbcE0V1V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 17:27:21 -0400
+	with ESMTP id S1756720AbcE0V1U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 17:27:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, guaneryu@gmail.com, jack@suse.cz, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de
 
-From: Eryu Guan <guaneryu@gmail.com>
-Subject: direct-io: fix direct write stale data exposure from concurrent buffered read
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: bump up o2cb network protocol version
 
-Currently direct writes inside i_size on a DIO_SKIP_HOLES filesystem are
-not allowed to allocate blocks(get_more_blocks() sets 'create' to 0 before
-calling get_block() callback), if it's a sparse file, direct writes fall
-back to buffered writes to avoid stale data exposure from concurrent
-buffered read.  But there're two cases that can result in stale data
-exposure are not correctly detected.
+Two new messages are added to support negotiating hb timeout.  Stop nodes
+frmo talking an old version to mount as they will cause the negotiation to
+fail.
 
-1. The detection for "writing inside i_size" is not sufficient,
-   writes can be treated as "extending writes" wrongly.  For example,
-   direct write 1FSB (file system block) to a 1FSB sparse file on
-   ext2/3/4, starting from offset 0, in this case it's writing inside
-   i_size, but 'create' is non-zero, because 'block_in_file' and
-   '(i_size_read(inode) >> blkbits' are both zero.
-
-2. Direct writes starting from or beyong i_size (not inside i_size)
-   also could trigger block allocation and expose stale data.  For
-   example, consider a sparse file with i_size of 2k, and a write to
-   offset 2k or 3k into the file, with a filesystem block size of 4k. 
-   (Thanks to Jeff Moyer for pointing this case out in his review.)
-
-The first problem can be demostrated by running ltp-aiodio test ADSP045
-many times.  When testing on extN filesystems, I see test failures
-occasionally, buffered read could read non-zero (stale) data.
-
-ADSP045: dio_sparse -a 4k -w 4k -s 2k -n 1
-
-dio_sparse    0  TINFO  :  Dirtying free blocks
-dio_sparse    0  TINFO  :  Starting I/O tests
-non zero buffer at buf[0] => 0xffffffaa,ffffffaa,ffffffaa,ffffffaa
-non-zero read at offset 0
-dio_sparse    0  TINFO  :  Killing childrens(s)
-dio_sparse    1  TFAIL  :  dio_sparse.c:191: 1 children(s) exited abnormally
-
-The second problem can also be reproduced easily by a hacked dio_sparse
-program, which accepts an option to specify the write offset.
-
-What we should really do is to disable block allocation for writes that
-could result in filling holes inside i_size.
-
-Link: http://lkml.kernel.org/r/1463156728-13357-1-git-send-email-guaneryu@gmail.com
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Eryu Guan <guaneryu@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/1464231615-27939-1-git-send-email-junxiao.bi@oracle.com
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/ocfs2/cluster/tcp_internal.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/direct-io.c~direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read fs/direct-io.c
---- a/fs/direct-io.c~direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read
-+++ a/fs/direct-io.c
-@@ -628,11 +628,11 @@ static int get_more_blocks(struct dio *d
- 		map_bh->b_size = fs_count << i_blkbits;
- 
- 		/*
--		 * For writes inside i_size on a DIO_SKIP_HOLES filesystem we
--		 * forbid block creations: only overwrites are permitted.
--		 * We will return early to the caller once we see an
--		 * unmapped buffer head returned, and the caller will fall
--		 * back to buffered I/O.
-+		 * For writes that could fill holes inside i_size on a
-+		 * DIO_SKIP_HOLES filesystem we forbid block creations: only
-+		 * overwrites are permitted. We will return early to the caller
-+		 * once we see an unmapped buffer head returned, and the caller
-+		 * will fall back to buffered I/O.
- 		 *
- 		 * Otherwise the decision is left to the get_blocks method,
- 		 * which may decide to handle it or also return an unmapped
-@@ -640,8 +640,8 @@ static int get_more_blocks(struct dio *d
- 		 */
- 		create = dio->rw & WRITE;
- 		if (dio->flags & DIO_SKIP_HOLES) {
--			if (sdio->block_in_file < (i_size_read(dio->inode) >>
--							sdio->blkbits))
-+			if (fs_startblk <= ((i_size_read(dio->inode) - 1) >>
-+							i_blkbits))
- 				create = 0;
- 		}
- 
+diff -puN fs/ocfs2/cluster/tcp_internal.h~ocfs2-bump-up-o2cb-network-protocol-version fs/ocfs2/cluster/tcp_internal.h
+--- a/fs/ocfs2/cluster/tcp_internal.h~ocfs2-bump-up-o2cb-network-protocol-version
++++ a/fs/ocfs2/cluster/tcp_internal.h
+@@ -44,6 +44,9 @@
+  * version here in tcp_internal.h should not need to be bumped for
+  * filesystem locking changes.
+  *
++ * New in version 12
++ *	- Negotiate hb timeout when storage is down.
++ *
+  * New in version 11
+  * 	- Negotiation of filesystem locking in the dlm join.
+  *
+@@ -75,7 +78,7 @@
+  * 	- full 64 bit i_size in the metadata lock lvbs
+  * 	- introduction of "rw" lock and pushing meta/data locking down
+  */
+-#define O2NET_PROTOCOL_VERSION 11ULL
++#define O2NET_PROTOCOL_VERSION 12ULL
+ struct o2net_handshake {
+ 	__be64	protocol_version;
+ 	__be64	connector_id;
 _
