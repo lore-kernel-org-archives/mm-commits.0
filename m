@@ -1,68 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-mem_cgroup_out_of_memory-return-value.patch
+Subject: [merged] ocfs2-fix-improper-handling-of-return-errno.patch
  removed from -mm tree
-Date: Fri, 27 May 2016 11:45:32 -0700
-Message-ID: <574895cc.yXCkGPNSx72VuidN%akpm@linux-foundation.org>
+Date: Fri, 27 May 2016 11:45:29 -0700
+Message-ID: <574895c9.9TRBqnZnoWJL2NA4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42725 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42718 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752237AbcE0Spd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:45:33 -0400
+	with ESMTP id S1752237AbcE0Spa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 May 2016 14:45:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, hannes@cmpxchg.org, mhocko@suse.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: zren@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix mem_cgroup_out_of_memory() return value.
+     Subject: ocfs2: fix improper handling of return errno
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-mem_cgroup_out_of_memory-return-value.patch
+     ocfs2-fix-improper-handling-of-return-errno.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: memcg: fix mem_cgroup_out_of_memory() return value.
+=46rom: Eric Ren <zren@suse.com>
+Subject: ocfs2: fix improper handling of return errno
 
-mem_cgroup_out_of_memory() is returning "true" if it finds a TIF_MEMDIE
-task after an eligible task was found, "false" if it found a TIF_MEMDIE
-task before an eligible task is found.
+Previously, if bad inode was found in ocfs2_iget(), -ESTALE=C2=A0was
+returned back to the caller anyway. Since commit d2b9d71a2da7
+("ocfs2: check/fix inode block for online file check") can handle
+with return value from ocfs2_read_locked_inode() now, we know the
+exact errno returned for us.
 
-This difference confuses memory_max_write() which checks the return value
-of mem_cgroup_out_of_memory().  Since memory_max_write() wants to continue
-looping, mem_cgroup_out_of_memory() should return "true" in this case.
-
-This patch sets a dummy pointer in order to return "true".
-
-Link: http://lkml.kernel.org/r/1463753327-5170-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/1463970656-18413-1-git-send-email-zren@s=
+use.com
+Signed-off-by: Eric Ren <zren@suse.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/ocfs2/inode.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-mem_cgroup_out_of_memory-return-value mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-mem_cgroup_out_of_memory-return-value
-+++ a/mm/memcontrol.c
-@@ -1302,6 +1302,8 @@ static bool mem_cgroup_out_of_memory(str
- 				mem_cgroup_iter_break(memcg, iter);
- 				if (chosen)
- 					put_task_struct(chosen);
-+				/* Set a dummy value to return "true". */
-+				chosen = (void *) 1;
- 				goto unlock;
- 			case OOM_SCAN_OK:
- 				break;
+diff -puN fs/ocfs2/inode.c~ocfs2-fix-improper-handling-of-return-errno =
+fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~ocfs2-fix-improper-handling-of-return-errno
++++ a/fs/ocfs2/inode.c
+@@ -176,12 +176,7 @@ struct inode *ocfs2_iget(struct ocfs2_su
+ 	}
+ 	if (is_bad_inode(inode)) {
+ 		iput(inode);
+-		if ((flags & OCFS2_FI_FLAG_FILECHECK_CHK) ||
+-		    (flags & OCFS2_FI_FLAG_FILECHECK_FIX))
+-			/* Return OCFS2_FILECHECK_ERR_XXX related errno */
+-			inode =3D ERR_PTR(rc);
+-		else
+-			inode =3D ERR_PTR(-ESTALE);
++		inode =3D ERR_PTR(rc);
+ 		goto bail;
+ 	}
+=20
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from zren@suse.com are
 
+ocfs2-fix-a-redundant-re-initialization.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
