@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch added to -mm tree
-Date: Tue, 31 May 2016 11:47:24 -0700
-Message-ID: <574ddc3c.7TEt0UBOx9TZD1oI%akpm@linux-foundation.org>
+Subject: + befs-remove-unused-endian-functions.patch added to -mm tree
+Date: Tue, 31 May 2016 12:01:08 -0700
+Message-ID: <574ddf74.BCYUbDCcAulRbuhD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48165 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48262 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863AbcEaSrZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 14:47:25 -0400
+	with ESMTP id S1750997AbcEaTBJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 15:01:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, ebru.akagunduz@gmail.com, hughd@google.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: luisbg@osg.samsung.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix
+     Subject: befs: remove unused endian functions
 has been added to the -mm tree.  Its filename is
-     mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
+     befs-remove-unused-endian-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/befs-remove-unused-endian-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/befs-remove-unused-endian-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,72 +38,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix
+From: Luis de Bethencourt <luisbg@osg.samsung.com>
+Subject: befs: remove unused endian functions
 
-Passing 'vma' to hugepage_vma_revlidate() is useless.  It doesn't make use
-of it anyway.
+Remove endianness conversion functions that are declared but never used.
 
-Link: http://lkml.kernel.org/r/20160530095058.GA53044@black.fi.intel.com
-
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Link: http://lkml.kernel.org/r/1464701277-29962-1-git-send-email-luisbg@osg.samsung.com
+Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ fs/befs/endian.h |   44 --------------------------------------------
+ 1 file changed, 44 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix
-+++ a/mm/huge_memory.c
-@@ -2385,10 +2385,9 @@ static bool hugepage_vma_check(struct vm
-  * value (scan code).
-  */
+diff -puN fs/befs/endian.h~befs-remove-unused-endian-functions fs/befs/endian.h
+--- a/fs/befs/endian.h~befs-remove-unused-endian-functions
++++ a/fs/befs/endian.h
+@@ -20,15 +20,6 @@ fs64_to_cpu(const struct super_block *sb
+ 		return be64_to_cpu((__force __be64)n);
+ }
  
--static int hugepage_vma_revalidate(struct mm_struct *mm,
--				   struct vm_area_struct *vma,
--				   unsigned long address)
-+static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address)
+-static inline fs64
+-cpu_to_fs64(const struct super_block *sb, u64 n)
+-{
+-	if (BEFS_SB(sb)->byte_order == BEFS_BYTESEX_LE)
+-		return (__force fs64)cpu_to_le64(n);
+-	else
+-		return (__force fs64)cpu_to_be64(n);
+-}
+-
+ static inline u32
+ fs32_to_cpu(const struct super_block *sb, fs32 n)
  {
-+	struct vm_area_struct *vma;
- 	unsigned long hstart, hend;
+@@ -38,15 +29,6 @@ fs32_to_cpu(const struct super_block *sb
+ 		return be32_to_cpu((__force __be32)n);
+ }
  
- 	if (unlikely(khugepaged_test_exit(mm)))
-@@ -2437,7 +2436,7 @@ static bool __collapse_huge_page_swapin(
- 		if (ret & VM_FAULT_RETRY) {
- 			down_read(&mm->mmap_sem);
- 			/* vma is no longer available, don't continue to swapin */
--			if (hugepage_vma_revalidate(mm, vma, address))
-+			if (hugepage_vma_revalidate(mm, address))
- 				return false;
- 		}
- 		if (ret & VM_FAULT_ERROR) {
-@@ -2491,7 +2490,7 @@ static void collapse_huge_page(struct mm
- 	swap = get_mm_counter(mm, MM_SWAPENTS);
- 	curr_allocstall = sum_vm_event(ALLOCSTALL);
- 	down_read(&mm->mmap_sem);
--	result = hugepage_vma_revalidate(mm, vma, address);
-+	result = hugepage_vma_revalidate(mm, address);
- 	if (result)
- 		goto out;
+-static inline fs32
+-cpu_to_fs32(const struct super_block *sb, u32 n)
+-{
+-	if (BEFS_SB(sb)->byte_order == BEFS_BYTESEX_LE)
+-		return (__force fs32)cpu_to_le32(n);
+-	else
+-		return (__force fs32)cpu_to_be32(n);
+-}
+-
+ static inline u16
+ fs16_to_cpu(const struct super_block *sb, fs16 n)
+ {
+@@ -56,15 +38,6 @@ fs16_to_cpu(const struct super_block *sb
+ 		return be16_to_cpu((__force __be16)n);
+ }
  
-@@ -2524,7 +2523,7 @@ static void collapse_huge_page(struct mm
- 	 * handled by the anon_vma lock + PG_lock.
- 	 */
- 	down_write(&mm->mmap_sem);
--	result = hugepage_vma_revalidate(mm, vma, address);
-+	result = hugepage_vma_revalidate(mm, address);
- 	if (result)
- 		goto out;
+-static inline fs16
+-cpu_to_fs16(const struct super_block *sb, u16 n)
+-{
+-	if (BEFS_SB(sb)->byte_order == BEFS_BYTESEX_LE)
+-		return (__force fs16)cpu_to_le16(n);
+-	else
+-		return (__force fs16)cpu_to_be16(n);
+-}
+-
+ /* Composite types below here */
  
-_
-
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
-
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
-
+ static inline befs_block_run
+@@ -83,23 +56,6 @@ fsrun_to_cpu(const struct super_block *s
+ 	}
+ 	return run;
+ }
+-
+-static inline befs_disk_block_run
+-cpu_to_fsrun(const struct super_block *sb, befs_block_run n)
+-{
+-	befs_disk_block_run run;
