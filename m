@@ -1,67 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-fix-the-margin-computation-in-mem_cgroup_margin.patch removed from -mm tree
-Date: Tue, 31 May 2016 10:50:43 -0700
-Message-ID: <574dcef3.LEjurNcOYZ8KiD7H%akpm@linux-foundation.org>
+ mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap.patch
+ removed from -mm tree
+Date: Tue, 31 May 2016 10:50:38 -0700
+Message-ID: <574dceee.QcdbhmKH2HYLgfEu%akpm__36353.9296821274$1464717052$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47472 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47467 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755681AbcEaRuo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:44 -0400
+	with ESMTP id S1755528AbcEaRuj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roy.qing.li@gmail.com, hannes@cmpxchg.org, mhocko@suse.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mika.westerberg@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol.c: fix the margin computation in mem_cgroup_margin()
+     Subject: mm: thp: avoid false positive VM_BUG_ON_PAGE in page_move_anon_rmap()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-the-margin-computation-in-mem_cgroup_margin.patch
+     mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Li RongQing <roy.qing.li@gmail.com>
-Subject: mm/memcontrol.c: fix the margin computation in mem_cgroup_margin()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: thp: avoid false positive VM_BUG_ON_PAGE in page_move_anon_rmap()
 
-mem_cgroup_margin() might return (memory.limit - memory_count) when the
-memsw.limit is in excess.  This doesn't happen usually because we do not
-allow excess on hard limits and (memory.limit <= memsw.limit), but
-__GFP_NOFAIL charges can force the charge and cause the excess when no
-memory is really swappable (swap is full or no anonymous memory is left).
+If page_move_anon_rmap() is refiling a pmd-splitted THP mapped in a tail
+page from a pte, the "address" must be THP aligned in order for the
+page->index bugcheck to pass in the CONFIG_DEBUG_VM=y builds.
 
-[mhocko@suse.com: rewrote changelog]
-  Link: http://lkml.kernel.org/r/20160525155122.GK20132@dhcp22.suse.cz
-Link: http://lkml.kernel.org/r/1464068266-27736-1-git-send-email-roy.qing.li@gmail.com
-Signed-off-by: Li RongQing <roy.qing.li@gmail.com>
-Acked-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/1464253620-106404-1-git-send-email-kirill.shutemov@linux.intel.com
+Fixes: 6d0a07edd17c ("mm: thp: calculate the mapcount correctly for THP pages during WP faults")
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>        [4.5]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 ++
+ mm/rmap.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fix-the-margin-computation-in-mem_cgroup_margin mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fix-the-margin-computation-in-mem_cgroup_margin
-+++ a/mm/memcontrol.c
-@@ -1108,6 +1108,8 @@ static unsigned long mem_cgroup_margin(s
- 		limit = READ_ONCE(memcg->memsw.limit);
- 		if (count <= limit)
- 			margin = min(margin, limit - count);
-+		else
-+			margin = 0;
- 	}
+diff -puN mm/rmap.c~mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap mm/rmap.c
+--- a/mm/rmap.c~mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap
++++ a/mm/rmap.c
+@@ -1098,6 +1098,8 @@ void page_move_anon_rmap(struct page *pa
  
- 	return margin;
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_VMA(!anon_vma, vma);
++	if (IS_ENABLED(CONFIG_DEBUG_VM) && PageTransHuge(page))
++		address &= HPAGE_PMD_MASK;
+ 	VM_BUG_ON_PAGE(page->index != linear_page_index(vma, address), page);
+ 
+ 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
 _
 
-Patches currently in -mm which might be from roy.qing.li@gmail.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-memcontrol-remove-the-useless-parameter-for-mc_handle_swap_pte.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
