@@ -1,115 +1,66 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read.patch removed from -mm tree
-Date: Tue, 31 May 2016 10:50:21 -0700
-Message-ID: <574dcedd.f7rQFL5UexTt2tau%akpm@linux-foundation.org>
+ mm-oom-do-not-reap-task-if-there-are-live-threads-in-threadgroup.patch
+ removed from -mm tree
+Date: Tue, 31 May 2016 10:50:24 -0700
+Message-ID: <574dcee0.HlAao5wz7wO6Yg3L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47437 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47440 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755475AbcEaRuW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:22 -0400
+	with ESMTP id S1755590AbcEaRuZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guaneryu@gmail.com, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: direct-io: fix direct write stale data exposure from concurrent buffered read
+     Subject: mm: oom: do not reap task if there are live threads in threadgroup
 has been removed from the -mm tree.  Its filename was
-     direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read.patch
+     mm-oom-do-not-reap-task-if-there-are-live-threads-in-threadgroup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eryu Guan <guaneryu@gmail.com>
-Subject: direct-io: fix direct write stale data exposure from concurrent buffered read
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: mm: oom: do not reap task if there are live threads in threadgroup
 
-Currently direct writes inside i_size on a DIO_SKIP_HOLES filesystem are
-not allowed to allocate blocks(get_more_blocks() sets 'create' to 0 before
-calling get_block() callback), if it's a sparse file, direct writes fall
-back to buffered writes to avoid stale data exposure from concurrent
-buffered read.  But there're two cases that can result in stale data
-exposure are not correctly detected.
+If the current process is exiting, we don't invoke oom killer, instead we
+give it access to memory reserves and try to reap its mm in case nobody is
+going to use it.  There's a mistake in the code performing this check - we
+just ignore any process of the same thread group no matter if it is
+exiting or not - see try_oom_reaper.  Fix it.
 
-1. The detection for "writing inside i_size" is not sufficient,
-   writes can be treated as "extending writes" wrongly.  For example,
-   direct write 1FSB (file system block) to a 1FSB sparse file on
-   ext2/3/4, starting from offset 0, in this case it's writing inside
-   i_size, but 'create' is non-zero, because 'block_in_file' and
-   '(i_size_read(inode) >> blkbits' are both zero.
-
-2. Direct writes starting from or beyong i_size (not inside i_size)
-   also could trigger block allocation and expose stale data.  For
-   example, consider a sparse file with i_size of 2k, and a write to
-   offset 2k or 3k into the file, with a filesystem block size of 4k. 
-   (Thanks to Jeff Moyer for pointing this case out in his review.)
-
-The first problem can be demostrated by running ltp-aiodio test ADSP045
-many times.  When testing on extN filesystems, I see test failures
-occasionally, buffered read could read non-zero (stale) data.
-
-ADSP045: dio_sparse -a 4k -w 4k -s 2k -n 1
-
-dio_sparse    0  TINFO  :  Dirtying free blocks
-dio_sparse    0  TINFO  :  Starting I/O tests
-non zero buffer at buf[0] => 0xffffffaa,ffffffaa,ffffffaa,ffffffaa
-non-zero read at offset 0
-dio_sparse    0  TINFO  :  Killing childrens(s)
-dio_sparse    1  TFAIL  :  dio_sparse.c:191: 1 children(s) exited abnormally
-
-The second problem can also be reproduced easily by a hacked dio_sparse
-program, which accepts an option to specify the write offset.
-
-What we should really do is to disable block allocation for writes that
-could result in filling holes inside i_size.
-
-Link: http://lkml.kernel.org/r/1463156728-13357-1-git-send-email-guaneryu@gmail.com
-Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Eryu Guan <guaneryu@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/1464087628-7318-1-git-send-email-vdavydov@virtuozzo.com
+Fixes: 3ef22dfff239 ("oom, oom_reaper: try to reap tasks which skip regular OOM killer path")Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/oom_kill.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/direct-io.c~direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read fs/direct-io.c
---- a/fs/direct-io.c~direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read
-+++ a/fs/direct-io.c
-@@ -628,11 +628,11 @@ static int get_more_blocks(struct dio *d
- 		map_bh->b_size = fs_count << i_blkbits;
+diff -puN mm/oom_kill.c~mm-oom-do-not-reap-task-if-there-are-live-threads-in-threadgroup mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-do-not-reap-task-if-there-are-live-threads-in-threadgroup
++++ a/mm/oom_kill.c
+@@ -611,8 +611,6 @@ void try_oom_reaper(struct task_struct *
  
- 		/*
--		 * For writes inside i_size on a DIO_SKIP_HOLES filesystem we
--		 * forbid block creations: only overwrites are permitted.
--		 * We will return early to the caller once we see an
--		 * unmapped buffer head returned, and the caller will fall
--		 * back to buffered I/O.
-+		 * For writes that could fill holes inside i_size on a
-+		 * DIO_SKIP_HOLES filesystem we forbid block creations: only
-+		 * overwrites are permitted. We will return early to the caller
-+		 * once we see an unmapped buffer head returned, and the caller
-+		 * will fall back to buffered I/O.
- 		 *
- 		 * Otherwise the decision is left to the get_blocks method,
- 		 * which may decide to handle it or also return an unmapped
-@@ -640,8 +640,8 @@ static int get_more_blocks(struct dio *d
- 		 */
- 		create = dio->rw & WRITE;
- 		if (dio->flags & DIO_SKIP_HOLES) {
--			if (sdio->block_in_file < (i_size_read(dio->inode) >>
--							sdio->blkbits))
-+			if (fs_startblk <= ((i_size_read(dio->inode) - 1) >>
-+							i_blkbits))
- 				create = 0;
- 		}
+ 			if (!process_shares_mm(p, mm))
+ 				continue;
+-			if (same_thread_group(p, tsk))
+-				continue;
+ 			if (fatal_signal_pending(p))
+ 				continue;
  
 _
 
-Patches currently in -mm which might be from guaneryu@gmail.com are
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
+mm-zap-zone_oom_locked.patch
+mm-oom-add-memcg-to-oom_control.patch
 
