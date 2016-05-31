@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + x86-get-rid-of-superfluous-__gfp_repeat.patch added to -mm tree
-Date: Tue, 31 May 2016 12:53:15 -0700
-Message-ID: <574debab.ByOW4LDuX3JZJgIF%akpm@linux-foundation.org>
+Subject: + arc-get-rid-of-superfluous-__gfp_repeat.patch added to -mm tree
+Date: Tue, 31 May 2016 12:53:23 -0700
+Message-ID: <574debb3.v+y9oxoQMjTULkJm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49096 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49108 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751425AbcEaTxS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 15:53:18 -0400
+	with ESMTP id S1751364AbcEaTxY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 15:53:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hpa@zytor.com, luto@kernel.org, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mhocko@suse.com, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: get rid of superfluous __GFP_REPEAT
+     Subject: arc: get rid of superfluous __GFP_REPEAT
 has been added to the -mm tree.  Its filename is
-     x86-get-rid-of-superfluous-__gfp_repeat.patch
+     arc-get-rid-of-superfluous-__gfp_repeat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-get-rid-of-superfluous-__gfp_repeat.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arc-get-rid-of-superfluous-__gfp_repeat.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-get-rid-of-superfluous-__gfp_repeat.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arc-get-rid-of-superfluous-__gfp_repeat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,53 +39,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: x86: get rid of superfluous __GFP_REPEAT
+Subject: arc: get rid of superfluous __GFP_REPEAT
 
 __GFP_REPEAT has a rather weak semantic but since it has been introduced
 around 2.6.12 it has been ignored for low order allocations.
 
-PGALLOC_GFP uses __GFP_REPEAT but none of the allocation which uses this
-flag is for more than order-0.  This means that this flag has never been
-actually useful here because it has always been used only for
-PAGE_ALLOC_COSTLY requests.
+pte_alloc_one_kernel uses __get_order_pte but this is obviously always
+zero because BITS_FOR_PTE is not larger than 9 yet the page size is always
+larger than 4K.  This means that this flag has never been actually useful
+here because it has always been used only for PAGE_ALLOC_COSTLY requests.
 
-Link: http://lkml.kernel.org/r/1464599699-30131-3-git-send-email-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/1464599699-30131-7-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andy Lutomirski <luto@kernel.org>
+Acked-by: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/espfix_64.c |    2 +-
- arch/x86/mm/pgtable.c       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arc/include/asm/pgalloc.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/espfix_64.c~x86-get-rid-of-superfluous-__gfp_repeat arch/x86/kernel/espfix_64.c
---- a/arch/x86/kernel/espfix_64.c~x86-get-rid-of-superfluous-__gfp_repeat
-+++ a/arch/x86/kernel/espfix_64.c
-@@ -57,7 +57,7 @@
- # error "Need more than one PGD for the ESPFIX hack"
- #endif
+diff -puN arch/arc/include/asm/pgalloc.h~arc-get-rid-of-superfluous-__gfp_repeat arch/arc/include/asm/pgalloc.h
+--- a/arch/arc/include/asm/pgalloc.h~arc-get-rid-of-superfluous-__gfp_repeat
++++ a/arch/arc/include/asm/pgalloc.h
+@@ -95,7 +95,7 @@ static inline pte_t *pte_alloc_one_kerne
+ {
+ 	pte_t *pte;
  
--#define PGALLOC_GFP (GFP_KERNEL | __GFP_NOTRACK | __GFP_REPEAT | __GFP_ZERO)
-+#define PGALLOC_GFP (GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO)
+-	pte = (pte_t *) __get_free_pages(GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO,
++	pte = (pte_t *) __get_free_pages(GFP_KERNEL | __GFP_ZERO,
+ 					 __get_order_pte());
  
- /* This contains the *bottom* address of the espfix stack */
- DEFINE_PER_CPU_READ_MOSTLY(unsigned long, espfix_stack);
-diff -puN arch/x86/mm/pgtable.c~x86-get-rid-of-superfluous-__gfp_repeat arch/x86/mm/pgtable.c
---- a/arch/x86/mm/pgtable.c~x86-get-rid-of-superfluous-__gfp_repeat
-+++ a/arch/x86/mm/pgtable.c
-@@ -6,7 +6,7 @@
- #include <asm/fixmap.h>
- #include <asm/mtrr.h>
+ 	return pte;
+@@ -107,7 +107,7 @@ pte_alloc_one(struct mm_struct *mm, unsi
+ 	pgtable_t pte_pg;
+ 	struct page *page;
  
--#define PGALLOC_GFP GFP_KERNEL | __GFP_NOTRACK | __GFP_REPEAT | __GFP_ZERO
-+#define PGALLOC_GFP GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO
- 
- #ifdef CONFIG_HIGHPTE
- #define PGALLOC_USER_GFP __GFP_HIGHMEM
+-	pte_pg = (pgtable_t)__get_free_pages(GFP_KERNEL | __GFP_REPEAT, __get_order_pte());
++	pte_pg = (pgtable_t)__get_free_pages(GFP_KERNEL, __get_order_pte());
+ 	if (!pte_pg)
+ 		return 0;
+ 	memzero((void *)pte_pg, PTRS_PER_PTE * sizeof(pte_t));
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
