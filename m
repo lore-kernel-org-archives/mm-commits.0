@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue.patch
- added to -mm tree
-Date: Tue, 31 May 2016 11:45:14 -0700
-Message-ID: <574ddbba.+p9xSfiWPq3DV0hN%akpm@linux-foundation.org>
+Subject: +
+ mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch added to -mm tree
+Date: Tue, 31 May 2016 11:47:24 -0700
+Message-ID: <574ddc3c.7TEt0UBOx9TZD1oI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48154 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48165 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756022AbcEaSpP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 14:45:15 -0400
+	with ESMTP id S1750863AbcEaSrZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 14:47:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, ebru.akagunduz@gmail.com, hughd@google.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: prevent infinite loop in buffered_rmqueue()
+     Subject: mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue.patch
+     mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,49 +39,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: prevent infinite loop in buffered_rmqueue()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix
 
-In DEBUG_VM kernel, we can hit infinite loop for order == 0 in
-buffered_rmqueue() when check_new_pcp() returns 1, because the bad page is
-never removed from the pcp list.  Fix this by removing the page before
-retrying.  Also we don't need to check if page is non-NULL, because we
-simply grab it from the list which was just tested for being non-empty.
+Passing 'vma' to hugepage_vma_revlidate() is useless.  It doesn't make use
+of it anyway.
 
-Fixes: 479f854a207c ("mm, page_alloc: defer debugging checks of pages allocated from the PCP")
-Link: http://lkml.kernel.org/r/20160530090154.GM2527@techsingularity.net
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/20160530095058.GA53044@black.fi.intel.com
+
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue
-+++ a/mm/page_alloc.c
-@@ -2615,11 +2615,12 @@ struct page *buffered_rmqueue(struct zon
- 				page = list_last_entry(list, struct page, lru);
- 			else
- 				page = list_first_entry(list, struct page, lru);
--		} while (page && check_new_pcp(page));
+diff -puN mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix
++++ a/mm/huge_memory.c
+@@ -2385,10 +2385,9 @@ static bool hugepage_vma_check(struct vm
+  * value (scan code).
+  */
  
--		__dec_zone_state(zone, NR_ALLOC_BATCH);
--		list_del(&page->lru);
--		pcp->count--;
-+			__dec_zone_state(zone, NR_ALLOC_BATCH);
-+			list_del(&page->lru);
-+			pcp->count--;
-+
-+		} while (check_new_pcp(page));
- 	} else {
- 		/*
- 		 * We most definitely don't want callers attempting to
+-static int hugepage_vma_revalidate(struct mm_struct *mm,
+-				   struct vm_area_struct *vma,
+-				   unsigned long address)
++static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address)
+ {
++	struct vm_area_struct *vma;
+ 	unsigned long hstart, hend;
+ 
+ 	if (unlikely(khugepaged_test_exit(mm)))
+@@ -2437,7 +2436,7 @@ static bool __collapse_huge_page_swapin(
+ 		if (ret & VM_FAULT_RETRY) {
+ 			down_read(&mm->mmap_sem);
+ 			/* vma is no longer available, don't continue to swapin */
+-			if (hugepage_vma_revalidate(mm, vma, address))
++			if (hugepage_vma_revalidate(mm, address))
+ 				return false;
+ 		}
+ 		if (ret & VM_FAULT_ERROR) {
+@@ -2491,7 +2490,7 @@ static void collapse_huge_page(struct mm
+ 	swap = get_mm_counter(mm, MM_SWAPENTS);
+ 	curr_allocstall = sum_vm_event(ALLOCSTALL);
+ 	down_read(&mm->mmap_sem);
+-	result = hugepage_vma_revalidate(mm, vma, address);
++	result = hugepage_vma_revalidate(mm, address);
+ 	if (result)
+ 		goto out;
+ 
+@@ -2524,7 +2523,7 @@ static void collapse_huge_page(struct mm
+ 	 * handled by the anon_vma lock + PG_lock.
+ 	 */
+ 	down_write(&mm->mmap_sem);
+-	result = hugepage_vma_revalidate(mm, vma, address);
++	result = hugepage_vma_revalidate(mm, address);
+ 	if (result)
+ 		goto out;
+ 
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
 
