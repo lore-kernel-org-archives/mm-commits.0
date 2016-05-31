@@ -1,104 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-cma-silence-warnings-due-to-max-usage.patch removed
- from -mm tree
-Date: Tue, 31 May 2016 10:50:41 -0700
-Message-ID: <574dcef1.MKf7ehJArCU66pCP%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memcontrol-move-comments-for-get_mctgt_type-to-proper-position.patch
+ removed from -mm tree
+Date: Tue, 31 May 2016 10:50:45 -0700
+Message-ID: <574dcef5.bAL8z5KK1FuIEoOb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47469 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47478 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755681AbcEaRum (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:42 -0400
+	with ESMTP id S1755696AbcEaRuq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: roy.qing.li@gmail.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma: silence warnings due to max() usage
+     Subject: mm/memcontrol.c: move comments for get_mctgt_type() to proper position
 has been removed from the -mm tree.  Its filename was
-     mm-cma-silence-warnings-due-to-max-usage.patch
+     mm-memcontrol-move-comments-for-get_mctgt_type-to-proper-position.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm/cma: silence warnings due to max() usage
+From: Li RongQing <roy.qing.li@gmail.com>
+Subject: mm/memcontrol.c: move comments for get_mctgt_type() to proper position
 
-pageblock_order can be (at least) an unsigned int or an unsigned long
-depending on the kernel config and architecture, so use max_t(unsigned
-long, ...) when comparing it.
+Move the comments for get_mctgt_type() to be before get_mctgt_type()
+implementation.
 
-fixes these warnings:
-
-In file included from include/asm-generic/bug.h:13:0,
-                 from arch/powerpc/include/asm/bug.h:127,
-                 from include/linux/bug.h:4,
-                 from include/linux/mmdebug.h:4,
-                 from include/linux/mm.h:8,
-                 from include/linux/memblock.h:18,
-                 from mm/cma.c:28:
-mm/cma.c: In function 'cma_init_reserved_mem':
-include/linux/kernel.h:748:17: warning: comparison of distinct pointer types lacks a cast
-  (void) (&_max1 == &_max2);                   ^
-mm/cma.c:186:27: note: in expansion of macro 'max'
-  alignment = PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order);
-                           ^
-mm/cma.c: In function 'cma_declare_contiguous':
-include/linux/kernel.h:748:17: warning: comparison of distinct pointer types lacks a cast
-  (void) (&_max1 == &_max2);                   ^
-include/linux/kernel.h:747:9: note: in definition of macro 'max'
-  typeof(y) _max2 = (y);            ^
-mm/cma.c:270:29: note: in expansion of macro 'max'
-   (phys_addr_t)PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order));
-                             ^
-include/linux/kernel.h:748:17: warning: comparison of distinct pointer types lacks a cast
-  (void) (&_max1 == &_max2);                   ^
-include/linux/kernel.h:747:21: note: in definition of macro 'max'
-  typeof(y) _max2 = (y);                        ^
-mm/cma.c:270:29: note: in expansion of macro 'max'
-   (phys_addr_t)PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order));
-                             ^
-
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20160526150748.5be38a4f@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: http://lkml.kernel.org/r/1463644638-7446-1-git-send-email-roy.qing.li@gmail.com
+Signed-off-by: Li RongQing <roy.qing.li@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |   37 +++++++++++++++++++------------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
 
-diff -puN mm/cma.c~mm-cma-silence-warnings-due-to-max-usage mm/cma.c
---- a/mm/cma.c~mm-cma-silence-warnings-due-to-max-usage
-+++ a/mm/cma.c
-@@ -183,7 +183,8 @@ int __init cma_init_reserved_mem(phys_ad
- 		return -EINVAL;
+diff -puN mm/memcontrol.c~mm-memcontrol-move-comments-for-get_mctgt_type-to-proper-position mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-move-comments-for-get_mctgt_type-to-proper-position
++++ a/mm/memcontrol.c
+@@ -4309,24 +4309,6 @@ static int mem_cgroup_do_precharge(unsig
+ 	return 0;
+ }
  
- 	/* ensure minimal alignment required by mm core */
--	alignment = PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order);
-+	alignment = PAGE_SIZE <<
-+			max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
+-/**
+- * get_mctgt_type - get target type of moving charge
+- * @vma: the vma the pte to be checked belongs
+- * @addr: the address corresponding to the pte to be checked
+- * @ptent: the pte to be checked
+- * @target: the pointer the target page or swap ent will be stored(can be NULL)
+- *
+- * Returns
+- *   0(MC_TARGET_NONE): if the pte is not a target for move charge.
+- *   1(MC_TARGET_PAGE): if the page corresponding to this pte is a target for
+- *     move charge. if @target is not NULL, the page is stored in target->page
+- *     with extra refcnt got(Callers should handle it).
+- *   2(MC_TARGET_SWAP): if the swap entry corresponding to this pte is a
+- *     target for charge migration. if @target is not NULL, the entry is stored
+- *     in target->ent.
+- *
+- * Called with pte lock held.
+- */
+ union mc_target {
+ 	struct page	*page;
+ 	swp_entry_t	ent;
+@@ -4515,6 +4497,25 @@ out:
+ 	return ret;
+ }
  
- 	/* alignment should be aligned with order_per_bit */
- 	if (!IS_ALIGNED(alignment >> PAGE_SHIFT, 1 << order_per_bit))
-@@ -266,8 +267,8 @@ int __init cma_declare_contiguous(phys_a
- 	 * migratetype page by page allocator's buddy algorithm. In the case,
- 	 * you couldn't get a contiguous memory, which is not what we want.
- 	 */
--	alignment = max(alignment,
--		(phys_addr_t)PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order));
-+	alignment = max(alignment,  (phys_addr_t)PAGE_SIZE <<
-+			  max_t(unsigned long, MAX_ORDER - 1, pageblock_order));
- 	base = ALIGN(base, alignment);
- 	size = ALIGN(size, alignment);
- 	limit &= ~(alignment - 1);
++/**
++ * get_mctgt_type - get target type of moving charge
++ * @vma: the vma the pte to be checked belongs
++ * @addr: the address corresponding to the pte to be checked
++ * @ptent: the pte to be checked
++ * @target: the pointer the target page or swap ent will be stored(can be NULL)
++ *
++ * Returns
++ *   0(MC_TARGET_NONE): if the pte is not a target for move charge.
++ *   1(MC_TARGET_PAGE): if the page corresponding to this pte is a target for
++ *     move charge. if @target is not NULL, the page is stored in target->page
++ *     with extra refcnt got(Callers should handle it).
++ *   2(MC_TARGET_SWAP): if the swap entry corresponding to this pte is a
++ *     target for charge migration. if @target is not NULL, the entry is stored
++ *     in target->ent.
++ *
++ * Called with pte lock held.
++ */
++
+ static enum mc_target_type get_mctgt_type(struct vm_area_struct *vma,
+ 		unsigned long addr, pte_t ptent, union mc_target *target)
+ {
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from roy.qing.li@gmail.com are
 
-mm-make-optimistic-check-for-swapin-readahead-fix.patch
+mm-memcontrol-remove-the-useless-parameter-for-mc_handle_swap_pte.patch
 
