@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-rename-zstrm-find-release-functions.patch added to -mm
- tree
-Date: Tue, 31 May 2016 12:10:39 -0700
-Message-ID: <574de1af.TSWbhsCGjy8Upwn4%akpm@linux-foundation.org>
+Subject: + zram-align-zcomp-interface-to-crypto-comp-api.patch added to
+ -mm tree
+Date: Tue, 31 May 2016 12:10:44 -0700
+Message-ID: <574de1b4.NzXzA9xOz3wABaLn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48671 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48677 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750744AbcEaTKl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 15:10:41 -0400
+	with ESMTP id S1751375AbcEaTKp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 15:10:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, iamjoonsoo.kim@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: rename zstrm find-release functions
+     Subject: zram: align zcomp interface to crypto comp API
 has been added to the -mm tree.  Its filename is
-     zram-rename-zstrm-find-release-functions.patch
+     zram-align-zcomp-interface-to-crypto-comp-api.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-rename-zstrm-find-release-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-align-zcomp-interface-to-crypto-comp-api.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-rename-zstrm-find-release-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-align-zcomp-interface-to-crypto-comp-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,162 +40,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: rename zstrm find-release functions
+Subject: zram: align zcomp interface to crypto comp API
 
-This has started as a 'add zlib support' work, but after some thinking I
-saw no blockers for a bigger change -- a switch to crypto API.
+A cosmetic change:
+update zcomp interface to be more aligned with the crypto API.
 
-We don't have an idle zstreams list anymore and our write path now works
-absolutely differently, preventing preemption during compression.  This
-removes possibilities of read paths preempting writes at wrong places and
-opens the door for a move from custom LZO/LZ4 compression backends
-implementation to a more generic one, using crypto compress API.
-
-This patch set also eliminates the need of a new context-less crypto API
-interface, which was quite hard to sell, so we can move along faster.
-
-benchmarks:
-
-(x86_64, 4GB, zram-perf script)
-
-perf reported run-time fio (max jobs=3)
-
-test-fio-zram-842
-     197.907655282 seconds time elapsed
-     201.623142884 seconds time elapsed
-     226.854291345 seconds time elapsed
-test-fio-zram-DEFLATE
-     253.259516155 seconds time elapsed
-     258.148563401 seconds time elapsed
-     290.251909365 seconds time elapsed
-test-fio-zram-LZ4
-      27.022598717 seconds time elapsed
-      29.580522717 seconds time elapsed
-      33.293463430 seconds time elapsed
-test-fio-zram-LZ4HC
-      56.393954615 seconds time elapsed
-      74.904659747 seconds time elapsed
-     101.940998564 seconds time elapsed
-test-fio-zram-LZO
-      28.155948075 seconds time elapsed
-      30.390036330 seconds time elapsed
-      34.455773159 seconds time elapsed
-
-
-zram mm_stat-s (max fio jobs=3)
-
-test-fio-zram-842
-mm_stat (jobs1): 3221225472 673185792 690266112        0 690266112        0        0
-mm_stat (jobs2): 3221225472 673185792 690266112        0 690266112        0        0
-mm_stat (jobs3): 3221225472 673185792 690266112        0 690266112        0        0
-test-fio-zram-DEFLATE
-mm_stat (jobs1): 3221225472  24379392  37761024        0  37761024        0        0
-mm_stat (jobs2): 3221225472  24379392  37761024        0  37761024        0        0
-mm_stat (jobs3): 3221225472  24379392  37761024        0  37761024        0        0
-test-fio-zram-LZ4
-mm_stat (jobs1): 3221225472  23592960  37761024        0  37761024        0        0
-mm_stat (jobs2): 3221225472  23592960  37761024        0  37761024        0        0
-mm_stat (jobs3): 3221225472  23592960  37761024        0  37761024        0        0
-test-fio-zram-LZ4HC
-mm_stat (jobs1): 3221225472  23592960  37761024        0  37761024        0        0
-mm_stat (jobs2): 3221225472  23592960  37761024        0  37761024        0        0
-mm_stat (jobs3): 3221225472  23592960  37761024        0  37761024        0        0
-test-fio-zram-LZO
-mm_stat (jobs1): 3221225472  34603008  50335744        0  50335744        0        0
-mm_stat (jobs2): 3221225472  34603008  50335744        0  50335744        0        0
-mm_stat (jobs3): 3221225472  34603008  50335744        0  50339840        0        0
-
-
-This patch (of 8):
-
-We don't perform any zstream idle list lookup anymore, so
-zcomp_strm_find()/zcomp_strm_release() names are not representative.
-
-Rename to zcomp_stream_get()/zcomp_stream_put().
-
-Link: http://lkml.kernel.org/r/20160531122017.2878-2-sergey.senozhatsky@gmail.com
+Link: http://lkml.kernel.org/r/20160531122017.2878-4-sergey.senozhatsky@gmail.com
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c    |    4 ++--
- drivers/block/zram/zcomp.h    |    4 ++--
- drivers/block/zram/zram_drv.c |    8 ++++----
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/block/zram/zcomp.c    |    5 ++---
+ drivers/block/zram/zcomp.h    |    5 ++---
+ drivers/block/zram/zram_drv.c |    2 +-
+ 3 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN drivers/block/zram/zcomp.c~zram-rename-zstrm-find-release-functions drivers/block/zram/zcomp.c
---- a/drivers/block/zram/zcomp.c~zram-rename-zstrm-find-release-functions
+diff -puN drivers/block/zram/zcomp.c~zram-align-zcomp-interface-to-crypto-comp-api drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-align-zcomp-interface-to-crypto-comp-api
 +++ a/drivers/block/zram/zcomp.c
-@@ -95,12 +95,12 @@ bool zcomp_available_algorithm(const cha
- 	return find_backend(comp) != NULL;
+@@ -103,7 +103,7 @@ void zcomp_stream_put(struct zcomp *comp
  }
  
--struct zcomp_strm *zcomp_strm_find(struct zcomp *comp)
-+struct zcomp_strm *zcomp_stream_get(struct zcomp *comp)
+ int zcomp_compress(struct zcomp_strm *zstrm,
+-		const unsigned char *src, unsigned int *dst_len)
++		const void *src, unsigned int *dst_len)
  {
- 	return *get_cpu_ptr(comp->stream);
+ 	/*
+ 	 * Our dst memory (zstrm->buffer) is always `2 * PAGE_SIZE' sized
+@@ -127,8 +127,7 @@ int zcomp_compress(struct zcomp_strm *zs
  }
  
--void zcomp_strm_release(struct zcomp *comp, struct zcomp_strm *zstrm)
-+void zcomp_stream_put(struct zcomp *comp)
+ int zcomp_decompress(struct zcomp_strm *zstrm,
+-		const unsigned char *src,
+-		size_t src_len, unsigned char *dst)
++		const void *src, unsigned int src_len, void *dst)
  {
- 	put_cpu_ptr(comp->stream);
- }
-diff -puN drivers/block/zram/zcomp.h~zram-rename-zstrm-find-release-functions drivers/block/zram/zcomp.h
---- a/drivers/block/zram/zcomp.h~zram-rename-zstrm-find-release-functions
+ 	unsigned int dst_len = PAGE_SIZE;
+ 
+diff -puN drivers/block/zram/zcomp.h~zram-align-zcomp-interface-to-crypto-comp-api drivers/block/zram/zcomp.h
+--- a/drivers/block/zram/zcomp.h~zram-align-zcomp-interface-to-crypto-comp-api
 +++ a/drivers/block/zram/zcomp.h
-@@ -48,8 +48,8 @@ bool zcomp_available_algorithm(const cha
- struct zcomp *zcomp_create(const char *comp);
- void zcomp_destroy(struct zcomp *comp);
+@@ -49,11 +49,10 @@ struct zcomp_strm *zcomp_stream_get(stru
+ void zcomp_stream_put(struct zcomp *comp);
  
--struct zcomp_strm *zcomp_strm_find(struct zcomp *comp);
--void zcomp_strm_release(struct zcomp *comp, struct zcomp_strm *zstrm);
-+struct zcomp_strm *zcomp_stream_get(struct zcomp *comp);
-+void zcomp_stream_put(struct zcomp *comp);
+ int zcomp_compress(struct zcomp_strm *zstrm,
+-		const unsigned char *src, unsigned int *dst_len);
++		const void *src, unsigned int *dst_len);
  
- int zcomp_compress(struct zcomp *comp, struct zcomp_strm *zstrm,
- 		const unsigned char *src, size_t *dst_len);
-diff -puN drivers/block/zram/zram_drv.c~zram-rename-zstrm-find-release-functions drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-rename-zstrm-find-release-functions
+ int zcomp_decompress(struct zcomp_strm *zstrm,
+-		const unsigned char *src,
+-		size_t src_len, unsigned char *dst);
++		const void *src, unsigned int src_len, void *dst);
+ 
+ bool zcomp_set_max_streams(struct zcomp *comp, int num_strm);
+ #endif /* _ZCOMP_H_ */
+diff -puN drivers/block/zram/zram_drv.c~zram-align-zcomp-interface-to-crypto-comp-api drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-align-zcomp-interface-to-crypto-comp-api
 +++ a/drivers/block/zram/zram_drv.c
-@@ -695,7 +695,7 @@ compress_again:
- 		goto out;
- 	}
+@@ -563,7 +563,7 @@ static int zram_decompress_page(struct z
+ 	unsigned char *cmem;
+ 	struct zram_meta *meta = zram->meta;
+ 	unsigned long handle;
+-	size_t size;
++	unsigned int size;
  
--	zstrm = zcomp_strm_find(zram->comp);
-+	zstrm = zcomp_stream_get(zram->comp);
- 	ret = zcomp_compress(zram->comp, zstrm, uncmem, &clen);
- 	if (!is_partial_io(bvec)) {
- 		kunmap_atomic(user_mem);
-@@ -734,7 +734,7 @@ compress_again:
- 				__GFP_NOWARN |
- 				__GFP_HIGHMEM);
- 	if (!handle) {
--		zcomp_strm_release(zram->comp, zstrm);
-+		zcomp_stream_put(zram->comp);
- 		zstrm = NULL;
- 
- 		atomic64_inc(&zram->stats.writestall);
-@@ -769,7 +769,7 @@ compress_again:
- 		memcpy(cmem, src, clen);
- 	}
- 
--	zcomp_strm_release(zram->comp, zstrm);
-+	zcomp_stream_put(zram->comp);
- 	zstrm = NULL;
- 	zs_unmap_object(meta->mem_pool, handle);
- 
-@@ -789,7 +789,7 @@ compress_again:
- 	atomic64_inc(&zram->stats.pages_stored);
- out:
- 	if (zstrm)
--		zcomp_strm_release(zram->comp, zstrm);
-+		zcomp_stream_put(zram->comp);
- 	if (is_partial_io(bvec))
- 		kfree(uncmem);
- 	return ret;
+ 	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
+ 	handle = meta->table[index].handle;
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
