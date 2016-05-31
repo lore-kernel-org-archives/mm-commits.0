@@ -1,72 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch removed from -mm tree
-Date: Tue, 31 May 2016 10:50:52 -0700
-Message-ID: <574dcefc.ihNp5Szg21Eimnx9%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue.patch
+ added to -mm tree
+Date: Tue, 31 May 2016 11:45:14 -0700
+Message-ID: <574ddbba.+p9xSfiWPq3DV0hN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47496 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48154 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755490AbcEaRux (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:53 -0400
+	with ESMTP id S1756022AbcEaSpP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 14:45:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, neilb@suse.com, trondmy@primarydata.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/nfs/nfs4state.c: work around gcc-4.4 anon union initialization bug
-has been removed from the -mm tree.  Its filename was
-     fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug.patch
+     Subject: mm, page_alloc: prevent infinite loop in buffered_rmqueue()
+has been added to the -mm tree.  Its filename is
+     mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/nfs/nfs4state.c: work around gcc-4.4 anon union initialization bug
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: prevent infinite loop in buffered_rmqueue()
 
-fs/nfs/nfs4state.c:69: error: unknown field 'data' specified in initializer
-fs/nfs/nfs4state.c:69: warning: missing braces around initializer
-fs/nfs/nfs4state.c:69: warning: (near initialization for 'zero_stateid.<anonymous>.data')
+In DEBUG_VM kernel, we can hit infinite loop for order == 0 in
+buffered_rmqueue() when check_new_pcp() returns 1, because the bad page is
+never removed from the pcp list.  Fix this by removing the page before
+retrying.  Also we don't need to check if page is non-NULL, because we
+simply grab it from the list which was just tested for being non-empty.
 
-Old gcc is stupid but the fix is easy enough.
-
-Cc: Trond Myklebust <trondmy@primarydata.com>
-Cc: NeilBrown <neilb@suse.com>
+Fixes: 479f854a207c ("mm, page_alloc: defer debugging checks of pages allocated from the PCP")
+Link: http://lkml.kernel.org/r/20160530090154.GM2527@techsingularity.net
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/nfs4state.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN fs/nfs/nfs4state.c~fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug fs/nfs/nfs4state.c
---- a/fs/nfs/nfs4state.c~fs-nfs-nfs4statec-work-around-gcc-44-union-initialization-bug
-+++ a/fs/nfs/nfs4state.c
-@@ -66,7 +66,9 @@
- #define OPENOWNER_POOL_SIZE	8
+diff -puN mm/page_alloc.c~mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue
++++ a/mm/page_alloc.c
+@@ -2615,11 +2615,12 @@ struct page *buffered_rmqueue(struct zon
+ 				page = list_last_entry(list, struct page, lru);
+ 			else
+ 				page = list_first_entry(list, struct page, lru);
+-		} while (page && check_new_pcp(page));
  
- const nfs4_stateid zero_stateid = {
--	.data = { 0 },
-+	{
-+		.data = { 0 },
-+	},
- 	.type = NFS4_SPECIAL_STATEID_TYPE,
- };
- static DEFINE_MUTEX(nfs_clid_init_mutex);
+-		__dec_zone_state(zone, NR_ALLOC_BATCH);
+-		list_del(&page->lru);
+-		pcp->count--;
++			__dec_zone_state(zone, NR_ALLOC_BATCH);
++			list_del(&page->lru);
++			pcp->count--;
++
++		} while (check_new_pcp(page));
+ 	} else {
+ 		/*
+ 		 * We most definitely don't want callers attempting to
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-fix-overflow-in-vm_map_ram-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-page_alloc-prevent-infinite-loop-in-buffered_rmqueue.patch
 
