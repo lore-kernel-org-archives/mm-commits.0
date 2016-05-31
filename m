@@ -1,70 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-o2hb-fix-hb-hung-time.patch removed from -mm tree
-Date: Tue, 31 May 2016 10:50:16 -0700
-Message-ID: <574dced8.DOv4O8Op7LzjQ/20%akpm@linux-foundation.org>
+Subject: [merged]
+ direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read.patch removed from -mm tree
+Date: Tue, 31 May 2016 10:50:21 -0700
+Message-ID: <574dcedd.f7rQFL5UexTt2tau%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47428 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47437 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754949AbcEaRuR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:17 -0400
+	with ESMTP id S1755475AbcEaRuW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, rwxybh@126.com, ryan.ding@oracle.com, mm-commits@vger.kernel.org
+To: guaneryu@gmail.com, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: o2hb: fix hb hung time
+     Subject: direct-io: fix direct write stale data exposure from concurrent buffered read
 has been removed from the -mm tree.  Its filename was
-     ocfs2-o2hb-fix-hb-hung-time.patch
+     direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: o2hb: fix hb hung time
+From: Eryu Guan <guaneryu@gmail.com>
+Subject: direct-io: fix direct write stale data exposure from concurrent buffered read
 
-hr_last_timeout_start should be set as the last time where hb is still OK.
-When hb write timeout, hung time will be (jiffies -
-hr_last_timeout_start).
+Currently direct writes inside i_size on a DIO_SKIP_HOLES filesystem are
+not allowed to allocate blocks(get_more_blocks() sets 'create' to 0 before
+calling get_block() callback), if it's a sparse file, direct writes fall
+back to buffered writes to avoid stale data exposure from concurrent
+buffered read.  But there're two cases that can result in stale data
+exposure are not correctly detected.
 
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Ryan Ding <ryan.ding@oracle.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Cc: Gang He <ghe@suse.com>
-Cc: rwxybh <rwxybh@126.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+1. The detection for "writing inside i_size" is not sufficient,
+   writes can be treated as "extending writes" wrongly.  For example,
+   direct write 1FSB (file system block) to a 1FSB sparse file on
+   ext2/3/4, starting from offset 0, in this case it's writing inside
+   i_size, but 'create' is non-zero, because 'block_in_file' and
+   '(i_size_read(inode) >> blkbits' are both zero.
+
+2. Direct writes starting from or beyong i_size (not inside i_size)
+   also could trigger block allocation and expose stale data.  For
+   example, consider a sparse file with i_size of 2k, and a write to
+   offset 2k or 3k into the file, with a filesystem block size of 4k. 
+   (Thanks to Jeff Moyer for pointing this case out in his review.)
+
+The first problem can be demostrated by running ltp-aiodio test ADSP045
+many times.  When testing on extN filesystems, I see test failures
+occasionally, buffered read could read non-zero (stale) data.
+
+ADSP045: dio_sparse -a 4k -w 4k -s 2k -n 1
+
+dio_sparse    0  TINFO  :  Dirtying free blocks
+dio_sparse    0  TINFO  :  Starting I/O tests
+non zero buffer at buf[0] => 0xffffffaa,ffffffaa,ffffffaa,ffffffaa
+non-zero read at offset 0
+dio_sparse    0  TINFO  :  Killing childrens(s)
+dio_sparse    1  TFAIL  :  dio_sparse.c:191: 1 children(s) exited abnormally
+
+The second problem can also be reproduced easily by a hacked dio_sparse
+program, which accepts an option to specify the write offset.
+
+What we should really do is to disable block allocation for writes that
+could result in filling holes inside i_size.
+
+Link: http://lkml.kernel.org/r/1463156728-13357-1-git-send-email-guaneryu@gmail.com
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Eryu Guan <guaneryu@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/direct-io.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-fix-hb-hung-time fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-fix-hb-hung-time
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -356,7 +356,6 @@ static void o2hb_arm_timeout(struct o2hb
- 		spin_unlock(&o2hb_live_lock);
- 	}
- 	cancel_delayed_work(&reg->hr_write_timeout_work);
--	reg->hr_last_timeout_start = jiffies;
- 	schedule_delayed_work(&reg->hr_write_timeout_work,
- 			      msecs_to_jiffies(O2HB_MAX_WRITE_TIMEOUT_MS));
+diff -puN fs/direct-io.c~direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read fs/direct-io.c
+--- a/fs/direct-io.c~direct-io-fix-direct-write-stale-data-exposure-from-concurrent-buffered-read
++++ a/fs/direct-io.c
+@@ -628,11 +628,11 @@ static int get_more_blocks(struct dio *d
+ 		map_bh->b_size = fs_count << i_blkbits;
  
-@@ -1174,6 +1173,7 @@ static int o2hb_do_disk_heartbeat(struct
- 	if (own_slot_ok) {
- 		o2hb_set_quorum_device(reg);
- 		o2hb_arm_timeout(reg);
-+		reg->hr_last_timeout_start = jiffies;
- 	}
+ 		/*
+-		 * For writes inside i_size on a DIO_SKIP_HOLES filesystem we
+-		 * forbid block creations: only overwrites are permitted.
+-		 * We will return early to the caller once we see an
+-		 * unmapped buffer head returned, and the caller will fall
+-		 * back to buffered I/O.
++		 * For writes that could fill holes inside i_size on a
++		 * DIO_SKIP_HOLES filesystem we forbid block creations: only
++		 * overwrites are permitted. We will return early to the caller
++		 * once we see an unmapped buffer head returned, and the caller
++		 * will fall back to buffered I/O.
+ 		 *
+ 		 * Otherwise the decision is left to the get_blocks method,
+ 		 * which may decide to handle it or also return an unmapped
+@@ -640,8 +640,8 @@ static int get_more_blocks(struct dio *d
+ 		 */
+ 		create = dio->rw & WRITE;
+ 		if (dio->flags & DIO_SKIP_HOLES) {
+-			if (sdio->block_in_file < (i_size_read(dio->inode) >>
+-							sdio->blkbits))
++			if (fs_startblk <= ((i_size_read(dio->inode) - 1) >>
++							i_blkbits))
+ 				create = 0;
+ 		}
  
- bail:
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from guaneryu@gmail.com are
 
 
