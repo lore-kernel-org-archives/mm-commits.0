@@ -1,68 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap.patch
- removed from -mm tree
-Date: Tue, 31 May 2016 10:50:38 -0700
-Message-ID: <574dceee.QcdbhmKH2HYLgfEu%akpm__36353.9296821274$1464717052$gmane$org@linux-foundation.org>
+Subject: [merged] mm-cma-silence-warnings-due-to-max-usage.patch removed
+ from -mm tree
+Date: Tue, 31 May 2016 10:50:41 -0700
+Message-ID: <574dcef1.MKf7ehJArCU66pCP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47467 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47469 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755528AbcEaRuj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:39 -0400
+	with ESMTP id S1755681AbcEaRum (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mika.westerberg@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: avoid false positive VM_BUG_ON_PAGE in page_move_anon_rmap()
+     Subject: mm/cma: silence warnings due to max() usage
 has been removed from the -mm tree.  Its filename was
-     mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap.patch
+     mm-cma-silence-warnings-due-to-max-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: thp: avoid false positive VM_BUG_ON_PAGE in page_move_anon_rmap()
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: mm/cma: silence warnings due to max() usage
 
-If page_move_anon_rmap() is refiling a pmd-splitted THP mapped in a tail
-page from a pte, the "address" must be THP aligned in order for the
-page->index bugcheck to pass in the CONFIG_DEBUG_VM=y builds.
+pageblock_order can be (at least) an unsigned int or an unsigned long
+depending on the kernel config and architecture, so use max_t(unsigned
+long, ...) when comparing it.
 
-Link: http://lkml.kernel.org/r/1464253620-106404-1-git-send-email-kirill.shutemov@linux.intel.com
-Fixes: 6d0a07edd17c ("mm: thp: calculate the mapcount correctly for THP pages during WP faults")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>        [4.5]
+fixes these warnings:
+
+In file included from include/asm-generic/bug.h:13:0,
+                 from arch/powerpc/include/asm/bug.h:127,
+                 from include/linux/bug.h:4,
+                 from include/linux/mmdebug.h:4,
+                 from include/linux/mm.h:8,
+                 from include/linux/memblock.h:18,
+                 from mm/cma.c:28:
+mm/cma.c: In function 'cma_init_reserved_mem':
+include/linux/kernel.h:748:17: warning: comparison of distinct pointer types lacks a cast
+  (void) (&_max1 == &_max2);                   ^
+mm/cma.c:186:27: note: in expansion of macro 'max'
+  alignment = PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order);
+                           ^
+mm/cma.c: In function 'cma_declare_contiguous':
+include/linux/kernel.h:748:17: warning: comparison of distinct pointer types lacks a cast
+  (void) (&_max1 == &_max2);                   ^
+include/linux/kernel.h:747:9: note: in definition of macro 'max'
+  typeof(y) _max2 = (y);            ^
+mm/cma.c:270:29: note: in expansion of macro 'max'
+   (phys_addr_t)PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order));
+                             ^
+include/linux/kernel.h:748:17: warning: comparison of distinct pointer types lacks a cast
+  (void) (&_max1 == &_max2);                   ^
+include/linux/kernel.h:747:21: note: in definition of macro 'max'
+  typeof(y) _max2 = (y);                        ^
+mm/cma.c:270:29: note: in expansion of macro 'max'
+   (phys_addr_t)PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order));
+                             ^
+
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/20160526150748.5be38a4f@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/cma.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/rmap.c~mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap mm/rmap.c
---- a/mm/rmap.c~mm-thp-avoid-false-positive-vm_bug_on_page-in-page_move_anon_rmap
-+++ a/mm/rmap.c
-@@ -1098,6 +1098,8 @@ void page_move_anon_rmap(struct page *pa
+diff -puN mm/cma.c~mm-cma-silence-warnings-due-to-max-usage mm/cma.c
+--- a/mm/cma.c~mm-cma-silence-warnings-due-to-max-usage
++++ a/mm/cma.c
+@@ -183,7 +183,8 @@ int __init cma_init_reserved_mem(phys_ad
+ 		return -EINVAL;
  
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_VMA(!anon_vma, vma);
-+	if (IS_ENABLED(CONFIG_DEBUG_VM) && PageTransHuge(page))
-+		address &= HPAGE_PMD_MASK;
- 	VM_BUG_ON_PAGE(page->index != linear_page_index(vma, address), page);
+ 	/* ensure minimal alignment required by mm core */
+-	alignment = PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order);
++	alignment = PAGE_SIZE <<
++			max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
  
- 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
+ 	/* alignment should be aligned with order_per_bit */
+ 	if (!IS_ALIGNED(alignment >> PAGE_SHIFT, 1 << order_per_bit))
+@@ -266,8 +267,8 @@ int __init cma_declare_contiguous(phys_a
+ 	 * migratetype page by page allocator's buddy algorithm. In the case,
+ 	 * you couldn't get a contiguous memory, which is not what we want.
+ 	 */
+-	alignment = max(alignment,
+-		(phys_addr_t)PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order));
++	alignment = max(alignment,  (phys_addr_t)PAGE_SIZE <<
++			  max_t(unsigned long, MAX_ORDER - 1, pageblock_order));
+ 	base = ALIGN(base, alignment);
+ 	size = ALIGN(size, alignment);
+ 	limit &= ~(alignment - 1);
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+mm-make-optimistic-check-for-swapin-readahead-fix.patch
 
