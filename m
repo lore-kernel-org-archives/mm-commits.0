@@ -1,96 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-early_pfn_to_nid-in-page_ext_init.patch removed
+Subject: [merged] oom_reaper-close-race-with-exiting-task.patch removed
  from -mm tree
-Date: Tue, 31 May 2016 10:50:31 -0700
-Message-ID: <574dcee7.N3L1xXTeopg03emj%akpm@linux-foundation.org>
+Date: Tue, 31 May 2016 10:50:35 -0700
+Message-ID: <574dceeb.oHIUSlZv2MswYes6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47454 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47463 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755612AbcEaRuc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:32 -0400
+	with ESMTP id S1755641AbcEaRug (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yang.shi@linaro.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use early_pfn_to_nid in page_ext_init
+     Subject: oom_reaper: close race with exiting task
 has been removed from the -mm tree.  Its filename was
-     mm-use-early_pfn_to_nid-in-page_ext_init.patch
+     oom_reaper-close-race-with-exiting-task.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linaro.org>
-Subject: mm: use early_pfn_to_nid in page_ext_init
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom_reaper: close race with exiting task
 
-page_ext_init() checks suitable pages with pfn_to_nid(), but pfn_to_nid()
-depends on memmap which will not be setup fully until
-page_alloc_init_late() is done.  Use early_pfn_to_nid() instead of
-pfn_to_nid() so that page extension could be still used early even though
-CONFIG_ DEFERRED_STRUCT_PAGE_INIT is enabled and catch early page
-allocation call sites.
+Tetsuo has reported:
+[   74.453958] Out of memory: Kill process 443 (oleg's-test) score 855 or sacrifice child
+[   74.456234] Killed process 443 (oleg's-test) total-vm:493248kB, anon-rss:423880kB, file-rss:4kB, shmem-rss:0kB
+[   74.459219] sh invoked oom-killer: gfp_mask=0x24201ca(GFP_HIGHUSER_MOVABLE|__GFP_COLD), order=0, oom_score_adj=0
+[   74.462813] sh cpuset=/ mems_allowed=0
+[   74.465221] CPU: 2 PID: 1 Comm: sh Not tainted 4.6.0-rc7+ #51
+[   74.467037] Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Platform, BIOS 6.00 07/31/2013
+[   74.470207]  0000000000000286 00000000a17a86b0 ffff88001e673a18 ffffffff812c7cbd
+[   74.473422]  0000000000000000 ffff88001e673bd0 ffff88001e673ab8 ffffffff811b9e94
+[   74.475704]  ffff88001e66cbe0 ffff88001e673ab8 0000000000000246 0000000000000000
+[   74.477990] Call Trace:
+[   74.479170]  [<ffffffff812c7cbd>] dump_stack+0x85/0xc8
+[   74.480872]  [<ffffffff811b9e94>] dump_header+0x5b/0x394
+[   74.481837] oom_reaper: reaped process 443 (oleg's-test), now anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
 
-Suggested by Joonsoo Kim [1], this fix basically undoes the change
-introduced by commit b8f1a75d61d840 ("mm: call page_ext_init() after all
-struct pages are initialized") and fixes the same problem with a better
-approach.
+In other words:
+__oom_reap_task			exit_mm
+  atomic_inc_not_zero
+				  tsk->mm = NULL
+				  mmput
+				    atomic_dec_and_test # > 0
+				  exit_oom_victim # New victim will be
+						  # selected
+				<OOM killer invoked>
+				  # no TIF_MEMDIE task so we can select a new one
+  unmap_page_range # to release the memory
 
-[1] http://lkml.kernel.org/r/CAAmzW4OUmyPwQjvd7QUfc6W1Aic__TyAuH80MLRZNMxKy0-wPQ@mail.gmail.com
+The race exists even without the oom_reaper because anybody who pins the
+address space and gets preempted might race with exit_mm but oom_reaper
+made this race more probable.
 
-Link: http://lkml.kernel.org/r/1464198689-23458-1-git-send-email-yang.shi@linaro.org
-Signed-off-by: Yang Shi <yang.shi@linaro.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+We can address the oom_reaper part by using oom_lock for __oom_reap_task
+because this would guarantee that a new oom victim will not be selected if
+the oom reaper might race with the exit path.  This doesn't solve the
+original issue, though, because somebody else still might be pinning
+mm_users and so __mmput won't be called to release the memory but that is
+not really realiably solvable because the task will get away from the oom
+sight as soon as it is unhashed from the task_list and so we cannot
+guarantee a new victim won't be selected.
+
+[akpm@linux-foundation.org: fix use of unused `mm', Per Stephen]
+[akpm@linux-foundation.org: coding-style fixes]
+Fixes: aac453635549 ("mm, oom: introduce oom reaper")
+Link: http://lkml.kernel.org/r/1464271493-20008-1-git-send-email-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c   |    3 +--
- mm/page_ext.c |    4 +++-
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ mm/oom_kill.c |   30 ++++++++++++++++++++++++------
+ 1 file changed, 24 insertions(+), 6 deletions(-)
 
-diff -puN init/main.c~mm-use-early_pfn_to_nid-in-page_ext_init init/main.c
---- a/init/main.c~mm-use-early_pfn_to_nid-in-page_ext_init
-+++ a/init/main.c
-@@ -607,6 +607,7 @@ asmlinkage __visible void __init start_k
- 		initrd_start = 0;
+diff -puN mm/oom_kill.c~oom_reaper-close-race-with-exiting-task mm/oom_kill.c
+--- a/mm/oom_kill.c~oom_reaper-close-race-with-exiting-task
++++ a/mm/oom_kill.c
+@@ -443,13 +443,29 @@ static bool __oom_reap_task(struct task_
+ {
+ 	struct mmu_gather tlb;
+ 	struct vm_area_struct *vma;
+-	struct mm_struct *mm;
++	struct mm_struct *mm = NULL;
+ 	struct task_struct *p;
+ 	struct zap_details details = {.check_swap_entries = true,
+ 				      .ignore_dirty = true};
+ 	bool ret = true;
+ 
+ 	/*
++	 * We have to make sure to not race with the victim exit path
++	 * and cause premature new oom victim selection:
++	 * __oom_reap_task		exit_mm
++	 *   atomic_inc_not_zero
++	 *				  mmput
++	 *				    atomic_dec_and_test
++	 *				  exit_oom_victim
++	 *				[...]
++	 *				out_of_memory
++	 *				  select_bad_process
++	 *				    # no TIF_MEMDIE task selects new victim
++	 *  unmap_page_range # frees some memory
++	 */
++	mutex_lock(&oom_lock);
++
++	/*
+ 	 * Make sure we find the associated mm_struct even when the particular
+ 	 * thread has already terminated and cleared its mm.
+ 	 * We might have race with exit path so consider our work done if there
+@@ -457,19 +473,19 @@ static bool __oom_reap_task(struct task_
+ 	 */
+ 	p = find_lock_task_mm(tsk);
+ 	if (!p)
+-		return true;
++		goto unlock_oom;
+ 
+ 	mm = p->mm;
+ 	if (!atomic_inc_not_zero(&mm->mm_users)) {
+ 		task_unlock(p);
+-		return true;
++		goto unlock_oom;
  	}
- #endif
-+	page_ext_init();
- 	debug_objects_mem_init();
- 	kmemleak_init();
- 	setup_per_cpu_pageset();
-@@ -1003,8 +1004,6 @@ static noinline void __init kernel_init_
- 	sched_init_smp();
  
- 	page_alloc_init_late();
--	/* Initialize page ext after all struct pages are initializaed */
--	page_ext_init();
+ 	task_unlock(p);
  
- 	do_basic_setup();
+ 	if (!down_read_trylock(&mm->mmap_sem)) {
+ 		ret = false;
+-		goto out;
++		goto unlock_oom;
+ 	}
  
-diff -puN mm/page_ext.c~mm-use-early_pfn_to_nid-in-page_ext_init mm/page_ext.c
---- a/mm/page_ext.c~mm-use-early_pfn_to_nid-in-page_ext_init
-+++ a/mm/page_ext.c
-@@ -390,8 +390,10 @@ void __init page_ext_init(void)
- 			 * We know some arch can have a nodes layout such as
- 			 * -------------pfn-------------->
- 			 * N0 | N1 | N2 | N0 | N1 | N2|....
-+			 *
-+			 * Take into account DEFERRED_STRUCT_PAGE_INIT.
- 			 */
--			if (pfn_to_nid(pfn) != nid)
-+			if (early_pfn_to_nid(pfn) != nid)
- 				continue;
- 			if (init_section_page_ext(pfn, nid))
- 				goto oom;
+ 	tlb_gather_mmu(&tlb, mm, 0, -1);
+@@ -511,13 +527,15 @@ static bool __oom_reap_task(struct task_
+ 	 * to release its memory.
+ 	 */
+ 	set_bit(MMF_OOM_REAPED, &mm->flags);
+-out:
++unlock_oom:
++	mutex_unlock(&oom_lock);
+ 	/*
+ 	 * Drop our reference but make sure the mmput slow path is called from a
+ 	 * different context because we shouldn't risk we get stuck there and
+ 	 * put the oom_reaper out of the way.
+ 	 */
+-	mmput_async(mm);
++	if (mm)
++		mmput_async(mm);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from yang.shi@linaro.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites.patch
 
