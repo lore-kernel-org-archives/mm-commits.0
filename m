@@ -1,76 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-kdump-maintainers-update.patch removed from
- -mm tree
-Date: Tue, 31 May 2016 10:50:28 -0700
-Message-ID: <574dcee4.waX01rJLNPBiFJMR%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-use-early_pfn_to_nid-in-register_page_bootmem_info_node.patch removed
+ from -mm tree
+Date: Tue, 31 May 2016 10:50:33 -0700
+Message-ID: <574dcee9.SOvHf5ILf/naP5rj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47447 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47460 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755598AbcEaRu3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:29 -0400
+	with ESMTP id S1753267AbcEaRue (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 13:50:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgoyal@redhat.com, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, hbabu@us.ibm.com, horms@verge.net.au, joe@perches.com, mm-commits@vger.kernel.org
+To: yang.shi@linaro.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: Kdump maintainers update
+     Subject: mm: use early_pfn_to_nid in register_page_bootmem_info_node
 has been removed from the -mm tree.  Its filename was
-     maintainers-kdump-maintainers-update.patch
+     mm-use-early_pfn_to_nid-in-register_page_bootmem_info_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vivek Goyal <vgoyal@redhat.com>
-Subject: MAINTAINERS: Kdump maintainers update
+From: Yang Shi <yang.shi@linaro.org>
+Subject: mm: use early_pfn_to_nid in register_page_bootmem_info_node
 
-I am proposing following updates to kdump maintainership.  I have got busy
-in other things and not getting time to spend on kdump.
+register_page_bootmem_info_node() is invoked in mem_init(), so it will be
+called before page_alloc_init_late() if CONFIG_DEFERRED_STRUCT_PAGE_INIT
+is enabled.  But, pfn_to_nid() depends on memmap which won't be fully
+setup until page_alloc_init_late() is done, so replace pfn_to_nid() by
+early_pfn_to_nid().
 
-Remove Haren Myneni as he has not participated in kdump development for a
-long time now.
-
-Add the names of Dave and Baoquan as kdump maintainers as they have been
-contributing to kdump for a long time now and they are in a much better
-position to spend time on this than me.
-
-Mark myself as a reviewer.
-
-Link: http://lkml.kernel.org/r/20160525131616.GB27291@redhat.com
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-Acked-by: Simon Horman <horms@verge.net.au>
-Cc: Haren Myneni <hbabu@us.ibm.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/1464210007-30930-1-git-send-email-yang.shi@linaro.org
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-kdump-maintainers-update MAINTAINERS
---- a/MAINTAINERS~maintainers-kdump-maintainers-update
-+++ a/MAINTAINERS
-@@ -6413,8 +6413,9 @@ F:	Documentation/kbuild/kconfig-language
- F:	scripts/kconfig/
- 
- KDUMP
--M:	Vivek Goyal <vgoyal@redhat.com>
--M:	Haren Myneni <hbabu@us.ibm.com>
-+M:	Dave Young <dyoung@redhat.com>
-+M:	Baoquan He <bhe@redhat.com>
-+R:	Vivek Goyal <vgoyal@redhat.com>
- L:	kexec@lists.infradead.org
- W:	http://lse.sourceforge.net/kdump/
- S:	Maintained
+diff -puN mm/memory_hotplug.c~mm-use-early_pfn_to_nid-in-register_page_bootmem_info_node mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-use-early_pfn_to_nid-in-register_page_bootmem_info_node
++++ a/mm/memory_hotplug.c
+@@ -300,7 +300,7 @@ void register_page_bootmem_info_node(str
+ 		 * multiple nodes we check that this pfn does not already
+ 		 * reside in some other nodes.
+ 		 */
+-		if (pfn_valid(pfn) && (pfn_to_nid(pfn) == node))
++		if (pfn_valid(pfn) && (early_pfn_to_nid(pfn) == node))
+ 			register_page_bootmem_info_section(pfn);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from vgoyal@redhat.com are
+Patches currently in -mm which might be from yang.shi@linaro.org are
 
+mm-check-the-return-value-of-lookup_page_ext-for-all-call-sites.patch
 
