@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-keep-max_object-in-size_class.patch added to -mm tree
-Date: Wed, 01 Jun 2016 14:41:21 -0700
-Message-ID: <574f5681.2moid0acLUPZQqtn%akpm@linux-foundation.org>
+Subject: + zsmalloc-factor-page-chain-functionality-out.patch added to -mm tree
+Date: Wed, 01 Jun 2016 14:41:27 -0700
+Message-ID: <574f5687.KWMojTqRTNH96Quo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42616 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42627 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750905AbcFAVlW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2016 17:41:22 -0400
+	with ESMTP id S1751740AbcFAVl2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2016 17:41:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan@kernel.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: keep max_object in size_class
+     Subject: zsmalloc: factor page chain functionality out
 has been added to the -mm tree.  Its filename is
-     zsmalloc-keep-max_object-in-size_class.patch
+     zsmalloc-factor-page-chain-functionality-out.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-keep-max_object-in-size_class.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-factor-page-chain-functionality-out.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-keep-max_object-in-size_class.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-factor-page-chain-functionality-out.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,132 +39,127 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: keep max_object in size_class
+Subject: zsmalloc: factor page chain functionality out
 
-Every zspage in a size_class has same number of max objects so
-we could move it to a size_class.
+For page migration, we need to create page chain of zspage dynamically so
+this patch factors it out from alloc_zspage.
 
-Link: http://lkml.kernel.org/r/1464736881-24886-5-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/1464736881-24886-8-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   32 +++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ mm/zsmalloc.c |   59 ++++++++++++++++++++++++++++--------------------
+ 1 file changed, 35 insertions(+), 24 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-keep-max_object-in-size_class mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-keep-max_object-in-size_class
+diff -puN mm/zsmalloc.c~zsmalloc-factor-page-chain-functionality-out mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-factor-page-chain-functionality-out
 +++ a/mm/zsmalloc.c
-@@ -32,8 +32,6 @@
-  *	page->freelist: points to the first free object in zspage.
-  *		Free objects are linked together using in-place
-  *		metadata.
-- *	page->objects: maximum number of objects we can store in this
-- *		zspage (class->zspage_order * PAGE_SIZE / class->size)
-  *	page->lru: links together first pages of various zspages.
-  *		Basically forming list of zspages in a fullness group.
-  *	page->mapping: class index and fullness group of the zspage
-@@ -213,6 +211,7 @@ struct size_class {
- 	 * of ZS_ALIGN.
+@@ -960,7 +960,8 @@ static void init_zspage(struct size_clas
+ 	unsigned long off = 0;
+ 	struct page *page = first_page;
+ 
+-	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
++	first_page->freelist = NULL;
++	set_zspage_inuse(first_page, 0);
+ 
+ 	while (page) {
+ 		struct page *next_page;
+@@ -996,15 +997,16 @@ static void init_zspage(struct size_clas
+ 		page = next_page;
+ 		off %= PAGE_SIZE;
+ 	}
++
++	set_freeobj(first_page, (unsigned long)location_to_obj(first_page, 0));
+ }
+ 
+-/*
+- * Allocate a zspage for the given size class
+- */
+-static struct page *alloc_zspage(struct size_class *class, gfp_t flags)
++static void create_page_chain(struct page *pages[], int nr_pages)
+ {
+-	int i, error;
+-	struct page *first_page = NULL, *uninitialized_var(prev_page);
++	int i;
++	struct page *page;
++	struct page *prev_page = NULL;
++	struct page *first_page = NULL;
+ 
+ 	/*
+ 	 * Allocate individual pages and link them together as:
+@@ -1017,20 +1019,14 @@ static struct page *alloc_zspage(struct
+ 	 * (i.e. no other sub-page has this flag set) and PG_private_2 to
+ 	 * identify the last page.
  	 */
- 	int size;
-+	int objs_per_zspage;
- 	unsigned int index;
- 
- 	struct zs_size_stat stats;
-@@ -631,21 +630,22 @@ static inline void zs_pool_stat_destroy(
-  * the pool (not yet implemented). This function returns fullness
-  * status of the given page.
-  */
--static enum fullness_group get_fullness_group(struct page *first_page)
-+static enum fullness_group get_fullness_group(struct size_class *class,
-+						struct page *first_page)
- {
--	int inuse, max_objects;
-+	int inuse, objs_per_zspage;
- 	enum fullness_group fg;
- 
- 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
- 	inuse = first_page->inuse;
--	max_objects = first_page->objects;
-+	objs_per_zspage = class->objs_per_zspage;
- 
- 	if (inuse == 0)
- 		fg = ZS_EMPTY;
--	else if (inuse == max_objects)
-+	else if (inuse == objs_per_zspage)
- 		fg = ZS_FULL;
--	else if (inuse <= 3 * max_objects / fullness_threshold_frac)
-+	else if (inuse <= 3 * objs_per_zspage / fullness_threshold_frac)
- 		fg = ZS_ALMOST_EMPTY;
- 	else
- 		fg = ZS_ALMOST_FULL;
-@@ -732,7 +732,7 @@ static enum fullness_group fix_fullness_
- 	enum fullness_group currfg, newfg;
- 
- 	get_zspage_mapping(first_page, &class_idx, &currfg);
--	newfg = get_fullness_group(first_page);
-+	newfg = get_fullness_group(class, first_page);
- 	if (newfg == currfg)
- 		goto out;
- 
-@@ -1012,9 +1012,6 @@ static struct page *alloc_zspage(struct
- 	init_zspage(class, first_page);
- 
- 	first_page->freelist = location_to_obj(first_page, 0);
--	/* Maximum number of objects we can store in this zspage */
--	first_page->objects = class->pages_per_zspage * PAGE_SIZE / class->size;
+-	error = -ENOMEM;
+-	for (i = 0; i < class->pages_per_zspage; i++) {
+-		struct page *page;
 -
- 	error = 0; /* Success */
+-		page = alloc_page(flags);
+-		if (!page)
+-			goto cleanup;
++	for (i = 0; i < nr_pages; i++) {
++		page = pages[i];
  
- cleanup:
-@@ -1242,11 +1239,11 @@ static bool can_merge(struct size_class
- 	return true;
- }
- 
--static bool zspage_full(struct page *first_page)
-+static bool zspage_full(struct size_class *class, struct page *first_page)
- {
- 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
--	return first_page->inuse == first_page->objects;
-+	return first_page->inuse == class->objs_per_zspage;
- }
- 
- unsigned long zs_get_total_pages(struct zs_pool *pool)
-@@ -1632,7 +1629,7 @@ static int migrate_zspage(struct zs_pool
+ 		INIT_LIST_HEAD(&page->lru);
+-		if (i == 0) {	/* first page */
++		if (i == 0) {
+ 			SetPagePrivate(page);
+ 			set_page_private(page, 0);
+ 			first_page = page;
+-			set_zspage_inuse(first_page, 0);
  		}
+ 		if (i == 1)
+ 			set_page_private(first_page, (unsigned long)page);
+@@ -1038,22 +1034,37 @@ static struct page *alloc_zspage(struct
+ 			set_page_private(page, (unsigned long)first_page);
+ 		if (i >= 2)
+ 			list_add(&page->lru, &prev_page->lru);
+-		if (i == class->pages_per_zspage - 1)	/* last page */
++		if (i == nr_pages - 1)
+ 			SetPagePrivate2(page);
+ 		prev_page = page;
+ 	}
++}
  
- 		/* Stop if there is no more space */
--		if (zspage_full(d_page)) {
-+		if (zspage_full(class, d_page)) {
- 			unpin_tag(handle);
- 			ret = -ENOMEM;
- 			break;
-@@ -1691,7 +1688,7 @@ static enum fullness_group putback_zspag
- {
- 	enum fullness_group fullness;
+-	init_zspage(class, first_page);
++/*
++ * Allocate a zspage for the given size class
++ */
++static struct page *alloc_zspage(struct size_class *class, gfp_t flags)
++{
++	int i;
++	struct page *first_page = NULL;
++	struct page *pages[ZS_MAX_PAGES_PER_ZSPAGE];
  
--	fullness = get_fullness_group(first_page);
-+	fullness = get_fullness_group(class, first_page);
- 	insert_zspage(class, fullness, first_page);
- 	set_zspage_mapping(first_page, class->index, fullness);
+-	set_freeobj(first_page,	(unsigned long)location_to_obj(first_page, 0));
+-	error = 0; /* Success */
++	for (i = 0; i < class->pages_per_zspage; i++) {
++		struct page *page;
  
-@@ -1943,8 +1940,9 @@ struct zs_pool *zs_create_pool(const cha
- 		class->size = size;
- 		class->index = i;
- 		class->pages_per_zspage = pages_per_zspage;
--		if (pages_per_zspage == 1 &&
--			get_maxobj_per_zspage(size, pages_per_zspage) == 1)
-+		class->objs_per_zspage = class->pages_per_zspage *
-+						PAGE_SIZE / class->size;
-+		if (pages_per_zspage == 1 && class->objs_per_zspage == 1)
- 			class->huge = true;
- 		spin_lock_init(&class->lock);
- 		pool->size_class[i] = class;
+-cleanup:
+-	if (unlikely(error) && first_page) {
+-		free_zspage(first_page);
+-		first_page = NULL;
++		page = alloc_page(flags);
++		if (!page) {
++			while (--i >= 0)
++				__free_page(pages[i]);
++			return NULL;
++		}
++		pages[i] = page;
+ 	}
+ 
++	create_page_chain(pages, class->pages_per_zspage);
++	first_page = pages[0];
++	init_zspage(class, first_page);
++
+ 	return first_page;
+ }
+ 
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
