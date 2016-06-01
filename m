@@ -1,150 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: + jbd2-get-rid-of-superfluous-__gfp_repeat.patch added to -mm
- tree
-Date: Tue, 31 May 2016 12:53:45 -0700
-Message-ID: <574debc9.nEq8wdM3f0m88Ds+%akpm@linux-foundation.org>
+Subject: [folded-dropped]
+ zram-align-zcomp-interface-to-crypto-comp-api.patch removed from -mm tree
+Date: Tue, 31 May 2016 19:01:04 -0700
+Message-ID: <574e41e0./RZDElPU/sSxyite%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49144 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54124 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755282AbcEaTxq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 15:53:46 -0400
+	with ESMTP id S1750750AbcFACBH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 May 2016 22:01:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, jack@suse.cz, tytso@mit.edu, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, iamjoonsoo.kim@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: jbd2: get rid of superfluous __GFP_REPEAT
-has been added to the -mm tree.  Its filename is
-     jbd2-get-rid-of-superfluous-__gfp_repeat.patch
+     Subject: zram: align zcomp interface to crypto comp API
+has been removed from the -mm tree.  Its filename was
+     zram-align-zcomp-interface-to-crypto-comp-api.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/jbd2-get-rid-of-superfluous-__gfp_repeat.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/jbd2-get-rid-of-superfluous-__gfp_repeat.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into zram-switch-to-crypto-compress-api.patch
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: jbd2: get rid of superfluous __GFP_REPEAT
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: align zcomp interface to crypto comp API
 
-jbd2_alloc is explicit about its allocation preferences wrt. the
-allocation size. Sub page allocations go to the slab allocator
-and larger are using either the page allocator or vmalloc. This
-is all good but the logic is unnecessarily complex.
+A cosmetic change:
+update zcomp interface to be more aligned with the crypto API.
 
-1) as per Ted, the vmalloc fallback is a left-over:
-
- : jbd2_alloc is only passed in the bh->b_size, which can't be PAGE_SIZE, so
- : the code path that calls vmalloc() should never get called.  When we
- : conveted jbd2_alloc() to suppor sub-page size allocations in commit
- : d2eecb039368, there was an assumption that it could be called with a size
- : greater than PAGE_SIZE, but that's certaily not true today.
-
-Moreover vmalloc allocation might even lead to a deadlock because the
-callers expect GFP_NOFS context while vmalloc is GFP_KERNEL.
-
-2) __GFP_REPEAT for requests <= PAGE_ALLOC_COSTLY_ORDER is ignored
-   since the flag was introduced.
-
-Let's simplify the code flow and use the slab allocator for sub-page
-requests and the page allocator for others.  Even though order > 0 is not
-currently used as per above leave that option open.
-
-Link: http://lkml.kernel.org/r/1464599699-30131-18-git-send-email-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Link: http://lkml.kernel.org/r/20160531122017.2878-4-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/journal.c |   32 +++++++-------------------------
- 1 file changed, 7 insertions(+), 25 deletions(-)
+ drivers/block/zram/zcomp.c    |    5 ++---
+ drivers/block/zram/zcomp.h    |    5 ++---
+ drivers/block/zram/zram_drv.c |    2 +-
+ 3 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN fs/jbd2/journal.c~jbd2-get-rid-of-superfluous-__gfp_repeat fs/jbd2/journal.c
---- a/fs/jbd2/journal.c~jbd2-get-rid-of-superfluous-__gfp_repeat
-+++ a/fs/jbd2/journal.c
-@@ -2329,18 +2329,10 @@ void *jbd2_alloc(size_t size, gfp_t flag
+diff -puN drivers/block/zram/zcomp.c~zram-align-zcomp-interface-to-crypto-comp-api drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-align-zcomp-interface-to-crypto-comp-api
++++ a/drivers/block/zram/zcomp.c
+@@ -103,7 +103,7 @@ void zcomp_stream_put(struct zcomp *comp
+ }
  
- 	BUG_ON(size & (size-1)); /* Must be a power of 2 */
- 
--	flags |= __GFP_REPEAT;
--	if (size == PAGE_SIZE)
--		ptr = (void *)__get_free_pages(flags, 0);
--	else if (size > PAGE_SIZE) {
--		int order = get_order(size);
--
--		if (order < 3)
--			ptr = (void *)__get_free_pages(flags, order);
--		else
--			ptr = vmalloc(size);
--	} else
-+	if (size < PAGE_SIZE)
- 		ptr = kmem_cache_alloc(get_slab(size), flags);
-+	else
-+		ptr = (void *)__get_free_pages(flags, get_order(size));
- 
- 	/* Check alignment; SLUB has gotten this wrong in the past,
- 	 * and this can lead to user data corruption! */
-@@ -2351,20 +2343,10 @@ void *jbd2_alloc(size_t size, gfp_t flag
- 
- void jbd2_free(void *ptr, size_t size)
+ int zcomp_compress(struct zcomp_strm *zstrm,
+-		const unsigned char *src, unsigned int *dst_len)
++		const void *src, unsigned int *dst_len)
  {
--	if (size == PAGE_SIZE) {
--		free_pages((unsigned long)ptr, 0);
--		return;
--	}
--	if (size > PAGE_SIZE) {
--		int order = get_order(size);
--
--		if (order < 3)
--			free_pages((unsigned long)ptr, order);
--		else
--			vfree(ptr);
--		return;
--	}
--	kmem_cache_free(get_slab(size), ptr);
-+	if (size < PAGE_SIZE)
-+		kmem_cache_free(get_slab(size), ptr);
-+	else
-+		free_pages((unsigned long)ptr, get_order(size));
- };
+ 	/*
+ 	 * Our dst memory (zstrm->buffer) is always `2 * PAGE_SIZE' sized
+@@ -127,8 +127,7 @@ int zcomp_compress(struct zcomp_strm *zs
+ }
  
- /*
+ int zcomp_decompress(struct zcomp_strm *zstrm,
+-		const unsigned char *src,
+-		size_t src_len, unsigned char *dst)
++		const void *src, unsigned int src_len, void *dst)
+ {
+ 	unsigned int dst_len = PAGE_SIZE;
+ 
+diff -puN drivers/block/zram/zcomp.h~zram-align-zcomp-interface-to-crypto-comp-api drivers/block/zram/zcomp.h
+--- a/drivers/block/zram/zcomp.h~zram-align-zcomp-interface-to-crypto-comp-api
++++ a/drivers/block/zram/zcomp.h
+@@ -49,11 +49,10 @@ struct zcomp_strm *zcomp_stream_get(stru
+ void zcomp_stream_put(struct zcomp *comp);
+ 
+ int zcomp_compress(struct zcomp_strm *zstrm,
+-		const unsigned char *src, unsigned int *dst_len);
++		const void *src, unsigned int *dst_len);
+ 
+ int zcomp_decompress(struct zcomp_strm *zstrm,
+-		const unsigned char *src,
+-		size_t src_len, unsigned char *dst);
++		const void *src, unsigned int src_len, void *dst);
+ 
+ bool zcomp_set_max_streams(struct zcomp *comp, int num_strm);
+ #endif /* _ZCOMP_H_ */
+diff -puN drivers/block/zram/zram_drv.c~zram-align-zcomp-interface-to-crypto-comp-api drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-align-zcomp-interface-to-crypto-comp-api
++++ a/drivers/block/zram/zram_drv.c
+@@ -563,7 +563,7 @@ static int zram_decompress_page(struct z
+ 	unsigned char *cmem;
+ 	struct zram_meta *meta = zram->meta;
+ 	unsigned long handle;
+-	size_t size;
++	unsigned int size;
+ 
+ 	bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
+ 	handle = meta->table[index].handle;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-mm-oom_reaper-do-not-use-siglock-in-try_oom_reaper.patch
-tree-wide-get-rid-of-__gfp_repeat-for-order-0-allocations-part-i.patch
-x86-get-rid-of-superfluous-__gfp_repeat.patch
-x86-efi-get-rid-of-superfluous-__gfp_repeat.patch
-arm-get-rid-of-superfluous-__gfp_repeat.patch
-arm64-get-rid-of-superfluous-__gfp_repeat.patch
-arc-get-rid-of-superfluous-__gfp_repeat.patch
-mips-get-rid-of-superfluous-__gfp_repeat.patch
-nios2-get-rid-of-superfluous-__gfp_repeat.patch
-parisc-get-rid-of-superfluous-__gfp_repeat.patch
-score-get-rid-of-superfluous-__gfp_repeat.patch
-powerpc-get-rid-of-superfluous-__gfp_repeat.patch
-sparc-get-rid-of-superfluous-__gfp_repeat.patch
-s390-get-rid-of-superfluous-__gfp_repeat.patch
-sh-get-rid-of-superfluous-__gfp_repeat.patch
-tile-get-rid-of-superfluous-__gfp_repeat.patch
-unicore32-get-rid-of-superfluous-__gfp_repeat.patch
-jbd2-get-rid-of-superfluous-__gfp_repeat.patch
+zram-rename-zstrm-find-release-functions.patch
+zram-switch-to-crypto-compress-api.patch
+zram-use-crypto-api-to-check-alg-availability.patch
+zram-cosmetic-cleanup-documentation.patch
+zram-delete-custom-lzo-lz4.patch
+zram-add-more-compression-algorithms.patch
+zram-drop-gfp_t-from-zcomp_strm_alloc.patch
 
