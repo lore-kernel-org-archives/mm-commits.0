@@ -1,101 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] befs-remove-unused-endian-functions.patch removed from
- -mm tree
-Date: Wed, 01 Jun 2016 12:20:48 -0700
-Message-ID: <574f3590.PEMyqG91z3y429Fu%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-fix-huge-page-reserve-accounting-for-private-mappings.patch
+ added to -mm tree
+Date: Wed, 01 Jun 2016 12:23:00 -0700
+Message-ID: <574f3614.C+lEcUY2cnyC3eVA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39405 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39427 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751380AbcFATUu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2016 15:20:50 -0400
+	with ESMTP id S1750744AbcFATXB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Jun 2016 15:23:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luisbg@osg.samsung.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: befs: remove unused endian functions
-has been removed from the -mm tree.  Its filename was
-     befs-remove-unused-endian-functions.patch
+     Subject: mm/hugetlb: fix huge page reserve accounting for private mappings
+has been added to the -mm tree.  Its filename is
+     mm-hugetlb-fix-huge-page-reserve-accounting-for-private-mappings.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-huge-page-reserve-accounting-for-private-mappings.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-huge-page-reserve-accounting-for-private-mappings.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Luis de Bethencourt <luisbg@osg.samsung.com>
-Subject: befs: remove unused endian functions
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb: fix huge page reserve accounting for private mappings
 
-Remove endianness conversion functions that are declared but never used.
+When creating a private mapping of a hugetlbfs file, it is possible to
+unmap pages via ftruncate or fallocate hole punch.  If subsequent faults
+repopulate these mappings, the reserve counts will go negative.  This is
+because the code currently assumes all faults to private mappings will
+consume reserves.  The problem can be recreated as follows:
 
-Link: http://lkml.kernel.org/r/1464701277-29962-1-git-send-email-luisbg@osg.samsung.com
-Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+- mmap(MAP_PRIVATE) a file in hugetlbfs filesystem
+- write fault in pages in the mapping
+- fallocate(FALLOC_FL_PUNCH_HOLE) some pages in the mapping
+- write fault in pages in the hole
+
+This will result in negative huge page reserve counts and negative subpool
+usage counts for the hugetlbfs.  Note that this can also be recreated with
+ftruncate, but fallocate is more straight forward.
+
+This patch modifies the routines vma_needs_reserves and vma_has_reserves
+to examine the reserve map associated with private mappings similar to
+that for shared mappings.  However, the reserve map semantics for private
+and shared mappings are very different.  This results in subtly different
+code that is explained in the comments.
+
+Link: http://lkml.kernel.org/r/1464720957-15698-1-git-send-email-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/befs/endian.h |   44 --------------------------------------------
- 1 file changed, 44 deletions(-)
+ mm/hugetlb.c |   42 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 40 insertions(+), 2 deletions(-)
 
-diff -puN fs/befs/endian.h~befs-remove-unused-endian-functions fs/befs/endian.h
---- a/fs/befs/endian.h~befs-remove-unused-endian-functions
-+++ a/fs/befs/endian.h
-@@ -20,15 +20,6 @@ fs64_to_cpu(const struct super_block *sb
- 		return be64_to_cpu((__force __be64)n);
- }
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-huge-page-reserve-accounting-for-private-mappings mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-huge-page-reserve-accounting-for-private-mappings
++++ a/mm/hugetlb.c
+@@ -832,8 +832,27 @@ static bool vma_has_reserves(struct vm_a
+ 	 * Only the process that called mmap() has reserves for
+ 	 * private mappings.
+ 	 */
+-	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER))
+-		return true;
++	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
++		/*
++		 * Like the shared case above, a hole punch or truncate
++		 * could have been performed on the private mapping.
++		 * Examine the value of chg to determine if reserves
++		 * actually exist or were previously consumed.
++		 * Very Subtle - The value of chg comes from a previous
++		 * call to vma_needs_reserves().  The reserve map for
++		 * private mappings has different (opposite) semantics
++		 * than that of shared mappings.  vma_needs_reserves()
++		 * has already taken this difference in semantics into
++		 * account.  Therefore, the meaning of chg is the same
++		 * as in the shared case above.  Code could easily be
++		 * combined, but keeping it separate draws attention to
++		 * subtle differences.
++		 */
++		if (chg)
++			return false;
++		else
++			return true;
++	}
  
--static inline fs64
--cpu_to_fs64(const struct super_block *sb, u64 n)
--{
--	if (BEFS_SB(sb)->byte_order == BEFS_BYTESEX_LE)
--		return (__force fs64)cpu_to_le64(n);
--	else
--		return (__force fs64)cpu_to_be64(n);
--}
--
- static inline u32
- fs32_to_cpu(const struct super_block *sb, fs32 n)
- {
-@@ -38,15 +29,6 @@ fs32_to_cpu(const struct super_block *sb
- 		return be32_to_cpu((__force __be32)n);
+ 	return false;
  }
+@@ -1816,6 +1835,25 @@ static long __vma_reservation_common(str
  
--static inline fs32
--cpu_to_fs32(const struct super_block *sb, u32 n)
--{
--	if (BEFS_SB(sb)->byte_order == BEFS_BYTESEX_LE)
--		return (__force fs32)cpu_to_le32(n);
--	else
--		return (__force fs32)cpu_to_be32(n);
--}
--
- static inline u16
- fs16_to_cpu(const struct super_block *sb, fs16 n)
- {
-@@ -56,15 +38,6 @@ fs16_to_cpu(const struct super_block *sb
- 		return be16_to_cpu((__force __be16)n);
+ 	if (vma->vm_flags & VM_MAYSHARE)
+ 		return ret;
++	else if (is_vma_resv_set(vma, HPAGE_RESV_OWNER) && ret >= 0) {
++		/*
++		 * In most cases, reserves always exist for private mappings.
++		 * However, a file associated with mapping could have been
++		 * hole punched or truncated after reserves were consumed.
++		 * As subsequent fault on such a range will not use reserves.
++		 * Subtle - The reserve map for private mappings has the
++		 * opposite meaning than that of shared mappings.  If NO
++		 * entry is in the reserve map, it means a reservation exists.
++		 * If an entry exists in the reserve map, it means the
++		 * reservation has already been consumed.  As a result, the
++		 * return value of this routine is the opposite of the
++		 * value returned from reserve map manipulation routines above.
++		 */
++		if (ret)
++			return 0;
++		else
++			return 1;
++	}
+ 	else
+ 		return ret < 0 ? ret : 0;
  }
- 
--static inline fs16
--cpu_to_fs16(const struct super_block *sb, u16 n)
--{
--	if (BEFS_SB(sb)->byte_order == BEFS_BYTESEX_LE)
--		return (__force fs16)cpu_to_le16(n);
--	else
--		return (__force fs16)cpu_to_be16(n);
--}
--
- /* Composite types below here */
- 
- static inline befs_block_run
-@@ -83,23 +56,6 @@ fsrun_to_cpu(const struct super_block *s
- 	}
- 	return run;
- }
--
--static inline befs_disk_block_run
--cpu_to_fsrun(const struct super_block *sb, befs_block_run n)
--{
--	befs_disk_block_run run;
+_
+
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
+
+mm-hugetlb-fix-huge-page-reserve-accounting-for-private-mappings.patch
+
