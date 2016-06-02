@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + w1-add-helper-macro-module_w1_family.patch added to -mm tree
-Date: Thu, 02 Jun 2016 12:51:12 -0700
-Message-ID: <57508e30.y2bh1kxAZiLblVEZ%akpm@linux-foundation.org>
+Subject: + mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
+ added to -mm tree
+Date: Thu, 02 Jun 2016 12:54:08 -0700
+Message-ID: <57508ee0.gm7RD1rDiSGnCIuy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50454 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50457 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750843AbcFBTvN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 15:51:13 -0400
+	with ESMTP id S1752701AbcFBTyJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 15:54:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: afd@ti.com, greg@kroah.com, zbr@ioremap.net, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, hughd@google.com, kirill@shutemov.name, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: w1: add helper macro module_w1_family
+     Subject: mm: thp: check pmd_trans_unstable() after split_huge_pmd()
 has been added to the -mm tree.  Its filename is
-     w1-add-helper-macro-module_w1_family.patch
+     mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/w1-add-helper-macro-module_w1_family.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/w1-add-helper-macro-module_w1_family.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,289 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Andrew F. Davis" <afd@ti.com>
-Subject: w1: add helper macro module_w1_family
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: thp: check pmd_trans_unstable() after split_huge_pmd()
 
-The helper macro module_w1_family can be used in module drivers that only
-register a w1 driver in their module init functions.  Add this macro and
-use it in all applicable drivers.
+split_huge_pmd() doesn't guarantee that the pmd is normal pmd pointing to
+pte entries, which can be checked with pmd_trans_unstable().  Some callers
+make this assertion and some do it differently and some not, so let's do
+it in a unified manner.
 
-Link: http://lkml.kernel.org/r/20160531204313.20979-2-afd@ti.com
-Signed-off-by: Andrew F. Davis <afd@ti.com>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Greg KH <greg@kroah.com>
+Link: http://lkml.kernel.org/r/1464741400-12143-1-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_ds2406.c  |   14 +-------------
- drivers/w1/slaves/w1_ds2408.c  |   14 +-------------
- drivers/w1/slaves/w1_ds2413.c  |   14 +-------------
- drivers/w1/slaves/w1_ds2423.c  |   14 +-------------
- drivers/w1/slaves/w1_ds2431.c  |   14 +-------------
- drivers/w1/slaves/w1_ds2433.c  |   14 +-------------
- drivers/w1/slaves/w1_ds2760.c  |   15 +--------------
- drivers/w1/slaves/w1_ds2780.c  |   14 +-------------
- drivers/w1/slaves/w1_ds2781.c  |   14 +-------------
- drivers/w1/slaves/w1_ds28e04.c |   14 +-------------
- drivers/w1/w1_family.h         |   12 ++++++++++++
- 11 files changed, 22 insertions(+), 131 deletions(-)
+ mm/gup.c       |    2 ++
+ mm/mempolicy.c |    2 ++
+ mm/mprotect.c  |    2 +-
+ mm/mremap.c    |    3 +--
+ 4 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/w1/slaves/w1_ds2406.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2406.c
---- a/drivers/w1/slaves/w1_ds2406.c~w1-add-helper-macro-module_w1_family
-+++ a/drivers/w1/slaves/w1_ds2406.c
-@@ -153,16 +153,4 @@ static struct w1_family w1_family_12 = {
- 	.fid = W1_FAMILY_DS2406,
- 	.fops = &w1_f12_fops,
- };
--
--static int __init w1_f12_init(void)
--{
--	return w1_register_family(&w1_family_12);
--}
--
--static void __exit w1_f12_exit(void)
--{
--	w1_unregister_family(&w1_family_12);
--}
--
--module_init(w1_f12_init);
--module_exit(w1_f12_exit);
-+module_w1_family(w1_family_12);
-diff -puN drivers/w1/slaves/w1_ds2408.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2408.c
---- a/drivers/w1/slaves/w1_ds2408.c~w1-add-helper-macro-module_w1_family
-+++ a/drivers/w1/slaves/w1_ds2408.c
-@@ -351,16 +351,4 @@ static struct w1_family w1_family_29 = {
- 	.fid = W1_FAMILY_DS2408,
- 	.fops = &w1_f29_fops,
- };
--
--static int __init w1_f29_init(void)
--{
--	return w1_register_family(&w1_family_29);
--}
--
--static void __exit w1_f29_exit(void)
--{
--	w1_unregister_family(&w1_family_29);
--}
--
--module_init(w1_f29_init);
--module_exit(w1_f29_exit);
-+module_w1_family(w1_family_29);
-diff -puN drivers/w1/slaves/w1_ds2413.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2413.c
---- a/drivers/w1/slaves/w1_ds2413.c~w1-add-helper-macro-module_w1_family
-+++ a/drivers/w1/slaves/w1_ds2413.c
-@@ -135,16 +135,4 @@ static struct w1_family w1_family_3a = {
- 	.fid = W1_FAMILY_DS2413,
- 	.fops = &w1_f3a_fops,
- };
--
--static int __init w1_f3a_init(void)
--{
--	return w1_register_family(&w1_family_3a);
--}
--
--static void __exit w1_f3a_exit(void)
--{
--	w1_unregister_family(&w1_family_3a);
--}
--
--module_init(w1_f3a_init);
--module_exit(w1_f3a_exit);
-+module_w1_family(w1_family_3a);
-diff -puN drivers/w1/slaves/w1_ds2423.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2423.c
---- a/drivers/w1/slaves/w1_ds2423.c~w1-add-helper-macro-module_w1_family
-+++ a/drivers/w1/slaves/w1_ds2423.c
-@@ -138,19 +138,7 @@ static struct w1_family w1_family_1d = {
- 	.fid = W1_COUNTER_DS2423,
- 	.fops = &w1_f1d_fops,
- };
--
--static int __init w1_f1d_init(void)
--{
--	return w1_register_family(&w1_family_1d);
--}
--
--static void __exit w1_f1d_exit(void)
--{
--	w1_unregister_family(&w1_family_1d);
--}
--
--module_init(w1_f1d_init);
--module_exit(w1_f1d_exit);
-+module_w1_family(w1_family_1d);
+diff -puN mm/gup.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/gup.c
+--- a/mm/gup.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
++++ a/mm/gup.c
+@@ -279,6 +279,8 @@ struct page *follow_page_mask(struct vm_
+ 			spin_unlock(ptl);
+ 			ret = 0;
+ 			split_huge_pmd(vma, pmd, address);
++			if (pmd_trans_unstable(pmd))
++				ret = -EBUSY;
+ 		} else {
+ 			get_page(page);
+ 			spin_unlock(ptl);
+diff -puN mm/mempolicy.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
++++ a/mm/mempolicy.c
+@@ -512,6 +512,8 @@ static int queue_pages_pte_range(pmd_t *
+ 		}
+ 	}
  
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Mika Laitio <lamikr@pilppa.org>");
-diff -puN drivers/w1/slaves/w1_ds2431.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2431.c
---- a/drivers/w1/slaves/w1_ds2431.c~w1-add-helper-macro-module_w1_family
-+++ a/drivers/w1/slaves/w1_ds2431.c
-@@ -288,19 +288,7 @@ static struct w1_family w1_family_2d = {
- 	.fid = W1_EEPROM_DS2431,
- 	.fops = &w1_f2d_fops,
- };
--
--static int __init w1_f2d_init(void)
--{
--	return w1_register_family(&w1_family_2d);
--}
--
--static void __exit w1_f2d_fini(void)
--{
--	w1_unregister_family(&w1_family_2d);
--}
--
--module_init(w1_f2d_init);
--module_exit(w1_f2d_fini);
-+module_w1_family(w1_family_2d);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Bernhard Weirich <bernhard.weirich@riedel.net>");
-diff -puN drivers/w1/slaves/w1_ds2433.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2433.c
---- a/drivers/w1/slaves/w1_ds2433.c~w1-add-helper-macro-module_w1_family
-+++ a/drivers/w1/slaves/w1_ds2433.c
-@@ -305,16 +305,4 @@ static struct w1_family w1_family_23 = {
- 	.fid = W1_EEPROM_DS2433,
- 	.fops = &w1_f23_fops,
- };
--
--static int __init w1_f23_init(void)
--{
--	return w1_register_family(&w1_family_23);
--}
--
--static void __exit w1_f23_fini(void)
--{
--	w1_unregister_family(&w1_family_23);
--}
--
--module_init(w1_f23_init);
--module_exit(w1_f23_fini);
-+module_w1_family(w1_family_23);
-diff -puN drivers/w1/slaves/w1_ds2760.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2760.c
---- a/drivers/w1/slaves/w1_ds2760.c~w1-add-helper-macro-module_w1_family
-+++ a/drivers/w1/slaves/w1_ds2760.c
-@@ -162,26 +162,13 @@ static struct w1_family w1_ds2760_family
- 	.fid = W1_FAMILY_DS2760,
- 	.fops = &w1_ds2760_fops,
- };
--
--static int __init w1_ds2760_init(void)
--{
--	pr_info("1-Wire driver for the DS2760 battery monitor chip - (c) 2004-2005, Szabolcs Gyurko\n");
--	return w1_register_family(&w1_ds2760_family);
--}
--
--static void __exit w1_ds2760_exit(void)
--{
--	w1_unregister_family(&w1_ds2760_family);
--}
-+module_w1_family(w1_ds2760_family);
- 
- EXPORT_SYMBOL(w1_ds2760_read);
- EXPORT_SYMBOL(w1_ds2760_write);
- EXPORT_SYMBOL(w1_ds2760_store_eeprom);
- EXPORT_SYMBOL(w1_ds2760_recall_eeprom);
- 
--module_init(w1_ds2760_init);
--module_exit(w1_ds2760_exit);
--
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>");
- MODULE_DESCRIPTION("1-wire Driver Dallas 2760 battery monitor chip");
-diff -puN drivers/w1/slaves/w1_ds2780.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2780.c
---- a/drivers/w1/slaves/w1_ds2780.c~w1-add-helper-macro-module_w1_family
-+++ a/drivers/w1/slaves/w1_ds2780.c
-@@ -154,19 +154,7 @@ static struct w1_family w1_ds2780_family
- 	.fid = W1_FAMILY_DS2780,
- 	.fops = &w1_ds2780_fops,
- };
--
--static int __init w1_ds2780_init(void)
--{
--	return w1_register_family(&w1_ds2780_family);
--}
--
--static void __exit w1_ds2780_exit(void)
--{
--	w1_unregister_family(&w1_ds2780_family);
--}
--
--module_init(w1_ds2780_init);
--module_exit(w1_ds2780_exit);
-+module_w1_family(w1_ds2780_family);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Clifton Barnes <cabarnes@indesign-llc.com>");
-diff -puN drivers/w1/slaves/w1_ds2781.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2781.c
---- a/drivers/w1/slaves/w1_ds2781.c~w1-add-helper-macro-module_w1_family
-+++ a/drivers/w1/slaves/w1_ds2781.c
-@@ -151,19 +151,7 @@ static struct w1_family w1_ds2781_family
- 	.fid = W1_FAMILY_DS2781,
- 	.fops = &w1_ds2781_fops,
- };
--
--static int __init w1_ds2781_init(void)
--{
--	return w1_register_family(&w1_ds2781_family);
--}
--
--static void __exit w1_ds2781_exit(void)
--{
--	w1_unregister_family(&w1_ds2781_family);
--}
--
--module_init(w1_ds2781_init);
--module_exit(w1_ds2781_exit);
-+module_w1_family(w1_ds2781_family);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Renata Sayakhova <renata@oktetlabs.ru>");
-diff -puN drivers/w1/slaves/w1_ds28e04.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds28e04.c
---- a/drivers/w1/slaves/w1_ds28e04.c~w1-add-helper-macro-module_w1_family
-+++ a/drivers/w1/slaves/w1_ds28e04.c
-@@ -427,16 +427,4 @@ static struct w1_family w1_family_1C = {
- 	.fid = W1_FAMILY_DS28E04,
- 	.fops = &w1_f1C_fops,
- };
--
--static int __init w1_f1C_init(void)
--{
--	return w1_register_family(&w1_family_1C);
--}
--
--static void __exit w1_f1C_fini(void)
--{
--	w1_unregister_family(&w1_family_1C);
--}
--
--module_init(w1_f1C_init);
--module_exit(w1_f1C_fini);
-+module_w1_family(w1_family_1C);
-diff -puN drivers/w1/w1_family.h~w1-add-helper-macro-module_w1_family drivers/w1/w1_family.h
---- a/drivers/w1/w1_family.h~w1-add-helper-macro-module_w1_family
-+++ a/drivers/w1/w1_family.h
-@@ -88,4 +88,16 @@ struct w1_family * w1_family_registered(
- void w1_unregister_family(struct w1_family *);
- int w1_register_family(struct w1_family *);
- 
-+/**
-+ * module_w1_driver() - Helper macro for registering a 1-Wire families
-+ * @__w1_family: w1_family struct
-+ *
-+ * Helper macro for 1-Wire families which do not do anything special in module
-+ * init/exit. This eliminates a lot of boilerplate. Each module may only
-+ * use this macro once, and calling it replaces module_init() and module_exit()
-+ */
-+#define module_w1_family(__w1_family) \
-+	module_driver(__w1_family, w1_register_family, \
-+			w1_unregister_family)
-+
- #endif /* __W1_FAMILY_H */
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ retry:
+ 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+ 	for (; addr != end; pte++, addr += PAGE_SIZE) {
+diff -puN mm/mprotect.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/mprotect.c
+--- a/mm/mprotect.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
++++ a/mm/mprotect.c
+@@ -163,7 +163,7 @@ static inline unsigned long change_pmd_r
+ 		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE) {
+ 				split_huge_pmd(vma, pmd, addr);
+-				if (pmd_none(*pmd))
++				if (pmd_trans_unstable(pmd))
+ 					continue;
+ 			} else {
+ 				int nr_ptes = change_huge_pmd(vma, pmd, addr,
+diff -puN mm/mremap.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/mremap.c
+--- a/mm/mremap.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
++++ a/mm/mremap.c
+@@ -210,9 +210,8 @@ unsigned long move_page_tables(struct vm
+ 				}
+ 			}
+ 			split_huge_pmd(vma, old_pmd, old_addr);
+-			if (pmd_none(*old_pmd))
++			if (pmd_trans_unstable(old_pmd))
+ 				continue;
+-			VM_BUG_ON(pmd_trans_huge(*old_pmd));
+ 		}
+ 		if (pte_alloc(new_vma->vm_mm, new_pmd, new_addr))
+ 			break;
 _
 
-Patches currently in -mm which might be from afd@ti.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-w1-remove-need-for-ida-and-use-platform_devid_auto.patch
-w1-add-helper-macro-module_w1_family.patch
+mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
 
