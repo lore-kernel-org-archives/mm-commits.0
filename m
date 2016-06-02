@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + tools-vm-page_owner-increase-temporary-buffer-size.patch added
- to -mm tree
-Date: Thu, 02 Jun 2016 12:49:33 -0700
-Message-ID: <57508dcd.sctKFI8J9+I0syXw%akpm@linux-foundation.org>
+Subject: + mm-page_owner-copy-last_migrate_reason-in-copy_page_owner.patch added to -mm tree
+Date: Thu, 02 Jun 2016 12:49:29 -0700
+Message-ID: <57508dc9.8LcbmVb1E9PGVOU7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50416 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751568AbcFBTte (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 15:49:34 -0400
+	with ESMTP id S1751568AbcFBTtb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 15:49:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, glider@google.com, hughd@google.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/page_owner: increase temporary buffer size
+     Subject: mm/page_owner: copy last_migrate_reason in copy_page_owner()
 has been added to the -mm tree.  Its filename is
-     tools-vm-page_owner-increase-temporary-buffer-size.patch
+     mm-page_owner-copy-last_migrate_reason-in-copy_page_owner.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner-increase-temporary-buffer-size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-copy-last_migrate_reason-in-copy_page_owner.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner-increase-temporary-buffer-size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-copy-last_migrate_reason-in-copy_page_owner.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +39,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: tools/vm/page_owner: increase temporary buffer size
+Subject: mm/page_owner: copy last_migrate_reason in copy_page_owner()
 
-Page owner will be changed to store more deep stacktrace so current
-temporary buffer size isn't enough.  Increase it.
+Currently, copy_page_owner() doesn't copy all the owner information.  It
+skips last_migrate_reason because copy_page_owner() is used for migration
+and it will be properly set soon.  But, following patch will use
+copy_page_owner() and this skip will cause the problem that allocated page
+has uninitialied last_migrate_reason.  To prevent it, this patch also copy
+last_migrate_reason in copy_page_owner().
 
-Link: http://lkml.kernel.org/r/1464230275-25791-5-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1464230275-25791-3-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Mel Gorman <mgorman@techsingularity.net>
@@ -56,39 +59,20 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page_owner_sort.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/page_owner.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN tools/vm/page_owner_sort.c~tools-vm-page_owner-increase-temporary-buffer-size tools/vm/page_owner_sort.c
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner-increase-temporary-buffer-size
-+++ a/tools/vm/page_owner_sort.c
-@@ -79,12 +79,12 @@ static void add_list(char *buf, int len)
- 	}
- }
+diff -puN mm/page_owner.c~mm-page_owner-copy-last_migrate_reason-in-copy_page_owner mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-copy-last_migrate_reason-in-copy_page_owner
++++ a/mm/page_owner.c
+@@ -118,6 +118,7 @@ void __copy_page_owner(struct page *oldp
  
--#define BUF_SIZE	1024
-+#define BUF_SIZE	(128 * 1024)
+ 	new_ext->order = old_ext->order;
+ 	new_ext->gfp_mask = old_ext->gfp_mask;
++	new_ext->last_migrate_reason = old_ext->last_migrate_reason;
+ 	new_ext->nr_entries = old_ext->nr_entries;
  
- int main(int argc, char **argv)
- {
- 	FILE *fin, *fout;
--	char buf[BUF_SIZE];
-+	char *buf;
- 	int ret, i, count;
- 	struct block_list *list2;
- 	struct stat st;
-@@ -107,6 +107,11 @@ int main(int argc, char **argv)
- 	max_size = st.st_size / 100; /* hack ... */
- 
- 	list = malloc(max_size * sizeof(*list));
-+	buf = malloc(BUF_SIZE);
-+	if (!list || !buf) {
-+		printf("Out of memory\n");
-+		exit(1);
-+	}
- 
- 	for ( ; ; ) {
- 		ret = read_block(buf, BUF_SIZE, fin);
+ 	for (i = 0; i < ARRAY_SIZE(new_ext->trace_entries); i++)
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
