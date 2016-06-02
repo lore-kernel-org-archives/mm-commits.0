@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-cleanup-kmem-charge-functions.patch added to -mm
- tree
-Date: Thu, 02 Jun 2016 16:09:07 -0700
-Message-ID: <5750bc93.ZFR0F6z7ij6+dYOv%akpm@linux-foundation.org>
+Subject: + pipe-account-to-kmemcg.patch added to -mm tree
+Date: Thu, 02 Jun 2016 16:09:15 -0700
+Message-ID: <5750bc9b.EI9FWFnBFTwBvOmZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52881 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932090AbcFBXJJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:09:09 -0400
+	with ESMTP id S933090AbcFBXJQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:09:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, eric.dumazet@gmail.com, hannes@cmpxchg.org, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, eric.dumazet@gmail.com, hannes@cmpxchg.org, mhocko@kernel.org, minchan@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: cleanup kmem charge functions
+     Subject: pipe: account to kmemcg
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-cleanup-kmem-charge-functions.patch
+     pipe-account-to-kmemcg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-cleanup-kmem-charge-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pipe-account-to-kmemcg.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-cleanup-kmem-charge-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pipe-account-to-kmemcg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,19 +39,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: memcontrol: cleanup kmem charge functions
+Subject: pipe: account to kmemcg
 
- - Handle memcg_kmem_enabled check out to the caller. This reduces the
-   number of function definitions making the code easier to follow. At
-   the same time it doesn't result in code bloat, because all of these
-   functions are used only in one or two places.
- - Move __GFP_ACCOUNT check to the caller as well so that one wouldn't
-   have to dive deep into memcg implementation to see which allocations
-   are charged and which are not.
- - Refresh comments.
+Pipes can consume a significant amount of system memory, hence they
+should be accounted to kmemcg.
 
-Link: http://lkml.kernel.org/r/52882a28b542c1979fd9a033b4dc8637fc347399.1464079537.git.vdavydov@virtuozzo.com
+This patch marks pipe_inode_info and anonymous pipe buffer page
+allocations as __GFP_ACCOUNT so that they would be charged to kmemcg.
+Note, since a pipe buffer page can be "stolen" and get reused for other
+purposes, including mapping to userspace, we clear PageKmemcg thus
+resetting page->_mapcount and uncharge it in anon_pipe_buf_steal, which
+is introduced by this patch.
+
+A note regarding anon_pipe_buf_steal implementation. We allow to steal
+the page if its ref count equals 1. It looks racy, but it is correct for
+anonymous pipe buffer pages, because:
+
+ - We lock out all other pipe users, because ->steal is called with
+   pipe_lock held, so the page can't be spliced to another pipe from
+   under us.
+
+ - The page is not on LRU and it never was.
+
+ - Thus a parallel thread can access it only by PFN. Although this is
+   quite possible (e.g. see page_idle_get_page and balloon_page_isolate)
+   this is not dangerous, because all such functions do is increase page
+   ref count, check if the page is the one they are looking for, and
+   decrease ref count if it isn't. Since our page is clean except for
+   PageKmemcg mark, which doesn't conflict with other _mapcount users,
+   the worst that can happen is we see page_count > 2 due to a transient
+   ref, in which case we false-positively abort ->steal, which is still
+   fine, because ->steal is not guaranteed to succeed.
+
+Link: http://lkml.kernel.org/r/20160527150313.GD26059@esperanza
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Eric Dumazet <eric.dumazet@gmail.com>
@@ -60,358 +81,100 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |  103 ++---------------------------------
- mm/memcontrol.c            |   75 ++++++++++++++++++-------
- mm/page_alloc.c            |    9 ++-
- mm/slab.h                  |   16 ++++-
- 4 files changed, 80 insertions(+), 123 deletions(-)
+ fs/pipe.c |   32 ++++++++++++++++++++++++++------
+ 1 file changed, 26 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-cleanup-kmem-charge-functions include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-cleanup-kmem-charge-functions
-+++ a/include/linux/memcontrol.h
-@@ -754,6 +754,13 @@ static inline bool mem_cgroup_under_sock
- }
- #endif
+diff -puN fs/pipe.c~pipe-account-to-kmemcg fs/pipe.c
+--- a/fs/pipe.c~pipe-account-to-kmemcg
++++ a/fs/pipe.c
+@@ -21,6 +21,7 @@
+ #include <linux/audit.h>
+ #include <linux/syscalls.h>
+ #include <linux/fcntl.h>
++#include <linux/memcontrol.h>
  
-+struct kmem_cache *memcg_kmem_get_cache(struct kmem_cache *cachep);
-+void memcg_kmem_put_cache(struct kmem_cache *cachep);
-+int memcg_kmem_charge_memcg(struct page *page, gfp_t gfp, int order,
-+			    struct mem_cgroup *memcg);
-+int memcg_kmem_charge(struct page *page, gfp_t gfp, int order);
-+void memcg_kmem_uncharge(struct page *page, int order);
-+
- #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
- extern struct static_key_false memcg_kmem_enabled_key;
- 
-@@ -775,22 +782,6 @@ static inline bool memcg_kmem_enabled(vo
+ #include <asm/uaccess.h>
+ #include <asm/ioctls.h>
+@@ -137,6 +138,22 @@ static void anon_pipe_buf_release(struct
+ 		put_page(page);
  }
  
- /*
-- * In general, we'll do everything in our power to not incur in any overhead
-- * for non-memcg users for the kmem functions. Not even a function call, if we
-- * can avoid it.
-- *
-- * Therefore, we'll inline all those functions so that in the best case, we'll
-- * see that kmemcg is off for everybody and proceed quickly.  If it is on,
-- * we'll still do most of the flag checking inline. We check a lot of
-- * conditions, but because they are pretty simple, they are expected to be
-- * fast.
-- */
--int __memcg_kmem_charge_memcg(struct page *page, gfp_t gfp, int order,
--			      struct mem_cgroup *memcg);
--int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order);
--void __memcg_kmem_uncharge(struct page *page, int order);
--
--/*
-  * helper for accessing a memcg's index. It will be used as an index in the
-  * child cache array in kmem_cache, and also to derive its name. This function
-  * will return -1 when this is not a kmem-limited memcg.
-@@ -800,67 +791,6 @@ static inline int memcg_cache_id(struct
- 	return memcg ? memcg->kmemcg_id : -1;
- }
- 
--struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp);
--void __memcg_kmem_put_cache(struct kmem_cache *cachep);
--
--static inline bool __memcg_kmem_bypass(void)
--{
--	if (!memcg_kmem_enabled())
--		return true;
--	if (in_interrupt() || (!current->mm) || (current->flags & PF_KTHREAD))
--		return true;
--	return false;
--}
--
--/**
-- * memcg_kmem_charge: charge a kmem page
-- * @page: page to charge
-- * @gfp: reclaim mode
-- * @order: allocation order
-- *
-- * Returns 0 on success, an error code on failure.
-- */
--static __always_inline int memcg_kmem_charge(struct page *page,
--					     gfp_t gfp, int order)
--{
--	if (__memcg_kmem_bypass())
--		return 0;
--	if (!(gfp & __GFP_ACCOUNT))
--		return 0;
--	return __memcg_kmem_charge(page, gfp, order);
--}
--
--/**
-- * memcg_kmem_uncharge: uncharge a kmem page
-- * @page: page to uncharge
-- * @order: allocation order
-- */
--static __always_inline void memcg_kmem_uncharge(struct page *page, int order)
--{
--	if (memcg_kmem_enabled())
--		__memcg_kmem_uncharge(page, order);
--}
--
--/**
-- * memcg_kmem_get_cache: selects the correct per-memcg cache for allocation
-- * @cachep: the original global kmem cache
-- *
-- * All memory allocated from a per-memcg cache is charged to the owner memcg.
-- */
--static __always_inline struct kmem_cache *
--memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp)
--{
--	if (__memcg_kmem_bypass())
--		return cachep;
--	return __memcg_kmem_get_cache(cachep, gfp);
--}
--
--static __always_inline void memcg_kmem_put_cache(struct kmem_cache *cachep)
--{
--	if (memcg_kmem_enabled())
--		__memcg_kmem_put_cache(cachep);
--}
--
- /**
-  * memcg_kmem_update_page_stat - update kmem page state statistics
-  * @page: the page
-@@ -883,15 +813,6 @@ static inline bool memcg_kmem_enabled(vo
- 	return false;
- }
- 
--static inline int memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
--{
--	return 0;
--}
--
--static inline void memcg_kmem_uncharge(struct page *page, int order)
--{
--}
--
- static inline int memcg_cache_id(struct mem_cgroup *memcg)
- {
- 	return -1;
-@@ -905,16 +826,6 @@ static inline void memcg_put_cache_ids(v
- {
- }
- 
--static inline struct kmem_cache *
--memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp)
--{
--	return cachep;
--}
--
--static inline void memcg_kmem_put_cache(struct kmem_cache *cachep)
--{
--}
--
- static inline void memcg_kmem_update_page_stat(struct page *page,
- 				enum mem_cgroup_stat_index idx, int val)
- {
-diff -puN mm/memcontrol.c~mm-memcontrol-cleanup-kmem-charge-functions mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-cleanup-kmem-charge-functions
-+++ a/mm/memcontrol.c
-@@ -2273,20 +2273,30 @@ static void memcg_schedule_kmem_cache_cr
- 	current->memcg_kmem_skip_account = 0;
- }
- 
--/*
-+static inline bool memcg_kmem_bypass(void)
++static int anon_pipe_buf_steal(struct pipe_inode_info *pipe,
++			       struct pipe_buffer *buf)
 +{
-+	if (in_interrupt() || !current->mm || (current->flags & PF_KTHREAD))
-+		return true;
-+	return false;
++	struct page *page = buf->page;
++
++	if (page_count(page) == 1) {
++		if (memcg_kmem_enabled()) {
++			memcg_kmem_uncharge(page, 0);
++			__ClearPageKmemcg(page);
++		}
++		__SetPageLocked(page);
++		return 0;
++	}
++	return 1;
 +}
 +
-+/**
-+ * memcg_kmem_get_cache: select the correct per-memcg cache for allocation
-+ * @cachep: the original global kmem cache
-+ *
-  * Return the kmem_cache we're supposed to use for a slab allocation.
-  * We try to use the current memcg's version of the cache.
-  *
-- * If the cache does not exist yet, if we are the first user of it,
-- * we either create it immediately, if possible, or create it asynchronously
-- * in a workqueue.
-- * In the latter case, we will let the current allocation go through with
-- * the original cache.
-+ * If the cache does not exist yet, if we are the first user of it, we
-+ * create it asynchronously in a workqueue and let the current allocation
-+ * go through with the original cache.
-  *
-- * Can't be called in interrupt context or from kernel threads.
-- * This function needs to be called with rcu_read_lock() held.
-+ * This function takes a reference to the cache it returns to assure it
-+ * won't get destroyed while we are working with it. Once the caller is
-+ * done with it, memcg_kmem_put_cache() must be called to release the
-+ * reference.
-  */
--struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp)
-+struct kmem_cache *memcg_kmem_get_cache(struct kmem_cache *cachep)
+ /**
+  * generic_pipe_buf_steal - attempt to take ownership of a &pipe_buffer
+  * @pipe:	the pipe that the buffer belongs to
+@@ -219,7 +236,7 @@ static const struct pipe_buf_operations
+ 	.can_merge = 1,
+ 	.confirm = generic_pipe_buf_confirm,
+ 	.release = anon_pipe_buf_release,
+-	.steal = generic_pipe_buf_steal,
++	.steal = anon_pipe_buf_steal,
+ 	.get = generic_pipe_buf_get,
+ };
+ 
+@@ -227,7 +244,7 @@ static const struct pipe_buf_operations
+ 	.can_merge = 0,
+ 	.confirm = generic_pipe_buf_confirm,
+ 	.release = anon_pipe_buf_release,
+-	.steal = generic_pipe_buf_steal,
++	.steal = anon_pipe_buf_steal,
+ 	.get = generic_pipe_buf_get,
+ };
+ 
+@@ -405,7 +422,7 @@ pipe_write(struct kiocb *iocb, struct io
+ 			int copied;
+ 
+ 			if (!page) {
+-				page = alloc_page(GFP_HIGHUSER);
++				page = alloc_page(GFP_HIGHUSER | __GFP_ACCOUNT);
+ 				if (unlikely(!page)) {
+ 					ret = ret ? : -ENOMEM;
+ 					break;
+@@ -611,7 +628,7 @@ struct pipe_inode_info *alloc_pipe_info(
  {
- 	struct mem_cgroup *memcg;
- 	struct kmem_cache *memcg_cachep;
-@@ -2294,10 +2304,7 @@ struct kmem_cache *__memcg_kmem_get_cach
+ 	struct pipe_inode_info *pipe;
  
- 	VM_BUG_ON(!is_root_cache(cachep));
+-	pipe = kzalloc(sizeof(struct pipe_inode_info), GFP_KERNEL);
++	pipe = kzalloc(sizeof(struct pipe_inode_info), GFP_KERNEL_ACCOUNT);
+ 	if (pipe) {
+ 		unsigned long pipe_bufs = PIPE_DEF_BUFFERS;
+ 		struct user_struct *user = get_current_user();
+@@ -619,7 +636,9 @@ struct pipe_inode_info *alloc_pipe_info(
+ 		if (!too_many_pipe_buffers_hard(user)) {
+ 			if (too_many_pipe_buffers_soft(user))
+ 				pipe_bufs = 1;
+-			pipe->bufs = kzalloc(sizeof(struct pipe_buffer) * pipe_bufs, GFP_KERNEL);
++			pipe->bufs = kcalloc(pipe_bufs,
++					     sizeof(struct pipe_buffer),
++					     GFP_KERNEL_ACCOUNT);
+ 		}
  
--	if (cachep->flags & SLAB_ACCOUNT)
--		gfp |= __GFP_ACCOUNT;
--
--	if (!(gfp & __GFP_ACCOUNT))
-+	if (memcg_kmem_bypass())
- 		return cachep;
+ 		if (pipe->bufs) {
+@@ -1010,7 +1029,8 @@ static long pipe_set_size(struct pipe_in
+ 	if (nr_pages < pipe->nrbufs)
+ 		return -EBUSY;
  
- 	if (current->memcg_kmem_skip_account)
-@@ -2330,14 +2337,27 @@ out:
- 	return cachep;
- }
+-	bufs = kcalloc(nr_pages, sizeof(*bufs), GFP_KERNEL | __GFP_NOWARN);
++	bufs = kcalloc(nr_pages, sizeof(*bufs),
++		       GFP_KERNEL_ACCOUNT | __GFP_NOWARN);
+ 	if (unlikely(!bufs))
+ 		return -ENOMEM;
  
--void __memcg_kmem_put_cache(struct kmem_cache *cachep)
-+/**
-+ * memcg_kmem_put_cache: drop reference taken by memcg_kmem_get_cache
-+ * @cachep: the cache returned by memcg_kmem_get_cache
-+ */
-+void memcg_kmem_put_cache(struct kmem_cache *cachep)
- {
- 	if (!is_root_cache(cachep))
- 		css_put(&cachep->memcg_params.memcg->css);
- }
- 
--int __memcg_kmem_charge_memcg(struct page *page, gfp_t gfp, int order,
--			      struct mem_cgroup *memcg)
-+/**
-+ * memcg_kmem_charge: charge a kmem page
-+ * @page: page to charge
-+ * @gfp: reclaim mode
-+ * @order: allocation order
-+ * @memcg: memory cgroup to charge
-+ *
-+ * Returns 0 on success, an error code on failure.
-+ */
-+int memcg_kmem_charge_memcg(struct page *page, gfp_t gfp, int order,
-+			    struct mem_cgroup *memcg)
- {
- 	unsigned int nr_pages = 1 << order;
- 	struct page_counter *counter;
-@@ -2358,19 +2378,34 @@ int __memcg_kmem_charge_memcg(struct pag
- 	return 0;
- }
- 
--int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
-+/**
-+ * memcg_kmem_charge: charge a kmem page to the current memory cgroup
-+ * @page: page to charge
-+ * @gfp: reclaim mode
-+ * @order: allocation order
-+ *
-+ * Returns 0 on success, an error code on failure.
-+ */
-+int memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
- {
- 	struct mem_cgroup *memcg;
- 	int ret = 0;
- 
-+	if (memcg_kmem_bypass())
-+		return 0;
-+
- 	memcg = get_mem_cgroup_from_mm(current->mm);
- 	if (!mem_cgroup_is_root(memcg))
--		ret = __memcg_kmem_charge_memcg(page, gfp, order, memcg);
-+		ret = memcg_kmem_charge_memcg(page, gfp, order, memcg);
- 	css_put(&memcg->css);
- 	return ret;
- }
--
--void __memcg_kmem_uncharge(struct page *page, int order)
-+/**
-+ * memcg_kmem_uncharge: uncharge a kmem page
-+ * @page: page to uncharge
-+ * @order: allocation order
-+ */
-+void memcg_kmem_uncharge(struct page *page, int order)
- {
- 	struct mem_cgroup *memcg = page->mem_cgroup;
- 	unsigned int nr_pages = 1 << order;
-diff -puN mm/page_alloc.c~mm-memcontrol-cleanup-kmem-charge-functions mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memcontrol-cleanup-kmem-charge-functions
-+++ a/mm/page_alloc.c
-@@ -4006,7 +4006,8 @@ struct page *alloc_kmem_pages(gfp_t gfp_
- 	struct page *page;
- 
- 	page = alloc_pages(gfp_mask, order);
--	if (page && memcg_kmem_charge(page, gfp_mask, order) != 0) {
-+	if (memcg_kmem_enabled() && (gfp_mask & __GFP_ACCOUNT) &&
-+	    page && memcg_kmem_charge(page, gfp_mask, order) != 0) {
- 		__free_pages(page, order);
- 		page = NULL;
- 	}
-@@ -4018,7 +4019,8 @@ struct page *alloc_kmem_pages_node(int n
- 	struct page *page;
- 
- 	page = alloc_pages_node(nid, gfp_mask, order);
--	if (page && memcg_kmem_charge(page, gfp_mask, order) != 0) {
-+	if (memcg_kmem_enabled() && (gfp_mask & __GFP_ACCOUNT) &&
-+	    page && memcg_kmem_charge(page, gfp_mask, order) != 0) {
- 		__free_pages(page, order);
- 		page = NULL;
- 	}
-@@ -4031,7 +4033,8 @@ struct page *alloc_kmem_pages_node(int n
-  */
- void __free_kmem_pages(struct page *page, unsigned int order)
- {
--	memcg_kmem_uncharge(page, order);
-+	if (memcg_kmem_enabled())
-+		memcg_kmem_uncharge(page, order);
- 	__free_pages(page, order);
- }
- 
-diff -puN mm/slab.h~mm-memcontrol-cleanup-kmem-charge-functions mm/slab.h
---- a/mm/slab.h~mm-memcontrol-cleanup-kmem-charge-functions
-+++ a/mm/slab.h
-@@ -254,8 +254,7 @@ static __always_inline int memcg_charge_
- 	if (is_root_cache(s))
- 		return 0;
- 
--	ret = __memcg_kmem_charge_memcg(page, gfp, order,
--					s->memcg_params.memcg);
-+	ret = memcg_kmem_charge_memcg(page, gfp, order, s->memcg_params.memcg);
- 	if (ret)
- 		return ret;
- 
-@@ -269,6 +268,9 @@ static __always_inline int memcg_charge_
- static __always_inline void memcg_uncharge_slab(struct page *page, int order,
- 						struct kmem_cache *s)
- {
-+	if (!memcg_kmem_enabled())
-+		return;
-+
- 	memcg_kmem_update_page_stat(page,
- 			(s->flags & SLAB_RECLAIM_ACCOUNT) ?
- 			MEMCG_SLAB_RECLAIMABLE : MEMCG_SLAB_UNRECLAIMABLE,
-@@ -391,7 +393,11 @@ static inline struct kmem_cache *slab_pr
- 	if (should_failslab(s, flags))
- 		return NULL;
- 
--	return memcg_kmem_get_cache(s, flags);
-+	if (memcg_kmem_enabled() &&
-+	    ((flags & __GFP_ACCOUNT) || (s->flags & SLAB_ACCOUNT)))
-+		return memcg_kmem_get_cache(s);
-+
-+	return s;
- }
- 
- static inline void slab_post_alloc_hook(struct kmem_cache *s, gfp_t flags,
-@@ -408,7 +414,9 @@ static inline void slab_post_alloc_hook(
- 					 s->flags, flags);
- 		kasan_slab_alloc(s, object, flags);
- 	}
--	memcg_kmem_put_cache(s);
-+
-+	if (memcg_kmem_enabled())
-+		memcg_kmem_put_cache(s);
- }
- 
- #ifndef CONFIG_SLOB
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
