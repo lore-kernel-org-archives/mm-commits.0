@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mmoom-remove-unused-argument-from-oom_scan_process_thread.patch added to -mm tree
-Date: Thu, 02 Jun 2016 16:12:14 -0700
-Message-ID: <5750bd4e.iRZHHQwZ+QPSU5+6%akpm@linux-foundation.org>
+Subject: + thp-broken-page-count-after-commit-aa88b68c.patch added to -mm
+ tree
+Date: Thu, 02 Jun 2016 16:26:16 -0700
+Message-ID: <5750c098.OF7migJd2SJftGeU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52930 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52965 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932416AbcFBXMP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:12:15 -0400
+	with ESMTP id S1752982AbcFBX0X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:26:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, mhocko@suse.com, mm-commits@vger.kernel.org
+To: gerald.schaefer@de.ibm.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, borntraeger@de.ibm.com, dave.hansen@intel.com, hannes@cmpxchg.org, heiko.carstens@de.ibm.com, hughd@google.com, kirill@shutemov.name, mgorman@techsingularity.net, schwidefsky@de.ibm.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,oom: remove unused argument from oom_scan_process_thread().
+     Subject: mm: thp: broken page count after commit aa88b68c
 has been added to the -mm tree.  Its filename is
-     mmoom-remove-unused-argument-from-oom_scan_process_thread.patch
+     thp-broken-page-count-after-commit-aa88b68c.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmoom-remove-unused-argument-from-oom_scan_process_thread.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-broken-page-count-after-commit-aa88b68c.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmoom-remove-unused-argument-from-oom_scan_process_thread.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-broken-page-count-after-commit-aa88b68c.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,72 +39,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm,oom: remove unused argument from oom_scan_process_thread().
+From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Subject: mm: thp: broken page count after commit aa88b68c
 
-oom_scan_process_thread() does not use totalpages argument.  oom_badness()
-uses it.
+Christian Borntraeger reported a kernel panic after corrupt page counts,
+and it turned out to be a regression introduced with commit aa88b68c
+("thp: keep huge zero page pinned until tlb flush"), at least on s390.
 
-Link: http://lkml.kernel.org/r/1463796041-7889-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
+put_huge_zero_page() was moved over from zap_huge_pmd() to
+release_pages(), and it was replaced by tlb_remove_page().  However,
+release_pages() might not always be triggered by (the arch-specific)
+tlb_remove_page().
+
+On s390 we call free_page_and_swap_cache() from tlb_remove_page(), and not
+tlb_flush_mmu() -> free_pages_and_swap_cache() like the generic version,
+because we don't use the MMU-gather logic.  Although both functions have
+very similar names, they are doing very unsimilar things, in particular
+free_page_xxx is just doing a put_page(), while free_pages_xxx calls
+release_pages().
+
+This of course results in very harmful put_page()s on the huge zero page,
+on architectures where tlb_remove_page() is implemented in this way.  It
+seems to affect only s390 and sh, but sh doesn't have THP support, so the
+problem (currently) probably only exists on s390.
+
+The following quick hack fixed the issue:
+
+Link: http://lkml.kernel.org/r/20160602172141.75c006a9@thinkpad
+Reported-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Tested-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: <stable@vger.kernel.org>	[4.6.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    2 +-
- mm/memcontrol.c     |    2 +-
- mm/oom_kill.c       |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ mm/swap_state.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/oom.h~mmoom-remove-unused-argument-from-oom_scan_process_thread include/linux/oom.h
---- a/include/linux/oom.h~mmoom-remove-unused-argument-from-oom_scan_process_thread
-+++ a/include/linux/oom.h
-@@ -92,7 +92,7 @@ extern void check_panic_on_oom(struct oo
- 			       enum oom_constraint constraint);
- 
- extern enum oom_scan_t oom_scan_process_thread(struct oom_control *oc,
--		struct task_struct *task, unsigned long totalpages);
-+					       struct task_struct *task);
- 
- extern bool out_of_memory(struct oom_control *oc);
- 
-diff -puN mm/memcontrol.c~mmoom-remove-unused-argument-from-oom_scan_process_thread mm/memcontrol.c
---- a/mm/memcontrol.c~mmoom-remove-unused-argument-from-oom_scan_process_thread
-+++ a/mm/memcontrol.c
-@@ -1290,7 +1290,7 @@ static bool mem_cgroup_out_of_memory(str
- 
- 		css_task_iter_start(&iter->css, &it);
- 		while ((task = css_task_iter_next(&it))) {
--			switch (oom_scan_process_thread(&oc, task, totalpages)) {
-+			switch (oom_scan_process_thread(&oc, task)) {
- 			case OOM_SCAN_SELECT:
- 				if (chosen)
- 					put_task_struct(chosen);
-diff -puN mm/oom_kill.c~mmoom-remove-unused-argument-from-oom_scan_process_thread mm/oom_kill.c
---- a/mm/oom_kill.c~mmoom-remove-unused-argument-from-oom_scan_process_thread
-+++ a/mm/oom_kill.c
-@@ -274,7 +274,7 @@ static enum oom_constraint constrained_a
- #endif
- 
- enum oom_scan_t oom_scan_process_thread(struct oom_control *oc,
--			struct task_struct *task, unsigned long totalpages)
-+					struct task_struct *task)
+diff -puN mm/swap_state.c~thp-broken-page-count-after-commit-aa88b68c mm/swap_state.c
+--- a/mm/swap_state.c~thp-broken-page-count-after-commit-aa88b68c
++++ a/mm/swap_state.c
+@@ -252,7 +252,10 @@ static inline void free_swap_cache(struc
+ void free_page_and_swap_cache(struct page *page)
  {
- 	if (oom_unkillable_task(task, NULL, oc->nodemask))
- 		return OOM_SCAN_CONTINUE;
-@@ -311,7 +311,7 @@ static struct task_struct *select_bad_pr
- 	for_each_process(p) {
- 		unsigned int points;
+ 	free_swap_cache(page);
+-	put_page(page);
++	if (is_huge_zero_page(page))
++		put_huge_zero_page();
++	else
++		put_page(page);
+ }
  
--		switch (oom_scan_process_thread(oc, p, totalpages)) {
-+		switch (oom_scan_process_thread(oc, p)) {
- 		case OOM_SCAN_SELECT:
- 			chosen = p;
- 			chosen_points = ULONG_MAX;
+ /*
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
-mmoom_reaper-dont-call-mmput_async-without-atomic_inc_not_zero.patch
-mmoom-remove-unused-argument-from-oom_scan_process_thread.patch
+thp-broken-page-count-after-commit-aa88b68c.patch
 
