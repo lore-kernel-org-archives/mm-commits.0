@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-pointless-struct-in-struct-page-definition.patch
- added to -mm tree
-Date: Thu, 02 Jun 2016 16:09:03 -0700
-Message-ID: <5750bc8f.5mptg0GlQwEoU6Zq%akpm@linux-foundation.org>
+Subject: + mm-clean-up-non-standard-page-_mapcount-users.patch added to
+ -mm tree
+Date: Thu, 02 Jun 2016 16:09:05 -0700
+Message-ID: <5750bc91.CIEcHczOqvKpTfoh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52848 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52853 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932090AbcFBXJF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:09:05 -0400
+	with ESMTP id S932090AbcFBXJG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:09:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@virtuozzo.com, eric.dumazet@gmail.com, hannes@cmpxchg.org, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove pointless struct in struct page definition
+     Subject: mm: clean up non-standard page->_mapcount users
 has been added to the -mm tree.  Its filename is
-     mm-remove-pointless-struct-in-struct-page-definition.patch
+     mm-clean-up-non-standard-page-_mapcount-users.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-pointless-struct-in-struct-page-definition.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-clean-up-non-standard-page-_mapcount-users.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-pointless-struct-in-struct-page-definition.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clean-up-non-standard-page-_mapcount-users.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,24 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: remove pointless struct in struct page definition
+Subject: mm: clean up non-standard page->_mapcount users
 
-This patchset implements per kmemcg accounting of page tables (x86-only),
-pipe buffers, and unix socket buffers.
+ - Add a proper comment to page->_mapcount.
+ - Introduce a macro for generating helper functions.
+ - Place all special page->_mapcount values next to each other so that
+   readers can see all possible values and so we don't get duplicates.
 
-Patches 1-3 are just cleanups that are not supposed to introduce any
-functional changes.  Patches 4 and 5 move charge/uncharge to generic page
-allocator paths for the sake of accounting pipe and unix socket buffers. 
-Patches 5-7 make x86 page tables, pipe buffers, and unix socket buffers
-accountable.
-
-
-
-This patch (of 8):
-
-... to reduce indentation level thus leaving more space for comments.
-
-Link: http://lkml.kernel.org/r/f34ffe70fce2b0b9220856437f77972d67c14275.1464079537.git.vdavydov@virtuozzo.com
+Link: http://lkml.kernel.org/r/502f49000e0b63e6c62e338fac6b420bf34fb526.1464079537.git.vdavydov@virtuozzo.com
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
@@ -66,96 +56,129 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   68 +++++++++++++++++--------------------
- 1 file changed, 32 insertions(+), 36 deletions(-)
+ include/linux/mm_types.h   |    5 ++
+ include/linux/page-flags.h |   73 +++++++++++++++--------------------
+ scripts/tags.sh            |    3 +
+ 3 files changed, 40 insertions(+), 41 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-remove-pointless-struct-in-struct-page-definition include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-remove-pointless-struct-in-struct-page-definition
+diff -puN include/linux/mm_types.h~mm-clean-up-non-standard-page-_mapcount-users include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-clean-up-non-standard-page-_mapcount-users
 +++ a/include/linux/mm_types.h
-@@ -60,51 +60,47 @@ struct page {
- 	};
- 
- 	/* Second double word */
--	struct {
--		union {
--			pgoff_t index;		/* Our offset within mapping. */
--			void *freelist;		/* sl[aou]b first free object */
--			/* page_deferred_list().prev	-- second tail page */
--		};
-+	union {
-+		pgoff_t index;		/* Our offset within mapping. */
-+		void *freelist;		/* sl[aou]b first free object */
-+		/* page_deferred_list().prev	-- second tail page */
-+	};
- 
--		union {
-+	union {
- #if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
- 	defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
--			/* Used for cmpxchg_double in slub */
--			unsigned long counters;
-+		/* Used for cmpxchg_double in slub */
-+		unsigned long counters;
- #else
--			/*
--			 * Keep _refcount separate from slub cmpxchg_double
--			 * data.  As the rest of the double word is protected by
--			 * slab_lock but _refcount is not.
--			 */
--			unsigned counters;
-+		/*
-+		 * Keep _refcount separate from slub cmpxchg_double data.
-+		 * As the rest of the double word is protected by slab_lock
-+		 * but _refcount is not.
-+		 */
-+		unsigned counters;
- #endif
-+		struct {
- 
--			struct {
--
--				union {
--					/*
--					 * Count of ptes mapped in mms, to show
--					 * when page is mapped & limit reverse
--					 * map searches.
--					 */
--					atomic_t _mapcount;
--
--					struct { /* SLUB */
--						unsigned inuse:16;
--						unsigned objects:15;
--						unsigned frozen:1;
--					};
--					int units;	/* SLOB */
--				};
-+			union {
+@@ -85,6 +85,11 @@ struct page {
  				/*
--				 * Usage count, *USE WRAPPER FUNCTION*
--				 * when manual accounting. See page_ref.h
-+				 * Count of ptes mapped in mms, to show when
-+				 * page is mapped & limit reverse map searches.
+ 				 * Count of ptes mapped in mms, to show when
+ 				 * page is mapped & limit reverse map searches.
++				 *
++				 * Extra information about page type may be
++				 * stored here for pages that are never mapped,
++				 * in which case the value MUST BE <= -2.
++				 * See page-flags.h for more details.
  				 */
--				atomic_t _refcount;
-+				atomic_t _mapcount;
-+
-+				unsigned int active;		/* SLAB */
-+				struct {			/* SLUB */
-+					unsigned inuse:16;
-+					unsigned objects:15;
-+					unsigned frozen:1;
-+				};
-+				int units;			/* SLOB */
- 			};
--			unsigned int active;	/* SLAB */
-+			/*
-+			 * Usage count, *USE WRAPPER FUNCTION* when manual
-+			 * accounting. See page_ref.h
-+			 */
-+			atomic_t _refcount;
- 		};
- 	};
+ 				atomic_t _mapcount;
  
+diff -puN include/linux/page-flags.h~mm-clean-up-non-standard-page-_mapcount-users include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-clean-up-non-standard-page-_mapcount-users
++++ a/include/linux/page-flags.h
+@@ -604,54 +604,45 @@ TESTPAGEFLAG_FALSE(DoubleMap)
+ #endif
+ 
+ /*
+- * PageBuddy() indicate that the page is free and in the buddy system
+- * (see mm/page_alloc.c).
+- *
+- * PAGE_BUDDY_MAPCOUNT_VALUE must be <= -2 but better not too close to
+- * -2 so that an underflow of the page_mapcount() won't be mistaken
+- * for a genuine PAGE_BUDDY_MAPCOUNT_VALUE. -128 can be created very
+- * efficiently by most CPU architectures.
++ * For pages that are never mapped to userspace, page->mapcount may be
++ * used for storing extra information about page type. Any value used
++ * for this purpose must be <= -2, but it's better start not too close
++ * to -2 so that an underflow of the page_mapcount() won't be mistaken
++ * for a special page.
+  */
+-#define PAGE_BUDDY_MAPCOUNT_VALUE (-128)
+-
+-static inline int PageBuddy(struct page *page)
+-{
+-	return atomic_read(&page->_mapcount) == PAGE_BUDDY_MAPCOUNT_VALUE;
++#define PAGE_MAPCOUNT_OPS(uname, lname)					\
++static __always_inline int Page##uname(struct page *page)		\
++{									\
++	return atomic_read(&page->_mapcount) ==				\
++				PAGE_##lname##_MAPCOUNT_VALUE;		\
++}									\
++static __always_inline void __SetPage##uname(struct page *page)		\
++{									\
++	VM_BUG_ON_PAGE(atomic_read(&page->_mapcount) != -1, page);	\
++	atomic_set(&page->_mapcount, PAGE_##lname##_MAPCOUNT_VALUE);	\
++}									\
++static __always_inline void __ClearPage##uname(struct page *page)	\
++{									\
++	VM_BUG_ON_PAGE(!Page##uname(page), page);			\
++	atomic_set(&page->_mapcount, -1);				\
+ }
+ 
+-static inline void __SetPageBuddy(struct page *page)
+-{
+-	VM_BUG_ON_PAGE(atomic_read(&page->_mapcount) != -1, page);
+-	atomic_set(&page->_mapcount, PAGE_BUDDY_MAPCOUNT_VALUE);
+-}
++/*
++ * PageBuddy() indicate that the page is free and in the buddy system
++ * (see mm/page_alloc.c).
++ */
++#define PAGE_BUDDY_MAPCOUNT_VALUE		(-128)
++PAGE_MAPCOUNT_OPS(Buddy, BUDDY)
+ 
+-static inline void __ClearPageBuddy(struct page *page)
+-{
+-	VM_BUG_ON_PAGE(!PageBuddy(page), page);
+-	atomic_set(&page->_mapcount, -1);
+-}
++/*
++ * PageBalloon() is set on pages that are on the balloon page list
++ * (see mm/balloon_compaction.c).
++ */
++#define PAGE_BALLOON_MAPCOUNT_VALUE		(-256)
++PAGE_MAPCOUNT_OPS(Balloon, BALLOON)
+ 
+ extern bool is_free_buddy_page(struct page *page);
+ 
+-#define PAGE_BALLOON_MAPCOUNT_VALUE (-256)
+-
+-static inline int PageBalloon(struct page *page)
+-{
+-	return atomic_read(&page->_mapcount) == PAGE_BALLOON_MAPCOUNT_VALUE;
+-}
+-
+-static inline void __SetPageBalloon(struct page *page)
+-{
+-	VM_BUG_ON_PAGE(atomic_read(&page->_mapcount) != -1, page);
+-	atomic_set(&page->_mapcount, PAGE_BALLOON_MAPCOUNT_VALUE);
+-}
+-
+-static inline void __ClearPageBalloon(struct page *page)
+-{
+-	VM_BUG_ON_PAGE(!PageBalloon(page), page);
+-	atomic_set(&page->_mapcount, -1);
+-}
+-
+ __PAGEFLAG(Isolated, isolated, PF_ANY);
+ 
+ /*
+diff -puN scripts/tags.sh~mm-clean-up-non-standard-page-_mapcount-users scripts/tags.sh
+--- a/scripts/tags.sh~mm-clean-up-non-standard-page-_mapcount-users
++++ a/scripts/tags.sh
+@@ -185,6 +185,9 @@ regex_c=(
+ 	'/\<CLEARPAGEFLAG_NOOP(\([[:alnum:]_]*\).*/ClearPage\1/'
+ 	'/\<__CLEARPAGEFLAG_NOOP(\([[:alnum:]_]*\).*/__ClearPage\1/'
+ 	'/\<TESTCLEARFLAG_FALSE(\([[:alnum:]_]*\).*/TestClearPage\1/'
++	'/^PAGE_MAPCOUNT_OPS(\([[:alnum:]_]*\).*/Page\1/'
++	'/^PAGE_MAPCOUNT_OPS(\([[:alnum:]_]*\).*/__SetPage\1/'
++	'/^PAGE_MAPCOUNT_OPS(\([[:alnum:]_]*\).*/__ClearPage\1/'
+ 	'/^TASK_PFA_TEST([^,]*, *\([[:alnum:]_]*\))/task_\1/'
+ 	'/^TASK_PFA_SET([^,]*, *\([[:alnum:]_]*\))/task_set_\1/'
+ 	'/^TASK_PFA_CLEAR([^,]*, *\([[:alnum:]_]*\))/task_clear_\1/'
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
