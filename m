@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- arm64-dma-mapping-constify-attrs-passed-to-internal-functions.patch added
- to -mm tree
-Date: Thu, 02 Jun 2016 16:11:08 -0700
-Message-ID: <5750bd0c.+Cir/LXkvt4y/vR6%akpm@linux-foundation.org>
+Subject: + mmoom-remove-unused-argument-from-oom_scan_process_thread.patch added to -mm tree
+Date: Thu, 02 Jun 2016 16:12:14 -0700
+Message-ID: <5750bd4e.iRZHHQwZ+QPSU5+6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52917 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52930 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932090AbcFBXLJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:11:09 -0400
+	with ESMTP id S932416AbcFBXMP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:12:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, catalin.marinas@arm.com, joro@8bytes.org, konrad.wilk@oracle.com, linux@armlinux.org.uk, m.szyprowski@samsung.com, sstabellini@kernel.org, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: penguin-kernel@I-love.SAKURA.ne.jp, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: dma-mapping: constify attrs passed to internal functions
+     Subject: mm,oom: remove unused argument from oom_scan_process_thread().
 has been added to the -mm tree.  Its filename is
-     arm64-dma-mapping-constify-attrs-passed-to-internal-functions.patch
+     mmoom-remove-unused-argument-from-oom_scan_process_thread.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-dma-mapping-constify-attrs-passed-to-internal-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmoom-remove-unused-argument-from-oom_scan_process_thread.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-dma-mapping-constify-attrs-passed-to-internal-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmoom-remove-unused-argument-from-oom_scan_process_thread.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,62 +38,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: arm64: dma-mapping: constify attrs passed to internal functions
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm,oom: remove unused argument from oom_scan_process_thread().
 
-Some of the non-exported functions do not modify passed dma_attrs so the
-pointer can point to const data.
+oom_scan_process_thread() does not use totalpages argument.  oom_badness()
+uses it.
 
-Link: http://lkml.kernel.org/r/1464071290-15948-4-git-send-email-k.kozlowski@samsung.com
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Link: http://lkml.kernel.org/r/1463796041-7889-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/dma-mapping.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/oom.h |    2 +-
+ mm/memcontrol.c     |    2 +-
+ mm/oom_kill.c       |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm64/mm/dma-mapping.c~arm64-dma-mapping-constify-attrs-passed-to-internal-functions arch/arm64/mm/dma-mapping.c
---- a/arch/arm64/mm/dma-mapping.c~arm64-dma-mapping-constify-attrs-passed-to-internal-functions
-+++ a/arch/arm64/mm/dma-mapping.c
-@@ -29,7 +29,7 @@
+diff -puN include/linux/oom.h~mmoom-remove-unused-argument-from-oom_scan_process_thread include/linux/oom.h
+--- a/include/linux/oom.h~mmoom-remove-unused-argument-from-oom_scan_process_thread
++++ a/include/linux/oom.h
+@@ -92,7 +92,7 @@ extern void check_panic_on_oom(struct oo
+ 			       enum oom_constraint constraint);
  
- #include <asm/cacheflush.h>
+ extern enum oom_scan_t oom_scan_process_thread(struct oom_control *oc,
+-		struct task_struct *task, unsigned long totalpages);
++					       struct task_struct *task);
  
--static pgprot_t __get_dma_pgprot(struct dma_attrs *attrs, pgprot_t prot,
-+static pgprot_t __get_dma_pgprot(const struct dma_attrs *attrs, pgprot_t prot,
- 				 bool coherent)
+ extern bool out_of_memory(struct oom_control *oc);
+ 
+diff -puN mm/memcontrol.c~mmoom-remove-unused-argument-from-oom_scan_process_thread mm/memcontrol.c
+--- a/mm/memcontrol.c~mmoom-remove-unused-argument-from-oom_scan_process_thread
++++ a/mm/memcontrol.c
+@@ -1290,7 +1290,7 @@ static bool mem_cgroup_out_of_memory(str
+ 
+ 		css_task_iter_start(&iter->css, &it);
+ 		while ((task = css_task_iter_next(&it))) {
+-			switch (oom_scan_process_thread(&oc, task, totalpages)) {
++			switch (oom_scan_process_thread(&oc, task)) {
+ 			case OOM_SCAN_SELECT:
+ 				if (chosen)
+ 					put_task_struct(chosen);
+diff -puN mm/oom_kill.c~mmoom-remove-unused-argument-from-oom_scan_process_thread mm/oom_kill.c
+--- a/mm/oom_kill.c~mmoom-remove-unused-argument-from-oom_scan_process_thread
++++ a/mm/oom_kill.c
+@@ -274,7 +274,7 @@ static enum oom_constraint constrained_a
+ #endif
+ 
+ enum oom_scan_t oom_scan_process_thread(struct oom_control *oc,
+-			struct task_struct *task, unsigned long totalpages)
++					struct task_struct *task)
  {
- 	if (!coherent || dma_get_attr(DMA_ATTR_WRITE_COMBINE, attrs))
-@@ -88,7 +88,7 @@ static int __free_from_pool(void *start,
+ 	if (oom_unkillable_task(task, NULL, oc->nodemask))
+ 		return OOM_SCAN_CONTINUE;
+@@ -311,7 +311,7 @@ static struct task_struct *select_bad_pr
+ 	for_each_process(p) {
+ 		unsigned int points;
  
- static void *__dma_alloc_coherent(struct device *dev, size_t size,
- 				  dma_addr_t *dma_handle, gfp_t flags,
--				  struct dma_attrs *attrs)
-+				  const struct dma_attrs *attrs)
- {
- 	if (dev == NULL) {
- 		WARN_ONCE(1, "Use an actual device structure for DMA allocation\n");
-@@ -118,7 +118,7 @@ static void *__dma_alloc_coherent(struct
- 
- static void __dma_free_coherent(struct device *dev, size_t size,
- 				void *vaddr, dma_addr_t dma_handle,
--				struct dma_attrs *attrs)
-+				const struct dma_attrs *attrs)
- {
- 	bool freed;
- 	phys_addr_t paddr = dma_to_phys(dev, dma_handle);
+-		switch (oom_scan_process_thread(oc, p, totalpages)) {
++		switch (oom_scan_process_thread(oc, p)) {
+ 		case OOM_SCAN_SELECT:
+ 			chosen = p;
+ 			chosen_points = ULONG_MAX;
 _
 
-Patches currently in -mm which might be from k.kozlowski@samsung.com are
+Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
 
-dma-mapping-constify-attrs-passed-to-dma_get_attr.patch
-arm-dma-mapping-constify-attrs-passed-to-internal-functions.patch
-arm64-dma-mapping-constify-attrs-passed-to-internal-functions.patch
+mmoom_reaper-dont-call-mmput_async-without-atomic_inc_not_zero.patch
+mmoom-remove-unused-argument-from-oom_scan_process_thread.patch
 
