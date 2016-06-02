@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + w1-remove-need-for-ida-and-use-platform_devid_auto.patch added
- to -mm tree
-Date: Thu, 02 Jun 2016 12:51:10 -0700
-Message-ID: <57508e2e.wMvJp/NEcLUTE3eq%akpm@linux-foundation.org>
+Subject: + w1-add-helper-macro-module_w1_family.patch added to -mm tree
+Date: Thu, 02 Jun 2016 12:51:12 -0700
+Message-ID: <57508e30.y2bh1kxAZiLblVEZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50447 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50454 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750843AbcFBTvL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 15:51:11 -0400
+	with ESMTP id S1750843AbcFBTvN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 15:51:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: afd@ti.com, greg@kroah.com, zbr@ioremap.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: w1: remove need for ida and use PLATFORM_DEVID_AUTO
+     Subject: w1: add helper macro module_w1_family
 has been added to the -mm tree.  Its filename is
-     w1-remove-need-for-ida-and-use-platform_devid_auto.patch
+     w1-add-helper-macro-module_w1_family.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/w1-remove-need-for-ida-and-use-platform_devid_auto.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/w1-add-helper-macro-module_w1_family.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/w1-remove-need-for-ida-and-use-platform_devid_auto.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/w1-add-helper-macro-module_w1_family.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,242 +39,284 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Andrew F. Davis" <afd@ti.com>
-Subject: w1: remove need for ida and use PLATFORM_DEVID_AUTO
+Subject: w1: add helper macro module_w1_family
 
-PLATFORM_DEVID_AUTO can be used to have the platform core assign
-a unique ID instead of manually creating one with IDA. Do this
-in all applicable drivers.
+The helper macro module_w1_family can be used in module drivers that only
+register a w1 driver in their module init functions.  Add this macro and
+use it in all applicable drivers.
 
-Link: http://lkml.kernel.org/r/20160531204313.20979-1-afd@ti.com
+Link: http://lkml.kernel.org/r/20160531204313.20979-2-afd@ti.com
 Signed-off-by: Andrew F. Davis <afd@ti.com>
 Cc: Evgeniy Polyakov <zbr@ioremap.net>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/slaves/w1_ds2760.c |   28 +++++-----------------------
- drivers/w1/slaves/w1_ds2780.c |   25 ++++---------------------
- drivers/w1/slaves/w1_ds2781.c |   26 ++++----------------------
- 3 files changed, 13 insertions(+), 66 deletions(-)
+ drivers/w1/slaves/w1_ds2406.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2408.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2413.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2423.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2431.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2433.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2760.c  |   15 +--------------
+ drivers/w1/slaves/w1_ds2780.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2781.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds28e04.c |   14 +-------------
+ drivers/w1/w1_family.h         |   12 ++++++++++++
+ 11 files changed, 22 insertions(+), 131 deletions(-)
 
-diff -puN drivers/w1/slaves/w1_ds2760.c~w1-remove-need-for-ida-and-use-platform_devid_auto drivers/w1/slaves/w1_ds2760.c
---- a/drivers/w1/slaves/w1_ds2760.c~w1-remove-need-for-ida-and-use-platform_devid_auto
-+++ a/drivers/w1/slaves/w1_ds2760.c
-@@ -121,25 +121,14 @@ static const struct attribute_group *w1_
- 	NULL,
+diff -puN drivers/w1/slaves/w1_ds2406.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2406.c
+--- a/drivers/w1/slaves/w1_ds2406.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2406.c
+@@ -153,16 +153,4 @@ static struct w1_family w1_family_12 = {
+ 	.fid = W1_FAMILY_DS2406,
+ 	.fops = &w1_f12_fops,
  };
- 
--static DEFINE_IDA(bat_ida);
 -
- static int w1_ds2760_add_slave(struct w1_slave *sl)
- {
- 	int ret;
--	int id;
- 	struct platform_device *pdev;
- 
--	id = ida_simple_get(&bat_ida, 0, 0, GFP_KERNEL);
--	if (id < 0) {
--		ret = id;
--		goto noid;
--	}
+-static int __init w1_f12_init(void)
+-{
+-	return w1_register_family(&w1_family_12);
+-}
 -
--	pdev = platform_device_alloc("ds2760-battery", id);
--	if (!pdev) {
--		ret = -ENOMEM;
--		goto pdev_alloc_failed;
--	}
-+	pdev = platform_device_alloc("ds2760-battery", PLATFORM_DEVID_AUTO);
-+	if (!pdev)
-+		return -ENOMEM;
- 	pdev->dev.parent = &sl->dev;
+-static void __exit w1_f12_exit(void)
+-{
+-	w1_unregister_family(&w1_family_12);
+-}
+-
+-module_init(w1_f12_init);
+-module_exit(w1_f12_exit);
++module_w1_family(w1_family_12);
+diff -puN drivers/w1/slaves/w1_ds2408.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2408.c
+--- a/drivers/w1/slaves/w1_ds2408.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2408.c
+@@ -351,16 +351,4 @@ static struct w1_family w1_family_29 = {
+ 	.fid = W1_FAMILY_DS2408,
+ 	.fops = &w1_f29_fops,
+ };
+-
+-static int __init w1_f29_init(void)
+-{
+-	return w1_register_family(&w1_family_29);
+-}
+-
+-static void __exit w1_f29_exit(void)
+-{
+-	w1_unregister_family(&w1_family_29);
+-}
+-
+-module_init(w1_f29_init);
+-module_exit(w1_f29_exit);
++module_w1_family(w1_family_29);
+diff -puN drivers/w1/slaves/w1_ds2413.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2413.c
+--- a/drivers/w1/slaves/w1_ds2413.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2413.c
+@@ -135,16 +135,4 @@ static struct w1_family w1_family_3a = {
+ 	.fid = W1_FAMILY_DS2413,
+ 	.fops = &w1_f3a_fops,
+ };
+-
+-static int __init w1_f3a_init(void)
+-{
+-	return w1_register_family(&w1_family_3a);
+-}
+-
+-static void __exit w1_f3a_exit(void)
+-{
+-	w1_unregister_family(&w1_family_3a);
+-}
+-
+-module_init(w1_f3a_init);
+-module_exit(w1_f3a_exit);
++module_w1_family(w1_family_3a);
+diff -puN drivers/w1/slaves/w1_ds2423.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2423.c
+--- a/drivers/w1/slaves/w1_ds2423.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2423.c
+@@ -138,19 +138,7 @@ static struct w1_family w1_family_1d = {
+ 	.fid = W1_COUNTER_DS2423,
+ 	.fops = &w1_f1d_fops,
+ };
+-
+-static int __init w1_f1d_init(void)
+-{
+-	return w1_register_family(&w1_family_1d);
+-}
+-
+-static void __exit w1_f1d_exit(void)
+-{
+-	w1_unregister_family(&w1_family_1d);
+-}
+-
+-module_init(w1_f1d_init);
+-module_exit(w1_f1d_exit);
++module_w1_family(w1_family_1d);
  
- 	ret = platform_device_add(pdev);
-@@ -148,24 +137,19 @@ static int w1_ds2760_add_slave(struct w1
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Mika Laitio <lamikr@pilppa.org>");
+diff -puN drivers/w1/slaves/w1_ds2431.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2431.c
+--- a/drivers/w1/slaves/w1_ds2431.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2431.c
+@@ -288,19 +288,7 @@ static struct w1_family w1_family_2d = {
+ 	.fid = W1_EEPROM_DS2431,
+ 	.fops = &w1_f2d_fops,
+ };
+-
+-static int __init w1_f2d_init(void)
+-{
+-	return w1_register_family(&w1_family_2d);
+-}
+-
+-static void __exit w1_f2d_fini(void)
+-{
+-	w1_unregister_family(&w1_family_2d);
+-}
+-
+-module_init(w1_f2d_init);
+-module_exit(w1_f2d_fini);
++module_w1_family(w1_family_2d);
  
- 	dev_set_drvdata(&sl->dev, pdev);
- 
--	goto success;
-+	return 0;
- 
- pdev_add_failed:
- 	platform_device_put(pdev);
--pdev_alloc_failed:
--	ida_simple_remove(&bat_ida, id);
--noid:
--success:
-+
- 	return ret;
- }
- 
- static void w1_ds2760_remove_slave(struct w1_slave *sl)
- {
- 	struct platform_device *pdev = dev_get_drvdata(&sl->dev);
--	int id = pdev->id;
- 
- 	platform_device_unregister(pdev);
--	ida_simple_remove(&bat_ida, id);
- }
- 
- static struct w1_family_ops w1_ds2760_fops = {
-@@ -182,14 +166,12 @@ static struct w1_family w1_ds2760_family
- static int __init w1_ds2760_init(void)
- {
- 	pr_info("1-Wire driver for the DS2760 battery monitor chip - (c) 2004-2005, Szabolcs Gyurko\n");
--	ida_init(&bat_ida);
- 	return w1_register_family(&w1_ds2760_family);
- }
- 
- static void __exit w1_ds2760_exit(void)
- {
- 	w1_unregister_family(&w1_ds2760_family);
--	ida_destroy(&bat_ida);
- }
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Bernhard Weirich <bernhard.weirich@riedel.net>");
+diff -puN drivers/w1/slaves/w1_ds2433.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2433.c
+--- a/drivers/w1/slaves/w1_ds2433.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2433.c
+@@ -305,16 +305,4 @@ static struct w1_family w1_family_23 = {
+ 	.fid = W1_EEPROM_DS2433,
+ 	.fops = &w1_f23_fops,
+ };
+-
+-static int __init w1_f23_init(void)
+-{
+-	return w1_register_family(&w1_family_23);
+-}
+-
+-static void __exit w1_f23_fini(void)
+-{
+-	w1_unregister_family(&w1_family_23);
+-}
+-
+-module_init(w1_f23_init);
+-module_exit(w1_f23_fini);
++module_w1_family(w1_family_23);
+diff -puN drivers/w1/slaves/w1_ds2760.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2760.c
+--- a/drivers/w1/slaves/w1_ds2760.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2760.c
+@@ -162,26 +162,13 @@ static struct w1_family w1_ds2760_family
+ 	.fid = W1_FAMILY_DS2760,
+ 	.fops = &w1_ds2760_fops,
+ };
+-
+-static int __init w1_ds2760_init(void)
+-{
+-	pr_info("1-Wire driver for the DS2760 battery monitor chip - (c) 2004-2005, Szabolcs Gyurko\n");
+-	return w1_register_family(&w1_ds2760_family);
+-}
+-
+-static void __exit w1_ds2760_exit(void)
+-{
+-	w1_unregister_family(&w1_ds2760_family);
+-}
++module_w1_family(w1_ds2760_family);
  
  EXPORT_SYMBOL(w1_ds2760_read);
-diff -puN drivers/w1/slaves/w1_ds2780.c~w1-remove-need-for-ida-and-use-platform_devid_auto drivers/w1/slaves/w1_ds2780.c
---- a/drivers/w1/slaves/w1_ds2780.c~w1-remove-need-for-ida-and-use-platform_devid_auto
+ EXPORT_SYMBOL(w1_ds2760_write);
+ EXPORT_SYMBOL(w1_ds2760_store_eeprom);
+ EXPORT_SYMBOL(w1_ds2760_recall_eeprom);
+ 
+-module_init(w1_ds2760_init);
+-module_exit(w1_ds2760_exit);
+-
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>");
+ MODULE_DESCRIPTION("1-wire Driver Dallas 2760 battery monitor chip");
+diff -puN drivers/w1/slaves/w1_ds2780.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2780.c
+--- a/drivers/w1/slaves/w1_ds2780.c~w1-add-helper-macro-module_w1_family
 +++ a/drivers/w1/slaves/w1_ds2780.c
-@@ -113,25 +113,14 @@ static const struct attribute_group *w1_
- 	NULL,
+@@ -154,19 +154,7 @@ static struct w1_family w1_ds2780_family
+ 	.fid = W1_FAMILY_DS2780,
+ 	.fops = &w1_ds2780_fops,
  };
- 
--static DEFINE_IDA(bat_ida);
 -
- static int w1_ds2780_add_slave(struct w1_slave *sl)
- {
- 	int ret;
--	int id;
- 	struct platform_device *pdev;
- 
--	id = ida_simple_get(&bat_ida, 0, 0, GFP_KERNEL);
--	if (id < 0) {
--		ret = id;
--		goto noid;
--	}
+-static int __init w1_ds2780_init(void)
+-{
+-	return w1_register_family(&w1_ds2780_family);
+-}
 -
--	pdev = platform_device_alloc("ds2780-battery", id);
--	if (!pdev) {
--		ret = -ENOMEM;
--		goto pdev_alloc_failed;
--	}
-+	pdev = platform_device_alloc("ds2780-battery", PLATFORM_DEVID_AUTO);
-+	if (!pdev)
-+		return -ENOMEM;
- 	pdev->dev.parent = &sl->dev;
+-static void __exit w1_ds2780_exit(void)
+-{
+-	w1_unregister_family(&w1_ds2780_family);
+-}
+-
+-module_init(w1_ds2780_init);
+-module_exit(w1_ds2780_exit);
++module_w1_family(w1_ds2780_family);
  
- 	ret = platform_device_add(pdev);
-@@ -144,19 +133,15 @@ static int w1_ds2780_add_slave(struct w1
- 
- pdev_add_failed:
- 	platform_device_put(pdev);
--pdev_alloc_failed:
--	ida_simple_remove(&bat_ida, id);
--noid:
-+
- 	return ret;
- }
- 
- static void w1_ds2780_remove_slave(struct w1_slave *sl)
- {
- 	struct platform_device *pdev = dev_get_drvdata(&sl->dev);
--	int id = pdev->id;
- 
- 	platform_device_unregister(pdev);
--	ida_simple_remove(&bat_ida, id);
- }
- 
- static struct w1_family_ops w1_ds2780_fops = {
-@@ -172,14 +157,12 @@ static struct w1_family w1_ds2780_family
- 
- static int __init w1_ds2780_init(void)
- {
--	ida_init(&bat_ida);
- 	return w1_register_family(&w1_ds2780_family);
- }
- 
- static void __exit w1_ds2780_exit(void)
- {
- 	w1_unregister_family(&w1_ds2780_family);
--	ida_destroy(&bat_ida);
- }
- 
- module_init(w1_ds2780_init);
-diff -puN drivers/w1/slaves/w1_ds2781.c~w1-remove-need-for-ida-and-use-platform_devid_auto drivers/w1/slaves/w1_ds2781.c
---- a/drivers/w1/slaves/w1_ds2781.c~w1-remove-need-for-ida-and-use-platform_devid_auto
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Clifton Barnes <cabarnes@indesign-llc.com>");
+diff -puN drivers/w1/slaves/w1_ds2781.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2781.c
+--- a/drivers/w1/slaves/w1_ds2781.c~w1-add-helper-macro-module_w1_family
 +++ a/drivers/w1/slaves/w1_ds2781.c
-@@ -17,7 +17,6 @@
- #include <linux/types.h>
- #include <linux/platform_device.h>
- #include <linux/mutex.h>
--#include <linux/idr.h>
- 
- #include "../w1.h"
- #include "../w1_int.h"
-@@ -111,25 +110,14 @@ static const struct attribute_group *w1_
- 	NULL,
+@@ -151,19 +151,7 @@ static struct w1_family w1_ds2781_family
+ 	.fid = W1_FAMILY_DS2781,
+ 	.fops = &w1_ds2781_fops,
  };
- 
--static DEFINE_IDA(bat_ida);
 -
- static int w1_ds2781_add_slave(struct w1_slave *sl)
- {
- 	int ret;
--	int id;
- 	struct platform_device *pdev;
- 
--	id = ida_simple_get(&bat_ida, 0, 0, GFP_KERNEL);
--	if (id < 0) {
--		ret = id;
--		goto noid;
--	}
+-static int __init w1_ds2781_init(void)
+-{
+-	return w1_register_family(&w1_ds2781_family);
+-}
 -
--	pdev = platform_device_alloc("ds2781-battery", id);
--	if (!pdev) {
--		ret = -ENOMEM;
--		goto pdev_alloc_failed;
--	}
-+	pdev = platform_device_alloc("ds2781-battery", PLATFORM_DEVID_AUTO);
-+	if (!pdev)
-+		return -ENOMEM;
- 	pdev->dev.parent = &sl->dev;
+-static void __exit w1_ds2781_exit(void)
+-{
+-	w1_unregister_family(&w1_ds2781_family);
+-}
+-
+-module_init(w1_ds2781_init);
+-module_exit(w1_ds2781_exit);
++module_w1_family(w1_ds2781_family);
  
- 	ret = platform_device_add(pdev);
-@@ -142,19 +130,15 @@ static int w1_ds2781_add_slave(struct w1
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Renata Sayakhova <renata@oktetlabs.ru>");
+diff -puN drivers/w1/slaves/w1_ds28e04.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds28e04.c
+--- a/drivers/w1/slaves/w1_ds28e04.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds28e04.c
+@@ -427,16 +427,4 @@ static struct w1_family w1_family_1C = {
+ 	.fid = W1_FAMILY_DS28E04,
+ 	.fops = &w1_f1C_fops,
+ };
+-
+-static int __init w1_f1C_init(void)
+-{
+-	return w1_register_family(&w1_family_1C);
+-}
+-
+-static void __exit w1_f1C_fini(void)
+-{
+-	w1_unregister_family(&w1_family_1C);
+-}
+-
+-module_init(w1_f1C_init);
+-module_exit(w1_f1C_fini);
++module_w1_family(w1_family_1C);
+diff -puN drivers/w1/w1_family.h~w1-add-helper-macro-module_w1_family drivers/w1/w1_family.h
+--- a/drivers/w1/w1_family.h~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/w1_family.h
+@@ -88,4 +88,16 @@ struct w1_family * w1_family_registered(
+ void w1_unregister_family(struct w1_family *);
+ int w1_register_family(struct w1_family *);
  
- pdev_add_failed:
- 	platform_device_put(pdev);
--pdev_alloc_failed:
--	ida_simple_remove(&bat_ida, id);
--noid:
++/**
++ * module_w1_driver() - Helper macro for registering a 1-Wire families
++ * @__w1_family: w1_family struct
++ *
++ * Helper macro for 1-Wire families which do not do anything special in module
++ * init/exit. This eliminates a lot of boilerplate. Each module may only
++ * use this macro once, and calling it replaces module_init() and module_exit()
++ */
++#define module_w1_family(__w1_family) \
++	module_driver(__w1_family, w1_register_family, \
++			w1_unregister_family)
 +
- 	return ret;
- }
- 
- static void w1_ds2781_remove_slave(struct w1_slave *sl)
- {
- 	struct platform_device *pdev = dev_get_drvdata(&sl->dev);
--	int id = pdev->id;
- 
- 	platform_device_unregister(pdev);
--	ida_simple_remove(&bat_ida, id);
- }
- 
- static struct w1_family_ops w1_ds2781_fops = {
-@@ -170,14 +154,12 @@ static struct w1_family w1_ds2781_family
- 
- static int __init w1_ds2781_init(void)
- {
--	ida_init(&bat_ida);
- 	return w1_register_family(&w1_ds2781_family);
- }
- 
- static void __exit w1_ds2781_exit(void)
- {
- 	w1_unregister_family(&w1_ds2781_family);
--	ida_destroy(&bat_ida);
- }
- 
- module_init(w1_ds2781_init);
+ #endif /* __W1_FAMILY_H */
 _
 
 Patches currently in -mm which might be from afd@ti.com are
