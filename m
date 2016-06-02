@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + af_unix-charge-buffers-to-kmemcg.patch added to -mm tree
-Date: Thu, 02 Jun 2016 16:09:17 -0700
-Message-ID: <5750bc9d.DARVK91t46H7qcLK%akpm@linux-foundation.org>
+Subject: + dma-mapping-constify-attrs-passed-to-dma_get_attr.patch added
+ to -mm tree
+Date: Thu, 02 Jun 2016 16:11:04 -0700
+Message-ID: <5750bd08.YwQMWl90IXnFHp0p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52887 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52900 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933090AbcFBXJS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:09:18 -0400
+	with ESMTP id S932090AbcFBXLF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:11:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, davem@davemloft.net, eric.dumazet@gmail.com, hannes@cmpxchg.org, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, catalin.marinas@arm.com, joro@8bytes.org, konrad.wilk@oracle.com, linux@armlinux.org.uk, m.szyprowski@samsung.com, sstabellini@kernel.org, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: af_unix: charge buffers to kmemcg
+     Subject: dma-mapping: constify attrs passed to dma_get_attr()
 has been added to the -mm tree.  Its filename is
-     af_unix-charge-buffers-to-kmemcg.patch
+     dma-mapping-constify-attrs-passed-to-dma_get_attr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/af_unix-charge-buffers-to-kmemcg.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dma-mapping-constify-attrs-passed-to-dma_get_attr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/af_unix-charge-buffers-to-kmemcg.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dma-mapping-constify-attrs-passed-to-dma_get_attr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,87 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: af_unix: charge buffers to kmemcg
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: dma-mapping: constify attrs passed to dma_get_attr()
 
-Unix sockets can consume a significant amount of system memory, hence
-they should be accounted to kmemcg.
+The dma_get_attr() does not modify passed dma_attrs so the pointer can
+point to const data.
 
-Since unix socket buffers are always allocated from process context,
-all we need to do to charge them to kmemcg is set __GFP_ACCOUNT in
-sock->sk_allocation mask.
-
-Eric asked:
-
-> 1) What happens when a buffer, allocated from socket <A> lands in a
-> different socket <B>, maybe owned by another user/process.
-> 
-> Who owns it now, in term of kmemcg accounting ?
-
-We never move memcg charges.  E.g.  if two processes from different
-cgroups are sharing a memory region, each page will be charged to the
-process which touched it first.  Or if two processes are working with the
-same directory tree, inodes and dentries will be charged to the first
-user.  The same is fair for unix socket buffers - they will be charged to
-the sender.
-
-> 2) Has performance impact been evaluated ?
-
-I ran netperf STREAM_STREAM with default options in a kmemcg on
-a 4 core x 2 HT box. The results are below:
-
- # clients            bandwidth (10^6bits/sec)
-                    base              patched
-         1      67643 +-  725      64874 +-  353    - 4.0 %
-         4     193585 +- 2516     186715 +- 1460    - 3.5 %
-         8     194820 +-  377     187443 +- 1229    - 3.7 %
-
-So the accounting doesn't come for free - it takes ~4% of performance.  I
-believe we could optimize it by using per cpu batching not only on charge,
-but also on uncharge in memcg core, but that's beyond the scope of this
-patch set - I'll take a look at this later.
-
-Anyway, if performance impact is found to be unacceptable, it is always
-possible to disable kmem accounting at boot time (cgroup.memory=nokmem) or
-not use memory cgroups at runtime at all (thanks to jump labels there'll
-be no overhead even if they are compiled in).
-
-Link: http://lkml.kernel.org/r/fcfe6cae27a59fbc5e40145664b3cf085a560c68.1464079538.git.vdavydov@virtuozzo.com
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: http://lkml.kernel.org/r/1464071290-15948-2-git-send-email-k.kozlowski@samsung.com
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Stefano Stabellini <sstabellini@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/unix/af_unix.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/dma-attrs.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN net/unix/af_unix.c~af_unix-charge-buffers-to-kmemcg net/unix/af_unix.c
---- a/net/unix/af_unix.c~af_unix-charge-buffers-to-kmemcg
-+++ a/net/unix/af_unix.c
-@@ -769,6 +769,7 @@ static struct sock *unix_create1(struct
- 	lockdep_set_class(&sk->sk_receive_queue.lock,
- 				&af_unix_sk_receive_queue_lock_key);
- 
-+	sk->sk_allocation	= GFP_KERNEL_ACCOUNT;
- 	sk->sk_write_space	= unix_write_space;
- 	sk->sk_max_ack_backlog	= net->unx.sysctl_max_dgram_qlen;
- 	sk->sk_destruct		= unix_sock_destructor;
+diff -puN include/linux/dma-attrs.h~dma-mapping-constify-attrs-passed-to-dma_get_attr include/linux/dma-attrs.h
+--- a/include/linux/dma-attrs.h~dma-mapping-constify-attrs-passed-to-dma_get_attr
++++ a/include/linux/dma-attrs.h
+@@ -60,7 +60,8 @@ static inline void dma_set_attr(enum dma
+  * @attr: attribute to set
+  * @attrs: struct dma_attrs (may be NULL)
+  */
+-static inline int dma_get_attr(enum dma_attr attr, struct dma_attrs *attrs)
++static inline int dma_get_attr(enum dma_attr attr,
++			       const struct dma_attrs *attrs)
+ {
+ 	if (attrs == NULL)
+ 		return 0;
 _
 
-Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
-mm-zap-zone_oom_locked.patch
-mm-oom-add-memcg-to-oom_control.patch
-mm-remove-pointless-struct-in-struct-page-definition.patch
-mm-clean-up-non-standard-page-_mapcount-users.patch
-mm-memcontrol-cleanup-kmem-charge-functions.patch
-mm-charge-uncharge-kmemcg-from-generic-page-allocator-paths.patch
-mm-memcontrol-teach-uncharge_list-to-deal-with-kmem-pages.patch
-arch-x86-charge-page-tables-to-kmemcg.patch
-pipe-account-to-kmemcg.patch
-af_unix-charge-buffers-to-kmemcg.patch
+dma-mapping-constify-attrs-passed-to-dma_get_attr.patch
+arm-dma-mapping-constify-attrs-passed-to-internal-functions.patch
+arm64-dma-mapping-constify-attrs-passed-to-internal-functions.patch
 
