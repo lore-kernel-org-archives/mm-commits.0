@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
- added to -mm tree
-Date: Thu, 02 Jun 2016 12:54:08 -0700
-Message-ID: <57508ee0.gm7RD1rDiSGnCIuy%akpm@linux-foundation.org>
+Subject: + nvme-dont-allocate-unused-nvme_major.patch added to -mm tree
+Date: Thu, 02 Jun 2016 12:56:13 -0700
+Message-ID: <57508f5d.VwYmDRcrwXoxybUl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50457 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50475 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752701AbcFBTyJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 15:54:09 -0400
+	with ESMTP id S1751148AbcFBT4O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 15:56:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, hughd@google.com, kirill@shutemov.name, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: neilb@suse.com, axboe@fb.com, gregkh@linuxfoundation.org, keith.busch@intel.com, maximlevitsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: check pmd_trans_unstable() after split_huge_pmd()
+     Subject: NVMe: don't allocate unused nvme_major
 has been added to the -mm tree.  Its filename is
-     mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
+     nvme-dont-allocate-unused-nvme_major.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nvme-dont-allocate-unused-nvme_major.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nvme-dont-allocate-unused-nvme_major.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +38,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: thp: check pmd_trans_unstable() after split_huge_pmd()
+From: NeilBrown <neilb@suse.com>
+Subject: NVMe: don't allocate unused nvme_major
 
-split_huge_pmd() doesn't guarantee that the pmd is normal pmd pointing to
-pte entries, which can be checked with pmd_trans_unstable().  Some callers
-make this assertion and some do it differently and some not, so let's do
-it in a unified manner.
+When alloc_disk(0) is used, the ->major number is ignored.  All device
+numbers are allocated with a major of BLOCK_EXT_MAJOR.
 
-Link: http://lkml.kernel.org/r/1464741400-12143-1-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+So remove all references to nvme_major.
+
+Link: http://lkml.kernel.org/r/20160602064318.4403.93301.stgit@noble
+Signed-off-by: NeilBrown <neilb@suse.com>
+Reviewed-by: Keith Busch <keith.busch@intel.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c       |    2 ++
- mm/mempolicy.c |    2 ++
- mm/mprotect.c  |    2 +-
- mm/mremap.c    |    3 +--
- 4 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/nvme/host/core.c |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
-diff -puN mm/gup.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/gup.c
---- a/mm/gup.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
-+++ a/mm/gup.c
-@@ -279,6 +279,8 @@ struct page *follow_page_mask(struct vm_
- 			spin_unlock(ptl);
- 			ret = 0;
- 			split_huge_pmd(vma, pmd, address);
-+			if (pmd_trans_unstable(pmd))
-+				ret = -EBUSY;
- 		} else {
- 			get_page(page);
- 			spin_unlock(ptl);
-diff -puN mm/mempolicy.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/mempolicy.c
---- a/mm/mempolicy.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
-+++ a/mm/mempolicy.c
-@@ -512,6 +512,8 @@ static int queue_pages_pte_range(pmd_t *
- 		}
- 	}
+diff -puN drivers/nvme/host/core.c~nvme-dont-allocate-unused-nvme_major drivers/nvme/host/core.c
+--- a/drivers/nvme/host/core.c~nvme-dont-allocate-unused-nvme_major
++++ a/drivers/nvme/host/core.c
+@@ -47,9 +47,6 @@ unsigned char shutdown_timeout = 5;
+ module_param(shutdown_timeout, byte, 0644);
+ MODULE_PARM_DESC(shutdown_timeout, "timeout in seconds for controller shutdown");
  
-+	if (pmd_trans_unstable(pmd))
-+		return 0;
- retry:
- 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
-diff -puN mm/mprotect.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/mprotect.c
---- a/mm/mprotect.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
-+++ a/mm/mprotect.c
-@@ -163,7 +163,7 @@ static inline unsigned long change_pmd_r
- 		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE) {
- 				split_huge_pmd(vma, pmd, addr);
--				if (pmd_none(*pmd))
-+				if (pmd_trans_unstable(pmd))
- 					continue;
- 			} else {
- 				int nr_ptes = change_huge_pmd(vma, pmd, addr,
-diff -puN mm/mremap.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/mremap.c
---- a/mm/mremap.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
-+++ a/mm/mremap.c
-@@ -210,9 +210,8 @@ unsigned long move_page_tables(struct vm
- 				}
- 			}
- 			split_huge_pmd(vma, old_pmd, old_addr);
--			if (pmd_none(*old_pmd))
-+			if (pmd_trans_unstable(old_pmd))
- 				continue;
--			VM_BUG_ON(pmd_trans_huge(*old_pmd));
- 		}
- 		if (pte_alloc(new_vma->vm_mm, new_pmd, new_addr))
- 			break;
-_
-
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
-
-mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
-
+-static int nvme_major;
+-module_param(nvme_major, int, 0);
+-
+ static int nvme_char_major;
+ module_param(nvme_char_major, int, 0);
+ 
+@@ -1445,8 +1442,6 @@ static void nvme_alloc_ns(struct nvme_ct
+ 	blk_queue_logical_block_size(ns->queue, 1 << ns->lba_shift);
+ 	nvme_set_queue_limits(ctrl, ns->queue);
+ 
+-	disk->major = nvme_major;
+-	disk->first_minor = 0;
+ 	disk->fops = &nvme_fops;
+ 	disk->private_data = ns;
+ 	disk->queue = ns->queue;
+@@ -1848,16 +1843,10 @@ int __init nvme_core_init(void)
+ {
+ 	int result;
+ 
+-	result = register_blkdev(nvme_major, "nvme");
+-	if (result < 0)
+-		return result;
+-	else if (result > 0)
+-		nvme_major = result;
