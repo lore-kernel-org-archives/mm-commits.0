@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + pipe-account-to-kmemcg.patch added to -mm tree
-Date: Thu, 02 Jun 2016 16:09:15 -0700
-Message-ID: <5750bc9b.EI9FWFnBFTwBvOmZ%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-teach-uncharge_list-to-deal-with-kmem-pages.patch added to -mm tree
+Date: Thu, 02 Jun 2016 16:09:11 -0700
+Message-ID: <5750bc97.lj9yhN45X5k9lxyy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52881 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52868 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933090AbcFBXJQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:09:16 -0400
+	with ESMTP id S933090AbcFBXJM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:09:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, eric.dumazet@gmail.com, hannes@cmpxchg.org, mhocko@kernel.org, minchan@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, eric.dumazet@gmail.com, hannes@cmpxchg.org, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pipe: account to kmemcg
+     Subject: mm: memcontrol: teach uncharge_list to deal with kmem pages
 has been added to the -mm tree.  Its filename is
-     pipe-account-to-kmemcg.patch
+     mm-memcontrol-teach-uncharge_list-to-deal-with-kmem-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pipe-account-to-kmemcg.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-teach-uncharge_list-to-deal-with-kmem-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pipe-account-to-kmemcg.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-teach-uncharge_list-to-deal-with-kmem-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +39,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: pipe: account to kmemcg
+Subject: mm: memcontrol: teach uncharge_list to deal with kmem pages
 
-Pipes can consume a significant amount of system memory, hence they
-should be accounted to kmemcg.
+Page table pages are batched-freed in release_pages on most
+architectures. If we want to charge them to kmemcg (this is what is done
+later in this series), we need to teach mem_cgroup_uncharge_list to
+handle kmem pages.
 
-This patch marks pipe_inode_info and anonymous pipe buffer page
-allocations as __GFP_ACCOUNT so that they would be charged to kmemcg.
-Note, since a pipe buffer page can be "stolen" and get reused for other
-purposes, including mapping to userspace, we clear PageKmemcg thus
-resetting page->_mapcount and uncharge it in anon_pipe_buf_steal, which
-is introduced by this patch.
-
-A note regarding anon_pipe_buf_steal implementation. We allow to steal
-the page if its ref count equals 1. It looks racy, but it is correct for
-anonymous pipe buffer pages, because:
-
- - We lock out all other pipe users, because ->steal is called with
-   pipe_lock held, so the page can't be spliced to another pipe from
-   under us.
-
- - The page is not on LRU and it never was.
-
- - Thus a parallel thread can access it only by PFN. Although this is
-   quite possible (e.g. see page_idle_get_page and balloon_page_isolate)
-   this is not dangerous, because all such functions do is increase page
-   ref count, check if the page is the one they are looking for, and
-   decrease ref count if it isn't. Since our page is clean except for
-   PageKmemcg mark, which doesn't conflict with other _mapcount users,
-   the worst that can happen is we see page_count > 2 due to a transient
-   ref, in which case we false-positively abort ->steal, which is still
-   fine, because ->steal is not guaranteed to succeed.
-
-Link: http://lkml.kernel.org/r/20160527150313.GD26059@esperanza
+Link: http://lkml.kernel.org/r/18d5c09e97f80074ed25b97a7d0f32b95d875717.1464079538.git.vdavydov@virtuozzo.com
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Eric Dumazet <eric.dumazet@gmail.com>
@@ -81,100 +55,100 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   32 ++++++++++++++++++++++++++------
- 1 file changed, 26 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |   42 ++++++++++++++++++++++++------------------
+ 1 file changed, 24 insertions(+), 18 deletions(-)
 
-diff -puN fs/pipe.c~pipe-account-to-kmemcg fs/pipe.c
---- a/fs/pipe.c~pipe-account-to-kmemcg
-+++ a/fs/pipe.c
-@@ -21,6 +21,7 @@
- #include <linux/audit.h>
- #include <linux/syscalls.h>
- #include <linux/fcntl.h>
-+#include <linux/memcontrol.h>
+diff -puN mm/memcontrol.c~mm-memcontrol-teach-uncharge_list-to-deal-with-kmem-pages mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-teach-uncharge_list-to-deal-with-kmem-pages
++++ a/mm/memcontrol.c
+@@ -5441,15 +5441,18 @@ void mem_cgroup_cancel_charge(struct pag
  
- #include <asm/uaccess.h>
- #include <asm/ioctls.h>
-@@ -137,6 +138,22 @@ static void anon_pipe_buf_release(struct
- 		put_page(page);
- }
- 
-+static int anon_pipe_buf_steal(struct pipe_inode_info *pipe,
-+			       struct pipe_buffer *buf)
-+{
-+	struct page *page = buf->page;
-+
-+	if (page_count(page) == 1) {
-+		if (memcg_kmem_enabled()) {
-+			memcg_kmem_uncharge(page, 0);
-+			__ClearPageKmemcg(page);
-+		}
-+		__SetPageLocked(page);
-+		return 0;
-+	}
-+	return 1;
-+}
-+
- /**
-  * generic_pipe_buf_steal - attempt to take ownership of a &pipe_buffer
-  * @pipe:	the pipe that the buffer belongs to
-@@ -219,7 +236,7 @@ static const struct pipe_buf_operations
- 	.can_merge = 1,
- 	.confirm = generic_pipe_buf_confirm,
- 	.release = anon_pipe_buf_release,
--	.steal = generic_pipe_buf_steal,
-+	.steal = anon_pipe_buf_steal,
- 	.get = generic_pipe_buf_get,
- };
- 
-@@ -227,7 +244,7 @@ static const struct pipe_buf_operations
- 	.can_merge = 0,
- 	.confirm = generic_pipe_buf_confirm,
- 	.release = anon_pipe_buf_release,
--	.steal = generic_pipe_buf_steal,
-+	.steal = anon_pipe_buf_steal,
- 	.get = generic_pipe_buf_get,
- };
- 
-@@ -405,7 +422,7 @@ pipe_write(struct kiocb *iocb, struct io
- 			int copied;
- 
- 			if (!page) {
--				page = alloc_page(GFP_HIGHUSER);
-+				page = alloc_page(GFP_HIGHUSER | __GFP_ACCOUNT);
- 				if (unlikely(!page)) {
- 					ret = ret ? : -ENOMEM;
- 					break;
-@@ -611,7 +628,7 @@ struct pipe_inode_info *alloc_pipe_info(
+ static void uncharge_batch(struct mem_cgroup *memcg, unsigned long pgpgout,
+ 			   unsigned long nr_anon, unsigned long nr_file,
+-			   unsigned long nr_huge, struct page *dummy_page)
++			   unsigned long nr_huge, unsigned long nr_kmem,
++			   struct page *dummy_page)
  {
- 	struct pipe_inode_info *pipe;
+-	unsigned long nr_pages = nr_anon + nr_file;
++	unsigned long nr_pages = nr_anon + nr_file + nr_kmem;
+ 	unsigned long flags;
  
--	pipe = kzalloc(sizeof(struct pipe_inode_info), GFP_KERNEL);
-+	pipe = kzalloc(sizeof(struct pipe_inode_info), GFP_KERNEL_ACCOUNT);
- 	if (pipe) {
- 		unsigned long pipe_bufs = PIPE_DEF_BUFFERS;
- 		struct user_struct *user = get_current_user();
-@@ -619,7 +636,9 @@ struct pipe_inode_info *alloc_pipe_info(
- 		if (!too_many_pipe_buffers_hard(user)) {
- 			if (too_many_pipe_buffers_soft(user))
- 				pipe_bufs = 1;
--			pipe->bufs = kzalloc(sizeof(struct pipe_buffer) * pipe_bufs, GFP_KERNEL);
-+			pipe->bufs = kcalloc(pipe_bufs,
-+					     sizeof(struct pipe_buffer),
-+					     GFP_KERNEL_ACCOUNT);
+ 	if (!mem_cgroup_is_root(memcg)) {
+ 		page_counter_uncharge(&memcg->memory, nr_pages);
+ 		if (do_memsw_account())
+ 			page_counter_uncharge(&memcg->memsw, nr_pages);
++		if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && nr_kmem)
++			page_counter_uncharge(&memcg->kmem, nr_kmem);
+ 		memcg_oom_recover(memcg);
+ 	}
+ 
+@@ -5472,6 +5475,7 @@ static void uncharge_list(struct list_he
+ 	unsigned long nr_anon = 0;
+ 	unsigned long nr_file = 0;
+ 	unsigned long nr_huge = 0;
++	unsigned long nr_kmem = 0;
+ 	unsigned long pgpgout = 0;
+ 	struct list_head *next;
+ 	struct page *page;
+@@ -5482,8 +5486,6 @@ static void uncharge_list(struct list_he
+ 	 */
+ 	next = page_list->next;
+ 	do {
+-		unsigned int nr_pages = 1;
+-
+ 		page = list_entry(next, struct page, lru);
+ 		next = page->lru.next;
+ 
+@@ -5502,31 +5504,35 @@ static void uncharge_list(struct list_he
+ 		if (memcg != page->mem_cgroup) {
+ 			if (memcg) {
+ 				uncharge_batch(memcg, pgpgout, nr_anon, nr_file,
+-					       nr_huge, page);
+-				pgpgout = nr_anon = nr_file = nr_huge = 0;
++					       nr_huge, nr_kmem, page);
++				pgpgout = nr_anon = nr_file =
++					nr_huge = nr_kmem = 0;
+ 			}
+ 			memcg = page->mem_cgroup;
  		}
  
- 		if (pipe->bufs) {
-@@ -1010,7 +1029,8 @@ static long pipe_set_size(struct pipe_in
- 	if (nr_pages < pipe->nrbufs)
- 		return -EBUSY;
+-		if (PageTransHuge(page)) {
+-			nr_pages <<= compound_order(page);
+-			VM_BUG_ON_PAGE(!PageTransHuge(page), page);
+-			nr_huge += nr_pages;
+-		}
++		if (!PageKmemcg(page)) {
++			unsigned int nr_pages = 1;
  
--	bufs = kcalloc(nr_pages, sizeof(*bufs), GFP_KERNEL | __GFP_NOWARN);
-+	bufs = kcalloc(nr_pages, sizeof(*bufs),
-+		       GFP_KERNEL_ACCOUNT | __GFP_NOWARN);
- 	if (unlikely(!bufs))
- 		return -ENOMEM;
+-		if (PageAnon(page))
+-			nr_anon += nr_pages;
+-		else
+-			nr_file += nr_pages;
++			if (PageTransHuge(page)) {
++				nr_pages <<= compound_order(page);
++				VM_BUG_ON_PAGE(!PageTransHuge(page), page);
++				nr_huge += nr_pages;
++			}
++			if (PageAnon(page))
++				nr_anon += nr_pages;
++			else
++				nr_file += nr_pages;
++			pgpgout++;
++		} else
++			nr_kmem += 1 << compound_order(page);
  
+ 		page->mem_cgroup = NULL;
+-
+-		pgpgout++;
+ 	} while (next != page_list);
+ 
+ 	if (memcg)
+ 		uncharge_batch(memcg, pgpgout, nr_anon, nr_file,
+-			       nr_huge, page);
++			       nr_huge, nr_kmem, page);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
