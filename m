@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-add-nilfs_msg-message-interface.patch added to -mm tree
-Date: Thu, 02 Jun 2016 13:19:51 -0700
-Message-ID: <575094e7.6FZaqaEuXc2exTcG%akpm@linux-foundation.org>
+Subject: +
+ nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object.patch
+ added to -mm tree
+Date: Thu, 02 Jun 2016 13:19:53 -0700
+Message-ID: <575094e9.dNZiOKp1TyKYWKmi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50860 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932171AbcFBUTw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 16:19:52 -0400
+	with ESMTP id S932171AbcFBUTy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 16:19:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: add nilfs_msg() message interface
+     Subject: nilfs2: embed a back pointer to super block instance in nilfs object
 has been added to the -mm tree.  Its filename is
-     nilfs2-add-nilfs_msg-message-interface.patch
+     nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-add-nilfs_msg-message-interface.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-add-nilfs_msg-message-interface.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,83 +41,90 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: add nilfs_msg() message interface
+Subject: nilfs2: embed a back pointer to super block instance in nilfs object
 
-Define an own output routine to replace bare use of printk() function. 
-The output routine is implemented with a macro and a helper function,
-which are named nilfs_msg() and __nilfs_msg(), respectively.
+Insert a back pointer to super block instance in nilfs object so that
+functions of nilfs2 easily refer to the super block instance.  This
+simplifies replacement of printk() in the successive change.
 
-__nilfs_msg() formats a message like "NILFS (<device-name>): <message>",
-prefixing it with a given log level, and terminates the statement with a
-newline.  The "device-name" is optional to make it available in early
-stages; it will be omitted if a NULL pointer is passed to super block
-instance argument.  nilfs_msg() wraps __nilfs_msg() and is removed if
-CONFIG_PRINTK is not set.
-
-Link: http://lkml.kernel.org/r/1464875891-5443-3-git-send-email-konishi.ryusuke@lab.ntt.co.jp
+Link: http://lkml.kernel.org/r/1464875891-5443-4-git-send-email-konishi.ryusuke@lab.ntt.co.jp
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/nilfs.h |    7 +++++++
- fs/nilfs2/super.c |   16 ++++++++++++++++
- 2 files changed, 23 insertions(+)
+ fs/nilfs2/super.c     |    2 +-
+ fs/nilfs2/the_nilfs.c |    7 ++++---
+ fs/nilfs2/the_nilfs.h |    4 +++-
+ 3 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN fs/nilfs2/nilfs.h~nilfs2-add-nilfs_msg-message-interface fs/nilfs2/nilfs.h
---- a/fs/nilfs2/nilfs.h~nilfs2-add-nilfs_msg-message-interface
-+++ a/fs/nilfs2/nilfs.h
-@@ -301,6 +301,9 @@ extern struct inode *nilfs_alloc_inode(s
- extern void nilfs_destroy_inode(struct inode *);
- 
- extern __printf(3, 4)
-+void __nilfs_msg(struct super_block *sb, const char *level,
-+		 const char *fmt, ...);
-+extern __printf(3, 4)
- void __nilfs_error(struct super_block *sb, const char *function,
- 		   const char *fmt, ...);
- extern __printf(3, 4)
-@@ -308,11 +311,15 @@ void nilfs_warning(struct super_block *,
- 
- #ifdef CONFIG_PRINTK
- 
-+#define nilfs_msg(sb, level, fmt, ...)					\
-+	__nilfs_msg(sb, level, fmt, ##__VA_ARGS__)
- #define nilfs_error(sb, fmt, ...)					\
- 	__nilfs_error(sb, __func__, fmt, ##__VA_ARGS__)
- 
- #else
- 
-+#define nilfs_msg(sb, level, fmt, ...)					\
-+	no_printk(fmt, ##__VA_ARGS__)
- #define nilfs_error(sb, fmt, ...)					\
- 	do {								\
- 		no_printk(fmt, ##__VA_ARGS__);				\
-diff -puN fs/nilfs2/super.c~nilfs2-add-nilfs_msg-message-interface fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-add-nilfs_msg-message-interface
+diff -puN fs/nilfs2/super.c~nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object
 +++ a/fs/nilfs2/super.c
-@@ -71,6 +71,22 @@ struct kmem_cache *nilfs_btree_path_cach
- static int nilfs_setup_super(struct super_block *sb, int is_mount);
- static int nilfs_remount(struct super_block *sb, int *flags, char *data);
+@@ -1076,7 +1076,7 @@ nilfs_fill_super(struct super_block *sb,
+ 	__u64 cno;
+ 	int err;
  
-+void __nilfs_msg(struct super_block *sb, const char *level, const char *fmt,
-+		 ...)
-+{
-+	struct va_format vaf;
-+	va_list args;
-+
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+	if (sb)
-+		printk("%sNILFS (%s): %pV\n", level, sb->s_id, &vaf);
-+	else
-+		printk("%sNILFS: %pV\n", level, &vaf);
-+	va_end(args);
-+}
-+
- static void nilfs_set_error(struct super_block *sb)
+-	nilfs = alloc_nilfs(sb->s_bdev);
++	nilfs = alloc_nilfs(sb);
+ 	if (!nilfs)
+ 		return -ENOMEM;
+ 
+diff -puN fs/nilfs2/the_nilfs.c~nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object fs/nilfs2/the_nilfs.c
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object
++++ a/fs/nilfs2/the_nilfs.c
+@@ -56,12 +56,12 @@ void nilfs_set_last_segment(struct the_n
+ 
+ /**
+  * alloc_nilfs - allocate a nilfs object
+- * @bdev: block device to which the_nilfs is related
++ * @sb: super block instance
+  *
+  * Return Value: On success, pointer to the_nilfs is returned.
+  * On error, NULL is returned.
+  */
+-struct the_nilfs *alloc_nilfs(struct block_device *bdev)
++struct the_nilfs *alloc_nilfs(struct super_block *sb)
  {
- 	struct the_nilfs *nilfs = sb->s_fs_info;
+ 	struct the_nilfs *nilfs;
+ 
+@@ -69,7 +69,8 @@ struct the_nilfs *alloc_nilfs(struct blo
+ 	if (!nilfs)
+ 		return NULL;
+ 
+-	nilfs->ns_bdev = bdev;
++	nilfs->ns_sb = sb;
++	nilfs->ns_bdev = sb->s_bdev;
+ 	atomic_set(&nilfs->ns_ndirtyblks, 0);
+ 	init_rwsem(&nilfs->ns_sem);
+ 	mutex_init(&nilfs->ns_snapshot_mount_mutex);
+diff -puN fs/nilfs2/the_nilfs.h~nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object fs/nilfs2/the_nilfs.h
+--- a/fs/nilfs2/the_nilfs.h~nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object
++++ a/fs/nilfs2/the_nilfs.h
+@@ -43,6 +43,7 @@ enum {
+  * struct the_nilfs - struct to supervise multiple nilfs mount points
+  * @ns_flags: flags
+  * @ns_flushed_device: flag indicating if all volatile data was flushed
++ * @ns_sb: back pointer to super block instance
+  * @ns_bdev: block device
+  * @ns_sem: semaphore for shared states
+  * @ns_snapshot_mount_mutex: mutex to protect snapshot mounts
+@@ -102,6 +103,7 @@ struct the_nilfs {
+ 	unsigned long		ns_flags;
+ 	int			ns_flushed_device;
+ 
++	struct super_block     *ns_sb;
+ 	struct block_device    *ns_bdev;
+ 	struct rw_semaphore	ns_sem;
+ 	struct mutex		ns_snapshot_mount_mutex;
+@@ -281,7 +283,7 @@ static inline int nilfs_sb_will_flip(str
+ }
+ 
+ void nilfs_set_last_segment(struct the_nilfs *, sector_t, u64, __u64);
+-struct the_nilfs *alloc_nilfs(struct block_device *bdev);
++struct the_nilfs *alloc_nilfs(struct super_block *sb);
+ void destroy_nilfs(struct the_nilfs *nilfs);
+ int init_nilfs(struct the_nilfs *nilfs, struct super_block *sb, char *data);
+ int load_nilfs(struct the_nilfs *nilfs, struct super_block *sb);
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
