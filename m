@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 02 Jun 2016 16:35:08 -0700
-Message-ID: <5750c2ac.FlXWuuf9c/r1QwZO%akpm@linux-foundation.org>
+ mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2.patch added
+ to -mm tree
+Date: Fri, 03 Jun 2016 13:16:28 -0700
+Message-ID: <5751e59c.5MirwiUCIfCuE0/t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50776 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932440AbcFBXfJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Jun 2016 19:35:09 -0400
+	with ESMTP id S1751147AbcFCUQa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 16:16:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: ebru.akagunduz@gmail.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, riel@redhat.com, sergey.senozhatsky.work@gmail.com, sfr@canb.auug.org.au, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes
+     Subject: mm, thp: fix locking inconsistency in collapse_huge_page
 has been added to the -mm tree.  Its filename is
-     mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+     mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +40,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes
+From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Subject: mm, thp: fix locking inconsistency in collapse_huge_page
 
-WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
-#17: 
-Thus, checks for "frontswap_enabled" are replaced with "frontswap_enabled()"
+After creating revalidate vma function, locking inconsistency occured
+due to directing the code path to wrong label. This patch directs
+to correct label and fix the inconsistency.
 
-WARNING: space prohibited between function name and open parenthesis '('
-#208: FILE: mm/frontswap.c:255:
-+	VM_BUG_ON (!frontswap_ops);
+Related commit that caused inconsistency:
+http://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/commit/?id=da4360877094368f6dfe75bbe804b0f0a5d575b0
 
-total: 0 errors, 2 warnings, 188 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-frontswap-convert-frontswap_enabled-to-static-key.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/1464956884-4644-1-git-send-email-ebru.akagunduz@gmail.com
+Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/frontswap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN mm/frontswap.c~mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes mm/frontswap.c
---- a/mm/frontswap.c~mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes
-+++ a/mm/frontswap.c
-@@ -252,7 +252,7 @@ int __frontswap_store(struct page *page)
- 	pgoff_t offset = swp_offset(entry);
- 	struct frontswap_ops *ops;
+diff -puN mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2 mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2
++++ a/mm/huge_memory.c
+@@ -2491,13 +2491,18 @@ static void collapse_huge_page(struct mm
+ 	curr_allocstall = sum_vm_event(ALLOCSTALL);
+ 	down_read(&mm->mmap_sem);
+ 	result = hugepage_vma_revalidate(mm, address);
+-	if (result)
+-		goto out;
++	if (result) {
++		mem_cgroup_cancel_charge(new_page, memcg, true);
++		up_read(&mm->mmap_sem);
++		goto out_nolock;
++	}
  
--	VM_BUG_ON (!frontswap_ops);
-+	VM_BUG_ON(!frontswap_ops);
- 	VM_BUG_ON(!PageLocked(page));
- 	VM_BUG_ON(sis == NULL);
+ 	pmd = mm_find_pmd(mm, address);
+ 	if (!pmd) {
+ 		result = SCAN_PMD_NULL;
+-		goto out;
++		mem_cgroup_cancel_charge(new_page, memcg, true);
++		up_read(&mm->mmap_sem);
++		goto out_nolock;
+ 	}
+ 
+ 	/*
+@@ -2511,8 +2516,9 @@ static void collapse_huge_page(struct mm
+ 		 * label out. Continuing to collapse causes inconsistency.
+ 		 */
+ 		if (!__collapse_huge_page_swapin(mm, vma, address, pmd)) {
++			mem_cgroup_cancel_charge(new_page, memcg, true);
+ 			up_read(&mm->mmap_sem);
+-			goto out;
++			goto out_nolock;
+ 		}
+ 	}
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ebru.akagunduz@gmail.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-fix-overflow-in-vm_map_ram-fix.patch
-revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-powerpc-mm-radix-implement-tlb-mmu-gather-flush-efficiently-fix.patch
-mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-make-optimistic-check-for-swapin-readahead.patch
+mm-make-optimistic-check-for-swapin-readahead-fix-3.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
+mm-vmstat-calculate-particular-vm-event.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix-2.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2.patch
 
