@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
- added to -mm tree
-Date: Fri, 03 Jun 2016 13:16:30 -0700
-Message-ID: <5751e59e.GW38Fj0bskYwNQRj%akpm@linux-foundation.org>
+Subject: + kexec-allow-architectures-to-override-boot-mapping.patch added
+ to -mm tree
+Date: Fri, 03 Jun 2016 14:16:01 -0700
+Message-ID: <5751f391.dlzm2FZP0UiDzBPS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50785 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52061 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752868AbcFCUQb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 16:16:31 -0400
+	with ESMTP id S1752992AbcFCVQC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:16:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, ebru.akagunduz@gmail.com, kirill.shutemov@linux.intel.com, riel@redhat.com, sergey.senozhatsky.work@gmail.com, sfr@canb.auug.org.au, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: rmk+kernel@arm.linux.org.uk, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, horms@verge.net.au, j-keerthy@ti.com, panand@redhat.com, vgoyal@redhat.com, vitalya@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix
+     Subject: kexec: allow architectures to override boot mapping
 has been added to the -mm tree.  Its filename is
-     mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+     kexec-allow-architectures-to-override-boot-mapping.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-allow-architectures-to-override-boot-mapping.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-allow-architectures-to-override-boot-mapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,52 +39,219 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+Subject: kexec: allow architectures to override boot mapping
 
-update comment to match new code
+kexec physical addresses are the boot-time view of the system.  For
+certain ARM systems (such as Keystone 2), the boot view of the system does
+not match the kernel's view of the system: the boot view uses a special
+alias in the lower 4GB of the physical address space.
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+To cater for these kinds of setups, we need to translate between the boot
+view physical addresses and the normal kernel view physical addresses. 
+This patch extracts the current transation points into linux/kexec.h, and
+allows an architecture to override the functions.
+
+Due to the translations required, we unfortunately end up with six
+translation functions, which are reduced down to four that the
+architecture can override.
+
+Link: http://lkml.kernel.org/r/E1b8koP-0004HZ-Vf@rmk-PC.armlinux.org.uk
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Pratyush Anand <panand@redhat.com>
+Cc: Vitaly Andrianov <vitalya@ti.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kexec.h |   38 ++++++++++++++++++++++++++++++++++++++
+ kernel/kexec.c        |    3 ++-
+ kernel/kexec_core.c   |   26 +++++++++++++-------------
+ 3 files changed, 53 insertions(+), 14 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix
-+++ a/mm/huge_memory.c
-@@ -2512,8 +2512,8 @@ static void collapse_huge_page(struct mm
- 	if (allocstall == curr_allocstall && swap != 0) {
- 		/*
- 		 * __collapse_huge_page_swapin always returns with mmap_sem
--		 * locked. If it fails, release mmap_sem and jump directly
--		 * label out. Continuing to collapse causes inconsistency.
-+		 * locked.  If it fails, release mmap_sem and jump directly
-+		 * out.  Continuing to collapse causes inconsistency.
- 		 */
- 		if (!__collapse_huge_page_swapin(mm, vma, address, pmd)) {
- 			mem_cgroup_cancel_charge(new_page, memcg, true);
+diff -puN include/linux/kexec.h~kexec-allow-architectures-to-override-boot-mapping include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec-allow-architectures-to-override-boot-mapping
++++ a/include/linux/kexec.h
+@@ -318,6 +318,44 @@ int __weak arch_kexec_apply_relocations(
+ void arch_kexec_protect_crashkres(void);
+ void arch_kexec_unprotect_crashkres(void);
+ 
++#ifndef page_to_boot_pfn
++static inline unsigned long page_to_boot_pfn(struct page *page)
++{
++	return page_to_pfn(page);
++}
++#endif
++
++#ifndef boot_pfn_to_page
++static inline struct page *boot_pfn_to_page(unsigned long boot_pfn)
++{
++	return pfn_to_page(boot_pfn);
++}
++#endif
++
++#ifndef phys_to_boot_phys
++static inline unsigned long phys_to_boot_phys(phys_addr_t phys)
++{
++	return phys;
++}
++#endif
++
++#ifndef boot_phys_to_phys
++static inline phys_addr_t boot_phys_to_phys(unsigned long boot_phys)
++{
++	return boot_phys;
++}
++#endif
++
++static inline unsigned long virt_to_boot_phys(void *addr)
++{
++	return phys_to_boot_phys(__pa((unsigned long)addr));
++}
++
++static inline void *boot_phys_to_virt(unsigned long entry)
++{
++	return phys_to_virt(boot_phys_to_phys(entry));
++}
++
+ #else /* !CONFIG_KEXEC_CORE */
+ struct pt_regs;
+ struct task_struct;
+diff -puN kernel/kexec.c~kexec-allow-architectures-to-override-boot-mapping kernel/kexec.c
+--- a/kernel/kexec.c~kexec-allow-architectures-to-override-boot-mapping
++++ a/kernel/kexec.c
+@@ -48,7 +48,8 @@ static int kimage_alloc_init(struct kima
+ 
+ 	if (kexec_on_panic) {
+ 		/* Verify we have a valid entry point */
+-		if ((entry < crashk_res.start) || (entry > crashk_res.end))
++		if ((entry < phys_to_boot_phys(crashk_res.start)) ||
++		    (entry > phys_to_boot_phys(crashk_res.end)))
+ 			return -EADDRNOTAVAIL;
+ 	}
+ 
+diff -puN kernel/kexec_core.c~kexec-allow-architectures-to-override-boot-mapping kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kexec-allow-architectures-to-override-boot-mapping
++++ a/kernel/kexec_core.c
+@@ -225,8 +225,8 @@ int sanity_check_segment_list(struct kim
+ 			mstart = image->segment[i].mem;
+ 			mend = mstart + image->segment[i].memsz - 1;
+ 			/* Ensure we are within the crash kernel limits */
+-			if ((mstart < crashk_res.start) ||
+-			    (mend > crashk_res.end))
++			if ((mstart < phys_to_boot_phys(crashk_res.start)) ||
++			    (mend > phys_to_boot_phys(crashk_res.end)))
+ 				return -EADDRNOTAVAIL;
+ 		}
+ 	}
+@@ -350,7 +350,7 @@ static struct page *kimage_alloc_normal_
+ 		pages = kimage_alloc_pages(KEXEC_CONTROL_MEMORY_GFP, order);
+ 		if (!pages)
+ 			break;
+-		pfn   = page_to_pfn(pages);
++		pfn   = page_to_boot_pfn(pages);
+ 		epfn  = pfn + count;
+ 		addr  = pfn << PAGE_SHIFT;
+ 		eaddr = epfn << PAGE_SHIFT;
+@@ -476,7 +476,7 @@ static int kimage_add_entry(struct kimag
+ 			return -ENOMEM;
+ 
+ 		ind_page = page_address(page);
+-		*image->entry = virt_to_phys(ind_page) | IND_INDIRECTION;
++		*image->entry = virt_to_boot_phys(ind_page) | IND_INDIRECTION;
+ 		image->entry = ind_page;
+ 		image->last_entry = ind_page +
+ 				      ((PAGE_SIZE/sizeof(kimage_entry_t)) - 1);
+@@ -531,13 +531,13 @@ void kimage_terminate(struct kimage *ima
+ #define for_each_kimage_entry(image, ptr, entry) \
+ 	for (ptr = &image->head; (entry = *ptr) && !(entry & IND_DONE); \
+ 		ptr = (entry & IND_INDIRECTION) ? \
+-			phys_to_virt((entry & PAGE_MASK)) : ptr + 1)
++			boot_phys_to_virt((entry & PAGE_MASK)) : ptr + 1)
+ 
+ static void kimage_free_entry(kimage_entry_t entry)
+ {
+ 	struct page *page;
+ 
+-	page = pfn_to_page(entry >> PAGE_SHIFT);
++	page = boot_pfn_to_page(entry >> PAGE_SHIFT);
+ 	kimage_free_pages(page);
+ }
+ 
+@@ -631,7 +631,7 @@ static struct page *kimage_alloc_page(st
+ 	 * have a match.
+ 	 */
+ 	list_for_each_entry(page, &image->dest_pages, lru) {
+-		addr = page_to_pfn(page) << PAGE_SHIFT;
++		addr = page_to_boot_pfn(page) << PAGE_SHIFT;
+ 		if (addr == destination) {
+ 			list_del(&page->lru);
+ 			return page;
+@@ -646,12 +646,12 @@ static struct page *kimage_alloc_page(st
+ 		if (!page)
+ 			return NULL;
+ 		/* If the page cannot be used file it away */
+-		if (page_to_pfn(page) >
++		if (page_to_boot_pfn(page) >
+ 				(KEXEC_SOURCE_MEMORY_LIMIT >> PAGE_SHIFT)) {
+ 			list_add(&page->lru, &image->unusable_pages);
+ 			continue;
+ 		}
+-		addr = page_to_pfn(page) << PAGE_SHIFT;
++		addr = page_to_boot_pfn(page) << PAGE_SHIFT;
+ 
+ 		/* If it is the destination page we want use it */
+ 		if (addr == destination)
+@@ -674,7 +674,7 @@ static struct page *kimage_alloc_page(st
+ 			struct page *old_page;
+ 
+ 			old_addr = *old & PAGE_MASK;
+-			old_page = pfn_to_page(old_addr >> PAGE_SHIFT);
++			old_page = boot_pfn_to_page(old_addr >> PAGE_SHIFT);
+ 			copy_highpage(page, old_page);
+ 			*old = addr | (*old & ~PAGE_MASK);
+ 
+@@ -730,7 +730,7 @@ static int kimage_load_normal_segment(st
+ 			result  = -ENOMEM;
+ 			goto out;
+ 		}
+-		result = kimage_add_page(image, page_to_pfn(page)
++		result = kimage_add_page(image, page_to_boot_pfn(page)
+ 								<< PAGE_SHIFT);
+ 		if (result < 0)
+ 			goto out;
+@@ -791,7 +791,7 @@ static int kimage_load_crash_segment(str
+ 		char *ptr;
+ 		size_t uchunk, mchunk;
+ 
+-		page = pfn_to_page(maddr >> PAGE_SHIFT);
++		page = boot_pfn_to_page(maddr >> PAGE_SHIFT);
+ 		if (!page) {
+ 			result  = -ENOMEM;
+ 			goto out;
+@@ -919,7 +919,7 @@ void __weak crash_free_reserved_phys_ran
+ 	unsigned long addr;
+ 
+ 	for (addr = begin; addr < end; addr += PAGE_SIZE)
+-		free_reserved_page(pfn_to_page(addr >> PAGE_SHIFT));
++		free_reserved_page(boot_pfn_to_page(addr >> PAGE_SHIFT));
+ }
+ 
+ int crash_shrink_memory(unsigned long new_size)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rmk+kernel@arm.linux.org.uk are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-fix-overflow-in-vm_map_ram-fix.patch
-revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+arm-kdump-advertise-boot-aliased-crash-kernel-resource.patch
+arm-kexec-advertise-location-of-bootable-ram.patch
+kexec-dont-invoke-oom-killer-for-control-page-allocation.patch
+kexec-ensure-user-memory-sizes-do-not-wrap.patch
+kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t.patch
+kexec-allow-architectures-to-override-boot-mapping.patch
+arm-kexec-fix-kexec-for-keystone-2.patch
 
