@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-do-not-discard-partial-pages-with-posix_fadv_dontneed.patch
- added to -mm tree
-Date: Fri, 03 Jun 2016 14:22:57 -0700
-Message-ID: <5751f531.lNqVX9SlK2C8PGYr%akpm@linux-foundation.org>
+Subject: + zsmalloc-page-migration-support-fix.patch added to -mm tree
+Date: Fri, 03 Jun 2016 14:24:18 -0700
+Message-ID: <5751f582.SCA1Q/ZQwklAD82J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52094 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52099 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751755AbcFCVW6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:22:58 -0400
+	with ESMTP id S1751678AbcFCVYT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:24:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: green@linuxhacker.ru, mm-commits@vger.kernel.org
+To: minchan@kernel.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/fadvise.c: do not discard partial pages with POSIX_FADV_DONTNEED
+     Subject: zsmalloc: zspage sanity check
 has been added to the -mm tree.  Its filename is
-     mm-do-not-discard-partial-pages-with-posix_fadv_dontneed.patch
+     zsmalloc-page-migration-support-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-do-not-discard-partial-pages-with-posix_fadv_dontneed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-page-migration-support-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-do-not-discard-partial-pages-with-posix_fadv_dontneed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-page-migration-support-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +38,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Drokin <green@linuxhacker.ru>
-Subject: mm/fadvise.c: do not discard partial pages with POSIX_FADV_DONTNEED
+From: Minchan Kim <minchan@kernel.org>
+Subject: zsmalloc: zspage sanity check
 
-I noticed that the logic in the fadvise64_64 syscall is incorrect for
-partial pages.  While first page of the region is correctly skipped if it
-is partial, the last page of the region is mistakenly discarded.  This
-leads to problems for applications that read data in non-page-aligned
-chunks discarding already processed data between the reads.
+The zsmalloc page migration is new feature so I want to catch any
+corruption of zspage struct which is very critical to work regardless of
+CONFIG_DEBUG_VM.
 
-A somewhat misguided application that does something like write(XX bytes
-(non-page-alligned)); drop the data it just wrote; repeat gets a
-significant penalty in performance as a result.
-
-Link: http://lkml.kernel.org/r/1464917140-1506698-1-git-send-email-green@linuxhacker.ru
-Signed-off-by: Oleg Drokin <green@linuxhacker.ru>
+Link: http://lkml.kernel.org/r/20160603010129.GC3304@bbox
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/zsmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/fadvise.c~mm-do-not-discard-partial-pages-with-posix_fadv_dontneed mm/fadvise.c
---- a/mm/fadvise.c~mm-do-not-discard-partial-pages-with-posix_fadv_dontneed
-+++ a/mm/fadvise.c
-@@ -126,6 +126,17 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
- 		 */
- 		start_index = (offset+(PAGE_SIZE-1)) >> PAGE_SHIFT;
- 		end_index = (endbyte >> PAGE_SHIFT);
-+		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK) {
-+			/* First page is tricky as 0 - 1 = -1, but pgoff_t
-+			 * is unsigned, so the end_index >= start_index
-+			 * check below would be true and we'll discard the whole
-+			 * file cache which is not what was asked.
-+			 */
-+			if (end_index == 0)
-+				break;
-+
-+			end_index--;
-+		}
+diff -puN mm/zsmalloc.c~zsmalloc-page-migration-support-fix mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-page-migration-support-fix
++++ a/mm/zsmalloc.c
+@@ -523,7 +523,7 @@ static void get_zspage_mapping(struct zs
+ 				unsigned int *class_idx,
+ 				enum fullness_group *fullness)
+ {
+-	VM_BUG_ON(zspage->magic != ZSPAGE_MAGIC);
++	BUG_ON(zspage->magic != ZSPAGE_MAGIC);
  
- 		if (end_index >= start_index) {
- 			unsigned long count = invalidate_mapping_pages(mapping,
+ 	*fullness = zspage->fullness;
+ 	*class_idx = zspage->class;
+@@ -857,7 +857,7 @@ static struct zspage *get_zspage(struct
+ {
+ 	struct zspage *zspage = (struct zspage *)page->private;
+ 
+-	VM_BUG_ON(zspage->magic != ZSPAGE_MAGIC);
++	BUG_ON(zspage->magic != ZSPAGE_MAGIC);
+ 	return zspage;
+ }
+ 
 _
 
-Patches currently in -mm which might be from green@linuxhacker.ru are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-do-not-discard-partial-pages-with-posix_fadv_dontneed.patch
+mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+mm-migrate-support-non-lru-movable-page-migration.patch
+mm-balloon-use-general-non-lru-movable-page-feature.patch
+zsmalloc-keep-max_object-in-size_class.patch
+zsmalloc-use-bit_spin_lock.patch
+zsmalloc-use-accessor.patch
+zsmalloc-factor-page-chain-functionality-out.patch
+zsmalloc-introduce-zspage-structure.patch
+zsmalloc-separate-free_zspage-from-putback_zspage.patch
+zsmalloc-use-freeobj-for-index.patch
+zsmalloc-page-migration-support.patch
+zsmalloc-page-migration-support-fix.patch
+zram-use-__gfp_movable-for-memory-allocation.patch
+mm-add-nr_zsmalloc-to-vmstat.patch
 
