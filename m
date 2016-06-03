@@ -1,77 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [patch 06/11] mm/z3fold.c: avoid modifying HEADLESS page and
- minor cleanup
-Date: Fri, 03 Jun 2016 14:55:47 -0700
-Message-ID: <5751fce3.M646ux1qEH3e80Tp%akpm@linux-foundation.org>
+Subject: [patch 11/11] mm, page_alloc: recalculate the preferred zoneref
+ if the context can ignore memory policies
+Date: Fri, 03 Jun 2016 14:56:01 -0700
+Message-ID: <5751fcf1.+mjOqb7G3A6sYyCg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52434 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52460 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932581AbcFCVzs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:55:48 -0400
+	with ESMTP id S932272AbcFCV4C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:56:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vitalywool@gmail.com, ddstreet@ieee.org, sjenning@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, geert@linux-m68k.org, vbabka@suse.cz
 
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: mm/z3fold.c: avoid modifying HEADLESS page and minor cleanup
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: recalculate the preferred zoneref if the context can ignore memory policies
 
-Fix erroneous z3fold header access in a HEADLESS page in reclaim function,
-and change one remaining direct handle-to-buddy conversion to use the
-appropriate helper.
+The optimistic fast path may use cpuset_current_mems_allowed instead of of
+a NULL nodemask supplied by the caller for cpuset allocations.  The
+preferred zone is calculated on this basis for statistic purposes and as a
+starting point in the zonelist iterator.
 
-Link: http://lkml.kernel.org/r/5748706F.9020208@gmail.com
-Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
-Reviewed-by: Dan Streetman <ddstreet@ieee.org>
-Cc: Seth Jennings <sjenning@redhat.com>
+However, if the context can ignore memory policies due to being atomic or
+being able to ignore watermarks then the starting point in the zonelist
+iterator is no longer correct.  This patch resets the zonelist iterator in
+the allocator slowpath if the context can ignore memory policies.  This
+will alter the zone used for statistics but only after it is known that it
+makes sense for that context.  Resetting it before entering the slowpath
+would potentially allow an ALLOC_CPUSET allocation to be accounted for
+against the wrong zone.  Note that while nodemask is not explicitly set to
+the original nodemask, it would only have been overwritten if
+cpuset_enabled() and it was reset before the slowpath was entered.
+
+Link: http://lkml.kernel.org/r/20160602103936.GU2527@techsingularity.net
+Fixes: c33d6c06f60f710 ("mm, page_alloc: avoid looking up the first zone in a zonelist twice")
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |   24 ++++++++++++++----------
- 1 file changed, 14 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff -puN mm/z3fold.c~z3fold-avoid-modifying-headless-page-and-minor-cleanup mm/z3fold.c
---- a/mm/z3fold.c~z3fold-avoid-modifying-headless-page-and-minor-cleanup
-+++ a/mm/z3fold.c
-@@ -412,7 +412,7 @@ static void z3fold_free(struct z3fold_po
- 		/* HEADLESS page stored */
- 		bud = HEADLESS;
- 	} else {
--		bud = (handle - zhdr->first_num) & BUDDY_MASK;
-+		bud = handle_to_buddy(handle);
+diff -puN mm/page_alloc.c~mm-page_alloc-recalculate-the-preferred-zoneref-if-the-context-can-ignore-memory-policies mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-recalculate-the-preferred-zoneref-if-the-context-can-ignore-memory-policies
++++ a/mm/page_alloc.c
+@@ -3604,6 +3604,17 @@ retry:
+ 	 */
+ 	alloc_flags = gfp_to_alloc_flags(gfp_mask);
  
- 		switch (bud) {
- 		case FIRST:
-@@ -572,15 +572,19 @@ next:
- 			pool->pages_nr--;
- 			spin_unlock(&pool->lock);
- 			return 0;
--		} else if (zhdr->first_chunks != 0 &&
--			   zhdr->last_chunks != 0 && zhdr->middle_chunks != 0) {
--			/* Full, add to buddied list */
--			list_add(&zhdr->buddy, &pool->buddied);
--		} else if (!test_bit(PAGE_HEADLESS, &page->private)) {
--			z3fold_compact_page(zhdr);
--			/* add to unbuddied list */
--			freechunks = num_free_chunks(zhdr);
--			list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
-+		}  else if (!test_bit(PAGE_HEADLESS, &page->private)) {
-+			if (zhdr->first_chunks != 0 &&
-+			    zhdr->last_chunks != 0 &&
-+			    zhdr->middle_chunks != 0) {
-+				/* Full, add to buddied list */
-+				list_add(&zhdr->buddy, &pool->buddied);
-+			} else {
-+				z3fold_compact_page(zhdr);
-+				/* add to unbuddied list */
-+				freechunks = num_free_chunks(zhdr);
-+				list_add(&zhdr->buddy,
-+					 &pool->unbuddied[freechunks]);
-+			}
- 		}
++	/*
++	 * Reset the zonelist iterators if memory policies can be ignored.
++	 * These allocations are high priority and system rather than user
++	 * orientated.
++	 */
++	if ((alloc_flags & ALLOC_NO_WATERMARKS) || !(alloc_flags & ALLOC_CPUSET)) {
++		ac->zonelist = node_zonelist(numa_node_id(), gfp_mask);
++		ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
++					ac->high_zoneidx, ac->nodemask);
++	}
++
+ 	/* This is the last chance, in general, before the goto nopage. */
+ 	page = get_page_from_freelist(gfp_mask, order,
+ 				alloc_flags & ~ALLOC_NO_WATERMARKS, ac);
+@@ -3612,12 +3623,6 @@ retry:
  
- 		/* add to beginning of LRU */
+ 	/* Allocate without watermarks if the context allows */
+ 	if (alloc_flags & ALLOC_NO_WATERMARKS) {
+-		/*
+-		 * Ignore mempolicies if ALLOC_NO_WATERMARKS on the grounds
+-		 * the allocation is high priority and these type of
+-		 * allocations are system rather than user orientated
+-		 */
+-		ac->zonelist = node_zonelist(numa_node_id(), gfp_mask);
+ 		page = get_page_from_freelist(gfp_mask, order,
+ 						ALLOC_NO_WATERMARKS, ac);
+ 		if (page)
+@@ -3816,7 +3821,11 @@ retry_cpuset:
+ 	/* Dirty zone balancing only done in the fast path */
+ 	ac.spread_dirty_pages = (gfp_mask & __GFP_WRITE);
+ 
+-	/* The preferred zone is used for statistics later */
++	/*
++	 * The preferred zone is used for statistics but crucially it is
++	 * also used as the starting point for the zonelist iterator. It
++	 * may get reset for allocations that ignore memory policies.
++	 */
+ 	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
+ 					ac.high_zoneidx, ac.nodemask);
+ 	if (!ac.preferred_zoneref) {
 _
