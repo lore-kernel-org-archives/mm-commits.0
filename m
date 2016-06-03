@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch added to
- -mm tree
-Date: Fri, 03 Jun 2016 15:18:08 -0700
-Message-ID: <57520220.+eDzQMJf0qD3ZfRO%akpm@linux-foundation.org>
+Subject: + nvme-dont-allocate-unused-nvme_major-fix.patch added to -mm
+ tree
+Date: Fri, 03 Jun 2016 15:32:45 -0700
+Message-ID: <5752058d.o6TiwR+Pf9cr+Y68%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52666 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52795 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753043AbcFCWSK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 18:18:10 -0400
+	with ESMTP id S1751826AbcFCWcr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 18:32:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, horms@verge.net.au, j-keerthy@ti.com, panand@redhat.com, rmk+kernel@arm.linux.org.uk, vgoyal@redhat.com, vitalya@ti.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, axboe@fb.com, gregkh@linuxfoundation.org, keith.busch@intel.com, maximlevitsky@gmail.com, neilb@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec-ensure-user-memory-sizes-do-not-wrap-fix
+     Subject: nvme-dont-allocate-unused-nvme_major-fix
 has been added to the -mm tree.  Its filename is
-     kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+     nvme-dont-allocate-unused-nvme_major-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nvme-dont-allocate-unused-nvme_major-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nvme-dont-allocate-unused-nvme_major-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,37 +40,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kexec-ensure-user-memory-sizes-do-not-wrap-fix
+Subject: nvme-dont-allocate-unused-nvme_major-fix
 
-fix it for kexec-return-error-number-directly.patch
+one unregister_blkdev() was missed
 
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Pratyush Anand <panand@redhat.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Vitaly Andrianov <vitalya@ti.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: NeilBrown <neilb@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/nvme/host/core.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/kexec_core.c~kexec-ensure-user-memory-sizes-do-not-wrap-fix kernel/kexec_core.c
---- a/kernel/kexec_core.c~kexec-ensure-user-memory-sizes-do-not-wrap-fix
-+++ a/kernel/kexec_core.c
-@@ -169,7 +169,7 @@ int sanity_check_segment_list(struct kim
- 		mstart = image->segment[i].mem;
- 		mend   = mstart + image->segment[i].memsz;
- 		if (mstart > mend)
--			return result;
-+			return -EADDRNOTAVAIL;
- 		if ((mstart & ~PAGE_MASK) || (mend & ~PAGE_MASK))
- 			return -EADDRNOTAVAIL;
- 		if (mend >= KEXEC_DESTINATION_MEMORY_LIMIT)
+diff -puN drivers/nvme/host/core.c~nvme-dont-allocate-unused-nvme_major-fix drivers/nvme/host/core.c
+--- a/drivers/nvme/host/core.c~nvme-dont-allocate-unused-nvme_major-fix
++++ a/drivers/nvme/host/core.c
+@@ -1867,7 +1867,6 @@ void nvme_core_exit(void)
+ {
+ 	class_destroy(nvme_class);
+ 	__unregister_chrdev(nvme_char_major, 0, NVME_MINORS, "nvme");
+-	unregister_blkdev(nvme_major, "nvme");
+ }
+ 
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,6 +79,7 @@ mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
 mm-add-nr_zsmalloc-to-vmstat-fix.patch
 mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
 mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+nvme-dont-allocate-unused-nvme_major-fix.patch
 kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
 drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
