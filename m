@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + arm-kexec-advertise-location-of-bootable-ram.patch added to -mm tree
-Date: Fri, 03 Jun 2016 14:15:53 -0700
-Message-ID: <5751f389.D4DdnTMr4pzORYQO%akpm@linux-foundation.org>
+Subject: + mm-add-nr_zsmalloc-to-vmstat.patch added to -mm tree
+Date: Fri, 03 Jun 2016 14:18:47 -0700
+Message-ID: <5751f437.DXQiYXJfB1pRBNgl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52037 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52082 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753029AbcFCVPz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:15:55 -0400
+	with ESMTP id S1753119AbcFCVSs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:18:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rmk+kernel@arm.linux.org.uk, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, horms@verge.net.au, j-keerthy@ti.com, panand@redhat.com, vgoyal@redhat.com, vitalya@ti.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, chan.jeong@lge.com, chanho.min@lge.com, sangseok.lee@lge.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: kexec: advertise location of bootable RAM
+     Subject: mm: add NR_ZSMALLOC to vmstat
 has been added to the -mm tree.  Its filename is
-     arm-kexec-advertise-location-of-bootable-ram.patch
+     mm-add-nr_zsmalloc-to-vmstat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-kexec-advertise-location-of-bootable-ram.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-nr_zsmalloc-to-vmstat.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-kexec-advertise-location-of-bootable-ram.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-nr_zsmalloc-to-vmstat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,75 +38,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: ARM: kexec: advertise location of bootable RAM
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: add NR_ZSMALLOC to vmstat
 
-Advertise the location of bootable RAM to kexec-tools.  kexec needs to
-know where it can place the kernel in RAM, and so be executable when the
-system needs to jump into it.
+zram is very popular for some of the embedded world (e.g., TV, mobile
+phones).  On those system, zsmalloc's consumed memory size is never
+trivial (one of example from real product system, total memory: 800M,
+zsmalloc consumed: 150M), so we have used this out of tree patch to
+monitor system memory behavior via /proc/vmstat.
 
-Advertise these areas in /proc/iomem with a "System RAM (boot alias)" tag.
+With zsmalloc in vmstat, it helps in tracking down system behavior due to
+memory usage.
 
-Link: http://lkml.kernel.org/r/E1b8ko4-0004HA-GF@rmk-PC.armlinux.org.uk
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Reviewed-by: Pratyush Anand <panand@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Vitaly Andrianov <vitalya@ti.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Simon Horman <horms@verge.net.au>
+Link: http://lkml.kernel.org/r/1464919731-13255-1-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Sangseok Lee <sangseok.lee@lge.com>
+Cc: Chanho Min <chanho.min@lge.com>
+Cc: Chan Gyun Jeong <chan.jeong@lge.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/setup.c |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h |    3 +++
+ mm/vmstat.c            |    4 +++-
+ mm/zsmalloc.c          |    7 ++++++-
+ 3 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/kernel/setup.c~arm-kexec-advertise-location-of-bootable-ram arch/arm/kernel/setup.c
---- a/arch/arm/kernel/setup.c~arm-kexec-advertise-location-of-bootable-ram
-+++ a/arch/arm/kernel/setup.c
-@@ -849,10 +849,29 @@ static void __init request_standard_reso
- 	kernel_data.end     = virt_to_phys(_end - 1);
+diff -puN include/linux/mmzone.h~mm-add-nr_zsmalloc-to-vmstat include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-add-nr_zsmalloc-to-vmstat
++++ a/include/linux/mmzone.h
+@@ -140,6 +140,9 @@ enum zone_stat_item {
+ 	NR_DIRTIED,		/* page dirtyings since bootup */
+ 	NR_WRITTEN,		/* page writings since bootup */
+ 	NR_PAGES_SCANNED,	/* pages scanned since last reclaim */
++#ifdef CONFIG_ZSMALLOC
++	NR_ZSMALLOC,
++#endif
+ #ifdef CONFIG_NUMA
+ 	NUMA_HIT,		/* allocated in intended node */
+ 	NUMA_MISS,		/* allocated in non intended node */
+diff -puN mm/vmstat.c~mm-add-nr_zsmalloc-to-vmstat mm/vmstat.c
+--- a/mm/vmstat.c~mm-add-nr_zsmalloc-to-vmstat
++++ a/mm/vmstat.c
+@@ -718,7 +718,9 @@ const char * const vmstat_text[] = {
+ 	"nr_dirtied",
+ 	"nr_written",
+ 	"nr_pages_scanned",
+-
++#ifdef CONFIG_ZSMALLOC
++	"nr_zsmalloc",
++#endif
+ #ifdef CONFIG_NUMA
+ 	"numa_hit",
+ 	"numa_miss",
+diff -puN mm/zsmalloc.c~mm-add-nr_zsmalloc-to-vmstat mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-add-nr_zsmalloc-to-vmstat
++++ a/mm/zsmalloc.c
+@@ -1022,6 +1022,7 @@ static void __free_zspage(struct zs_pool
+ 		reset_page(page);
+ 		unlock_page(page);
+ 		put_page(page);
++		dec_zone_page_state(page, NR_ZSMALLOC);
+ 		page = next;
+ 	} while (page != NULL);
  
- 	for_each_memblock(memory, region) {
-+		phys_addr_t start = __pfn_to_phys(memblock_region_memory_base_pfn(region));
-+		phys_addr_t end = __pfn_to_phys(memblock_region_memory_end_pfn(region)) - 1;
-+		unsigned long boot_alias_start;
-+
-+		/*
-+		 * Some systems have a special memory alias which is only
-+		 * used for booting.  We need to advertise this region to
-+		 * kexec-tools so they know where bootable RAM is located.
-+		 */
-+		boot_alias_start = phys_to_idmap(start);
-+		if (arm_has_idmap_alias() && boot_alias_start != IDMAP_INVALID_ADDR) {
-+			res = memblock_virt_alloc(sizeof(*res), 0);
-+			res->name = "System RAM (boot alias)";
-+			res->start = boot_alias_start;
-+			res->end = phys_to_idmap(end);
-+			res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
-+			request_resource(&iomem_resource, res);
-+		}
-+
- 		res = memblock_virt_alloc(sizeof(*res), 0);
- 		res->name  = "System RAM";
--		res->start = __pfn_to_phys(memblock_region_memory_base_pfn(region));
--		res->end = __pfn_to_phys(memblock_region_memory_end_pfn(region)) - 1;
-+		res->start = start;
-+		res->end = end;
- 		res->flags = IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY;
+@@ -1149,11 +1150,15 @@ static struct zspage *alloc_zspage(struc
  
- 		request_resource(&iomem_resource, res);
+ 		page = alloc_page(gfp);
+ 		if (!page) {
+-			while (--i >= 0)
++			while (--i >= 0) {
+ 				__free_page(pages[i]);
++				dec_zone_page_state(page, NR_ZSMALLOC);
++			}
+ 			cache_free_zspage(pool, zspage);
+ 			return NULL;
+ 		}
++
++		inc_zone_page_state(page, NR_ZSMALLOC);
+ 		pages[i] = page;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from rmk+kernel@arm.linux.org.uk are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-arm-kdump-advertise-boot-aliased-crash-kernel-resource.patch
-arm-kexec-advertise-location-of-bootable-ram.patch
-kexec-dont-invoke-oom-killer-for-control-page-allocation.patch
-kexec-ensure-user-memory-sizes-do-not-wrap.patch
-kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t.patch
-kexec-allow-architectures-to-override-boot-mapping.patch
-arm-kexec-fix-kexec-for-keystone-2.patch
+mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+mm-migrate-support-non-lru-movable-page-migration.patch
+mm-balloon-use-general-non-lru-movable-page-feature.patch
+zsmalloc-keep-max_object-in-size_class.patch
+zsmalloc-use-bit_spin_lock.patch
+zsmalloc-use-accessor.patch
+zsmalloc-factor-page-chain-functionality-out.patch
+zsmalloc-introduce-zspage-structure.patch
+zsmalloc-separate-free_zspage-from-putback_zspage.patch
+zsmalloc-use-freeobj-for-index.patch
+zsmalloc-page-migration-support.patch
+zram-use-__gfp_movable-for-memory-allocation.patch
+mm-add-nr_zsmalloc-to-vmstat.patch
 
