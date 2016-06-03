@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arm-kdump-advertise-boot-aliased-crash-kernel-resource.patch
- added to -mm tree
-Date: Fri, 03 Jun 2016 14:15:51 -0700
-Message-ID: <5751f387.z3gNh+Xmr7W5IYse%akpm@linux-foundation.org>
+Subject: + kexec-ensure-user-memory-sizes-do-not-wrap.patch added to -mm
+ tree
+Date: Fri, 03 Jun 2016 14:15:57 -0700
+Message-ID: <5751f38d.M8idOlS3sLJUObuq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52028 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52050 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753025AbcFCVPx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:15:53 -0400
+	with ESMTP id S1753038AbcFCVP7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:15:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rmk+kernel@arm.linux.org.uk, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, horms@verge.net.au, j-keerthy@ti.com, panand@redhat.com, vgoyal@redhat.com, vitalya@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: kdump: advertise boot aliased crash kernel resource
+     Subject: kexec: ensure user memory sizes do not wrap
 has been added to the -mm tree.  Its filename is
-     arm-kdump-advertise-boot-aliased-crash-kernel-resource.patch
+     kexec-ensure-user-memory-sizes-do-not-wrap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-kdump-advertise-boot-aliased-crash-kernel-resource.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-ensure-user-memory-sizes-do-not-wrap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-kdump-advertise-boot-aliased-crash-kernel-resource.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-ensure-user-memory-sizes-do-not-wrap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,17 +40,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: ARM: kdump: advertise boot aliased crash kernel resource
+Subject: kexec: ensure user memory sizes do not wrap
 
-Advertise a resource which describes where the crash kernel is located in
-the boot view of RAM.  This allows kexec-tools to have this vital
-information.
+Ensure that user memory sizes do not wrap around when validating the user
+input, which can lead to the following input validation working
+incorrectly.
 
-Link: http://lkml.kernel.org/r/E1b8knz-0004H4-Bd@rmk-PC.armlinux.org.uk
+Link: http://lkml.kernel.org/r/E1b8koF-0004HM-5x@rmk-PC.armlinux.org.uk
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Baoquan He <bhe@redhat.com>
+Reviewed-by: Pratyush Anand <panand@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
 Cc: Keerthy <j-keerthy@ti.com>
-Cc: Pratyush Anand <panand@redhat.com>
 Cc: Vitaly Andrianov <vitalya@ti.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
@@ -59,38 +59,21 @@ Cc: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/setup.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ kernel/kexec_core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/arm/kernel/setup.c~arm-kdump-advertise-boot-aliased-crash-kernel-resource arch/arm/kernel/setup.c
---- a/arch/arm/kernel/setup.c~arm-kdump-advertise-boot-aliased-crash-kernel-resource
-+++ a/arch/arm/kernel/setup.c
-@@ -1006,9 +1006,25 @@ static void __init reserve_crashkernel(v
- 		(unsigned long)(crash_base >> 20),
- 		(unsigned long)(total_mem >> 20));
+diff -puN kernel/kexec_core.c~kexec-ensure-user-memory-sizes-do-not-wrap kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kexec-ensure-user-memory-sizes-do-not-wrap
++++ a/kernel/kexec_core.c
+@@ -168,6 +168,8 @@ int sanity_check_segment_list(struct kim
  
-+	/* The crashk resource must always be located in normal mem */
- 	crashk_res.start = crash_base;
- 	crashk_res.end = crash_base + crash_size - 1;
- 	insert_resource(&iomem_resource, &crashk_res);
-+
-+	if (arm_has_idmap_alias()) {
-+		/*
-+		 * If we have a special RAM alias for use at boot, we
-+		 * need to advertise to kexec tools where the alias is.
-+		 */
-+		static struct resource crashk_boot_res = {
-+			.name = "Crash kernel (boot alias)",
-+			.flags = IORESOURCE_BUSY | IORESOURCE_MEM,
-+		};
-+
-+		crashk_boot_res.start = phys_to_idmap(crash_base);
-+		crashk_boot_res.end = crashk_boot_res.start + crash_size - 1;
-+		insert_resource(&iomem_resource, &crashk_boot_res);
-+	}
- }
- #else
- static inline void reserve_crashkernel(void) {}
+ 		mstart = image->segment[i].mem;
+ 		mend   = mstart + image->segment[i].memsz;
++		if (mstart > mend)
++			return result;
+ 		if ((mstart & ~PAGE_MASK) || (mend & ~PAGE_MASK))
+ 			return -EADDRNOTAVAIL;
+ 		if (mend >= KEXEC_DESTINATION_MEMORY_LIMIT)
 _
 
 Patches currently in -mm which might be from rmk+kernel@arm.linux.org.uk are
