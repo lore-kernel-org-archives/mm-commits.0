@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-introduce-dedicated-wq_mem_reclaim-workqueue-to-do-lru_add_drain_all.patch added to -mm tree
-Date: Fri, 03 Jun 2016 14:20:26 -0700
-Message-ID: <5751f49a.X/3hYB5G4XEsIEgS%akpm@linux-foundation.org>
+Subject: + mm-do-not-discard-partial-pages-with-posix_fadv_dontneed.patch
+ added to -mm tree
+Date: Fri, 03 Jun 2016 14:22:57 -0700
+Message-ID: <5751f531.lNqVX9SlK2C8PGYr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52094 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084AbcFCVU1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:20:27 -0400
+	with ESMTP id S1751755AbcFCVW6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:22:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shhuiw@foxmail.com, keith.busch@intel.com, mingo@redhat.com, peterz@infradead.org, tj@kernel.org, treding@nvidia.com, mm-commits@vger.kernel.org
+To: green@linuxhacker.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce dedicated WQ_MEM_RECLAIM workqueue to do lru_add_drain_all
+     Subject: mm/fadvise.c: do not discard partial pages with POSIX_FADV_DONTNEED
 has been added to the -mm tree.  Its filename is
-     mm-introduce-dedicated-wq_mem_reclaim-workqueue-to-do-lru_add_drain_all.patch
+     mm-do-not-discard-partial-pages-with-posix_fadv_dontneed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-dedicated-wq_mem_reclaim-workqueue-to-do-lru_add_drain_all.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-do-not-discard-partial-pages-with-posix_fadv_dontneed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-dedicated-wq_mem_reclaim-workqueue-to-do-lru_add_drain_all.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-do-not-discard-partial-pages-with-posix_fadv_dontneed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,97 +39,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wang Sheng-Hui <shhuiw@foxmail.com>
-Subject: mm: introduce dedicated WQ_MEM_RECLAIM workqueue to do lru_add_drain_all
+From: Oleg Drokin <green@linuxhacker.ru>
+Subject: mm/fadvise.c: do not discard partial pages with POSIX_FADV_DONTNEED
 
-This patch is based on https://patchwork.ozlabs.org/patch/574623/.
+I noticed that the logic in the fadvise64_64 syscall is incorrect for
+partial pages.  While first page of the region is correctly skipped if it
+is partial, the last page of the region is mistakenly discarded.  This
+leads to problems for applications that read data in non-page-aligned
+chunks discarding already processed data between the reads.
 
-Tejun submitted commit 23d11a58a9a6 ("workqueue: skip flush dependency
-checks for legacy workqueues") for the legacy create*_workqueue()
-interface.  But some workq created by alloc_workqueue still reports
-warning on memory reclaim, e.g nvme_workq with flag WQ_MEM_RECLAIM set:
+A somewhat misguided application that does something like write(XX bytes
+(non-page-alligned)); drop the data it just wrote; repeat gets a
+significant penalty in performance as a result.
 
-[    0.153902] workqueue: WQ_MEM_RECLAIM nvme:nvme_reset_work is
-flushing !WQ_MEM_RECLAIM events:lru_add_drain_per_cpu
-[    0.153907] ------------[ cut here ]------------
-[    0.153912] WARNING: CPU: 0 PID: 6 at
-SoC/linux/kernel/workqueue.c:2448
-check_flush_dependency+0xb4/0x10c
-...
-[    0.154083] [<fffffc00080d6de0>] check_flush_dependency+0xb4/0x10c
-[    0.154088] [<fffffc00080d8e80>] flush_work+0x54/0x140
-[    0.154092] [<fffffc0008166a0c>] lru_add_drain_all+0x138/0x188
-[    0.154097] [<fffffc00081ab2dc>] migrate_prep+0xc/0x18
-[    0.154101] [<fffffc0008160e88>] alloc_contig_range+0xf4/0x350
-[    0.154105] [<fffffc00081bcef8>] cma_alloc+0xec/0x1e4
-[    0.154110] [<fffffc0008446ad0>] dma_alloc_from_contiguous+0x38/0x40
-[    0.154114] [<fffffc00080a093c>] __dma_alloc+0x74/0x25c
-[    0.154119] [<fffffc00084828d8>] nvme_alloc_queue+0xcc/0x36c
-[    0.154123] [<fffffc0008484b2c>] nvme_reset_work+0x5c4/0xda8
-[    0.154128] [<fffffc00080d9528>] process_one_work+0x128/0x2ec
-[    0.154132] [<fffffc00080d9744>] worker_thread+0x58/0x434
-[    0.154136] [<fffffc00080df0ec>] kthread+0xd4/0xe8
-[    0.154141] [<fffffc0008093ac0>] ret_from_fork+0x10/0x50
-
-That's because lru_add_drain_all() will schedule the drain work on
-system_wq, whose flag is set to 0, !WQ_MEM_RECLAIM.
-
-Introduce a dedicated WQ_MEM_RECLAIM workqueue to do lru_add_drain_all(),
-aiding in getting memory freed.
-
-Link: http://lkml.kernel.org/r/1464917521-9775-1-git-send-email-shhuiw@foxmail.com
-Signed-off-by: Wang Sheng-Hui <shhuiw@foxmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thierry Reding <treding@nvidia.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Link: http://lkml.kernel.org/r/1464917140-1506698-1-git-send-email-green@linuxhacker.ru
+Signed-off-by: Oleg Drokin <green@linuxhacker.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ mm/fadvise.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/swap.c~mm-introduce-dedicated-wq_mem_reclaim-workqueue-to-do-lru_add_drain_all mm/swap.c
---- a/mm/swap.c~mm-introduce-dedicated-wq_mem_reclaim-workqueue-to-do-lru_add_drain_all
-+++ a/mm/swap.c
-@@ -667,6 +667,24 @@ static void lru_add_drain_per_cpu(struct
+diff -puN mm/fadvise.c~mm-do-not-discard-partial-pages-with-posix_fadv_dontneed mm/fadvise.c
+--- a/mm/fadvise.c~mm-do-not-discard-partial-pages-with-posix_fadv_dontneed
++++ a/mm/fadvise.c
+@@ -126,6 +126,17 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
+ 		 */
+ 		start_index = (offset+(PAGE_SIZE-1)) >> PAGE_SHIFT;
+ 		end_index = (endbyte >> PAGE_SHIFT);
++		if ((endbyte & ~PAGE_MASK) != ~PAGE_MASK) {
++			/* First page is tricky as 0 - 1 = -1, but pgoff_t
++			 * is unsigned, so the end_index >= start_index
++			 * check below would be true and we'll discard the whole
++			 * file cache which is not what was asked.
++			 */
++			if (end_index == 0)
++				break;
++
++			end_index--;
++		}
  
- static DEFINE_PER_CPU(struct work_struct, lru_add_drain_work);
- 
-+/*
-+ * lru_add_drain_wq is used to do lru_add_drain_all() from a WQ_MEM_RECLAIM
-+ * workqueue, aiding in getting memory freed.
-+ */
-+static struct workqueue_struct *lru_add_drain_wq;
-+
-+static int __init lru_init(void)
-+{
-+	lru_add_drain_wq = alloc_workqueue("lru-add-drain", WQ_MEM_RECLAIM, 0);
-+
-+	if (WARN(!lru_add_drain_wq,
-+		"Failed to create workqueue lru_add_drain_wq"))
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+early_initcall(lru_init);
-+
- void lru_add_drain_all(void)
- {
- 	static DEFINE_MUTEX(lock);
-@@ -686,7 +704,7 @@ void lru_add_drain_all(void)
- 		    pagevec_count(&per_cpu(lru_deactivate_pvecs, cpu)) ||
- 		    need_activate_page_drain(cpu)) {
- 			INIT_WORK(work, lru_add_drain_per_cpu);
--			schedule_work_on(cpu, work);
-+			queue_work_on(cpu, lru_add_drain_wq, work);
- 			cpumask_set_cpu(cpu, &has_work);
- 		}
- 	}
+ 		if (end_index >= start_index) {
+ 			unsigned long count = invalidate_mapping_pages(mapping,
 _
 
-Patches currently in -mm which might be from shhuiw@foxmail.com are
+Patches currently in -mm which might be from green@linuxhacker.ru are
 
-mm-introduce-dedicated-wq_mem_reclaim-workqueue-to-do-lru_add_drain_all.patch
+mm-do-not-discard-partial-pages-with-posix_fadv_dontneed.patch
 
