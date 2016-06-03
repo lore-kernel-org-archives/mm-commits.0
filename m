@@ -1,143 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [patch 02/11] kdump: fix dmesg gdbmacro to work with record based printk
-Date: Fri, 03 Jun 2016 14:55:36 -0700
-Message-ID: <5751fcd8.QNa/gT24j3NWBzwz%akpm@linux-foundation.org>
+Subject: [patch 05/11] memcg: add RCU locking around
+ css_for_each_descendant_pre() in memcg_offline_kmem()
+Date: Fri, 03 Jun 2016 14:55:44 -0700
+Message-ID: <5751fce0.EEoFymGd1OTC0XKG%akpm__46222.4896801219$1464991262$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52413 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52426 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752621AbcFCVzh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:55:37 -0400
+	with ESMTP id S932530AbcFCVzp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:55:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, cminyard@mvista.com, bhe@redhat.com, dyoung@redhat.com, vgoyal@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, hannes@cmpxchg.org, mhocko@kernel.org, stable@vger.kernel.org, vdavydov@virtuozzo.com
 
-From: Corey Minyard <cminyard@mvista.com>
-Subject: kdump: fix dmesg gdbmacro to work with record based printk
+From: Tejun Heo <tj@kernel.org>
+Subject: memcg: add RCU locking around css_for_each_descendant_pre() in memcg_offline_kmem()
 
-7ff9554bb578ba02 ("printk: convert byte-buffer to variable-length record
-buffer") introduced a record based printk buffer.  Modify gdbmacros.txt to
-parse this new structure so dmesg will work properly.
+memcg_offline_kmem() may be called from memcg_free_kmem() after a css init
+failure.  memcg_free_kmem() is a ->css_free callback which is called
+without cgroup_mutex and memcg_offline_kmem() ends up using
+css_for_each_descendant_pre() without any locking.  Fix it by adding rcu
+read locking around it.
 
-Link: http://lkml.kernel.org/r/1463515794-1599-1-git-send-email-minyard@acm.org
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+ mkdir: cannot create directory `65530': No space left on device
+ [  527.241361] ===============================
+ [  527.241845] [ INFO: suspicious RCU usage. ]
+ [  527.242367] 4.6.0-work+ #321 Not tainted
+ [  527.242730] -------------------------------
+ [  527.243220] kernel/cgroup.c:4008 cgroup_mutex or RCU read lock required!
+ [  527.243970]
+ [  527.243970] other info that might help us debug this:
+ [  527.243970]
+ [  527.244715]
+ [  527.244715] rcu_scheduler_active = 1, debug_locks = 0
+ [  527.245463] 2 locks held by kworker/0:5/1664:
+ [  527.245939]  #0:  ("cgroup_destroy"){.+.+..}, at: [<ffffffff81060ab5>] process_one_work+0x165/0x4a0
+ [  527.246958]  #1:  ((&css->destroy_work)#3){+.+...}, at: [<ffffffff81060ab5>] process_one_work+0x165/0x4a0
+ [  527.248098]
+ [  527.248098] stack backtrace:
+ [  527.249565] CPU: 0 PID: 1664 Comm: kworker/0:5 Not tainted 4.6.0-work+ #321
+ [  527.250429] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.9.1-1.fc24 04/01/2014
+ [  527.250555] Workqueue: cgroup_destroy css_free_work_fn
+ [  527.250555]  0000000000000000 ffff880178747c68 ffffffff8128bfc7 ffff880178b8ac40
+ [  527.250555]  0000000000000001 ffff880178747c98 ffffffff8108c297 0000000000000000
+ [  527.250555]  ffff88010de54138 000000000000fffb ffff88010de537e8 ffff880178747cc0
+ [  527.250555] Call Trace:
+ [  527.250555]  [<ffffffff8128bfc7>] dump_stack+0x68/0xa1
+ [  527.250555]  [<ffffffff8108c297>] lockdep_rcu_suspicious+0xd7/0x110
+ [  527.250555]  [<ffffffff810ca03d>] css_next_descendant_pre+0x7d/0xb0
+ [  527.250555]  [<ffffffff8114d14a>] memcg_offline_kmem.part.44+0x4a/0xc0
+ [  527.250555]  [<ffffffff8114d3ac>] mem_cgroup_css_free+0x1ec/0x200
+ [  527.250555]  [<ffffffff810ccdc9>] css_free_work_fn+0x49/0x5e0
+ [  527.250555]  [<ffffffff81060b15>] process_one_work+0x1c5/0x4a0
+ [  527.250555]  [<ffffffff81060ab5>] ? process_one_work+0x165/0x4a0
+ [  527.250555]  [<ffffffff81060e39>] worker_thread+0x49/0x490
+ [  527.250555]  [<ffffffff81060df0>] ? process_one_work+0x4a0/0x4a0
+ [  527.250555]  [<ffffffff81060df0>] ? process_one_work+0x4a0/0x4a0
+ [  527.250555]  [<ffffffff810672ba>] kthread+0xea/0x100
+ [  527.250555]  [<ffffffff814cbcff>] ret_from_fork+0x1f/0x40
+ [  527.250555]  [<ffffffff810671d0>] ? kthread_create_on_node+0x200/0x200
+
+Link: http://lkml.kernel.org/r/20160526203018.GG23194@mtj.duckdns.org
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Acked-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: <stable@vger.kernel.org>	[4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kdump/gdbmacros.txt |   93 ++++++++++++++++++++++++----
- 1 file changed, 82 insertions(+), 11 deletions(-)
+ mm/memcontrol.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN Documentation/kdump/gdbmacros.txt~kdump-fix-dmesg-gdbmacro-to-work-with-record-based-printk Documentation/kdump/gdbmacros.txt
---- a/Documentation/kdump/gdbmacros.txt~kdump-fix-dmesg-gdbmacro-to-work-with-record-based-printk
-+++ a/Documentation/kdump/gdbmacros.txt
-@@ -170,21 +170,92 @@ document trapinfo
- 	address the kernel panicked.
- end
- 
-+define dump_log_idx
-+	set $idx = $arg0
-+	if ($argc > 1)
-+		set $prev_flags = $arg1
-+	else
-+		set $prev_flags = 0
-+	end
-+	set $msg = ((struct printk_log *) (log_buf + $idx))
-+	set $prefix = 1
-+	set $newline = 1
-+	set $log = log_buf + $idx + sizeof(*$msg)
- 
--define dmesg
--	set $i = 0
--	set $end_idx = (log_end - 1) & (log_buf_len - 1)
-+	# prev & LOG_CONT && !(msg->flags & LOG_PREIX)
-+	if (($prev_flags & 8) && !($msg->flags & 4))
-+		set $prefix = 0
-+	end
- 
--	while ($i < logged_chars)
--		set $idx = (log_end - 1 - logged_chars + $i) & (log_buf_len - 1)
-+	# msg->flags & LOG_CONT
-+	if ($msg->flags & 8)
-+		# (prev & LOG_CONT && !(prev & LOG_NEWLINE))
-+		if (($prev_flags & 8) && !($prev_flags & 2))
-+			set $prefix = 0
-+		end
-+		# (!(msg->flags & LOG_NEWLINE))
-+		if (!($msg->flags & 2))
-+			set $newline = 0
-+		end
-+	end
- 
--		if ($idx + 100 <= $end_idx) || \
--		   ($end_idx <= $idx && $idx + 100 < log_buf_len)
--			printf "%.100s", &log_buf[$idx]
--			set $i = $i + 100
-+	if ($prefix)
-+		printf "[%5lu.%06lu] ", $msg->ts_nsec / 1000000000, $msg->ts_nsec % 1000000000
-+	end
-+	if ($msg->text_len != 0)
-+		eval "printf \"%%%d.%ds\", $log", $msg->text_len, $msg->text_len
-+	end
-+	if ($newline)
-+		printf "\n"
-+	end
-+	if ($msg->dict_len > 0)
-+		set $dict = $log + $msg->text_len
-+		set $idx = 0
-+		set $line = 1
-+		while ($idx < $msg->dict_len)
-+			if ($line)
-+				printf " "
-+				set $line = 0
-+			end
-+			set $c = $dict[$idx]
-+			if ($c == '\0')
-+				printf "\n"
-+				set $line = 1
-+			else
-+				if ($c < ' ' || $c >= 127 || $c == '\\')
-+					printf "\\x%02x", $c
-+				else
-+					printf "%c", $c
-+				end
-+			end
-+			set $idx = $idx + 1
-+		end
-+		printf "\n"
-+	end
-+end
-+document dump_log_idx
-+	Dump a single log given its index in the log buffer.  The first
-+	parameter is the index into log_buf, the second is optional and
-+	specified the previous log buffer's flags, used for properly
-+	formatting continued lines.
-+end
+diff -puN mm/memcontrol.c~memcg-add-rcu-locking-around-css_for_each_descendant_pre-in-memcg_offline_kmem mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-rcu-locking-around-css_for_each_descendant_pre-in-memcg_offline_kmem
++++ a/mm/memcontrol.c
+@@ -2896,6 +2896,7 @@ static void memcg_offline_kmem(struct me
+ 	 * ordering is imposed by list_lru_node->lock taken by
+ 	 * memcg_drain_all_list_lrus().
+ 	 */
++	rcu_read_lock(); /* can be called from css_free w/o cgroup_mutex */
+ 	css_for_each_descendant_pre(css, &memcg->css) {
+ 		child = mem_cgroup_from_css(css);
+ 		BUG_ON(child->kmemcg_id != kmemcg_id);
+@@ -2903,6 +2904,8 @@ static void memcg_offline_kmem(struct me
+ 		if (!memcg->use_hierarchy)
+ 			break;
+ 	}
++	rcu_read_unlock();
 +
-+define dmesg
-+	set $i = log_first_idx
-+	set $end_idx = log_first_idx
-+	set $prev_flags = 0
-+
-+	while (1)
-+		set $msg = ((struct printk_log *) (log_buf + $i))
-+		if ($msg->len == 0)
-+			set $i = 0
- 		else
--			printf "%c", log_buf[$idx]
--			set $i = $i + 1
-+			dump_log_idx $i $prev_flags
-+			set $i = $i + $msg->len
-+			set $prev_flags = $msg->flags
-+		end
-+		if ($i == $end_idx)
-+			loop_break
- 		end
- 	end
- end
+ 	memcg_drain_all_list_lrus(kmemcg_id, parent->kmemcg_id);
+ 
+ 	memcg_free_cache_id(kmemcg_id);
 _
