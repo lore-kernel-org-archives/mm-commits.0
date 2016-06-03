@@ -1,49 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [patch 07/11] checkpatch: reduce git commit description style
- false positives
-Date: Fri, 03 Jun 2016 14:55:49 -0700
-Message-ID: <5751fce5.Yt3fxFiBNZrlMbeg%akpm@linux-foundation.org>
+Subject: [patch 04/11] reiserfs: avoid uninitialized variable use
+Date: Fri, 03 Jun 2016 14:55:41 -0700
+Message-ID: <5751fcdd.MVkzL61hQL9uCGEt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52436 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52424 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932272AbcFCVz4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:55:56 -0400
+	with ESMTP id S1752961AbcFCVzm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:55:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, jack@suse.cz, viro@zeniv.linux.org.uk
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: reduce git commit description style false positives
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: reiserfs: avoid uninitialized variable use
 
-Some lines in a commit log appear to be commit SHA1 ids like:
+I got this warning on an ARM64 allmodconfig build with gcc-5.3:
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-Link: http://lkml.kernel.org/r/40e03fd7aaf1f55c75d787128d6d17c5a71226c2.1464358556.git.vdavydov@virtuozzo.com
+fs/reiserfs/ibalance.c: In function 'balance_internal':
+fs/reiserfs/ibalance.c:1158:3: error: 'new_insert_key' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+   memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
 
-Reduce the false positives.
+The warning is correct, in fact both new_insert_key and new_insert_ptr are
+only updated inside of an if() block, but used at the end of the function.
 
-Link: http://lkml.kernel.org/r/eda977eaa8328fef42bb3c87935d97e10ea8ff67.1464384023.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Looking at how the balance_internal() function gets called, it is clear
+that this is harmless because the caller never uses the updated arrays,
+they are initialized from balance_leaf_new_nodes() and then passed into
+balance_internal().
+
+This has not changed at all since the start of the git history, but
+apparently the warning has only recently appeared.
+
+This modifies the function to only update the two argument variables when
+the new_insert_key and new_insert_ptr have been updated, to get rid of the
+warning.
+
+Link: http://lkml.kernel.org/r/1464380569-3493380-1-git-send-email-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ fs/reiserfs/ibalance.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-reduce-git-commit-description-style-false-positives scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-reduce-git-commit-description-style-false-positives
-+++ a/scripts/checkpatch.pl
-@@ -2454,6 +2454,7 @@ sub process {
+diff -puN fs/reiserfs/ibalance.c~reiserfs-avoid-uninitialized-variable-use fs/reiserfs/ibalance.c
+--- a/fs/reiserfs/ibalance.c~reiserfs-avoid-uninitialized-variable-use
++++ a/fs/reiserfs/ibalance.c
+@@ -1138,6 +1138,9 @@ int balance_internal(struct tree_balance
+ 		       S_new);
  
- # Check for git id commit length and improperly formed commit descriptions
- 		if ($in_commit_log && !$commit_log_possible_stack_dump &&
-+		    $line !~ /^\s*(?:Link|Patchwork|http|BugLink):/i &&
- 		    ($line =~ /\bcommit\s+[0-9a-f]{5,}\b/i ||
- 		     ($line =~ /\b[0-9a-f]{12,40}\b/i &&
- 		      $line !~ /[\<\[][0-9a-f]{12,40}[\>\]]/i &&
-_
+ 		/* S_new is released in unfix_nodes */
++
++		memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
++		insert_ptr[0] = new_insert_ptr;
+ 	}
+ 
+ 	n = B_NR_ITEMS(tbSh);	/*number of items in S[h] */
+@@ -1153,8 +1156,5 @@ int balance_internal(struct tree_balance
+ 				       insert_ptr);
+ 	}
+ 
+-	memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
+-	insert_ptr[0] = new_insert_ptr;
