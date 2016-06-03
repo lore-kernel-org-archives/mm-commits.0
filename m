@@ -1,70 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/11] reiserfs: avoid uninitialized variable use
-Date: Fri, 03 Jun 2016 14:55:41 -0700
-Message-ID: <5751fcdd.MVkzL61hQL9uCGEt%akpm@linux-foundation.org>
+Subject: + mm-add-nr_zsmalloc-to-vmstat-fix.patch added to -mm tree
+Date: Fri, 03 Jun 2016 15:14:52 -0700
+Message-ID: <5752015c.KBLz0j35g1Sj0x0I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52656 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752961AbcFCVzm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 17:55:42 -0400
+	with ESMTP id S1751147AbcFCWOy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Jun 2016 18:14:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, jack@suse.cz, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, chan.jeong@lge.com, chanho.min@lge.com, minchan@kernel.org, sangseok.lee@lge.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: reiserfs: avoid uninitialized variable use
 
-I got this warning on an ARM64 allmodconfig build with gcc-5.3:
+The patch titled
+     Subject: mm-add-nr_zsmalloc-to-vmstat-fix
+has been added to the -mm tree.  Its filename is
+     mm-add-nr_zsmalloc-to-vmstat-fix.patch
 
-fs/reiserfs/ibalance.c: In function 'balance_internal':
-fs/reiserfs/ibalance.c:1158:3: error: 'new_insert_key' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-   memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-nr_zsmalloc-to-vmstat-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-nr_zsmalloc-to-vmstat-fix.patch
 
-The warning is correct, in fact both new_insert_key and new_insert_ptr are
-only updated inside of an if() block, but used at the end of the function.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Looking at how the balance_internal() function gets called, it is clear
-that this is harmless because the caller never uses the updated arrays,
-they are initialized from balance_leaf_new_nodes() and then passed into
-balance_internal().
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-This has not changed at all since the start of the git history, but
-apparently the warning has only recently appeared.
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-This modifies the function to only update the two argument variables when
-the new_insert_key and new_insert_ptr have been updated, to get rid of the
-warning.
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-add-nr_zsmalloc-to-vmstat-fix
 
-Link: http://lkml.kernel.org/r/1464380569-3493380-1-git-send-email-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jan Kara <jack@suse.cz>
+fix build with CONFIG_ZSMALLOC=m
+
+Cc: Chan Gyun Jeong <chan.jeong@lge.com>
+Cc: Chanho Min <chanho.min@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sangseok Lee <sangseok.lee@lge.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/ibalance.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mmzone.h |    2 +-
+ mm/vmstat.c            |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/reiserfs/ibalance.c~reiserfs-avoid-uninitialized-variable-use fs/reiserfs/ibalance.c
---- a/fs/reiserfs/ibalance.c~reiserfs-avoid-uninitialized-variable-use
-+++ a/fs/reiserfs/ibalance.c
-@@ -1138,6 +1138,9 @@ int balance_internal(struct tree_balance
- 		       S_new);
- 
- 		/* S_new is released in unfix_nodes */
-+
-+		memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
-+		insert_ptr[0] = new_insert_ptr;
- 	}
- 
- 	n = B_NR_ITEMS(tbSh);	/*number of items in S[h] */
-@@ -1153,8 +1156,5 @@ int balance_internal(struct tree_balance
- 				       insert_ptr);
- 	}
- 
--	memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
--	insert_ptr[0] = new_insert_ptr;
+diff -puN include/linux/mmzone.h~mm-add-nr_zsmalloc-to-vmstat-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-add-nr_zsmalloc-to-vmstat-fix
++++ a/include/linux/mmzone.h
+@@ -140,7 +140,7 @@ enum zone_stat_item {
+ 	NR_DIRTIED,		/* page dirtyings since bootup */
+ 	NR_WRITTEN,		/* page writings since bootup */
+ 	NR_PAGES_SCANNED,	/* pages scanned since last reclaim */
+-#ifdef CONFIG_ZSMALLOC
++#if IS_ENABLED(CONFIG_ZSMALLOC)
+ 	NR_ZSMALLOC,
+ #endif
+ #ifdef CONFIG_NUMA
+diff -puN mm/vmstat.c~mm-add-nr_zsmalloc-to-vmstat-fix mm/vmstat.c
+--- a/mm/vmstat.c~mm-add-nr_zsmalloc-to-vmstat-fix
++++ a/mm/vmstat.c
+@@ -718,7 +718,7 @@ const char * const vmstat_text[] = {
+ 	"nr_dirtied",
+ 	"nr_written",
+ 	"nr_pages_scanned",
+-#ifdef CONFIG_ZSMALLOC
++#if IS_ENABLED(CONFIG_ZSMALLOC)
+ 	"nr_zsmalloc",
+ #endif
+ #ifdef CONFIG_NUMA
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
