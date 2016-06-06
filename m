@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_owner-use-stackdepot-to-store-stacktrace-fix.patch
+Subject: + reiserfs-fix-new_insert_key-may-be-used-uninitialized.patch
  added to -mm tree
-Date: Mon, 06 Jun 2016 14:45:38 -0700
-Message-ID: <5755ef02.Mk4QXtLG8rIv9+LP%akpm@linux-foundation.org>
+Date: Mon, 06 Jun 2016 15:29:11 -0700
+Message-ID: <5755f937.uFWdy/7/AHsIt4ic%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38277 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38617 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752943AbcFFVpj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jun 2016 17:45:39 -0400
+	with ESMTP id S1751112AbcFFW3N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jun 2016 18:29:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, iamjoonsoo.kim@lge.com, sudip.mukherjee@codethink.co.uk, mm-commits@vger.kernel.org
+To: jeffm@suse.com, arnd@arndb.de, jack@suse.cz, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner: avoid null pointer dereference
+     Subject: reiserfs: fix "new_insert_key may be used uninitialized ..."
 has been added to the -mm tree.  Its filename is
-     mm-page_owner-use-stackdepot-to-store-stacktrace-fix.patch
+     reiserfs-fix-new_insert_key-may-be-used-uninitialized.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-use-stackdepot-to-store-stacktrace-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/reiserfs-fix-new_insert_key-may-be-used-uninitialized.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-use-stackdepot-to-store-stacktrace-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/reiserfs-fix-new_insert_key-may-be-used-uninitialized.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: mm/page_owner: avoid null pointer dereference
+From: Jeff Mahoney <jeffm@suse.com>
+Subject: reiserfs: fix "new_insert_key may be used uninitialized ..."
 
-We have dereferenced page_ext before checking it. Lets check it first
-and then used it.
+new_insert_key only makes any sense when it's associated with a
+new_insert_ptr, which is initialized to NULL and changed to a buffer_head
+when we also initialize new_insert_key.  We can key off of that to avoid
+the uninitialized warning.
 
-Link: http://lkml.kernel.org/r/1465249059-7883-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/5eca5ffb-2155-8df2-b4a2-f162f105efed@suse.com
+Signed-off-by: Jeff Mahoney <jeffm@suse.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/reiserfs/ibalance.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_owner.c~mm-page_owner-use-stackdepot-to-store-stacktrace-fix mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-use-stackdepot-to-store-stacktrace-fix
-+++ a/mm/page_owner.c
-@@ -291,13 +291,15 @@ void __dump_page_owner(struct page *page
- 		.skip = 0
- 	};
- 	depot_stack_handle_t handle;
--	gfp_t gfp_mask = page_ext->gfp_mask;
--	int mt = gfpflags_to_migratetype(gfp_mask);
-+	gfp_t gfp_mask;
-+	int mt;
- 
- 	if (unlikely(!page_ext)) {
- 		pr_alert("There is not page extension available.\n");
- 		return;
+diff -puN fs/reiserfs/ibalance.c~reiserfs-fix-new_insert_key-may-be-used-uninitialized fs/reiserfs/ibalance.c
+--- a/fs/reiserfs/ibalance.c~reiserfs-fix-new_insert_key-may-be-used-uninitialized
++++ a/fs/reiserfs/ibalance.c
+@@ -1153,8 +1153,9 @@ int balance_internal(struct tree_balance
+ 				       insert_ptr);
  	}
-+	gfp_mask = page_ext->gfp_mask;
-+	mt = gfpflags_to_migratetype(gfp_mask);
  
- 	if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags)) {
- 		pr_alert("page_owner info is not active (free page?)\n");
+-	memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
+ 	insert_ptr[0] = new_insert_ptr;
++	if (new_insert_ptr)
++		memcpy(new_insert_key_addr, &new_insert_key, KEY_SIZE);
+ 
+ 	return order;
+ }
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from jeffm@suse.com are
 
-mm-page_owner-use-stackdepot-to-store-stacktrace-fix.patch
-fpga-zynq-fpga-fix-build-failure.patch
+reiserfs-fix-new_insert_key-may-be-used-uninitialized.patch
 
