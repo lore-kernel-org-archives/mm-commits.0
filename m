@@ -1,91 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-oom_reaper-do-not-use-siglock-in-try_oom_reaper.patch removed from -mm tree
-Date: Mon, 06 Jun 2016 12:06:54 -0700
-Message-ID: <5755c9ce.AB/OIxrIwE2IsH5O%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_alloc-recalculate-the-preferred-zoneref-if-the-context-can-ignore-memory-policies.patch removed from -mm tree
+Date: Mon, 06 Jun 2016 12:07:00 -0700
+Message-ID: <5755c9d4.aW0t+NOXEwP+gpEi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36381 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36391 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752219AbcFFTGz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jun 2016 15:06:55 -0400
+	with ESMTP id S1752277AbcFFTHB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jun 2016 15:07:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, oleg@redhat.com, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, geert@linux-m68k.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom_reaper: do not use siglock in try_oom_reaper()
+     Subject: mm, page_alloc: recalculate the preferred zoneref if the context can ignore memory policies
 has been removed from the -mm tree.  Its filename was
-     mm-oom_reaper-do-not-use-siglock-in-try_oom_reaper.patch
+     mm-page_alloc-recalculate-the-preferred-zoneref-if-the-context-can-ignore-memory-policies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom_reaper: do not use siglock in try_oom_reaper()
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, page_alloc: recalculate the preferred zoneref if the context can ignore memory policies
 
-Oleg has noted that siglock usage in try_oom_reaper is both pointless and
-dangerous.  signal_group_exit can be checked lockless.  The problem is
-that sighand becomes NULL in __exit_signal so we can crash.
+The optimistic fast path may use cpuset_current_mems_allowed instead of of
+a NULL nodemask supplied by the caller for cpuset allocations.  The
+preferred zone is calculated on this basis for statistic purposes and as a
+starting point in the zonelist iterator.
 
-Fixes: 3ef22dfff239 ("oom, oom_reaper: try to reap tasks which skip regular OOM killer path")
-Link: http://lkml.kernel.org/r/1464679423-30218-1-git-send-email-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: David Rientjes <rientjes@google.com>
+However, if the context can ignore memory policies due to being atomic or
+being able to ignore watermarks then the starting point in the zonelist
+iterator is no longer correct.  This patch resets the zonelist iterator in
+the allocator slowpath if the context can ignore memory policies.  This
+will alter the zone used for statistics but only after it is known that it
+makes sense for that context.  Resetting it before entering the slowpath
+would potentially allow an ALLOC_CPUSET allocation to be accounted for
+against the wrong zone.  Note that while nodemask is not explicitly set to
+the original nodemask, it would only have been overwritten if
+cpuset_enabled() and it was reset before the slowpath was entered.
+
+Link: http://lkml.kernel.org/r/20160602103936.GU2527@techsingularity.net
+Fixes: c33d6c06f60f710 ("mm, page_alloc: avoid looking up the first zone in a zonelist twice")
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ mm/page_alloc.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_reaper-do-not-use-siglock-in-try_oom_reaper mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_reaper-do-not-use-siglock-in-try_oom_reaper
-+++ a/mm/oom_kill.c
-@@ -625,8 +625,6 @@ void try_oom_reaper(struct task_struct *
- 	if (atomic_read(&mm->mm_users) > 1) {
- 		rcu_read_lock();
- 		for_each_process(p) {
--			bool exiting;
--
- 			if (!process_shares_mm(p, mm))
- 				continue;
- 			if (fatal_signal_pending(p))
-@@ -636,10 +634,7 @@ void try_oom_reaper(struct task_struct *
- 			 * If the task is exiting make sure the whole thread group
- 			 * is exiting and cannot acces mm anymore.
- 			 */
--			spin_lock_irq(&p->sighand->siglock);
--			exiting = signal_group_exit(p->signal);
--			spin_unlock_irq(&p->sighand->siglock);
--			if (exiting)
-+			if (signal_group_exit(p->signal))
- 				continue;
+diff -puN mm/page_alloc.c~mm-page_alloc-recalculate-the-preferred-zoneref-if-the-context-can-ignore-memory-policies mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-recalculate-the-preferred-zoneref-if-the-context-can-ignore-memory-policies
++++ a/mm/page_alloc.c
+@@ -3604,6 +3604,17 @@ retry:
+ 	 */
+ 	alloc_flags = gfp_to_alloc_flags(gfp_mask);
  
- 			/* Give up */
++	/*
++	 * Reset the zonelist iterators if memory policies can be ignored.
++	 * These allocations are high priority and system rather than user
++	 * orientated.
++	 */
++	if ((alloc_flags & ALLOC_NO_WATERMARKS) || !(alloc_flags & ALLOC_CPUSET)) {
++		ac->zonelist = node_zonelist(numa_node_id(), gfp_mask);
++		ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
++					ac->high_zoneidx, ac->nodemask);
++	}
++
+ 	/* This is the last chance, in general, before the goto nopage. */
+ 	page = get_page_from_freelist(gfp_mask, order,
+ 				alloc_flags & ~ALLOC_NO_WATERMARKS, ac);
+@@ -3612,12 +3623,6 @@ retry:
+ 
+ 	/* Allocate without watermarks if the context allows */
+ 	if (alloc_flags & ALLOC_NO_WATERMARKS) {
+-		/*
+-		 * Ignore mempolicies if ALLOC_NO_WATERMARKS on the grounds
+-		 * the allocation is high priority and these type of
+-		 * allocations are system rather than user orientated
+-		 */
+-		ac->zonelist = node_zonelist(numa_node_id(), gfp_mask);
+ 		page = get_page_from_freelist(gfp_mask, order,
+ 						ALLOC_NO_WATERMARKS, ac);
+ 		if (page)
+@@ -3816,7 +3821,11 @@ retry_cpuset:
+ 	/* Dirty zone balancing only done in the fast path */
+ 	ac.spread_dirty_pages = (gfp_mask & __GFP_WRITE);
+ 
+-	/* The preferred zone is used for statistics later */
++	/*
++	 * The preferred zone is used for statistics but crucially it is
++	 * also used as the starting point for the zonelist iterator. It
++	 * may get reset for allocations that ignore memory policies.
++	 */
+ 	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
+ 					ac.high_zoneidx, ac.nodemask);
+ 	if (!ac.preferred_zoneref) {
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-tree-wide-get-rid-of-__gfp_repeat-for-order-0-allocations-part-i.patch
-x86-get-rid-of-superfluous-__gfp_repeat.patch
-x86-efi-get-rid-of-superfluous-__gfp_repeat.patch
-arm-get-rid-of-superfluous-__gfp_repeat.patch
-arm64-get-rid-of-superfluous-__gfp_repeat.patch
-arc-get-rid-of-superfluous-__gfp_repeat.patch
-mips-get-rid-of-superfluous-__gfp_repeat.patch
-nios2-get-rid-of-superfluous-__gfp_repeat.patch
-parisc-get-rid-of-superfluous-__gfp_repeat.patch
-score-get-rid-of-superfluous-__gfp_repeat.patch
-powerpc-get-rid-of-superfluous-__gfp_repeat.patch
-sparc-get-rid-of-superfluous-__gfp_repeat.patch
-s390-get-rid-of-superfluous-__gfp_repeat.patch
-sh-get-rid-of-superfluous-__gfp_repeat.patch
-tile-get-rid-of-superfluous-__gfp_repeat.patch
-unicore32-get-rid-of-superfluous-__gfp_repeat.patch
-jbd2-get-rid-of-superfluous-__gfp_repeat.patch
 
