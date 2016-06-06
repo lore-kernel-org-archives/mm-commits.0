@@ -1,110 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_alloc-recalculate-the-preferred-zoneref-if-the-context-can-ignore-memory-policies.patch removed from -mm tree
-Date: Mon, 06 Jun 2016 12:07:00 -0700
-Message-ID: <5755c9d4.aW0t+NOXEwP+gpEi%akpm@linux-foundation.org>
+Subject: + kexec-allow-architectures-to-override-boot-mapping-fix.patch
+ added to -mm tree
+Date: Mon, 06 Jun 2016 13:22:51 -0700
+Message-ID: <5755db9b.zsiGjTLZltfBj+zF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36391 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37298 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277AbcFFTHB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jun 2016 15:07:01 -0400
+	with ESMTP id S1751060AbcFFUWw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jun 2016 16:22:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, geert@linux-m68k.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rmk+kernel@arm.linux.org.uk, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: recalculate the preferred zoneref if the context can ignore memory policies
-has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-recalculate-the-preferred-zoneref-if-the-context-can-ignore-memory-policies.patch
+     Subject: kexec-allow-architectures-to-override-boot-mapping-fix
+has been added to the -mm tree.  Its filename is
+     kexec-allow-architectures-to-override-boot-mapping-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-allow-architectures-to-override-boot-mapping-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-allow-architectures-to-override-boot-mapping-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: recalculate the preferred zoneref if the context can ignore memory policies
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kexec-allow-architectures-to-override-boot-mapping-fix
 
-The optimistic fast path may use cpuset_current_mems_allowed instead of of
-a NULL nodemask supplied by the caller for cpuset allocations.  The
-preferred zone is calculated on this basis for statistic purposes and as a
-starting point in the zonelist iterator.
+kexec.h needs asm/io.h for phys_to_virt()
 
-However, if the context can ignore memory policies due to being atomic or
-being able to ignore watermarks then the starting point in the zonelist
-iterator is no longer correct.  This patch resets the zonelist iterator in
-the allocator slowpath if the context can ignore memory policies.  This
-will alter the zone used for statistics but only after it is known that it
-makes sense for that context.  Resetting it before entering the slowpath
-would potentially allow an ALLOC_CPUSET allocation to be accounted for
-against the wrong zone.  Note that while nodemask is not explicitly set to
-the original nodemask, it would only have been overwritten if
-cpuset_enabled() and it was reset before the slowpath was entered.
-
-Link: http://lkml.kernel.org/r/20160602103936.GU2527@techsingularity.net
-Fixes: c33d6c06f60f710 ("mm, page_alloc: avoid looking up the first zone in a zonelist twice")
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ include/linux/kexec.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-recalculate-the-preferred-zoneref-if-the-context-can-ignore-memory-policies mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-recalculate-the-preferred-zoneref-if-the-context-can-ignore-memory-policies
-+++ a/mm/page_alloc.c
-@@ -3604,6 +3604,17 @@ retry:
- 	 */
- 	alloc_flags = gfp_to_alloc_flags(gfp_mask);
+diff -puN include/linux/kexec.h~kexec-allow-architectures-to-override-boot-mapping-fix include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec-allow-architectures-to-override-boot-mapping-fix
++++ a/include/linux/kexec.h
+@@ -14,6 +14,8 @@
  
-+	/*
-+	 * Reset the zonelist iterators if memory policies can be ignored.
-+	 * These allocations are high priority and system rather than user
-+	 * orientated.
-+	 */
-+	if ((alloc_flags & ALLOC_NO_WATERMARKS) || !(alloc_flags & ALLOC_CPUSET)) {
-+		ac->zonelist = node_zonelist(numa_node_id(), gfp_mask);
-+		ac->preferred_zoneref = first_zones_zonelist(ac->zonelist,
-+					ac->high_zoneidx, ac->nodemask);
-+	}
+ #if !defined(__ASSEMBLY__)
+ 
++#include <asm/io.h>
 +
- 	/* This is the last chance, in general, before the goto nopage. */
- 	page = get_page_from_freelist(gfp_mask, order,
- 				alloc_flags & ~ALLOC_NO_WATERMARKS, ac);
-@@ -3612,12 +3623,6 @@ retry:
+ #include <uapi/linux/kexec.h>
  
- 	/* Allocate without watermarks if the context allows */
- 	if (alloc_flags & ALLOC_NO_WATERMARKS) {
--		/*
--		 * Ignore mempolicies if ALLOC_NO_WATERMARKS on the grounds
--		 * the allocation is high priority and these type of
--		 * allocations are system rather than user orientated
--		 */
--		ac->zonelist = node_zonelist(numa_node_id(), gfp_mask);
- 		page = get_page_from_freelist(gfp_mask, order,
- 						ALLOC_NO_WATERMARKS, ac);
- 		if (page)
-@@ -3816,7 +3821,11 @@ retry_cpuset:
- 	/* Dirty zone balancing only done in the fast path */
- 	ac.spread_dirty_pages = (gfp_mask & __GFP_WRITE);
- 
--	/* The preferred zone is used for statistics later */
-+	/*
-+	 * The preferred zone is used for statistics but crucially it is
-+	 * also used as the starting point for the zonelist iterator. It
-+	 * may get reset for allocations that ignore memory policies.
-+	 */
- 	ac.preferred_zoneref = first_zones_zonelist(ac.zonelist,
- 					ac.high_zoneidx, ac.nodemask);
- 	if (!ac.preferred_zoneref) {
+ #ifdef CONFIG_KEXEC_CORE
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+nvme-dont-allocate-unused-nvme_major-fix.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
