@@ -1,55 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] tile-early_printko-is-always-required.patch removed
- from -mm tree
-Date: Tue, 07 Jun 2016 12:53:04 -0700
-Message-ID: <57572620.QUbWiSyCW/2e8lN6%akpm@linux-foundation.org>
+Subject: [alternative-merged] mm-add-nr_zsmalloc-to-vmstat-fix.patch
+ removed from -mm tree
+Date: Tue, 07 Jun 2016 12:53:30 -0700
+Message-ID: <5757263a.vMf3crQ8edwQod14%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38603 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38606 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161210AbcFGTxF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 15:53:05 -0400
+	with ESMTP id S1161210AbcFGTxc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 15:53:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cmetcalf@mellanox.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chan.jeong@lge.com, chanho.min@lge.com, minchan@kernel.org, sangseok.lee@lge.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tile: early_printk.o is always required
+     Subject: mm-add-nr_zsmalloc-to-vmstat-fix
 has been removed from the -mm tree.  Its filename was
-     tile-early_printko-is-always-required.patch
+     mm-add-nr_zsmalloc-to-vmstat-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: tile: early_printk.o is always required
+Subject: mm-add-nr_zsmalloc-to-vmstat-fix
 
-arch/tile/setup.o is always compiled, and it requires early_panic() and
-hence early_printk(), so we must always build and link early_printk.o.
+fix build with CONFIG_ZSMALLOC=m
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Acked-by: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Chan Gyun Jeong <chan.jeong@lge.com>
+Cc: Chanho Min <chanho.min@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sangseok Lee <sangseok.lee@lge.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mmzone.h |    2 +-
+ mm/vmstat.c            |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/tile/Kconfig~tile-early_printko-is-always-required arch/tile/Kconfig
---- a/arch/tile/Kconfig~tile-early_printko-is-always-required
-+++ a/arch/tile/Kconfig
-@@ -14,6 +14,7 @@ config TILE
- 	select GENERIC_FIND_FIRST_BIT
- 	select GENERIC_IRQ_PROBE
- 	select GENERIC_IRQ_SHOW
-+	select EARLY_PRINTK
- 	select GENERIC_PENDING_IRQ if SMP
- 	select GENERIC_STRNCPY_FROM_USER
- 	select GENERIC_STRNLEN_USER
+diff -puN include/linux/mmzone.h~mm-add-nr_zsmalloc-to-vmstat-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-add-nr_zsmalloc-to-vmstat-fix
++++ a/include/linux/mmzone.h
+@@ -140,7 +140,7 @@ enum zone_stat_item {
+ 	NR_DIRTIED,		/* page dirtyings since bootup */
+ 	NR_WRITTEN,		/* page writings since bootup */
+ 	NR_PAGES_SCANNED,	/* pages scanned since last reclaim */
+-#ifdef CONFIG_ZSMALLOC
++#if IS_ENABLED(CONFIG_ZSMALLOC)
+ 	NR_ZSMALLOC,
+ #endif
+ #ifdef CONFIG_NUMA
+diff -puN mm/vmstat.c~mm-add-nr_zsmalloc-to-vmstat-fix mm/vmstat.c
+--- a/mm/vmstat.c~mm-add-nr_zsmalloc-to-vmstat-fix
++++ a/mm/vmstat.c
+@@ -718,7 +718,7 @@ const char * const vmstat_text[] = {
+ 	"nr_dirtied",
+ 	"nr_written",
+ 	"nr_pages_scanned",
+-#ifdef CONFIG_ZSMALLOC
++#if IS_ENABLED(CONFIG_ZSMALLOC)
+ 	"nr_zsmalloc",
+ #endif
+ #ifdef CONFIG_NUMA
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +76,6 @@ revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 mm.patch
 mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
-mm-add-nr_zsmalloc-to-vmstat-fix.patch
 mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
 mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
 nvme-dont-allocate-unused-nvme_major-fix.patch
