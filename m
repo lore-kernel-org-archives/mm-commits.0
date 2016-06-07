@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim.patch added to
- -mm tree
-Date: Tue, 07 Jun 2016 14:04:21 -0700
-Message-ID: <575736d5.tI/nMTGStlctVLTR%akpm@linux-foundation.org>
+Subject: + vmscan-split-file-huge-pages-before-paging-them-out.patch added to -mm tree
+Date: Tue, 07 Jun 2016 14:04:19 -0700
+Message-ID: <575736d3.jDEIJJqOrXmhGh7w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39476 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422628AbcFGVEW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 17:04:22 -0400
+	with ESMTP id S1161158AbcFGVEV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 17:04:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, andreslc@google.com, aneesh.kumar@linux.vnet.ibm.com, cl@gentwo.org, dave.hansen@intel.com, hughd@google.com, jmarchan@redhat.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, quning@gmail.com, sasha.levin@oracle.com, vbabka@suse.cz, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: relax policy for PG_mappedtodisk and PG_reclaim
+     Subject: vmscan: split file huge pages before paging them out
 has been added to the -mm tree.  Its filename is
-     page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim.patch
+     vmscan-split-file-huge-pages-before-paging-them-out.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmscan-split-file-huge-pages-before-paging-them-out.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmscan-split-file-huge-pages-before-paging-them-out.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,11 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: relax policy for PG_mappedtodisk and PG_reclaim
+Subject: vmscan: split file huge pages before paging them out
 
-These flags are in use for file THP.
+This is preparation of vmscan for file huge pages. We cannot write out
+huge pages, so we need to split them on the way out.
 
-Link: http://lkml.kernel.org/r/1465297246-98985-18-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1465297246-98985-17-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -63,27 +62,27 @@ Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN include/linux/page-flags.h~page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim
-+++ a/include/linux/page-flags.h
-@@ -295,11 +295,11 @@ PAGEFLAG(OwnerPriv1, owner_priv_1, PF_AN
-  */
- TESTPAGEFLAG(Writeback, writeback, PF_NO_COMPOUND)
- 	TESTSCFLAG(Writeback, writeback, PF_NO_COMPOUND)
--PAGEFLAG(MappedToDisk, mappedtodisk, PF_NO_COMPOUND)
-+PAGEFLAG(MappedToDisk, mappedtodisk, PF_NO_TAIL)
+diff -puN mm/vmscan.c~vmscan-split-file-huge-pages-before-paging-them-out mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-split-file-huge-pages-before-paging-them-out
++++ a/mm/vmscan.c
+@@ -1055,8 +1055,14 @@ static unsigned long shrink_page_list(st
  
- /* PG_readahead is only used for reads; PG_reclaim is only for writes */
--PAGEFLAG(Reclaim, reclaim, PF_NO_COMPOUND)
--	TESTCLEARFLAG(Reclaim, reclaim, PF_NO_COMPOUND)
-+PAGEFLAG(Reclaim, reclaim, PF_NO_TAIL)
-+	TESTCLEARFLAG(Reclaim, reclaim, PF_NO_TAIL)
- PAGEFLAG(Readahead, reclaim, PF_NO_COMPOUND)
- 	TESTCLEARFLAG(Readahead, reclaim, PF_NO_COMPOUND)
+ 			/* Adding to swap updated mapping */
+ 			mapping = page_mapping(page);
++		} else if (unlikely(PageTransHuge(page))) {
++			/* Split file THP */
++			if (split_huge_page_to_list(page, page_list))
++				goto keep_locked;
+ 		}
  
++		VM_BUG_ON_PAGE(PageTransHuge(page), page);
++
+ 		/*
+ 		 * The page is mapped into the page tables of one or more
+ 		 * processes. Try to unmap it here.
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
