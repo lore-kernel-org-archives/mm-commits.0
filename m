@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
- added to -mm tree
-Date: Tue, 07 Jun 2016 13:41:42 -0700
-Message-ID: <57573186.LGt4MrWkR8/aEwvA%akpm@linux-foundation.org>
+Subject: + thp-mlock-update-unevictable-lrutxt.patch added to -mm tree
+Date: Tue, 07 Jun 2016 14:03:40 -0700
+Message-ID: <575736ac.B5+GfClqDiCuwWr7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39018 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39286 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751294AbcFGUln (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 16:41:43 -0400
+	with ESMTP id S932666AbcFGVDm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 17:03:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, andreslc@google.com, aneesh.kumar@linux.vnet.ibm.com, cl@gentwo.org, dave.hansen@intel.com, hughd@google.com, jmarchan@redhat.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, quning@gmail.com, sasha.levin@oracle.com, vbabka@suse.cz, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes
+     Subject: thp, mlock: update unevictable-lru.txt
 has been added to the -mm tree.  Its filename is
-     mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+     thp-mlock-update-unevictable-lrutxt.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-mlock-update-unevictable-lrutxt.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-mlock-update-unevictable-lrutxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,84 +38,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp, mlock: update unevictable-lru.txt
 
-WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
-#155: FILE: mm/readahead.c:111:
-+		struct list_head *pages, unsigned nr_pages, gfp_t gfp_mask)
+THP-enabled tmpfs/shmem using compound pages.
 
-WARNING: line over 80 characters
-#165: FILE: mm/readahead.c:129:
-+		if (!add_to_page_cache_lru(page, mapping, page->index, gfp_mask)) {
 
-WARNING: braces {} are not necessary for single statement blocks
-#165: FILE: mm/readahead.c:129:
-+		if (!add_to_page_cache_lru(page, mapping, page->index, gfp_mask)) {
- 			mapping->a_ops->readpage(filp, page);
- 		}
+This patch (of 32):
 
-total: 0 errors, 3 warnings, 111 lines checked
+Add description of THP handling into unevictable-lru.txt.
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-memcg-use-consistent-gfp-flags-during-readahead.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1465297246-98985-2-git-send-email-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@gentwo.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
+Cc: Ning Qu <quning@gmail.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ Documentation/vm/unevictable-lru.txt |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN mm/readahead.c~mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes mm/readahead.c
---- a/mm/readahead.c~mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes
-+++ a/mm/readahead.c
-@@ -108,7 +108,7 @@ int read_cache_pages(struct address_spac
- EXPORT_SYMBOL(read_cache_pages);
+diff -puN Documentation/vm/unevictable-lru.txt~thp-mlock-update-unevictable-lrutxt Documentation/vm/unevictable-lru.txt
+--- a/Documentation/vm/unevictable-lru.txt~thp-mlock-update-unevictable-lrutxt
++++ a/Documentation/vm/unevictable-lru.txt
+@@ -461,6 +461,27 @@ unevictable LRU is enabled, the work of
+ the page migration code and the same work flow as described in MIGRATING
+ MLOCKED PAGES will apply.
  
- static int read_pages(struct address_space *mapping, struct file *filp,
--		struct list_head *pages, unsigned nr_pages, gfp_t gfp_mask)
-+		struct list_head *pages, unsigned int nr_pages, gfp_t gfp)
- {
- 	struct blk_plug plug;
- 	unsigned page_idx;
-@@ -126,9 +126,8 @@ static int read_pages(struct address_spa
- 	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
- 		struct page *page = lru_to_page(pages);
- 		list_del(&page->lru);
--		if (!add_to_page_cache_lru(page, mapping, page->index, gfp_mask)) {
-+		if (!add_to_page_cache_lru(page, mapping, page->index, gfp))
- 			mapping->a_ops->readpage(filp, page);
--		}
- 		put_page(page);
- 	}
- 	ret = 0;
++MLOCKING TRANSPARENT HUGE PAGES
++-------------------------------
++
++A transparent huge page is represented by a single entry on an LRU list.
++Therefore, we can only make unevictable an entire compound page, not
++individual subpages.
++
++If a user tries to mlock() part of a huge page, we want the rest of the
++page to be reclaimable.
++
++We cannot just split the page on partial mlock() as split_huge_page() can
++fail and new intermittent failure mode for the syscall is undesirable.
++
++We handle this by keeping PTE-mapped huge pages on normal LRU lists: the
++PMD on border of VM_LOCKED VMA will be split into PTE table.
++
++This way the huge page is accessible for vmscan. Under memory pressure the
++page will be split, subpages which belong to VM_LOCKED VMAs will be moved
++to unevictable LRU and the rest can be reclaimed.
++
++See also comment in follow_trans_huge_pmd().
+ 
+ mmap(MAP_LOCKED) SYSTEM CALL HANDLING
+ -------------------------------------
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-reorganize-slab-freelist-randomization-fix.patch
-mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
-mm-add-nr_zsmalloc-to-vmstat-fix.patch
-mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
-nvme-dont-allocate-unused-nvme_major-fix.patch
-kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
-kexec-allow-architectures-to-override-boot-mapping-fix.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
+thp-mlock-update-unevictable-lrutxt.patch
+mm-do-not-pass-mm_struct-into-handle_mm_fault.patch
+mm-introduce-fault_env.patch
+mm-postpone-page-table-allocation-until-we-have-page-to-map.patch
+rmap-support-file-thp.patch
+mm-introduce-do_set_pmd.patch
+thp-vmstats-add-counters-for-huge-file-pages.patch
+thp-support-file-pages-in-zap_huge_pmd.patch
+thp-handle-file-pages-in-split_huge_pmd.patch
+thp-handle-file-cow-faults.patch
+thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
+thp-prepare-change_huge_pmd-for-file-thp.patch
+thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem.patch
+thp-file-pages-support-for-split_huge_page.patch
+thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
+vmscan-split-file-huge-pages-before-paging-them-out.patch
+page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim.patch
+radix-tree-implement-radix_tree_maybe_preload_order.patch
+filemap-prepare-find-and-delete-operations-for-huge-pages.patch
+truncate-handle-file-thp.patch
+mm-rmap-account-shmem-thp-pages.patch
+shmem-prepare-huge=-mount-option-and-sysfs-knob.patch
+shmem-add-huge-pages-support.patch
+shmem-thp-respect-madv_nohugepage-for-file-mappings.patch
+thp-extract-khugepaged-from-mm-huge_memoryc.patch
+khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
+shmem-make-shmem_inode_info-lock-irq-safe.patch
+khugepaged-add-support-of-collapse-for-tmpfs-shmem-pages.patch
+thp-introduce-config_transparent_huge_pagecache.patch
+shmem-split-huge-pages-beyond-i_size-under-memory-pressure.patch
+thp-update-documentation-vm-transhugefilesystems-proctxt.patch
+a.patch
 
