@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-get_unmapped_area-align-huge-page.patch added to -mm tree
-Date: Tue, 07 Jun 2016 14:04:37 -0700
-Message-ID: <575736e5.mzuvuliBm8kO4qyj%akpm@linux-foundation.org>
+Subject: +
+ khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch added to -mm tree
+Date: Tue, 07 Jun 2016 14:04:50 -0700
+Message-ID: <575736f2.0g4zUtQOo6exhYQi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39569 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39621 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423233AbcFGVEj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 17:04:39 -0400
+	with ESMTP id S1423268AbcFGVEw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 17:04:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, aneesh.kumar@linux.vnet.ibm.com, cl@gentwo.org, dave.hansen@intel.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, quning@gmail.com, sasha.levin@oracle.com, vbabka@suse.cz, yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, andreslc@google.com, aneesh.kumar@linux.vnet.ibm.com, cl@gentwo.org, dave.hansen@intel.com, hughd@google.com, jmarchan@redhat.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, quning@gmail.com, sasha.levin@oracle.com, vbabka@suse.cz, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: get_unmapped_area align huge page
+     Subject: khugepaged: move up_read(mmap_sem) out of khugepaged_alloc_page()
 has been added to the -mm tree.  Its filename is
-     shmem-get_unmapped_area-align-huge-page.patch
+     khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/shmem-get_unmapped_area-align-huge-page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-get_unmapped_area-align-huge-page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,30 +39,15 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: shmem: get_unmapped_area align huge page
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: khugepaged: move up_read(mmap_sem) out of khugepaged_alloc_page()
 
-Provide a shmem_get_unmapped_area method in file_operations, called
-at mmap time to decide the mapping address.  It could be conditional
-on CONFIG_TRANSPARENT_HUGEPAGE, but save #ifdefs in other places by
-making it unconditional.
+Both variants of khugepaged_alloc_page() do up_read(&mm->mmap_sem)
+first: no point keep it inside the function.
 
-shmem_get_unmapped_area() first calls the usual mm->get_unmapped_area
-(which we treat as a black box, highly dependent on architecture and
-config and executable layout).  Lots of conditions, and in most cases
-it just goes with the address that chose; but when our huge stars are
-rightly aligned, yet that did not provide a suitable address, go back
-to ask for a larger arena, within which to align the mapping suitably.
-
-There have to be some direct calls to shmem_get_unmapped_area(),
-not via the file_operations: because of the way shmem_zero_setup()
-is called to create a shmem object late in the mmap sequence, when
-MAP_SHARED is requested with MAP_ANONYMOUS or /dev/zero.  Though
-this only matters when /proc/sys/vm/shmem_huge has been set.
-
-Link: http://lkml.kernel.org/r/1465297246-98985-24-git-send-email-kirill.shutemov@linux.intel.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/1465297246-98985-28-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -77,252 +63,100 @@ Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c       |   24 +++++++++
- include/linux/shmem_fs.h |    2 
- ipc/shm.c                |    6 +-
- mm/mmap.c                |   16 +++++-
- mm/shmem.c               |   98 +++++++++++++++++++++++++++++++++++++
- 5 files changed, 142 insertions(+), 4 deletions(-)
+ mm/khugepaged.c |   25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
 
-diff -puN drivers/char/mem.c~shmem-get_unmapped_area-align-huge-page drivers/char/mem.c
---- a/drivers/char/mem.c~shmem-get_unmapped_area-align-huge-page
-+++ a/drivers/char/mem.c
-@@ -22,6 +22,7 @@
- #include <linux/device.h>
- #include <linux/highmem.h>
- #include <linux/backing-dev.h>
-+#include <linux/shmem_fs.h>
- #include <linux/splice.h>
- #include <linux/pfn.h>
- #include <linux/export.h>
-@@ -661,6 +662,28 @@ static int mmap_zero(struct file *file,
- 	return 0;
+diff -puN mm/khugepaged.c~khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page mm/khugepaged.c
+--- a/mm/khugepaged.c~khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page
++++ a/mm/khugepaged.c
+@@ -718,19 +718,10 @@ static bool khugepaged_prealloc_page(str
  }
  
-+static unsigned long get_unmapped_area_zero(struct file *file,
-+				unsigned long addr, unsigned long len,
-+				unsigned long pgoff, unsigned long flags)
-+{
-+#ifdef CONFIG_MMU
-+	if (flags & MAP_SHARED) {
-+		/*
-+		 * mmap_zero() will call shmem_zero_setup() to create a file,
-+		 * so use shmem's get_unmapped_area in case it can be huge;
-+		 * and pass NULL for file as in mmap.c's get_unmapped_area(),
-+		 * so as not to confuse shmem with our handle on "/dev/zero".
-+		 */
-+		return shmem_get_unmapped_area(NULL, addr, len, pgoff, flags);
-+	}
-+
-+	/* Otherwise flags & MAP_PRIVATE: with no shmem object beneath it */
-+	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
-+#else
-+	return -ENOSYS;
-+#endif
-+}
-+
- static ssize_t write_full(struct file *file, const char __user *buf,
- 			  size_t count, loff_t *ppos)
+ static struct page *
+-khugepaged_alloc_page(struct page **hpage, gfp_t gfp, struct mm_struct *mm,
+-		       unsigned long address, int node)
++khugepaged_alloc_page(struct page **hpage, gfp_t gfp, int node)
  {
-@@ -768,6 +791,7 @@ static const struct file_operations zero
- 	.read_iter	= read_iter_zero,
- 	.write_iter	= write_iter_zero,
- 	.mmap		= mmap_zero,
-+	.get_unmapped_area = get_unmapped_area_zero,
- #ifndef CONFIG_MMU
- 	.mmap_capabilities = zero_mmap_capabilities,
- #endif
-diff -puN include/linux/shmem_fs.h~shmem-get_unmapped_area-align-huge-page include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~shmem-get_unmapped_area-align-huge-page
-+++ a/include/linux/shmem_fs.h
-@@ -50,6 +50,8 @@ extern struct file *shmem_file_setup(con
- extern struct file *shmem_kernel_file_setup(const char *name, loff_t size,
- 					    unsigned long flags);
- extern int shmem_zero_setup(struct vm_area_struct *);
-+extern unsigned long shmem_get_unmapped_area(struct file *, unsigned long addr,
-+		unsigned long len, unsigned long pgoff, unsigned long flags);
- extern int shmem_lock(struct file *file, int lock, struct user_struct *user);
- extern bool shmem_mapping(struct address_space *mapping);
- extern void shmem_unlock_mapping(struct address_space *mapping);
-diff -puN ipc/shm.c~shmem-get_unmapped_area-align-huge-page ipc/shm.c
---- a/ipc/shm.c~shmem-get_unmapped_area-align-huge-page
-+++ a/ipc/shm.c
-@@ -476,13 +476,15 @@ static const struct file_operations shm_
- 	.mmap		= shm_mmap,
- 	.fsync		= shm_fsync,
- 	.release	= shm_release,
--#ifndef CONFIG_MMU
- 	.get_unmapped_area	= shm_get_unmapped_area,
--#endif
- 	.llseek		= noop_llseek,
- 	.fallocate	= shm_fallocate,
- };
+ 	VM_BUG_ON_PAGE(*hpage, *hpage);
  
-+/*
-+ * shm_file_operations_huge is now identical to shm_file_operations,
-+ * but we keep it distinct for the sake of is_file_shm_hugepages().
-+ */
- static const struct file_operations shm_file_operations_huge = {
- 	.mmap		= shm_mmap,
- 	.fsync		= shm_fsync,
-diff -puN mm/mmap.c~shmem-get_unmapped_area-align-huge-page mm/mmap.c
---- a/mm/mmap.c~shmem-get_unmapped_area-align-huge-page
-+++ a/mm/mmap.c
-@@ -25,6 +25,7 @@
- #include <linux/personality.h>
- #include <linux/security.h>
- #include <linux/hugetlb.h>
-+#include <linux/shmem_fs.h>
- #include <linux/profile.h>
- #include <linux/export.h>
- #include <linux/mount.h>
-@@ -1897,8 +1898,19 @@ get_unmapped_area(struct file *file, uns
- 		return -ENOMEM;
- 
- 	get_area = current->mm->get_unmapped_area;
--	if (file && file->f_op->get_unmapped_area)
--		get_area = file->f_op->get_unmapped_area;
-+	if (file) {
-+		if (file->f_op->get_unmapped_area)
-+			get_area = file->f_op->get_unmapped_area;
-+	} else if (flags & MAP_SHARED) {
-+		/*
-+		 * mmap_region() will call shmem_zero_setup() to create a file,
-+		 * so use shmem's get_unmapped_area in case it can be huge.
-+		 * do_mmap_pgoff() will clear pgoff, so match alignment.
-+		 */
-+		pgoff = 0;
-+		get_area = shmem_get_unmapped_area;
-+	}
-+
- 	addr = get_area(file, addr, len, pgoff, flags);
- 	if (IS_ERR_VALUE(addr))
- 		return addr;
-diff -puN mm/shmem.c~shmem-get_unmapped_area-align-huge-page mm/shmem.c
---- a/mm/shmem.c~shmem-get_unmapped_area-align-huge-page
-+++ a/mm/shmem.c
-@@ -1513,6 +1513,94 @@ static int shmem_fault(struct vm_area_st
- 	return ret;
+-	/*
+-	 * Before allocating the hugepage, release the mmap_sem read lock.
+-	 * The allocation can take potentially a long time if it involves
+-	 * sync compaction, and we do not need to hold the mmap_sem during
+-	 * that. We will recheck the vma after taking it again in write mode.
+-	 */
+-	up_read(&mm->mmap_sem);
+-
+ 	*hpage = __alloc_pages_node(node, gfp, HPAGE_PMD_ORDER);
+ 	if (unlikely(!*hpage)) {
+ 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
+@@ -799,10 +790,8 @@ static bool khugepaged_prealloc_page(str
  }
  
-+unsigned long shmem_get_unmapped_area(struct file *file,
-+				      unsigned long uaddr, unsigned long len,
-+				      unsigned long pgoff, unsigned long flags)
-+{
-+	unsigned long (*get_area)(struct file *,
-+		unsigned long, unsigned long, unsigned long, unsigned long);
-+	unsigned long addr;
-+	unsigned long offset;
-+	unsigned long inflated_len;
-+	unsigned long inflated_addr;
-+	unsigned long inflated_offset;
-+
-+	if (len > TASK_SIZE)
-+		return -ENOMEM;
-+
-+	get_area = current->mm->get_unmapped_area;
-+	addr = get_area(file, uaddr, len, pgoff, flags);
-+
-+	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
-+		return addr;
-+	if (IS_ERR_VALUE(addr))
-+		return addr;
-+	if (addr & ~PAGE_MASK)
-+		return addr;
-+	if (addr > TASK_SIZE - len)
-+		return addr;
-+
-+	if (shmem_huge == SHMEM_HUGE_DENY)
-+		return addr;
-+	if (len < HPAGE_PMD_SIZE)
-+		return addr;
-+	if (flags & MAP_FIXED)
-+		return addr;
+ static struct page *
+-khugepaged_alloc_page(struct page **hpage, gfp_t gfp, struct mm_struct *mm,
+-		       unsigned long address, int node)
++khugepaged_alloc_page(struct page **hpage, gfp_t gfp, int node)
+ {
+-	up_read(&mm->mmap_sem);
+ 	VM_BUG_ON(!*hpage);
+ 
+ 	return  *hpage;
+@@ -921,8 +910,14 @@ static void collapse_huge_page(struct mm
+ 	/* Only allocate from the target node */
+ 	gfp = alloc_hugepage_khugepaged_gfpmask() | __GFP_OTHER_NODE | __GFP_THISNODE;
+ 
+-	/* release the mmap_sem read lock. */
+-	new_page = khugepaged_alloc_page(hpage, gfp, mm, address, node);
 +	/*
-+	 * Our priority is to support MAP_SHARED mapped hugely;
-+	 * and support MAP_PRIVATE mapped hugely too, until it is COWed.
-+	 * But if caller specified an address hint, respect that as before.
++	 * Before allocating the hugepage, release the mmap_sem read lock.
++	 * The allocation can take potentially a long time if it involves
++	 * sync compaction, and we do not need to hold the mmap_sem during
++	 * that. We will recheck the vma after taking it again in write mode.
 +	 */
-+	if (uaddr)
-+		return addr;
-+
-+	if (shmem_huge != SHMEM_HUGE_FORCE) {
-+		struct super_block *sb;
-+
-+		if (file) {
-+			VM_BUG_ON(file->f_op != &shmem_file_operations);
-+			sb = file_inode(file)->i_sb;
-+		} else {
-+			/*
-+			 * Called directly from mm/mmap.c, or drivers/char/mem.c
-+			 * for "/dev/zero", to create a shared anonymous object.
-+			 */
-+			if (IS_ERR(shm_mnt))
-+				return addr;
-+			sb = shm_mnt->mnt_sb;
-+		}
-+		if (SHMEM_SB(sb)->huge != SHMEM_HUGE_NEVER)
-+			return addr;
-+	}
-+
-+	offset = (pgoff << PAGE_SHIFT) & (HPAGE_PMD_SIZE-1);
-+	if (offset && offset + len < 2 * HPAGE_PMD_SIZE)
-+		return addr;
-+	if ((addr & (HPAGE_PMD_SIZE-1)) == offset)
-+		return addr;
-+
-+	inflated_len = len + HPAGE_PMD_SIZE - PAGE_SIZE;
-+	if (inflated_len > TASK_SIZE)
-+		return addr;
-+	if (inflated_len < len)
-+		return addr;
-+
-+	inflated_addr = get_area(NULL, 0, inflated_len, 0, flags);
-+	if (IS_ERR_VALUE(inflated_addr))
-+		return addr;
-+	if (inflated_addr & ~PAGE_MASK)
-+		return addr;
-+
-+	inflated_offset = inflated_addr & (HPAGE_PMD_SIZE-1);
-+	inflated_addr += offset - inflated_offset;
-+	if (inflated_offset > offset)
-+		inflated_addr += HPAGE_PMD_SIZE;
-+
-+	if (inflated_addr > TASK_SIZE - len)
-+		return addr;
-+	return inflated_addr;
-+}
-+
- #ifdef CONFIG_NUMA
- static int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *mpol)
- {
-@@ -3259,6 +3347,7 @@ static const struct address_space_operat
- 
- static const struct file_operations shmem_file_operations = {
- 	.mmap		= shmem_mmap,
-+	.get_unmapped_area = shmem_get_unmapped_area,
- #ifdef CONFIG_TMPFS
- 	.llseek		= shmem_file_llseek,
- 	.read_iter	= shmem_file_read_iter,
-@@ -3494,6 +3583,15 @@ void shmem_unlock_mapping(struct address
- {
- }
- 
-+#ifdef CONFIG_MMU
-+unsigned long shmem_get_unmapped_area(struct file *file,
-+				      unsigned long addr, unsigned long len,
-+				      unsigned long pgoff, unsigned long flags)
-+{
-+	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
-+}
-+#endif
-+
- void shmem_truncate_range(struct inode *inode, loff_t lstart, loff_t lend)
- {
- 	truncate_inode_pages_range(inode->i_mapping, lstart, lend);
++	up_read(&mm->mmap_sem);
++	new_page = khugepaged_alloc_page(hpage, gfp, node);
+ 	if (!new_page) {
+ 		result = SCAN_ALLOC_HUGE_PAGE_FAIL;
+ 		goto out_nolock;
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-shmem-get_unmapped_area-align-huge-page.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
+thp-mlock-update-unevictable-lrutxt.patch
+mm-do-not-pass-mm_struct-into-handle_mm_fault.patch
+mm-introduce-fault_env.patch
+mm-postpone-page-table-allocation-until-we-have-page-to-map.patch
+rmap-support-file-thp.patch
+mm-introduce-do_set_pmd.patch
+thp-vmstats-add-counters-for-huge-file-pages.patch
+thp-support-file-pages-in-zap_huge_pmd.patch
+thp-handle-file-pages-in-split_huge_pmd.patch
+thp-handle-file-cow-faults.patch
+thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
+thp-prepare-change_huge_pmd-for-file-thp.patch
+thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem.patch
+thp-file-pages-support-for-split_huge_page.patch
+thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
+vmscan-split-file-huge-pages-before-paging-them-out.patch
+page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim.patch
+radix-tree-implement-radix_tree_maybe_preload_order.patch
+filemap-prepare-find-and-delete-operations-for-huge-pages.patch
+truncate-handle-file-thp.patch
+mm-rmap-account-shmem-thp-pages.patch
+shmem-prepare-huge=-mount-option-and-sysfs-knob.patch
+shmem-add-huge-pages-support.patch
+shmem-thp-respect-madv_nohugepage-for-file-mappings.patch
+thp-extract-khugepaged-from-mm-huge_memoryc.patch
+khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
+shmem-make-shmem_inode_info-lock-irq-safe.patch
+khugepaged-add-support-of-collapse-for-tmpfs-shmem-pages.patch
+thp-introduce-config_transparent_huge_pagecache.patch
+shmem-split-huge-pages-beyond-i_size-under-memory-pressure.patch
+thp-update-documentation-vm-transhugefilesystems-proctxt.patch
+a.patch
 
