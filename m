@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + filemap-prepare-find-and-delete-operations-for-huge-pages.patch added to -mm tree
-Date: Tue, 07 Jun 2016 14:04:26 -0700
-Message-ID: <575736da.6+3iVfpIzETEL8Yt%akpm@linux-foundation.org>
+Subject: + mm-rmap-account-shmem-thp-pages.patch added to -mm tree
+Date: Tue, 07 Jun 2016 14:04:31 -0700
+Message-ID: <575736df.V1AskJWxuRJrJ3h3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39515 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39543 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422628AbcFGVE2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 17:04:28 -0400
+	with ESMTP id S1162309AbcFGVEd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 17:04:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, andreslc@google.com, aneesh.kumar@linux.vnet.ibm.com, cl@gentwo.org, dave.hansen@intel.com, hughd@google.com, jmarchan@redhat.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, quning@gmail.com, sasha.levin@oracle.com, vbabka@suse.cz, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: filemap: prepare find and delete operations for huge pages
+     Subject: mm, rmap: account shmem thp pages
 has been added to the -mm tree.  Its filename is
-     filemap-prepare-find-and-delete-operations-for-huge-pages.patch
+     mm-rmap-account-shmem-thp-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/filemap-prepare-find-and-delete-operations-for-huge-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-account-shmem-thp-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/filemap-prepare-find-and-delete-operations-for-huge-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-account-shmem-thp-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +39,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: filemap: prepare find and delete operations for huge pages
+Subject: mm, rmap: account shmem thp pages
 
-For now, we would have HPAGE_PMD_NR entries in radix tree for every huge
-page. That's suboptimal and it will be changed to use Matthew's
-multi-order entries later.
+Let's add ShmemHugePages and ShmemPmdMapped fields into meminfo and
+smaps. It indicates how many times we allocate and map shmem THP.
 
-'add' operation is not changed, because we don't need it to implement
-hugetmpfs: shmem uses its own implementation.
+NR_ANON_TRANSPARENT_HUGEPAGES is renamed to NR_ANON_THPS.
 
-Link: http://lkml.kernel.org/r/1465297246-98985-20-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1465297246-98985-22-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -66,395 +64,260 @@ Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |  178 +++++++++++++++++++++++++++++++++----------------
- 1 file changed, 122 insertions(+), 56 deletions(-)
+ drivers/base/node.c    |   13 +++++++++----
+ fs/proc/meminfo.c      |    7 +++++--
+ fs/proc/task_mmu.c     |   10 +++++++++-
+ include/linux/mmzone.h |    4 +++-
+ mm/huge_memory.c       |    4 +++-
+ mm/page_alloc.c        |   19 +++++++++++++++++++
+ mm/rmap.c              |   14 ++++++++------
+ mm/vmstat.c            |    2 ++
+ 8 files changed, 58 insertions(+), 15 deletions(-)
 
-diff -puN mm/filemap.c~filemap-prepare-find-and-delete-operations-for-huge-pages mm/filemap.c
---- a/mm/filemap.c~filemap-prepare-find-and-delete-operations-for-huge-pages
-+++ a/mm/filemap.c
-@@ -114,14 +114,14 @@ static void page_cache_tree_delete(struc
- 				   struct page *page, void *shadow)
- {
- 	struct radix_tree_node *node;
-+	int i, nr = PageHuge(page) ? 1 : hpage_nr_pages(page);
+diff -puN drivers/base/node.c~mm-rmap-account-shmem-thp-pages drivers/base/node.c
+--- a/drivers/base/node.c~mm-rmap-account-shmem-thp-pages
++++ a/drivers/base/node.c
+@@ -113,6 +113,8 @@ static ssize_t node_read_meminfo(struct
+ 		       "Node %d SUnreclaim:     %8lu kB\n"
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 		       "Node %d AnonHugePages:  %8lu kB\n"
++		       "Node %d ShmemHugePages: %8lu kB\n"
++		       "Node %d ShmemPmdMapped: %8lu kB\n"
+ #endif
+ 			,
+ 		       nid, K(node_page_state(nid, NR_FILE_DIRTY)),
+@@ -131,10 +133,13 @@ static ssize_t node_read_meminfo(struct
+ 				node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
+ 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE)),
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE))
+-			, nid,
+-			K(node_page_state(nid, NR_ANON_TRANSPARENT_HUGEPAGES) *
+-			HPAGE_PMD_NR));
++		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
++		       nid, K(node_page_state(nid, NR_ANON_THPS) *
++				       HPAGE_PMD_NR),
++		       nid, K(node_page_state(nid, NR_SHMEM_THPS) *
++				       HPAGE_PMD_NR),
++		       nid, K(node_page_state(nid, NR_SHMEM_PMDMAPPED) *
++				       HPAGE_PMD_NR));
+ #else
+ 		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE)));
+ #endif
+diff -puN fs/proc/meminfo.c~mm-rmap-account-shmem-thp-pages fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-rmap-account-shmem-thp-pages
++++ a/fs/proc/meminfo.c
+@@ -105,6 +105,8 @@ static int meminfo_proc_show(struct seq_
+ #endif
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 		"AnonHugePages:  %8lu kB\n"
++		"ShmemHugePages: %8lu kB\n"
++		"ShmemPmdMapped: %8lu kB\n"
+ #endif
+ #ifdef CONFIG_CMA
+ 		"CmaTotal:       %8lu kB\n"
+@@ -162,8 +164,9 @@ static int meminfo_proc_show(struct seq_
+ 		, atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10)
+ #endif
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		, K(global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
+-		   HPAGE_PMD_NR)
++		, K(global_page_state(NR_ANON_THPS) * HPAGE_PMD_NR)
++		, K(global_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR)
++		, K(global_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR)
+ #endif
+ #ifdef CONFIG_CMA
+ 		, K(totalcma_pages)
+diff -puN fs/proc/task_mmu.c~mm-rmap-account-shmem-thp-pages fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-rmap-account-shmem-thp-pages
++++ a/fs/proc/task_mmu.c
+@@ -448,6 +448,7 @@ struct mem_size_stats {
+ 	unsigned long referenced;
+ 	unsigned long anonymous;
+ 	unsigned long anonymous_thp;
++	unsigned long shmem_thp;
+ 	unsigned long swap;
+ 	unsigned long shared_hugetlb;
+ 	unsigned long private_hugetlb;
+@@ -576,7 +577,12 @@ static void smaps_pmd_entry(pmd_t *pmd,
+ 	page = follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
+ 	if (IS_ERR_OR_NULL(page))
+ 		return;
+-	mss->anonymous_thp += HPAGE_PMD_SIZE;
++	if (PageAnon(page))
++		mss->anonymous_thp += HPAGE_PMD_SIZE;
++	else if (PageSwapBacked(page))
++		mss->shmem_thp += HPAGE_PMD_SIZE;
++	else
++		VM_BUG_ON_PAGE(1, page);
+ 	smaps_account(mss, page, true, pmd_young(*pmd), pmd_dirty(*pmd));
+ }
+ #else
+@@ -770,6 +776,7 @@ static int show_smap(struct seq_file *m,
+ 		   "Referenced:     %8lu kB\n"
+ 		   "Anonymous:      %8lu kB\n"
+ 		   "AnonHugePages:  %8lu kB\n"
++		   "ShmemPmdMapped: %8lu kB\n"
+ 		   "Shared_Hugetlb: %8lu kB\n"
+ 		   "Private_Hugetlb: %7lu kB\n"
+ 		   "Swap:           %8lu kB\n"
+@@ -787,6 +794,7 @@ static int show_smap(struct seq_file *m,
+ 		   mss.referenced >> 10,
+ 		   mss.anonymous >> 10,
+ 		   mss.anonymous_thp >> 10,
++		   mss.shmem_thp >> 10,
+ 		   mss.shared_hugetlb >> 10,
+ 		   mss.private_hugetlb >> 10,
+ 		   mss.swap >> 10,
+diff -puN include/linux/mmzone.h~mm-rmap-account-shmem-thp-pages include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-rmap-account-shmem-thp-pages
++++ a/include/linux/mmzone.h
+@@ -154,7 +154,9 @@ enum zone_stat_item {
+ 	WORKINGSET_REFAULT,
+ 	WORKINGSET_ACTIVATE,
+ 	WORKINGSET_NODERECLAIM,
+-	NR_ANON_TRANSPARENT_HUGEPAGES,
++	NR_ANON_THPS,
++	NR_SHMEM_THPS,
++	NR_SHMEM_PMDMAPPED,
+ 	NR_FREE_CMA_PAGES,
+ 	NR_VM_ZONE_STAT_ITEMS };
  
--	VM_BUG_ON(!PageLocked(page));
--
--	node = radix_tree_replace_clear_tags(&mapping->page_tree, page->index,
--								shadow);
-+	VM_BUG_ON_PAGE(!PageLocked(page), page);
-+	VM_BUG_ON_PAGE(PageTail(page), page);
-+	VM_BUG_ON_PAGE(nr != 1 && shadow, page);
+diff -puN mm/huge_memory.c~mm-rmap-account-shmem-thp-pages mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-rmap-account-shmem-thp-pages
++++ a/mm/huge_memory.c
+@@ -3079,7 +3079,7 @@ static void __split_huge_pmd_locked(stru
  
- 	if (shadow) {
--		mapping->nrexceptional++;
-+		mapping->nrexceptional += nr;
- 		/*
- 		 * Make sure the nrexceptional update is committed before
- 		 * the nrpages update so that final truncate racing
-@@ -130,31 +130,38 @@ static void page_cache_tree_delete(struc
+ 	if (atomic_add_negative(-1, compound_mapcount_ptr(page))) {
+ 		/* Last compound_mapcount is gone. */
+-		__dec_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
++		__dec_zone_page_state(page, NR_ANON_THPS);
+ 		if (TestClearPageDoubleMap(page)) {
+ 			/* No need in mapcount reference anymore */
+ 			for (i = 0; i < HPAGE_PMD_NR; i++)
+@@ -3558,6 +3558,8 @@ int split_huge_page_to_list(struct page
+ 			pgdata->split_queue_len--;
+ 			list_del(page_deferred_list(head));
+ 		}
++		if (mapping)
++			__dec_zone_page_state(page, NR_SHMEM_THPS);
+ 		spin_unlock(&pgdata->split_queue_lock);
+ 		__split_huge_page(page, list, flags);
+ 		ret = 0;
+diff -puN mm/page_alloc.c~mm-rmap-account-shmem-thp-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-rmap-account-shmem-thp-pages
++++ a/mm/page_alloc.c
+@@ -4309,6 +4309,9 @@ void show_free_areas(unsigned int filter
+ 		" unevictable:%lu dirty:%lu writeback:%lu unstable:%lu\n"
+ 		" slab_reclaimable:%lu slab_unreclaimable:%lu\n"
+ 		" mapped:%lu shmem:%lu pagetables:%lu bounce:%lu\n"
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++		" anon_thp: %lu shmem_thp: %lu shmem_pmdmapped: %lu\n"
++#endif
+ 		" free:%lu free_pcp:%lu free_cma:%lu\n",
+ 		global_page_state(NR_ACTIVE_ANON),
+ 		global_page_state(NR_INACTIVE_ANON),
+@@ -4326,6 +4329,11 @@ void show_free_areas(unsigned int filter
+ 		global_page_state(NR_SHMEM),
+ 		global_page_state(NR_PAGETABLE),
+ 		global_page_state(NR_BOUNCE),
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++		global_page_state(NR_ANON_THPS) * HPAGE_PMD_NR,
++		global_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR,
++		global_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR,
++#endif
+ 		global_page_state(NR_FREE_PAGES),
+ 		free_pcp,
+ 		global_page_state(NR_FREE_CMA_PAGES));
+@@ -4360,6 +4368,11 @@ void show_free_areas(unsigned int filter
+ 			" writeback:%lukB"
+ 			" mapped:%lukB"
+ 			" shmem:%lukB"
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++			" shmem_thp: %lukB"
++			" shmem_pmdmapped: %lukB"
++			" anon_thp: %lukB"
++#endif
+ 			" slab_reclaimable:%lukB"
+ 			" slab_unreclaimable:%lukB"
+ 			" kernel_stack:%lukB"
+@@ -4392,6 +4405,12 @@ void show_free_areas(unsigned int filter
+ 			K(zone_page_state(zone, NR_WRITEBACK)),
+ 			K(zone_page_state(zone, NR_FILE_MAPPED)),
+ 			K(zone_page_state(zone, NR_SHMEM)),
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++			K(zone_page_state(zone, NR_SHMEM_THPS) * HPAGE_PMD_NR),
++			K(zone_page_state(zone, NR_SHMEM_PMDMAPPED)
++					* HPAGE_PMD_NR),
++			K(zone_page_state(zone, NR_ANON_THPS) * HPAGE_PMD_NR),
++#endif
+ 			K(zone_page_state(zone, NR_SLAB_RECLAIMABLE)),
+ 			K(zone_page_state(zone, NR_SLAB_UNRECLAIMABLE)),
+ 			zone_page_state(zone, NR_KERNEL_STACK) *
+diff -puN mm/rmap.c~mm-rmap-account-shmem-thp-pages mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-account-shmem-thp-pages
++++ a/mm/rmap.c
+@@ -1215,10 +1215,8 @@ void do_page_add_anon_rmap(struct page *
+ 		 * pte lock(a spinlock) is held, which implies preemption
+ 		 * disabled.
  		 */
- 		smp_wmb();
+-		if (compound) {
+-			__inc_zone_page_state(page,
+-					      NR_ANON_TRANSPARENT_HUGEPAGES);
+-		}
++		if (compound)
++			__inc_zone_page_state(page, NR_ANON_THPS);
+ 		__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, nr);
  	}
--	mapping->nrpages--;
--
--	if (!node)
--		return;
-+	mapping->nrpages -= nr;
- 
--	workingset_node_pages_dec(node);
--	if (shadow)
--		workingset_node_shadows_inc(node);
--	else
--		if (__radix_tree_delete_node(&mapping->page_tree, node))
-+	for (i = 0; i < nr; i++) {
-+		node = radix_tree_replace_clear_tags(&mapping->page_tree,
-+				page->index + i, shadow);
-+		if (!node) {
-+			VM_BUG_ON_PAGE(nr != 1, page);
- 			return;
-+		}
- 
--	/*
--	 * Track node that only contains shadow entries. DAX mappings contain
--	 * no shadow entries and may contain other exceptional entries so skip
--	 * those.
--	 *
--	 * Avoid acquiring the list_lru lock if already tracked.  The
--	 * list_empty() test is safe as node->private_list is
--	 * protected by mapping->tree_lock.
--	 */
--	if (!dax_mapping(mapping) && !workingset_node_pages(node) &&
--	    list_empty(&node->private_list)) {
--		node->private_data = mapping;
--		list_lru_add(&workingset_shadow_nodes, &node->private_list);
-+		workingset_node_pages_dec(node);
-+		if (shadow)
-+			workingset_node_shadows_inc(node);
-+		else
-+			if (__radix_tree_delete_node(&mapping->page_tree, node))
-+				continue;
-+
-+		/*
-+		 * Track node that only contains shadow entries. DAX mappings
-+		 * contain no shadow entries and may contain other exceptional
-+		 * entries so skip those.
-+		 *
-+		 * Avoid acquiring the list_lru lock if already tracked.
-+		 * The list_empty() test is safe as node->private_list is
-+		 * protected by mapping->tree_lock.
-+		 */
-+		if (!dax_mapping(mapping) && !workingset_node_pages(node) &&
-+				list_empty(&node->private_list)) {
-+			node->private_data = mapping;
-+			list_lru_add(&workingset_shadow_nodes,
-+					&node->private_list);
-+		}
- 	}
- }
- 
-@@ -166,6 +173,7 @@ static void page_cache_tree_delete(struc
- void __delete_from_page_cache(struct page *page, void *shadow)
- {
- 	struct address_space *mapping = page->mapping;
-+	int nr = hpage_nr_pages(page);
- 
- 	trace_mm_filemap_delete_from_page_cache(page);
- 	/*
-@@ -178,6 +186,7 @@ void __delete_from_page_cache(struct pag
- 	else
- 		cleancache_invalidate_page(mapping, page);
- 
-+	VM_BUG_ON_PAGE(PageTail(page), page);
- 	VM_BUG_ON_PAGE(page_mapped(page), page);
- 	if (!IS_ENABLED(CONFIG_DEBUG_VM) && unlikely(page_mapped(page))) {
- 		int mapcount;
-@@ -209,9 +218,9 @@ void __delete_from_page_cache(struct pag
- 
- 	/* hugetlb pages do not participate in page cache accounting. */
- 	if (!PageHuge(page))
--		__dec_zone_page_state(page, NR_FILE_PAGES);
-+		__mod_zone_page_state(page_zone(page), NR_FILE_PAGES, -nr);
- 	if (PageSwapBacked(page))
--		__dec_zone_page_state(page, NR_SHMEM);
-+		__mod_zone_page_state(page_zone(page), NR_SHMEM, -nr);
- 
- 	/*
- 	 * At this point page must be either written or cleaned by truncate.
-@@ -235,9 +244,8 @@ void __delete_from_page_cache(struct pag
-  */
- void delete_from_page_cache(struct page *page)
- {
--	struct address_space *mapping = page->mapping;
-+	struct address_space *mapping = page_mapping(page);
- 	unsigned long flags;
--
- 	void (*freepage)(struct page *);
- 
- 	BUG_ON(!PageLocked(page));
-@@ -250,7 +258,13 @@ void delete_from_page_cache(struct page
- 
- 	if (freepage)
- 		freepage(page);
--	put_page(page);
-+
-+	if (PageTransHuge(page) && !PageHuge(page)) {
-+		page_ref_sub(page, HPAGE_PMD_NR);
-+		VM_BUG_ON_PAGE(page_count(page) <= 0, page);
-+	} else {
-+		put_page(page);
-+	}
- }
- EXPORT_SYMBOL(delete_from_page_cache);
- 
-@@ -1053,7 +1067,7 @@ EXPORT_SYMBOL(page_cache_prev_hole);
- struct page *find_get_entry(struct address_space *mapping, pgoff_t offset)
- {
- 	void **pagep;
--	struct page *page;
-+	struct page *head, *page;
- 
- 	rcu_read_lock();
- repeat:
-@@ -1073,8 +1087,16 @@ repeat:
- 			 */
+ 	if (unlikely(PageKsm(page)))
+@@ -1256,7 +1254,7 @@ void page_add_new_anon_rmap(struct page
+ 		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
+ 		/* increment count (starts at -1) */
+ 		atomic_set(compound_mapcount_ptr(page), 0);
+-		__inc_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
++		__inc_zone_page_state(page, NR_ANON_THPS);
+ 	} else {
+ 		/* Anon THP always mapped first with PMD */
+ 		VM_BUG_ON_PAGE(PageTransCompound(page), page);
+@@ -1286,6 +1284,8 @@ void page_add_file_rmap(struct page *pag
+ 		}
+ 		if (!atomic_inc_and_test(compound_mapcount_ptr(page)))
  			goto out;
++		VM_BUG_ON_PAGE(!PageSwapBacked(page), page);
++		__inc_zone_page_state(page, NR_SHMEM_PMDMAPPED);
+ 	} else {
+ 		if (PageTransCompound(page)) {
+ 			VM_BUG_ON_PAGE(!PageLocked(page), page);
+@@ -1324,6 +1324,8 @@ static void page_remove_file_rmap(struct
  		}
--		if (!page_cache_get_speculative(page))
-+
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
-+			goto repeat;
-+
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
- 			goto repeat;
-+		}
+ 		if (!atomic_add_negative(-1, compound_mapcount_ptr(page)))
+ 			goto out;
++		VM_BUG_ON_PAGE(!PageSwapBacked(page), page);
++		__dec_zone_page_state(page, NR_SHMEM_PMDMAPPED);
+ 	} else {
+ 		if (!atomic_add_negative(-1, &page->_mapcount))
+ 			goto out;
+@@ -1357,7 +1359,7 @@ static void page_remove_anon_compound_rm
+ 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
+ 		return;
  
+-	__dec_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
++	__dec_zone_page_state(page, NR_ANON_THPS);
+ 
+ 	if (TestClearPageDoubleMap(page)) {
  		/*
- 		 * Has the page moved?
-@@ -1082,7 +1104,7 @@ repeat:
- 		 * include/linux/pagemap.h for details.
- 		 */
- 		if (unlikely(page != *pagep)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- 	}
-@@ -1118,12 +1140,12 @@ repeat:
- 	if (page && !radix_tree_exception(page)) {
- 		lock_page(page);
- 		/* Has the page been truncated? */
--		if (unlikely(page->mapping != mapping)) {
-+		if (unlikely(page_mapping(page) != mapping)) {
- 			unlock_page(page);
- 			put_page(page);
- 			goto repeat;
- 		}
--		VM_BUG_ON_PAGE(page->index != offset, page);
-+		VM_BUG_ON_PAGE(page_to_pgoff(page) != offset, page);
- 	}
- 	return page;
- }
-@@ -1255,7 +1277,7 @@ unsigned find_get_entries(struct address
+diff -puN mm/vmstat.c~mm-rmap-account-shmem-thp-pages mm/vmstat.c
+--- a/mm/vmstat.c~mm-rmap-account-shmem-thp-pages
++++ a/mm/vmstat.c
+@@ -745,6 +745,8 @@ const char * const vmstat_text[] = {
+ 	"workingset_activate",
+ 	"workingset_nodereclaim",
+ 	"nr_anon_transparent_hugepages",
++	"nr_shmem_hugepages",
++	"nr_shmem_pmdmapped",
+ 	"nr_free_cma",
  
- 	rcu_read_lock();
- 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
--		struct page *page;
-+		struct page *head, *page;
- repeat:
- 		page = radix_tree_deref_slot(slot);
- 		if (unlikely(!page))
-@@ -1272,12 +1294,20 @@ repeat:
- 			 */
- 			goto export;
- 		}
--		if (!page_cache_get_speculative(page))
-+
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
-+			goto repeat;
-+
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
- 			goto repeat;
-+		}
- 
- 		/* Has the page moved? */
- 		if (unlikely(page != *slot)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- export:
-@@ -1318,7 +1348,7 @@ unsigned find_get_pages(struct address_s
- 
- 	rcu_read_lock();
- 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
--		struct page *page;
-+		struct page *head, *page;
- repeat:
- 		page = radix_tree_deref_slot(slot);
- 		if (unlikely(!page))
-@@ -1337,12 +1367,19 @@ repeat:
- 			continue;
- 		}
- 
--		if (!page_cache_get_speculative(page))
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
-+			goto repeat;
-+
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
- 			goto repeat;
-+		}
- 
- 		/* Has the page moved? */
- 		if (unlikely(page != *slot)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- 
-@@ -1379,7 +1416,7 @@ unsigned find_get_pages_contig(struct ad
- 
- 	rcu_read_lock();
- 	radix_tree_for_each_contig(slot, &mapping->page_tree, &iter, index) {
--		struct page *page;
-+		struct page *head, *page;
- repeat:
- 		page = radix_tree_deref_slot(slot);
- 		/* The hole, there no reason to continue */
-@@ -1399,12 +1436,19 @@ repeat:
- 			break;
- 		}
- 
--		if (!page_cache_get_speculative(page))
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
-+			goto repeat;
-+
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
- 			goto repeat;
-+		}
- 
- 		/* Has the page moved? */
- 		if (unlikely(page != *slot)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- 
-@@ -1413,7 +1457,7 @@ repeat:
- 		 * otherwise we can get both false positives and false
- 		 * negatives, which is just confusing to the caller.
- 		 */
--		if (page->mapping == NULL || page->index != iter.index) {
-+		if (page->mapping == NULL || page_to_pgoff(page) != iter.index) {
- 			put_page(page);
- 			break;
- 		}
-@@ -1451,7 +1495,7 @@ unsigned find_get_pages_tag(struct addre
- 	rcu_read_lock();
- 	radix_tree_for_each_tagged(slot, &mapping->page_tree,
- 				   &iter, *index, tag) {
--		struct page *page;
-+		struct page *head, *page;
- repeat:
- 		page = radix_tree_deref_slot(slot);
- 		if (unlikely(!page))
-@@ -1476,12 +1520,19 @@ repeat:
- 			continue;
- 		}
- 
--		if (!page_cache_get_speculative(page))
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
- 			goto repeat;
- 
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
-+			goto repeat;
-+		}
-+
- 		/* Has the page moved? */
- 		if (unlikely(page != *slot)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- 
-@@ -1525,7 +1576,7 @@ unsigned find_get_entries_tag(struct add
- 	rcu_read_lock();
- 	radix_tree_for_each_tagged(slot, &mapping->page_tree,
- 				   &iter, start, tag) {
--		struct page *page;
-+		struct page *head, *page;
- repeat:
- 		page = radix_tree_deref_slot(slot);
- 		if (unlikely(!page))
-@@ -1543,12 +1594,20 @@ repeat:
- 			 */
- 			goto export;
- 		}
--		if (!page_cache_get_speculative(page))
-+
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
- 			goto repeat;
- 
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
-+			goto repeat;
-+		}
-+
- 		/* Has the page moved? */
- 		if (unlikely(page != *slot)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- export:
-@@ -2137,7 +2196,7 @@ void filemap_map_pages(struct fault_env
- 	struct address_space *mapping = file->f_mapping;
- 	pgoff_t last_pgoff = start_pgoff;
- 	loff_t size;
--	struct page *page;
-+	struct page *head, *page;
- 
- 	rcu_read_lock();
- 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter,
-@@ -2156,12 +2215,19 @@ repeat:
- 			goto next;
- 		}
- 
--		if (!page_cache_get_speculative(page))
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
- 			goto repeat;
- 
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
-+			goto repeat;
-+		}
-+
- 		/* Has the page moved? */
- 		if (unlikely(page != *slot)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- 
+ 	/* enum writeback_stat_item counters */
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
