@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-nr_zsmalloc-to-vmstat-fix.patch added to -mm tree
-Date: Tue, 07 Jun 2016 12:55:43 -0700
-Message-ID: <575726bf.t694swb2UcfGoZLJ%akpm@linux-foundation.org>
+Subject: + mm-reorganize-slab-freelist-randomization-fix.patch added to
+ -mm tree
+Date: Tue, 07 Jun 2016 13:12:49 -0700
+Message-ID: <57572ac1.l0KYHuO34qXGuXh/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38689 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38821 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161210AbcFGTzo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 15:55:44 -0400
+	with ESMTP id S1162054AbcFGUMz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 16:12:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chan.jeong@lge.com, chanho.min@lge.com, minchan@kernel.org, sangseok.lee@lge.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, penberg@kernel.org, rientjes@google.com, thgarnie@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-add-nr_zsmalloc-to-vmstat-fix
+     Subject: mm-slub-freelist-randomization-fix
 has been added to the -mm tree.  Its filename is
-     mm-add-nr_zsmalloc-to-vmstat-fix.patch
+     mm-reorganize-slab-freelist-randomization-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-nr_zsmalloc-to-vmstat-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-reorganize-slab-freelist-randomization-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-nr_zsmalloc-to-vmstat-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-reorganize-slab-freelist-randomization-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +40,127 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-nr_zsmalloc-to-vmstat-fix
+Subject: mm-slub-freelist-randomization-fix
 
-fix build with CONFIG_ZSMALLOC=m
+freelist_randomize(), cache_random_seq_create() and
+cache_random_seq_destroy() should not be inside CONFIG_SLABINFO.
 
-Cc: Chan Gyun Jeong <chan.jeong@lge.com>
-Cc: Chanho Min <chanho.min@lge.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sangseok Lee <sangseok.lee@lge.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Thomas Garnier <thgarnie@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- mm/vmstat.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/slab_common.c |   94 ++++++++++++++++++++++-----------------------
+ 1 file changed, 47 insertions(+), 47 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-add-nr_zsmalloc-to-vmstat-fix include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-add-nr_zsmalloc-to-vmstat-fix
-+++ a/include/linux/mmzone.h
-@@ -140,7 +140,7 @@ enum zone_stat_item {
- 	NR_DIRTIED,		/* page dirtyings since bootup */
- 	NR_WRITTEN,		/* page writings since bootup */
- 	NR_PAGES_SCANNED,	/* pages scanned since last reclaim */
--#ifdef CONFIG_ZSMALLOC
-+#if IS_ENABLED(CONFIG_ZSMALLOC)
- 	NR_ZSMALLOC,
+diff -puN mm/slab_common.c~mm-reorganize-slab-freelist-randomization-fix mm/slab_common.c
+--- a/mm/slab_common.c~mm-reorganize-slab-freelist-randomization-fix
++++ a/mm/slab_common.c
+@@ -1030,6 +1030,53 @@ void *kmalloc_order_trace(size_t size, g
+ EXPORT_SYMBOL(kmalloc_order_trace);
  #endif
- #ifdef CONFIG_NUMA
-diff -puN mm/vmstat.c~mm-add-nr_zsmalloc-to-vmstat-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-add-nr_zsmalloc-to-vmstat-fix
-+++ a/mm/vmstat.c
-@@ -718,7 +718,7 @@ const char * const vmstat_text[] = {
- 	"nr_dirtied",
- 	"nr_written",
- 	"nr_pages_scanned",
--#ifdef CONFIG_ZSMALLOC
-+#if IS_ENABLED(CONFIG_ZSMALLOC)
- 	"nr_zsmalloc",
+ 
++#ifdef CONFIG_SLAB_FREELIST_RANDOM
++/* Randomize a generic freelist */
++static void freelist_randomize(struct rnd_state *state, unsigned int *list,
++			size_t count)
++{
++	size_t i;
++	unsigned int rand;
++
++	for (i = 0; i < count; i++)
++		list[i] = i;
++
++	/* Fisher-Yates shuffle */
++	for (i = count - 1; i > 0; i--) {
++		rand = prandom_u32_state(state);
++		rand %= (i + 1);
++		swap(list[i], list[rand]);
++	}
++}
++
++/* Create a random sequence per cache */
++int cache_random_seq_create(struct kmem_cache *cachep, unsigned int count,
++				    gfp_t gfp)
++{
++	struct rnd_state state;
++
++	if (count < 2 || cachep->random_seq)
++		return 0;
++
++	cachep->random_seq = kcalloc(count, sizeof(unsigned int), gfp);
++	if (!cachep->random_seq)
++		return -ENOMEM;
++
++	/* Get best entropy at this stage of boot */
++	prandom_seed_state(&state, get_random_long());
++
++	freelist_randomize(&state, cachep->random_seq, count);
++	return 0;
++}
++
++/* Destroy the per-cache random freelist sequence */
++void cache_random_seq_destroy(struct kmem_cache *cachep)
++{
++	kfree(cachep->random_seq);
++	cachep->random_seq = NULL;
++}
++#endif /* CONFIG_SLAB_FREELIST_RANDOM */
++
+ #ifdef CONFIG_SLABINFO
+ 
+ #ifdef CONFIG_SLAB
+@@ -1142,53 +1189,6 @@ int memcg_slab_show(struct seq_file *m,
+ }
  #endif
- #ifdef CONFIG_NUMA
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
-mm-add-nr_zsmalloc-to-vmstat-fix.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
-nvme-dont-allocate-unused-nvme_major-fix.patch
-kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
-kexec-allow-architectures-to-override-boot-mapping-fix.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
+ 
+-#ifdef CONFIG_SLAB_FREELIST_RANDOM
+-/* Randomize a generic freelist */
+-static void freelist_randomize(struct rnd_state *state, unsigned int *list,
+-			size_t count)
+-{
+-	size_t i;
+-	unsigned int rand;
+-
+-	for (i = 0; i < count; i++)
+-		list[i] = i;
+-
+-	/* Fisher-Yates shuffle */
+-	for (i = count - 1; i > 0; i--) {
+-		rand = prandom_u32_state(state);
+-		rand %= (i + 1);
+-		swap(list[i], list[rand]);
+-	}
+-}
+-
+-/* Create a random sequence per cache */
+-int cache_random_seq_create(struct kmem_cache *cachep, unsigned int count,
+-				    gfp_t gfp)
+-{
+-	struct rnd_state state;
+-
+-	if (count < 2 || cachep->random_seq)
+-		return 0;
+-
+-	cachep->random_seq = kcalloc(count, sizeof(unsigned int), gfp);
+-	if (!cachep->random_seq)
+-		return -ENOMEM;
+-
+-	/* Get best entropy at this stage of boot */
+-	prandom_seed_state(&state, get_random_long());
+-
+-	freelist_randomize(&state, cachep->random_seq, count);
+-	return 0;
+-}
+-
+-/* Destroy the per-cache random freelist sequence */
+-void cache_random_seq_destroy(struct kmem_cache *cachep)
+-{
+-	kfree(cachep->random_seq);
+-	cachep->random_seq = NULL;
+-}
+-#endif /* CONFIG_SLAB_FREELIST_RANDOM */
