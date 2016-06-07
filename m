@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + thp-prepare-change_huge_pmd-for-file-thp.patch added to -mm
- tree
-Date: Tue, 07 Jun 2016 14:04:09 -0700
-Message-ID: <575736c9.X2dpKQe4oV96HWi+%akpm@linux-foundation.org>
+Subject: + thp-skip-file-huge-pmd-on-copy_huge_pmd.patch added to -mm tree
+Date: Tue, 07 Jun 2016 14:04:07 -0700
+Message-ID: <575736c7.RBLsqUc6KBupBx8f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39427 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39410 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161158AbcFGVEL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 17:04:11 -0400
+	with ESMTP id S1161158AbcFGVEJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 17:04:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, andreslc@google.com, aneesh.kumar@linux.vnet.ibm.com, cl@gentwo.org, dave.hansen@intel.com, hughd@google.com, jmarchan@redhat.com, n-horiguchi@ah.jp.nec.com, peterz@infradead.org, quning@gmail.com, sasha.levin@oracle.com, vbabka@suse.cz, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: prepare change_huge_pmd() for file thp
+     Subject: thp: skip file huge pmd on copy_huge_pmd()
 has been added to the -mm tree.  Its filename is
-     thp-prepare-change_huge_pmd-for-file-thp.patch
+     thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-prepare-change_huge_pmd-for-file-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-prepare-change_huge_pmd-for-file-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +39,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: prepare change_huge_pmd() for file thp
+Subject: thp: skip file huge pmd on copy_huge_pmd()
 
-change_huge_pmd() has assert which is not relvant for file page.
-For shared mapping it's perfectly fine to have page table entry
-writable, without explicit mkwrite.
+copy_page_range() has a check for "Don't copy ptes where a page fault
+will fill them correctly." It works on VMA level. We still copy all page
+table entries from private mappings, even if they map page cache.
 
-Link: http://lkml.kernel.org/r/1465297246-98985-13-git-send-email-kirill.shutemov@linux.intel.com
+We can simplify copy_huge_pmd() a bit by skipping file PMDs.
+
+We don't map file private pages with PMDs, so they only can map page
+cache. It's safe to skip them as they can be re-faulted later.
+
+Link: http://lkml.kernel.org/r/1465297246-98985-12-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -64,22 +68,68 @@ Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |   34 ++++++++++++++++------------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-prepare-change_huge_pmd-for-file-thp mm/huge_memory.c
---- a/mm/huge_memory.c~thp-prepare-change_huge_pmd-for-file-thp
+diff -puN mm/huge_memory.c~thp-skip-file-huge-pmd-on-copy_huge_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-skip-file-huge-pmd-on-copy_huge_pmd
 +++ a/mm/huge_memory.c
-@@ -1793,7 +1793,8 @@ int change_huge_pmd(struct vm_area_struc
- 				entry = pmd_mkwrite(entry);
- 			ret = HPAGE_PMD_NR;
- 			set_pmd_at(mm, addr, pmd, entry);
--			BUG_ON(!preserve_write && pmd_write(entry));
-+			BUG_ON(vma_is_anonymous(vma) && !preserve_write &&
-+					pmd_write(entry));
- 		}
- 		spin_unlock(ptl);
+@@ -1098,14 +1098,15 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	struct page *src_page;
+ 	pmd_t pmd;
+ 	pgtable_t pgtable = NULL;
+-	int ret;
++	int ret = -ENOMEM;
+ 
+-	if (!vma_is_dax(vma)) {
+-		ret = -ENOMEM;
+-		pgtable = pte_alloc_one(dst_mm, addr);
+-		if (unlikely(!pgtable))
+-			goto out;
+-	}
++	/* Skip if can be re-fill on fault */
++	if (!vma_is_anonymous(vma))
++		return 0;
++
++	pgtable = pte_alloc_one(dst_mm, addr);
++	if (unlikely(!pgtable))
++		goto out;
+ 
+ 	dst_ptl = pmd_lock(dst_mm, dst_pmd);
+ 	src_ptl = pmd_lockptr(src_mm, src_pmd);
+@@ -1113,7 +1114,7 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 
+ 	ret = -EAGAIN;
+ 	pmd = *src_pmd;
+-	if (unlikely(!pmd_trans_huge(pmd) && !pmd_devmap(pmd))) {
++	if (unlikely(!pmd_trans_huge(pmd))) {
+ 		pte_free(dst_mm, pgtable);
+ 		goto out_unlock;
  	}
+@@ -1136,16 +1137,13 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		goto out_unlock;
+ 	}
+ 
+-	if (!vma_is_dax(vma)) {
+-		/* thp accounting separate from pmd_devmap accounting */
+-		src_page = pmd_page(pmd);
+-		VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
+-		get_page(src_page);
+-		page_dup_rmap(src_page, true);
+-		add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
+-		atomic_long_inc(&dst_mm->nr_ptes);
+-		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
+-	}
++	src_page = pmd_page(pmd);
++	VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
++	get_page(src_page);
++	page_dup_rmap(src_page, true);
++	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
++	atomic_long_inc(&dst_mm->nr_ptes);
++	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
+ 
+ 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
+ 	pmd = pmd_mkold(pmd_wrprotect(pmd));
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
