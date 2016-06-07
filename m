@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-reorganize-slab-freelist-randomization-fix.patch added to
- -mm tree
-Date: Tue, 07 Jun 2016 13:12:49 -0700
-Message-ID: <57572ac1.l0KYHuO34qXGuXh/%akpm@linux-foundation.org>
+Subject: + firmware-consolidate-kmap-read-write-logic.patch added to -mm
+ tree
+Date: Tue, 07 Jun 2016 13:26:24 -0700
+Message-ID: <57572df0.PMtBDKA7S8yOxKjE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38821 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162054AbcFGUMz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 16:12:55 -0400
+	with ESMTP id S1751606AbcFGU0Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jun 2016 16:26:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, penberg@kernel.org, rientjes@google.com, thgarnie@google.com, mm-commits@vger.kernel.org
+To: stephen.boyd@linaro.org, broonie@kernel.org, gregkh@linuxfoundation.org, markivx@codeaurora.org, ming.lei@canonical.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slub-freelist-randomization-fix
+     Subject: firmware: consolidate kmap/read/write logic
 has been added to the -mm tree.  Its filename is
-     mm-reorganize-slab-freelist-randomization-fix.patch
+     firmware-consolidate-kmap-read-write-logic.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-reorganize-slab-freelist-randomization-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/firmware-consolidate-kmap-read-write-logic.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-reorganize-slab-freelist-randomization-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/firmware-consolidate-kmap-read-write-logic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,128 +39,119 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-slub-freelist-randomization-fix
+From: Stephen Boyd <stephen.boyd@linaro.org>
+Subject: firmware: consolidate kmap/read/write logic
 
-freelist_randomize(), cache_random_seq_create() and
-cache_random_seq_destroy() should not be inside CONFIG_SLABINFO.
+Some systems are memory constrained but they need to load very large
+firmwares.  The firmware subsystem allows drivers to request this firmware
+be loaded from the filesystem, but this requires that the entire firmware
+be loaded into kernel memory first before it's provided to the driver. 
+This can lead to a situation where we map the firmware twice, once to load
+the firmware into kernel memory and once to copy the firmware into the
+final resting place.
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Thomas Garnier <thgarnie@google.com>
+This design creates needless memory pressure and delays loading because we
+have to copy from kernel memory to somewhere else.  This patch sets adds
+support to the request firmware API to load the firmware directly into a
+pre-allocated buffer, skipping the intermediate copying step and
+alleviating memory pressure during firmware loading.  The drawback is that
+we can't use the firmware caching feature because the memory for the
+firmware cache is not managed by the firmware layer.
+
+
+This patch (of 3):
+
+We use similar structured code to read and write the kmapped firmware
+pages.  The only difference is read copies from the kmap region and write
+copies to it.  Consolidate this into one function to reduce duplication.
+
+Link: http://lkml.kernel.org/r/20160607164741.31849-2-stephen.boyd@linaro.org
+Signed-off-by: Stephen Boyd <stephen.boyd@linaro.org>
+Cc: Vikram Mulukutla <markivx@codeaurora.org>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Ming Lei <ming.lei@canonical.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |   94 ++++++++++++++++++++++-----------------------
- 1 file changed, 47 insertions(+), 47 deletions(-)
+ drivers/base/firmware_class.c |   57 ++++++++++++++------------------
+ 1 file changed, 26 insertions(+), 31 deletions(-)
 
-diff -puN mm/slab_common.c~mm-reorganize-slab-freelist-randomization-fix mm/slab_common.c
---- a/mm/slab_common.c~mm-reorganize-slab-freelist-randomization-fix
-+++ a/mm/slab_common.c
-@@ -1030,6 +1030,53 @@ void *kmalloc_order_trace(size_t size, g
- EXPORT_SYMBOL(kmalloc_order_trace);
- #endif
+diff -puN drivers/base/firmware_class.c~firmware-consolidate-kmap-read-write-logic drivers/base/firmware_class.c
+--- a/drivers/base/firmware_class.c~firmware-consolidate-kmap-read-write-logic
++++ a/drivers/base/firmware_class.c
+@@ -691,6 +691,29 @@ out:
  
-+#ifdef CONFIG_SLAB_FREELIST_RANDOM
-+/* Randomize a generic freelist */
-+static void freelist_randomize(struct rnd_state *state, unsigned int *list,
-+			size_t count)
+ static DEVICE_ATTR(loading, 0644, firmware_loading_show, firmware_loading_store);
+ 
++static void firmware_rw(struct firmware_buf *buf, char *buffer,
++			loff_t offset, size_t count, bool read)
 +{
-+	size_t i;
-+	unsigned int rand;
++	while (count) {
++		void *page_data;
++		int page_nr = offset >> PAGE_SHIFT;
++		int page_ofs = offset & (PAGE_SIZE-1);
++		int page_cnt = min_t(size_t, PAGE_SIZE - page_ofs, count);
 +
-+	for (i = 0; i < count; i++)
-+		list[i] = i;
++		page_data = kmap(buf->pages[page_nr]);
 +
-+	/* Fisher-Yates shuffle */
-+	for (i = count - 1; i > 0; i--) {
-+		rand = prandom_u32_state(state);
-+		rand %= (i + 1);
-+		swap(list[i], list[rand]);
++		if (read)
++			memcpy(buffer, page_data + page_ofs, page_cnt);
++		else
++			memcpy(page_data + page_ofs, buffer, page_cnt);
++
++		kunmap(buf->pages[page_nr]);
++		buffer += page_cnt;
++		offset += page_cnt;
++		count -= page_cnt;
 +	}
 +}
 +
-+/* Create a random sequence per cache */
-+int cache_random_seq_create(struct kmem_cache *cachep, unsigned int count,
-+				    gfp_t gfp)
-+{
-+	struct rnd_state state;
-+
-+	if (count < 2 || cachep->random_seq)
-+		return 0;
-+
-+	cachep->random_seq = kcalloc(count, sizeof(unsigned int), gfp);
-+	if (!cachep->random_seq)
-+		return -ENOMEM;
-+
-+	/* Get best entropy at this stage of boot */
-+	prandom_seed_state(&state, get_random_long());
-+
-+	freelist_randomize(&state, cachep->random_seq, count);
-+	return 0;
-+}
-+
-+/* Destroy the per-cache random freelist sequence */
-+void cache_random_seq_destroy(struct kmem_cache *cachep)
-+{
-+	kfree(cachep->random_seq);
-+	cachep->random_seq = NULL;
-+}
-+#endif /* CONFIG_SLAB_FREELIST_RANDOM */
-+
- #ifdef CONFIG_SLABINFO
+ static ssize_t firmware_data_read(struct file *filp, struct kobject *kobj,
+ 				  struct bin_attribute *bin_attr,
+ 				  char *buffer, loff_t offset, size_t count)
+@@ -715,21 +738,8 @@ static ssize_t firmware_data_read(struct
  
- #ifdef CONFIG_SLAB
-@@ -1142,53 +1189,6 @@ int memcg_slab_show(struct seq_file *m,
- }
- #endif
+ 	ret_count = count;
  
--#ifdef CONFIG_SLAB_FREELIST_RANDOM
--/* Randomize a generic freelist */
--static void freelist_randomize(struct rnd_state *state, unsigned int *list,
--			size_t count)
--{
--	size_t i;
--	unsigned int rand;
+-	while (count) {
+-		void *page_data;
+-		int page_nr = offset >> PAGE_SHIFT;
+-		int page_ofs = offset & (PAGE_SIZE-1);
+-		int page_cnt = min_t(size_t, PAGE_SIZE - page_ofs, count);
 -
--	for (i = 0; i < count; i++)
--		list[i] = i;
+-		page_data = kmap(buf->pages[page_nr]);
 -
--	/* Fisher-Yates shuffle */
--	for (i = count - 1; i > 0; i--) {
--		rand = prandom_u32_state(state);
--		rand %= (i + 1);
--		swap(list[i], list[rand]);
+-		memcpy(buffer, page_data + page_ofs, page_cnt);
++	firmware_rw(buf, buffer, offset, count, true);
+ 
+-		kunmap(buf->pages[page_nr]);
+-		buffer += page_cnt;
+-		offset += page_cnt;
+-		count -= page_cnt;
 -	}
--}
+ out:
+ 	mutex_unlock(&fw_lock);
+ 	return ret_count;
+@@ -809,24 +819,9 @@ static ssize_t firmware_data_write(struc
+ 		goto out;
+ 
+ 	retval = count;
++	firmware_rw(buf, buffer, offset, count, false);
+ 
+-	while (count) {
+-		void *page_data;
+-		int page_nr = offset >> PAGE_SHIFT;
+-		int page_ofs = offset & (PAGE_SIZE - 1);
+-		int page_cnt = min_t(size_t, PAGE_SIZE - page_ofs, count);
 -
--/* Create a random sequence per cache */
--int cache_random_seq_create(struct kmem_cache *cachep, unsigned int count,
--				    gfp_t gfp)
--{
--	struct rnd_state state;
+-		page_data = kmap(buf->pages[page_nr]);
 -
--	if (count < 2 || cachep->random_seq)
--		return 0;
+-		memcpy(page_data + page_ofs, buffer, page_cnt);
 -
--	cachep->random_seq = kcalloc(count, sizeof(unsigned int), gfp);
--	if (!cachep->random_seq)
--		return -ENOMEM;
--
--	/* Get best entropy at this stage of boot */
--	prandom_seed_state(&state, get_random_long());
--
--	freelist_randomize(&state, cachep->random_seq, count);
--	return 0;
--}
--
--/* Destroy the per-cache random freelist sequence */
--void cache_random_seq_destroy(struct kmem_cache *cachep)
--{
--	kfree(cachep->random_seq);
--	cachep->random_seq = NULL;
--}
--#endif /* CONFIG_SLAB_FREELIST_RANDOM */
+-		kunmap(buf->pages[page_nr]);
+-		buffer += page_cnt;
+-		offset += page_cnt;
+-		count -= page_cnt;
+-	}
