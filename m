@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix-fix.patch added to -mm tree
-Date: Wed, 08 Jun 2016 14:06:08 -0700
-Message-ID: <575888c0.tejnDCosjtgtKjwN%akpm@linux-foundation.org>
+Subject: + zram-use-crypto-api-to-check-alg-availability-v3.patch added to -mm tree
+Date: Wed, 08 Jun 2016 14:12:50 -0700
+Message-ID: <57588a52.tJMHYXWwALmpA5Hr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36389 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36498 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162182AbcFHVGJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2016 17:06:09 -0400
+	with ESMTP id S1751736AbcFHVMv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2016 17:12:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, glider@google.com, lkp@intel.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, iamjoonsoo.kim@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix-fix
+     Subject: zram-use-crypto-api-to-check-alg-availability-v3
 has been added to the -mm tree.  Its filename is
-     mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix-fix.patch
+     zram-use-crypto-api-to-check-alg-availability-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-use-crypto-api-to-check-alg-availability-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-use-crypto-api-to-check-alg-availability-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,85 +38,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix-fix
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram-use-crypto-api-to-check-alg-availability-v3
 
-fix warnings, clean up 80-col tricks
-
-Reported-by: kbuild test robot <lkp@intel.com>
-Cc: Alexander Potapenko <glider@google.com>
-
+Link: http://lkml.kernel.org/r/20160604024902.11778-4-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ drivers/block/zram/zcomp.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN mm/kasan/kasan.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix-fix mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix-fix
-+++ a/mm/kasan/kasan.c
-@@ -371,14 +371,15 @@ static size_t optimal_redzone(size_t obj
- void kasan_cache_create(struct kmem_cache *cache, size_t *size,
- 			unsigned long *flags)
- {
--	int redzone_adjust, orig_size = *size;
-+	int redzone_adjust;
+diff -puN drivers/block/zram/zcomp.c~zram-use-crypto-api-to-check-alg-availability-v3 drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-use-crypto-api-to-check-alg-availability-v3
++++ a/drivers/block/zram/zcomp.c
+@@ -59,14 +59,20 @@ static struct zcomp_strm *zcomp_strm_all
  
- #ifdef CONFIG_SLAB
-+	int orig_size = *size;
+ bool zcomp_available_algorithm(const char *comp)
+ {
++	int i = 0;
++
++	while (backends[i]) {
++		if (sysfs_streq(comp, backends[i]))
++			return true;
++		i++;
++	}
 +
  	/*
- 	 * Make sure the adjusted size is still less than
- 	 * KMALLOC_MAX_CACHE_SIZE, i.e. we don't use the page allocator.
+ 	 * Crypto does not ignore a trailing new line symbol,
+ 	 * so make sure you don't supply a string containing
+ 	 * one.
+-	 * This also means that we keep `backends' array for
+-	 * zcomp_available_show() only and will init a new zram
+-	 * device with any compressing algorithm known to crypto
+-	 * api.
++	 * This also means that we permit zcomp initialisation
++	 * with any compressing algorithm known to crypto api.
  	 */
--
- 	if (*size > KMALLOC_MAX_CACHE_SIZE -
- 	    sizeof(struct kasan_alloc_meta) -
- 	    sizeof(struct kasan_free_meta))
-@@ -551,14 +552,16 @@ bool kasan_slab_free(struct kmem_cache *
- 		return false;
+ 	return crypto_has_comp(comp, 0, 0) == 1;
+ }
+@@ -79,9 +85,6 @@ ssize_t zcomp_available_show(const char
+ 	int i = 0;
  
- 	if (likely(cache->flags & SLAB_KASAN)) {
--		struct kasan_alloc_meta *alloc_info =
--			get_alloc_info(cache, object);
--		struct kasan_free_meta *free_info =
--			get_free_info(cache, object);
-+		struct kasan_alloc_meta *alloc_info;
-+		struct kasan_free_meta *free_info;
-+
-+		alloc_info = get_alloc_info(cache, object);
-+		free_info = get_free_info(cache, object);
- 		WARN_ON(!alloc_info);
- 		WARN_ON(!free_info);
- 		if (!alloc_info || !free_info)
--			return;
-+			return false;
-+
- 		switch (alloc_info->state) {
- 		case KASAN_STATE_ALLOC:
- 			alloc_info->state = KASAN_STATE_QUARANTINE;
+ 	for (; backends[i]; i++) {
+-		if (!zcomp_available_algorithm(backends[i]))
+-			continue;
+-
+ 		if (!strcmp(comp, backends[i])) {
+ 			known_algorithm = true;
+ 			sz += scnprintf(buf + sz, PAGE_SIZE - sz - 2,
+@@ -96,7 +99,7 @@ ssize_t zcomp_available_show(const char
+ 	 * Out-of-tree module known to crypto api or a missing
+ 	 * entry in `backends'.
+ 	 */
+-	if (!known_algorithm && zcomp_available_algorithm(comp))
++	if (!known_algorithm && crypto_has_comp(comp, 0, 0) == 1)
+ 		sz += scnprintf(buf + sz, PAGE_SIZE - sz - 2,
+ 				"[%s] ", comp);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-reorganize-slab-freelist-randomization-fix.patch
-mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
-mm-add-nr_zsmalloc-to-vmstat-fix.patch
-mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
-mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix.patch
-mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix-fix.patch
-nvme-dont-allocate-unused-nvme_major-fix.patch
-bitmap-bitmap_equal-memcmp-optimization-fix.patch
-kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
-kexec-allow-architectures-to-override-boot-mapping-fix.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+zram-rename-zstrm-find-release-functions.patch
+zram-switch-to-crypto-compress-api.patch
+zram-use-crypto-api-to-check-alg-availability.patch
+zram-use-crypto-api-to-check-alg-availability-v3.patch
+zram-cosmetic-cleanup-documentation.patch
+zram-delete-custom-lzo-lz4.patch
+zram-delete-custom-lzo-lz4-v3.patch
+zram-add-more-compression-algorithms.patch
+zram-add-more-compression-algorithms-v3.patch
+zram-drop-gfp_t-from-zcomp_strm_alloc.patch
 
