@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + proc_oom_score-remove-tasklist_lock-and-pid_alive.patch added
- to -mm tree
-Date: Wed, 08 Jun 2016 14:33:21 -0700
-Message-ID: <57588f21.Bn3tPlxK1JR9Bd0q%akpm@linux-foundation.org>
+Subject: + thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch added to
+ -mm tree
+Date: Wed, 08 Jun 2016 14:55:01 -0700
+Message-ID: <57589435.aDEnsv9WxDX8df1c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37144 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37410 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755306AbcFHVdW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2016 17:33:22 -0400
+	with ESMTP id S1751399AbcFHVzD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2016 17:55:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, mhocko@kernel.org, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, andreslc@google.com, aneesh.kumar@linux.vnet.ibm.com, cl@gentwo.org, dave.hansen@intel.com, hughd@google.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, neha.agbk@gmail.com, peterz@infradead.org, quning@gmail.com, sasha.levin@oracle.com, vbabka@suse.cz, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc_oom_score: remove tasklist_lock and pid_alive()
+     Subject: thp-extract-khugepaged-from-mm-huge_memoryc-fix
 has been added to the -mm tree.  Its filename is
-     proc_oom_score-remove-tasklist_lock-and-pid_alive.patch
+     thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc_oom_score-remove-tasklist_lock-and-pid_alive.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc_oom_score-remove-tasklist_lock-and-pid_alive.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: proc_oom_score: remove tasklist_lock and pid_alive()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: thp-extract-khugepaged-from-mm-huge_memoryc-fix
 
-This was needed before to ensure that ->signal != 0 and do_each_thread()
-is safe, see b95c35e76b29b ("oom: fix the unsafe usage of badness() in
-proc_oom_score()") for details.
+khugepaged_mutex can be static to mm/huge_memory.c:enabled_store()
 
-Today tsk->signal can't go away and for_each_thread(tsk) is always safe.
+Makes me wonder what it actually does...
 
-Link: http://lkml.kernel.org/r/20160608211921.GA15508@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Christoph Lameter <cl@gentwo.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Ning Qu <quning@gmail.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: neha agarwal <neha.agbk@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ include/linux/khugepaged.h |    1 -
+ mm/huge_memory.c           |    1 +
+ mm/khugepaged.c            |    1 -
+ 3 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~proc_oom_score-remove-tasklist_lock-and-pid_alive fs/proc/base.c
---- a/fs/proc/base.c~proc_oom_score-remove-tasklist_lock-and-pid_alive
-+++ a/fs/proc/base.c
-@@ -579,11 +579,8 @@ static int proc_oom_score(struct seq_fil
- 	unsigned long totalpages = totalram_pages + total_swap_pages;
- 	unsigned long points = 0;
+diff -puN include/linux/khugepaged.h~thp-extract-khugepaged-from-mm-huge_memoryc-fix include/linux/khugepaged.h
+--- a/include/linux/khugepaged.h~thp-extract-khugepaged-from-mm-huge_memoryc-fix
++++ a/include/linux/khugepaged.h
+@@ -4,7 +4,6 @@
+ #include <linux/sched.h> /* MMF_VM_HUGEPAGE */
  
--	read_lock(&tasklist_lock);
--	if (pid_alive(task))
--		points = oom_badness(task, NULL, NULL, totalpages) *
--						1000 / totalpages;
--	read_unlock(&tasklist_lock);
-+	points = oom_badness(task, NULL, NULL, totalpages) *
-+					1000 / totalpages;
- 	seq_printf(m, "%lu\n", points);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-extern struct mutex khugepaged_mutex;
+ extern struct attribute_group khugepaged_attr_group;
  
- 	return 0;
+ extern int khugepaged_init(void);
+diff -puN mm/huge_memory.c~thp-extract-khugepaged-from-mm-huge_memoryc-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-extract-khugepaged-from-mm-huge_memoryc-fix
++++ a/mm/huge_memory.c
+@@ -174,6 +174,7 @@ static ssize_t enabled_store(struct kobj
+ 			     const char *buf, size_t count)
+ {
+ 	ssize_t ret;
++	static DEFINE_MUTEX(khugepaged_mutex);
+ 
+ 	ret = triple_flag_store(kobj, attr, buf, count,
+ 				TRANSPARENT_HUGEPAGE_FLAG,
+diff -puN mm/khugepaged.c~thp-extract-khugepaged-from-mm-huge_memoryc-fix mm/khugepaged.c
+--- a/mm/khugepaged.c~thp-extract-khugepaged-from-mm-huge_memoryc-fix
++++ a/mm/khugepaged.c
+@@ -57,7 +57,6 @@ static unsigned int khugepaged_scan_slee
+ static unsigned int khugepaged_alloc_sleep_millisecs __read_mostly = 60000;
+ static unsigned long khugepaged_sleep_expire;
+ static struct task_struct *khugepaged_thread __read_mostly;
+-DEFINE_MUTEX(khugepaged_mutex);
+ static DEFINE_SPINLOCK(khugepaged_mm_lock);
+ static DECLARE_WAIT_QUEUE_HEAD(khugepaged_wait);
+ /*
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-proc_oom_score-remove-tasklist_lock-and-pid_alive.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-reorganize-slab-freelist-randomization-fix.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch
+mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix.patch
+mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix-fix.patch
+nvme-dont-allocate-unused-nvme_major-fix.patch
+bitmap-bitmap_equal-memcmp-optimization-fix.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
