@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch added to
- -mm tree
-Date: Wed, 08 Jun 2016 14:55:01 -0700
-Message-ID: <57589435.aDEnsv9WxDX8df1c%akpm@linux-foundation.org>
+Subject: + thp-extract-khugepaged-from-mm-huge_memoryc-fix-2.patch added
+ to -mm tree
+Date: Wed, 08 Jun 2016 14:58:12 -0700
+Message-ID: <575894f4.4NQK26HKMXICtjIC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37410 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37503 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751399AbcFHVzD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2016 17:55:03 -0400
+	with ESMTP id S933433AbcFHV6O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2016 17:58:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, andreslc@google.com, aneesh.kumar@linux.vnet.ibm.com, cl@gentwo.org, dave.hansen@intel.com, hughd@google.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, neha.agbk@gmail.com, peterz@infradead.org, quning@gmail.com, sasha.levin@oracle.com, vbabka@suse.cz, yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp-extract-khugepaged-from-mm-huge_memoryc-fix
+     Subject: thp-extract-khugepaged-from-mm-huge_memoryc-fix-2
 has been added to the -mm tree.  Its filename is
-     thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch
+     thp-extract-khugepaged-from-mm-huge_memoryc-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-extract-khugepaged-from-mm-huge_memoryc-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-extract-khugepaged-from-mm-huge_memoryc-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,69 +40,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: thp-extract-khugepaged-from-mm-huge_memoryc-fix
+Subject: thp-extract-khugepaged-from-mm-huge_memoryc-fix-2
 
-khugepaged_mutex can be static to mm/huge_memory.c:enabled_store()
-
-Makes me wonder what it actually does...
+still struggling with merge issues...
 
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Christoph Lameter <cl@gentwo.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Ning Qu <quning@gmail.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yang Shi <yang.shi@linaro.org>
-Cc: neha agarwal <neha.agbk@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/khugepaged.h |    1 -
- mm/huge_memory.c           |    1 +
- mm/khugepaged.c            |    1 -
- 3 files changed, 1 insertion(+), 2 deletions(-)
+ mm/khugepaged.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/khugepaged.h~thp-extract-khugepaged-from-mm-huge_memoryc-fix include/linux/khugepaged.h
---- a/include/linux/khugepaged.h~thp-extract-khugepaged-from-mm-huge_memoryc-fix
-+++ a/include/linux/khugepaged.h
-@@ -4,7 +4,6 @@
- #include <linux/sched.h> /* MMF_VM_HUGEPAGE */
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--extern struct mutex khugepaged_mutex;
- extern struct attribute_group khugepaged_attr_group;
- 
- extern int khugepaged_init(void);
-diff -puN mm/huge_memory.c~thp-extract-khugepaged-from-mm-huge_memoryc-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-extract-khugepaged-from-mm-huge_memoryc-fix
-+++ a/mm/huge_memory.c
-@@ -174,6 +174,7 @@ static ssize_t enabled_store(struct kobj
- 			     const char *buf, size_t count)
- {
- 	ssize_t ret;
-+	static DEFINE_MUTEX(khugepaged_mutex);
- 
- 	ret = triple_flag_store(kobj, attr, buf, count,
- 				TRANSPARENT_HUGEPAGE_FLAG,
-diff -puN mm/khugepaged.c~thp-extract-khugepaged-from-mm-huge_memoryc-fix mm/khugepaged.c
---- a/mm/khugepaged.c~thp-extract-khugepaged-from-mm-huge_memoryc-fix
+diff -puN mm/khugepaged.c~thp-extract-khugepaged-from-mm-huge_memoryc-fix-2 mm/khugepaged.c
+--- a/mm/khugepaged.c~thp-extract-khugepaged-from-mm-huge_memoryc-fix-2
 +++ a/mm/khugepaged.c
-@@ -57,7 +57,6 @@ static unsigned int khugepaged_scan_slee
- static unsigned int khugepaged_alloc_sleep_millisecs __read_mostly = 60000;
- static unsigned long khugepaged_sleep_expire;
- static struct task_struct *khugepaged_thread __read_mostly;
--DEFINE_MUTEX(khugepaged_mutex);
- static DEFINE_SPINLOCK(khugepaged_mm_lock);
- static DECLARE_WAIT_QUEUE_HEAD(khugepaged_wait);
- /*
+@@ -692,6 +692,12 @@ static bool khugepaged_scan_abort(int ni
+ 	return false;
+ }
+ 
++/* Defrag for khugepaged will enter direct reclaim/compaction if necessary */
++static inline gfp_t alloc_hugepage_khugepaged_gfpmask(void)
++{
++	return GFP_TRANSHUGE | (khugepaged_defrag() ? __GFP_DIRECT_RECLAIM : 0);
++}
++
+ #ifdef CONFIG_NUMA
+ 
+ static int khugepaged_find_target_node(void)
+@@ -762,12 +768,6 @@ khugepaged_alloc_page(struct page **hpag
+ 	return *hpage;
+ }
+ 
+-/* Defrag for khugepaged will enter direct reclaim/compaction if necessary */
+-static inline gfp_t alloc_hugepage_khugepaged_gfpmask(void)
+-{
+-	return GFP_TRANSHUGE | (khugepaged_defrag() ? __GFP_DIRECT_RECLAIM : 0);
+-}
+-
+ #else
+ 
+ static int khugepaged_find_target_node(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -119,6 +96,7 @@ mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
 mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
 mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
 thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch
+thp-extract-khugepaged-from-mm-huge_memoryc-fix-2.patch
 mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix.patch
 mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix-fix.patch
 nvme-dont-allocate-unused-nvme_major-fix.patch
