@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + tmpfs-dont-undo-fallocate-past-its-last-page.patch added to -mm tree
-Date: Wed, 08 Jun 2016 13:47:42 -0700
-Message-ID: <5758846e.nCoYfRqGE/CEytcP%akpm__7405.02134799517$1465418878$gmane$org@linux-foundation.org>
+Date: Wed, 08 Jun 2016 13:48:03 -0700
+Message-ID: <57588483.t9slVNW8OjcFGTMN%akpm__18077.7568290525$1465418904$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36034 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161400AbcFHUrn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2016 16:47:43 -0400
+	with ESMTP id S1161400AbcFHUsF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jun 2016 16:48:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anthony.romano@coreos.com, hughd@google.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: anthony.romano@coreos.com, brandon@ifup.co, hughd@google.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -50,6 +50,7 @@ Link: http://lkml.kernel.org/r/1462713387-16724-1-git-send-email-anthony.romano@
 Signed-off-by: Anthony Romano <anthony.romano@coreos.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Brandon Philips <brandon@ifup.co>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
