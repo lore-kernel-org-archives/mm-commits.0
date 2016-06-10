@@ -1,87 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask.patch added
- to -mm tree
-Date: Fri, 10 Jun 2016 14:22:44 -0700
-Message-ID: <575b2fa4.Y9G96VwWFilzaclh%akpm__6767.67216432399$1465593780$gmane$org@linux-foundation.org>
+Subject: [withdrawn] m32r-add-__ucmpdi2-to-fix-build-failure-fix.patch
+ removed from -mm tree
+Date: Fri, 10 Jun 2016 14:22:58 -0700
+Message-ID: <575b2fb2.83/pt+Cwb9FPzFMB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53398 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53408 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055AbcFJVWp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jun 2016 17:22:45 -0400
+	with ESMTP id S1753194AbcFJVW7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jun 2016 17:22:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, mw@semihalf.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, sudip.mukherjee@codethink.co.uk, sudipm.mukherjee@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, sl[au]b: add __GFP_ATOMIC to the GFP reclaim mask
-has been added to the -mm tree.  Its filename is
-     mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask.patch
+     Subject: m32r-add-__ucmpdi2-to-fix-build-failure-fix
+has been removed from the -mm tree.  Its filename was
+     m32r-add-__ucmpdi2-to-fix-build-failure-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, sl[au]b: add __GFP_ATOMIC to the GFP reclaim mask
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: m32r-add-__ucmpdi2-to-fix-build-failure-fix
 
-Commit d0164adc89f6 ("mm, page_alloc: distinguish between being unable to
-sleep, unwilling to sleep and avoiding waking kswapd") modified __GFP_WAIT
-to explicitly identify the difference between atomic callers and those
-that were unwilling to sleep.  Later the definition was removed entirely.
+avoid extern declaration in .c file
 
-The GFP_RECLAIM_MASK is the set of flags that affect watermark checking
-and reclaim behaviour but __GFP_ATOMIC was never added. Without it, atomic
-users of the slab allocator strip the __GFP_ATOMIC flag and cannot access
-the page allocator atomic reserves.  This patch addresses the problem.
-
-The user-visible impact depends on the workload but potentially atomic
-allocations unnecessarily fail without this path.
-
-Link: http://lkml.kernel.org/r/20160610093832.GK2527@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: Marcin Wojtas <mw@semihalf.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>	[4.4+]
+Cc: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
+Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/m32r/kernel/m32r_ksyms.c |    1 -
+ arch/m32r/lib/libgcc.h        |    1 +
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/internal.h~mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask mm/internal.h
---- a/mm/internal.h~mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask
-+++ a/mm/internal.h
-@@ -24,7 +24,8 @@
-  */
- #define GFP_RECLAIM_MASK (__GFP_RECLAIM|__GFP_HIGH|__GFP_IO|__GFP_FS|\
- 			__GFP_NOWARN|__GFP_REPEAT|__GFP_NOFAIL|\
--			__GFP_NORETRY|__GFP_MEMALLOC|__GFP_NOMEMALLOC)
-+			__GFP_NORETRY|__GFP_MEMALLOC|__GFP_NOMEMALLOC|\
-+			__GFP_ATOMIC)
+diff -puN arch/m32r/kernel/m32r_ksyms.c~m32r-add-__ucmpdi2-to-fix-build-failure-fix arch/m32r/kernel/m32r_ksyms.c
+--- a/arch/m32r/kernel/m32r_ksyms.c~m32r-add-__ucmpdi2-to-fix-build-failure-fix
++++ a/arch/m32r/kernel/m32r_ksyms.c
+@@ -41,7 +41,6 @@ EXPORT_SYMBOL(cpu_data);
+ EXPORT_SYMBOL(smp_flush_tlb_page);
+ #endif
  
- /* The GFP flags allowed during early boot */
- #define GFP_BOOT_MASK (__GFP_BITS_MASK & ~(__GFP_RECLAIM|__GFP_IO|__GFP_FS))
+-extern int __ucmpdi2(unsigned long long a, unsigned long long b);
+ EXPORT_SYMBOL(__ucmpdi2);
+ 
+ /* compiler generated symbol */
+diff -puN arch/m32r/lib/libgcc.h~m32r-add-__ucmpdi2-to-fix-build-failure-fix arch/m32r/lib/libgcc.h
+--- a/arch/m32r/lib/libgcc.h~m32r-add-__ucmpdi2-to-fix-build-failure-fix
++++ a/arch/m32r/lib/libgcc.h
+@@ -22,3 +22,4 @@ typedef union {
+ 
+ #endif /* __ASM_LIBGCC_H */
+ 
++extern int __ucmpdi2(unsigned long long a, unsigned long long b);
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-reorganize-slab-freelist-randomization-fix.patch
+mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch
+thp-extract-khugepaged-from-mm-huge_memoryc-fix-2.patch
+nvme-dont-allocate-unused-nvme_major-fix.patch
+bitmap-bitmap_equal-memcmp-optimization-fix.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
