@@ -1,67 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kasan-change-memory-hot-add-error-messages-to-info-messages.patch removed
- from -mm tree
-Date: Fri, 10 Jun 2016 12:12:10 -0700
-Message-ID: <575b110a.ALhOq7WFbziVIfw7%akpm@linux-foundation.org>
+Subject: [merged] relay-fix-potential-memory-leak.patch removed from -mm
+ tree
+Date: Fri, 10 Jun 2016 12:12:18 -0700
+Message-ID: <575b1112.xgnkufllvpxbqCDJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50078 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50098 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753136AbcFJTML (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jun 2016 15:12:11 -0400
+	with ESMTP id S932090AbcFJTMT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jun 2016 15:12:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shuahkh@osg.samsung.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: yizhouzhou@ict.ac.cn, axboe@kernel.dk, viro@zeniv.linux.org.uk, zhouzhouyi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: change memory hot-add error messages to info messages
+     Subject: kernel/relay.c: fix potential memory leak
 has been removed from the -mm tree.  Its filename was
-     kasan-change-memory-hot-add-error-messages-to-info-messages.patch
+     relay-fix-potential-memory-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Subject: kasan: change memory hot-add error messages to info messages
+From: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+Subject: kernel/relay.c: fix potential memory leak
 
-Change the following memory hot-add error messages to info messages. 
-There is no need for these to be errors.
+When relay_open_buf() fails in relay_open(), code will goto free_bufs,
+but chan is nowhere freed.
 
-[    8.221108] kasan: WARNING: KASAN doesn't support memory hot-add
-[    8.221117] kasan: Memory hot-add will be disabled
-
-Link: http://lkml.kernel.org/r/1464794430-5486-1-git-send-email-shuahkh@osg.samsung.com
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: http://lkml.kernel.org/r/1464777927-19675-1-git-send-email-yizhouzhou@ict.ac.cn
+Signed-off-by: Zhouyi Zhou <zhouzhouyi@gmail.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/relay.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/kasan/kasan.c~kasan-change-memory-hot-add-error-messages-to-info-messages mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-change-memory-hot-add-error-messages-to-info-messages
-+++ a/mm/kasan/kasan.c
-@@ -763,8 +763,8 @@ static int kasan_mem_notifier(struct not
+diff -puN kernel/relay.c~relay-fix-potential-memory-leak kernel/relay.c
+--- a/kernel/relay.c~relay-fix-potential-memory-leak
++++ a/kernel/relay.c
+@@ -614,6 +614,7 @@ free_bufs:
  
- static int __init kasan_memhotplug_init(void)
- {
--	pr_err("WARNING: KASAN doesn't support memory hot-add\n");
--	pr_err("Memory hot-add will be disabled\n");
-+	pr_info("WARNING: KASAN doesn't support memory hot-add\n");
-+	pr_info("Memory hot-add will be disabled\n");
- 
- 	hotplug_memory_notifier(kasan_mem_notifier, 0);
- 
+ 	kref_put(&chan->kref, relay_destroy_channel);
+ 	mutex_unlock(&relay_channels_mutex);
++	kfree(chan);
+ 	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(relay_open);
 _
 
-Patches currently in -mm which might be from shuahkh@osg.samsung.com are
+Patches currently in -mm which might be from yizhouzhou@ict.ac.cn are
 
 
