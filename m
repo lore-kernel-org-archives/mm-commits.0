@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine.patch
- added to -mm tree
-Date: Thu, 09 Jun 2016 15:45:39 -0700
-Message-ID: <5759f193.fuuZi4r5TvJYQGfV%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 10 Jun 2016 12:11:51 -0700
+Message-ID: <575b10f7.pW7Dhb/mmTj0jg9F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50068 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751688AbcFIWpk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jun 2016 18:45:40 -0400
+	with ESMTP id S1753088AbcFJTLw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jun 2016 15:11:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, kcc@google.com, kuthonuzo.luruo@hpe.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mempool: kasan: don't poot mempool objects in quarantine
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,156 +38,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm: mempool: kasan: don't poot mempool objects in quarantine
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Currently we may put reserved by mempool elements into quarantine via
-kasan_kfree().  This is totally wrong since quarantine may really free
-these objects.  So when mempool will try to use such element,
-use-after-free will happen.  Or mempool may decide that it no longer need
-that element and double-free it.
-
-So don't put object into quarantine in kasan_kfree(), just poison it. 
-Rename kasan_kfree() to kasan_poison_kfree() to respect that.
-
-Also, we shouldn't use kasan_slab_alloc()/kasan_krealloc() in
-kasan_unpoison_element() because those functions may update allocation
-stacktrace.  This would be wrong for the most of the remove_element call
-sites.
-
-(The only call site where we may want to update alloc stacktrace is
- in mempool_alloc(). Kmemleak solves this by calling
- kmemleak_update_trace(), so we could make something like that too.
- But this is out of scope of this patch).
-
-Fixes: 55834c59098d ("mm: kasan: initial memory quarantine implementation")
-Link: http://lkml.kernel.org/r/575977C3.1010905@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reported-by: Kuthonuzo Luruo <kuthonuzo.luruo@hpe.com>
-Acked-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Kostya Serebryany <kcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   11 +++++++----
- mm/kasan/kasan.c      |    6 +++---
- mm/mempool.c          |   12 ++++--------
- 3 files changed, 14 insertions(+), 15 deletions(-)
+ kernel/locking/qspinlock.c |    3 ---
+ net/sched/cls_u32.c        |    9 ---------
+ 2 files changed, 12 deletions(-)
 
-diff -puN include/linux/kasan.h~mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine include/linux/kasan.h
---- a/include/linux/kasan.h~mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine
-+++ a/include/linux/kasan.h
-@@ -59,14 +59,13 @@ void kasan_poison_object_data(struct kme
+diff -puN kernel/locking/qspinlock.c~linux-next-git-rejects kernel/locking/qspinlock.c
+--- a/kernel/locking/qspinlock.c~linux-next-git-rejects
++++ a/kernel/locking/qspinlock.c
+@@ -268,8 +268,6 @@ static __always_inline u32  __pv_wait_he
+ #endif
  
- void kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags);
- void kasan_kfree_large(const void *ptr);
--void kasan_kfree(void *ptr);
-+void kasan_poison_kfree(void *ptr);
- void kasan_kmalloc(struct kmem_cache *s, const void *object, size_t size,
- 		  gfp_t flags);
- void kasan_krealloc(const void *object, size_t new_size, gfp_t flags);
+ /*
+-<<<<<<< HEAD
+-=======
+  * Various notes on spin_is_locked() and spin_unlock_wait(), which are
+  * 'interesting' functions:
+  *
+@@ -327,7 +325,6 @@ static __always_inline u32  __pv_wait_he
+  */
  
- void kasan_slab_alloc(struct kmem_cache *s, void *object, gfp_t flags);
- bool kasan_slab_free(struct kmem_cache *s, void *object);
--void kasan_poison_slab_free(struct kmem_cache *s, void *object);
+ /*
+->>>>>>> linux-next/akpm-base
+  * queued_spin_lock_slowpath() can (load-)ACQUIRE the lock before
+  * issuing an _unordered_ store to set _Q_LOCKED_VAL.
+  *
+diff -puN net/sched/cls_u32.c~linux-next-git-rejects net/sched/cls_u32.c
+--- a/net/sched/cls_u32.c~linux-next-git-rejects
++++ a/net/sched/cls_u32.c
+@@ -508,19 +508,10 @@ static int u32_replace_hw_knode(struct t
+ 	offload.type = TC_SETUP_CLSU32;
+ 	offload.cls_u32 = &u32_offload;
  
- struct kasan_cache {
- 	int alloc_meta_offset;
-@@ -76,6 +75,9 @@ struct kasan_cache {
- int kasan_module_alloc(void *addr, size_t size);
- void kasan_free_shadow(const struct vm_struct *vm);
- 
-+size_t ksize(const void *);
-+static inline void kasan_unpoison_slab(const void *ptr) { ksize(ptr); }
-+
- #else /* CONFIG_KASAN */
- 
- static inline void kasan_unpoison_shadow(const void *address, size_t size) {}
-@@ -102,7 +104,7 @@ static inline void kasan_poison_object_d
- 
- static inline void kasan_kmalloc_large(void *ptr, size_t size, gfp_t flags) {}
- static inline void kasan_kfree_large(const void *ptr) {}
--static inline void kasan_kfree(void *ptr) {}
-+static inline void kasan_poison_kfree(void *ptr) {}
- static inline void kasan_kmalloc(struct kmem_cache *s, const void *object,
- 				size_t size, gfp_t flags) {}
- static inline void kasan_krealloc(const void *object, size_t new_size,
-@@ -114,11 +116,12 @@ static inline bool kasan_slab_free(struc
- {
- 	return false;
- }
--static inline void kasan_poison_slab_free(struct kmem_cache *s, void *object) {}
- 
- static inline int kasan_module_alloc(void *addr, size_t size) { return 0; }
- static inline void kasan_free_shadow(const struct vm_struct *vm) {}
- 
-+static inline void kasan_unpoison_slab(const void *ptr) { }
-+
- #endif /* CONFIG_KASAN */
- 
- #endif /* LINUX_KASAN_H */
-diff -puN mm/kasan/kasan.c~mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine
-+++ a/mm/kasan/kasan.c
-@@ -508,7 +508,7 @@ void kasan_slab_alloc(struct kmem_cache
- 	kasan_kmalloc(cache, object, cache->object_size, flags);
- }
- 
--void kasan_poison_slab_free(struct kmem_cache *cache, void *object)
-+static void kasan_poison_slab_free(struct kmem_cache *cache, void *object)
- {
- 	unsigned long size = cache->object_size;
- 	unsigned long rounded_up_size = round_up(size, KASAN_SHADOW_SCALE_SIZE);
-@@ -626,7 +626,7 @@ void kasan_krealloc(const void *object,
- 		kasan_kmalloc(page->slab_cache, object, size, flags);
- }
- 
--void kasan_kfree(void *ptr)
-+void kasan_poison_kfree(void *ptr)
- {
- 	struct page *page;
- 
-@@ -636,7 +636,7 @@ void kasan_kfree(void *ptr)
- 		kasan_poison_shadow(ptr, PAGE_SIZE << compound_order(page),
- 				KASAN_FREE_PAGE);
- 	else
--		kasan_slab_free(page->slab_cache, ptr);
-+		kasan_poison_slab_free(page->slab_cache, ptr);
- }
- 
- void kasan_kfree_large(const void *ptr)
-diff -puN mm/mempool.c~mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine mm/mempool.c
---- a/mm/mempool.c~mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine
-+++ a/mm/mempool.c
-@@ -104,20 +104,16 @@ static inline void poison_element(mempoo
- 
- static void kasan_poison_element(mempool_t *pool, void *element)
- {
--	if (pool->alloc == mempool_alloc_slab)
--		kasan_poison_slab_free(pool->pool_data, element);
--	if (pool->alloc == mempool_kmalloc)
--		kasan_kfree(element);
-+	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
-+		kasan_poison_kfree(element);
- 	if (pool->alloc == mempool_alloc_pages)
- 		kasan_free_pages(element, (unsigned long)pool->pool_data);
- }
- 
- static void kasan_unpoison_element(mempool_t *pool, void *element, gfp_t flags)
- {
--	if (pool->alloc == mempool_alloc_slab)
--		kasan_slab_alloc(pool->pool_data, element, flags);
--	if (pool->alloc == mempool_kmalloc)
--		kasan_krealloc(element, (size_t)pool->pool_data, flags);
-+	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
-+		kasan_unpoison_slab(element);
- 	if (pool->alloc == mempool_alloc_pages)
- 		kasan_alloc_pages(element, (unsigned long)pool->pool_data);
- }
+-<<<<<<< HEAD
+-	if (!tc_should_offload(dev, tp, flags))
+-		return tc_skip_sw(flags) ? -EINVAL : 0;
+-
+-	offload.cls_u32->command = TC_CLSU32_REPLACE_KNODE;
+-	offload.cls_u32->knode.handle = n->handle;
+-	offload.cls_u32->knode.fshift = n->fshift;
+-=======
+ 	if (tc_should_offload(dev, tp, flags)) {
+ 		offload.cls_u32->command = TC_CLSU32_REPLACE_KNODE;
+ 		offload.cls_u32->knode.handle = n->handle;
+ 		offload.cls_u32->knode.fshift = n->fshift;
+->>>>>>> linux-next/akpm-base
+ #ifdef CONFIG_CLS_U32_MARK
+ 	offload.cls_u32->knode.val = n->val;
+ 	offload.cls_u32->knode.mask = n->mask;
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+m32r-add-__ucmpdi2-to-fix-build-failure-fix.patch
+mm.patch
+mm-reorganize-slab-freelist-randomization-fix.patch
+mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch
+thp-extract-khugepaged-from-mm-huge_memoryc-fix-2.patch
+nvme-dont-allocate-unused-nvme_major-fix.patch
+bitmap-bitmap_equal-memcmp-optimization-fix.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
