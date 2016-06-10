@@ -1,83 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom.patch removed from
- -mm tree
-Date: Fri, 10 Jun 2016 12:12:12 -0700
-Message-ID: <575b110c.qQ1ioC7+Lzf712eh%akpm@linux-foundation.org>
+Subject: [merged] thp-broken-page-count-after-commit-aa88b68c.patch
+ removed from -mm tree
+Date: Fri, 10 Jun 2016 12:12:15 -0700
+Message-ID: <575b110f.Z2/ITSM3R6pjlTTi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50094 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753142AbcFJTMN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jun 2016 15:12:13 -0400
+	with ESMTP id S932090AbcFJTMQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jun 2016 15:12:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: gerald.schaefer@de.ibm.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, borntraeger@de.ibm.com, dave.hansen@intel.com, hannes@cmpxchg.org, heiko.carstens@de.ibm.com, hughd@google.com, kirill@shutemov.name, mgorman@techsingularity.net, schwidefsky@de.ibm.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "mm: memcontrol: fix possible css ref leak on oom"
+     Subject: mm: thp: broken page count after commit aa88b68c
 has been removed from the -mm tree.  Its filename was
-     revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom.patch
+     thp-broken-page-count-after-commit-aa88b68c.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "mm: memcontrol: fix possible css ref leak on oom"
+From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Subject: mm: thp: broken page count after commit aa88b68c
 
-Revert 1383399d7be02 ("mm: memcontrol: fix possible css ref leak on oom").
-Johannes points out "There is a task_in_memcg_oom() check before calling
-mem_cgroup_oom()".
+Christian Borntraeger reported a kernel panic after corrupt page counts,
+and it turned out to be a regression introduced with commit aa88b68c
+("thp: keep huge zero page pinned until tlb flush"), at least on s390.
 
-Acked-by: Michal Hocko <mhocko@suse.com>
+put_huge_zero_page() was moved over from zap_huge_pmd() to
+release_pages(), and it was replaced by tlb_remove_page().  However,
+release_pages() might not always be triggered by (the arch-specific)
+tlb_remove_page().
+
+On s390 we call free_page_and_swap_cache() from tlb_remove_page(), and not
+tlb_flush_mmu() -> free_pages_and_swap_cache() like the generic version,
+because we don't use the MMU-gather logic.  Although both functions have
+very similar names, they are doing very unsimilar things, in particular
+free_page_xxx is just doing a put_page(), while free_pages_xxx calls
+release_pages().
+
+This of course results in very harmful put_page()s on the huge zero page,
+on architectures where tlb_remove_page() is implemented in this way.  It
+seems to affect only s390 and sh, but sh doesn't have THP support, so the
+problem (currently) probably only exists on s390.
+
+The following quick hack fixed the issue:
+
+Link: http://lkml.kernel.org/r/20160602172141.75c006a9@thinkpad
+Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Reported-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Tested-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: <stable@vger.kernel.org>	[4.6.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swap_state.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom mm/memcontrol.c
---- a/mm/memcontrol.c~revert-mm-memcontrol-fix-possible-css-ref-leak-on-oom
-+++ a/mm/memcontrol.c
-@@ -1608,7 +1608,7 @@ static void memcg_oom_recover(struct mem
- 
- static void mem_cgroup_oom(struct mem_cgroup *memcg, gfp_t mask, int order)
+diff -puN mm/swap_state.c~thp-broken-page-count-after-commit-aa88b68c mm/swap_state.c
+--- a/mm/swap_state.c~thp-broken-page-count-after-commit-aa88b68c
++++ a/mm/swap_state.c
+@@ -252,7 +252,10 @@ static inline void free_swap_cache(struc
+ void free_page_and_swap_cache(struct page *page)
  {
--	if (!current->memcg_may_oom || current->memcg_in_oom)
-+	if (!current->memcg_may_oom)
- 		return;
- 	/*
- 	 * We are in the middle of the charge context here, so we
+ 	free_swap_cache(page);
+-	put_page(page);
++	if (is_huge_zero_page(page))
++		put_huge_zero_page();
++	else
++		put_page(page);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-m32r-add-__ucmpdi2-to-fix-build-failure-fix.patch
-mm.patch
-mm-reorganize-slab-freelist-randomization-fix.patch
-mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
-mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
-mm-add-nr_zsmalloc-to-vmstat-fix.patch
-mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
-mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
-thp-extract-khugepaged-from-mm-huge_memoryc-fix.patch
-thp-extract-khugepaged-from-mm-huge_memoryc-fix-2.patch
-nvme-dont-allocate-unused-nvme_major-fix.patch
-bitmap-bitmap_equal-memcmp-optimization-fix.patch
-kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
-kexec-allow-architectures-to-override-boot-mapping-fix.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
