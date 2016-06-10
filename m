@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-remove-bug_on-in-uncharge_list.patch added to -mm tree
-Date: Fri, 10 Jun 2016 15:44:35 -0700
-Message-ID: <575b42d3.Hv8EUC3NShRmBJcU%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-fix-documentation-for-compound-parameter.patch
+ added to -mm tree
+Date: Fri, 10 Jun 2016 15:45:17 -0700
+Message-ID: <575b42fd.xRAmpYapg786U7eH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54283 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54526 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751985AbcFJWog (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jun 2016 18:44:36 -0400
+	with ESMTP id S1751985AbcFJWpS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jun 2016 18:45:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roy.qing.li@gmail.com, hannes@cmpxchg.org, mhocko@suse.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: roy.qing.li@gmail.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: remove BUG_ON in uncharge_list
+     Subject: mm: memcontrol: fix documentation for compound parameter
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-remove-bug_on-in-uncharge_list.patch
+     mm-memcontrol-fix-documentation-for-compound-parameter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-bug_on-in-uncharge_list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-documentation-for-compound-parameter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-bug_on-in-uncharge_list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-documentation-for-compound-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +40,64 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Li RongQing <roy.qing.li@gmail.com>
-Subject: mm: memcontrol: remove BUG_ON in uncharge_list
+Subject: mm: memcontrol: fix documentation for compound parameter
 
-When calling uncharge_list, if a page is transparent huge we don't need to
-BUG_ON about non-transparent huge, since nobody should be able to see the
-page at this stage and this page cannot be raced against with a THP split.
+commit f627c2f53786 ("memcg: adjust to support new THP refcounting")
+adds a compound parameter for several functions, and change one as
+compound for mem_cgroup_move_account but it does not change the
+comments.
 
-This check became unneeded after 0a31bc97c80c ("mm: memcontrol: rewrite
-uncharge API").
-
-[mhocko@suse.com: changelog enhancements]
-Link: http://lkml.kernel.org/r/1465369248-13865-1-git-send-email-roy.qing.li@gmail.com
+Link: http://lkml.kernel.org/r/1465368216-9393-1-git-send-email-roy.qing.li@gmail.com
 Signed-off-by: Li RongQing <roy.qing.li@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memcontrol.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-remove-bug_on-in-uncharge_list mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-remove-bug_on-in-uncharge_list
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-documentation-for-compound-parameter mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-documentation-for-compound-parameter
 +++ a/mm/memcontrol.c
-@@ -5516,7 +5516,6 @@ static void uncharge_list(struct list_he
- 
- 			if (PageTransHuge(page)) {
- 				nr_pages <<= compound_order(page);
--				VM_BUG_ON_PAGE(!PageTransHuge(page), page);
- 				nr_huge += nr_pages;
- 			}
- 			if (PageAnon(page))
+@@ -4443,7 +4443,7 @@ static struct page *mc_handle_file_pte(s
+ /**
+  * mem_cgroup_move_account - move account of the page
+  * @page: the page
+- * @nr_pages: number of regular pages (>1 for huge pages)
++ * @compound: charge the page as compound or small page
+  * @from: mem_cgroup which the page is moved from.
+  * @to:	mem_cgroup which the page is moved to. @from != @to.
+  *
+@@ -5305,6 +5305,7 @@ bool mem_cgroup_low(struct mem_cgroup *r
+  * @mm: mm context of the victim
+  * @gfp_mask: reclaim mode
+  * @memcgp: charged memcg return
++ * @compound: charge the page as compound or small page
+  *
+  * Try to charge @page to the memcg that @mm belongs to, reclaiming
+  * pages according to @gfp_mask if necessary.
+@@ -5367,6 +5368,7 @@ out:
+  * @page: page to charge
+  * @memcg: memcg to charge the page to
+  * @lrucare: page might be on LRU already
++ * @compound: charge the page as compound or small page
+  *
+  * Finalize a charge transaction started by mem_cgroup_try_charge(),
+  * after page->mapping has been set up.  This must happen atomically
+@@ -5418,6 +5420,7 @@ void mem_cgroup_commit_charge(struct pag
+  * mem_cgroup_cancel_charge - cancel a page charge
+  * @page: page to charge
+  * @memcg: memcg to charge the page to
++ * @compound: charge the page as compound or small page
+  *
+  * Cancel a charge transaction started by mem_cgroup_try_charge().
+  */
 _
 
 Patches currently in -mm which might be from roy.qing.li@gmail.com are
 
 mm-memcontrol-remove-the-useless-parameter-for-mc_handle_swap_pte.patch
 mm-memcontrol-remove-bug_on-in-uncharge_list.patch
+mm-memcontrol-fix-documentation-for-compound-parameter.patch
 
