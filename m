@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + revert-mm-make-faultaround-produce-old-ptes.patch added to -mm
+Subject: + mm-fix-build-warnings-in-linux-compactionh.patch added to -mm
  tree
-Date: Tue, 14 Jun 2016 13:41:55 -0700
-Message-ID: <57606c13.mMvk+StIFVJjaMoc%akpm@linux-foundation.org>
+Date: Tue, 14 Jun 2016 13:58:05 -0700
+Message-ID: <57606fdd.XLeZG2gYFaw1aPqt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54283 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751597AbcFNUl4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jun 2016 16:41:56 -0400
+	with ESMTP id S1752779AbcFNU6G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jun 2016 16:58:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dave.hansen@linux.intel.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, torvalds@linux-foundation.org, vinmenon@codeaurora.org, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, aquini@redhat.com, gi-oh.kim@profitbricks.com, koct9i@gmail.com, rdunlap@infradead.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "mm: make faultaround produce old ptes"
+     Subject: mm: fix build warnings in <linux/compaction.h>
 has been added to the -mm tree.  Its filename is
-     revert-mm-make-faultaround-produce-old-ptes.patch
+     mm-fix-build-warnings-in-linux-compactionh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-mm-make-faultaround-produce-old-ptes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-build-warnings-in-linux-compactionh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-mm-make-faultaround-produce-old-ptes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-build-warnings-in-linux-compactionh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,167 +39,189 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: Revert "mm: make faultaround produce old ptes"
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: fix build warnings in <linux/compaction.h>
 
-This reverts commit 5c0a85fad949212b3e059692deecdeed74ae7ec7.
+Randy reported below build error.
 
-The commit causes ~6% regression in unixbench.
+> In file included from ../include/linux/balloon_compaction.h:48:0,
+>                  from ../mm/balloon_compaction.c:11:
+> ../include/linux/compaction.h:237:51: warning: 'struct node' declared inside parameter list [enabled by default]
+>  static inline int compaction_register_node(struct node *node)
+> ../include/linux/compaction.h:237:51: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
+> ../include/linux/compaction.h:242:54: warning: 'struct node' declared inside parameter list [enabled by default]
+>  static inline void compaction_unregister_node(struct node *node)
+>
 
-Let's revert it for now and consider other solution for reclaim problem
-later.
+It was caused by non-lru page migration which needs compaction.h but
+compaction.h doesn't include any header to be standalone.
 
-Link: http://lkml.kernel.org/r/1465893750-44080-2-git-send-email-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+I think proper header for non-lru page migration is migrate.h rather
+than compaction.h because migrate.h has already headers needed to work
+non-lru page migration indirectly like isolate_mode_t, migrate_mode
+MIGRATEPAGE_SUCCESS.
+
+Link: http://lkml.kernel.org/r/20160610003304.GE29779@bbox
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Gioh Kim <gi-oh.kim@profitbricks.com>
+Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/filemap.c       |    2 +-
- mm/memory.c        |   23 +++++------------------
- 3 files changed, 7 insertions(+), 20 deletions(-)
+ Documentation/vm/page_migration    |   11 ++++++-----
+ drivers/virtio/virtio_balloon.c    |    2 +-
+ include/linux/balloon_compaction.h |    2 +-
+ include/linux/compaction.h         |   16 ----------------
+ include/linux/migrate.h            |   15 +++++++++++++++
+ mm/zsmalloc.c                      |    4 ++--
+ 6 files changed, 25 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/mm.h~revert-mm-make-faultaround-produce-old-ptes include/linux/mm.h
---- a/include/linux/mm.h~revert-mm-make-faultaround-produce-old-ptes
-+++ a/include/linux/mm.h
-@@ -602,7 +602,7 @@ static inline pte_t maybe_mkwrite(pte_t
+diff -puN Documentation/vm/page_migration~mm-fix-build-warnings-in-linux-compactionh Documentation/vm/page_migration
+--- a/Documentation/vm/page_migration~mm-fix-build-warnings-in-linux-compactionh
++++ a/Documentation/vm/page_migration
+@@ -181,11 +181,12 @@ After isolation, VM calls migratepage of
+ The function of migratepage is to move content of the old page to new page
+ and set up fields of struct page newpage. Keep in mind that you should
+ indicate to the VM the oldpage is no longer movable via __ClearPageMovable()
+-under page_lock if you migrated the oldpage successfully and returns 0.
+-If driver cannot migrate the page at the moment, driver can return -EAGAIN.
+-On -EAGAIN, VM will retry page migration in a short time because VM interprets
+--EAGAIN as "temporal migration failure". On returning any error except -EAGAIN,
+-VM will give up the page migration without retrying in this time.
++under page_lock if you migrated the oldpage successfully and returns
++MIGRATEPAGE_SUCCESS. If driver cannot migrate the page at the moment, driver
++can return -EAGAIN. On -EAGAIN, VM will retry page migration in a short time
++because VM interprets -EAGAIN as "temporal migration failure". On returning
++any error except -EAGAIN, VM will give up the page migration without retrying
++in this time.
+ 
+ Driver shouldn't touch page.lru field VM using in the functions.
+ 
+diff -puN drivers/virtio/virtio_balloon.c~mm-fix-build-warnings-in-linux-compactionh drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~mm-fix-build-warnings-in-linux-compactionh
++++ a/drivers/virtio/virtio_balloon.c
+@@ -493,7 +493,7 @@ static int virtballoon_migratepage(struc
+ 
+ 	put_page(page); /* balloon reference */
+ 
+-	return 0;
++	return MIGRATEPAGE_SUCCESS;
  }
  
- void do_set_pte(struct vm_area_struct *vma, unsigned long address,
--		struct page *page, pte_t *pte, bool write, bool anon, bool old);
-+		struct page *page, pte_t *pte, bool write, bool anon);
- #endif
+ static struct dentry *balloon_mount(struct file_system_type *fs_type,
+diff -puN include/linux/balloon_compaction.h~mm-fix-build-warnings-in-linux-compactionh include/linux/balloon_compaction.h
+--- a/include/linux/balloon_compaction.h~mm-fix-build-warnings-in-linux-compactionh
++++ a/include/linux/balloon_compaction.h
+@@ -46,7 +46,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/page-flags.h>
+ #include <linux/node.h>
+-#include <linux/compaction.h>
++#include <linux/migrate.h>
+ #include <linux/gfp.h>
+ #include <linux/err.h>
+ #include <linux/fs.h>
+diff -puN include/linux/compaction.h~mm-fix-build-warnings-in-linux-compactionh include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-fix-build-warnings-in-linux-compactionh
++++ a/include/linux/compaction.h
+@@ -54,9 +54,6 @@ enum compact_result {
+ struct alloc_context; /* in mm/internal.h */
  
- /*
-diff -puN mm/filemap.c~revert-mm-make-faultaround-produce-old-ptes mm/filemap.c
---- a/mm/filemap.c~revert-mm-make-faultaround-produce-old-ptes
-+++ a/mm/filemap.c
-@@ -2186,7 +2186,7 @@ repeat:
- 		if (file->f_ra.mmap_miss > 0)
- 			file->f_ra.mmap_miss--;
- 		addr = address + (page->index - vmf->pgoff) * PAGE_SIZE;
--		do_set_pte(vma, addr, page, pte, false, false, true);
-+		do_set_pte(vma, addr, page, pte, false, false);
- 		unlock_page(page);
- 		goto next;
- unlock:
-diff -puN mm/memory.c~revert-mm-make-faultaround-produce-old-ptes mm/memory.c
---- a/mm/memory.c~revert-mm-make-faultaround-produce-old-ptes
-+++ a/mm/memory.c
-@@ -2877,7 +2877,7 @@ static int __do_fault(struct vm_area_str
-  * vm_ops->map_pages.
-  */
- void do_set_pte(struct vm_area_struct *vma, unsigned long address,
--		struct page *page, pte_t *pte, bool write, bool anon, bool old)
-+		struct page *page, pte_t *pte, bool write, bool anon)
- {
- 	pte_t entry;
+ #ifdef CONFIG_COMPACTION
+-extern int PageMovable(struct page *page);
+-extern void __SetPageMovable(struct page *page, struct address_space *mapping);
+-extern void __ClearPageMovable(struct page *page);
+ extern int sysctl_compact_memory;
+ extern int sysctl_compaction_handler(struct ctl_table *table, int write,
+ 			void __user *buffer, size_t *length, loff_t *ppos);
+@@ -154,19 +151,6 @@ extern void kcompactd_stop(int nid);
+ extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx);
  
-@@ -2885,8 +2885,6 @@ void do_set_pte(struct vm_area_struct *v
- 	entry = mk_pte(page, vma->vm_page_prot);
- 	if (write)
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
--	if (old)
--		entry = pte_mkold(entry);
- 	if (anon) {
- 		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
- 		page_add_new_anon_rmap(page, vma, address, false);
-@@ -3032,20 +3030,9 @@ static int do_read_fault(struct mm_struc
- 	 */
- 	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1) {
- 		pte = pte_offset_map_lock(mm, pmd, address, &ptl);
--		if (!pte_same(*pte, orig_pte))
--			goto unlock_out;
- 		do_fault_around(vma, address, pte, pgoff, flags);
--		/* Check if the fault is handled by faultaround */
--		if (!pte_same(*pte, orig_pte)) {
--			/*
--			 * Faultaround produce old pte, but the pte we've
--			 * handler fault for should be young.
--			 */
--			pte_t entry = pte_mkyoung(*pte);
--			if (ptep_set_access_flags(vma, address, pte, entry, 0))
--				update_mmu_cache(vma, address, pte);
-+		if (!pte_same(*pte, orig_pte))
- 			goto unlock_out;
--		}
- 		pte_unmap_unlock(pte, ptl);
- 	}
+ #else
+-static inline int PageMovable(struct page *page)
+-{
+-	return 0;
+-}
+-static inline void __SetPageMovable(struct page *page,
+-			struct address_space *mapping)
+-{
+-}
+-
+-static inline void __ClearPageMovable(struct page *page)
+-{
+-}
+-
+ static inline enum compact_result try_to_compact_pages(gfp_t gfp_mask,
+ 			unsigned int order, int alloc_flags,
+ 			const struct alloc_context *ac,
+diff -puN include/linux/migrate.h~mm-fix-build-warnings-in-linux-compactionh include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-fix-build-warnings-in-linux-compactionh
++++ a/include/linux/migrate.h
+@@ -71,6 +71,21 @@ static inline int migrate_huge_page_move
  
-@@ -3060,7 +3047,7 @@ static int do_read_fault(struct mm_struc
- 		put_page(fault_page);
- 		return ret;
- 	}
--	do_set_pte(vma, address, fault_page, pte, false, false, false);
-+	do_set_pte(vma, address, fault_page, pte, false, false);
- 	unlock_page(fault_page);
- unlock_out:
- 	pte_unmap_unlock(pte, ptl);
-@@ -3111,7 +3098,7 @@ static int do_cow_fault(struct mm_struct
- 		}
- 		goto uncharge_out;
- 	}
--	do_set_pte(vma, address, new_page, pte, true, true, false);
-+	do_set_pte(vma, address, new_page, pte, true, true);
- 	mem_cgroup_commit_charge(new_page, memcg, false, false);
- 	lru_cache_add_active_or_unevictable(new_page, vma);
- 	pte_unmap_unlock(pte, ptl);
-@@ -3164,7 +3151,7 @@ static int do_shared_fault(struct mm_str
- 		put_page(fault_page);
- 		return ret;
- 	}
--	do_set_pte(vma, address, fault_page, pte, true, false, false);
-+	do_set_pte(vma, address, fault_page, pte, true, false);
- 	pte_unmap_unlock(pte, ptl);
+ #endif /* CONFIG_MIGRATION */
  
- 	if (set_page_dirty(fault_page))
++#ifdef CONFIG_COMPACTION
++extern int PageMovable(struct page *page);
++extern void __SetPageMovable(struct page *page, struct address_space *mapping);
++extern void __ClearPageMovable(struct page *page);
++#else
++static inline int PageMovable(struct page *page) { return 0; };
++static inline void __SetPageMovable(struct page *page,
++				struct address_space *mapping)
++{
++}
++static inline void __ClearPageMovable(struct page *page)
++{
++}
++#endif
++
+ #ifdef CONFIG_NUMA_BALANCING
+ extern bool pmd_trans_migrating(pmd_t pmd);
+ extern int migrate_misplaced_page(struct page *page,
+diff -puN mm/zsmalloc.c~mm-fix-build-warnings-in-linux-compactionh mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-fix-build-warnings-in-linux-compactionh
++++ a/mm/zsmalloc.c
+@@ -52,7 +52,7 @@
+ #include <linux/zsmalloc.h>
+ #include <linux/zpool.h>
+ #include <linux/mount.h>
+-#include <linux/compaction.h>
++#include <linux/migrate.h>
+ #include <linux/pagemap.h>
+ #include <trace/events/zsmalloc.h>
+ 
+@@ -2122,7 +2122,7 @@ int zs_page_migrate(struct address_space
+ 	put_page(page);
+ 	page = newpage;
+ 
+-	ret = 0;
++	ret = MIGRATEPAGE_SUCCESS;
+ unpin_objects:
+ 	for (addr = s_addr + offset; addr < s_addr + pos;
+ 						addr += class->size) {
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-revert-mm-make-faultaround-produce-old-ptes.patch
-revert-mm-disable-fault-around-on-emulated-access-bit-architecture.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
-thp-mlock-update-unevictable-lrutxt.patch
-mm-do-not-pass-mm_struct-into-handle_mm_fault.patch
-mm-introduce-fault_env.patch
-mm-postpone-page-table-allocation-until-we-have-page-to-map.patch
-rmap-support-file-thp.patch
-mm-introduce-do_set_pmd.patch
-thp-vmstats-add-counters-for-huge-file-pages.patch
-thp-support-file-pages-in-zap_huge_pmd.patch
-thp-handle-file-pages-in-split_huge_pmd.patch
-thp-handle-file-cow-faults.patch
-thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
-thp-prepare-change_huge_pmd-for-file-thp.patch
-thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem.patch
-thp-file-pages-support-for-split_huge_page.patch
-thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
-vmscan-split-file-huge-pages-before-paging-them-out.patch
-page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim.patch
-radix-tree-implement-radix_tree_maybe_preload_order.patch
-filemap-prepare-find-and-delete-operations-for-huge-pages.patch
-truncate-handle-file-thp.patch
-mm-rmap-account-shmem-thp-pages.patch
-shmem-prepare-huge=-mount-option-and-sysfs-knob.patch
-shmem-add-huge-pages-support.patch
-shmem-thp-respect-madv_nohugepage-for-file-mappings.patch
-thp-extract-khugepaged-from-mm-huge_memoryc.patch
-khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
-shmem-make-shmem_inode_info-lock-irq-safe.patch
-khugepaged-add-support-of-collapse-for-tmpfs-shmem-pages.patch
-thp-introduce-config_transparent_huge_pagecache.patch
-shmem-split-huge-pages-beyond-i_size-under-memory-pressure.patch
-thp-update-documentation-vm-transhugefilesystems-proctxt.patch
+mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+mm-migrate-support-non-lru-movable-page-migration.patch
+mm-balloon-use-general-non-lru-movable-page-feature.patch
+zsmalloc-keep-max_object-in-size_class.patch
+zsmalloc-use-bit_spin_lock.patch
+zsmalloc-use-accessor.patch
+zsmalloc-factor-page-chain-functionality-out.patch
+zsmalloc-introduce-zspage-structure.patch
+zsmalloc-separate-free_zspage-from-putback_zspage.patch
+zsmalloc-use-freeobj-for-index.patch
+zsmalloc-page-migration-support.patch
+zsmalloc-page-migration-support-fix.patch
+zram-use-__gfp_movable-for-memory-allocation.patch
+zsmalloc-use-obj_tag_bit-for-bit-shifter.patch
+mm-add-nr_zsmalloc-to-vmstat.patch
+mm-add-nr_zsmalloc-to-vmstat-fix-2.patch
+mm-fix-build-warnings-in-linux-compactionh.patch
 
