@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + befs-fix-function-name-in-documentation.patch added to -mm tree
-Date: Tue, 14 Jun 2016 16:10:30 -0700
-Message-ID: <57608ee6.M2EaR6FgAjghuwb8%akpm@linux-foundation.org>
+Subject: + befs-remove-unused-functions.patch added to -mm tree
+Date: Tue, 14 Jun 2016 16:10:32 -0700
+Message-ID: <57608ee8.3E3fYepNdnHeipSK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56574 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56577 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751289AbcFNXKb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jun 2016 19:10:31 -0400
+	with ESMTP id S1751838AbcFNXKd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jun 2016 19:10:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: luisbg@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: befs: fix function name in documentation
+     Subject: befs: remove unused functions
 has been added to the -mm tree.  Its filename is
-     befs-fix-function-name-in-documentation.patch
+     befs-remove-unused-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/befs-fix-function-name-in-documentation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/befs-remove-unused-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/befs-fix-function-name-in-documentation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/befs-remove-unused-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +39,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Luis de Bethencourt <luisbg@osg.samsung.com>
-Subject: befs: fix function name in documentation
+Subject: befs: remove unused functions
 
-Documentation of function befs_load_cb() lists it as load_befs_sb().  Fix
-the misnomer.
+befs_iaddr_is_empty() and befs_brun_size() are unused. Remove them.
 
-Link: http://lkml.kernel.org/r/1465700235-22881-2-git-send-email-luisbg@osg.samsung.com
+Link: http://lkml.kernel.org/r/1465700235-22881-3-git-send-email-luisbg@osg.samsung.com
 Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/befs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/befs/befs.h |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff -puN fs/befs/super.c~befs-fix-function-name-in-documentation fs/befs/super.c
---- a/fs/befs/super.c~befs-fix-function-name-in-documentation
-+++ a/fs/befs/super.c
-@@ -14,7 +14,7 @@
- #include "super.h"
+diff -puN fs/befs/befs.h~befs-remove-unused-functions fs/befs/befs.h
+--- a/fs/befs/befs.h~befs-remove-unused-functions
++++ a/fs/befs/befs.h
+@@ -140,18 +140,6 @@ befs_iaddrs_per_block(struct super_block
+ 	return BEFS_SB(sb)->block_size / sizeof (befs_disk_inode_addr);
+ }
  
- /**
-- * load_befs_sb -- Read from disk and properly byteswap all the fields
-+ * befs_load_sb -- Read from disk and properly byteswap all the fields
-  * of the befs superblock
-  *
-  *
-_
-
-Patches currently in -mm which might be from luisbg@osg.samsung.com are
-
-befs-check-return-of-sb_min_blocksize.patch
-befs-fix-function-name-in-documentation.patch
-befs-remove-unused-functions.patch
-
+-static inline int
+-befs_iaddr_is_empty(const befs_inode_addr *iaddr)
+-{
+-	return (!iaddr->allocation_group) && (!iaddr->start) && (!iaddr->len);
+-}
+-
+-static inline size_t
+-befs_brun_size(struct super_block *sb, befs_block_run run)
+-{
+-	return BEFS_SB(sb)->block_size * run.len;
+-}
