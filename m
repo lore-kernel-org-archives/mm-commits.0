@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- kconfigh-use-already-defined-macros-for-is_reachable-define.patch added to
+ kconfigh-allow-to-use-is_enablereachable-in-macro-expansion.patch added to
  -mm tree
-Date: Tue, 14 Jun 2016 15:23:44 -0700
-Message-ID: <576083f0.DK1+IM93pqQ5/xYp%akpm@linux-foundation.org>
+Date: Tue, 14 Jun 2016 15:23:46 -0700
+Message-ID: <576083f2.n49KH1aZOqFcCmT4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56162 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56171 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751113AbcFNWXp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jun 2016 18:23:45 -0400
+	with ESMTP id S1751529AbcFNWXr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jun 2016 18:23:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, arnd@arndb.de, michal.simek@xilinx.com, mmarek@suse.cz, nicolas.pitre@linaro.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kconfig.h: use already defined macros for IS_REACHABLE() define
+     Subject: kconfig.h: allow to use IS_{ENABLE,REACHABLE} in macro expansion
 has been added to the -mm tree.  Its filename is
-     kconfigh-use-already-defined-macros-for-is_reachable-define.patch
+     kconfigh-allow-to-use-is_enablereachable-in-macro-expansion.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kconfigh-use-already-defined-macros-for-is_reachable-define.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kconfigh-allow-to-use-is_enablereachable-in-macro-expansion.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kconfigh-use-already-defined-macros-for-is_reachable-define.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kconfigh-allow-to-use-is_enablereachable-in-macro-expansion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,13 +41,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: kconfig.h: use already defined macros for IS_REACHABLE() define
+Subject: kconfig.h: allow to use IS_{ENABLE,REACHABLE} in macro expansion
 
-For the same reason as commit 02d699f1f464 ("include/linux/kconfig.h: ese
-macros which are already defined"), it is better to use macros
-IS_BUILTIN() and IS_MODULE() for defining IS_REACHABLE().
+The typical usage of IS_ENABLED() is
 
-Link: http://lkml.kernel.org/r/1465883938-25194-3-git-send-email-yamada.masahiro@socionext.com
+    if (IS_ENABLED(CONFIG_FOO)) {
+            ...
+    }
+
+or
+
+    #if IS_ENABLED(CONFIG_FOO)
+            ...
+    #endif
+
+The current implementation of IS_ENABLED() includes "||" operator,
+which works well in those expressions like above.
+
+However, there is a case where we want to evaluate a config option
+beyond those use cases.
+
+For example, the OF_TABLE() in include/asm-generic/vmlinux.lds.h
+needs to evaluate a config option in macro expansion:
+
+  #define ___OF_TABLE(cfg, name)  _OF_TABLE_##cfg(name)
+  #define __OF_TABLE(cfg, name)   ___OF_TABLE(cfg, name)
+  #define OF_TABLE(cfg, name)     __OF_TABLE(config_enabled(cfg), name)
+  #define _OF_TABLE_0(name)
+  #define _OF_TABLE_1(name)            ...
+
+Here, we can not use IS_ENABLED() because of the "||" operator in
+its define.  It is true config_enabled() works well, but it is a bit
+ambiguous to be used against config options.
+
+This commit makes IS_ENABLED() available in more generic context by
+calculating "or" with macro expansion only.
+
+Do likewise for IS_REACHABLE().
+
+Link: http://lkml.kernel.org/r/1465883938-25194-4-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Michal Simek <michal.simek@xilinx.com>
@@ -57,23 +89,65 @@ Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kconfig.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kconfig.h |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/kconfig.h~kconfigh-use-already-defined-macros-for-is_reachable-define include/linux/kconfig.h
---- a/include/linux/kconfig.h~kconfigh-use-already-defined-macros-for-is_reachable-define
+diff -puN include/linux/kconfig.h~kconfigh-allow-to-use-is_enablereachable-in-macro-expansion include/linux/kconfig.h
+--- a/include/linux/kconfig.h~kconfigh-allow-to-use-is_enablereachable-in-macro-expansion
 +++ a/include/linux/kconfig.h
-@@ -42,8 +42,8 @@
+@@ -3,6 +3,21 @@
+ 
+ #include <generated/autoconf.h>
+ 
++#define __ARG_PLACEHOLDER_1 0,
++#define __take_second_arg(__ignored, val, ...) val
++
++/*
++ * The use of "&&" / "||" is limited in certain expressions.
++ * The followings enable to calculate "and" / "or" with macro expansion only.
++ */
++#define __and(x, y)			___and(x, y)
++#define ___and(x, y)			____and(__ARG_PLACEHOLDER_##x, y)
++#define ____and(arg1_or_junk, y)	__take_second_arg(arg1_or_junk y, 0)
++
++#define __or(x, y)			___or(x, y)
++#define ___or(x, y)			____or(__ARG_PLACEHOLDER_##x, y)
++#define ____or(arg1_or_junk, y)		__take_second_arg(arg1_or_junk 1, y)
++
+ /*
+  * Helper macros to use CONFIG_ options in C/CPP expressions. Note that
+  * these only work with boolean and tristate options.
+@@ -16,12 +31,10 @@
+  * When CONFIG_BOOGER is not defined, we generate a (... 1, 0) pair, and when
+  * the last step cherry picks the 2nd arg, we get a zero.
+  */
+-#define __ARG_PLACEHOLDER_1 0,
+ #define config_enabled(cfg)		___is_defined(cfg)
+ #define __is_defined(x)			___is_defined(x)
+ #define ___is_defined(val)		____is_defined(__ARG_PLACEHOLDER_##val)
+ #define ____is_defined(arg1_or_junk)	__take_second_arg(arg1_or_junk 1, 0)
+-#define __take_second_arg(__ignored, val, ...) val
+ 
+ /*
+  * IS_BUILTIN(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y', 0
+@@ -42,14 +55,13 @@
   * This is similar to IS_ENABLED(), but returns false when invoked from
   * built-in code when CONFIG_FOO is set to 'm'.
   */
--#define IS_REACHABLE(option) (config_enabled(option) || \
--		 (config_enabled(option##_MODULE) && __is_defined(MODULE)))
-+#define IS_REACHABLE(option) (IS_BUILTIN(option) || \
-+		 (IS_MODULE(option) && __is_defined(MODULE)))
+-#define IS_REACHABLE(option) (IS_BUILTIN(option) || \
+-		 (IS_MODULE(option) && __is_defined(MODULE)))
++#define IS_REACHABLE(option) __or(IS_BUILTIN(option), \
++				__and(IS_MODULE(option), __is_defined(MODULE)))
  
  /*
   * IS_ENABLED(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y' or 'm',
+  * 0 otherwise.
+  */
+-#define IS_ENABLED(option) \
+-	(IS_BUILTIN(option) || IS_MODULE(option))
++#define IS_ENABLED(option) __or(IS_BUILTIN(option), IS_MODULE(option))
+ 
+ #endif /* __LINUX_KCONFIG_H */
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
