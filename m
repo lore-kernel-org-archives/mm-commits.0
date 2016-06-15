@@ -1,85 +1,306 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-replace-nilfs_warning-with-nilfs_msg-fix.patch added to
- -mm tree
-Date: Wed, 15 Jun 2016 13:28:09 -0700
-Message-ID: <5761ba59.rxeBv7H60hCmeae1%akpm@linux-foundation.org>
+Subject: mmotm 2016-06-15-16-18 uploaded
+Date: Wed, 15 Jun 2016 16:19:11 -0700
+Message-ID: <5761e26f.MHvD259NaWb993rU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33472 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35829 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161028AbcFOU2K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jun 2016 16:28:10 -0400
+	with ESMTP id S1752819AbcFOXTM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jun 2016 19:19:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
+
+The mm-of-the-moment snapshot 2016-06-15-16-18 has been uploaded to
+
+   http://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+http://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
+
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
 
 
-The patch titled
-     Subject: nilfs: avoid warning about unused variables
-has been added to the -mm tree.  Its filename is
-     nilfs2-replace-nilfs_warning-with-nilfs_msg-fix.patch
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-replace-nilfs_warning-with-nilfs_msg-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-replace-nilfs_warning-with-nilfs_msg-fix.patch
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+To develop on top of mmotm git:
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+To rebase a branch with older patches to a new mmotm release:
 
-------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: nilfs: avoid warning about unused variables
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
 
-The newly added nilfs_msg() infrastructure caused a warning in
-nilfs_clear_dirty_page() when it is disabled:
 
-fs/nilfs2/page.c: In function 'nilfs_clear_dirty_page':
-fs/nilfs2/page.c:402:22: error: unused variable 'sb' [-Werror=unused-variable]
-  struct super_block *sb = inode->i_sb;
 
-We can avoid the warning by adding a cast to void for the first
-argument of the macro.
 
-Fixes: aede53d223f0 ("nilfs2: replace nilfs_warning() with nilfs_msg()")
-Link: http://lkml.kernel.org/r/20160615201945.3348205-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
- fs/nilfs2/nilfs.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+A git copy of this tree is available at
 
-diff -puN fs/nilfs2/nilfs.h~nilfs2-replace-nilfs_warning-with-nilfs_msg-fix fs/nilfs2/nilfs.h
---- a/fs/nilfs2/nilfs.h~nilfs2-replace-nilfs_warning-with-nilfs_msg-fix
-+++ a/fs/nilfs2/nilfs.h
-@@ -317,7 +317,10 @@ void __nilfs_error(struct super_block *s
- #else
- 
- #define nilfs_msg(sb, level, fmt, ...)					\
--	no_printk(fmt, ##__VA_ARGS__)
-+	do {								\
-+		no_printk(fmt, ##__VA_ARGS__);				\
-+		(void)(sb);						\
-+	} while (0)
- #define nilfs_error(sb, fmt, ...)					\
- 	do {								\
- 		no_printk(fmt, ##__VA_ARGS__);				\
-_
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
 
-Patches currently in -mm which might be from arnd@arndb.de are
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
 
-nilfs2-replace-nilfs_warning-with-nilfs_msg-fix.patch
 
+This mmotm tree contains the following patches against 4.7-rc3:
+(patches marked "*" will be included in linux-next)
+
+  origin.patch
+  i-need-old-gcc.patch
+  arch-alpha-kernel-systblss-remove-debug-check.patch
+* mmoom_reaper-dont-call-mmput_async-without-atomic_inc_not_zero.patch
+* oom_reaper-avoid-pointless-atomic_inc_not_zero-usage.patch
+* selftests-vm-compaction_test-fix-write-to-restore-nr_hugepages.patch
+* tmpfs-dont-undo-fallocate-past-its-last-page.patch
+* tree-wide-get-rid-of-__gfp_repeat-for-order-0-allocations-part-i.patch
+* x86-get-rid-of-superfluous-__gfp_repeat.patch
+* x86-efi-get-rid-of-superfluous-__gfp_repeat.patch
+* arm64-get-rid-of-superfluous-__gfp_repeat.patch
+* arc-get-rid-of-superfluous-__gfp_repeat.patch
+* mips-get-rid-of-superfluous-__gfp_repeat.patch
+* nios2-get-rid-of-superfluous-__gfp_repeat.patch
+* parisc-get-rid-of-superfluous-__gfp_repeat.patch
+* score-get-rid-of-superfluous-__gfp_repeat.patch
+* powerpc-get-rid-of-superfluous-__gfp_repeat.patch
+* sparc-get-rid-of-superfluous-__gfp_repeat.patch
+* s390-get-rid-of-superfluous-__gfp_repeat.patch
+* sh-get-rid-of-superfluous-__gfp_repeat.patch
+* tile-get-rid-of-superfluous-__gfp_repeat.patch
+* unicore32-get-rid-of-superfluous-__gfp_repeat.patch
+* jbd2-get-rid-of-superfluous-__gfp_repeat.patch
+* arm-get-rid-of-superfluous-__gfp_repeat.patch
+* maintainers-update-calgary-iommu.patch
+* mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine.patch
+* mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask.patch
+* update-email-addresses-in-maintainers-and-mailmap.patch
+* mailmap-antoine-tenarts-email.patch
+* mailmap-boris-brezillons-email.patch
+* revert-mm-make-faultaround-produce-old-ptes.patch
+* revert-mm-disable-fault-around-on-emulated-access-bit-architecture.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* dax-use-devm_add_action_or_reset.patch
+* m32r-add-__ucmpdi2-to-fix-build-failure.patch
+* debugobjectsh-fix-trivial-kernel-doc-warning.patch
+* fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+* ocfs2-fix-a-redundant-re-initialization.patch
+* ocfs2-insure-dlm-lockspace-is-created-by-kernel-module.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+  mm.patch
+* mm-reorganize-slab-freelist-randomization.patch
+* mm-reorganize-slab-freelist-randomization-fix.patch
+* mm-slub-freelist-randomization.patch
+* slab-make-gfp_slab_bug_mask-information-more-human-readable.patch
+* slab-do-not-panic-on-invalid-gfp_mask.patch
+* mm-memcontrol-remove-the-useless-parameter-for-mc_handle_swap_pte.patch
+* mm-init-fix-zone-boundary-creation.patch
+* memory-hotplug-add-move_pfn_range.patch
+* memory-hotplug-more-general-validation-of-zone-during-online.patch
+* memory-hotplug-use-zone_can_shift-for-sysfs-valid_zones-attribute.patch
+* mm-zap-zone_oom_locked.patch
+* mm-oom-add-memcg-to-oom_control.patch
+* mm-debug-add-vm_warn-which-maps-to-warn.patch
+* powerpc-mm-check-for-irq-disabled-only-if-debug_vm-is-enabled.patch
+* zram-rename-zstrm-find-release-functions.patch
+* zram-switch-to-crypto-compress-api.patch
+* zram-use-crypto-api-to-check-alg-availability.patch
+* zram-use-crypto-api-to-check-alg-availability-v3.patch
+* zram-cosmetic-cleanup-documentation.patch
+* zram-delete-custom-lzo-lz4.patch
+* zram-delete-custom-lzo-lz4-v3.patch
+* zram-add-more-compression-algorithms.patch
+* zram-add-more-compression-algorithms-v3.patch
+* zram-drop-gfp_t-from-zcomp_strm_alloc.patch
+* mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+* mm-migrate-support-non-lru-movable-page-migration.patch
+* mm-balloon-use-general-non-lru-movable-page-feature.patch
+* mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
+* zsmalloc-keep-max_object-in-size_class.patch
+* zsmalloc-use-bit_spin_lock.patch
+* zsmalloc-use-accessor.patch
+* zsmalloc-factor-page-chain-functionality-out.patch
+* zsmalloc-introduce-zspage-structure.patch
+* zsmalloc-separate-free_zspage-from-putback_zspage.patch
+* zsmalloc-use-freeobj-for-index.patch
+* zsmalloc-page-migration-support.patch
+* zsmalloc-page-migration-support-fix.patch
+* zsmalloc-page-migration-support-fix-2.patch
+* zram-use-__gfp_movable-for-memory-allocation.patch
+* zsmalloc-use-obj_tag_bit-for-bit-shifter.patch
+* mm-compaction-split-freepages-without-holding-the-zone-lock.patch
+* mm-page_owner-initialize-page-owner-without-holding-the-zone-lock.patch
+* mm-page_owner-copy-last_migrate_reason-in-copy_page_owner.patch
+* mm-page_owner-introduce-split_page_owner-and-replace-manual-handling.patch
+* tools-vm-page_owner-increase-temporary-buffer-size.patch
+* mm-page_owner-use-stackdepot-to-store-stacktrace.patch
+* mm-page_owner-use-stackdepot-to-store-stacktrace-fix.patch
+* mm-page_alloc-introduce-post-allocation-processing-on-page-allocator.patch
+* mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
+* mm-hugetlb-simplify-hugetlb-unmap.patch
+* mm-change-the-interface-for-__tlb_remove_page.patch
+* mm-change-the-interface-for-__tlb_remove_page-v3.patch
+* mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change.patch
+* mm-remove-pointless-struct-in-struct-page-definition.patch
+* mm-clean-up-non-standard-page-_mapcount-users.patch
+* mm-memcontrol-cleanup-kmem-charge-functions.patch
+* mm-charge-uncharge-kmemcg-from-generic-page-allocator-paths.patch
+* mm-memcontrol-teach-uncharge_list-to-deal-with-kmem-pages.patch
+* arch-x86-charge-page-tables-to-kmemcg.patch
+* pipe-account-to-kmemcg.patch
+* af_unix-charge-buffers-to-kmemcg.patch
+* mmoom-remove-unused-argument-from-oom_scan_process_thread.patch
+* mm-frontswap-convert-frontswap_enabled-to-static-key.patch
+* mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+* mm-add-nr_zsmalloc-to-vmstat.patch
+* mm-add-nr_zsmalloc-to-vmstat-fix.patch
+* mm-add-nr_zsmalloc-to-vmstat-fix-2.patch
+* include-linux-memblockh-clean-up-code-for-several-trivial-details.patch
+* mm-oom_reaper-make-sure-that-mmput_async-is-called-only-when-memory-was-reaped.patch
+* mm-memcg-use-consistent-gfp-flags-during-readahead.patch
+* mm-memcg-use-consistent-gfp-flags-during-readahead-fix.patch
+* mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+* mm-memblock-if-nr_new-is-0-just-return.patch
+* mm-make-optimistic-check-for-swapin-readahead.patch
+* mm-make-optimistic-check-for-swapin-readahead-fix-2.patch
+* mm-make-optimistic-check-for-swapin-readahead-fix-3.patch
+* mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
+* mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+* mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+* mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+* mm-vmstat-calculate-particular-vm-event.patch
+* mm-thp-avoid-unnecessary-swapin-in-khugepaged.patch
+* mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix.patch
+* mm-thp-avoid-unnecessary-swapin-in-khugepaged-fix-2.patch
+* mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem.patch
+* mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
+* mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2.patch
+* mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+* mm-zsmalloc-add-trace-events-for-zs_compact.patch
+* mm-fix-build-warnings-in-linux-compactionh.patch
+* mm-memcontrol-remove-bug_on-in-uncharge_list.patch
+* mm-memcontrol-fix-documentation-for-compound-parameter.patch
+* proc_oom_score-remove-tasklist_lock-and-pid_alive.patch
+* memstick-dont-allocate-unused-major-for-ms_block.patch
+* nvme-dont-allocate-unused-nvme_major.patch
+* nvme-dont-allocate-unused-nvme_major-fix.patch
+* task_work-use-read_once-lockless_dereference-avoid-pi_lock-if-task_works.patch
+* jump_label-remove-bugh-atomich-dependencies-for-have_jump_label.patch
+* powerpc-add-explicit-include-asm-asm-compath-for-jump-label.patch
+* s390-add-explicit-linux-stringifyh-for-jump-label.patch
+* dynamic_debug-add-jump-label-support.patch
+* lib-switch-config_printk_time-to-int.patch
+* printk-allow-different-timestamps-for-printktime.patch
+* lib-iommu-helper-skip-to-next-segment.patch
+* lib-add-crc64-ecma-module.patch
+* firmware-consolidate-kmap-read-write-logic.patch
+* firmware-provide-infrastructure-to-make-fw-caching-optional.patch
+* firmware-support-loading-into-a-pre-allocated-buffer.patch
+* samples-kprobe-convert-the-printk-to-pr_info-pr_err.patch
+* samples-jprobe-convert-the-printk-to-pr_info-pr_err.patch
+* samples-kretprobe-convert-the-printk-to-pr_info-pr_err.patch
+* samples-kretprobe-fix-the-wrong-type.patch
+* fs-befs-move-useless-assignment.patch
+* fs-befs-check-silent-flag-before-logging-errors.patch
+* fs-befs-remove-useless-pr_err.patch
+* fs-befs-remove-useless-befs_error.patch
+* fs-befs-remove-useless-pr_err-in-befs_init_inodecache.patch
+* befs-check-return-of-sb_min_blocksize.patch
+* befs-fix-function-name-in-documentation.patch
+* befs-remove-unused-functions.patch
+* nilfs2-hide-function-name-argument-from-nilfs_error.patch
+* nilfs2-add-nilfs_msg-message-interface.patch
+* nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object.patch
+* nilfs2-reduce-bare-use-of-printk-with-nilfs_msg.patch
+* nilfs2-replace-nilfs_warning-with-nilfs_msg.patch
+* nilfs2-replace-nilfs_warning-with-nilfs_msg-fix.patch
+* nilfs2-emit-error-message-when-i-o-error-is-detected.patch
+* nilfs2-do-not-use-yield.patch
+* nilfs2-refactor-parser-of-snapshot-mount-option.patch
+* nilfs2-fix-misuse-of-a-semaphore-in-sysfs-code.patch
+* nilfs2-use-bit-macro.patch
+* nilfs2-move-ioctl-interface-and-disk-layout-to-uapi-separately.patch
+* reiserfs-fix-new_insert_key-may-be-used-uninitialized.patch
+* cpumask-fix-code-comment.patch
+* kexec-return-error-number-directly.patch
+* arm-kdump-advertise-boot-aliased-crash-kernel-resource.patch
+* arm-kexec-advertise-location-of-bootable-ram.patch
+* kexec-dont-invoke-oom-killer-for-control-page-allocation.patch
+* kexec-ensure-user-memory-sizes-do-not-wrap.patch
+* kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+* kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t.patch
+* kexec-allow-architectures-to-override-boot-mapping.patch
+* kexec-allow-architectures-to-override-boot-mapping-fix.patch
+* arm-keystone-dts-add-psci-command-definition.patch
+* arm-kexec-fix-kexec-for-keystone-2.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* futex-fix-shared-futex-operations-on-nommu.patch
+* dma-mapping-constify-attrs-passed-to-dma_get_attr.patch
+* arm-dma-mapping-constify-attrs-passed-to-internal-functions.patch
+* arm64-dma-mapping-constify-attrs-passed-to-internal-functions.patch
+* w1-remove-need-for-ida-and-use-platform_devid_auto.patch
+* w1-add-helper-macro-module_w1_family.patch
+* kconfigh-use-__is_defined-to-check-if-module-is-defined.patch
+* exporth-use-__is_defined-to-check-if-__ksym_-is-defined.patch
+* kconfigh-use-already-defined-macros-for-is_reachable-define.patch
+* kconfigh-allow-to-use-is_enablereachable-in-macro-expansion.patch
+* vmlinuxldsh-replace-config_enabled-with-is_enabled.patch
+* kcov-allow-more-fine-grained-coverage-instrumentation.patch
+* ipc-semc-fix-complex_count-vs-simple-op-race.patch
+* ipc-msgc-msgsnd-use-freezable-blocking-call.patch
+* msgrcv-use-freezable-blocking-call.patch
+  linux-next.patch
+  linux-next-rejects.patch
+* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+* fpga-zynq-fpga-fix-build-failure.patch
+* tree-wide-replace-config_enabled-with-is_enabled.patch
+* bitmap-bitmap_equal-memcmp-optimization-fix.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  make-frame_pointer-default=y.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  add-debugging-aid-for-memory-initialisation-problems.patch
+  workaround-for-a-pci-restoring-bug.patch
