@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-implement-radix_tree_maybe_preload_order.patch added to -mm tree
-Date: Thu, 16 Jun 2016 15:22:50 -0700
-Message-ID: <576326ba.WKxlxI7O5g9BORmt%akpm@linux-foundation.org>
+Subject: + thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch added
+ to -mm tree
+Date: Thu, 16 Jun 2016 15:22:49 -0700
+Message-ID: <576326b9.9lnUo1lEC7fMuHUi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38401 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38395 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754695AbcFPWWv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:51 -0400
+	with ESMTP id S1754727AbcFPWWu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: implement radix_tree_maybe_preload_order()
+     Subject: thp, mlock: do not mlock PTE-mapped file huge pages
 has been added to the -mm tree.  Its filename is
-     radix-tree-implement-radix_tree_maybe_preload_order.patch
+     thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-implement-radix_tree_maybe_preload_order.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-implement-radix_tree_maybe_preload_order.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,182 +40,165 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: radix-tree: implement radix_tree_maybe_preload_order()
+Subject: thp, mlock: do not mlock PTE-mapped file huge pages
 
-The new helper is similar to radix_tree_maybe_preload(), but tries to
-preload number of nodes required to insert (1 << order) continuous
-naturally-aligned elements.
+As with anon THP, we only mlock file huge pages if we can prove that the
+page is not mapped with PTE. This way we can avoid mlock leak into
+non-mlocked vma on split.
 
-This is required to push huge pages into pagecache.
+We rely on PageDoubleMap() under lock_page() to check if the the page
+may be PTE mapped. PG_double_map is set by page_add_file_rmap() when the
+page mapped with PTEs.
 
-Link: http://lkml.kernel.org/r/1466021202-61880-24-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1466021202-61880-21-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    1 
- lib/radix-tree.c           |   84 ++++++++++++++++++++++++++++++++---
- 2 files changed, 80 insertions(+), 5 deletions(-)
+ include/linux/page-flags.h |   13 ++++++++++++-
+ mm/huge_memory.c           |   27 ++++++++++++++++++++-------
+ mm/mmap.c                  |    6 ++++++
+ mm/page_alloc.c            |    2 ++
+ mm/rmap.c                  |   16 ++++++++++++++--
+ 5 files changed, 54 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-implement-radix_tree_maybe_preload_order include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-implement-radix_tree_maybe_preload_order
-+++ a/include/linux/radix-tree.h
-@@ -291,6 +291,7 @@ unsigned int radix_tree_gang_lookup_slot
- 			unsigned long first_index, unsigned int max_items);
- int radix_tree_preload(gfp_t gfp_mask);
- int radix_tree_maybe_preload(gfp_t gfp_mask);
-+int radix_tree_maybe_preload_order(gfp_t gfp_mask, int order);
- void radix_tree_init(void);
- void *radix_tree_tag_set(struct radix_tree_root *root,
- 			unsigned long index, unsigned int tag);
-diff -puN lib/radix-tree.c~radix-tree-implement-radix_tree_maybe_preload_order lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-implement-radix_tree_maybe_preload_order
-+++ a/lib/radix-tree.c
-@@ -38,6 +38,9 @@
- #include <linux/preempt.h>		/* in_interrupt() */
+diff -puN include/linux/page-flags.h~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
++++ a/include/linux/page-flags.h
+@@ -581,6 +581,17 @@ static inline int PageDoubleMap(struct p
+ 	return PageHead(page) && test_bit(PG_double_map, &page[1].flags);
+ }
  
- 
-+/* Number of nodes in fully populated tree of given height */
-+static unsigned long height_to_maxnodes[RADIX_TREE_MAX_PATH + 1] __read_mostly;
++static inline void SetPageDoubleMap(struct page *page)
++{
++	VM_BUG_ON_PAGE(!PageHead(page), page);
++	set_bit(PG_double_map, &page[1].flags);
++}
 +
- /*
-  * Radix tree node cache.
-  */
-@@ -342,7 +345,7 @@ radix_tree_node_free(struct radix_tree_n
-  * To make use of this facility, the radix tree must be initialised without
-  * __GFP_DIRECT_RECLAIM being passed to INIT_RADIX_TREE().
-  */
--static int __radix_tree_preload(gfp_t gfp_mask)
-+static int __radix_tree_preload(gfp_t gfp_mask, int nr)
++static inline void ClearPageDoubleMap(struct page *page)
++{
++	VM_BUG_ON_PAGE(!PageHead(page), page);
++	clear_bit(PG_double_map, &page[1].flags);
++}
+ static inline int TestSetPageDoubleMap(struct page *page)
  {
- 	struct radix_tree_preload *rtp;
- 	struct radix_tree_node *node;
-@@ -350,14 +353,14 @@ static int __radix_tree_preload(gfp_t gf
+ 	VM_BUG_ON_PAGE(!PageHead(page), page);
+@@ -598,7 +609,7 @@ TESTPAGEFLAG_FALSE(TransHuge)
+ TESTPAGEFLAG_FALSE(TransCompound)
+ TESTPAGEFLAG_FALSE(TransCompoundMap)
+ TESTPAGEFLAG_FALSE(TransTail)
+-TESTPAGEFLAG_FALSE(DoubleMap)
++PAGEFLAG_FALSE(DoubleMap)
+ 	TESTSETFLAG_FALSE(DoubleMap)
+ 	TESTCLEARFLAG_FALSE(DoubleMap)
+ #endif
+diff -puN mm/huge_memory.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
++++ a/mm/huge_memory.c
+@@ -1437,6 +1437,8 @@ struct page *follow_trans_huge_pmd(struc
+ 		 * We don't mlock() pte-mapped THPs. This way we can avoid
+ 		 * leaking mlocked pages into non-VM_LOCKED VMAs.
+ 		 *
++		 * For anon THP:
++		 *
+ 		 * In most cases the pmd is the only mapping of the page as we
+ 		 * break COW for the mlock() -- see gup_flags |= FOLL_WRITE for
+ 		 * writable private mappings in populate_vma_page_range().
+@@ -1444,15 +1446,26 @@ struct page *follow_trans_huge_pmd(struc
+ 		 * The only scenario when we have the page shared here is if we
+ 		 * mlocking read-only mapping shared over fork(). We skip
+ 		 * mlocking such pages.
++		 *
++		 * For file THP:
++		 *
++		 * We can expect PageDoubleMap() to be stable under page lock:
++		 * for file pages we set it in page_add_file_rmap(), which
++		 * requires page to be locked.
+ 		 */
+-		if (compound_mapcount(page) == 1 && !PageDoubleMap(page) &&
+-				page->mapping && trylock_page(page)) {
+-			lru_add_drain();
+-			if (page->mapping)
+-				mlock_vma_page(page);
+-			unlock_page(page);
+-		}
++
++		if (PageAnon(page) && compound_mapcount(page) != 1)
++			goto skip_mlock;
++		if (PageDoubleMap(page) || !page->mapping)
++			goto skip_mlock;
++		if (!trylock_page(page))
++			goto skip_mlock;
++		lru_add_drain();
++		if (page->mapping && !PageDoubleMap(page))
++			mlock_vma_page(page);
++		unlock_page(page);
+ 	}
++skip_mlock:
+ 	page += (addr & ~HPAGE_PMD_MASK) >> PAGE_SHIFT;
+ 	VM_BUG_ON_PAGE(!PageCompound(page), page);
+ 	if (flags & FOLL_GET)
+diff -puN mm/mmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/mmap.c
+--- a/mm/mmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
++++ a/mm/mmap.c
+@@ -2591,6 +2591,12 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 		/* drop PG_Mlocked flag for over-mapped range */
+ 		for (tmp = vma; tmp->vm_start >= start + size;
+ 				tmp = tmp->vm_next) {
++			/*
++			 * Split pmd and munlock page on the border
++			 * of the range.
++			 */
++			vma_adjust_trans_huge(tmp, start, start + size, 0);
++
+ 			munlock_vma_pages_range(tmp,
+ 					max(tmp->vm_start, start),
+ 					min(tmp->vm_end, start + size));
+diff -puN mm/page_alloc.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
++++ a/mm/page_alloc.c
+@@ -1005,6 +1005,8 @@ static __always_inline bool free_pages_p
  
- 	preempt_disable();
- 	rtp = this_cpu_ptr(&radix_tree_preloads);
--	while (rtp->nr < RADIX_TREE_PRELOAD_SIZE) {
-+	while (rtp->nr < nr) {
- 		preempt_enable();
- 		node = kmem_cache_alloc(radix_tree_node_cachep, gfp_mask);
- 		if (node == NULL)
+ 		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
+ 
++		if (compound)
++			ClearPageDoubleMap(page);
+ 		for (i = 1; i < (1 << order); i++) {
+ 			if (compound)
+ 				bad += free_tail_pages_check(page, page + i);
+diff -puN mm/rmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/rmap.c
+--- a/mm/rmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
++++ a/mm/rmap.c
+@@ -1287,6 +1287,12 @@ void page_add_file_rmap(struct page *pag
+ 		if (!atomic_inc_and_test(compound_mapcount_ptr(page)))
  			goto out;
- 		preempt_disable();
- 		rtp = this_cpu_ptr(&radix_tree_preloads);
--		if (rtp->nr < RADIX_TREE_PRELOAD_SIZE) {
-+		if (rtp->nr < nr) {
- 			node->private_data = rtp->nodes;
- 			rtp->nodes = node;
- 			rtp->nr++;
-@@ -383,7 +386,7 @@ int radix_tree_preload(gfp_t gfp_mask)
- {
- 	/* Warn on non-sensical use... */
- 	WARN_ON_ONCE(!gfpflags_allow_blocking(gfp_mask));
--	return __radix_tree_preload(gfp_mask);
-+	return __radix_tree_preload(gfp_mask, RADIX_TREE_PRELOAD_SIZE);
- }
- EXPORT_SYMBOL(radix_tree_preload);
- 
-@@ -395,7 +398,7 @@ EXPORT_SYMBOL(radix_tree_preload);
- int radix_tree_maybe_preload(gfp_t gfp_mask)
- {
- 	if (gfpflags_allow_blocking(gfp_mask))
--		return __radix_tree_preload(gfp_mask);
-+		return __radix_tree_preload(gfp_mask, RADIX_TREE_PRELOAD_SIZE);
- 	/* Preloading doesn't help anything with this gfp mask, skip it */
- 	preempt_disable();
- 	return 0;
-@@ -403,6 +406,51 @@ int radix_tree_maybe_preload(gfp_t gfp_m
- EXPORT_SYMBOL(radix_tree_maybe_preload);
- 
- /*
-+ * The same as function above, but preload number of nodes required to insert
-+ * (1 << order) continuous naturally-aligned elements.
-+ */
-+int radix_tree_maybe_preload_order(gfp_t gfp_mask, int order)
-+{
-+	unsigned long nr_subtrees;
-+	int nr_nodes, subtree_height;
-+
-+	/* Preloading doesn't help anything with this gfp mask, skip it */
-+	if (!gfpflags_allow_blocking(gfp_mask)) {
-+		preempt_disable();
-+		return 0;
-+	}
-+
-+	/*
-+	 * Calculate number and height of fully populated subtrees it takes to
-+	 * store (1 << order) elements.
-+	 */
-+	nr_subtrees = 1 << order;
-+	for (subtree_height = 0; nr_subtrees > RADIX_TREE_MAP_SIZE;
-+			subtree_height++)
-+		nr_subtrees >>= RADIX_TREE_MAP_SHIFT;
-+
-+	/*
-+	 * The worst case is zero height tree with a single item at index 0 and
-+	 * then inserting items starting at ULONG_MAX - (1 << order).
-+	 *
-+	 * This requires RADIX_TREE_MAX_PATH nodes to build branch from root to
-+	 * 0-index item.
-+	 */
-+	nr_nodes = RADIX_TREE_MAX_PATH;
-+
-+	/* Plus branch to fully populated subtrees. */
-+	nr_nodes += RADIX_TREE_MAX_PATH - subtree_height;
-+
-+	/* Root node is shared. */
-+	nr_nodes--;
-+
-+	/* Plus nodes required to build subtrees. */
-+	nr_nodes += nr_subtrees * height_to_maxnodes[subtree_height];
-+
-+	return __radix_tree_preload(gfp_mask, nr_nodes);
-+}
-+
-+/*
-  * The maximum index which can be stored in a radix tree
-  */
- static inline unsigned long shift_maxindex(unsigned int shift)
-@@ -1571,6 +1619,31 @@ radix_tree_node_ctor(void *arg)
- 	INIT_LIST_HEAD(&node->private_list);
- }
- 
-+static __init unsigned long __maxindex(unsigned int height)
-+{
-+	unsigned int width = height * RADIX_TREE_MAP_SHIFT;
-+	int shift = RADIX_TREE_INDEX_BITS - width;
-+
-+	if (shift < 0)
-+		return ~0UL;
-+	if (shift >= BITS_PER_LONG)
-+		return 0UL;
-+	return ~0UL >> shift;
-+}
-+
-+static __init void radix_tree_init_maxnodes(void)
-+{
-+	unsigned long height_to_maxindex[RADIX_TREE_MAX_PATH + 1];
-+	unsigned int i, j;
-+
-+	for (i = 0; i < ARRAY_SIZE(height_to_maxindex); i++)
-+		height_to_maxindex[i] = __maxindex(i);
-+	for (i = 0; i < ARRAY_SIZE(height_to_maxnodes); i++) {
-+		for (j = i; j > 0; j--)
-+			height_to_maxnodes[i] += height_to_maxindex[j - 1] + 1;
-+	}
-+}
-+
- static int radix_tree_callback(struct notifier_block *nfb,
- 				unsigned long action, void *hcpu)
- {
-@@ -1597,5 +1670,6 @@ void __init radix_tree_init(void)
- 			sizeof(struct radix_tree_node), 0,
- 			SLAB_PANIC | SLAB_RECLAIM_ACCOUNT,
- 			radix_tree_node_ctor);
-+	radix_tree_init_maxnodes();
- 	hotcpu_notifier(radix_tree_callback, 0);
- }
+ 	} else {
++		if (PageTransCompound(page)) {
++			VM_BUG_ON_PAGE(!PageLocked(page), page);
++			SetPageDoubleMap(compound_head(page));
++			if (PageMlocked(page))
++				clear_page_mlock(compound_head(page));
++		}
+ 		if (!atomic_inc_and_test(&page->_mapcount))
+ 			goto out;
+ 	}
+@@ -1460,8 +1466,14 @@ static int try_to_unmap_one(struct page
+ 	 */
+ 	if (!(flags & TTU_IGNORE_MLOCK)) {
+ 		if (vma->vm_flags & VM_LOCKED) {
+-			/* Holding pte lock, we do *not* need mmap_sem here */
+-			mlock_vma_page(page);
++			/* PTE-mapped THP are never mlocked */
++			if (!PageTransCompound(page)) {
++				/*
++				 * Holding pte lock, we do *not* need
++				 * mmap_sem here
++				 */
++				mlock_vma_page(page);
++			}
+ 			ret = SWAP_MLOCK;
+ 			goto out_unmap;
+ 		}
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
