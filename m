@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thp-support-file-pages-in-zap_huge_pmd.patch added to -mm tree
+Subject: + thp-vmstats-add-counters-for-huge-file-pages.patch added to -mm tree
 Date: Thu, 16 Jun 2016 15:22:44 -0700
-Message-ID: <576326b4.2rgFBlA6rBn0nb7v%akpm@linux-foundation.org>
+Message-ID: <576326b4.ltofMQtwiLb8U4+K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38353 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38376 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754693AbcFPWWp (ORCPT
+	with ESMTP id S1754677AbcFPWWp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +17,14 @@ To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: support file pages in zap_huge_pmd()
+     Subject: thp, vmstats: add counters for huge file pages
 has been added to the -mm tree.  Its filename is
-     thp-support-file-pages-in-zap_huge_pmd.patch
+     thp-vmstats-add-counters-for-huge-file-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-support-file-pages-in-zap_huge_pmd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-vmstats-add-counters-for-huge-file-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-support-file-pages-in-zap_huge_pmd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-vmstats-add-counters-for-huge-file-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +39,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: support file pages in zap_huge_pmd()
+Subject: thp, vmstats: add counters for huge file pages
 
-split_huge_pmd() for file mappings (and DAX too) is implemented by just
-clearing pmd entry as we can re-fill this area from page cache on pte
-level later.
+THP_FILE_ALLOC: how many times huge page was allocated and put page
+cache.
 
-This means we don't need deposit page tables when file THP is mapped.
-Therefore we shouldn't try to withdraw a page table on zap_huge_pmd()
-file THP PMD.
+THP_FILE_MAPPED: how many times file huge page was mapped.
 
-Link: http://lkml.kernel.org/r/1466021202-61880-14-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1466021202-61880-13-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ include/linux/vm_event_item.h |    7 +++++++
+ mm/memory.c                   |    1 +
+ mm/vmstat.c                   |    2 ++
+ 3 files changed, 10 insertions(+)
 
-diff -puN mm/huge_memory.c~thp-support-file-pages-in-zap_huge_pmd mm/huge_memory.c
---- a/mm/huge_memory.c~thp-support-file-pages-in-zap_huge_pmd
-+++ a/mm/huge_memory.c
-@@ -1694,10 +1694,16 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 		struct page *page = pmd_page(orig_pmd);
- 		page_remove_rmap(page, true);
- 		VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
--		add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
- 		VM_BUG_ON_PAGE(!PageHead(page), page);
--		pte_free(tlb->mm, pgtable_trans_huge_withdraw(tlb->mm, pmd));
--		atomic_long_dec(&tlb->mm->nr_ptes);
-+		if (PageAnon(page)) {
-+			pgtable_t pgtable;
-+			pgtable = pgtable_trans_huge_withdraw(tlb->mm, pmd);
-+			pte_free(tlb->mm, pgtable);
-+			atomic_long_dec(&tlb->mm->nr_ptes);
-+			add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
-+		} else {
-+			add_mm_counter(tlb->mm, MM_FILEPAGES, -HPAGE_PMD_NR);
-+		}
- 		spin_unlock(ptl);
- 		tlb_remove_page_size(tlb, page, HPAGE_PMD_SIZE);
- 	}
+diff -puN include/linux/vm_event_item.h~thp-vmstats-add-counters-for-huge-file-pages include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~thp-vmstats-add-counters-for-huge-file-pages
++++ a/include/linux/vm_event_item.h
+@@ -70,6 +70,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		THP_FAULT_FALLBACK,
+ 		THP_COLLAPSE_ALLOC,
+ 		THP_COLLAPSE_ALLOC_FAILED,
++		THP_FILE_ALLOC,
++		THP_FILE_MAPPED,
+ 		THP_SPLIT_PAGE,
+ 		THP_SPLIT_PAGE_FAILED,
+ 		THP_DEFERRED_SPLIT_PAGE,
+@@ -100,4 +102,9 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		NR_VM_EVENT_ITEMS
+ };
+ 
++#ifndef CONFIG_TRANSPARENT_HUGEPAGE
++#define THP_FILE_ALLOC ({ BUILD_BUG(); 0; })
++#define THP_FILE_MAPPED ({ BUILD_BUG(); 0; })
++#endif
++
+ #endif		/* VM_EVENT_ITEM_H_INCLUDED */
+diff -puN mm/memory.c~thp-vmstats-add-counters-for-huge-file-pages mm/memory.c
+--- a/mm/memory.c~thp-vmstats-add-counters-for-huge-file-pages
++++ a/mm/memory.c
+@@ -2969,6 +2969,7 @@ static int do_set_pmd(struct fault_env *
+ 
+ 	/* fault is handled */
+ 	ret = 0;
++	count_vm_event(THP_FILE_MAPPED);
+ out:
+ 	spin_unlock(fe->ptl);
+ 	return ret;
+diff -puN mm/vmstat.c~thp-vmstats-add-counters-for-huge-file-pages mm/vmstat.c
+--- a/mm/vmstat.c~thp-vmstats-add-counters-for-huge-file-pages
++++ a/mm/vmstat.c
+@@ -817,6 +817,8 @@ const char * const vmstat_text[] = {
+ 	"thp_fault_fallback",
+ 	"thp_collapse_alloc",
+ 	"thp_collapse_alloc_failed",
++	"thp_file_alloc",
++	"thp_file_mapped",
+ 	"thp_split_page",
+ 	"thp_split_page_failed",
+ 	"thp_deferred_split_page",
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
