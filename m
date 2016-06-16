@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch added
- to -mm tree
-Date: Thu, 16 Jun 2016 15:22:49 -0700
-Message-ID: <576326b9.9lnUo1lEC7fMuHUi%akpm@linux-foundation.org>
+Subject: +
+ mm-postpone-page-table-allocation-until-we-have-page-to-map.patch added to
+ -mm tree
+Date: Thu, 16 Jun 2016 15:22:42 -0700
+Message-ID: <576326b2.zIm6uVe9cLLatEki%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38395 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38364 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754727AbcFPWWu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:50 -0400
+	with ESMTP id S1754625AbcFPWWn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp, mlock: do not mlock PTE-mapped file huge pages
+     Subject: mm: postpone page table allocation until we have page to map
 has been added to the -mm tree.  Its filename is
-     thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
+     mm-postpone-page-table-allocation-until-we-have-page-to-map.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-postpone-page-table-allocation-until-we-have-page-to-map.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-postpone-page-table-allocation-until-we-have-page-to-map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,165 +41,573 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp, mlock: do not mlock PTE-mapped file huge pages
+Subject: mm: postpone page table allocation until we have page to map
 
-As with anon THP, we only mlock file huge pages if we can prove that the
-page is not mapped with PTE. This way we can avoid mlock leak into
-non-mlocked vma on split.
+The idea (and most of code) is borrowed again: from Hugh's patchset on
+huge tmpfs[1].
 
-We rely on PageDoubleMap() under lock_page() to check if the the page
-may be PTE mapped. PG_double_map is set by page_add_file_rmap() when the
-page mapped with PTEs.
+Instead of allocation pte page table upfront, we postpone this until we
+have page to map in hands. This approach opens possibility to map the
+page as huge if filesystem supports this.
 
-Link: http://lkml.kernel.org/r/1466021202-61880-21-git-send-email-kirill.shutemov@linux.intel.com
+Comparing to Hugh's patch I've pushed page table allocation a bit
+further: into do_set_pte(). This way we can postpone allocation even in
+faultaround case without moving do_fault_around() after __do_fault().
+
+do_set_pte() got renamed to alloc_set_pte() as it can allocate page
+table if required.
+
+[1] http://lkml.kernel.org/r/alpine.LSU.2.11.1502202015090.14414@eggly.anvils
+
+Link: http://lkml.kernel.org/r/1466021202-61880-10-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   13 ++++++++++++-
- mm/huge_memory.c           |   27 ++++++++++++++++++++-------
- mm/mmap.c                  |    6 ++++++
- mm/page_alloc.c            |    2 ++
- mm/rmap.c                  |   16 ++++++++++++++--
- 5 files changed, 54 insertions(+), 10 deletions(-)
+ include/linux/mm.h |   10 +
+ mm/filemap.c       |   16 +-
+ mm/memory.c        |  298 +++++++++++++++++++++++++------------------
+ 3 files changed, 197 insertions(+), 127 deletions(-)
 
-diff -puN include/linux/page-flags.h~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages include/linux/page-flags.h
---- a/include/linux/page-flags.h~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
-+++ a/include/linux/page-flags.h
-@@ -581,6 +581,17 @@ static inline int PageDoubleMap(struct p
- 	return PageHead(page) && test_bit(PG_double_map, &page[1].flags);
+diff -puN include/linux/mm.h~mm-postpone-page-table-allocation-until-we-have-page-to-map include/linux/mm.h
+--- a/include/linux/mm.h~mm-postpone-page-table-allocation-until-we-have-page-to-map
++++ a/include/linux/mm.h
+@@ -330,6 +330,13 @@ struct fault_env {
+ 					 * Protects pte page table if 'pte'
+ 					 * is not NULL, otherwise pmd.
+ 					 */
++	pgtable_t prealloc_pte;		/* Pre-allocated pte page table.
++					 * vm_ops->map_pages() calls
++					 * alloc_set_pte() from atomic context.
++					 * do_fault_around() pre-allocates
++					 * page table to avoid allocation from
++					 * atomic context.
++					 */
+ };
+ 
+ /*
+@@ -618,7 +625,8 @@ static inline pte_t maybe_mkwrite(pte_t
+ 	return pte;
  }
  
-+static inline void SetPageDoubleMap(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(!PageHead(page), page);
-+	set_bit(PG_double_map, &page[1].flags);
-+}
-+
-+static inline void ClearPageDoubleMap(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(!PageHead(page), page);
-+	clear_bit(PG_double_map, &page[1].flags);
-+}
- static inline int TestSetPageDoubleMap(struct page *page)
- {
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
-@@ -598,7 +609,7 @@ TESTPAGEFLAG_FALSE(TransHuge)
- TESTPAGEFLAG_FALSE(TransCompound)
- TESTPAGEFLAG_FALSE(TransCompoundMap)
- TESTPAGEFLAG_FALSE(TransTail)
--TESTPAGEFLAG_FALSE(DoubleMap)
-+PAGEFLAG_FALSE(DoubleMap)
- 	TESTSETFLAG_FALSE(DoubleMap)
- 	TESTCLEARFLAG_FALSE(DoubleMap)
+-void do_set_pte(struct fault_env *fe, struct page *page);
++int alloc_set_pte(struct fault_env *fe, struct mem_cgroup *memcg,
++		struct page *page);
  #endif
-diff -puN mm/huge_memory.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/huge_memory.c
---- a/mm/huge_memory.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
-+++ a/mm/huge_memory.c
-@@ -1437,6 +1437,8 @@ struct page *follow_trans_huge_pmd(struc
- 		 * We don't mlock() pte-mapped THPs. This way we can avoid
- 		 * leaking mlocked pages into non-VM_LOCKED VMAs.
- 		 *
-+		 * For anon THP:
-+		 *
- 		 * In most cases the pmd is the only mapping of the page as we
- 		 * break COW for the mlock() -- see gup_flags |= FOLL_WRITE for
- 		 * writable private mappings in populate_vma_page_range().
-@@ -1444,15 +1446,26 @@ struct page *follow_trans_huge_pmd(struc
- 		 * The only scenario when we have the page shared here is if we
- 		 * mlocking read-only mapping shared over fork(). We skip
- 		 * mlocking such pages.
-+		 *
-+		 * For file THP:
-+		 *
-+		 * We can expect PageDoubleMap() to be stable under page lock:
-+		 * for file pages we set it in page_add_file_rmap(), which
-+		 * requires page to be locked.
- 		 */
--		if (compound_mapcount(page) == 1 && !PageDoubleMap(page) &&
--				page->mapping && trylock_page(page)) {
--			lru_add_drain();
--			if (page->mapping)
--				mlock_vma_page(page);
--			unlock_page(page);
--		}
+ 
+ /*
+diff -puN mm/filemap.c~mm-postpone-page-table-allocation-until-we-have-page-to-map mm/filemap.c
+--- a/mm/filemap.c~mm-postpone-page-table-allocation-until-we-have-page-to-map
++++ a/mm/filemap.c
+@@ -2144,11 +2144,6 @@ void filemap_map_pages(struct fault_env
+ 			start_pgoff) {
+ 		if (iter.index > end_pgoff)
+ 			break;
+-		fe->pte += iter.index - last_pgoff;
+-		fe->address += (iter.index - last_pgoff) << PAGE_SHIFT;
+-		last_pgoff = iter.index;
+-		if (!pte_none(*fe->pte))
+-			goto next;
+ repeat:
+ 		page = radix_tree_deref_slot(slot);
+ 		if (unlikely(!page))
+@@ -2186,7 +2181,13 @@ repeat:
+ 
+ 		if (file->f_ra.mmap_miss > 0)
+ 			file->f_ra.mmap_miss--;
+-		do_set_pte(fe, page);
 +
-+		if (PageAnon(page) && compound_mapcount(page) != 1)
-+			goto skip_mlock;
-+		if (PageDoubleMap(page) || !page->mapping)
-+			goto skip_mlock;
-+		if (!trylock_page(page))
-+			goto skip_mlock;
-+		lru_add_drain();
-+		if (page->mapping && !PageDoubleMap(page))
-+			mlock_vma_page(page);
-+		unlock_page(page);
++		fe->address += (iter.index - last_pgoff) << PAGE_SHIFT;
++		if (fe->pte)
++			fe->pte += iter.index - last_pgoff;
++		last_pgoff = iter.index;
++		if (alloc_set_pte(fe, NULL, page))
++			goto unlock;
+ 		unlock_page(page);
+ 		goto next;
+ unlock:
+@@ -2194,6 +2195,9 @@ unlock:
+ skip:
+ 		put_page(page);
+ next:
++		/* Huge page is mapped? No need to proceed. */
++		if (pmd_trans_huge(*fe->pmd))
++			break;
+ 		if (iter.index == end_pgoff)
+ 			break;
  	}
-+skip_mlock:
- 	page += (addr & ~HPAGE_PMD_MASK) >> PAGE_SHIFT;
- 	VM_BUG_ON_PAGE(!PageCompound(page), page);
- 	if (flags & FOLL_GET)
-diff -puN mm/mmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/mmap.c
---- a/mm/mmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
-+++ a/mm/mmap.c
-@@ -2591,6 +2591,12 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
- 		/* drop PG_Mlocked flag for over-mapped range */
- 		for (tmp = vma; tmp->vm_start >= start + size;
- 				tmp = tmp->vm_next) {
-+			/*
-+			 * Split pmd and munlock page on the border
-+			 * of the range.
-+			 */
-+			vma_adjust_trans_huge(tmp, start, start + size, 0);
+diff -puN mm/memory.c~mm-postpone-page-table-allocation-until-we-have-page-to-map mm/memory.c
+--- a/mm/memory.c~mm-postpone-page-table-allocation-until-we-have-page-to-map
++++ a/mm/memory.c
+@@ -2740,8 +2740,6 @@ static int do_anonymous_page(struct faul
+ 	struct page *page;
+ 	pte_t entry;
+ 
+-	pte_unmap(fe->pte);
+-
+ 	/* File mapping without ->vm_ops ? */
+ 	if (vma->vm_flags & VM_SHARED)
+ 		return VM_FAULT_SIGBUS;
+@@ -2750,6 +2748,23 @@ static int do_anonymous_page(struct faul
+ 	if (check_stack_guard_page(vma, fe->address) < 0)
+ 		return VM_FAULT_SIGSEGV;
+ 
++	/*
++	 * Use pte_alloc() instead of pte_alloc_map().  We can't run
++	 * pte_offset_map() on pmds where a huge pmd might be created
++	 * from a different thread.
++	 *
++	 * pte_alloc_map() is safe to use under down_write(mmap_sem) or when
++	 * parallel threads are excluded by other means.
++	 *
++	 * Here we only have down_read(mmap_sem).
++	 */
++	if (pte_alloc(vma->vm_mm, fe->pmd, fe->address))
++		return VM_FAULT_OOM;
 +
- 			munlock_vma_pages_range(tmp,
- 					max(tmp->vm_start, start),
- 					min(tmp->vm_end, start + size));
-diff -puN mm/page_alloc.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/page_alloc.c
---- a/mm/page_alloc.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
-+++ a/mm/page_alloc.c
-@@ -1005,6 +1005,8 @@ static __always_inline bool free_pages_p
++	/* See the comment in pte_alloc_one_map() */
++	if (unlikely(pmd_trans_unstable(fe->pmd)))
++		return 0;
++
+ 	/* Use the zero-page for reads */
+ 	if (!(fe->flags & FAULT_FLAG_WRITE) &&
+ 			!mm_forbids_zeropage(vma->vm_mm)) {
+@@ -2866,23 +2881,76 @@ static int __do_fault(struct fault_env *
+ 	return ret;
+ }
  
- 		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
- 
-+		if (compound)
-+			ClearPageDoubleMap(page);
- 		for (i = 1; i < (1 << order); i++) {
- 			if (compound)
- 				bad += free_tail_pages_check(page, page + i);
-diff -puN mm/rmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/rmap.c
---- a/mm/rmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
-+++ a/mm/rmap.c
-@@ -1287,6 +1287,12 @@ void page_add_file_rmap(struct page *pag
- 		if (!atomic_inc_and_test(compound_mapcount_ptr(page)))
- 			goto out;
- 	} else {
-+		if (PageTransCompound(page)) {
-+			VM_BUG_ON_PAGE(!PageLocked(page), page);
-+			SetPageDoubleMap(compound_head(page));
-+			if (PageMlocked(page))
-+				clear_page_mlock(compound_head(page));
++static int pte_alloc_one_map(struct fault_env *fe)
++{
++	struct vm_area_struct *vma = fe->vma;
++
++	if (!pmd_none(*fe->pmd))
++		goto map_pte;
++	if (fe->prealloc_pte) {
++		fe->ptl = pmd_lock(vma->vm_mm, fe->pmd);
++		if (unlikely(!pmd_none(*fe->pmd))) {
++			spin_unlock(fe->ptl);
++			goto map_pte;
 +		}
- 		if (!atomic_inc_and_test(&page->_mapcount))
- 			goto out;
- 	}
-@@ -1460,8 +1466,14 @@ static int try_to_unmap_one(struct page
++
++		atomic_long_inc(&vma->vm_mm->nr_ptes);
++		pmd_populate(vma->vm_mm, fe->pmd, fe->prealloc_pte);
++		spin_unlock(fe->ptl);
++		fe->prealloc_pte = 0;
++	} else if (unlikely(pte_alloc(vma->vm_mm, fe->pmd, fe->address))) {
++		return VM_FAULT_OOM;
++	}
++map_pte:
++	/*
++	 * If a huge pmd materialized under us just retry later.  Use
++	 * pmd_trans_unstable() instead of pmd_trans_huge() to ensure the pmd
++	 * didn't become pmd_trans_huge under us and then back to pmd_none, as
++	 * a result of MADV_DONTNEED running immediately after a huge pmd fault
++	 * in a different thread of this mm, in turn leading to a misleading
++	 * pmd_trans_huge() retval.  All we have to ensure is that it is a
++	 * regular pmd that we can walk with pte_offset_map() and we can do that
++	 * through an atomic read in C, which is what pmd_trans_unstable()
++	 * provides.
++	 */
++	if (pmd_trans_unstable(fe->pmd) || pmd_devmap(*fe->pmd))
++		return VM_FAULT_NOPAGE;
++
++	fe->pte = pte_offset_map_lock(vma->vm_mm, fe->pmd, fe->address,
++			&fe->ptl);
++	return 0;
++}
++
+ /**
+- * do_set_pte - setup new PTE entry for given page and add reverse page mapping.
++ * alloc_set_pte - setup new PTE entry for given page and add reverse page
++ * mapping. If needed, the fucntion allocates page table or use pre-allocated.
+  *
+  * @fe: fault environment
++ * @memcg: memcg to charge page (only for private mappings)
+  * @page: page to map
+  *
+- * Caller must hold page table lock relevant for @fe->pte.
++ * Caller must take care of unlocking fe->ptl, if fe->pte is non-NULL on return.
+  *
+  * Target users are page handler itself and implementations of
+  * vm_ops->map_pages.
+  */
+-void do_set_pte(struct fault_env *fe, struct page *page)
++int alloc_set_pte(struct fault_env *fe, struct mem_cgroup *memcg,
++		struct page *page)
+ {
+ 	struct vm_area_struct *vma = fe->vma;
+ 	bool write = fe->flags & FAULT_FLAG_WRITE;
+ 	pte_t entry;
+ 
++	if (!fe->pte) {
++		int ret = pte_alloc_one_map(fe);
++		if (ret)
++			return ret;
++	}
++
++	/* Re-check under ptl */
++	if (unlikely(!pte_none(*fe->pte)))
++		return VM_FAULT_NOPAGE;
++
+ 	flush_icache_page(vma, page);
+ 	entry = mk_pte(page, vma->vm_page_prot);
+ 	if (write)
+@@ -2891,6 +2959,8 @@ void do_set_pte(struct fault_env *fe, st
+ 	if (write && !(vma->vm_flags & VM_SHARED)) {
+ 		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
+ 		page_add_new_anon_rmap(page, vma, fe->address, false);
++		mem_cgroup_commit_charge(page, memcg, false, false);
++		lru_cache_add_active_or_unevictable(page, vma);
+ 	} else {
+ 		inc_mm_counter_fast(vma->vm_mm, mm_counter_file(page));
+ 		page_add_file_rmap(page);
+@@ -2899,6 +2969,8 @@ void do_set_pte(struct fault_env *fe, st
+ 
+ 	/* no need to invalidate: a not-present page won't be cached */
+ 	update_mmu_cache(vma, fe->address, fe->pte);
++
++	return 0;
+ }
+ 
+ static unsigned long fault_around_bytes __read_mostly =
+@@ -2965,19 +3037,17 @@ late_initcall(fault_around_debugfs);
+  * fault_around_pages() value (and therefore to page order).  This way it's
+  * easier to guarantee that we don't cross page table boundaries.
+  */
+-static void do_fault_around(struct fault_env *fe, pgoff_t start_pgoff)
++static int do_fault_around(struct fault_env *fe, pgoff_t start_pgoff)
+ {
+-	unsigned long address = fe->address, start_addr, nr_pages, mask;
+-	pte_t *pte = fe->pte;
++	unsigned long address = fe->address, nr_pages, mask;
+ 	pgoff_t end_pgoff;
+-	int off;
++	int off, ret = 0;
+ 
+ 	nr_pages = READ_ONCE(fault_around_bytes) >> PAGE_SHIFT;
+ 	mask = ~(nr_pages * PAGE_SIZE - 1) & PAGE_MASK;
+ 
+-	start_addr = max(fe->address & mask, fe->vma->vm_start);
+-	off = ((fe->address - start_addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
+-	fe->pte -= off;
++	fe->address = max(address & mask, fe->vma->vm_start);
++	off = ((address - fe->address) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
+ 	start_pgoff -= off;
+ 
+ 	/*
+@@ -2985,30 +3055,45 @@ static void do_fault_around(struct fault
+ 	 *  or fault_around_pages() from start_pgoff, depending what is nearest.
  	 */
- 	if (!(flags & TTU_IGNORE_MLOCK)) {
- 		if (vma->vm_flags & VM_LOCKED) {
--			/* Holding pte lock, we do *not* need mmap_sem here */
--			mlock_vma_page(page);
-+			/* PTE-mapped THP are never mlocked */
-+			if (!PageTransCompound(page)) {
-+				/*
-+				 * Holding pte lock, we do *not* need
-+				 * mmap_sem here
-+				 */
-+				mlock_vma_page(page);
-+			}
- 			ret = SWAP_MLOCK;
- 			goto out_unmap;
+ 	end_pgoff = start_pgoff -
+-		((start_addr >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)) +
++		((fe->address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1)) +
+ 		PTRS_PER_PTE - 1;
+ 	end_pgoff = min3(end_pgoff, vma_pages(fe->vma) + fe->vma->vm_pgoff - 1,
+ 			start_pgoff + nr_pages - 1);
+ 
+-	/* Check if it makes any sense to call ->map_pages */
+-	fe->address = start_addr;
+-	while (!pte_none(*fe->pte)) {
+-		if (++start_pgoff > end_pgoff)
+-			goto out;
+-		fe->address += PAGE_SIZE;
+-		if (fe->address >= fe->vma->vm_end)
+-			goto out;
+-		fe->pte++;
++	if (pmd_none(*fe->pmd)) {
++		fe->prealloc_pte = pte_alloc_one(fe->vma->vm_mm, fe->address);
++		smp_wmb(); /* See comment in __pte_alloc() */
+ 	}
+ 
+ 	fe->vma->vm_ops->map_pages(fe, start_pgoff, end_pgoff);
++
++	/* preallocated pagetable is unused: free it */
++	if (fe->prealloc_pte) {
++		pte_free(fe->vma->vm_mm, fe->prealloc_pte);
++		fe->prealloc_pte = 0;
++	}
++	/* Huge page is mapped? Page fault is solved */
++	if (pmd_trans_huge(*fe->pmd)) {
++		ret = VM_FAULT_NOPAGE;
++		goto out;
++	}
++
++	/* ->map_pages() haven't done anything useful. Cold page cache? */
++	if (!fe->pte)
++		goto out;
++
++	/* check if the page fault is solved */
++	fe->pte -= (fe->address >> PAGE_SHIFT) - (address >> PAGE_SHIFT);
++	if (!pte_none(*fe->pte))
++		ret = VM_FAULT_NOPAGE;
++	pte_unmap_unlock(fe->pte, fe->ptl);
+ out:
+-	/* restore fault_env */
+-	fe->pte = pte;
+ 	fe->address = address;
++	fe->pte = NULL;
++	return ret;
+ }
+ 
+-static int do_read_fault(struct fault_env *fe, pgoff_t pgoff, pte_t orig_pte)
++static int do_read_fault(struct fault_env *fe, pgoff_t pgoff)
+ {
+ 	struct vm_area_struct *vma = fe->vma;
+ 	struct page *fault_page;
+@@ -3020,36 +3105,25 @@ static int do_read_fault(struct fault_en
+ 	 * something).
+ 	 */
+ 	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1) {
+-		fe->pte = pte_offset_map_lock(vma->vm_mm, fe->pmd, fe->address,
+-				&fe->ptl);
+-		if (!pte_same(*fe->pte, orig_pte))
+-			goto unlock_out;
+-		do_fault_around(fe, pgoff);
+-		/* Check if the fault is handled by faultaround */
+-		if (!pte_same(*fe->pte, orig_pte))
+-			goto unlock_out;
+-		pte_unmap_unlock(fe->pte, fe->ptl);
++		ret = do_fault_around(fe, pgoff);
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	ret = __do_fault(fe, pgoff, NULL, &fault_page, NULL);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
+ 
+-	fe->pte = pte_offset_map_lock(vma->vm_mm, fe->pmd, fe->address, &fe->ptl);
+-	if (unlikely(!pte_same(*fe->pte, orig_pte))) {
++	ret |= alloc_set_pte(fe, NULL, fault_page);
++	if (fe->pte)
+ 		pte_unmap_unlock(fe->pte, fe->ptl);
+-		unlock_page(fault_page);
+-		put_page(fault_page);
+-		return ret;
+-	}
+-	do_set_pte(fe, fault_page);
+ 	unlock_page(fault_page);
+-unlock_out:
+-	pte_unmap_unlock(fe->pte, fe->ptl);
++	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
++		put_page(fault_page);
+ 	return ret;
+ }
+ 
+-static int do_cow_fault(struct fault_env *fe, pgoff_t pgoff, pte_t orig_pte)
++static int do_cow_fault(struct fault_env *fe, pgoff_t pgoff)
+ {
+ 	struct vm_area_struct *vma = fe->vma;
+ 	struct page *fault_page, *new_page;
+@@ -3078,29 +3152,17 @@ static int do_cow_fault(struct fault_env
+ 		copy_user_highpage(new_page, fault_page, fe->address, vma);
+ 	__SetPageUptodate(new_page);
+ 
+-	fe->pte = pte_offset_map_lock(vma->vm_mm, fe->pmd, fe->address,
+-			&fe->ptl);
+-	if (unlikely(!pte_same(*fe->pte, orig_pte))) {
++	ret |= alloc_set_pte(fe, memcg, new_page);
++	if (fe->pte)
+ 		pte_unmap_unlock(fe->pte, fe->ptl);
+-		if (!(ret & VM_FAULT_DAX_LOCKED)) {
+-			unlock_page(fault_page);
+-			put_page(fault_page);
+-		} else {
+-			dax_unlock_mapping_entry(vma->vm_file->f_mapping,
+-						 pgoff);
+-		}
+-		goto uncharge_out;
+-	}
+-	do_set_pte(fe, new_page);
+-	mem_cgroup_commit_charge(new_page, memcg, false, false);
+-	lru_cache_add_active_or_unevictable(new_page, vma);
+-	pte_unmap_unlock(fe->pte, fe->ptl);
+ 	if (!(ret & VM_FAULT_DAX_LOCKED)) {
+ 		unlock_page(fault_page);
+ 		put_page(fault_page);
+ 	} else {
+ 		dax_unlock_mapping_entry(vma->vm_file->f_mapping, pgoff);
+ 	}
++	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
++		goto uncharge_out;
+ 	return ret;
+ uncharge_out:
+ 	mem_cgroup_cancel_charge(new_page, memcg, false);
+@@ -3108,7 +3170,7 @@ uncharge_out:
+ 	return ret;
+ }
+ 
+-static int do_shared_fault(struct fault_env *fe, pgoff_t pgoff, pte_t orig_pte)
++static int do_shared_fault(struct fault_env *fe, pgoff_t pgoff)
+ {
+ 	struct vm_area_struct *vma = fe->vma;
+ 	struct page *fault_page;
+@@ -3134,16 +3196,15 @@ static int do_shared_fault(struct fault_
  		}
+ 	}
+ 
+-	fe->pte = pte_offset_map_lock(vma->vm_mm, fe->pmd, fe->address,
+-			&fe->ptl);
+-	if (unlikely(!pte_same(*fe->pte, orig_pte))) {
++	ret |= alloc_set_pte(fe, NULL, fault_page);
++	if (fe->pte)
+ 		pte_unmap_unlock(fe->pte, fe->ptl);
++	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE |
++					VM_FAULT_RETRY))) {
+ 		unlock_page(fault_page);
+ 		put_page(fault_page);
+ 		return ret;
+ 	}
+-	do_set_pte(fe, fault_page);
+-	pte_unmap_unlock(fe->pte, fe->ptl);
+ 
+ 	if (set_page_dirty(fault_page))
+ 		dirtied = 1;
+@@ -3175,20 +3236,19 @@ static int do_shared_fault(struct fault_
+  * The mmap_sem may have been released depending on flags and our
+  * return value.  See filemap_fault() and __lock_page_or_retry().
+  */
+-static int do_fault(struct fault_env *fe, pte_t orig_pte)
++static int do_fault(struct fault_env *fe)
+ {
+ 	struct vm_area_struct *vma = fe->vma;
+ 	pgoff_t pgoff = linear_page_index(vma, fe->address);
+ 
+-	pte_unmap(fe->pte);
+ 	/* The VMA was not fully populated on mmap() or missing VM_DONTEXPAND */
+ 	if (!vma->vm_ops->fault)
+ 		return VM_FAULT_SIGBUS;
+ 	if (!(fe->flags & FAULT_FLAG_WRITE))
+-		return do_read_fault(fe, pgoff,	orig_pte);
++		return do_read_fault(fe, pgoff);
+ 	if (!(vma->vm_flags & VM_SHARED))
+-		return do_cow_fault(fe, pgoff, orig_pte);
+-	return do_shared_fault(fe, pgoff, orig_pte);
++		return do_cow_fault(fe, pgoff);
++	return do_shared_fault(fe, pgoff);
+ }
+ 
+ static int numa_migrate_prep(struct page *page, struct vm_area_struct *vma,
+@@ -3328,37 +3388,63 @@ static int wp_huge_pmd(struct fault_env
+  * with external mmu caches can use to update those (ie the Sparc or
+  * PowerPC hashed page tables that act as extended TLBs).
+  *
+- * We enter with non-exclusive mmap_sem (to exclude vma changes,
+- * but allow concurrent faults), and pte mapped but not yet locked.
+- * We return with pte unmapped and unlocked.
++ * We enter with non-exclusive mmap_sem (to exclude vma changes, but allow
++ * concurrent faults).
+  *
+- * The mmap_sem may have been released depending on flags and our
+- * return value.  See filemap_fault() and __lock_page_or_retry().
++ * The mmap_sem may have been released depending on flags and our return value.
++ * See filemap_fault() and __lock_page_or_retry().
+  */
+ static int handle_pte_fault(struct fault_env *fe)
+ {
+ 	pte_t entry;
+ 
+-	/*
+-	 * some architectures can have larger ptes than wordsize,
+-	 * e.g.ppc44x-defconfig has CONFIG_PTE_64BIT=y and CONFIG_32BIT=y,
+-	 * so READ_ONCE or ACCESS_ONCE cannot guarantee atomic accesses.
+-	 * The code below just needs a consistent view for the ifs and
+-	 * we later double check anyway with the ptl lock held. So here
+-	 * a barrier will do.
+-	 */
+-	entry = *fe->pte;
+-	barrier();
+-	if (!pte_present(entry)) {
++	if (unlikely(pmd_none(*fe->pmd))) {
++		/*
++		 * Leave __pte_alloc() until later: because vm_ops->fault may
++		 * want to allocate huge page, and if we expose page table
++		 * for an instant, it will be difficult to retract from
++		 * concurrent faults and from rmap lookups.
++		 */
++		fe->pte = NULL;
++	} else {
++		/* See comment in pte_alloc_one_map() */
++		if (pmd_trans_unstable(fe->pmd) || pmd_devmap(*fe->pmd))
++			return 0;
++		/*
++		 * A regular pmd is established and it can't morph into a huge
++		 * pmd from under us anymore at this point because we hold the
++		 * mmap_sem read mode and khugepaged takes it in write mode.
++		 * So now it's safe to run pte_offset_map().
++		 */
++		fe->pte = pte_offset_map(fe->pmd, fe->address);
++
++		entry = *fe->pte;
++
++		/*
++		 * some architectures can have larger ptes than wordsize,
++		 * e.g.ppc44x-defconfig has CONFIG_PTE_64BIT=y and
++		 * CONFIG_32BIT=y, so READ_ONCE or ACCESS_ONCE cannot guarantee
++		 * atomic accesses.  The code below just needs a consistent
++		 * view for the ifs and we later double check anyway with the
++		 * ptl lock held. So here a barrier will do.
++		 */
++		barrier();
+ 		if (pte_none(entry)) {
+-			if (vma_is_anonymous(fe->vma))
+-				return do_anonymous_page(fe);
+-			else
+-				return do_fault(fe, entry);
++			pte_unmap(fe->pte);
++			fe->pte = NULL;
+ 		}
+-		return do_swap_page(fe, entry);
+ 	}
+ 
++	if (!fe->pte) {
++		if (vma_is_anonymous(fe->vma))
++			return do_anonymous_page(fe);
++		else
++			return do_fault(fe);
++	}
++
++	if (!pte_present(entry))
++		return do_swap_page(fe, entry);
++
+ 	if (pte_protnone(entry))
+ 		return do_numa_page(fe, entry);
+ 
+@@ -3440,34 +3526,6 @@ static int __handle_mm_fault(struct vm_a
+ 		}
+ 	}
+ 
+-	/*
+-	 * Use pte_alloc() instead of pte_alloc_map, because we can't
+-	 * run pte_offset_map on the pmd, if an huge pmd could
+-	 * materialize from under us from a different thread.
+-	 */
+-	if (unlikely(pte_alloc(fe.vma->vm_mm, fe.pmd, fe.address)))
+-		return VM_FAULT_OOM;
+-	/*
+-	 * If a huge pmd materialized under us just retry later.  Use
+-	 * pmd_trans_unstable() instead of pmd_trans_huge() to ensure the pmd
+-	 * didn't become pmd_trans_huge under us and then back to pmd_none, as
+-	 * a result of MADV_DONTNEED running immediately after a huge pmd fault
+-	 * in a different thread of this mm, in turn leading to a misleading
+-	 * pmd_trans_huge() retval.  All we have to ensure is that it is a
+-	 * regular pmd that we can walk with pte_offset_map() and we can do that
+-	 * through an atomic read in C, which is what pmd_trans_unstable()
+-	 * provides.
+-	 */
+-	if (unlikely(pmd_trans_unstable(fe.pmd) || pmd_devmap(*fe.pmd)))
+-		return 0;
+-	/*
+-	 * A regular pmd is established and it can't morph into a huge pmd
+-	 * from under us anymore at this point because we hold the mmap_sem
+-	 * read mode and khugepaged takes it in write mode. So now it's
+-	 * safe to run pte_offset_map().
+-	 */
+-	fe.pte = pte_offset_map(fe.pmd, fe.address);
+-
+ 	return handle_pte_fault(&fe);
+ }
+ 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
