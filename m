@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + khugepaged-recheck-pmd-after-mmap_sem-re-acquired.patch added
- to -mm tree
-Date: Thu, 16 Jun 2016 15:22:39 -0700
-Message-ID: <576326af.G44NdYQxKF09us20%akpm@linux-foundation.org>
+Subject: +
+ mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch added to -mm tree
+Date: Thu, 16 Jun 2016 15:22:37 -0700
+Message-ID: <576326ad.+Gin/e5BZMhPbnBz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38341 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38334 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754582AbcFPWWk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:40 -0400
+	with ESMTP id S1754087AbcFPWWi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, ebru.akagunduz@gmail.com, hughd@google.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: recheck pmd after mmap_sem re-acquired
+     Subject:  mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix
 has been added to the -mm tree.  Its filename is
-     khugepaged-recheck-pmd-after-mmap_sem-re-acquired.patch
+     mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/khugepaged-recheck-pmd-after-mmap_sem-re-acquired.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-recheck-pmd-after-mmap_sem-re-acquired.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: khugepaged: recheck pmd after mmap_sem re-acquired
+Subject:  mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix
 
-Vlastimil noted[1] that pmd can be no longer valid after we drop
-mmap_sem. We need recheck it once mmap_sem taken again.
+Passing 'vma' to hugepage_vma_revlidate() is useless.  It doesn't make use
+of it anyway.
 
-[1] http://lkml.kernel.org/r/12918dcd-a695-c6f4-e06f-69141c5f357f@suse.cz
+Link: http://lkml.kernel.org/r/20160530095058.GA53044@black.fi.intel.com
 
-Link: http://lkml.kernel.org/r/1466021202-61880-6-git-send-email-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/1466021202-61880-3-git-send-email-kirill.shutemov@linux.intel.com
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/huge_memory.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN mm/huge_memory.c~khugepaged-recheck-pmd-after-mmap_sem-re-acquired mm/huge_memory.c
---- a/mm/huge_memory.c~khugepaged-recheck-pmd-after-mmap_sem-re-acquired
+diff -puN mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix
 +++ a/mm/huge_memory.c
-@@ -2438,6 +2438,9 @@ static bool __collapse_huge_page_swapin(
+@@ -2385,10 +2385,9 @@ static bool hugepage_vma_check(struct vm
+  * value (scan code).
+  */
+ 
+-static int hugepage_vma_revalidate(struct mm_struct *mm,
+-				   struct vm_area_struct *vma,
+-				   unsigned long address)
++static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address)
+ {
++	struct vm_area_struct *vma;
+ 	unsigned long hstart, hend;
+ 
+ 	if (unlikely(khugepaged_test_exit(mm)))
+@@ -2437,7 +2436,7 @@ static bool __collapse_huge_page_swapin(
+ 		if (ret & VM_FAULT_RETRY) {
+ 			down_read(&mm->mmap_sem);
  			/* vma is no longer available, don't continue to swapin */
- 			if (hugepage_vma_revalidate(mm, address))
+-			if (hugepage_vma_revalidate(mm, vma, address))
++			if (hugepage_vma_revalidate(mm, address))
  				return false;
-+			/* check if the pmd is still valid */
-+			if (mm_find_pmd(mm, address) != pmd)
-+				return false;
  		}
  		if (ret & VM_FAULT_ERROR) {
- 			trace_mm_collapse_huge_page_swapin(mm, swapped_in, 0);
-@@ -2523,6 +2526,9 @@ static void collapse_huge_page(struct mm
- 	result = hugepage_vma_revalidate(mm, address);
+@@ -2488,7 +2487,7 @@ static void collapse_huge_page(struct mm
+ 	}
+ 
+ 	down_read(&mm->mmap_sem);
+-	result = hugepage_vma_revalidate(mm, vma, address);
++	result = hugepage_vma_revalidate(mm, address);
  	if (result)
  		goto out;
-+	/* check if the pmd is still valid */
-+	if (mm_find_pmd(mm, address) != pmd)
-+		goto out;
  
- 	anon_vma_lock_write(vma->anon_vma);
+@@ -2515,7 +2514,7 @@ static void collapse_huge_page(struct mm
+ 	 * handled by the anon_vma lock + PG_lock.
+ 	 */
+ 	down_write(&mm->mmap_sem);
+-	result = hugepage_vma_revalidate(mm, vma, address);
++	result = hugepage_vma_revalidate(mm, address);
+ 	if (result)
+ 		goto out;
  
 _
 
