@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-do_set_pmd.patch added to -mm tree
-Date: Thu, 16 Jun 2016 15:22:43 -0700
-Message-ID: <576326b3.YjEJ2RjKXoYEwy9r%akpm@linux-foundation.org>
+Subject: + thp-support-file-pages-in-zap_huge_pmd.patch added to -mm tree
+Date: Thu, 16 Jun 2016 15:22:44 -0700
+Message-ID: <576326b4.2rgFBlA6rBn0nb7v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38374 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38353 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754674AbcFPWWo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:44 -0400
+	with ESMTP id S1754693AbcFPWWp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce do_set_pmd()
+     Subject: thp: support file pages in zap_huge_pmd()
 has been added to the -mm tree.  Its filename is
-     mm-introduce-do_set_pmd.patch
+     thp-support-file-pages-in-zap_huge_pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-do_set_pmd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-support-file-pages-in-zap_huge_pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-do_set_pmd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-support-file-pages-in-zap_huge_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,157 +39,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: introduce do_set_pmd()
+Subject: thp: support file pages in zap_huge_pmd()
 
-With postponed page table allocation we have chance to setup huge pages.
-do_set_pte() calls do_set_pmd() if following criteria met:
+split_huge_pmd() for file mappings (and DAX too) is implemented by just
+clearing pmd entry as we can re-fill this area from page cache on pte
+level later.
 
- - page is compound;
- - pmd entry in pmd_none();
- - vma has suitable size and alignment;
+This means we don't need deposit page tables when file THP is mapped.
+Therefore we shouldn't try to withdraw a page table on zap_huge_pmd()
+file THP PMD.
 
-Link: http://lkml.kernel.org/r/1466021202-61880-12-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1466021202-61880-14-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 +
- mm/huge_memory.c        |    5 --
- mm/memory.c             |   72 +++++++++++++++++++++++++++++++++++++-
- mm/migrate.c            |    3 -
- 4 files changed, 74 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/huge_mm.h~mm-introduce-do_set_pmd include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-introduce-do_set_pmd
-+++ a/include/linux/huge_mm.h
-@@ -143,6 +143,8 @@ static inline bool is_huge_zero_pmd(pmd_
- struct page *get_huge_zero_page(void);
- void put_huge_zero_page(void);
- 
-+#define mk_huge_pmd(page, prot) pmd_mkhuge(mk_pmd(page, prot))
-+
- #else /* CONFIG_TRANSPARENT_HUGEPAGE */
- #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
- #define HPAGE_PMD_MASK ({ BUILD_BUG(); 0; })
-diff -puN mm/huge_memory.c~mm-introduce-do_set_pmd mm/huge_memory.c
---- a/mm/huge_memory.c~mm-introduce-do_set_pmd
+diff -puN mm/huge_memory.c~thp-support-file-pages-in-zap_huge_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-support-file-pages-in-zap_huge_pmd
 +++ a/mm/huge_memory.c
-@@ -796,11 +796,6 @@ pmd_t maybe_pmd_mkwrite(pmd_t pmd, struc
- 	return pmd;
- }
- 
--static inline pmd_t mk_huge_pmd(struct page *page, pgprot_t prot)
--{
--	return pmd_mkhuge(mk_pmd(page, prot));
--}
--
- static inline struct list_head *page_deferred_list(struct page *page)
- {
- 	/*
-diff -puN mm/memory.c~mm-introduce-do_set_pmd mm/memory.c
---- a/mm/memory.c~mm-introduce-do_set_pmd
-+++ a/mm/memory.c
-@@ -2921,6 +2921,66 @@ map_pte:
- 	return 0;
- }
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+
-+#define HPAGE_CACHE_INDEX_MASK (HPAGE_PMD_NR - 1)
-+static inline bool transhuge_vma_suitable(struct vm_area_struct *vma,
-+		unsigned long haddr)
-+{
-+	if (((vma->vm_start >> PAGE_SHIFT) & HPAGE_CACHE_INDEX_MASK) !=
-+			(vma->vm_pgoff & HPAGE_CACHE_INDEX_MASK))
-+		return false;
-+	if (haddr < vma->vm_start || haddr + HPAGE_PMD_SIZE > vma->vm_end)
-+		return false;
-+	return true;
-+}
-+
-+static int do_set_pmd(struct fault_env *fe, struct page *page)
-+{
-+	struct vm_area_struct *vma = fe->vma;
-+	bool write = fe->flags & FAULT_FLAG_WRITE;
-+	unsigned long haddr = fe->address & HPAGE_PMD_MASK;
-+	pmd_t entry;
-+	int i, ret;
-+
-+	if (!transhuge_vma_suitable(vma, haddr))
-+		return VM_FAULT_FALLBACK;
-+
-+	ret = VM_FAULT_FALLBACK;
-+	page = compound_head(page);
-+
-+	fe->ptl = pmd_lock(vma->vm_mm, fe->pmd);
-+	if (unlikely(!pmd_none(*fe->pmd)))
-+		goto out;
-+
-+	for (i = 0; i < HPAGE_PMD_NR; i++)
-+		flush_icache_page(vma, page + i);
-+
-+	entry = mk_huge_pmd(page, vma->vm_page_prot);
-+	if (write)
-+		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
-+
-+	add_mm_counter(vma->vm_mm, MM_FILEPAGES, HPAGE_PMD_NR);
-+	page_add_file_rmap(page, true);
-+
-+	set_pmd_at(vma->vm_mm, haddr, fe->pmd, entry);
-+
-+	update_mmu_cache_pmd(vma, haddr, fe->pmd);
-+
-+	/* fault is handled */
-+	ret = 0;
-+out:
-+	spin_unlock(fe->ptl);
-+	return ret;
-+}
-+#else
-+static int do_set_pmd(struct fault_env *fe, struct page *page)
-+{
-+	BUILD_BUG();
-+	return 0;
-+}
-+#endif
-+
- /**
-  * alloc_set_pte - setup new PTE entry for given page and add reverse page
-  * mapping. If needed, the fucntion allocates page table or use pre-allocated.
-@@ -2940,9 +3000,19 @@ int alloc_set_pte(struct fault_env *fe,
- 	struct vm_area_struct *vma = fe->vma;
- 	bool write = fe->flags & FAULT_FLAG_WRITE;
- 	pte_t entry;
-+	int ret;
-+
-+	if (pmd_none(*fe->pmd) && PageTransCompound(page)) {
-+		/* THP on COW? */
-+		VM_BUG_ON_PAGE(memcg, page);
-+
-+		ret = do_set_pmd(fe, page);
-+		if (ret != VM_FAULT_FALLBACK)
-+			return ret;
-+	}
- 
- 	if (!fe->pte) {
--		int ret = pte_alloc_one_map(fe);
-+		ret = pte_alloc_one_map(fe);
- 		if (ret)
- 			return ret;
+@@ -1694,10 +1694,16 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 		struct page *page = pmd_page(orig_pmd);
+ 		page_remove_rmap(page, true);
+ 		VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
+-		add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
+ 		VM_BUG_ON_PAGE(!PageHead(page), page);
+-		pte_free(tlb->mm, pgtable_trans_huge_withdraw(tlb->mm, pmd));
+-		atomic_long_dec(&tlb->mm->nr_ptes);
++		if (PageAnon(page)) {
++			pgtable_t pgtable;
++			pgtable = pgtable_trans_huge_withdraw(tlb->mm, pmd);
++			pte_free(tlb->mm, pgtable);
++			atomic_long_dec(&tlb->mm->nr_ptes);
++			add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
++		} else {
++			add_mm_counter(tlb->mm, MM_FILEPAGES, -HPAGE_PMD_NR);
++		}
+ 		spin_unlock(ptl);
+ 		tlb_remove_page_size(tlb, page, HPAGE_PMD_SIZE);
  	}
-diff -puN mm/migrate.c~mm-introduce-do_set_pmd mm/migrate.c
---- a/mm/migrate.c~mm-introduce-do_set_pmd
-+++ a/mm/migrate.c
-@@ -1984,8 +1984,7 @@ fail_putback:
- 	}
- 
- 	orig_entry = *pmd;
--	entry = mk_pmd(new_page, vma->vm_page_prot);
--	entry = pmd_mkhuge(entry);
-+	entry = mk_huge_pmd(new_page, vma->vm_page_prot);
- 	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 
- 	/*
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
