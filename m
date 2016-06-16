@@ -1,99 +1,99 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch removed
- from -mm tree
-Date: Thu, 16 Jun 2016 15:05:02 -0700
-Message-ID: <5763228e.OxtI78kQHonkjytr%akpm@linux-foundation.org>
+ mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2.patch
+ removed from -mm tree
+Date: Thu, 16 Jun 2016 15:05:05 -0700
+Message-ID: <57632291.RjSnpu8ivtrc3nNo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38107 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38111 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754087AbcFPWFD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:05:03 -0400
+	with ESMTP id S1754270AbcFPWFG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:05:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, ebru.akagunduz@gmail.com, hughd@google.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: ebru.akagunduz@gmail.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, riel@redhat.com, sergey.senozhatsky.work@gmail.com, sfr@canb.auug.org.au, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix
+     Subject: mm, thp: fix locking inconsistency in collapse_huge_page
 has been removed from the -mm tree.  Its filename was
-     mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
+     mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2.patch
 
 This patch was dropped because it was folded into mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem.patch
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix
+From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Subject: mm, thp: fix locking inconsistency in collapse_huge_page
 
-Passing 'vma' to hugepage_vma_revlidate() is useless.  It doesn't make use
-of it anyway.
+After creating revalidate vma function, locking inconsistency occured
+due to directing the code path to wrong label. This patch directs
+to correct label and fix the inconsistency.
 
-Link: http://lkml.kernel.org/r/20160530095058.GA53044@black.fi.intel.com
+Related commit that caused inconsistency:
+http://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/commit/?id=da4360877094368f6dfe75bbe804b0f0a5d575b0
 
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Link: http://lkml.kernel.org/r/1464956884-4644-1-git-send-email-ebru.akagunduz@gmail.com
+Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/huge_memory.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix
+diff -puN mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2 mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2
 +++ a/mm/huge_memory.c
-@@ -2385,10 +2385,9 @@ static bool hugepage_vma_check(struct vm
-  * value (scan code).
-  */
- 
--static int hugepage_vma_revalidate(struct mm_struct *mm,
--				   struct vm_area_struct *vma,
--				   unsigned long address)
-+static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address)
- {
-+	struct vm_area_struct *vma;
- 	unsigned long hstart, hend;
- 
- 	if (unlikely(khugepaged_test_exit(mm)))
-@@ -2437,7 +2436,7 @@ static bool __collapse_huge_page_swapin(
- 		if (ret & VM_FAULT_RETRY) {
- 			down_read(&mm->mmap_sem);
- 			/* vma is no longer available, don't continue to swapin */
--			if (hugepage_vma_revalidate(mm, vma, address))
-+			if (hugepage_vma_revalidate(mm, address))
- 				return false;
- 		}
- 		if (ret & VM_FAULT_ERROR) {
-@@ -2491,7 +2490,7 @@ static void collapse_huge_page(struct mm
- 	swap = get_mm_counter(mm, MM_SWAPENTS);
+@@ -2491,13 +2491,18 @@ static void collapse_huge_page(struct mm
  	curr_allocstall = sum_vm_event(ALLOCSTALL);
  	down_read(&mm->mmap_sem);
--	result = hugepage_vma_revalidate(mm, vma, address);
-+	result = hugepage_vma_revalidate(mm, address);
- 	if (result)
- 		goto out;
+ 	result = hugepage_vma_revalidate(mm, address);
+-	if (result)
+-		goto out;
++	if (result) {
++		mem_cgroup_cancel_charge(new_page, memcg, true);
++		up_read(&mm->mmap_sem);
++		goto out_nolock;
++	}
  
-@@ -2524,7 +2523,7 @@ static void collapse_huge_page(struct mm
- 	 * handled by the anon_vma lock + PG_lock.
- 	 */
- 	down_write(&mm->mmap_sem);
--	result = hugepage_vma_revalidate(mm, vma, address);
-+	result = hugepage_vma_revalidate(mm, address);
- 	if (result)
- 		goto out;
+ 	pmd = mm_find_pmd(mm, address);
+ 	if (!pmd) {
+ 		result = SCAN_PMD_NULL;
+-		goto out;
++		mem_cgroup_cancel_charge(new_page, memcg, true);
++		up_read(&mm->mmap_sem);
++		goto out_nolock;
+ 	}
+ 
+ 	/*
+@@ -2511,8 +2516,9 @@ static void collapse_huge_page(struct mm
+ 		 * label out. Continuing to collapse causes inconsistency.
+ 		 */
+ 		if (!__collapse_huge_page_swapin(mm, vma, address, pmd)) {
++			mem_cgroup_cancel_charge(new_page, memcg, true);
+ 			up_read(&mm->mmap_sem);
+-			goto out;
++			goto out_nolock;
+ 		}
+ 	}
  
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from ebru.akagunduz@gmail.com are
 
-revert-mm-make-faultaround-produce-old-ptes.patch
-revert-mm-disable-fault-around-on-emulated-access-bit-architecture.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+mm-make-optimistic-check-for-swapin-readahead.patch
+mm-make-optimistic-check-for-swapin-readahead-fix-3.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
+mm-vmstat-calculate-particular-vm-event.patch
+mm-thp-avoid-unnecessary-swapin-in-khugepaged.patch
 mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem.patch
 
