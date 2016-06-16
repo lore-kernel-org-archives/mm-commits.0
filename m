@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-prepare-huge=-mount-option-and-sysfs-knob.patch added to
- -mm tree
-Date: Thu, 16 Jun 2016 15:22:53 -0700
-Message-ID: <576326bd.p05HN/RmXYh/HCf6%akpm@linux-foundation.org>
+Subject: + thp-update-documentation-vm-transhugefilesystems-proctxt.patch
+ added to -mm tree
+Date: Thu, 16 Jun 2016 15:22:59 -0700
+Message-ID: <576326c3.2O3iPlQvTcVEiGA9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38411 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38412 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754762AbcFPWWz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:55 -0400
+	with ESMTP id S1754762AbcFPWXA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:23:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: prepare huge= mount option and sysfs knob
+     Subject: thp: update Documentation/{vm/transhuge,filesystems/proc}.txt
 has been added to the -mm tree.  Its filename is
-     shmem-prepare-huge=-mount-option-and-sysfs-knob.patch
+     thp-update-documentation-vm-transhugefilesystems-proctxt.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/shmem-prepare-huge%3D-mount-option-and-sysfs-knob.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-update-documentation-vm-transhugefilesystems-proctxt.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-prepare-huge%3D-mount-option-and-sysfs-knob.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-update-documentation-vm-transhugefilesystems-proctxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,317 +40,264 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: shmem: prepare huge= mount option and sysfs knob
+Subject: thp: update Documentation/{vm/transhuge,filesystems/proc}.txt
 
-This patch adds new mount option "huge=". It can have following values:
+Add info about tmpfs/shmem with huge pages.
 
-  - "always":
-	Attempt to allocate huge pages every time we need a new page;
-
-  - "never":
-	Do not allocate huge pages;
-
-  - "within_size":
-	Only allocate huge page if it will be fully within i_size.
-	Also respect fadvise()/madvise() hints;
-
-  - "advise:
-	Only allocate huge pages if requested with fadvise()/madvise();
-
-Default is "never" for now.
-
-"mount -o remount,huge= /mountpoint" works fine after mount: remounting
-huge=never will not attempt to break up huge pages at all, just stop
-more from being allocated.
-
-No new config option: put this under CONFIG_TRANSPARENT_HUGEPAGE,
-which is the appropriate option to protect those who don't want
-the new bloat, and with which we shall share some pmd code.
-
-Prohibit the option when !CONFIG_TRANSPARENT_HUGEPAGE, just as mpol is
-invalid without CONFIG_NUMA (was hidden in mpol_parse_str(): make it
-explicit).
-
-Allow enabling THP only if the machine has_transparent_hugepage().
-
-But what about Shmem with no user-visible mount?  SysV SHM, memfds,
-shared anonymous mmaps (of /dev/zero or MAP_ANONYMOUS), GPU drivers'
-DRM objects, Ashmem.  Though unlikely to suit all usages, provide
-sysfs knob /sys/kernel/mm/transparent_hugepage/shmem_enabled to
-experiment with huge on those.
-
-And allow shmem_enabled two further values:
-
-  - "deny":
-	For use in emergencies, to force the huge option off from
-	all mounts;
-  - "force":
-	Force the huge option on for all - very useful for testing;
-
-Based on patch by Hugh Dickins.
-
-Link: http://lkml.kernel.org/r/1466021202-61880-28-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1466021202-61880-38-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h  |    2 
- include/linux/shmem_fs.h |    3 
- mm/huge_memory.c         |    3 
- mm/shmem.c               |  161 +++++++++++++++++++++++++++++++++++++
- 4 files changed, 168 insertions(+), 1 deletion(-)
+ Documentation/filesystems/proc.txt |    9 +
+ Documentation/vm/transhuge.txt     |  130 +++++++++++++++++++--------
+ 2 files changed, 102 insertions(+), 37 deletions(-)
 
-diff -puN include/linux/huge_mm.h~shmem-prepare-huge=-mount-option-and-sysfs-knob include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~shmem-prepare-huge=-mount-option-and-sysfs-knob
-+++ a/include/linux/huge_mm.h
-@@ -41,6 +41,8 @@ enum transparent_hugepage_flag {
- #endif
- };
+diff -puN Documentation/filesystems/proc.txt~thp-update-documentation-vm-transhugefilesystems-proctxt Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~thp-update-documentation-vm-transhugefilesystems-proctxt
++++ a/Documentation/filesystems/proc.txt
+@@ -436,6 +436,7 @@ Private_Dirty:         0 kB
+ Referenced:          892 kB
+ Anonymous:             0 kB
+ AnonHugePages:         0 kB
++ShmemPmdMapped:        0 kB
+ Shared_Hugetlb:        0 kB
+ Private_Hugetlb:       0 kB
+ Swap:                  0 kB
+@@ -464,6 +465,8 @@ accessed.
+ a mapping associated with a file may contain anonymous pages: when MAP_PRIVATE
+ and a page is modified, the file page is replaced by a private anonymous copy.
+ "AnonHugePages" shows the ammount of memory backed by transparent hugepage.
++"ShmemPmdMapped" shows the ammount of shared (shmem/tmpfs) memory backed by
++huge pages.
+ "Shared_Hugetlb" and "Private_Hugetlb" show the ammounts of memory backed by
+ hugetlbfs page which is *not* counted in "RSS" or "PSS" field for historical
+ reasons. And these are not included in {Shared,Private}_{Clean,Dirty} field.
+@@ -868,6 +871,9 @@ VmallocTotal:   112216 kB
+ VmallocUsed:       428 kB
+ VmallocChunk:   111088 kB
+ AnonHugePages:   49152 kB
++ShmemHugePages:      0 kB
++ShmemPmdMapped:      0 kB
++
  
-+extern struct kobj_attribute shmem_enabled_attr;
-+
- #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
- #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
+     MemTotal: Total usable ram (i.e. physical ram minus a few reserved
+               bits and the kernel binary code)
+@@ -912,6 +918,9 @@ MemAvailable: An estimate of how much me
+ AnonHugePages: Non-file backed huge pages mapped into userspace page tables
+       Mapped: files which have been mmaped, such as libraries
+        Shmem: Total memory used by shared memory (shmem) and tmpfs
++ShmemHugePages: Memory used by shared memory (shmem) and tmpfs allocated
++              with huge pages
++ShmemPmdMapped: Shared memory mapped into userspace with huge pages
+         Slab: in-kernel data structures cache
+ SReclaimable: Part of Slab, that might be reclaimed, such as caches
+   SUnreclaim: Part of Slab, that cannot be reclaimed on memory pressure
+diff -puN Documentation/vm/transhuge.txt~thp-update-documentation-vm-transhugefilesystems-proctxt Documentation/vm/transhuge.txt
+--- a/Documentation/vm/transhuge.txt~thp-update-documentation-vm-transhugefilesystems-proctxt
++++ a/Documentation/vm/transhuge.txt
+@@ -9,8 +9,8 @@ using huge pages for the backing of virt
+ that supports the automatic promotion and demotion of page sizes and
+ without the shortcomings of hugetlbfs.
  
-diff -puN include/linux/shmem_fs.h~shmem-prepare-huge=-mount-option-and-sysfs-knob include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~shmem-prepare-huge=-mount-option-and-sysfs-knob
-+++ a/include/linux/shmem_fs.h
-@@ -28,9 +28,10 @@ struct shmem_sb_info {
- 	unsigned long max_inodes;   /* How many inodes are allowed */
- 	unsigned long free_inodes;  /* How many are left for allocation */
- 	spinlock_t stat_lock;	    /* Serialize shmem_sb_info changes */
-+	umode_t mode;		    /* Mount mode for root directory */
-+	unsigned char huge;	    /* Whether to try for hugepages */
- 	kuid_t uid;		    /* Mount uid for root directory */
- 	kgid_t gid;		    /* Mount gid for root directory */
--	umode_t mode;		    /* Mount mode for root directory */
- 	struct mempolicy *mpol;     /* default memory policy for mappings */
- };
+-Currently it only works for anonymous memory mappings but in the
+-future it can expand over the pagecache layer starting with tmpfs.
++Currently it only works for anonymous memory mappings and tmpfs/shmem.
++But in the future it can expand to other filesystems.
  
-diff -puN mm/huge_memory.c~shmem-prepare-huge=-mount-option-and-sysfs-knob mm/huge_memory.c
---- a/mm/huge_memory.c~shmem-prepare-huge=-mount-option-and-sysfs-knob
-+++ a/mm/huge_memory.c
-@@ -442,6 +442,9 @@ static struct attribute *hugepage_attr[]
- 	&enabled_attr.attr,
- 	&defrag_attr.attr,
- 	&use_zero_page_attr.attr,
-+#ifdef CONFIG_SHMEM
-+	&shmem_enabled_attr.attr,
-+#endif
- #ifdef CONFIG_DEBUG_VM
- 	&debug_cow_attr.attr,
- #endif
-diff -puN mm/shmem.c~shmem-prepare-huge=-mount-option-and-sysfs-knob mm/shmem.c
---- a/mm/shmem.c~shmem-prepare-huge=-mount-option-and-sysfs-knob
-+++ a/mm/shmem.c
-@@ -289,6 +289,87 @@ static bool shmem_confirm_swap(struct ad
- }
+ The reason applications are running faster is because of two
+ factors. The first factor is almost completely irrelevant and it's not
+@@ -57,10 +57,6 @@ miss is going to run faster.
+   feature that applies to all dynamic high order allocations in the
+   kernel)
  
- /*
-+ * Definitions for "huge tmpfs": tmpfs mounted with the huge= option
-+ *
-+ * SHMEM_HUGE_NEVER:
-+ *	disables huge pages for the mount;
-+ * SHMEM_HUGE_ALWAYS:
-+ *	enables huge pages for the mount;
-+ * SHMEM_HUGE_WITHIN_SIZE:
-+ *	only allocate huge pages if the page will be fully within i_size,
-+ *	also respect fadvise()/madvise() hints;
-+ * SHMEM_HUGE_ADVISE:
-+ *	only allocate huge pages if requested with fadvise()/madvise();
-+ */
-+
-+#define SHMEM_HUGE_NEVER	0
-+#define SHMEM_HUGE_ALWAYS	1
-+#define SHMEM_HUGE_WITHIN_SIZE	2
-+#define SHMEM_HUGE_ADVISE	3
-+
-+/*
-+ * Special values.
-+ * Only can be set via /sys/kernel/mm/transparent_hugepage/shmem_enabled:
-+ *
-+ * SHMEM_HUGE_DENY:
-+ *	disables huge on shm_mnt and all mounts, for emergency use;
-+ * SHMEM_HUGE_FORCE:
-+ *	enables huge on shm_mnt and all mounts, w/o needing option, for testing;
-+ *
-+ */
-+#define SHMEM_HUGE_DENY		(-1)
-+#define SHMEM_HUGE_FORCE	(-2)
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+/* ifdef here to avoid bloating shmem.o when not necessary */
-+
-+int shmem_huge __read_mostly;
-+
-+static int shmem_parse_huge(const char *str)
-+{
-+	if (!strcmp(str, "never"))
-+		return SHMEM_HUGE_NEVER;
-+	if (!strcmp(str, "always"))
-+		return SHMEM_HUGE_ALWAYS;
-+	if (!strcmp(str, "within_size"))
-+		return SHMEM_HUGE_WITHIN_SIZE;
-+	if (!strcmp(str, "advise"))
-+		return SHMEM_HUGE_ADVISE;
-+	if (!strcmp(str, "deny"))
-+		return SHMEM_HUGE_DENY;
-+	if (!strcmp(str, "force"))
-+		return SHMEM_HUGE_FORCE;
-+	return -EINVAL;
-+}
-+
-+static const char *shmem_format_huge(int huge)
-+{
-+	switch (huge) {
-+	case SHMEM_HUGE_NEVER:
-+		return "never";
-+	case SHMEM_HUGE_ALWAYS:
-+		return "always";
-+	case SHMEM_HUGE_WITHIN_SIZE:
-+		return "within_size";
-+	case SHMEM_HUGE_ADVISE:
-+		return "advise";
-+	case SHMEM_HUGE_DENY:
-+		return "deny";
-+	case SHMEM_HUGE_FORCE:
-+		return "force";
-+	default:
-+		VM_BUG_ON(1);
-+		return "bad_val";
-+	}
-+}
-+
-+#else /* !CONFIG_TRANSPARENT_HUGEPAGE */
-+
-+#define shmem_huge SHMEM_HUGE_DENY
-+
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-+
-+/*
-  * Like add_to_page_cache_locked, but error if expected item has gone.
-  */
- static int shmem_add_to_page_cache(struct page *page,
-@@ -2858,11 +2939,24 @@ static int shmem_parse_options(char *opt
- 			sbinfo->gid = make_kgid(current_user_ns(), gid);
- 			if (!gid_valid(sbinfo->gid))
- 				goto bad_val;
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+		} else if (!strcmp(this_char, "huge")) {
-+			int huge;
-+			huge = shmem_parse_huge(value);
-+			if (huge < 0)
-+				goto bad_val;
-+			if (!has_transparent_hugepage() &&
-+					huge != SHMEM_HUGE_NEVER)
-+				goto bad_val;
-+			sbinfo->huge = huge;
-+#endif
-+#ifdef CONFIG_NUMA
- 		} else if (!strcmp(this_char,"mpol")) {
- 			mpol_put(mpol);
- 			mpol = NULL;
- 			if (mpol_parse_str(value, &mpol))
- 				goto bad_val;
-+#endif
- 		} else {
- 			pr_err("tmpfs: Bad mount option %s\n", this_char);
- 			goto error;
-@@ -2908,6 +3002,7 @@ static int shmem_remount_fs(struct super
- 		goto out;
+-- this initial support only offers the feature in the anonymous memory
+-  regions but it'd be ideal to move it to tmpfs and the pagecache
+-  later
+-
+ Transparent Hugepage Support maximizes the usefulness of free memory
+ if compared to the reservation approach of hugetlbfs by allowing all
+ unused memory to be used as cache or other movable (or even unmovable
+@@ -94,21 +90,21 @@ madvise(MADV_HUGEPAGE) on their critical
  
- 	error = 0;
-+	sbinfo->huge = config.huge;
- 	sbinfo->max_blocks  = config.max_blocks;
- 	sbinfo->max_inodes  = config.max_inodes;
- 	sbinfo->free_inodes = config.max_inodes - inodes;
-@@ -2941,6 +3036,11 @@ static int shmem_show_options(struct seq
- 	if (!gid_eq(sbinfo->gid, GLOBAL_ROOT_GID))
- 		seq_printf(seq, ",gid=%u",
- 				from_kgid_munged(&init_user_ns, sbinfo->gid));
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	/* Rightly or wrongly, show huge mount option unmasked by shmem_huge */
-+	if (sbinfo->huge)
-+		seq_printf(seq, ",huge=%s", shmem_format_huge(sbinfo->huge));
-+#endif
- 	shmem_show_mpol(seq, sbinfo->mpol);
- 	return 0;
- }
-@@ -3280,6 +3380,13 @@ int __init shmem_init(void)
- 		pr_err("Could not kern_mount tmpfs\n");
- 		goto out1;
- 	}
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	if (has_transparent_hugepage() && shmem_huge < SHMEM_HUGE_DENY)
-+		SHMEM_SB(shm_mnt->mnt_sb)->huge = shmem_huge;
-+	else
-+		shmem_huge = 0; /* just in case it was patched */
-+#endif
- 	return 0;
+ == sysfs ==
  
- out1:
-@@ -3291,6 +3398,60 @@ out3:
- 	return error;
- }
+-Transparent Hugepage Support can be entirely disabled (mostly for
+-debugging purposes) or only enabled inside MADV_HUGEPAGE regions (to
+-avoid the risk of consuming more memory resources) or enabled system
+-wide. This can be achieved with one of:
++Transparent Hugepage Support for anonymous memory can be entirely disabled
++(mostly for debugging purposes) or only enabled inside MADV_HUGEPAGE
++regions (to avoid the risk of consuming more memory resources) or enabled
++system wide. This can be achieved with one of:
  
-+#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_SYSFS)
-+static ssize_t shmem_enabled_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	int values[] = {
-+		SHMEM_HUGE_ALWAYS,
-+		SHMEM_HUGE_WITHIN_SIZE,
-+		SHMEM_HUGE_ADVISE,
-+		SHMEM_HUGE_NEVER,
-+		SHMEM_HUGE_DENY,
-+		SHMEM_HUGE_FORCE,
-+	};
-+	int i, count;
-+
-+	for (i = 0, count = 0; i < ARRAY_SIZE(values); i++) {
-+		const char *fmt = shmem_huge == values[i] ? "[%s] " : "%s ";
-+
-+		count += sprintf(buf + count, fmt,
-+				shmem_format_huge(values[i]));
-+	}
-+	buf[count - 1] = '\n';
-+	return count;
-+}
-+
-+static ssize_t shmem_enabled_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	char tmp[16];
-+	int huge;
-+
-+	if (count + 1 > sizeof(tmp))
-+		return -EINVAL;
-+	memcpy(tmp, buf, count);
-+	tmp[count] = '\0';
-+	if (count && tmp[count - 1] == '\n')
-+		tmp[count - 1] = '\0';
-+
-+	huge = shmem_parse_huge(tmp);
-+	if (huge == -EINVAL)
-+		return -EINVAL;
-+	if (!has_transparent_hugepage() &&
-+			huge != SHMEM_HUGE_NEVER && huge != SHMEM_HUGE_DENY)
-+		return -EINVAL;
-+
-+	shmem_huge = huge;
-+	if (shmem_huge < SHMEM_HUGE_DENY)
-+		SHMEM_SB(shm_mnt->mnt_sb)->huge = shmem_huge;
-+	return count;
-+}
-+
-+struct kobj_attribute shmem_enabled_attr =
-+	__ATTR(shmem_enabled, 0644, shmem_enabled_show, shmem_enabled_store);
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE && CONFIG_SYSFS */
-+
- #else /* !CONFIG_SHMEM */
+ echo always >/sys/kernel/mm/transparent_hugepage/enabled
+ echo madvise >/sys/kernel/mm/transparent_hugepage/enabled
+ echo never >/sys/kernel/mm/transparent_hugepage/enabled
  
- /*
+ It's also possible to limit defrag efforts in the VM to generate
+-hugepages in case they're not immediately free to madvise regions or
+-to never try to defrag memory and simply fallback to regular pages
+-unless hugepages are immediately available. Clearly if we spend CPU
+-time to defrag memory, we would expect to gain even more by the fact
+-we use hugepages later instead of regular pages. This isn't always
++anonymous hugepages in case they're not immediately free to madvise
++regions or to never try to defrag memory and simply fallback to regular
++pages unless hugepages are immediately available. Clearly if we spend CPU
++time to defrag memory, we would expect to gain even more by the fact we
++use hugepages later instead of regular pages. This isn't always
+ guaranteed, but it may be more likely in case the allocation is for a
+ MADV_HUGEPAGE region.
+ 
+@@ -133,9 +129,9 @@ that are have used madvise(MADV_HUGEPAGE
+ 
+ "never" should be self-explanatory.
+ 
+-By default kernel tries to use huge zero page on read page fault.
+-It's possible to disable huge zero page by writing 0 or enable it
+-back by writing 1:
++By default kernel tries to use huge zero page on read page fault to
++anonymous mapping. It's possible to disable huge zero page by writing 0
++or enable it back by writing 1:
+ 
+ echo 0 >/sys/kernel/mm/transparent_hugepage/use_zero_page
+ echo 1 >/sys/kernel/mm/transparent_hugepage/use_zero_page
+@@ -204,21 +200,67 @@ Support by passing the parameter "transp
+ "transparent_hugepage=madvise" or "transparent_hugepage=never"
+ (without "") to the kernel command line.
+ 
++== Hugepages in tmpfs/shmem ==
++
++You can control hugepage allocation policy in tmpfs with mount option
++"huge=". It can have following values:
++
++  - "always":
++    Attempt to allocate huge pages every time we need a new page;
++
++  - "never":
++    Do not allocate huge pages;
++
++  - "within_size":
++    Only allocate huge page if it will be fully within i_size.
++    Also respect fadvise()/madvise() hints;
++
++  - "advise:
++    Only allocate huge pages if requested with fadvise()/madvise();
++
++The default policy is "never".
++
++"mount -o remount,huge= /mountpoint" works fine after mount: remounting
++huge=never will not attempt to break up huge pages at all, just stop more
++from being allocated.
++
++There's also sysfs knob to control hugepage allocation policy for internal
++shmem mount: /sys/kernel/mm/transparent_hugepage/shmem_enabled. The mount
++is used for SysV SHM, memfds, shared anonymous mmaps (of /dev/zero or
++MAP_ANONYMOUS), GPU drivers' DRM objects, Ashmem.
++
++In addition to policies listed above, shmem_enabled allows two further
++values:
++
++  - "deny":
++    For use in emergencies, to force the huge option off from
++    all mounts;
++  - "force":
++    Force the huge option on for all - very useful for testing;
++
+ == Need of application restart ==
+ 
+-The transparent_hugepage/enabled values only affect future
+-behavior. So to make them effective you need to restart any
+-application that could have been using hugepages. This also applies to
+-the regions registered in khugepaged.
++The transparent_hugepage/enabled values and tmpfs mount option only affect
++future behavior. So to make them effective you need to restart any
++application that could have been using hugepages. This also applies to the
++regions registered in khugepaged.
+ 
+ == Monitoring usage ==
+ 
+-The number of transparent huge pages currently used by the system is
+-available by reading the AnonHugePages field in /proc/meminfo. To
+-identify what applications are using transparent huge pages, it is
+-necessary to read /proc/PID/smaps and count the AnonHugePages fields
+-for each mapping. Note that reading the smaps file is expensive and
+-reading it frequently will incur overhead.
++The number of anonymous transparent huge pages currently used by the
++system is available by reading the AnonHugePages field in /proc/meminfo.
++To identify what applications are using anonymous transparent huge pages,
++it is necessary to read /proc/PID/smaps and count the AnonHugePages fields
++for each mapping.
++
++The number of file transparent huge pages mapped to userspace is available
++by reading ShmemPmdMapped and ShmemHugePages fields in /proc/meminfo.
++To identify what applications are mapping file  transparent huge pages, it
++is necessary to read /proc/PID/smaps and count the FileHugeMapped fields
++for each mapping.
++
++Note that reading the smaps file is expensive and reading it
++frequently will incur overhead.
+ 
+ There are a number of counters in /proc/vmstat that may be used to
+ monitor how successfully the system is providing huge pages for use.
+@@ -238,6 +280,12 @@ thp_collapse_alloc_failed is incremented
+ 	of pages that should be collapsed into one huge page but failed
+ 	the allocation.
+ 
++thp_file_alloc is incremented every time a file huge page is successfully
++i	allocated.
++
++thp_file_mapped is incremented every time a file huge page is mapped into
++	user address space.
++
+ thp_split_page is incremented every time a huge page is split into base
+ 	pages. This can happen for a variety of reasons but a common
+ 	reason is that a huge page is old and is being reclaimed.
+@@ -403,19 +451,27 @@ pages:
+     on relevant sub-page of the compound page.
+ 
+   - map/unmap of the whole compound page accounted in compound_mapcount
+-    (stored in first tail page).
+-
+-PageDoubleMap() indicates that ->_mapcount in all subpages is offset up by one.
+-This additional reference is required to get race-free detection of unmap of
+-subpages when we have them mapped with both PMDs and PTEs.
++    (stored in first tail page). For file huge pages, we also increment
++    ->_mapcount of all sub-pages in order to have race-free detection of
++    last unmap of subpages.
++
++PageDoubleMap() indicates that the page is *possibly* mapped with PTEs.
++
++For anonymous pages PageDoubleMap() also indicates ->_mapcount in all
++subpages is offset up by one. This additional reference is required to
++get race-free detection of unmap of subpages when we have them mapped with
++both PMDs and PTEs.
+ 
+ This is optimization required to lower overhead of per-subpage mapcount
+ tracking. The alternative is alter ->_mapcount in all subpages on each
+ map/unmap of the whole compound page.
+ 
+-We set PG_double_map when a PMD of the page got split for the first time,
+-but still have PMD mapping. The additional references go away with last
+-compound_mapcount.
++For anonymous pages, we set PG_double_map when a PMD of the page got split
++for the first time, but still have PMD mapping. The additional references
++go away with last compound_mapcount.
++
++File pages get PG_double_map set on first map of the page with PTE and
++goes away when the page gets evicted from page cache.
+ 
+ split_huge_page internally has to distribute the refcounts in the head
+ page to the tail pages before clearing all PG_head/tail bits from the page
+@@ -427,7 +483,7 @@ sum of mapcount of all sub-pages plus on
+ have reference for head page).
+ 
+ split_huge_page uses migration entries to stabilize page->_refcount and
+-page->_mapcount.
++page->_mapcount of anonymous pages. File pages just got unmapped.
+ 
+ We safe against physical memory scanners too: the only legitimate way
+ scanner can get reference to a page is get_page_unless_zero().
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
