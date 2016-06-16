@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem.patch added
- to -mm tree
-Date: Thu, 16 Jun 2016 15:22:47 -0700
-Message-ID: <576326b7.Er+LYlUX+U+lfwnz%akpm@linux-foundation.org>
+Subject: + vmscan-split-file-huge-pages-before-paging-them-out.patch added to -mm tree
+Date: Thu, 16 Jun 2016 15:22:49 -0700
+Message-ID: <576326b9.dc4LzoC9nlar/JKq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38397 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754625AbcFPWWs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:48 -0400
+	with ESMTP id S1754745AbcFPWWv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: run vma_adjust_trans_huge() outside i_mmap_rwsem
+     Subject: vmscan: split file huge pages before paging them out
 has been added to the -mm tree.  Its filename is
-     thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem.patch
+     vmscan-split-file-huge-pages-before-paging-them-out.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmscan-split-file-huge-pages-before-paging-them-out.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmscan-split-file-huge-pages-before-paging-them-out.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +39,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: run vma_adjust_trans_huge() outside i_mmap_rwsem
+Subject: vmscan: split file huge pages before paging them out
 
-vma_addjust_trans_huge() splits pmd if it's crossing VMA boundary.
-During split we munlock the huge page which requires rmap walk.
-rmap wants to take the lock on its own.
+This is preparation of vmscan for file huge pages. We cannot write out
+huge pages, so we need to split them on the way out.
 
-Let's move vma_adjust_trans_huge() outside i_mmap_rwsem to fix this.
-
-Link: http://lkml.kernel.org/r/1466021202-61880-19-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1466021202-61880-22-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/mmap.c~thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem mm/mmap.c
---- a/mm/mmap.c~thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem
-+++ a/mm/mmap.c
-@@ -675,6 +675,8 @@ again:			remove_next = 1 + (end > next->
- 		}
- 	}
+diff -puN mm/vmscan.c~vmscan-split-file-huge-pages-before-paging-them-out mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-split-file-huge-pages-before-paging-them-out
++++ a/mm/vmscan.c
+@@ -1055,8 +1055,14 @@ static unsigned long shrink_page_list(st
  
-+	vma_adjust_trans_huge(vma, start, end, adjust_next);
+ 			/* Adding to swap updated mapping */
+ 			mapping = page_mapping(page);
++		} else if (unlikely(PageTransHuge(page))) {
++			/* Split file THP */
++			if (split_huge_page_to_list(page, page_list))
++				goto keep_locked;
+ 		}
+ 
++		VM_BUG_ON_PAGE(PageTransHuge(page), page);
 +
- 	if (file) {
- 		mapping = file->f_mapping;
- 		root = &mapping->i_mmap;
-@@ -695,8 +697,6 @@ again:			remove_next = 1 + (end > next->
- 		}
- 	}
- 
--	vma_adjust_trans_huge(vma, start, end, adjust_next);
--
- 	anon_vma = vma->anon_vma;
- 	if (!anon_vma && adjust_next)
- 		anon_vma = next->anon_vma;
+ 		/*
+ 		 * The page is mapped into the page tables of one or more
+ 		 * processes. Try to unmap it here.
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
