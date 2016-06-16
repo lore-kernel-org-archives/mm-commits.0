@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch added to -mm tree
-Date: Thu, 16 Jun 2016 15:22:56 -0700
-Message-ID: <576326c0.ypmbkIv+OyplhEcQ%akpm@linux-foundation.org>
+Subject: + thp-skip-file-huge-pmd-on-copy_huge_pmd.patch added to -mm tree
+Date: Thu, 16 Jun 2016 15:22:46 -0700
+Message-ID: <576326b6.fkHkPS/zUcJUrVYo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38419 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38388 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754746AbcFPWW5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:57 -0400
+	with ESMTP id S1754698AbcFPWWr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jun 2016 18:22:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: move up_read(mmap_sem) out of khugepaged_alloc_page()
+     Subject: thp: skip file huge pmd on copy_huge_pmd()
 has been added to the -mm tree.  Its filename is
-     khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
+     thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,72 +39,84 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: khugepaged: move up_read(mmap_sem) out of khugepaged_alloc_page()
+Subject: thp: skip file huge pmd on copy_huge_pmd()
 
-Both variants of khugepaged_alloc_page() do up_read(&mm->mmap_sem)
-first: no point keep it inside the function.
+copy_page_range() has a check for "Don't copy ptes where a page fault
+will fill them correctly." It works on VMA level. We still copy all page
+table entries from private mappings, even if they map page cache.
 
-Link: http://lkml.kernel.org/r/1466021202-61880-33-git-send-email-kirill.shutemov@linux.intel.com
+We can simplify copy_huge_pmd() a bit by skipping file PMDs.
+
+We don't map file private pages with PMDs, so they only can map page
+cache. It's safe to skip them as they can be re-faulted later.
+
+Link: http://lkml.kernel.org/r/1466021202-61880-17-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   25 ++++++++++---------------
- 1 file changed, 10 insertions(+), 15 deletions(-)
+ mm/huge_memory.c |   34 ++++++++++++++++------------------
+ 1 file changed, 16 insertions(+), 18 deletions(-)
 
-diff -puN mm/khugepaged.c~khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page mm/khugepaged.c
---- a/mm/khugepaged.c~khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page
-+++ a/mm/khugepaged.c
-@@ -739,19 +739,10 @@ static bool khugepaged_prealloc_page(str
- }
+diff -puN mm/huge_memory.c~thp-skip-file-huge-pmd-on-copy_huge_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-skip-file-huge-pmd-on-copy_huge_pmd
++++ a/mm/huge_memory.c
+@@ -1098,14 +1098,15 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	struct page *src_page;
+ 	pmd_t pmd;
+ 	pgtable_t pgtable = NULL;
+-	int ret;
++	int ret = -ENOMEM;
  
- static struct page *
--khugepaged_alloc_page(struct page **hpage, gfp_t gfp, struct mm_struct *mm,
--		       unsigned long address, int node)
-+khugepaged_alloc_page(struct page **hpage, gfp_t gfp, int node)
- {
- 	VM_BUG_ON_PAGE(*hpage, *hpage);
+-	if (!vma_is_dax(vma)) {
+-		ret = -ENOMEM;
+-		pgtable = pte_alloc_one(dst_mm, addr);
+-		if (unlikely(!pgtable))
+-			goto out;
+-	}
++	/* Skip if can be re-fill on fault */
++	if (!vma_is_anonymous(vma))
++		return 0;
++
++	pgtable = pte_alloc_one(dst_mm, addr);
++	if (unlikely(!pgtable))
++		goto out;
  
--	/*
--	 * Before allocating the hugepage, release the mmap_sem read lock.
--	 * The allocation can take potentially a long time if it involves
--	 * sync compaction, and we do not need to hold the mmap_sem during
--	 * that. We will recheck the vma after taking it again in write mode.
--	 */
--	up_read(&mm->mmap_sem);
--
- 	*hpage = __alloc_pages_node(node, gfp, HPAGE_PMD_ORDER);
- 	if (unlikely(!*hpage)) {
- 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
-@@ -812,10 +803,8 @@ static bool khugepaged_prealloc_page(str
- }
+ 	dst_ptl = pmd_lock(dst_mm, dst_pmd);
+ 	src_ptl = pmd_lockptr(src_mm, src_pmd);
+@@ -1113,7 +1114,7 @@ int copy_huge_pmd(struct mm_struct *dst_
  
- static struct page *
--khugepaged_alloc_page(struct page **hpage, gfp_t gfp, struct mm_struct *mm,
--		       unsigned long address, int node)
-+khugepaged_alloc_page(struct page **hpage, gfp_t gfp, int node)
- {
--	up_read(&mm->mmap_sem);
- 	VM_BUG_ON(!*hpage);
+ 	ret = -EAGAIN;
+ 	pmd = *src_pmd;
+-	if (unlikely(!pmd_trans_huge(pmd) && !pmd_devmap(pmd))) {
++	if (unlikely(!pmd_trans_huge(pmd))) {
+ 		pte_free(dst_mm, pgtable);
+ 		goto out_unlock;
+ 	}
+@@ -1136,16 +1137,13 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		goto out_unlock;
+ 	}
  
- 	return  *hpage;
-@@ -936,8 +925,14 @@ static void collapse_huge_page(struct mm
- 	/* Only allocate from the target node */
- 	gfp = alloc_hugepage_khugepaged_gfpmask() | __GFP_OTHER_NODE | __GFP_THISNODE;
+-	if (!vma_is_dax(vma)) {
+-		/* thp accounting separate from pmd_devmap accounting */
+-		src_page = pmd_page(pmd);
+-		VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
+-		get_page(src_page);
+-		page_dup_rmap(src_page, true);
+-		add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
+-		atomic_long_inc(&dst_mm->nr_ptes);
+-		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
+-	}
++	src_page = pmd_page(pmd);
++	VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
++	get_page(src_page);
++	page_dup_rmap(src_page, true);
++	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
++	atomic_long_inc(&dst_mm->nr_ptes);
++	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
  
--	/* release the mmap_sem read lock. */
--	new_page = khugepaged_alloc_page(hpage, gfp, mm, address, node);
-+	/*
-+	 * Before allocating the hugepage, release the mmap_sem read lock.
-+	 * The allocation can take potentially a long time if it involves
-+	 * sync compaction, and we do not need to hold the mmap_sem during
-+	 * that. We will recheck the vma after taking it again in write mode.
-+	 */
-+	up_read(&mm->mmap_sem);
-+	new_page = khugepaged_alloc_page(hpage, gfp, node);
- 	if (!new_page) {
- 		result = SCAN_ALLOC_HUGE_PAGE_FAIL;
- 		goto out_nolock;
+ 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
+ 	pmd = pmd_mkold(pmd_wrprotect(pmd));
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
