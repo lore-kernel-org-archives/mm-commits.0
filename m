@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-fix-nr_pmds-accounting-with-shared-page-tables.patch
- added to -mm tree
-Date: Mon, 20 Jun 2016 15:31:19 -0700
-Message-ID: <57686eb7.R7Vt+d+U4vFNFWD7%akpm@linux-foundation.org>
+Subject: + ipc-sem-sem_lock-with-hysteresis.patch added to -mm tree
+Date: Mon, 20 Jun 2016 16:05:36 -0700
+Message-ID: <576876c0.mUMQAsbhSbizgWh7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44960 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45447 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752226AbcFTWky (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jun 2016 18:40:54 -0400
+	with ESMTP id S1754104AbcFTXFh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jun 2016 19:05:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, zhongjiang@huawei.com, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, dave@stgolabs.net, felixh@informatik.uni-bremen.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix nr_pmds accounting with shared page tables
+     Subject: ipc/sem: sem_lock with hysteresis
 has been added to the -mm tree.  Its filename is
-     hugetlb-fix-nr_pmds-accounting-with-shared-page-tables.patch
+     ipc-sem-sem_lock-with-hysteresis.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-fix-nr_pmds-accounting-with-shared-page-tables.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-sem-sem_lock-with-hysteresis.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-fix-nr_pmds-accounting-with-shared-page-tables.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-sem-sem_lock-with-hysteresis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,97 +38,195 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: hugetlb: fix nr_pmds accounting with shared page tables
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem: sem_lock with hysteresis
 
-We account HugeTLB's shared page table to all processes who share it.
-The accounting happens during huge_pmd_share().
+sysv sem has two lock modes: One with per-semaphore locks, one lock mode
+with a single big lock for the whole array.  When switching from the
+per-semaphore locks to the big lock, all per-semaphore locks must be
+scanned for ongoing operations.
 
-If somebody populates pud entry under us, we should decrease pagetable's
-refcount and decrease nr_pmds of the process.
+The patch adds a hysteresis for switching from the big lock to the per
+semaphore locks.  This reduces how often the per-semaphore locks must be
+scanned.
 
-By mistake, I increase nr_pmds again in this case. :-/
-It will lead to "BUG: non-zero nr_pmds on freeing mm: 2" on process'
-exit.
+Passed stress testing with sem-scalebench.
 
-Let's fix this by increasing nr_pmds only when we're sure that the page
-table will be used.
-
-Link: http://lkml.kernel.org/r/20160617122506.GC6534@node.shutemov.name
-Fixes: dc6c9a35b66b ("mm: account pmd page tables to the process")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: zhongjiang <zhongjiang@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1466280142-19741-2-git-send-email-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: <felixh@informatik.uni-bremen.de>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/sem.h |    2 
+ ipc/sem.c           |   91 ++++++++++++++++++++++--------------------
+ 2 files changed, 49 insertions(+), 44 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-nr_pmds-accounting-with-shared-page-tables mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-nr_pmds-accounting-with-shared-page-tables
-+++ a/mm/hugetlb.c
-@@ -4228,7 +4228,6 @@ pte_t *huge_pmd_share(struct mm_struct *
- 		if (saddr) {
- 			spte = huge_pte_offset(svma->vm_mm, saddr);
- 			if (spte) {
--				mm_inc_nr_pmds(mm);
- 				get_page(virt_to_page(spte));
- 				break;
- 			}
-@@ -4243,9 +4242,9 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	if (pud_none(*pud)) {
- 		pud_populate(mm, pud,
- 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
-+		mm_inc_nr_pmds(mm);
- 	} else {
- 		put_page(virt_to_page(spte));
--		mm_inc_nr_pmds(mm);
+diff -puN include/linux/sem.h~ipc-sem-sem_lock-with-hysteresis include/linux/sem.h
+--- a/include/linux/sem.h~ipc-sem-sem_lock-with-hysteresis
++++ a/include/linux/sem.h
+@@ -21,7 +21,7 @@ struct sem_array {
+ 	struct list_head	list_id;	/* undo requests on this array */
+ 	int			sem_nsems;	/* no. of semaphores in array */
+ 	int			complex_count;	/* pending complex operations */
+-	bool			complex_mode;	/* no parallel simple ops */
++	int			complex_mode;	/* >0: no parallel simple ops */
+ };
+ 
+ #ifdef CONFIG_SYSVIPC
+diff -puN ipc/sem.c~ipc-sem-sem_lock-with-hysteresis ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-sem_lock-with-hysteresis
++++ a/ipc/sem.c
+@@ -161,6 +161,13 @@ static int sysvipc_sem_proc_show(struct
+ #define SEMOPM_FAST	64  /* ~ 372 bytes on stack */
+ 
+ /*
++ * Switching from the mode suitable for simple ops
++ * to the mode for complex ops is costly. Therefore:
++ * use some hysteresis
++ */
++#define COMPLEX_MODE_ENTER 10
++
++/*
+  * Locking:
+  * a) global sem_lock() for read/write
+  *	sem_undo.id_next,
+@@ -279,17 +286,25 @@ static void sem_rcu_free(struct rcu_head
+ /*
+  * Enter the mode suitable for non-simple operations:
+  * Caller must own sem_perm.lock.
++ * Note:
++ * There is no leave complex mode function. Leaving
++ * happens in sem_lock, with some hysteresis.
+  */
+ static void complexmode_enter(struct sem_array *sma)
+ {
+ 	int i;
+ 	struct sem *sem;
+ 
+-	if (sma->complex_mode)  {
+-		/* We are already in complex_mode. Nothing to do */
++	if (sma->complex_mode > 0)  {
++		/*
++		 * We are already in complex_mode.
++		 * Nothing to do, just increase
++		 * counter until we return to simple mode
++		 */
++		WRITE_ONCE(sma->complex_mode, COMPLEX_MODE_ENTER);
+ 		return;
  	}
- 	spin_unlock(ptl);
- out:
-_
-
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
-
-revert-mm-make-faultaround-produce-old-ptes.patch
-revert-mm-disable-fault-around-on-emulated-access-bit-architecture.patch
-hugetlb-fix-nr_pmds-accounting-with-shared-page-tables.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
-khugepaged-recheck-pmd-after-mmap_sem-re-acquired.patch
-thp-mlock-update-unevictable-lrutxt.patch
-mm-do-not-pass-mm_struct-into-handle_mm_fault.patch
-mm-introduce-fault_env.patch
-mm-postpone-page-table-allocation-until-we-have-page-to-map.patch
-rmap-support-file-thp.patch
-mm-introduce-do_set_pmd.patch
-thp-vmstats-add-counters-for-huge-file-pages.patch
-thp-support-file-pages-in-zap_huge_pmd.patch
-thp-handle-file-pages-in-split_huge_pmd.patch
-thp-handle-file-cow-faults.patch
-thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
-thp-prepare-change_huge_pmd-for-file-thp.patch
-thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem.patch
-thp-file-pages-support-for-split_huge_page.patch
-thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
-vmscan-split-file-huge-pages-before-paging-them-out.patch
-page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim.patch
-radix-tree-implement-radix_tree_maybe_preload_order.patch
-filemap-prepare-find-and-delete-operations-for-huge-pages.patch
-truncate-handle-file-thp.patch
-mm-rmap-account-shmem-thp-pages.patch
-shmem-prepare-huge=-mount-option-and-sysfs-knob.patch
-shmem-add-huge-pages-support.patch
-shmem-thp-respect-madv_nohugepage-for-file-mappings.patch
-thp-extract-khugepaged-from-mm-huge_memoryc.patch
-khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
-shmem-make-shmem_inode_info-lock-irq-safe.patch
-khugepaged-add-support-of-collapse-for-tmpfs-shmem-pages.patch
-thp-introduce-config_transparent_huge_pagecache.patch
-shmem-split-huge-pages-beyond-i_size-under-memory-pressure.patch
-thp-update-documentation-vm-transhugefilesystems-proctxt.patch
-
+-	WRITE_ONCE(sma->complex_mode, true);
++	WRITE_ONCE(sma->complex_mode, COMPLEX_MODE_ENTER);
+ 
+ 	/* We need a full barrier:
+ 	 * The write to complex_mode must be visible
+@@ -305,29 +320,6 @@ static void complexmode_enter(struct sem
+ }
+ 
+ /*
+- * Try to leave the mode that disallows simple operations:
+- * Caller must own sem_perm.lock.
+- */
+-static void complexmode_tryleave(struct sem_array *sma)
+-{
+-	if (sma->complex_count)  {
+-		/* Complex ops are sleeping.
+-		 * We must stay in complex mode
+-		 */
+-		return;
+-	}
+-	/*
+-	 * Immediately after setting complex_mode to false,
+-	 * a simple op can start. Thus: all memory writes
+-	 * performed by the current operation must be visible
+-	 * before we set complex_mode to false.
+-	 */
+-	smp_wmb();
+-
+-	WRITE_ONCE(sma->complex_mode, false);
+-}
+-
+-/*
+  * If the request contains only one semaphore operation, and there are
+  * no complex transactions pending, lock only the semaphore involved.
+  * Otherwise, lock the entire semaphore array, since we either have
+@@ -383,27 +375,42 @@ static inline int sem_lock(struct sem_ar
+ 	ipc_lock_object(&sma->sem_perm);
+ 
+ 	if (sma->complex_count == 0) {
+-		/* False alarm:
+-		 * There is no complex operation, thus we can switch
+-		 * back to the fast path.
+-		 */
+-		spin_lock(&sem->lock);
+-		ipc_unlock_object(&sma->sem_perm);
+-		return sops->sem_num;
+-	} else {
+-		/* Not a false alarm, thus complete the sequence for a
+-		 * full lock.
++		/*
++		 * Check if fast path is possible:
++		 * There is no complex operation, check hysteresis
++		 * If 0, switch back to the fast path.
+ 		 */
+-		complexmode_enter(sma);
+-		return -1;
++		if (sma->complex_mode > 0) {
++			/* Note:
++			 * Immediately after setting complex_mode to 0,
++			 * a simple op could start.
++			 * The data it would access was written by the
++			 * previous owner of sem->sem_perm.lock, i.e
++			 * a release and an acquire memory barrier ago.
++			 * No need for another barrier.
++			 */
++			WRITE_ONCE(sma->complex_mode, sma->complex_mode-1);
++		}
++		if (sma->complex_mode == 0) {
++			spin_lock(&sem->lock);
++			ipc_unlock_object(&sma->sem_perm);
++			return sops->sem_num;
++		}
+ 	}
++	/*
++	 * Not a false alarm, full lock is required.
++	 * Since we are already in complex_mode (either because of waiting
++	 * complex ops or due to hysteresis), there is not need for a
++	 * complexmode_enter().
++	 */
++	WARN_ON(sma->complex_mode == 0);
++	return -1;
+ }
+ 
+ static inline void sem_unlock(struct sem_array *sma, int locknum)
+ {
+ 	if (locknum == -1) {
+ 		unmerge_queues(sma);
+-		complexmode_tryleave(sma);
+ 		ipc_unlock_object(&sma->sem_perm);
+ 	} else {
+ 		struct sem *sem = sma->sem_base + locknum;
+@@ -555,7 +562,7 @@ static int newary(struct ipc_namespace *
+ 	}
+ 
+ 	sma->complex_count = 0;
+-	sma->complex_mode = true; /* dropped by sem_unlock below */
++	WRITE_ONCE(sma->complex_mode, COMPLEX_MODE_ENTER);
+ 	INIT_LIST_HEAD(&sma->pending_alter);
+ 	INIT_LIST_HEAD(&sma->pending_const);
+ 	INIT_LIST_HEAD(&sma->list_id);
+@@ -2212,7 +2219,7 @@ static int sysvipc_sem_proc_show(struct
+ 	 * The proc interface isn't aware of sem_lock(), it calls
+ 	 * ipc_lock_object() directly (in sysvipc_find_ipc).
+ 	 * In order to stay compatible with sem_lock(), we must
+-	 * enter / leave complex_mode.
++	 * enter complex_mode.
+ 	 */
+ 	complexmode_enter(sma);
+ 
+@@ -2231,8 +2238,6 @@ static int sysvipc_sem_proc_show(struct
+ 		   sem_otime,
+ 		   sma->sem_ctime);
+ 
+-	complexmode_tryleave(sma);
