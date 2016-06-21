@@ -1,42 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs.patch added to -mm tree
-Date: Tue, 21 Jun 2016 16:28:57 -0700
-Message-ID: <5769cdb9.5IrkAkA9gvxvhspB%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs.patch
+ removed from -mm tree
+Date: Tue, 21 Jun 2016 16:26:03 -0700
+Message-ID: <5769cd0b.NSpnzt5gbyelay5s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46215 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46366 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752035AbcFUXa0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 19:30:26 -0400
+	with ESMTP id S1751002AbcFUXv5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 19:51:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, kernel@kyup.com, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, lizefan@huawei.com, mhocko@suse.cz, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: mm: memcontrol: fix cgroup creation failure after many small jobs
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
@@ -52,21 +39,21 @@ with -ENOSPC while there are only a few, or even no user-visible cgroups
 in existence.
 
 Although pinning CSSs past cgroup removal is common, there are only two
-instances that actually need an ID after a cgroup is deleted: cache shadow
-entries and swapout records.
+instances that actually need a CSS ID after a cgroup is deleted: cache
+shadow entries and swapout records.
 
 Cache shadow entries reference the ID weakly and can deal with the CSS
 having disappeared when it's looked up later.  They pose no hurdle.
 
 Swap-out records do need to pin the css to hierarchically attribute
 swapins after the cgroup has been deleted; though the only pages that
-remain swapped out after offlining are tmpfs/shmem pages.  And those
-references are under the user's control, so they are manageable.
+remain swapped out after a process exits are tmpfs/shmem pages.  Those
+references are under the user's control and thus manageable.
 
-This patch introduces a private 16-bit memcg ID and switches swap and
-cache shadow entries over to using that.  This ID can then be recycled
-after offlining when the CSS remains pinned only by objects that don't
-specifically need it.
+This patch introduces a private 16bit memcg ID and switches swap and cache
+shadow entries over to using that.  It then decouples the CSS lifetime
+from the CSS ID lifetime, such that a CSS ID can be recycled when the CSS
+is only pinned by common objects that don't need an ID.
 
 This script demonstrates the problem by faulting one cache page in a new
 cgroup and deleting it again:
@@ -82,30 +69,48 @@ for x in `seq 128000`; do
   rmdir /cgroup/foo
 done
 
-When run on an unpatched kernel, we eventually run out of possible IDs
-even though there are no visible cgroups:
+When run on an unpatched kernel, we eventually run out of possible CSS IDs
+even though there is no visible cgroup existing anymore:
 
 [root@ham ~]# ./cssidstress.sh
 [...]
 65000
 mkdir: cannot create directory '/cgroup/foo': No space left on device
 
-After this patch, the IDs get released upon cgroup destruction and the
-cache and css objects get released once memory reclaim kicks in.
+After this patch, the CSS IDs get released upon cgroup destruction and
+the cache and css objects get released once memory reclaim kicks in.
 
-Link: http://lkml.kernel.org/r/20160617162516.GD19084@cmpxchg.org
+Link: http://lkml.kernel.org/r/20160616034244.14839-1-hannes@cmpxchg.org
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Nikolay Borisov <kernel@kyup.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Li Zefan <lizefan@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   25 ++++------
- mm/memcontrol.c            |   82 ++++++++++++++++++++++++++++++++---
- mm/slab_common.c           |    4 -
- 3 files changed, 87 insertions(+), 24 deletions(-)
+ include/linux/cgroup.h     |    3 +
+ include/linux/memcontrol.h |   25 ++++++---------
+ kernel/cgroup.c            |   22 ++++++++++++-
+ mm/memcontrol.c            |   56 ++++++++++++++++++++++++++++++-----
+ mm/slab_common.c           |    4 +-
+ 5 files changed, 83 insertions(+), 27 deletions(-)
 
+diff -puN include/linux/cgroup.h~mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs include/linux/cgroup.h
+--- a/include/linux/cgroup.h~mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs
++++ a/include/linux/cgroup.h
+@@ -85,9 +85,10 @@ struct cgroup_subsys_state *cgroup_get_e
+ 					     struct cgroup_subsys *ss);
+ struct cgroup_subsys_state *css_tryget_online_from_dir(struct dentry *dentry,
+ 						       struct cgroup_subsys *ss);
+-
+ struct cgroup *cgroup_get_from_path(const char *path);
+ 
++void css_id_free(struct cgroup_subsys_state *css);
++
+ int cgroup_attach_task_all(struct task_struct *from, struct task_struct *);
+ int cgroup_transfer_tasks(struct cgroup *to, struct cgroup *from);
+ 
 diff -puN include/linux/memcontrol.h~mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs include/linux/memcontrol.h
 --- a/include/linux/memcontrol.h~mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs
 +++ a/include/linux/memcontrol.h
@@ -156,37 +161,54 @@ diff -puN include/linux/memcontrol.h~mm-memcontrol-fix-cgroup-creation-failure-a
  
  /**
   * parent_mem_cgroup - find the accounting parent of a memcg
+diff -puN kernel/cgroup.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs kernel/cgroup.c
+--- a/kernel/cgroup.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs
++++ a/kernel/cgroup.c
+@@ -4961,10 +4961,10 @@ static void css_free_work_fn(struct work
+ 	if (ss) {
+ 		/* css free path */
+ 		struct cgroup_subsys_state *parent = css->parent;
+-		int id = css->id;
+ 
+ 		ss->css_free(css);
+-		cgroup_idr_remove(&ss->css_idr, id);
++		if (css->id)
++			cgroup_idr_remove(&ss->css_idr, css->id);
+ 		cgroup_put(cgrp);
+ 
+ 		if (parent)
+@@ -6205,6 +6205,24 @@ struct cgroup *cgroup_get_from_path(cons
+ }
+ EXPORT_SYMBOL_GPL(cgroup_get_from_path);
+ 
++/**
++ * css_id_free - relinquish an existing CSS's ID
++ * @css: the CSS
++ *
++ * This releases the @css's ID and allows it to be recycled while the
++ * CSS continues to exist. This is useful for controllers with state
++ * that extends past a cgroup's lifetime but doesn't need precious ID
++ * address space.
++ *
++ * This invalidates @css->id, and css_from_id() might return NULL or a
++ * new css if the ID has been recycled in the meantime.
++ */
++void css_id_free(struct cgroup_subsys_state *css)
++{
++	cgroup_idr_remove(&css->ss->css_idr, css->id);
++	css->id = 0;
++}
++
+ /*
+  * sock->sk_cgrp_data handling.  For more info, see sock_cgroup_data
+  * definition in cgroup-defs.h.
 diff -puN mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs mm/memcontrol.c
 --- a/mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs
 +++ a/mm/memcontrol.c
-@@ -4093,6 +4093,60 @@ static struct cftype mem_cgroup_legacy_f
+@@ -4093,6 +4093,34 @@ static struct cftype mem_cgroup_legacy_f
  	{ },	/* terminate */
  };
  
-+/*
-+ * Private memory cgroup IDR
-+ *
-+ * Swap-out records and page cache shadow entries need to store memcg
-+ * references in constrained space, so we maintain an ID space that is
-+ * limited to 16 bit (MEM_CGROUP_ID_MAX), limiting the total number of
-+ * memory-controlled cgroups to 64k.
-+ *
-+ * However, there usually are many references to the oflline CSS after
-+ * the cgroup has been destroyed, such as page cache or reclaimable
-+ * slab objects, that don't need to hang on to the ID. We want to keep
-+ * those dead CSS from occupying IDs, or we might quickly exhaust the
-+ * relatively small ID space and prevent the creation of new cgroups
-+ * even when there are much fewer than 64k cgroups - possibly none.
-+ *
-+ * Maintain a private 16-bit ID space for memcg, and allow the ID to
-+ * be freed and recycled when it's no longer needed, which is usually
-+ * when the CSS is offlined.
-+ *
-+ * The only exception to that are records of swapped out tmpfs/shmem
-+ * pages that need to be attributed to live ancestors on swapin. But
-+ * those references are manageable from userspace.
-+ */
-+
 +static struct idr mem_cgroup_idr;
 +
 +static void mem_cgroup_id_get(struct mem_cgroup *memcg)
@@ -198,9 +220,7 @@ diff -puN mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-s
 +{
 +	if (atomic_dec_and_test(&memcg->id.ref)) {
 +		idr_remove(&mem_cgroup_idr, memcg->id.id);
-+		memcg->id.id = 0;
-+
-+		/* Memcg ID pins CSS */
++		css_id_free(&memcg->css);
 +		css_put(&memcg->css);
 +	}
 +}
@@ -214,13 +234,13 @@ diff -puN mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-s
 +struct mem_cgroup *mem_cgroup_from_id(unsigned short id)
 +{
 +	WARN_ON_ONCE(!rcu_read_lock_held());
-+	return idr_find(&mem_cgroup_idr, id);
++	return id > 0 ? idr_find(&mem_cgroup_idr, id) : NULL;
 +}
 +
  static int alloc_mem_cgroup_per_zone_info(struct mem_cgroup *memcg, int node)
  {
  	struct mem_cgroup_per_node *pn;
-@@ -4152,6 +4206,12 @@ static struct mem_cgroup *mem_cgroup_all
+@@ -4152,6 +4180,12 @@ static struct mem_cgroup *mem_cgroup_all
  	if (!memcg)
  		return NULL;
  
@@ -233,7 +253,7 @@ diff -puN mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-s
  	memcg->stat = alloc_percpu(struct mem_cgroup_stat_cpu);
  	if (!memcg->stat)
  		goto fail;
-@@ -4178,8 +4238,11 @@ static struct mem_cgroup *mem_cgroup_all
+@@ -4178,8 +4212,11 @@ static struct mem_cgroup *mem_cgroup_all
  #ifdef CONFIG_CGROUP_WRITEBACK
  	INIT_LIST_HEAD(&memcg->cgwb_list);
  #endif
@@ -245,7 +265,7 @@ diff -puN mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-s
  	mem_cgroup_free(memcg);
  	return NULL;
  }
-@@ -4242,12 +4305,11 @@ fail:
+@@ -4242,12 +4279,11 @@ fail:
  	return ERR_PTR(-ENOMEM);
  }
  
@@ -256,13 +276,13 @@ diff -puN mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-s
 -	if (css->id > MEM_CGROUP_ID_MAX)
 -		return -ENOSPC;
 -
-+	/* Online state pins memcg ID, memcg ID pins CSS */
++	/* Online state pins memcg ID, memcg ID pins CSS and CSS ID */
 +	mem_cgroup_id_get(mem_cgroup_from_css(css));
 +	css_get(css);
  	return 0;
  }
  
-@@ -4270,6 +4332,8 @@ static void mem_cgroup_css_offline(struc
+@@ -4270,6 +4306,8 @@ static void mem_cgroup_css_offline(struc
  
  	memcg_offline_kmem(memcg);
  	wb_memcg_offline(memcg);
@@ -271,7 +291,7 @@ diff -puN mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-s
  }
  
  static void mem_cgroup_css_released(struct cgroup_subsys_state *css)
-@@ -5800,6 +5864,7 @@ void mem_cgroup_swapout(struct page *pag
+@@ -5800,6 +5838,7 @@ void mem_cgroup_swapout(struct page *pag
  	if (!memcg)
  		return;
  
@@ -279,7 +299,7 @@ diff -puN mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-s
  	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
  	VM_BUG_ON_PAGE(oldid, page);
  	mem_cgroup_swap_statistics(memcg, true);
-@@ -5818,6 +5883,9 @@ void mem_cgroup_swapout(struct page *pag
+@@ -5818,6 +5857,9 @@ void mem_cgroup_swapout(struct page *pag
  	VM_BUG_ON(!irqs_disabled());
  	mem_cgroup_charge_statistics(memcg, page, false, -1);
  	memcg_check_events(memcg, page);
@@ -289,7 +309,7 @@ diff -puN mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-s
  }
  
  /*
-@@ -5848,11 +5916,11 @@ int mem_cgroup_try_charge_swap(struct pa
+@@ -5848,11 +5890,11 @@ int mem_cgroup_try_charge_swap(struct pa
  	    !page_counter_try_charge(&memcg->swap, 1, &counter))
  		return -ENOMEM;
  
@@ -302,7 +322,7 @@ diff -puN mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-s
  	return 0;
  }
  
-@@ -5881,7 +5949,7 @@ void mem_cgroup_uncharge_swap(swp_entry_
+@@ -5881,7 +5923,7 @@ void mem_cgroup_uncharge_swap(swp_entry_
  				page_counter_uncharge(&memcg->memsw, 1);
  		}
  		mem_cgroup_swap_statistics(memcg, false);
@@ -331,6 +351,5 @@ Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 cgroup-fix-idr-leak-for-the-first-cgroup-root.patch
 cgroup-remove-unnecessary-0-check-from-css_from_id.patch
-mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs.patch
 mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs-fix.patch
 
