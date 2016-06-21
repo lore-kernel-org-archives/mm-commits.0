@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-update-classzone_idx-if-buffer_heads_over_limit.patch added to -mm tree
-Date: Tue, 21 Jun 2016 15:49:52 -0700
-Message-ID: <5769c490.lWZaLr2Q+9fDDA1V%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-split-freepages-without-holding-the-zone-lock-fix.patch added to -mm tree
+Date: Tue, 21 Jun 2016 16:14:28 -0700
+Message-ID: <5769ca54.gwMDbTOc4lLM8KUy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45083 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46155 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049AbcFUWuJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 18:50:09 -0400
+	with ESMTP id S1751506AbcFUXOa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 19:14:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: rientjes@google.com, glider@google.com, hughd@google.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: update classzone_idx if buffer_heads_over_limit
+     Subject: mm/compaction: split freepages without holding the zone lock fix
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-update-classzone_idx-if-buffer_heads_over_limit.patch
+     mm-compaction-split-freepages-without-holding-the-zone-lock-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-update-classzone_idx-if-buffer_heads_over_limit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-split-freepages-without-holding-the-zone-lock-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-update-classzone_idx-if-buffer_heads_over_limit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-split-freepages-without-holding-the-zone-lock-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,70 +39,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: update classzone_idx if buffer_heads_over_limit
+From: David Rientjes <rientjes@google.com>
+Subject: mm/compaction: split freepages without holding the zone lock fix
 
-If buffer heads are over the limit then the direct reclaim gfp_mask is
-promoted to __GFP_HIGHMEM so that lowmem is indirectly freed.  With
-node-based reclaim, it is also required that the classzone_idx be updated
-or the pages will be skipped.
+If __isolate_free_page() fails, avoid adding to freelist so we don't call
+map_pages() with it.
 
-Link: http://lkml.kernel.org/r/1466518566-30034-21-git-send-email-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@surriel.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1606211447001.43430@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/compaction.c |   29 +++++++++++++----------------
+ 1 file changed, 13 insertions(+), 16 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-update-classzone_idx-if-buffer_heads_over_limit mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-update-classzone_idx-if-buffer_heads_over_limit
-+++ a/mm/vmscan.c
-@@ -2577,8 +2577,10 @@ static void shrink_zones(struct zonelist
- 	 * highmem pages could be pinning lowmem pages storing buffer_heads
- 	 */
- 	orig_mask = sc->gfp_mask;
--	if (buffer_heads_over_limit)
-+	if (buffer_heads_over_limit) {
- 		sc->gfp_mask |= __GFP_HIGHMEM;
-+		classzone_idx = gfp_zone(sc->gfp_mask);
-+	}
+diff -puN mm/compaction.c~mm-compaction-split-freepages-without-holding-the-zone-lock-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-split-freepages-without-holding-the-zone-lock-fix
++++ a/mm/compaction.c
+@@ -497,24 +497,21 @@ static unsigned long isolate_freepages_b
  
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 					gfp_zone(sc->gfp_mask), sc->nodemask) {
+ 		/* Found a free page, will break it into order-0 pages */
+ 		order = page_order(page);
+-		isolated = __isolate_free_page(page, page_order(page));
++		isolated = __isolate_free_page(page, order);
++		if (!isolated)
++			goto isolate_fail;
+ 		set_page_private(page, order);
+ 		total_isolated += isolated;
+ 		list_add_tail(&page->lru, freelist);
+-
+-		/* If a page was split, advance to the end of it */
+-		if (isolated) {
+-			cc->nr_freepages += isolated;
+-			if (!strict &&
+-				cc->nr_migratepages <= cc->nr_freepages) {
+-				blockpfn += isolated;
+-				break;
+-			}
+-
+-			blockpfn += isolated - 1;
+-			cursor += isolated - 1;
+-			continue;
++		cc->nr_freepages += isolated;
++		if (!strict && cc->nr_migratepages <= cc->nr_freepages) {
++			blockpfn += isolated;
++			break;
+ 		}
++		/* Advance to end of split page */
++		blockpfn += isolated - 1;
++		cursor += isolated - 1;
++		continue;
+ 
+ isolate_fail:
+ 		if (strict)
+@@ -625,7 +622,7 @@ isolate_freepages_range(struct compact_c
+ 		 */
+ 	}
+ 
+-	/* split_free_page does not map the pages */
++	/* __isolate_free_page() does not map the pages */
+ 	map_pages(&freelist);
+ 
+ 	if (pfn < end_pfn) {
+@@ -1125,7 +1122,7 @@ static void isolate_freepages(struct com
+ 		}
+ 	}
+ 
+-	/* split_free_page does not map the pages */
++	/* __isolate_free_page() does not map the pages */
+ 	map_pages(freelist);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask.patch
-mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
-mm-vmscan-move-lru_lock-to-the-node.patch
-mm-vmscan-move-lru-lists-to-node.patch
-mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
-mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
-mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
-mm-vmscan-remove-balance-gap.patch
-mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
-mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
-mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
-mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
-mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
-mm-workingset-make-working-set-detection-node-aware.patch
-mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
-mm-move-page-mapped-accounting-to-the-node.patch
-mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
-mm-move-most-file-based-accounting-to-the-node.patch
-mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
-mm-vmscan-update-classzone_idx-if-buffer_heads_over_limit.patch
-mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
-mm-convert-zone_reclaim-to-node_reclaim.patch
-mm-vmscan-add-classzone-information-to-tracepoints.patch
-mm-page_alloc-remove-fair-zone-allocation-policy.patch
-mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
-mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
+mm-compaction-split-freepages-without-holding-the-zone-lock-fix.patch
 
