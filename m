@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-workingset-make-working-set-detection-node-aware.patch added to -mm tree
-Date: Tue, 21 Jun 2016 15:49:40 -0700
-Message-ID: <5769c484.81Rk0oX/AJp1/Uy2%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-remove-fair-zone-allocation-policy.patch added to -mm tree
+Date: Tue, 21 Jun 2016 15:50:00 -0700
+Message-ID: <5769c498.+rxLX8ZhdhNapKPb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45093 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751982AbcFUWuJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 18:50:09 -0400
+	with ESMTP id S1752101AbcFUWuK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 18:50:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, hannes@cmpxchg.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, workingset: make working set detection node-aware
+     Subject: mm, page_alloc: remove fair zone allocation policy
 has been added to the -mm tree.  Its filename is
-     mm-workingset-make-working-set-detection-node-aware.patch
+     mm-page_alloc-remove-fair-zone-allocation-policy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-make-working-set-detection-node-aware.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-remove-fair-zone-allocation-policy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-make-working-set-detection-node-aware.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-remove-fair-zone-allocation-policy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,258 +39,241 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, workingset: make working set detection node-aware
+Subject: mm, page_alloc: remove fair zone allocation policy
 
-Working set and refault detection is still zone-based, fix it.
+The fair zone allocation policy interleaves allocation requests between
+zones to avoid an age inversion problem whereby new pages are reclaimed to
+balance a zone.  Reclaim is now node-based so this should no longer be an
+issue and the fair zone allocation policy is not free.  This patch removes
+it.
 
-Link: http://lkml.kernel.org/r/1466518566-30034-15-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1466518566-30034-25-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 ++---
- include/linux/vmstat.h |    1 
- mm/vmstat.c            |   20 ++----------------
- mm/workingset.c        |   43 ++++++++++++++++++---------------------
- 4 files changed, 26 insertions(+), 44 deletions(-)
+ include/linux/mmzone.h |    5 --
+ mm/internal.h          |    1 
+ mm/page_alloc.c        |   75 ---------------------------------------
+ mm/vmstat.c            |    4 --
+ 4 files changed, 2 insertions(+), 83 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-workingset-make-working-set-detection-node-aware include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-workingset-make-working-set-detection-node-aware
+diff -puN include/linux/mmzone.h~mm-page_alloc-remove-fair-zone-allocation-policy include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-remove-fair-zone-allocation-policy
 +++ a/include/linux/mmzone.h
-@@ -145,9 +145,6 @@ enum zone_stat_item {
- 	NUMA_LOCAL,		/* allocation from local node */
- 	NUMA_OTHER,		/* allocation from other node */
- #endif
--	WORKINGSET_REFAULT,
--	WORKINGSET_ACTIVATE,
--	WORKINGSET_NODERECLAIM,
- 	NR_ANON_THPS,
- 	NR_SHMEM_THPS,
- 	NR_SHMEM_PMDMAPPED,
-@@ -164,6 +161,9 @@ enum node_stat_item {
- 	NR_ISOLATED_ANON,	/* Temporary isolated pages from anon lru */
- 	NR_ISOLATED_FILE,	/* Temporary isolated pages from file lru */
- 	NR_PAGES_SCANNED,	/* pages scanned since last reclaim */
-+	WORKINGSET_REFAULT,
-+	WORKINGSET_ACTIVATE,
-+	WORKINGSET_NODERECLAIM,
- 	NR_VM_NODE_STAT_ITEMS
- };
+@@ -110,7 +110,6 @@ struct zone_padding {
+ enum zone_stat_item {
+ 	/* First 128 byte cacheline (assuming 64 bit words) */
+ 	NR_FREE_PAGES,
+-	NR_ALLOC_BATCH,
+ 	NR_ZONE_LRU_BASE, /* Used only for compaction and reclaim retry */
+ 	NR_ZONE_LRU_ANON = NR_ZONE_LRU_BASE,
+ 	NR_ZONE_LRU_FILE,
+@@ -514,10 +513,6 @@ struct zone {
+ 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
+ } ____cacheline_internodealigned_in_smp;
  
-diff -puN include/linux/vmstat.h~mm-workingset-make-working-set-detection-node-aware include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-workingset-make-working-set-detection-node-aware
-+++ a/include/linux/vmstat.h
-@@ -227,7 +227,6 @@ void mod_node_page_state(struct pglist_d
- void inc_node_page_state(struct page *, enum node_stat_item);
- void dec_node_page_state(struct page *, enum node_stat_item);
+-enum zone_flags {
+-	ZONE_FAIR_DEPLETED,		/* fair zone policy batch depleted */
+-};
+-
+ enum pgdat_flags {
+ 	PGDAT_CONGESTED,		/* zone has many dirty pages backed by
+ 					 * a congested BDI
+diff -puN mm/internal.h~mm-page_alloc-remove-fair-zone-allocation-policy mm/internal.h
+--- a/mm/internal.h~mm-page_alloc-remove-fair-zone-allocation-policy
++++ a/mm/internal.h
+@@ -467,7 +467,6 @@ unsigned long reclaim_clean_pages_from_l
+ #define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
+ #define ALLOC_CPUSET		0x40 /* check for correct cpuset */
+ #define ALLOC_CMA		0x80 /* allow allocations from CMA areas */
+-#define ALLOC_FAIR		0x100 /* fair zone allocation */
  
--extern void inc_zone_state(struct zone *, enum zone_stat_item);
- extern void inc_node_state(struct pglist_data *, enum node_stat_item);
- extern void __inc_zone_state(struct zone *, enum zone_stat_item);
- extern void __inc_node_state(struct pglist_data *, enum node_stat_item);
-diff -puN mm/vmstat.c~mm-workingset-make-working-set-detection-node-aware mm/vmstat.c
---- a/mm/vmstat.c~mm-workingset-make-working-set-detection-node-aware
-+++ a/mm/vmstat.c
-@@ -433,11 +433,6 @@ void mod_zone_page_state(struct zone *zo
+ enum ttu_flags;
+ struct tlbflush_unmap_batch;
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-fair-zone-allocation-policy mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-fair-zone-allocation-policy
++++ a/mm/page_alloc.c
+@@ -2594,7 +2594,6 @@ struct page *buffered_rmqueue(struct zon
+ 			else
+ 				page = list_first_entry(list, struct page, lru);
+ 
+-			__dec_zone_state(zone, NR_ALLOC_BATCH);
+ 			list_del(&page->lru);
+ 			pcp->count--;
+ 
+@@ -2620,15 +2619,10 @@ struct page *buffered_rmqueue(struct zon
+ 		spin_unlock(&zone->lock);
+ 		if (!page)
+ 			goto failed;
+-		__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
+ 		__mod_zone_freepage_state(zone, -(1 << order),
+ 					  get_pcppage_migratetype(page));
+ 	}
+ 
+-	if (atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]) <= 0 &&
+-	    !test_bit(ZONE_FAIR_DEPLETED, &zone->flags))
+-		set_bit(ZONE_FAIR_DEPLETED, &zone->flags);
+-
+ 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
+ 	zone_statistics(preferred_zone, zone, gfp_flags);
+ 	local_irq_restore(flags);
+@@ -2839,40 +2833,18 @@ bool zone_watermark_ok_safe(struct zone
  }
- EXPORT_SYMBOL(mod_zone_page_state);
  
--void inc_zone_state(struct zone *zone, enum zone_stat_item item)
+ #ifdef CONFIG_NUMA
+-static bool zone_local(struct zone *local_zone, struct zone *zone)
 -{
--	mod_zone_state(zone, item, 1, 1);
+-	return local_zone->node == zone->node;
 -}
 -
- void inc_zone_page_state(struct page *page, enum zone_stat_item item)
+ static bool zone_allows_reclaim(struct zone *local_zone, struct zone *zone)
  {
- 	mod_zone_state(page_zone(page), item, 1, 1);
-@@ -526,15 +521,6 @@ void mod_zone_page_state(struct zone *zo
+ 	return node_distance(zone_to_nid(local_zone), zone_to_nid(zone)) <
+ 				RECLAIM_DISTANCE;
  }
- EXPORT_SYMBOL(mod_zone_page_state);
- 
--void inc_zone_state(struct zone *zone, enum zone_stat_item item)
+ #else	/* CONFIG_NUMA */
+-static bool zone_local(struct zone *local_zone, struct zone *zone)
 -{
--	unsigned long flags;
--
--	local_irq_save(flags);
--	__inc_zone_state(zone, item);
--	local_irq_restore(flags);
+-	return true;
 -}
 -
- void inc_zone_page_state(struct page *page, enum zone_stat_item item)
+ static bool zone_allows_reclaim(struct zone *local_zone, struct zone *zone)
  {
- 	unsigned long flags;
-@@ -954,9 +940,6 @@ const char * const vmstat_text[] = {
- 	"numa_local",
- 	"numa_other",
- #endif
--	"workingset_refault",
--	"workingset_activate",
--	"workingset_nodereclaim",
- 	"nr_anon_transparent_hugepages",
- 	"nr_shmem_hugepages",
- 	"nr_shmem_pmdmapped",
-@@ -971,6 +954,9 @@ const char * const vmstat_text[] = {
- 	"nr_isolated_anon",
- 	"nr_isolated_file",
- 	"nr_pages_scanned",
-+	"workingset_refault",
-+	"workingset_activate",
-+	"workingset_nodereclaim",
+ 	return true;
+ }
+ #endif	/* CONFIG_NUMA */
  
- 	/* enum writeback_stat_item counters */
- 	"nr_dirty_threshold",
-diff -puN mm/workingset.c~mm-workingset-make-working-set-detection-node-aware mm/workingset.c
---- a/mm/workingset.c~mm-workingset-make-working-set-detection-node-aware
-+++ a/mm/workingset.c
-@@ -16,7 +16,7 @@
+-static void reset_alloc_batches(struct zone *preferred_zone)
+-{
+-	struct zone *zone = preferred_zone->zone_pgdat->node_zones;
+-
+-	do {
+-		mod_zone_page_state(zone, NR_ALLOC_BATCH,
+-			high_wmark_pages(zone) - low_wmark_pages(zone) -
+-			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
+-		clear_bit(ZONE_FAIR_DEPLETED, &zone->flags);
+-	} while (zone++ != preferred_zone);
+-}
+-
  /*
-  *		Double CLOCK lists
-  *
-- * Per zone, two clock lists are maintained for file pages: the
-+ * Per node, two clock lists are maintained for file pages: the
-  * inactive and the active list.  Freshly faulted pages start out at
-  * the head of the inactive list and page reclaim scans pages from the
-  * tail.  Pages that are accessed multiple times on the inactive list
-@@ -141,11 +141,11 @@
-  *
-  *		Implementation
-  *
-- * For each zone's file LRU lists, a counter for inactive evictions
-- * and activations is maintained (zone->inactive_age).
-+ * For each node's file LRU lists, a counter for inactive evictions
-+ * and activations is maintained (node->inactive_age).
-  *
-  * On eviction, a snapshot of this counter (along with some bits to
-- * identify the zone) is stored in the now empty page cache radix tree
-+ * identify the node) is stored in the now empty page cache radix tree
-  * slot of the evicted page.  This is called a shadow entry.
-  *
-  * On cache misses for which there are shadow entries, an eligible
-@@ -153,7 +153,7 @@
-  */
- 
- #define EVICTION_SHIFT	(RADIX_TREE_EXCEPTIONAL_ENTRY + \
--			 ZONES_SHIFT + NODES_SHIFT +	\
-+			 NODES_SHIFT +	\
- 			 MEM_CGROUP_ID_SHIFT)
- #define EVICTION_MASK	(~0UL >> EVICTION_SHIFT)
- 
-@@ -167,33 +167,30 @@
-  */
- static unsigned int bucket_order __read_mostly;
- 
--static void *pack_shadow(int memcgid, struct zone *zone, unsigned long eviction)
-+static void *pack_shadow(int memcgid, pg_data_t *pgdat, unsigned long eviction)
+  * get_page_from_freelist goes through the zonelist trying to allocate
+  * a page.
+@@ -2883,10 +2855,6 @@ get_page_from_freelist(gfp_t gfp_mask, u
  {
- 	eviction >>= bucket_order;
- 	eviction = (eviction << MEM_CGROUP_ID_SHIFT) | memcgid;
--	eviction = (eviction << NODES_SHIFT) | zone_to_nid(zone);
--	eviction = (eviction << ZONES_SHIFT) | zone_idx(zone);
-+	eviction = (eviction << NODES_SHIFT) | pgdat->node_id;
- 	eviction = (eviction << RADIX_TREE_EXCEPTIONAL_SHIFT);
- 
- 	return (void *)(eviction | RADIX_TREE_EXCEPTIONAL_ENTRY);
- }
- 
--static void unpack_shadow(void *shadow, int *memcgidp, struct zone **zonep,
-+static void unpack_shadow(void *shadow, int *memcgidp, pg_data_t **pgdat,
- 			  unsigned long *evictionp)
- {
- 	unsigned long entry = (unsigned long)shadow;
--	int memcgid, nid, zid;
-+	int memcgid, nid;
- 
- 	entry >>= RADIX_TREE_EXCEPTIONAL_SHIFT;
--	zid = entry & ((1UL << ZONES_SHIFT) - 1);
--	entry >>= ZONES_SHIFT;
- 	nid = entry & ((1UL << NODES_SHIFT) - 1);
- 	entry >>= NODES_SHIFT;
- 	memcgid = entry & ((1UL << MEM_CGROUP_ID_SHIFT) - 1);
- 	entry >>= MEM_CGROUP_ID_SHIFT;
- 
- 	*memcgidp = memcgid;
--	*zonep = NODE_DATA(nid)->node_zones + zid;
-+	*pgdat = NODE_DATA(nid);
- 	*evictionp = entry << bucket_order;
- }
- 
-@@ -208,7 +205,7 @@ static void unpack_shadow(void *shadow,
- void *workingset_eviction(struct address_space *mapping, struct page *page)
- {
- 	struct mem_cgroup *memcg = page_memcg(page);
--	struct zone *zone = page_zone(page);
-+	struct pglist_data *pgdat = page_pgdat(page);
- 	int memcgid = mem_cgroup_id(memcg);
- 	unsigned long eviction;
- 	struct lruvec *lruvec;
-@@ -218,9 +215,9 @@ void *workingset_eviction(struct address
- 	VM_BUG_ON_PAGE(page_count(page), page);
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 
--	lruvec = mem_cgroup_lruvec(zone->zone_pgdat, memcg);
-+	lruvec = mem_cgroup_lruvec(pgdat, memcg);
- 	eviction = atomic_long_inc_return(&lruvec->inactive_age);
--	return pack_shadow(memcgid, zone, eviction);
-+	return pack_shadow(memcgid, pgdat, eviction);
- }
- 
- /**
-@@ -228,7 +225,7 @@ void *workingset_eviction(struct address
-  * @shadow: shadow entry of the evicted page
-  *
-  * Calculates and evaluates the refault distance of the previously
-- * evicted page in the context of the zone it was allocated in.
-+ * evicted page in the context of the node it was allocated in.
-  *
-  * Returns %true if the page should be activated, %false otherwise.
-  */
-@@ -240,10 +237,10 @@ bool workingset_refault(void *shadow)
- 	unsigned long eviction;
- 	struct lruvec *lruvec;
- 	unsigned long refault;
--	struct zone *zone;
-+	struct pglist_data *pgdat;
- 	int memcgid;
- 
--	unpack_shadow(shadow, &memcgid, &zone, &eviction);
-+	unpack_shadow(shadow, &memcgid, &pgdat, &eviction);
- 
- 	rcu_read_lock();
+ 	struct zoneref *z = ac->preferred_zoneref;
+ 	struct zone *zone;
+-	bool fair_skipped = false;
+-	bool apply_fair = (alloc_flags & ALLOC_FAIR);
+-
+-zonelist_scan:
  	/*
-@@ -267,7 +264,7 @@ bool workingset_refault(void *shadow)
- 		rcu_read_unlock();
- 		return false;
- 	}
--	lruvec = mem_cgroup_lruvec(zone->zone_pgdat, memcg);
-+	lruvec = mem_cgroup_lruvec(pgdat, memcg);
- 	refault = atomic_long_read(&lruvec->inactive_age);
- 	active_file = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE);
- 	rcu_read_unlock();
-@@ -290,10 +287,10 @@ bool workingset_refault(void *shadow)
- 	 */
- 	refault_distance = (refault - eviction) & EVICTION_MASK;
- 
--	inc_zone_state(zone, WORKINGSET_REFAULT);
-+	inc_node_state(pgdat, WORKINGSET_REFAULT);
- 
- 	if (refault_distance <= active_file) {
--		inc_zone_state(zone, WORKINGSET_ACTIVATE);
-+		inc_node_state(pgdat, WORKINGSET_ACTIVATE);
- 		return true;
- 	}
- 	return false;
-@@ -434,7 +431,7 @@ static enum lru_status shadow_lru_isolat
+ 	 * Scan zonelist, looking for a zone with enough free.
+ 	 * See also __cpuset_node_allowed() comment in kernel/cpuset.c.
+@@ -2901,23 +2869,6 @@ zonelist_scan:
+ 			!__cpuset_zone_allowed(zone, gfp_mask))
+ 				continue;
+ 		/*
+-		 * Distribute pages in proportion to the individual
+-		 * zone size to ensure fair page aging.  The zone a
+-		 * page was allocated in should have no effect on the
+-		 * time the page has in memory before being reclaimed.
+-		 */
+-		if (apply_fair) {
+-			if (test_bit(ZONE_FAIR_DEPLETED, &zone->flags)) {
+-				fair_skipped = true;
+-				continue;
+-			}
+-			if (!zone_local(ac->preferred_zoneref->zone, zone)) {
+-				if (fair_skipped)
+-					goto reset_fair;
+-				apply_fair = false;
+-			}
+-		}
+-		/*
+ 		 * When allocating a page cache page for writing, we
+ 		 * want to get it from a node that is within its dirty
+ 		 * limit, such that no single node holds more than its
+@@ -2988,23 +2939,6 @@ try_this_zone:
  		}
  	}
- 	BUG_ON(node->count);
--	inc_zone_state(page_zone(virt_to_page(node)), WORKINGSET_NODERECLAIM);
-+	inc_node_state(page_zone(virt_to_page(node))->zone_pgdat, WORKINGSET_NODERECLAIM);
- 	if (!__radix_tree_delete_node(&mapping->page_tree, node))
- 		BUG();
  
+-	/*
+-	 * The first pass makes sure allocations are spread fairly within the
+-	 * local node.  However, the local node might have free pages left
+-	 * after the fairness batches are exhausted, and remote zones haven't
+-	 * even been considered yet.  Try once more without fairness, and
+-	 * include remote zones now, before entering the slowpath and waking
+-	 * kswapd: prefer spilling to a remote zone over swapping locally.
+-	 */
+-	if (fair_skipped) {
+-reset_fair:
+-		apply_fair = false;
+-		fair_skipped = false;
+-		reset_alloc_batches(ac->preferred_zoneref->zone);
+-		z = ac->preferred_zoneref;
+-		goto zonelist_scan;
+-	}
+-
+ 	return NULL;
+ }
+ 
+@@ -3755,7 +3689,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ {
+ 	struct page *page;
+ 	unsigned int cpuset_mems_cookie;
+-	unsigned int alloc_flags = ALLOC_WMARK_LOW|ALLOC_FAIR;
++	unsigned int alloc_flags = ALLOC_WMARK_LOW;
+ 	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
+ 	struct alloc_context ac = {
+ 		.high_zoneidx = gfp_zone(gfp_mask),
+@@ -5985,9 +5919,6 @@ static void __paginginit free_area_init_
+ 		zone_seqlock_init(zone);
+ 		zone_pcp_init(zone);
+ 
+-		/* For bootup, initialized properly in watermark setup */
+-		mod_zone_page_state(zone, NR_ALLOC_BATCH, zone->managed_pages);
+-
+ 		if (!size)
+ 			continue;
+ 
+@@ -6835,10 +6766,6 @@ static void __setup_per_zone_wmarks(void
+ 		zone->watermark[WMARK_LOW]  = min_wmark_pages(zone) + tmp;
+ 		zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) + tmp * 2;
+ 
+-		__mod_zone_page_state(zone, NR_ALLOC_BATCH,
+-			high_wmark_pages(zone) - low_wmark_pages(zone) -
+-			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
+-
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+ 	}
+ 
+diff -puN mm/vmstat.c~mm-page_alloc-remove-fair-zone-allocation-policy mm/vmstat.c
+--- a/mm/vmstat.c~mm-page_alloc-remove-fair-zone-allocation-policy
++++ a/mm/vmstat.c
+@@ -908,7 +908,6 @@ int fragmentation_index(struct zone *zon
+ const char * const vmstat_text[] = {
+ 	/* enum zone_stat_item countes */
+ 	"nr_free_pages",
+-	"nr_alloc_batch",
+ 	"nr_zone_anon_lru",
+ 	"nr_zone_file_lru",
+ 	"nr_mlock",
+@@ -1618,10 +1617,9 @@ int vmstat_refresh(struct ctl_table *tab
+ 		val = atomic_long_read(&vm_zone_stat[i]);
+ 		if (val < 0) {
+ 			switch (i) {
+-			case NR_ALLOC_BATCH:
+ 			case NR_PAGES_SCANNED:
+ 				/*
+-				 * These are often seen to go negative in
++				 * This is often seen to go negative in
+ 				 * recent kernels, but not to go permanently
+ 				 * negative.  Whilst it would be nicer not to
+ 				 * have exceptions, rooting them out would be
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
