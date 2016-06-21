@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + crc32-use-ktime_get_ns-for-measurement.patch added to -mm tree
-Date: Tue, 21 Jun 2016 16:36:27 -0700
-Message-ID: <5769cf7b.UUgQg+Xe+vAcYl8Y%akpm@linux-foundation.org>
+Subject: + mm-swapc-flush-lru-pvecs-on-compound-page-arrival.patch added
+ to -mm tree
+Date: Tue, 21 Jun 2016 16:35:23 -0700
+Message-ID: <5769cf3b.srPaBc+mUIC3o+0x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47555 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751270AbcFVAaw (ORCPT
+	with ESMTP id S1750978AbcFVAaw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 20:30:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, davem@davemloft.net, mm-commits@vger.kernel.org
+To: lukasz.odzioba@intel.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mingli199x@qq.com, stable@vger.kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: crc32: use ktime_get_ns() for measurement
+     Subject: mm/swap.c: flush lru pvecs on compound page arrival
 has been added to the -mm tree.  Its filename is
-     crc32-use-ktime_get_ns-for-measurement.patch
+     mm-swapc-flush-lru-pvecs-on-compound-page-arrival.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/crc32-use-ktime_get_ns-for-measurement.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swapc-flush-lru-pvecs-on-compound-page-arrival.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/crc32-use-ktime_get_ns-for-measurement.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swapc-flush-lru-pvecs-on-compound-page-arrival.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,86 +39,124 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: crc32: use ktime_get_ns() for measurement
+From: Lukasz Odzioba <lukasz.odzioba@intel.com>
+Subject: mm/swap.c: flush lru pvecs on compound page arrival
 
-The crc32 test function measures the elapsed time in nanoseconds, but uses
-'struct timespec' for that.  We want to remove timespec from the kernel
-for y2038 compatibility, and ktime_get_ns() also helps make the code
-simpler here.
+Currently we can have compound pages held on per cpu pagevecs, which leads
+to a lot of memory unavailable for reclaim when needed.  In the systems
+with hundreads of processors it can be GBs of memory.
 
-It is also slightly better to use monontonic time, as we are only
-interested in the time difference.
+On of the way of reproducing the problem is to not call munmap explicitly
+on all mapped regions (i.e.  after receiving SIGTERM).  After that some
+pages (with THP enabled also huge pages) may end up on lru_add_pvec,
+example below.
 
-Link: http://lkml.kernel.org/r/20160617143932.3289626-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: "David S . Miller" <davem@davemloft.net>
+void main() {
+#pragma omp parallel
+{
+	size_t size = 55 * 1000 * 1000; // smaller than  MEM/CPUS
+	void *p = mmap(NULL, size, PROT_READ | PROT_WRITE,
+		MAP_PRIVATE | MAP_ANONYMOUS , -1, 0);
+	if (p != MAP_FAILED)
+		memset(p, 0, size);
+	//munmap(p, size); // uncomment to make the problem go away
+}
+}
+
+When we run it with THP enabled it will leave significant amount of memory
+on lru_add_pvec.  This memory will be not reclaimed if we hit OOM, so when
+we run above program in a loop:
+
+	for i in `seq 100`; do ./a.out; done
+
+many processes (95% in my case) will be killed by OOM.
+
+The primary point of the LRU add cache is to save the zone lru_lock
+contention with a hope that more pages will belong to the same zone and so
+their addition can be batched.  The huge page is already a form of batched
+addition (it will add 512 worth of memory in one go) so skipping the
+batching seems like a safer option when compared to a potential excess in
+the caching which can be quite large and much harder to fix because
+lru_add_drain_all is way to expensive and it is not really clear what
+would be a good moment to call it.
+
+Similarly we can reproduce the problem on lru_deactivate_pvec by adding:
+madvise(p, size, MADV_FREE); after memset.
+
+This patch flushes lru pvecs on compound page arrival making the problem
+less severe - after applying it kill rate of above example drops to 0%,
+due to reducing maximum amount of memory held on pvec from 28MB (with THP)
+to 56kB per CPU.
+
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1466180198-18854-1-git-send-email-lukasz.odzioba@intel.com
+Signed-off-by: Lukasz Odzioba <lukasz.odzioba@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Ming Li <mingli199x@qq.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/crc32.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ mm/swap.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN lib/crc32.c~crc32-use-ktime_get_ns-for-measurement lib/crc32.c
---- a/lib/crc32.c~crc32-use-ktime_get_ns-for-measurement
-+++ a/lib/crc32.c
-@@ -979,7 +979,6 @@ static int __init crc32c_test(void)
- 	int i;
- 	int errors = 0;
- 	int bytes = 0;
--	struct timespec start, stop;
- 	u64 nsec;
- 	unsigned long flags;
- 
-@@ -999,20 +998,17 @@ static int __init crc32c_test(void)
- 	local_irq_save(flags);
- 	local_irq_disable();
- 
--	getnstimeofday(&start);
-+	nsec = ktime_get_ns();
- 	for (i = 0; i < 100; i++) {
- 		if (test[i].crc32c_le != __crc32c_le(test[i].crc, test_buf +
- 		    test[i].start, test[i].length))
- 			errors++;
+diff -puN mm/swap.c~mm-swapc-flush-lru-pvecs-on-compound-page-arrival mm/swap.c
+--- a/mm/swap.c~mm-swapc-flush-lru-pvecs-on-compound-page-arrival
++++ a/mm/swap.c
+@@ -242,7 +242,7 @@ void rotate_reclaimable_page(struct page
+ 		get_page(page);
+ 		local_irq_save(flags);
+ 		pvec = this_cpu_ptr(&lru_rotate_pvecs);
+-		if (!pagevec_add(pvec, page))
++		if (!pagevec_add(pvec, page) || PageCompound(page))
+ 			pagevec_move_tail(pvec);
+ 		local_irq_restore(flags);
  	}
--	getnstimeofday(&stop);
-+	nsec = ktime_get_ns() - nsec;
+@@ -296,7 +296,7 @@ void activate_page(struct page *page)
+ 		struct pagevec *pvec = &get_cpu_var(activate_page_pvecs);
  
- 	local_irq_restore(flags);
- 	local_irq_enable();
- 
--	nsec = stop.tv_nsec - start.tv_nsec +
--		1000000000 * (stop.tv_sec - start.tv_sec);
--
- 	pr_info("crc32c: CRC_LE_BITS = %d\n", CRC_LE_BITS);
- 
- 	if (errors)
-@@ -1065,7 +1061,6 @@ static int __init crc32_test(void)
- 	int i;
- 	int errors = 0;
- 	int bytes = 0;
--	struct timespec start, stop;
- 	u64 nsec;
- 	unsigned long flags;
- 
-@@ -1088,7 +1083,7 @@ static int __init crc32_test(void)
- 	local_irq_save(flags);
- 	local_irq_disable();
- 
--	getnstimeofday(&start);
-+	nsec = ktime_get_ns();
- 	for (i = 0; i < 100; i++) {
- 		if (test[i].crc_le != crc32_le(test[i].crc, test_buf +
- 		    test[i].start, test[i].length))
-@@ -1098,14 +1093,11 @@ static int __init crc32_test(void)
- 		    test[i].start, test[i].length))
- 			errors++;
+ 		get_page(page);
+-		if (!pagevec_add(pvec, page))
++		if (!pagevec_add(pvec, page) || PageCompound(page))
+ 			pagevec_lru_move_fn(pvec, __activate_page, NULL);
+ 		put_cpu_var(activate_page_pvecs);
  	}
--	getnstimeofday(&stop);
-+	nsec = ktime_get_ns() - nsec;
+@@ -391,9 +391,8 @@ static void __lru_cache_add(struct page
+ 	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
  
- 	local_irq_restore(flags);
- 	local_irq_enable();
+ 	get_page(page);
+-	if (!pagevec_space(pvec))
++	if (!pagevec_add(pvec, page) || PageCompound(page))
+ 		__pagevec_lru_add(pvec);
+-	pagevec_add(pvec, page);
+ 	put_cpu_var(lru_add_pvec);
+ }
  
--	nsec = stop.tv_nsec - start.tv_nsec +
--		1000000000 * (stop.tv_sec - start.tv_sec);
+@@ -628,7 +627,7 @@ void deactivate_file_page(struct page *p
+ 	if (likely(get_page_unless_zero(page))) {
+ 		struct pagevec *pvec = &get_cpu_var(lru_deactivate_file_pvecs);
+ 
+-		if (!pagevec_add(pvec, page))
++		if (!pagevec_add(pvec, page) || PageCompound(page))
+ 			pagevec_lru_move_fn(pvec, lru_deactivate_file_fn, NULL);
+ 		put_cpu_var(lru_deactivate_file_pvecs);
+ 	}
+@@ -648,7 +647,7 @@ void deactivate_page(struct page *page)
+ 		struct pagevec *pvec = &get_cpu_var(lru_deactivate_pvecs);
+ 
+ 		get_page(page);
+-		if (!pagevec_add(pvec, page))
++		if (!pagevec_add(pvec, page) || PageCompound(page))
+ 			pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
+ 		put_cpu_var(lru_deactivate_pvecs);
+ 	}
+_
+
+Patches currently in -mm which might be from lukasz.odzioba@intel.com are
+
+mm-swapc-flush-lru-pvecs-on-compound-page-arrival.patch
+
