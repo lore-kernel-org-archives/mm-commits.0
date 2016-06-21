@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-abort-free-scanner-if-split-fails.patch added to
- -mm tree
-Date: Tue, 21 Jun 2016 16:16:31 -0700
-Message-ID: <5769cacf.bCp4kn4B2JmNmlCt%akpm@linux-foundation.org>
+Subject: + thp-fix-comments-of-__pmd_trans_huge_lock.patch added to -mm
+ tree
+Date: Tue, 21 Jun 2016 16:17:50 -0700
+Message-ID: <5769cb1e.+hLCn5AZ87vQIuCK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46169 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46180 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751768AbcFUXQc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 19:16:32 -0400
+	with ESMTP id S1751579AbcFUXSj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 19:18:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, hughd@google.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: abort free scanner if split fails
+     Subject: thp: fix comments of __pmd_trans_huge_lock()
 has been added to the -mm tree.  Its filename is
-     mm-compaction-abort-free-scanner-if-split-fails.patch
+     thp-fix-comments-of-__pmd_trans_huge_lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-abort-free-scanner-if-split-fails.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-fix-comments-of-__pmd_trans_huge_lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-abort-free-scanner-if-split-fails.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-fix-comments-of-__pmd_trans_huge_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,93 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, compaction: abort free scanner if split fails
+From: Huang Ying <ying.huang@intel.com>
+Subject: thp: fix comments of __pmd_trans_huge_lock()
 
-If the memory compaction free scanner cannot successfully split a free
-page (only possible due to per-zone low watermark), terminate the free
-scanner rather than continuing to scan memory needlessly.
+To make the comments consistent with the already changed code.
 
-If the per-zone watermark is insufficient for a free page of order <=
-cc->order, then terminate the scanner since future splits will also likely
-fail.
-
-This prevents the compaction freeing scanner from scanning all memory on
-very large zones (very noticeable for zones > 128GB, for instance) when
-all splits will likely fail.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1606211447360.43430@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/1466200004-6196-1-git-send-email-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ mm/huge_memory.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails mm/compaction.c
---- a/mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails
-+++ a/mm/compaction.c
-@@ -496,7 +496,7 @@ static unsigned long isolate_freepages_b
- 		order = page_order(page);
- 		isolated = __isolate_free_page(page, order);
- 		if (!isolated)
--			goto isolate_fail;
-+			break;
- 		set_page_private(page, order);
- 		total_isolated += isolated;
- 		list_add_tail(&page->lru, freelist);
-@@ -518,6 +518,9 @@ isolate_fail:
+diff -puN mm/huge_memory.c~thp-fix-comments-of-__pmd_trans_huge_lock mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-fix-comments-of-__pmd_trans_huge_lock
++++ a/mm/huge_memory.c
+@@ -1463,10 +1463,10 @@ int change_huge_pmd(struct vm_area_struc
+ }
  
- 	}
- 
-+	if (locked)
-+		spin_unlock_irqrestore(&cc->zone->lock, flags);
-+
- 	/*
- 	 * There is a tiny chance that we have read bogus compound_order(),
- 	 * so be careful to not go outside of the pageblock.
-@@ -539,9 +542,6 @@ isolate_fail:
- 	if (strict && blockpfn < end_pfn)
- 		total_isolated = 0;
- 
--	if (locked)
--		spin_unlock_irqrestore(&cc->zone->lock, flags);
--
- 	/* Update the pageblock-skip if the whole pageblock was scanned */
- 	if (blockpfn == end_pfn)
- 		update_pageblock_skip(cc, valid_page, total_isolated, false);
-@@ -1066,6 +1066,7 @@ static void isolate_freepages(struct com
- 				block_end_pfn = block_start_pfn,
- 				block_start_pfn -= pageblock_nr_pages,
- 				isolate_start_pfn = block_start_pfn) {
-+		unsigned long isolated;
- 
- 		/*
- 		 * This can iterate a massively long zone without finding any
-@@ -1090,8 +1091,12 @@ static void isolate_freepages(struct com
- 			continue;
- 
- 		/* Found a block suitable for isolating free pages from. */
--		isolate_freepages_block(cc, &isolate_start_pfn,
--					block_end_pfn, freelist, false);
-+		isolated = isolate_freepages_block(cc, &isolate_start_pfn,
-+						block_end_pfn, freelist, false);
-+		/* If isolation failed, do not continue needlessly */
-+		if (!isolated && isolate_start_pfn < block_end_pfn &&
-+		    cc->nr_freepages <= cc->nr_migratepages)
-+			break;
- 
- 		/*
- 		 * If we isolated enough freepages, or aborted due to async
+ /*
+- * Returns true if a given pmd maps a thp, false otherwise.
++ * Returns page table lock pointer if a given pmd maps a thp, NULL otherwise.
+  *
+- * Note that if it returns true, this routine returns without unlocking page
+- * table lock. So callers must unlock it.
++ * Note that if it returns page table lock pointer, this routine returns without
++ * unlocking page table lock. So callers must unlock it.
+  */
+ spinlock_t *__pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma)
+ {
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-compaction-split-freepages-without-holding-the-zone-lock-fix.patch
-mm-compaction-abort-free-scanner-if-split-fails.patch
+thp-fix-comments-of-__pmd_trans_huge_lock.patch
 
