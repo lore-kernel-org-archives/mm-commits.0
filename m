@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
- added to -mm tree
-Date: Tue, 21 Jun 2016 15:49:34 -0700
-Message-ID: <5769c47e.gvUaQlWidLsTNdkZ%akpm@linux-foundation.org>
+ mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch added to -mm tree
+Date: Tue, 21 Jun 2016 15:49:54 -0700
+Message-ID: <5769c492.Vt7yfwW3puk6jA22%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45085 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45091 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751853AbcFUWuI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 18:50:08 -0400
+	with ESMTP id S1752057AbcFUWuK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 18:50:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, hannes@cmpxchg.org, riel@surriel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: do not reclaim from kswapd if there is any eligible zone
+     Subject: mm, vmscan: only wakeup kswapd once per node for the requested classzone
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
+     mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,74 +40,79 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: vmscan: do not reclaim from kswapd if there is any eligible zone
+Subject: mm, vmscan: only wakeup kswapd once per node for the requested classzone
 
-kswapd scans from highest to lowest for a zone that requires balancing. 
-This was necessary when reclaim was per-zone to fairly age pages on lower
-zones.  Now that we are reclaiming on a per-node basis, any eligible zone
-can be used and pages will still be aged fairly.  This patch avoids
-reclaiming excessively unless buffer_heads are over the limit and it's
-necessary to reclaim from a higher zone than requested by the waker of
-kswapd to relieve low memory pressure.
+kswapd is woken when zones are below the low watermark but the wakeup
+decision is not taking the classzone into account.  Now that reclaim is
+node-based, it is only required to wake kswapd once per node and only if
+all zones are unbalanced for the requested classzone.
 
-Link: http://lkml.kernel.org/r/1466518566-30034-12-git-send-email-mgorman@techsingularity.net
+Note that one node might be checked multiple times if the zonelist is
+ordered by node because there is no cheap way of tracking what nodes have
+already been visited.  For zone-ordering, each node should be checked only
+once.
+
+Link: http://lkml.kernel.org/r/1466518566-30034-22-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   32 +++++++++++++++++++-------------
- 1 file changed, 19 insertions(+), 13 deletions(-)
+ mm/page_alloc.c |    8 ++++++--
+ mm/vmscan.c     |   13 +++++++++++--
+ 2 files changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone
+diff -puN mm/page_alloc.c~mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone
++++ a/mm/page_alloc.c
+@@ -3374,10 +3374,14 @@ static void wake_all_kswapds(unsigned in
+ {
+ 	struct zoneref *z;
+ 	struct zone *zone;
++	pg_data_t *last_pgdat = NULL;
+ 
+ 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist,
+-						ac->high_zoneidx, ac->nodemask)
+-		wakeup_kswapd(zone, order, ac_classzone_idx(ac));
++					ac->high_zoneidx, ac->nodemask) {
++		if (last_pgdat != zone->zone_pgdat)
++			wakeup_kswapd(zone, order, ac_classzone_idx(ac));
++		last_pgdat = zone->zone_pgdat;
++	}
+ }
+ 
+ static inline unsigned int
+diff -puN mm/vmscan.c~mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone
 +++ a/mm/vmscan.c
-@@ -3138,24 +3138,30 @@ static int balance_pgdat(pg_data_t *pgda
+@@ -3435,6 +3435,7 @@ kswapd_try_sleep:
+ void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx)
+ {
+ 	pg_data_t *pgdat;
++	int z;
  
- 		sc.nr_reclaimed = 0;
- 
--		/* Scan from the highest requested zone to dma */
-+		/*
-+		 * If the number of buffer_heads in the machine exceeds the
-+		 * maximum allowed level and this node has a highmem zone,
-+		 * force kswapd to reclaim from it to relieve lowmem pressure.
-+		 */
-+		if (buffer_heads_over_limit) {
-+			for (i = MAX_NR_ZONES - 1; i >= 0; i--) {
-+				zone = pgdat->node_zones + i;
-+				if (!populated_zone(zone))
-+					continue;
+ 	if (!populated_zone(zone))
+ 		return;
+@@ -3448,8 +3449,16 @@ void wakeup_kswapd(struct zone *zone, in
+ 	pgdat->kswapd_order = max(pgdat->kswapd_order, order);
+ 	if (!waitqueue_active(&pgdat->kswapd_wait))
+ 		return;
+-	if (zone_balanced(zone, order, 0))
+-		return;
 +
-+				if (is_highmem_idx(i))
-+					classzone_idx = i;
-+				break;
-+			}
-+		}
++	/* Only wake kswapd if all zones are unbalanced */
++	for (z = 0; z <= classzone_idx; z++) {
++		zone = pgdat->node_zones + z;
++		if (!populated_zone(zone))
++			continue;
 +
-+		/* Only reclaim if there are no eligible zones */
- 		for (i = classzone_idx; i >= 0; i--) {
- 			zone = pgdat->node_zones + i;
- 			if (!populated_zone(zone))
- 				continue;
++		if (zone_balanced(zone, order, classzone_idx))
++			return;
++	}
  
--			/*
--			 * If the number of buffer_heads in the machine
--			 * exceeds the maximum allowed level and this node
--			 * has a highmem zone, force kswapd to reclaim from
--			 * it to relieve lowmem pressure.
--			 */
--			if (buffer_heads_over_limit && is_highmem_idx(i)) {
--				classzone_idx = i;
--				break;
--			}
--
--			if (!zone_balanced(zone, order, 0)) {
-+			if (!zone_balanced(zone, sc.order, classzone_idx)) {
- 				classzone_idx = i;
- 				break;
- 			}
+ 	trace_mm_vmscan_wakeup_kswapd(pgdat->node_id, zone_idx(zone), order);
+ 	wake_up_interruptible(&pgdat->kswapd_wait);
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
