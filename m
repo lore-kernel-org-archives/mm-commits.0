@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
+Subject: + mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
  added to -mm tree
-Date: Tue, 21 Jun 2016 15:49:20 -0700
-Message-ID: <5769c470.xAjOXRS9JjxKkXE8%akpm@linux-foundation.org>
+Date: Tue, 21 Jun 2016 15:49:36 -0700
+Message-ID: <5769c480./kCH61y4dmOWOd5X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44984 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45086 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751525AbcFUWuG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 18:50:06 -0400
+	with ESMTP id S1751857AbcFUWuI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 18:50:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, hannes@cmpxchg.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: begin reclaiming pages on a per-node basis
+     Subject: mm, vmscan: make shrink_node decisions more node-centric
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
+     mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,19 +40,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: begin reclaiming pages on a per-node basis
+Subject: mm, vmscan: make shrink_node decisions more node-centric
 
-This patch makes reclaim decisions on a per-node basis.  A reclaimer knows
-what zone is required by the allocation request and skips pages from
-higher zones.  In many cases this will be ok because it's a GFP_HIGHMEM
-request of some description.  On 64-bit, ZONE_DMA32 requests will cause
-some problems but 32-bit devices on 64-bit platforms are increasingly
-rare.  Historically it would have been a major problem on 32-bit with big
-Highmem:Lowmem ratios but such configurations are also now rare and even
-where they exist, they are not encouraged.  If it really becomes a
-problem, it'll manifest as very low reclaim efficiencies.
+Earlier patches focused on having direct reclaim and kswapd use data that
+is node-centric for reclaiming but shrink_node() itself still uses too
+much zone information.  This patch removes unnecessary zone-based
+information with the most important decision being whether to continue
+reclaim or not.  Some memcg APIs are adjusted as a result even though
+memcg itself still uses some zone information.
 
-Link: http://lkml.kernel.org/r/1466518566-30034-5-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1466518566-30034-13-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -60,253 +57,334 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   78 +++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 53 insertions(+), 25 deletions(-)
+ include/linux/memcontrol.h |    9 +++--
+ include/linux/mmzone.h     |    4 +-
+ include/linux/swap.h       |    2 -
+ mm/memcontrol.c            |   17 +++++-----
+ mm/page_alloc.c            |    2 -
+ mm/vmscan.c                |   58 +++++++++++++++++++----------------
+ mm/workingset.c            |    6 +--
+ 7 files changed, 54 insertions(+), 44 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis
-+++ a/mm/vmscan.c
-@@ -84,6 +84,9 @@ struct scan_control {
- 	/* Scan (total_size >> priority) pages at once */
- 	int priority;
+diff -puN include/linux/memcontrol.h~mm-vmscan-make-shrink_node-decisions-more-node-centric include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-vmscan-make-shrink_node-decisions-more-node-centric
++++ a/include/linux/memcontrol.h
+@@ -314,7 +314,8 @@ void mem_cgroup_uncharge_list(struct lis
  
-+	/* The highest zone to isolate pages for reclaim from */
-+	enum zone_type reclaim_idx;
-+
- 	unsigned int may_writepage:1;
+ void mem_cgroup_migrate(struct page *oldpage, struct page *newpage);
  
- 	/* Can mapped pages be reclaimed? */
-@@ -1392,6 +1395,7 @@ static unsigned long isolate_lru_pages(u
- 	unsigned long nr_taken = 0;
- 	unsigned long nr_zone_taken[MAX_NR_ZONES] = { 0 };
- 	unsigned long scan, nr_pages;
-+	LIST_HEAD(pages_skipped);
+-struct lruvec *mem_cgroup_zone_lruvec(struct zone *, struct mem_cgroup *);
++struct lruvec *mem_cgroup_lruvec(struct pglist_data *, struct zone *zone,
++				 struct mem_cgroup *);
+ struct lruvec *mem_cgroup_page_lruvec(struct page *, struct pglist_data *);
  
- 	for (scan = 0; scan < nr_to_scan && nr_taken < nr_to_scan &&
- 					!list_empty(src); scan++) {
-@@ -1402,6 +1406,11 @@ static unsigned long isolate_lru_pages(u
- 
- 		VM_BUG_ON_PAGE(!PageLRU(page), page);
- 
-+		if (page_zonenum(page) > sc->reclaim_idx) {
-+			list_move(&page->lru, &pages_skipped);
-+			continue;
-+		}
-+
- 		switch (__isolate_lru_page(page, mode)) {
- 		case 0:
- 			nr_pages = hpage_nr_pages(page);
-@@ -1420,6 +1429,15 @@ static unsigned long isolate_lru_pages(u
- 		}
- 	}
- 
-+	/*
-+	 * Splice any skipped pages to the start of the LRU list. Note that
-+	 * this disrupts the LRU order when reclaiming for lower zones but
-+	 * we cannot splice to the tail. If we did then the SWAP_CLUSTER_MAX
-+	 * scanning would soon rescan the same pages to skip and put the
-+	 * system at risk of premature OOM.
-+	 */
-+	if (!list_empty(&pages_skipped))
-+		list_splice(&pages_skipped, src);
- 	*nr_scanned = scan;
- 	trace_mm_vmscan_lru_isolate(sc->order, nr_to_scan, scan,
- 				    nr_taken, mode, is_file_lru(lru));
-@@ -1589,7 +1607,7 @@ static int current_may_throttle(void)
- }
- 
- /*
-- * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
-+ * shrink_inactive_list() is a helper for shrink_node().  It returns the number
-  * of reclaimed pages
-  */
- static noinline_for_stack unsigned long
-@@ -2401,12 +2419,13 @@ static inline bool should_continue_recla
- 	}
- }
- 
--static bool shrink_zone(struct zone *zone, struct scan_control *sc,
--			bool is_classzone)
-+static bool shrink_node(pg_data_t *pgdat, struct scan_control *sc,
-+			enum zone_type classzone_idx)
+ bool task_in_mem_cgroup(struct task_struct *task, struct mem_cgroup *memcg);
+@@ -568,10 +569,10 @@ static inline void mem_cgroup_migrate(st
  {
+ }
+ 
+-static inline struct lruvec *mem_cgroup_zone_lruvec(struct zone *zone,
+-						    struct mem_cgroup *memcg)
++static inline struct lruvec *mem_cgroup_lruvec(struct pglist_data *pgdat,
++				struct zone *zone, struct mem_cgroup *memcg)
+ {
+-	return zone_lruvec(zone);
++	return node_lruvec(pgdat);
+ }
+ 
+ static inline struct lruvec *mem_cgroup_page_lruvec(struct page *page,
+diff -puN include/linux/mmzone.h~mm-vmscan-make-shrink_node-decisions-more-node-centric include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-vmscan-make-shrink_node-decisions-more-node-centric
++++ a/include/linux/mmzone.h
+@@ -739,9 +739,9 @@ static inline spinlock_t *zone_lru_lock(
+ 	return &zone->zone_pgdat->lru_lock;
+ }
+ 
+-static inline struct lruvec *zone_lruvec(struct zone *zone)
++static inline struct lruvec *node_lruvec(struct pglist_data *pgdat)
+ {
+-	return &zone->zone_pgdat->lruvec;
++	return &pgdat->lruvec;
+ }
+ 
+ static inline unsigned long pgdat_end_pfn(pg_data_t *pgdat)
+diff -puN include/linux/swap.h~mm-vmscan-make-shrink_node-decisions-more-node-centric include/linux/swap.h
+--- a/include/linux/swap.h~mm-vmscan-make-shrink_node-decisions-more-node-centric
++++ a/include/linux/swap.h
+@@ -316,7 +316,7 @@ extern unsigned long try_to_free_mem_cgr
+ 						  unsigned long nr_pages,
+ 						  gfp_t gfp_mask,
+ 						  bool may_swap);
+-extern unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *mem,
++extern unsigned long mem_cgroup_shrink_node(struct mem_cgroup *mem,
+ 						gfp_t gfp_mask, bool noswap,
+ 						struct zone *zone,
+ 						unsigned long *nr_scanned);
+diff -puN mm/memcontrol.c~mm-vmscan-make-shrink_node-decisions-more-node-centric mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-vmscan-make-shrink_node-decisions-more-node-centric
++++ a/mm/memcontrol.c
+@@ -944,22 +944,23 @@ static void invalidate_reclaim_iterators
+ 	     iter = mem_cgroup_iter(NULL, iter, NULL))
+ 
+ /**
+- * mem_cgroup_zone_lruvec - get the lru list vector for a zone and memcg
++ * mem_cgroup_lruvec - get the lru list vector for a node or a memcg zone
++ * @node: node of the wanted lruvec
+  * @zone: zone of the wanted lruvec
+  * @memcg: memcg of the wanted lruvec
+  *
+- * Returns the lru list vector holding pages for the given @zone and
+- * @mem.  This can be the global zone lruvec, if the memory controller
++ * Returns the lru list vector holding pages for a given @node or a given
++ * @memcg and @zone. This can be the node lruvec, if the memory controller
+  * is disabled.
+  */
+-struct lruvec *mem_cgroup_zone_lruvec(struct zone *zone,
+-				      struct mem_cgroup *memcg)
++struct lruvec *mem_cgroup_lruvec(struct pglist_data *pgdat,
++				 struct zone *zone, struct mem_cgroup *memcg)
+ {
+ 	struct mem_cgroup_per_zone *mz;
+ 	struct lruvec *lruvec;
+ 
+ 	if (mem_cgroup_disabled()) {
+-		lruvec = zone_lruvec(zone);
++		lruvec = node_lruvec(pgdat);
+ 		goto out;
+ 	}
+ 
+@@ -1474,8 +1475,8 @@ static int mem_cgroup_soft_reclaim(struc
+ 			}
+ 			continue;
+ 		}
+-		total += mem_cgroup_shrink_node_zone(victim, gfp_mask, false,
+-						     zone, &nr_scanned);
++		total += mem_cgroup_shrink_node(victim, gfp_mask, false,
++					zone, &nr_scanned);
+ 		*total_scanned += nr_scanned;
+ 		if (!soft_limit_excess(root_memcg))
+ 			break;
+diff -puN mm/page_alloc.c~mm-vmscan-make-shrink_node-decisions-more-node-centric mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-vmscan-make-shrink_node-decisions-more-node-centric
++++ a/mm/page_alloc.c
+@@ -5918,6 +5918,7 @@ static void __paginginit free_area_init_
+ #endif
+ 	pgdat_page_ext_init(pgdat);
+ 	spin_lock_init(&pgdat->lru_lock);
++	lruvec_init(node_lruvec(pgdat));
+ 
+ 	for (j = 0; j < MAX_NR_ZONES; j++) {
+ 		struct zone *zone = pgdat->node_zones + j;
+@@ -5980,7 +5981,6 @@ static void __paginginit free_area_init_
+ 		/* For bootup, initialized properly in watermark setup */
+ 		mod_zone_page_state(zone, NR_ALLOC_BATCH, zone->managed_pages);
+ 
+-		lruvec_init(zone_lruvec(zone));
+ 		if (!size)
+ 			continue;
+ 
+diff -puN mm/vmscan.c~mm-vmscan-make-shrink_node-decisions-more-node-centric mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-make-shrink_node-decisions-more-node-centric
++++ a/mm/vmscan.c
+@@ -2226,10 +2226,11 @@ static inline void init_tlb_ubc(void)
+ /*
+  * This is a basic per-zone page freer.  Used by both kswapd and direct reclaim.
+  */
+-static void shrink_zone_memcg(struct zone *zone, struct mem_cgroup *memcg,
++static void shrink_node_memcg(struct pglist_data *pgdat, struct mem_cgroup *memcg,
+ 			      struct scan_control *sc, unsigned long *lru_pages)
+ {
+-	struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
++	struct zone *zone = &pgdat->node_zones[sc->reclaim_idx];
++	struct lruvec *lruvec = mem_cgroup_lruvec(pgdat, zone, memcg);
+ 	unsigned long nr[NR_LRU_LISTS];
+ 	unsigned long targets[NR_LRU_LISTS];
+ 	unsigned long nr_to_scan;
+@@ -2362,13 +2363,14 @@ static bool in_reclaim_compaction(struct
+  * calls try_to_compact_zone() that it will have enough free pages to succeed.
+  * It will give up earlier than that if there is difficulty reclaiming pages.
+  */
+-static inline bool should_continue_reclaim(struct zone *zone,
++static inline bool should_continue_reclaim(struct pglist_data *pgdat,
+ 					unsigned long nr_reclaimed,
+ 					unsigned long nr_scanned,
+ 					struct scan_control *sc)
+ {
+ 	unsigned long pages_for_compaction;
+ 	unsigned long inactive_lru_pages;
++	int z;
+ 
+ 	/* If not in reclaim/compaction mode, stop */
+ 	if (!in_reclaim_compaction(sc))
+@@ -2402,21 +2404,27 @@ static inline bool should_continue_recla
+ 	 * inactive lists are large enough, continue reclaiming
+ 	 */
+ 	pages_for_compaction = (2UL << sc->order);
+-	inactive_lru_pages = node_page_state(zone->zone_pgdat, NR_INACTIVE_FILE);
++	inactive_lru_pages = node_page_state(pgdat, NR_INACTIVE_FILE);
+ 	if (get_nr_swap_pages() > 0)
+-		inactive_lru_pages += node_page_state(zone->zone_pgdat, NR_INACTIVE_ANON);
++		inactive_lru_pages += node_page_state(pgdat, NR_INACTIVE_ANON);
+ 	if (sc->nr_reclaimed < pages_for_compaction &&
+ 			inactive_lru_pages > pages_for_compaction)
+ 		return true;
+ 
+ 	/* If compaction would go ahead or the allocation would succeed, stop */
+-	switch (compaction_suitable(zone, sc->order, 0, 0)) {
+-	case COMPACT_PARTIAL:
+-	case COMPACT_CONTINUE:
+-		return false;
+-	default:
+-		return true;
++	for (z = 0; z <= sc->reclaim_idx; z++) {
++		struct zone *zone = &pgdat->node_zones[z];
++
++		switch (compaction_suitable(zone, sc->order, 0, sc->reclaim_idx)) {
++		case COMPACT_PARTIAL:
++		case COMPACT_CONTINUE:
++			return false;
++		default:
++			/* check next zone */
++			;
++		}
+ 	}
++	return true;
+ }
+ 
+ static bool shrink_node(pg_data_t *pgdat, struct scan_control *sc,
+@@ -2425,15 +2433,14 @@ static bool shrink_node(pg_data_t *pgdat
  	struct reclaim_state *reclaim_state = current->reclaim_state;
  	unsigned long nr_reclaimed, nr_scanned;
  	bool reclaimable = false;
-+	struct zone *zone = &pgdat->node_zones[classzone_idx];
+-	struct zone *zone = &pgdat->node_zones[classzone_idx];
  
  	do {
  		struct mem_cgroup *root = sc->target_mem_cgroup;
-@@ -2438,7 +2457,7 @@ static bool shrink_zone(struct zone *zon
- 			shrink_zone_memcg(zone, memcg, sc, &lru_pages);
- 			zone_lru_pages += lru_pages;
+ 		struct mem_cgroup_reclaim_cookie reclaim = {
+-			.zone = zone,
++			.zone = &pgdat->node_zones[classzone_idx],
+ 			.priority = sc->priority,
+ 		};
+-		unsigned long zone_lru_pages = 0;
++		unsigned long node_lru_pages = 0;
+ 		struct mem_cgroup *memcg;
  
--			if (memcg && is_classzone)
-+			if (!global_reclaim(sc) && sc->reclaim_idx == classzone_idx)
- 				shrink_slab(sc->gfp_mask, zone_to_nid(zone),
+ 		nr_reclaimed = sc->nr_reclaimed;
+@@ -2454,11 +2461,11 @@ static bool shrink_node(pg_data_t *pgdat
+ 			reclaimed = sc->nr_reclaimed;
+ 			scanned = sc->nr_scanned;
+ 
+-			shrink_zone_memcg(zone, memcg, sc, &lru_pages);
+-			zone_lru_pages += lru_pages;
++			shrink_node_memcg(pgdat, memcg, sc, &lru_pages);
++			node_lru_pages += lru_pages;
+ 
+ 			if (!global_reclaim(sc) && sc->reclaim_idx == classzone_idx)
+-				shrink_slab(sc->gfp_mask, zone_to_nid(zone),
++				shrink_slab(sc->gfp_mask, pgdat->node_id,
  					    memcg, sc->nr_scanned - scanned,
  					    lru_pages);
-@@ -2469,7 +2488,7 @@ static bool shrink_zone(struct zone *zon
- 		 * Shrink the slab caches in the same proportion that
+ 
+@@ -2470,7 +2477,7 @@ static bool shrink_node(pg_data_t *pgdat
+ 			/*
+ 			 * Direct reclaim and kswapd have to scan all memory
+ 			 * cgroups to fulfill the overall scan target for the
+-			 * zone.
++			 * node.
+ 			 *
+ 			 * Limit reclaim, on the other hand, only cares about
+ 			 * nr_to_reclaim pages to be reclaimed and it will
+@@ -2489,9 +2496,9 @@ static bool shrink_node(pg_data_t *pgdat
  		 * the eligible LRU pages were scanned.
  		 */
--		if (global_reclaim(sc) && is_classzone)
-+		if (global_reclaim(sc) && sc->reclaim_idx == classzone_idx)
- 			shrink_slab(sc->gfp_mask, zone_to_nid(zone), NULL,
+ 		if (global_reclaim(sc) && sc->reclaim_idx == classzone_idx)
+-			shrink_slab(sc->gfp_mask, zone_to_nid(zone), NULL,
++			shrink_slab(sc->gfp_mask, pgdat->node_id, NULL,
  				    sc->nr_scanned - nr_scanned,
- 				    zone_lru_pages);
-@@ -2546,14 +2565,14 @@ static inline bool compaction_ready(stru
-  * If a zone is deemed to be full of pinned pages then just give it a light
-  * scan then give up on it.
-  */
--static void shrink_zones(struct zonelist *zonelist, struct scan_control *sc)
-+static void shrink_zones(struct zonelist *zonelist, struct scan_control *sc,
-+		enum zone_type classzone_idx)
- {
- 	struct zoneref *z;
- 	struct zone *zone;
- 	unsigned long nr_soft_reclaimed;
- 	unsigned long nr_soft_scanned;
- 	gfp_t orig_mask;
--	enum zone_type requested_highidx = gfp_zone(sc->gfp_mask);
+-				    zone_lru_pages);
++				    node_lru_pages);
  
- 	/*
- 	 * If the number of buffer_heads in the machine exceeds the maximum
-@@ -2566,15 +2585,20 @@ static void shrink_zones(struct zonelist
+ 		if (reclaim_state) {
+ 			sc->nr_reclaimed += reclaim_state->reclaimed_slab;
+@@ -2506,7 +2513,7 @@ static bool shrink_node(pg_data_t *pgdat
+ 		if (sc->nr_reclaimed - nr_reclaimed)
+ 			reclaimable = true;
  
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 					gfp_zone(sc->gfp_mask), sc->nodemask) {
--		enum zone_type classzone_idx;
--
- 		if (!populated_zone(zone))
- 			continue;
+-	} while (should_continue_reclaim(zone, sc->nr_reclaimed - nr_reclaimed,
++	} while (should_continue_reclaim(pgdat, sc->nr_reclaimed - nr_reclaimed,
+ 					 sc->nr_scanned - nr_scanned, sc));
  
--		classzone_idx = requested_highidx;
-+		/*
-+		 * Note that reclaim_idx does not change as it is the highest
-+		 * zone reclaimed from which for empty zones is a no-op but
-+		 * classzone_idx is used by shrink_node to test if the slabs
-+		 * should be shrunk on a given node.
-+		 */
- 		while (!populated_zone(zone->zone_pgdat->node_zones +
--							classzone_idx))
-+							classzone_idx)) {
- 			classzone_idx--;
-+			continue;
-+		}
+ 	return reclaimable;
+@@ -2902,7 +2909,7 @@ unsigned long try_to_free_pages(struct z
  
- 		/*
- 		 * Take care memory controller reclaiming has small influence
-@@ -2600,8 +2624,8 @@ static void shrink_zones(struct zonelist
- 			 */
- 			if (IS_ENABLED(CONFIG_COMPACTION) &&
- 			    sc->order > PAGE_ALLOC_COSTLY_ORDER &&
--			    zonelist_zone_idx(z) <= requested_highidx &&
--			    compaction_ready(zone, sc->order, requested_highidx)) {
-+			    zonelist_zone_idx(z) <= classzone_idx &&
-+			    compaction_ready(zone, sc->order, classzone_idx)) {
- 				sc->compaction_ready = true;
- 				continue;
- 			}
-@@ -2621,7 +2645,7 @@ static void shrink_zones(struct zonelist
- 			/* need some check for avoid more shrink_zone() */
- 		}
+ #ifdef CONFIG_MEMCG
  
--		shrink_zone(zone, sc, zone_idx(zone) == classzone_idx);
-+		shrink_node(zone->zone_pgdat, sc, classzone_idx);
- 	}
- 
- 	/*
-@@ -2653,6 +2677,7 @@ static unsigned long do_try_to_free_page
- 	int initial_priority = sc->priority;
- 	unsigned long total_scanned = 0;
- 	unsigned long writeback_threshold;
-+	enum zone_type classzone_idx = sc->reclaim_idx;
- retry:
- 	delayacct_freepages_start();
- 
-@@ -2663,7 +2688,7 @@ retry:
- 		vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
- 				sc->priority);
- 		sc->nr_scanned = 0;
--		shrink_zones(zonelist, sc);
-+		shrink_zones(zonelist, sc, classzone_idx);
- 
- 		total_scanned += sc->nr_scanned;
- 		if (sc->nr_reclaimed >= sc->nr_to_reclaim)
-@@ -2847,6 +2872,7 @@ unsigned long try_to_free_pages(struct z
- 	struct scan_control sc = {
- 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
- 		.gfp_mask = (gfp_mask = memalloc_noio_flags(gfp_mask)),
-+		.reclaim_idx = gfp_zone(gfp_mask),
- 		.order = order,
- 		.nodemask = nodemask,
- 		.priority = DEF_PRIORITY,
-@@ -3118,7 +3144,7 @@ static bool kswapd_shrink_zone(struct zo
- 						balance_gap, classzone_idx))
- 		return true;
- 
--	shrink_zone(zone, sc, zone_idx(zone) == classzone_idx);
-+	shrink_node(zone->zone_pgdat, sc, classzone_idx);
- 
- 	/* TODO: ANOMALY */
- 	clear_bit(PGDAT_WRITEBACK, &pgdat->flags);
-@@ -3167,6 +3193,7 @@ static int balance_pgdat(pg_data_t *pgda
- 	unsigned long nr_soft_scanned;
- 	struct scan_control sc = {
- 		.gfp_mask = GFP_KERNEL,
-+		.reclaim_idx = MAX_NR_ZONES - 1,
- 		.order = order,
- 		.priority = DEF_PRIORITY,
+-unsigned long mem_cgroup_shrink_node_zone(struct mem_cgroup *memcg,
++unsigned long mem_cgroup_shrink_node(struct mem_cgroup *memcg,
+ 						gfp_t gfp_mask, bool noswap,
+ 						struct zone *zone,
+ 						unsigned long *nr_scanned)
+@@ -2912,6 +2919,7 @@ unsigned long mem_cgroup_shrink_node_zon
+ 		.target_mem_cgroup = memcg,
  		.may_writepage = !laptop_mode,
-@@ -3237,15 +3264,14 @@ static int balance_pgdat(pg_data_t *pgda
- 			sc.may_writepage = 1;
- 
- 		/*
--		 * Now scan the zone in the dma->highmem direction, stopping
--		 * at the last zone which needs scanning.
--		 *
--		 * We do this because the page allocator works in the opposite
--		 * direction.  This prevents the page allocator from allocating
--		 * pages behind kswapd's direction of progress, which would
--		 * cause too much scanning of the lower zones.
-+		 * Continue scanning in the highmem->dma direction stopping at
-+		 * the last zone which needs scanning. This may reclaim lowmem
-+		 * pages that are not necessary for zone balancing but it
-+		 * preserves LRU ordering. It is assumed that the bulk of
-+		 * allocation requests can use arbitrary zones with the
-+		 * possible exception of big highmem:lowmem configurations.
- 		 */
--		for (i = 0; i <= end_zone; i++) {
-+		for (i = end_zone; i >= 0; i--) {
- 			struct zone *zone = pgdat->node_zones + i;
- 
- 			if (!populated_zone(zone))
-@@ -3256,6 +3282,7 @@ static int balance_pgdat(pg_data_t *pgda
- 				continue;
- 
- 			sc.nr_scanned = 0;
-+			sc.reclaim_idx = i;
- 
- 			nr_soft_scanned = 0;
- 			/*
-@@ -3704,6 +3731,7 @@ static int __zone_reclaim(struct zone *z
- 		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
- 		.may_unmap = !!(zone_reclaim_mode & RECLAIM_UNMAP),
- 		.may_swap = 1,
+ 		.may_unmap = 1,
 +		.reclaim_idx = zone_idx(zone),
+ 		.may_swap = !noswap,
  	};
+ 	unsigned long lru_pages;
+@@ -2926,11 +2934,11 @@ unsigned long mem_cgroup_shrink_node_zon
+ 	/*
+ 	 * NOTE: Although we can get the priority field, using it
+ 	 * here is not a good idea, since it limits the pages we can scan.
+-	 * if we don't reclaim here, the shrink_zone from balance_pgdat
++	 * if we don't reclaim here, the shrink_node from balance_pgdat
+ 	 * will pick up pages from other mem cgroup's as well. We hack
+ 	 * the priority and make it zero.
+ 	 */
+-	shrink_zone_memcg(zone, memcg, &sc, &lru_pages);
++	shrink_node_memcg(zone->zone_pgdat, memcg, &sc, &lru_pages);
  
- 	cond_resched();
-@@ -3723,7 +3751,7 @@ static int __zone_reclaim(struct zone *z
- 		 * priorities until we have enough memory freed.
- 		 */
- 		do {
--			shrink_zone(zone, &sc, true);
-+			shrink_node(zone->zone_pgdat, &sc, zone_idx(zone));
- 		} while (sc.nr_reclaimed < nr_pages && --sc.priority >= 0);
+ 	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
+ 
+@@ -2988,7 +2996,7 @@ static void age_active_anon(struct pglis
+ 
+ 	memcg = mem_cgroup_iter(NULL, NULL, NULL);
+ 	do {
+-		struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
++		struct lruvec *lruvec = mem_cgroup_lruvec(pgdat, zone, memcg);
+ 
+ 		if (inactive_list_is_low(lruvec, false))
+ 			shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
+diff -puN mm/workingset.c~mm-vmscan-make-shrink_node-decisions-more-node-centric mm/workingset.c
+--- a/mm/workingset.c~mm-vmscan-make-shrink_node-decisions-more-node-centric
++++ a/mm/workingset.c
+@@ -218,7 +218,7 @@ void *workingset_eviction(struct address
+ 	VM_BUG_ON_PAGE(page_count(page), page);
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 
+-	lruvec = mem_cgroup_zone_lruvec(zone, memcg);
++	lruvec = mem_cgroup_lruvec(zone->zone_pgdat, zone, memcg);
+ 	eviction = atomic_long_inc_return(&lruvec->inactive_age);
+ 	return pack_shadow(memcgid, zone, eviction);
+ }
+@@ -267,7 +267,7 @@ bool workingset_refault(void *shadow)
+ 		rcu_read_unlock();
+ 		return false;
  	}
- 
+-	lruvec = mem_cgroup_zone_lruvec(zone, memcg);
++	lruvec = mem_cgroup_lruvec(zone->zone_pgdat, zone, memcg);
+ 	refault = atomic_long_read(&lruvec->inactive_age);
+ 	active_file = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE);
+ 	rcu_read_unlock();
+@@ -317,7 +317,7 @@ void workingset_activation(struct page *
+ 	 */
+ 	if (!mem_cgroup_disabled() && !page_memcg(page))
+ 		goto out;
+-	lruvec = mem_cgroup_zone_lruvec(page_zone(page), page_memcg(page));
++	lruvec = mem_cgroup_lruvec(page_pgdat(page), page_zone(page), page_memcg(page));
+ 	atomic_long_inc(&lruvec->inactive_age);
+ out:
+ 	unlock_page_memcg(page);
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
