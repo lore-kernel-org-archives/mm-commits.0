@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch added to -mm tree
-Date: Tue, 21 Jun 2016 15:49:32 -0700
-Message-ID: <5769c47c.mSrbqJqMtLzf3rK/%akpm@linux-foundation.org>
+ mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch added
+ to -mm tree
+Date: Tue, 21 Jun 2016 15:50:02 -0700
+Message-ID: <5769c49a.7vk4WSJ/ftNUE67+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45092 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751827AbcFUWuI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 18:50:08 -0400
+	with ESMTP id S1752102AbcFUWuK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 18:50:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, hannes@cmpxchg.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: remove duplicate logic clearing node congestion and dirty state
+     Subject: mm: page_alloc: cache the last node whose dirty limit is reached
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
+     mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,73 +41,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: remove duplicate logic clearing node congestion and dirty state
+Subject: mm: page_alloc: cache the last node whose dirty limit is reached
 
-Reclaim may stall if there is too much dirty or congested data on a node. 
-This was previously based on zone flags and the logic for clearing the
-flags is in two places.  As congestion/dirty tracking is now tracked on a
-per-node basis, we can remove some duplicate logic.
+If a page is about to be dirtied then the page allocator attempts to limit
+the total number of dirty pages that exists in any given zone.  The call
+to node_dirty_ok is expensive so this patch records if the last pgdat
+examined hit the dirty limits.  In some cases, this reduces the number of
+calls to node_dirty_ok().
 
-Link: http://lkml.kernel.org/r/1466518566-30034-11-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1466518566-30034-26-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ mm/page_alloc.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state
-+++ a/mm/vmscan.c
-@@ -3002,7 +3002,17 @@ static bool zone_balanced(struct zone *z
+diff -puN mm/page_alloc.c~mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached
++++ a/mm/page_alloc.c
+@@ -2855,6 +2855,8 @@ get_page_from_freelist(gfp_t gfp_mask, u
  {
- 	unsigned long mark = high_wmark_pages(zone);
- 
--	return zone_watermark_ok_safe(zone, order, mark, classzone_idx);
-+	if (!zone_watermark_ok_safe(zone, order, mark, classzone_idx))
-+		return false;
+ 	struct zoneref *z = ac->preferred_zoneref;
+ 	struct zone *zone;
++	struct pglist_data *last_pgdat_dirty_limit = NULL;
 +
-+	/*
-+	 * If any eligible zone is balanced then the node is not considered
-+	 * to be congested or dirty
-+	 */
-+	clear_bit(PGDAT_CONGESTED, &zone->zone_pgdat->flags);
-+	clear_bit(PGDAT_DIRTY, &zone->zone_pgdat->flags);
+ 	/*
+ 	 * Scan zonelist, looking for a zone with enough free.
+ 	 * See also __cpuset_node_allowed() comment in kernel/cpuset.c.
+@@ -2887,8 +2889,15 @@ get_page_from_freelist(gfp_t gfp_mask, u
+ 		 * will require awareness of nodes in the
+ 		 * dirty-throttling and the flusher threads.
+ 		 */
+-		if (ac->spread_dirty_pages && !node_dirty_ok(zone->zone_pgdat))
+-			continue;
++		if (ac->spread_dirty_pages) {
++			if (last_pgdat_dirty_limit == zone->zone_pgdat)
++				continue;
 +
-+	return true;
- }
++			if (!node_dirty_ok(zone->zone_pgdat)) {
++				last_pgdat_dirty_limit = zone->zone_pgdat;
++				continue;
++			}
++		}
  
- /*
-@@ -3148,13 +3158,6 @@ static int balance_pgdat(pg_data_t *pgda
- 			if (!zone_balanced(zone, order, 0)) {
- 				classzone_idx = i;
- 				break;
--			} else {
--				/*
--				 * If any eligible zone is balanced then the
--				 * node is not considered congested or dirty.
--				 */
--				clear_bit(PGDAT_CONGESTED, &zone->zone_pgdat->flags);
--				clear_bit(PGDAT_DIRTY, &zone->zone_pgdat->flags);
- 			}
- 		}
- 
-@@ -3213,11 +3216,8 @@ static int balance_pgdat(pg_data_t *pgda
- 			if (!populated_zone(zone))
- 				continue;
- 
--			if (zone_balanced(zone, sc.order, classzone_idx)) {
--				clear_bit(PGDAT_CONGESTED, &pgdat->flags);
--				clear_bit(PGDAT_DIRTY, &pgdat->flags);
-+			if (zone_balanced(zone, sc.order, classzone_idx))
- 				goto out;
--			}
- 		}
- 
- 		/*
+ 		mark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
+ 		if (!zone_watermark_fast(zone, order, mark,
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
