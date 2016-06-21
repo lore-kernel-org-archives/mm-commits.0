@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-convert-zone_reclaim-to-node_reclaim.patch added to -mm tree
-Date: Tue, 21 Jun 2016 15:49:56 -0700
-Message-ID: <5769c494.PJjqE2fqEQkS7rJR%akpm@linux-foundation.org>
+Subject: + mm-rename-nr_anon_pages-to-nr_anon_mapped.patch added to -mm
+ tree
+Date: Tue, 21 Jun 2016 15:49:46 -0700
+Message-ID: <5769c48a.BjqumVx5Vq58rwb2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45084 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45080 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752063AbcFUWuK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 18:50:10 -0400
+	with ESMTP id S1752013AbcFUWuJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jun 2016 18:50:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, hannes@cmpxchg.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: convert zone_reclaim to node_reclaim
+     Subject: mm: rename NR_ANON_PAGES to NR_ANON_MAPPED
 has been added to the -mm tree.  Its filename is
-     mm-convert-zone_reclaim-to-node_reclaim.patch
+     mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-convert-zone_reclaim-to-node_reclaim.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-zone_reclaim-to-node_reclaim.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +40,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: convert zone_reclaim to node_reclaim
+Subject: mm: rename NR_ANON_PAGES to NR_ANON_MAPPED
 
-As reclaim is now per-node based, convert zone_reclaim to be node_reclaim.
-It is possible that a node will be reclaimed multiple times if it has
-multiple zones but this is unavoidable without caching all nodes traversed
-so far.  The documentation and interface to userspace is the same from a
-configuration perspective and will will be similar in behaviour unless the
-node-local allocation requests were also limited to lower zones.
+NR_FILE_PAGES  is the number of        file pages.
+NR_FILE_MAPPED is the number of mapped file pages.
+NR_ANON_PAGES  is the number of mapped anon pages.
 
-Link: http://lkml.kernel.org/r/1466518566-30034-23-git-send-email-mgorman@techsingularity.net
+This is unhelpful naming as it's easy to confuse NR_FILE_MAPPED and
+NR_ANON_PAGES for mapped pages.  This patch renames NR_ANON_PAGES so we
+have
+
+NR_FILE_PAGES  is the number of        file pages.
+NR_FILE_MAPPED is the number of mapped file pages.
+NR_ANON_MAPPED is the number of mapped anon pages.
+
+Link: http://lkml.kernel.org/r/1466518566-30034-18-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -56,405 +62,100 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h   |   18 ++++----
- include/linux/swap.h     |    9 ++--
- include/linux/topology.h |    2 
- kernel/sysctl.c          |    4 -
- mm/internal.h            |    8 +--
- mm/khugepaged.c          |    4 -
- mm/page_alloc.c          |   24 +++++++----
- mm/vmscan.c              |   77 ++++++++++++++++++-------------------
- 8 files changed, 77 insertions(+), 69 deletions(-)
+ drivers/base/node.c    |    2 +-
+ fs/proc/meminfo.c      |    2 +-
+ include/linux/mmzone.h |    2 +-
+ mm/migrate.c           |    2 +-
+ mm/rmap.c              |    8 ++++----
+ 5 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-convert-zone_reclaim-to-node_reclaim include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-convert-zone_reclaim-to-node_reclaim
+diff -puN drivers/base/node.c~mm-rename-nr_anon_pages-to-nr_anon_mapped drivers/base/node.c
+--- a/drivers/base/node.c~mm-rename-nr_anon_pages-to-nr_anon_mapped
++++ a/drivers/base/node.c
+@@ -122,7 +122,7 @@ static ssize_t node_read_meminfo(struct
+ 		       nid, K(sum_zone_node_page_state(nid, NR_WRITEBACK)),
+ 		       nid, K(sum_zone_node_page_state(nid, NR_FILE_PAGES)),
+ 		       nid, K(node_page_state(pgdat, NR_FILE_MAPPED)),
+-		       nid, K(node_page_state(pgdat, NR_ANON_PAGES)),
++		       nid, K(node_page_state(pgdat, NR_ANON_MAPPED)),
+ 		       nid, K(i.sharedram),
+ 		       nid, node_page_state(nid, NR_KERNEL_STACK) *
+ 				THREAD_SIZE / 1024,
+diff -puN fs/proc/meminfo.c~mm-rename-nr_anon_pages-to-nr_anon_mapped fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-rename-nr_anon_pages-to-nr_anon_mapped
++++ a/fs/proc/meminfo.c
+@@ -140,7 +140,7 @@ static int meminfo_proc_show(struct seq_
+ 		K(i.freeswap),
+ 		K(global_page_state(NR_FILE_DIRTY)),
+ 		K(global_page_state(NR_WRITEBACK)),
+-		K(global_node_page_state(NR_ANON_PAGES)),
++		K(global_node_page_state(NR_ANON_MAPPED)),
+ 		K(global_node_page_state(NR_FILE_MAPPED)),
+ 		K(i.sharedram),
+ 		K(global_page_state(NR_SLAB_RECLAIMABLE) +
+diff -puN include/linux/mmzone.h~mm-rename-nr_anon_pages-to-nr_anon_mapped include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-rename-nr_anon_pages-to-nr_anon_mapped
 +++ a/include/linux/mmzone.h
-@@ -371,14 +371,6 @@ struct zone {
- 	unsigned long		*pageblock_flags;
- #endif /* CONFIG_SPARSEMEM */
- 
--#ifdef CONFIG_NUMA
--	/*
--	 * zone reclaim becomes active if more unmapped pages exist.
--	 */
--	unsigned long		min_unmapped_pages;
--	unsigned long		min_slab_pages;
--#endif /* CONFIG_NUMA */
--
- 	/* zone_start_pfn == zone_start_paddr >> PAGE_SHIFT */
- 	unsigned long		zone_start_pfn;
- 
-@@ -523,7 +515,6 @@ struct zone {
- } ____cacheline_internodealigned_in_smp;
- 
- enum zone_flags {
--	ZONE_RECLAIM_LOCKED,		/* prevents concurrent reclaim */
- 	ZONE_FAIR_DEPLETED,		/* fair zone policy batch depleted */
- };
- 
-@@ -538,6 +529,7 @@ enum pgdat_flags {
- 	PGDAT_WRITEBACK,		/* reclaim scanning has recently found
- 					 * many pages under writeback
- 					 */
-+	PGDAT_RECLAIM_LOCKED,		/* prevents concurrent reclaim */
- };
- 
- static inline unsigned long zone_end_pfn(const struct zone *zone)
-@@ -686,6 +678,14 @@ typedef struct pglist_data {
- 	 */
- 	unsigned long		totalreserve_pages;
- 
-+#ifdef CONFIG_NUMA
-+	/*
-+	 * zone reclaim becomes active if more unmapped pages exist.
-+	 */
-+	unsigned long		min_unmapped_pages;
-+	unsigned long		min_slab_pages;
-+#endif /* CONFIG_NUMA */
-+
- 	/* Write-intensive fields used from the page allocator */
- 	ZONE_PADDING(_pad1_)
- 	spinlock_t		lru_lock;
-diff -puN include/linux/swap.h~mm-convert-zone_reclaim-to-node_reclaim include/linux/swap.h
---- a/include/linux/swap.h~mm-convert-zone_reclaim-to-node_reclaim
-+++ a/include/linux/swap.h
-@@ -326,13 +326,14 @@ extern int remove_mapping(struct address
- extern unsigned long vm_total_pages;
- 
- #ifdef CONFIG_NUMA
--extern int zone_reclaim_mode;
-+extern int node_reclaim_mode;
- extern int sysctl_min_unmapped_ratio;
- extern int sysctl_min_slab_ratio;
--extern int zone_reclaim(struct zone *, gfp_t, unsigned int);
-+extern int node_reclaim(struct pglist_data *, gfp_t, unsigned int);
- #else
--#define zone_reclaim_mode 0
--static inline int zone_reclaim(struct zone *z, gfp_t mask, unsigned int order)
-+#define node_reclaim_mode 0
-+static inline int node_reclaim(struct pglist_data *pgdat, gfp_t mask,
-+				unsigned int order)
- {
- 	return 0;
- }
-diff -puN include/linux/topology.h~mm-convert-zone_reclaim-to-node_reclaim include/linux/topology.h
---- a/include/linux/topology.h~mm-convert-zone_reclaim-to-node_reclaim
-+++ a/include/linux/topology.h
-@@ -54,7 +54,7 @@ int arch_update_cpu_topology(void);
- /*
-  * If the distance between nodes in a system is larger than RECLAIM_DISTANCE
-  * (in whatever arch specific measurement units returned by node_distance())
-- * and zone_reclaim_mode is enabled then the VM will only call zone_reclaim()
-+ * and node_reclaim_mode is enabled then the VM will only call node_reclaim()
-  * on nodes within this distance.
-  */
- #define RECLAIM_DISTANCE 30
-diff -puN kernel/sysctl.c~mm-convert-zone_reclaim-to-node_reclaim kernel/sysctl.c
---- a/kernel/sysctl.c~mm-convert-zone_reclaim-to-node_reclaim
-+++ a/kernel/sysctl.c
-@@ -1497,8 +1497,8 @@ static struct ctl_table vm_table[] = {
- #ifdef CONFIG_NUMA
- 	{
- 		.procname	= "zone_reclaim_mode",
--		.data		= &zone_reclaim_mode,
--		.maxlen		= sizeof(zone_reclaim_mode),
-+		.data		= &node_reclaim_mode,
-+		.maxlen		= sizeof(node_reclaim_mode),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec,
- 		.extra1		= &zero,
-diff -puN mm/internal.h~mm-convert-zone_reclaim-to-node_reclaim mm/internal.h
---- a/mm/internal.h~mm-convert-zone_reclaim-to-node_reclaim
-+++ a/mm/internal.h
-@@ -433,10 +433,10 @@ static inline void mminit_validate_memmo
- }
- #endif /* CONFIG_SPARSEMEM */
- 
--#define ZONE_RECLAIM_NOSCAN	-2
--#define ZONE_RECLAIM_FULL	-1
--#define ZONE_RECLAIM_SOME	0
--#define ZONE_RECLAIM_SUCCESS	1
-+#define NODE_RECLAIM_NOSCAN	-2
-+#define NODE_RECLAIM_FULL	-1
-+#define NODE_RECLAIM_SOME	0
-+#define NODE_RECLAIM_SUCCESS	1
- 
- extern int hwpoison_filter(struct page *p);
- 
-diff -puN mm/khugepaged.c~mm-convert-zone_reclaim-to-node_reclaim mm/khugepaged.c
---- a/mm/khugepaged.c~mm-convert-zone_reclaim-to-node_reclaim
-+++ a/mm/khugepaged.c
-@@ -672,10 +672,10 @@ static bool khugepaged_scan_abort(int ni
- 	int i;
- 
- 	/*
--	 * If zone_reclaim_mode is disabled, then no extra effort is made to
-+	 * If node_reclaim_mode is disabled, then no extra effort is made to
- 	 * allocate memory locally.
- 	 */
--	if (!zone_reclaim_mode)
-+	if (!node_reclaim_mode)
- 		return false;
- 
- 	/* If there is a count for this node already, it must be acceptable */
-diff -puN mm/page_alloc.c~mm-convert-zone_reclaim-to-node_reclaim mm/page_alloc.c
---- a/mm/page_alloc.c~mm-convert-zone_reclaim-to-node_reclaim
-+++ a/mm/page_alloc.c
-@@ -2949,16 +2949,16 @@ zonelist_scan:
- 			if (alloc_flags & ALLOC_NO_WATERMARKS)
- 				goto try_this_zone;
- 
--			if (zone_reclaim_mode == 0 ||
-+			if (node_reclaim_mode == 0 ||
- 			    !zone_allows_reclaim(ac->preferred_zoneref->zone, zone))
- 				continue;
- 
--			ret = zone_reclaim(zone, gfp_mask, order);
-+			ret = node_reclaim(zone->zone_pgdat, gfp_mask, order);
- 			switch (ret) {
--			case ZONE_RECLAIM_NOSCAN:
-+			case NODE_RECLAIM_NOSCAN:
- 				/* did not scan */
- 				continue;
--			case ZONE_RECLAIM_FULL:
-+			case NODE_RECLAIM_FULL:
- 				/* scanned but unreclaimable */
- 				continue;
- 			default:
-@@ -5975,9 +5975,9 @@ static void __paginginit free_area_init_
- 		zone->managed_pages = is_highmem_idx(j) ? realsize : freesize;
- #ifdef CONFIG_NUMA
- 		zone->node = nid;
--		zone->min_unmapped_pages = (freesize*sysctl_min_unmapped_ratio)
-+		pgdat->min_unmapped_pages += (freesize*sysctl_min_unmapped_ratio)
- 						/ 100;
--		zone->min_slab_pages = (freesize * sysctl_min_slab_ratio) / 100;
-+		pgdat->min_slab_pages += (freesize * sysctl_min_slab_ratio) / 100;
- #endif
- 		zone->name = zone_names[j];
- 		zone->zone_pgdat = pgdat;
-@@ -6949,6 +6949,7 @@ int watermark_scale_factor_sysctl_handle
- int sysctl_min_unmapped_ratio_sysctl_handler(struct ctl_table *table, int write,
- 	void __user *buffer, size_t *length, loff_t *ppos)
- {
-+	struct pglist_data *pgdat;
- 	struct zone *zone;
- 	int rc;
- 
-@@ -6956,8 +6957,11 @@ int sysctl_min_unmapped_ratio_sysctl_han
- 	if (rc)
- 		return rc;
- 
-+	for_each_online_pgdat(pgdat)
-+		pgdat->min_slab_pages = 0;
-+
- 	for_each_zone(zone)
--		zone->min_unmapped_pages = (zone->managed_pages *
-+		zone->zone_pgdat->min_unmapped_pages += (zone->managed_pages *
- 				sysctl_min_unmapped_ratio) / 100;
- 	return 0;
- }
-@@ -6965,6 +6969,7 @@ int sysctl_min_unmapped_ratio_sysctl_han
- int sysctl_min_slab_ratio_sysctl_handler(struct ctl_table *table, int write,
- 	void __user *buffer, size_t *length, loff_t *ppos)
- {
-+	struct pglist_data *pgdat;
- 	struct zone *zone;
- 	int rc;
- 
-@@ -6972,8 +6977,11 @@ int sysctl_min_slab_ratio_sysctl_handler
- 	if (rc)
- 		return rc;
- 
-+	for_each_online_pgdat(pgdat)
-+		pgdat->min_slab_pages = 0;
-+
- 	for_each_zone(zone)
--		zone->min_slab_pages = (zone->managed_pages *
-+		zone->zone_pgdat->min_slab_pages += (zone->managed_pages *
- 				sysctl_min_slab_ratio) / 100;
- 	return 0;
- }
-diff -puN mm/vmscan.c~mm-convert-zone_reclaim-to-node_reclaim mm/vmscan.c
---- a/mm/vmscan.c~mm-convert-zone_reclaim-to-node_reclaim
-+++ a/mm/vmscan.c
-@@ -3580,12 +3580,12 @@ module_init(kswapd_init)
- 
- #ifdef CONFIG_NUMA
- /*
-- * Zone reclaim mode
-+ * Node reclaim mode
-  *
-- * If non-zero call zone_reclaim when the number of free pages falls below
-+ * If non-zero call node_reclaim when the number of free pages falls below
-  * the watermarks.
-  */
--int zone_reclaim_mode __read_mostly;
-+int node_reclaim_mode __read_mostly;
- 
- #define RECLAIM_OFF 0
- #define RECLAIM_ZONE (1<<0)	/* Run shrink_inactive_list on the zone */
-@@ -3593,14 +3593,14 @@ int zone_reclaim_mode __read_mostly;
- #define RECLAIM_UNMAP (1<<2)	/* Unmap pages during reclaim */
- 
- /*
-- * Priority for ZONE_RECLAIM. This determines the fraction of pages
-+ * Priority for NODE_RECLAIM. This determines the fraction of pages
-  * of a node considered for each zone_reclaim. 4 scans 1/16th of
-  * a zone.
-  */
--#define ZONE_RECLAIM_PRIORITY 4
-+#define NODE_RECLAIM_PRIORITY 4
- 
- /*
-- * Percentage of pages in a zone that must be unmapped for zone_reclaim to
-+ * Percentage of pages in a zone that must be unmapped for node_reclaim to
-  * occur.
-  */
- int sysctl_min_unmapped_ratio = 1;
-@@ -3626,7 +3626,7 @@ static inline unsigned long node_unmappe
- }
- 
- /* Work out how many page cache pages we can reclaim in this reclaim_mode */
--static unsigned long zone_pagecache_reclaimable(struct zone *zone)
-+static unsigned long node_pagecache_reclaimable(struct pglist_data *pgdat)
- {
- 	unsigned long nr_pagecache_reclaimable;
- 	unsigned long delta = 0;
-@@ -3637,14 +3637,14 @@ static unsigned long zone_pagecache_recl
- 	 * pages like swapcache and node_unmapped_file_pages() provides
- 	 * a better estimate
- 	 */
--	if (zone_reclaim_mode & RECLAIM_UNMAP)
--		nr_pagecache_reclaimable = node_page_state(zone->zone_pgdat, NR_FILE_PAGES);
-+	if (node_reclaim_mode & RECLAIM_UNMAP)
-+		nr_pagecache_reclaimable = node_page_state(pgdat, NR_FILE_PAGES);
- 	else
--		nr_pagecache_reclaimable = node_unmapped_file_pages(zone->zone_pgdat);
-+		nr_pagecache_reclaimable = node_unmapped_file_pages(pgdat);
- 
- 	/* If we can't clean pages, remove dirty pages from consideration */
--	if (!(zone_reclaim_mode & RECLAIM_WRITE))
--		delta += node_page_state(zone->zone_pgdat, NR_FILE_DIRTY);
-+	if (!(node_reclaim_mode & RECLAIM_WRITE))
-+		delta += node_page_state(pgdat, NR_FILE_DIRTY);
- 
- 	/* Watch for any possible underflows due to delta */
- 	if (unlikely(delta > nr_pagecache_reclaimable))
-@@ -3654,23 +3654,24 @@ static unsigned long zone_pagecache_recl
- }
- 
- /*
-- * Try to free up some pages from this zone through reclaim.
-+ * Try to free up some pages from this node through reclaim.
-  */
--static int __zone_reclaim(struct zone *zone, gfp_t gfp_mask, unsigned int order)
-+static int __node_reclaim(struct pglist_data *pgdat, gfp_t gfp_mask, unsigned int order)
- {
- 	/* Minimum pages needed in order to stay on node */
- 	const unsigned long nr_pages = 1 << order;
- 	struct task_struct *p = current;
- 	struct reclaim_state reclaim_state;
-+	int classzone_idx = gfp_zone(gfp_mask);
- 	struct scan_control sc = {
- 		.nr_to_reclaim = max(nr_pages, SWAP_CLUSTER_MAX),
- 		.gfp_mask = (gfp_mask = memalloc_noio_flags(gfp_mask)),
- 		.order = order,
--		.priority = ZONE_RECLAIM_PRIORITY,
--		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
--		.may_unmap = !!(zone_reclaim_mode & RECLAIM_UNMAP),
-+		.priority = NODE_RECLAIM_PRIORITY,
-+		.may_writepage = !!(node_reclaim_mode & RECLAIM_WRITE),
-+		.may_unmap = !!(node_reclaim_mode & RECLAIM_UNMAP),
- 		.may_swap = 1,
--		.reclaim_idx = zone_idx(zone),
-+		.reclaim_idx = classzone_idx,
- 	};
- 
- 	cond_resched();
-@@ -3684,13 +3685,13 @@ static int __zone_reclaim(struct zone *z
- 	reclaim_state.reclaimed_slab = 0;
- 	p->reclaim_state = &reclaim_state;
- 
--	if (zone_pagecache_reclaimable(zone) > zone->min_unmapped_pages) {
-+	if (node_pagecache_reclaimable(pgdat) > pgdat->min_unmapped_pages) {
- 		/*
- 		 * Free memory by calling shrink zone with increasing
- 		 * priorities until we have enough memory freed.
- 		 */
- 		do {
--			shrink_node(zone->zone_pgdat, &sc, zone_idx(zone));
-+			shrink_node(pgdat, &sc, classzone_idx);
- 		} while (sc.nr_reclaimed < nr_pages && --sc.priority >= 0);
- 	}
- 
-@@ -3700,49 +3701,47 @@ static int __zone_reclaim(struct zone *z
- 	return sc.nr_reclaimed >= nr_pages;
- }
- 
--int zone_reclaim(struct zone *zone, gfp_t gfp_mask, unsigned int order)
-+int node_reclaim(struct pglist_data *pgdat, gfp_t gfp_mask, unsigned int order)
- {
--	int node_id;
- 	int ret;
- 
- 	/*
--	 * Zone reclaim reclaims unmapped file backed pages and
-+	 * Node reclaim reclaims unmapped file backed pages and
- 	 * slab pages if we are over the defined limits.
+@@ -161,7 +161,7 @@ enum node_stat_item {
+ 	WORKINGSET_REFAULT,
+ 	WORKINGSET_ACTIVATE,
+ 	WORKINGSET_NODERECLAIM,
+-	NR_ANON_PAGES,	/* Mapped anonymous pages */
++	NR_ANON_MAPPED,	/* Mapped anonymous pages */
+ 	NR_FILE_MAPPED,	/* pagecache pages mapped into pagetables.
+ 			   only modified from process context */
+ 	NR_VM_NODE_STAT_ITEMS
+diff -puN mm/migrate.c~mm-rename-nr_anon_pages-to-nr_anon_mapped mm/migrate.c
+--- a/mm/migrate.c~mm-rename-nr_anon_pages-to-nr_anon_mapped
++++ a/mm/migrate.c
+@@ -501,7 +501,7 @@ int migrate_page_move_mapping(struct add
+ 	 * new page and drop references to the old page.
  	 *
- 	 * A small portion of unmapped file backed pages is needed for
- 	 * file I/O otherwise pages read by file I/O will be immediately
--	 * thrown out if the zone is overallocated. So we do not reclaim
--	 * if less than a specified percentage of the zone is used by
-+	 * thrown out if the node is overallocated. So we do not reclaim
-+	 * if less than a specified percentage of the node is used by
- 	 * unmapped file backed pages.
+ 	 * Note that anonymous pages are accounted for
+-	 * via NR_FILE_PAGES and NR_ANON_PAGES if they
++	 * via NR_FILE_PAGES and NR_ANON_MAPPED if they
+ 	 * are mapped to swap space.
  	 */
--	if (zone_pagecache_reclaimable(zone) <= zone->min_unmapped_pages &&
--	    zone_page_state(zone, NR_SLAB_RECLAIMABLE) <= zone->min_slab_pages)
--		return ZONE_RECLAIM_FULL;
-+	if (node_pagecache_reclaimable(pgdat) <= pgdat->min_unmapped_pages &&
-+	    sum_zone_node_page_state(pgdat->node_id, NR_SLAB_RECLAIMABLE) <= pgdat->min_slab_pages)
-+		return NODE_RECLAIM_FULL;
+ 	if (newzone != oldzone) {
+diff -puN mm/rmap.c~mm-rename-nr_anon_pages-to-nr_anon_mapped mm/rmap.c
+--- a/mm/rmap.c~mm-rename-nr_anon_pages-to-nr_anon_mapped
++++ a/mm/rmap.c
+@@ -1217,7 +1217,7 @@ void do_page_add_anon_rmap(struct page *
+ 		 */
+ 		if (compound)
+ 			__inc_zone_page_state(page, NR_ANON_THPS);
+-		__mod_node_page_state(page_pgdat(page), NR_ANON_PAGES, nr);
++		__mod_node_page_state(page_pgdat(page), NR_ANON_MAPPED, nr);
+ 	}
+ 	if (unlikely(PageKsm(page)))
+ 		return;
+@@ -1261,7 +1261,7 @@ void page_add_new_anon_rmap(struct page
+ 		/* increment count (starts at -1) */
+ 		atomic_set(&page->_mapcount, 0);
+ 	}
+-	__mod_node_page_state(page_pgdat(page), NR_ANON_PAGES, nr);
++	__mod_node_page_state(page_pgdat(page), NR_ANON_MAPPED, nr);
+ 	__page_set_anon_rmap(page, vma, address, 1);
+ }
  
--	if (!pgdat_reclaimable(zone->zone_pgdat))
--		return ZONE_RECLAIM_FULL;
-+	if (!pgdat_reclaimable(pgdat))
-+		return NODE_RECLAIM_FULL;
+@@ -1378,7 +1378,7 @@ static void page_remove_anon_compound_rm
+ 		clear_page_mlock(page);
  
- 	/*
- 	 * Do not scan if the allocation should not be delayed.
+ 	if (nr) {
+-		__mod_node_page_state(page_pgdat(page), NR_ANON_PAGES, -nr);
++		__mod_node_page_state(page_pgdat(page), NR_ANON_MAPPED, -nr);
+ 		deferred_split_huge_page(page);
+ 	}
+ }
+@@ -1407,7 +1407,7 @@ void page_remove_rmap(struct page *page,
+ 	 * these counters are not modified in interrupt context, and
+ 	 * pte lock(a spinlock) is held, which implies preemption disabled.
  	 */
- 	if (!gfpflags_allow_blocking(gfp_mask) || (current->flags & PF_MEMALLOC))
--		return ZONE_RECLAIM_NOSCAN;
-+		return NODE_RECLAIM_NOSCAN;
+-	__dec_node_page_state(page, NR_ANON_PAGES);
++	__dec_node_page_state(page, NR_ANON_MAPPED);
  
- 	/*
--	 * Only run zone reclaim on the local zone or on zones that do not
-+	 * Only run node reclaim on the local node or on nodes that do not
- 	 * have associated processors. This will favor the local processor
- 	 * over remote processors and spread off node memory allocations
- 	 * as wide as possible.
- 	 */
--	node_id = zone_to_nid(zone);
--	if (node_state(node_id, N_CPU) && node_id != numa_node_id())
--		return ZONE_RECLAIM_NOSCAN;
-+	if (node_state(pgdat->node_id, N_CPU) && pgdat->node_id != numa_node_id())
-+		return NODE_RECLAIM_NOSCAN;
- 
--	if (test_and_set_bit(ZONE_RECLAIM_LOCKED, &zone->flags))
--		return ZONE_RECLAIM_NOSCAN;
-+	if (test_and_set_bit(PGDAT_RECLAIM_LOCKED, &pgdat->flags))
-+		return NODE_RECLAIM_NOSCAN;
- 
--	ret = __zone_reclaim(zone, gfp_mask, order);
--	clear_bit(ZONE_RECLAIM_LOCKED, &zone->flags);
-+	ret = __node_reclaim(pgdat, gfp_mask, order);
-+	clear_bit(PGDAT_RECLAIM_LOCKED, &pgdat->flags);
- 
- 	if (!ret)
- 		count_vm_event(PGSCAN_ZONE_RECLAIM_FAILED);
+ 	if (unlikely(PageMlocked(page)))
+ 		clear_page_mlock(page);
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
