@@ -1,28 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- mm-compaction-abort-free-scanner-if-split-fails.patch removed from -mm tree
-Date: Wed, 22 Jun 2016 14:50:02 -0700
-Message-ID: <576b080a.h6W5FsnwU6MyvHBV%akpm@linux-foundation.org>
+Subject: + mm-compaction-abort-free-scanner-if-split-fails.patch added to
+ -mm tree
+Date: Wed, 22 Jun 2016 14:51:28 -0700
+Message-ID: <576b0860.CD397APEX+VbSjGJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45344 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45386 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750718AbcFVVuE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 17:50:04 -0400
+	with ESMTP id S1750850AbcFVVv3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 17:51:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, hughd@google.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: rientjes@google.com, hughd@google.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, minchan@kernel.org, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: mm, compaction: abort free scanner if split fails
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-compaction-abort-free-scanner-if-split-fails.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-abort-free-scanner-if-split-fails.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-abort-free-scanner-if-split-fails.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
@@ -30,42 +44,69 @@ Subject: mm, compaction: abort free scanner if split fails
 
 If the memory compaction free scanner cannot successfully split a free
 page (only possible due to per-zone low watermark), terminate the free
-scanner rather than continuing to scan memory needlessly.
-
-If the per-zone watermark is insufficient for a free page of order <=
-cc->order, then terminate the scanner since future splits will also likely
-fail.
+scanner rather than continuing to scan memory needlessly.  If the
+watermark is insufficient for a free page of order <= cc->order, then
+terminate the scanner since all future splits will also likely fail.
 
 This prevents the compaction freeing scanner from scanning all memory on
 very large zones (very noticeable for zones > 128GB, for instance) when
-all splits will likely fail.
+all splits will likely fail while holding zone->lock.
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1606211447360.43430@chino.kir.corp.google.com
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1606211820350.97086@chino.kir.corp.google.com
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ mm/compaction.c |   39 +++++++++++++++++++++------------------
+ 1 file changed, 21 insertions(+), 18 deletions(-)
 
 diff -puN mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails mm/compaction.c
 --- a/mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails
 +++ a/mm/compaction.c
-@@ -496,7 +496,7 @@ static unsigned long isolate_freepages_b
- 		order = page_order(page);
- 		isolated = __isolate_free_page(page, order);
- 		if (!isolated)
--			goto isolate_fail;
+@@ -441,25 +441,23 @@ static unsigned long isolate_freepages_b
+ 
+ 		/* Found a free page, break it into order-0 pages */
+ 		isolated = split_free_page(page);
++		if (!isolated)
 +			break;
- 		set_page_private(page, order);
++
  		total_isolated += isolated;
- 		list_add_tail(&page->lru, freelist);
-@@ -518,6 +518,9 @@ isolate_fail:
++		cc->nr_freepages += isolated;
+ 		for (i = 0; i < isolated; i++) {
+ 			list_add(&page->lru, freelist);
+ 			page++;
+ 		}
+-
+-		/* If a page was split, advance to the end of it */
+-		if (isolated) {
+-			cc->nr_freepages += isolated;
+-			if (!strict &&
+-				cc->nr_migratepages <= cc->nr_freepages) {
+-				blockpfn += isolated;
+-				break;
+-			}
+-
+-			blockpfn += isolated - 1;
+-			cursor += isolated - 1;
+-			continue;
++		if (!strict && cc->nr_migratepages <= cc->nr_freepages) {
++			blockpfn += isolated;
++			break;
+ 		}
++		/* Advance to the end of split page */
++		blockpfn += isolated - 1;
++		cursor += isolated - 1;
++		continue;
+ 
+ isolate_fail:
+ 		if (strict)
+@@ -469,6 +467,9 @@ isolate_fail:
  
  	}
  
@@ -75,7 +116,7 @@ diff -puN mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails mm/com
  	/*
  	 * There is a tiny chance that we have read bogus compound_order(),
  	 * so be careful to not go outside of the pageblock.
-@@ -539,9 +542,6 @@ isolate_fail:
+@@ -490,9 +491,6 @@ isolate_fail:
  	if (strict && blockpfn < end_pfn)
  		total_isolated = 0;
  
@@ -85,7 +126,7 @@ diff -puN mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails mm/com
  	/* Update the pageblock-skip if the whole pageblock was scanned */
  	if (blockpfn == end_pfn)
  		update_pageblock_skip(cc, valid_page, total_isolated, false);
-@@ -1066,6 +1066,7 @@ static void isolate_freepages(struct com
+@@ -1011,6 +1009,7 @@ static void isolate_freepages(struct com
  				block_end_pfn = block_start_pfn,
  				block_start_pfn -= pageblock_nr_pages,
  				isolate_start_pfn = block_start_pfn) {
@@ -93,7 +134,7 @@ diff -puN mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails mm/com
  
  		/*
  		 * This can iterate a massively long zone without finding any
-@@ -1090,8 +1091,12 @@ static void isolate_freepages(struct com
+@@ -1035,8 +1034,12 @@ static void isolate_freepages(struct com
  			continue;
  
  		/* Found a block suitable for isolating free pages from. */
@@ -101,9 +142,9 @@ diff -puN mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails mm/com
 -					block_end_pfn, freelist, false);
 +		isolated = isolate_freepages_block(cc, &isolate_start_pfn,
 +						block_end_pfn, freelist, false);
-+		/* If isolation failed, do not continue needlessly */
++		/* If isolation failed early, do not continue needlessly */
 +		if (!isolated && isolate_start_pfn < block_end_pfn &&
-+		    cc->nr_freepages <= cc->nr_migratepages)
++		    cc->nr_migratepages > cc->nr_freepages)
 +			break;
  
  		/*
@@ -112,5 +153,6 @@ _
 
 Patches currently in -mm which might be from rientjes@google.com are
 
+mm-compaction-abort-free-scanner-if-split-fails.patch
 mm-compaction-split-freepages-without-holding-the-zone-lock-fix.patch
 
