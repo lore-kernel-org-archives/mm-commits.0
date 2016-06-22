@@ -1,33 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + wb-inode-writeback-list-tracking-tracepoints.patch added to -mm tree
-Date: Wed, 22 Jun 2016 15:14:18 -0700
-Message-ID: <576b0dba.14qQhpMKUF8BCPqg%akpm@linux-foundation.org>
+Subject: + oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race.patch
+ added to -mm tree
+Date: Wed, 22 Jun 2016 15:15:30 -0700
+Message-ID: <576b0e02.wYMtkc0FpMjoiihG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45724 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751244AbcFVWOW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 18:14:22 -0400
+	with ESMTP id S1750876AbcFVWPb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 18:15:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bfoster@redhat.com, dchinner@redhat.com, holger.hoffstaette@applied-asynchrony.com, jack@suse.cz, jbacik@fb.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rjw@rjwysocki.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/fs-writeback.c: inode writeback list tracking tracepoi=
-nts
+     Subject: oom, suspend: fix oom_reaper vs. oom_killer_disable race
 has been added to the -mm tree.  Its filename is
-     wb-inode-writeback-list-tracking-tracepoints.patch
+     oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/wb-inode-writeback-list-tr=
-acking-tracepoints.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/wb-inode-writeback-list-tr=
-acking-tracepoints.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,136 +33,109 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Brian Foster <bfoster@redhat.com>
-Subject: fs/fs-writeback.c: inode writeback list tracking tracepoints
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom, suspend: fix oom_reaper vs. oom_killer_disable race
 
-The per-sb inode writeback list tracks inodes currently under writeback
-to facilitate efficient sync processing. In particular, it ensures that
-sync only needs to walk through a list of inodes that were cleaned by
-the sync.
+Tetsuo has reported the following potential oom_killer_disable vs. 
+oom_reaper race:
 
-Add a couple tracepoints to help identify when inodes are added/removed
-to and from the writeback lists. Piggyback off of the writeback lazytim=
-e
-tracepoint template as it already tracks the relevant inode information=
-=2E
+(1) freeze_processes() starts freezing user space threads.
+(2) Somebody (maybe a kenrel thread) calls out_of_memory().
+(3) The OOM killer calls mark_oom_victim() on a user space thread
+    P1 which is already in __refrigerator().
+(4) oom_killer_disable() sets oom_killer_disabled = true.
+(5) P1 leaves __refrigerator() and enters do_exit().
+(6) The OOM reaper calls exit_oom_victim(P1) before P1 can call
+    exit_oom_victim(P1).
+(7) oom_killer_disable() returns while P1 not yet finished
+(8) P1 perform IO/interfere with the freezer.
 
-Link: http://lkml.kernel.org/r/1466594593-6757-3-git-send-email-bfoster=
-@redhat.com
-Signed-off-by: Brian Foster <bfoster@redhat.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <dchinner@redhat.com>
-cc: Josef Bacik <jbacik@fb.com>
-Cc: Holger Hoffst=E4tte <holger.hoffstaette@applied-asynchrony.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
+This situation is unfortunate.  We cannot move oom_killer_disable after
+all the freezable kernel threads are frozen because the oom victim might
+depend on some of those kthreads to make a forward progress to exit so we
+could deadlock.  It is also far from trivial to teach the oom_reaper to
+not call exit_oom_victim() because then we would lose a guarantee of the
+OOM killer and oom_killer_disable forward progress because exit_mm->mmput
+might block and never call exit_oom_victim.
+
+It seems the easiest way forward is to workaround this race by calling
+try_to_freeze_tasks again after oom_killer_disable.  This will make sure
+that all the tasks are frozen or it bails out.
+
+Fixes: 449d777d7ad6 ("mm, oom_reaper: clear TIF_MEMDIE for all tasks queued for oom_reaper")
+Link: http://lkml.kernel.org/r/1466597634-16199-1-git-send-email-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c                |    9 +++++++--
- include/trace/events/writeback.h |   22 ++++++++++++++++++----
- 2 files changed, 25 insertions(+), 6 deletions(-)
+ kernel/power/process.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN fs/fs-writeback.c~wb-inode-writeback-list-tracking-tracepoint=
-s fs/fs-writeback.c
---- a/fs/fs-writeback.c~wb-inode-writeback-list-tracking-tracepoints
-+++ a/fs/fs-writeback.c
-@@ -990,8 +990,10 @@ void sb_mark_inode_writeback(struct inod
-=20
- 	if (list_empty(&inode->i_wb_list)) {
- 		spin_lock_irqsave(&sb->s_inode_wblist_lock, flags);
--		if (list_empty(&inode->i_wb_list))
-+		if (list_empty(&inode->i_wb_list)) {
- 			list_add_tail(&inode->i_wb_list, &sb->s_inodes_wb);
-+			trace_sb_mark_inode_writeback(inode);
-+		}
- 		spin_unlock_irqrestore(&sb->s_inode_wblist_lock, flags);
- 	}
- }
-@@ -1006,7 +1008,10 @@ void sb_clear_inode_writeback(struct ino
-=20
- 	if (!list_empty(&inode->i_wb_list)) {
- 		spin_lock_irqsave(&sb->s_inode_wblist_lock, flags);
--		list_del_init(&inode->i_wb_list);
-+		if (!list_empty(&inode->i_wb_list)) {
-+			list_del_init(&inode->i_wb_list);
-+			trace_sb_clear_inode_writeback(inode);
-+		}
- 		spin_unlock_irqrestore(&sb->s_inode_wblist_lock, flags);
- 	}
- }
-diff -puN include/trace/events/writeback.h~wb-inode-writeback-list-trac=
-king-tracepoints include/trace/events/writeback.h
---- a/include/trace/events/writeback.h~wb-inode-writeback-list-tracking=
--tracepoints
-+++ a/include/trace/events/writeback.h
-@@ -696,7 +696,7 @@ DEFINE_EVENT(writeback_single_inode_temp
- 	TP_ARGS(inode, wbc, nr_to_write)
- );
-=20
--DECLARE_EVENT_CLASS(writeback_lazytime_template,
-+DECLARE_EVENT_CLASS(writeback_inode_template,
- 	TP_PROTO(struct inode *inode),
-=20
- 	TP_ARGS(inode),
-@@ -723,25 +723,39 @@ DECLARE_EVENT_CLASS(writeback_lazytime_t
- 		  show_inode_state(__entry->state), __entry->mode)
- );
-=20
--DEFINE_EVENT(writeback_lazytime_template, writeback_lazytime,
-+DEFINE_EVENT(writeback_inode_template, writeback_lazytime,
- 	TP_PROTO(struct inode *inode),
-=20
- 	TP_ARGS(inode)
- );
-=20
--DEFINE_EVENT(writeback_lazytime_template, writeback_lazytime_iput,
-+DEFINE_EVENT(writeback_inode_template, writeback_lazytime_iput,
- 	TP_PROTO(struct inode *inode),
-=20
- 	TP_ARGS(inode)
- );
-=20
--DEFINE_EVENT(writeback_lazytime_template, writeback_dirty_inode_enqueu=
-e,
-+DEFINE_EVENT(writeback_inode_template, writeback_dirty_inode_enqueue,
-=20
- 	TP_PROTO(struct inode *inode),
-=20
- 	TP_ARGS(inode)
- );
-=20
-+/*
-+ * Inode writeback list tracking.
-+ */
+diff -puN kernel/power/process.c~oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race kernel/power/process.c
+--- a/kernel/power/process.c~oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race
++++ a/kernel/power/process.c
+@@ -146,6 +146,18 @@ int freeze_processes(void)
+ 	if (!error && !oom_killer_disable())
+ 		error = -EBUSY;
+ 
++	/*
++	 * There is a hard to fix race between oom_reaper kernel thread
++	 * and oom_killer_disable. oom_reaper calls exit_oom_victim
++	 * before the victim reaches exit_mm so try to freeze all the tasks
++	 * again and catch such a left over task.
++	 */
++	if (!error) {
++		pr_info("Double checking all user space processes after OOM killer disable... ");
++		error = try_to_freeze_tasks(true);
++		pr_cont("\n");
++	}
 +
-+DEFINE_EVENT(writeback_inode_template, sb_mark_inode_writeback,
-+	TP_PROTO(struct inode *inode),
-+	TP_ARGS(inode)
-+);
-+
-+DEFINE_EVENT(writeback_inode_template, sb_clear_inode_writeback,
-+	TP_PROTO(struct inode *inode),
-+	TP_ARGS(inode)
-+);
-+
- #endif /* _TRACE_WRITEBACK_H */
-=20
- /* This part must be outside protection */
+ 	if (error)
+ 		thaw_processes();
+ 	return error;
 _
 
-Patches currently in -mm which might be from bfoster@redhat.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-wb-inode-writeback-list-tracking-tracepoints.patch
+tree-wide-get-rid-of-__gfp_repeat-for-order-0-allocations-part-i.patch
+x86-get-rid-of-superfluous-__gfp_repeat.patch
+x86-efi-get-rid-of-superfluous-__gfp_repeat.patch
+arm64-get-rid-of-superfluous-__gfp_repeat.patch
+arc-get-rid-of-superfluous-__gfp_repeat.patch
+mips-get-rid-of-superfluous-__gfp_repeat.patch
+nios2-get-rid-of-superfluous-__gfp_repeat.patch
+parisc-get-rid-of-superfluous-__gfp_repeat.patch
+score-get-rid-of-superfluous-__gfp_repeat.patch
+powerpc-get-rid-of-superfluous-__gfp_repeat.patch
+sparc-get-rid-of-superfluous-__gfp_repeat.patch
+s390-get-rid-of-superfluous-__gfp_repeat.patch
+sh-get-rid-of-superfluous-__gfp_repeat.patch
+tile-get-rid-of-superfluous-__gfp_repeat.patch
+unicore32-get-rid-of-superfluous-__gfp_repeat.patch
+jbd2-get-rid-of-superfluous-__gfp_repeat.patch
+arm-get-rid-of-superfluous-__gfp_repeat.patch
+oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race.patch
+slab-make-gfp_slab_bug_mask-information-more-human-readable.patch
+slab-do-not-panic-on-invalid-gfp_mask.patch
+mm-oom_reaper-make-sure-that-mmput_async-is-called-only-when-memory-was-reaped.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-fix.patch
+proc-oom-drop-bogus-task_lock-and-mm-check.patch
+proc-oom-drop-bogus-sighand-lock.patch
+proc-oom_adj-extract-oom_score_adj-setting-into-a-helper.patch
+mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj.patch
+mm-oom-skip-vforked-tasks-from-being-selected.patch
+mm-oom-kill-all-tasks-sharing-the-mm.patch
+mm-oom-fortify-task_will_free_mem.patch
+mm-oom-task_will_free_mem-should-skip-oom_reaped-tasks.patch
+mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice.patch
+mm-oom-hide-mm-which-is-shared-with-kthread-or-global-init.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
