@@ -1,32 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hugetlb-clear-compound_mapcount-when-freeing-gigantic-pages.patch added
- to -mm tree
-Date: Wed, 22 Jun 2016 13:46:12 -0700
-Message-ID: <576af914.rWmYbbp/jA+mGc8d%akpm@linux-foundation.org>
+ mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code.patch
+ added to -mm tree
+Date: Wed, 22 Jun 2016 14:11:10 -0700
+Message-ID: <576afeee.kd0lLXsudB2MB9X3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44566 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44731 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751315AbcFVUqN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 16:46:13 -0400
+	with ESMTP id S1751400AbcFVVLL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 17:11:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerald.schaefer@de.ibm.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@linux.intel.com, heiko.carstens@de.ibm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, lcapitulino@redhat.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@virtuozzo.com, xiaolong.ye@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: clear compound_mapcount when freeing gigantic pages
+     Subject: mm: fix vm-scalability regression in cgroup-aware working=
+set code
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-clear-compound_mapcount-when-freeing-gigantic-pages.patch
+     mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code.p=
+atch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-clear-compound_mapcount-when-freeing-gigantic-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-vm-scalability-regr=
+ession-in-cgroup-aware-workingset-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-clear-compound_mapcount-when-freeing-gigantic-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-vm-scalability-regr=
+ession-in-cgroup-aware-workingset-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +38,247 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Subject: mm/hugetlb: clear compound_mapcount when freeing gigantic pages
+=46rom: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: fix vm-scalability regression in cgroup-aware workingset c=
+ode
 
-While working on s390 support for gigantic hugepages I ran into the following
-"Bad page state" warning when freeing gigantic pages:
+23047a96d7cf ("mm: workingset: per-cgroup cache thrash detection") adde=
+d a
+page->mem_cgroup lookup to the cache eviction, refault, and activation
+paths, as well as locking to the activation path, and the vm-scalabilit=
+y
+tests showed a regression of -23%.  While the test in question is an
+artificial worst-case scenario that doesn't occur in real workloads -
+reading two sparse files in parallel at full CPU speed just to hammer t=
+he
+LRU paths - there is still some optimizations that can be done in those
+paths.
 
-BUG: Bad page state in process bash  pfn:580001
-page:000003d116000040 count:0 mapcount:0 mapping:ffffffff00000000 index:0x0
-flags: 0x7fffc0000000000()
-page dumped because: non-NULL mapping
+Inline the lookup functions to eliminate calls.  Also, page->mem_cgroup
+doesn't need to be stabilized when counting an activation; we merely ne=
+ed
+to hold the RCU lock to prevent the memcg from being freed.
 
-This is because page->compound_mapcount, which is part of a union with
-page->mapping, is initialized with -1 in prep_compound_gigantic_page(), and
-not cleared again during destroy_compound_gigantic_page(). Fix this by
-clearing the compound_mapcount in destroy_compound_gigantic_page() before
-clearing compound_head.
+This cuts down on overhead quite a bit:
 
-Interestingly enough, the warning will not show up on x86_64, although this
-should not be architecture specific. Apparently there is an endianness issue,
-combined with the fact that the union contains both a 64 bit ->mapping
-pointer and a 32 bit atomic_t ->compound_mapcount as members. The resulting
-bogus page->mapping on x86_64 therefore contains 00000000ffffffff instead
-of ffffffff00000000 on s390, which will falsely trigger the PageAnon() check
-in free_pages_prepare() because page->mapping & PAGE_MAPPING_ANON is true
-on little-endian architectures like x86_64 in this case (the page is not
-compound anymore, ->compound_head was already cleared before). As a result,
-page->mapping will be cleared before doing the checks in free_pages_check().
+23047a96d7cfcfca 063f6715e77a7be5770d6081fe
+---------------- --------------------------
+         %stddev     %change         %stddev
+                       |                  21621405 =C2=B1  0%     +11.3=
+%   24069657 =C2=B1  2%  vm-scalability.throughput
 
-Not sure if the bogus "PageAnon() returning true" on x86_64 for the first
-tail page of a gigantic page (at this stage) has other theoretical
-implications, but they would also be fixed with this patch.
-
-Link: http://lkml.kernel.org/r/1466612719-5642-1-git-send-email-gerald.schaefer@de.ibm.com
-Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Link: http://lkml.kernel.org/r/20160622182019.24064-1-hannes@cmpxchg.or=
+g
+Reported-by: Ye Xiaolong <xiaolong.ye@intel.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/memcontrol.h |   39 ++++++++++++++++++++++++++++++++++-
+ include/linux/mm.h         |    8 +++++++
+ mm/memcontrol.c            |   39 -----------------------------------
+ mm/workingset.c            |   10 +++++---
+ 4 files changed, 52 insertions(+), 44 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-clear-compound_mapcount-when-freeing-gigantic-pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-clear-compound_mapcount-when-freeing-gigantic-pages
-+++ a/mm/hugetlb.c
-@@ -1030,6 +1030,7 @@ static void destroy_compound_gigantic_pa
- 	int nr_pages = 1 << order;
- 	struct page *p = page + 1;
- 
-+	atomic_set(compound_mapcount_ptr(page), 0);
- 	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
- 		clear_compound_head(p);
- 		set_page_refcounted(p);
+diff -puN include/linux/memcontrol.h~mm-fix-vm-scalability-regression-i=
+n-cgroup-aware-workingset-code include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-fix-vm-scalability-regression-in-cg=
+roup-aware-workingset-code
++++ a/include/linux/memcontrol.h
+@@ -310,7 +310,44 @@ void mem_cgroup_uncharge_list(struct lis
+=20
+ void mem_cgroup_migrate(struct page *oldpage, struct page *newpage);
+=20
+-struct lruvec *mem_cgroup_lruvec(struct pglist_data *, struct mem_cgro=
+up *);
++static inline struct mem_cgroup_per_node *
++mem_cgroup_nodeinfo(struct mem_cgroup *memcg, int nid)
++{
++	return memcg->nodeinfo[nid];
++}
++
++/**
++ * mem_cgroup_lruvec - get the lru list vector for a memcg node
++ * @node: node of the wanted lruvec
++ * @memcg: memcg of the wanted lruvec
++ *
++ * Returns the lru list vector holding pages for a given @node and @me=
+mcg.
++ * This can be the node lruvec, if the memory controller is disabled.
++ */
++static inline struct lruvec *mem_cgroup_lruvec(struct pglist_data *pgd=
+at,
++					       struct mem_cgroup *memcg)
++{
++	struct mem_cgroup_per_node *mz;
++	struct lruvec *lruvec;
++
++	if (mem_cgroup_disabled()) {
++		lruvec =3D node_lruvec(pgdat);
++		goto out;
++	}
++
++	mz =3D mem_cgroup_nodeinfo(memcg, pgdat->node_id);
++	lruvec =3D &mz->lruvec;
++out:
++	/*
++	 * Since a node can be onlined after the mem_cgroup was created,
++	 * we have to be prepared to initialize lruvec->zone here;
++	 * and if offlined then reonlined, we need to reinitialize it.
++	 */
++	if (unlikely(lruvec->pgdat !=3D pgdat))
++		lruvec->pgdat =3D pgdat;
++	return lruvec;
++}
++
+ struct lruvec *mem_cgroup_page_lruvec(struct page *, struct pglist_dat=
+a *);
+=20
+ bool task_in_mem_cgroup(struct task_struct *task, struct mem_cgroup *m=
+emcg);
+diff -puN include/linux/mm.h~mm-fix-vm-scalability-regression-in-cgroup=
+-aware-workingset-code include/linux/mm.h
+--- a/include/linux/mm.h~mm-fix-vm-scalability-regression-in-cgroup-awa=
+re-workingset-code
++++ a/include/linux/mm.h
+@@ -978,11 +978,19 @@ static inline struct mem_cgroup *page_me
+ {
+ 	return page->mem_cgroup;
+ }
++static inline struct mem_cgroup *page_memcg_rcu(struct page *page)
++{
++	return READ_ONCE(page->mem_cgroup);
++}
+ #else
+ static inline struct mem_cgroup *page_memcg(struct page *page)
+ {
+ 	return NULL;
+ }
++static inline struct mem_cgroup *page_memcg_rcu(struct page *page)
++{
++	return NULL;
++}
+ #endif
+=20
+ /*
+diff -puN mm/memcontrol.c~mm-fix-vm-scalability-regression-in-cgroup-aw=
+are-workingset-code mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-fix-vm-scalability-regression-in-cgroup-aware-=
+workingset-code
++++ a/mm/memcontrol.c
+@@ -319,12 +319,6 @@ EXPORT_SYMBOL(memcg_kmem_enabled_key);
+=20
+ #endif /* !CONFIG_SLOB */
+=20
+-static struct mem_cgroup_per_node *
+-mem_cgroup_nodeinfo(struct mem_cgroup *memcg, int nid)
+-{
+-	return memcg->nodeinfo[nid];
+-}
+-
+ /**
+  * mem_cgroup_css_from_page - css of the memcg associated with a page
+  * @page: page of interest
+@@ -927,39 +921,6 @@ static void invalidate_reclaim_iterators
+ 	     iter =3D mem_cgroup_iter(NULL, iter, NULL))
+=20
+ /**
+- * mem_cgroup_lruvec - get the lru list vector for a node or a memcg z=
+one
+- * @node: node of the wanted lruvec
+- * @memcg: memcg of the wanted lruvec
+- *
+- * Returns the lru list vector holding pages for a given @node or a gi=
+ven
+- * @memcg and @zone. This can be the node lruvec, if the memory contro=
+ller
+- * is disabled.
+- */
+-struct lruvec *mem_cgroup_lruvec(struct pglist_data *pgdat,
+-				 struct mem_cgroup *memcg)
+-{
+-	struct mem_cgroup_per_node *mz;
+-	struct lruvec *lruvec;
+-
+-	if (mem_cgroup_disabled()) {
+-		lruvec =3D node_lruvec(pgdat);
+-		goto out;
+-	}
+-
+-	mz =3D mem_cgroup_nodeinfo(memcg, pgdat->node_id);
+-	lruvec =3D &mz->lruvec;
+-out:
+-	/*
+-	 * Since a node can be onlined after the mem_cgroup was created,
+-	 * we have to be prepared to initialize lruvec->zone here;
+-	 * and if offlined then reonlined, we need to reinitialize it.
+-	 */
+-	if (unlikely(lruvec->pgdat !=3D pgdat))
+-		lruvec->pgdat =3D pgdat;
+-	return lruvec;
+-}
+-
+-/**
+  * mem_cgroup_page_lruvec - return lruvec for isolating/putting an LRU=
+ page
+  * @page: the page
+  * @zone: zone of the page
+diff -puN mm/workingset.c~mm-fix-vm-scalability-regression-in-cgroup-aw=
+are-workingset-code mm/workingset.c
+--- a/mm/workingset.c~mm-fix-vm-scalability-regression-in-cgroup-aware-=
+workingset-code
++++ a/mm/workingset.c
+@@ -302,9 +302,10 @@ bool workingset_refault(void *shadow)
+  */
+ void workingset_activation(struct page *page)
+ {
++	struct mem_cgroup *memcg;
+ 	struct lruvec *lruvec;
+=20
+-	lock_page_memcg(page);
++	rcu_read_lock();
+ 	/*
+ 	 * Filter non-memcg pages here, e.g. unmap can call
+ 	 * mark_page_accessed() on VDSO pages.
+@@ -312,12 +313,13 @@ void workingset_activation(struct page *
+ 	 * XXX: See workingset_refault() - this should return
+ 	 * root_mem_cgroup even for !CONFIG_MEMCG.
+ 	 */
+-	if (!mem_cgroup_disabled() && !page_memcg(page))
++	memcg =3D page_memcg_rcu(page);
++	if (!mem_cgroup_disabled() && !memcg)
+ 		goto out;
+-	lruvec =3D mem_cgroup_lruvec(page_pgdat(page), page_memcg(page));
++	lruvec =3D mem_cgroup_lruvec(page_pgdat(page), memcg);
+ 	atomic_long_inc(&lruvec->inactive_age);
+ out:
+-	unlock_page_memcg(page);
++	rcu_read_unlock();
+ }
+=20
+ /*
 _
 
-Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-hugetlb-clear-compound_mapcount-when-freeing-gigantic-pages.patch
+cgroup-fix-idr-leak-for-the-first-cgroup-root.patch
+cgroup-remove-unnecessary-0-check-from-css_from_id.patch
+mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs.patch
+mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs-fix.pat=
+ch
+mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
