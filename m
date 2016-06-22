@@ -1,47 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kconfigh-use-__is_defined-to-check-if-module-is-defined.patch removed from
- -mm tree
-Date: Wed, 22 Jun 2016 14:29:50 -0700
-Message-ID: <576b034e.iRmMYv24E2hz0TZp%akpm@linux-foundation.org>
+ kconfigh-use-already-defined-macros-for-is_reachable-define.patch removed
+ from -mm tree
+Date: Wed, 22 Jun 2016 14:29:56 -0700
+Message-ID: <576b0354.sgzxYNTI0w/mObUV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44978 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44993 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432AbcFVV3w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 17:29:52 -0400
+	with ESMTP id S1751209AbcFVV35 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 17:29:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: yamada.masahiro@socionext.com, arnd@arndb.de, michal.simek@xilinx.com, mmarek@suse.cz, nicolas.pitre@linaro.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kconfig.h: use __is_defined() to check if MODULE is defined
+     Subject: kconfig.h: use already defined macros for IS_REACHABLE() define
 has been removed from the -mm tree.  Its filename was
-     kconfigh-use-__is_defined-to-check-if-module-is-defined.patch
+     kconfigh-use-already-defined-macros-for-is_reachable-define.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: kconfig.h: use __is_defined() to check if MODULE is defined
+Subject: kconfig.h: use already defined macros for IS_REACHABLE() define
 
-The macro MODULE is not a config option, it is a per-file build option. 
-So, config_enabled(MODULE) is not sensible.  (There is another case in
-include/linux/export.h, where config_enabled() is used against a
-non-config option.)
+For the same reason as commit 02d699f1f464 ("include/linux/kconfig.h: ese
+macros which are already defined"), it is better to use macros
+IS_BUILTIN() and IS_MODULE() for defining IS_REACHABLE().
 
-This commit renames some macros in include/linux/kconfig.h for the use for
-non-config macros and replaces config_enabled(MODULE) with
-__is_defined(MODULE).
-
-I am keeping config_enabled() because it is still referenced from some
-places, but I expect it would be deprecated in the future.
-
-Link: http://lkml.kernel.org/r/1465883938-25194-1-git-send-email-yamada.masahiro@socionext.com
+Link: http://lkml.kernel.org/r/1465883938-25194-3-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Michal Simek <michal.simek@xilinx.com>
@@ -51,34 +43,20 @@ Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kconfig.h |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ include/linux/kconfig.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kconfig.h~kconfigh-use-__is_defined-to-check-if-module-is-defined include/linux/kconfig.h
---- a/include/linux/kconfig.h~kconfigh-use-__is_defined-to-check-if-module-is-defined
+diff -puN include/linux/kconfig.h~kconfigh-use-already-defined-macros-for-is_reachable-define include/linux/kconfig.h
+--- a/include/linux/kconfig.h~kconfigh-use-already-defined-macros-for-is_reachable-define
 +++ a/include/linux/kconfig.h
-@@ -17,10 +17,11 @@
-  * the last step cherry picks the 2nd arg, we get a zero.
-  */
- #define __ARG_PLACEHOLDER_1 0,
--#define config_enabled(cfg) _config_enabled(cfg)
--#define _config_enabled(value) __config_enabled(__ARG_PLACEHOLDER_##value)
--#define __config_enabled(arg1_or_junk) ___config_enabled(arg1_or_junk 1, 0)
--#define ___config_enabled(__ignored, val, ...) val
-+#define config_enabled(cfg)		___is_defined(cfg)
-+#define __is_defined(x)			___is_defined(x)
-+#define ___is_defined(val)		____is_defined(__ARG_PLACEHOLDER_##val)
-+#define ____is_defined(arg1_or_junk)	__take_second_arg(arg1_or_junk 1, 0)
-+#define __take_second_arg(__ignored, val, ...) val
- 
- /*
-  * IS_BUILTIN(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y', 0
-@@ -42,7 +43,7 @@
+@@ -42,8 +42,8 @@
+  * This is similar to IS_ENABLED(), but returns false when invoked from
   * built-in code when CONFIG_FOO is set to 'm'.
   */
- #define IS_REACHABLE(option) (config_enabled(option) || \
--		 (config_enabled(option##_MODULE) && config_enabled(MODULE)))
-+		 (config_enabled(option##_MODULE) && __is_defined(MODULE)))
+-#define IS_REACHABLE(option) (config_enabled(option) || \
+-		 (config_enabled(option##_MODULE) && __is_defined(MODULE)))
++#define IS_REACHABLE(option) (IS_BUILTIN(option) || \
++		 (IS_MODULE(option) && __is_defined(MODULE)))
  
  /*
   * IS_ENABLED(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y' or 'm',
