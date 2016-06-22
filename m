@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-disable-bug-assertions-in-reading-blocks.patch added to
- -mm tree
-Date: Wed, 22 Jun 2016 15:05:58 -0700
-Message-ID: <576b0bc6.7qHYKvWnDoY3VBVK%akpm@linux-foundation.org>
+Subject: + ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log.patch added to -mm tree
+Date: Wed, 22 Jun 2016 15:07:01 -0700
+Message-ID: <576b0c05.5zInS1e04iWLD/Be%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45511 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45635 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799AbcFVWF7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 18:05:59 -0400
+	with ESMTP id S1751139AbcFVWHC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 18:07:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: zren@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: disable BUG assertions in reading blocks
+     Subject: ocfs2: retry on ENOSPC if sufficient space in truncate log
 has been added to the -mm tree.  Its filename is
-     ocfs2-disable-bug-assertions-in-reading-blocks.patch
+     ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-disable-bug-assertions-in-reading-blocks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-disable-bug-assertions-in-reading-blocks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,23 +38,26 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gang He <ghe@suse.com>
-Subject: ocfs2: disable BUG assertions in reading blocks
+From: Eric Ren <zren@suse.com>
+Subject: ocfs2: retry on ENOSPC if sufficient space in truncate log
 
-According to some high-load testing, these two BUG assertions were
-encountered, this led system panic.  Actually, there were some discussions
-about removing these two BUG() assertions, it would not bring any side
-effect.
+The testcase "mmaptruncate" in ocfs2 test suite always fails with ENOSPC
+error on small volume (say less than 10G).  This testcase creates 2
+threads T1/T2 which race to "truncate"/"extend" a same file repeatedly. 
+Specifically, T1 truncates 1/2 size of a small file while T2 extend to
+100% size.  The main bitmap will quickly run out of space because the
+"truncate" code prevent truncate log from being flushed by
+ocfs2_schedule_truncate_log_flush(osb, 1), while truncate log may have
+cached lots of clusters.
 
-Then, I did the the following changes,
+So retry to allocate after flushing truncate log when ENOSPC is returned. 
+And we cannot reuse the deleted blocks before the transaction committed. 
+Fortunately, we already have a function to do this -
+ocfs2_try_to_free_truncate_log().  Just need to remove the "static"
+modifier and put it into a right place.
 
-1) use the existing macro CATCH_BH_JBD_RACES to wrap BUG() in the
-   ocfs2_read_blocks_sync function like before.
-
-2) disable the macro CATCH_BH_JBD_RACES in Makefile by default.
-
-Link: http://lkml.kernel.org/r/1466574294-26863-1-git-send-email-ghe@suse.com
-Signed-off-by: Gang He <ghe@suse.com>
+Link: http://lkml.kernel.org/r/1466586469-5541-1-git-send-email-zren@suse.com
+Signed-off-by: Eric Ren <zren@suse.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
@@ -63,45 +65,157 @@ Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/Makefile         |    2 --
- fs/ocfs2/buffer_head_io.c |    5 +++++
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ fs/ocfs2/alloc.c    |   37 +++++++++++++++++++++++++++++++++++++
+ fs/ocfs2/alloc.h    |    2 ++
+ fs/ocfs2/aops.c     |   37 -------------------------------------
+ fs/ocfs2/suballoc.c |   17 ++++++++++++++++-
+ 4 files changed, 55 insertions(+), 38 deletions(-)
 
-diff -puN fs/ocfs2/Makefile~ocfs2-disable-bug-assertions-in-reading-blocks fs/ocfs2/Makefile
---- a/fs/ocfs2/Makefile~ocfs2-disable-bug-assertions-in-reading-blocks
-+++ a/fs/ocfs2/Makefile
-@@ -1,7 +1,5 @@
- ccflags-y := -Ifs/ocfs2
+diff -puN fs/ocfs2/alloc.c~ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log
++++ a/fs/ocfs2/alloc.c
+@@ -6106,6 +6106,43 @@ void ocfs2_schedule_truncate_log_flush(s
+ 	}
+ }
  
--ccflags-y += -DCATCH_BH_JBD_RACES
++/*
++ * Try to flush truncate logs if we can free enough clusters from it.
++ * As for return value, "< 0" means error, "0" no space and "1" means
++ * we have freed enough spaces and let the caller try to allocate again.
++ */
++int ocfs2_try_to_free_truncate_log(struct ocfs2_super *osb,
++					unsigned int needed)
++{
++	tid_t target;
++	int ret = 0;
++	unsigned int truncated_clusters;
++
++	inode_lock(osb->osb_tl_inode);
++	truncated_clusters = osb->truncated_clusters;
++	inode_unlock(osb->osb_tl_inode);
++
++	/*
++	 * Check whether we can succeed in allocating if we free
++	 * the truncate log.
++	 */
++	if (truncated_clusters < needed)
++		goto out;
++
++	ret = ocfs2_flush_truncate_log(osb);
++	if (ret) {
++		mlog_errno(ret);
++		goto out;
++	}
++
++	if (jbd2_journal_start_commit(osb->journal->j_journal, &target)) {
++		jbd2_log_wait_commit(osb->journal->j_journal, target);
++		ret = 1;
++	}
++out:
++	return ret;
++}
++
+ static int ocfs2_get_truncate_log_info(struct ocfs2_super *osb,
+ 				       int slot_num,
+ 				       struct inode **tl_inode,
+diff -puN fs/ocfs2/alloc.h~ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log fs/ocfs2/alloc.h
+--- a/fs/ocfs2/alloc.h~ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log
++++ a/fs/ocfs2/alloc.h
+@@ -188,6 +188,8 @@ int ocfs2_truncate_log_append(struct ocf
+ 			      u64 start_blk,
+ 			      unsigned int num_clusters);
+ int __ocfs2_flush_truncate_log(struct ocfs2_super *osb);
++int ocfs2_try_to_free_truncate_log(struct ocfs2_super *osb,
++				   unsigned int needed);
+ 
+ /*
+  * Process local structure which describes the block unlinks done
+diff -puN fs/ocfs2/aops.c~ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log
++++ a/fs/ocfs2/aops.c
+@@ -1645,43 +1645,6 @@ static int ocfs2_zero_tail(struct inode
+ 	return ret;
+ }
+ 
+-/*
+- * Try to flush truncate logs if we can free enough clusters from it.
+- * As for return value, "< 0" means error, "0" no space and "1" means
+- * we have freed enough spaces and let the caller try to allocate again.
+- */
+-static int ocfs2_try_to_free_truncate_log(struct ocfs2_super *osb,
+-					  unsigned int needed)
+-{
+-	tid_t target;
+-	int ret = 0;
+-	unsigned int truncated_clusters;
 -
- obj-$(CONFIG_OCFS2_FS) += 	\
- 	ocfs2.o			\
- 	ocfs2_stackglue.o
-diff -puN fs/ocfs2/buffer_head_io.c~ocfs2-disable-bug-assertions-in-reading-blocks fs/ocfs2/buffer_head_io.c
---- a/fs/ocfs2/buffer_head_io.c~ocfs2-disable-bug-assertions-in-reading-blocks
-+++ a/fs/ocfs2/buffer_head_io.c
-@@ -139,11 +139,16 @@ int ocfs2_read_blocks_sync(struct ocfs2_
+-	inode_lock(osb->osb_tl_inode);
+-	truncated_clusters = osb->truncated_clusters;
+-	inode_unlock(osb->osb_tl_inode);
+-
+-	/*
+-	 * Check whether we can succeed in allocating if we free
+-	 * the truncate log.
+-	 */
+-	if (truncated_clusters < needed)
+-		goto out;
+-
+-	ret = ocfs2_flush_truncate_log(osb);
+-	if (ret) {
+-		mlog_errno(ret);
+-		goto out;
+-	}
+-
+-	if (jbd2_journal_start_commit(osb->journal->j_journal, &target)) {
+-		jbd2_log_wait_commit(osb->journal->j_journal, target);
+-		ret = 1;
+-	}
+-out:
+-	return ret;
+-}
+-
+ int ocfs2_write_begin_nolock(struct address_space *mapping,
+ 			     loff_t pos, unsigned len, ocfs2_write_type_t type,
+ 			     struct page **pagep, void **fsdata,
+diff -puN fs/ocfs2/suballoc.c~ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log
++++ a/fs/ocfs2/suballoc.c
+@@ -1164,7 +1164,8 @@ static int ocfs2_reserve_clusters_with_l
+ 					     int flags,
+ 					     struct ocfs2_alloc_context **ac)
+ {
+-	int status;
++	int status, ret = 0;
++	int retried = 0;
  
- 		lock_buffer(bh);
- 		if (buffer_jbd(bh)) {
-+#ifdef CATCH_BH_JBD_RACES
- 			mlog(ML_ERROR,
- 			     "block %llu had the JBD bit set "
- 			     "while I was in lock_buffer!",
- 			     (unsigned long long)bh->b_blocknr);
- 			BUG();
-+#else
-+			unlock_buffer(bh);
-+			continue;
-+#endif
- 		}
+ 	*ac = kzalloc(sizeof(struct ocfs2_alloc_context), GFP_KERNEL);
+ 	if (!(*ac)) {
+@@ -1189,7 +1190,21 @@ static int ocfs2_reserve_clusters_with_l
+ 	}
  
- 		clear_buffer_uptodate(bh);
+ 	if (status == -ENOSPC) {
++retry:
+ 		status = ocfs2_reserve_cluster_bitmap_bits(osb, *ac);
++		/* Retry if there is sufficient space cached in truncate log */
++		if (status == -ENOSPC && !retried) {
++			retried = 1;
++			ocfs2_inode_unlock((*ac)->ac_inode, 1);
++			inode_unlock((*ac)->ac_inode);
++
++			ret = ocfs2_try_to_free_truncate_log(osb, bits_wanted);
++			if (ret == 1)
++				goto retry;
++
++			if (ret < 0)
++				mlog_errno(ret);
++		}
+ 		if (status < 0) {
+ 			if (status != -ENOSPC)
+ 				mlog_errno(status);
 _
 
-Patches currently in -mm which might be from ghe@suse.com are
+Patches currently in -mm which might be from zren@suse.com are
 
-ocfs2-disable-bug-assertions-in-reading-blocks.patch
-ocfs2-insure-dlm-lockspace-is-created-by-kernel-module.patch
+ocfs2-fix-a-redundant-re-initialization.patch
+ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log.patch
 
