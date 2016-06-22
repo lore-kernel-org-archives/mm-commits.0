@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj.patch added to -mm tree
-Date: Wed, 22 Jun 2016 14:45:56 -0700
-Message-ID: <576b0714.s7xb9TS0XJMe6081%akpm@linux-foundation.org>
+Subject: + proc-oom-drop-bogus-task_lock-and-mm-check.patch added to -mm
+ tree
+Date: Wed, 22 Jun 2016 14:45:50 -0700
+Message-ID: <576b070e.cauQ8GUSsH2iec/8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45284 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45261 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750880AbcFVVp5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 17:45:57 -0400
+	with ESMTP id S1750880AbcFVVpw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 17:45:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom_adj: make sure processes sharing mm have same view of oom_score_adj
+     Subject: proc, oom: drop bogus task_lock and mm check
 has been added to the -mm tree.  Its filename is
-     mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj.patch
+     proc-oom-drop-bogus-task_lock-and-mm-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-oom-drop-bogus-task_lock-and-mm-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-oom-drop-bogus-task_lock-and-mm-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,138 +40,158 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom_adj: make sure processes sharing mm have same view of oom_score_adj
+Subject: proc, oom: drop bogus task_lock and mm check
 
-oom_score_adj is shared for the thread groups (via struct signal) but this
-is not sufficient to cover processes sharing mm (CLONE_VM without
-CLONE_SIGHAND) and so we can easily end up in a situation when some
-processes update their oom_score_adj and confuse the oom killer.  In the
-worst case some of those processes might hide from the oom killer
-altogether via OOM_SCORE_ADJ_MIN while others are eligible.  OOM killer
-would then pick up those eligible but won't be allowed to kill others
-sharing the same mm so the mm wouldn't release the mm and so the memory.
+Series "Handle oom bypass more gracefully", V5
 
-It would be ideal to have the oom_score_adj per mm_struct because that is
-the natural entity OOM killer considers.  But this will not work because
-some programs are doing
 
-	vfork()
-	set_oom_adj()
-	exec()
+The following 10 patches should put some order to very rare cases of mm
+shared between processes and make the paths which bypass the oom killer
+oom reapable and therefore much more reliable finally.  Even though mm
+shared outside of thread group is rare (either vforked tasks for a short
+period, use_mm by kernel threads or exotic thread model of clone(CLONE_VM)
+without CLONE_SIGHAND) it is better to cover them.  Not only it makes the
+current oom killer logic quite hard to follow and reason about it can lead
+to weird corner cases.  E.g.  it is possible to select an oom victim which
+shares the mm with unkillable process or bypass the oom killer even when
+other processes sharing the mm are still alive and other weird cases.
 
-We can achieve the same though.  oom_score_adj write handler can set the
-oom_score_adj for all processes sharing the same mm if the task is not in
-the middle of vfork.  As a result all the processes will share the same
-oom_score_adj.  The current implementation is rather pessimistic and
-checks all the existing processes by default if there is more than 1
-holder of the mm but we do not have any reliable way to check for external
-users yet.
+Patch 1 drops bogus task_lock and mm check from oom_{score_}adj_write. 
+This can be considered a bug fix with a low impact as nobody has noticed
+for years.
 
-Link: http://lkml.kernel.org/r/1466426628-15074-5-git-send-email-mhocko@kernel.org
+Patch 2 drops sighand lock because it is not needed anymore as pointed
+by Oleg.
+
+Patch 3 is a clean up of oom_score_adj handling and a preparatory
+work for later patches.
+
+Patch 4 enforces oom_adj_score to be consistent between processes
+sharing the mm to behave consistently with the regular thread
+groups. This can be considered a user visible behavior change because
+one thread group updating oom_score_adj will affect others which share
+the same mm via clone(CLONE_VM). I argue that this should be acceptable
+because we already have the same behavior for threads in the same thread
+group and sharing the mm without signal struct is just a different model
+of threading. This is probably the most controversial part of the series,
+I would like to find some consensus here. There were some suggestions
+to hook some counter/oom_score_adj into the mm_struct but I feel that
+this is not necessary right now and we can rely on proc handler +
+oom_kill_process to DTRT. I can be convinced otherwise but I strongly
+think that whatever we do the userspace has to have a way to see the
+current oom priority as consistently as possible.
+
+Patch 5 makes sure that no vforked task is selected if it is sharing
+the mm with oom unkillable task.
+
+Patch 6 ensures that all user tasks sharing the mm are killed which in
+turn makes sure that all oom victims are oom reapable.
+
+Patch 7 guarantees that task_will_free_mem will always imply reapable
+bypass of the oom killer.
+
+Patch 8 is new in this version and it addresses an issue pointed out
+by 0-day OOM report where an oom victim was reaped several times.
+
+Patch 9 puts an upper bound on how many times oom_reaper tries to reap a
+task and hides it from the oom killer to move on when no progress can be
+made. This will give an upper bound to how long an oom_reapable task can
+block the oom killer from selecting another victim if the oom_reaper is
+not able to reap the victim.
+
+Patch 10 tries to plug the (hopefully) last hole when we can still lock
+up when the oom victim is shared with oom unkillable tasks (kthreads
+and global init). We just try to be best effort in that case and rather
+fallback to kill something else than risk a lockup.
+
+
+This patch (of 10):
+
+Both oom_adj_write and oom_score_adj_write are using task_lock, check for
+task->mm and fail if it is NULL.  This is not needed because the
+oom_score_adj is per signal struct so we do not need mm at all.  The code
+has been introduced by 3d5992d2ac7d ("oom: add per-mm oom disable count")
+but we do not do per-mm oom disable since c9f01245b6a7 ("oom: remove
+oom_disable_count").
+
+The task->mm check is even not correct because the current thread might
+have exited but the thread group might be still alive - e.g.  thread group
+leader would lead that echo $VAL > /proc/pid/oom_score_adj would always
+fail with EINVAL while /proc/pid/task/$other_tid/oom_score_adj would
+succeed.  This is unexpected at best.
+
+Remove the lock along with the check to fix the unexpected behavior and
+also because there is not real need for the lock in the first place.
+
+Link: http://lkml.kernel.org/r/1466426628-15074-2-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c     |   46 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/mm.h |    2 +
- mm/oom_kill.c      |    2 -
- 3 files changed, 49 insertions(+), 1 deletion(-)
+ fs/proc/base.c |   22 ++++------------------
+ 1 file changed, 4 insertions(+), 18 deletions(-)
 
-diff -puN fs/proc/base.c~mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj fs/proc/base.c
---- a/fs/proc/base.c~mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj
+diff -puN fs/proc/base.c~proc-oom-drop-bogus-task_lock-and-mm-check fs/proc/base.c
+--- a/fs/proc/base.c~proc-oom-drop-bogus-task_lock-and-mm-check
 +++ a/fs/proc/base.c
-@@ -1040,6 +1040,7 @@ static ssize_t oom_adj_read(struct file
- static int __set_oom_adj(struct file *file, int oom_adj, bool legacy)
- {
- 	static DEFINE_MUTEX(oom_adj_mutex);
-+	struct mm_struct *mm = NULL;
- 	struct task_struct *task;
- 	int err = 0;
- 
-@@ -1069,10 +1070,55 @@ static int __set_oom_adj(struct file *fi
- 		}
+@@ -1083,15 +1083,9 @@ static ssize_t oom_adj_write(struct file
+ 		goto out;
  	}
  
-+	/*
-+	 * Make sure we will check other processes sharing the mm if this is
-+	 * not vfrok which wants its own oom_score_adj.
-+	 * pin the mm so it doesn't go away and get reused after task_unlock
-+	 */
-+	if (!task->vfork_done) {
-+		struct task_struct *p = find_lock_task_mm(task);
-+
-+		if (p) {
-+			if (atomic_read(&p->mm->mm_users) > 1) {
-+				mm = p->mm;
-+				atomic_inc(&mm->mm_count);
-+			}
-+			task_unlock(p);
-+		}
-+	}
-+
- 	task->signal->oom_score_adj = oom_adj;
- 	if (!legacy && has_capability_noaudit(current, CAP_SYS_RESOURCE))
- 		task->signal->oom_score_adj_min = (short)oom_adj;
+-	task_lock(task);
+-	if (!task->mm) {
+-		err = -EINVAL;
+-		goto err_task_lock;
+-	}
+-
+ 	if (!lock_task_sighand(task, &flags)) {
+ 		err = -ESRCH;
+-		goto err_task_lock;
++		goto err_put_task;
+ 	}
+ 
+ 	/*
+@@ -1121,8 +1115,7 @@ static ssize_t oom_adj_write(struct file
  	trace_oom_score_adj_update(task);
-+
-+	if (mm) {
-+		struct task_struct *p;
-+
-+		rcu_read_lock();
-+		for_each_process(p) {
-+			if (same_thread_group(task, p))
-+				continue;
-+
-+			/* do not touch kernel threads or the global init */
-+			if (p->flags & PF_KTHREAD || is_global_init(p))
-+				continue;
-+
-+			task_lock(p);
-+			if (!p->vfork_done && process_shares_mm(p, mm)) {
-+				pr_info("updating oom_score_adj for %d (%s) from %d to %d because it shares mm with %d (%s). Report if this is unexpected.\n",
-+						task_pid_nr(p), p->comm,
-+						p->signal->oom_score_adj, oom_adj,
-+						task_pid_nr(task), task->comm);
-+				p->signal->oom_score_adj = oom_adj;
-+				if (!legacy && has_capability_noaudit(current, CAP_SYS_RESOURCE))
-+					p->signal->oom_score_adj_min = (short)oom_adj;
-+			}
-+			task_unlock(p);
-+		}
-+		rcu_read_unlock();
-+		mmdrop(mm);
-+	}
- err_unlock:
- 	mutex_unlock(&oom_adj_mutex);
+ err_sighand:
+ 	unlock_task_sighand(task, &flags);
+-err_task_lock:
+-	task_unlock(task);
++err_put_task:
  	put_task_struct(task);
-diff -puN include/linux/mm.h~mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj include/linux/mm.h
---- a/include/linux/mm.h~mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj
-+++ a/include/linux/mm.h
-@@ -2297,6 +2297,8 @@ static inline int in_gate_area(struct mm
- }
- #endif	/* __HAVE_ARCH_GATE_AREA */
+ out:
+ 	return err < 0 ? err : count;
+@@ -1186,15 +1179,9 @@ static ssize_t oom_score_adj_write(struc
+ 		goto out;
+ 	}
  
-+extern bool process_shares_mm(struct task_struct *p, struct mm_struct *mm);
-+
- #ifdef CONFIG_SYSCTL
- extern int sysctl_drop_caches;
- int drop_caches_sysctl_handler(struct ctl_table *, int,
-diff -puN mm/oom_kill.c~mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj
-+++ a/mm/oom_kill.c
-@@ -415,7 +415,7 @@ bool oom_killer_disabled __read_mostly;
-  * task's threads: if one of those is using this mm then this task was also
-  * using it.
-  */
--static bool process_shares_mm(struct task_struct *p, struct mm_struct *mm)
-+bool process_shares_mm(struct task_struct *p, struct mm_struct *mm)
- {
- 	struct task_struct *t;
+-	task_lock(task);
+-	if (!task->mm) {
+-		err = -EINVAL;
+-		goto err_task_lock;
+-	}
+-
+ 	if (!lock_task_sighand(task, &flags)) {
+ 		err = -ESRCH;
+-		goto err_task_lock;
++		goto err_put_task;
+ 	}
  
+ 	if ((short)oom_score_adj < task->signal->oom_score_adj_min &&
+@@ -1210,8 +1197,7 @@ static ssize_t oom_score_adj_write(struc
+ 
+ err_sighand:
+ 	unlock_task_sighand(task, &flags);
+-err_task_lock:
+-	task_unlock(task);
++err_put_task:
+ 	put_task_struct(task);
+ out:
+ 	return err < 0 ? err : count;
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
