@@ -1,64 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- exporth-use-__is_defined-to-check-if-__ksym_-is-defined.patch removed from
+ kconfigh-use-__is_defined-to-check-if-module-is-defined.patch removed from
  -mm tree
-Date: Wed, 22 Jun 2016 14:29:53 -0700
-Message-ID: <576b0351.pcIHmbD+CKk0ZNKq%akpm@linux-foundation.org>
+Date: Wed, 22 Jun 2016 14:29:50 -0700
+Message-ID: <576b034e.iRmMYv24E2hz0TZp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44986 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44978 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693AbcFVV3y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 17:29:54 -0400
+	with ESMTP id S1751432AbcFVV3w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 17:29:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.masahiro@socionext.com, arnd@arndb.de, michal.simek@xilinx.com, mmarek@suse.cz, nico@linaro.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: yamada.masahiro@socionext.com, arnd@arndb.de, michal.simek@xilinx.com, mmarek@suse.cz, nicolas.pitre@linaro.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: export.h: use __is_defined() to check if __KSYM_* is defined
+     Subject: kconfig.h: use __is_defined() to check if MODULE is defined
 has been removed from the -mm tree.  Its filename was
-     exporth-use-__is_defined-to-check-if-__ksym_-is-defined.patch
+     kconfigh-use-__is_defined-to-check-if-module-is-defined.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: export.h: use __is_defined() to check if __KSYM_* is defined
+Subject: kconfig.h: use __is_defined() to check if MODULE is defined
 
-Here the need is for a macro that checks whether the given symbol is
-defined or not, which has nothing to do with config.
+The macro MODULE is not a config option, it is a per-file build option. 
+So, config_enabled(MODULE) is not sensible.  (There is another case in
+include/linux/export.h, where config_enabled() is used against a
+non-config option.)
 
-The new macro __is_defined() is a better fit for this case.
+This commit renames some macros in include/linux/kconfig.h for the use for
+non-config macros and replaces config_enabled(MODULE) with
+__is_defined(MODULE).
 
-Link: http://lkml.kernel.org/r/1465883938-25194-2-git-send-email-yamada.masahiro@socionext.com
+I am keeping config_enabled() because it is still referenced from some
+places, but I expect it would be deprecated in the future.
+
+Link: http://lkml.kernel.org/r/1465883938-25194-1-git-send-email-yamada.masahiro@socionext.com
 Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Acked-by: Nicolas Pitre <nico@linaro.org>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Michal Simek <michal.simek@xilinx.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Michal Marek <mmarek@suse.cz>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/export.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kconfig.h |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/export.h~exporth-use-__is_defined-to-check-if-__ksym_-is-defined include/linux/export.h
---- a/include/linux/export.h~exporth-use-__is_defined-to-check-if-__ksym_-is-defined
-+++ a/include/linux/export.h
-@@ -82,7 +82,7 @@ extern struct module __this_module;
- #include <generated/autoksyms.h>
+diff -puN include/linux/kconfig.h~kconfigh-use-__is_defined-to-check-if-module-is-defined include/linux/kconfig.h
+--- a/include/linux/kconfig.h~kconfigh-use-__is_defined-to-check-if-module-is-defined
++++ a/include/linux/kconfig.h
+@@ -17,10 +17,11 @@
+  * the last step cherry picks the 2nd arg, we get a zero.
+  */
+ #define __ARG_PLACEHOLDER_1 0,
+-#define config_enabled(cfg) _config_enabled(cfg)
+-#define _config_enabled(value) __config_enabled(__ARG_PLACEHOLDER_##value)
+-#define __config_enabled(arg1_or_junk) ___config_enabled(arg1_or_junk 1, 0)
+-#define ___config_enabled(__ignored, val, ...) val
++#define config_enabled(cfg)		___is_defined(cfg)
++#define __is_defined(x)			___is_defined(x)
++#define ___is_defined(val)		____is_defined(__ARG_PLACEHOLDER_##val)
++#define ____is_defined(arg1_or_junk)	__take_second_arg(arg1_or_junk 1, 0)
++#define __take_second_arg(__ignored, val, ...) val
  
- #define __EXPORT_SYMBOL(sym, sec)				\
--	__cond_export_sym(sym, sec, config_enabled(__KSYM_##sym))
-+	__cond_export_sym(sym, sec, __is_defined(__KSYM_##sym))
- #define __cond_export_sym(sym, sec, conf)			\
- 	___cond_export_sym(sym, sec, conf)
- #define ___cond_export_sym(sym, sec, enabled)			\
+ /*
+  * IS_BUILTIN(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y', 0
+@@ -42,7 +43,7 @@
+  * built-in code when CONFIG_FOO is set to 'm'.
+  */
+ #define IS_REACHABLE(option) (config_enabled(option) || \
+-		 (config_enabled(option##_MODULE) && config_enabled(MODULE)))
++		 (config_enabled(option##_MODULE) && __is_defined(MODULE)))
+ 
+ /*
+  * IS_ENABLED(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y' or 'm',
 _
 
 Patches currently in -mm which might be from yamada.masahiro@socionext.com are
