@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + proc-oom-drop-bogus-task_lock-and-mm-check.patch added to -mm
- tree
-Date: Wed, 22 Jun 2016 14:45:50 -0700
-Message-ID: <576b070e.cauQ8GUSsH2iec/8%akpm@linux-foundation.org>
+Subject: +
+ mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice.patch added to
+ -mm tree
+Date: Wed, 22 Jun 2016 14:46:06 -0700
+Message-ID: <576b071e.94Pu1z/QaWl+87LX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45261 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45317 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750880AbcFVVpw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 17:45:52 -0400
+	with ESMTP id S1751347AbcFVVqH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jun 2016 17:46:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc, oom: drop bogus task_lock and mm check
+     Subject: mm, oom_reaper: do not attempt to reap a task more than twice
 has been added to the -mm tree.  Its filename is
-     proc-oom-drop-bogus-task_lock-and-mm-check.patch
+     mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-oom-drop-bogus-task_lock-and-mm-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-oom-drop-bogus-task_lock-and-mm-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,158 +41,80 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: proc, oom: drop bogus task_lock and mm check
+Subject: mm, oom_reaper: do not attempt to reap a task more than twice
 
-Series "Handle oom bypass more gracefully", V5
+oom_reaper relies on the mmap_sem for read to do its job.  Many places
+which might block readers have been converted to use down_write_killable
+and that has reduced chances of the contention a lot.  Some paths where
+the mmap_sem is held for write can take other locks and they might either
+be not prepared to fail due to fatal signal pending or too impractical to
+be changed.
 
+This patch introduces MMF_OOM_NOT_REAPABLE flag which gets set after the
+first attempt to reap a task's mm fails.  If the flag is present after the
+failure then we set MMF_OOM_REAPED to hide this mm from the oom killer
+completely so it can go and chose another victim.
 
-The following 10 patches should put some order to very rare cases of mm
-shared between processes and make the paths which bypass the oom killer
-oom reapable and therefore much more reliable finally.  Even though mm
-shared outside of thread group is rare (either vforked tasks for a short
-period, use_mm by kernel threads or exotic thread model of clone(CLONE_VM)
-without CLONE_SIGHAND) it is better to cover them.  Not only it makes the
-current oom killer logic quite hard to follow and reason about it can lead
-to weird corner cases.  E.g.  it is possible to select an oom victim which
-shares the mm with unkillable process or bypass the oom killer even when
-other processes sharing the mm are still alive and other weird cases.
+As a result a risk of OOM deadlock when the oom victim would be blocked
+indefinetly and so the oom killer cannot make any progress should be
+mitigated considerably while we still try really hard to perform all
+reclaim attempts and stay predictable in the behavior.
 
-Patch 1 drops bogus task_lock and mm check from oom_{score_}adj_write. 
-This can be considered a bug fix with a low impact as nobody has noticed
-for years.
-
-Patch 2 drops sighand lock because it is not needed anymore as pointed
-by Oleg.
-
-Patch 3 is a clean up of oom_score_adj handling and a preparatory
-work for later patches.
-
-Patch 4 enforces oom_adj_score to be consistent between processes
-sharing the mm to behave consistently with the regular thread
-groups. This can be considered a user visible behavior change because
-one thread group updating oom_score_adj will affect others which share
-the same mm via clone(CLONE_VM). I argue that this should be acceptable
-because we already have the same behavior for threads in the same thread
-group and sharing the mm without signal struct is just a different model
-of threading. This is probably the most controversial part of the series,
-I would like to find some consensus here. There were some suggestions
-to hook some counter/oom_score_adj into the mm_struct but I feel that
-this is not necessary right now and we can rely on proc handler +
-oom_kill_process to DTRT. I can be convinced otherwise but I strongly
-think that whatever we do the userspace has to have a way to see the
-current oom priority as consistently as possible.
-
-Patch 5 makes sure that no vforked task is selected if it is sharing
-the mm with oom unkillable task.
-
-Patch 6 ensures that all user tasks sharing the mm are killed which in
-turn makes sure that all oom victims are oom reapable.
-
-Patch 7 guarantees that task_will_free_mem will always imply reapable
-bypass of the oom killer.
-
-Patch 8 is new in this version and it addresses an issue pointed out
-by 0-day OOM report where an oom victim was reaped several times.
-
-Patch 9 puts an upper bound on how many times oom_reaper tries to reap a
-task and hides it from the oom killer to move on when no progress can be
-made. This will give an upper bound to how long an oom_reapable task can
-block the oom killer from selecting another victim if the oom_reaper is
-not able to reap the victim.
-
-Patch 10 tries to plug the (hopefully) last hole when we can still lock
-up when the oom victim is shared with oom unkillable tasks (kthreads
-and global init). We just try to be best effort in that case and rather
-fallback to kill something else than risk a lockup.
-
-
-This patch (of 10):
-
-Both oom_adj_write and oom_score_adj_write are using task_lock, check for
-task->mm and fail if it is NULL.  This is not needed because the
-oom_score_adj is per signal struct so we do not need mm at all.  The code
-has been introduced by 3d5992d2ac7d ("oom: add per-mm oom disable count")
-but we do not do per-mm oom disable since c9f01245b6a7 ("oom: remove
-oom_disable_count").
-
-The task->mm check is even not correct because the current thread might
-have exited but the thread group might be still alive - e.g.  thread group
-leader would lead that echo $VAL > /proc/pid/oom_score_adj would always
-fail with EINVAL while /proc/pid/task/$other_tid/oom_score_adj would
-succeed.  This is unexpected at best.
-
-Remove the lock along with the check to fix the unexpected behavior and
-also because there is not real need for the lock in the first place.
-
-Link: http://lkml.kernel.org/r/1466426628-15074-2-git-send-email-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/1466426628-15074-10-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ include/linux/sched.h |    1 +
+ mm/oom_kill.c         |   19 +++++++++++++++++++
+ 2 files changed, 20 insertions(+)
 
-diff -puN fs/proc/base.c~proc-oom-drop-bogus-task_lock-and-mm-check fs/proc/base.c
---- a/fs/proc/base.c~proc-oom-drop-bogus-task_lock-and-mm-check
-+++ a/fs/proc/base.c
-@@ -1083,15 +1083,9 @@ static ssize_t oom_adj_write(struct file
- 		goto out;
+diff -puN include/linux/sched.h~mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice include/linux/sched.h
+--- a/include/linux/sched.h~mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice
++++ a/include/linux/sched.h
+@@ -522,6 +522,7 @@ static inline int get_dumpable(struct mm
+ #define MMF_HAS_UPROBES		19	/* has uprobes */
+ #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
+ #define MMF_OOM_REAPED		21	/* mm has been already reaped */
++#define MMF_OOM_NOT_REAPABLE	22	/* mm couldn't be reaped */
+ 
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
+ 
+diff -puN mm/oom_kill.c~mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice
++++ a/mm/oom_kill.c
+@@ -556,8 +556,27 @@ static void oom_reap_task(struct task_st
+ 		schedule_timeout_idle(HZ/10);
+ 
+ 	if (attempts > MAX_OOM_REAP_RETRIES) {
++		struct task_struct *p;
++
+ 		pr_info("oom_reaper: unable to reap pid:%d (%s)\n",
+ 				task_pid_nr(tsk), tsk->comm);
++
++		/*
++		 * If we've already tried to reap this task in the past and
++		 * failed it probably doesn't make much sense to try yet again
++		 * so hide the mm from the oom killer so that it can move on
++		 * to another task with a different mm struct.
++		 */
++		p = find_lock_task_mm(tsk);
++		if (p) {
++			if (test_and_set_bit(MMF_OOM_NOT_REAPABLE, &p->mm->flags)) {
++				pr_info("oom_reaper: giving up pid:%d (%s)\n",
++						task_pid_nr(tsk), tsk->comm);
++				set_bit(MMF_OOM_REAPED, &p->mm->flags);
++			}
++			task_unlock(p);
++		}
++
+ 		debug_show_all_locks();
  	}
  
--	task_lock(task);
--	if (!task->mm) {
--		err = -EINVAL;
--		goto err_task_lock;
--	}
--
- 	if (!lock_task_sighand(task, &flags)) {
- 		err = -ESRCH;
--		goto err_task_lock;
-+		goto err_put_task;
- 	}
- 
- 	/*
-@@ -1121,8 +1115,7 @@ static ssize_t oom_adj_write(struct file
- 	trace_oom_score_adj_update(task);
- err_sighand:
- 	unlock_task_sighand(task, &flags);
--err_task_lock:
--	task_unlock(task);
-+err_put_task:
- 	put_task_struct(task);
- out:
- 	return err < 0 ? err : count;
-@@ -1186,15 +1179,9 @@ static ssize_t oom_score_adj_write(struc
- 		goto out;
- 	}
- 
--	task_lock(task);
--	if (!task->mm) {
--		err = -EINVAL;
--		goto err_task_lock;
--	}
--
- 	if (!lock_task_sighand(task, &flags)) {
- 		err = -ESRCH;
--		goto err_task_lock;
-+		goto err_put_task;
- 	}
- 
- 	if ((short)oom_score_adj < task->signal->oom_score_adj_min &&
-@@ -1210,8 +1197,7 @@ static ssize_t oom_score_adj_write(struc
- 
- err_sighand:
- 	unlock_task_sighand(task, &flags);
--err_task_lock:
--	task_unlock(task);
-+err_put_task:
- 	put_task_struct(task);
- out:
- 	return err < 0 ? err : count;
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
