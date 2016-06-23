@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + printk-create-pr_level-functions.patch added to -mm tree
-Date: Thu, 23 Jun 2016 16:39:19 -0700
-Message-ID: <576c7327.P2XGK8ykd2Ca5H2z%akpm@linux-foundation.org>
+Subject: + printk-introduce-should_ignore_loglevel.patch added to -mm tree
+Date: Thu, 23 Jun 2016 16:42:46 -0700
+Message-ID: <576c73f6.386ukdnuBoyiPXpK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51428 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51438 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752451AbcFWXjU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jun 2016 19:39:20 -0400
+	with ESMTP id S1751537AbcFWXmr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jun 2016 19:42:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, calvinowens@fb.com, jack@suse.cz, pmladek@suse.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: create pr_<level> functions
+     Subject: printk: introduce should_ignore_loglevel()
 has been added to the -mm tree.  Its filename is
-     printk-create-pr_level-functions.patch
+     printk-introduce-should_ignore_loglevel.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-create-pr_level-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-introduce-should_ignore_loglevel.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-create-pr_level-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-introduce-should_ignore_loglevel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,223 +38,188 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: printk: create pr_<level> functions
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: printk: introduce should_ignore_loglevel()
 
-Using functions instead of macros can reduce overall code size by
-eliminating unnecessary "KERN_SOH<digit>" prefixes from format strings.
+Due to deferred printing, console log level is inspected when the actual
+printing occurs, which may provoke console_unlock() and
+console_cont_flush() to waste CPU cycles on every message that has
+loglevel above the current console_loglevel.
 
-defconfig x86-64:
+Schematically, console_unlock() does the following:
 
-$ size vmlinux*
-   text    data     bss      dec     hex  filename
-10193570 4331464 1105920 15630954  ee826a vmlinux.new
-10192623 4335560 1105920 15634103  ee8eb7 vmlinux.old
+console_unlock()
+{
+	...
+	for (;;) {
+		...
+		raw_spin_lock_irqsave(&logbuf_lock, flags);
+skip:
+		msg = log_from_idx(console_idx);
 
-As the return value are unimportant and unused in the kernel tree,
-these new functions return void.
+		if (msg->flags & LOG_NOCONS) {
+			...
+			goto skip;
+		}
 
-Miscellanea:
+		level = msg->level;
+		len += msg_print_text();			>> sprintfs
+								   memcpy,
+								   etc.
 
-o change pr_<level> macros to call new __pr_<level> functions
-o change vprintk_nmi and vprintk_default to add LOGLEVEL_<level> argument
+		if (nr_ext_console_drivers) {
+			ext_len = msg_print_ext_header();	>> scnprintf
+			ext_len += msg_print_ext_body();	>> scnprintfs
+								   etc.
+		}
+		...
+		raw_spin_unlock(&logbuf_lock);
 
-Link: http://lkml.kernel.org/r/e16cc34479dfefcae37c98b481e6646f0f69efc3.1466718827.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+		call_console_drivers(level, ext_text, ext_len, text, len)
+		{
+			if (level >= console_loglevel &&	>> drop the message
+					!ignore_loglevel)
+				return;
+
+			console->write(...);
+		}
+
+		local_irq_restore(flags);
+	}
+	...
+}
+
+The thing here is this deferred `level >= console_loglevel' check.  We are
+wasting CPU cycles on sprintfs/memcpy/etc.  preparing the messages that we
+will eventually drop.
+
+This can be huge when we register a new CON_PRINTBUFFER console, for
+instance.  For every such a console register_console() resets the
+
+	console_seq, console_idx, console_prev
+
+and sets a `exclusive console' pointer to replay the log buffer to that
+just-registered console.  And there can be a lot of messages to replay, in
+the worst case most of which can be dropped after console_loglevel test.
+
+We know messages' levels long before we call msg_print_text() and friends,
+so we can just move console_loglevel check out of call_console_drivers()
+and format a new message only if we are sure that it won't be dropped.
+
+The patch factors out loglevel check into should_ignore_loglevel()
+function and tests message->level and console_loglevel before formatting
+functions in console_unlock() and console_cont_flush() are getting
+executed.
+
+This improves things not only for exclusive CON_PRINTBUFFER consoles, but
+for every console_unlock() that attempts to print a message of level above
+the console_loglevel.
+
+Link: http://lkml.kernel.org/r/20160623163302.761-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Calvin Owens <calvinowens@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h   |   48 +++++++++++++++++++++++++------------
- kernel/printk/internal.h |   16 +++++++-----
- kernel/printk/nmi.c      |   13 ++++++++--
- kernel/printk/printk.c   |   27 ++++++++++++++++++--
- 4 files changed, 78 insertions(+), 26 deletions(-)
+ kernel/printk/printk.c |   25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/printk.h~printk-create-pr_level-functions include/linux/printk.h
---- a/include/linux/printk.h~printk-create-pr_level-functions
-+++ a/include/linux/printk.h
-@@ -254,21 +254,39 @@ extern asmlinkage void dump_stack(void)
-  * and other debug macros are compiled out unless either DEBUG is defined
-  * or CONFIG_DYNAMIC_DEBUG is set.
-  */
--#define pr_emerg(fmt, ...) \
--	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_alert(fmt, ...) \
--	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_crit(fmt, ...) \
--	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_err(fmt, ...) \
--	printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_warning(fmt, ...) \
--	printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_warn pr_warning
--#define pr_notice(fmt, ...) \
--	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_info(fmt, ...) \
--	printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-+
-+#ifdef CONFIG_PRINTK
-+
-+asmlinkage __printf(1, 2) __cold void __pr_emerg(const char *fmt, ...);
-+asmlinkage __printf(1, 2) __cold void __pr_alert(const char *fmt, ...);
-+asmlinkage __printf(1, 2) __cold void __pr_crit(const char *fmt, ...);
-+asmlinkage __printf(1, 2) __cold void __pr_err(const char *fmt, ...);
-+asmlinkage __printf(1, 2) __cold void __pr_warn(const char *fmt, ...);
-+asmlinkage __printf(1, 2) __cold void __pr_notice(const char *fmt, ...);
-+asmlinkage __printf(1, 2) __cold void __pr_info(const char *fmt, ...);
-+
-+#define pr_emerg(fmt, ...)	__pr_emerg(pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_alert(fmt, ...)	__pr_alert(pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_crit(fmt, ...)	__pr_crit(pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_err(fmt, ...)	__pr_err(pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_warn(fmt, ...)	__pr_warn(pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_notice(fmt, ...)	__pr_notice(pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_info(fmt, ...)	__pr_info(pr_fmt(fmt), ##__VA_ARGS__)
-+
-+#else
-+
-+#define pr_emerg(fmt, ...)	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_alert(fmt, ...)	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_crit(fmt, ...)	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_err(fmt, ...)	printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_warn(fmt, ...)	printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_notice(fmt, ...)	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_info(fmt, ...)	printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-+
-+#endif
-+
-+#define pr_warning pr_warn
-+
- /*
-  * Like KERN_CONT, pr_cont() should only be used when continuing
-  * a line with no newline ('\n') enclosed. Otherwise it defaults
-diff -puN kernel/printk/internal.h~printk-create-pr_level-functions kernel/printk/internal.h
---- a/kernel/printk/internal.h~printk-create-pr_level-functions
-+++ a/kernel/printk/internal.h
-@@ -16,9 +16,11 @@
-  */
- #include <linux/percpu.h>
- 
--typedef __printf(1, 0) int (*printk_func_t)(const char *fmt, va_list args);
-+typedef __printf(2, 0) int (*printk_func_t)(int level, const char *fmt,
-+					    va_list args);
- 
--int __printf(1, 0) vprintk_default(const char *fmt, va_list args);
-+__printf(2, 0)
-+int vprintk_default(int level, const char *fmt, va_list args);
- 
- #ifdef CONFIG_PRINTK_NMI
- 
-@@ -31,9 +33,10 @@ extern raw_spinlock_t logbuf_lock;
-  * via per-CPU variable.
-  */
- DECLARE_PER_CPU(printk_func_t, printk_func);
--static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
-+__printf(2, 0)
-+static inline int vprintk_func(int level, const char *fmt, va_list args)
- {
--	return this_cpu_read(printk_func)(fmt, args);
-+	return this_cpu_read(printk_func)(level, fmt, args);
- }
- 
- extern atomic_t nmi_message_lost;
-@@ -44,9 +47,10 @@ static inline int get_nmi_message_lost(v
- 
- #else /* CONFIG_PRINTK_NMI */
- 
--static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
-+__printf(2, 0)
-+static inline int vprintk_func(int level, const char *fmt, va_list args)
- {
--	return vprintk_default(fmt, args);
-+	return vprintk_default(level, fmt, args);
- }
- 
- static inline int get_nmi_message_lost(void)
-diff -puN kernel/printk/nmi.c~printk-create-pr_level-functions kernel/printk/nmi.c
---- a/kernel/printk/nmi.c~printk-create-pr_level-functions
-+++ a/kernel/printk/nmi.c
-@@ -58,7 +58,7 @@ static DEFINE_PER_CPU(struct nmi_seq_buf
-  * one writer running. But the buffer might get flushed from another
-  * CPU, so we need to be careful.
-  */
--static int vprintk_nmi(const char *fmt, va_list args)
-+static int vprintk_nmi(int level, const char *fmt, va_list args)
- {
- 	struct nmi_seq_buf *s = this_cpu_ptr(&nmi_print_seq);
- 	int add = 0;
-@@ -79,7 +79,16 @@ again:
- 	if (!len)
- 		smp_rmb();
- 
--	add = vsnprintf(s->buffer + len, sizeof(s->buffer) - len, fmt, args);
-+	if (level != LOGLEVEL_DEFAULT) {
-+		add = snprintf(s->buffer + len, sizeof(s->buffer) - len,
-+				KERN_SOH "%c", '0' + level);
-+		add += vsnprintf(s->buffer + len + add,
-+				 sizeof(s->buffer) - len - add,
-+				 fmt, args);
-+	} else {
-+		add = vsnprintf(s->buffer + len, sizeof(s->buffer) - len,
-+				fmt, args);
-+	}
- 
- 	/*
- 	 * Do it once again if the buffer has been flushed in the meantime.
-diff -puN kernel/printk/printk.c~printk-create-pr_level-functions kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-create-pr_level-functions
+diff -puN kernel/printk/printk.c~printk-introduce-should_ignore_loglevel kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-introduce-should_ignore_loglevel
 +++ a/kernel/printk/printk.c
-@@ -1801,7 +1801,28 @@ asmlinkage int printk_emit(int facility,
- }
- EXPORT_SYMBOL(printk_emit);
+@@ -985,6 +985,11 @@ module_param(ignore_loglevel, bool, S_IR
+ MODULE_PARM_DESC(ignore_loglevel,
+ 		 "ignore loglevel setting (prints all kernel messages to the console)");
  
--int vprintk_default(const char *fmt, va_list args)
-+#ifdef CONFIG_PRINTK
-+#define define_pr_level(func, loglevel)				\
-+asmlinkage __visible void func(const char *fmt, ...)		\
-+{								\
-+	va_list args;						\
-+								\
-+	va_start(args, fmt);					\
-+	vprintk_default(loglevel, fmt, args);			\
-+	va_end(args);						\
-+}								\
-+EXPORT_SYMBOL(func)
++static bool should_ignore_loglevel(int level)
++{
++	return (level >= console_loglevel && !ignore_loglevel);
++}
 +
-+define_pr_level(__pr_emerg, LOGLEVEL_EMERG);
-+define_pr_level(__pr_alert, LOGLEVEL_ALERT);
-+define_pr_level(__pr_crit, LOGLEVEL_CRIT);
-+define_pr_level(__pr_err, LOGLEVEL_ERR);
-+define_pr_level(__pr_warn, LOGLEVEL_WARNING);
-+define_pr_level(__pr_notice, LOGLEVEL_NOTICE);
-+define_pr_level(__pr_info, LOGLEVEL_NOTICE);
-+#endif
-+
-+int vprintk_default(int level, const char *fmt, va_list args)
- {
- 	int r;
+ #ifdef CONFIG_BOOT_PRINTK_DELAY
  
-@@ -1811,7 +1832,7 @@ int vprintk_default(const char *fmt, va_
- 		return r;
+ static int boot_delay; /* msecs delay after each printk during bootup */
+@@ -1014,7 +1019,7 @@ static void boot_delay_msec(int level)
+ 	unsigned long timeout;
+ 
+ 	if ((boot_delay == 0 || system_state != SYSTEM_BOOTING)
+-		|| (level >= console_loglevel && !ignore_loglevel)) {
++		|| should_ignore_loglevel(level)) {
+ 		return;
  	}
- #endif
--	r = vprintk_emit(0, LOGLEVEL_DEFAULT, NULL, 0, fmt, args);
-+	r = vprintk_emit(0, level, NULL, 0, fmt, args);
  
- 	return r;
- }
-@@ -1844,7 +1865,7 @@ asmlinkage __visible int printk(const ch
- 	int r;
+@@ -1438,8 +1443,6 @@ static void call_console_drivers(int lev
  
- 	va_start(args, fmt);
--	r = vprintk_func(fmt, args);
-+	r = vprintk_func(LOGLEVEL_DEFAULT, fmt, args);
- 	va_end(args);
+ 	trace_console(text, len);
  
- 	return r;
+-	if (level >= console_loglevel && !ignore_loglevel)
+-		return;
+ 	if (!console_drivers)
+ 		return;
+ 
+@@ -1908,6 +1911,7 @@ static void call_console_drivers(int lev
+ static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
+ 			     bool syslog, char *buf, size_t size) { return 0; }
+ static size_t cont_print_text(char *text, size_t size) { return 0; }
++static bool should_ignore_loglevel(int level) { return false; }
+ 
+ /* Still needs to be defined for users */
+ DEFINE_PER_CPU(printk_func_t, printk_func);
+@@ -2187,6 +2191,13 @@ static void console_cont_flush(char *tex
+ 	if (!cont.len)
+ 		goto out;
+ 
++	if (should_ignore_loglevel(cont.level)) {
++		cont.cons = cont.len;
++		if (cont.flushed)
++			cont.len = 0;
++		goto out;
++	}
++
+ 	/*
+ 	 * We still queue earlier records, likely because the console was
+ 	 * busy. The earlier ones need to be printed before this one, we
+@@ -2290,10 +2301,13 @@ skip:
+ 			break;
+ 
+ 		msg = log_from_idx(console_idx);
+-		if (msg->flags & LOG_NOCONS) {
++		level = msg->level;
++		if ((msg->flags & LOG_NOCONS) ||
++				should_ignore_loglevel(level)) {
+ 			/*
+ 			 * Skip record we have buffered and already printed
+-			 * directly to the console when we received it.
++			 * directly to the console when we received it, and
++			 * record that has level above the console loglevel.
+ 			 */
+ 			console_idx = log_next(console_idx);
+ 			console_seq++;
+@@ -2307,7 +2321,6 @@ skip:
+ 			goto skip;
+ 		}
+ 
+-		level = msg->level;
+ 		len += msg_print_text(msg, console_prev, false,
+ 				      text + len, sizeof(text) - len);
+ 		if (nr_ext_console_drivers) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-printk-create-pr_level-functions.patch
+zram-rename-zstrm-find-release-functions.patch
+zram-switch-to-crypto-compress-api.patch
+zram-use-crypto-api-to-check-alg-availability.patch
+zram-use-crypto-api-to-check-alg-availability-v3.patch
+zram-cosmetic-cleanup-documentation.patch
+zram-delete-custom-lzo-lz4.patch
+zram-delete-custom-lzo-lz4-v3.patch
+zram-add-more-compression-algorithms.patch
+zram-add-more-compression-algorithms-v3.patch
+zram-drop-gfp_t-from-zcomp_strm_alloc.patch
+printk-do-not-include-interrupth.patch
+printk-introduce-should_ignore_loglevel.patch
 
