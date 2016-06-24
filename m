@@ -1,125 +1,100 @@
-From: akpm@linux-foundation.org
-Subject: + fs-befs-replace-befs_bread-by-sb_bread.patch added to -mm tree
-Date: Fri, 24 Jun 2016 14:00:36 -0700
-Message-ID: <576d9f74.xfDakl2d8WlsTyQZ%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Fri, 24 Jun 2016 14:48:20 -0700
+Message-ID: <20160624144820.7a7fe1ef11456cc9fd832f4e@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Fri__24_Jun_2016_14_48_20_-0700_HRvDPg2C_e19q=gS"
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40847 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751141AbcFXVAh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:00:37 -0400
+	with ESMTP id S1751337AbcFXVs1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:48:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: salah.triki@gmail.com, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
+
+--Signature=_Fri__24_Jun_2016_14_48_20_-0700_HRvDPg2C_e19q=gS
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 
-The patch titled
-     Subject: fs: befs: replace befs_bread by sb_bread
-has been added to the -mm tree.  Its filename is
-     fs-befs-replace-befs_bread-by-sb_bread.patch
+Two weeks worth of fixes here.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-befs-replace-befs_bread-by-sb_bread.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-befs-replace-befs_bread-by-sb_bread.patch
+41 fixes, based on 63c04ee7d3b7c8d8e2726cb7c5f8a5f6fcc1e3b2:
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Subject: mm,oom_reaper: don't call mmput_async() without atomic_inc_not_zer=
+o()
+Subject: oom_reaper: avoid pointless atomic_inc_not_zero usage.
+Subject: selftests/vm/compaction_test: fix write to restore nr_hugepages
+Subject: tmpfs: don't undo fallocate past its last page
+Subject: tree wide: get rid of __GFP_REPEAT for order-0 allocations part I
+Subject: x86: get rid of superfluous __GFP_REPEAT
+Subject: x86/efi: get rid of superfluous __GFP_REPEAT
+Subject: arm64: get rid of superfluous __GFP_REPEAT
+Subject: arc: get rid of superfluous __GFP_REPEAT
+Subject: mips: get rid of superfluous __GFP_REPEAT
+Subject: nios2: get rid of superfluous __GFP_REPEAT
+Subject: parisc: get rid of superfluous __GFP_REPEAT
+Subject: score: get rid of superfluous __GFP_REPEAT
+Subject: powerpc: get rid of superfluous __GFP_REPEAT
+Subject: sparc: get rid of superfluous __GFP_REPEAT
+Subject: s390: get rid of superfluous __GFP_REPEAT
+Subject: sh: get rid of superfluous __GFP_REPEAT
+Subject: tile: get rid of superfluous __GFP_REPEAT
+Subject: unicore32: get rid of superfluous __GFP_REPEAT
+Subject: jbd2: get rid of superfluous __GFP_REPEAT
+Subject: MAINTAINERS: update Calgary IOMMU
+Subject: mm: mempool: kasan: don't poot mempool objects in quarantine
+Subject: mm, sl[au]b: add __GFP_ATOMIC to the GFP reclaim mask
+Subject: mailmap: add Antoine Tenart's email
+Subject: mailmap: add Boris Brezillon's email
+Subject: Revert "mm: make faultaround produce old ptes"
+Subject: Revert "mm: disable fault around on emulated access bit architectu=
+re"
+Subject: hugetlb: fix nr_pmds accounting with shared page tables
+Subject: memcg: mem_cgroup_migrate() may be called with irq disabled
+Subject: memcg: css_alloc should return an ERR_PTR value on error
+Subject: mm/swap.c: flush lru pvecs on compound page arrival
+Subject: mm/hugetlb: clear compound_mapcount when freeing gigantic pages
+Subject: mm: prevent KASAN false positives in kmemleak
+Subject: mm, compaction: abort free scanner if split fails
+Subject: ocfs2: disable BUG assertions in reading blocks
+Subject: oom, suspend: fix oom_reaper vs. oom_killer_disable race
+Subject: fs/nilfs2: fix potential underflow in call to crc32_le
+Subject: tools/vm/slabinfo: fix spelling mistake: "Ocurrences" -> "Occurren=
+ces"
+Subject: mm/page_owner: avoid null pointer dereference
+Subject: autofs: don't get stuck in a loop if vfs_write() returns an error
+Subject: init/main.c: fix initcall_blacklisted on ia64, ppc64 and parisc64
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
 
-------------------------------------------------------
-From: Salah Triki <salah.triki@gmail.com>
-Subject: fs: befs: replace befs_bread by sb_bread
 
-Since befs_bread merely calls sb_bread, replace it by sb_bread.
 
-Link: http://lkml.kernel.org/r/1466800258-4542-1-git-send-email-salah.triki@gmail.com
-Signed-off-by: Salah Triki <salah.triki@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+--Signature=_Fri__24_Jun_2016_14_48_20_-0700_HRvDPg2C_e19q=gS
+Content-Type: application/pgp-signature
 
- fs/befs/datastream.c |    6 +++---
- fs/befs/io.c         |   24 ------------------------
- fs/befs/io.h         |    2 --
- fs/befs/linuxvfs.c   |    2 +-
- 4 files changed, 4 insertions(+), 30 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-diff -puN fs/befs/datastream.c~fs-befs-replace-befs_bread-by-sb_bread fs/befs/datastream.c
---- a/fs/befs/datastream.c~fs-befs-replace-befs_bread-by-sb_bread
-+++ a/fs/befs/datastream.c
-@@ -326,7 +326,7 @@ befs_find_brun_indirect(struct super_blo
- 
- 	/* Examine blocks of the indirect run one at a time */
- 	for (i = 0; i < indirect.len; i++) {
--		indirblock = befs_bread(sb, indirblockno + i);
-+		indirblock = sb_bread(sb, indirblockno + i);
- 		if (indirblock == NULL) {
- 			befs_debug(sb, "---> %s failed to read "
- 				   "disk block %lu from the indirect brun",
-@@ -471,7 +471,7 @@ befs_find_brun_dblindirect(struct super_
- 	}
- 
- 	dbl_indir_block =
--	    befs_bread(sb, iaddr2blockno(sb, &data->double_indirect) +
-+	    sb_bread(sb, iaddr2blockno(sb, &data->double_indirect) +
- 					dbl_which_block);
- 	if (dbl_indir_block == NULL) {
- 		befs_error(sb, "%s couldn't read the "
-@@ -499,7 +499,7 @@ befs_find_brun_dblindirect(struct super_
- 	}
- 
- 	indir_block =
--	    befs_bread(sb, iaddr2blockno(sb, &indir_run) + which_block);
-+	    sb_bread(sb, iaddr2blockno(sb, &indir_run) + which_block);
- 	if (indir_block == NULL) {
- 		befs_error(sb, "%s couldn't read the indirect block "
- 			   "at blockno %lu", __func__, (unsigned long)
-diff -puN fs/befs/io.c~fs-befs-replace-befs_bread-by-sb_bread fs/befs/io.c
---- a/fs/befs/io.c~fs-befs-replace-befs_bread-by-sb_bread
-+++ a/fs/befs/io.c
-@@ -59,27 +59,3 @@ befs_bread_iaddr(struct super_block *sb,
- 	befs_debug(sb, "<--- %s ERROR", __func__);
- 	return NULL;
- }
--
--struct buffer_head *
--befs_bread(struct super_block *sb, befs_blocknr_t block)
--{
--	struct buffer_head *bh;
--
--	befs_debug(sb, "---> Enter %s %lu", __func__, (unsigned long)block);
--
--	bh = sb_bread(sb, block);
--
--	if (bh == NULL) {
--		befs_error(sb, "Failed to read block %lu",
--			   (unsigned long)block);
--		goto error;
--	}
--
--	befs_debug(sb, "<--- %s", __func__);
--
--	return bh;
--
--      error:
--	befs_debug(sb, "<--- %s ERROR", __func__);
--	return NULL;
--}
-diff -puN fs/befs/io.h~fs-befs-replace-befs_bread-by-sb_bread fs/befs/io.h
---- a/fs/befs/io.h~fs-befs-replace-befs_bread-by-sb_bread
-+++ a/fs/befs/io.h
-@@ -5,5 +5,3 @@
- struct buffer_head *befs_bread_iaddr(struct super_block *sb,
- 				     befs_inode_addr iaddr);
- 
--struct buffer_head *befs_bread(struct super_block *sb, befs_blocknr_t block);
+iQIcBAEBAgAGBQJXbaqqAAoJEJxZ78cCqAIHdLkP/RgV6gEg1az+WRU1tmGsCYJr
+kcrM2RBtvBWDmRrFOJqFNGlUfK0+bkhCmgL96QfiroQThyNRAFyh6yFj8sq6vi9b
+2eo9artSYPqsjQsdIGKLesdRnh6SdEf88o1i49ZeoPLWXxA/l1Xl7BC3R6f8r41f
+i3ZX/ZPxe9xJP85jdpgLvDOnibUavbt2uo2WHRggDPvYvtRiRJNR9iBVerXr+5IZ
+uGvSk0mmu7A9+8/9T7/gmTvtvAHDzXSO6FkRv9upnGqi3p3KVLC2ybjvLNlIHmAr
+6DLTspgzr0c3meLFSaCRXErgRbCX+v/7fQJ+3w3dqH4z+3ZyBjdjHwm7HEYWpCgq
+nmYXlYOGoAxYuZJS+6AmYfWcfcSeDw+VE1H0F98KOZbV3o1bwKqTo8X7ryrjUr0Y
+obhYH2oviAqzMSD3lFu5MS6giDsNJOsXNNaI4JeDunfnMKQnO1cVTGmzj8U/cugn
+uUDjE/7DWjpxFXsiw1XLTTe7As2rUETGcqCG4mlOM1kwqpRgl+12wcWN6CUerdby
+60xfp27j3J9RfvURHIQKSxtMmUwFairxjDrKVibH+TuPzEp6fcbgDIzi0Grc52Fh
+YHy115W4BHjaBfRPeSu7FZ0iPF71j9yvcM3ssHEXjT5Z6DQr6uLkoy60z1C7N/V1
+osE6GtI0JfWKql5g9ZXZ
+=YOsC
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__24_Jun_2016_14_48_20_-0700_HRvDPg2C_e19q=gS--
