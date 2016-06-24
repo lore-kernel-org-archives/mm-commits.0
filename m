@@ -1,56 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 39/41] mm/page_owner: avoid null pointer dereference
-Date: Fri, 24 Jun 2016 14:50:24 -0700
-Message-ID: <576dab20.G/z4a/pV8gKIwKHn%akpm@linux-foundation.org>
+Subject: [patch 40/41] autofs: don't get stuck in a loop if vfs_write()
+ returns an error
+Date: Fri, 24 Jun 2016 14:50:27 -0700
+Message-ID: <576dab23.pcSBVFYS+eJKe65p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41154 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41162 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751654AbcFXVuZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:50:25 -0400
+	with ESMTP id S1751505AbcFXVu2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:50:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sudipm.mukherjee@gmail.com, iamjoonsoo.kim@lge.com, sudip.mukherjee@codethink.co.uk, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, avagin@openvz.org, raven@themaw.net
 
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: mm/page_owner: avoid null pointer dereference
+From: Andrey Vagin <avagin@openvz.org>
+Subject: autofs: don't get stuck in a loop if vfs_write() returns an error
 
-We have dereferenced page_ext before checking it. Lets check it first
-and then used it.
+__vfs_write() returns a negative value in a error case.
 
-Fixes: f86e4271978b ("mm: check the return value of lookup_page_ext for all call sites")
-Link: http://lkml.kernel.org/r/1465249059-7883-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/20160616083108.6278.65815.stgit@pluto.themaw.net
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/autofs4/waitq.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_owner.c~mm-page_owner-use-stackdepot-to-store-stacktrace-fix mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-use-stackdepot-to-store-stacktrace-fix
-+++ a/mm/page_owner.c
-@@ -207,13 +207,15 @@ void __dump_page_owner(struct page *page
- 		.nr_entries = page_ext->nr_entries,
- 		.entries = &page_ext->trace_entries[0],
- 	};
--	gfp_t gfp_mask = page_ext->gfp_mask;
--	int mt = gfpflags_to_migratetype(gfp_mask);
-+	gfp_t gfp_mask;
-+	int mt;
+diff -puN fs/autofs4/waitq.c~autofs-dont-stuck-in-a-loop-if-vfs_write-returns-an-error fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c~autofs-dont-stuck-in-a-loop-if-vfs_write-returns-an-error
++++ a/fs/autofs4/waitq.c
+@@ -66,11 +66,12 @@ static int autofs4_write(struct autofs_s
+ 	set_fs(KERNEL_DS);
  
- 	if (unlikely(!page_ext)) {
- 		pr_alert("There is not page extension available.\n");
- 		return;
+ 	mutex_lock(&sbi->pipe_mutex);
+-	wr = __vfs_write(file, data, bytes, &file->f_pos);
+-	while (bytes && wr) {
++	while (bytes) {
++		wr = __vfs_write(file, data, bytes, &file->f_pos);
++		if (wr <= 0)
++			break;
+ 		data += wr;
+ 		bytes -= wr;
+-		wr = __vfs_write(file, data, bytes, &file->f_pos);
  	}
-+	gfp_mask = page_ext->gfp_mask;
-+	mt = gfpflags_to_migratetype(gfp_mask);
+ 	mutex_unlock(&sbi->pipe_mutex);
  
- 	if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags)) {
- 		pr_alert("page_owner info is not active (free page?)\n");
 _
