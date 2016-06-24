@@ -1,50 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [patch 33/41] mm: prevent KASAN false positives in kmemleak
-Date: Fri, 24 Jun 2016 14:50:07 -0700
-Message-ID: <576dab0f.Uo4iR4xYqY+zizBV%akpm@linux-foundation.org>
+Subject: [patch 34/41] mm, compaction: abort free scanner if split fails
+Date: Fri, 24 Jun 2016 14:50:10 -0700
+Message-ID: <576dab12.LUI4Ocn6diFJSSBG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41066 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41082 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751462AbcFXVuI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:50:08 -0400
+	with ESMTP id S1751573AbcFXVuL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:50:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dvyukov@google.com, catalin.marinas@arm.com, glider@google.com, ryabinin.a.a@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rientjes@google.com, hughd@google.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, minchan@kernel.org, stable@vger.kernel.org, vbabka@suse.cz
 
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: mm: prevent KASAN false positives in kmemleak
+From: David Rientjes <rientjes@google.com>
+Subject: mm, compaction: abort free scanner if split fails
 
-When kmemleak dumps contents of leaked objects it reads whole
-objects regardless of user-requested size. This upsets KASAN.
-Disable KASAN checks around object dump.
+If the memory compaction free scanner cannot successfully split a free
+page (only possible due to per-zone low watermark), terminate the free
+scanner rather than continuing to scan memory needlessly.  If the
+watermark is insufficient for a free page of order <= cc->order, then
+terminate the scanner since all future splits will also likely fail.
 
-Link: http://lkml.kernel.org/r/1466617631-68387-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
+This prevents the compaction freeing scanner from scanning all memory on
+very large zones (very noticeable for zones > 128GB, for instance) when
+all splits will likely fail while holding zone->lock.
+
+compaction_alloc() iterating a 128GB zone has been benchmarked to take
+over 400ms on some systems whereas any free page isolated and ready to
+be split ends up failing in split_free_page() because of the low
+watermark check and thus the iteration continues.
+
+The next time compaction occurs, the freeing scanner will likely start
+at the end of the zone again since no success was made previously and
+we get the same lengthy iteration until the zone is brought above the
+low watermark.  All thp page faults can take >400ms in such a state
+without this fix.
+
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1606211820350.97086@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/compaction.c |   39 +++++++++++++++++++++------------------
+ 1 file changed, 21 insertions(+), 18 deletions(-)
 
-diff -puN mm/kmemleak.c~mm-prevent-kasan-false-positives-in-kmemleak mm/kmemleak.c
---- a/mm/kmemleak.c~mm-prevent-kasan-false-positives-in-kmemleak
-+++ a/mm/kmemleak.c
-@@ -307,8 +307,10 @@ static void hex_dump_object(struct seq_f
- 	len = min_t(size_t, object->size, HEX_MAX_LINES * HEX_ROW_SIZE);
+diff -puN mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails
++++ a/mm/compaction.c
+@@ -441,25 +441,23 @@ static unsigned long isolate_freepages_b
  
- 	seq_printf(seq, "  hex dump (first %zu bytes):\n", len);
-+	kasan_disable_current();
- 	seq_hex_dump(seq, "    ", DUMP_PREFIX_NONE, HEX_ROW_SIZE,
- 		     HEX_GROUP_SIZE, ptr, len, HEX_ASCII);
-+	kasan_enable_current();
- }
+ 		/* Found a free page, break it into order-0 pages */
+ 		isolated = split_free_page(page);
++		if (!isolated)
++			break;
++
+ 		total_isolated += isolated;
++		cc->nr_freepages += isolated;
+ 		for (i = 0; i < isolated; i++) {
+ 			list_add(&page->lru, freelist);
+ 			page++;
+ 		}
+-
+-		/* If a page was split, advance to the end of it */
+-		if (isolated) {
+-			cc->nr_freepages += isolated;
+-			if (!strict &&
+-				cc->nr_migratepages <= cc->nr_freepages) {
+-				blockpfn += isolated;
+-				break;
+-			}
+-
+-			blockpfn += isolated - 1;
+-			cursor += isolated - 1;
+-			continue;
++		if (!strict && cc->nr_migratepages <= cc->nr_freepages) {
++			blockpfn += isolated;
++			break;
+ 		}
++		/* Advance to the end of split page */
++		blockpfn += isolated - 1;
++		cursor += isolated - 1;
++		continue;
  
- /*
+ isolate_fail:
+ 		if (strict)
+@@ -469,6 +467,9 @@ isolate_fail:
+ 
+ 	}
+ 
++	if (locked)
++		spin_unlock_irqrestore(&cc->zone->lock, flags);
++
+ 	/*
+ 	 * There is a tiny chance that we have read bogus compound_order(),
+ 	 * so be careful to not go outside of the pageblock.
+@@ -490,9 +491,6 @@ isolate_fail:
+ 	if (strict && blockpfn < end_pfn)
+ 		total_isolated = 0;
+ 
+-	if (locked)
+-		spin_unlock_irqrestore(&cc->zone->lock, flags);
+-
+ 	/* Update the pageblock-skip if the whole pageblock was scanned */
+ 	if (blockpfn == end_pfn)
+ 		update_pageblock_skip(cc, valid_page, total_isolated, false);
+@@ -1011,6 +1009,7 @@ static void isolate_freepages(struct com
+ 				block_end_pfn = block_start_pfn,
+ 				block_start_pfn -= pageblock_nr_pages,
+ 				isolate_start_pfn = block_start_pfn) {
++		unsigned long isolated;
+ 
+ 		/*
+ 		 * This can iterate a massively long zone without finding any
+@@ -1035,8 +1034,12 @@ static void isolate_freepages(struct com
+ 			continue;
+ 
+ 		/* Found a block suitable for isolating free pages from. */
+-		isolate_freepages_block(cc, &isolate_start_pfn,
+-					block_end_pfn, freelist, false);
++		isolated = isolate_freepages_block(cc, &isolate_start_pfn,
++						block_end_pfn, freelist, false);
++		/* If isolation failed early, do not continue needlessly */
++		if (!isolated && isolate_start_pfn < block_end_pfn &&
++		    cc->nr_migratepages > cc->nr_freepages)
++			break;
+ 
+ 		/*
+ 		 * If we isolated enough freepages, or aborted due to async
 _
