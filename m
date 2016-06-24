@@ -1,49 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [patch 24/41] mailmap: add Antoine Tenart's email
-Date: Fri, 24 Jun 2016 14:49:39 -0700
-Message-ID: <576daaf3.rTRCv3gqQxcgCcj5%akpm@linux-foundation.org>
+Subject: [patch 25/41] mailmap: add Boris Brezillon's email
+Date: Fri, 24 Jun 2016 14:49:42 -0700
+Message-ID: <576daaf6.R5XXPgf1iRnwalVJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40987 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40991 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505AbcFXVtk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:49:40 -0400
+	with ESMTP id S1751543AbcFXVtn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:49:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, antoine.tenart@free-electrons.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, antoine.tenart@free-electrons.com, boris.brezillon@free-electrons.com
 
 =46rom: Antoine Tenart <antoine.tenart@free-electrons.com>
-Subject: mailmap: add Antoine Tenart's email
+Subject: mailmap: add Boris Brezillon's email
 
-I used "Antoine T=E9nart" at first but then moved to a name without acc=
-ent
-as this cause some issues from time to time...  Add my email in the
-mailmap file to have a consistent shortlog output.
+There are different versions of Boris' name and email in the log, and o=
+ne
+typo.  Add his emails in mailmap to have all of his contributions under
+the same name/email tuple.
 
-Link: http://lkml.kernel.org/r/20160609130323.27706-1-antoine.tenart@fr=
+Link: http://lkml.kernel.org/r/20160609130323.27706-2-antoine.tenart@fr=
 ee-electrons.com
 Signed-off-by: Antoine Tenart <antoine.tenart@free-electrons.com>
-Cc: Antoine Tenart <antoine.tenart@free-electrons.com>
+Acked-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ .mailmap |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN .mailmap~mailmap-antoine-tenarts-email .mailmap
---- a/.mailmap~mailmap-antoine-tenarts-email
+diff -puN .mailmap~mailmap-boris-brezillons-email .mailmap
+--- a/.mailmap~mailmap-boris-brezillons-email
 +++ a/.mailmap
-@@ -21,6 +21,7 @@ Andrey Ryabinin <ryabinin.a.a@gmail.com>
- Andrew Morton <akpm@linux-foundation.org>
- Andrew Vasquez <andrew.vasquez@qlogic.com>
- Andy Adamson <andros@citi.umich.edu>
-+Antoine Tenart <antoine.tenart@free-electrons.com>
- Antonio Ospite <ao2@ao2.it> <ao2@amarulasolutions.com>
- Archit Taneja <archit@ti.com>
- Arnaud Patard <arnaud.patard@rtp-net.org>
+@@ -31,6 +31,9 @@ Axel Lin <axel.lin@gmail.com>
+ Ben Gardner <bgardner@wabtec.com>
+ Ben M Cahill <ben.m.cahill@intel.com>
+ Bj=C3=B6rn Steinbrink <B.Steinbrink@gmx.de>
++Boris Brezillon <boris.brezillon@free-electrons.com>
++Boris Brezillon <boris.brezillon@free-electrons.com> <b.brezillon.dev@=
+gmail.com>
++Boris Brezillon <boris.brezillon@free-electrons.com> <b.brezillon@over=
+kiz.com>
+ Brian Avery <b.avery@hp.com>
+ Brian King <brking@us.ibm.com>
+ Christoph Hellwig <hch@lst.de>
 _
 --
 To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
