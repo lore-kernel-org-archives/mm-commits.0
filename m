@@ -1,166 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [patch 22/41] mm: mempool: kasan: don't poot mempool objects in
- quarantine
-Date: Fri, 24 Jun 2016 14:49:34 -0700
-Message-ID: <576daaee.uekSvK6/VScvNyxR%akpm@linux-foundation.org>
+Subject: [patch 21/41] MAINTAINERS: update Calgary IOMMU
+Date: Fri, 24 Jun 2016 14:49:31 -0700
+Message-ID: <576daaeb.rl4b8m68U7Yp8Ysp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40976 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40970 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337AbcFXVtf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:49:35 -0400
+	with ESMTP id S1751558AbcFXVtc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:49:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, kcc@google.com, kuthonuzo.luruo@hpe.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jdmason@kudzu.us, b.zolnierkie@samsung.com, gregkh@linuxfoundation.org, hpa@zytor.com, k.kozlowski@samsung.com, mingo@redhat.com, mulix@mulix.org, tglx@linutronix.de
 
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm: mempool: kasan: don't poot mempool objects in quarantine
+From: Jon Mason <jdmason@kudzu.us>
+Subject: MAINTAINERS: update Calgary IOMMU
 
-Currently we may put reserved by mempool elements into quarantine via
-kasan_kfree().  This is totally wrong since quarantine may really free
-these objects.  So when mempool will try to use such element,
-use-after-free will happen.  Or mempool may decide that it no longer need
-that element and double-free it.
+Update the contact info for Muli, clean-up my name, and update the
+mailing list to the IOMMU mailing list.
 
-So don't put object into quarantine in kasan_kfree(), just poison it. 
-Rename kasan_kfree() to kasan_poison_kfree() to respect that.
-
-Also, we shouldn't use kasan_slab_alloc()/kasan_krealloc() in
-kasan_unpoison_element() because those functions may update allocation
-stacktrace.  This would be wrong for the most of the remove_element call
-sites.
-
-(The only call site where we may want to update alloc stacktrace is
- in mempool_alloc(). Kmemleak solves this by calling
- kmemleak_update_trace(), so we could make something like that too.
- But this is out of scope of this patch).
-
-Fixes: 55834c59098d ("mm: kasan: initial memory quarantine implementation")
-Link: http://lkml.kernel.org/r/575977C3.1010905@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reported-by: Kuthonuzo Luruo <kuthonuzo.luruo@hpe.com>
-Acked-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitriy Vyukov <dvyukov@google.com>
-Cc: Kostya Serebryany <kcc@google.com>
+Link: http://lkml.kernel.org/r/1465493059-11840-2-git-send-email-jdmason@kudzu.us
+Signed-off-by: Jon Mason <jdmason@kudzu.us>
+Cc: Muli Ben-Yehuda <mulix@mulix.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   11 +++++++----
- mm/kasan/kasan.c      |    6 +++---
- mm/mempool.c          |   12 ++++--------
- 3 files changed, 14 insertions(+), 15 deletions(-)
+ MAINTAINERS |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/kasan.h~mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine include/linux/kasan.h
---- a/include/linux/kasan.h~mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine
-+++ a/include/linux/kasan.h
-@@ -59,14 +59,13 @@ void kasan_poison_object_data(struct kme
+diff -puN MAINTAINERS~maintainers-update-calgary-iommu MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-calgary-iommu
++++ a/MAINTAINERS
+@@ -2776,9 +2776,9 @@ F:	include/net/caif/
+ F:	net/caif/
  
- void kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags);
- void kasan_kfree_large(const void *ptr);
--void kasan_kfree(void *ptr);
-+void kasan_poison_kfree(void *ptr);
- void kasan_kmalloc(struct kmem_cache *s, const void *object, size_t size,
- 		  gfp_t flags);
- void kasan_krealloc(const void *object, size_t new_size, gfp_t flags);
- 
- void kasan_slab_alloc(struct kmem_cache *s, void *object, gfp_t flags);
- bool kasan_slab_free(struct kmem_cache *s, void *object);
--void kasan_poison_slab_free(struct kmem_cache *s, void *object);
- 
- struct kasan_cache {
- 	int alloc_meta_offset;
-@@ -76,6 +75,9 @@ struct kasan_cache {
- int kasan_module_alloc(void *addr, size_t size);
- void kasan_free_shadow(const struct vm_struct *vm);
- 
-+size_t ksize(const void *);
-+static inline void kasan_unpoison_slab(const void *ptr) { ksize(ptr); }
-+
- #else /* CONFIG_KASAN */
- 
- static inline void kasan_unpoison_shadow(const void *address, size_t size) {}
-@@ -102,7 +104,7 @@ static inline void kasan_poison_object_d
- 
- static inline void kasan_kmalloc_large(void *ptr, size_t size, gfp_t flags) {}
- static inline void kasan_kfree_large(const void *ptr) {}
--static inline void kasan_kfree(void *ptr) {}
-+static inline void kasan_poison_kfree(void *ptr) {}
- static inline void kasan_kmalloc(struct kmem_cache *s, const void *object,
- 				size_t size, gfp_t flags) {}
- static inline void kasan_krealloc(const void *object, size_t new_size,
-@@ -114,11 +116,12 @@ static inline bool kasan_slab_free(struc
- {
- 	return false;
- }
--static inline void kasan_poison_slab_free(struct kmem_cache *s, void *object) {}
- 
- static inline int kasan_module_alloc(void *addr, size_t size) { return 0; }
- static inline void kasan_free_shadow(const struct vm_struct *vm) {}
- 
-+static inline void kasan_unpoison_slab(const void *ptr) { }
-+
- #endif /* CONFIG_KASAN */
- 
- #endif /* LINUX_KASAN_H */
-diff -puN mm/kasan/kasan.c~mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine
-+++ a/mm/kasan/kasan.c
-@@ -508,7 +508,7 @@ void kasan_slab_alloc(struct kmem_cache
- 	kasan_kmalloc(cache, object, cache->object_size, flags);
- }
- 
--void kasan_poison_slab_free(struct kmem_cache *cache, void *object)
-+static void kasan_poison_slab_free(struct kmem_cache *cache, void *object)
- {
- 	unsigned long size = cache->object_size;
- 	unsigned long rounded_up_size = round_up(size, KASAN_SHADOW_SCALE_SIZE);
-@@ -626,7 +626,7 @@ void kasan_krealloc(const void *object,
- 		kasan_kmalloc(page->slab_cache, object, size, flags);
- }
- 
--void kasan_kfree(void *ptr)
-+void kasan_poison_kfree(void *ptr)
- {
- 	struct page *page;
- 
-@@ -636,7 +636,7 @@ void kasan_kfree(void *ptr)
- 		kasan_poison_shadow(ptr, PAGE_SIZE << compound_order(page),
- 				KASAN_FREE_PAGE);
- 	else
--		kasan_slab_free(page->slab_cache, ptr);
-+		kasan_poison_slab_free(page->slab_cache, ptr);
- }
- 
- void kasan_kfree_large(const void *ptr)
-diff -puN mm/mempool.c~mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine mm/mempool.c
---- a/mm/mempool.c~mm-mempool-kasan-dont-poot-mempool-objects-in-quarantine
-+++ a/mm/mempool.c
-@@ -104,20 +104,16 @@ static inline void poison_element(mempoo
- 
- static void kasan_poison_element(mempool_t *pool, void *element)
- {
--	if (pool->alloc == mempool_alloc_slab)
--		kasan_poison_slab_free(pool->pool_data, element);
--	if (pool->alloc == mempool_kmalloc)
--		kasan_kfree(element);
-+	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
-+		kasan_poison_kfree(element);
- 	if (pool->alloc == mempool_alloc_pages)
- 		kasan_free_pages(element, (unsigned long)pool->pool_data);
- }
- 
- static void kasan_unpoison_element(mempool_t *pool, void *element, gfp_t flags)
- {
--	if (pool->alloc == mempool_alloc_slab)
--		kasan_slab_alloc(pool->pool_data, element, flags);
--	if (pool->alloc == mempool_kmalloc)
--		kasan_krealloc(element, (size_t)pool->pool_data, flags);
-+	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
-+		kasan_unpoison_slab(element);
- 	if (pool->alloc == mempool_alloc_pages)
- 		kasan_alloc_pages(element, (unsigned long)pool->pool_data);
- }
+ CALGARY x86-64 IOMMU
+-M:	Muli Ben-Yehuda <muli@il.ibm.com>
+-M:	"Jon D. Mason" <jdmason@kudzu.us>
+-L:	discuss@x86-64.org
++M:	Muli Ben-Yehuda <mulix@mulix.org>
++M:	Jon Mason <jdmason@kudzu.us>
++L:	iommu@lists.linux-foundation.org
+ S:	Maintained
+ F:	arch/x86/kernel/pci-calgary_64.c
+ F:	arch/x86/kernel/tce_64.c
 _
