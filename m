@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks.patch added to
- -mm tree
-Date: Fri, 24 Jun 2016 13:47:45 -0700
-Message-ID: <576d9c71.jY0rR5x4l3oeI69x%akpm@linux-foundation.org>
+ init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64.patch added
+ to -mm tree
+Date: Fri, 24 Jun 2016 13:49:38 -0700
+Message-ID: <576d9ce2.BvDRsrHWEXLoTx/e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40196 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40204 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751286AbcFXUrq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 16:47:46 -0400
+	with ESMTP id S1751534AbcFXUtv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 16:49:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, pmladek@suse.com, prarit@redhat.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: cleanup unneeded goto in ocfs2_create_new_inode_locks
+     Subject: init/main.c: fix initcall_blacklisted on ia64, ppc64 and parisc64
 has been added to the -mm tree.  Its filename is
-     ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks.patch
+     init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +40,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: cleanup unneeded goto in ocfs2_create_new_inode_locks
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: init/main.c: fix initcall_blacklisted on ia64, ppc64 and parisc64
 
-The last goto is unneeded, so remove it.
+When I replaced kasprintf("%pf") with a direct call to
+sprint_symbol_no_offset I must have broken the initcall blacklisting
+feature on the arches where dereference_function_descriptor() is
+non-trivial.
 
-Link: http://lkml.kernel.org/r/576213D3.6080002@huawei.com
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Fixes: c8cdd2be213f (init/main.c: simplify initcall_blacklisted())
+Link: http://lkml.kernel.org/r/1466027283-4065-1-git-send-email-linux@rasmusvillemoes.dk
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ init/main.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks
-+++ a/fs/ocfs2/dlmglue.c
-@@ -1665,10 +1665,8 @@ int ocfs2_create_new_inode_locks(struct
- 	}
+diff -puN init/main.c~init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64 init/main.c
+--- a/init/main.c~init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64
++++ a/init/main.c
+@@ -708,11 +708,13 @@ static bool __init_or_module initcall_bl
+ {
+ 	struct blacklist_entry *entry;
+ 	char fn_name[KSYM_SYMBOL_LEN];
++	unsigned long addr;
  
- 	ret = ocfs2_create_new_lock(osb, &OCFS2_I(inode)->ip_open_lockres, 0, 0);
--	if (ret) {
-+	if (ret)
- 		mlog_errno(ret);
--		goto bail;
--	}
+ 	if (list_empty(&blacklisted_initcalls))
+ 		return false;
  
- bail:
- 	return ret;
+-	sprint_symbol_no_offset(fn_name, (unsigned long)fn);
++	addr = (unsigned long) dereference_function_descriptor(fn);
++	sprint_symbol_no_offset(fn_name, addr);
+ 
+ 	list_for_each_entry(entry, &blacklisted_initcalls, next) {
+ 		if (!strcmp(fn_name, entry->buf)) {
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks.patch
+init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64.patch
 
