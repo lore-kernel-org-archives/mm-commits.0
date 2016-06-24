@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64.patch added
- to -mm tree
-Date: Fri, 24 Jun 2016 13:49:38 -0700
-Message-ID: <576d9ce2.BvDRsrHWEXLoTx/e%akpm@linux-foundation.org>
+Subject: + scripts-bloat-o-meter-fix-percent-on-1%-changes.patch added to
+ -mm tree
+Date: Fri, 24 Jun 2016 13:52:50 -0700
+Message-ID: <576d9da2.twBMqD5UoS8F8Ow9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40204 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40397 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751534AbcFXUtv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 16:49:51 -0400
+	with ESMTP id S1751321AbcFXUwv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 16:52:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, pmladek@suse.com, prarit@redhat.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: riku.voipio@linaro.org, josh@joshtriplett.org, mmarek@suse.cz, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init/main.c: fix initcall_blacklisted on ia64, ppc64 and parisc64
+     Subject: scripts/bloat-o-meter: fix percent on <1% changes
 has been added to the -mm tree.  Its filename is
-     init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64.patch
+     scripts-bloat-o-meter-fix-percent-on-1%-changes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-bloat-o-meter-fix-percent-on-1%25-changes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-bloat-o-meter-fix-percent-on-1%25-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,47 +39,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: init/main.c: fix initcall_blacklisted on ia64, ppc64 and parisc64
+From: Riku Voipio <riku.voipio@linaro.org>
+Subject: scripts/bloat-o-meter: fix percent on <1% changes
 
-When I replaced kasprintf("%pf") with a direct call to
-sprint_symbol_no_offset I must have broken the initcall blacklisting
-feature on the arches where dereference_function_descriptor() is
-non-trivial.
+Python divisions are integer divisions unless at least one parameter is a
+float.  The current bloat-o-meter fails to print sub-percentage changes:
 
-Fixes: c8cdd2be213f (init/main.c: simplify initcall_blacklisted())
-Link: http://lkml.kernel.org/r/1466027283-4065-1-git-send-email-linux@rasmusvillemoes.dk
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Yang Shi <yang.shi@linaro.org>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Petr Mladek <pmladek@suse.com>
+Total: Before=10515408, After=10604060, chg 0.000000%
+
+Force float division by using one float and pretty the print to
+two significant decimals:
+
+Total: Before=10515408, After=10604060, chg +0.84%
+
+Link: http://lkml.kernel.org/r/1465980311-23814-1-git-send-email-riku.voipio@linaro.org
+Signed-off-by: Riku Voipio <riku.voipio@linaro.org>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ scripts/bloat-o-meter |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN init/main.c~init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64 init/main.c
---- a/init/main.c~init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64
-+++ a/init/main.c
-@@ -708,11 +708,13 @@ static bool __init_or_module initcall_bl
- {
- 	struct blacklist_entry *entry;
- 	char fn_name[KSYM_SYMBOL_LEN];
-+	unsigned long addr;
+diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-fix-percent-on-1%-changes scripts/bloat-o-meter
+--- a/scripts/bloat-o-meter~scripts-bloat-o-meter-fix-percent-on-1%-changes
++++ a/scripts/bloat-o-meter
+@@ -67,5 +67,5 @@ print("%-40s %7s %7s %+7s" % ("function"
+ for d, n in delta:
+     if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
  
- 	if (list_empty(&blacklisted_initcalls))
- 		return false;
- 
--	sprint_symbol_no_offset(fn_name, (unsigned long)fn);
-+	addr = (unsigned long) dereference_function_descriptor(fn);
-+	sprint_symbol_no_offset(fn_name, addr);
- 
- 	list_for_each_entry(entry, &blacklisted_initcalls, next) {
- 		if (!strcmp(fn_name, entry->buf)) {
+-print("Total: Before=%d, After=%d, chg %f%%" % \
+-    (otot, ntot, (ntot - otot)*100/otot))
++print("Total: Before=%d, After=%d, chg %+.2f%%" % \
++    (otot, ntot, (ntot - otot)*100.0/otot))
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from riku.voipio@linaro.org are
 
-init-mainc-fix-initcall_blacklisted-on-ia64-ppc64-and-parisc64.patch
+scripts-bloat-o-meter-fix-percent-on-1%-changes.patch
 
