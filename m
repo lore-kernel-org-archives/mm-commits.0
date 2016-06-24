@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code.patch
+Subject: + fs-nilfs2-fix-potential-underflow-in-call-to-crc32_le.patch
  added to -mm tree
-Date: Fri, 24 Jun 2016 13:00:38 -0700
-Message-ID: <576d9166.fa7d1sPpclfBsCa8%akpm@linux-foundation.org>
+Date: Fri, 24 Jun 2016 13:07:19 -0700
+Message-ID: <576d92f7.dFr84tSNkPoIF91f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39093 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39364 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876AbcFXUAj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 16:00:39 -0400
+	with ESMTP id S1751132AbcFXUHU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 16:07:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@virtuozzo.com, xiaolong.ye@intel.com, mm-commits@vger.kernel.org
+To: torsten.hilbrich@secunet.com, konishi.ryusuke@lab.ntt.co.jp, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix vm-scalability regression in cgroup-aware workingset code
+     Subject: fs/nilfs2: fix potential underflow in call to crc32_le
 has been added to the -mm tree.  Its filename is
-     mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code.patch
+     fs-nilfs2-fix-potential-underflow-in-call-to-crc32_le.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-nilfs2-fix-potential-underflow-in-call-to-crc32_le.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-nilfs2-fix-potential-underflow-in-call-to-crc32_le.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,225 +39,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: fix vm-scalability regression in cgroup-aware workingset code
+From: Torsten Hilbrich <torsten.hilbrich@secunet.com>
+Subject: fs/nilfs2: fix potential underflow in call to crc32_le
 
-23047a96d7cf ("mm: workingset: per-cgroup cache thrash detection") added a
-page->mem_cgroup lookup to the cache eviction, refault, and activation
-paths, as well as locking to the activation path, and the vm-scalability
-tests showed a regression of -23%.  While the test in question is an
-artificial worst-case scenario that doesn't occur in real workloads -
-reading two sparse files in parallel at full CPU speed just to hammer the
-LRU paths - there is still some optimizations that can be done in those
-paths.
+The value `bytes' comes from the filesystem which is about to be mounted. 
+We cannot trust that the value is always in the range we expect it to be.
 
-Inline the lookup functions to eliminate calls.  Also, page->mem_cgroup
-doesn't need to be stabilized when counting an activation; we merely need
-to hold the RCU lock to prevent the memcg from being freed.
+Check its value before using it to calculate the length for the crc32_le
+call.  It value must be larger (or equal) sumoff + 4.
 
-This cuts down on overhead quite a bit:
+This fixes a kernel bug when accidentially mounting an image file which
+had the nilfs2 magic value 0x3434 at the right offset 0x406 by chance. 
+The bytes 0x01 0x00 were stored at 0x408 and were interpreted as a s_bytes
+value of 1.  This caused an underflow when substracting sumoff + 4 (20) in
+the call to crc32_le.
 
-23047a96d7cfcfca 063f6715e77a7be5770d6081fe
----------------- --------------------------
-         %stddev     %change         %stddev
-                       |                  21621405 +- 0%     +11.3%   24069657 +- 2%  vm-scalability.throughput
+[201699.185465] BUG: unable to handle kernel paging request at
+ffff88021e600000
+[201699.186111] IP: [<ffffffff814083c6>] crc32_le+0x36/0x100
+...
+[201699.206202] Call Trace:
+[201699.206982]  [<ffffffffc0907492>] nilfs_valid_sb.part.5+0x52/0x60
+[nilfs2]
+[201699.207773]  [<ffffffffc09075e2>] nilfs_load_super_block+0x142/0x300
+[nilfs2]
+[201699.208564]  [<ffffffff812479fd>] ? set_blocksize+0x9d/0xd0
+[201699.209355]  [<ffffffffc0908020>] init_nilfs+0x60/0x390 [nilfs2]
+[201699.210160]  [<ffffffffc08fc962>] nilfs_mount+0x302/0x520 [nilfs2]
+[201699.210930]  [<ffffffff811b16a5>] ? pcpu_alloc+0x385/0x670
+[201699.211685]  [<ffffffff81210c58>] mount_fs+0x38/0x160
+[201699.212413]  [<ffffffff811b19c5>] ? __alloc_percpu+0x15/0x20
+[201699.213151]  [<ffffffff8122cbe7>] vfs_kern_mount+0x67/0x110
+[201699.213898]  [<ffffffff8122f3b9>] do_mount+0x269/0xe00
+[201699.214671]  [<ffffffff8122d5a4>] ? mntput+0x24/0x40
+[201699.215432]  [<ffffffff811ef064>] ? __kmalloc_track_caller+0x1b4/0x250
+[201699.216207]  [<ffffffff8120eaf0>] ? __fput+0x190/0x220
+[201699.216987]  [<ffffffff811ac0e2>] ? memdup_user+0x42/0x70
+[201699.217777]  [<ffffffff8123027f>] SyS_mount+0x9f/0x100
+[201699.218595]  [<ffffffff81825bf2>] entry_SYSCALL_64_fastpath+0x16/0x71
 
-Link: http://lkml.kernel.org/r/20160624175101.GA3024@cmpxchg.org
-Reported-by: Ye Xiaolong <xiaolong.ye@intel.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Link: http://lkml.kernel.org/r/1466778587-5184-2-git-send-email-konishi.ryusuke@lab.ntt.co.jp
+Signed-off-by: Torsten Hilbrich <torsten.hilbrich@secunet.com>
+Tested-by: Torsten Hilbrich <torsten.hilbrich@secunet.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   44 ++++++++++++++++++++++++++++++++++-
- include/linux/mm.h         |    8 ++++++
- mm/memcontrol.c            |   42 ---------------------------------
- mm/workingset.c            |   10 ++++---
- 4 files changed, 57 insertions(+), 47 deletions(-)
+ fs/nilfs2/the_nilfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code
-+++ a/include/linux/memcontrol.h
-@@ -29,6 +29,7 @@
- #include <linux/mmzone.h>
- #include <linux/writeback.h>
- #include <linux/page-flags.h>
-+#include <linux/mm.h>
- 
- struct mem_cgroup;
- struct page;
-@@ -314,7 +315,48 @@ void mem_cgroup_uncharge_list(struct lis
- 
- void mem_cgroup_migrate(struct page *oldpage, struct page *newpage);
- 
--struct lruvec *mem_cgroup_zone_lruvec(struct zone *, struct mem_cgroup *);
-+static inline struct mem_cgroup_per_zone *
-+mem_cgroup_zone_zoneinfo(struct mem_cgroup *memcg, struct zone *zone)
-+{
-+	int nid = zone_to_nid(zone);
-+	int zid = zone_idx(zone);
-+
-+	return &memcg->nodeinfo[nid]->zoneinfo[zid];
-+}
-+
-+/**
-+ * mem_cgroup_zone_lruvec - get the lru list vector for a zone and memcg
-+ * @zone: zone of the wanted lruvec
-+ * @memcg: memcg of the wanted lruvec
-+ *
-+ * Returns the lru list vector holding pages for the given @zone and
-+ * @mem.  This can be the global zone lruvec, if the memory controller
-+ * is disabled.
-+ */
-+static inline struct lruvec *mem_cgroup_zone_lruvec(struct zone *zone,
-+						    struct mem_cgroup *memcg)
-+{
-+	struct mem_cgroup_per_zone *mz;
-+	struct lruvec *lruvec;
-+
-+	if (mem_cgroup_disabled()) {
-+		lruvec = &zone->lruvec;
-+		goto out;
-+	}
-+
-+	mz = mem_cgroup_zone_zoneinfo(memcg, zone);
-+	lruvec = &mz->lruvec;
-+out:
-+	/*
-+	 * Since a node can be onlined after the mem_cgroup was created,
-+	 * we have to be prepared to initialize lruvec->zone here;
-+	 * and if offlined then reonlined, we need to reinitialize it.
-+	 */
-+	if (unlikely(lruvec->zone != zone))
-+		lruvec->zone = zone;
-+	return lruvec;
-+}
-+
- struct lruvec *mem_cgroup_page_lruvec(struct page *, struct zone *);
- 
- bool task_in_mem_cgroup(struct task_struct *task, struct mem_cgroup *memcg);
-diff -puN include/linux/mm.h~mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code include/linux/mm.h
---- a/include/linux/mm.h~mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code
-+++ a/include/linux/mm.h
-@@ -973,11 +973,19 @@ static inline struct mem_cgroup *page_me
- {
- 	return page->mem_cgroup;
- }
-+static inline struct mem_cgroup *page_memcg_rcu(struct page *page)
-+{
-+	return READ_ONCE(page->mem_cgroup);
-+}
- #else
- static inline struct mem_cgroup *page_memcg(struct page *page)
- {
- 	return NULL;
- }
-+static inline struct mem_cgroup *page_memcg_rcu(struct page *page)
-+{
-+	return NULL;
-+}
- #endif
- 
- /*
-diff -puN mm/memcontrol.c~mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code mm/memcontrol.c
---- a/mm/memcontrol.c~mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code
-+++ a/mm/memcontrol.c
-@@ -323,15 +323,6 @@ EXPORT_SYMBOL(memcg_kmem_enabled_key);
- 
- #endif /* !CONFIG_SLOB */
- 
--static struct mem_cgroup_per_zone *
--mem_cgroup_zone_zoneinfo(struct mem_cgroup *memcg, struct zone *zone)
--{
--	int nid = zone_to_nid(zone);
--	int zid = zone_idx(zone);
--
--	return &memcg->nodeinfo[nid]->zoneinfo[zid];
--}
--
- /**
-  * mem_cgroup_css_from_page - css of the memcg associated with a page
-  * @page: page of interest
-@@ -944,39 +935,6 @@ static void invalidate_reclaim_iterators
- 	     iter = mem_cgroup_iter(NULL, iter, NULL))
- 
- /**
-- * mem_cgroup_zone_lruvec - get the lru list vector for a zone and memcg
-- * @zone: zone of the wanted lruvec
-- * @memcg: memcg of the wanted lruvec
-- *
-- * Returns the lru list vector holding pages for the given @zone and
-- * @mem.  This can be the global zone lruvec, if the memory controller
-- * is disabled.
-- */
--struct lruvec *mem_cgroup_zone_lruvec(struct zone *zone,
--				      struct mem_cgroup *memcg)
--{
--	struct mem_cgroup_per_zone *mz;
--	struct lruvec *lruvec;
--
--	if (mem_cgroup_disabled()) {
--		lruvec = &zone->lruvec;
--		goto out;
--	}
--
--	mz = mem_cgroup_zone_zoneinfo(memcg, zone);
--	lruvec = &mz->lruvec;
--out:
--	/*
--	 * Since a node can be onlined after the mem_cgroup was created,
--	 * we have to be prepared to initialize lruvec->zone here;
--	 * and if offlined then reonlined, we need to reinitialize it.
--	 */
--	if (unlikely(lruvec->zone != zone))
--		lruvec->zone = zone;
--	return lruvec;
--}
--
--/**
-  * mem_cgroup_page_lruvec - return lruvec for isolating/putting an LRU page
-  * @page: the page
-  * @zone: zone of the page
-diff -puN mm/workingset.c~mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code mm/workingset.c
---- a/mm/workingset.c~mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code
-+++ a/mm/workingset.c
-@@ -305,9 +305,10 @@ bool workingset_refault(void *shadow)
-  */
- void workingset_activation(struct page *page)
- {
-+	struct mem_cgroup *memcg;
- 	struct lruvec *lruvec;
- 
--	lock_page_memcg(page);
-+	rcu_read_lock();
- 	/*
- 	 * Filter non-memcg pages here, e.g. unmap can call
- 	 * mark_page_accessed() on VDSO pages.
-@@ -315,12 +316,13 @@ void workingset_activation(struct page *
- 	 * XXX: See workingset_refault() - this should return
- 	 * root_mem_cgroup even for !CONFIG_MEMCG.
- 	 */
--	if (!mem_cgroup_disabled() && !page_memcg(page))
-+	memcg = page_memcg_rcu(page);
-+	if (!mem_cgroup_disabled() && !memcg)
- 		goto out;
--	lruvec = mem_cgroup_zone_lruvec(page_zone(page), page_memcg(page));
-+	lruvec = mem_cgroup_zone_lruvec(page_zone(page), memcg);
- 	atomic_long_inc(&lruvec->inactive_age);
- out:
--	unlock_page_memcg(page);
-+	rcu_read_unlock();
- }
- 
- /*
+diff -puN fs/nilfs2/the_nilfs.c~fs-nilfs2-fix-potential-underflow-in-call-to-crc32_le fs/nilfs2/the_nilfs.c
+--- a/fs/nilfs2/the_nilfs.c~fs-nilfs2-fix-potential-underflow-in-call-to-crc32_le
++++ a/fs/nilfs2/the_nilfs.c
+@@ -439,7 +439,7 @@ static int nilfs_valid_sb(struct nilfs_s
+ 	if (!sbp || le16_to_cpu(sbp->s_magic) != NILFS_SUPER_MAGIC)
+ 		return 0;
+ 	bytes = le16_to_cpu(sbp->s_bytes);
+-	if (bytes > BLOCK_SIZE)
++	if (bytes < sumoff + 4 || bytes > BLOCK_SIZE)
+ 		return 0;
+ 	crc = crc32_le(le32_to_cpu(sbp->s_crc_seed), (unsigned char *)sbp,
+ 		       sumoff);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from torsten.hilbrich@secunet.com are
 
-cgroup-fix-idr-leak-for-the-first-cgroup-root.patch
-cgroup-remove-unnecessary-0-check-from-css_from_id.patch
-mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs.patch
-mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs-fix.patch
-mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code.patch
+fs-nilfs2-fix-potential-underflow-in-call-to-crc32_le.patch
 
