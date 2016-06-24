@@ -1,69 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [patch 28/41] hugetlb: fix nr_pmds accounting with shared page
- tables
-Date: Fri, 24 Jun 2016 14:49:51 -0700
-Message-ID: <576daaff.oOqVitlYpYfj4d2t%akpm@linux-foundation.org>
+Subject: [patch 29/41] memcg: mem_cgroup_migrate() may be called with irq
+ disabled
+Date: Fri, 24 Jun 2016 14:49:54 -0700
+Message-ID: <576dab02.VfiCpv1KcMdpJ4TK%akpm__31038.8462189168$1466805014$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41014 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41020 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751474AbcFXVtw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:49:52 -0400
+	with ESMTP id S1751185AbcFXVtz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:49:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, zhongjiang@huawei.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tj@kernel.org, borntraeger@de.ibm.com, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, vdavydov@virtuozzo.com
 
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: hugetlb: fix nr_pmds accounting with shared page tables
+From: Tejun Heo <tj@kernel.org>
+Subject: memcg: mem_cgroup_migrate() may be called with irq disabled
 
-We account HugeTLB's shared page table to all processes who share it.
-The accounting happens during huge_pmd_share().
+mem_cgroup_migrate() uses local_irq_disable/enable() but can be called
+with irq disabled from migrate_page_copy().  This ends up enabling irq
+while holding a irq context lock triggering the following lockdep
+warning.  Fix it by using irq_save/restore instead.
 
-If somebody populates pud entry under us, we should decrease pagetable's
-refcount and decrease nr_pmds of the process.
+  =================================
+  [ INFO: inconsistent lock state ]
+  4.7.0-rc1+ #52 Tainted: G        W
+  ---------------------------------
+  inconsistent {IN-SOFTIRQ-W} -> {SOFTIRQ-ON-W} usage.
+  kcompactd0/151 [HC0[0]:SC0[0]:HE1:SE1] takes:
+   (&(&ctx->completion_lock)->rlock){+.?.-.}, at: [<000000000038fd96>] aio_migratepage+0x156/0x1e8
+  {IN-SOFTIRQ-W} state was registered at:
+    [<00000000001a8366>] __lock_acquire+0x5b6/0x1930
+    [<00000000001a9b9e>] lock_acquire+0xee/0x270
+    [<0000000000951fee>] _raw_spin_lock_irqsave+0x66/0xb0
+    [<0000000000390108>] aio_complete+0x98/0x328
+    [<000000000037c7d4>] dio_complete+0xe4/0x1e0
+    [<0000000000650e64>] blk_update_request+0xd4/0x450
+    [<000000000072a1a8>] scsi_end_request+0x48/0x1c8
+    [<000000000072d7e2>] scsi_io_completion+0x272/0x698
+    [<000000000065adb2>] blk_done_softirq+0xca/0xe8
+    [<0000000000953f80>] __do_softirq+0xc8/0x518
+    [<00000000001495de>] irq_exit+0xee/0x110
+    [<000000000010ceba>] do_IRQ+0x6a/0x88
+    [<000000000095342e>] io_int_handler+0x11a/0x25c
+    [<000000000094fb5c>] __mutex_unlock_slowpath+0x144/0x1d8
+    [<000000000094fb58>] __mutex_unlock_slowpath+0x140/0x1d8
+    [<00000000003c6114>] kernfs_iop_permission+0x64/0x80
+    [<000000000033ba86>] __inode_permission+0x9e/0xf0
+    [<000000000033ea96>] link_path_walk+0x6e/0x510
+    [<000000000033f09c>] path_lookupat+0xc4/0x1a8
+    [<000000000034195c>] filename_lookup+0x9c/0x160
+    [<0000000000341b44>] user_path_at_empty+0x5c/0x70
+    [<0000000000335250>] SyS_readlinkat+0x68/0x140
+    [<0000000000952f8e>] system_call+0xd6/0x270
+  irq event stamp: 971410
+  hardirqs last  enabled at (971409): [<000000000030f982>] migrate_page_move_mapping+0x3ea/0x588
+  hardirqs last disabled at (971410): [<0000000000951fc4>] _raw_spin_lock_irqsave+0x3c/0xb0
+  softirqs last  enabled at (970526): [<0000000000954318>] __do_softirq+0x460/0x518
+  softirqs last disabled at (970519): [<00000000001495de>] irq_exit+0xee/0x110
 
-By mistake, I increase nr_pmds again in this case. :-/
-It will lead to "BUG: non-zero nr_pmds on freeing mm: 2" on process'
-exit.
+  other info that might help us debug this:
+   Possible unsafe locking scenario:
 
-Let's fix this by increasing nr_pmds only when we're sure that the page
-table will be used.
+	 CPU0
+	 ----
+    lock(&(&ctx->completion_lock)->rlock);
+    <Interrupt>
+      lock(&(&ctx->completion_lock)->rlock);
 
-Link: http://lkml.kernel.org/r/20160617122506.GC6534@node.shutemov.name
-Fixes: dc6c9a35b66b ("mm: account pmd page tables to the process")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: zhongjiang <zhongjiang@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+    *** DEADLOCK ***
+
+  3 locks held by kcompactd0/151:
+   #0:  (&(&mapping->private_lock)->rlock){+.+.-.}, at: [<000000000038fc82>] aio_migratepage+0x42/0x1e8
+   #1:  (&ctx->ring_lock){+.+.+.}, at: [<000000000038fc9a>] aio_migratepage+0x5a/0x1e8
+   #2:  (&(&ctx->completion_lock)->rlock){+.?.-.}, at: [<000000000038fd96>] aio_migratepage+0x156/0x1e8
+
+  stack backtrace:
+  CPU: 20 PID: 151 Comm: kcompactd0 Tainted: G        W       4.7.0-rc1+ #52
+	 00000001c6cbb730 00000001c6cbb7c0 0000000000000002 0000000000000000
+	 00000001c6cbb860 00000001c6cbb7d8 00000001c6cbb7d8 0000000000114496
+	 0000000000000000 0000000000b517ec 0000000000b680b6 000000000000000b
+	 00000001c6cbb820 00000001c6cbb7c0 0000000000000000 0000000000000000
+	 040000000184ad18 0000000000114496 00000001c6cbb7c0 00000001c6cbb820
+  Call Trace:
+  ([<00000000001143d2>] show_trace+0xea/0xf0)
+  ([<000000000011444a>] show_stack+0x72/0xf0)
+  ([<0000000000684522>] dump_stack+0x9a/0xd8)
+  ([<000000000028679c>] print_usage_bug.part.27+0x2d4/0x2e8)
+  ([<00000000001a71ce>] mark_lock+0x17e/0x758)
+  ([<00000000001a784a>] mark_held_locks+0xa2/0xd0)
+  ([<00000000001a79b8>] trace_hardirqs_on_caller+0x140/0x1c0)
+  ([<0000000000326026>] mem_cgroup_migrate+0x266/0x370)
+  ([<000000000038fdaa>] aio_migratepage+0x16a/0x1e8)
+  ([<0000000000310568>] move_to_new_page+0xb0/0x260)
+  ([<00000000003111b4>] migrate_pages+0x8f4/0x9f0)
+  ([<00000000002c507c>] compact_zone+0x4dc/0xdc8)
+  ([<00000000002c5e22>] kcompactd_do_work+0x1aa/0x358)
+  ([<00000000002c608a>] kcompactd+0xba/0x2c8)
+  ([<000000000016b09a>] kthread+0x10a/0x110)
+  ([<000000000095315a>] kernel_thread_starter+0x6/0xc)
+  ([<0000000000953154>] kernel_thread_starter+0x0/0xc)
+  INFO: lockdep is turned off.
+
+Link: http://lkml.kernel.org/r/20160620184158.GO3262@mtj.duckdns.org
+Link: http://lkml.kernel.org/g/5767CFE5.7080904@de.ibm.com
+Fixes: 74485cf2bc85 ("mm: migrate: consolidate mem_cgroup_migrate() calls")
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: <stable@vger.kernel.org>	[4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memcontrol.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-nr_pmds-accounting-with-shared-page-tables mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-nr_pmds-accounting-with-shared-page-tables
-+++ a/mm/hugetlb.c
-@@ -4228,7 +4228,6 @@ pte_t *huge_pmd_share(struct mm_struct *
- 		if (saddr) {
- 			spte = huge_pte_offset(svma->vm_mm, saddr);
- 			if (spte) {
--				mm_inc_nr_pmds(mm);
- 				get_page(virt_to_page(spte));
- 				break;
- 			}
-@@ -4243,9 +4242,9 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	if (pud_none(*pud)) {
- 		pud_populate(mm, pud,
- 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
-+		mm_inc_nr_pmds(mm);
- 	} else {
- 		put_page(virt_to_page(spte));
--		mm_inc_nr_pmds(mm);
- 	}
- 	spin_unlock(ptl);
- out:
+diff -puN mm/memcontrol.c~memcg-mem_cgroup_migrate-may-be-called-with-irq-disabled mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-mem_cgroup_migrate-may-be-called-with-irq-disabled
++++ a/mm/memcontrol.c
+@@ -5544,6 +5544,7 @@ void mem_cgroup_migrate(struct page *old
+ 	struct mem_cgroup *memcg;
+ 	unsigned int nr_pages;
+ 	bool compound;
++	unsigned long flags;
+ 
+ 	VM_BUG_ON_PAGE(!PageLocked(oldpage), oldpage);
+ 	VM_BUG_ON_PAGE(!PageLocked(newpage), newpage);
+@@ -5574,10 +5575,10 @@ void mem_cgroup_migrate(struct page *old
+ 
+ 	commit_charge(newpage, memcg, false);
+ 
+-	local_irq_disable();
++	local_irq_save(flags);
+ 	mem_cgroup_charge_statistics(memcg, newpage, compound, nr_pages);
+ 	memcg_check_events(memcg, newpage);
+-	local_irq_enable();
++	local_irq_restore(flags);
+ }
+ 
+ DEFINE_STATIC_KEY_FALSE(memcg_sockets_enabled_key);
 _
