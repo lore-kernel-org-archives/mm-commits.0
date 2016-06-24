@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + printk-create-pr_level-functions-fix.patch added to -mm tree
-Date: Thu, 23 Jun 2016 18:28:39 -0700
-Message-ID: <576c8cc7.WO+etWABxgqz81ze%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 24 Jun 2016 12:23:21 -0700
+Message-ID: <576d88a9.E9QA6bYCu+rmbMQm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52020 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38932 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750887AbcFXB2l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jun 2016 21:28:41 -0400
+	with ESMTP id S1750972AbcFXTXW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 15:23:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk-create-pr_level-functions-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     printk-create-pr_level-functions-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-create-pr_level-functions-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-create-pr_level-functions-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +39,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: printk-create-pr_level-functions-fix
+Subject: linux-next-git-rejects
 
-fix LOGLEVEL_INFO, per Joe
-
-Cc: Joe Perches <joe@perches.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/i915/intel_fbc.c  |    4 ----
+ drivers/gpu/drm/sun4i/sun4i_drv.c |    7 -------
+ drivers/gpu/drm/sun4i/sun4i_rgb.c |   11 -----------
+ 3 files changed, 22 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-create-pr_level-functions-fix kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-create-pr_level-functions-fix
-+++ a/kernel/printk/printk.c
-@@ -1819,7 +1819,7 @@ define_pr_level(__pr_crit, LOGLEVEL_CRIT
- define_pr_level(__pr_err, LOGLEVEL_ERR);
- define_pr_level(__pr_warn, LOGLEVEL_WARNING);
- define_pr_level(__pr_notice, LOGLEVEL_NOTICE);
--define_pr_level(__pr_info, LOGLEVEL_NOTICE);
-+define_pr_level(__pr_info, LOGLEVEL_INFO);
- #endif
+diff -puN drivers/gpu/drm/i915/intel_fbc.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_fbc.c
+--- a/drivers/gpu/drm/i915/intel_fbc.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/intel_fbc.c
+@@ -818,10 +818,6 @@ static bool intel_fbc_can_choose(struct
+ {
+ 	struct drm_i915_private *dev_priv = crtc->base.dev->dev_private;
+ 	struct intel_fbc *fbc = &dev_priv->fbc;
+-<<<<<<< HEAD
+-	bool enable_by_default = IS_BROADWELL(dev_priv);
+-=======
+->>>>>>> linux-next/akpm-base
  
- int vprintk_default(int level, const char *fmt, va_list args)
+ 	if (intel_vgpu_active(dev_priv)) {
+ 		fbc->no_fbc_reason = "VGPU is active";
+diff -puN drivers/gpu/drm/sun4i/sun4i_drv.c~linux-next-git-rejects drivers/gpu/drm/sun4i/sun4i_drv.c
+--- a/drivers/gpu/drm/sun4i/sun4i_drv.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/sun4i/sun4i_drv.c
+@@ -174,13 +174,6 @@ static int sun4i_drv_bind(struct device
+ 	if (ret)
+ 		goto free_drm;
+ 
+-<<<<<<< HEAD
+-	ret = drm_connector_register_all(drm);
+-	if (ret)
+-		goto unregister_drm;
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	return 0;
+ 
+ free_drm:
+diff -puN drivers/gpu/drm/sun4i/sun4i_rgb.c~linux-next-git-rejects drivers/gpu/drm/sun4i/sun4i_rgb.c
+--- a/drivers/gpu/drm/sun4i/sun4i_rgb.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/sun4i/sun4i_rgb.c
+@@ -95,17 +95,6 @@ static int sun4i_rgb_mode_valid(struct d
+ 	rounded_rate = clk_round_rate(tcon->dclk, rate);
+ 	if (rounded_rate < rate)
+ 		return MODE_CLOCK_LOW;
+-<<<<<<< HEAD
+-
+-	if (rounded_rate > rate)
+-		return MODE_CLOCK_HIGH;
+-
+-	DRM_DEBUG_DRIVER("Clock rate OK\n");
+-
+-	return MODE_OK;
+-}
+-=======
+->>>>>>> linux-next/akpm-base
+ 
+ 	if (rounded_rate > rate)
+ 		return MODE_CLOCK_HIGH;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,4 +127,5 @@ drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
 bitmap-bitmap_equal-memcmp-optimization-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
