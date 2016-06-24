@@ -1,47 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [patch 01/41] mm,oom_reaper: don't call mmput_async() without
- atomic_inc_not_zero()
-Date: Fri, 24 Jun 2016 14:48:35 -0700
-Message-ID: <576daab3.ZiOdMEl4KD62H84k%akpm@linux-foundation.org>
+Subject: [patch 04/41] tmpfs: don't undo fallocate past its last page
+Date: Fri, 24 Jun 2016 14:48:43 -0700
+Message-ID: <576daabb.OzoVHjRe4ae18abt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40851 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40868 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337AbcFXVsg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:48:36 -0400
+	with ESMTP id S1751543AbcFXVso (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:48:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, penguin-kernel@I-love.SAKURA.ne.jp, arnd@arndb.de, mhocko@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, anthony.romano@coreos.com, brandon@ifup.co, hughd@google.com, stable@vger.kernel.org, vbabka@suse.cz
 
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm,oom_reaper: don't call mmput_async() without atomic_inc_not_zero()
+From: Anthony Romano <anthony.romano@coreos.com>
+Subject: tmpfs: don't undo fallocate past its last page
 
-Commit e2fe14564d3316d1 ("oom_reaper: close race with exiting task")
-reduced frequency of needlessly selecting next OOM victim, but was
-calling mmput_async() when atomic_inc_not_zero() failed.
+When fallocate is interrupted it will undo a range that extends one byte
+past its range of allocated pages.  This can corrupt an in-use page by
+zeroing out its first byte.  Instead, undo using the inclusive byte range.
 
-Link: http://lkml.kernel.org/r/1464423365-5555-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Fixes: 1635f6a74152f1d ("tmpfs: undo fallocation on failure")
+Link: http://lkml.kernel.org/r/1462713387-16724-1-git-send-email-anthony.romano@coreos.com
+Signed-off-by: Anthony Romano <anthony.romano@coreos.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Brandon Philips <brandon@ifup.co>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mmoom_reaper-dont-call-mmput_async-without-atomic_inc_not_zero mm/oom_kill.c
---- a/mm/oom_kill.c~mmoom_reaper-dont-call-mmput_async-without-atomic_inc_not_zero
-+++ a/mm/oom_kill.c
-@@ -478,6 +478,7 @@ static bool __oom_reap_task(struct task_
- 	mm = p->mm;
- 	if (!atomic_inc_not_zero(&mm->mm_users)) {
- 		task_unlock(p);
-+		mm = NULL;
- 		goto unlock_oom;
- 	}
+diff -puN mm/shmem.c~tmpfs-dont-undo-fallocate-past-its-last-page mm/shmem.c
+--- a/mm/shmem.c~tmpfs-dont-undo-fallocate-past-its-last-page
++++ a/mm/shmem.c
+@@ -2227,7 +2227,7 @@ static long shmem_fallocate(struct file
+ 			/* Remove the !PageUptodate pages we added */
+ 			shmem_undo_range(inode,
+ 				(loff_t)start << PAGE_SHIFT,
+-				(loff_t)index << PAGE_SHIFT, true);
++				((loff_t)index << PAGE_SHIFT) - 1, true);
+ 			goto undone;
+ 		}
  
 _
