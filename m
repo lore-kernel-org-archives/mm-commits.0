@@ -1,139 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [patch 34/41] mm, compaction: abort free scanner if split fails
-Date: Fri, 24 Jun 2016 14:50:10 -0700
-Message-ID: <576dab12.LUI4Ocn6diFJSSBG%akpm@linux-foundation.org>
+Subject: [patch 36/41] oom, suspend: fix oom_reaper vs. oom_killer_disable race
+Date: Fri, 24 Jun 2016 14:50:16 -0700
+Message-ID: <576dab18.qyc119NZtfSdWVpw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41082 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41118 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751573AbcFXVuL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:50:11 -0400
+	with ESMTP id S1751474AbcFXVuR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:50:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rientjes@google.com, hughd@google.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, minchan@kernel.org, stable@vger.kernel.org, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rjw@rjwysocki.net
 
-From: David Rientjes <rientjes@google.com>
-Subject: mm, compaction: abort free scanner if split fails
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom, suspend: fix oom_reaper vs. oom_killer_disable race
 
-If the memory compaction free scanner cannot successfully split a free
-page (only possible due to per-zone low watermark), terminate the free
-scanner rather than continuing to scan memory needlessly.  If the
-watermark is insufficient for a free page of order <= cc->order, then
-terminate the scanner since all future splits will also likely fail.
+Tetsuo has reported the following potential oom_killer_disable vs. 
+oom_reaper race:
 
-This prevents the compaction freeing scanner from scanning all memory on
-very large zones (very noticeable for zones > 128GB, for instance) when
-all splits will likely fail while holding zone->lock.
+(1) freeze_processes() starts freezing user space threads.
+(2) Somebody (maybe a kenrel thread) calls out_of_memory().
+(3) The OOM killer calls mark_oom_victim() on a user space thread
+    P1 which is already in __refrigerator().
+(4) oom_killer_disable() sets oom_killer_disabled = true.
+(5) P1 leaves __refrigerator() and enters do_exit().
+(6) The OOM reaper calls exit_oom_victim(P1) before P1 can call
+    exit_oom_victim(P1).
+(7) oom_killer_disable() returns while P1 not yet finished
+(8) P1 perform IO/interfere with the freezer.
 
-compaction_alloc() iterating a 128GB zone has been benchmarked to take
-over 400ms on some systems whereas any free page isolated and ready to
-be split ends up failing in split_free_page() because of the low
-watermark check and thus the iteration continues.
+This situation is unfortunate.  We cannot move oom_killer_disable after
+all the freezable kernel threads are frozen because the oom victim might
+depend on some of those kthreads to make a forward progress to exit so we
+could deadlock.  It is also far from trivial to teach the oom_reaper to
+not call exit_oom_victim() because then we would lose a guarantee of the
+OOM killer and oom_killer_disable forward progress because exit_mm->mmput
+might block and never call exit_oom_victim.
 
-The next time compaction occurs, the freeing scanner will likely start
-at the end of the zone again since no success was made previously and
-we get the same lengthy iteration until the zone is brought above the
-low watermark.  All thp page faults can take >400ms in such a state
-without this fix.
+It seems the easiest way forward is to workaround this race by calling
+try_to_freeze_tasks again after oom_killer_disable.  This will make sure
+that all the tasks are frozen or it bails out.
 
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1606211820350.97086@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Fixes: 449d777d7ad6 ("mm, oom_reaper: clear TIF_MEMDIE for all tasks queued for oom_reaper")
+Link: http://lkml.kernel.org/r/1466597634-16199-1-git-send-email-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   39 +++++++++++++++++++++------------------
- 1 file changed, 21 insertions(+), 18 deletions(-)
+ kernel/power/process.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails mm/compaction.c
---- a/mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails
-+++ a/mm/compaction.c
-@@ -441,25 +441,23 @@ static unsigned long isolate_freepages_b
+diff -puN kernel/power/process.c~oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race kernel/power/process.c
+--- a/kernel/power/process.c~oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race
++++ a/kernel/power/process.c
+@@ -146,6 +146,18 @@ int freeze_processes(void)
+ 	if (!error && !oom_killer_disable())
+ 		error = -EBUSY;
  
- 		/* Found a free page, break it into order-0 pages */
- 		isolated = split_free_page(page);
-+		if (!isolated)
-+			break;
++	/*
++	 * There is a hard to fix race between oom_reaper kernel thread
++	 * and oom_killer_disable. oom_reaper calls exit_oom_victim
++	 * before the victim reaches exit_mm so try to freeze all the tasks
++	 * again and catch such a left over task.
++	 */
++	if (!error) {
++		pr_info("Double checking all user space processes after OOM killer disable... ");
++		error = try_to_freeze_tasks(true);
++		pr_cont("\n");
++	}
 +
- 		total_isolated += isolated;
-+		cc->nr_freepages += isolated;
- 		for (i = 0; i < isolated; i++) {
- 			list_add(&page->lru, freelist);
- 			page++;
- 		}
--
--		/* If a page was split, advance to the end of it */
--		if (isolated) {
--			cc->nr_freepages += isolated;
--			if (!strict &&
--				cc->nr_migratepages <= cc->nr_freepages) {
--				blockpfn += isolated;
--				break;
--			}
--
--			blockpfn += isolated - 1;
--			cursor += isolated - 1;
--			continue;
-+		if (!strict && cc->nr_migratepages <= cc->nr_freepages) {
-+			blockpfn += isolated;
-+			break;
- 		}
-+		/* Advance to the end of split page */
-+		blockpfn += isolated - 1;
-+		cursor += isolated - 1;
-+		continue;
- 
- isolate_fail:
- 		if (strict)
-@@ -469,6 +467,9 @@ isolate_fail:
- 
- 	}
- 
-+	if (locked)
-+		spin_unlock_irqrestore(&cc->zone->lock, flags);
-+
- 	/*
- 	 * There is a tiny chance that we have read bogus compound_order(),
- 	 * so be careful to not go outside of the pageblock.
-@@ -490,9 +491,6 @@ isolate_fail:
- 	if (strict && blockpfn < end_pfn)
- 		total_isolated = 0;
- 
--	if (locked)
--		spin_unlock_irqrestore(&cc->zone->lock, flags);
--
- 	/* Update the pageblock-skip if the whole pageblock was scanned */
- 	if (blockpfn == end_pfn)
- 		update_pageblock_skip(cc, valid_page, total_isolated, false);
-@@ -1011,6 +1009,7 @@ static void isolate_freepages(struct com
- 				block_end_pfn = block_start_pfn,
- 				block_start_pfn -= pageblock_nr_pages,
- 				isolate_start_pfn = block_start_pfn) {
-+		unsigned long isolated;
- 
- 		/*
- 		 * This can iterate a massively long zone without finding any
-@@ -1035,8 +1034,12 @@ static void isolate_freepages(struct com
- 			continue;
- 
- 		/* Found a block suitable for isolating free pages from. */
--		isolate_freepages_block(cc, &isolate_start_pfn,
--					block_end_pfn, freelist, false);
-+		isolated = isolate_freepages_block(cc, &isolate_start_pfn,
-+						block_end_pfn, freelist, false);
-+		/* If isolation failed early, do not continue needlessly */
-+		if (!isolated && isolate_start_pfn < block_end_pfn &&
-+		    cc->nr_migratepages > cc->nr_freepages)
-+			break;
- 
- 		/*
- 		 * If we isolated enough freepages, or aborted due to async
+ 	if (error)
+ 		thaw_processes();
+ 	return error;
 _
