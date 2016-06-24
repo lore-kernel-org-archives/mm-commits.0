@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-bloat-o-meter-fix-percent-on-1%-changes.patch added to
- -mm tree
-Date: Fri, 24 Jun 2016 13:52:50 -0700
-Message-ID: <576d9da2.twBMqD5UoS8F8Ow9%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-remove-unnecessary-order-check-in-try_to_compact_pages.patch
+ added to -mm tree
+Date: Fri, 24 Jun 2016 13:58:46 -0700
+Message-ID: <576d9f06.fWXjfEOAcJvw3Xon%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40397 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40538 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751321AbcFXUwv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 16:52:51 -0400
+	with ESMTP id S1751650AbcFXU6w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 16:58:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riku.voipio@linaro.org, josh@joshtriplett.org, mmarek@suse.cz, vgupta@synopsys.com, mm-commits@vger.kernel.org
+To: opensource.ganesh@gmail.com, iamjoonsoo.kim@lge.com, khandual@linux.vnet.ibm.com, mhocko@suse.com, mina86@mina86.com, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/bloat-o-meter: fix percent on <1% changes
+     Subject: mm/compaction: remove unnecessary order check in try_to_compact_pages()
 has been added to the -mm tree.  Its filename is
-     scripts-bloat-o-meter-fix-percent-on-1%-changes.patch
+     mm-compaction-remove-unnecessary-order-check-in-try_to_compact_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-bloat-o-meter-fix-percent-on-1%25-changes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-remove-unnecessary-order-check-in-try_to_compact_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-bloat-o-meter-fix-percent-on-1%25-changes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-remove-unnecessary-order-check-in-try_to_compact_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +40,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Riku Voipio <riku.voipio@linaro.org>
-Subject: scripts/bloat-o-meter: fix percent on <1% changes
+From: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Subject: mm/compaction: remove unnecessary order check in try_to_compact_pages()
 
-Python divisions are integer divisions unless at least one parameter is a
-float.  The current bloat-o-meter fails to print sub-percentage changes:
+The caller __alloc_pages_direct_compact() already checked (order == 0) so
+there's no need to check again.
 
-Total: Before=10515408, After=10604060, chg 0.000000%
-
-Force float division by using one float and pretty the print to
-two significant decimals:
-
-Total: Before=10515408, After=10604060, chg +0.84%
-
-Link: http://lkml.kernel.org/r/1465980311-23814-1-git-send-email-riku.voipio@linaro.org
-Signed-off-by: Riku Voipio <riku.voipio@linaro.org>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Michal Marek <mmarek@suse.cz>
+Link: http://lkml.kernel.org/r/1465973568-3496-1-git-send-email-opensource.ganesh@gmail.com
+Signed-off-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-fix-percent-on-1%-changes scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-fix-percent-on-1%-changes
-+++ a/scripts/bloat-o-meter
-@@ -67,5 +67,5 @@ print("%-40s %7s %7s %+7s" % ("function"
- for d, n in delta:
-     if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
+diff -puN mm/compaction.c~mm-compaction-remove-unnecessary-order-check-in-try_to_compact_pages mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-remove-unnecessary-order-check-in-try_to_compact_pages
++++ a/mm/compaction.c
+@@ -1689,7 +1689,7 @@ enum compact_result try_to_compact_pages
+ 	*contended = COMPACT_CONTENDED_NONE;
  
--print("Total: Before=%d, After=%d, chg %f%%" % \
--    (otot, ntot, (ntot - otot)*100/otot))
-+print("Total: Before=%d, After=%d, chg %+.2f%%" % \
-+    (otot, ntot, (ntot - otot)*100.0/otot))
+ 	/* Check if the GFP flags allow compaction */
+-	if (!order || !may_enter_fs || !may_perform_io)
++	if (!may_enter_fs || !may_perform_io)
+ 		return COMPACT_SKIPPED;
+ 
+ 	trace_mm_compaction_try_to_compact_pages(order, gfp_mask, mode);
 _
 
-Patches currently in -mm which might be from riku.voipio@linaro.org are
+Patches currently in -mm which might be from opensource.ganesh@gmail.com are
 
-scripts-bloat-o-meter-fix-percent-on-1%-changes.patch
+mm-migrate-support-non-lru-movable-page-migration-fix.patch
+mm-zsmalloc-add-trace-events-for-zs_compact.patch
+mm-compaction-remove-unnecessary-order-check-in-try_to_compact_pages.patch
 
