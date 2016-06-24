@@ -1,51 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 02/41] oom_reaper: avoid pointless atomic_inc_not_zero
- usage.
-Date: Fri, 24 Jun 2016 14:48:38 -0700
-Message-ID: <576daab6.7W7NRsKFA9Ws1PC2%akpm@linux-foundation.org>
+Subject: [patch 03/41] selftests/vm/compaction_test: fix write to restore
+ nr_hugepages
+Date: Fri, 24 Jun 2016 14:48:40 -0700
+Message-ID: <576daab8.pNXka9rrMPcwbiN7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40857 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40860 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337AbcFXVsj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:48:39 -0400
+	with ESMTP id S1751337AbcFXVsl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Jun 2016 17:48:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, penguin-kernel@I-love.SAKURA.ne.jp, arnd@arndb.de, mhocko@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mike.kravetz@oracle.com, emunson@akamai.com, shuahkh@osg.samsung.com, sjayaram@akamai.com
 
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: oom_reaper: avoid pointless atomic_inc_not_zero usage.
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: selftests/vm/compaction_test: fix write to restore nr_hugepages
 
-Since commit 36324a990cf578b5 ("oom: clear TIF_MEMDIE after oom_reaper
-managed to unmap the address space") changed to use find_lock_task_mm()
-for finding a mm_struct to reap, it is guaranteed that mm->mm_users > 0
-because find_lock_task_mm() returns a task_struct with ->mm != NULL. 
-Therefore, we can safely use atomic_inc().
+The write at the end of the test to restore nr_hugepages to its previous
+value is failing.  This is because it is trying to write the number of
+bytes in the char array as opposed to the number of bytes in the string.
 
-Link: http://lkml.kernel.org/r/1465024759-8074-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: http://lkml.kernel.org/r/1465331205-3284-1-git-send-email-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Sri Jayaramappa <sjayaram@akamai.com>
+Cc: Eric B Munson <emunson@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ tools/testing/selftests/vm/compaction_test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom_reaper-avoid-pointless-atomic_inc_not_zero-usage mm/oom_kill.c
---- a/mm/oom_kill.c~oom_reaper-avoid-pointless-atomic_inc_not_zero-usage
-+++ a/mm/oom_kill.c
-@@ -474,14 +474,8 @@ static bool __oom_reap_task(struct task_
- 	p = find_lock_task_mm(tsk);
- 	if (!p)
- 		goto unlock_oom;
--
- 	mm = p->mm;
--	if (!atomic_inc_not_zero(&mm->mm_users)) {
--		task_unlock(p);
--		mm = NULL;
--		goto unlock_oom;
--	}
+diff -puN tools/testing/selftests/vm/compaction_test.c~selftests-vm-compaction_test-fix-write-to-restore-nr_hugepages tools/testing/selftests/vm/compaction_test.c
+--- a/tools/testing/selftests/vm/compaction_test.c~selftests-vm-compaction_test-fix-write-to-restore-nr_hugepages
++++ a/tools/testing/selftests/vm/compaction_test.c
+@@ -136,7 +136,7 @@ int check_compaction(unsigned long mem_f
+ 	printf("No of huge pages allocated = %d\n",
+ 	       (atoi(nr_hugepages)));
+ 
+-	if (write(fd, initial_nr_hugepages, sizeof(initial_nr_hugepages))
++	if (write(fd, initial_nr_hugepages, strlen(initial_nr_hugepages))
+ 	    != strlen(initial_nr_hugepages)) {
+ 		perror("Failed to write to /proc/sys/vm/nr_hugepages\n");
+ 		goto close_fd;
+_
