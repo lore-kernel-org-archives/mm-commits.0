@@ -1,114 +1,94 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- revert-mm-disable-fault-around-on-emulated-access-bit-architecture.patch
+ mm-hugetlb-clear-compound_mapcount-when-freeing-gigantic-pages.patch
  removed from -mm tree
-Date: Tue, 28 Jun 2016 19:02:43 -0700
-Message-ID: <57732c43.6Yy1sur3gW/R5el5%akpm@linux-foundation.org>
+Date: Tue, 28 Jun 2016 19:02:58 -0700
+Message-ID: <57732c52.O5ioZI0Ip9A/Tbnh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41797 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41787 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752576AbcF2CK7 (ORCPT
+	with ESMTP id S1752501AbcF2CK7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:10:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dave.hansen@linux.intel.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, torvalds@linux-foundation.org, vinmenon@codeaurora.org, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: gerald.schaefer@de.ibm.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@linux.intel.com, heiko.carstens@de.ibm.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, lcapitulino@redhat.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "mm: disable fault around on emulated access bit architecture"
+     Subject: mm/hugetlb: clear compound_mapcount when freeing gigantic pages
 has been removed from the -mm tree.  Its filename was
-     revert-mm-disable-fault-around-on-emulated-access-bit-architecture.patch
+     mm-hugetlb-clear-compound_mapcount-when-freeing-gigantic-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: Revert "mm: disable fault around on emulated access bit architecture"
+From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Subject: mm/hugetlb: clear compound_mapcount when freeing gigantic pages
 
-This reverts commit d0834a6c2c5b0c76cfb806bd7dba6556d8b4edbb.
+While working on s390 support for gigantic hugepages I ran into the following
+"Bad page state" warning when freeing gigantic pages:
 
-After revert of 5c0a85fad949 ("mm: make faultaround produce old ptes")
-faultaround doesn't have dependencies on hardware accessed bit, so let's
-revert this one too.
+BUG: Bad page state in process bash  pfn:580001
+page:000003d116000040 count:0 mapcount:0 mapping:ffffffff00000000 index:0x0
+flags: 0x7fffc0000000000()
+page dumped because: non-NULL mapping
 
-Link: http://lkml.kernel.org/r/1465893750-44080-3-git-send-email-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+This is because page->compound_mapcount, which is part of a union with
+page->mapping, is initialized with -1 in prep_compound_gigantic_page(), and
+not cleared again during destroy_compound_gigantic_page(). Fix this by
+clearing the compound_mapcount in destroy_compound_gigantic_page() before
+clearing compound_head.
+
+Interestingly enough, the warning will not show up on x86_64, although this
+should not be architecture specific. Apparently there is an endianness issue,
+combined with the fact that the union contains both a 64 bit ->mapping
+pointer and a 32 bit atomic_t ->compound_mapcount as members. The resulting
+bogus page->mapping on x86_64 therefore contains 00000000ffffffff instead
+of ffffffff00000000 on s390, which will falsely trigger the PageAnon() check
+in free_pages_prepare() because page->mapping & PAGE_MAPPING_ANON is true
+on little-endian architectures like x86_64 in this case (the page is not
+compound anymore, ->compound_head was already cleared before). As a result,
+page->mapping will be cleared before doing the checks in free_pages_check().
+
+Not sure if the bogus "PageAnon() returning true" on x86_64 for the first
+tail page of a gigantic page (at this stage) has other theoretical
+implications, but they would also be fixed with this patch.
+
+Link: http://lkml.kernel.org/r/1466612719-5642-1-git-send-email-gerald.schaefer@de.ibm.com
+Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 --------
- 1 file changed, 8 deletions(-)
+ mm/hugetlb.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memory.c~revert-mm-disable-fault-around-on-emulated-access-bit-architecture mm/memory.c
---- a/mm/memory.c~revert-mm-disable-fault-around-on-emulated-access-bit-architecture
-+++ a/mm/memory.c
-@@ -2898,16 +2898,8 @@ void do_set_pte(struct vm_area_struct *v
- 	update_mmu_cache(vma, address, pte);
- }
+diff -puN mm/hugetlb.c~mm-hugetlb-clear-compound_mapcount-when-freeing-gigantic-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-clear-compound_mapcount-when-freeing-gigantic-pages
++++ a/mm/hugetlb.c
+@@ -1030,6 +1030,7 @@ static void destroy_compound_gigantic_pa
+ 	int nr_pages = 1 << order;
+ 	struct page *p = page + 1;
  
--/*
-- * If architecture emulates "accessed" or "young" bit without HW support,
-- * there is no much gain with fault_around.
-- */
- static unsigned long fault_around_bytes __read_mostly =
--#ifndef __HAVE_ARCH_PTEP_SET_ACCESS_FLAGS
--	PAGE_SIZE;
--#else
- 	rounddown_pow_of_two(65536);
--#endif
- 
- #ifdef CONFIG_DEBUG_FS
- static int fault_around_bytes_get(void *data, u64 *val)
++	atomic_set(compound_mapcount_ptr(page), 0);
+ 	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
+ 		clear_compound_head(p);
+ 		set_page_refcounted(p);
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
-khugepaged-recheck-pmd-after-mmap_sem-re-acquired.patch
-thp-mlock-update-unevictable-lrutxt.patch
-mm-do-not-pass-mm_struct-into-handle_mm_fault.patch
-mm-introduce-fault_env.patch
-mm-postpone-page-table-allocation-until-we-have-page-to-map.patch
-rmap-support-file-thp.patch
-mm-introduce-do_set_pmd.patch
-thp-vmstats-add-counters-for-huge-file-pages.patch
-thp-support-file-pages-in-zap_huge_pmd.patch
-thp-handle-file-pages-in-split_huge_pmd.patch
-thp-handle-file-cow-faults.patch
-thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
-thp-prepare-change_huge_pmd-for-file-thp.patch
-thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem.patch
-thp-file-pages-support-for-split_huge_page.patch
-thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
-vmscan-split-file-huge-pages-before-paging-them-out.patch
-page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim.patch
-radix-tree-implement-radix_tree_maybe_preload_order.patch
-filemap-prepare-find-and-delete-operations-for-huge-pages.patch
-truncate-handle-file-thp.patch
-mm-rmap-account-shmem-thp-pages.patch
-shmem-prepare-huge=-mount-option-and-sysfs-knob.patch
-shmem-add-huge-pages-support.patch
-shmem-thp-respect-madv_nohugepage-for-file-mappings.patch
-thp-extract-khugepaged-from-mm-huge_memoryc.patch
-khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
-shmem-make-shmem_inode_info-lock-irq-safe.patch
-khugepaged-add-support-of-collapse-for-tmpfs-shmem-pages.patch
-thp-introduce-config_transparent_huge_pagecache.patch
-shmem-split-huge-pages-beyond-i_size-under-memory-pressure.patch
-thp-update-documentation-vm-transhugefilesystems-proctxt.patch
 
