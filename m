@@ -1,73 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sparc-get-rid-of-superfluous-__gfp_repeat.patch removed
- from -mm tree
-Date: Tue, 28 Jun 2016 19:02:14 -0700
-Message-ID: <57732c26.j/ezoagCEdvBt4Qg%akpm@linux-foundation.org>
+Subject: [merged] unicore32-get-rid-of-superfluous-__gfp_repeat.patch
+ removed from -mm tree
+Date: Tue, 28 Jun 2016 19:02:22 -0700
+Message-ID: <57732c2e.Bin0ni9hE+I2cil9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41459 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41475 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752511AbcF2CCP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:02:15 -0400
+	with ESMTP id S1752455AbcF2CCX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:02:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: mhocko@suse.com, gxt@mprc.pku.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc: get rid of superfluous __GFP_REPEAT
+     Subject: unicore32: get rid of superfluous __GFP_REPEAT
 has been removed from the -mm tree.  Its filename was
-     sparc-get-rid-of-superfluous-__gfp_repeat.patch
+     unicore32-get-rid-of-superfluous-__gfp_repeat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: sparc: get rid of superfluous __GFP_REPEAT
+Subject: unicore32: get rid of superfluous __GFP_REPEAT
 
 __GFP_REPEAT has a rather weak semantic but since it has been introduced
 around 2.6.12 it has been ignored for low order allocations.
 
-{pud,pmd}_alloc_one is using __GFP_REPEAT but it always allocates from
-pgtable_cache which is initialzed to PAGE_SIZE objects.  This means that
-this flag has never been actually useful here because it has always been
-used only for PAGE_ALLOC_COSTLY requests.
+PGALLOC_GFP uses __GFP_REPEAT but it is only used in pte_alloc_one,
+pte_alloc_one_kernel which does order-0 request.  This means that this
+flag has never been actually useful here because it has always been used
+only for PAGE_ALLOC_COSTLY requests.
 
-Link: http://lkml.kernel.org/r/1464599699-30131-13-git-send-email-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/1464599699-30131-17-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgalloc_64.h |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/unicore32/include/asm/pgalloc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sparc/include/asm/pgalloc_64.h~sparc-get-rid-of-superfluous-__gfp_repeat arch/sparc/include/asm/pgalloc_64.h
---- a/arch/sparc/include/asm/pgalloc_64.h~sparc-get-rid-of-superfluous-__gfp_repeat
-+++ a/arch/sparc/include/asm/pgalloc_64.h
-@@ -41,8 +41,7 @@ static inline void __pud_populate(pud_t
+diff -puN arch/unicore32/include/asm/pgalloc.h~unicore32-get-rid-of-superfluous-__gfp_repeat arch/unicore32/include/asm/pgalloc.h
+--- a/arch/unicore32/include/asm/pgalloc.h~unicore32-get-rid-of-superfluous-__gfp_repeat
++++ a/arch/unicore32/include/asm/pgalloc.h
+@@ -28,7 +28,7 @@ extern void free_pgd_slow(struct mm_stru
+ #define pgd_alloc(mm)			get_pgd_slow(mm)
+ #define pgd_free(mm, pgd)		free_pgd_slow(mm, pgd)
  
- static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long addr)
- {
--	return kmem_cache_alloc(pgtable_cache,
--				GFP_KERNEL|__GFP_REPEAT);
-+	return kmem_cache_alloc(pgtable_cache, GFP_KERNEL);
- }
+-#define PGALLOC_GFP	(GFP_KERNEL | __GFP_NOTRACK | __GFP_REPEAT | __GFP_ZERO)
++#define PGALLOC_GFP	(GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO)
  
- static inline void pud_free(struct mm_struct *mm, pud_t *pud)
-@@ -52,8 +51,7 @@ static inline void pud_free(struct mm_st
- 
- static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long addr)
- {
--	return kmem_cache_alloc(pgtable_cache,
--				GFP_KERNEL|__GFP_REPEAT);
-+	return kmem_cache_alloc(pgtable_cache, GFP_KERNEL);
- }
- 
- static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
+ /*
+  * Allocate one PTE table.
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
