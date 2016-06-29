@@ -1,147 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-swapc-flush-lru-pvecs-on-compound-page-arrival.patch
+Subject: [merged] mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask.patch
  removed from -mm tree
-Date: Tue, 28 Jun 2016 19:02:55 -0700
-Message-ID: <57732c4f.Xr+3RR6W3u6mFauX%akpm__23454.3248000138$1467166274$gmane$org@linux-foundation.org>
+Date: Tue, 28 Jun 2016 19:02:33 -0700
+Message-ID: <57732c39.rGr9DivJJHDXOTIN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41798 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41814 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752621AbcF2CK7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:10:59 -0400
+	with ESMTP id S1752667AbcF2CLB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:11:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lukasz.odzioba@intel.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mingli199x@qq.com, stable@vger.kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, mhocko@suse.com, mw@semihalf.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap.c: flush lru pvecs on compound page arrival
+     Subject: mm, sl[au]b: add __GFP_ATOMIC to the GFP reclaim mask
 has been removed from the -mm tree.  Its filename was
-     mm-swapc-flush-lru-pvecs-on-compound-page-arrival.patch
+     mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lukasz Odzioba <lukasz.odzioba@intel.com>
-Subject: mm/swap.c: flush lru pvecs on compound page arrival
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, sl[au]b: add __GFP_ATOMIC to the GFP reclaim mask
 
-Currently we can have compound pages held on per cpu pagevecs, which leads
-to a lot of memory unavailable for reclaim when needed.  In the systems
-with hundreads of processors it can be GBs of memory.
+Commit d0164adc89f6 ("mm, page_alloc: distinguish between being unable to
+sleep, unwilling to sleep and avoiding waking kswapd") modified __GFP_WAIT
+to explicitly identify the difference between atomic callers and those
+that were unwilling to sleep.  Later the definition was removed entirely.
 
-On of the way of reproducing the problem is to not call munmap explicitly
-on all mapped regions (i.e.  after receiving SIGTERM).  After that some
-pages (with THP enabled also huge pages) may end up on lru_add_pvec,
-example below.
+The GFP_RECLAIM_MASK is the set of flags that affect watermark checking
+and reclaim behaviour but __GFP_ATOMIC was never added. Without it, atomic
+users of the slab allocator strip the __GFP_ATOMIC flag and cannot access
+the page allocator atomic reserves.  This patch addresses the problem.
 
-void main() {
-#pragma omp parallel
-{
-	size_t size = 55 * 1000 * 1000; // smaller than  MEM/CPUS
-	void *p = mmap(NULL, size, PROT_READ | PROT_WRITE,
-		MAP_PRIVATE | MAP_ANONYMOUS , -1, 0);
-	if (p != MAP_FAILED)
-		memset(p, 0, size);
-	//munmap(p, size); // uncomment to make the problem go away
-}
-}
+The user-visible impact depends on the workload but potentially atomic
+allocations unnecessarily fail without this path.
 
-When we run it with THP enabled it will leave significant amount of memory
-on lru_add_pvec.  This memory will be not reclaimed if we hit OOM, so when
-we run above program in a loop:
-
-	for i in `seq 100`; do ./a.out; done
-
-many processes (95% in my case) will be killed by OOM.
-
-The primary point of the LRU add cache is to save the zone lru_lock
-contention with a hope that more pages will belong to the same zone and so
-their addition can be batched.  The huge page is already a form of batched
-addition (it will add 512 worth of memory in one go) so skipping the
-batching seems like a safer option when compared to a potential excess in
-the caching which can be quite large and much harder to fix because
-lru_add_drain_all is way to expensive and it is not really clear what
-would be a good moment to call it.
-
-Similarly we can reproduce the problem on lru_deactivate_pvec by adding:
-madvise(p, size, MADV_FREE); after memset.
-
-This patch flushes lru pvecs on compound page arrival making the problem
-less severe - after applying it kill rate of above example drops to 0%,
-due to reducing maximum amount of memory held on pvec from 28MB (with THP)
-to 56kB per CPU.
-
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Link: http://lkml.kernel.org/r/1466180198-18854-1-git-send-email-lukasz.odzioba@intel.com
-Signed-off-by: Lukasz Odzioba <lukasz.odzioba@intel.com>
+Link: http://lkml.kernel.org/r/20160610093832.GK2527@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: Marcin Wojtas <mw@semihalf.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Ming Li <mingli199x@qq.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>
+Cc: <stable@vger.kernel.org>	[4.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/internal.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/swap.c~mm-swapc-flush-lru-pvecs-on-compound-page-arrival mm/swap.c
---- a/mm/swap.c~mm-swapc-flush-lru-pvecs-on-compound-page-arrival
-+++ a/mm/swap.c
-@@ -242,7 +242,7 @@ void rotate_reclaimable_page(struct page
- 		get_page(page);
- 		local_irq_save(flags);
- 		pvec = this_cpu_ptr(&lru_rotate_pvecs);
--		if (!pagevec_add(pvec, page))
-+		if (!pagevec_add(pvec, page) || PageCompound(page))
- 			pagevec_move_tail(pvec);
- 		local_irq_restore(flags);
- 	}
-@@ -296,7 +296,7 @@ void activate_page(struct page *page)
- 		struct pagevec *pvec = &get_cpu_var(activate_page_pvecs);
+diff -puN mm/internal.h~mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask mm/internal.h
+--- a/mm/internal.h~mm-slaub-add-__gfp_atomic-to-the-gfp-reclaim-mask
++++ a/mm/internal.h
+@@ -24,7 +24,8 @@
+  */
+ #define GFP_RECLAIM_MASK (__GFP_RECLAIM|__GFP_HIGH|__GFP_IO|__GFP_FS|\
+ 			__GFP_NOWARN|__GFP_REPEAT|__GFP_NOFAIL|\
+-			__GFP_NORETRY|__GFP_MEMALLOC|__GFP_NOMEMALLOC)
++			__GFP_NORETRY|__GFP_MEMALLOC|__GFP_NOMEMALLOC|\
++			__GFP_ATOMIC)
  
- 		get_page(page);
--		if (!pagevec_add(pvec, page))
-+		if (!pagevec_add(pvec, page) || PageCompound(page))
- 			pagevec_lru_move_fn(pvec, __activate_page, NULL);
- 		put_cpu_var(activate_page_pvecs);
- 	}
-@@ -391,9 +391,8 @@ static void __lru_cache_add(struct page
- 	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
- 
- 	get_page(page);
--	if (!pagevec_space(pvec))
-+	if (!pagevec_add(pvec, page) || PageCompound(page))
- 		__pagevec_lru_add(pvec);
--	pagevec_add(pvec, page);
- 	put_cpu_var(lru_add_pvec);
- }
- 
-@@ -628,7 +627,7 @@ void deactivate_file_page(struct page *p
- 	if (likely(get_page_unless_zero(page))) {
- 		struct pagevec *pvec = &get_cpu_var(lru_deactivate_file_pvecs);
- 
--		if (!pagevec_add(pvec, page))
-+		if (!pagevec_add(pvec, page) || PageCompound(page))
- 			pagevec_lru_move_fn(pvec, lru_deactivate_file_fn, NULL);
- 		put_cpu_var(lru_deactivate_file_pvecs);
- 	}
-@@ -648,7 +647,7 @@ void deactivate_page(struct page *page)
- 		struct pagevec *pvec = &get_cpu_var(lru_deactivate_pvecs);
- 
- 		get_page(page);
--		if (!pagevec_add(pvec, page))
-+		if (!pagevec_add(pvec, page) || PageCompound(page))
- 			pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
- 		put_cpu_var(lru_deactivate_pvecs);
- 	}
+ /* The GFP flags allowed during early boot */
+ #define GFP_BOOT_MASK (__GFP_BITS_MASK & ~(__GFP_RECLAIM|__GFP_IO|__GFP_FS))
 _
 
-Patches currently in -mm which might be from lukasz.odzioba@intel.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
 
