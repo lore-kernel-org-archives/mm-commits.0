@@ -1,64 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-prevent-kasan-false-positives-in-kmemleak.patch
- removed from -mm tree
-Date: Tue, 28 Jun 2016 19:03:01 -0700
-Message-ID: <57732c55.GnFmefjTCOfkESJu%akpm@linux-foundation.org>
+Subject: [merged] maintainers-update-calgary-iommu.patch removed from -mm
+ tree
+Date: Tue, 28 Jun 2016 19:02:27 -0700
+Message-ID: <57732c33.td+loBvQXwrPG1Op%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41812 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41808 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752664AbcF2CLB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:11:01 -0400
+	with ESMTP id S1752657AbcF2CLA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:11:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, catalin.marinas@arm.com, glider@google.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
+To: jdmason@kudzu.us, b.zolnierkie@samsung.com, gregkh@linuxfoundation.org, hpa@zytor.com, k.kozlowski@samsung.com, mingo@redhat.com, mulix@mulix.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: prevent KASAN false positives in kmemleak
+     Subject: MAINTAINERS: update Calgary IOMMU
 has been removed from the -mm tree.  Its filename was
-     mm-prevent-kasan-false-positives-in-kmemleak.patch
+     maintainers-update-calgary-iommu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: mm: prevent KASAN false positives in kmemleak
+From: Jon Mason <jdmason@kudzu.us>
+Subject: MAINTAINERS: update Calgary IOMMU
 
-When kmemleak dumps contents of leaked objects it reads whole
-objects regardless of user-requested size. This upsets KASAN.
-Disable KASAN checks around object dump.
+Update the contact info for Muli, clean-up my name, and update the
+mailing list to the IOMMU mailing list.
 
-Link: http://lkml.kernel.org/r/1466617631-68387-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/1465493059-11840-2-git-send-email-jdmason@kudzu.us
+Signed-off-by: Jon Mason <jdmason@kudzu.us>
+Cc: Muli Ben-Yehuda <mulix@mulix.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/kmemleak.c~mm-prevent-kasan-false-positives-in-kmemleak mm/kmemleak.c
---- a/mm/kmemleak.c~mm-prevent-kasan-false-positives-in-kmemleak
-+++ a/mm/kmemleak.c
-@@ -307,8 +307,10 @@ static void hex_dump_object(struct seq_f
- 	len = min_t(size_t, object->size, HEX_MAX_LINES * HEX_ROW_SIZE);
+diff -puN MAINTAINERS~maintainers-update-calgary-iommu MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-calgary-iommu
++++ a/MAINTAINERS
+@@ -2776,9 +2776,9 @@ F:	include/net/caif/
+ F:	net/caif/
  
- 	seq_printf(seq, "  hex dump (first %zu bytes):\n", len);
-+	kasan_disable_current();
- 	seq_hex_dump(seq, "    ", DUMP_PREFIX_NONE, HEX_ROW_SIZE,
- 		     HEX_GROUP_SIZE, ptr, len, HEX_ASCII);
-+	kasan_enable_current();
- }
- 
- /*
+ CALGARY x86-64 IOMMU
+-M:	Muli Ben-Yehuda <muli@il.ibm.com>
+-M:	"Jon D. Mason" <jdmason@kudzu.us>
+-L:	discuss@x86-64.org
++M:	Muli Ben-Yehuda <mulix@mulix.org>
++M:	Jon Mason <jdmason@kudzu.us>
++L:	iommu@lists.linux-foundation.org
+ S:	Maintained
+ F:	arch/x86/kernel/pci-calgary_64.c
+ F:	arch/x86/kernel/tce_64.c
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from jdmason@kudzu.us are
 
 
