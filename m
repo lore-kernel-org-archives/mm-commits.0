@@ -1,119 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- hugetlb-fix-nr_pmds-accounting-with-shared-page-tables.patch removed from
- -mm tree
-Date: Tue, 28 Jun 2016 19:02:46 -0700
-Message-ID: <57732c46.Ll3IpLBM5EXLNefm%akpm@linux-foundation.org>
+Subject: [merged] mm-compaction-abort-free-scanner-if-split-fails.patch
+ removed from -mm tree
+Date: Tue, 28 Jun 2016 19:03:04 -0700
+Message-ID: <57732c58.xVgPTyhpf0KHQcpw%akpm__34036.2606956207$1467166282$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41811 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41809 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752576AbcF2CLB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:11:01 -0400
+	with ESMTP id S1752659AbcF2CLA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:11:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, zhongjiang@huawei.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, hughd@google.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, minchan@kernel.org, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix nr_pmds accounting with shared page tables
+     Subject: mm, compaction: abort free scanner if split fails
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-nr_pmds-accounting-with-shared-page-tables.patch
+     mm-compaction-abort-free-scanner-if-split-fails.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: hugetlb: fix nr_pmds accounting with shared page tables
+From: David Rientjes <rientjes@google.com>
+Subject: mm, compaction: abort free scanner if split fails
 
-We account HugeTLB's shared page table to all processes who share it.
-The accounting happens during huge_pmd_share().
+If the memory compaction free scanner cannot successfully split a free
+page (only possible due to per-zone low watermark), terminate the free
+scanner rather than continuing to scan memory needlessly.  If the
+watermark is insufficient for a free page of order <= cc->order, then
+terminate the scanner since all future splits will also likely fail.
 
-If somebody populates pud entry under us, we should decrease pagetable's
-refcount and decrease nr_pmds of the process.
+This prevents the compaction freeing scanner from scanning all memory on
+very large zones (very noticeable for zones > 128GB, for instance) when
+all splits will likely fail while holding zone->lock.
 
-By mistake, I increase nr_pmds again in this case. :-/
-It will lead to "BUG: non-zero nr_pmds on freeing mm: 2" on process'
-exit.
+compaction_alloc() iterating a 128GB zone has been benchmarked to take
+over 400ms on some systems whereas any free page isolated and ready to
+be split ends up failing in split_free_page() because of the low
+watermark check and thus the iteration continues.
 
-Let's fix this by increasing nr_pmds only when we're sure that the page
-table will be used.
+The next time compaction occurs, the freeing scanner will likely start
+at the end of the zone again since no success was made previously and
+we get the same lengthy iteration until the zone is brought above the
+low watermark.  All thp page faults can take >400ms in such a state
+without this fix.
 
-Link: http://lkml.kernel.org/r/20160617122506.GC6534@node.shutemov.name
-Fixes: dc6c9a35b66b ("mm: account pmd page tables to the process")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: zhongjiang <zhongjiang@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1606211820350.97086@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/compaction.c |   39 +++++++++++++++++++++------------------
+ 1 file changed, 21 insertions(+), 18 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-fix-nr_pmds-accounting-with-shared-page-tables mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-fix-nr_pmds-accounting-with-shared-page-tables
-+++ a/mm/hugetlb.c
-@@ -4228,7 +4228,6 @@ pte_t *huge_pmd_share(struct mm_struct *
- 		if (saddr) {
- 			spte = huge_pte_offset(svma->vm_mm, saddr);
- 			if (spte) {
--				mm_inc_nr_pmds(mm);
- 				get_page(virt_to_page(spte));
- 				break;
- 			}
-@@ -4243,9 +4242,9 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	if (pud_none(*pud)) {
- 		pud_populate(mm, pud,
- 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
-+		mm_inc_nr_pmds(mm);
- 	} else {
- 		put_page(virt_to_page(spte));
--		mm_inc_nr_pmds(mm);
+diff -puN mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-abort-free-scanner-if-split-fails
++++ a/mm/compaction.c
+@@ -441,25 +441,23 @@ static unsigned long isolate_freepages_b
+ 
+ 		/* Found a free page, break it into order-0 pages */
+ 		isolated = split_free_page(page);
++		if (!isolated)
++			break;
++
+ 		total_isolated += isolated;
++		cc->nr_freepages += isolated;
+ 		for (i = 0; i < isolated; i++) {
+ 			list_add(&page->lru, freelist);
+ 			page++;
+ 		}
+-
+-		/* If a page was split, advance to the end of it */
+-		if (isolated) {
+-			cc->nr_freepages += isolated;
+-			if (!strict &&
+-				cc->nr_migratepages <= cc->nr_freepages) {
+-				blockpfn += isolated;
+-				break;
+-			}
+-
+-			blockpfn += isolated - 1;
+-			cursor += isolated - 1;
+-			continue;
++		if (!strict && cc->nr_migratepages <= cc->nr_freepages) {
++			blockpfn += isolated;
++			break;
+ 		}
++		/* Advance to the end of split page */
++		blockpfn += isolated - 1;
++		cursor += isolated - 1;
++		continue;
+ 
+ isolate_fail:
+ 		if (strict)
+@@ -469,6 +467,9 @@ isolate_fail:
+ 
  	}
- 	spin_unlock(ptl);
- out:
+ 
++	if (locked)
++		spin_unlock_irqrestore(&cc->zone->lock, flags);
++
+ 	/*
+ 	 * There is a tiny chance that we have read bogus compound_order(),
+ 	 * so be careful to not go outside of the pageblock.
+@@ -490,9 +491,6 @@ isolate_fail:
+ 	if (strict && blockpfn < end_pfn)
+ 		total_isolated = 0;
+ 
+-	if (locked)
+-		spin_unlock_irqrestore(&cc->zone->lock, flags);
+-
+ 	/* Update the pageblock-skip if the whole pageblock was scanned */
+ 	if (blockpfn == end_pfn)
+ 		update_pageblock_skip(cc, valid_page, total_isolated, false);
+@@ -1011,6 +1009,7 @@ static void isolate_freepages(struct com
+ 				block_end_pfn = block_start_pfn,
+ 				block_start_pfn -= pageblock_nr_pages,
+ 				isolate_start_pfn = block_start_pfn) {
++		unsigned long isolated;
+ 
+ 		/*
+ 		 * This can iterate a massively long zone without finding any
+@@ -1035,8 +1034,12 @@ static void isolate_freepages(struct com
+ 			continue;
+ 
+ 		/* Found a block suitable for isolating free pages from. */
+-		isolate_freepages_block(cc, &isolate_start_pfn,
+-					block_end_pfn, freelist, false);
++		isolated = isolate_freepages_block(cc, &isolate_start_pfn,
++						block_end_pfn, freelist, false);
++		/* If isolation failed early, do not continue needlessly */
++		if (!isolated && isolate_start_pfn < block_end_pfn &&
++		    cc->nr_migratepages > cc->nr_freepages)
++			break;
+ 
+ 		/*
+ 		 * If we isolated enough freepages, or aborted due to async
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
-khugepaged-recheck-pmd-after-mmap_sem-re-acquired.patch
-thp-mlock-update-unevictable-lrutxt.patch
-mm-do-not-pass-mm_struct-into-handle_mm_fault.patch
-mm-introduce-fault_env.patch
-mm-postpone-page-table-allocation-until-we-have-page-to-map.patch
-rmap-support-file-thp.patch
-mm-introduce-do_set_pmd.patch
-thp-vmstats-add-counters-for-huge-file-pages.patch
-thp-support-file-pages-in-zap_huge_pmd.patch
-thp-handle-file-pages-in-split_huge_pmd.patch
-thp-handle-file-cow-faults.patch
-thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
-thp-prepare-change_huge_pmd-for-file-thp.patch
-thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem.patch
-thp-file-pages-support-for-split_huge_page.patch
-thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
-vmscan-split-file-huge-pages-before-paging-them-out.patch
-page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim.patch
-radix-tree-implement-radix_tree_maybe_preload_order.patch
-filemap-prepare-find-and-delete-operations-for-huge-pages.patch
-truncate-handle-file-thp.patch
-mm-rmap-account-shmem-thp-pages.patch
-shmem-prepare-huge=-mount-option-and-sysfs-knob.patch
-shmem-add-huge-pages-support.patch
-shmem-thp-respect-madv_nohugepage-for-file-mappings.patch
-thp-extract-khugepaged-from-mm-huge_memoryc.patch
-khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
-shmem-make-shmem_inode_info-lock-irq-safe.patch
-khugepaged-add-support-of-collapse-for-tmpfs-shmem-pages.patch
-thp-introduce-config_transparent_huge_pagecache.patch
-shmem-split-huge-pages-beyond-i_size-under-memory-pressure.patch
-thp-update-documentation-vm-transhugefilesystems-proctxt.patch
+mm-compaction-split-freepages-without-holding-the-zone-lock-fix.patch
 
