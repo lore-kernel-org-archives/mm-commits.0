@@ -1,62 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tile-get-rid-of-superfluous-__gfp_repeat.patch removed
+Subject: [merged] sh-get-rid-of-superfluous-__gfp_repeat.patch removed
  from -mm tree
-Date: Tue, 28 Jun 2016 19:02:20 -0700
-Message-ID: <57732c2c.Bps6OpRLWztaS8Gf%akpm@linux-foundation.org>
+Date: Tue, 28 Jun 2016 19:02:18 -0700
+Message-ID: <57732c2a.hYFXn6eHLgIU9CVp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41471 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41467 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752455AbcF2CCV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:02:21 -0400
+	with ESMTP id S1752511AbcF2CCT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:02:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, cmetcalf@mellanox.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, dalias@libc.org, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tile: get rid of superfluous __GFP_REPEAT
+     Subject: sh: get rid of superfluous __GFP_REPEAT
 has been removed from the -mm tree.  Its filename was
-     tile-get-rid-of-superfluous-__gfp_repeat.patch
+     sh-get-rid-of-superfluous-__gfp_repeat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: tile: get rid of superfluous __GFP_REPEAT
+Subject: sh: get rid of superfluous __GFP_REPEAT
 
 __GFP_REPEAT has a rather weak semantic but since it has been introduced
 around 2.6.12 it has been ignored for low order allocations.
 
-pgtable_alloc_one uses __GFP_REPEAT flag for L2_USER_PGTABLE_ORDER but the
-order is either 0 or 3 if L2_KERNEL_PGTABLE_SHIFT for HPAGE_SHIFT.  This
-means that this flag has never been actually useful here because it has
-always been used only for PAGE_ALLOC_COSTLY requests.
+PGALLOC_GFP uses __GFP_REPEAT but {pgd,pmd}_alloc allocate from
+{pgd,pmd}_cache but both caches are allocating up to PAGE_SIZE objects. 
+This means that this flag has never been actually useful here because it
+has always been used only for PAGE_ALLOC_COSTLY requests.
 
-Link: http://lkml.kernel.org/r/1464599699-30131-16-git-send-email-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/1464599699-30131-15-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Chris Metcalf <cmetcalf@mellanox.com> [for tile]
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/mm/pgtable.c |    2 +-
+ arch/sh/mm/pgtable.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/tile/mm/pgtable.c~tile-get-rid-of-superfluous-__gfp_repeat arch/tile/mm/pgtable.c
---- a/arch/tile/mm/pgtable.c~tile-get-rid-of-superfluous-__gfp_repeat
-+++ a/arch/tile/mm/pgtable.c
-@@ -231,7 +231,7 @@ void pgd_free(struct mm_struct *mm, pgd_
- struct page *pgtable_alloc_one(struct mm_struct *mm, unsigned long address,
- 			       int order)
- {
--	gfp_t flags = GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO;
-+	gfp_t flags = GFP_KERNEL|__GFP_ZERO;
- 	struct page *p;
- 	int i;
+diff -puN arch/sh/mm/pgtable.c~sh-get-rid-of-superfluous-__gfp_repeat arch/sh/mm/pgtable.c
+--- a/arch/sh/mm/pgtable.c~sh-get-rid-of-superfluous-__gfp_repeat
++++ a/arch/sh/mm/pgtable.c
+@@ -1,7 +1,7 @@
+ #include <linux/mm.h>
+ #include <linux/slab.h>
  
+-#define PGALLOC_GFP GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO
++#define PGALLOC_GFP GFP_KERNEL | __GFP_ZERO
+ 
+ static struct kmem_cache *pgd_cachep;
+ #if PAGETABLE_LEVELS > 2
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
