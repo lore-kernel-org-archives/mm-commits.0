@@ -1,211 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] printk-introduce-should_ignore_loglevel.patch
- removed from -mm tree
-Date: Mon, 27 Jun 2016 19:30:08 -0700
-Message-ID: <5771e130.fnLT/rr2DYv8Psff%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 28 Jun 2016 19:00:58 -0700
+Message-ID: <57732bda.es0kYFEmGrOQfX1q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55081 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41369 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639AbcF1CaK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jun 2016 22:30:10 -0400
+	with ESMTP id S1752449AbcF2CA7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:00:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, calvinowens@fb.com, jack@suse.cz, pmladek@suse.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: introduce should_ignore_loglevel()
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     printk-introduce-should_ignore_loglevel.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: printk: introduce should_ignore_loglevel()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Due to deferred printing, console log level is inspected when the actual
-printing occurs, which may provoke console_unlock() and
-console_cont_flush() to waste CPU cycles on every message that has
-loglevel above the current console_loglevel.
-
-Schematically, console_unlock() does the following:
-
-console_unlock()
-{
-	...
-	for (;;) {
-		...
-		raw_spin_lock_irqsave(&logbuf_lock, flags);
-skip:
-		msg = log_from_idx(console_idx);
-
-		if (msg->flags & LOG_NOCONS) {
-			...
-			goto skip;
-		}
-
-		level = msg->level;
-		len += msg_print_text();			>> sprintfs
-								   memcpy,
-								   etc.
-
-		if (nr_ext_console_drivers) {
-			ext_len = msg_print_ext_header();	>> scnprintf
-			ext_len += msg_print_ext_body();	>> scnprintfs
-								   etc.
-		}
-		...
-		raw_spin_unlock(&logbuf_lock);
-
-		call_console_drivers(level, ext_text, ext_len, text, len)
-		{
-			if (level >= console_loglevel &&	>> drop the message
-					!ignore_loglevel)
-				return;
-
-			console->write(...);
-		}
-
-		local_irq_restore(flags);
-	}
-	...
-}
-
-The thing here is this deferred `level >= console_loglevel' check.  We are
-wasting CPU cycles on sprintfs/memcpy/etc.  preparing the messages that we
-will eventually drop.
-
-This can be huge when we register a new CON_PRINTBUFFER console, for
-instance.  For every such a console register_console() resets the
-
-	console_seq, console_idx, console_prev
-
-and sets a `exclusive console' pointer to replay the log buffer to that
-just-registered console.  And there can be a lot of messages to replay, in
-the worst case most of which can be dropped after console_loglevel test.
-
-We know messages' levels long before we call msg_print_text() and friends,
-so we can just move console_loglevel check out of call_console_drivers()
-and format a new message only if we are sure that it won't be dropped.
-
-The patch factors out loglevel check into should_ignore_loglevel()
-function and tests message->level and console_loglevel before formatting
-functions in console_unlock() and console_cont_flush() are getting
-executed.
-
-This improves things not only for exclusive CON_PRINTBUFFER consoles, but
-for every console_unlock() that attempts to print a message of level above
-the console_loglevel.
-
-Link: http://lkml.kernel.org/r/20160623163302.761-1-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Calvin Owens <calvinowens@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
+ drivers/gpu/drm/i915/intel_fbc.c  |    4 ----
+ drivers/gpu/drm/sun4i/sun4i_drv.c |    7 -------
+ drivers/gpu/drm/sun4i/sun4i_rgb.c |   11 -----------
+ 3 files changed, 22 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-introduce-should_ignore_loglevel kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-introduce-should_ignore_loglevel
-+++ a/kernel/printk/printk.c
-@@ -985,6 +985,11 @@ module_param(ignore_loglevel, bool, S_IR
- MODULE_PARM_DESC(ignore_loglevel,
- 		 "ignore loglevel setting (prints all kernel messages to the console)");
+diff -puN drivers/gpu/drm/i915/intel_fbc.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_fbc.c
+--- a/drivers/gpu/drm/i915/intel_fbc.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/intel_fbc.c
+@@ -818,10 +818,6 @@ static bool intel_fbc_can_choose(struct
+ {
+ 	struct drm_i915_private *dev_priv = crtc->base.dev->dev_private;
+ 	struct intel_fbc *fbc = &dev_priv->fbc;
+-<<<<<<< HEAD
+-	bool enable_by_default = IS_BROADWELL(dev_priv);
+-=======
+->>>>>>> linux-next/akpm-base
  
-+static bool should_ignore_loglevel(int level)
-+{
-+	return (level >= console_loglevel && !ignore_loglevel);
-+}
-+
- #ifdef CONFIG_BOOT_PRINTK_DELAY
+ 	if (intel_vgpu_active(dev_priv)) {
+ 		fbc->no_fbc_reason = "VGPU is active";
+diff -puN drivers/gpu/drm/sun4i/sun4i_drv.c~linux-next-git-rejects drivers/gpu/drm/sun4i/sun4i_drv.c
+--- a/drivers/gpu/drm/sun4i/sun4i_drv.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/sun4i/sun4i_drv.c
+@@ -174,13 +174,6 @@ static int sun4i_drv_bind(struct device
+ 	if (ret)
+ 		goto free_drm;
  
- static int boot_delay; /* msecs delay after each printk during bootup */
-@@ -1014,7 +1019,7 @@ static void boot_delay_msec(int level)
- 	unsigned long timeout;
+-<<<<<<< HEAD
+-	ret = drm_connector_register_all(drm);
+-	if (ret)
+-		goto unregister_drm;
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	return 0;
  
- 	if ((boot_delay == 0 || system_state != SYSTEM_BOOTING)
--		|| (level >= console_loglevel && !ignore_loglevel)) {
-+		|| should_ignore_loglevel(level)) {
- 		return;
- 	}
+ free_drm:
+diff -puN drivers/gpu/drm/sun4i/sun4i_rgb.c~linux-next-git-rejects drivers/gpu/drm/sun4i/sun4i_rgb.c
+--- a/drivers/gpu/drm/sun4i/sun4i_rgb.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/sun4i/sun4i_rgb.c
+@@ -95,17 +95,6 @@ static int sun4i_rgb_mode_valid(struct d
+ 	rounded_rate = clk_round_rate(tcon->dclk, rate);
+ 	if (rounded_rate < rate)
+ 		return MODE_CLOCK_LOW;
+-<<<<<<< HEAD
+-
+-	if (rounded_rate > rate)
+-		return MODE_CLOCK_HIGH;
+-
+-	DRM_DEBUG_DRIVER("Clock rate OK\n");
+-
+-	return MODE_OK;
+-}
+-=======
+->>>>>>> linux-next/akpm-base
  
-@@ -1438,8 +1443,6 @@ static void call_console_drivers(int lev
- 
- 	trace_console(text, len);
- 
--	if (level >= console_loglevel && !ignore_loglevel)
--		return;
- 	if (!console_drivers)
- 		return;
- 
-@@ -1908,6 +1911,7 @@ static void call_console_drivers(int lev
- static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
- 			     bool syslog, char *buf, size_t size) { return 0; }
- static size_t cont_print_text(char *text, size_t size) { return 0; }
-+static bool should_ignore_loglevel(int level) { return false; }
- 
- /* Still needs to be defined for users */
- DEFINE_PER_CPU(printk_func_t, printk_func);
-@@ -2187,6 +2191,13 @@ static void console_cont_flush(char *tex
- 	if (!cont.len)
- 		goto out;
- 
-+	if (should_ignore_loglevel(cont.level)) {
-+		cont.cons = cont.len;
-+		if (cont.flushed)
-+			cont.len = 0;
-+		goto out;
-+	}
-+
- 	/*
- 	 * We still queue earlier records, likely because the console was
- 	 * busy. The earlier ones need to be printed before this one, we
-@@ -2290,10 +2301,13 @@ skip:
- 			break;
- 
- 		msg = log_from_idx(console_idx);
--		if (msg->flags & LOG_NOCONS) {
-+		level = msg->level;
-+		if ((msg->flags & LOG_NOCONS) ||
-+				should_ignore_loglevel(level)) {
- 			/*
- 			 * Skip record we have buffered and already printed
--			 * directly to the console when we received it.
-+			 * directly to the console when we received it, and
-+			 * record that has level above the console loglevel.
- 			 */
- 			console_idx = log_next(console_idx);
- 			console_seq++;
-@@ -2307,7 +2321,6 @@ skip:
- 			goto skip;
- 		}
- 
--		level = msg->level;
- 		len += msg_print_text(msg, console_prev, false,
- 				      text + len, sizeof(text) - len);
- 		if (nr_ext_console_drivers) {
+ 	if (rounded_rate > rate)
+ 		return MODE_CLOCK_HIGH;
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-zram-rename-zstrm-find-release-functions.patch
-zram-switch-to-crypto-compress-api.patch
-zram-use-crypto-api-to-check-alg-availability.patch
-zram-use-crypto-api-to-check-alg-availability-v3.patch
-zram-cosmetic-cleanup-documentation.patch
-zram-delete-custom-lzo-lz4.patch
-zram-delete-custom-lzo-lz4-v3.patch
-zram-add-more-compression-algorithms.patch
-zram-add-more-compression-algorithms-v3.patch
-zram-drop-gfp_t-from-zcomp_strm_alloc.patch
-printk-do-not-include-interrupth.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-reorganize-slab-freelist-randomization-fix.patch
+mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
+mm-compaction-split-freepages-without-holding-the-zone-lock-fix-2.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+mm-fix-build-warnings-in-linux-compactionh-fix.patch
+mm-update-the-comment-in-__isolate_free_page-checkpatch-fixes.patch
+nvme-dont-allocate-unused-nvme_major-fix.patch
+treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
+printk-create-pr_level-functions-fix.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+bitmap-bitmap_equal-memcmp-optimization-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
