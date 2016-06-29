@@ -1,71 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arc-get-rid-of-superfluous-__gfp_repeat.patch removed
+Subject: [merged] arm64-get-rid-of-superfluous-__gfp_repeat.patch removed
  from -mm tree
-Date: Tue, 28 Jun 2016 19:01:59 -0700
-Message-ID: <57732c17.YsGUowd59+/fDKgo%akpm@linux-foundation.org>
+Date: Tue, 28 Jun 2016 19:01:56 -0700
+Message-ID: <57732c14.eIEmuB2La6757vEm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41436 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41434 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752449AbcF2CCA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:02:00 -0400
+	with ESMTP id S1752449AbcF2CB5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:01:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, vgupta@synopsys.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, catalin.marinas@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arc: get rid of superfluous __GFP_REPEAT
+     Subject: arm64: get rid of superfluous __GFP_REPEAT
 has been removed from the -mm tree.  Its filename was
-     arc-get-rid-of-superfluous-__gfp_repeat.patch
+     arm64-get-rid-of-superfluous-__gfp_repeat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: arc: get rid of superfluous __GFP_REPEAT
+Subject: arm64: get rid of superfluous __GFP_REPEAT
 
 __GFP_REPEAT has a rather weak semantic but since it has been introduced
 around 2.6.12 it has been ignored for low order allocations.
 
-pte_alloc_one_kernel uses __get_order_pte but this is obviously always
-zero because BITS_FOR_PTE is not larger than 9 yet the page size is always
-larger than 4K.  This means that this flag has never been actually useful
-here because it has always been used only for PAGE_ALLOC_COSTLY requests.
+{pte,pmd,pud}_alloc_one{_kernel}, late_pgtable_alloc use PGALLOC_GFP for
+__get_free_page (aka order-0).
 
-Link: http://lkml.kernel.org/r/1464599699-30131-7-git-send-email-mhocko@kernel.org
+pgd_alloc is slightly more complex because it allocates from pgd_cache if
+PGD_SIZE != PAGE_SIZE and PGD_SIZE depends on the configuration
+(CONFIG_ARM64_VA_BITS, PAGE_SHIFT and CONFIG_PGTABLE_LEVELS).
+
+As per
+config PGTABLE_LEVELS
+	int
+	default 2 if ARM64_16K_PAGES && ARM64_VA_BITS_36
+	default 2 if ARM64_64K_PAGES && ARM64_VA_BITS_42
+	default 3 if ARM64_64K_PAGES && ARM64_VA_BITS_48
+	default 3 if ARM64_4K_PAGES && ARM64_VA_BITS_39
+	default 3 if ARM64_16K_PAGES && ARM64_VA_BITS_47
+	default 4 if !ARM64_64K_PAGES && ARM64_VA_BITS_48
+
+we should have the following options
+
+CONFIG_ARM64_VA_BITS:48 CONFIG_PGTABLE_LEVELS:4 PAGE_SIZE:4k size:4096 pages:1
+CONFIG_ARM64_VA_BITS:48 CONFIG_PGTABLE_LEVELS:4 PAGE_SIZE:16k size:16 pages:1
+CONFIG_ARM64_VA_BITS:48 CONFIG_PGTABLE_LEVELS:3 PAGE_SIZE:64k size:512 pages:1
+CONFIG_ARM64_VA_BITS:47 CONFIG_PGTABLE_LEVELS:3 PAGE_SIZE:16k size:16384 pages:1
+CONFIG_ARM64_VA_BITS:42 CONFIG_PGTABLE_LEVELS:2 PAGE_SIZE:64k size:65536 pages:1
+CONFIG_ARM64_VA_BITS:39 CONFIG_PGTABLE_LEVELS:3 PAGE_SIZE:4k size:4096 pages:1
+CONFIG_ARM64_VA_BITS:36 CONFIG_PGTABLE_LEVELS:2 PAGE_SIZE:16k size:16384 pages:1
+
+All of them fit into a single page (aka order-0).  This means that this
+flag has never been actually useful here because it has always been used
+only for PAGE_ALLOC_COSTLY requests.
+
+Link: http://lkml.kernel.org/r/1464599699-30131-6-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vineet Gupta <vgupta@synopsys.com>
+Acked-by: Will Deacon <will.deacon@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/pgalloc.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/include/asm/pgalloc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arc/include/asm/pgalloc.h~arc-get-rid-of-superfluous-__gfp_repeat arch/arc/include/asm/pgalloc.h
---- a/arch/arc/include/asm/pgalloc.h~arc-get-rid-of-superfluous-__gfp_repeat
-+++ a/arch/arc/include/asm/pgalloc.h
-@@ -95,7 +95,7 @@ static inline pte_t *pte_alloc_one_kerne
- {
- 	pte_t *pte;
+diff -puN arch/arm64/include/asm/pgalloc.h~arm64-get-rid-of-superfluous-__gfp_repeat arch/arm64/include/asm/pgalloc.h
+--- a/arch/arm64/include/asm/pgalloc.h~arm64-get-rid-of-superfluous-__gfp_repeat
++++ a/arch/arm64/include/asm/pgalloc.h
+@@ -26,7 +26,7 @@
  
--	pte = (pte_t *) __get_free_pages(GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO,
-+	pte = (pte_t *) __get_free_pages(GFP_KERNEL | __GFP_ZERO,
- 					 __get_order_pte());
+ #define check_pgt_cache()		do { } while (0)
  
- 	return pte;
-@@ -107,7 +107,7 @@ pte_alloc_one(struct mm_struct *mm, unsi
- 	pgtable_t pte_pg;
- 	struct page *page;
+-#define PGALLOC_GFP	(GFP_KERNEL | __GFP_NOTRACK | __GFP_REPEAT | __GFP_ZERO)
++#define PGALLOC_GFP	(GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO)
+ #define PGD_SIZE	(PTRS_PER_PGD * sizeof(pgd_t))
  
--	pte_pg = (pgtable_t)__get_free_pages(GFP_KERNEL | __GFP_REPEAT, __get_order_pte());
-+	pte_pg = (pgtable_t)__get_free_pages(GFP_KERNEL, __get_order_pte());
- 	if (!pte_pg)
- 		return 0;
- 	memzero((void *)pte_pg, PTRS_PER_PTE * sizeof(pte_t));
+ #if CONFIG_PGTABLE_LEVELS > 2
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
