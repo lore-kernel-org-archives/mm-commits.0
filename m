@@ -1,62 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] parisc-get-rid-of-superfluous-__gfp_repeat.patch removed from -mm tree
-Date: Tue, 28 Jun 2016 19:02:06 -0700
-Message-ID: <57732c1e.Sy+xpR8vDKjQWChy%akpm@linux-foundation.org>
+Subject: [merged] nios2-get-rid-of-superfluous-__gfp_repeat.patch removed
+ from -mm tree
+Date: Tue, 28 Jun 2016 19:02:04 -0700
+Message-ID: <57732c1c.OO0JDCE38YJYFmJn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41447 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41443 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752624AbcF2CCH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:02:07 -0400
+	with ESMTP id S1752624AbcF2CCF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:02:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, deller@gmx.de, jejb@parisc-linux.org, mm-commits@vger.kernel.org
+To: mhocko@suse.com, lftan@altera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parisc: get rid of superfluous __GFP_REPEAT
+     Subject: nios2: get rid of superfluous __GFP_REPEAT
 has been removed from the -mm tree.  Its filename was
-     parisc-get-rid-of-superfluous-__gfp_repeat.patch
+     nios2-get-rid-of-superfluous-__gfp_repeat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: parisc: get rid of superfluous __GFP_REPEAT
+Subject: nios2: get rid of superfluous __GFP_REPEAT
 
 __GFP_REPEAT has a rather weak semantic but since it has been introduced
 around 2.6.12 it has been ignored for low order allocations.
 
-pmd_alloc_one allocate PMD_ORDER which is 1.  This means that this flag
-has never been actually useful here because it has always been used only
-for PAGE_ALLOC_COSTLY requests.
+pte_alloc_one{_kernel} allocate PTE_ORDER which is 0.  This means that
+this flag has never been actually useful here because it has always been
+used only for PAGE_ALLOC_COSTLY requests.
 
-Link: http://lkml.kernel.org/r/1464599699-30131-10-git-send-email-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/1464599699-30131-9-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
+Cc: Ley Foon Tan <lftan@altera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/pgalloc.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/nios2/include/asm/pgalloc.h |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/parisc/include/asm/pgalloc.h~parisc-get-rid-of-superfluous-__gfp_repeat arch/parisc/include/asm/pgalloc.h
---- a/arch/parisc/include/asm/pgalloc.h~parisc-get-rid-of-superfluous-__gfp_repeat
-+++ a/arch/parisc/include/asm/pgalloc.h
-@@ -63,8 +63,7 @@ static inline void pgd_populate(struct m
- 
- static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
+diff -puN arch/nios2/include/asm/pgalloc.h~nios2-get-rid-of-superfluous-__gfp_repeat arch/nios2/include/asm/pgalloc.h
+--- a/arch/nios2/include/asm/pgalloc.h~nios2-get-rid-of-superfluous-__gfp_repeat
++++ a/arch/nios2/include/asm/pgalloc.h
+@@ -42,8 +42,7 @@ static inline pte_t *pte_alloc_one_kerne
  {
--	pmd_t *pmd = (pmd_t *)__get_free_pages(GFP_KERNEL|__GFP_REPEAT,
--					       PMD_ORDER);
-+	pmd_t *pmd = (pmd_t *)__get_free_pages(GFP_KERNEL, PMD_ORDER);
- 	if (pmd)
- 		memset(pmd, 0, PAGE_SIZE<<PMD_ORDER);
- 	return pmd;
+ 	pte_t *pte;
+ 
+-	pte = (pte_t *) __get_free_pages(GFP_KERNEL|__GFP_REPEAT|__GFP_ZERO,
+-					PTE_ORDER);
++	pte = (pte_t *) __get_free_pages(GFP_KERNEL|__GFP_ZERO, PTE_ORDER);
+ 
+ 	return pte;
+ }
+@@ -53,7 +52,7 @@ static inline pgtable_t pte_alloc_one(st
+ {
+ 	struct page *pte;
+ 
+-	pte = alloc_pages(GFP_KERNEL | __GFP_REPEAT, PTE_ORDER);
++	pte = alloc_pages(GFP_KERNEL, PTE_ORDER);
+ 	if (pte) {
+ 		if (!pgtable_page_ctor(pte)) {
+ 			__free_page(pte);
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
