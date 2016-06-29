@@ -1,111 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race.patch removed from
- -mm tree
-Date: Tue, 28 Jun 2016 19:03:09 -0700
-Message-ID: <57732c5d./G6y8JEjCBuzpbWG%akpm@linux-foundation.org>
+Subject: [merged] mm-swapc-flush-lru-pvecs-on-compound-page-arrival.patch
+ removed from -mm tree
+Date: Tue, 28 Jun 2016 19:02:55 -0700
+Message-ID: <57732c4f.Xr+3RR6W3u6mFauX%akpm__23454.3248000138$1467166274$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41659 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41798 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752455AbcF2CF0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:05:26 -0400
+	with ESMTP id S1752621AbcF2CK7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jun 2016 22:10:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rjw@rjwysocki.net, mm-commits@vger.kernel.org
+To: lukasz.odzioba@intel.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mingli199x@qq.com, stable@vger.kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom, suspend: fix oom_reaper vs. oom_killer_disable race
+     Subject: mm/swap.c: flush lru pvecs on compound page arrival
 has been removed from the -mm tree.  Its filename was
-     oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race.patch
+     mm-swapc-flush-lru-pvecs-on-compound-page-arrival.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom, suspend: fix oom_reaper vs. oom_killer_disable race
+From: Lukasz Odzioba <lukasz.odzioba@intel.com>
+Subject: mm/swap.c: flush lru pvecs on compound page arrival
 
-Tetsuo has reported the following potential oom_killer_disable vs. 
-oom_reaper race:
+Currently we can have compound pages held on per cpu pagevecs, which leads
+to a lot of memory unavailable for reclaim when needed.  In the systems
+with hundreads of processors it can be GBs of memory.
 
-(1) freeze_processes() starts freezing user space threads.
-(2) Somebody (maybe a kenrel thread) calls out_of_memory().
-(3) The OOM killer calls mark_oom_victim() on a user space thread
-    P1 which is already in __refrigerator().
-(4) oom_killer_disable() sets oom_killer_disabled = true.
-(5) P1 leaves __refrigerator() and enters do_exit().
-(6) The OOM reaper calls exit_oom_victim(P1) before P1 can call
-    exit_oom_victim(P1).
-(7) oom_killer_disable() returns while P1 not yet finished
-(8) P1 perform IO/interfere with the freezer.
+On of the way of reproducing the problem is to not call munmap explicitly
+on all mapped regions (i.e.  after receiving SIGTERM).  After that some
+pages (with THP enabled also huge pages) may end up on lru_add_pvec,
+example below.
 
-This situation is unfortunate.  We cannot move oom_killer_disable after
-all the freezable kernel threads are frozen because the oom victim might
-depend on some of those kthreads to make a forward progress to exit so we
-could deadlock.  It is also far from trivial to teach the oom_reaper to
-not call exit_oom_victim() because then we would lose a guarantee of the
-OOM killer and oom_killer_disable forward progress because exit_mm->mmput
-might block and never call exit_oom_victim.
+void main() {
+#pragma omp parallel
+{
+	size_t size = 55 * 1000 * 1000; // smaller than  MEM/CPUS
+	void *p = mmap(NULL, size, PROT_READ | PROT_WRITE,
+		MAP_PRIVATE | MAP_ANONYMOUS , -1, 0);
+	if (p != MAP_FAILED)
+		memset(p, 0, size);
+	//munmap(p, size); // uncomment to make the problem go away
+}
+}
 
-It seems the easiest way forward is to workaround this race by calling
-try_to_freeze_tasks again after oom_killer_disable.  This will make sure
-that all the tasks are frozen or it bails out.
+When we run it with THP enabled it will leave significant amount of memory
+on lru_add_pvec.  This memory will be not reclaimed if we hit OOM, so when
+we run above program in a loop:
 
-Fixes: 449d777d7ad6 ("mm, oom_reaper: clear TIF_MEMDIE for all tasks queued for oom_reaper")
-Link: http://lkml.kernel.org/r/1466597634-16199-1-git-send-email-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+	for i in `seq 100`; do ./a.out; done
+
+many processes (95% in my case) will be killed by OOM.
+
+The primary point of the LRU add cache is to save the zone lru_lock
+contention with a hope that more pages will belong to the same zone and so
+their addition can be batched.  The huge page is already a form of batched
+addition (it will add 512 worth of memory in one go) so skipping the
+batching seems like a safer option when compared to a potential excess in
+the caching which can be quite large and much harder to fix because
+lru_add_drain_all is way to expensive and it is not really clear what
+would be a good moment to call it.
+
+Similarly we can reproduce the problem on lru_deactivate_pvec by adding:
+madvise(p, size, MADV_FREE); after memset.
+
+This patch flushes lru pvecs on compound page arrival making the problem
+less severe - after applying it kill rate of above example drops to 0%,
+due to reducing maximum amount of memory held on pvec from 28MB (with THP)
+to 56kB per CPU.
+
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1466180198-18854-1-git-send-email-lukasz.odzioba@intel.com
+Signed-off-by: Lukasz Odzioba <lukasz.odzioba@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Ming Li <mingli199x@qq.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/process.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/swap.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN kernel/power/process.c~oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race kernel/power/process.c
---- a/kernel/power/process.c~oom-suspend-fix-oom_reaper-vs-oom_killer_disable-race
-+++ a/kernel/power/process.c
-@@ -146,6 +146,18 @@ int freeze_processes(void)
- 	if (!error && !oom_killer_disable())
- 		error = -EBUSY;
+diff -puN mm/swap.c~mm-swapc-flush-lru-pvecs-on-compound-page-arrival mm/swap.c
+--- a/mm/swap.c~mm-swapc-flush-lru-pvecs-on-compound-page-arrival
++++ a/mm/swap.c
+@@ -242,7 +242,7 @@ void rotate_reclaimable_page(struct page
+ 		get_page(page);
+ 		local_irq_save(flags);
+ 		pvec = this_cpu_ptr(&lru_rotate_pvecs);
+-		if (!pagevec_add(pvec, page))
++		if (!pagevec_add(pvec, page) || PageCompound(page))
+ 			pagevec_move_tail(pvec);
+ 		local_irq_restore(flags);
+ 	}
+@@ -296,7 +296,7 @@ void activate_page(struct page *page)
+ 		struct pagevec *pvec = &get_cpu_var(activate_page_pvecs);
  
-+	/*
-+	 * There is a hard to fix race between oom_reaper kernel thread
-+	 * and oom_killer_disable. oom_reaper calls exit_oom_victim
-+	 * before the victim reaches exit_mm so try to freeze all the tasks
-+	 * again and catch such a left over task.
-+	 */
-+	if (!error) {
-+		pr_info("Double checking all user space processes after OOM killer disable... ");
-+		error = try_to_freeze_tasks(true);
-+		pr_cont("\n");
-+	}
-+
- 	if (error)
- 		thaw_processes();
- 	return error;
+ 		get_page(page);
+-		if (!pagevec_add(pvec, page))
++		if (!pagevec_add(pvec, page) || PageCompound(page))
+ 			pagevec_lru_move_fn(pvec, __activate_page, NULL);
+ 		put_cpu_var(activate_page_pvecs);
+ 	}
+@@ -391,9 +391,8 @@ static void __lru_cache_add(struct page
+ 	struct pagevec *pvec = &get_cpu_var(lru_add_pvec);
+ 
+ 	get_page(page);
+-	if (!pagevec_space(pvec))
++	if (!pagevec_add(pvec, page) || PageCompound(page))
+ 		__pagevec_lru_add(pvec);
+-	pagevec_add(pvec, page);
+ 	put_cpu_var(lru_add_pvec);
+ }
+ 
+@@ -628,7 +627,7 @@ void deactivate_file_page(struct page *p
+ 	if (likely(get_page_unless_zero(page))) {
+ 		struct pagevec *pvec = &get_cpu_var(lru_deactivate_file_pvecs);
+ 
+-		if (!pagevec_add(pvec, page))
++		if (!pagevec_add(pvec, page) || PageCompound(page))
+ 			pagevec_lru_move_fn(pvec, lru_deactivate_file_fn, NULL);
+ 		put_cpu_var(lru_deactivate_file_pvecs);
+ 	}
+@@ -648,7 +647,7 @@ void deactivate_page(struct page *page)
+ 		struct pagevec *pvec = &get_cpu_var(lru_deactivate_pvecs);
+ 
+ 		get_page(page);
+-		if (!pagevec_add(pvec, page))
++		if (!pagevec_add(pvec, page) || PageCompound(page))
+ 			pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
+ 		put_cpu_var(lru_deactivate_pvecs);
+ 	}
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from lukasz.odzioba@intel.com are
 
-arm-get-rid-of-superfluous-__gfp_repeat.patch
-slab-make-gfp_slab_bug_mask-information-more-human-readable.patch
-slab-do-not-panic-on-invalid-gfp_mask.patch
-mm-oom_reaper-make-sure-that-mmput_async-is-called-only-when-memory-was-reaped.patch
-mm-memcg-use-consistent-gfp-flags-during-readahead.patch
-mm-memcg-use-consistent-gfp-flags-during-readahead-fix.patch
-proc-oom-drop-bogus-task_lock-and-mm-check.patch
-proc-oom-drop-bogus-sighand-lock.patch
-proc-oom_adj-extract-oom_score_adj-setting-into-a-helper.patch
-mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj.patch
-mm-oom-skip-vforked-tasks-from-being-selected.patch
-mm-oom-kill-all-tasks-sharing-the-mm.patch
-mm-oom-fortify-task_will_free_mem.patch
-mm-oom-task_will_free_mem-should-skip-oom_reaped-tasks.patch
-mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice.patch
-mm-oom-hide-mm-which-is-shared-with-kthread-or-global-init.patch
 
