@@ -1,77 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-add-newline-to-messages.patch added to -mm tree
-Date: Thu, 30 Jun 2016 09:52:27 -0700
-Message-ID: <57754e4b.QAa3LaVri6EqC9AS%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch removed
+ from -mm tree
+Date: Tue, 05 Jul 2016 21:10:48 -0700
+Message-ID: <577c84c8.fEC6ipg1+WsM24/K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54455 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46436 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752038AbcF3Qw3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jun 2016 12:52:29 -0400
+	with ESMTP id S1750760AbcGFEKt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jul 2016 00:10:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, hch@infradead.org, jack@suse.cz, lczerner@redhat.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add newline to messages
-has been added to the -mm tree.  Its filename is
-     kasan-add-newline-to-messages.patch
+     Subject: fs/ext4/fsync.c: generic_file_fsync call based on barrier flag
+has been removed from the -mm tree.  Its filename was
+     fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-add-newline-to-messages.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-newline-to-messages.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan: add newline to messages
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/ext4/fsync.c: generic_file_fsync call based on barrier flag
 
-Currently GPF messages with KASAN look as follows:
-kasan: GPF could be caused by NULL-ptr deref or user memory accessgeneral protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN
-Add newlines.
+generic_file_fsync has been updated to issue a flush for older
+filesystems.
 
-Link: http://lkml.kernel.org/r/1467294357-98002-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+This patch tests for barrier flag in ext4 mount flags and calls the right
+function.
+
+
+Lukas said:
+
+: Note that the actual generic_file_fsync change fixes a real bug in ext4
+: where we would _not_ send a flush on sync if we have file system
+: without journal.
+:
+: Ted, it would be useful to mention that in the commit description
+: along with the commit id:
+:
+: ac13a829f6adb674015ab399594c089990104af7 fs/libfs.c: add generic
+: data flush to fsync
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Suggested-by: Jan Kara <jack@suse.cz>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Reviewed-by: Lukas Czerner <lczerner@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/kasan_init_64.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ext4/fsync.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/kasan_init_64.c~kasan-add-newline-to-messages arch/x86/mm/kasan_init_64.c
---- a/arch/x86/mm/kasan_init_64.c~kasan-add-newline-to-messages
-+++ a/arch/x86/mm/kasan_init_64.c
-@@ -54,8 +54,8 @@ static int kasan_die_handler(struct noti
- 			     void *data)
- {
- 	if (val == DIE_GPF) {
--		pr_emerg("CONFIG_KASAN_INLINE enabled");
--		pr_emerg("GPF could be caused by NULL-ptr deref or user memory access");
-+		pr_emerg("CONFIG_KASAN_INLINE enabled\n");
-+		pr_emerg("GPF could be caused by NULL-ptr deref or user memory access\n");
+diff -puN fs/ext4/fsync.c~fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag fs/ext4/fsync.c
+--- a/fs/ext4/fsync.c~fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag
++++ a/fs/ext4/fsync.c
+@@ -106,7 +106,10 @@ int ext4_sync_file(struct file *file, lo
  	}
- 	return NOTIFY_OK;
- }
+ 
+ 	if (!journal) {
+-		ret = generic_file_fsync(file, start, end, datasync);
++		if (test_opt(inode->i_sb, BARRIER))
++			ret = generic_file_fsync(file, start, end, datasync);
++		else
++			ret = __generic_file_fsync(file, start, end, datasync);
+ 		if (!ret && !hlist_empty(&inode->i_dentry))
+ 			ret = ext4_sync_parent(inode);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-kasan-add-newline-to-messages.patch
+treewide-replace-obsolete-_refok-by-__ref.patch
 
