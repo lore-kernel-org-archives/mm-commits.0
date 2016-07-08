@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
- added to -mm tree
-Date: Fri, 08 Jul 2016 14:03:09 -0700
-Message-ID: <5780150d.KQdmiSu2SLjTHWaQ%akpm@linux-foundation.org>
+Subject: + kbuild-simpler-generation-of-assembly-constants.patch added to
+ -mm tree
+Date: Fri, 08 Jul 2016 14:05:38 -0700
+Message-ID: <578015a2.ss0C1CtvqgHKgaA3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43385 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43397 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753497AbcGHVDK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:03:10 -0400
+	with ESMTP id S932159AbcGHVFj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:05:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, atomlin@redhat.com, jkosina@suse.cz, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mmarek@suse.cz, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog: use nmi registers snapshot in hardlockup handler
+     Subject: kbuild: simpler generation of assembly constants
 has been added to the -mm tree.  Its filename is
-     kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
+     kbuild-simpler-generation-of-assembly-constants.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kbuild-simpler-generation-of-assembly-constants.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kbuild-simpler-generation-of-assembly-constants.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,38 +39,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: kernel/watchdog: use nmi registers snapshot in hardlockup handler
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: kbuild: simpler generation of assembly constants
 
-NMI handler doesn't call set_irq_regs(), so get_irq_regs() returns NULL or
-stale snapshot from beginning of IRQ interrupted by NMI.  Registers from
-argument are always here and points to interrupted instruction and state.
+gcc doesn't really look inside "asm" statements and more or less directly
+emits it into assembly.  So pretend "#define" is CPU instruction.
 
-Link: http://lkml.kernel.org/r/146771764784.86724.6006627197118544150.stgit@buzz
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: Aaron Tomlin <atomlin@redhat.com>
+Also, use C++ comment to block whatever garbage is put at the end of
+the line by compiler.
+
+Link: http://lkml.kernel.org/r/20160707213941.GA31678@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    1 -
- 1 file changed, 1 deletion(-)
+ Kbuild                    |   12 +-----------
+ arch/ia64/kernel/Makefile |    8 +-------
+ include/linux/kbuild.h    |    2 +-
+ scripts/mod/Makefile      |   11 +----------
+ 4 files changed, 4 insertions(+), 29 deletions(-)
 
-diff -puN kernel/watchdog.c~kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler kernel/watchdog.c
---- a/kernel/watchdog.c~kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler
-+++ a/kernel/watchdog.c
-@@ -344,7 +344,6 @@ static void watchdog_overflow_callback(s
- 	 */
- 	if (is_hardlockup()) {
- 		int this_cpu = smp_processor_id();
--		struct pt_regs *regs = get_irq_regs();
+diff -puN Kbuild~kbuild-simpler-generation-of-assembly-constants Kbuild
+--- a/Kbuild~kbuild-simpler-generation-of-assembly-constants
++++ a/Kbuild
+@@ -7,14 +7,6 @@
+ # 4) Check for missing system calls
+ # 5) Generate constants.py (may need bounds.h)
  
- 		/* only print hardlockups once */
- 		if (__this_cpu_read(hard_watchdog_warn) == true)
-_
-
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
-
-kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
-
+-# Default sed regexp - multiline due to syntax constraints
+-define sed-y
+-	"/^->/{s:->#\(.*\):/* \1 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:->::; p;}"
+-endef
+-
+ # Use filechk to avoid rebuilds when a header changes, but the resulting file
+ # does not
+ define filechk_offsets
+@@ -26,9 +18,7 @@ define filechk_offsets
+ 	 echo " *"; \
+ 	 echo " * This file was generated by Kbuild"; \
+ 	 echo " */"; \
+-	 echo ""; \
+-	 sed -ne $(sed-y); \
+-	 echo ""; \
++	 sed -ne '/#define/{s/\$$//;s/#//2;p;}'; \
+ 	 echo "#endif" )
+ endef
+ 
+diff -puN arch/ia64/kernel/Makefile~kbuild-simpler-generation-of-assembly-constants arch/ia64/kernel/Makefile
+--- a/arch/ia64/kernel/Makefile~kbuild-simpler-generation-of-assembly-constants
++++ a/arch/ia64/kernel/Makefile
+@@ -50,10 +50,6 @@ CFLAGS_traps.o  += -mfixed-range=f2-f5,f
+ # The gate DSO image is built using a special linker script.
+ include $(src)/Makefile.gate
+ 
+-# Calculate NR_IRQ = max(IA64_NATIVE_NR_IRQS, XEN_NR_IRQS, ...) based on config
+-define sed-y
+-	"/^->/{s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; s:->::; p;}"
+-endef
+ quiet_cmd_nr_irqs = GEN     $@
+ define cmd_nr_irqs
+ 	(set -e; \
+@@ -65,9 +61,7 @@ define cmd_nr_irqs
+ 	 echo " * This file was generated by Kbuild"; \
+ 	 echo " *"; \
+ 	 echo " */"; \
+-	 echo ""; \
+-	 sed -ne $(sed-y) $<; \
+-	 echo ""; \
++	 sed -ne '/#define/{s/\$$//;s/#//2;p;}' $<; \
+ 	 echo "#endif" ) > $@
+ endef
+ 
+diff -puN include/linux/kbuild.h~kbuild-simpler-generation-of-assembly-constants include/linux/kbuild.h
+--- a/include/linux/kbuild.h~kbuild-simpler-generation-of-assembly-constants
++++ a/include/linux/kbuild.h
+@@ -2,7 +2,7 @@
+ #define __LINUX_KBUILD_H
+ 
+ #define DEFINE(sym, val) \
+-        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
++	asm volatile ("#define " #sym " %0 //" #val :: "i" (val))
+ 
+ #define BLANK() asm volatile("\n->" : : )
+ 
+diff -puN scripts/mod/Makefile~kbuild-simpler-generation-of-assembly-constants scripts/mod/Makefile
+--- a/scripts/mod/Makefile~kbuild-simpler-generation-of-assembly-constants
++++ a/scripts/mod/Makefile
+@@ -7,13 +7,6 @@ modpost-objs	:= modpost.o file2alias.o s
+ 
+ devicetable-offsets-file := devicetable-offsets.h
+ 
+-define sed-y
+-	"/^->/{s:->#\(.*\):/* \1 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:->::; p;}"
+-endef
