@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice.patch
- added to -mm tree
-Date: Fri, 08 Jul 2016 14:16:41 -0700
-Message-ID: <57801839.3Mu69J7uv2fYJnRb%akpm@linux-foundation.org>
+Subject: + mm-zsmalloc-keep-comments-consistent-with-code.patch added to
+ -mm tree
+Date: Fri, 08 Jul 2016 14:16:43 -0700
+Message-ID: <5780183b.XXmpInDpz4sqoOcp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43487 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753604AbcGHVQm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:16:42 -0400
+	with ESMTP id S1754606AbcGHVQo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:16:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: opensource.ganesh@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc: avoid calculate max objects of zspage twice
+     Subject: mm/zsmalloc: keep comments consistent with code
 has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice.patch
+     mm-zsmalloc-keep-comments-consistent-with-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-keep-comments-consistent-with-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-keep-comments-consistent-with-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,100 +40,60 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Subject: mm/zsmalloc: avoid calculate max objects of zspage twice
+Subject: mm/zsmalloc: keep comments consistent with code
 
-Currently, if a class can not be merged, the max objects of zspage
-in that class may be calculated twice.
+some minor change of comments:
+1). update zs_malloc(),zs_create_pool() function header
+2). update "Usage of struct page fields"
 
-This patch calculate max objects of zspage at the begin, and pass
-the value to can_merge() to decide whether the class can be merged.
-
-Also this patch remove function get_maxobj_per_zspage(), as there
-is no other place to call this function.
-
-Link: http://lkml.kernel.org/r/1467882338-4300-4-git-send-email-opensource.ganesh@gmail.com
+Link: http://lkml.kernel.org/r/1467882338-4300-5-git-send-email-opensource.ganesh@gmail.com
 Signed-off-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
 Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
+ mm/zsmalloc.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice
+diff -puN mm/zsmalloc.c~mm-zsmalloc-keep-comments-consistent-with-code mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-keep-comments-consistent-with-code
 +++ a/mm/zsmalloc.c
-@@ -470,11 +470,6 @@ static struct zpool_driver zs_zpool_driv
- MODULE_ALIAS("zpool-zsmalloc");
- #endif /* CONFIG_ZPOOL */
+@@ -20,6 +20,7 @@
+  *	page->freelist(index): links together all component pages of a zspage
+  *		For the huge page, this is always 0, so we use this field
+  *		to store handle.
++ *	page->units: first object offset in a subpage of zspage
+  *
+  * Usage of struct page flags:
+  *	PG_private: identifies the first component page
+@@ -140,9 +141,6 @@
+  */
+ #define ZS_SIZE_CLASS_DELTA	(PAGE_SIZE >> CLASS_BITS)
  
--static unsigned int get_maxobj_per_zspage(int size, int pages_per_zspage)
--{
--	return pages_per_zspage * PAGE_SIZE / size;
--}
--
- /* per-cpu VM mapping areas for zspage accesses that cross page boundaries */
- static DEFINE_PER_CPU(struct mapping_area, zs_map_area);
+-/*
+- * We do not maintain any list for completely empty or full pages
+- */
+ enum fullness_group {
+ 	ZS_EMPTY,
+ 	ZS_ALMOST_EMPTY,
+@@ -1535,6 +1533,7 @@ static unsigned long obj_malloc(struct s
+  * zs_malloc - Allocate block of given size from pool.
+  * @pool: pool to allocate from
+  * @size: size of block to allocate
++ * @gfp: gfp flags when allocating object
+  *
+  * On success, handle to the allocated object is returned,
+  * otherwise 0.
+@@ -2401,7 +2400,7 @@ static int zs_register_shrinker(struct z
  
-@@ -1362,16 +1357,14 @@ static void init_zs_size_classes(void)
- 	zs_size_classes = nr;
- }
- 
--static bool can_merge(struct size_class *prev, int size, int pages_per_zspage)
-+static bool can_merge(struct size_class *prev, int pages_per_zspage,
-+					int objs_per_zspage)
- {
--	if (prev->pages_per_zspage != pages_per_zspage)
--		return false;
-+	if (prev->pages_per_zspage == pages_per_zspage &&
-+		prev->objs_per_zspage == objs_per_zspage)
-+		return true;
- 
--	if (prev->objs_per_zspage
--		!= get_maxobj_per_zspage(size, pages_per_zspage))
--		return false;
--
--	return true;
-+	return false;
- }
- 
- static bool zspage_full(struct size_class *class, struct zspage *zspage)
-@@ -2448,6 +2441,7 @@ struct zs_pool *zs_create_pool(const cha
- 	for (i = zs_size_classes - 1; i >= 0; i--) {
- 		int size;
- 		int pages_per_zspage;
-+		int objs_per_zspage;
- 		struct size_class *class;
- 		int fullness = 0;
- 
-@@ -2455,6 +2449,7 @@ struct zs_pool *zs_create_pool(const cha
- 		if (size > ZS_MAX_ALLOC_SIZE)
- 			size = ZS_MAX_ALLOC_SIZE;
- 		pages_per_zspage = get_pages_per_zspage(size);
-+		objs_per_zspage = pages_per_zspage * PAGE_SIZE / size;
- 
- 		/*
- 		 * size_class is used for normal zsmalloc operation such
-@@ -2466,7 +2461,7 @@ struct zs_pool *zs_create_pool(const cha
- 		 * previous size_class if possible.
- 		 */
- 		if (prev_class) {
--			if (can_merge(prev_class, size, pages_per_zspage)) {
-+			if (can_merge(prev_class, pages_per_zspage, objs_per_zspage)) {
- 				pool->size_class[i] = prev_class;
- 				continue;
- 			}
-@@ -2479,8 +2474,7 @@ struct zs_pool *zs_create_pool(const cha
- 		class->size = size;
- 		class->index = i;
- 		class->pages_per_zspage = pages_per_zspage;
--		class->objs_per_zspage = get_maxobj_per_zspage(class->size,
--							class->pages_per_zspage);
-+		class->objs_per_zspage = objs_per_zspage;
- 		spin_lock_init(&class->lock);
- 		pool->size_class[i] = class;
- 		for (fullness = ZS_EMPTY; fullness < NR_ZS_FULLNESS;
+ /**
+  * zs_create_pool - Creates an allocation pool to work from.
+- * @flags: allocation flags used to allocate pool metadata
++ * @name: pool name to be created
+  *
+  * This function must be called before anything when using
+  * the zsmalloc allocator.
 _
 
 Patches currently in -mm which might be from opensource.ganesh@gmail.com are
