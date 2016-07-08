@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-remove-fair-zone-allocation-policy.patch added to -mm tree
-Date: Fri, 08 Jul 2016 13:34:11 -0700
-Message-ID: <57800e43.w5iyoD7VXNzpJYvC%akpm@linux-foundation.org>
+Subject: + mm-vmscan-add-classzone-information-to-tracepoints.patch added
+ to -mm tree
+Date: Fri, 08 Jul 2016 13:34:09 -0700
+Message-ID: <57800e41.bPa8T535RnH36pM9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42962 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753469AbcGHUeM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 16:34:12 -0400
+	with ESMTP id S1753469AbcGHUeK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 16:34:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: remove fair zone allocation policy
+     Subject: mm, vmscan: add classzone information to tracepoints
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-remove-fair-zone-allocation-policy.patch
+     mm-vmscan-add-classzone-information-to-tracepoints.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-remove-fair-zone-allocation-policy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-add-classzone-information-to-tracepoints.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-remove-fair-zone-allocation-policy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-add-classzone-information-to-tracepoints.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,15 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: remove fair zone allocation policy
+Subject: mm, vmscan: add classzone information to tracepoints
 
-The fair zone allocation policy interleaves allocation requests between
-zones to avoid an age inversion problem whereby new pages are reclaimed to
-balance a zone.  Reclaim is now node-based so this should no longer be an
-issue and the fair zone allocation policy is not free.  This patch removes
-it.
+This is convenient when tracking down why the skip count is high because
+it'll show what classzone kswapd woke up at and what zones are being
+isolated.
 
-Link: http://lkml.kernel.org/r/1467970510-21195-30-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1467970510-21195-29-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
@@ -59,225 +58,227 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 --
- mm/internal.h          |    1 
- mm/page_alloc.c        |   75 ---------------------------------------
- mm/vmstat.c            |    4 --
- 4 files changed, 2 insertions(+), 83 deletions(-)
+ include/trace/events/vmscan.h |   51 +++++++++++++++++++-------------
+ mm/vmscan.c                   |   14 +++++---
+ 2 files changed, 40 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-page_alloc-remove-fair-zone-allocation-policy include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-page_alloc-remove-fair-zone-allocation-policy
-+++ a/include/linux/mmzone.h
-@@ -110,7 +110,6 @@ struct zone_padding {
- enum zone_stat_item {
- 	/* First 128 byte cacheline (assuming 64 bit words) */
- 	NR_FREE_PAGES,
--	NR_ALLOC_BATCH,
- 	NR_ZONE_LRU_BASE, /* Used only for compaction and reclaim retry */
- 	NR_ZONE_LRU_ANON = NR_ZONE_LRU_BASE,
- 	NR_ZONE_LRU_FILE,
-@@ -516,10 +515,6 @@ struct zone {
- 	atomic_long_t		vm_stat[NR_VM_ZONE_STAT_ITEMS];
- } ____cacheline_internodealigned_in_smp;
+diff -puN include/trace/events/vmscan.h~mm-vmscan-add-classzone-information-to-tracepoints include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~mm-vmscan-add-classzone-information-to-tracepoints
++++ a/include/trace/events/vmscan.h
+@@ -55,21 +55,23 @@ TRACE_EVENT(mm_vmscan_kswapd_sleep,
  
--enum zone_flags {
--	ZONE_FAIR_DEPLETED,		/* fair zone policy batch depleted */
--};
--
- enum pgdat_flags {
- 	PGDAT_CONGESTED,		/* pgdat has many dirty pages backed by
- 					 * a congested BDI
-diff -puN mm/internal.h~mm-page_alloc-remove-fair-zone-allocation-policy mm/internal.h
---- a/mm/internal.h~mm-page_alloc-remove-fair-zone-allocation-policy
-+++ a/mm/internal.h
-@@ -467,7 +467,6 @@ unsigned long reclaim_clean_pages_from_l
- #define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
- #define ALLOC_CPUSET		0x40 /* check for correct cpuset */
- #define ALLOC_CMA		0x80 /* allow allocations from CMA areas */
--#define ALLOC_FAIR		0x100 /* fair zone allocation */
+ TRACE_EVENT(mm_vmscan_kswapd_wake,
  
- enum ttu_flags;
- struct tlbflush_unmap_batch;
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-fair-zone-allocation-policy mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-fair-zone-allocation-policy
-+++ a/mm/page_alloc.c
-@@ -2587,7 +2587,6 @@ struct page *buffered_rmqueue(struct zon
- 			else
- 				page = list_first_entry(list, struct page, lru);
+-	TP_PROTO(int nid, int order),
++	TP_PROTO(int nid, int zid, int order),
  
--			__dec_zone_state(zone, NR_ALLOC_BATCH);
- 			list_del(&page->lru);
- 			pcp->count--;
+-	TP_ARGS(nid, order),
++	TP_ARGS(nid, zid, order),
  
-@@ -2613,15 +2612,10 @@ struct page *buffered_rmqueue(struct zon
- 		spin_unlock(&zone->lock);
- 		if (!page)
- 			goto failed;
--		__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
- 		__mod_zone_freepage_state(zone, -(1 << order),
- 					  get_pcppage_migratetype(page));
- 	}
+ 	TP_STRUCT__entry(
+ 		__field(	int,	nid	)
++		__field(	int,	zid	)
+ 		__field(	int,	order	)
+ 	),
  
--	if (atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]) <= 0 &&
--	    !test_bit(ZONE_FAIR_DEPLETED, &zone->flags))
--		set_bit(ZONE_FAIR_DEPLETED, &zone->flags);
--
- 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
- 	zone_statistics(preferred_zone, zone, gfp_flags);
- 	local_irq_restore(flags);
-@@ -2832,40 +2826,18 @@ bool zone_watermark_ok_safe(struct zone
- }
+ 	TP_fast_assign(
+ 		__entry->nid	= nid;
++		__entry->zid    = zid;
+ 		__entry->order	= order;
+ 	),
  
- #ifdef CONFIG_NUMA
--static bool zone_local(struct zone *local_zone, struct zone *zone)
--{
--	return local_zone->node == zone->node;
--}
--
- static bool zone_allows_reclaim(struct zone *local_zone, struct zone *zone)
- {
- 	return node_distance(zone_to_nid(local_zone), zone_to_nid(zone)) <
- 				RECLAIM_DISTANCE;
- }
- #else	/* CONFIG_NUMA */
--static bool zone_local(struct zone *local_zone, struct zone *zone)
--{
--	return true;
--}
--
- static bool zone_allows_reclaim(struct zone *local_zone, struct zone *zone)
- {
- 	return true;
- }
- #endif	/* CONFIG_NUMA */
+-	TP_printk("nid=%d order=%d", __entry->nid, __entry->order)
++	TP_printk("nid=%d zid=%d order=%d", __entry->nid, __entry->zid, __entry->order)
+ );
  
--static void reset_alloc_batches(struct zone *preferred_zone)
--{
--	struct zone *zone = preferred_zone->zone_pgdat->node_zones;
--
--	do {
--		mod_zone_page_state(zone, NR_ALLOC_BATCH,
--			high_wmark_pages(zone) - low_wmark_pages(zone) -
--			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
--		clear_bit(ZONE_FAIR_DEPLETED, &zone->flags);
--	} while (zone++ != preferred_zone);
--}
--
- /*
-  * get_page_from_freelist goes through the zonelist trying to allocate
-  * a page.
-@@ -2876,10 +2848,6 @@ get_page_from_freelist(gfp_t gfp_mask, u
- {
- 	struct zoneref *z = ac->preferred_zoneref;
- 	struct zone *zone;
--	bool fair_skipped = false;
--	bool apply_fair = (alloc_flags & ALLOC_FAIR);
--
--zonelist_scan:
+ TRACE_EVENT(mm_vmscan_wakeup_kswapd,
+@@ -98,47 +100,50 @@ TRACE_EVENT(mm_vmscan_wakeup_kswapd,
+ 
+ DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_begin_template,
+ 
+-	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags),
++	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags, int classzone_idx),
+ 
+-	TP_ARGS(order, may_writepage, gfp_flags),
++	TP_ARGS(order, may_writepage, gfp_flags, classzone_idx),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(	int,	order		)
+ 		__field(	int,	may_writepage	)
+ 		__field(	gfp_t,	gfp_flags	)
++		__field(	int,	classzone_idx	)
+ 	),
+ 
+ 	TP_fast_assign(
+ 		__entry->order		= order;
+ 		__entry->may_writepage	= may_writepage;
+ 		__entry->gfp_flags	= gfp_flags;
++		__entry->classzone_idx	= classzone_idx;
+ 	),
+ 
+-	TP_printk("order=%d may_writepage=%d gfp_flags=%s",
++	TP_printk("order=%d may_writepage=%d gfp_flags=%s classzone_idx=%d",
+ 		__entry->order,
+ 		__entry->may_writepage,
+-		show_gfp_flags(__entry->gfp_flags))
++		show_gfp_flags(__entry->gfp_flags),
++		__entry->classzone_idx)
+ );
+ 
+ DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_direct_reclaim_begin,
+ 
+-	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags),
++	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags, int classzone_idx),
+ 
+-	TP_ARGS(order, may_writepage, gfp_flags)
++	TP_ARGS(order, may_writepage, gfp_flags, classzone_idx)
+ );
+ 
+ DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_reclaim_begin,
+ 
+-	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags),
++	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags, int classzone_idx),
+ 
+-	TP_ARGS(order, may_writepage, gfp_flags)
++	TP_ARGS(order, may_writepage, gfp_flags, classzone_idx)
+ );
+ 
+ DEFINE_EVENT(mm_vmscan_direct_reclaim_begin_template, mm_vmscan_memcg_softlimit_reclaim_begin,
+ 
+-	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags),
++	TP_PROTO(int order, int may_writepage, gfp_t gfp_flags, int classzone_idx),
+ 
+-	TP_ARGS(order, may_writepage, gfp_flags)
++	TP_ARGS(order, may_writepage, gfp_flags, classzone_idx)
+ );
+ 
+ DECLARE_EVENT_CLASS(mm_vmscan_direct_reclaim_end_template,
+@@ -266,16 +271,18 @@ TRACE_EVENT(mm_shrink_slab_end,
+ 
+ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolate_template,
+ 
+-	TP_PROTO(int order,
++	TP_PROTO(int classzone_idx,
++		int order,
+ 		unsigned long nr_requested,
+ 		unsigned long nr_scanned,
+ 		unsigned long nr_taken,
+ 		isolate_mode_t isolate_mode,
+ 		int file),
+ 
+-	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, isolate_mode, file),
++	TP_ARGS(classzone_idx, order, nr_requested, nr_scanned, nr_taken, isolate_mode, file),
+ 
+ 	TP_STRUCT__entry(
++		__field(int, classzone_idx)
+ 		__field(int, order)
+ 		__field(unsigned long, nr_requested)
+ 		__field(unsigned long, nr_scanned)
+@@ -285,6 +292,7 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
+ 	),
+ 
+ 	TP_fast_assign(
++		__entry->classzone_idx = classzone_idx;
+ 		__entry->order = order;
+ 		__entry->nr_requested = nr_requested;
+ 		__entry->nr_scanned = nr_scanned;
+@@ -293,8 +301,9 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
+ 		__entry->file = file;
+ 	),
+ 
+-	TP_printk("isolate_mode=%d order=%d nr_requested=%lu nr_scanned=%lu nr_taken=%lu file=%d",
++	TP_printk("isolate_mode=%d classzone=%d order=%d nr_requested=%lu nr_scanned=%lu nr_taken=%lu file=%d",
+ 		__entry->isolate_mode,
++		__entry->classzone_idx,
+ 		__entry->order,
+ 		__entry->nr_requested,
+ 		__entry->nr_scanned,
+@@ -304,27 +313,29 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
+ 
+ DEFINE_EVENT(mm_vmscan_lru_isolate_template, mm_vmscan_lru_isolate,
+ 
+-	TP_PROTO(int order,
++	TP_PROTO(int classzone_idx,
++		int order,
+ 		unsigned long nr_requested,
+ 		unsigned long nr_scanned,
+ 		unsigned long nr_taken,
+ 		isolate_mode_t isolate_mode,
+ 		int file),
+ 
+-	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, isolate_mode, file)
++	TP_ARGS(classzone_idx, order, nr_requested, nr_scanned, nr_taken, isolate_mode, file)
+ 
+ );
+ 
+ DEFINE_EVENT(mm_vmscan_lru_isolate_template, mm_vmscan_memcg_isolate,
+ 
+-	TP_PROTO(int order,
++	TP_PROTO(int classzone_idx,
++		int order,
+ 		unsigned long nr_requested,
+ 		unsigned long nr_scanned,
+ 		unsigned long nr_taken,
+ 		isolate_mode_t isolate_mode,
+ 		int file),
+ 
+-	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, isolate_mode, file)
++	TP_ARGS(classzone_idx, order, nr_requested, nr_scanned, nr_taken, isolate_mode, file)
+ 
+ );
+ 
+diff -puN mm/vmscan.c~mm-vmscan-add-classzone-information-to-tracepoints mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-add-classzone-information-to-tracepoints
++++ a/mm/vmscan.c
+@@ -1439,7 +1439,7 @@ static unsigned long isolate_lru_pages(u
+ 	if (!list_empty(&pages_skipped))
+ 		list_splice(&pages_skipped, src);
+ 	*nr_scanned = scan;
+-	trace_mm_vmscan_lru_isolate(sc->order, nr_to_scan, scan,
++	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, nr_to_scan, scan,
+ 				    nr_taken, mode, is_file_lru(lru));
+ 	for (scan = 0; scan < MAX_NR_ZONES; scan++) {
+ 		nr_pages = nr_zone_taken[scan];
+@@ -2888,7 +2888,8 @@ unsigned long try_to_free_pages(struct z
+ 
+ 	trace_mm_vmscan_direct_reclaim_begin(order,
+ 				sc.may_writepage,
+-				gfp_mask);
++				gfp_mask,
++				sc.reclaim_idx);
+ 
+ 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
+ 
+@@ -2919,7 +2920,8 @@ unsigned long mem_cgroup_shrink_node(str
+ 
+ 	trace_mm_vmscan_memcg_softlimit_reclaim_begin(sc.order,
+ 						      sc.may_writepage,
+-						      sc.gfp_mask);
++						      sc.gfp_mask,
++						      sc.reclaim_idx);
+ 
  	/*
- 	 * Scan zonelist, looking for a zone with enough free.
- 	 * See also __cpuset_node_allowed() comment in kernel/cpuset.c.
-@@ -2894,23 +2862,6 @@ zonelist_scan:
- 			!__cpuset_zone_allowed(zone, gfp_mask))
- 				continue;
- 		/*
--		 * Distribute pages in proportion to the individual
--		 * zone size to ensure fair page aging.  The zone a
--		 * page was allocated in should have no effect on the
--		 * time the page has in memory before being reclaimed.
--		 */
--		if (apply_fair) {
--			if (test_bit(ZONE_FAIR_DEPLETED, &zone->flags)) {
--				fair_skipped = true;
--				continue;
--			}
--			if (!zone_local(ac->preferred_zoneref->zone, zone)) {
--				if (fair_skipped)
--					goto reset_fair;
--				apply_fair = false;
--			}
--		}
--		/*
- 		 * When allocating a page cache page for writing, we
- 		 * want to get it from a node that is within its dirty
- 		 * limit, such that no single node holds more than its
-@@ -2981,23 +2932,6 @@ try_this_zone:
- 		}
- 	}
+ 	 * NOTE: Although we can get the priority field, using it
+@@ -2967,7 +2969,8 @@ unsigned long try_to_free_mem_cgroup_pag
  
--	/*
--	 * The first pass makes sure allocations are spread fairly within the
--	 * local node.  However, the local node might have free pages left
--	 * after the fairness batches are exhausted, and remote zones haven't
--	 * even been considered yet.  Try once more without fairness, and
--	 * include remote zones now, before entering the slowpath and waking
--	 * kswapd: prefer spilling to a remote zone over swapping locally.
--	 */
--	if (fair_skipped) {
--reset_fair:
--		apply_fair = false;
--		fair_skipped = false;
--		reset_alloc_batches(ac->preferred_zoneref->zone);
--		z = ac->preferred_zoneref;
--		goto zonelist_scan;
--	}
--
- 	return NULL;
- }
+ 	trace_mm_vmscan_memcg_reclaim_begin(0,
+ 					    sc.may_writepage,
+-					    sc.gfp_mask);
++					    sc.gfp_mask,
++					    sc.reclaim_idx);
  
-@@ -3746,7 +3680,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- {
- 	struct page *page;
- 	unsigned int cpuset_mems_cookie;
--	unsigned int alloc_flags = ALLOC_WMARK_LOW|ALLOC_FAIR;
-+	unsigned int alloc_flags = ALLOC_WMARK_LOW;
- 	gfp_t alloc_mask = gfp_mask; /* The gfp_t that was actually used for allocation */
- 	struct alloc_context ac = {
- 		.high_zoneidx = gfp_zone(gfp_mask),
-@@ -5958,9 +5892,6 @@ static void __paginginit free_area_init_
- 		zone_seqlock_init(zone);
- 		zone_pcp_init(zone);
+ 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
  
--		/* For bootup, initialized properly in watermark setup */
--		mod_zone_page_state(zone, NR_ALLOC_BATCH, zone->managed_pages);
--
- 		if (!size)
- 			continue;
- 
-@@ -6808,10 +6739,6 @@ static void __setup_per_zone_wmarks(void
- 		zone->watermark[WMARK_LOW]  = min_wmark_pages(zone) + tmp;
- 		zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) + tmp * 2;
- 
--		__mod_zone_page_state(zone, NR_ALLOC_BATCH,
--			high_wmark_pages(zone) - low_wmark_pages(zone) -
--			atomic_long_read(&zone->vm_stat[NR_ALLOC_BATCH]));
--
- 		spin_unlock_irqrestore(&zone->lock, flags);
- 	}
- 
-diff -puN mm/vmstat.c~mm-page_alloc-remove-fair-zone-allocation-policy mm/vmstat.c
---- a/mm/vmstat.c~mm-page_alloc-remove-fair-zone-allocation-policy
-+++ a/mm/vmstat.c
-@@ -921,7 +921,6 @@ int fragmentation_index(struct zone *zon
- const char * const vmstat_text[] = {
- 	/* enum zone_stat_item countes */
- 	"nr_free_pages",
--	"nr_alloc_batch",
- 	"nr_zone_anon_lru",
- 	"nr_zone_file_lru",
- 	"nr_zone_write_pending",
-@@ -1632,10 +1631,9 @@ int vmstat_refresh(struct ctl_table *tab
- 		val = atomic_long_read(&vm_zone_stat[i]);
- 		if (val < 0) {
- 			switch (i) {
--			case NR_ALLOC_BATCH:
- 			case NR_PAGES_SCANNED:
- 				/*
--				 * These are often seen to go negative in
-+				 * This is often seen to go negative in
- 				 * recent kernels, but not to go permanently
- 				 * negative.  Whilst it would be nicer not to
- 				 * have exceptions, rooting them out would be
+@@ -3384,7 +3387,8 @@ kswapd_try_sleep:
+ 		 * but kcompactd is woken to compact for the original
+ 		 * request (alloc_order).
+ 		 */
+-		trace_mm_vmscan_kswapd_wake(pgdat->node_id, alloc_order);
++		trace_mm_vmscan_kswapd_wake(pgdat->node_id, classzone_idx,
++						alloc_order);
+ 		reclaim_order = balance_pgdat(pgdat, alloc_order, classzone_idx);
+ 		if (reclaim_order < alloc_order)
+ 			goto kswapd_try_sleep;
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
