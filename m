@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-zsmalloc-use-class-objs_per_zspage-to-get-num-of-max-objects.patch added to -mm tree
-Date: Fri, 08 Jul 2016 14:16:39 -0700
-Message-ID: <57801837.m7Gm5ZxQ8eJTpVMp%akpm@linux-foundation.org>
+Subject: + mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice.patch
+ added to -mm tree
+Date: Fri, 08 Jul 2016 14:16:41 -0700
+Message-ID: <57801839.3Mu69J7uv2fYJnRb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43483 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43484 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753604AbcGHVQk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:16:40 -0400
+	with ESMTP id S1753604AbcGHVQm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:16:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: opensource.ganesh@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc: use class->objs_per_zspage to get num of max objects
+     Subject: mm/zsmalloc: avoid calculate max objects of zspage twice
 has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-use-class-objs_per_zspage-to-get-num-of-max-objects.patch
+     mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-use-class-objs_per_zspage-to-get-num-of-max-objects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-use-class-objs_per_zspage-to-get-num-of-max-objects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,81 +40,97 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Subject: mm/zsmalloc: use class->objs_per_zspage to get num of max objects
+Subject: mm/zsmalloc: avoid calculate max objects of zspage twice
 
-num of max objects in zspage is stored in each size_class now.
-So there is no need to re-calculate it.
+Currently, if a class can not be merged, the max objects of zspage
+in that class may be calculated twice.
 
-Link: http://lkml.kernel.org/r/1467882338-4300-3-git-send-email-opensource.ganesh@gmail.com
+This patch calculate max objects of zspage at the begin, and pass
+the value to can_merge() to decide whether the class can be merged.
+
+Also this patch remove function get_maxobj_per_zspage(), as there
+is no other place to call this function.
+
+Link: http://lkml.kernel.org/r/1467882338-4300-4-git-send-email-opensource.ganesh@gmail.com
 Signed-off-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
 Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ mm/zsmalloc.c |   26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-use-class-objs_per_zspage-to-get-num-of-max-objects mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-use-class-objs_per_zspage-to-get-num-of-max-objects
+diff -puN mm/zsmalloc.c~mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice
 +++ a/mm/zsmalloc.c
-@@ -638,8 +638,7 @@ static int zs_stats_size_show(struct seq
- 		freeable = zs_can_compact(class);
- 		spin_unlock(&class->lock);
+@@ -470,11 +470,6 @@ static struct zpool_driver zs_zpool_driv
+ MODULE_ALIAS("zpool-zsmalloc");
+ #endif /* CONFIG_ZPOOL */
  
--		objs_per_zspage = get_maxobj_per_zspage(class->size,
--				class->pages_per_zspage);
-+		objs_per_zspage = class->objs_per_zspage;
- 		pages_used = obj_allocated / objs_per_zspage *
- 				class->pages_per_zspage;
+-static unsigned int get_maxobj_per_zspage(int size, int pages_per_zspage)
+-{
+-	return pages_per_zspage * PAGE_SIZE / size;
+-}
+-
+ /* per-cpu VM mapping areas for zspage accesses that cross page boundaries */
+ static DEFINE_PER_CPU(struct mapping_area, zs_map_area);
  
-@@ -1017,8 +1016,7 @@ static void __free_zspage(struct zs_pool
- 
- 	cache_free_zspage(pool, zspage);
- 
--	zs_stat_dec(class, OBJ_ALLOCATED, get_maxobj_per_zspage(
--			class->size, class->pages_per_zspage));
-+	zs_stat_dec(class, OBJ_ALLOCATED, class->objs_per_zspage);
- 	atomic_long_sub(class->pages_per_zspage,
- 					&pool->pages_allocated);
+@@ -1362,16 +1357,14 @@ static void init_zs_size_classes(void)
+ 	zs_size_classes = nr;
  }
-@@ -1369,7 +1367,7 @@ static bool can_merge(struct size_class
- 	if (prev->pages_per_zspage != pages_per_zspage)
- 		return false;
  
--	if (get_maxobj_per_zspage(prev->size, prev->pages_per_zspage)
-+	if (prev->objs_per_zspage
- 		!= get_maxobj_per_zspage(size, pages_per_zspage))
- 		return false;
+-static bool can_merge(struct size_class *prev, int size, int pages_per_zspage)
++static bool can_merge(struct size_class *prev, int pages_per_zspage,
++					int objs_per_zspage)
+ {
+-	if (prev->pages_per_zspage != pages_per_zspage)
+-		return false;
++	if (prev->pages_per_zspage == pages_per_zspage &&
++		prev->objs_per_zspage == objs_per_zspage)
++		return true;
  
-@@ -1595,8 +1593,7 @@ unsigned long zs_malloc(struct zs_pool *
- 	record_obj(handle, obj);
- 	atomic_long_add(class->pages_per_zspage,
- 				&pool->pages_allocated);
--	zs_stat_inc(class, OBJ_ALLOCATED, get_maxobj_per_zspage(
--			class->size, class->pages_per_zspage));
-+	zs_stat_inc(class, OBJ_ALLOCATED, class->objs_per_zspage);
- 
- 	/* We completely set up zspage so mark them as movable */
- 	SetZsPageMovable(pool, zspage);
-@@ -2268,8 +2265,7 @@ static unsigned long zs_can_compact(stru
- 		return 0;
- 
- 	obj_wasted = obj_allocated - obj_used;
--	obj_wasted /= get_maxobj_per_zspage(class->size,
--			class->pages_per_zspage);
-+	obj_wasted /= class->objs_per_zspage;
- 
- 	return obj_wasted * class->pages_per_zspage;
+-	if (prev->objs_per_zspage
+-		!= get_maxobj_per_zspage(size, pages_per_zspage))
+-		return false;
+-
+-	return true;
++	return false;
  }
-@@ -2483,8 +2479,8 @@ struct zs_pool *zs_create_pool(const cha
+ 
+ static bool zspage_full(struct size_class *class, struct zspage *zspage)
+@@ -2448,6 +2441,7 @@ struct zs_pool *zs_create_pool(const cha
+ 	for (i = zs_size_classes - 1; i >= 0; i--) {
+ 		int size;
+ 		int pages_per_zspage;
++		int objs_per_zspage;
+ 		struct size_class *class;
+ 		int fullness = 0;
+ 
+@@ -2455,6 +2449,7 @@ struct zs_pool *zs_create_pool(const cha
+ 		if (size > ZS_MAX_ALLOC_SIZE)
+ 			size = ZS_MAX_ALLOC_SIZE;
+ 		pages_per_zspage = get_pages_per_zspage(size);
++		objs_per_zspage = pages_per_zspage * PAGE_SIZE / size;
+ 
+ 		/*
+ 		 * size_class is used for normal zsmalloc operation such
+@@ -2466,7 +2461,7 @@ struct zs_pool *zs_create_pool(const cha
+ 		 * previous size_class if possible.
+ 		 */
+ 		if (prev_class) {
+-			if (can_merge(prev_class, size, pages_per_zspage)) {
++			if (can_merge(prev_class, pages_per_zspage, objs_per_zspage)) {
+ 				pool->size_class[i] = prev_class;
+ 				continue;
+ 			}
+@@ -2479,8 +2474,7 @@ struct zs_pool *zs_create_pool(const cha
  		class->size = size;
  		class->index = i;
  		class->pages_per_zspage = pages_per_zspage;
--		class->objs_per_zspage = class->pages_per_zspage *
--						PAGE_SIZE / class->size;
-+		class->objs_per_zspage = get_maxobj_per_zspage(class->size,
-+							class->pages_per_zspage);
+-		class->objs_per_zspage = get_maxobj_per_zspage(class->size,
+-							class->pages_per_zspage);
++		class->objs_per_zspage = objs_per_zspage;
  		spin_lock_init(&class->lock);
  		pool->size_class[i] = class;
  		for (fullness = ZS_EMPTY; fullness < NR_ZS_FULLNESS;
