@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- powerpc-add-explicit-include-asm-asm-compath-for-jump-label.patch added to
+ tile-support-static_key-usage-in-non-module-__exit-sections.patch added to
  -mm tree
-Date: Fri, 08 Jul 2016 14:35:30 -0700
-Message-ID: <57801ca2.qnX6RVVBqMQlZSUm%akpm@linux-foundation.org>
+Date: Fri, 08 Jul 2016 14:35:34 -0700
+Message-ID: <57801ca6.ximSVpf0XvPEJb7S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43569 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932480AbcGHVfc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:35:32 -0400
+	with ESMTP id S932480AbcGHVff (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:35:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbaron@akamai.com, a.p.zijlstra@chello.nl, arnd@arndb.de, benh@kernel.crashing.org, cmetcalf@mellanox.com, davem@davemloft.net, heiko.carstens@de.ibm.com, joe@perches.com, mpe@ellerman.id.au, paulus@samba.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: cmetcalf@mellanox.com, a.p.zijlstra@chello.nl, arnd@arndb.de, benh@kernel.crashing.org, davem@davemloft.net, heiko.carstens@de.ibm.com, jbaron@akamai.com, joe@perches.com, mpe@ellerman.id.au, paulus@samba.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: add explicit #include <asm/asm-compat.h> for jump label
+     Subject: tile: support static_key usage in non-module __exit sections
 has been added to the -mm tree.  Its filename is
-     powerpc-add-explicit-include-asm-asm-compath-for-jump-label.patch
+     tile-support-static_key-usage-in-non-module-__exit-sections.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-explicit-include-asm-asm-compath-for-jump-label.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tile-support-static_key-usage-in-non-module-__exit-sections.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-explicit-include-asm-asm-compath-for-jump-label.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tile-support-static_key-usage-in-non-module-__exit-sections.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,49 +40,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jason Baron <jbaron@akamai.com>
-Subject: powerpc: add explicit #include <asm/asm-compat.h> for jump label
+From: Chris Metcalf <cmetcalf@mellanox.com>
+Subject: tile: support static_key usage in non-module __exit sections
 
-The stringify_in_c() macro may not be included. Make the dependency
-explicit.
+Previously, all the __exit sections were just dropped by the link phase. 
+However, if there are static_key (jump label) constructs in __exit
+sections that are not modules, the link fails with the message:
 
-Link: http://lkml.kernel.org/r/564720c5328edd53c9d56db325be7215440eec3e.1467837322.git.jbaron@akamai.com
+   `.exit.text' referenced in section `__jump_table' of xxx.o:
+   defined in discarded section `.exit.text' of xxx.o
+
+Support this usage by keeping the .exit.text sections in the final image
+if JUMP_LABEL is defined, then discarding them once initialization is
+complete.
+
+Link: http://lkml.kernel.org/r/bfd7c107c610c30e992868ebfe2a5d796a097464.1467837322.git.jbaron@akamai.com
 Signed-off-by: Jason Baron <jbaron@akamai.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Chris Metcalf <cmetcalf@mellanox.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/jump_label.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/tile/kernel/vmlinux.lds.S |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN arch/powerpc/include/asm/jump_label.h~powerpc-add-explicit-include-asm-asm-compath-for-jump-label arch/powerpc/include/asm/jump_label.h
---- a/arch/powerpc/include/asm/jump_label.h~powerpc-add-explicit-include-asm-asm-compath-for-jump-label
-+++ a/arch/powerpc/include/asm/jump_label.h
-@@ -14,6 +14,7 @@
- #include <linux/types.h>
+diff -puN arch/tile/kernel/vmlinux.lds.S~tile-support-static_key-usage-in-non-module-__exit-sections arch/tile/kernel/vmlinux.lds.S
+--- a/arch/tile/kernel/vmlinux.lds.S~tile-support-static_key-usage-in-non-module-__exit-sections
++++ a/arch/tile/kernel/vmlinux.lds.S
+@@ -60,6 +60,18 @@ SECTIONS
+   /* "Init" is divided into two areas with very different virtual addresses. */
+   INIT_TEXT_SECTION(PAGE_SIZE)
  
- #include <asm/feature-fixups.h>
-+#include <asm/asm-compat.h>
- 
- #define JUMP_ENTRY_TYPE		stringify_in_c(FTR_ENTRY_LONG)
- #define JUMP_LABEL_NOP_SIZE	4
++  /*
++   * Some things, like the __jump_table, may contain symbol references
++   * to __exit text, so include such text in the final image if so.
++   * In that case we also override the _einittext from INIT_TEXT_SECTION.
++   */
++#ifdef CONFIG_JUMP_LABEL
++  .exit.text : {
++    EXIT_TEXT
++    _einittext = .;
++  }
++#endif
++
+   /* Now we skip back to PAGE_OFFSET for the data. */
+   . = (. - TEXT_OFFSET + PAGE_OFFSET);
+   #undef LOAD_OFFSET
 _
 
-Patches currently in -mm which might be from jbaron@akamai.com are
+Patches currently in -mm which might be from cmetcalf@mellanox.com are
 
-powerpc-add-explicit-include-asm-asm-compath-for-jump-label.patch
-sparc-support-static_key-usage-in-non-module-__exit-sections.patch
-arm-jump-label-may-reference-text-in-__exit.patch
-jump_label-remove-bugh-atomich-dependencies-for-have_jump_label.patch
-dynamic_debug-add-jump-label-support.patch
+tile-support-static_key-usage-in-non-module-__exit-sections.patch
 
