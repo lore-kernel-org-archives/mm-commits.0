@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes.patch added
- to -mm tree
-Date: Fri, 08 Jul 2016 14:17:47 -0700
-Message-ID: <5780187b.9oZID1wWdoBUkSda%akpm@linux-foundation.org>
+Subject: + ocfs2-improve-recovery-performance-v2-fix.patch added to -mm
+ tree
+Date: Fri, 08 Jul 2016 14:24:11 -0700
+Message-ID: <578019fb.iY7H6YVy8t9IiS8O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43499 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43512 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755893AbcGHVRs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:17:48 -0400
+	with ESMTP id S1754870AbcGHVYM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:24:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, opensource.ganesh@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes
+     Subject: ocfs2-improve-recovery-performance-v2-fix
 has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes.patch
+     ocfs2-improve-recovery-performance-v2-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-improve-recovery-performance-v2-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-improve-recovery-performance-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,55 +40,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes
+Subject: ocfs2-improve-recovery-performance-v2-fix
 
-WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
-#9: 
-            bash-3863  [001] ....   141.791366: zs_compact_start: pool zram0
+clean up the for loop p_blkno handling
 
-WARNING: line over 80 characters
-#104: FILE: include/trace/events/zsmalloc.h:51:
-+	TP_PROTO(int class, unsigned long nr_migrated_obj, unsigned long nr_freed_pages),
-
-WARNING: Block comments use a trailing */ on a separate line
-#137: FILE: mm/zsmalloc.c:1774:
-+	 * in the subpage. */
-
-total: 0 errors, 3 warnings, 134 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-zsmalloc-add-per-class-compact-trace-event.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Cc: "Gang He" <ghe@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/ocfs2/journal.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes
-+++ a/mm/zsmalloc.c
-@@ -1770,8 +1770,10 @@ struct zs_compact_control {
- 	/* Destination page for migration which should be a first page
- 	 * of zspage. */
- 	struct page *d_page;
--	/* Starting object index within @s_page which used for live object
--	 * in the subpage. */
-+	/*
-+	 * Starting object index within @s_page which used for live object in
-+	 * the subpage.
-+	 */
- 	int obj_idx;
+diff -puN fs/ocfs2/journal.c~ocfs2-improve-recovery-performance-v2-fix fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-improve-recovery-performance-v2-fix
++++ a/fs/ocfs2/journal.c
+@@ -1172,14 +1172,12 @@ static int ocfs2_force_read_journal(stru
+ 			goto bail;
+ 		}
  
- 	unsigned long nr_migrated_obj;
+-		for (i = 0; i < p_blocks; i++) {
++		for (i = 0; i < p_blocks; i++, p_blkno++) {
+ 			bh = __find_get_block(osb->sb->s_bdev, p_blkno,
+ 					osb->sb->s_blocksize);
+ 			/* block not cached. */
+-			if (!bh) {
+-				p_blkno++;
++			if (!bh)
+ 				continue;
+-			}
+ 
+ 			brelse(bh);
+ 			bh = NULL;
+@@ -1194,7 +1192,6 @@ static int ocfs2_force_read_journal(stru
+ 
+ 			brelse(bh);
+ 			bh = NULL;
+-			p_blkno++;
+ 		}
+ 
+ 		v_blkno += p_blocks;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,6 +90,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-improve-recovery-performance-v2-fix.patch
 mm.patch
 mm-reorganize-slab-freelist-randomization-fix.patch
 mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
