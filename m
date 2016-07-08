@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ban-config_localversion_auto-with-allmodconfig.patch added to
- -mm tree
-Date: Thu, 07 Jul 2016 17:45:29 -0700
-Message-ID: <577ef7a9.H8xZuJ22BIZX4xAz%akpm@linux-foundation.org>
+Subject: + cflags-add-wunused-but-set-parameter.patch added to -mm tree
+Date: Thu, 07 Jul 2016 17:46:55 -0700
+Message-ID: <577ef7ff.4Qs+zSwXSfatXDP9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46411 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753084AbcGHApa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2016 20:45:30 -0400
+	with ESMTP id S1753084AbcGHAq4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jul 2016 20:46:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init/Kconfig: ban CONFIG_LOCALVERSION_AUTO with allmodconfig
+     Subject: CFLAGS: add -Wunused-but-set-parameter
 has been added to the -mm tree.  Its filename is
-     ban-config_localversion_auto-with-allmodconfig.patch
+     cflags-add-wunused-but-set-parameter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ban-config_localversion_auto-with-allmodconfig.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cflags-add-wunused-but-set-parameter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ban-config_localversion_auto-with-allmodconfig.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cflags-add-wunused-but-set-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +39,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: init/Kconfig: ban CONFIG_LOCALVERSION_AUTO with allmodconfig
+Subject: CFLAGS: add -Wunused-but-set-parameter
 
-Doing patches with allmodconfig kernel compiled and committing stuff into
-local tree have unfortunate consequence: kernel version changes (as it
-should) leading to recompiling and relinking of several files even if they
-weren't touched (or interesting at all).  This and "git-whatever" figuring
-out current version slow down compilation for no good reason.
+-Wunused-but-set-parameter is finding stuff with current allmodconfig:
 
-But lets face it, "allmodconfig" kernels don't care about kernel version,
-they are simply compile check guinea pigs.
+drivers/misc/mic/scif/scif_dma.c:118:27: warning: parameter 'ep' set but not used [-Wunused-but-set-parameter]
+drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c:2156:8: warning: parameter 'function' set but not used [-Wunused-but-set-parameter]
+drivers/net/ethernet/ti/tlan.c:1647:59: warning: parameter 'host_int' set but not used [-Wunused-but-set-parameter]
+drivers/usb/gadget/udc/pxa27x_udc.c:1828:74: warning: parameter 'driver' set but not used [-Wunused-but-set-parameter]
 
-Make LOCALVERSION_AUTO depend on !COMPILE_TEST, so it doesn't sneak into
-allmodconfig .config.
+and judging by changelogs, people were using it before,
+but were too scared to touch top level Makefile.
 
-Link: http://lkml.kernel.org/r/20160707214954.GC31678@p183.telecom.by
+Link: http://lkml.kernel.org/r/20160707214306.GB31678@p183.telecom.by
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    1 +
+ Makefile |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN init/Kconfig~ban-config_localversion_auto-with-allmodconfig init/Kconfig
---- a/init/Kconfig~ban-config_localversion_auto-with-allmodconfig
-+++ a/init/Kconfig
-@@ -80,6 +80,7 @@ config LOCALVERSION
- config LOCALVERSION_AUTO
- 	bool "Automatically append version information to the version string"
- 	default y
-+	depends on !COMPILE_TEST
- 	help
- 	  This will try to automatically determine if the current tree is a
- 	  release tree by looking for git tags that belong to the current
+diff -puN Makefile~cflags-add-wunused-but-set-parameter Makefile
+--- a/Makefile~cflags-add-wunused-but-set-parameter
++++ a/Makefile
+@@ -399,6 +399,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstric
+ 		   -Werror-implicit-function-declaration \
+ 		   -Wno-format-security \
+ 		   -std=gnu89
++KBUILD_CFLAGS += -Wunused-but-set-parameter
+ 
+ KBUILD_AFLAGS_KERNEL :=
+ KBUILD_CFLAGS_KERNEL :=
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
 
+cflags-add-wunused-but-set-parameter.patch
 ban-config_localversion_auto-with-allmodconfig.patch
 
