@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zsmalloc-add-per-class-compact-trace-event.patch added to
- -mm tree
-Date: Fri, 08 Jul 2016 14:16:49 -0700
-Message-ID: <57801841.FZBqLNR5u/ramV/S%akpm@linux-foundation.org>
+Subject: +
+ mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes.patch added
+ to -mm tree
+Date: Fri, 08 Jul 2016 14:17:47 -0700
+Message-ID: <5780187b.9oZID1wWdoBUkSda%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43496 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43499 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755939AbcGHVQu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:16:50 -0400
+	with ESMTP id S1755893AbcGHVRs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:17:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: opensource.ganesh@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, opensource.ganesh@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc: add per-class compact trace event
+     Subject: mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-add-per-class-compact-trace-event.patch
+     mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-add-per-class-compact-trace-event.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-add-per-class-compact-trace-event.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,223 +40,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Subject: mm/zsmalloc: add per-class compact trace event
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes
 
-add per-class compact trace event to get number of migrated objects
-and number of freed pages.
-
-trace log is like below:
-
+WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
+#9: 
             bash-3863  [001] ....   141.791366: zs_compact_start: pool zram0
-            bash-3863  [001] ....   141.791372: zs_compact: class 254: 0 objects migrated, 0 pages freed
-            bash-3863  [001] ....   141.791375: zs_compact: class 202: 0 objects migrated, 0 pages freed
-            bash-3863  [001] ....   141.791385: zs_compact: class 190: 1 objects migrated, 3 pages freed
-            bash-3863  [001] ....   141.791393: zs_compact: class 168: 2 objects migrated, 2 pages freed
-            bash-3863  [001] ....   141.791396: zs_compact: class 151: 0 objects migrated, 0 pages freed
-            bash-3863  [001] ....   141.791407: zs_compact: class 144: 5 objects migrated, 4 pages freed
-            bash-3863  [001] ....   141.791427: zs_compact: class 126: 8 objects migrated, 8 pages freed
-            bash-3863  [001] ....   141.791433: zs_compact: class 111: 1 objects migrated, 4 pages freed
-            bash-3863  [001] ....   141.791459: zs_compact: class 107: 18 objects migrated, 12 pages freed
-            bash-3863  [001] ....   141.791487: zs_compact: class 100: 18 objects migrated, 16 pages freed
-            bash-3863  [001] ....   141.791509: zs_compact: class  94: 18 objects migrated, 9 pages freed
-            bash-3863  [001] ....   141.791560: zs_compact: class  91: 44 objects migrated, 24 pages freed
-            bash-3863  [001] ....   141.791605: zs_compact: class  83: 35 objects migrated, 20 pages freed
-            bash-3863  [001] ....   141.791616: zs_compact: class  76: 8 objects migrated, 4 pages freed
-            bash-3863  [001] ....   141.791644: zs_compact: class  74: 21 objects migrated, 9 pages freed
-            bash-3863  [001] ....   141.791665: zs_compact: class  71: 18 objects migrated, 10 pages freed
-            bash-3863  [001] ....   141.791736: zs_compact: class  67: 0 objects migrated, 0 pages freed
-            bash-3863  [001] ....   141.791763: zs_compact: class  66: 22 objects migrated, 8 pages freed
-            bash-3863  [001] ....   141.791820: zs_compact: class  62: 18 objects migrated, 6 pages freed
-            bash-3863  [001] ....   141.791826: zs_compact: class  58: 1 objects migrated, 4 pages freed
-            bash-3863  [001] ....   141.791829: zs_compact: class  57: 0 objects migrated, 0 pages freed
-            bash-3863  [001] ....   141.791834: zs_compact: class  54: 2 objects migrated, 2 pages freed
-...
-            bash-3863  [001] ....   141.791952: zs_compact: class   4: 0 objects migrated, 0 pages freed
-            bash-3863  [001] ....   141.791964: zs_compact: class   3: 14 objects migrated, 1 pages freed
-            bash-3863  [001] ....   141.791966: zs_compact: class   2: 0 objects migrated, 0 pages freed
-            bash-3863  [001] ....   141.791968: zs_compact: class   1: 0 objects migrated, 0 pages freed
-            bash-3863  [001] ....   141.791971: zs_compact: class   0: 0 objects migrated, 0 pages freed
-            bash-3863  [001] ....   141.791973: zs_compact_end: pool zram0: 155 pages compacted
 
+WARNING: line over 80 characters
+#104: FILE: include/trace/events/zsmalloc.h:51:
++	TP_PROTO(int class, unsigned long nr_migrated_obj, unsigned long nr_freed_pages),
 
-Also this patch changes trace_zsmalloc_compact_start[end] to
-trace_zs_compact_start[end] to keep function naming consistent with others
-in zsmalloc.
+WARNING: Block comments use a trailing */ on a separate line
+#137: FILE: mm/zsmalloc.c:1774:
++	 * in the subpage. */
 
-Link: http://lkml.kernel.org/r/1467882338-4300-8-git-send-email-opensource.ganesh@gmail.com
-Signed-off-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+total: 0 errors, 3 warnings, 134 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-zsmalloc-add-per-class-compact-trace-event.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Ganesh Mahendran <opensource.ganesh@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/zsmalloc.h |   40 ++++++++++++++++++++++--------
- mm/zsmalloc.c                   |   25 ++++++++++++------
- 2 files changed, 47 insertions(+), 18 deletions(-)
+ mm/zsmalloc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/trace/events/zsmalloc.h~mm-zsmalloc-add-per-class-compact-trace-event include/trace/events/zsmalloc.h
---- a/include/trace/events/zsmalloc.h~mm-zsmalloc-add-per-class-compact-trace-event
-+++ a/include/trace/events/zsmalloc.h
-@@ -7,7 +7,7 @@
- #include <linux/types.h>
- #include <linux/tracepoint.h>
- 
--TRACE_EVENT(zsmalloc_compact_start,
-+TRACE_EVENT(zs_compact_start,
- 
- 	TP_PROTO(const char *pool_name),
- 
-@@ -25,29 +25,49 @@ TRACE_EVENT(zsmalloc_compact_start,
- 		  __entry->pool_name)
- );
- 
--TRACE_EVENT(zsmalloc_compact_end,
-+TRACE_EVENT(zs_compact_end,
- 
--	TP_PROTO(const char *pool_name, unsigned long pages_compacted,
--			unsigned long pages_total_compacted),
-+	TP_PROTO(const char *pool_name, unsigned long pages_compacted),
- 
--	TP_ARGS(pool_name, pages_compacted, pages_total_compacted),
-+	TP_ARGS(pool_name, pages_compacted),
- 
- 	TP_STRUCT__entry(
- 		__field(const char *, pool_name)
- 		__field(unsigned long, pages_compacted)
--		__field(unsigned long, pages_total_compacted)
- 	),
- 
- 	TP_fast_assign(
- 		__entry->pool_name = pool_name;
- 		__entry->pages_compacted = pages_compacted;
--		__entry->pages_total_compacted = pages_total_compacted;
- 	),
- 
--	TP_printk("pool %s: %ld pages compacted(total %ld)",
-+	TP_printk("pool %s: %ld pages compacted",
- 		  __entry->pool_name,
--		  __entry->pages_compacted,
--		  __entry->pages_total_compacted)
-+		  __entry->pages_compacted)
-+);
-+
-+TRACE_EVENT(zs_compact,
-+
-+	TP_PROTO(int class, unsigned long nr_migrated_obj, unsigned long nr_freed_pages),
-+
-+	TP_ARGS(class, nr_migrated_obj, nr_freed_pages),
-+
-+	TP_STRUCT__entry(
-+		__field(int, class)
-+		__field(unsigned long, nr_migrated_obj)
-+		__field(unsigned long, nr_freed_pages)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->class = class;
-+		__entry->nr_migrated_obj = nr_migrated_obj;
-+		__entry->nr_freed_pages = nr_freed_pages;
-+	),
-+
-+	TP_printk("class %3d: %ld objects migrated, %ld pages freed",
-+		  __entry->class,
-+		  __entry->nr_migrated_obj,
-+		  __entry->nr_freed_pages)
- );
- 
- #endif /* _TRACE_ZSMALLOC_H */
-diff -puN mm/zsmalloc.c~mm-zsmalloc-add-per-class-compact-trace-event mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-add-per-class-compact-trace-event
+diff -puN mm/zsmalloc.c~mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes
 +++ a/mm/zsmalloc.c
-@@ -1770,9 +1770,12 @@ struct zs_compact_control {
+@@ -1770,8 +1770,10 @@ struct zs_compact_control {
  	/* Destination page for migration which should be a first page
  	 * of zspage. */
  	struct page *d_page;
--	 /* Starting object index within @s_page which used for live object
--	  * in the subpage. */
-+	/* Starting object index within @s_page which used for live object
-+	 * in the subpage. */
+-	/* Starting object index within @s_page which used for live object
+-	 * in the subpage. */
++	/*
++	 * Starting object index within @s_page which used for live object in
++	 * the subpage.
++	 */
  	int obj_idx;
-+
-+	unsigned long nr_migrated_obj;
-+	unsigned long nr_freed_pages;
- };
  
- static int migrate_zspage(struct zs_pool *pool, struct size_class *class,
-@@ -1806,6 +1809,7 @@ static int migrate_zspage(struct zs_pool
- 		free_obj = obj_malloc(class, get_zspage(d_page), handle);
- 		zs_object_copy(class, free_obj, used_obj);
- 		obj_idx++;
-+		cc->nr_migrated_obj++;
- 		/*
- 		 * record_obj updates handle's value to free_obj and it will
- 		 * invalidate lock bit(ie, HANDLE_PIN_BIT) of handle, which
-@@ -2264,7 +2268,10 @@ static unsigned long zs_can_compact(stru
- 
- static void __zs_compact(struct zs_pool *pool, struct size_class *class)
- {
--	struct zs_compact_control cc;
-+	struct zs_compact_control cc = {
-+		.nr_migrated_obj = 0,
-+		.nr_freed_pages = 0,
-+	};
- 	struct zspage *src_zspage;
- 	struct zspage *dst_zspage = NULL;
- 
-@@ -2296,7 +2303,7 @@ static void __zs_compact(struct zs_pool
- 		putback_zspage(class, dst_zspage);
- 		if (putback_zspage(class, src_zspage) == ZS_EMPTY) {
- 			free_zspage(pool, class, src_zspage);
--			pool->stats.pages_compacted += class->pages_per_zspage;
-+			cc.nr_freed_pages += class->pages_per_zspage;
- 		}
- 		spin_unlock(&class->lock);
- 		cond_resched();
-@@ -2307,6 +2314,9 @@ static void __zs_compact(struct zs_pool
- 		putback_zspage(class, src_zspage);
- 
- 	spin_unlock(&class->lock);
-+
-+	pool->stats.pages_compacted += cc.nr_freed_pages;
-+	trace_zs_compact(class->index, cc.nr_migrated_obj, cc.nr_freed_pages);
- }
- 
- unsigned long zs_compact(struct zs_pool *pool)
-@@ -2315,7 +2325,7 @@ unsigned long zs_compact(struct zs_pool
- 	struct size_class *class;
- 	unsigned long pages_compacted_before = pool->stats.pages_compacted;
- 
--	trace_zsmalloc_compact_start(pool->name);
-+	trace_zs_compact_start(pool->name);
- 
- 	for (i = zs_size_classes - 1; i >= 0; i--) {
- 		class = pool->size_class[i];
-@@ -2326,9 +2336,8 @@ unsigned long zs_compact(struct zs_pool
- 		__zs_compact(pool, class);
- 	}
- 
--	trace_zsmalloc_compact_end(pool->name,
--		pool->stats.pages_compacted - pages_compacted_before,
--		pool->stats.pages_compacted);
-+	trace_zs_compact_end(pool->name,
-+		pool->stats.pages_compacted - pages_compacted_before);
- 
- 	return pool->stats.pages_compacted;
- }
+ 	unsigned long nr_migrated_obj;
 _
 
-Patches currently in -mm which might be from opensource.ganesh@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-migrate-support-non-lru-movable-page-migration-fix.patch
-mm-zsmalloc-add-trace-events-for-zs_compact.patch
-mm-compaction-remove-unnecessary-order-check-in-try_to_compact_pages.patch
-mm-zsmalloc-use-obj_index-to-keep-consistent-with-others.patch
-mm-zsmalloc-take-obj-index-back-from-find_alloced_obj.patch
-mm-zsmalloc-use-class-objs_per_zspage-to-get-num-of-max-objects.patch
-mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice.patch
-mm-zsmalloc-keep-comments-consistent-with-code.patch
-mm-zsmalloc-add-__init__exit-attribute.patch
-mm-zsmalloc-use-helper-to-clear-page-flags-bit.patch
-mm-zsmalloc-add-per-class-compact-trace-event.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-reorganize-slab-freelist-randomization-fix.patch
+mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
+mm-compaction-split-freepages-without-holding-the-zone-lock-fix-2.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+mm-fix-build-warnings-in-linux-compactionh-fix.patch
+mm-update-the-comment-in-__isolate_free_page-checkpatch-fixes.patch
+mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes.patch
+nvme-dont-allocate-unused-nvme_major-fix.patch
+treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
+printk-create-pr_level-functions-fix.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+bitmap-bitmap_equal-memcmp-optimization-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
