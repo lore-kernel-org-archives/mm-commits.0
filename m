@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-improve-recovery-performance-v2-fix.patch added to -mm
- tree
-Date: Fri, 08 Jul 2016 14:24:11 -0700
-Message-ID: <578019fb.iY7H6YVy8t9IiS8O%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 08 Jul 2016 14:33:33 -0700
+Message-ID: <57801c2d.vhPr2bHIOdOh0njc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43512 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43532 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754870AbcGHVYM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:24:12 -0400
+	with ESMTP id S1751658AbcGHVde (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:33:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-improve-recovery-performance-v2-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     ocfs2-improve-recovery-performance-v2-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-improve-recovery-performance-v2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-improve-recovery-performance-v2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,49 +39,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-improve-recovery-performance-v2-fix
+Subject: linux-next-git-rejects
 
-clean up the for loop p_blkno handling
-
-Cc: "Gang He" <ghe@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ arch/arm64/mm/fault.c |    6 ------
+ kernel/sched/fair.c   |    4 ----
+ 2 files changed, 10 deletions(-)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-improve-recovery-performance-v2-fix fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-improve-recovery-performance-v2-fix
-+++ a/fs/ocfs2/journal.c
-@@ -1172,14 +1172,12 @@ static int ocfs2_force_read_journal(stru
- 			goto bail;
- 		}
+diff -puN arch/arm64/mm/fault.c~linux-next-git-rejects arch/arm64/mm/fault.c
+--- a/arch/arm64/mm/fault.c~linux-next-git-rejects
++++ a/arch/arm64/mm/fault.c
+@@ -282,14 +282,8 @@ static int __kprobes do_page_fault(unsig
+ 		mm_flags |= FAULT_FLAG_WRITE;
+ 	}
  
--		for (i = 0; i < p_blocks; i++) {
-+		for (i = 0; i < p_blocks; i++, p_blkno++) {
- 			bh = __find_get_block(osb->sb->s_bdev, p_blkno,
- 					osb->sb->s_blocksize);
- 			/* block not cached. */
--			if (!bh) {
--				p_blkno++;
-+			if (!bh)
- 				continue;
--			}
+-<<<<<<< HEAD
+-	if (permission_fault(esr) && (addr < USER_DS)) {
+-		/* regs->orig_addr_limit may be 0 if we entered from EL0 */
+-		if (regs->orig_addr_limit == KERNEL_DS)
+-=======
+ 	if (is_permission_fault(esr) && (addr < USER_DS)) {
+ 		if (get_fs() == KERNEL_DS)
+->>>>>>> linux-next/akpm-base
+ 			die("Accessing user space memory with fs=KERNEL_DS", regs, esr);
  
- 			brelse(bh);
- 			bh = NULL;
-@@ -1194,7 +1192,6 @@ static int ocfs2_force_read_journal(stru
+ 		if (!search_exception_tables(regs->pc))
+diff -puN kernel/sched/fair.c~linux-next-git-rejects kernel/sched/fair.c
+--- a/kernel/sched/fair.c~linux-next-git-rejects
++++ a/kernel/sched/fair.c
+@@ -765,11 +765,7 @@ void post_init_entity_util_avg(struct sc
+ 		update_tg_load_avg(cfs_rq, false);
+ }
  
- 			brelse(bh);
- 			bh = NULL;
--			p_blkno++;
- 		}
- 
- 		v_blkno += p_blocks;
+-<<<<<<< HEAD
+-#else
+-=======
+ #else /* !CONFIG_SMP */
+->>>>>>> linux-next/akpm-base
+ void init_entity_runnable_average(struct sched_entity *se)
+ {
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +106,7 @@ printk-create-pr_level-functions-fix.patch
 kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
 kexec-allow-architectures-to-override-boot-mapping-fix.patch
 linux-next-rejects.patch
+linux-next-git-rejects.patch
 drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
 bitmap-bitmap_equal-memcmp-optimization-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
