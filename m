@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
+ mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
  added to -mm tree
-Date: Fri, 08 Jul 2016 13:33:31 -0700
-Message-ID: <57800e1b.LVvWd4/5M5nQPmBs%akpm@linux-foundation.org>
+Date: Fri, 08 Jul 2016 13:33:35 -0700
+Message-ID: <57800e1f.bA/3PY8sitDa2tqk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42805 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42820 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932707AbcGHUdc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 16:33:32 -0400
+	with ESMTP id S932707AbcGHUdg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 16:33:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: by default have direct reclaim only shrink once per node
+     Subject: mm: vmscan: do not reclaim from kswapd if there is any eligible zone
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
+     mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,17 +41,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: by default have direct reclaim only shrink once per node
+Subject: mm: vmscan: do not reclaim from kswapd if there is any eligible zone
 
-Direct reclaim iterates over all zones in the zonelist and shrinking them
-but this is in conflict with node-based reclaim.  In the default case,
-only shrink once per node.
+kswapd scans from highest to lowest for a zone that requires balancing.
+This was necessary when reclaim was per-zone to fairly age pages on lower
+zones.  Now that we are reclaiming on a per-node basis, any eligible zone
+can be used and pages will still be aged fairly.  This patch avoids
+reclaiming excessively unless buffer_heads are over the limit and it's
+necessary to reclaim from a higher zone than requested by the waker of
+kswapd to relieve low memory pressure.
 
-Link: http://lkml.kernel.org/r/1467970510-21195-11-git-send-email-mgorman@techsingularity.net
+[hillf.zj@alibaba-inc.com: Force kswapd reclaim no more than needed]
+Link: http://lkml.kernel.org/r/1466518566-30034-12-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1467970510-21195-13-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -59,62 +65,91 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ mm/vmscan.c |   59 ++++++++++++++++++++++----------------------------
+ 1 file changed, 27 insertions(+), 32 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node
+diff -puN mm/vmscan.c~mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone
 +++ a/mm/vmscan.c
-@@ -2552,14 +2552,6 @@ static inline bool compaction_ready(stru
-  * try to reclaim pages from zones which will satisfy the caller's allocation
-  * request.
-  *
-- * We reclaim from a zone even if that zone is over high_wmark_pages(zone).
-- * Because:
-- * a) The caller may be trying to free *extra* pages to satisfy a higher-order
-- *    allocation or
-- * b) The target zone may be at high_wmark_pages(zone) but the lower zones
-- *    must go *over* high_wmark_pages(zone) to satisfy the `incremental min'
-- *    zone defense algorithm.
-- *
-  * If a zone is deemed to be full of pinned pages then just give it a light
-  * scan then give up on it.
-  */
-@@ -2571,6 +2563,7 @@ static void shrink_zones(struct zonelist
- 	unsigned long nr_soft_scanned;
- 	gfp_t orig_mask;
- 	enum zone_type classzone_idx;
-+	pg_data_t *last_pgdat = NULL;
+@@ -3144,31 +3144,39 @@ static int balance_pgdat(pg_data_t *pgda
  
- 	/*
- 	 * If the number of buffer_heads in the machine exceeds the maximum
-@@ -2630,6 +2623,15 @@ static void shrink_zones(struct zonelist
+ 		sc.nr_reclaimed = 0;
+ 
+-		/* Scan from the highest requested zone to dma */
+-		for (i = classzone_idx; i >= 0; i--) {
+-			zone = pgdat->node_zones + i;
+-			if (!populated_zone(zone))
+-				continue;
+-
+-			/*
+-			 * If the number of buffer_heads in the machine
+-			 * exceeds the maximum allowed level and this node
+-			 * has a highmem zone, force kswapd to reclaim from
+-			 * it to relieve lowmem pressure.
+-			 */
+-			if (buffer_heads_over_limit && is_highmem_idx(i)) {
+-				classzone_idx = i;
+-				break;
+-			}
++		/*
++		 * If the number of buffer_heads in the machine exceeds the
++		 * maximum allowed level then reclaim from all zones. This is
++		 * not specific to highmem as highmem may not exist but it is
++		 * it is expected that buffer_heads are stripped in writeback.
++		 */
++		if (buffer_heads_over_limit) {
++			for (i = MAX_NR_ZONES - 1; i >= 0; i--) {
++				zone = pgdat->node_zones + i;
++				if (!populated_zone(zone))
++					continue;
+ 
+-			if (!zone_balanced(zone, order, 0)) {
+ 				classzone_idx = i;
+ 				break;
  			}
- 
- 			/*
-+			 * Shrink each node in the zonelist once. If the
-+			 * zonelist is ordered by zone (not the default) then a
-+			 * node may be shrunk multiple times but in that case
-+			 * the user prefers lower zones being preserved.
-+			 */
-+			if (zone->zone_pgdat == last_pgdat)
-+				continue;
-+
-+			/*
- 			 * This steals pages from memory cgroups over softlimit
- 			 * and returns the number of reclaimed pages and
- 			 * scanned pages. This works for global memory pressure
-@@ -2644,6 +2646,10 @@ static void shrink_zones(struct zonelist
- 			/* need some check for avoid more shrink_zone() */
  		}
  
-+		/* See comment about same check for global reclaim above */
-+		if (zone->zone_pgdat == last_pgdat)
-+			continue;
-+		last_pgdat = zone->zone_pgdat;
- 		shrink_node(zone->zone_pgdat, sc, classzone_idx);
- 	}
+-		if (i < 0)
+-			goto out;
++		/*
++		 * Only reclaim if there are no eligible zones. Check from
++		 * high to low zone as allocations prefer higher zones.
++		 * Scanning from low to high zone would allow congestion to be
++		 * cleared during a very small window when a small low
++		 * zone was balanced even under extreme pressure when the
++		 * overall node may be congested.
++		 */
++		for (i = classzone_idx; i >= 0; i--) {
++			zone = pgdat->node_zones + i;
++			if (!populated_zone(zone))
++				continue;
++
++			if (zone_balanced(zone, sc.order, classzone_idx))
++				goto out;
++		}
  
+ 		/*
+ 		 * Do some background aging of the anon list, to give
+@@ -3214,19 +3222,6 @@ static int balance_pgdat(pg_data_t *pgda
+ 			break;
+ 
+ 		/*
+-		 * Stop reclaiming if any eligible zone is balanced and clear
+-		 * node writeback or congested.
+-		 */
+-		for (i = 0; i <= classzone_idx; i++) {
+-			zone = pgdat->node_zones + i;
+-			if (!populated_zone(zone))
+-				continue;
+-
+-			if (zone_balanced(zone, sc.order, classzone_idx))
+-				goto out;
+-		}
+-
+-		/*
+ 		 * Raise priority if scanning rate is too low or there was no
+ 		 * progress in reclaiming pages
+ 		 */
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
