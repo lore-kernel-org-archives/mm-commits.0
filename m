@@ -1,470 +1,549 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch added to -mm tree
-Date: Fri, 08 Jul 2016 13:34:21 -0700
-Message-ID: <57800e4d.RkCmvOSx2R04lmoX%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub.patch
+ removed from -mm tree
+Date: Fri, 08 Jul 2016 13:52:02 -0700
+Message-ID: <57801272.9ITGMDd80maWc6AK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43001 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43351 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753469AbcGHUeW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 16:34:22 -0400
+	with ESMTP id S1754606AbcGHUwE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 16:52:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: glider@google.com, adech.fo@gmail.com, cl@linux.com, dvyukov@google.com, iamjoonsoo.kim@lge.com, kcc@google.com, penberg@kernel.org, rientjes@google.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmstat: remove zone and node double accounting by approximating retries
-has been added to the -mm tree.  Its filename is
-     mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
+     Subject: mm, kasan: switch SLUB to stackdepot, enable memory quarantine for SLUB
+has been removed from the -mm tree.  Its filename was
+     mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmstat: remove zone and node double accounting by approximating retries
+From: Alexander Potapenko <glider@google.com>
+Subject: mm, kasan: switch SLUB to stackdepot, enable memory quarantine for SLUB
 
-The number of LRU pages, dirty pages and writeback pages must be accounted
-for on both zones and nodes because of the reclaim retry logic, compaction
-retry logic and highmem calculations all depending on per-zone stats.
+For KASAN builds:
+ - switch SLUB allocator to using stackdepot instead of storing the
+   allocation/deallocation stacks in the objects;
+ - change the freelist hook so that parts of the freelist can be put
+   into the quarantine.
 
-Many lowmem allocations are immune from OOM kill due to a check in
-__alloc_pages_may_oom for (ac->high_zoneidx < ZONE_NORMAL) since commit
-03668b3ceb0c ("oom: avoid oom killer for lowmem allocations"). The exception
-is costly high-order allocations or allocations that cannot fail. If the
-__alloc_pages_may_oom avoids OOM-kill for low-order lowmem allocations
-then it would fall through to __alloc_pages_direct_compact.
-
-This patch will blindly retry reclaim for zone-constrained allocations
-in should_reclaim_retry up to MAX_RECLAIM_RETRIES. This is not ideal but
-without per-zone stats there are not many alternatives. The impact it that
-zone-constrained allocations may delay before considering the OOM killer.
-
-As there is no guarantee enough memory can ever be freed to satisfy
-compaction, this patch avoids retrying compaction for zone-contrained
-allocations.
-
-In combination, that means that the per-node stats can be used when deciding
-whether to continue reclaim using a rough approximation.  While it is
-possible this will make the wrong decision on occasion, it will not infinite
-loop as the number of reclaim attempts is capped by MAX_RECLAIM_RETRIES.
-
-The final step is calculating the number of dirtyable highmem pages. As
-those calculations only care about the global count of file pages in
-highmem. This patch uses a global counter used instead of per-zone stats
-as it is sufficient.
-
-In combination, this allows the per-zone LRU and dirty state counters to
-be removed.
-
-Suggested by: Michal Hocko <mhocko@kernel.org>
-Link: http://lkml.kernel.org/r/1467970510-21195-35-git-send-email-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/1466617421-58518-1-git-send-email-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <adech.fo@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Steven Rostedt (Red Hat) <rostedt@goodmis.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Konstantin Serebryany <kcc@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |   24 ++++++++++++++++--
- include/linux/mmzone.h    |    4 ---
- include/linux/swap.h      |    1 
- mm/compaction.c           |   20 ++++++++++++++-
- mm/migrate.c              |    2 -
- mm/page-writeback.c       |   13 +++------
- mm/page_alloc.c           |   47 +++++++++++++++++++++++++++++-------
- mm/vmscan.c               |   16 ------------
- mm/vmstat.c               |    3 --
- 9 files changed, 84 insertions(+), 46 deletions(-)
+ include/linux/slab_def.h |   11 -----
+ include/linux/slub_def.h |   15 +------
+ lib/Kconfig.kasan        |    4 -
+ mm/kasan/Makefile        |    3 -
+ mm/kasan/kasan.c         |   61 ++++++++++++++++-------------
+ mm/kasan/kasan.h         |    2 
+ mm/kasan/report.c        |    8 +--
+ mm/slab.c                |   11 +++++
+ mm/slab.h                |    9 ++++
+ mm/slub.c                |   76 ++++++++++++++++++++++++++++++-------
+ 10 files changed, 126 insertions(+), 74 deletions(-)
 
-diff -puN include/linux/mm_inline.h~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries
-+++ a/include/linux/mm_inline.h
-@@ -4,6 +4,26 @@
- #include <linux/huge_mm.h>
- #include <linux/swap.h>
+diff -puN include/linux/slab_def.h~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub include/linux/slab_def.h
+--- a/include/linux/slab_def.h~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub
++++ a/include/linux/slab_def.h
+@@ -87,15 +87,4 @@ struct kmem_cache {
+ 	struct kmem_cache_node *node[MAX_NUMNODES];
+ };
  
-+#ifdef CONFIG_HIGHMEM
-+extern atomic_t highmem_file_pages;
-+
-+static inline void acct_highmem_file_pages(int zid, enum lru_list lru,
-+							int nr_pages)
-+{
-+	if (is_highmem_idx(zid) && is_file_lru(lru)) {
-+		if (nr_pages > 0)
-+			atomic_add(nr_pages, &highmem_file_pages);
-+		else
-+			atomic_sub(nr_pages, &highmem_file_pages);
-+	}
-+}
-+#else
-+static inline void acct_highmem_file_pages(int zid, enum lru_list lru,
-+							int nr_pages)
-+{
-+}
-+#endif
-+
- /**
-  * page_is_file_cache - should the page be on a file LRU or anon LRU?
-  * @page: the page to test
-@@ -29,9 +49,7 @@ static __always_inline void __update_lru
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 
- 	__mod_node_page_state(pgdat, NR_LRU_BASE + lru, nr_pages);
--	__mod_zone_page_state(&pgdat->node_zones[zid],
--		NR_ZONE_LRU_BASE + !!is_file_lru(lru),
--		nr_pages);
-+	acct_highmem_file_pages(zid, lru, nr_pages);
- }
- 
- static __always_inline void update_lru_size(struct lruvec *lruvec,
-diff -puN include/linux/mmzone.h~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries
-+++ a/include/linux/mmzone.h
-@@ -110,10 +110,6 @@ struct zone_padding {
- enum zone_stat_item {
- 	/* First 128 byte cacheline (assuming 64 bit words) */
- 	NR_FREE_PAGES,
--	NR_ZONE_LRU_BASE, /* Used only for compaction and reclaim retry */
--	NR_ZONE_LRU_ANON = NR_ZONE_LRU_BASE,
--	NR_ZONE_LRU_FILE,
--	NR_ZONE_WRITE_PENDING,	/* Count of dirty, writeback and unstable pages */
- 	NR_MLOCK,		/* mlock()ed pages found and moved off LRU */
- 	NR_SLAB_RECLAIMABLE,
- 	NR_SLAB_UNRECLAIMABLE,
-diff -puN include/linux/swap.h~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries include/linux/swap.h
---- a/include/linux/swap.h~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries
-+++ a/include/linux/swap.h
-@@ -307,7 +307,6 @@ extern void lru_cache_add_active_or_unev
- 						struct vm_area_struct *vma);
- 
- /* linux/mm/vmscan.c */
--extern unsigned long zone_reclaimable_pages(struct zone *zone);
- extern unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat);
- extern unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 					gfp_t gfp_mask, nodemask_t *mask);
-diff -puN mm/compaction.c~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries mm/compaction.c
---- a/mm/compaction.c~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries
-+++ a/mm/compaction.c
-@@ -1439,6 +1439,11 @@ bool compaction_zonelist_suitable(struct
- {
- 	struct zone *zone;
- 	struct zoneref *z;
-+	pg_data_t *last_pgdat = NULL;
-+
-+	/* Do not retry compaction for zone-constrained allocations */
-+	if (ac->high_zoneidx < ZONE_NORMAL)
-+		return false;
- 
- 	/*
- 	 * Make sure at least one zone would pass __compaction_suitable if we continue
-@@ -1449,14 +1454,27 @@ bool compaction_zonelist_suitable(struct
- 		unsigned long available;
- 		enum compact_result compact_result;
- 
-+		if (last_pgdat == zone->zone_pgdat)
-+			continue;
-+
-+		/*
-+		 * This over-estimates the number of pages available for
-+		 * reclaim/compaction but walking the LRU would take too
-+		 * long. The consequences are that compaction may retry
-+		 * longer than it should for a zone-constrained allocation
-+		 * request.
-+		 */
-+		last_pgdat = zone->zone_pgdat;
-+		available = pgdat_reclaimable_pages(zone->zone_pgdat) / order;
-+
- 		/*
- 		 * Do not consider all the reclaimable memory because we do not
- 		 * want to trash just for a single high order allocation which
- 		 * is even not guaranteed to appear even if __compaction_suitable
- 		 * is happy about the watermark check.
- 		 */
--		available = zone_reclaimable_pages(zone) / order;
- 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
-+		available = min(zone->managed_pages, available);
- 		compact_result = __compaction_suitable(zone, order, alloc_flags,
- 				ac_classzone_idx(ac), available);
- 		if (compact_result != COMPACT_SKIPPED &&
-diff -puN mm/migrate.c~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries mm/migrate.c
---- a/mm/migrate.c~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries
-+++ a/mm/migrate.c
-@@ -513,9 +513,7 @@ int migrate_page_move_mapping(struct add
- 		}
- 		if (dirty && mapping_cap_account_dirty(mapping)) {
- 			__dec_node_state(oldzone->zone_pgdat, NR_FILE_DIRTY);
--			__dec_zone_state(oldzone, NR_ZONE_WRITE_PENDING);
- 			__inc_node_state(newzone->zone_pgdat, NR_FILE_DIRTY);
--			__dec_zone_state(newzone, NR_ZONE_WRITE_PENDING);
- 		}
- 	}
- 	local_irq_enable();
-diff -puN mm/page-writeback.c~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries mm/page-writeback.c
---- a/mm/page-writeback.c~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries
-+++ a/mm/page-writeback.c
-@@ -299,6 +299,9 @@ static unsigned long node_dirtyable_memo
- 
- 	return nr_pages;
- }
-+#ifdef CONFIG_HIGHMEM
-+atomic_t highmem_file_pages;
-+#endif
- 
- static unsigned long highmem_dirtyable_memory(unsigned long total)
- {
-@@ -306,18 +309,17 @@ static unsigned long highmem_dirtyable_m
- 	int node;
- 	unsigned long x = 0;
- 	int i;
-+	unsigned long dirtyable = atomic_read(&highmem_file_pages);
- 
- 	for_each_node_state(node, N_HIGH_MEMORY) {
- 		for (i = ZONE_NORMAL + 1; i < MAX_NR_ZONES; i++) {
- 			struct zone *z;
--			unsigned long dirtyable;
- 
- 			if (!is_highmem_idx(i))
- 				continue;
- 
- 			z = &NODE_DATA(node)->node_zones[i];
--			dirtyable = zone_page_state(z, NR_FREE_PAGES) +
--				zone_page_state(z, NR_ZONE_LRU_FILE);
-+			dirtyable += zone_page_state(z, NR_FREE_PAGES);
- 
- 			/* watch for underflows */
- 			dirtyable -= min(dirtyable, high_wmark_pages(z));
-@@ -2460,7 +2462,6 @@ void account_page_dirtied(struct page *p
- 
- 		mem_cgroup_inc_page_stat(page, MEM_CGROUP_STAT_DIRTY);
- 		__inc_node_page_state(page, NR_FILE_DIRTY);
--		__inc_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 		__inc_node_page_state(page, NR_DIRTIED);
- 		__inc_wb_stat(wb, WB_RECLAIMABLE);
- 		__inc_wb_stat(wb, WB_DIRTIED);
-@@ -2482,7 +2483,6 @@ void account_page_cleaned(struct page *p
- 	if (mapping_cap_account_dirty(mapping)) {
- 		mem_cgroup_dec_page_stat(page, MEM_CGROUP_STAT_DIRTY);
- 		dec_node_page_state(page, NR_FILE_DIRTY);
--		dec_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 		dec_wb_stat(wb, WB_RECLAIMABLE);
- 		task_io_account_cancelled_write(PAGE_SIZE);
- 	}
-@@ -2739,7 +2739,6 @@ int clear_page_dirty_for_io(struct page
- 		if (TestClearPageDirty(page)) {
- 			mem_cgroup_dec_page_stat(page, MEM_CGROUP_STAT_DIRTY);
- 			dec_node_page_state(page, NR_FILE_DIRTY);
--			dec_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 			dec_wb_stat(wb, WB_RECLAIMABLE);
- 			ret = 1;
- 		}
-@@ -2786,7 +2785,6 @@ int test_clear_page_writeback(struct pag
- 	if (ret) {
- 		mem_cgroup_dec_page_stat(page, MEM_CGROUP_STAT_WRITEBACK);
- 		dec_node_page_state(page, NR_WRITEBACK);
--		dec_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 		inc_node_page_state(page, NR_WRITTEN);
- 	}
- 	unlock_page_memcg(page);
-@@ -2841,7 +2839,6 @@ int __test_set_page_writeback(struct pag
- 	if (!ret) {
- 		mem_cgroup_inc_page_stat(page, MEM_CGROUP_STAT_WRITEBACK);
- 		inc_node_page_state(page, NR_WRITEBACK);
--		inc_zone_page_state(page, NR_ZONE_WRITE_PENDING);
- 	}
- 	unlock_page_memcg(page);
- 	return ret;
-diff -puN mm/page_alloc.c~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries mm/page_alloc.c
---- a/mm/page_alloc.c~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries
-+++ a/mm/page_alloc.c
-@@ -3402,6 +3402,7 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- {
- 	struct zone *zone;
- 	struct zoneref *z;
-+	pg_data_t *current_pgdat = NULL;
- 
- 	/*
- 	 * Make sure we converge to OOM if we cannot make any progress
-@@ -3411,6 +3412,15 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 		return false;
- 
- 	/*
-+	 * Blindly retry lowmem allocation requests that are often ignored by
-+	 * the OOM killer up to MAX_RECLAIM_RETRIES as we not have a reliable
-+	 * and fast means of calculating reclaimable, dirty and writeback pages
-+	 * in eligible zones.
-+	 */
-+	if (ac->high_zoneidx < ZONE_NORMAL)
-+		goto out;
-+
-+	/*
- 	 * Keep reclaiming pages while there is a chance this will lead somewhere.
- 	 * If none of the target zones can satisfy our allocation request even
- 	 * if all reclaimable pages are considered then we are screwed and have
-@@ -3420,18 +3430,38 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 					ac->nodemask) {
- 		unsigned long available;
- 		unsigned long reclaimable;
-+		int zid;
-+
-+		if (current_pgdat == zone->zone_pgdat)
-+			continue;
- 
--		available = reclaimable = zone_reclaimable_pages(zone);
-+		current_pgdat = zone->zone_pgdat;
-+		available = reclaimable = pgdat_reclaimable_pages(current_pgdat);
- 		available -= DIV_ROUND_UP(no_progress_loops * available,
- 					  MAX_RECLAIM_RETRIES);
--		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
-+
-+		/* Account for all free pages on eligible zones */
-+		for (zid = 0; zid <= zone_idx(zone); zid++) {
-+			struct zone *acct_zone = &current_pgdat->node_zones[zid];
-+
-+			available += zone_page_state_snapshot(acct_zone, NR_FREE_PAGES);
-+		}
- 
- 		/*
- 		 * Would the allocation succeed if we reclaimed the whole
--		 * available?
-+		 * available? This is approximate because there is no
-+		 * accurate count of reclaimable pages per zone.
- 		 */
--		if (__zone_watermark_ok(zone, order, min_wmark_pages(zone),
--				ac_classzone_idx(ac), alloc_flags, available)) {
-+		for (zid = 0; zid <= zone_idx(zone); zid++) {
-+			struct zone *check_zone = &current_pgdat->node_zones[zid];
-+			unsigned long estimate;
-+
-+			estimate = min(check_zone->managed_pages, available);
-+			if (!__zone_watermark_ok(check_zone, order,
-+					min_wmark_pages(check_zone), ac_classzone_idx(ac),
-+					alloc_flags, estimate))
-+				continue;
-+
- 			/*
- 			 * If we didn't make any progress and have a lot of
- 			 * dirty + writeback pages then we should wait for
-@@ -3441,15 +3471,16 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 			if (!did_some_progress) {
- 				unsigned long write_pending;
- 
--				write_pending = zone_page_state_snapshot(zone,
--							NR_ZONE_WRITE_PENDING);
-+				write_pending =
-+					node_page_state(current_pgdat, NR_WRITEBACK) +
-+					node_page_state(current_pgdat, NR_FILE_DIRTY);
- 
- 				if (2 * write_pending > reclaimable) {
- 					congestion_wait(BLK_RW_ASYNC, HZ/10);
- 					return true;
- 				}
- 			}
+-static inline void *nearest_obj(struct kmem_cache *cache, struct page *page,
+-				void *x) {
+-	void *object = x - (x - page->s_mem) % cache->size;
+-	void *last_object = page->s_mem + (cache->num - 1) * cache->size;
 -
-+out:
- 			/*
- 			 * Memory allocation/reclaim might be called from a WQ
- 			 * context and the current implementation of the WQ
-diff -puN mm/vmscan.c~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries mm/vmscan.c
---- a/mm/vmscan.c~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries
-+++ a/mm/vmscan.c
-@@ -194,22 +194,6 @@ static bool sane_reclaim(struct scan_con
- }
- #endif
- 
--/*
-- * This misses isolated pages which are not accounted for to save counters.
-- * As the data only determines if reclaim or compaction continues, it is
-- * not expected that isolated pages will be a dominating factor.
-- */
--unsigned long zone_reclaimable_pages(struct zone *zone)
--{
--	unsigned long nr;
--
--	nr = zone_page_state_snapshot(zone, NR_ZONE_LRU_FILE);
--	if (get_nr_swap_pages() > 0)
--		nr += zone_page_state_snapshot(zone, NR_ZONE_LRU_ANON);
--
--	return nr;
+-	if (unlikely(object > last_object))
+-		return last_object;
+-	else
+-		return object;
 -}
 -
- unsigned long pgdat_reclaimable_pages(struct pglist_data *pgdat)
+ #endif	/* _LINUX_SLAB_DEF_H */
+diff -puN include/linux/slub_def.h~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub include/linux/slub_def.h
+--- a/include/linux/slub_def.h~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub
++++ a/include/linux/slub_def.h
+@@ -104,6 +104,10 @@ struct kmem_cache {
+ 	unsigned int *random_seq;
+ #endif
+ 
++#ifdef CONFIG_KASAN
++	struct kasan_cache kasan_info;
++#endif
++
+ 	struct kmem_cache_node *node[MAX_NUMNODES];
+ };
+ 
+@@ -119,15 +123,4 @@ static inline void sysfs_slab_remove(str
+ void object_err(struct kmem_cache *s, struct page *page,
+ 		u8 *object, char *reason);
+ 
+-static inline void *nearest_obj(struct kmem_cache *cache, struct page *page,
+-				void *x) {
+-	void *object = x - (x - page_address(page)) % cache->size;
+-	void *last_object = page_address(page) +
+-		(page->objects - 1) * cache->size;
+-	if (unlikely(object > last_object))
+-		return last_object;
+-	else
+-		return object;
+-}
+-
+ #endif /* _LINUX_SLUB_DEF_H */
+diff -puN lib/Kconfig.kasan~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub lib/Kconfig.kasan
+--- a/lib/Kconfig.kasan~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub
++++ a/lib/Kconfig.kasan
+@@ -5,9 +5,9 @@ if HAVE_ARCH_KASAN
+ 
+ config KASAN
+ 	bool "KASan: runtime memory debugger"
+-	depends on SLUB_DEBUG || (SLAB && !DEBUG_SLAB)
++	depends on SLUB || (SLAB && !DEBUG_SLAB)
+ 	select CONSTRUCTORS
+-	select STACKDEPOT if SLAB
++	select STACKDEPOT
+ 	help
+ 	  Enables kernel address sanitizer - runtime memory debugger,
+ 	  designed to find out-of-bounds accesses and use-after-free bugs.
+diff -puN mm/kasan/Makefile~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub mm/kasan/Makefile
+--- a/mm/kasan/Makefile~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub
++++ a/mm/kasan/Makefile
+@@ -7,5 +7,4 @@ CFLAGS_REMOVE_kasan.o = -pg
+ # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=63533
+ CFLAGS_kasan.o := $(call cc-option, -fno-conserve-stack -fno-stack-protector)
+ 
+-obj-y := kasan.o report.o kasan_init.o
+-obj-$(CONFIG_SLAB) += quarantine.o
++obj-y := kasan.o report.o kasan_init.o quarantine.o
+diff -puN mm/kasan/kasan.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub
++++ a/mm/kasan/kasan.c
+@@ -351,7 +351,6 @@ void kasan_free_pages(struct page *page,
+ 				KASAN_FREE_PAGE);
+ }
+ 
+-#ifdef CONFIG_SLAB
+ /*
+  * Adaptive redzone policy taken from the userspace AddressSanitizer runtime.
+  * For larger allocations larger redzones are used.
+@@ -373,16 +372,12 @@ void kasan_cache_create(struct kmem_cach
+ 			unsigned long *flags)
  {
- 	unsigned long nr;
-diff -puN mm/vmstat.c~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries
-+++ a/mm/vmstat.c
-@@ -921,9 +921,6 @@ int fragmentation_index(struct zone *zon
- const char * const vmstat_text[] = {
- 	/* enum zone_stat_item countes */
- 	"nr_free_pages",
--	"nr_zone_anon_lru",
--	"nr_zone_file_lru",
--	"nr_zone_write_pending",
- 	"nr_mlock",
- 	"nr_slab_reclaimable",
- 	"nr_slab_unreclaimable",
+ 	int redzone_adjust;
+-	/* Make sure the adjusted size is still less than
+-	 * KMALLOC_MAX_CACHE_SIZE.
+-	 * TODO: this check is only useful for SLAB, but not SLUB. We'll need
+-	 * to skip it for SLUB when it starts using kasan_cache_create().
+-	 */
+-	if (*size > KMALLOC_MAX_CACHE_SIZE -
+-	    sizeof(struct kasan_alloc_meta) -
+-	    sizeof(struct kasan_free_meta))
+-		return;
++#ifdef CONFIG_SLAB
++	int orig_size = *size;
++#endif
++
+ 	*flags |= SLAB_KASAN;
++
+ 	/* Add alloc meta. */
+ 	cache->kasan_info.alloc_meta_offset = *size;
+ 	*size += sizeof(struct kasan_alloc_meta);
+@@ -392,17 +387,35 @@ void kasan_cache_create(struct kmem_cach
+ 	    cache->object_size < sizeof(struct kasan_free_meta)) {
+ 		cache->kasan_info.free_meta_offset = *size;
+ 		*size += sizeof(struct kasan_free_meta);
++	} else {
++		cache->kasan_info.free_meta_offset = 0;
+ 	}
+ 	redzone_adjust = optimal_redzone(cache->object_size) -
+ 		(*size - cache->object_size);
++
+ 	if (redzone_adjust > 0)
+ 		*size += redzone_adjust;
+-	*size = min(KMALLOC_MAX_CACHE_SIZE,
++
++#ifdef CONFIG_SLAB
++	*size = min(KMALLOC_MAX_SIZE,
+ 		    max(*size,
+ 			cache->object_size +
+ 			optimal_redzone(cache->object_size)));
+-}
++	/*
++	 * If the metadata doesn't fit, disable KASAN at all.
++	 */
++	if (*size <= cache->kasan_info.alloc_meta_offset ||
++			*size <= cache->kasan_info.free_meta_offset) {
++		*flags &= ~SLAB_KASAN;
++		*size = orig_size;
++	}
++#else
++	*size = max(*size,
++			cache->object_size +
++			optimal_redzone(cache->object_size));
++
+ #endif
++}
+ 
+ void kasan_cache_shrink(struct kmem_cache *cache)
+ {
+@@ -431,16 +444,13 @@ void kasan_poison_object_data(struct kme
+ 	kasan_poison_shadow(object,
+ 			round_up(cache->object_size, KASAN_SHADOW_SCALE_SIZE),
+ 			KASAN_KMALLOC_REDZONE);
+-#ifdef CONFIG_SLAB
+ 	if (cache->flags & SLAB_KASAN) {
+ 		struct kasan_alloc_meta *alloc_info =
+ 			get_alloc_info(cache, object);
+ 		alloc_info->state = KASAN_STATE_INIT;
+ 	}
+-#endif
+ }
+ 
+-#ifdef CONFIG_SLAB
+ static inline int in_irqentry_text(unsigned long ptr)
+ {
+ 	return (ptr >= (unsigned long)&__irqentry_text_start &&
+@@ -501,7 +511,6 @@ struct kasan_free_meta *get_free_info(st
+ 	BUILD_BUG_ON(sizeof(struct kasan_free_meta) > 32);
+ 	return (void *)object + cache->kasan_info.free_meta_offset;
+ }
+-#endif
+ 
+ void kasan_slab_alloc(struct kmem_cache *cache, void *object, gfp_t flags)
+ {
+@@ -522,16 +531,16 @@ static void kasan_poison_slab_free(struc
+ 
+ bool kasan_slab_free(struct kmem_cache *cache, void *object)
+ {
+-#ifdef CONFIG_SLAB
+ 	/* RCU slabs could be legally used after free within the RCU period */
+ 	if (unlikely(cache->flags & SLAB_DESTROY_BY_RCU))
+ 		return false;
+ 
+ 	if (likely(cache->flags & SLAB_KASAN)) {
+-		struct kasan_alloc_meta *alloc_info =
+-			get_alloc_info(cache, object);
+-		struct kasan_free_meta *free_info =
+-			get_free_info(cache, object);
++		struct kasan_alloc_meta *alloc_info;
++		struct kasan_free_meta *free_info;
++
++		alloc_info = get_alloc_info(cache, object);
++		free_info = get_free_info(cache, object);
+ 
+ 		switch (alloc_info->state) {
+ 		case KASAN_STATE_ALLOC:
+@@ -550,10 +559,6 @@ bool kasan_slab_free(struct kmem_cache *
+ 		}
+ 	}
+ 	return false;
+-#else
+-	kasan_poison_slab_free(cache, object);
+-	return false;
+-#endif
+ }
+ 
+ void kasan_kmalloc(struct kmem_cache *cache, const void *object, size_t size,
+@@ -568,6 +573,9 @@ void kasan_kmalloc(struct kmem_cache *ca
+ 	if (unlikely(object == NULL))
+ 		return;
+ 
++	if (!(cache->flags & SLAB_KASAN))
++		return;
++
+ 	redzone_start = round_up((unsigned long)(object + size),
+ 				KASAN_SHADOW_SCALE_SIZE);
+ 	redzone_end = round_up((unsigned long)object + cache->object_size,
+@@ -576,16 +584,13 @@ void kasan_kmalloc(struct kmem_cache *ca
+ 	kasan_unpoison_shadow(object, size);
+ 	kasan_poison_shadow((void *)redzone_start, redzone_end - redzone_start,
+ 		KASAN_KMALLOC_REDZONE);
+-#ifdef CONFIG_SLAB
+ 	if (cache->flags & SLAB_KASAN) {
+ 		struct kasan_alloc_meta *alloc_info =
+ 			get_alloc_info(cache, object);
+-
+ 		alloc_info->state = KASAN_STATE_ALLOC;
+ 		alloc_info->alloc_size = size;
+ 		set_track(&alloc_info->track, flags);
+ 	}
+-#endif
+ }
+ EXPORT_SYMBOL(kasan_kmalloc);
+ 
+diff -puN mm/kasan/kasan.h~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub
++++ a/mm/kasan/kasan.h
+@@ -110,7 +110,7 @@ static inline bool kasan_report_enabled(
+ void kasan_report(unsigned long addr, size_t size,
+ 		bool is_write, unsigned long ip);
+ 
+-#ifdef CONFIG_SLAB
++#if defined(CONFIG_SLAB) || defined(CONFIG_SLUB)
+ void quarantine_put(struct kasan_free_meta *info, struct kmem_cache *cache);
+ void quarantine_reduce(void);
+ void quarantine_remove_cache(struct kmem_cache *cache);
+diff -puN mm/kasan/report.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub mm/kasan/report.c
+--- a/mm/kasan/report.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub
++++ a/mm/kasan/report.c
+@@ -116,7 +116,6 @@ static inline bool init_task_stack_addr(
+ 			sizeof(init_thread_union.stack));
+ }
+ 
+-#ifdef CONFIG_SLAB
+ static void print_track(struct kasan_track *track)
+ {
+ 	pr_err("PID = %u\n", track->pid);
+@@ -130,8 +129,8 @@ static void print_track(struct kasan_tra
+ 	}
+ }
+ 
+-static void object_err(struct kmem_cache *cache, struct page *page,
+-			void *object, char *unused_reason)
++static void kasan_object_err(struct kmem_cache *cache, struct page *page,
++				void *object, char *unused_reason)
+ {
+ 	struct kasan_alloc_meta *alloc_info = get_alloc_info(cache, object);
+ 	struct kasan_free_meta *free_info;
+@@ -162,7 +161,6 @@ static void object_err(struct kmem_cache
+ 		break;
+ 	}
+ }
+-#endif
+ 
+ static void print_address_description(struct kasan_access_info *info)
+ {
+@@ -177,7 +175,7 @@ static void print_address_description(st
+ 			struct kmem_cache *cache = page->slab_cache;
+ 			object = nearest_obj(cache, page,
+ 						(void *)info->access_addr);
+-			object_err(cache, page, object,
++			kasan_object_err(cache, page, object,
+ 					"kasan: bad access detected");
+ 			return;
+ 		}
+diff -puN mm/slab.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub mm/slab.c
+--- a/mm/slab.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub
++++ a/mm/slab.c
+@@ -4469,3 +4469,14 @@ size_t ksize(const void *objp)
+ 	return size;
+ }
+ EXPORT_SYMBOL(ksize);
++
++void *nearest_obj(struct kmem_cache *cache, struct page *page, void *x)
++{
++	void *object = x - (x - page->s_mem) % cache->size;
++	void *last_object = page->s_mem + (cache->num - 1) * cache->size;
++
++	if (unlikely(object > last_object))
++		return last_object;
++	else
++		return object;
++}
+diff -puN mm/slab.h~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub mm/slab.h
+--- a/mm/slab.h~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub
++++ a/mm/slab.h
+@@ -369,6 +369,8 @@ static inline size_t slab_ksize(const st
+ 	if (s->flags & (SLAB_RED_ZONE | SLAB_POISON))
+ 		return s->object_size;
+ # endif
++	if (s->flags & SLAB_KASAN)
++		return s->object_size;
+ 	/*
+ 	 * If we have the need to store the freelist pointer
+ 	 * back there or track user information then we can
+@@ -471,7 +473,14 @@ void *slab_next(struct seq_file *m, void
+ void slab_stop(struct seq_file *m, void *p);
+ int memcg_slab_show(struct seq_file *m, void *p);
+ 
++void *nearest_obj(struct kmem_cache *cache, struct page *page, void *x);
++
+ void ___cache_free(struct kmem_cache *cache, void *x, unsigned long addr);
++#if defined(CONFIG_SLUB)
++void do_slab_free(struct kmem_cache *s,
++		struct page *page, void *head, void *tail,
++		int cnt, unsigned long addr);
++#endif
+ 
+ #ifdef CONFIG_SLAB_FREELIST_RANDOM
+ int cache_random_seq_create(struct kmem_cache *cachep, unsigned int count,
+diff -puN mm/slub.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub mm/slub.c
+--- a/mm/slub.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub
++++ a/mm/slub.c
+@@ -191,7 +191,11 @@ static inline bool kmem_cache_has_cpu_pa
+ #define MAX_OBJS_PER_PAGE	32767 /* since page.objects is u15 */
+ 
+ /* Internal SLUB flags */
++#ifndef CONFIG_KASAN
+ #define __OBJECT_POISON		0x80000000UL /* Poison object */
++#else
++#define __OBJECT_POISON		0x00000000UL /* Disable object poisoning */
++#endif
+ #define __CMPXCHG_DOUBLE	0x40000000UL /* Use cmpxchg_double */
+ 
+ #ifdef CONFIG_SMP
+@@ -454,8 +458,6 @@ static inline void *restore_red_left(str
+  */
+ #if defined(CONFIG_SLUB_DEBUG_ON)
+ static int slub_debug = DEBUG_DEFAULT_FLAGS;
+-#elif defined(CONFIG_KASAN)
+-static int slub_debug = SLAB_STORE_USER;
+ #else
+ static int slub_debug;
+ #endif
+@@ -1322,7 +1324,7 @@ static inline void kfree_hook(const void
+ 	kasan_kfree_large(x);
+ }
+ 
+-static inline void slab_free_hook(struct kmem_cache *s, void *x)
++static inline bool slab_free_hook(struct kmem_cache *s, void *x)
+ {
+ 	kmemleak_free_recursive(x, s->flags);
+ 
+@@ -1344,11 +1346,11 @@ static inline void slab_free_hook(struct
+ 	if (!(s->flags & SLAB_DEBUG_OBJECTS))
+ 		debug_check_no_obj_freed(x, s->object_size);
+ 
+-	kasan_slab_free(s, x);
++	return kasan_slab_free(s, x);
+ }
+ 
+ static inline void slab_free_freelist_hook(struct kmem_cache *s,
+-					   void *head, void *tail)
++					   void **head, void **tail, int *cnt)
+ {
+ /*
+  * Compiler cannot detect this function can be removed if slab_free_hook()
+@@ -1360,13 +1362,27 @@ static inline void slab_free_freelist_ho
+ 	defined(CONFIG_DEBUG_OBJECTS_FREE) ||	\
+ 	defined(CONFIG_KASAN)
+ 
+-	void *object = head;
+-	void *tail_obj = tail ? : head;
++	void *object = *head, *prev = NULL, *next = NULL;
++	void *tail_obj = *tail ? : *head;
++	bool skip = false;
+ 
+ 	do {
+-		slab_free_hook(s, object);
+-	} while ((object != tail_obj) &&
+-		 (object = get_freepointer(s, object)));
++		skip = slab_free_hook(s, object);
++		next = (object != tail_obj) ?
++			get_freepointer(s, object) : NULL;
++		if (skip) {
++			if (!prev)
++				*head = next;
++			else
++				set_freepointer(s, prev, next);
++			if (object == tail_obj)
++				*tail = prev;
++			(*cnt)--;
++		} else {
++			prev = object;
++		}
++		object = next;
++	} while (next);
+ #endif
+ }
+ 
+@@ -2882,12 +2898,22 @@ static __always_inline void slab_free(st
+ 				      void *head, void *tail, int cnt,
+ 				      unsigned long addr)
+ {
++	void *free_head = head, *free_tail = tail;
++
++	slab_free_freelist_hook(s, &free_head, &free_tail, &cnt);
++	/* slab_free_freelist_hook() could have emptied the freelist. */
++	if (cnt == 0)
++		return;
++	do_slab_free(s, page, free_head, free_tail, cnt, addr);
++}
++
++__always_inline void do_slab_free(struct kmem_cache *s,
++				struct page *page, void *head, void *tail,
++				int cnt, unsigned long addr)
++{
+ 	void *tail_obj = tail ? : head;
+ 	struct kmem_cache_cpu *c;
+ 	unsigned long tid;
+-
+-	slab_free_freelist_hook(s, head, tail);
+-
+ redo:
+ 	/*
+ 	 * Determine the currently cpus per cpu slab.
+@@ -2921,6 +2947,12 @@ redo:
+ 
+ }
+ 
++/* Helper function to be used from qlink_free() in mm/kasan/quarantine.c */
++void ___cache_free(struct kmem_cache *cache, void *x, unsigned long addr)
++{
++	do_slab_free(cache, virt_to_head_page(x), x, NULL, 1, addr);
++}
++
+ void kmem_cache_free(struct kmem_cache *s, void *x)
+ {
+ 	s = cache_from_obj(s, x);
+@@ -3363,7 +3395,7 @@ static void set_min_partial(struct kmem_
+ static int calculate_sizes(struct kmem_cache *s, int forced_order)
+ {
+ 	unsigned long flags = s->flags;
+-	unsigned long size = s->object_size;
++	size_t size = s->object_size;
+ 	int order;
+ 
+ 	/*
+@@ -3422,7 +3454,10 @@ static int calculate_sizes(struct kmem_c
+ 		 * the object.
+ 		 */
+ 		size += 2 * sizeof(struct track);
++#endif
+ 
++	kasan_cache_create(s, &size, &s->flags);
++#ifdef CONFIG_SLUB_DEBUG
+ 	if (flags & SLAB_RED_ZONE) {
+ 		/*
+ 		 * Add some empty padding so that we can catch
+@@ -5706,3 +5741,16 @@ ssize_t slabinfo_write(struct file *file
+ 	return -EIO;
+ }
+ #endif /* CONFIG_SLABINFO */
++
++void *nearest_obj(struct kmem_cache *cache, struct page *page,
++				void *x) {
++	void *object = x - (x - page_address(page)) % cache->size;
++	void *last_object = page_address(page) +
++		(page->objects - 1) * cache->size;
++	void *result = (unlikely(object > last_object)) ? last_object : object;
++
++	if (cache->flags & SLAB_RED_ZONE)
++		return (void *)((char *)result + cache->red_left_pad);
++	else
++		return result;
++}
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from glider@google.com are
 
-mm-meminit-always-return-a-valid-node-from-early_pfn_to_nid.patch
-mm-meminit-ensure-node-is-online-before-checking-whether-pages-are-uninitialised.patch
-mm-meminit-remove-early_page_nid_uninitialised.patch
-mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
-mm-vmscan-move-lru_lock-to-the-node.patch
-mm-vmscan-move-lru-lists-to-node.patch
-mm-mmzone-clarify-the-usage-of-zone-padding.patch
-mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
-mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
-mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
-mm-vmscan-remove-balance-gap.patch
-mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
-mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
-mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
-mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
-mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
-mm-workingset-make-working-set-detection-node-aware.patch
-mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
-mm-move-page-mapped-accounting-to-the-node.patch
-mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
-mm-move-most-file-based-accounting-to-the-node.patch
-mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
-mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
-mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
-mm-convert-zone_reclaim-to-node_reclaim.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
-mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
-mm-vmscan-add-classzone-information-to-tracepoints.patch
-mm-page_alloc-remove-fair-zone-allocation-policy.patch
-mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
-mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
-mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
 
