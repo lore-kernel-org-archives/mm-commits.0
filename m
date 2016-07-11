@@ -1,73 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-improve-recovery-performance-v2.patch added to -mm tree
-Date: Fri, 08 Jul 2016 14:45:29 -0700
-Message-ID: <57801ef9.+vFOYw/0btEnGO+y%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 11 Jul 2016 11:10:58 -0700
+Message-ID: <5783e132.sfH0N4qL3CCHCiLo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43707 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39256 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751658AbcGHVpa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jul 2016 17:45:30 -0400
+	with ESMTP id S1751535AbcGKSLA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 14:11:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-improve-recovery-performance-v2
-has been added to the -mm tree.  Its filename is
-     ocfs2-improve-recovery-performance-v2.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-improve-recovery-performance-v2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-improve-recovery-performance-v2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2-improve-recovery-performance-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Link: http://lkml.kernel.org/r/1467858288-4159-1-git-send-email-junxiao.bi@oracle.com
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: "Gang He" <ghe@suse.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm64/mm/fault.c |    6 ------
+ kernel/sched/fair.c   |    4 ----
+ 2 files changed, 10 deletions(-)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-improve-recovery-performance-v2 fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-improve-recovery-performance-v2
-+++ a/fs/ocfs2/journal.c
-@@ -1194,6 +1194,7 @@ static int ocfs2_force_read_journal(stru
+diff -puN arch/arm64/mm/fault.c~linux-next-git-rejects arch/arm64/mm/fault.c
+--- a/arch/arm64/mm/fault.c~linux-next-git-rejects
++++ a/arch/arm64/mm/fault.c
+@@ -282,14 +282,8 @@ static int __kprobes do_page_fault(unsig
+ 		mm_flags |= FAULT_FLAG_WRITE;
+ 	}
  
- 			brelse(bh);
- 			bh = NULL;
-+			p_blkno++;
- 		}
+-<<<<<<< HEAD
+-	if (permission_fault(esr) && (addr < USER_DS)) {
+-		/* regs->orig_addr_limit may be 0 if we entered from EL0 */
+-		if (regs->orig_addr_limit == KERNEL_DS)
+-=======
+ 	if (is_permission_fault(esr) && (addr < USER_DS)) {
+ 		if (get_fs() == KERNEL_DS)
+->>>>>>> linux-next/akpm-base
+ 			die("Accessing user space memory with fs=KERNEL_DS", regs, esr);
  
- 		v_blkno += p_blocks;
+ 		if (!search_exception_tables(regs->pc))
+diff -puN kernel/sched/fair.c~linux-next-git-rejects kernel/sched/fair.c
+--- a/kernel/sched/fair.c~linux-next-git-rejects
++++ a/kernel/sched/fair.c
+@@ -765,11 +765,7 @@ void post_init_entity_util_avg(struct sc
+ 		update_tg_load_avg(cfs_rq, false);
+ }
+ 
+-<<<<<<< HEAD
+-#else
+-=======
+ #else /* !CONFIG_SMP */
+->>>>>>> linux-next/akpm-base
+ void init_entity_runnable_average(struct sched_entity *se)
+ {
+ }
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-improve-recovery-performance.patch
-ocfs2-improve-recovery-performance-v2.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-improve-recovery-performance-v2-fix.patch
+mm.patch
+mm-reorganize-slab-freelist-randomization-fix.patch
+mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
+mm-compaction-split-freepages-without-holding-the-zone-lock-fix-2.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+mm-fix-build-warnings-in-linux-compactionh-fix.patch
+mm-update-the-comment-in-__isolate_free_page-checkpatch-fixes.patch
+mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes.patch
+nvme-dont-allocate-unused-nvme_major-fix.patch
+treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
+printk-create-pr_level-functions-fix.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+bitmap-bitmap_equal-memcmp-optimization-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
