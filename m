@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sh-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to
- -mm tree
-Date: Mon, 11 Jul 2016 15:15:25 -0700
-Message-ID: <57841a7d.soF6FfmSZ+S1WRmp%akpm@linux-foundation.org>
+Subject: + tile-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to -mm tree
+Date: Mon, 11 Jul 2016 15:15:29 -0700
+Message-ID: <57841a81.lhRxao2yuwDtgvLF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43717 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43721 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932075AbcGKWP0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:26 -0400
+	with ESMTP id S932075AbcGKWPa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: dma-mapping: use unsigned long for dma_attrs
+     Subject: tile: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     sh-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     tile-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tile-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tile-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,78 +39,147 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: sh: dma-mapping: use unsigned long for dma_attrs
+Subject: tile: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1467275171-6298-38-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1467275171-6298-40-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/dma-mapping.h |    4 ++--
- arch/sh/kernel/dma-nommu.c        |    4 ++--
- arch/sh/mm/consistent.c           |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ arch/tile/kernel/pci-dma.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN arch/sh/include/asm/dma-mapping.h~sh-dma-mapping-use-unsigned-long-for-dma_attrs arch/sh/include/asm/dma-mapping.h
---- a/arch/sh/include/asm/dma-mapping.h~sh-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/sh/include/asm/dma-mapping.h
-@@ -17,9 +17,9 @@ void dma_cache_sync(struct device *dev,
- /* arch/sh/mm/consistent.c */
- extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
- 					dma_addr_t *dma_addr, gfp_t flag,
--					struct dma_attrs *attrs);
-+					unsigned long attrs);
- extern void dma_generic_free_coherent(struct device *dev, size_t size,
- 				      void *vaddr, dma_addr_t dma_handle,
--				      struct dma_attrs *attrs);
-+				      unsigned long attrs);
+diff -puN arch/tile/kernel/pci-dma.c~tile-dma-mapping-use-unsigned-long-for-dma_attrs arch/tile/kernel/pci-dma.c
+--- a/arch/tile/kernel/pci-dma.c~tile-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/tile/kernel/pci-dma.c
+@@ -34,7 +34,7 @@
  
- #endif /* __ASM_SH_DMA_MAPPING_H */
-diff -puN arch/sh/kernel/dma-nommu.c~sh-dma-mapping-use-unsigned-long-for-dma_attrs arch/sh/kernel/dma-nommu.c
---- a/arch/sh/kernel/dma-nommu.c~sh-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/sh/kernel/dma-nommu.c
-@@ -13,7 +13,7 @@
- static dma_addr_t nommu_map_page(struct device *dev, struct page *page,
- 				 unsigned long offset, size_t size,
- 				 enum dma_data_direction dir,
--				 struct dma_attrs *attrs)
-+				 unsigned long attrs)
+ static void *tile_dma_alloc_coherent(struct device *dev, size_t size,
+ 				     dma_addr_t *dma_handle, gfp_t gfp,
+-				     struct dma_attrs *attrs)
++				     unsigned long attrs)
  {
- 	dma_addr_t addr = page_to_phys(page) + offset;
- 
-@@ -25,7 +25,7 @@ static dma_addr_t nommu_map_page(struct
- 
- static int nommu_map_sg(struct device *dev, struct scatterlist *sg,
- 			int nents, enum dma_data_direction dir,
--			struct dma_attrs *attrs)
-+			unsigned long attrs)
+ 	u64 dma_mask = (dev && dev->coherent_dma_mask) ?
+ 		dev->coherent_dma_mask : DMA_BIT_MASK(32);
+@@ -78,7 +78,7 @@ static void *tile_dma_alloc_coherent(str
+  */
+ static void tile_dma_free_coherent(struct device *dev, size_t size,
+ 				   void *vaddr, dma_addr_t dma_handle,
+-				   struct dma_attrs *attrs)
++				   unsigned long attrs)
  {
- 	struct scatterlist *s;
+ 	homecache_free_pages((unsigned long)vaddr, get_order(size));
+ }
+@@ -202,7 +202,7 @@ static void __dma_complete_pa_range(dma_
+ 
+ static int tile_dma_map_sg(struct device *dev, struct scatterlist *sglist,
+ 			   int nents, enum dma_data_direction direction,
+-			   struct dma_attrs *attrs)
++			   unsigned long attrs)
+ {
+ 	struct scatterlist *sg;
  	int i;
-diff -puN arch/sh/mm/consistent.c~sh-dma-mapping-use-unsigned-long-for-dma_attrs arch/sh/mm/consistent.c
---- a/arch/sh/mm/consistent.c~sh-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/sh/mm/consistent.c
-@@ -34,7 +34,7 @@ fs_initcall(dma_init);
+@@ -224,7 +224,7 @@ static int tile_dma_map_sg(struct device
  
- void *dma_generic_alloc_coherent(struct device *dev, size_t size,
- 				 dma_addr_t *dma_handle, gfp_t gfp,
--				 struct dma_attrs *attrs)
-+				 unsigned long attrs)
+ static void tile_dma_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 			      int nents, enum dma_data_direction direction,
+-			      struct dma_attrs *attrs)
++			      unsigned long attrs)
  {
- 	void *ret, *ret_nocache;
- 	int order = get_order(size);
-@@ -66,7 +66,7 @@ void *dma_generic_alloc_coherent(struct
+ 	struct scatterlist *sg;
+ 	int i;
+@@ -240,7 +240,7 @@ static void tile_dma_unmap_sg(struct dev
+ static dma_addr_t tile_dma_map_page(struct device *dev, struct page *page,
+ 				    unsigned long offset, size_t size,
+ 				    enum dma_data_direction direction,
+-				    struct dma_attrs *attrs)
++				    unsigned long attrs)
+ {
+ 	BUG_ON(!valid_dma_direction(direction));
  
- void dma_generic_free_coherent(struct device *dev, size_t size,
- 			       void *vaddr, dma_addr_t dma_handle,
+@@ -252,7 +252,7 @@ static dma_addr_t tile_dma_map_page(stru
+ 
+ static void tile_dma_unmap_page(struct device *dev, dma_addr_t dma_address,
+ 				size_t size, enum dma_data_direction direction,
+-				struct dma_attrs *attrs)
++				unsigned long attrs)
+ {
+ 	BUG_ON(!valid_dma_direction(direction));
+ 
+@@ -343,7 +343,7 @@ EXPORT_SYMBOL(tile_dma_map_ops);
+ 
+ static void *tile_pci_dma_alloc_coherent(struct device *dev, size_t size,
+ 					 dma_addr_t *dma_handle, gfp_t gfp,
+-					 struct dma_attrs *attrs)
++					 unsigned long attrs)
+ {
+ 	int node = dev_to_node(dev);
+ 	int order = get_order(size);
+@@ -368,14 +368,14 @@ static void *tile_pci_dma_alloc_coherent
+  */
+ static void tile_pci_dma_free_coherent(struct device *dev, size_t size,
+ 				       void *vaddr, dma_addr_t dma_handle,
+-				       struct dma_attrs *attrs)
++				       unsigned long attrs)
+ {
+ 	homecache_free_pages((unsigned long)vaddr, get_order(size));
+ }
+ 
+ static int tile_pci_dma_map_sg(struct device *dev, struct scatterlist *sglist,
+ 			       int nents, enum dma_data_direction direction,
 -			       struct dma_attrs *attrs)
 +			       unsigned long attrs)
  {
- 	int order = get_order(size);
- 	unsigned long pfn = dma_handle >> PAGE_SHIFT;
+ 	struct scatterlist *sg;
+ 	int i;
+@@ -400,7 +400,7 @@ static int tile_pci_dma_map_sg(struct de
+ static void tile_pci_dma_unmap_sg(struct device *dev,
+ 				  struct scatterlist *sglist, int nents,
+ 				  enum dma_data_direction direction,
+-				  struct dma_attrs *attrs)
++				  unsigned long attrs)
+ {
+ 	struct scatterlist *sg;
+ 	int i;
+@@ -416,7 +416,7 @@ static void tile_pci_dma_unmap_sg(struct
+ static dma_addr_t tile_pci_dma_map_page(struct device *dev, struct page *page,
+ 					unsigned long offset, size_t size,
+ 					enum dma_data_direction direction,
+-					struct dma_attrs *attrs)
++					unsigned long attrs)
+ {
+ 	BUG_ON(!valid_dma_direction(direction));
+ 
+@@ -429,7 +429,7 @@ static dma_addr_t tile_pci_dma_map_page(
+ static void tile_pci_dma_unmap_page(struct device *dev, dma_addr_t dma_address,
+ 				    size_t size,
+ 				    enum dma_data_direction direction,
+-				    struct dma_attrs *attrs)
++				    unsigned long attrs)
+ {
+ 	BUG_ON(!valid_dma_direction(direction));
+ 
+@@ -531,7 +531,7 @@ EXPORT_SYMBOL(gx_pci_dma_map_ops);
+ #ifdef CONFIG_SWIOTLB
+ static void *tile_swiotlb_alloc_coherent(struct device *dev, size_t size,
+ 					 dma_addr_t *dma_handle, gfp_t gfp,
+-					 struct dma_attrs *attrs)
++					 unsigned long attrs)
+ {
+ 	gfp |= GFP_DMA;
+ 	return swiotlb_alloc_coherent(dev, size, dma_handle, gfp);
+@@ -539,7 +539,7 @@ static void *tile_swiotlb_alloc_coherent
+ 
+ static void tile_swiotlb_free_coherent(struct device *dev, size_t size,
+ 				       void *vaddr, dma_addr_t dma_addr,
+-				       struct dma_attrs *attrs)
++				       unsigned long attrs)
+ {
+ 	swiotlb_free_coherent(dev, size, vaddr, dma_addr);
+ }
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
