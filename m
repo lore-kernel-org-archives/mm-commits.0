@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + c6x-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to
+Subject: + arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to
  -mm tree
-Date: Mon, 11 Jul 2016 15:14:27 -0700
-Message-ID: <57841a43.eidZgA0/mg1gFhZf%akpm@linux-foundation.org>
+Date: Mon, 11 Jul 2016 15:14:17 -0700
+Message-ID: <57841a39.7k2YnpEsGlBl8+JK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43652 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43638 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042AbcGKWO2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:14:28 -0400
+	with ESMTP id S1750767AbcGKWOS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:14:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, msalter@redhat.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: c6x: dma-mapping: use unsigned long for dma_attrs
+     Subject: arc: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     c6x-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/c6x-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/c6x-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,95 +40,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: c6x: dma-mapping: use unsigned long for dma_attrs
+Subject: arc: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1467275171-6298-8-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1467275171-6298-3-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Mark Salter <msalter@redhat.com> [c6x]
+Acked-by: Vineet Gupta <vgupta@synopsys.com> [arc]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/c6x/include/asm/dma-mapping.h |    4 ++--
- arch/c6x/kernel/dma.c              |    9 ++++-----
- arch/c6x/mm/dma-coherent.c         |    4 ++--
- 3 files changed, 8 insertions(+), 9 deletions(-)
+ arch/arc/mm/dma.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/c6x/include/asm/dma-mapping.h~c6x-dma-mapping-use-unsigned-long-for-dma_attrs arch/c6x/include/asm/dma-mapping.h
---- a/arch/c6x/include/asm/dma-mapping.h~c6x-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/c6x/include/asm/dma-mapping.h
-@@ -26,8 +26,8 @@ static inline struct dma_map_ops *get_dm
+diff -puN arch/arc/mm/dma.c~arc-dma-mapping-use-unsigned-long-for-dma_attrs arch/arc/mm/dma.c
+--- a/arch/arc/mm/dma.c~arc-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/arc/mm/dma.c
+@@ -22,7 +22,7 @@
  
- extern void coherent_mem_init(u32 start, u32 size);
- void *c6x_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
--		gfp_t gfp, struct dma_attrs *attrs);
-+		gfp_t gfp, unsigned long attrs);
- void c6x_dma_free(struct device *dev, size_t size, void *vaddr,
--		dma_addr_t dma_handle, struct dma_attrs *attrs);
-+		dma_addr_t dma_handle, unsigned long attrs);
  
- #endif	/* _ASM_C6X_DMA_MAPPING_H */
-diff -puN arch/c6x/kernel/dma.c~c6x-dma-mapping-use-unsigned-long-for-dma_attrs arch/c6x/kernel/dma.c
---- a/arch/c6x/kernel/dma.c~c6x-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/c6x/kernel/dma.c
-@@ -38,7 +38,7 @@ static void c6x_dma_sync(dma_addr_t hand
+ static void *arc_dma_alloc(struct device *dev, size_t size,
+-		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
++		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+ 	unsigned long order = get_order(size);
+ 	struct page *page;
+@@ -90,7 +90,7 @@ static void *arc_dma_alloc(struct device
+ }
  
- static dma_addr_t c6x_dma_map_page(struct device *dev, struct page *page,
+ static void arc_dma_free(struct device *dev, size_t size, void *vaddr,
+-		dma_addr_t dma_handle, struct dma_attrs *attrs)
++		dma_addr_t dma_handle, unsigned long attrs)
+ {
+ 	struct page *page = virt_to_page(dma_handle);
+ 	int is_non_coh = 1;
+@@ -129,7 +129,7 @@ static void _dma_cache_sync(phys_addr_t
+ 
+ static dma_addr_t arc_dma_map_page(struct device *dev, struct page *page,
  		unsigned long offset, size_t size, enum dma_data_direction dir,
 -		struct dma_attrs *attrs)
 +		unsigned long attrs)
  {
- 	dma_addr_t handle = virt_to_phys(page_address(page) + offset);
- 
-@@ -47,13 +47,13 @@ static dma_addr_t c6x_dma_map_page(struc
+ 	phys_addr_t paddr = page_to_phys(page) + offset;
+ 	_dma_cache_sync(paddr, size, dir);
+@@ -137,7 +137,7 @@ static dma_addr_t arc_dma_map_page(struc
  }
  
- static void c6x_dma_unmap_page(struct device *dev, dma_addr_t handle,
--		size_t size, enum dma_data_direction dir, struct dma_attrs *attrs)
-+		size_t size, enum dma_data_direction dir, unsigned long attrs)
+ static int arc_dma_map_sg(struct device *dev, struct scatterlist *sg,
+-	   int nents, enum dma_data_direction dir, struct dma_attrs *attrs)
++	   int nents, enum dma_data_direction dir, unsigned long attrs)
  {
- 	c6x_dma_sync(handle, size, dir);
- }
- 
- static int c6x_dma_map_sg(struct device *dev, struct scatterlist *sglist,
--		int nents, enum dma_data_direction dir, struct dma_attrs *attrs)
-+		int nents, enum dma_data_direction dir, unsigned long attrs)
- {
- 	struct scatterlist *sg;
+ 	struct scatterlist *s;
  	int i;
-@@ -67,8 +67,7 @@ static int c6x_dma_map_sg(struct device
- }
- 
- static void c6x_dma_unmap_sg(struct device *dev, struct scatterlist *sglist,
--		  int nents, enum dma_data_direction dir,
--		  struct dma_attrs *attrs)
-+		  int nents, enum dma_data_direction dir, unsigned long attrs)
- {
- 	struct scatterlist *sg;
- 	int i;
-diff -puN arch/c6x/mm/dma-coherent.c~c6x-dma-mapping-use-unsigned-long-for-dma_attrs arch/c6x/mm/dma-coherent.c
---- a/arch/c6x/mm/dma-coherent.c~c6x-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/c6x/mm/dma-coherent.c
-@@ -74,7 +74,7 @@ static void __free_dma_pages(u32 addr, i
-  * virtual and DMA address for that space.
-  */
- void *c6x_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
--		gfp_t gfp, struct dma_attrs *attrs)
-+		gfp_t gfp, unsigned long attrs)
- {
- 	u32 paddr;
- 	int order;
-@@ -99,7 +99,7 @@ void *c6x_dma_alloc(struct device *dev,
-  * Free DMA coherent memory as defined by the above mapping.
-  */
- void c6x_dma_free(struct device *dev, size_t size, void *vaddr,
--		dma_addr_t dma_handle, struct dma_attrs *attrs)
-+		dma_addr_t dma_handle, unsigned long attrs)
- {
- 	int order;
- 
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
