@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix.patch
- added to -mm tree
-Date: Mon, 11 Jul 2016 13:01:32 -0700
-Message-ID: <5783fb1c.3F6s6ueL92NblaWe%akpm@linux-foundation.org>
+ ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3.patch added to -mm tree
+Date: Mon, 11 Jul 2016 14:26:41 -0700
+Message-ID: <57840f11.9QKeigLgJ8NIbQLp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41513 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43289 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750775AbcGKUBd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 16:01:33 -0400
+	with ESMTP id S1750962AbcGKV0m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 17:26:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: zren@suse.com, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: prevent VM_BUG_ON when terminating freeing scanner fix
+     Subject: ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3
 has been added to the -mm tree.  Its filename is
-     mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix.patch
+     ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, compaction: prevent VM_BUG_ON when terminating freeing scanner fix
+From: Eric Ren <zren@suse.com>
+Subject: ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3
 
-Per Joonsoo.
+v3:
+1. Also need to lock allocator inode when "= 0" is returned from
+ocfs2_schedule_truncate_log_flush(), which means no space really.
+-- spotted by Joseph Qi
 
-An artifact of __isolate_free_page() doing per-zone watermark checks (?),
-we don't want to rescan pages in a pageblock that were not successfully
-isolated last time.
-
-Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1607111244150.83138@chino.kir.corp.google.com
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/1468031546-4797-1-git-send-email-zren@suse.com
+Signed-off-by: Eric Ren <zren@suse.com>
+Cc: Gang He <ghe@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ocfs2/suballoc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix mm/compaction.c
---- a/mm/compaction.c~mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix
-+++ a/mm/compaction.c
-@@ -1055,7 +1055,6 @@ static void isolate_freepages(struct com
- 			 * If isolation failed early, do not continue
- 			 * needlessly.
- 			 */
--			isolate_start_pfn = block_start_pfn;
- 			break;
+diff -puN fs/ocfs2/suballoc.c~ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3 fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3
++++ a/fs/ocfs2/suballoc.c
+@@ -1204,6 +1204,9 @@ retry:
+ 
+ 			if (ret < 0)
+ 				mlog_errno(ret);
++
++			inode_lock((*ac)->ac_inode);
++			ocfs2_inode_lock((*ac)->ac_inode, NULL, 1);
  		}
- 	}
+ 		if (status < 0) {
+ 			if (status != -ENOSPC)
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from zren@suse.com are
 
-mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner.patch
-mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix.patch
-mm-compaction-split-freepages-without-holding-the-zone-lock-fix.patch
+ocfs2-fix-a-redundant-re-initialization.patch
+ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log.patch
+ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3.patch
 
