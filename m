@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + vmlinuxlds-account-for-destructor-sections.patch added to -mm
- tree
-Date: Mon, 11 Jul 2016 14:45:39 -0700
-Message-ID: <57841383.BNiX++mkcr4Rs34X%akpm@linux-foundation.org>
+Subject: + ocfs2-cleanup-implemented-prototypes.patch added to -mm tree
+Date: Mon, 11 Jul 2016 14:46:59 -0700
+Message-ID: <578413d3.ooeovJ3tjS9Nm02n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43346 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43352 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751828AbcGKVpk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 17:45:40 -0400
+	with ESMTP id S1751887AbcGKVrA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 17:47:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, aryabinin@virtuozzo.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmlinux.lds: account for destructor sections
+     Subject: ocfs2: cleanup implemented prototypes
 has been added to the -mm tree.  Its filename is
-     vmlinuxlds-account-for-destructor-sections.patch
+     ocfs2-cleanup-implemented-prototypes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmlinuxlds-account-for-destructor-sections.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-cleanup-implemented-prototypes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmlinuxlds-account-for-destructor-sections.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-cleanup-implemented-prototypes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,85 +38,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: vmlinux.lds: account for destructor sections
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: cleanup implemented prototypes
 
-If CONFIG_KASAN is enabled and gcc is configured with
---disable-initfini-array and/or gold linker is used, gcc emits
-.ctors/.dtors and .text.startup/.text.exit sections instead of
-.init_array/.fini_array.  .dtors section is not explicitly accounted in
-the linker script and messes vvar/percpu layout.  Want:
+Several prototypes in inode.h are just defined but not actually
+implemented and used, so remove them.
 
-ffffffff822bfd80 D _edata
-ffffffff822c0000 D __vvar_beginning_hack
-ffffffff822c0000 A __vvar_page
-ffffffff822c0080 0000000000000098 D vsyscall_gtod_data
-ffffffff822c1000 A __init_begin
-ffffffff822c1000 D init_per_cpu__irq_stack_union
-ffffffff822c1000 A __per_cpu_load
-ffffffff822d3000 D init_per_cpu__gdt_page
-
-Got:
-
-ffffffff8279a600 D _edata
-ffffffff8279b000 A __vvar_page
-ffffffff8279c000 A __init_begin
-ffffffff8279c000 D init_per_cpu__irq_stack_union
-ffffffff8279c000 A __per_cpu_load
-ffffffff8279e000 D __vvar_beginning_hack
-ffffffff8279e080 0000000000000098 D vsyscall_gtod_data
-ffffffff827ae000 D init_per_cpu__gdt_page
-
-This happens because __vvar_page and .vvar get different
-addresses in arch/x86/kernel/vmlinux.lds.S:
-
-	. = ALIGN(PAGE_SIZE);
-	__vvar_page = .;
-
-	.vvar : AT(ADDR(.vvar) - LOAD_OFFSET) {
-		/* work around gold bug 13023 */
-		__vvar_beginning_hack = .;
-
-Discard .dtors/.fini_array/.text.exit, since we don't call dtors.
-Merge .text.startup into init text.
-
-Link: http://lkml.kernel.org/r/1467386363-120030-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: <stable@vger.kernel.org>	[4.0+]
+Link: http://lkml.kernel.org/r/57763787.4020706@huawei.com
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/ocfs2/inode.h |    7 -------
+ fs/ocfs2/super.c |    1 -
+ 2 files changed, 8 deletions(-)
 
-diff -puN include/asm-generic/vmlinux.lds.h~vmlinuxlds-account-for-destructor-sections include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~vmlinuxlds-account-for-destructor-sections
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -542,15 +542,19 @@
+diff -puN fs/ocfs2/inode.h~ocfs2-cleanup-implemented-prototypes fs/ocfs2/inode.h
+--- a/fs/ocfs2/inode.h~ocfs2-cleanup-implemented-prototypes
++++ a/fs/ocfs2/inode.h
+@@ -145,22 +145,15 @@ int ocfs2_drop_inode(struct inode *inode
+ struct inode *ocfs2_ilookup(struct super_block *sb, u64 feoff);
+ struct inode *ocfs2_iget(struct ocfs2_super *osb, u64 feoff, unsigned flags,
+ 			 int sysfile_type);
+-int ocfs2_inode_init_private(struct inode *inode);
+ int ocfs2_inode_revalidate(struct dentry *dentry);
+ void ocfs2_populate_inode(struct inode *inode, struct ocfs2_dinode *fe,
+ 			  int create_ino);
+-void ocfs2_read_inode(struct inode *inode);
+-void ocfs2_read_inode2(struct inode *inode, void *opaque);
+-ssize_t ocfs2_rw_direct(int rw, struct file *filp, char *buf,
+-			size_t size, loff_t *offp);
+ void ocfs2_sync_blockdev(struct super_block *sb);
+ void ocfs2_refresh_inode(struct inode *inode,
+ 			 struct ocfs2_dinode *fe);
+ int ocfs2_mark_inode_dirty(handle_t *handle,
+ 			   struct inode *inode,
+ 			   struct buffer_head *bh);
+-struct buffer_head *ocfs2_bread(struct inode *inode,
+-				int block, int *err, int reada);
  
- #define INIT_TEXT							\
- 	*(.init.text)							\
-+	*(.text.startup)						\
- 	MEM_DISCARD(init.text)
+ void ocfs2_set_inode_flags(struct inode *inode);
+ void ocfs2_get_inode_flags(struct ocfs2_inode_info *oi);
+diff -puN fs/ocfs2/super.c~ocfs2-cleanup-implemented-prototypes fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-cleanup-implemented-prototypes
++++ a/fs/ocfs2/super.c
+@@ -2072,7 +2072,6 @@ static int ocfs2_initialize_super(struct
+ 	osb->osb_dx_seed[3] = le32_to_cpu(di->id2.i_super.s_uuid_hash);
  
- #define EXIT_DATA							\
- 	*(.exit.data)							\
-+	*(.fini_array)							\
-+	*(.dtors)							\
- 	MEM_DISCARD(exit.data)						\
- 	MEM_DISCARD(exit.rodata)
+ 	osb->sb = sb;
+-	/* Save off for ocfs2_rw_direct */
+ 	osb->s_sectsize_bits = blksize_bits(sector_size);
+ 	BUG_ON(!osb->s_sectsize_bits);
  
- #define EXIT_TEXT							\
- 	*(.exit.text)							\
-+	*(.text.exit)							\
- 	MEM_DISCARD(exit.text)
- 
- #define EXIT_CALL							\
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-kasan-add-newline-to-messages.patch
-vmlinuxlds-account-for-destructor-sections.patch
+ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks.patch
+ocfs2-dlm-fix-memory-leak-of-dlm_debug_ctxt.patch
+ocfs2-cleanup-implemented-prototypes.patch
 
