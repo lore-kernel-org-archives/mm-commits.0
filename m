@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + iommu-dma-mapping-use-unsigned-long-for-dma_attrs.patch added
- to -mm tree
-Date: Mon, 11 Jul 2016 15:14:45 -0700
-Message-ID: <57841a55.53JpuU0ZwyT2VOkt%akpm@linux-foundation.org>
+Subject: + m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to -mm tree
+Date: Mon, 11 Jul 2016 15:15:05 -0700
+Message-ID: <57841a69.Ru+BR0L5KWjERw+o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43671 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43696 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753012AbcGKWOq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:14:46 -0400
+	with ESMTP id S1753301AbcGKWPG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iommu: dma-mapping: use unsigned long for dma_attrs
+     Subject: m68k: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     iommu-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/iommu-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/iommu-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,132 +39,77 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: iommu: dma-mapping: use unsigned long for dma_attrs
+Subject: m68k: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1467275171-6298-17-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1467275171-6298-28-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> [m68k]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/amd_iommu.c |   12 ++++++------
- drivers/iommu/dma-iommu.c |    6 +++---
- include/linux/dma-iommu.h |    6 +++---
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ arch/m68k/kernel/dma.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/iommu/amd_iommu.c~iommu-dma-mapping-use-unsigned-long-for-dma_attrs drivers/iommu/amd_iommu.c
---- a/drivers/iommu/amd_iommu.c~iommu-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/iommu/amd_iommu.c
-@@ -2716,7 +2716,7 @@ static void __unmap_single(struct dma_op
- static dma_addr_t map_page(struct device *dev, struct page *page,
- 			   unsigned long offset, size_t size,
- 			   enum dma_data_direction dir,
--			   struct dma_attrs *attrs)
-+			   unsigned long attrs)
- {
- 	phys_addr_t paddr = page_to_phys(page) + offset;
- 	struct protection_domain *domain;
-@@ -2738,7 +2738,7 @@ static dma_addr_t map_page(struct device
-  * The exported unmap_single function for dma_ops.
-  */
- static void unmap_page(struct device *dev, dma_addr_t dma_addr, size_t size,
--		       enum dma_data_direction dir, struct dma_attrs *attrs)
-+		       enum dma_data_direction dir, unsigned long attrs)
- {
- 	struct protection_domain *domain;
+diff -puN arch/m68k/kernel/dma.c~m68k-dma-mapping-use-unsigned-long-for-dma_attrs arch/m68k/kernel/dma.c
+--- a/arch/m68k/kernel/dma.c~m68k-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/m68k/kernel/dma.c
+@@ -19,7 +19,7 @@
+ #if defined(CONFIG_MMU) && !defined(CONFIG_COLDFIRE)
  
-@@ -2755,7 +2755,7 @@ static void unmap_page(struct device *de
-  */
- static int map_sg(struct device *dev, struct scatterlist *sglist,
- 		  int nelems, enum dma_data_direction dir,
--		  struct dma_attrs *attrs)
-+		  unsigned long attrs)
+ static void *m68k_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
+-		gfp_t flag, struct dma_attrs *attrs)
++		gfp_t flag, unsigned long attrs)
  {
- 	struct protection_domain *domain;
+ 	struct page *page, **map;
+ 	pgprot_t pgprot;
+@@ -62,7 +62,7 @@ static void *m68k_dma_alloc(struct devic
+ }
+ 
+ static void m68k_dma_free(struct device *dev, size_t size, void *addr,
+-		dma_addr_t handle, struct dma_attrs *attrs)
++		dma_addr_t handle, unsigned long attrs)
+ {
+ 	pr_debug("dma_free_coherent: %p, %x\n", addr, handle);
+ 	vfree(addr);
+@@ -73,7 +73,7 @@ static void m68k_dma_free(struct device
+ #include <asm/cacheflush.h>
+ 
+ static void *m68k_dma_alloc(struct device *dev, size_t size,
+-		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
++		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+ 	void *ret;
+ 	/* ignore region specifiers */
+@@ -91,7 +91,7 @@ static void *m68k_dma_alloc(struct devic
+ }
+ 
+ static void m68k_dma_free(struct device *dev, size_t size, void *vaddr,
+-		dma_addr_t dma_handle, struct dma_attrs *attrs)
++		dma_addr_t dma_handle, unsigned long attrs)
+ {
+ 	free_pages((unsigned long)vaddr, get_order(size));
+ }
+@@ -130,7 +130,7 @@ static void m68k_dma_sync_sg_for_device(
+ 
+ static dma_addr_t m68k_dma_map_page(struct device *dev, struct page *page,
+ 		unsigned long offset, size_t size, enum dma_data_direction dir,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
+ {
+ 	dma_addr_t handle = page_to_phys(page) + offset;
+ 
+@@ -139,7 +139,7 @@ static dma_addr_t m68k_dma_map_page(stru
+ }
+ 
+ static int m68k_dma_map_sg(struct device *dev, struct scatterlist *sglist,
+-		int nents, enum dma_data_direction dir, struct dma_attrs *attrs)
++		int nents, enum dma_data_direction dir, unsigned long attrs)
+ {
  	int i;
-@@ -2803,7 +2803,7 @@ unmap:
-  */
- static void unmap_sg(struct device *dev, struct scatterlist *sglist,
- 		     int nelems, enum dma_data_direction dir,
--		     struct dma_attrs *attrs)
-+		     unsigned long attrs)
- {
- 	struct protection_domain *domain;
- 	struct scatterlist *s;
-@@ -2825,7 +2825,7 @@ static void unmap_sg(struct device *dev,
-  */
- static void *alloc_coherent(struct device *dev, size_t size,
- 			    dma_addr_t *dma_addr, gfp_t flag,
--			    struct dma_attrs *attrs)
-+			    unsigned long attrs)
- {
- 	u64 dma_mask = dev->coherent_dma_mask;
- 	struct protection_domain *domain;
-@@ -2879,7 +2879,7 @@ out_free:
-  */
- static void free_coherent(struct device *dev, size_t size,
- 			  void *virt_addr, dma_addr_t dma_addr,
--			  struct dma_attrs *attrs)
-+			  unsigned long attrs)
- {
- 	struct protection_domain *domain;
- 	struct page *page;
-diff -puN drivers/iommu/dma-iommu.c~iommu-dma-mapping-use-unsigned-long-for-dma_attrs drivers/iommu/dma-iommu.c
---- a/drivers/iommu/dma-iommu.c~iommu-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/iommu/dma-iommu.c
-@@ -286,7 +286,7 @@ void iommu_dma_free(struct device *dev,
-  *	   or NULL on failure.
-  */
- struct page **iommu_dma_alloc(struct device *dev, size_t size, gfp_t gfp,
--		struct dma_attrs *attrs, int prot, dma_addr_t *handle,
-+		unsigned long attrs, int prot, dma_addr_t *handle,
- 		void (*flush_page)(struct device *, const void *, phys_addr_t))
- {
- 	struct iommu_domain *domain = iommu_get_domain_for_dev(dev);
-@@ -400,7 +400,7 @@ dma_addr_t iommu_dma_map_page(struct dev
- }
- 
- void iommu_dma_unmap_page(struct device *dev, dma_addr_t handle, size_t size,
--		enum dma_data_direction dir, struct dma_attrs *attrs)
-+		enum dma_data_direction dir, unsigned long attrs)
- {
- 	__iommu_dma_unmap(iommu_get_domain_for_dev(dev), handle);
- }
-@@ -560,7 +560,7 @@ out_restore_sg:
- }
- 
- void iommu_dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
--		enum dma_data_direction dir, struct dma_attrs *attrs)
-+		enum dma_data_direction dir, unsigned long attrs)
- {
- 	/*
- 	 * The scatterlist segments are mapped into a single
-diff -puN include/linux/dma-iommu.h~iommu-dma-mapping-use-unsigned-long-for-dma_attrs include/linux/dma-iommu.h
---- a/include/linux/dma-iommu.h~iommu-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/include/linux/dma-iommu.h
-@@ -39,7 +39,7 @@ int dma_direction_to_prot(enum dma_data_
-  * the arch code to take care of attributes and cache maintenance
-  */
- struct page **iommu_dma_alloc(struct device *dev, size_t size, gfp_t gfp,
--		struct dma_attrs *attrs, int prot, dma_addr_t *handle,
-+		unsigned long attrs, int prot, dma_addr_t *handle,
- 		void (*flush_page)(struct device *, const void *, phys_addr_t));
- void iommu_dma_free(struct device *dev, struct page **pages, size_t size,
- 		dma_addr_t *handle);
-@@ -56,9 +56,9 @@ int iommu_dma_map_sg(struct device *dev,
-  * directly as DMA mapping callbacks for simplicity
-  */
- void iommu_dma_unmap_page(struct device *dev, dma_addr_t handle, size_t size,
--		enum dma_data_direction dir, struct dma_attrs *attrs);
-+		enum dma_data_direction dir, unsigned long attrs);
- void iommu_dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
--		enum dma_data_direction dir, struct dma_attrs *attrs);
-+		enum dma_data_direction dir, unsigned long attrs);
- int iommu_dma_supported(struct device *dev, u64 mask);
- int iommu_dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
- 
+ 	struct scatterlist *sg;
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
