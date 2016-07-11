@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-dma-mapping-use-unsigned-long-for-dma_attrs.patch added
- to -mm tree
-Date: Mon, 11 Jul 2016 15:15:33 -0700
-Message-ID: <57841a85.70mfgfynB7EODzAY%akpm@linux-foundation.org>
+Subject: + s390-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to -mm tree
+Date: Mon, 11 Jul 2016 15:15:23 -0700
+Message-ID: <57841a7b.+m3RVh3rXSOiR1qx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43724 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43714 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932075AbcGKWPe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:34 -0400
+	with ESMTP id S1753363AbcGKWPY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, gerald.schaefer@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xtensa: dma-mapping: use unsigned long for dma_attrs
+     Subject: s390: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     xtensa-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     s390-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xtensa-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/s390-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xtensa-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/s390-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,75 +39,129 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: xtensa: dma-mapping: use unsigned long for dma_attrs
+Subject: s390: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1467275171-6298-42-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1467275171-6298-37-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Acked-by: Gerald Schaefer <gerald.schaefer@de.ibm.com> [s390]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/pci-dma.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/s390/include/asm/dma-mapping.h |    1 -
+ arch/s390/pci/pci_dma.c             |   23 ++++++++++++-----------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN arch/xtensa/kernel/pci-dma.c~xtensa-dma-mapping-use-unsigned-long-for-dma_attrs arch/xtensa/kernel/pci-dma.c
---- a/arch/xtensa/kernel/pci-dma.c~xtensa-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/xtensa/kernel/pci-dma.c
-@@ -142,7 +142,7 @@ static void xtensa_sync_sg_for_device(st
+diff -puN arch/s390/include/asm/dma-mapping.h~s390-dma-mapping-use-unsigned-long-for-dma_attrs arch/s390/include/asm/dma-mapping.h
+--- a/arch/s390/include/asm/dma-mapping.h~s390-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/s390/include/asm/dma-mapping.h
+@@ -5,7 +5,6 @@
+ #include <linux/types.h>
+ #include <linux/mm.h>
+ #include <linux/scatterlist.h>
+-#include <linux/dma-attrs.h>
+ #include <linux/dma-debug.h>
+ #include <linux/io.h>
  
- static void *xtensa_dma_alloc(struct device *dev, size_t size,
- 			      dma_addr_t *handle, gfp_t flag,
--			      struct dma_attrs *attrs)
-+			      unsigned long attrs)
+diff -puN arch/s390/pci/pci_dma.c~s390-dma-mapping-use-unsigned-long-for-dma_attrs arch/s390/pci/pci_dma.c
+--- a/arch/s390/pci/pci_dma.c~s390-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/s390/pci/pci_dma.c
+@@ -285,7 +285,7 @@ static inline void zpci_err_dma(unsigned
+ static dma_addr_t s390_dma_map_pages(struct device *dev, struct page *page,
+ 				     unsigned long offset, size_t size,
+ 				     enum dma_data_direction direction,
+-				     struct dma_attrs *attrs)
++				     unsigned long attrs)
  {
- 	unsigned long ret;
- 	unsigned long uncached = 0;
-@@ -171,7 +171,7 @@ static void *xtensa_dma_alloc(struct dev
- }
+ 	struct zpci_dev *zdev = to_zpci(to_pci_dev(dev));
+ 	unsigned long nr_pages, iommu_page_index;
+@@ -331,7 +331,7 @@ out_err:
  
- static void xtensa_dma_free(struct device *hwdev, size_t size, void *vaddr,
--			    dma_addr_t dma_handle, struct dma_attrs *attrs)
-+			    dma_addr_t dma_handle, unsigned long attrs)
+ static void s390_dma_unmap_pages(struct device *dev, dma_addr_t dma_addr,
+ 				 size_t size, enum dma_data_direction direction,
+-				 struct dma_attrs *attrs)
++				 unsigned long attrs)
  {
- 	unsigned long addr = (unsigned long)vaddr +
- 		XCHAL_KSEG_CACHED_VADDR - XCHAL_KSEG_BYPASS_VADDR;
-@@ -185,7 +185,7 @@ static void xtensa_dma_free(struct devic
- static dma_addr_t xtensa_map_page(struct device *dev, struct page *page,
- 				  unsigned long offset, size_t size,
- 				  enum dma_data_direction dir,
--				  struct dma_attrs *attrs)
-+				  unsigned long attrs)
- {
- 	dma_addr_t dma_handle = page_to_phys(page) + offset;
+ 	struct zpci_dev *zdev = to_zpci(to_pci_dev(dev));
+ 	unsigned long iommu_page_index;
+@@ -354,7 +354,7 @@ static void s390_dma_unmap_pages(struct
  
-@@ -195,14 +195,14 @@ static dma_addr_t xtensa_map_page(struct
- 
- static void xtensa_unmap_page(struct device *dev, dma_addr_t dma_handle,
- 			      size_t size, enum dma_data_direction dir,
--			      struct dma_attrs *attrs)
-+			      unsigned long attrs)
- {
- 	xtensa_sync_single_for_cpu(dev, dma_handle, size, dir);
- }
- 
- static int xtensa_map_sg(struct device *dev, struct scatterlist *sg,
- 			 int nents, enum dma_data_direction dir,
--			 struct dma_attrs *attrs)
-+			 unsigned long attrs)
- {
- 	struct scatterlist *s;
- 	int i;
-@@ -217,7 +217,7 @@ static int xtensa_map_sg(struct device *
- static void xtensa_unmap_sg(struct device *dev,
- 			    struct scatterlist *sg, int nents,
- 			    enum dma_data_direction dir,
+ static void *s390_dma_alloc(struct device *dev, size_t size,
+ 			    dma_addr_t *dma_handle, gfp_t flag,
 -			    struct dma_attrs *attrs)
 +			    unsigned long attrs)
  {
+ 	struct zpci_dev *zdev = to_zpci(to_pci_dev(dev));
+ 	struct page *page;
+@@ -369,7 +369,7 @@ static void *s390_dma_alloc(struct devic
+ 	pa = page_to_phys(page);
+ 	memset((void *) pa, 0, size);
+ 
+-	map = s390_dma_map_pages(dev, page, 0, size, DMA_BIDIRECTIONAL, NULL);
++	map = s390_dma_map_pages(dev, page, 0, size, DMA_BIDIRECTIONAL, 0);
+ 	if (dma_mapping_error(dev, map)) {
+ 		free_pages(pa, get_order(size));
+ 		return NULL;
+@@ -383,19 +383,19 @@ static void *s390_dma_alloc(struct devic
+ 
+ static void s390_dma_free(struct device *dev, size_t size,
+ 			  void *pa, dma_addr_t dma_handle,
+-			  struct dma_attrs *attrs)
++			  unsigned long attrs)
+ {
+ 	struct zpci_dev *zdev = to_zpci(to_pci_dev(dev));
+ 
+ 	size = PAGE_ALIGN(size);
+ 	atomic64_sub(size / PAGE_SIZE, &zdev->allocated_pages);
+-	s390_dma_unmap_pages(dev, dma_handle, size, DMA_BIDIRECTIONAL, NULL);
++	s390_dma_unmap_pages(dev, dma_handle, size, DMA_BIDIRECTIONAL, 0);
+ 	free_pages((unsigned long) pa, get_order(size));
+ }
+ 
+ static int s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 			   int nr_elements, enum dma_data_direction dir,
+-			   struct dma_attrs *attrs)
++			   unsigned long attrs)
+ {
+ 	int mapped_elements = 0;
+ 	struct scatterlist *s;
+@@ -404,7 +404,7 @@ static int s390_dma_map_sg(struct device
+ 	for_each_sg(sg, s, nr_elements, i) {
+ 		struct page *page = sg_page(s);
+ 		s->dma_address = s390_dma_map_pages(dev, page, s->offset,
+-						    s->length, dir, NULL);
++						    s->length, dir, 0);
+ 		if (!dma_mapping_error(dev, s->dma_address)) {
+ 			s->dma_length = s->length;
+ 			mapped_elements++;
+@@ -418,7 +418,7 @@ unmap:
+ 	for_each_sg(sg, s, mapped_elements, i) {
+ 		if (s->dma_address)
+ 			s390_dma_unmap_pages(dev, s->dma_address, s->dma_length,
+-					     dir, NULL);
++					     dir, 0);
+ 		s->dma_address = 0;
+ 		s->dma_length = 0;
+ 	}
+@@ -428,13 +428,14 @@ unmap:
+ 
+ static void s390_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+ 			      int nr_elements, enum dma_data_direction dir,
+-			      struct dma_attrs *attrs)
++			      unsigned long attrs)
+ {
  	struct scatterlist *s;
  	int i;
+ 
+ 	for_each_sg(sg, s, nr_elements, i) {
+-		s390_dma_unmap_pages(dev, s->dma_address, s->dma_length, dir, NULL);
++		s390_dma_unmap_pages(dev, s->dma_address, s->dma_length, dir,
++				     0);
+ 		s->dma_address = 0;
+ 		s->dma_length = 0;
+ 	}
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
