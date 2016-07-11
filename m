@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
- added to -mm tree
-Date: Mon, 11 Jul 2016 15:14:41 -0700
-Message-ID: <57841a51.RTOkax4MsSnxyGGK%akpm@linux-foundation.org>
+Subject: + hexagon-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to -mm tree
+Date: Mon, 11 Jul 2016 15:15:01 -0700
+Message-ID: <57841a65.b9/6KDzKOEHBa0Hg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43666 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43690 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752554AbcGKWOm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:14:42 -0400
+	with ESMTP id S1751847AbcGKWPC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/rockship: dma-mapping: use unsigned long for dma_attrs
+     Subject: hexagon: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     hexagon-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hexagon-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hexagon-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,99 +39,70 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: drm/rockship: dma-mapping: use unsigned long for dma_attrs
+Subject: hexagon: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1467275171-6298-15-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1467275171-6298-26-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/rockchip/rockchip_drm_gem.c |   17 +++++++----------
- drivers/gpu/drm/rockchip/rockchip_drm_gem.h |    2 +-
- 2 files changed, 8 insertions(+), 11 deletions(-)
+ arch/hexagon/include/asm/dma-mapping.h |    1 -
+ arch/hexagon/kernel/dma.c              |    8 ++++----
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/gpu/drm/rockchip/rockchip_drm_gem.c~drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs drivers/gpu/drm/rockchip/rockchip_drm_gem.c
---- a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c~drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c
-@@ -17,8 +17,6 @@
- #include <drm/drm_gem.h>
- #include <drm/drm_vma_manager.h>
- 
+diff -puN arch/hexagon/include/asm/dma-mapping.h~hexagon-dma-mapping-use-unsigned-long-for-dma_attrs arch/hexagon/include/asm/dma-mapping.h
+--- a/arch/hexagon/include/asm/dma-mapping.h~hexagon-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/hexagon/include/asm/dma-mapping.h
+@@ -26,7 +26,6 @@
+ #include <linux/mm.h>
+ #include <linux/scatterlist.h>
+ #include <linux/dma-debug.h>
 -#include <linux/dma-attrs.h>
--
- #include "rockchip_drm_drv.h"
- #include "rockchip_drm_gem.h"
+ #include <asm/io.h>
  
-@@ -28,15 +26,14 @@ static int rockchip_gem_alloc_buf(struct
- 	struct drm_gem_object *obj = &rk_obj->base;
- 	struct drm_device *drm = obj->dev;
+ struct device;
+diff -puN arch/hexagon/kernel/dma.c~hexagon-dma-mapping-use-unsigned-long-for-dma_attrs arch/hexagon/kernel/dma.c
+--- a/arch/hexagon/kernel/dma.c~hexagon-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/hexagon/kernel/dma.c
+@@ -51,7 +51,7 @@ static struct gen_pool *coherent_pool;
  
--	init_dma_attrs(&rk_obj->dma_attrs);
--	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &rk_obj->dma_attrs);
-+	rk_obj->dma_attrs = DMA_ATTR_WRITE_COMBINE;
+ static void *hexagon_dma_alloc_coherent(struct device *dev, size_t size,
+ 				 dma_addr_t *dma_addr, gfp_t flag,
+-				 struct dma_attrs *attrs)
++				 unsigned long attrs)
+ {
+ 	void *ret;
  
- 	if (!alloc_kmap)
--		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &rk_obj->dma_attrs);
-+		rk_obj->dma_attrs |= DMA_ATTR_NO_KERNEL_MAPPING;
- 
- 	rk_obj->kvaddr = dma_alloc_attrs(drm->dev, obj->size,
- 					 &rk_obj->dma_addr, GFP_KERNEL,
--					 &rk_obj->dma_attrs);
-+					 rk_obj->dma_attrs);
- 	if (!rk_obj->kvaddr) {
- 		DRM_ERROR("failed to allocate %#x byte dma buffer", obj->size);
- 		return -ENOMEM;
-@@ -51,7 +48,7 @@ static void rockchip_gem_free_buf(struct
- 	struct drm_device *drm = obj->dev;
- 
- 	dma_free_attrs(drm->dev, obj->size, rk_obj->kvaddr, rk_obj->dma_addr,
--		       &rk_obj->dma_attrs);
-+		       rk_obj->dma_attrs);
+@@ -84,7 +84,7 @@ static void *hexagon_dma_alloc_coherent(
  }
  
- static int rockchip_drm_gem_object_mmap(struct drm_gem_object *obj,
-@@ -70,7 +67,7 @@ static int rockchip_drm_gem_object_mmap(
- 	vma->vm_pgoff = 0;
- 
- 	ret = dma_mmap_attrs(drm->dev, vma, rk_obj->kvaddr, rk_obj->dma_addr,
--			     obj->size, &rk_obj->dma_attrs);
-+			     obj->size, rk_obj->dma_attrs);
- 	if (ret)
- 		drm_gem_vm_close(vma);
- 
-@@ -262,7 +259,7 @@ struct sg_table *rockchip_gem_prime_get_
- 
- 	ret = dma_get_sgtable_attrs(drm->dev, sgt, rk_obj->kvaddr,
- 				    rk_obj->dma_addr, obj->size,
--				    &rk_obj->dma_attrs);
-+				    rk_obj->dma_attrs);
- 	if (ret) {
- 		DRM_ERROR("failed to allocate sgt, %d\n", ret);
- 		kfree(sgt);
-@@ -276,7 +273,7 @@ void *rockchip_gem_prime_vmap(struct drm
+ static void hexagon_free_coherent(struct device *dev, size_t size, void *vaddr,
+-				  dma_addr_t dma_addr, struct dma_attrs *attrs)
++				  dma_addr_t dma_addr, unsigned long attrs)
  {
- 	struct rockchip_gem_object *rk_obj = to_rockchip_obj(obj);
+ 	gen_pool_free(coherent_pool, (unsigned long) vaddr, size);
+ }
+@@ -105,7 +105,7 @@ static int check_addr(const char *name,
  
--	if (dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, &rk_obj->dma_attrs))
-+	if (dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, rk_obj->dma_attrs))
- 		return NULL;
- 
- 	return rk_obj->kvaddr;
-diff -puN drivers/gpu/drm/rockchip/rockchip_drm_gem.h~drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs drivers/gpu/drm/rockchip/rockchip_drm_gem.h
---- a/drivers/gpu/drm/rockchip/rockchip_drm_gem.h~drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/gpu/drm/rockchip/rockchip_drm_gem.h
-@@ -23,7 +23,7 @@ struct rockchip_gem_object {
- 
- 	void *kvaddr;
- 	dma_addr_t dma_addr;
--	struct dma_attrs dma_attrs;
-+	unsigned long dma_attrs;
- };
- 
- struct sg_table *rockchip_gem_prime_get_sg_table(struct drm_gem_object *obj);
+ static int hexagon_map_sg(struct device *hwdev, struct scatterlist *sg,
+ 			  int nents, enum dma_data_direction dir,
+-			  struct dma_attrs *attrs)
++			  unsigned long attrs)
+ {
+ 	struct scatterlist *s;
+ 	int i;
+@@ -172,7 +172,7 @@ static inline void dma_sync(void *addr,
+ static dma_addr_t hexagon_map_page(struct device *dev, struct page *page,
+ 				   unsigned long offset, size_t size,
+ 				   enum dma_data_direction dir,
+-				   struct dma_attrs *attrs)
++				   unsigned long attrs)
+ {
+ 	dma_addr_t bus = page_to_phys(page) + offset;
+ 	WARN_ON(size == 0);
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
