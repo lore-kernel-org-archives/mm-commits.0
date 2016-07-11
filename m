@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- scripts-gdb-perform-path-expansion-to-lx-symbols-arguments.patch added to
+ revert-scripts-gdb-add-documentation-example-for-radix-tree.patch added to
  -mm tree
-Date: Mon, 11 Jul 2016 12:51:51 -0700
-Message-ID: <5783f8d7.NTC3P3Q5sXA94avx%akpm@linux-foundation.org>
+Date: Mon, 11 Jul 2016 12:51:55 -0700
+Message-ID: <5783f8db.iArsu5uq3MnRSTc7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41331 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750775AbcGKTvw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 15:51:52 -0400
+	with ESMTP id S1751997AbcGKTv4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 15:51:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n.borisov.lkml@gmail.com, jan.kiszka@siemens.com, kieran@ksquared.org.uk, mm-commits@vger.kernel.org
+To: kieran@ksquared.org.ukkieran@ksquared.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: Perform path expansion to lx-symbol's arguments
+     Subject: Revert "scripts/gdb: add documentation example for radix tree"
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-perform-path-expansion-to-lx-symbols-arguments.patch
+     revert-scripts-gdb-add-documentation-example-for-radix-tree.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-perform-path-expansion-to-lx-symbols-arguments.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-scripts-gdb-add-documentation-example-for-radix-tree.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-perform-path-expansion-to-lx-symbols-arguments.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-scripts-gdb-add-documentation-example-for-radix-tree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,39 +40,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nikolay Borisov <n.borisov.lkml@gmail.com>
-Subject: scripts/gdb: Perform path expansion to lx-symbol's arguments
+From: Kieran Bingham <kieran@ksquared.org.uk>
+Subject: Revert "scripts/gdb: add documentation example for radix tree"
 
-Python doesn't do automatic expansion of paths.  In case one passes path
-of the from ~/foo/bar the gdb scripts won't automatically expand that and
-as a result the symbols files won't be loaded.  Fix this by explicitly
-expanding all paths which begin with "~"
+This reverts commit 9b5580359a84 ("scripts/gdb: add documentation
+example for radix tree")
 
-Link: http://lkml.kernel.org/r/1467127337-11135-5-git-send-email-kieran@bingham.xyz
-Signed-off-by: Nikolay Borisov <n.borisov.lkml@gmail.com>
+The python implementation of radix tree was merged at the same time as a
+refactoring of the radix tree implementation and doesn't work. The
+feature is being reverted, thus we revert the documentation as well.
+
+Link: http://lkml.kernel.org/r/1467127337-11135-7-git-send-email-kieran@bingham.xyz
 Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
-Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/symbols.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/gdb-kernel-debugging.txt |   21 ---------------------
+ 1 file changed, 21 deletions(-)
 
-diff -puN scripts/gdb/linux/symbols.py~scripts-gdb-perform-path-expansion-to-lx-symbols-arguments scripts/gdb/linux/symbols.py
---- a/scripts/gdb/linux/symbols.py~scripts-gdb-perform-path-expansion-to-lx-symbols-arguments
-+++ a/scripts/gdb/linux/symbols.py
-@@ -153,7 +153,7 @@ lx-symbols command."""
-             saved_state['breakpoint'].enabled = saved_state['enabled']
+diff -puN Documentation/gdb-kernel-debugging.txt~revert-scripts-gdb-add-documentation-example-for-radix-tree Documentation/gdb-kernel-debugging.txt
+--- a/Documentation/gdb-kernel-debugging.txt~revert-scripts-gdb-add-documentation-example-for-radix-tree
++++ a/Documentation/gdb-kernel-debugging.txt
+@@ -139,27 +139,6 @@ Examples of using the Linux-provided gdb
+       start_comm = "swapper/2\000\000\000\000\000\000"
+     }
  
-     def invoke(self, arg, from_tty):
--        self.module_paths = arg.split()
-+        self.module_paths = [os.path.expanduser(p) for p in arg.split()]
-         self.module_paths.append(os.getcwd())
+- o Dig into a radix tree data structure, such as the IRQ descriptors:
+-    (gdb) print (struct irq_desc)$lx_radix_tree_lookup(irq_desc_tree, 18)
+-    $6 = {
+-      irq_common_data = {
+-        state_use_accessors = 67584,
+-        handler_data = 0x0 <__vectors_start>,
+-        msi_desc = 0x0 <__vectors_start>,
+-        affinity = {{
+-            bits = {65535}
+-          }}
+-      },
+-      irq_data = {
+-        mask = 0,
+-        irq = 18,
+-        hwirq = 27,
+-        common = 0xee803d80,
+-        chip = 0xc0eb0854 <gic_data>,
+-        domain = 0xee808000,
+-        parent_data = 0x0 <__vectors_start>,
+-        chip_data = 0xc0eb0854 <gic_data>
+-      } <... trimmed ...>
  
-         # enforce update
+ List of commands and functions
+ ------------------------------
 _
 
-Patches currently in -mm which might be from n.borisov.lkml@gmail.com are
+Patches currently in -mm which might be from kieran@ksquared.org.uk are
 
-scripts-gdb-perform-path-expansion-to-lx-symbols-arguments.patch
+scripts-gdb-silence-nothing-to-do-message.patch
+scripts-gdb-rebuild-constantspy-on-dependancy-change.patch
+revert-scripts-gdb-add-a-radix-tree-parser.patch
+revert-scripts-gdb-add-documentation-example-for-radix-tree.patch
 
