@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to -mm tree
-Date: Mon, 11 Jul 2016 15:15:05 -0700
-Message-ID: <57841a69.Ru+BR0L5KWjERw+o%akpm@linux-foundation.org>
+Subject: + nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch added
+ to -mm tree
+Date: Mon, 11 Jul 2016 15:15:15 -0700
+Message-ID: <57841a73.3UKWl/nJj6tulBL7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43696 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43705 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753301AbcGKWPG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:06 -0400
+	with ESMTP id S1753363AbcGKWPQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k: dma-mapping: use unsigned long for dma_attrs
+     Subject: nios2: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,77 +40,75 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: m68k: dma-mapping: use unsigned long for dma_attrs
+Subject: nios2: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1467275171-6298-28-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1467275171-6298-33-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> [m68k]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/dma.c |   12 ++++++------
+ arch/nios2/mm/dma-mapping.c |   12 ++++++------
  1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/m68k/kernel/dma.c~m68k-dma-mapping-use-unsigned-long-for-dma_attrs arch/m68k/kernel/dma.c
---- a/arch/m68k/kernel/dma.c~m68k-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/m68k/kernel/dma.c
-@@ -19,7 +19,7 @@
- #if defined(CONFIG_MMU) && !defined(CONFIG_COLDFIRE)
- 
- static void *m68k_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
--		gfp_t flag, struct dma_attrs *attrs)
-+		gfp_t flag, unsigned long attrs)
- {
- 	struct page *page, **map;
- 	pgprot_t pgprot;
-@@ -62,7 +62,7 @@ static void *m68k_dma_alloc(struct devic
+diff -puN arch/nios2/mm/dma-mapping.c~nios2-dma-mapping-use-unsigned-long-for-dma_attrs arch/nios2/mm/dma-mapping.c
+--- a/arch/nios2/mm/dma-mapping.c~nios2-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/nios2/mm/dma-mapping.c
+@@ -59,7 +59,7 @@ static inline void __dma_sync_for_cpu(vo
  }
  
- static void m68k_dma_free(struct device *dev, size_t size, void *addr,
--		dma_addr_t handle, struct dma_attrs *attrs)
-+		dma_addr_t handle, unsigned long attrs)
- {
- 	pr_debug("dma_free_coherent: %p, %x\n", addr, handle);
- 	vfree(addr);
-@@ -73,7 +73,7 @@ static void m68k_dma_free(struct device
- #include <asm/cacheflush.h>
- 
- static void *m68k_dma_alloc(struct device *dev, size_t size,
+ static void *nios2_dma_alloc(struct device *dev, size_t size,
 -		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
 +		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
  {
  	void *ret;
- 	/* ignore region specifiers */
-@@ -91,7 +91,7 @@ static void *m68k_dma_alloc(struct devic
+ 
+@@ -84,7 +84,7 @@ static void *nios2_dma_alloc(struct devi
  }
  
- static void m68k_dma_free(struct device *dev, size_t size, void *vaddr,
+ static void nios2_dma_free(struct device *dev, size_t size, void *vaddr,
 -		dma_addr_t dma_handle, struct dma_attrs *attrs)
 +		dma_addr_t dma_handle, unsigned long attrs)
  {
- 	free_pages((unsigned long)vaddr, get_order(size));
- }
-@@ -130,7 +130,7 @@ static void m68k_dma_sync_sg_for_device(
+ 	unsigned long addr = (unsigned long) CAC_ADDR((unsigned long) vaddr);
  
- static dma_addr_t m68k_dma_map_page(struct device *dev, struct page *page,
- 		unsigned long offset, size_t size, enum dma_data_direction dir,
+@@ -93,7 +93,7 @@ static void nios2_dma_free(struct device
+ 
+ static int nios2_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 		int nents, enum dma_data_direction direction,
 -		struct dma_attrs *attrs)
 +		unsigned long attrs)
  {
- 	dma_addr_t handle = page_to_phys(page) + offset;
+ 	int i;
  
-@@ -139,7 +139,7 @@ static dma_addr_t m68k_dma_map_page(stru
+@@ -113,7 +113,7 @@ static int nios2_dma_map_sg(struct devic
+ static dma_addr_t nios2_dma_map_page(struct device *dev, struct page *page,
+ 			unsigned long offset, size_t size,
+ 			enum dma_data_direction direction,
+-			struct dma_attrs *attrs)
++			unsigned long attrs)
+ {
+ 	void *addr = page_address(page) + offset;
+ 
+@@ -123,14 +123,14 @@ static dma_addr_t nios2_dma_map_page(str
+ 
+ static void nios2_dma_unmap_page(struct device *dev, dma_addr_t dma_address,
+ 		size_t size, enum dma_data_direction direction,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
+ {
+ 	__dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
  }
  
- static int m68k_dma_map_sg(struct device *dev, struct scatterlist *sglist,
--		int nents, enum dma_data_direction dir, struct dma_attrs *attrs)
-+		int nents, enum dma_data_direction dir, unsigned long attrs)
+ static void nios2_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+ 		int nhwentries, enum dma_data_direction direction,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
  {
+ 	void *addr;
  	int i;
- 	struct scatterlist *sg;
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
