@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + openrisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
- added to -mm tree
-Date: Mon, 11 Jul 2016 15:15:17 -0700
-Message-ID: <57841a75.7jZAHmczZGz2xylc%akpm@linux-foundation.org>
+Subject: + mips-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to -mm tree
+Date: Mon, 11 Jul 2016 15:15:11 -0700
+Message-ID: <57841a6f.jpdiDof5Yb55mggJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43707 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43702 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753363AbcGKWPS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:18 -0400
+	with ESMTP id S932104AbcGKWPM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: openrisc: dma-mapping: use unsigned long for dma_attrs
+     Subject: mips: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     openrisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     mips-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/openrisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mips-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/openrisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mips-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,99 +39,190 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: openrisc: dma-mapping: use unsigned long for dma_attrs
+Subject: mips: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1467275171-6298-34-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1467275171-6298-31-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/kernel/dma.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ arch/mips/cavium-octeon/dma-octeon.c      |    8 ++++----
+ arch/mips/loongson64/common/dma-swiotlb.c |   10 +++++-----
+ arch/mips/mm/dma-default.c                |   14 +++++++-------
+ arch/mips/netlogic/common/nlm-dma.c       |    4 ++--
+ 4 files changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN arch/openrisc/kernel/dma.c~openrisc-dma-mapping-use-unsigned-long-for-dma_attrs arch/openrisc/kernel/dma.c
---- a/arch/openrisc/kernel/dma.c~openrisc-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/openrisc/kernel/dma.c
-@@ -22,7 +22,6 @@
- #include <linux/dma-mapping.h>
- #include <linux/dma-debug.h>
- #include <linux/export.h>
--#include <linux/dma-attrs.h>
+diff -puN arch/mips/cavium-octeon/dma-octeon.c~mips-dma-mapping-use-unsigned-long-for-dma_attrs arch/mips/cavium-octeon/dma-octeon.c
+--- a/arch/mips/cavium-octeon/dma-octeon.c~mips-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/mips/cavium-octeon/dma-octeon.c
+@@ -125,7 +125,7 @@ static phys_addr_t octeon_small_dma_to_p
  
- #include <asm/cpuinfo.h>
- #include <asm/spr_defs.h>
-@@ -83,7 +82,7 @@ page_clear_nocache(pte_t *pte, unsigned
- static void *
- or1k_dma_alloc(struct device *dev, size_t size,
- 	       dma_addr_t *dma_handle, gfp_t gfp,
--	       struct dma_attrs *attrs)
-+	       unsigned long attrs)
+ static dma_addr_t octeon_dma_map_page(struct device *dev, struct page *page,
+ 	unsigned long offset, size_t size, enum dma_data_direction direction,
+-	struct dma_attrs *attrs)
++	unsigned long attrs)
  {
- 	unsigned long va;
- 	void *page;
-@@ -117,7 +116,7 @@ or1k_dma_alloc(struct device *dev, size_
- 
- static void
- or1k_dma_free(struct device *dev, size_t size, void *vaddr,
--	      dma_addr_t dma_handle, struct dma_attrs *attrs)
-+	      dma_addr_t dma_handle, unsigned long attrs)
- {
- 	unsigned long va = (unsigned long)vaddr;
- 	struct mm_walk walk = {
-@@ -137,7 +136,7 @@ static dma_addr_t
- or1k_map_page(struct device *dev, struct page *page,
- 	      unsigned long offset, size_t size,
- 	      enum dma_data_direction dir,
--	      struct dma_attrs *attrs)
-+	      unsigned long attrs)
- {
- 	unsigned long cl;
- 	dma_addr_t addr = page_to_phys(page) + offset;
-@@ -170,7 +169,7 @@ or1k_map_page(struct device *dev, struct
- static void
- or1k_unmap_page(struct device *dev, dma_addr_t dma_handle,
- 		size_t size, enum dma_data_direction dir,
--		struct dma_attrs *attrs)
-+		unsigned long attrs)
- {
- 	/* Nothing special to do here... */
- }
-@@ -178,14 +177,14 @@ or1k_unmap_page(struct device *dev, dma_
- static int
- or1k_map_sg(struct device *dev, struct scatterlist *sg,
- 	    int nents, enum dma_data_direction dir,
--	    struct dma_attrs *attrs)
-+	    unsigned long attrs)
- {
- 	struct scatterlist *s;
- 	int i;
- 
- 	for_each_sg(sg, s, nents, i) {
- 		s->dma_address = or1k_map_page(dev, sg_page(s), s->offset,
--					       s->length, dir, NULL);
-+					       s->length, dir, 0);
- 	}
- 
- 	return nents;
-@@ -194,13 +193,13 @@ or1k_map_sg(struct device *dev, struct s
- static void
- or1k_unmap_sg(struct device *dev, struct scatterlist *sg,
- 	      int nents, enum dma_data_direction dir,
--	      struct dma_attrs *attrs)
-+	      unsigned long attrs)
- {
- 	struct scatterlist *s;
- 	int i;
- 
- 	for_each_sg(sg, s, nents, i) {
--		or1k_unmap_page(dev, sg_dma_address(s), sg_dma_len(s), dir, NULL);
-+		or1k_unmap_page(dev, sg_dma_address(s), sg_dma_len(s), dir, 0);
- 	}
+ 	dma_addr_t daddr = swiotlb_map_page(dev, page, offset, size,
+ 					    direction, attrs);
+@@ -135,7 +135,7 @@ static dma_addr_t octeon_dma_map_page(st
  }
  
+ static int octeon_dma_map_sg(struct device *dev, struct scatterlist *sg,
+-	int nents, enum dma_data_direction direction, struct dma_attrs *attrs)
++	int nents, enum dma_data_direction direction, unsigned long attrs)
+ {
+ 	int r = swiotlb_map_sg_attrs(dev, sg, nents, direction, attrs);
+ 	mb();
+@@ -157,7 +157,7 @@ static void octeon_dma_sync_sg_for_devic
+ }
+ 
+ static void *octeon_dma_alloc_coherent(struct device *dev, size_t size,
+-	dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
++	dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+ 	void *ret;
+ 
+@@ -189,7 +189,7 @@ static void *octeon_dma_alloc_coherent(s
+ }
+ 
+ static void octeon_dma_free_coherent(struct device *dev, size_t size,
+-	void *vaddr, dma_addr_t dma_handle, struct dma_attrs *attrs)
++	void *vaddr, dma_addr_t dma_handle, unsigned long attrs)
+ {
+ 	swiotlb_free_coherent(dev, size, vaddr, dma_handle);
+ }
+diff -puN arch/mips/loongson64/common/dma-swiotlb.c~mips-dma-mapping-use-unsigned-long-for-dma_attrs arch/mips/loongson64/common/dma-swiotlb.c
+--- a/arch/mips/loongson64/common/dma-swiotlb.c~mips-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/mips/loongson64/common/dma-swiotlb.c
+@@ -10,7 +10,7 @@
+ #include <dma-coherence.h>
+ 
+ static void *loongson_dma_alloc_coherent(struct device *dev, size_t size,
+-		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
++		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+ 	void *ret;
+ 
+@@ -41,7 +41,7 @@ static void *loongson_dma_alloc_coherent
+ }
+ 
+ static void loongson_dma_free_coherent(struct device *dev, size_t size,
+-		void *vaddr, dma_addr_t dma_handle, struct dma_attrs *attrs)
++		void *vaddr, dma_addr_t dma_handle, unsigned long attrs)
+ {
+ 	swiotlb_free_coherent(dev, size, vaddr, dma_handle);
+ }
+@@ -49,7 +49,7 @@ static void loongson_dma_free_coherent(s
+ static dma_addr_t loongson_dma_map_page(struct device *dev, struct page *page,
+ 				unsigned long offset, size_t size,
+ 				enum dma_data_direction dir,
+-				struct dma_attrs *attrs)
++				unsigned long attrs)
+ {
+ 	dma_addr_t daddr = swiotlb_map_page(dev, page, offset, size,
+ 					dir, attrs);
+@@ -59,9 +59,9 @@ static dma_addr_t loongson_dma_map_page(
+ 
+ static int loongson_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 				int nents, enum dma_data_direction dir,
+-				struct dma_attrs *attrs)
++				unsigned long attrs)
+ {
+-	int r = swiotlb_map_sg_attrs(dev, sg, nents, dir, NULL);
++	int r = swiotlb_map_sg_attrs(dev, sg, nents, dir, 0);
+ 	mb();
+ 
+ 	return r;
+diff -puN arch/mips/mm/dma-default.c~mips-dma-mapping-use-unsigned-long-for-dma_attrs arch/mips/mm/dma-default.c
+--- a/arch/mips/mm/dma-default.c~mips-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/mips/mm/dma-default.c
+@@ -131,7 +131,7 @@ static void *mips_dma_alloc_noncoherent(
+ }
+ 
+ static void *mips_dma_alloc_coherent(struct device *dev, size_t size,
+-	dma_addr_t * dma_handle, gfp_t gfp, struct dma_attrs *attrs)
++	dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+ 	void *ret;
+ 	struct page *page = NULL;
+@@ -176,7 +176,7 @@ static void mips_dma_free_noncoherent(st
+ }
+ 
+ static void mips_dma_free_coherent(struct device *dev, size_t size, void *vaddr,
+-	dma_addr_t dma_handle, struct dma_attrs *attrs)
++	dma_addr_t dma_handle, unsigned long attrs)
+ {
+ 	unsigned long addr = (unsigned long) vaddr;
+ 	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+@@ -200,7 +200,7 @@ static void mips_dma_free_coherent(struc
+ 
+ static int mips_dma_mmap(struct device *dev, struct vm_area_struct *vma,
+ 	void *cpu_addr, dma_addr_t dma_addr, size_t size,
+-	struct dma_attrs *attrs)
++	unsigned long attrs)
+ {
+ 	unsigned long user_count = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
+ 	unsigned long count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+@@ -291,7 +291,7 @@ static inline void __dma_sync(struct pag
+ }
+ 
+ static void mips_dma_unmap_page(struct device *dev, dma_addr_t dma_addr,
+-	size_t size, enum dma_data_direction direction, struct dma_attrs *attrs)
++	size_t size, enum dma_data_direction direction, unsigned long attrs)
+ {
+ 	if (cpu_needs_post_dma_flush(dev))
+ 		__dma_sync(dma_addr_to_page(dev, dma_addr),
+@@ -301,7 +301,7 @@ static void mips_dma_unmap_page(struct d
+ }
+ 
+ static int mips_dma_map_sg(struct device *dev, struct scatterlist *sglist,
+-	int nents, enum dma_data_direction direction, struct dma_attrs *attrs)
++	int nents, enum dma_data_direction direction, unsigned long attrs)
+ {
+ 	int i;
+ 	struct scatterlist *sg;
+@@ -322,7 +322,7 @@ static int mips_dma_map_sg(struct device
+ 
+ static dma_addr_t mips_dma_map_page(struct device *dev, struct page *page,
+ 	unsigned long offset, size_t size, enum dma_data_direction direction,
+-	struct dma_attrs *attrs)
++	unsigned long attrs)
+ {
+ 	if (!plat_device_is_coherent(dev))
+ 		__dma_sync(page, offset, size, direction);
+@@ -332,7 +332,7 @@ static dma_addr_t mips_dma_map_page(stru
+ 
+ static void mips_dma_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 	int nhwentries, enum dma_data_direction direction,
+-	struct dma_attrs *attrs)
++	unsigned long attrs)
+ {
+ 	int i;
+ 	struct scatterlist *sg;
+diff -puN arch/mips/netlogic/common/nlm-dma.c~mips-dma-mapping-use-unsigned-long-for-dma_attrs arch/mips/netlogic/common/nlm-dma.c
+--- a/arch/mips/netlogic/common/nlm-dma.c~mips-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/mips/netlogic/common/nlm-dma.c
+@@ -45,7 +45,7 @@
+ static char *nlm_swiotlb;
+ 
+ static void *nlm_dma_alloc_coherent(struct device *dev, size_t size,
+-	dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
++	dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+ 	/* ignore region specifiers */
+ 	gfp &= ~(__GFP_DMA | __GFP_DMA32 | __GFP_HIGHMEM);
+@@ -62,7 +62,7 @@ static void *nlm_dma_alloc_coherent(stru
+ }
+ 
+ static void nlm_dma_free_coherent(struct device *dev, size_t size,
+-	void *vaddr, dma_addr_t dma_handle, struct dma_attrs *attrs)
++	void *vaddr, dma_addr_t dma_handle, unsigned long attrs)
+ {
+ 	swiotlb_free_coherent(dev, size, vaddr, dma_handle);
+ }
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
