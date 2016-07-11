@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-clean-up-return-value-of-madvise_free_huge_pmd.patch
+Subject: +
+ mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix.patch
  added to -mm tree
-Date: Mon, 11 Jul 2016 12:57:12 -0700
-Message-ID: <5783fa18.D2wo8kP0Yu3DUDoz%akpm@linux-foundation.org>
+Date: Mon, 11 Jul 2016 13:01:32 -0700
+Message-ID: <5783fb1c.3F6s6ueL92NblaWe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41357 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41513 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750775AbcGKT5N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 15:57:13 -0400
+	with ESMTP id S1750775AbcGKUBd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 16:01:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, aarcange@redhat.com, dan.j.williams@intel.com, ebru.akagunduz@gmail.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: rientjes@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, THP: clean up return value of madvise_free_huge_pmd
+     Subject: mm, compaction: prevent VM_BUG_ON when terminating freeing scanner fix
 has been added to the -mm tree.  Its filename is
-     mm-thp-clean-up-return-value-of-madvise_free_huge_pmd.patch
+     mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-clean-up-return-value-of-madvise_free_huge_pmd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-clean-up-return-value-of-madvise_free_huge_pmd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,93 +40,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, THP: clean up return value of madvise_free_huge_pmd
+From: David Rientjes <rientjes@google.com>
+Subject: mm, compaction: prevent VM_BUG_ON when terminating freeing scanner fix
 
-The definition of return value of madvise_free_huge_pmd is not clear
-before.  According to the suggestion of Minchan Kim, change the type of
-return value to bool and return true if we do MADV_FREE successfully on
-entire pmd page, otherwise, return false.  Comments are added too.
+Per Joonsoo.
 
-Link: http://lkml.kernel.org/r/1467135452-16688-2-git-send-email-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+An artifact of __isolate_free_page() doing per-zone watermark checks (?),
+we don't want to rescan pages in a pageblock that were not successfully
+isolated last time.
+
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1607111244150.83138@chino.kir.corp.google.com
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 +-
- mm/huge_memory.c        |   15 ++++++++-------
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ mm/compaction.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/huge_mm.h~mm-thp-clean-up-return-value-of-madvise_free_huge_pmd include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-thp-clean-up-return-value-of-madvise_free_huge_pmd
-+++ a/include/linux/huge_mm.h
-@@ -11,7 +11,7 @@ extern struct page *follow_trans_huge_pm
- 					  unsigned long addr,
- 					  pmd_t *pmd,
- 					  unsigned int flags);
--extern int madvise_free_huge_pmd(struct mmu_gather *tlb,
-+extern bool madvise_free_huge_pmd(struct mmu_gather *tlb,
- 			struct vm_area_struct *vma,
- 			pmd_t *pmd, unsigned long addr, unsigned long next);
- extern int zap_huge_pmd(struct mmu_gather *tlb,
-diff -puN mm/huge_memory.c~mm-thp-clean-up-return-value-of-madvise_free_huge_pmd mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-clean-up-return-value-of-madvise_free_huge_pmd
-+++ a/mm/huge_memory.c
-@@ -1249,25 +1249,26 @@ out:
- 	return 0;
- }
- 
--int madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+/*
-+ * Return true if we do MADV_FREE successfully on entire pmd page.
-+ * Otherwise, return false.
-+ */
-+bool madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 		pmd_t *pmd, unsigned long addr, unsigned long next)
--
- {
- 	spinlock_t *ptl;
- 	pmd_t orig_pmd;
- 	struct page *page;
- 	struct mm_struct *mm = tlb->mm;
--	int ret = 0;
-+	bool ret = false;
- 
- 	ptl = pmd_trans_huge_lock(pmd, vma);
- 	if (!ptl)
- 		goto out_unlocked;
- 
- 	orig_pmd = *pmd;
--	if (is_huge_zero_pmd(orig_pmd)) {
--		ret = 1;
-+	if (is_huge_zero_pmd(orig_pmd))
- 		goto out;
--	}
- 
- 	page = pmd_page(orig_pmd);
- 	/*
-@@ -1309,7 +1310,7 @@ int madvise_free_huge_pmd(struct mmu_gat
- 		set_pmd_at(mm, addr, pmd, orig_pmd);
- 		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
+diff -puN mm/compaction.c~mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix
++++ a/mm/compaction.c
+@@ -1055,7 +1055,6 @@ static void isolate_freepages(struct com
+ 			 * If isolation failed early, do not continue
+ 			 * needlessly.
+ 			 */
+-			isolate_start_pfn = block_start_pfn;
+ 			break;
+ 		}
  	}
--	ret = 1;
-+	ret = true;
- out:
- 	spin_unlock(ptl);
- out_unlocked:
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-madvise_free-thp-fix-madvise_free_huge_pmd-return-value-after-splitting.patch
-thp-fix-comments-of-__pmd_trans_huge_lock.patch
-mm-thp-clean-up-return-value-of-madvise_free_huge_pmd.patch
+mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner.patch
+mm-compaction-prevent-vm_bug_on-when-terminating-freeing-scanner-fix.patch
+mm-compaction-split-freepages-without-holding-the-zone-lock-fix.patch
 
