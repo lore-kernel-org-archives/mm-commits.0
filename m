@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + video-dma-mapping-use-unsigned-long-for-dma_attrs.patch added
- to -mm tree
-Date: Mon, 11 Jul 2016 15:14:53 -0700
-Message-ID: <57841a5d.XB1SFnJJlNe712I8%akpm@linux-foundation.org>
+Subject: + drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+ added to -mm tree
+Date: Mon, 11 Jul 2016 15:14:39 -0700
+Message-ID: <57841a4f.S+BeP6F1hR33zNpn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43682 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43665 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753324AbcGKWOy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:14:54 -0400
+	with ESMTP id S1751847AbcGKWOk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:14:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: video: dma-mapping: use unsigned long for dma_attrs
+     Subject: drm/nouveau: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     video-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/video-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/video-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,89 +40,63 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: video: dma-mapping: use unsigned long for dma_attrs
+Subject: drm/nouveau: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1467275171-6298-22-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1467275171-6298-14-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbdev/omap2/omapfb/omapfb-main.c |   12 ++++++------
- drivers/video/fbdev/omap2/omapfb/omapfb.h      |    3 +--
- 2 files changed, 7 insertions(+), 8 deletions(-)
+ drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c |   13 ++++------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/fbdev/omap2/omapfb/omapfb-main.c~video-dma-mapping-use-unsigned-long-for-dma_attrs drivers/video/fbdev/omap2/omapfb/omapfb-main.c
---- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c~video-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
-@@ -1332,7 +1332,7 @@ static void omapfb_free_fbmem(struct fb_
- 	}
+diff -puN drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c~drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c~drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
+@@ -109,7 +109,7 @@ struct gk20a_instmem {
+ 	u16 iommu_bit;
  
- 	dma_free_attrs(fbdev->dev, rg->size, rg->token, rg->dma_handle,
--			&rg->attrs);
-+			rg->attrs);
- 
- 	rg->token = NULL;
- 	rg->vaddr = NULL;
-@@ -1370,7 +1370,7 @@ static int omapfb_alloc_fbmem(struct fb_
- 	struct omapfb2_device *fbdev = ofbi->fbdev;
- 	struct omapfb2_mem_region *rg;
- 	void *token;
--	DEFINE_DMA_ATTRS(attrs);
-+	unsigned long attrs;
- 	dma_addr_t dma_handle;
- 	int r;
- 
-@@ -1386,15 +1386,15 @@ static int omapfb_alloc_fbmem(struct fb_
- 
- 	size = PAGE_ALIGN(size);
- 
--	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+	attrs = DMA_ATTR_WRITE_COMBINE;
- 
- 	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB)
--		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &attrs);
-+		attrs |= DMA_ATTR_NO_KERNEL_MAPPING;
- 
- 	DBG("allocating %lu bytes for fb %d\n", size, ofbi->id);
- 
- 	token = dma_alloc_attrs(fbdev->dev, size, &dma_handle,
--			GFP_KERNEL, &attrs);
-+			GFP_KERNEL, attrs);
- 
- 	if (token == NULL) {
- 		dev_err(fbdev->dev, "failed to allocate framebuffer\n");
-@@ -1408,7 +1408,7 @@ static int omapfb_alloc_fbmem(struct fb_
- 		r = omap_vrfb_request_ctx(&rg->vrfb);
- 		if (r) {
- 			dma_free_attrs(fbdev->dev, size, token, dma_handle,
--					&attrs);
-+					attrs);
- 			dev_err(fbdev->dev, "vrfb create ctx failed\n");
- 			return r;
- 		}
-diff -puN drivers/video/fbdev/omap2/omapfb/omapfb.h~video-dma-mapping-use-unsigned-long-for-dma_attrs drivers/video/fbdev/omap2/omapfb/omapfb.h
---- a/drivers/video/fbdev/omap2/omapfb/omapfb.h~video-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/video/fbdev/omap2/omapfb/omapfb.h
-@@ -28,7 +28,6 @@
- #endif
- 
- #include <linux/rwsem.h>
--#include <linux/dma-attrs.h>
- #include <linux/dma-mapping.h>
- 
- #include <video/omapdss.h>
-@@ -51,7 +50,7 @@ extern bool omapfb_debug;
- 
- struct omapfb2_mem_region {
- 	int             id;
+ 	/* Only used by DMA API */
 -	struct dma_attrs attrs;
-+	unsigned long	attrs;
- 	void		*token;
- 	dma_addr_t	dma_handle;
- 	u32		paddr;
++	unsigned long attrs;
+ };
+ #define gk20a_instmem(p) container_of((p), struct gk20a_instmem, base)
+ 
+@@ -293,7 +293,7 @@ gk20a_instobj_dtor_dma(struct nvkm_memor
+ 		goto out;
+ 
+ 	dma_free_attrs(dev, node->base.mem.size << PAGE_SHIFT, node->base.vaddr,
+-		       node->handle, &imem->attrs);
++		       node->handle, imem->attrs);
+ 
+ out:
+ 	return node;
+@@ -386,7 +386,7 @@ gk20a_instobj_ctor_dma(struct gk20a_inst
+ 
+ 	node->base.vaddr = dma_alloc_attrs(dev, npages << PAGE_SHIFT,
+ 					   &node->handle, GFP_KERNEL,
+-					   &imem->attrs);
++					   imem->attrs);
+ 	if (!node->base.vaddr) {
+ 		nvkm_error(subdev, "cannot allocate DMA memory\n");
+ 		return -ENOMEM;
+@@ -597,10 +597,9 @@ gk20a_instmem_new(struct nvkm_device *de
+ 
+ 		nvkm_info(&imem->base.subdev, "using IOMMU\n");
+ 	} else {
+-		init_dma_attrs(&imem->attrs);
+-		dma_set_attr(DMA_ATTR_NON_CONSISTENT, &imem->attrs);
+-		dma_set_attr(DMA_ATTR_WEAK_ORDERING, &imem->attrs);
+-		dma_set_attr(DMA_ATTR_WRITE_COMBINE, &imem->attrs);
++		imem->attrs = DMA_ATTR_NON_CONSISTENT |
++			      DMA_ATTR_WEAK_ORDERING |
++			      DMA_ATTR_WRITE_COMBINE;
+ 
+ 		nvkm_info(&imem->base.subdev, "using DMA API\n");
+ 	}
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
