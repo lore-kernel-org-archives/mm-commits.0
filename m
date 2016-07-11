@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- dma-mapping-document-the-dma-attributes-next-to-the-declaration.patch added to -mm tree
-Date: Mon, 11 Jul 2016 15:15:37 -0700
-Message-ID: <57841a89.obPxrvlldtOoB+p8%akpm@linux-foundation.org>
+Subject: + unicore32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+ added to -mm tree
+Date: Mon, 11 Jul 2016 15:15:31 -0700
+Message-ID: <57841a83.OI0zgZxLhTnwJrrN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43732 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43722 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932075AbcGKWPi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:38 -0400
+	with ESMTP id S932075AbcGKWPc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, hch@infradead.org, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-mapping: document the DMA attributes next to the declaration
+     Subject: unicore32: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     dma-mapping-document-the-dma-attributes-next-to-the-declaration.patch
+     unicore32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-mapping-document-the-dma-attributes-next-to-the-declaration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/unicore32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dma-mapping-document-the-dma-attributes-next-to-the-declaration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/unicore32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,71 +40,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: dma-mapping: document the DMA attributes next to the declaration
+Subject: unicore32: dma-mapping: use unsigned long for dma_attrs
 
-Copy documentation abstract about each DMA attribute from
-Documentation/DMA-attributes.txt to the place with declaration.
+Split out subsystem specific changes for easier reviews. This will be
+squashed with main commit.
 
-Suggested-by: christoph Hellwig <hch@infradead.org>
-Link: http://lkml.kernel.org/r/1467275171-6298-44-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1467275171-6298-41-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-mapping.h |   33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
+ arch/unicore32/mm/dma-swiotlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/dma-mapping.h~dma-mapping-document-the-dma-attributes-next-to-the-declaration include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~dma-mapping-document-the-dma-attributes-next-to-the-declaration
-+++ a/include/linux/dma-mapping.h
-@@ -14,14 +14,47 @@
- /**
-  * List of possible attributes associated with a DMA mapping. The semantics
-  * of each attribute should be defined in Documentation/DMA-attributes.txt.
-+ *
-+ * DMA_ATTR_WRITE_BARRIER: DMA to a memory region with this attribute
-+ * forces all pending DMA writes to complete.
-  */
- #define DMA_ATTR_WRITE_BARRIER		(1UL << 0)
-+/*
-+ * DMA_ATTR_WEAK_ORDERING: Specifies that reads and writes to the mapping
-+ * may be weakly ordered, that is that reads and writes may pass each other.
-+ */
- #define DMA_ATTR_WEAK_ORDERING		(1UL << 1)
-+/*
-+ * DMA_ATTR_WRITE_COMBINE: Specifies that writes to the mapping may be
-+ * buffered to improve performance.
-+ */
- #define DMA_ATTR_WRITE_COMBINE		(1UL << 2)
-+/*
-+ * DMA_ATTR_NON_CONSISTENT: Lets the platform to choose to return either
-+ * consistent or non-consistent memory as it sees fit.
-+ */
- #define DMA_ATTR_NON_CONSISTENT		(1UL << 3)
-+/*
-+ * DMA_ATTR_NO_KERNEL_MAPPING: Lets the platform to avoid creating a kernel
-+ * virtual mapping for the allocated buffer.
-+ */
- #define DMA_ATTR_NO_KERNEL_MAPPING	(1UL << 4)
-+/*
-+ * DMA_ATTR_SKIP_CPU_SYNC: Allows platform code to skip synchronization of
-+ * the CPU cache for the given buffer assuming that it has been already
-+ * transferred to 'device' domain.
-+ */
- #define DMA_ATTR_SKIP_CPU_SYNC		(1UL << 5)
-+/*
-+ * DMA_ATTR_FORCE_CONTIGUOUS: Forces contiguous allocation of the buffer
-+ * in physical memory.
-+ */
- #define DMA_ATTR_FORCE_CONTIGUOUS	(1UL << 6)
-+/*
-+ * DMA_ATTR_ALLOC_SINGLE_PAGES: This is a hint to the DMA-mapping subsystem
-+ * that it's probably not worth the time to try to allocate memory to in a way
-+ * that gives better TLB efficiency.
-+ */
- #define DMA_ATTR_ALLOC_SINGLE_PAGES	(1UL << 7)
+diff -puN arch/unicore32/mm/dma-swiotlb.c~unicore32-dma-mapping-use-unsigned-long-for-dma_attrs arch/unicore32/mm/dma-swiotlb.c
+--- a/arch/unicore32/mm/dma-swiotlb.c~unicore32-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/unicore32/mm/dma-swiotlb.c
+@@ -19,14 +19,14 @@
  
- /*
+ static void *unicore_swiotlb_alloc_coherent(struct device *dev, size_t size,
+ 					    dma_addr_t *dma_handle, gfp_t flags,
+-					    struct dma_attrs *attrs)
++					    unsigned long attrs)
+ {
+ 	return swiotlb_alloc_coherent(dev, size, dma_handle, flags);
+ }
+ 
+ static void unicore_swiotlb_free_coherent(struct device *dev, size_t size,
+ 					  void *vaddr, dma_addr_t dma_addr,
+-					  struct dma_attrs *attrs)
++					  unsigned long attrs)
+ {
+ 	swiotlb_free_coherent(dev, size, vaddr, dma_addr);
+ }
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
