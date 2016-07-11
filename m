@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to -mm tree
-Date: Mon, 11 Jul 2016 15:15:13 -0700
-Message-ID: <57841a71.8xxVhBJ1b9ZgujuL%akpm@linux-foundation.org>
+Subject: + sh-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to
+ -mm tree
+Date: Mon, 11 Jul 2016 15:15:25 -0700
+Message-ID: <57841a7d.soF6FfmSZ+S1WRmp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43704 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932104AbcGKWPO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:14 -0400
+	with ESMTP id S932075AbcGKWP0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:15:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mn10300: dma-mapping: use unsigned long for dma_attrs
+     Subject: sh: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     mn10300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     sh-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mn10300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mn10300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +40,78 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: mn10300: dma-mapping: use unsigned long for dma_attrs
+Subject: sh: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1467275171-6298-32-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1467275171-6298-38-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/mm/dma-alloc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/sh/include/asm/dma-mapping.h |    4 ++--
+ arch/sh/kernel/dma-nommu.c        |    4 ++--
+ arch/sh/mm/consistent.c           |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/mn10300/mm/dma-alloc.c~mn10300-dma-mapping-use-unsigned-long-for-dma_attrs arch/mn10300/mm/dma-alloc.c
---- a/arch/mn10300/mm/dma-alloc.c~mn10300-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/mn10300/mm/dma-alloc.c
-@@ -21,7 +21,7 @@
- static unsigned long pci_sram_allocated = 0xbc000000;
+diff -puN arch/sh/include/asm/dma-mapping.h~sh-dma-mapping-use-unsigned-long-for-dma_attrs arch/sh/include/asm/dma-mapping.h
+--- a/arch/sh/include/asm/dma-mapping.h~sh-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/sh/include/asm/dma-mapping.h
+@@ -17,9 +17,9 @@ void dma_cache_sync(struct device *dev,
+ /* arch/sh/mm/consistent.c */
+ extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+ 					dma_addr_t *dma_addr, gfp_t flag,
+-					struct dma_attrs *attrs);
++					unsigned long attrs);
+ extern void dma_generic_free_coherent(struct device *dev, size_t size,
+ 				      void *vaddr, dma_addr_t dma_handle,
+-				      struct dma_attrs *attrs);
++				      unsigned long attrs);
  
- static void *mn10300_dma_alloc(struct device *dev, size_t size,
--		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
-+		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ #endif /* __ASM_SH_DMA_MAPPING_H */
+diff -puN arch/sh/kernel/dma-nommu.c~sh-dma-mapping-use-unsigned-long-for-dma_attrs arch/sh/kernel/dma-nommu.c
+--- a/arch/sh/kernel/dma-nommu.c~sh-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/sh/kernel/dma-nommu.c
+@@ -13,7 +13,7 @@
+ static dma_addr_t nommu_map_page(struct device *dev, struct page *page,
+ 				 unsigned long offset, size_t size,
+ 				 enum dma_data_direction dir,
+-				 struct dma_attrs *attrs)
++				 unsigned long attrs)
  {
- 	unsigned long addr;
- 	void *ret;
-@@ -63,7 +63,7 @@ done:
- }
+ 	dma_addr_t addr = page_to_phys(page) + offset;
  
- static void mn10300_dma_free(struct device *dev, size_t size, void *vaddr,
--		dma_addr_t dma_handle, struct dma_attrs *attrs)
-+		dma_addr_t dma_handle, unsigned long attrs)
+@@ -25,7 +25,7 @@ static dma_addr_t nommu_map_page(struct
+ 
+ static int nommu_map_sg(struct device *dev, struct scatterlist *sg,
+ 			int nents, enum dma_data_direction dir,
+-			struct dma_attrs *attrs)
++			unsigned long attrs)
  {
- 	unsigned long addr = (unsigned long) vaddr & ~0x20000000;
- 
-@@ -75,7 +75,7 @@ static void mn10300_dma_free(struct devi
- 
- static int mn10300_dma_map_sg(struct device *dev, struct scatterlist *sglist,
- 		int nents, enum dma_data_direction direction,
--		struct dma_attrs *attrs)
-+		unsigned long attrs)
- {
- 	struct scatterlist *sg;
+ 	struct scatterlist *s;
  	int i;
-@@ -92,7 +92,7 @@ static int mn10300_dma_map_sg(struct dev
+diff -puN arch/sh/mm/consistent.c~sh-dma-mapping-use-unsigned-long-for-dma_attrs arch/sh/mm/consistent.c
+--- a/arch/sh/mm/consistent.c~sh-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/sh/mm/consistent.c
+@@ -34,7 +34,7 @@ fs_initcall(dma_init);
  
- static dma_addr_t mn10300_dma_map_page(struct device *dev, struct page *page,
- 		unsigned long offset, size_t size,
--		enum dma_data_direction direction, struct dma_attrs *attrs)
-+		enum dma_data_direction direction, unsigned long attrs)
+ void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+ 				 dma_addr_t *dma_handle, gfp_t gfp,
+-				 struct dma_attrs *attrs)
++				 unsigned long attrs)
  {
- 	return page_to_bus(page) + offset;
- }
+ 	void *ret, *ret_nocache;
+ 	int order = get_order(size);
+@@ -66,7 +66,7 @@ void *dma_generic_alloc_coherent(struct
+ 
+ void dma_generic_free_coherent(struct device *dev, size_t size,
+ 			       void *vaddr, dma_addr_t dma_handle,
+-			       struct dma_attrs *attrs)
++			       unsigned long attrs)
+ {
+ 	int order = get_order(size);
+ 	unsigned long pfn = dma_handle >> PAGE_SHIFT;
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
