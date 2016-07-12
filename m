@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + module-do-a-warn_on_once-for-assert-module-mutex-not-held.patch added to -mm tree
-Date: Tue, 12 Jul 2016 13:31:37 -0700
-Message-ID: <578553a9.rxKOudOBOCzwD71B%akpm@linux-foundation.org>
+Subject: + mm-thp-refix-false-positive-bug-in-page_move_anon_rmap.patch
+ added to -mm tree
+Date: Tue, 12 Jul 2016 13:42:37 -0700
+Message-ID: <5785563d.TR6JihugCYDlOWfy%akpm__4201.30137722499$1468356181$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40241 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40337 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750784AbcGLUbi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jul 2016 16:31:38 -0400
+	with ESMTP id S1750896AbcGLUms (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jul 2016 16:42:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: hughd@google.com, aarcange@redhat.com, dvyukov@google.com, kirill.shutemov@linux.intel.com, mika.westerberg@linux.intel.com, riel@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/module.c: do a WARN_ON_ONCE() for assert module mutex not held
+     Subject: mm: thp: refix false positive BUG in page_move_anon_rmap()
 has been added to the -mm tree.  Its filename is
-     module-do-a-warn_on_once-for-assert-module-mutex-not-held.patch
+     mm-thp-refix-false-positive-bug-in-page_move_anon_rmap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/module-do-a-warn_on_once-for-assert-module-mutex-not-held.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-refix-false-positive-bug-in-page_move_anon_rmap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/module-do-a-warn_on_once-for-assert-module-mutex-not-held.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-refix-false-positive-bug-in-page_move_anon_rmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,84 +39,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: kernel/module.c: do a WARN_ON_ONCE() for assert module mutex not held
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: thp: refix false positive BUG in page_move_anon_rmap()
 
-When running with lockdep enabled, I triggered the WARN_ON() in the module
-code that asserts when module_mutex or rcu_read_lock_sched are not held. 
-The issue I have is that this can also be called from the dump_stack()
-code, causing us to enter an infinite loop...
+The VM_BUG_ON_PAGE in page_move_anon_rmap() is more trouble than it's
+worth: the syzkaller fuzzer hit it again.  It's still wrong for some THP
+cases, because linear_page_index() was never intended to apply to
+addresses before the start of a vma.
 
- ------------[ cut here ]------------
- WARNING: CPU: 1 PID: 0 at kernel/module.c:268 module_assert_mutex_or_preempt+0x3c/0x3e
- Modules linked in: ip6t_REJECT nf_reject_ipv6 nf_conntrack_ipv6
- CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.7.0-rc3-test-00013-g501c2375253c #14
- Hardware name: MSI MS-7823/CSM-H87M-G43 (MS-7823), BIOS V1.6 02/22/2014
-  ffff880215e8fa70 ffff880215e8fa70 ffffffff812fc8e3 0000000000000000
-  ffffffff81d3e55b ffff880215e8fac0 ffffffff8104fc88 ffffffff8104fcab
-  0000000915e88300 0000000000000046 ffffffffa019b29a 0000000000000001
- Call Trace:
-  [<ffffffff812fc8e3>] dump_stack+0x67/0x90
-  [<ffffffff8104fc88>] __warn+0xcb/0xe9
-  [<ffffffff8104fcab>] ? warn_slowpath_null+0x5/0x1f
- ------------[ cut here ]------------
- WARNING: CPU: 1 PID: 0 at kernel/module.c:268 module_assert_mutex_or_preempt+0x3c/0x3e
- Modules linked in: ip6t_REJECT nf_reject_ipv6 nf_conntrack_ipv6
- CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.7.0-rc3-test-00013-g501c2375253c #14
- Hardware name: MSI MS-7823/CSM-H87M-G43 (MS-7823), BIOS V1.6 02/22/2014
-  ffff880215e8f7a0 ffff880215e8f7a0 ffffffff812fc8e3 0000000000000000
-  ffffffff81d3e55b ffff880215e8f7f0 ffffffff8104fc88 ffffffff8104fcab
-  0000000915e88300 0000000000000046 ffffffffa019b29a 0000000000000001
- Call Trace:
-  [<ffffffff812fc8e3>] dump_stack+0x67/0x90
-  [<ffffffff8104fc88>] __warn+0xcb/0xe9
-  [<ffffffff8104fcab>] ? warn_slowpath_null+0x5/0x1f
- ------------[ cut here ]------------
- WARNING: CPU: 1 PID: 0 at kernel/module.c:268 module_assert_mutex_or_preempt+0x3c/0x3e
- Modules linked in: ip6t_REJECT nf_reject_ipv6 nf_conntrack_ipv6
- CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.7.0-rc3-test-00013-g501c2375253c #14
- Hardware name: MSI MS-7823/CSM-H87M-G43 (MS-7823), BIOS V1.6 02/22/2014
-  ffff880215e8f4d0 ffff880215e8f4d0 ffffffff812fc8e3 0000000000000000
-  ffffffff81d3e55b ffff880215e8f520 ffffffff8104fc88 ffffffff8104fcab
-  0000000915e88300 0000000000000046 ffffffffa019b29a 0000000000000001
- Call Trace:
-  [<ffffffff812fc8e3>] dump_stack+0x67/0x90
-  [<ffffffff8104fc88>] __warn+0xcb/0xe9
-  [<ffffffff8104fcab>] ? warn_slowpath_null+0x5/0x1f
- ------------[ cut here ]------------
- WARNING: CPU: 1 PID: 0 at kernel/module.c:268 module_assert_mutex_or_preempt+0x3c/0x3e
-[...]
+That's easily fixed with a signed long cast inside linear_page_index();
+and Dmitry has tested such a patch, to verify the false positive.  But why
+extend linear_page_index() just for this case?  when the avoidance in
+page_move_anon_rmap() has already grown ugly, and there's no reason for
+the check at all (nothing else there is using address or index).
 
-Which gives us rather useless information.  Worse yet, there's some race
-that causes this, and I seldom trigger it, so I have no idea what
-happened.
+Remove address arg from page_move_anon_rmap(), remove VM_BUG_ON_PAGE,
+remove CONFIG_DEBUG_VM PageTransHuge adjustment.
 
-This would not be an issue if that warning was a WARN_ON_ONCE().
+And one more thing: should the compound_head(page) be done inside or
+outside page_move_anon_rmap()?  It's usually pushed down to the lowest
+level nowadays (and mm/memory.c shows no other explicit use of it), so I
+think it's better done in page_move_anon_rmap() than by caller.
 
-Link: http://lkml.kernel.org/r/20160712091550.30ddfff7@gandalf.local.home
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Fixes: 0798d3c022dc ("mm: thp: avoid false positive VM_BUG_ON_PAGE in page_move_anon_rmap()")
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1607120444540.12528@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: <stable@vger.kernel.org>	[4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/rmap.h |    2 +-
+ mm/hugetlb.c         |    2 +-
+ mm/memory.c          |    3 +--
+ mm/rmap.c            |    9 +++------
+ 4 files changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN kernel/module.c~module-do-a-warn_on_once-for-assert-module-mutex-not-held kernel/module.c
---- a/kernel/module.c~module-do-a-warn_on_once-for-assert-module-mutex-not-held
-+++ a/kernel/module.c
-@@ -264,7 +264,7 @@ static void module_assert_mutex_or_preem
- 	if (unlikely(!debug_locks))
- 		return;
+diff -puN include/linux/rmap.h~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap
++++ a/include/linux/rmap.h
+@@ -158,7 +158,7 @@ struct anon_vma *page_get_anon_vma(struc
+ /*
+  * rmap interfaces called when adding or removing pte of page
+  */
+-void page_move_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
++void page_move_anon_rmap(struct page *, struct vm_area_struct *);
+ void page_add_anon_rmap(struct page *, struct vm_area_struct *,
+ 		unsigned long, bool);
+ void do_page_add_anon_rmap(struct page *, struct vm_area_struct *,
+diff -puN mm/hugetlb.c~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap
++++ a/mm/hugetlb.c
+@@ -3383,7 +3383,7 @@ retry_avoidcopy:
+ 	/* If no-one else is actually using this page, avoid the copy
+ 	 * and just make the page writable */
+ 	if (page_mapcount(old_page) == 1 && PageAnon(old_page)) {
+-		page_move_anon_rmap(old_page, vma, address);
++		page_move_anon_rmap(old_page, vma);
+ 		set_huge_ptep_writable(vma, address, ptep);
+ 		return 0;
+ 	}
+diff -puN mm/memory.c~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap mm/memory.c
+--- a/mm/memory.c~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap
++++ a/mm/memory.c
+@@ -2399,8 +2399,7 @@ static int do_wp_page(struct mm_struct *
+ 				 * Protected against the rmap code by
+ 				 * the page lock.
+ 				 */
+-				page_move_anon_rmap(compound_head(old_page),
+-						    vma, address);
++				page_move_anon_rmap(old_page, vma);
+ 			}
+ 			unlock_page(old_page);
+ 			return wp_page_reuse(mm, vma, address, page_table, ptl,
+diff -puN mm/rmap.c~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap mm/rmap.c
+--- a/mm/rmap.c~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap
++++ a/mm/rmap.c
+@@ -1084,23 +1084,20 @@ EXPORT_SYMBOL_GPL(page_mkclean);
+  * page_move_anon_rmap - move a page to our anon_vma
+  * @page:	the page to move to our anon_vma
+  * @vma:	the vma the page belongs to
+- * @address:	the user virtual address mapped
+  *
+  * When a page belongs exclusively to one process after a COW event,
+  * that page can be moved into the anon_vma that belongs to just that
+  * process, so the rmap code will not search the parent or sibling
+  * processes.
+  */
+-void page_move_anon_rmap(struct page *page,
+-	struct vm_area_struct *vma, unsigned long address)
++void page_move_anon_rmap(struct page *page, struct vm_area_struct *vma)
+ {
+ 	struct anon_vma *anon_vma = vma->anon_vma;
  
--	WARN_ON(!rcu_read_lock_sched_held() &&
-+	WARN_ON_ONCE(!rcu_read_lock_sched_held() &&
- 		!lockdep_is_held(&module_mutex));
- #endif
- }
++	page = compound_head(page);
++
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_VMA(!anon_vma, vma);
+-	if (IS_ENABLED(CONFIG_DEBUG_VM) && PageTransHuge(page))
+-		address &= HPAGE_PMD_MASK;
+-	VM_BUG_ON_PAGE(page->index != linear_page_index(vma, address), page);
+ 
+ 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
+ 	/*
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-module-do-a-warn_on_once-for-assert-module-mutex-not-held.patch
+mm-thp-refix-false-positive-bug-in-page_move_anon_rmap.patch
+shmem-get_unmapped_area-align-huge-page.patch
 
