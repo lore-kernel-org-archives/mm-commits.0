@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch added to -mm tree
-Date: Tue, 12 Jul 2016 10:46:55 -0700
-Message-ID: <57852d0f.oUGJ0MI4AFPVsIQW%akpm@linux-foundation.org>
+Subject: + media-dma-mapping-use-unsigned-long-for-dma_attrs.patch added
+ to -mm tree
+Date: Tue, 12 Jul 2016 12:56:54 -0700
+Message-ID: <57854b86./xkzBjHIF5Kmv0z/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38190 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39576 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750716AbcGLRq4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jul 2016 13:46:56 -0400
+	with ESMTP id S1751285AbcGLT5A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jul 2016 15:57:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, fabien.dessenne@st.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rmap: call page_check_address() with sync enabled to avoid racy check
+     Subject: media: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch
+     media-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/media-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/media-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +39,364 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: rmap: call page_check_address() with sync enabled to avoid racy check
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: media: dma-mapping: use unsigned long for dma_attrs
 
-The previous patch addresses the race between split_huge_pmd_address() and
-someone changing the pmd. The fix is only for splitting of normal thp
-(i.e. pmd-mapped thp,) and for splitting of pte-mapped thp there still is
-the similar race.
+Split out subsystem specific changes for easier reviews. This will be
+squashed with main commit.
 
-For splitting pte-mapped thp, the pte's conversion is done by
-try_to_unmap_one(TTU_MIGRATION). This function checks page_check_address() to
-get the target pte, but it can return NULL under some race, leading to
-VM_BUG_ON() in freeze_page(). Fortunately, page_check_address() already has
-an argument to decide whether we do a quick/racy check or not, so let's flip
-it when called from freeze_page().
-
-Link: http://lkml.kernel.org/r/1466990929-7452-2-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/1467275171-6298-18-git-send-email-k.kozlowski@samsung.com
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Acked-by: Fabien Dessenne <fabien.dessenne@st.com> [bdisp]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/platform/sti/bdisp/bdisp-hw.c    |   26 ++++---------
+ drivers/media/v4l2-core/videobuf2-dma-contig.c |   30 ++++++---------
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     |   19 ++-------
+ include/media/videobuf2-dma-contig.h           |    7 +--
+ 4 files changed, 26 insertions(+), 56 deletions(-)
 
-diff -puN mm/rmap.c~mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check mm/rmap.c
---- a/mm/rmap.c~mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check
-+++ a/mm/rmap.c
-@@ -1427,7 +1427,8 @@ static int try_to_unmap_one(struct page
- 			goto out;
+diff -puN drivers/media/platform/sti/bdisp/bdisp-hw.c~media-dma-mapping-use-unsigned-long-for-dma_attrs drivers/media/platform/sti/bdisp/bdisp-hw.c
+--- a/drivers/media/platform/sti/bdisp/bdisp-hw.c~media-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/media/platform/sti/bdisp/bdisp-hw.c
+@@ -125,14 +125,11 @@ int bdisp_hw_get_and_clear_irq(struct bd
+  */
+ void bdisp_hw_free_nodes(struct bdisp_ctx *ctx)
+ {
+-	if (ctx && ctx->node[0]) {
+-		DEFINE_DMA_ATTRS(attrs);
+-
+-		dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
++	if (ctx && ctx->node[0])
+ 		dma_free_attrs(ctx->bdisp_dev->dev,
+ 			       sizeof(struct bdisp_node) * MAX_NB_NODE,
+-			       ctx->node[0], ctx->node_paddr[0], &attrs);
+-	}
++			       ctx->node[0], ctx->node_paddr[0],
++			       DMA_ATTR_WRITE_COMBINE);
+ }
+ 
+ /**
+@@ -150,12 +147,10 @@ int bdisp_hw_alloc_nodes(struct bdisp_ct
+ 	unsigned int i, node_size = sizeof(struct bdisp_node);
+ 	void *base;
+ 	dma_addr_t paddr;
+-	DEFINE_DMA_ATTRS(attrs);
+ 
+ 	/* Allocate all the nodes within a single memory page */
+-	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
+ 	base = dma_alloc_attrs(dev, node_size * MAX_NB_NODE, &paddr,
+-			       GFP_KERNEL | GFP_DMA, &attrs);
++			       GFP_KERNEL | GFP_DMA, DMA_ATTR_WRITE_COMBINE);
+ 	if (!base) {
+ 		dev_err(dev, "%s no mem\n", __func__);
+ 		return -ENOMEM;
+@@ -188,13 +183,9 @@ void bdisp_hw_free_filters(struct device
+ {
+ 	int size = (BDISP_HF_NB * NB_H_FILTER) + (BDISP_VF_NB * NB_V_FILTER);
+ 
+-	if (bdisp_h_filter[0].virt) {
+-		DEFINE_DMA_ATTRS(attrs);
+-
+-		dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
++	if (bdisp_h_filter[0].virt)
+ 		dma_free_attrs(dev, size, bdisp_h_filter[0].virt,
+-			       bdisp_h_filter[0].paddr, &attrs);
+-	}
++			       bdisp_h_filter[0].paddr, DMA_ATTR_WRITE_COMBINE);
+ }
+ 
+ /**
+@@ -211,12 +202,11 @@ int bdisp_hw_alloc_filters(struct device
+ 	unsigned int i, size;
+ 	void *base;
+ 	dma_addr_t paddr;
+-	DEFINE_DMA_ATTRS(attrs);
+ 
+ 	/* Allocate all the filters within a single memory page */
+ 	size = (BDISP_HF_NB * NB_H_FILTER) + (BDISP_VF_NB * NB_V_FILTER);
+-	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
+-	base = dma_alloc_attrs(dev, size, &paddr, GFP_KERNEL | GFP_DMA, &attrs);
++	base = dma_alloc_attrs(dev, size, &paddr, GFP_KERNEL | GFP_DMA,
++			       DMA_ATTR_WRITE_COMBINE);
+ 	if (!base)
+ 		return -ENOMEM;
+ 
+diff -puN drivers/media/v4l2-core/videobuf2-dma-contig.c~media-dma-mapping-use-unsigned-long-for-dma_attrs drivers/media/v4l2-core/videobuf2-dma-contig.c
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c~media-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -23,7 +23,7 @@
+ 
+ struct vb2_dc_conf {
+ 	struct device		*dev;
+-	struct dma_attrs	attrs;
++	unsigned long		attrs;
+ };
+ 
+ struct vb2_dc_buf {
+@@ -32,7 +32,7 @@ struct vb2_dc_buf {
+ 	unsigned long			size;
+ 	void				*cookie;
+ 	dma_addr_t			dma_addr;
+-	struct dma_attrs		attrs;
++	unsigned long			attrs;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			*dma_sgt;
+ 	struct frame_vector		*vec;
+@@ -135,7 +135,7 @@ static void vb2_dc_put(void *buf_priv)
+ 		kfree(buf->sgt_base);
+ 	}
+ 	dma_free_attrs(buf->dev, buf->size, buf->cookie, buf->dma_addr,
+-			&buf->attrs);
++		       buf->attrs);
+ 	put_device(buf->dev);
+ 	kfree(buf);
+ }
+@@ -153,14 +153,14 @@ static void *vb2_dc_alloc(void *alloc_ct
+ 
+ 	buf->attrs = conf->attrs;
+ 	buf->cookie = dma_alloc_attrs(dev, size, &buf->dma_addr,
+-					GFP_KERNEL | gfp_flags, &buf->attrs);
++					GFP_KERNEL | gfp_flags, buf->attrs);
+ 	if (!buf->cookie) {
+ 		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
+ 		kfree(buf);
+ 		return ERR_PTR(-ENOMEM);
  	}
  
--	pte = page_check_address(page, mm, address, &ptl, 0);
-+	pte = page_check_address(page, mm, address, &ptl,
-+				 PageTransCompound(page));
- 	if (!pte)
- 		goto out;
+-	if (!dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, &buf->attrs))
++	if (!dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, buf->attrs))
+ 		buf->vaddr = buf->cookie;
  
+ 	/* Prevent the device from being released while the buffer is used */
+@@ -194,7 +194,7 @@ static int vb2_dc_mmap(void *buf_priv, s
+ 	vma->vm_pgoff = 0;
+ 
+ 	ret = dma_mmap_attrs(buf->dev, vma, buf->cookie,
+-		buf->dma_addr, buf->size, &buf->attrs);
++		buf->dma_addr, buf->size, buf->attrs);
+ 
+ 	if (ret) {
+ 		pr_err("Remapping memory failed, error: %d\n", ret);
+@@ -377,7 +377,7 @@ static struct sg_table *vb2_dc_get_base_
+ 	}
+ 
+ 	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
+-		buf->size, &buf->attrs);
++		buf->size, buf->attrs);
+ 	if (ret < 0) {
+ 		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
+ 		kfree(sgt);
+@@ -426,15 +426,12 @@ static void vb2_dc_put_userptr(void *buf
+ 	struct page **pages;
+ 
+ 	if (sgt) {
+-		DEFINE_DMA_ATTRS(attrs);
+-
+-		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 		/*
+ 		 * No need to sync to CPU, it's already synced to the CPU
+ 		 * since the finish() memop will have been called before this.
+ 		 */
+ 		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+-				   buf->dma_dir, &attrs);
++				   buf->dma_dir, DMA_ATTR_SKIP_CPU_SYNC);
+ 		pages = frame_vector_pages(buf->vec);
+ 		/* sgt should exist only if vector contains pages... */
+ 		BUG_ON(IS_ERR(pages));
+@@ -490,9 +487,6 @@ static void *vb2_dc_get_userptr(void *al
+ 	struct sg_table *sgt;
+ 	unsigned long contig_size;
+ 	unsigned long dma_align = dma_get_cache_alignment();
+-	DEFINE_DMA_ATTRS(attrs);
+-
+-	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 
+ 	/* Only cache aligned DMA transfers are reliable */
+ 	if (!IS_ALIGNED(vaddr | size, dma_align)) {
+@@ -554,7 +548,7 @@ static void *vb2_dc_get_userptr(void *al
+ 	 * prepare() memop is called.
+ 	 */
+ 	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+-				      buf->dma_dir, &attrs);
++				      buf->dma_dir, DMA_ATTR_SKIP_CPU_SYNC);
+ 	if (sgt->nents <= 0) {
+ 		pr_err("failed to map scatterlist\n");
+ 		ret = -EIO;
+@@ -578,7 +572,7 @@ out:
+ 
+ fail_map_sg:
+ 	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+-			   buf->dma_dir, &attrs);
++			   buf->dma_dir, DMA_ATTR_SKIP_CPU_SYNC);
+ 
+ fail_sgt_init:
+ 	sg_free_table(sgt);
+@@ -730,7 +724,7 @@ const struct vb2_mem_ops vb2_dma_contig_
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+ 
+ void *vb2_dma_contig_init_ctx_attrs(struct device *dev,
+-				    struct dma_attrs *attrs)
++				    unsigned long attrs)
+ {
+ 	struct vb2_dc_conf *conf;
+ 
+@@ -740,7 +734,7 @@ void *vb2_dma_contig_init_ctx_attrs(stru
+ 
+ 	conf->dev = dev;
+ 	if (attrs)
+-		conf->attrs = *attrs;
++		conf->attrs = attrs;
+ 
+ 	return conf;
+ }
+diff -puN drivers/media/v4l2-core/videobuf2-dma-sg.c~media-dma-mapping-use-unsigned-long-for-dma_attrs drivers/media/v4l2-core/videobuf2-dma-sg.c
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c~media-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -107,9 +107,6 @@ static void *vb2_dma_sg_alloc(void *allo
+ 	struct sg_table *sgt;
+ 	int ret;
+ 	int num_pages;
+-	DEFINE_DMA_ATTRS(attrs);
+-
+-	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 
+ 	if (WARN_ON(alloc_ctx == NULL))
+ 		return NULL;
+@@ -148,7 +145,7 @@ static void *vb2_dma_sg_alloc(void *allo
+ 	 * prepare() memop is called.
+ 	 */
+ 	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+-				      buf->dma_dir, &attrs);
++				      buf->dma_dir, DMA_ATTR_SKIP_CPU_SYNC);
+ 	if (!sgt->nents)
+ 		goto fail_map;
+ 
+@@ -183,13 +180,10 @@ static void vb2_dma_sg_put(void *buf_pri
+ 	int i = buf->num_pages;
+ 
+ 	if (atomic_dec_and_test(&buf->refcount)) {
+-		DEFINE_DMA_ATTRS(attrs);
+-
+-		dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
+ 			buf->num_pages);
+ 		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+-				   buf->dma_dir, &attrs);
++				   buf->dma_dir, DMA_ATTR_SKIP_CPU_SYNC);
+ 		if (buf->vaddr)
+ 			vm_unmap_ram(buf->vaddr, buf->num_pages);
+ 		sg_free_table(buf->dma_sgt);
+@@ -233,10 +227,8 @@ static void *vb2_dma_sg_get_userptr(void
+ 	struct vb2_dma_sg_conf *conf = alloc_ctx;
+ 	struct vb2_dma_sg_buf *buf;
+ 	struct sg_table *sgt;
+-	DEFINE_DMA_ATTRS(attrs);
+ 	struct frame_vector *vec;
+ 
+-	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+ 		return NULL;
+@@ -267,7 +259,7 @@ static void *vb2_dma_sg_get_userptr(void
+ 	 * prepare() memop is called.
+ 	 */
+ 	sgt->nents = dma_map_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+-				      buf->dma_dir, &attrs);
++				      buf->dma_dir, DMA_ATTR_SKIP_CPU_SYNC);
+ 	if (!sgt->nents)
+ 		goto userptr_fail_map;
+ 
+@@ -291,14 +283,11 @@ static void vb2_dma_sg_put_userptr(void
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+ 	struct sg_table *sgt = &buf->sg_table;
+ 	int i = buf->num_pages;
+-	DEFINE_DMA_ATTRS(attrs);
+-
+-	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+ 
+ 	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
+ 	       __func__, buf->num_pages);
+ 	dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir,
+-			   &attrs);
++			   DMA_ATTR_SKIP_CPU_SYNC);
+ 	if (buf->vaddr)
+ 		vm_unmap_ram(buf->vaddr, buf->num_pages);
+ 	sg_free_table(buf->dma_sgt);
+diff -puN include/media/videobuf2-dma-contig.h~media-dma-mapping-use-unsigned-long-for-dma_attrs include/media/videobuf2-dma-contig.h
+--- a/include/media/videobuf2-dma-contig.h~media-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/include/media/videobuf2-dma-contig.h
+@@ -16,8 +16,6 @@
+ #include <media/videobuf2-v4l2.h>
+ #include <linux/dma-mapping.h>
+ 
+-struct dma_attrs;
+-
+ static inline dma_addr_t
+ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
+ {
+@@ -26,12 +24,11 @@ vb2_dma_contig_plane_dma_addr(struct vb2
+ 	return *addr;
+ }
+ 
+-void *vb2_dma_contig_init_ctx_attrs(struct device *dev,
+-				    struct dma_attrs *attrs);
++void *vb2_dma_contig_init_ctx_attrs(struct device *dev, unsigned long attrs);
+ 
+ static inline void *vb2_dma_contig_init_ctx(struct device *dev)
+ {
+-	return vb2_dma_contig_init_ctx_attrs(dev, NULL);
++	return vb2_dma_contig_init_ctx_attrs(dev, 0);
+ }
+ 
+ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
-mm-thp-move-pmd-check-inside-ptl-for-freeze_page.patch
-mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch
-mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
+dma-mapping-use-unsigned-long-for-dma_attrs.patch
+alpha-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+arm-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+arm64-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+avr32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+blackfin-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+c6x-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+cris-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+frv-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-exynos-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-mediatek-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-msm-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+infiniband-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+iommu-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+xen-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+swiotlb-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+powerpc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+media-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+video-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+x86-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+h8300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+hexagon-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+ia64-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+metag-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+microblaze-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+mips-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+mn10300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+openrisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+parisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+misc-mic-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+s390-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+sh-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+sparc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+tile-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+unicore32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+xtensa-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+dma-mapping-remove-dma_get_attr.patch
+dma-mapping-document-the-dma-attributes-next-to-the-declaration.patch
 
