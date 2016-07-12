@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- maintainers-remove-unreachable-people-that-have-left-atmel.patch added to
- -mm tree
-Date: Mon, 11 Jul 2016 15:59:55 -0700
-Message-ID: <578424eb.gTszFlACY5dPKGsR%akpm@linux-foundation.org>
+ mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch added to -mm tree
+Date: Tue, 12 Jul 2016 10:46:03 -0700
+Message-ID: <57852cdb.Zr5BhRwWUlijtfQB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44335 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38182 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750787AbcGKW75 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jul 2016 18:59:57 -0400
+	with ESMTP id S1750716AbcGLRqF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jul 2016 13:46:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luisbg@osg.samsung.com, davem@davemloft.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: remove unreachable people that have left Atmel
+     Subject: mm: rmap: call page_check_address() with sync enabled to avoid racy check
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-unreachable-people-that-have-left-atmel.patch
+     mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-unreachable-people-that-have-left-atmel.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-unreachable-people-that-have-left-atmel.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,44 +39,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Luis de Bethencourt <luisbg@osg.samsung.com>
-Subject: MAINTAINERS: remove unreachable people that have left Atmel
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: rmap: call page_check_address() with sync enabled to avoid racy check
 
-When sending an email regarding a patch to wilc1000, you get the following
-automatic replies:
-"Sung_hoon Cho is no longer with Atmel Corporation."
-"Kang_hee Park is no longer with Atmel Corporation."
-"Dong_ho Shin is no longer with Atmel Corporation."
-"Bo_moon Kim is no longer with Atmel Corporation."
-"Min_su Kim is no longer with Atmel Corporation."
-"Jun_hyuk Lee is no longer with Atmel Corporation."
+The previous patch addresses the race between split_huge_pmd_address() and
+someone changing the pmd. The fix is only for splitting of normal thp
+(i.e. pmd-mapped thp,) and for splitting of pte-mapped thp there still is
+the similar race.
 
-Removing this entry since none of the maintainers are reachable.
+For splitting pte-mapped thp, the pte's conversion is done by
+try_to_unmap_one(TTU_MIGRATION). This function checks page_check_address() to
+get the target pte, but it can return NULL under some race, leading to
+VM_BUG_ON() in freeze_page(). Fortunately, page_check_address() already has
+an argument to decide whether we do a quick/racy check or not, so let's flip
+it when called from freeze_page().
 
-Link: http://lkml.kernel.org/r/1467033373-20967-1-git-send-email-luisbg@osg.samsung.com
-Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: David Miller <davem@davemloft.net>
+Link: http://lkml.kernel.org/r/1466990929-7452-2-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+---
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+index 256e585..a8bce293 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   11 -----------
- 1 file changed, 11 deletions(-)
+ mm/rmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-unreachable-people-that-have-left-atmel MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-unreachable-people-that-have-left-atmel
-+++ a/MAINTAINERS
-@@ -11131,17 +11131,6 @@ M:	Forest Bond <forest@alittletooquiet.n
- S:	Odd Fixes
- F:	drivers/staging/vt665?/
+diff -puN mm/rmap.c~mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check
++++ a/mm/rmap.c
+@@ -1427,7 +1427,8 @@ static int try_to_unmap_one(struct page
+ 			goto out;
+ 	}
  
--STAGING - WILC1000 WIFI DRIVER
--M:	Johnny Kim <johnny.kim@atmel.com>
--M:	Austin Shin <austin.shin@atmel.com>
--M:	Chris Park <chris.park@atmel.com>
--M:	Tony Cho <tony.cho@atmel.com>
--M:	Glen Lee <glen.lee@atmel.com>
--M:	Leo Kim <leo.kim@atmel.com>
--L:	linux-wireless@vger.kernel.org
--S:	Supported
--F:	drivers/staging/wilc1000/
+-	pte = page_check_address(page, mm, address, &ptl, 0);
++	pte = page_check_address(page, mm, address, &ptl,
++				 PageTransCompound(page));
+ 	if (!pte)
+ 		goto out;
+ 
+_
+
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+
+mm-thp-move-pmd-check-inside-ptl-for-freeze_page.patch
+mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch
+mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
+
