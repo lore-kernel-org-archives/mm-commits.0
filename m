@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-leds-leds-lp3952c-work-around-gcc-444-union-initializer-bug.patch
- added to -mm tree
-Date: Tue, 12 Jul 2016 14:46:04 -0700
-Message-ID: <5785651c.d2JFDzyQUJLxRsYu%akpm@linux-foundation.org>
+ drivers-staging-media-cec-cec-adapc-work-around-gcc-444-anon-union-initializer-bug.patch added to -mm tree
+Date: Tue, 12 Jul 2016 15:30:55 -0700
+Message-ID: <57856f9f.T4gCAYpWfpfyeKAb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42457 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43469 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751470AbcGLVqK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jul 2016 17:46:10 -0400
+	with ESMTP id S1752247AbcGLWbP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jul 2016 18:31:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, j.anaszewski@samsung.com, mika.westerberg@linux.intel.com, tony.makkiel@daqri.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hans.verkuil@cisco.com, kamil@wypas.org, mchehab@s-opensource.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/leds/leds-lp3952.c: work around gcc-4.4.4 union initializer bug
+     Subject: drivers/staging/media/cec/cec-adap.c: work around gcc-4.4.4 anon union initializer bug
 has been added to the -mm tree.  Its filename is
-     drivers-leds-leds-lp3952c-work-around-gcc-444-union-initializer-bug.patch
+     drivers-staging-media-cec-cec-adapc-work-around-gcc-444-anon-union-initializer-bug.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-leds-leds-lp3952c-work-around-gcc-444-union-initializer-bug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-staging-media-cec-cec-adapc-work-around-gcc-444-anon-union-initializer-bug.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-leds-leds-lp3952c-work-around-gcc-444-union-initializer-bug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-staging-media-cec-cec-adapc-work-around-gcc-444-anon-union-initializer-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,59 +40,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/leds/leds-lp3952.c: work around gcc-4.4.4 union initializer bug
+Subject: drivers/staging/media/cec/cec-adap.c: work around gcc-4.4.4 anon union initializer bug
 
-drivers/leds/leds-lp3952.c: In function 'lp3952_set_pattern_gen_cmd':
-drivers/leds/leds-lp3952.c:156: error: unknown field 'r' specified in initializer
-drivers/leds/leds-lp3952.c:156: warning: missing braces around initializer
-drivers/leds/leds-lp3952.c:156: warning: (near initialization for 'line.<anonymous>')
-drivers/leds/leds-lp3952.c:157: error: unknown field 'g' specified in initializer
-drivers/leds/leds-lp3952.c:157: warning: excess elements in struct initializer
-drivers/leds/leds-lp3952.c:157: warning: (near initialization for 'line')
-drivers/leds/leds-lp3952.c:158: error: unknown field 'b' specified in initializer
-drivers/leds/leds-lp3952.c:158: warning: excess elements in struct initializer
-drivers/leds/leds-lp3952.c:158: warning: (near initialization for 'line')
-drivers/leds/leds-lp3952.c:159: error: unknown field 'cet' specified in initializer
-drivers/leds/leds-lp3952.c:159: warning: excess elements in struct initializer
-drivers/leds/leds-lp3952.c:159: warning: (near initialization for 'line')
-drivers/leds/leds-lp3952.c:160: error: unknown field 'tt' specified in initializer
-drivers/leds/leds-lp3952.c:161: warning: excess elements in struct initializer
-drivers/leds/leds-lp3952.c:161: warning: (near initialization for 'line')
+drivers/staging/media/cec/cec-adap.c: In function 'cec_queue_msg_fh':
+drivers/staging/media/cec/cec-adap.c:141: error: unknown field 'lost_msgs' specified in initializer
 
-Fixes: 1574a45ad7467d6a8c6 ("leds: LED driver for TI LP3952 6-Channel Color LED")
-Cc: Tony Makkiel <tony.makkiel@daqri.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>
+Fixes: 9881fe0ca187c21 ("[media] cec: add HDMI CEC framework (adapter)")
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Kamil Debski <kamil@wypas.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-lp3952.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/staging/media/cec/cec-adap.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-lp3952.c~drivers-leds-leds-lp3952c-work-around-gcc-444-union-initializer-bug drivers/leds/leds-lp3952.c
---- a/drivers/leds/leds-lp3952.c~drivers-leds-leds-lp3952c-work-around-gcc-444-union-initializer-bug
-+++ a/drivers/leds/leds-lp3952.c
-@@ -153,11 +153,15 @@ static int lp3952_set_pattern_gen_cmd(st
+diff -puN drivers/staging/media/cec/cec-adap.c~drivers-staging-media-cec-cec-adapc-work-around-gcc-444-anon-union-initializer-bug drivers/staging/media/cec/cec-adap.c
+--- a/drivers/staging/media/cec/cec-adap.c~drivers-staging-media-cec-cec-adapc-work-around-gcc-444-anon-union-initializer-bug
++++ a/drivers/staging/media/cec/cec-adap.c
+@@ -137,8 +137,12 @@ static void cec_queue_event(struct cec_a
+ static void cec_queue_msg_fh(struct cec_fh *fh, const struct cec_msg *msg)
  {
- 	int ret;
- 	struct ptrn_gen_cmd line = {
--		.r = r,
--		.g = g,
--		.b = b,
--		.cet = cet,
--		.tt = tt
+ 	static const struct cec_event ev_lost_msg = {
++		.ts = 0,
+ 		.event = CEC_EVENT_LOST_MSGS,
+-		.lost_msgs.lost_msgs = 1,
++		.flags = 0,
 +		{
-+			{
-+				.tt = tt,
-+				.b = b,
-+				.cet = cet,
-+				.g = g,
-+				.r = r,
-+			},
++			.lost_msgs.lost_msgs = 1,
 +		},
  	};
+ 	struct cec_msg_entry *entry;
  
- 	if (cmd_index >= LP3952_CMD_REG_COUNT)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +100,7 @@ kexec-allow-architectures-to-override-boot-mapping-fix.patch
 linux-next-rejects.patch
 drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
 drivers-leds-leds-lp3952c-work-around-gcc-444-union-initializer-bug.patch
+drivers-staging-media-cec-cec-adapc-work-around-gcc-444-anon-union-initializer-bug.patch
 bitmap-bitmap_equal-memcmp-optimization-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
