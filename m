@@ -1,69 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-cleanup-ifdef-guards-for-vmem_altmap.patch removed
+Subject: [failures] cflags-add-wunused-but-set-parameter.patch removed
  from -mm tree
-Date: Tue, 12 Jul 2016 14:22:28 -0700
-Message-ID: <57855f94.XaTLNObVgZ7Gb9lr%akpm@linux-foundation.org>
+Date: Tue, 12 Jul 2016 14:26:10 -0700
+Message-ID: <57856072.lifrmvdz+g41Prj9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41915 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42222 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750897AbcGLVWj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jul 2016 17:22:39 -0400
+	with ESMTP id S1750916AbcGLV0f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jul 2016 17:26:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, jmoyer@redhat.com, sandeen@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     From: Dan Williams <dan.j.williams@intel.com>
+     Subject: CFLAGS: add -Wunused-but-set-parameter
 has been removed from the -mm tree.  Its filename was
-     mm-cleanup-ifdef-guards-for-vmem_altmap.patch
+     cflags-add-wunused-but-set-parameter.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-Subject: mm: cleanup ifdef guards for vmem_altmap
-From: Dan Williams <dan.j.williams@intel.com>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: CFLAGS: add -Wunused-but-set-parameter
 
-Now that ZONE_DEVICE depends on SPARSEMEM_VMEMMAP we can simplify some
-ifdef guards to just ZONE_DEVICE.
+-Wunused-but-set-parameter is finding stuff with current allmodconfig:
 
-Link: http://lkml.kernel.org/r/146687646788.39261.8020536391978771940.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+drivers/misc/mic/scif/scif_dma.c:118:27: warning: parameter 'ep' set but not used [-Wunused-but-set-parameter]
+drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c:2156:8: warning: parameter 'function' set but not used [-Wunused-but-set-parameter]
+drivers/net/ethernet/ti/tlan.c:1647:59: warning: parameter 'host_int' set but not used [-Wunused-but-set-parameter]
+drivers/usb/gadget/udc/pxa27x_udc.c:1828:74: warning: parameter 'driver' set but not used [-Wunused-but-set-parameter]
+
+and judging by changelogs, people were using it before,
+but were too scared to touch top level Makefile.
+
+Link: http://lkml.kernel.org/r/20160707214306.GB31678@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memremap.h |    2 +-
- kernel/memremap.c        |    8 --------
- 2 files changed, 1 insertion(+), 9 deletions(-)
+ Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/memremap.h~mm-cleanup-ifdef-guards-for-vmem_altmap include/linux/memremap.h
---- a/include/linux/memremap.h~mm-cleanup-ifdef-guards-for-vmem_altmap
-+++ a/include/linux/memremap.h
-@@ -26,7 +26,7 @@ struct vmem_altmap {
- unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
- void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns);
+diff -puN Makefile~cflags-add-wunused-but-set-parameter Makefile
+--- a/Makefile~cflags-add-wunused-but-set-parameter
++++ a/Makefile
+@@ -399,6 +399,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstric
+ 		   -Werror-implicit-function-declaration \
+ 		   -Wno-format-security \
+ 		   -std=gnu89
++KBUILD_CFLAGS += -Wunused-but-set-parameter
  
--#if defined(CONFIG_SPARSEMEM_VMEMMAP) && defined(CONFIG_ZONE_DEVICE)
-+#ifdef CONFIG_ZONE_DEVICE
- struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start);
- #else
- static inline struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
-diff -puN kernel/memremap.c~mm-cleanup-ifdef-guards-for-vmem_altmap kernel/memremap.c
---- a/kernel/memremap.c~mm-cleanup-ifdef-guards-for-vmem_altmap
-+++ a/kernel/memremap.c
-@@ -308,12 +308,6 @@ void *devm_memremap_pages(struct device
- 	if (is_ram == REGION_INTERSECTS)
- 		return __va(res->start);
- 
--	if (altmap && !IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)) {
--		dev_err(dev, "%s: altmap requires CONFIG_SPARSEMEM_VMEMMAP=y\n",
--				__func__);
--		return ERR_PTR(-ENXIO);
--	}
+ KBUILD_AFLAGS_KERNEL :=
+ KBUILD_CFLAGS_KERNEL :=
+_
+
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+mm-faster-kmalloc_array-kcalloc.patch
+ban-config_localversion_auto-with-allmodconfig.patch
+ipc-delete-nr_ipc_ns.patch
+
