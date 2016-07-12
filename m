@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-config_zone_device-stop-depending-on-config_expert.patch
- added to -mm tree
-Date: Tue, 12 Jul 2016 14:05:19 -0700
-Message-ID: <57855b8f.CequiDHQI1n4yrZZ%akpm@linux-foundation.org>
+Subject: + mm-cleanup-ifdef-guards-for-vmem_altmap.patch added to -mm tree
+Date: Tue, 12 Jul 2016 14:05:21 -0700
+Message-ID: <57855b91.5ODRiBJW98ylEf7H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40528 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750770AbcGLVFa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jul 2016 17:05:30 -0400
+	with ESMTP id S1750770AbcGLVFc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jul 2016 17:05:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, jmoyer@redhat.com, sandeen@redhat.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, jmoyer@redhat.com, sandeen@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: CONFIG_ZONE_DEVICE stop depending on CONFIG_EXPERT
+     From: Dan Williams <dan.j.williams@intel.com>
 has been added to the -mm tree.  Its filename is
-     mm-config_zone_device-stop-depending-on-config_expert.patch
+     mm-cleanup-ifdef-guards-for-vmem_altmap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-config_zone_device-stop-depending-on-config_expert.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cleanup-ifdef-guards-for-vmem_altmap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-config_zone_device-stop-depending-on-config_expert.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cleanup-ifdef-guards-for-vmem_altmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +39,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: CONFIG_ZONE_DEVICE stop depending on CONFIG_EXPERT
+Subject: mm: cleanup ifdef guards for vmem_altmap
 
-When it was first introduced CONFIG_ZONE_DEVICE depended on disabling
-CONFIG_ZONE_DMA, a configuration choice reserved for "experts".  However,
-now that the ZONE_DMA conflict has been eliminated it no longer makes
-sense to require CONFIG_EXPERT.
+Now that ZONE_DEVICE depends on SPARSEMEM_VMEMMAP we can simplify some
+ifdef guards to just ZONE_DEVICE.
 
-Link: http://lkml.kernel.org/r/146687646274.39261.14267596518720371009.stgit@dwillia2-desk3.amr.corp.intel.com
+Link: http://lkml.kernel.org/r/146687646788.39261.8020536391978771940.stgit@dwillia2-desk3.amr.corp.intel.com
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Eric Sandeen <sandeen@redhat.com>
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memremap.h |    2 +-
+ kernel/memremap.c        |    8 --------
+ 2 files changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN mm/Kconfig~mm-config_zone_device-stop-depending-on-config_expert mm/Kconfig
---- a/mm/Kconfig~mm-config_zone_device-stop-depending-on-config_expert
-+++ a/mm/Kconfig
-@@ -681,7 +681,7 @@ config IDLE_PAGE_TRACKING
- 	  See Documentation/vm/idle_page_tracking.txt for more details.
+diff -puN include/linux/memremap.h~mm-cleanup-ifdef-guards-for-vmem_altmap include/linux/memremap.h
+--- a/include/linux/memremap.h~mm-cleanup-ifdef-guards-for-vmem_altmap
++++ a/include/linux/memremap.h
+@@ -26,7 +26,7 @@ struct vmem_altmap {
+ unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
+ void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns);
  
- config ZONE_DEVICE
--	bool "Device memory (pmem, etc...) hotplug support" if EXPERT
-+	bool "Device memory (pmem, etc...) hotplug support"
- 	depends on MEMORY_HOTPLUG
- 	depends on MEMORY_HOTREMOVE
- 	depends on SPARSEMEM_VMEMMAP
-_
-
-Patches currently in -mm which might be from dan.j.williams@intel.com are
-
-mm-config_zone_device-stop-depending-on-config_expert.patch
-mm-cleanup-ifdef-guards-for-vmem_altmap.patch
-
+-#if defined(CONFIG_SPARSEMEM_VMEMMAP) && defined(CONFIG_ZONE_DEVICE)
++#ifdef CONFIG_ZONE_DEVICE
+ struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start);
+ #else
+ static inline struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
+diff -puN kernel/memremap.c~mm-cleanup-ifdef-guards-for-vmem_altmap kernel/memremap.c
+--- a/kernel/memremap.c~mm-cleanup-ifdef-guards-for-vmem_altmap
++++ a/kernel/memremap.c
+@@ -308,12 +308,6 @@ void *devm_memremap_pages(struct device
+ 	if (is_ram == REGION_INTERSECTS)
+ 		return __va(res->start);
+ 
+-	if (altmap && !IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)) {
+-		dev_err(dev, "%s: altmap requires CONFIG_SPARSEMEM_VMEMMAP=y\n",
+-				__func__);
+-		return ERR_PTR(-ENXIO);
+-	}
