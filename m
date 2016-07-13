@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cleanup-ifdef-guards-for-vmem_altmap.patch added to -mm tree
-Date: Wed, 13 Jul 2016 12:58:21 -0700
-Message-ID: <57869d5d.NtLffHey9dkSG9qs%akpm@linux-foundation.org>
+Subject: + uapi-export-lirch-header.patch added to -mm tree
+Date: Wed, 13 Jul 2016 13:08:15 -0700
+Message-ID: <57869faf.GrGFQqZ2aD+anl4p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40091 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010AbcGMT6h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 15:58:37 -0400
+	with ESMTP id S1751009AbcGMUIQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 16:08:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, jmoyer@redhat.com, sandeen@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mchehab@s-opensource.com, leamas.alec@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     From: Dan Williams <dan.j.williams@intel.com>
+     Subject: uapi: export lirc.h header
 has been added to the -mm tree.  Its filename is
-     mm-cleanup-ifdef-guards-for-vmem_altmap.patch
+     uapi-export-lirch-header.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cleanup-ifdef-guards-for-vmem_altmap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/uapi-export-lirch-header.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cleanup-ifdef-guards-for-vmem_altmap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/uapi-export-lirch-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,45 +38,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: cleanup ifdef guards for vmem_altmap
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: uapi: export lirc.h header
 
-Now that ZONE_DEVICE depends on SPARSEMEM_VMEMMAP we can simplify some
-ifdef guards to just ZONE_DEVICE.
+This header contains the userspace API for lirc.
 
-Link: http://lkml.kernel.org/r/146687646788.39261.8020536391978771940.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+This is a fixup for b7be755733dc44c72 ("[media] bz#75751: Move internal
+header file lirc.h to uapi/").  It moved the header to the right place,
+but it forgot to add it at Kbuild.  So, despite being at uapi, it is not
+copied to the right place.
+
+Fixes: b7be755733dc44c72 ("[media] bz#75751: Move internal header file lirc.h to uapi/")
+Link: http://lkml.kernel.org/r/320c765d32bfc82c582e336d52ffe1026c73c644.1468439021.git.mchehab@s-opensource.com
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Alec Leamas <leamas.alec@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memremap.h |    2 +-
- kernel/memremap.c        |    8 --------
- 2 files changed, 1 insertion(+), 9 deletions(-)
+ include/uapi/linux/Kbuild |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/memremap.h~mm-cleanup-ifdef-guards-for-vmem_altmap include/linux/memremap.h
---- a/include/linux/memremap.h~mm-cleanup-ifdef-guards-for-vmem_altmap
-+++ a/include/linux/memremap.h
-@@ -26,7 +26,7 @@ struct vmem_altmap {
- unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
- void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns);
- 
--#if defined(CONFIG_SPARSEMEM_VMEMMAP) && defined(CONFIG_ZONE_DEVICE)
-+#ifdef CONFIG_ZONE_DEVICE
- struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start);
- #else
- static inline struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
-diff -puN kernel/memremap.c~mm-cleanup-ifdef-guards-for-vmem_altmap kernel/memremap.c
---- a/kernel/memremap.c~mm-cleanup-ifdef-guards-for-vmem_altmap
-+++ a/kernel/memremap.c
-@@ -308,12 +308,6 @@ void *devm_memremap_pages(struct device
- 	if (is_ram == REGION_INTERSECTS)
- 		return __va(res->start);
- 
--	if (altmap && !IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)) {
--		dev_err(dev, "%s: altmap requires CONFIG_SPARSEMEM_VMEMMAP=y\n",
--				__func__);
--		return ERR_PTR(-ENXIO);
--	}
+diff -puN include/uapi/linux/Kbuild~uapi-export-lirch-header include/uapi/linux/Kbuild
+--- a/include/uapi/linux/Kbuild~uapi-export-lirch-header
++++ a/include/uapi/linux/Kbuild
+@@ -245,6 +245,7 @@ endif
+ header-y += hw_breakpoint.h
+ header-y += l2tp.h
+ header-y += libc-compat.h
++header-y += lirc.h
+ header-y += limits.h
+ header-y += llc.h
+ header-y += loop.h
+_
+
+Patches currently in -mm which might be from mchehab@s-opensource.com are
+
+uapi-export-lirch-header.patch
+
