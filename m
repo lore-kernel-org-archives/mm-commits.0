@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drm-msm-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to -mm tree
-Date: Wed, 13 Jul 2016 14:51:10 -0700
-Message-ID: <5786b7ce.ghhaMbJc18ozHwWY%akpm@linux-foundation.org>
+Subject: + drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+ added to -mm tree
+Date: Wed, 13 Jul 2016 14:51:12 -0700
+Message-ID: <5786b7d0.S1bfVGIloVbbsQgY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41205 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082AbcGMVvL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:51:11 -0400
+	with ESMTP id S1751082AbcGMVvN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:51:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: k.kozlowski@samsung.com, daniel.vetter@ffwll.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/msm: dma-mapping: use unsigned long for dma_attrs
+     Subject: drm/nouveau: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     drm-msm-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drm-msm-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drm-msm-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +40,64 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: drm/msm: dma-mapping: use unsigned long for dma_attrs
+Subject: drm/nouveau: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-14-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468399300-5399-15-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch> [drm]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/msm/msm_drv.c |   13 ++++++-------
+ drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c |   13 ++++------
  1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/gpu/drm/msm/msm_drv.c~drm-msm-dma-mapping-use-unsigned-long-for-dma_attrs drivers/gpu/drm/msm/msm_drv.c
---- a/drivers/gpu/drm/msm/msm_drv.c~drm-msm-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/gpu/drm/msm/msm_drv.c
-@@ -238,11 +238,10 @@ static int msm_drm_uninit(struct device
+diff -puN drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c~drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c~drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
+@@ -109,7 +109,7 @@ struct gk20a_instmem {
+ 	u16 iommu_bit;
+ 
+ 	/* Only used by DMA API */
+-	struct dma_attrs attrs;
++	unsigned long attrs;
+ };
+ #define gk20a_instmem(p) container_of((p), struct gk20a_instmem, base)
+ 
+@@ -293,7 +293,7 @@ gk20a_instobj_dtor_dma(struct nvkm_memor
+ 		goto out;
+ 
+ 	dma_free_attrs(dev, node->base.mem.size << PAGE_SHIFT, node->base.vaddr,
+-		       node->handle, &imem->attrs);
++		       node->handle, imem->attrs);
+ 
+ out:
+ 	return node;
+@@ -386,7 +386,7 @@ gk20a_instobj_ctor_dma(struct gk20a_inst
+ 
+ 	node->base.vaddr = dma_alloc_attrs(dev, npages << PAGE_SHIFT,
+ 					   &node->handle, GFP_KERNEL,
+-					   &imem->attrs);
++					   imem->attrs);
+ 	if (!node->base.vaddr) {
+ 		nvkm_error(subdev, "cannot allocate DMA memory\n");
+ 		return -ENOMEM;
+@@ -597,10 +597,9 @@ gk20a_instmem_new(struct nvkm_device *de
+ 
+ 		nvkm_info(&imem->base.subdev, "using IOMMU\n");
+ 	} else {
+-		init_dma_attrs(&imem->attrs);
+-		dma_set_attr(DMA_ATTR_NON_CONSISTENT, &imem->attrs);
+-		dma_set_attr(DMA_ATTR_WEAK_ORDERING, &imem->attrs);
+-		dma_set_attr(DMA_ATTR_WRITE_COMBINE, &imem->attrs);
++		imem->attrs = DMA_ATTR_NON_CONSISTENT |
++			      DMA_ATTR_WEAK_ORDERING |
++			      DMA_ATTR_WRITE_COMBINE;
+ 
+ 		nvkm_info(&imem->base.subdev, "using DMA API\n");
  	}
- 
- 	if (priv->vram.paddr) {
--		DEFINE_DMA_ATTRS(attrs);
--		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &attrs);
-+		unsigned long attrs = DMA_ATTR_NO_KERNEL_MAPPING;
- 		drm_mm_takedown(&priv->vram.mm);
- 		dma_free_attrs(dev, priv->vram.size, NULL,
--			       priv->vram.paddr, &attrs);
-+			       priv->vram.paddr, attrs);
- 	}
- 
- 	component_unbind_all(dev, ddev);
-@@ -310,21 +309,21 @@ static int msm_init_vram(struct drm_devi
- 	}
- 
- 	if (size) {
--		DEFINE_DMA_ATTRS(attrs);
-+		unsigned long attrs = 0;
- 		void *p;
- 
- 		priv->vram.size = size;
- 
- 		drm_mm_init(&priv->vram.mm, 0, (size >> PAGE_SHIFT) - 1);
- 
--		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &attrs);
--		dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+		attrs |= DMA_ATTR_NO_KERNEL_MAPPING;
-+		attrs |= DMA_ATTR_WRITE_COMBINE;
- 
- 		/* note that for no-kernel-mapping, the vaddr returned
- 		 * is bogus, but non-null if allocation succeeded:
- 		 */
- 		p = dma_alloc_attrs(dev->dev, size,
--				&priv->vram.paddr, GFP_KERNEL, &attrs);
-+				&priv->vram.paddr, GFP_KERNEL, attrs);
- 		if (!p) {
- 			dev_err(dev->dev, "failed to allocate VRAM\n");
- 			priv->vram.paddr = 0;
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
