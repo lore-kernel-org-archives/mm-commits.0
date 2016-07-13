@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + xen-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to
- -mm tree
-Date: Wed, 13 Jul 2016 14:51:22 -0700
-Message-ID: <5786b7da.MF/ivsyiKncqKmR+%akpm@linux-foundation.org>
+Subject: + infiniband-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+ added to -mm tree
+Date: Wed, 13 Jul 2016 14:51:16 -0700
+Message-ID: <5786b7d4.nbrFt1ESC1g5ov6M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41220 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41211 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082AbcGMVvX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:51:23 -0400
+	with ESMTP id S1751082AbcGMVvR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:51:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, bart.vanassche@sandisk.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xen: dma-mapping: use unsigned long for dma_attrs
+     Subject: infiniband: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     xen-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     infiniband-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xen-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/infiniband-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xen-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/infiniband-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,128 +40,106 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: xen: dma-mapping: use unsigned long for dma_attrs
+Subject: infiniband: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-20-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468410962-13820-1-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: David Vrabel <david.vrabel@citrix.com> [xen]
-Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> [xen swiotlb]
+Reviewed-by: Bart Van Assche <bart.vanassche@sandisk.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/swiotlb-xen.c |   14 +++++++-------
- include/xen/swiotlb-xen.h |   12 ++++++------
- 2 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/infiniband/core/umem.c |    7 +++----
+ include/rdma/ib_verbs.h        |   17 +++++++++--------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN drivers/xen/swiotlb-xen.c~xen-dma-mapping-use-unsigned-long-for-dma_attrs drivers/xen/swiotlb-xen.c
---- a/drivers/xen/swiotlb-xen.c~xen-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/xen/swiotlb-xen.c
-@@ -294,7 +294,7 @@ error:
- void *
- xen_swiotlb_alloc_coherent(struct device *hwdev, size_t size,
- 			   dma_addr_t *dma_handle, gfp_t flags,
--			   struct dma_attrs *attrs)
-+			   unsigned long attrs)
- {
- 	void *ret;
- 	int order = get_order(size);
-@@ -346,7 +346,7 @@ EXPORT_SYMBOL_GPL(xen_swiotlb_alloc_cohe
+diff -puN drivers/infiniband/core/umem.c~infiniband-dma-mapping-use-unsigned-long-for-dma_attrs drivers/infiniband/core/umem.c
+--- a/drivers/infiniband/core/umem.c~infiniband-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/infiniband/core/umem.c
+@@ -37,7 +37,6 @@
+ #include <linux/sched.h>
+ #include <linux/export.h>
+ #include <linux/hugetlb.h>
+-#include <linux/dma-attrs.h>
+ #include <linux/slab.h>
+ #include <rdma/ib_umem_odp.h>
  
- void
- xen_swiotlb_free_coherent(struct device *hwdev, size_t size, void *vaddr,
--			  dma_addr_t dev_addr, struct dma_attrs *attrs)
-+			  dma_addr_t dev_addr, unsigned long attrs)
- {
- 	int order = get_order(size);
- 	phys_addr_t phys;
-@@ -378,7 +378,7 @@ EXPORT_SYMBOL_GPL(xen_swiotlb_free_coher
- dma_addr_t xen_swiotlb_map_page(struct device *dev, struct page *page,
- 				unsigned long offset, size_t size,
- 				enum dma_data_direction dir,
--				struct dma_attrs *attrs)
-+				unsigned long attrs)
- {
- 	phys_addr_t map, phys = page_to_phys(page) + offset;
- 	dma_addr_t dev_addr = xen_phys_to_bus(phys);
-@@ -434,7 +434,7 @@ EXPORT_SYMBOL_GPL(xen_swiotlb_map_page);
-  */
- static void xen_unmap_single(struct device *hwdev, dma_addr_t dev_addr,
- 			     size_t size, enum dma_data_direction dir,
--				 struct dma_attrs *attrs)
-+			     unsigned long attrs)
- {
- 	phys_addr_t paddr = xen_bus_to_phys(dev_addr);
+@@ -92,12 +91,12 @@ struct ib_umem *ib_umem_get(struct ib_uc
+ 	unsigned long npages;
+ 	int ret;
+ 	int i;
+-	DEFINE_DMA_ATTRS(attrs);
++	unsigned long dma_attrs = 0;
+ 	struct scatterlist *sg, *sg_list_start;
+ 	int need_release = 0;
  
-@@ -462,7 +462,7 @@ static void xen_unmap_single(struct devi
+ 	if (dmasync)
+-		dma_set_attr(DMA_ATTR_WRITE_BARRIER, &attrs);
++		dma_attrs |= DMA_ATTR_WRITE_BARRIER;
  
- void xen_swiotlb_unmap_page(struct device *hwdev, dma_addr_t dev_addr,
- 			    size_t size, enum dma_data_direction dir,
--			    struct dma_attrs *attrs)
-+			    unsigned long attrs)
+ 	if (!size)
+ 		return ERR_PTR(-EINVAL);
+@@ -215,7 +214,7 @@ struct ib_umem *ib_umem_get(struct ib_uc
+ 				  umem->sg_head.sgl,
+ 				  umem->npages,
+ 				  DMA_BIDIRECTIONAL,
+-				  &attrs);
++				  dma_attrs);
+ 
+ 	if (umem->nmap <= 0) {
+ 		ret = -ENOMEM;
+diff -puN include/rdma/ib_verbs.h~infiniband-dma-mapping-use-unsigned-long-for-dma_attrs include/rdma/ib_verbs.h
+--- a/include/rdma/ib_verbs.h~infiniband-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/include/rdma/ib_verbs.h
+@@ -2910,19 +2910,19 @@ static inline void ib_dma_unmap_single(s
+ static inline u64 ib_dma_map_single_attrs(struct ib_device *dev,
+ 					  void *cpu_addr, size_t size,
+ 					  enum dma_data_direction direction,
+-					  struct dma_attrs *attrs)
++					  unsigned long dma_attrs)
  {
- 	xen_unmap_single(hwdev, dev_addr, size, dir, attrs);
+ 	return dma_map_single_attrs(dev->dma_device, cpu_addr, size,
+-				    direction, attrs);
++				    direction, dma_attrs);
  }
-@@ -538,7 +538,7 @@ EXPORT_SYMBOL_GPL(xen_swiotlb_sync_singl
- int
- xen_swiotlb_map_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
- 			 int nelems, enum dma_data_direction dir,
--			 struct dma_attrs *attrs)
-+			 unsigned long attrs)
+ 
+ static inline void ib_dma_unmap_single_attrs(struct ib_device *dev,
+ 					     u64 addr, size_t size,
+ 					     enum dma_data_direction direction,
+-					     struct dma_attrs *attrs)
++					     unsigned long dma_attrs)
  {
- 	struct scatterlist *sg;
- 	int i;
-@@ -599,7 +599,7 @@ EXPORT_SYMBOL_GPL(xen_swiotlb_map_sg_att
- void
- xen_swiotlb_unmap_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
- 			   int nelems, enum dma_data_direction dir,
--			   struct dma_attrs *attrs)
-+			   unsigned long attrs)
+ 	return dma_unmap_single_attrs(dev->dma_device, addr, size,
+-				      direction, attrs);
++				      direction, dma_attrs);
+ }
+ 
+ /**
+@@ -2997,17 +2997,18 @@ static inline void ib_dma_unmap_sg(struc
+ static inline int ib_dma_map_sg_attrs(struct ib_device *dev,
+ 				      struct scatterlist *sg, int nents,
+ 				      enum dma_data_direction direction,
+-				      struct dma_attrs *attrs)
++				      unsigned long dma_attrs)
  {
- 	struct scatterlist *sg;
- 	int i;
-diff -puN include/xen/swiotlb-xen.h~xen-dma-mapping-use-unsigned-long-for-dma_attrs include/xen/swiotlb-xen.h
---- a/include/xen/swiotlb-xen.h~xen-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/include/xen/swiotlb-xen.h
-@@ -9,30 +9,30 @@ extern int xen_swiotlb_init(int verbose,
- extern void
- *xen_swiotlb_alloc_coherent(struct device *hwdev, size_t size,
- 			    dma_addr_t *dma_handle, gfp_t flags,
--			    struct dma_attrs *attrs);
-+			    unsigned long attrs);
+-	return dma_map_sg_attrs(dev->dma_device, sg, nents, direction, attrs);
++	return dma_map_sg_attrs(dev->dma_device, sg, nents, direction,
++				dma_attrs);
+ }
  
- extern void
- xen_swiotlb_free_coherent(struct device *hwdev, size_t size,
- 			  void *vaddr, dma_addr_t dma_handle,
--			  struct dma_attrs *attrs);
-+			  unsigned long attrs);
- 
- extern dma_addr_t xen_swiotlb_map_page(struct device *dev, struct page *page,
- 				       unsigned long offset, size_t size,
- 				       enum dma_data_direction dir,
--				       struct dma_attrs *attrs);
-+				       unsigned long attrs);
- 
- extern void xen_swiotlb_unmap_page(struct device *hwdev, dma_addr_t dev_addr,
- 				   size_t size, enum dma_data_direction dir,
--				   struct dma_attrs *attrs);
-+				   unsigned long attrs);
- extern int
- xen_swiotlb_map_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
- 			 int nelems, enum dma_data_direction dir,
--			 struct dma_attrs *attrs);
-+			 unsigned long attrs);
- 
- extern void
- xen_swiotlb_unmap_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
- 			   int nelems, enum dma_data_direction dir,
--			   struct dma_attrs *attrs);
-+			   unsigned long attrs);
- 
- extern void
- xen_swiotlb_sync_single_for_cpu(struct device *hwdev, dma_addr_t dev_addr,
+ static inline void ib_dma_unmap_sg_attrs(struct ib_device *dev,
+ 					 struct scatterlist *sg, int nents,
+ 					 enum dma_data_direction direction,
+-					 struct dma_attrs *attrs)
++					 unsigned long dma_attrs)
+ {
+-	dma_unmap_sg_attrs(dev->dma_device, sg, nents, direction, attrs);
++	dma_unmap_sg_attrs(dev->dma_device, sg, nents, direction, dma_attrs);
+ }
+ /**
+  * ib_sg_dma_address - Return the DMA address from a scatter/gather entry
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
