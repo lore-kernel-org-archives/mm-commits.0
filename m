@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + c6x-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to
+Subject: + frv-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to
  -mm tree
-Date: Wed, 13 Jul 2016 14:51:00 -0700
-Message-ID: <5786b7c4.+8NbYoLbSS+AU/0x%akpm@linux-foundation.org>
+Date: Wed, 13 Jul 2016 14:51:04 -0700
+Message-ID: <5786b7c8.q2NSreW9FVfr8WPP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41188 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41193 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082AbcGMVvB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:51:01 -0400
+	with ESMTP id S1751082AbcGMVvF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:51:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, msalter@redhat.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: c6x: dma-mapping: use unsigned long for dma_attrs
+     Subject: frv: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     c6x-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     frv-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/c6x-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/frv-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/c6x-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/frv-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,95 +40,98 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: c6x: dma-mapping: use unsigned long for dma_attrs
+Subject: frv: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-9-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468399300-5399-11-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Mark Salter <msalter@redhat.com> [c6x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/c6x/include/asm/dma-mapping.h |    4 ++--
- arch/c6x/kernel/dma.c              |    9 ++++-----
- arch/c6x/mm/dma-coherent.c         |    4 ++--
- 3 files changed, 8 insertions(+), 9 deletions(-)
+ arch/frv/mb93090-mb00/pci-dma-nommu.c |    8 ++++----
+ arch/frv/mb93090-mb00/pci-dma.c       |    9 ++++-----
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN arch/c6x/include/asm/dma-mapping.h~c6x-dma-mapping-use-unsigned-long-for-dma_attrs arch/c6x/include/asm/dma-mapping.h
---- a/arch/c6x/include/asm/dma-mapping.h~c6x-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/c6x/include/asm/dma-mapping.h
-@@ -26,8 +26,8 @@ static inline struct dma_map_ops *get_dm
+diff -puN arch/frv/mb93090-mb00/pci-dma-nommu.c~frv-dma-mapping-use-unsigned-long-for-dma_attrs arch/frv/mb93090-mb00/pci-dma-nommu.c
+--- a/arch/frv/mb93090-mb00/pci-dma-nommu.c~frv-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/frv/mb93090-mb00/pci-dma-nommu.c
+@@ -35,7 +35,7 @@ static DEFINE_SPINLOCK(dma_alloc_lock);
+ static LIST_HEAD(dma_alloc_list);
  
- extern void coherent_mem_init(u32 start, u32 size);
- void *c6x_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
--		gfp_t gfp, struct dma_attrs *attrs);
-+		gfp_t gfp, unsigned long attrs);
- void c6x_dma_free(struct device *dev, size_t size, void *vaddr,
--		dma_addr_t dma_handle, struct dma_attrs *attrs);
-+		dma_addr_t dma_handle, unsigned long attrs);
- 
- #endif	/* _ASM_C6X_DMA_MAPPING_H */
-diff -puN arch/c6x/kernel/dma.c~c6x-dma-mapping-use-unsigned-long-for-dma_attrs arch/c6x/kernel/dma.c
---- a/arch/c6x/kernel/dma.c~c6x-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/c6x/kernel/dma.c
-@@ -38,7 +38,7 @@ static void c6x_dma_sync(dma_addr_t hand
- 
- static dma_addr_t c6x_dma_map_page(struct device *dev, struct page *page,
- 		unsigned long offset, size_t size, enum dma_data_direction dir,
--		struct dma_attrs *attrs)
-+		unsigned long attrs)
- {
- 	dma_addr_t handle = virt_to_phys(page_address(page) + offset);
- 
-@@ -47,13 +47,13 @@ static dma_addr_t c6x_dma_map_page(struc
- }
- 
- static void c6x_dma_unmap_page(struct device *dev, dma_addr_t handle,
--		size_t size, enum dma_data_direction dir, struct dma_attrs *attrs)
-+		size_t size, enum dma_data_direction dir, unsigned long attrs)
- {
- 	c6x_dma_sync(handle, size, dir);
- }
- 
- static int c6x_dma_map_sg(struct device *dev, struct scatterlist *sglist,
--		int nents, enum dma_data_direction dir, struct dma_attrs *attrs)
-+		int nents, enum dma_data_direction dir, unsigned long attrs)
- {
- 	struct scatterlist *sg;
- 	int i;
-@@ -67,8 +67,7 @@ static int c6x_dma_map_sg(struct device
- }
- 
- static void c6x_dma_unmap_sg(struct device *dev, struct scatterlist *sglist,
--		  int nents, enum dma_data_direction dir,
--		  struct dma_attrs *attrs)
-+		  int nents, enum dma_data_direction dir, unsigned long attrs)
- {
- 	struct scatterlist *sg;
- 	int i;
-diff -puN arch/c6x/mm/dma-coherent.c~c6x-dma-mapping-use-unsigned-long-for-dma_attrs arch/c6x/mm/dma-coherent.c
---- a/arch/c6x/mm/dma-coherent.c~c6x-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/c6x/mm/dma-coherent.c
-@@ -74,7 +74,7 @@ static void __free_dma_pages(u32 addr, i
-  * virtual and DMA address for that space.
-  */
- void *c6x_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
+ static void *frv_dma_alloc(struct device *hwdev, size_t size, dma_addr_t *dma_handle,
 -		gfp_t gfp, struct dma_attrs *attrs)
 +		gfp_t gfp, unsigned long attrs)
  {
- 	u32 paddr;
- 	int order;
-@@ -99,7 +99,7 @@ void *c6x_dma_alloc(struct device *dev,
-  * Free DMA coherent memory as defined by the above mapping.
-  */
- void c6x_dma_free(struct device *dev, size_t size, void *vaddr,
+ 	struct dma_alloc_record *new;
+ 	struct list_head *this = &dma_alloc_list;
+@@ -86,7 +86,7 @@ static void *frv_dma_alloc(struct device
+ }
+ 
+ static void frv_dma_free(struct device *hwdev, size_t size, void *vaddr,
 -		dma_addr_t dma_handle, struct dma_attrs *attrs)
 +		dma_addr_t dma_handle, unsigned long attrs)
  {
- 	int order;
+ 	struct dma_alloc_record *rec;
+ 	unsigned long flags;
+@@ -107,7 +107,7 @@ static void frv_dma_free(struct device *
  
+ static int frv_dma_map_sg(struct device *dev, struct scatterlist *sglist,
+ 		int nents, enum dma_data_direction direction,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
+ {
+ 	int i;
+ 	struct scatterlist *sg;
+@@ -124,7 +124,7 @@ static int frv_dma_map_sg(struct device
+ 
+ static dma_addr_t frv_dma_map_page(struct device *dev, struct page *page,
+ 		unsigned long offset, size_t size,
+-		enum dma_data_direction direction, struct dma_attrs *attrs)
++		enum dma_data_direction direction, unsigned long attrs)
+ {
+ 	BUG_ON(direction == DMA_NONE);
+ 	flush_dcache_page(page);
+diff -puN arch/frv/mb93090-mb00/pci-dma.c~frv-dma-mapping-use-unsigned-long-for-dma_attrs arch/frv/mb93090-mb00/pci-dma.c
+--- a/arch/frv/mb93090-mb00/pci-dma.c~frv-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/frv/mb93090-mb00/pci-dma.c
+@@ -19,8 +19,7 @@
+ #include <asm/io.h>
+ 
+ static void *frv_dma_alloc(struct device *hwdev, size_t size,
+-		dma_addr_t *dma_handle, gfp_t gfp,
+-		struct dma_attrs *attrs)
++		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+ 	void *ret;
+ 
+@@ -32,14 +31,14 @@ static void *frv_dma_alloc(struct device
+ }
+ 
+ static void frv_dma_free(struct device *hwdev, size_t size, void *vaddr,
+-		dma_addr_t dma_handle, struct dma_attrs *attrs)
++		dma_addr_t dma_handle, unsigned long attrs)
+ {
+ 	consistent_free(vaddr);
+ }
+ 
+ static int frv_dma_map_sg(struct device *dev, struct scatterlist *sglist,
+ 		int nents, enum dma_data_direction direction,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
+ {
+ 	unsigned long dampr2;
+ 	void *vaddr;
+@@ -69,7 +68,7 @@ static int frv_dma_map_sg(struct device
+ 
+ static dma_addr_t frv_dma_map_page(struct device *dev, struct page *page,
+ 		unsigned long offset, size_t size,
+-		enum dma_data_direction direction, struct dma_attrs *attrs)
++		enum dma_data_direction direction, unsigned long attrs)
+ {
+ 	flush_dcache_page(page);
+ 	return (dma_addr_t) page_to_phys(page) + offset;
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
