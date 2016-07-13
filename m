@@ -1,86 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] nvme-dont-allocate-unused-nvme_major-fix.patch
- removed from -mm tree
-Date: Wed, 13 Jul 2016 11:02:29 -0700
-Message-ID: <57868235.jq0tDPDlRuqCemvl%akpm@linux-foundation.org>
+Subject: + mm-config_zone_device-stop-depending-on-config_expert.patch
+ added to -mm tree
+Date: Wed, 13 Jul 2016 12:58:19 -0700
+Message-ID: <57869d5b.Z3L407l1VhpCPdvp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38303 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39933 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865AbcGMSDW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 14:03:22 -0400
+	with ESMTP id S1751010AbcGMT6j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 15:58:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@fb.com, gregkh@linuxfoundation.org, keith.busch@intel.com, maximlevitsky@gmail.com, neilb@suse.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, jmoyer@redhat.com, sandeen@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nvme-dont-allocate-unused-nvme_major-fix
-has been removed from the -mm tree.  Its filename was
-     nvme-dont-allocate-unused-nvme_major-fix.patch
+     Subject: mm: CONFIG_ZONE_DEVICE stop depending on CONFIG_EXPERT
+has been added to the -mm tree.  Its filename is
+     mm-config_zone_device-stop-depending-on-config_expert.patch
 
-This patch was dropped because it was folded into nvme-dont-allocate-unused-nvme_major.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-config_zone_device-stop-depending-on-config_expert.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-config_zone_device-stop-depending-on-config_expert.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: nvme-dont-allocate-unused-nvme_major-fix
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: CONFIG_ZONE_DEVICE stop depending on CONFIG_EXPERT
 
-one unregister_blkdev() was missed
+When it was first introduced CONFIG_ZONE_DEVICE depended on disabling
+CONFIG_ZONE_DMA, a configuration choice reserved for "experts".  However,
+now that the ZONE_DMA conflict has been eliminated it no longer makes
+sense to require CONFIG_EXPERT.
 
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: NeilBrown <neilb@suse.com>
+Link: http://lkml.kernel.org/r/146687646274.39261.14267596518720371009.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Eric Sandeen <sandeen@redhat.com>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nvme/host/core.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/nvme/host/core.c~nvme-dont-allocate-unused-nvme_major-fix drivers/nvme/host/core.c
---- a/drivers/nvme/host/core.c~nvme-dont-allocate-unused-nvme_major-fix
-+++ a/drivers/nvme/host/core.c
-@@ -1867,7 +1867,6 @@ void nvme_core_exit(void)
- {
- 	class_destroy(nvme_class);
- 	__unregister_chrdev(nvme_char_major, 0, NVME_MINORS, "nvme");
--	unregister_blkdev(nvme_major, "nvme");
- }
+diff -puN mm/Kconfig~mm-config_zone_device-stop-depending-on-config_expert mm/Kconfig
+--- a/mm/Kconfig~mm-config_zone_device-stop-depending-on-config_expert
++++ a/mm/Kconfig
+@@ -681,7 +681,7 @@ config IDLE_PAGE_TRACKING
+ 	  See Documentation/vm/idle_page_tracking.txt for more details.
  
- MODULE_LICENSE("GPL");
+ config ZONE_DEVICE
+-	bool "Device memory (pmem, etc...) hotplug support" if EXPERT
++	bool "Device memory (pmem, etc...) hotplug support"
+ 	depends on MEMORY_HOTPLUG
+ 	depends on MEMORY_HOTREMOVE
+ 	depends on SPARSEMEM_VMEMMAP
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-improve-recovery-performance-v2-fix.patch
-ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix.patch
-mm.patch
-mm-reorganize-slab-freelist-randomization-fix.patch
-mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
-mm-compaction-split-freepages-without-holding-the-zone-lock-fix-2.patch
-mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
-mm-add-nr_zsmalloc-to-vmstat-fix.patch
-mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
-mm-fix-build-warnings-in-linux-compactionh-fix.patch
-mm-update-the-comment-in-__isolate_free_page-checkpatch-fixes.patch
-mm-zsmalloc-add-per-class-compact-trace-event-checkpatch-fixes.patch
-treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
-printk-create-pr_level-functions-fix.patch
-kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
-kexec-allow-architectures-to-override-boot-mapping-fix.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-drivers-leds-leds-lp3952c-work-around-gcc-444-union-initializer-bug.patch
-bitmap-bitmap_equal-memcmp-optimization-fix.patch
-nvme-dont-allocate-unused-nvme_major.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-config_zone_device-stop-depending-on-config_expert.patch
+mm-cleanup-ifdef-guards-for-vmem_altmap.patch
 
