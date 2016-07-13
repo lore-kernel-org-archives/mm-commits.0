@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + relay-add-global-mode-support-for-buffer-only-channels.patch
- added to -mm tree
-Date: Wed, 13 Jul 2016 13:46:07 -0700
-Message-ID: <5786a88f.Iu4ZgQpPwQuxD8zW%akpm@linux-foundation.org>
+Subject: +
+ mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch added to -mm tree
+Date: Wed, 13 Jul 2016 13:55:30 -0700
+Message-ID: <5786aac2.3JFAHydVSdDa8SAz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40521 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40612 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750950AbcGMUqI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 16:46:08 -0400
+	with ESMTP id S1751139AbcGMUzb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 16:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akash.goel@intel.com, chris@chris-wilson.co.uk, eduard.munteanu@linux360.ro, tzanussi@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: relay: add global mode support for buffer-only channels
+     Subject: mm, vmscan: Have kswapd reclaim from all zones if reclaiming and buffer_heads_over_limit -fix
 has been added to the -mm tree.  Its filename is
-     relay-add-global-mode-support-for-buffer-only-channels.patch
+     mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/relay-add-global-mode-support-for-buffer-only-channels.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/relay-add-global-mode-support-for-buffer-only-channels.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,122 +39,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akash Goel <akash.goel@intel.com>
-Subject: relay: add global mode support for buffer-only channels
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, vmscan: Have kswapd reclaim from all zones if reclaiming and buffer_heads_over_limit -fix
 
-The following patch added support to use channels with no associated files.
-	commit 20d8b67c06fa5e74f44e80b0a0fd68c8327f7c6a
-	Author: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
-	Date:   Fri Jul 25 19:45:12 2008 -0700
+Johannes reported that the comment about buffer_heads_over_limit in
+balance_pgdat only made sense in the context of the patch. This patch
+clarifies the reasoning and how it applies to 32 and 64 bit systems.
 
-		relay: add buffer-only channels; useful for early logging
+This is a fix to the mmotm patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
 
-This is useful when the exact location of relay file is not known or the
-the parent directory of relay file is not available, while creating the
-channel and the logging has to start right from the boot.
-
-But there was no provision to use global mode with buffer-only channels,
-which is added by this patch, without modifying the interface where
-initially there will be a dummy invocation of create_buf_file callback
-through which kernel client can convey the need of a global buffer.
-
-For the use case where drivers/kernel clients want a simple interface for
-the userspace, which enables them to capture data/logs from relay file
-inorder & without any post processing, support of Global buffer mode is
-warranted.
-
-Modules, like i915, using relay_open() in early init would have to later
-register their buffer-only relays, once debugfs is available, by calling
-relay_late_setup_files().  Hence relay_late_setup_files() symbol also
-needs to be exported.
-
-Link: http://lkml.kernel.org/r/1468404563-11653-1-git-send-email-akash.goel@intel.com
-Signed-off-by: Akash Goel <akash.goel@intel.com>
-Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
-Cc: Tom Zanussi <tzanussi@gmail.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/1468404004-5085-2-git-send-email-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |   34 ++++++++++++++++++++++++++++++++--
- 1 file changed, 32 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN kernel/relay.c~relay-add-global-mode-support-for-buffer-only-channels kernel/relay.c
---- a/kernel/relay.c~relay-add-global-mode-support-for-buffer-only-channels
-+++ a/kernel/relay.c
-@@ -451,6 +451,13 @@ static struct rchan_buf *relay_open_buf(
- 		if (!dentry)
- 			goto free_buf;
- 		relay_set_buf_dentry(buf, dentry);
-+	} else {
-+		/* Only retrieve global info, nothing more, nothing less */
-+		dentry = chan->cb->create_buf_file(NULL, NULL,
-+						   S_IRUSR, buf,
-+						   &chan->is_global);
-+		if (WARN_ON(dentry))
-+			goto free_buf;
- 	}
+diff -puN mm/vmscan.c~mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix
++++ a/mm/vmscan.c
+@@ -3133,12 +3133,13 @@ static int balance_pgdat(pg_data_t *pgda
  
-  	buf->cpu = cpu;
-@@ -562,6 +569,10 @@ static int relay_hotcpu_callback(struct
-  *	attributes specified.  The created channel buffer files
-  *	will be named base_filename0...base_filenameN-1.  File
-  *	permissions will be %S_IRUSR.
-+ *
-+ *	If opening a buffer (@parent = NULL) that you later wish to register
-+ *	in a filesystem, call relay_late_setup_files() once the @parent dentry
-+ *	is available.
-  */
- struct rchan *relay_open(const char *base_filename,
- 			 struct dentry *parent,
-@@ -640,8 +651,12 @@ static void __relay_set_buf_dentry(void
-  *
-  *	Returns 0 if successful, non-zero otherwise.
-  *
-- *	Use to setup files for a previously buffer-only channel.
-- *	Useful to do early tracing in kernel, before VFS is up, for example.
-+ *	Use to setup files for a previously buffer-only channel created
-+ *	by relay_open() with a NULL parent dentry.
-+ *
-+ *	For example, this is useful for perfomring early tracing in kernel,
-+ *	before VFS is up and then exposing the early results once the dentry
-+ *	is available.
-  */
- int relay_late_setup_files(struct rchan *chan,
- 			   const char *base_filename,
-@@ -666,6 +681,20 @@ int relay_late_setup_files(struct rchan
- 	}
- 	chan->has_base_filename = 1;
- 	chan->parent = parent;
-+
-+	if (chan->is_global) {
-+		err = -EINVAL;
-+		if (!WARN_ON_ONCE(!chan->buf[0])) {
-+			dentry = relay_create_buf_file(chan, chan->buf[0], 0);
-+			if (dentry && !WARN_ON_ONCE(!chan->is_global)) {
-+				relay_set_buf_dentry(chan->buf[0], dentry);
-+				err = 0;
-+			}
-+		}
-+		mutex_unlock(&relay_channels_mutex);
-+		return err;
-+	}
-+
- 	curr_cpu = get_cpu();
- 	/*
- 	 * The CPU hotplug notifier ran before us and created buffers with
-@@ -706,6 +735,7 @@ int relay_late_setup_files(struct rchan
- 
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(relay_late_setup_files);
- 
- /**
-  *	relay_switch_subbuf - switch to a new sub-buffer
+ 		/*
+ 		 * If the number of buffer_heads exceeds the maximum allowed
+-		 * then consider reclaiming from all zones. This is not
+-		 * specific to highmem which may not exist but it is it is
+-		 * expected that buffer_heads are stripped in writeback.
+-		 * Reclaim may still not go ahead if all eligible zones
+-		 * for the original allocation request are balanced to
+-		 * avoid excessive reclaim from kswapd.
++		 * then consider reclaiming from all zones. This has a dual
++		 * purpose -- on 64-bit systems it is expected that
++		 * buffer_heads are stripped during active rotation. On 32-bit
++		 * systems, highmem pages can pin lowmem memory and shrinking
++		 * buffers can relieve lowmem pressure. Reclaim may still not
++		 * go ahead if all eligible zones for the original allocation
++		 * request are balanced to avoid excessive reclaim from kswapd.
+ 		 */
+ 		if (buffer_heads_over_limit) {
+ 			for (i = MAX_NR_ZONES - 1; i >= 0; i--) {
 _
 
-Patches currently in -mm which might be from akash.goel@intel.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-relay-add-global-mode-support-for-buffer-only-channels.patch
+mm-meminit-always-return-a-valid-node-from-early_pfn_to_nid.patch
+mm-meminit-ensure-node-is-online-before-checking-whether-pages-are-uninitialised.patch
+mm-meminit-remove-early_page_nid_uninitialised.patch
+mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
+mm-vmscan-move-lru_lock-to-the-node.patch
+mm-vmscan-move-lru-lists-to-node.patch
+mm-mmzone-clarify-the-usage-of-zone-padding.patch
+mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
+mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
+mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
+mm-vmscan-remove-balance-gap.patch
+mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
+mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
+mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
+mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
+mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
+mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
+mm-workingset-make-working-set-detection-node-aware.patch
+mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
+mm-move-page-mapped-accounting-to-the-node.patch
+mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
+mm-move-most-file-based-accounting-to-the-node.patch
+mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
+mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
+mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
+mm-convert-zone_reclaim-to-node_reclaim.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
+mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
+mm-vmscan-add-classzone-information-to-tracepoints.patch
+mm-page_alloc-remove-fair-zone-allocation-policy.patch
+mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
+mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
+mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
+mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
+mm-page_alloc-fix-dirtyable-highmem-calculation.patch
+mm-move-most-file-based-accounting-to-the-node-fix.patch
 
