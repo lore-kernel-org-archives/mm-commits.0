@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + uapi-export-lirch-header.patch added to -mm tree
-Date: Wed, 13 Jul 2016 13:08:15 -0700
-Message-ID: <57869faf.GrGFQqZ2aD+anl4p%akpm@linux-foundation.org>
+Subject: + cflags-add-wunused-but-set-parameter.patch added to -mm tree
+Date: Wed, 13 Jul 2016 13:20:53 -0700
+Message-ID: <5786a2a5.WNeSm8qph851Ns4v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40091 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40196 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751009AbcGMUIQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 16:08:16 -0400
+	with ESMTP id S1750843AbcGMUU7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 16:20:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mchehab@s-opensource.com, leamas.alec@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uapi: export lirc.h header
+     Subject: CFLAGS: add -Wunused-but-set-parameter
 has been added to the -mm tree.  Its filename is
-     uapi-export-lirch-header.patch
+     cflags-add-wunused-but-set-parameter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/uapi-export-lirch-header.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cflags-add-wunused-but-set-parameter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/uapi-export-lirch-header.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cflags-add-wunused-but-set-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,41 +38,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: uapi: export lirc.h header
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: CFLAGS: add -Wunused-but-set-parameter
 
-This header contains the userspace API for lirc.
+-Wunused-but-set-parameter is finding stuff with current allmodconfig:
 
-This is a fixup for b7be755733dc44c72 ("[media] bz#75751: Move internal
-header file lirc.h to uapi/").  It moved the header to the right place,
-but it forgot to add it at Kbuild.  So, despite being at uapi, it is not
-copied to the right place.
+drivers/misc/mic/scif/scif_dma.c:118:27: warning: parameter 'ep' set but not used [-Wunused-but-set-parameter]
+drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c:2156:8: warning: parameter 'function' set but not used [-Wunused-but-set-parameter]
+drivers/net/ethernet/ti/tlan.c:1647:59: warning: parameter 'host_int' set but not used [-Wunused-but-set-parameter]
+drivers/usb/gadget/udc/pxa27x_udc.c:1828:74: warning: parameter 'driver' set but not used [-Wunused-but-set-parameter]
 
-Fixes: b7be755733dc44c72 ("[media] bz#75751: Move internal header file lirc.h to uapi/")
-Link: http://lkml.kernel.org/r/320c765d32bfc82c582e336d52ffe1026c73c644.1468439021.git.mchehab@s-opensource.com
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Alec Leamas <leamas.alec@gmail.com>
-Cc: <stable@vger.kernel.org>
+and judging by changelogs, people were using it before,
+but were too scared to change top level Makefile.
+
+Link: http://lkml.kernel.org/r/20160713190622.GB1910@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/Kbuild |    1 +
- 1 file changed, 1 insertion(+)
+ Makefile |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/uapi/linux/Kbuild~uapi-export-lirch-header include/uapi/linux/Kbuild
---- a/include/uapi/linux/Kbuild~uapi-export-lirch-header
-+++ a/include/uapi/linux/Kbuild
-@@ -245,6 +245,7 @@ endif
- header-y += hw_breakpoint.h
- header-y += l2tp.h
- header-y += libc-compat.h
-+header-y += lirc.h
- header-y += limits.h
- header-y += llc.h
- header-y += loop.h
+diff -puN Makefile~cflags-add-wunused-but-set-parameter Makefile
+--- a/Makefile~cflags-add-wunused-but-set-parameter
++++ a/Makefile
+@@ -796,6 +796,9 @@ KBUILD_CFLAGS   += $(call cc-option,-Wer
+ # enforce correct pointer usage
+ KBUILD_CFLAGS   += $(call cc-option,-Werror=incompatible-pointer-types)
+ 
++# dead code
++KBUILD_CFLAGS += $(call cc-option,-Wunused-but-set-parameter,)
++
+ # use the deterministic mode of AR if available
+ KBUILD_ARFLAGS := $(call ar-option,D)
+ 
 _
 
-Patches currently in -mm which might be from mchehab@s-opensource.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-uapi-export-lirch-header.patch
+cflags-add-wunused-but-set-parameter.patch
+mm-faster-kmalloc_array-kcalloc.patch
+ban-config_localversion_auto-with-allmodconfig.patch
+ipc-delete-nr_ipc_ns.patch
 
