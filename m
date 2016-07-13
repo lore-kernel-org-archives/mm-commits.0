@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+Subject: + drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
  added to -mm tree
-Date: Wed, 13 Jul 2016 14:51:32 -0700
-Message-ID: <5786b7e4.QNNdSaek/KphiR3x%akpm@linux-foundation.org>
+Date: Wed, 13 Jul 2016 14:51:14 -0700
+Message-ID: <5786b7d2.xDsjFVW1BWSqJsye%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41235 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41208 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082AbcGMVvd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:51:33 -0400
+	with ESMTP id S1751082AbcGMVvP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:51:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, jroedel@suse.de, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, daniel.vetter@ffwll.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iommu: intel: dma-mapping: use unsigned long for dma_attrs
+     Subject: drm/rockship: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,76 +40,100 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: iommu: intel: dma-mapping: use unsigned long for dma_attrs
+Subject: drm/rockship: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-25-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468399300-5399-16-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Joerg Roedel <jroedel@suse.de> [iommu]
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch> [drm]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/intel-iommu.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/gpu/drm/rockchip/rockchip_drm_gem.c |   17 +++++++----------
+ drivers/gpu/drm/rockchip/rockchip_drm_gem.h |    2 +-
+ 2 files changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN drivers/iommu/intel-iommu.c~iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs drivers/iommu/intel-iommu.c
---- a/drivers/iommu/intel-iommu.c~iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/iommu/intel-iommu.c
-@@ -3552,7 +3552,7 @@ error:
- static dma_addr_t intel_map_page(struct device *dev, struct page *page,
- 				 unsigned long offset, size_t size,
- 				 enum dma_data_direction dir,
--				 struct dma_attrs *attrs)
-+				 unsigned long attrs)
- {
- 	return __intel_map_single(dev, page_to_phys(page) + offset, size,
- 				  dir, *dev->dma_mask);
-@@ -3711,14 +3711,14 @@ static void intel_unmap(struct device *d
+diff -puN drivers/gpu/drm/rockchip/rockchip_drm_gem.c~drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs drivers/gpu/drm/rockchip/rockchip_drm_gem.c
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c~drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c
+@@ -17,8 +17,6 @@
+ #include <drm/drm_gem.h>
+ #include <drm/drm_vma_manager.h>
  
- static void intel_unmap_page(struct device *dev, dma_addr_t dev_addr,
- 			     size_t size, enum dma_data_direction dir,
--			     struct dma_attrs *attrs)
-+			     unsigned long attrs)
- {
- 	intel_unmap(dev, dev_addr, size);
+-#include <linux/dma-attrs.h>
+-
+ #include "rockchip_drm_drv.h"
+ #include "rockchip_drm_gem.h"
+ 
+@@ -28,15 +26,14 @@ static int rockchip_gem_alloc_buf(struct
+ 	struct drm_gem_object *obj = &rk_obj->base;
+ 	struct drm_device *drm = obj->dev;
+ 
+-	init_dma_attrs(&rk_obj->dma_attrs);
+-	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &rk_obj->dma_attrs);
++	rk_obj->dma_attrs = DMA_ATTR_WRITE_COMBINE;
+ 
+ 	if (!alloc_kmap)
+-		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &rk_obj->dma_attrs);
++		rk_obj->dma_attrs |= DMA_ATTR_NO_KERNEL_MAPPING;
+ 
+ 	rk_obj->kvaddr = dma_alloc_attrs(drm->dev, obj->size,
+ 					 &rk_obj->dma_addr, GFP_KERNEL,
+-					 &rk_obj->dma_attrs);
++					 rk_obj->dma_attrs);
+ 	if (!rk_obj->kvaddr) {
+ 		DRM_ERROR("failed to allocate %zu byte dma buffer", obj->size);
+ 		return -ENOMEM;
+@@ -51,7 +48,7 @@ static void rockchip_gem_free_buf(struct
+ 	struct drm_device *drm = obj->dev;
+ 
+ 	dma_free_attrs(drm->dev, obj->size, rk_obj->kvaddr, rk_obj->dma_addr,
+-		       &rk_obj->dma_attrs);
++		       rk_obj->dma_attrs);
  }
  
- static void *intel_alloc_coherent(struct device *dev, size_t size,
- 				  dma_addr_t *dma_handle, gfp_t flags,
--				  struct dma_attrs *attrs)
-+				  unsigned long attrs)
- {
- 	struct page *page = NULL;
- 	int order;
-@@ -3764,7 +3764,7 @@ static void *intel_alloc_coherent(struct
- }
+ static int rockchip_drm_gem_object_mmap(struct drm_gem_object *obj,
+@@ -70,7 +67,7 @@ static int rockchip_drm_gem_object_mmap(
+ 	vma->vm_pgoff = 0;
  
- static void intel_free_coherent(struct device *dev, size_t size, void *vaddr,
--				dma_addr_t dma_handle, struct dma_attrs *attrs)
-+				dma_addr_t dma_handle, unsigned long attrs)
- {
- 	int order;
- 	struct page *page = virt_to_page(vaddr);
-@@ -3779,7 +3779,7 @@ static void intel_free_coherent(struct d
+ 	ret = dma_mmap_attrs(drm->dev, vma, rk_obj->kvaddr, rk_obj->dma_addr,
+-			     obj->size, &rk_obj->dma_attrs);
++			     obj->size, rk_obj->dma_attrs);
+ 	if (ret)
+ 		drm_gem_vm_close(vma);
  
- static void intel_unmap_sg(struct device *dev, struct scatterlist *sglist,
- 			   int nelems, enum dma_data_direction dir,
--			   struct dma_attrs *attrs)
-+			   unsigned long attrs)
- {
- 	dma_addr_t startaddr = sg_dma_address(sglist) & PAGE_MASK;
- 	unsigned long nrpages = 0;
-@@ -3808,7 +3808,7 @@ static int intel_nontranslate_map_sg(str
- }
+@@ -262,7 +259,7 @@ struct sg_table *rockchip_gem_prime_get_
  
- static int intel_map_sg(struct device *dev, struct scatterlist *sglist, int nelems,
--			enum dma_data_direction dir, struct dma_attrs *attrs)
-+			enum dma_data_direction dir, unsigned long attrs)
+ 	ret = dma_get_sgtable_attrs(drm->dev, sgt, rk_obj->kvaddr,
+ 				    rk_obj->dma_addr, obj->size,
+-				    &rk_obj->dma_attrs);
++				    rk_obj->dma_attrs);
+ 	if (ret) {
+ 		DRM_ERROR("failed to allocate sgt, %d\n", ret);
+ 		kfree(sgt);
+@@ -276,7 +273,7 @@ void *rockchip_gem_prime_vmap(struct drm
  {
- 	int i;
- 	struct dmar_domain *domain;
+ 	struct rockchip_gem_object *rk_obj = to_rockchip_obj(obj);
+ 
+-	if (dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, &rk_obj->dma_attrs))
++	if (dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, rk_obj->dma_attrs))
+ 		return NULL;
+ 
+ 	return rk_obj->kvaddr;
+diff -puN drivers/gpu/drm/rockchip/rockchip_drm_gem.h~drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs drivers/gpu/drm/rockchip/rockchip_drm_gem.h
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_gem.h~drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/gpu/drm/rockchip/rockchip_drm_gem.h
+@@ -23,7 +23,7 @@ struct rockchip_gem_object {
+ 
+ 	void *kvaddr;
+ 	dma_addr_t dma_addr;
+-	struct dma_attrs dma_attrs;
++	unsigned long dma_attrs;
+ };
+ 
+ struct sg_table *rockchip_gem_prime_get_sg_table(struct drm_gem_object *obj);
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
