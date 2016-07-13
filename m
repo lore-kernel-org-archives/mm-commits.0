@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to
- -mm tree
-Date: Wed, 13 Jul 2016 14:50:50 -0700
-Message-ID: <5786b7ba.oDnqzFtt688cSVgX%akpm@linux-foundation.org>
+Subject: + blackfin-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+ added to -mm tree
+Date: Wed, 13 Jul 2016 14:50:58 -0700
+Message-ID: <5786b7c2.uKoRBq6NPyEWXKX/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41173 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41185 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082AbcGMVuv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:50:51 -0400
+	with ESMTP id S1751082AbcGMVu7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:50:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, vgupta@synopsys.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arc: dma-mapping: use unsigned long for dma_attrs
+     Subject: blackfin: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     blackfin-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/blackfin-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/blackfin-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,60 +40,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: arc: dma-mapping: use unsigned long for dma_attrs
+Subject: blackfin: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-4-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468399300-5399-8-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-[for arc]
-Acked-by: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/mm/dma.c |    8 ++++----
+ arch/blackfin/kernel/dma-mapping.c |    8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/arc/mm/dma.c~arc-dma-mapping-use-unsigned-long-for-dma_attrs arch/arc/mm/dma.c
---- a/arch/arc/mm/dma.c~arc-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/arc/mm/dma.c
-@@ -22,7 +22,7 @@
+diff -puN arch/blackfin/kernel/dma-mapping.c~blackfin-dma-mapping-use-unsigned-long-for-dma_attrs arch/blackfin/kernel/dma-mapping.c
+--- a/arch/blackfin/kernel/dma-mapping.c~blackfin-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/blackfin/kernel/dma-mapping.c
+@@ -79,7 +79,7 @@ static void __free_dma_pages(unsigned lo
+ }
  
- 
- static void *arc_dma_alloc(struct device *dev, size_t size,
+ static void *bfin_dma_alloc(struct device *dev, size_t size,
 -		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
 +		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
  {
- 	unsigned long order = get_order(size);
- 	struct page *page;
-@@ -90,7 +90,7 @@ static void *arc_dma_alloc(struct device
+ 	void *ret;
+ 
+@@ -94,7 +94,7 @@ static void *bfin_dma_alloc(struct devic
  }
  
- static void arc_dma_free(struct device *dev, size_t size, void *vaddr,
--		dma_addr_t dma_handle, struct dma_attrs *attrs)
-+		dma_addr_t dma_handle, unsigned long attrs)
+ static void bfin_dma_free(struct device *dev, size_t size, void *vaddr,
+-		  dma_addr_t dma_handle, struct dma_attrs *attrs)
++		  dma_addr_t dma_handle, unsigned long attrs)
  {
- 	struct page *page = virt_to_page(dma_handle);
- 	int is_non_coh = 1;
-@@ -129,7 +129,7 @@ static void _dma_cache_sync(phys_addr_t
+ 	__free_dma_pages((unsigned long)vaddr, get_pages(size));
+ }
+@@ -111,7 +111,7 @@ EXPORT_SYMBOL(__dma_sync);
  
- static dma_addr_t arc_dma_map_page(struct device *dev, struct page *page,
+ static int bfin_dma_map_sg(struct device *dev, struct scatterlist *sg_list,
+ 		int nents, enum dma_data_direction direction,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
+ {
+ 	struct scatterlist *sg;
+ 	int i;
+@@ -139,7 +139,7 @@ static void bfin_dma_sync_sg_for_device(
+ 
+ static dma_addr_t bfin_dma_map_page(struct device *dev, struct page *page,
  		unsigned long offset, size_t size, enum dma_data_direction dir,
 -		struct dma_attrs *attrs)
 +		unsigned long attrs)
  {
- 	phys_addr_t paddr = page_to_phys(page) + offset;
- 	_dma_cache_sync(paddr, size, dir);
-@@ -137,7 +137,7 @@ static dma_addr_t arc_dma_map_page(struc
- }
+ 	dma_addr_t handle = (dma_addr_t)(page_address(page) + offset);
  
- static int arc_dma_map_sg(struct device *dev, struct scatterlist *sg,
--	   int nents, enum dma_data_direction dir, struct dma_attrs *attrs)
-+	   int nents, enum dma_data_direction dir, unsigned long attrs)
- {
- 	struct scatterlist *s;
- 	int i;
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
