@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cflags-add-wunused-but-set-parameter.patch added to -mm tree
-Date: Wed, 13 Jul 2016 13:20:53 -0700
-Message-ID: <5786a2a5.WNeSm8qph851Ns4v%akpm@linux-foundation.org>
+Subject: + kbuild-simpler-generation-of-assembly-constants.patch added to
+ -mm tree
+Date: Wed, 13 Jul 2016 13:22:53 -0700
+Message-ID: <5786a31d.Ss9y+Tjw4nAKKVng%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40196 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40201 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750843AbcGMUU7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 16:20:59 -0400
+	with ESMTP id S1750829AbcGMUWy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 16:22:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mmarek@suse.cz, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: CFLAGS: add -Wunused-but-set-parameter
+     Subject: kbuild: simpler generation of assembly constants
 has been added to the -mm tree.  Its filename is
-     cflags-add-wunused-but-set-parameter.patch
+     kbuild-simpler-generation-of-assembly-constants.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cflags-add-wunused-but-set-parameter.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kbuild-simpler-generation-of-assembly-constants.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cflags-add-wunused-but-set-parameter.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kbuild-simpler-generation-of-assembly-constants.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,45 +40,146 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: CFLAGS: add -Wunused-but-set-parameter
+Subject: kbuild: simpler generation of assembly constants
 
--Wunused-but-set-parameter is finding stuff with current allmodconfig:
+gcc doesn't really look inside "asm" statements and more or less
+directly emits it into assembly. So pretend "#define" is CPU
+instruction.
 
-drivers/misc/mic/scif/scif_dma.c:118:27: warning: parameter 'ep' set but not used [-Wunused-but-set-parameter]
-drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c:2156:8: warning: parameter 'function' set but not used [-Wunused-but-set-parameter]
-drivers/net/ethernet/ti/tlan.c:1647:59: warning: parameter 'host_int' set but not used [-Wunused-but-set-parameter]
-drivers/usb/gadget/udc/pxa27x_udc.c:1828:74: warning: parameter 'driver' set but not used [-Wunused-but-set-parameter]
+C++ comment can't be used because sparc assembler doesn't understand it.
 
-and judging by changelogs, people were using it before,
-but were too scared to change top level Makefile.
-
-Link: http://lkml.kernel.org/r/20160713190622.GB1910@p183.telecom.by
+Link: http://lkml.kernel.org/r/20160713173646.GA1910@p183.telecom.by
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    3 +++
- 1 file changed, 3 insertions(+)
+ Kbuild                                     |   12 +-----------
+ arch/ia64/kernel/Makefile                  |    8 +-------
+ arch/um/Makefile                           |    2 +-
+ arch/x86/um/shared/sysdep/kernel-offsets.h |    2 +-
+ arch/x86/um/user-offsets.c                 |    4 ++--
+ include/linux/kbuild.h                     |    2 +-
+ scripts/mod/Makefile                       |   11 +----------
+ 7 files changed, 8 insertions(+), 33 deletions(-)
 
-diff -puN Makefile~cflags-add-wunused-but-set-parameter Makefile
---- a/Makefile~cflags-add-wunused-but-set-parameter
-+++ a/Makefile
-@@ -796,6 +796,9 @@ KBUILD_CFLAGS   += $(call cc-option,-Wer
- # enforce correct pointer usage
- KBUILD_CFLAGS   += $(call cc-option,-Werror=incompatible-pointer-types)
+diff -puN Kbuild~kbuild-simpler-generation-of-assembly-constants Kbuild
+--- a/Kbuild~kbuild-simpler-generation-of-assembly-constants
++++ a/Kbuild
+@@ -7,14 +7,6 @@
+ # 4) Check for missing system calls
+ # 5) Generate constants.py (may need bounds.h)
  
-+# dead code
-+KBUILD_CFLAGS += $(call cc-option,-Wunused-but-set-parameter,)
-+
- # use the deterministic mode of AR if available
- KBUILD_ARFLAGS := $(call ar-option,D)
+-# Default sed regexp - multiline due to syntax constraints
+-define sed-y
+-	"/^->/{s:->#\(.*\):/* \1 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:->::; p;}"
+-endef
+-
+ # Use filechk to avoid rebuilds when a header changes, but the resulting file
+ # does not
+ define filechk_offsets
+@@ -26,9 +18,7 @@ define filechk_offsets
+ 	 echo " *"; \
+ 	 echo " * This file was generated by Kbuild"; \
+ 	 echo " */"; \
+-	 echo ""; \
+-	 sed -ne $(sed-y); \
+-	 echo ""; \
++	 sed -ne '/#define/{s/\$$//;s/#//2;s/$$/*\//;p;}'; \
+ 	 echo "#endif" )
+ endef
  
-_
-
-Patches currently in -mm which might be from adobriyan@gmail.com are
-
-cflags-add-wunused-but-set-parameter.patch
-mm-faster-kmalloc_array-kcalloc.patch
-ban-config_localversion_auto-with-allmodconfig.patch
-ipc-delete-nr_ipc_ns.patch
-
+diff -puN arch/ia64/kernel/Makefile~kbuild-simpler-generation-of-assembly-constants arch/ia64/kernel/Makefile
+--- a/arch/ia64/kernel/Makefile~kbuild-simpler-generation-of-assembly-constants
++++ a/arch/ia64/kernel/Makefile
+@@ -50,10 +50,6 @@ CFLAGS_traps.o  += -mfixed-range=f2-f5,f
+ # The gate DSO image is built using a special linker script.
+ include $(src)/Makefile.gate
+ 
+-# Calculate NR_IRQ = max(IA64_NATIVE_NR_IRQS, XEN_NR_IRQS, ...) based on config
+-define sed-y
+-	"/^->/{s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; s:->::; p;}"
+-endef
+ quiet_cmd_nr_irqs = GEN     $@
+ define cmd_nr_irqs
+ 	(set -e; \
+@@ -65,9 +61,7 @@ define cmd_nr_irqs
+ 	 echo " * This file was generated by Kbuild"; \
+ 	 echo " *"; \
+ 	 echo " */"; \
+-	 echo ""; \
+-	 sed -ne $(sed-y) $<; \
+-	 echo ""; \
++	 sed -ne '/#define/{s/\$$//;s/#//2;s/$$/*\//p;}' $<; \
+ 	 echo "#endif" ) > $@
+ endef
+ 
+diff -puN arch/um/Makefile~kbuild-simpler-generation-of-assembly-constants arch/um/Makefile
+--- a/arch/um/Makefile~kbuild-simpler-generation-of-assembly-constants
++++ a/arch/um/Makefile
+@@ -158,7 +158,7 @@ define filechk_gen-asm-offsets
+          echo " *"; \
+          echo " */"; \
+          echo ""; \
+-         sed -ne "/^->/{s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; s:->::; p;}"; \
++         sed -ne '/#define/{s/\$$//;s/#//2;s/$$/*\//p;}'; \
+          echo ""; )
+ endef
+ 
+diff -puN arch/x86/um/shared/sysdep/kernel-offsets.h~kbuild-simpler-generation-of-assembly-constants arch/x86/um/shared/sysdep/kernel-offsets.h
+--- a/arch/x86/um/shared/sysdep/kernel-offsets.h~kbuild-simpler-generation-of-assembly-constants
++++ a/arch/x86/um/shared/sysdep/kernel-offsets.h
+@@ -5,7 +5,7 @@
+ #include <asm/mman.h>
+ 
+ #define DEFINE(sym, val) \
+-	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
++	asm volatile ("#define " #sym " %0 /*" #val :: "i" (val))
+ 
+ #define BLANK() asm volatile("\n->" : : )
+ 
+diff -puN arch/x86/um/user-offsets.c~kbuild-simpler-generation-of-assembly-constants arch/x86/um/user-offsets.c
+--- a/arch/x86/um/user-offsets.c~kbuild-simpler-generation-of-assembly-constants
++++ a/arch/x86/um/user-offsets.c
+@@ -21,10 +21,10 @@ static char syscalls[] = {
+ #endif
+ 
+ #define DEFINE(sym, val) \
+-	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
++	asm volatile ("#define " #sym " %0 /*" #val :: "i" (val))
+ 
+ #define DEFINE_LONGS(sym, val) \
+-	asm volatile("\n->" #sym " %0 " #val : : "i" (val/sizeof(unsigned long)))
++	asm volatile ("#define " #sym " %0 /*" #val :: "i" (val / sizeof(unsigned long)))
+ 
+ void foo(void)
+ {
+diff -puN include/linux/kbuild.h~kbuild-simpler-generation-of-assembly-constants include/linux/kbuild.h
+--- a/include/linux/kbuild.h~kbuild-simpler-generation-of-assembly-constants
++++ a/include/linux/kbuild.h
+@@ -2,7 +2,7 @@
+ #define __LINUX_KBUILD_H
+ 
+ #define DEFINE(sym, val) \
+-        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
++	asm volatile ("#define " #sym " %0 /*" #val :: "i" (val))
+ 
+ #define BLANK() asm volatile("\n->" : : )
+ 
+diff -puN scripts/mod/Makefile~kbuild-simpler-generation-of-assembly-constants scripts/mod/Makefile
+--- a/scripts/mod/Makefile~kbuild-simpler-generation-of-assembly-constants
++++ a/scripts/mod/Makefile
+@@ -7,13 +7,6 @@ modpost-objs	:= modpost.o file2alias.o s
+ 
+ devicetable-offsets-file := devicetable-offsets.h
+ 
+-define sed-y
+-	"/^->/{s:->#\(.*\):/* \1 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([-0-9]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:^->\([^ ]*\) [\$$#]*\([^ ]*\) \(.*\):#define \1 \2 /* \3 */:; \
+-	s:->::; p;}"
+-endef
