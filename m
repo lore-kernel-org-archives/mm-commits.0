@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cris-dma-mapping-use-unsigned-long-for-dma_attrs.patch added to -mm tree
-Date: Wed, 13 Jul 2016 14:51:02 -0700
-Message-ID: <5786b7c6.4YNAptI8XKM9g5Jx%akpm@linux-foundation.org>
+Subject: + avr32-dma-mapping-use-unsigned-long-for-dma_attrs.patch added
+ to -mm tree
+Date: Wed, 13 Jul 2016 14:50:56 -0700
+Message-ID: <5786b7c0.6oPAYaIYGph0/UZJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41190 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41182 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082AbcGMVvD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:51:03 -0400
+	with ESMTP id S1751082AbcGMVu5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:50:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, jesper.nilsson@axis.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, egtvedt@samfundet.no, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cris: dma-mapping: use unsigned long for dma_attrs
+     Subject: avr32: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     cris-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     avr32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cris-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/avr32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cris-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/avr32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +40,60 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: cris: dma-mapping: use unsigned long for dma_attrs
+Subject: avr32: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-10-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468399300-5399-7-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Jesper Nilsson <jesper.nilsson@axis.com> [cris]
+[for avr32]
+Acked-by: Hans-Christian Noren Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/drivers/pci/dma.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ arch/avr32/mm/dma-coherent.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/cris/arch-v32/drivers/pci/dma.c~cris-dma-mapping-use-unsigned-long-for-dma_attrs arch/cris/arch-v32/drivers/pci/dma.c
---- a/arch/cris/arch-v32/drivers/pci/dma.c~cris-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/cris/arch-v32/drivers/pci/dma.c
-@@ -17,7 +17,7 @@
- #include <asm/io.h>
- 
- static void *v32_dma_alloc(struct device *dev, size_t size,
--		dma_addr_t *dma_handle, gfp_t gfp,  struct dma_attrs *attrs)
-+		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
- {
- 	void *ret;
- 
-@@ -37,22 +37,21 @@ static void *v32_dma_alloc(struct device
+diff -puN arch/avr32/mm/dma-coherent.c~avr32-dma-mapping-use-unsigned-long-for-dma_attrs arch/avr32/mm/dma-coherent.c
+--- a/arch/avr32/mm/dma-coherent.c~avr32-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/avr32/mm/dma-coherent.c
+@@ -99,7 +99,7 @@ static void __dma_free(struct device *de
  }
  
- static void v32_dma_free(struct device *dev, size_t size, void *vaddr,
--		dma_addr_t dma_handle, struct dma_attrs *attrs)
-+		dma_addr_t dma_handle, unsigned long attrs)
+ static void *avr32_dma_alloc(struct device *dev, size_t size,
+-		dma_addr_t *handle, gfp_t gfp, struct dma_attrs *attrs)
++		dma_addr_t *handle, gfp_t gfp, unsigned long attrs)
  {
- 	free_pages((unsigned long)vaddr, get_order(size));
+ 	struct page *page;
+ 	dma_addr_t phys;
+@@ -119,7 +119,7 @@ static void *avr32_dma_alloc(struct devi
  }
  
- static inline dma_addr_t v32_dma_map_page(struct device *dev,
- 		struct page *page, unsigned long offset, size_t size,
--		enum dma_data_direction direction,
--		struct dma_attrs *attrs)
+ static void avr32_dma_free(struct device *dev, size_t size,
+-		void *cpu_addr, dma_addr_t handle, struct dma_attrs *attrs)
++		void *cpu_addr, dma_addr_t handle, unsigned long attrs)
+ {
+ 	struct page *page;
+ 
+@@ -142,7 +142,7 @@ static void avr32_dma_free(struct device
+ 
+ static dma_addr_t avr32_dma_map_page(struct device *dev, struct page *page,
+ 		unsigned long offset, size_t size,
+-		enum dma_data_direction direction, struct dma_attrs *attrs)
 +		enum dma_data_direction direction, unsigned long attrs)
  {
- 	return page_to_phys(page) + offset;
- }
+ 	void *cpu_addr = page_address(page) + offset;
  
- static inline int v32_dma_map_sg(struct device *dev, struct scatterlist *sg,
+@@ -152,7 +152,7 @@ static dma_addr_t avr32_dma_map_page(str
+ 
+ static int avr32_dma_map_sg(struct device *dev, struct scatterlist *sglist,
  		int nents, enum dma_data_direction direction,
 -		struct dma_attrs *attrs)
 +		unsigned long attrs)
  {
- 	printk("Map sg\n");
- 	return nents;
+ 	int i;
+ 	struct scatterlist *sg;
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
