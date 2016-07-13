@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + misc-mic-dma-mapping-use-unsigned-long-for-dma_attrs.patch
- added to -mm tree
-Date: Wed, 13 Jul 2016 14:51:56 -0700
-Message-ID: <5786b7fc.lU6fMTkJetxow7cW%akpm@linux-foundation.org>
+Subject: + nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch added
+ to -mm tree
+Date: Wed, 13 Jul 2016 14:51:50 -0700
+Message-ID: <5786b7f6./nrTGXdup2ynja7c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41266 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41259 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082AbcGMVv5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:51:57 -0400
+	with ESMTP id S1751082AbcGMVvv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:51:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: misc: mic: dma-mapping: use unsigned long for dma_attrs
+     Subject: nios2: dma-mapping: use unsigned long for dma_attrs
 has been added to the -mm tree.  Its filename is
-     misc-mic-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/misc-mic-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/misc-mic-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,112 +40,75 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: misc: mic: dma-mapping: use unsigned long for dma_attrs
+Subject: nios2: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-37-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468399300-5399-34-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/mic/host/mic_boot.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ arch/nios2/mm/dma-mapping.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/misc/mic/host/mic_boot.c~misc-mic-dma-mapping-use-unsigned-long-for-dma_attrs drivers/misc/mic/host/mic_boot.c
---- a/drivers/misc/mic/host/mic_boot.c~misc-mic-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/misc/mic/host/mic_boot.c
-@@ -38,7 +38,7 @@ static inline struct mic_device *vpdev_t
- static dma_addr_t
- _mic_dma_map_page(struct device *dev, struct page *page,
- 		  unsigned long offset, size_t size,
--		  enum dma_data_direction dir, struct dma_attrs *attrs)
-+		  enum dma_data_direction dir, unsigned long attrs)
- {
- 	void *va = phys_to_virt(page_to_phys(page)) + offset;
- 	struct mic_device *mdev = vpdev_to_mdev(dev);
-@@ -48,7 +48,7 @@ _mic_dma_map_page(struct device *dev, st
- 
- static void _mic_dma_unmap_page(struct device *dev, dma_addr_t dma_addr,
- 				size_t size, enum dma_data_direction dir,
--				struct dma_attrs *attrs)
-+				unsigned long attrs)
- {
- 	struct mic_device *mdev = vpdev_to_mdev(dev);
- 
-@@ -144,7 +144,7 @@ static inline struct mic_device *scdev_t
- 
- static void *__mic_dma_alloc(struct device *dev, size_t size,
- 			     dma_addr_t *dma_handle, gfp_t gfp,
--			     struct dma_attrs *attrs)
-+			     unsigned long attrs)
- {
- 	struct scif_hw_dev *scdev = dev_get_drvdata(dev);
- 	struct mic_device *mdev = scdev_to_mdev(scdev);
-@@ -164,7 +164,7 @@ static void *__mic_dma_alloc(struct devi
+diff -puN arch/nios2/mm/dma-mapping.c~nios2-dma-mapping-use-unsigned-long-for-dma_attrs arch/nios2/mm/dma-mapping.c
+--- a/arch/nios2/mm/dma-mapping.c~nios2-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/nios2/mm/dma-mapping.c
+@@ -59,7 +59,7 @@ static inline void __dma_sync_for_cpu(vo
  }
  
- static void __mic_dma_free(struct device *dev, size_t size, void *vaddr,
--			   dma_addr_t dma_handle, struct dma_attrs *attrs)
-+			   dma_addr_t dma_handle, unsigned long attrs)
+ static void *nios2_dma_alloc(struct device *dev, size_t size,
+-		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
++		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
  {
- 	struct scif_hw_dev *scdev = dev_get_drvdata(dev);
- 	struct mic_device *mdev = scdev_to_mdev(scdev);
-@@ -176,7 +176,7 @@ static void __mic_dma_free(struct device
- static dma_addr_t
- __mic_dma_map_page(struct device *dev, struct page *page, unsigned long offset,
- 		   size_t size, enum dma_data_direction dir,
--		   struct dma_attrs *attrs)
-+		   unsigned long attrs)
- {
- 	void *va = phys_to_virt(page_to_phys(page)) + offset;
- 	struct scif_hw_dev *scdev = dev_get_drvdata(dev);
-@@ -188,7 +188,7 @@ __mic_dma_map_page(struct device *dev, s
- static void
- __mic_dma_unmap_page(struct device *dev, dma_addr_t dma_addr,
- 		     size_t size, enum dma_data_direction dir,
--		     struct dma_attrs *attrs)
-+		     unsigned long attrs)
- {
- 	struct scif_hw_dev *scdev = dev_get_drvdata(dev);
- 	struct mic_device *mdev = scdev_to_mdev(scdev);
-@@ -198,7 +198,7 @@ __mic_dma_unmap_page(struct device *dev,
+ 	void *ret;
  
- static int __mic_dma_map_sg(struct device *dev, struct scatterlist *sg,
- 			    int nents, enum dma_data_direction dir,
--			    struct dma_attrs *attrs)
-+			    unsigned long attrs)
+@@ -84,7 +84,7 @@ static void *nios2_dma_alloc(struct devi
+ }
+ 
+ static void nios2_dma_free(struct device *dev, size_t size, void *vaddr,
+-		dma_addr_t dma_handle, struct dma_attrs *attrs)
++		dma_addr_t dma_handle, unsigned long attrs)
  {
- 	struct scif_hw_dev *scdev = dev_get_drvdata(dev);
- 	struct mic_device *mdev = scdev_to_mdev(scdev);
-@@ -229,7 +229,7 @@ err:
- static void __mic_dma_unmap_sg(struct device *dev,
- 			       struct scatterlist *sg, int nents,
- 			       enum dma_data_direction dir,
--			       struct dma_attrs *attrs)
-+			       unsigned long attrs)
+ 	unsigned long addr = (unsigned long) CAC_ADDR((unsigned long) vaddr);
+ 
+@@ -93,7 +93,7 @@ static void nios2_dma_free(struct device
+ 
+ static int nios2_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 		int nents, enum dma_data_direction direction,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
  {
- 	struct scif_hw_dev *scdev = dev_get_drvdata(dev);
- 	struct mic_device *mdev = scdev_to_mdev(scdev);
-@@ -327,7 +327,7 @@ static inline struct mic_device *mbdev_t
- static dma_addr_t
- mic_dma_map_page(struct device *dev, struct page *page,
- 		 unsigned long offset, size_t size, enum dma_data_direction dir,
--		 struct dma_attrs *attrs)
-+		 unsigned long attrs)
+ 	int i;
+ 
+@@ -113,7 +113,7 @@ static int nios2_dma_map_sg(struct devic
+ static dma_addr_t nios2_dma_map_page(struct device *dev, struct page *page,
+ 			unsigned long offset, size_t size,
+ 			enum dma_data_direction direction,
+-			struct dma_attrs *attrs)
++			unsigned long attrs)
  {
- 	void *va = phys_to_virt(page_to_phys(page)) + offset;
- 	struct mic_device *mdev = dev_get_drvdata(dev->parent);
-@@ -338,7 +338,7 @@ mic_dma_map_page(struct device *dev, str
- static void
- mic_dma_unmap_page(struct device *dev, dma_addr_t dma_addr,
- 		   size_t size, enum dma_data_direction dir,
--		   struct dma_attrs *attrs)
-+		   unsigned long attrs)
+ 	void *addr = page_address(page) + offset;
+ 
+@@ -123,14 +123,14 @@ static dma_addr_t nios2_dma_map_page(str
+ 
+ static void nios2_dma_unmap_page(struct device *dev, dma_addr_t dma_address,
+ 		size_t size, enum dma_data_direction direction,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
  {
- 	struct mic_device *mdev = dev_get_drvdata(dev->parent);
- 	mic_unmap_single(mdev, dma_addr, size);
+ 	__dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
+ }
+ 
+ static void nios2_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+ 		int nhwentries, enum dma_data_direction direction,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
+ {
+ 	void *addr;
+ 	int i;
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
