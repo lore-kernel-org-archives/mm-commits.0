@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch added to -mm tree
-Date: Wed, 13 Jul 2016 13:57:55 -0700
-Message-ID: <5786ab53.yfeH7t7BrrwoXoZ3%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-fix-dirtyable-highmem-calculation.patch added to
+ -mm tree
+Date: Wed, 13 Jul 2016 14:04:39 -0700
+Message-ID: <5786ace7.cOPk/Mj6i9vih+ZA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40638 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751276AbcGMU6B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 16:58:01 -0400
+	with ESMTP id S1751410AbcGMVEp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jul 2016 17:04:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, hannes@cmpxchg.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmstat: account per-zone stalls and pages skipped during reclaim -fix
+     Subject: mm, page_alloc: fix dirtyable highmem calculation
 has been added to the -mm tree.  Its filename is
-     mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
+     mm-page_alloc-fix-dirtyable-highmem-calculation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-dirtyable-highmem-calculation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-dirtyable-highmem-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,106 +39,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: vmstat: account per-zone stalls and pages skipped during reclaim -fix
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm, page_alloc: fix dirtyable highmem calculation
 
-As pointed out by Johannes -- the PG prefix seems to stand for page, and
-all stat names that contain it represent some per-page event. PGSTALL is
-not a page event. This patch renames it.
+When I tested vmscale in mmtest in 32bit, I found the benchmark was slow
+down 0.5 times.
 
-This is a fix for the mmotm patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
+                base        node
+                   1    global-1
+User           12.98       16.04
+System        147.61      166.42
+Elapsed        26.48       38.08
 
-Link: http://lkml.kernel.org/r/1468404004-5085-3-git-send-email-mgorman@techsingularity.net
+With vmstat, I found IO wait avg is much increased compared to base.
+
+The reason was highmem_dirtyable_memory accumulates free pages and
+highmem_file_pages from HIGHMEM to MOVABLE zones which was wrong. With
+that, dirth_thresh in throtlle_vm_write is always 0 so that it calls
+congestion_wait frequently if writeback starts.
+
+With this patch, it is much recovered.
+
+                base        node          fi
+                   1    global-1         fix
+User           12.98       16.04       13.78
+System        147.61      166.42      143.92
+Elapsed        26.48       38.08       29.64
+
+Link: http://lkml.kernel.org/r/1468404004-5085-4-git-send-email-mgorman@techsingularity.net
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    2 +-
- mm/vmscan.c                   |    2 +-
- mm/vmstat.c                   |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ mm/page-writeback.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/vm_event_item.h~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix
-+++ a/include/linux/vm_event_item.h
-@@ -23,7 +23,7 @@
+diff -puN mm/page-writeback.c~mm-page_alloc-fix-dirtyable-highmem-calculation mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page_alloc-fix-dirtyable-highmem-calculation
++++ a/mm/page-writeback.c
+@@ -307,27 +307,31 @@ static unsigned long highmem_dirtyable_m
+ {
+ #ifdef CONFIG_HIGHMEM
+ 	int node;
+-	unsigned long x = 0;
++	unsigned long x;
+ 	int i;
+-	unsigned long dirtyable = atomic_read(&highmem_file_pages);
++	unsigned long dirtyable = 0;
  
- enum vm_event_item { PGPGIN, PGPGOUT, PSWPIN, PSWPOUT,
- 		FOR_ALL_ZONES(PGALLOC),
--		FOR_ALL_ZONES(PGSTALL),
-+		FOR_ALL_ZONES(ALLOCSTALL),
- 		FOR_ALL_ZONES(PGSCAN_SKIP),
- 		PGFREE, PGACTIVATE, PGDEACTIVATE,
- 		PGFAULT, PGMAJFAULT,
-diff -puN mm/vmscan.c~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix
-+++ a/mm/vmscan.c
-@@ -2690,7 +2690,7 @@ retry:
- 	delayacct_freepages_start();
+ 	for_each_node_state(node, N_HIGH_MEMORY) {
+ 		for (i = ZONE_NORMAL + 1; i < MAX_NR_ZONES; i++) {
+ 			struct zone *z;
++			unsigned long nr_pages;
  
- 	if (global_reclaim(sc))
--		__count_zid_vm_events(PGSTALL, sc->reclaim_idx, 1);
-+		__count_zid_vm_events(ALLOCSTALL, sc->reclaim_idx, 1);
+ 			if (!is_highmem_idx(i))
+ 				continue;
  
- 	do {
- 		vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
-diff -puN mm/vmstat.c~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix
-+++ a/mm/vmstat.c
-@@ -983,7 +983,7 @@ const char * const vmstat_text[] = {
- 	"pswpout",
+ 			z = &NODE_DATA(node)->node_zones[i];
+-			dirtyable += zone_page_state(z, NR_FREE_PAGES);
++			if (!populated_zone(z))
++				continue;
  
- 	TEXTS_FOR_ZONES("pgalloc")
--	TEXTS_FOR_ZONES("pgstall")
-+	TEXTS_FOR_ZONES("allocstall")
- 	TEXTS_FOR_ZONES("pgskip")
++			nr_pages = zone_page_state(z, NR_FREE_PAGES);
+ 			/* watch for underflows */
+-			dirtyable -= min(dirtyable, high_wmark_pages(z));
+-
+-			x += dirtyable;
++			nr_pages -= min(nr_pages, high_wmark_pages(z));
++			dirtyable += nr_pages;
+ 		}
+ 	}
  
- 	"pgfree",
++	x = dirtyable + atomic_read(&highmem_file_pages);
++
+ 	/*
+ 	 * Unreclaimable memory (kernel memory or anonymous memory
+ 	 * without swap) can bring down the dirtyable pages below
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-meminit-always-return-a-valid-node-from-early_pfn_to_nid.patch
-mm-meminit-ensure-node-is-online-before-checking-whether-pages-are-uninitialised.patch
-mm-meminit-remove-early_page_nid_uninitialised.patch
-mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
-mm-vmscan-move-lru_lock-to-the-node.patch
-mm-vmscan-move-lru-lists-to-node.patch
-mm-mmzone-clarify-the-usage-of-zone-padding.patch
-mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
-mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
-mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
-mm-vmscan-remove-balance-gap.patch
-mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
-mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
-mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
-mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
-mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
-mm-workingset-make-working-set-detection-node-aware.patch
-mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
-mm-move-page-mapped-accounting-to-the-node.patch
-mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
-mm-move-most-file-based-accounting-to-the-node.patch
-mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
-mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
-mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
-mm-convert-zone_reclaim-to-node_reclaim.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
-mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
-mm-vmscan-add-classzone-information-to-tracepoints.patch
-mm-page_alloc-remove-fair-zone-allocation-policy.patch
-mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
-mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
-mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
+mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+mm-migrate-support-non-lru-movable-page-migration.patch
+mm-balloon-use-general-non-lru-movable-page-feature.patch
+zsmalloc-keep-max_object-in-size_class.patch
+zsmalloc-use-bit_spin_lock.patch
+zsmalloc-use-accessor.patch
+zsmalloc-factor-page-chain-functionality-out.patch
+zsmalloc-introduce-zspage-structure.patch
+zsmalloc-separate-free_zspage-from-putback_zspage.patch
+zsmalloc-use-freeobj-for-index.patch
+zsmalloc-page-migration-support.patch
+zsmalloc-page-migration-support-fix.patch
+zsmalloc-page-migration-support-fix-2.patch
+zram-use-__gfp_movable-for-memory-allocation.patch
+zsmalloc-use-obj_tag_bit-for-bit-shifter.patch
+mm-add-nr_zsmalloc-to-vmstat.patch
+mm-add-nr_zsmalloc-to-vmstat-fix-2.patch
+mm-fix-build-warnings-in-linux-compactionh.patch
 mm-page_alloc-fix-dirtyable-highmem-calculation.patch
-mm-move-most-file-based-accounting-to-the-node-fix.patch
 
