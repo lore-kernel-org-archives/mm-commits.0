@@ -1,126 +1,205 @@
 From: akpm@linux-foundation.org
-Subject: [patch 18/20] mm: thp: refix false positive BUG in
- page_move_anon_rmap()
-Date: Thu, 14 Jul 2016 12:07:38 -0700
-Message-ID: <5787e2fa.pPqoOs1kcCeqwTzP%akpm__26014.0519858853$1468523283$gmane$org@linux-foundation.org>
+Subject: [withdrawn]
+ x86-panic-replace-smp_send_stop-with-kdump-friendly-version.patch removed
+ from -mm tree
+Date: Thu, 14 Jul 2016 12:38:28 -0700
+Message-ID: <5787ea34.3hPcVQmzbAL/PaGx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41024 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41368 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161AbcGNTHj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 15:07:39 -0400
+	with ESMTP id S1751375AbcGNTi3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 15:38:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hughd@google.com, aarcange@redhat.com, dvyukov@google.com, kirill.shutemov@linux.intel.com, mika.westerberg@linux.intel.com, riel@redhat.com, stable@vger.kernel.org
+To: hidehiro.kawai.ez@hitachi.com, bhe@redhat.com, bp@suse.de, dwalker@fifo99.com, dyoung@redhat.com, ebiederm@xmission.com, mhiramat@kernel.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: thp: refix false positive BUG in page_move_anon_rmap()
 
-The VM_BUG_ON_PAGE in page_move_anon_rmap() is more trouble than it's
-worth: the syzkaller fuzzer hit it again.  It's still wrong for some THP
-cases, because linear_page_index() was never intended to apply to
-addresses before the start of a vma.
+The patch titled
+     Subject: x86/panic: Replace smp_send_stop() with kdump friendly version
+has been removed from the -mm tree.  Its filename was
+     x86-panic-replace-smp_send_stop-with-kdump-friendly-version.patch
 
-That's easily fixed with a signed long cast inside linear_page_index();
-and Dmitry has tested such a patch, to verify the false positive.  But why
-extend linear_page_index() just for this case?  when the avoidance in
-page_move_anon_rmap() has already grown ugly, and there's no reason for
-the check at all (nothing else there is using address or index).
+This patch was dropped because it was withdrawn
 
-Remove address arg from page_move_anon_rmap(), remove VM_BUG_ON_PAGE,
-remove CONFIG_DEBUG_VM PageTransHuge adjustment.
+------------------------------------------------------
+From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Subject: x86/panic: Replace smp_send_stop() with kdump friendly version
 
-And one more thing: should the compound_head(page) be done inside or
-outside page_move_anon_rmap()?  It's usually pushed down to the lowest
-level nowadays (and mm/memory.c shows no other explicit use of it), so I
-think it's better done in page_move_anon_rmap() than by caller.
+This patch fixes one of the problems reported by Daniel Walker
+(https://lkml.org/lkml/2015/6/24/44).
 
-Fixes: 0798d3c022dc ("mm: thp: avoid false positive VM_BUG_ON_PAGE in page_move_anon_rmap()")
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1607120444540.12528@eggly.anvils
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: <stable@vger.kernel.org>	[4.5+]
+If crash_kexec_post_notifiers boot option is specified, other CPUs
+are stopped by smp_send_stop() instead of machine_crash_shutdown()
+in crash_kexec() path.  This behavior change leads two problems.
+
+ Problem 1:
+ octeon_generic_shutdown() for MIPS OCTEON assumes that other CPUs are
+ still online and try to stop their watchdog timer.  If
+ smp_send_stop() is called before octeon_generic_shutdown(), stopping
+ watchdog timer will fail because other CPUs have been offlined by
+ smp_send_stop().
+
+   panic()
+     if crash_kexec_post_notifiers == 1
+       smp_send_stop()
+       atomic_notifier_call_chain()
+       kmsg_dump()
+     crash_kexec()
+       machine_crash_shutdown()
+         octeon_generic_shutdown() // shutdown watchdog for ONLINE CPUs
+
+ Problem 2:
+ Most of architectures stop other CPUs in machine_crash_shutdown()
+ path, and they also do something needed for kdump.  For example,
+ they save registers, disable virtualization extensions, and so on.
+ However, if smp_send_stop() stops other CPUs before
+ machine_crash_shutdown(), we miss those operations.
+
+How do we fix these problems?  In the first place, we should stop
+other CPUs as soon as possible when panic() was called, otherwise
+other CPUs may wipe out a clue to the cause of the failure.  So, we
+replace smp_send_stop() with more suitable one for kdump.
+
+This patch solves Problem 2 by replacing smp_send_stop() in panic()
+with panic_smp_send_stop().  This is a weak function which calls
+smp_send_stop(), and architecture dependent code may override this
+with appropriate one.  This patch only provides x86-specific version.
+
+Link: http://lkml.kernel.org/r/20160705113325.5864.74840.stgit@softrs
+Reported-by: Daniel Walker <dwalker@fifo99.com>
+Fixes: f06e5153f4ae (kernel/panic.c: add "crash_kexec_post_notifiers" option)
+Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 +-
- mm/hugetlb.c         |    2 +-
- mm/memory.c          |    3 +--
- mm/rmap.c            |    9 +++------
- 4 files changed, 6 insertions(+), 10 deletions(-)
+ arch/x86/kernel/crash.c |   14 ++++++++----
+ kernel/panic.c          |   43 ++++++++++++++++++++++++++++----------
+ 2 files changed, 42 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap include/linux/rmap.h
---- a/include/linux/rmap.h~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap
-+++ a/include/linux/rmap.h
-@@ -158,7 +158,7 @@ struct anon_vma *page_get_anon_vma(struc
- /*
-  * rmap interfaces called when adding or removing pte of page
-  */
--void page_move_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
-+void page_move_anon_rmap(struct page *, struct vm_area_struct *);
- void page_add_anon_rmap(struct page *, struct vm_area_struct *,
- 		unsigned long, bool);
- void do_page_add_anon_rmap(struct page *, struct vm_area_struct *,
-diff -puN mm/hugetlb.c~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap mm/hugetlb.c
---- a/mm/hugetlb.c~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap
-+++ a/mm/hugetlb.c
-@@ -3383,7 +3383,7 @@ retry_avoidcopy:
- 	/* If no-one else is actually using this page, avoid the copy
- 	 * and just make the page writable */
- 	if (page_mapcount(old_page) == 1 && PageAnon(old_page)) {
--		page_move_anon_rmap(old_page, vma, address);
-+		page_move_anon_rmap(old_page, vma);
- 		set_huge_ptep_writable(vma, address, ptep);
- 		return 0;
- 	}
-diff -puN mm/memory.c~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap mm/memory.c
---- a/mm/memory.c~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap
-+++ a/mm/memory.c
-@@ -2399,8 +2399,7 @@ static int do_wp_page(struct mm_struct *
- 				 * Protected against the rmap code by
- 				 * the page lock.
- 				 */
--				page_move_anon_rmap(compound_head(old_page),
--						    vma, address);
-+				page_move_anon_rmap(old_page, vma);
- 			}
- 			unlock_page(old_page);
- 			return wp_page_reuse(mm, vma, address, page_table, ptl,
-diff -puN mm/rmap.c~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap mm/rmap.c
---- a/mm/rmap.c~mm-thp-refix-false-positive-bug-in-page_move_anon_rmap
-+++ a/mm/rmap.c
-@@ -1084,23 +1084,20 @@ EXPORT_SYMBOL_GPL(page_mkclean);
-  * page_move_anon_rmap - move a page to our anon_vma
-  * @page:	the page to move to our anon_vma
-  * @vma:	the vma the page belongs to
-- * @address:	the user virtual address mapped
-  *
-  * When a page belongs exclusively to one process after a COW event,
-  * that page can be moved into the anon_vma that belongs to just that
-  * process, so the rmap code will not search the parent or sibling
-  * processes.
-  */
--void page_move_anon_rmap(struct page *page,
--	struct vm_area_struct *vma, unsigned long address)
-+void page_move_anon_rmap(struct page *page, struct vm_area_struct *vma)
+diff -puN arch/x86/kernel/crash.c~x86-panic-replace-smp_send_stop-with-kdump-friendly-version arch/x86/kernel/crash.c
+--- a/arch/x86/kernel/crash.c~x86-panic-replace-smp_send_stop-with-kdump-friendly-version
++++ a/arch/x86/kernel/crash.c
+@@ -133,15 +133,21 @@ static void kdump_nmi_callback(int cpu,
+ 	disable_local_APIC();
+ }
+ 
+-static void kdump_nmi_shootdown_cpus(void)
++/* Override the weak function in kernel/panic.c */
++void panic_smp_send_stop(void)
  {
- 	struct anon_vma *anon_vma = vma->anon_vma;
- 
-+	page = compound_head(page);
+-	nmi_shootdown_cpus(kdump_nmi_callback);
++	static int cpus_stopped;
 +
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_VMA(!anon_vma, vma);
--	if (IS_ENABLED(CONFIG_DEBUG_VM) && PageTransHuge(page))
--		address &= HPAGE_PMD_MASK;
--	VM_BUG_ON_PAGE(page->index != linear_page_index(vma, address), page);
++	if (cpus_stopped)
++		return;
  
- 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
++	nmi_shootdown_cpus(kdump_nmi_callback);
+ 	disable_local_APIC();
++	cpus_stopped = 1;
+ }
+ 
+ #else
+-static void kdump_nmi_shootdown_cpus(void)
++void panic_smp_send_stop(void)
+ {
+ 	/* There are no cpus to shootdown */
+ }
+@@ -160,7 +166,7 @@ void native_machine_crash_shutdown(struc
+ 	/* The kernel is broken so disable interrupts */
+ 	local_irq_disable();
+ 
+-	kdump_nmi_shootdown_cpus();
++	panic_smp_send_stop();
+ 
  	/*
+ 	 * VMCLEAR VMCSs loaded on this cpu if needed.
+diff -puN kernel/panic.c~x86-panic-replace-smp_send_stop-with-kdump-friendly-version kernel/panic.c
+--- a/kernel/panic.c~x86-panic-replace-smp_send_stop-with-kdump-friendly-version
++++ a/kernel/panic.c
+@@ -71,6 +71,32 @@ void __weak nmi_panic_self_stop(struct p
+ 	panic_smp_self_stop();
+ }
+ 
++/*
++ * Stop other CPUs in panic.  Architecture dependent code may override this
++ * with more suitable version.  For example, if the architecture supports
++ * crash dump, it should save registers of each stopped CPU and disable
++ * per-CPU features such as virtualization extensions.
++ */
++void __weak panic_smp_send_stop(void)
++{
++	static int cpus_stopped;
++
++	/*
++	 * This function can be called twice in panic path, but obviously
++	 * we execute this only once.
++	 */
++	if (cpus_stopped)
++		return;
++
++	/*
++	 * Note smp_send_stop is the usual smp shutdown function, which
++	 * unfortunately means it may not be hardened to work in a panic
++	 * situation.
++	 */
++	smp_send_stop();
++	cpus_stopped = 1;
++}
++
+ atomic_t panic_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
+ 
+ /*
+@@ -125,7 +151,7 @@ void panic(const char *fmt, ...)
+ 	 * Only one CPU is allowed to execute the panic code from here. For
+ 	 * multiple parallel invocations of panic, all other CPUs either
+ 	 * stop themself or will wait until they are stopped by the 1st CPU
+-	 * with smp_send_stop().
++	 * with panic_smp_send_stop().
+ 	 *
+ 	 * `old_cpu == PANIC_CPU_INVALID' means this is the 1st CPU which
+ 	 * comes here, so go ahead.
+@@ -165,12 +191,7 @@ void panic(const char *fmt, ...)
+ 		__crash_kexec(NULL);
+ 	}
+ 
+-	/*
+-	 * Note smp_send_stop is the usual smp shutdown function, which
+-	 * unfortunately means it may not be hardened to work in a panic
+-	 * situation.
+-	 */
+-	smp_send_stop();
++	panic_smp_send_stop();
+ 
+ 	/*
+ 	 * Run any panic handlers, including those that might need to
+@@ -198,10 +219,10 @@ void panic(const char *fmt, ...)
+ 
+ 	/*
+ 	 * We may have ended up stopping the CPU holding the lock (in
+-	 * smp_send_stop()) while still having some valuable data in the console
+-	 * buffer.  Try to acquire the lock then release it regardless of the
+-	 * result.  The release will also print the buffers out.  Locks debug
+-	 * should be disabled to avoid reporting bad unlock balance when
++	 * panic_smp_send_stop()) while still having some valuable data in the
++	 * console buffer.  Try to acquire the lock then release it regardless
++	 * of the result.  The release will also print the buffers out.  Locks
++	 * debug should be disabled to avoid reporting bad unlock balance when
+ 	 * panic() is not being callled from OOPS.
+ 	 */
+ 	debug_locks_off();
 _
+
+Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
+
+kexec-use-core_param-for-crash_kexec_post_notifiers-boot-option.patch
+
