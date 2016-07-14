@@ -1,160 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [patch 07/20] Revert "scripts/gdb: add a Radix Tree Parser"
-Date: Thu, 14 Jul 2016 12:07:06 -0700
-Message-ID: <5787e2da.S0eh0d6M0ZpGzK+L%akpm@linux-foundation.org>
+Subject: [patch 11/20] kasan/quarantine: fix bugs on qlist_move_cache()
+Date: Thu, 14 Jul 2016 12:07:17 -0700
+Message-ID: <5787e2e5.qyMw7+nyMjH46nlw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40973 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40994 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751160AbcGNTHH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 15:07:07 -0400
+	with ESMTP id S1751160AbcGNTHS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 15:07:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kieran@ksquared.org.ukkieran@ksquared.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, poll.stdin@gmail.com
 
-From: Kieran Bingham <kieran@ksquared.org.uk>
-Subject: Revert "scripts/gdb: add a Radix Tree Parser"
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: kasan/quarantine: fix bugs on qlist_move_cache()
 
-This reverts commit e127a73d41ac ("scripts/gdb: add a Radix Tree Parser")
+There are two bugs on qlist_move_cache().  One is that qlist's tail isn't
+set properly.  curr->next can be NULL since it is singly linked list and
+NULL value on tail is invalid if there is one item on qlist.  Another one
+is that if cache is matched, qlist_put() is called and it will set
+curr->next to NULL.  It would cause to stop the loop prematurely.
 
-The python implementation of radix-tree was merged at the same time as the
-radix-tree system was heavily reworked from commit e9256efcc8e3
-("radix-tree: introduce radix_tree_empty") to 3bcadd6fa6c4 ("radix-tree:
-free up the bottom bit of exceptional entries for reuse") and no longer
-functions, but also prevents other gdb scripts from loading.
+These problems come from complicated implementation so I'd like to
+re-implement it completely.  Implementation in this patch is really
+simple.  Iterate all qlist_nodes and put them to appropriate list.
 
-This functionality has not yet hit a release, so simply remove it for now
+Unfortunately, I got this bug sometime ago and lose oops message.  But,
+the bug looks trivial and no need to attach oops.
 
-Link: http://lkml.kernel.org/r/1467127337-11135-6-git-send-email-kieran@bingham.xyz
-Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+Fixes: 55834c59098d ("mm: kasan: initial memory quarantine implementation")
+Link: http://lkml.kernel.org/r/1467766348-22419-1-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Kuthonuzo Luruo <poll.stdin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/constants.py.in |    7 --
- scripts/gdb/linux/radixtree.py    |   97 ----------------------------
- scripts/gdb/vmlinux-gdb.py        |    1 
- 3 files changed, 105 deletions(-)
+ mm/kasan/quarantine.c |   27 ++++++++++-----------------
+ 1 file changed, 10 insertions(+), 17 deletions(-)
 
-diff -puN scripts/gdb/linux/constants.py.in~revert-scripts-gdb-add-a-radix-tree-parser scripts/gdb/linux/constants.py.in
---- a/scripts/gdb/linux/constants.py.in~revert-scripts-gdb-add-a-radix-tree-parser
-+++ a/scripts/gdb/linux/constants.py.in
-@@ -14,7 +14,6 @@
+diff -puN mm/kasan/quarantine.c~kasan-quarantine-fix-bugs-on-qlist_move_cache mm/kasan/quarantine.c
+--- a/mm/kasan/quarantine.c~kasan-quarantine-fix-bugs-on-qlist_move_cache
++++ a/mm/kasan/quarantine.c
+@@ -238,30 +238,23 @@ static void qlist_move_cache(struct qlis
+ 				   struct qlist_head *to,
+ 				   struct kmem_cache *cache)
+ {
+-	struct qlist_node *prev = NULL, *curr;
++	struct qlist_node *curr;
  
- #include <linux/fs.h>
- #include <linux/mount.h>
--#include <linux/radix-tree.h>
+ 	if (unlikely(qlist_empty(from)))
+ 		return;
  
- /* We need to stringify expanded macros so that they can be parsed */
+ 	curr = from->head;
++	qlist_init(from);
+ 	while (curr) {
+-		struct qlist_node *qlink = curr;
+-		struct kmem_cache *obj_cache = qlink_to_cache(qlink);
++		struct qlist_node *next = curr->next;
++		struct kmem_cache *obj_cache = qlink_to_cache(curr);
  
-@@ -51,9 +50,3 @@ LX_VALUE(MNT_NOEXEC)
- LX_VALUE(MNT_NOATIME)
- LX_VALUE(MNT_NODIRATIME)
- LX_VALUE(MNT_RELATIME)
--
--/* linux/radix-tree.h */
--LX_VALUE(RADIX_TREE_INDIRECT_PTR)
--LX_GDBPARSED(RADIX_TREE_HEIGHT_MASK)
--LX_GDBPARSED(RADIX_TREE_MAP_SHIFT)
--LX_GDBPARSED(RADIX_TREE_MAP_MASK)
-diff -puN scripts/gdb/linux/radixtree.py~revert-scripts-gdb-add-a-radix-tree-parser /dev/null
---- a/scripts/gdb/linux/radixtree.py
-+++ /dev/null
-@@ -1,97 +0,0 @@
--#
--# gdb helper commands and functions for Linux kernel debugging
--#
--#  Radix Tree Parser
--#
--# Copyright (c) 2016 Linaro Ltd
--#
--# Authors:
--#  Kieran Bingham <kieran.bingham@linaro.org>
--#
--# This work is licensed under the terms of the GNU GPL version 2.
--#
--
--import gdb
--
--from linux import utils
--from linux import constants
--
--radix_tree_root_type = utils.CachedType("struct radix_tree_root")
--radix_tree_node_type = utils.CachedType("struct radix_tree_node")
--
--
--def is_indirect_ptr(node):
--    long_type = utils.get_long_type()
--    return (node.cast(long_type) & constants.LX_RADIX_TREE_INDIRECT_PTR)
--
--
--def indirect_to_ptr(node):
--    long_type = utils.get_long_type()
--    node_type = node.type
--    indirect_ptr = node.cast(long_type) & ~constants.LX_RADIX_TREE_INDIRECT_PTR
--    return indirect_ptr.cast(node_type)
--
--
--def maxindex(height):
--    height = height & constants.LX_RADIX_TREE_HEIGHT_MASK
--    return gdb.parse_and_eval("height_to_maxindex["+str(height)+"]")
--
--
--def lookup(root, index):
--    if root.type == radix_tree_root_type.get_type().pointer():
--        root = root.dereference()
--    elif root.type != radix_tree_root_type.get_type():
--        raise gdb.GdbError("Must be struct radix_tree_root not {}"
--                           .format(root.type))
--
--    node = root['rnode']
--    if node is 0:
--        return None
--
--    if not (is_indirect_ptr(node)):
--        if (index > 0):
--            return None
--        return node
--
--    node = indirect_to_ptr(node)
--
--    height = node['path'] & constants.LX_RADIX_TREE_HEIGHT_MASK
--    if (index > maxindex(height)):
--        return None
--
--    shift = (height-1) * constants.LX_RADIX_TREE_MAP_SHIFT
--
--    while True:
--        new_index = (index >> shift) & constants.LX_RADIX_TREE_MAP_MASK
--        slot = node['slots'][new_index]
--
--        node = slot.cast(node.type.pointer()).dereference()
--        if node is 0:
--            return None
--
--        shift -= constants.LX_RADIX_TREE_MAP_SHIFT
--        height -= 1
--
--        if (height <= 0):
--            break
--
--    return node
--
--
--class LxRadixTree(gdb.Function):
--    """ Lookup and return a node from a RadixTree.
--
--$lx_radix_tree_lookup(root_node [, index]): Return the node at the given index.
--If index is omitted, the root node is dereferenced and returned."""
--
--    def __init__(self):
--        super(LxRadixTree, self).__init__("lx_radix_tree_lookup")
--
--    def invoke(self, root, index=0):
--        result = lookup(root, index)
--        if result is None:
--            raise gdb.GdbError("No entry in tree at index {}".format(index))
--
--        return result
+-		if (obj_cache == cache) {
+-			if (unlikely(from->head == qlink)) {
+-				from->head = curr->next;
+-				prev = curr;
+-			} else
+-				prev->next = curr->next;
+-			if (unlikely(from->tail == qlink))
+-				from->tail = curr->next;
+-			from->bytes -= cache->size;
+-			qlist_put(to, qlink, cache->size);
+-		} else {
+-			prev = curr;
+-		}
+-		curr = curr->next;
++		if (obj_cache == cache)
++			qlist_put(to, curr, obj_cache->size);
++		else
++			qlist_put(from, curr, obj_cache->size);
++
++		curr = next;
+ 	}
+ }
+ 
+_
