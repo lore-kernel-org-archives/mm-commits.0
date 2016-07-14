@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mem-hotplug-use-gfp_highuser_movable-and-alloc-from-next-node-in-alloc_migrate_target.patch added to -mm tree
-Date: Thu, 14 Jul 2016 15:32:00 -0700
-Message-ID: <578812e0.txNTKlNnwcLbys5T%akpm@linux-foundation.org>
+Subject: + uapi-move-forward-declarations-of-internal-structures.patch
+ added to -mm tree
+Date: Thu, 14 Jul 2016 15:33:02 -0700
+Message-ID: <5788131e.PXjnF4cYZxqlW0Ci%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43071 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43073 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699AbcGNWcB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 18:32:01 -0400
+	with ESMTP id S1751471AbcGNWdD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 18:33:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, iamjoonsoo.kim@lge.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug: use GFP_HIGHUSER_MOVABLE and alloc from next node in alloc_migrate_target()
+     Subject: uapi: move forward declarations of internal structures
 has been added to the -mm tree.  Its filename is
-     mem-hotplug-use-gfp_highuser_movable-and-alloc-from-next-node-in-alloc_migrate_target.patch
+     uapi-move-forward-declarations-of-internal-structures.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-use-gfp_highuser_movable-and-alloc-from-next-node-in-alloc_migrate_target.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/uapi-move-forward-declarations-of-internal-structures.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-use-gfp_highuser_movable-and-alloc-from-next-node-in-alloc_migrate_target.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/uapi-move-forward-declarations-of-internal-structures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +39,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mem-hotplug: use GFP_HIGHUSER_MOVABLE and alloc from next node in alloc_migrate_target()
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: uapi: move forward declarations of internal structures
 
-alloc_migrate_target() is called from migrate_pages(), and the page is
-always from user space, so we can add __GFP_HIGHMEM directly.
+Don't user forward declarations of internal kernel structures
+in headers exported to userspace.
 
-Second, when we offline a node, the new page should alloced from other
-nodes instead of the current node, because re-migrate is a waste of time.
+Move "struct completion;".
+Move "struct task_struct;".
 
-Link: http://lkml.kernel.org/r/5786F81B.1070502@huawei.com
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: David Rientjes <rientjes@google.com>
+Link: http://lkml.kernel.org/r/20160713215808.GA22486@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ include/linux/capability.h      |    1 +
+ include/linux/sysctl.h          |    1 +
+ include/uapi/linux/capability.h |    2 --
+ include/uapi/linux/sysctl.h     |    2 --
+ 4 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_isolation.c~mem-hotplug-use-gfp_highuser_movable-and-alloc-from-next-node-in-alloc_migrate_target mm/page_isolation.c
---- a/mm/page_isolation.c~mem-hotplug-use-gfp_highuser_movable-and-alloc-from-next-node-in-alloc_migrate_target
-+++ a/mm/page_isolation.c
-@@ -283,20 +283,16 @@ int test_pages_isolated(unsigned long st
- struct page *alloc_migrate_target(struct page *page, unsigned long private,
- 				  int **resultp)
- {
--	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
+diff -puN include/linux/capability.h~uapi-move-forward-declarations-of-internal-structures include/linux/capability.h
+--- a/include/linux/capability.h~uapi-move-forward-declarations-of-internal-structures
++++ a/include/linux/capability.h
+@@ -38,6 +38,7 @@ struct cpu_vfs_cap_data {
+ struct file;
+ struct inode;
+ struct dentry;
++struct task_struct;
+ struct user_namespace;
+ 
+ extern const kernel_cap_t __cap_empty_set;
+diff -puN include/linux/sysctl.h~uapi-move-forward-declarations-of-internal-structures include/linux/sysctl.h
+--- a/include/linux/sysctl.h~uapi-move-forward-declarations-of-internal-structures
++++ a/include/linux/sysctl.h
+@@ -28,6 +28,7 @@
+ #include <uapi/linux/sysctl.h>
+ 
+ /* For the /proc/sys support */
++struct completion;
+ struct ctl_table;
+ struct nsproxy;
+ struct ctl_table_root;
+diff -puN include/uapi/linux/capability.h~uapi-move-forward-declarations-of-internal-structures include/uapi/linux/capability.h
+--- a/include/uapi/linux/capability.h~uapi-move-forward-declarations-of-internal-structures
++++ a/include/uapi/linux/capability.h
+@@ -15,8 +15,6 @@
+ 
+ #include <linux/types.h>
+ 
+-struct task_struct;
 -
- 	/*
--	 * TODO: allocate a destination hugepage from a nearest neighbor node,
-+	 * TODO: allocate a destination page from a nearest neighbor node,
- 	 * accordance with memory policy of the user process if possible. For
- 	 * now as a simple work-around, we use the next node for destination.
- 	 */
-+	int nid = next_node_in(page_to_nid(page), node_online_map);
-+
- 	if (PageHuge(page))
- 		return alloc_huge_page_node(page_hstate(compound_head(page)),
--					    next_node_in(page_to_nid(page),
--							 node_online_map));
--
--	if (PageHighMem(page))
--		gfp_mask |= __GFP_HIGHMEM;
+ /* User-level do most of the mapping between kernel and user
+    capabilities based on the version tag given by the kernel. The
+    kernel might be somewhat backwards compatible, but don't bet on
+diff -puN include/uapi/linux/sysctl.h~uapi-move-forward-declarations-of-internal-structures include/uapi/linux/sysctl.h
+--- a/include/uapi/linux/sysctl.h~uapi-move-forward-declarations-of-internal-structures
++++ a/include/uapi/linux/sysctl.h
+@@ -26,8 +26,6 @@
+ #include <linux/types.h>
+ #include <linux/compiler.h>
+ 
+-struct completion;
