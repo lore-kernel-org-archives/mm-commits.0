@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + pps-do-not-crash-when-failed-to-register.patch added to -mm
- tree
-Date: Thu, 14 Jul 2016 15:09:03 -0700
-Message-ID: <57880d7f.VJx58u8jskN2eUaf%akpm@linux-foundation.org>
+Subject: + radix-tree-fix-radix_tree_iter_retry-for-tagged-iterators.patch added to -mm tree
+Date: Thu, 14 Jul 2016 15:09:52 -0700
+Message-ID: <57880db0.MyaqI794nZWRbXEC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42791 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699AbcGNWJE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 18:09:04 -0400
+	with ESMTP id S1751133AbcGNWJx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 18:09:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jslaby@suse.cz, giometti@enneenne.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, dvyukov@google.com, hughd@google.com, koct9i@gmail.com, stable@vger.kernel.org, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pps: do not crash when failed to register
+     Subject: radix-tree: fix radix_tree_iter_retry() for tagged iterators.
 has been added to the -mm tree.  Its filename is
-     pps-do-not-crash-when-failed-to-register.patch
+     radix-tree-fix-radix_tree_iter_retry-for-tagged-iterators.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pps-do-not-crash-when-failed-to-register.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-fix-radix_tree_iter_retry-for-tagged-iterators.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pps-do-not-crash-when-failed-to-register.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-fix-radix_tree_iter_retry-for-tagged-iterators.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +38,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiri Slaby <jslaby@suse.cz>
-Subject: pps: do not crash when failed to register
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: radix-tree: fix radix_tree_iter_retry() for tagged iterators.
 
-With this command sequence:
- modprobe plip
- modprobe pps_parport
- rmmod pps_parport
-the partport_pps modules causes this crash:
+radix_tree_iter_retry() resets slot to NULL, but it doesn't reset tags. 
+Then NULL slot and non-zero iter.tags passed to radix_tree_next_slot()
+leading to crash:
 
-===
-
-BUG: unable to handle kernel NULL pointer dereference at           (null)
-IP: [<ffffffffa110301d>] parport_detach+0x1d/0x60 [pps_parport]
-Oops: 0000 [#1] SMP
-...
+RIP: [<     inline     >] radix_tree_next_slot include/linux/radix-tree.h:473
+  [<ffffffff816951a4>] find_get_pages_tag+0x334/0x930 mm/filemap.c:1452
+....
 Call Trace:
- [<ffffffffa036a185>] parport_unregister_driver+0x65/0xc0 [parport]
- [<ffffffff810ff667>] SyS_delete_module+0x187/0x210
+ [<ffffffff816cd91a>] pagevec_lookup_tag+0x3a/0x80 mm/swap.c:960
+ [<ffffffff81ab4231>] mpage_prepare_extent_to_map+0x321/0xa90 fs/ext4/inode.c:2516
+ [<ffffffff81ac883e>] ext4_writepages+0x10be/0x2b20 fs/ext4/inode.c:2736
+ [<ffffffff816c99c7>] do_writepages+0x97/0x100 mm/page-writeback.c:2364
+ [<ffffffff8169bee8>] __filemap_fdatawrite_range+0x248/0x2e0 mm/filemap.c:300
+ [<ffffffff8169c371>] filemap_write_and_wait_range+0x121/0x1b0 mm/filemap.c:490
+ [<ffffffff81aa584d>] ext4_sync_file+0x34d/0xdb0 fs/ext4/fsync.c:115
+ [<ffffffff818b667a>] vfs_fsync_range+0x10a/0x250 fs/sync.c:195
+ [<     inline     >] vfs_fsync fs/sync.c:209
+ [<ffffffff818b6832>] do_fsync+0x42/0x70 fs/sync.c:219
+ [<     inline     >] SYSC_fdatasync fs/sync.c:232
+ [<ffffffff818b6f89>] SyS_fdatasync+0x19/0x20 fs/sync.c:230
+ [<ffffffff86a94e00>] entry_SYSCALL_64_fastpath+0x23/0xc1 arch/x86/entry/entry_64.S:207
 
-===
+We must reset iterator's tags to bail out from radix_tree_next_slot() and
+go to the slow-path in radix_tree_next_chunk().
 
-1) plip is loaded and takes the parport device for exclusive use:
-  plip0: Parallel port at 0x378, using IRQ 7.
-
-2) pps_parport then fails to grab the device:
-  pps_parport: parallel port PPS client
-  parport0: cannot grant exclusive access for device pps_parport
-  pps_parport: couldn't register with parport0
-
-3) rmmod of pps_parport is then killed because it tries to access
-   pardev->name, but pardev (taken from port->cad) is NULL.
-
-So add a check for NULL in the test there too.
-
-Link: http://lkml.kernel.org/r/20160714115245.12651-1-jslaby@suse.cz
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Acked-by: Rodolfo Giometti <giometti@enneenne.com>
+Fixes: 46437f9a554f ("radix-tree: fix race in gang lookup")
+Link: http://lkml.kernel.org/r/1468495196-10604-1-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/pps_parport.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/radix-tree.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/pps/clients/pps_parport.c~pps-do-not-crash-when-failed-to-register drivers/pps/clients/pps_parport.c
---- a/drivers/pps/clients/pps_parport.c~pps-do-not-crash-when-failed-to-register
-+++ a/drivers/pps/clients/pps_parport.c
-@@ -195,7 +195,7 @@ static void parport_detach(struct parpor
- 	struct pps_client_pp *device;
- 
- 	/* FIXME: oooh, this is ugly! */
--	if (strcmp(pardev->name, KBUILD_MODNAME))
-+	if (!pardev || strcmp(pardev->name, KBUILD_MODNAME))
- 		/* not our port */
- 		return;
+diff -puN include/linux/radix-tree.h~radix-tree-fix-radix_tree_iter_retry-for-tagged-iterators include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-fix-radix_tree_iter_retry-for-tagged-iterators
++++ a/include/linux/radix-tree.h
+@@ -407,6 +407,7 @@ static inline __must_check
+ void **radix_tree_iter_retry(struct radix_tree_iter *iter)
+ {
+ 	iter->next_index = iter->index;
++	iter->tags = 0;
+ 	return NULL;
+ }
  
 _
 
-Patches currently in -mm which might be from jslaby@suse.cz are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-pps-do-not-crash-when-failed-to-register.patch
+radix-tree-fix-radix_tree_iter_retry-for-tagged-iterators.patch
 
