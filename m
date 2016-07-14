@@ -1,68 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [patch 08/20] Revert "scripts/gdb: add documentation example for
- radix tree"
-Date: Thu, 14 Jul 2016 12:07:09 -0700
-Message-ID: <5787e2dd.3oMwafiQlkRbBh5D%akpm@linux-foundation.org>
+Subject: [patch 15/20] vmlinux.lds: account for destructor sections
+Date: Thu, 14 Jul 2016 12:07:29 -0700
+Message-ID: <5787e2f1.qnxlIUIgHV9UAuzu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40975 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41010 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751160AbcGNTHK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 15:07:10 -0400
+	with ESMTP id S1751224AbcGNTHa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 15:07:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kieran@ksquared.org.ukkieran@ksquared.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dvyukov@google.com, aryabinin@virtuozzo.com, stable@vger.kernel.org
 
-From: Kieran Bingham <kieran@ksquared.org.uk>
-Subject: Revert "scripts/gdb: add documentation example for radix tree"
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: vmlinux.lds: account for destructor sections
 
-This reverts commit 9b5580359a84 ("scripts/gdb: add documentation
-example for radix tree")
+If CONFIG_KASAN is enabled and gcc is configured with
+--disable-initfini-array and/or gold linker is used, gcc emits
+.ctors/.dtors and .text.startup/.text.exit sections instead of
+.init_array/.fini_array.  .dtors section is not explicitly accounted in
+the linker script and messes vvar/percpu layout.  Want:
 
-The python implementation of radix tree was merged at the same time as a
-refactoring of the radix tree implementation and doesn't work. The
-feature is being reverted, thus we revert the documentation as well.
+ffffffff822bfd80 D _edata
+ffffffff822c0000 D __vvar_beginning_hack
+ffffffff822c0000 A __vvar_page
+ffffffff822c0080 0000000000000098 D vsyscall_gtod_data
+ffffffff822c1000 A __init_begin
+ffffffff822c1000 D init_per_cpu__irq_stack_union
+ffffffff822c1000 A __per_cpu_load
+ffffffff822d3000 D init_per_cpu__gdt_page
 
-Link: http://lkml.kernel.org/r/1467127337-11135-7-git-send-email-kieran@bingham.xyz
-Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+Got:
+
+ffffffff8279a600 D _edata
+ffffffff8279b000 A __vvar_page
+ffffffff8279c000 A __init_begin
+ffffffff8279c000 D init_per_cpu__irq_stack_union
+ffffffff8279c000 A __per_cpu_load
+ffffffff8279e000 D __vvar_beginning_hack
+ffffffff8279e080 0000000000000098 D vsyscall_gtod_data
+ffffffff827ae000 D init_per_cpu__gdt_page
+
+This happens because __vvar_page and .vvar get different
+addresses in arch/x86/kernel/vmlinux.lds.S:
+
+	. = ALIGN(PAGE_SIZE);
+	__vvar_page = .;
+
+	.vvar : AT(ADDR(.vvar) - LOAD_OFFSET) {
+		/* work around gold bug 13023 */
+		__vvar_beginning_hack = .;
+
+Discard .dtors/.fini_array/.text.exit, since we don't call dtors.
+Merge .text.startup into init text.
+
+Link: http://lkml.kernel.org/r/1467386363-120030-1-git-send-email-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: <stable@vger.kernel.org>	[4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/gdb-kernel-debugging.txt |   21 ---------------------
- 1 file changed, 21 deletions(-)
+ include/asm-generic/vmlinux.lds.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN Documentation/gdb-kernel-debugging.txt~revert-scripts-gdb-add-documentation-example-for-radix-tree Documentation/gdb-kernel-debugging.txt
---- a/Documentation/gdb-kernel-debugging.txt~revert-scripts-gdb-add-documentation-example-for-radix-tree
-+++ a/Documentation/gdb-kernel-debugging.txt
-@@ -139,27 +139,6 @@ Examples of using the Linux-provided gdb
-       start_comm = "swapper/2\000\000\000\000\000\000"
-     }
+diff -puN include/asm-generic/vmlinux.lds.h~vmlinuxlds-account-for-destructor-sections include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~vmlinuxlds-account-for-destructor-sections
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -542,15 +542,19 @@
  
-- o Dig into a radix tree data structure, such as the IRQ descriptors:
--    (gdb) print (struct irq_desc)$lx_radix_tree_lookup(irq_desc_tree, 18)
--    $6 = {
--      irq_common_data = {
--        state_use_accessors = 67584,
--        handler_data = 0x0 <__vectors_start>,
--        msi_desc = 0x0 <__vectors_start>,
--        affinity = {{
--            bits = {65535}
--          }}
--      },
--      irq_data = {
--        mask = 0,
--        irq = 18,
--        hwirq = 27,
--        common = 0xee803d80,
--        chip = 0xc0eb0854 <gic_data>,
--        domain = 0xee808000,
--        parent_data = 0x0 <__vectors_start>,
--        chip_data = 0xc0eb0854 <gic_data>
--      } <... trimmed ...>
+ #define INIT_TEXT							\
+ 	*(.init.text)							\
++	*(.text.startup)						\
+ 	MEM_DISCARD(init.text)
  
- List of commands and functions
- ------------------------------
+ #define EXIT_DATA							\
+ 	*(.exit.data)							\
++	*(.fini_array)							\
++	*(.dtors)							\
+ 	MEM_DISCARD(exit.data)						\
+ 	MEM_DISCARD(exit.rodata)
+ 
+ #define EXIT_TEXT							\
+ 	*(.exit.text)							\
++	*(.text.exit)							\
+ 	MEM_DISCARD(exit.text)
+ 
+ #define EXIT_CALL							\
 _
