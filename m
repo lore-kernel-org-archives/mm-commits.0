@@ -1,49 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [patch 06/20] scripts/gdb: Perform path expansion to lx-symbol's
- arguments
-Date: Thu, 14 Jul 2016 12:07:04 -0700
-Message-ID: <5787e2d8.2wuvJzBP7zKQPfMC%akpm@linux-foundation.org>
+Subject: [patch 09/20] madvise_free, thp: fix madvise_free_huge_pmd return value after splitting
+Date: Thu, 14 Jul 2016 12:07:12 -0700
+Message-ID: <5787e2e0.v9dSxgTJVIBPIZxD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40980 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751160AbcGNTHF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 15:07:05 -0400
+	with ESMTP id S1751160AbcGNTHN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 15:07:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, n.borisov.lkml@gmail.com, jan.kiszka@siemens.com, kieran@ksquared.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ying.huang@intel.com, aarcange@redhat.com, ebru.akagunduz@gmail.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, minchan@kernel.org, vbabka@suse.cz
 
-From: Nikolay Borisov <n.borisov.lkml@gmail.com>
-Subject: scripts/gdb: Perform path expansion to lx-symbol's arguments
+From: Huang Ying <ying.huang@intel.com>
+Subject: madvise_free, thp: fix madvise_free_huge_pmd return value after splitting
 
-Python doesn't do automatic expansion of paths.  In case one passes path
-of the from ~/foo/bar the gdb scripts won't automatically expand that and
-as a result the symbols files won't be loaded.  Fix this by explicitly
-expanding all paths which begin with "~"
+madvise_free_huge_pmd should return 0 if the fallback PTE operations are
+required.  In madvise_free_huge_pmd, if part pages of THP are discarded,
+the THP will be split and fallback PTE operations should be used if
+splitting succeeds.  But the original code will make fallback PTE
+operations skipped, after splitting succeeds.  Fix that via make
+madvise_free_huge_pmd return 0 after splitting successfully, so that the
+fallback PTE operations will be done.
 
-Link: http://lkml.kernel.org/r/1467127337-11135-5-git-send-email-kieran@bingham.xyz
-Signed-off-by: Nikolay Borisov <n.borisov.lkml@gmail.com>
-Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
-Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
+Link: http://lkml.kernel.org/r/1467135452-16688-1-git-send-email-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/symbols.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN scripts/gdb/linux/symbols.py~scripts-gdb-perform-path-expansion-to-lx-symbols-arguments scripts/gdb/linux/symbols.py
---- a/scripts/gdb/linux/symbols.py~scripts-gdb-perform-path-expansion-to-lx-symbols-arguments
-+++ a/scripts/gdb/linux/symbols.py
-@@ -153,7 +153,7 @@ lx-symbols command."""
-             saved_state['breakpoint'].enabled = saved_state['enabled']
+diff -puN mm/huge_memory.c~madvise_free-thp-fix-madvise_free_huge_pmd-return-value-after-splitting mm/huge_memory.c
+--- a/mm/huge_memory.c~madvise_free-thp-fix-madvise_free_huge_pmd-return-value-after-splitting
++++ a/mm/huge_memory.c
+@@ -1624,14 +1624,9 @@ int madvise_free_huge_pmd(struct mmu_gat
+ 	if (next - addr != HPAGE_PMD_SIZE) {
+ 		get_page(page);
+ 		spin_unlock(ptl);
+-		if (split_huge_page(page)) {
+-			put_page(page);
+-			unlock_page(page);
+-			goto out_unlocked;
+-		}
++		split_huge_page(page);
+ 		put_page(page);
+ 		unlock_page(page);
+-		ret = 1;
+ 		goto out_unlocked;
+ 	}
  
-     def invoke(self, arg, from_tty):
--        self.module_paths = arg.split()
-+        self.module_paths = [os.path.expanduser(p) for p in arg.split()]
-         self.module_paths.append(os.getcwd())
- 
-         # enforce update
 _
