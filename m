@@ -1,49 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 02/20] kasan: add newline to messages
-Date: Thu, 14 Jul 2016 12:06:53 -0700
-Message-ID: <5787e2cd.p4uDcdxFxYW1hk7y%akpm@linux-foundation.org>
+Subject: [patch 06/20] scripts/gdb: Perform path expansion to lx-symbol's
+ arguments
+Date: Thu, 14 Jul 2016 12:07:04 -0700
+Message-ID: <5787e2d8.2wuvJzBP7zKQPfMC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40932 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40968 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751160AbcGNTGy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 15:06:54 -0400
+	with ESMTP id S1751160AbcGNTHF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 15:07:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, n.borisov.lkml@gmail.com, jan.kiszka@siemens.com, kieran@ksquared.org.uk
 
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan: add newline to messages
+From: Nikolay Borisov <n.borisov.lkml@gmail.com>
+Subject: scripts/gdb: Perform path expansion to lx-symbol's arguments
 
-Currently GPF messages with KASAN look as follows:
-kasan: GPF could be caused by NULL-ptr deref or user memory accessgeneral protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN
-Add newlines.
+Python doesn't do automatic expansion of paths.  In case one passes path
+of the from ~/foo/bar the gdb scripts won't automatically expand that and
+as a result the symbols files won't be loaded.  Fix this by explicitly
+expanding all paths which begin with "~"
 
-Link: http://lkml.kernel.org/r/1467294357-98002-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/1467127337-11135-5-git-send-email-kieran@bingham.xyz
+Signed-off-by: Nikolay Borisov <n.borisov.lkml@gmail.com>
+Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+Reviewed-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/kasan_init_64.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/gdb/linux/symbols.py |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/kasan_init_64.c~kasan-add-newline-to-messages arch/x86/mm/kasan_init_64.c
---- a/arch/x86/mm/kasan_init_64.c~kasan-add-newline-to-messages
-+++ a/arch/x86/mm/kasan_init_64.c
-@@ -54,8 +54,8 @@ static int kasan_die_handler(struct noti
- 			     void *data)
- {
- 	if (val == DIE_GPF) {
--		pr_emerg("CONFIG_KASAN_INLINE enabled");
--		pr_emerg("GPF could be caused by NULL-ptr deref or user memory access");
-+		pr_emerg("CONFIG_KASAN_INLINE enabled\n");
-+		pr_emerg("GPF could be caused by NULL-ptr deref or user memory access\n");
- 	}
- 	return NOTIFY_OK;
- }
+diff -puN scripts/gdb/linux/symbols.py~scripts-gdb-perform-path-expansion-to-lx-symbols-arguments scripts/gdb/linux/symbols.py
+--- a/scripts/gdb/linux/symbols.py~scripts-gdb-perform-path-expansion-to-lx-symbols-arguments
++++ a/scripts/gdb/linux/symbols.py
+@@ -153,7 +153,7 @@ lx-symbols command."""
+             saved_state['breakpoint'].enabled = saved_state['enabled']
+ 
+     def invoke(self, arg, from_tty):
+-        self.module_paths = arg.split()
++        self.module_paths = [os.path.expanduser(p) for p in arg.split()]
+         self.module_paths.append(os.getcwd())
+ 
+         # enforce update
 _
