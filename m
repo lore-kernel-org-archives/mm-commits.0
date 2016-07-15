@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kbuild-abort-build-on-bad-stack-protector-flag.patch added to
- -mm tree
-Date: Thu, 14 Jul 2016 15:37:18 -0700
-Message-ID: <5788141e.XxEABtZa6JeIfJuu%akpm@linux-foundation.org>
+Subject: +
+ mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch added to -mm tree
+Date: Fri, 15 Jul 2016 13:35:13 -0700
+Message-ID: <57894901.wpmFIlhmY6Ye/OVp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43085 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36901 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699AbcGNWhT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jul 2016 18:37:19 -0400
+	with ESMTP id S1751678AbcGOUfP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jul 2016 16:35:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, mingo@kernel.org, mmarek@suse.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kbuild: abort build on bad stack protector flag
+     Subject: mm, vmscan: avoid passing in classzone_idx unnecessarily to compaction_ready -fix
 has been added to the -mm tree.  Its filename is
-     kbuild-abort-build-on-bad-stack-protector-flag.patch
+     mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kbuild-abort-build-on-bad-stack-protector-flag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kbuild-abort-build-on-bad-stack-protector-flag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,146 +39,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: kbuild: abort build on bad stack protector flag
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, vmscan: avoid passing in classzone_idx unnecessarily to compaction_ready -fix
 
-Before, the stack protector flag was sanity checked before .config had
-been reprocessed.  This meant the build couldn't be aborted early, and
-only a warning could be emitted followed later by the compiler blowing up
-with an unknown flag.  This has caused a lot of confusion over time, so
-this splits the flag selection from sanity checking and performs the
-sanity checking after the make has been restarted from a reprocessed
-.config, so builds can be aborted as early as possible now.
+As pointed out by Vlastimil, there is a redundant check in shrink_zones
+since commit "mm, vmscan: avoid passing in classzone_idx unnecessarily to
+compaction_ready".  The zonelist iterator only returns zones that already
+meet the requirements of the allocation request.
 
-Additionally moves the x86-specific sanity check to the same location,
-since it suffered from the same warn-then-wait-for-compiler-failure
-problem.
+This is a fix to the mmotm patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
 
-Link: http://lkml.kernel.org/r/20160712223043.GA11664@www.outflux.net
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Link: http://lkml.kernel.org/r/1468588165-12461-3-git-send-email-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile          |   69 ++++++++++++++++++++++++++------------------
- arch/x86/Makefile |    8 -----
- 2 files changed, 42 insertions(+), 35 deletions(-)
+ mm/vmscan.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Makefile~kbuild-abort-build-on-bad-stack-protector-flag Makefile
---- a/Makefile~kbuild-abort-build-on-bad-stack-protector-flag
-+++ a/Makefile
-@@ -647,41 +647,28 @@ ifneq ($(CONFIG_FRAME_WARN),0)
- KBUILD_CFLAGS += $(call cc-option,-Wframe-larger-than=${CONFIG_FRAME_WARN})
- endif
- 
--# Handle stack protector mode.
--#
--# Since kbuild can potentially perform two passes (first with the old
--# .config values and then with updated .config values), we cannot error out
--# if a desired compiler option is unsupported. If we were to error, kbuild
--# could never get to the second pass and actually notice that we changed
--# the option to something that was supported.
--#
--# Additionally, we don't want to fallback and/or silently change which compiler
--# flags will be used, since that leads to producing kernels with different
--# security feature characteristics depending on the compiler used. ("But I
--# selected CC_STACKPROTECTOR_STRONG! Why did it build with _REGULAR?!")
--#
--# The middle ground is to warn here so that the failed option is obvious, but
--# to let the build fail with bad compiler flags so that we can't produce a
--# kernel when there is a CONFIG and compiler mismatch.
--#
-+# This selects the stack protector compiler flag. Testing it is delayed
-+# until after .config has been reprocessed, in the prepare-compiler-check
-+# target.
- ifdef CONFIG_CC_STACKPROTECTOR_REGULAR
-   stackp-flag := -fstack-protector
--  ifeq ($(call cc-option, $(stackp-flag)),)
--    $(warning Cannot use CONFIG_CC_STACKPROTECTOR_REGULAR: \
--             -fstack-protector not supported by compiler)
--  endif
-+  stackp-name := REGULAR
- else
- ifdef CONFIG_CC_STACKPROTECTOR_STRONG
-   stackp-flag := -fstack-protector-strong
--  ifeq ($(call cc-option, $(stackp-flag)),)
--    $(warning Cannot use CONFIG_CC_STACKPROTECTOR_STRONG: \
--	      -fstack-protector-strong not supported by compiler)
--  endif
-+  stackp-name := STRONG
- else
-   # Force off for distro compilers that enable stack protector by default.
-   stackp-flag := $(call cc-option, -fno-stack-protector)
- endif
- endif
-+# Find arch-specific stack protector compiler sanity-checking script.
-+ifdef CONFIG_CC_STACKPROTECTOR
-+  stackp-path := $(srctree)/scripts/gcc-$(ARCH)_$(BITS)-has-stack-protector.sh
-+  ifneq ($(wildcard $(stackp-path)),)
-+    stackp-check := $(stackp-path)
-+  endif
-+endif
- KBUILD_CFLAGS += $(stackp-flag)
- 
- ifdef CONFIG_KCOV
-@@ -1020,8 +1007,10 @@ ifneq ($(KBUILD_SRC),)
- 	fi;
- endif
- 
--# prepare2 creates a makefile if using a separate output directory
--prepare2: prepare3 outputmakefile asm-generic
-+# prepare2 creates a makefile if using a separate output directory.
-+# From this point forward, .config has been reprocessed, so any rules
-+# that need to depend on updated CONFIG_* values can be checked here.
-+prepare2: prepare3 prepare-compiler-check outputmakefile asm-generic
- 
- prepare1: prepare2 $(version_h) include/generated/utsrelease.h \
-                    include/config/auto.conf
-@@ -1052,6 +1041,32 @@ endif
- PHONY += prepare-objtool
- prepare-objtool: $(objtool_target)
- 
-+# Check for CONFIG flags that require compiler support. Abort the build
-+# after .config has been processed, but before the kernel build starts.
-+#
-+# For security-sensitive CONFIG options, we don't want to fallback and/or
-+# silently change which compiler flags will be used, since that leads to
-+# producing kernels with different security feature characteristics
-+# depending on the compiler used. (For example, "But I selected
-+# CC_STACKPROTECTOR_STRONG! Why did it build with _REGULAR?!")
-+PHONY += prepare-compiler-check
-+prepare-compiler-check: FORCE
-+# Make sure compiler supports requested stack protector flag.
-+ifdef stackp-name
-+  ifeq ($(call cc-option, $(stackp-flag)),)
-+	@echo Cannot use CONFIG_CC_STACKPROTECTOR_$(stackp-name): \
-+		  $(stackp-flag) not supported by compiler >&2 && exit 1
-+  endif
-+endif
-+# Make sure compiler does not have buggy stack-protector support.
-+ifdef stackp-check
-+  ifneq ($(shell $(CONFIG_SHELL) $(stackp-check) $(CC) $(KBUILD_CPPFLAGS) $(biarch)),y)
-+	@echo Cannot use CONFIG_CC_STACKPROTECTOR_$(stackp-name): \
-+                  $(stackp-flag) available but compiler is broken >&2 && exit 1
-+  endif
-+endif
-+	@:
-+
- # Generate some files
- # ---------------------------------------------------------------------------
- 
-diff -puN arch/x86/Makefile~kbuild-abort-build-on-bad-stack-protector-flag arch/x86/Makefile
---- a/arch/x86/Makefile~kbuild-abort-build-on-bad-stack-protector-flag
-+++ a/arch/x86/Makefile
-@@ -126,14 +126,6 @@ else
-         KBUILD_CFLAGS += $(call cc-option,-maccumulate-outgoing-args)
- endif
- 
--# Make sure compiler does not have buggy stack-protector support.
--ifdef CONFIG_CC_STACKPROTECTOR
--	cc_has_sp := $(srctree)/scripts/gcc-x86_$(BITS)-has-stack-protector.sh
--        ifneq ($(shell $(CONFIG_SHELL) $(cc_has_sp) $(CC) $(KBUILD_CPPFLAGS) $(biarch)),y)
--                $(warning stack-protector enabled but compiler support broken)
--        endif
--endif
+diff -puN mm/vmscan.c~mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix
++++ a/mm/vmscan.c
+@@ -2611,7 +2611,6 @@ static void shrink_zones(struct zonelist
+ 			 */
+ 			if (IS_ENABLED(CONFIG_COMPACTION) &&
+ 			    sc->order > PAGE_ALLOC_COSTLY_ORDER &&
+-			    zonelist_zone_idx(z) <= sc->reclaim_idx &&
+ 			    compaction_ready(zone, sc)) {
+ 				sc->compaction_ready = true;
+ 				continue;
+_
+
+Patches currently in -mm which might be from mgorman@techsingularity.net are
+
+mm-meminit-remove-early_page_nid_uninitialised.patch
+mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
+mm-vmscan-move-lru_lock-to-the-node.patch
+mm-vmscan-move-lru-lists-to-node.patch
+mm-mmzone-clarify-the-usage-of-zone-padding.patch
+mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
+mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
+mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
+mm-vmscan-remove-balance-gap.patch
+mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
+mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
+mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
+mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
+mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
+mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
+mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
+mm-workingset-make-working-set-detection-node-aware.patch
+mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
+mm-move-page-mapped-accounting-to-the-node.patch
+mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
+mm-move-most-file-based-accounting-to-the-node.patch
+mm-move-most-file-based-accounting-to-the-node-fix.patch
+mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
+mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
+mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
+mm-convert-zone_reclaim-to-node_reclaim.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
+mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
+mm-vmscan-add-classzone-information-to-tracepoints.patch
+mm-page_alloc-remove-fair-zone-allocation-policy.patch
+mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
+mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
+mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
+mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
+
