@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
- added to -mm tree
-Date: Fri, 15 Jul 2016 13:36:33 -0700
-Message-ID: <57894951.bPfep74xdytxntvO%akpm@linux-foundation.org>
+Subject: + mm-show-node_pages_scanned-per-node-not-zone.patch added to -mm tree
+Date: Fri, 15 Jul 2016 13:36:58 -0700
+Message-ID: <5789496a.BLumYzLpIKr3wv67%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36908 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36910 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751470AbcGOUge (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jul 2016 16:36:34 -0400
+	with ESMTP id S1751644AbcGOUg7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jul 2016 16:36:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: minchan@kernel.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, pagevec: release/reacquire lru_lock on pgdat change
+     Subject: mm: show node_pages_scanned per node, not zone
 has been added to the -mm tree.  Its filename is
-     mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
+     mm-show-node_pages_scanned-per-node-not-zone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-show-node_pages_scanned-per-node-not-zone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-show-node_pages_scanned-per-node-not-zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,109 +38,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, pagevec: release/reacquire lru_lock on pgdat change
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: show node_pages_scanned per node, not zone
 
-With node-lru, the locking is based on the pgdat. Previously it was
-required that a pagevec drain released one zone lru_lock and acquired
-another zone lru_lock on every zone change. Now, it's only necessary if
-the node changes. The end-result is fewer lock release/acquires if the
-pages are all on the same node but in different zones.
+The node_pages_scanned represents the number of scanned pages of node for
+reclaim so it's pointless to show it as kilobytes.
 
-Link: http://lkml.kernel.org/r/1468588165-12461-4-git-send-email-mgorman@techsingularity.net
+As well, node_pages_scanned is per-node value, not per-zone.
+
+This patch changes node_pages_scanned per-zone-killobytes
+with per-node-count.
+
+Link: http://lkml.kernel.org/r/1468588165-12461-5-git-send-email-mgorman@techsingularity.net
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/swap.c~mm-pagevec-release-reacquire-lru_lock-on-pgdat-change mm/swap.c
---- a/mm/swap.c~mm-pagevec-release-reacquire-lru_lock-on-pgdat-change
-+++ a/mm/swap.c
-@@ -179,26 +179,26 @@ static void pagevec_lru_move_fn(struct p
- 	void *arg)
- {
- 	int i;
--	struct zone *zone = NULL;
-+	struct pglist_data *pgdat = NULL;
- 	struct lruvec *lruvec;
- 	unsigned long flags = 0;
- 
- 	for (i = 0; i < pagevec_count(pvec); i++) {
- 		struct page *page = pvec->pages[i];
--		struct zone *pagezone = page_zone(page);
-+		struct pglist_data *pagepgdat = page_pgdat(page);
- 
--		if (pagezone != zone) {
--			if (zone)
--				spin_unlock_irqrestore(zone_lru_lock(zone), flags);
--			zone = pagezone;
--			spin_lock_irqsave(zone_lru_lock(zone), flags);
-+		if (pagepgdat != pgdat) {
-+			if (pgdat)
-+				spin_unlock_irqrestore(&pgdat->lru_lock, flags);
-+			pgdat = pagepgdat;
-+			spin_lock_irqsave(&pgdat->lru_lock, flags);
- 		}
- 
--		lruvec = mem_cgroup_page_lruvec(page, zone->zone_pgdat);
-+		lruvec = mem_cgroup_page_lruvec(page, pgdat);
- 		(*move_fn)(page, lruvec, arg);
+diff -puN mm/page_alloc.c~mm-show-node_pages_scanned-per-node-not-zone mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-show-node_pages_scanned-per-node-not-zone
++++ a/mm/page_alloc.c
+@@ -4313,6 +4313,7 @@ void show_free_areas(unsigned int filter
+ #endif
+ 			" writeback_tmp:%lukB"
+ 			" unstable:%lukB"
++			" pages_scanned:%lu"
+ 			" all_unreclaimable? %s"
+ 			"\n",
+ 			pgdat->node_id,
+@@ -4335,6 +4336,7 @@ void show_free_areas(unsigned int filter
+ 			K(node_page_state(pgdat, NR_SHMEM)),
+ 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
+ 			K(node_page_state(pgdat, NR_UNSTABLE_NFS)),
++			node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED),
+ 			!pgdat_reclaimable(pgdat) ? "yes" : "no");
  	}
--	if (zone)
--		spin_unlock_irqrestore(zone_lru_lock(zone), flags);
-+	if (pgdat)
-+		spin_unlock_irqrestore(&pgdat->lru_lock, flags);
- 	release_pages(pvec->pages, pvec->nr, pvec->cold);
- 	pagevec_reinit(pvec);
- }
+ 
+@@ -4365,7 +4367,6 @@ void show_free_areas(unsigned int filter
+ 			" free_pcp:%lukB"
+ 			" local_pcp:%ukB"
+ 			" free_cma:%lukB"
+-			" node_pages_scanned:%lu"
+ 			"\n",
+ 			zone->name,
+ 			K(zone_page_state(zone, NR_FREE_PAGES)),
+@@ -4383,8 +4384,7 @@ void show_free_areas(unsigned int filter
+ 			K(zone_page_state(zone, NR_BOUNCE)),
+ 			K(free_pcp),
+ 			K(this_cpu_read(zone->pageset->pcp.count)),
+-			K(zone_page_state(zone, NR_FREE_CMA_PAGES)),
+-			K(node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED)));
++			K(zone_page_state(zone, NR_FREE_CMA_PAGES)));
+ 		printk("lowmem_reserve[]:");
+ 		for (i = 0; i < MAX_NR_ZONES; i++)
+ 			printk(" %ld", zone->lowmem_reserve[i]);
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-meminit-remove-early_page_nid_uninitialised.patch
-mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
-mm-vmscan-move-lru_lock-to-the-node.patch
-mm-vmscan-move-lru-lists-to-node.patch
-mm-mmzone-clarify-the-usage-of-zone-padding.patch
-mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
-mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
-mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
-mm-vmscan-remove-balance-gap.patch
-mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
-mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
-mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
-mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
-mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
-mm-workingset-make-working-set-detection-node-aware.patch
-mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
-mm-move-page-mapped-accounting-to-the-node.patch
-mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
-mm-move-most-file-based-accounting-to-the-node.patch
-mm-move-most-file-based-accounting-to-the-node-fix.patch
-mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
-mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
-mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
-mm-convert-zone_reclaim-to-node_reclaim.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
-mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
-mm-vmscan-add-classzone-information-to-tracepoints.patch
-mm-page_alloc-remove-fair-zone-allocation-policy.patch
-mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
-mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
-mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
-mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
+mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+mm-migrate-support-non-lru-movable-page-migration.patch
+mm-balloon-use-general-non-lru-movable-page-feature.patch
+zsmalloc-keep-max_object-in-size_class.patch
+zsmalloc-use-bit_spin_lock.patch
+zsmalloc-use-accessor.patch
+zsmalloc-factor-page-chain-functionality-out.patch
+zsmalloc-introduce-zspage-structure.patch
+zsmalloc-separate-free_zspage-from-putback_zspage.patch
+zsmalloc-use-freeobj-for-index.patch
+zsmalloc-page-migration-support.patch
+zsmalloc-page-migration-support-fix.patch
+zsmalloc-page-migration-support-fix-2.patch
+zram-use-__gfp_movable-for-memory-allocation.patch
+zsmalloc-use-obj_tag_bit-for-bit-shifter.patch
+mm-add-nr_zsmalloc-to-vmstat.patch
+mm-add-nr_zsmalloc-to-vmstat-fix-2.patch
+mm-fix-build-warnings-in-linux-compactionh.patch
+mm-page_alloc-fix-dirtyable-highmem-calculation.patch
+mm-show-node_pages_scanned-per-node-not-zone.patch
 
