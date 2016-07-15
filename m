@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch added to
- -mm tree
-Date: Fri, 15 Jul 2016 13:34:04 -0700
-Message-ID: <578948bc.MPII4O6hqoSKQ2a/%akpm@linux-foundation.org>
+Subject: + fbmon-remove-unused-function-argument.patch added to -mm tree
+Date: Fri, 15 Jul 2016 13:43:17 -0700
+Message-ID: <57894ae5.swNFrUU+zTQuVLRe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36896 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37336 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751557AbcGOUeF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jul 2016 16:34:05 -0400
+	with ESMTP id S1751565AbcGOUnS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jul 2016 16:43:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org
+To: arnd@arndb.de, adobriyan@gmail.com, plagnioj@jcrosoft.com, tomi.valkeinen@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: make shrink_node decisions more node-centric -fix
+     Subject: fbmon: remove unused function argument
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
+     fbmon-remove-unused-function-argument.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fbmon-remove-unused-function-argument.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fbmon-remove-unused-function-argument.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,78 +38,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: make shrink_node decisions more node-centric -fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: fbmon: remove unused function argument
 
-The patch "mm, vmscan: make shrink_node decisions more node-centric"
-checks whether compaction is suitable on empty nodes. This is expensive
-rather than wrong but is worth fixing.
+When building with "make W=1", we get a warning about an empty stub
+function that does nothing but reassign its one of its arguments:
 
-This is a fix to the mmotm patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
+drivers/video/fbdev/core/fbmon.c: In function 'fb_edid_to_monspecs':
+drivers/video/fbdev/core/fbmon.c:1497:67: error: parameter 'specs' set but not used [-Werror=unused-but-set-parameter]
 
-Link: http://lkml.kernel.org/r/1468588165-12461-2-git-send-email-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Minchan Kim <minchan@kernel.org>
+We can simply make that function completely empty to avoid the warning.
+
+This prevents a warning which everyone will see after "CFLAGS: add
+-Wunused-but-set-parameter" is merged.
+
+Link: http://lkml.kernel.org/r/20160715203229.1771162-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/fbdev/core/fbmon.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-make-shrink_node-decisions-more-node-centric-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-make-shrink_node-decisions-more-node-centric-fix
-+++ a/mm/vmscan.c
-@@ -2414,6 +2414,8 @@ static inline bool should_continue_recla
- 	/* If compaction would go ahead or the allocation would succeed, stop */
- 	for (z = 0; z <= sc->reclaim_idx; z++) {
- 		struct zone *zone = &pgdat->node_zones[z];
-+		if (!populated_zone(zone))
-+			continue;
- 
- 		switch (compaction_suitable(zone, sc->order, 0, sc->reclaim_idx)) {
- 		case COMPACT_PARTIAL:
+diff -puN drivers/video/fbdev/core/fbmon.c~fbmon-remove-unused-function-argument drivers/video/fbdev/core/fbmon.c
+--- a/drivers/video/fbdev/core/fbmon.c~fbmon-remove-unused-function-argument
++++ a/drivers/video/fbdev/core/fbmon.c
+@@ -1496,7 +1496,6 @@ int fb_parse_edid(unsigned char *edid, s
+ }
+ void fb_edid_to_monspecs(unsigned char *edid, struct fb_monspecs *specs)
+ {
+-	specs = NULL;
+ }
+ void fb_edid_add_monspecs(unsigned char *edid, struct fb_monspecs *specs)
+ {
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-meminit-remove-early_page_nid_uninitialised.patch
-mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
-mm-vmscan-move-lru_lock-to-the-node.patch
-mm-vmscan-move-lru-lists-to-node.patch
-mm-mmzone-clarify-the-usage-of-zone-padding.patch
-mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
-mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
-mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
-mm-vmscan-remove-balance-gap.patch
-mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
-mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
-mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
-mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
-mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
-mm-workingset-make-working-set-detection-node-aware.patch
-mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
-mm-move-page-mapped-accounting-to-the-node.patch
-mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
-mm-move-most-file-based-accounting-to-the-node.patch
-mm-move-most-file-based-accounting-to-the-node-fix.patch
-mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
-mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
-mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
-mm-convert-zone_reclaim-to-node_reclaim.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
-mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
-mm-vmscan-add-classzone-information-to-tracepoints.patch
-mm-page_alloc-remove-fair-zone-allocation-policy.patch
-mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
-mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
-mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
+fbmon-remove-unused-function-argument.patch
+procfs-avoid-32-bit-time_t-in-proc-stat.patch
+crc32-use-ktime_get_ns-for-measurement.patch
+compat-remove-compat_printk.patch
+nilfs2-replace-nilfs_warning-with-nilfs_msg-fix.patch
 
