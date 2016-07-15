@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix.patch added to -mm tree
-Date: Fri, 15 Jul 2016 13:31:26 -0700
-Message-ID: <5789481e.GXvaf8xkBGqeFnhM%akpm@linux-foundation.org>
+ mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch added to
+ -mm tree
+Date: Fri, 15 Jul 2016 13:34:04 -0700
+Message-ID: <578948bc.MPII4O6hqoSKQ2a/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36893 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36896 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751497AbcGOUb1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jul 2016 16:31:27 -0400
+	with ESMTP id S1751557AbcGOUeF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jul 2016 16:34:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject:  mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix
+     Subject: mm, vmscan: make shrink_node decisions more node-centric -fix
 has been added to the -mm tree.  Its filename is
-     mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix.patch
+     mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,70 +40,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject:  mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, vmscan: make shrink_node decisions more node-centric -fix
 
-- Remove CONFIG_SLAB ifdefs. The code works just fine with both allocators.
-- Reset metada offsets if metadata doesn't fit. Otherwise kasan_metadata_size()
-will give us the wrong results.
+The patch "mm, vmscan: make shrink_node decisions more node-centric"
+checks whether compaction is suitable on empty nodes. This is expensive
+rather than wrong but is worth fixing.
 
-Link: http://lkml.kernel.org/r/1468601423-28676-1-git-send-email-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Acked-by: Alexander Potapenko <glider@google.com>
+This is a fix to the mmotm patch
+mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
+
+Link: http://lkml.kernel.org/r/1468588165-12461-2-git-send-email-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |   17 +++++------------
- 1 file changed, 5 insertions(+), 12 deletions(-)
+ mm/vmscan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/kasan/kasan.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix
-+++ a/mm/kasan/kasan.c
-@@ -372,9 +372,7 @@ void kasan_cache_create(struct kmem_cach
- 			unsigned long *flags)
- {
- 	int redzone_adjust;
--#ifdef CONFIG_SLAB
- 	int orig_size = *size;
--#endif
+diff -puN mm/vmscan.c~mm-vmscan-make-shrink_node-decisions-more-node-centric-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-make-shrink_node-decisions-more-node-centric-fix
++++ a/mm/vmscan.c
+@@ -2414,6 +2414,8 @@ static inline bool should_continue_recla
+ 	/* If compaction would go ahead or the allocation would succeed, stop */
+ 	for (z = 0; z <= sc->reclaim_idx; z++) {
+ 		struct zone *zone = &pgdat->node_zones[z];
++		if (!populated_zone(zone))
++			continue;
  
- 	/* Add alloc meta. */
- 	cache->kasan_info.alloc_meta_offset = *size;
-@@ -392,25 +390,20 @@ void kasan_cache_create(struct kmem_cach
- 	if (redzone_adjust > 0)
- 		*size += redzone_adjust;
- 
--#ifdef CONFIG_SLAB
--	*size = min(KMALLOC_MAX_SIZE,
--		    max(*size,
--			cache->object_size +
--			optimal_redzone(cache->object_size)));
-+	*size = min(KMALLOC_MAX_SIZE, max(*size, cache->object_size +
-+					optimal_redzone(cache->object_size)));
-+
- 	/*
- 	 * If the metadata doesn't fit, don't enable KASAN at all.
- 	 */
- 	if (*size <= cache->kasan_info.alloc_meta_offset ||
- 			*size <= cache->kasan_info.free_meta_offset) {
-+		cache->kasan_info.alloc_meta_offset = 0;
-+		cache->kasan_info.free_meta_offset = 0;
- 		*size = orig_size;
- 		return;
- 	}
--#else
--	*size = max(*size,
--			cache->object_size +
--			optimal_redzone(cache->object_size));
- 
--#endif
- 	*flags |= SLAB_KASAN;
- }
- 
+ 		switch (compaction_suitable(zone, sc->order, 0, sc->reclaim_idx)) {
+ 		case COMPACT_PARTIAL:
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-radix-tree-fix-radix_tree_iter_retry-for-tagged-iterators.patch
-mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix.patch
+mm-meminit-remove-early_page_nid_uninitialised.patch
+mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
+mm-vmscan-move-lru_lock-to-the-node.patch
+mm-vmscan-move-lru-lists-to-node.patch
+mm-mmzone-clarify-the-usage-of-zone-padding.patch
+mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
+mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
+mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
+mm-vmscan-remove-balance-gap.patch
+mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
+mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
+mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
+mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
+mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
+mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
+mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
+mm-workingset-make-working-set-detection-node-aware.patch
+mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
+mm-move-page-mapped-accounting-to-the-node.patch
+mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
+mm-move-most-file-based-accounting-to-the-node.patch
+mm-move-most-file-based-accounting-to-the-node-fix.patch
+mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
+mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
+mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
+mm-convert-zone_reclaim-to-node_reclaim.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
+mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
+mm-vmscan-add-classzone-information-to-tracepoints.patch
+mm-page_alloc-remove-fair-zone-allocation-policy.patch
+mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
+mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
+mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
+mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
 
