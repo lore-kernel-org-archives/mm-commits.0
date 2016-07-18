@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch added to -mm tree
-Date: Mon, 18 Jul 2016 12:35:55 -0700
-Message-ID: <578d2f9b.+++yjErdxt9jCv7e%akpm@linux-foundation.org>
+Subject: + mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
+ added to -mm tree
+Date: Mon, 18 Jul 2016 12:36:08 -0700
+Message-ID: <578d2fa8.WswKFOpexUcP8qJU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46872 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751847AbcGRTf4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Jul 2016 15:35:56 -0400
+	with ESMTP id S1752374AbcGRTgJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Jul 2016 15:36:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, hannes@cmpxchg.org, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmstat: remove zone and node double accounting by approximating retries -fix
+     Subject: mm, vmscan: release/reacquire lru_lock on pgdat change
 has been added to the -mm tree.  Its filename is
-     mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
+     mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmstat: remove zone and node double accounting by approximating retries -fix
+Subject: mm, vmscan: release/reacquire lru_lock on pgdat change
 
-As pointed out by Vlastimil, the atomic_add() functions are already
-assumed to be able to handle negative numbers.  The atomic_sub handling
-was wrong anyway but this patch fixes it unconditionally.
+With node-lru, the locking is based on the pgdat. As Minchan pointed
+out, there is an opportunity to reduce LRU lock release/acquire in
+check_move_unevictable_pages by only changing lock on a pgdat change.
 
-This is a fix to the mmotm patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
-
-Link: http://lkml.kernel.org/r/1468853426-12858-4-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1468853426-12858-3-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -57,27 +54,59 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/vmscan.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/mm_inline.h~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix
-+++ a/include/linux/mm_inline.h
-@@ -10,12 +10,8 @@ extern atomic_t highmem_file_pages;
- static inline void acct_highmem_file_pages(int zid, enum lru_list lru,
- 							int nr_pages)
+diff -puN mm/vmscan.c~mm-vmscan-release-reacquire-lru_lock-on-pgdat-change mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-release-reacquire-lru_lock-on-pgdat-change
++++ a/mm/vmscan.c
+@@ -3774,24 +3774,24 @@ int page_evictable(struct page *page)
+ void check_move_unevictable_pages(struct page **pages, int nr_pages)
  {
--	if (is_highmem_idx(zid) && is_file_lru(lru)) {
--		if (nr_pages > 0)
--			atomic_add(nr_pages, &highmem_file_pages);
--		else
--			atomic_sub(nr_pages, &highmem_file_pages);
--	}
-+	if (is_highmem_idx(zid) && is_file_lru(lru))
-+		atomic_add(nr_pages, &highmem_file_pages);
+ 	struct lruvec *lruvec;
+-	struct zone *zone = NULL;
++	struct pglist_data *pgdat = NULL;
+ 	int pgscanned = 0;
+ 	int pgrescued = 0;
+ 	int i;
+ 
+ 	for (i = 0; i < nr_pages; i++) {
+ 		struct page *page = pages[i];
+-		struct zone *pagezone;
++		struct pglist_data *pagepgdat = page_pgdat(page);
+ 
+ 		pgscanned++;
+-		pagezone = page_zone(page);
+-		if (pagezone != zone) {
+-			if (zone)
+-				spin_unlock_irq(zone_lru_lock(zone));
+-			zone = pagezone;
+-			spin_lock_irq(zone_lru_lock(zone));
++		pagepgdat = page_pgdat(page);
++		if (pagepgdat != pgdat) {
++			if (pgdat)
++				spin_unlock_irq(&pgdat->lru_lock);
++			pgdat = pagepgdat;
++			spin_lock_irq(&pgdat->lru_lock);
+ 		}
+-		lruvec = mem_cgroup_page_lruvec(page, zone->zone_pgdat);
++		lruvec = mem_cgroup_page_lruvec(page, pgdat);
+ 
+ 		if (!PageLRU(page) || !PageUnevictable(page))
+ 			continue;
+@@ -3807,10 +3807,10 @@ void check_move_unevictable_pages(struct
+ 		}
+ 	}
+ 
+-	if (zone) {
++	if (pgdat) {
+ 		__count_vm_events(UNEVICTABLE_PGRESCUED, pgrescued);
+ 		__count_vm_events(UNEVICTABLE_PGSCANNED, pgscanned);
+-		spin_unlock_irq(zone_lru_lock(zone));
++		spin_unlock_irq(&pgdat->lru_lock);
+ 	}
  }
- #else
- static inline void acct_highmem_file_pages(int zid, enum lru_list lru,
+ #endif /* CONFIG_SHMEM */
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
