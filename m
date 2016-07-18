@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + config-add-android-config-fragments.patch added to -mm tree
-Date: Mon, 18 Jul 2016 14:30:32 -0700
-Message-ID: <578d4a78.EYtVpfbF9ciaSpKB%akpm@linux-foundation.org>
+Subject: +
+ kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug.patch added to -mm tree
+Date: Mon, 18 Jul 2016 15:18:42 -0700
+Message-ID: <578d55c2.DDajZPbQ4wZtlxDr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48351 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49335 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737AbcGRVad (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Jul 2016 17:30:33 -0400
+	with ESMTP id S1751421AbcGRWSo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Jul 2016 18:18:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: robh@kernel.org, amit.pundir@linaro.org, dimitrysh@google.com, gregkh@linuxfoundation.org, john.stultz@linaro.org, romlem@android.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: config: add android config fragments
+     Subject: kernel/trace/bpf_trace.c: work around gcc-4.4.4 anon union initialization bug
 has been added to the -mm tree.  Its filename is
-     config-add-android-config-fragments.patch
+     kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/config-add-android-config-=
-fragments.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/config-add-android-config-=
-fragments.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,361 +33,73 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Rob Herring <robh@kernel.org>
-Subject: config: add android config fragments
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/trace/bpf_trace.c: work around gcc-4.4.4 anon union initialization bug
 
-Copy the config fragments from the AOSP common kernel android-4.4
-branch. It is becoming possible to run mainline kernels with Android,
-but the kernel defconfigs don't work as-is and debugging missing config
-options is a pain. Adding the config fragments into the kernel tree,
-makes configuring a mainline kernel as simple as:
+kernel/trace/bpf_trace.c: In function 'bpf_event_output':
+kernel/trace/bpf_trace.c:312: error: unknown field 'next' specified in initializer
+kernel/trace/bpf_trace.c:312: warning: missing braces around initializer
+kernel/trace/bpf_trace.c:312: warning: (near initialization for 'raw.frag.<anonymous>')
 
-make ARCH=3Darm multi_v7_defconfig android-base.config android-recommen=
-ded.config
-
-The following non-upstream config options were removed:
-
-CONFIG_NETFILTER_XT_MATCH_QTAGUID
-CONFIG_NETFILTER_XT_MATCH_QUOTA2
-CONFIG_NETFILTER_XT_MATCH_QUOTA2_LOG
-CONFIG_PPPOLAC
-CONFIG_PPPOPNS
-CONFIG_SECURITY_PERF_EVENTS_RESTRICT
-CONFIG_USB_CONFIGFS_F_MTP
-CONFIG_USB_CONFIGFS_F_PTP
-CONFIG_USB_CONFIGFS_F_ACC
-CONFIG_USB_CONFIGFS_F_AUDIO_SRC
-CONFIG_USB_CONFIGFS_UEVENT
-CONFIG_INPUT_KEYCHORD
-CONFIG_INPUT_KEYRESET
-
-Link: http://lkml.kernel.org/r/1466708235-28593-1-git-send-email-robh@k=
-ernel.org
-Signed-off-by: Rob Herring <robh@kernel.org>
-Cc: Amit Pundir <amit.pundir@linaro.org>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Dmitry Shmidt <dimitrysh@google.com>
-Cc: Rom Lemarchand <romlem@android.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Fixes: 555c8a8623a3a87 ("bpf: avoid stack copy and use skb ctx for event output")
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                               |    5=20
- kernel/configs/android-base.config        |  152 ++++++++++++++++++++
- kernel/configs/android-recommended.config |  121 +++++++++++++++
- 3 files changed, 278 insertions(+)
+ kernel/trace/bpf_trace.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~config-add-android-config-fragments MAINTAINERS
---- a/MAINTAINERS~config-add-android-config-fragments
-+++ a/MAINTAINERS
-@@ -770,6 +770,11 @@ W:	http://ez.analog.com/community/linux-
- S:	Supported
- F:	drivers/dma/dma-axi-dmac.c
-=20
-+ANDROID CONFIG FRAGMENTS
-+M:	Rob Herring <robh@kernel.org>
-+S:	Supported
-+F:	kernel/configs/android*
-+
- ANDROID DRIVERS
- M:	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
- M:	Arve Hj=C3=B8nnev=C3=A5g <arve@android.com>
-diff -puN /dev/null kernel/configs/android-base.config
---- /dev/null
-+++ a/kernel/configs/android-base.config
-@@ -0,0 +1,152 @@
-+#  KEEP ALPHABETICALLY SORTED
-+# CONFIG_DEVKMEM is not set
-+# CONFIG_DEVMEM is not set
-+# CONFIG_INET_LRO is not set
-+# CONFIG_MODULES is not set
-+# CONFIG_OABI_COMPAT is not set
-+# CONFIG_SYSVIPC is not set
-+CONFIG_ANDROID=3Dy
-+CONFIG_ANDROID_BINDER_IPC=3Dy
-+CONFIG_ANDROID_LOW_MEMORY_KILLER=3Dy
-+CONFIG_ARMV8_DEPRECATED=3Dy
-+CONFIG_ASHMEM=3Dy
-+CONFIG_AUDIT=3Dy
-+CONFIG_BLK_DEV_DM=3Dy
-+CONFIG_BLK_DEV_INITRD=3Dy
-+CONFIG_CGROUPS=3Dy
-+CONFIG_CGROUP_CPUACCT=3Dy
-+CONFIG_CGROUP_DEBUG=3Dy
-+CONFIG_CGROUP_FREEZER=3Dy
-+CONFIG_CGROUP_SCHED=3Dy
-+CONFIG_CP15_BARRIER_EMULATION=3Dy
-+CONFIG_DM_CRYPT=3Dy
-+CONFIG_DM_VERITY=3Dy
-+CONFIG_DM_VERITY_FEC=3Dy
-+CONFIG_EMBEDDED=3Dy
-+CONFIG_FB=3Dy
-+CONFIG_HIGH_RES_TIMERS=3Dy
-+CONFIG_INET6_AH=3Dy
-+CONFIG_INET6_ESP=3Dy
-+CONFIG_INET6_IPCOMP=3Dy
-+CONFIG_INET=3Dy
-+CONFIG_INET_DIAG_DESTROY=3Dy
-+CONFIG_INET_ESP=3Dy
-+CONFIG_INET_XFRM_MODE_TUNNEL=3Dy
-+CONFIG_IP6_NF_FILTER=3Dy
-+CONFIG_IP6_NF_IPTABLES=3Dy
-+CONFIG_IP6_NF_MANGLE=3Dy
-+CONFIG_IP6_NF_RAW=3Dy
-+CONFIG_IP6_NF_TARGET_REJECT=3Dy
-+CONFIG_IPV6=3Dy
-+CONFIG_IPV6_MIP6=3Dy
-+CONFIG_IPV6_MULTIPLE_TABLES=3Dy
-+CONFIG_IPV6_OPTIMISTIC_DAD=3Dy
-+CONFIG_IPV6_PRIVACY=3Dy
-+CONFIG_IPV6_ROUTER_PREF=3Dy
-+CONFIG_IPV6_ROUTE_INFO=3Dy
-+CONFIG_IP_ADVANCED_ROUTER=3Dy
-+CONFIG_IP_MULTICAST=3Dy
-+CONFIG_IP_MULTIPLE_TABLES=3Dy
-+CONFIG_IP_NF_ARPFILTER=3Dy
-+CONFIG_IP_NF_ARPTABLES=3Dy
-+CONFIG_IP_NF_ARP_MANGLE=3Dy
-+CONFIG_IP_NF_FILTER=3Dy
-+CONFIG_IP_NF_IPTABLES=3Dy
-+CONFIG_IP_NF_MANGLE=3Dy
-+CONFIG_IP_NF_MATCH_AH=3Dy
-+CONFIG_IP_NF_MATCH_ECN=3Dy
-+CONFIG_IP_NF_MATCH_TTL=3Dy
-+CONFIG_IP_NF_NAT=3Dy
-+CONFIG_IP_NF_RAW=3Dy
-+CONFIG_IP_NF_SECURITY=3Dy
-+CONFIG_IP_NF_TARGET_MASQUERADE=3Dy
-+CONFIG_IP_NF_TARGET_NETMAP=3Dy
-+CONFIG_IP_NF_TARGET_REDIRECT=3Dy
-+CONFIG_IP_NF_TARGET_REJECT=3Dy
-+CONFIG_NET=3Dy
-+CONFIG_NETDEVICES=3Dy
-+CONFIG_NETFILTER=3Dy
-+CONFIG_NETFILTER_TPROXY=3Dy
-+CONFIG_NETFILTER_XT_MATCH_COMMENT=3Dy
-+CONFIG_NETFILTER_XT_MATCH_CONNLIMIT=3Dy
-+CONFIG_NETFILTER_XT_MATCH_CONNMARK=3Dy
-+CONFIG_NETFILTER_XT_MATCH_CONNTRACK=3Dy
-+CONFIG_NETFILTER_XT_MATCH_HASHLIMIT=3Dy
-+CONFIG_NETFILTER_XT_MATCH_HELPER=3Dy
-+CONFIG_NETFILTER_XT_MATCH_IPRANGE=3Dy
-+CONFIG_NETFILTER_XT_MATCH_LENGTH=3Dy
-+CONFIG_NETFILTER_XT_MATCH_LIMIT=3Dy
-+CONFIG_NETFILTER_XT_MATCH_MAC=3Dy
-+CONFIG_NETFILTER_XT_MATCH_MARK=3Dy
-+CONFIG_NETFILTER_XT_MATCH_PKTTYPE=3Dy
-+CONFIG_NETFILTER_XT_MATCH_POLICY=3Dy
-+CONFIG_NETFILTER_XT_MATCH_QUOTA=3Dy
-+CONFIG_NETFILTER_XT_MATCH_SOCKET=3Dy
-+CONFIG_NETFILTER_XT_MATCH_STATE=3Dy
-+CONFIG_NETFILTER_XT_MATCH_STATISTIC=3Dy
-+CONFIG_NETFILTER_XT_MATCH_STRING=3Dy
-+CONFIG_NETFILTER_XT_MATCH_TIME=3Dy
-+CONFIG_NETFILTER_XT_MATCH_U32=3Dy
-+CONFIG_NETFILTER_XT_TARGET_CLASSIFY=3Dy
-+CONFIG_NETFILTER_XT_TARGET_CONNMARK=3Dy
-+CONFIG_NETFILTER_XT_TARGET_CONNSECMARK=3Dy
-+CONFIG_NETFILTER_XT_TARGET_IDLETIMER=3Dy
-+CONFIG_NETFILTER_XT_TARGET_MARK=3Dy
-+CONFIG_NETFILTER_XT_TARGET_NFLOG=3Dy
-+CONFIG_NETFILTER_XT_TARGET_NFQUEUE=3Dy
-+CONFIG_NETFILTER_XT_TARGET_SECMARK=3Dy
-+CONFIG_NETFILTER_XT_TARGET_TCPMSS=3Dy
-+CONFIG_NETFILTER_XT_TARGET_TPROXY=3Dy
-+CONFIG_NETFILTER_XT_TARGET_TRACE=3Dy
-+CONFIG_NET_CLS_ACT=3Dy
-+CONFIG_NET_CLS_U32=3Dy
-+CONFIG_NET_EMATCH=3Dy
-+CONFIG_NET_EMATCH_U32=3Dy
-+CONFIG_NET_KEY=3Dy
-+CONFIG_NET_SCHED=3Dy
-+CONFIG_NET_SCH_HTB=3Dy
-+CONFIG_NF_CONNTRACK=3Dy
-+CONFIG_NF_CONNTRACK_AMANDA=3Dy
-+CONFIG_NF_CONNTRACK_EVENTS=3Dy
-+CONFIG_NF_CONNTRACK_FTP=3Dy
-+CONFIG_NF_CONNTRACK_H323=3Dy
-+CONFIG_NF_CONNTRACK_IPV4=3Dy
-+CONFIG_NF_CONNTRACK_IPV6=3Dy
-+CONFIG_NF_CONNTRACK_IRC=3Dy
-+CONFIG_NF_CONNTRACK_NETBIOS_NS=3Dy
-+CONFIG_NF_CONNTRACK_PPTP=3Dy
-+CONFIG_NF_CONNTRACK_SANE=3Dy
-+CONFIG_NF_CONNTRACK_SECMARK=3Dy
-+CONFIG_NF_CONNTRACK_TFTP=3Dy
-+CONFIG_NF_CT_NETLINK=3Dy
-+CONFIG_NF_CT_PROTO_DCCP=3Dy
-+CONFIG_NF_CT_PROTO_SCTP=3Dy
-+CONFIG_NF_CT_PROTO_UDPLITE=3Dy
-+CONFIG_NF_NAT=3Dy
-+CONFIG_NO_HZ=3Dy
-+CONFIG_PACKET=3Dy
-+CONFIG_PM_AUTOSLEEP=3Dy
-+CONFIG_PM_WAKELOCKS=3Dy
-+CONFIG_PPP=3Dy
-+CONFIG_PPP_BSDCOMP=3Dy
-+CONFIG_PPP_DEFLATE=3Dy
-+CONFIG_PPP_MPPE=3Dy
-+CONFIG_PREEMPT=3Dy
-+CONFIG_QUOTA=3Dy
-+CONFIG_RTC_CLASS=3Dy
-+CONFIG_RT_GROUP_SCHED=3Dy
-+CONFIG_SECURITY=3Dy
-+CONFIG_SECURITY_NETWORK=3Dy
-+CONFIG_SECURITY_SELINUX=3Dy
-+CONFIG_SETEND_EMULATION=3Dy
-+CONFIG_STAGING=3Dy
-+CONFIG_SWP_EMULATION=3Dy
-+CONFIG_SYNC=3Dy
-+CONFIG_TUN=3Dy
-+CONFIG_UNIX=3Dy
-+CONFIG_USB_GADGET=3Dy
-+CONFIG_USB_CONFIGFS=3Dy
-+CONFIG_USB_CONFIGFS_F_FS=3Dy
-+CONFIG_USB_CONFIGFS_F_MIDI=3Dy
-+CONFIG_USB_OTG_WAKELOCK=3Dy
-+CONFIG_XFRM_USER=3Dy
-diff -puN /dev/null kernel/configs/android-recommended.config
---- /dev/null
-+++ a/kernel/configs/android-recommended.config
-@@ -0,0 +1,121 @@
-+#  KEEP ALPHABETICALLY SORTED
-+# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
-+# CONFIG_INPUT_MOUSE is not set
-+# CONFIG_LEGACY_PTYS is not set
-+# CONFIG_NF_CONNTRACK_SIP is not set
-+# CONFIG_PM_WAKELOCKS_GC is not set
-+# CONFIG_VT is not set
-+CONFIG_BACKLIGHT_LCD_SUPPORT=3Dy
-+CONFIG_BLK_DEV_LOOP=3Dy
-+CONFIG_BLK_DEV_RAM=3Dy
-+CONFIG_BLK_DEV_RAM_SIZE=3D8192
-+CONFIG_COMPACTION=3Dy
-+CONFIG_DEBUG_RODATA=3Dy
-+CONFIG_DM_UEVENT=3Dy
-+CONFIG_DRAGONRISE_FF=3Dy
-+CONFIG_ENABLE_DEFAULT_TRACERS=3Dy
-+CONFIG_EXT4_FS=3Dy
-+CONFIG_EXT4_FS_SECURITY=3Dy
-+CONFIG_FUSE_FS=3Dy
-+CONFIG_GREENASIA_FF=3Dy
-+CONFIG_HIDRAW=3Dy
-+CONFIG_HID_A4TECH=3Dy
-+CONFIG_HID_ACRUX=3Dy
-+CONFIG_HID_ACRUX_FF=3Dy
-+CONFIG_HID_APPLE=3Dy
-+CONFIG_HID_BELKIN=3Dy
-+CONFIG_HID_CHERRY=3Dy
-+CONFIG_HID_CHICONY=3Dy
-+CONFIG_HID_CYPRESS=3Dy
-+CONFIG_HID_DRAGONRISE=3Dy
-+CONFIG_HID_ELECOM=3Dy
-+CONFIG_HID_EMS_FF=3Dy
-+CONFIG_HID_EZKEY=3Dy
-+CONFIG_HID_GREENASIA=3Dy
-+CONFIG_HID_GYRATION=3Dy
-+CONFIG_HID_HOLTEK=3Dy
-+CONFIG_HID_KENSINGTON=3Dy
-+CONFIG_HID_KEYTOUCH=3Dy
-+CONFIG_HID_KYE=3Dy
-+CONFIG_HID_LCPOWER=3Dy
-+CONFIG_HID_LOGITECH=3Dy
-+CONFIG_HID_LOGITECH_DJ=3Dy
-+CONFIG_HID_MAGICMOUSE=3Dy
-+CONFIG_HID_MICROSOFT=3Dy
-+CONFIG_HID_MONTEREY=3Dy
-+CONFIG_HID_MULTITOUCH=3Dy
-+CONFIG_HID_NTRIG=3Dy
-+CONFIG_HID_ORTEK=3Dy
-+CONFIG_HID_PANTHERLORD=3Dy
-+CONFIG_HID_PETALYNX=3Dy
-+CONFIG_HID_PICOLCD=3Dy
-+CONFIG_HID_PRIMAX=3Dy
-+CONFIG_HID_PRODIKEYS=3Dy
-+CONFIG_HID_ROCCAT=3Dy
-+CONFIG_HID_SAITEK=3Dy
-+CONFIG_HID_SAMSUNG=3Dy
-+CONFIG_HID_SMARTJOYPLUS=3Dy
-+CONFIG_HID_SONY=3Dy
-+CONFIG_HID_SPEEDLINK=3Dy
-+CONFIG_HID_SUNPLUS=3Dy
-+CONFIG_HID_THRUSTMASTER=3Dy
-+CONFIG_HID_TIVO=3Dy
-+CONFIG_HID_TOPSEED=3Dy
-+CONFIG_HID_TWINHAN=3Dy
-+CONFIG_HID_UCLOGIC=3Dy
-+CONFIG_HID_WACOM=3Dy
-+CONFIG_HID_WALTOP=3Dy
-+CONFIG_HID_WIIMOTE=3Dy
-+CONFIG_HID_ZEROPLUS=3Dy
-+CONFIG_HID_ZYDACRON=3Dy
-+CONFIG_INPUT_EVDEV=3Dy
-+CONFIG_INPUT_GPIO=3Dy
-+CONFIG_INPUT_JOYSTICK=3Dy
-+CONFIG_INPUT_MISC=3Dy
-+CONFIG_INPUT_TABLET=3Dy
-+CONFIG_INPUT_UINPUT=3Dy
-+CONFIG_ION=3Dy
-+CONFIG_JOYSTICK_XPAD=3Dy
-+CONFIG_JOYSTICK_XPAD_FF=3Dy
-+CONFIG_JOYSTICK_XPAD_LEDS=3Dy
-+CONFIG_KALLSYMS_ALL=3Dy
-+CONFIG_KSM=3Dy
-+CONFIG_LOGIG940_FF=3Dy
-+CONFIG_LOGIRUMBLEPAD2_FF=3Dy
-+CONFIG_LOGITECH_FF=3Dy
-+CONFIG_MD=3Dy
-+CONFIG_MEDIA_SUPPORT=3Dy
-+CONFIG_MSDOS_FS=3Dy
-+CONFIG_PANIC_TIMEOUT=3D5
-+CONFIG_PANTHERLORD_FF=3Dy
-+CONFIG_PERF_EVENTS=3Dy
-+CONFIG_PM_DEBUG=3Dy
-+CONFIG_PM_RUNTIME=3Dy
-+CONFIG_PM_WAKELOCKS_LIMIT=3D0
-+CONFIG_POWER_SUPPLY=3Dy
-+CONFIG_PSTORE=3Dy
-+CONFIG_PSTORE_CONSOLE=3Dy
-+CONFIG_PSTORE_RAM=3Dy
-+CONFIG_SCHEDSTATS=3Dy
-+CONFIG_SMARTJOYPLUS_FF=3Dy
-+CONFIG_SND=3Dy
-+CONFIG_SOUND=3Dy
-+CONFIG_SUSPEND_TIME=3Dy
-+CONFIG_TABLET_USB_ACECAD=3Dy
-+CONFIG_TABLET_USB_AIPTEK=3Dy
-+CONFIG_TABLET_USB_GTCO=3Dy
-+CONFIG_TABLET_USB_HANWANG=3Dy
-+CONFIG_TABLET_USB_KBTAB=3Dy
-+CONFIG_TASKSTATS=3Dy
-+CONFIG_TASK_DELAY_ACCT=3Dy
-+CONFIG_TASK_IO_ACCOUNTING=3Dy
-+CONFIG_TASK_XACCT=3Dy
-+CONFIG_TIMER_STATS=3Dy
-+CONFIG_TMPFS=3Dy
-+CONFIG_TMPFS_POSIX_ACL=3Dy
-+CONFIG_UHID=3Dy
-+CONFIG_USB_ANNOUNCE_NEW_DEVICES=3Dy
-+CONFIG_USB_EHCI_HCD=3Dy
-+CONFIG_USB_HIDDEV=3Dy
-+CONFIG_USB_USBNET=3Dy
-+CONFIG_VFAT_FS=3Dy
+diff -puN kernel/trace/bpf_trace.c~kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug kernel/trace/bpf_trace.c
+--- a/kernel/trace/bpf_trace.c~kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug
++++ a/kernel/trace/bpf_trace.c
+@@ -309,7 +309,9 @@ u64 bpf_event_output(struct bpf_map *map
+ 	};
+ 	struct perf_raw_record raw = {
+ 		.frag = {
+-			.next	= ctx_size ? &frag : NULL,
++			{
++				.next	= ctx_size ? &frag : NULL,
++			},
+ 			.size	= meta_size,
+ 			.data	= meta,
+ 		},
 _
 
-Patches currently in -mm which might be from robh@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-config-add-android-config-fragments.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-improve-recovery-performance-v2-fix.patch
+ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix.patch
+mm.patch
+mm-reorganize-slab-freelist-randomization-fix.patch
+mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
+mm-compaction-split-freepages-without-holding-the-zone-lock-fix-2.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+mm-fix-build-warnings-in-linux-compactionh-fix.patch
+mm-update-the-comment-in-__isolate_free_page-checkpatch-fixes.patch
+treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
+printk-create-pr_level-functions-fix.patch
+printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-checkpatch-fixes.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+allow-kdump-with-crash_kexec_post_notifiers-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug.patch
+bitmap-bitmap_equal-memcmp-optimization-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
