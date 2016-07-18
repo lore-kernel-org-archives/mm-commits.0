@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-remove-redundant-check-in-shrink_zones.patch added to -mm tree
-Date: Mon, 18 Jul 2016 12:36:06 -0700
-Message-ID: <578d2fa6.PTkNCXcQSsZ2RbJh%akpm@linux-foundation.org>
+Subject: + checkpatch-yet-another-commit-id-improvement.patch added to -mm tree
+Date: Mon, 18 Jul 2016 12:36:33 -0700
+Message-ID: <578d2fc1.QW54/E7Binckkv0c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46892 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752227AbcGRTgH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Jul 2016 15:36:07 -0400
+	with ESMTP id S1751568AbcGRTge (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Jul 2016 15:36:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: joe@perches.com, qiuxu.zhuo@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: remove redundant check in shrink_zones()
+     Subject: checkpatch: Yet another commit id improvement
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-remove-redundant-check-in-shrink_zones.patch
+     checkpatch-yet-another-commit-id-improvement.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-remove-redundant-check-in-shrink_zones.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-yet-another-commit-id-improvement.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-remove-redundant-check-in-shrink_zones.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-yet-another-commit-id-improvement.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,84 +38,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: remove redundant check in shrink_zones()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: Yet another commit id improvement
 
-As pointed out by Minchan Kim, shrink_zones() checks for populated zones
-in a zonelist but a zonelist can never contain unpopulated zones.  While
-it's not related to the node-lru series, it can be cleaned up now.
+Using b isn't good enough to isolate what appears to be a commit id in a
+commit message.
 
-Link: http://lkml.kernel.org/r/1468853426-12858-2-git-send-email-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Make sure there is a space or a quote like character after a continuous
+run of hexadecimal characters that could be a commit id.
+
+Link: http://lkml.kernel.org/r/fdd22b47463a21c21132edbb8aa35e372950a1e6.1468869915.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: "Zhuo, Qiuxu" <qiuxu.zhuo@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ---
- 1 file changed, 3 deletions(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-remove-redundant-check-in-shrink_zones mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-remove-redundant-check-in-shrink_zones
-+++ a/mm/vmscan.c
-@@ -2605,9 +2605,6 @@ static void shrink_zones(struct zonelist
+diff -puN scripts/checkpatch.pl~checkpatch-yet-another-commit-id-improvement scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-yet-another-commit-id-improvement
++++ a/scripts/checkpatch.pl
+@@ -2454,9 +2454,9 @@ sub process {
  
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 					sc->reclaim_idx, sc->nodemask) {
--		if (!populated_zone(zone))
--			continue;
--
- 		/*
- 		 * Take care memory controller reclaiming has small influence
- 		 * to global LRU.
+ # Check for git id commit length and improperly formed commit descriptions
+ 		if ($in_commit_log && !$commit_log_possible_stack_dump &&
+-		    $line !~ /^\s*(?:Link|Patchwork|http|BugLink):/i &&
++		    $line !~ /^\s*(?:Link|Patchwork|http|https|BugLink):/i &&
+ 		    ($line =~ /\bcommit\s+[0-9a-f]{5,}\b/i ||
+-		     ($line =~ /\b[0-9a-f]{12,40}\b/i &&
++		     ($line =~ /(?:\s|^)[0-9a-f]{12,40}(?:[\s"'\(\[]|$)/i &&
+ 		      $line !~ /[\<\[][0-9a-f]{12,40}[\>\]]/i &&
+ 		      $line !~ /\bfixes:\s*[0-9a-f]{12,40}/i))) {
+ 			my $init_char = "c";
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-meminit-remove-early_page_nid_uninitialised.patch
-mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
-mm-vmscan-move-lru_lock-to-the-node.patch
-mm-vmscan-move-lru-lists-to-node.patch
-mm-mmzone-clarify-the-usage-of-zone-padding.patch
-mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
-mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
-mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
-mm-vmscan-remove-balance-gap.patch
-mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
-mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
-mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
-mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
-mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
-mm-workingset-make-working-set-detection-node-aware.patch
-mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
-mm-move-page-mapped-accounting-to-the-node.patch
-mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
-mm-move-most-file-based-accounting-to-the-node.patch
-mm-move-most-file-based-accounting-to-the-node-fix.patch
-mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
-mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
-mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
-mm-convert-zone_reclaim-to-node_reclaim.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
-mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
-mm-vmscan-add-classzone-information-to-tracepoints.patch
-mm-page_alloc-remove-fair-zone-allocation-policy.patch
-mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
-mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
-mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
-mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
-mm-vmscan-update-all-zone-lru-sizes-before-updating-memcg.patch
-mm-vmscan-remove-redundant-check-in-shrink_zones.patch
-mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
+printk-create-pr_level-functions.patch
+checkpatch-skip-long-lines-that-use-an-efi_guid-macro.patch
+checkpatch-allow-c99-style-comments.patch
+checkpatch-yet-another-commit-id-improvement.patch
 
