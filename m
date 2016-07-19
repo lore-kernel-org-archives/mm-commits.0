@@ -1,63 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kasan-add-newline-to-messages.patch removed from -mm
- tree
-Date: Tue, 19 Jul 2016 11:10:02 -0700
-Message-ID: <578e6cfa.gcE34Z9UoSGzsokC%akpm@linux-foundation.org>
+Subject: [merged]
+ drivers-leds-leds-lp3952c-work-around-gcc-444-union-initializer-bug.patch
+ removed from -mm tree
+Date: Tue, 19 Jul 2016 11:09:56 -0700
+Message-ID: <578e6cf4.iMKfU1pZ/Nxr50UQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44029 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44018 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753399AbcGSSKD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:03 -0400
+	with ESMTP id S1753399AbcGSSJ6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:09:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, j.anaszewski@samsung.com, mika.westerberg@linux.intel.com, tony.makkiel@daqri.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add newline to messages
+     Subject: drivers/leds/leds-lp3952.c: work around gcc-4.4.4 union initializer bug
 has been removed from the -mm tree.  Its filename was
-     kasan-add-newline-to-messages.patch
+     drivers-leds-leds-lp3952c-work-around-gcc-444-union-initializer-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan: add newline to messages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/leds/leds-lp3952.c: work around gcc-4.4.4 union initializer bug
 
-Currently GPF messages with KASAN look as follows:
-kasan: GPF could be caused by NULL-ptr deref or user memory accessgeneral protection fault: 0000 [#1] SMP DEBUG_PAGEALLOC KASAN
-Add newlines.
+drivers/leds/leds-lp3952.c: In function 'lp3952_set_pattern_gen_cmd':
+drivers/leds/leds-lp3952.c:156: error: unknown field 'r' specified in initializer
+drivers/leds/leds-lp3952.c:156: warning: missing braces around initializer
+drivers/leds/leds-lp3952.c:156: warning: (near initialization for 'line.<anonymous>')
+drivers/leds/leds-lp3952.c:157: error: unknown field 'g' specified in initializer
+drivers/leds/leds-lp3952.c:157: warning: excess elements in struct initializer
+drivers/leds/leds-lp3952.c:157: warning: (near initialization for 'line')
+drivers/leds/leds-lp3952.c:158: error: unknown field 'b' specified in initializer
+drivers/leds/leds-lp3952.c:158: warning: excess elements in struct initializer
+drivers/leds/leds-lp3952.c:158: warning: (near initialization for 'line')
+drivers/leds/leds-lp3952.c:159: error: unknown field 'cet' specified in initializer
+drivers/leds/leds-lp3952.c:159: warning: excess elements in struct initializer
+drivers/leds/leds-lp3952.c:159: warning: (near initialization for 'line')
+drivers/leds/leds-lp3952.c:160: error: unknown field 'tt' specified in initializer
+drivers/leds/leds-lp3952.c:161: warning: excess elements in struct initializer
+drivers/leds/leds-lp3952.c:161: warning: (near initialization for 'line')
 
-Link: http://lkml.kernel.org/r/1467294357-98002-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Fixes: 1574a45ad7467d6a8c6 ("leds: LED driver for TI LP3952 6-Channel Color LED")
+Tested-by: Tony Makkiel <tony.makkiel@daqri.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/kasan_init_64.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/leds/leds-lp3952.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/mm/kasan_init_64.c~kasan-add-newline-to-messages arch/x86/mm/kasan_init_64.c
---- a/arch/x86/mm/kasan_init_64.c~kasan-add-newline-to-messages
-+++ a/arch/x86/mm/kasan_init_64.c
-@@ -54,8 +54,8 @@ static int kasan_die_handler(struct noti
- 			     void *data)
+diff -puN drivers/leds/leds-lp3952.c~drivers-leds-leds-lp3952c-work-around-gcc-444-union-initializer-bug drivers/leds/leds-lp3952.c
+--- a/drivers/leds/leds-lp3952.c~drivers-leds-leds-lp3952c-work-around-gcc-444-union-initializer-bug
++++ a/drivers/leds/leds-lp3952.c
+@@ -153,11 +153,15 @@ static int lp3952_set_pattern_gen_cmd(st
  {
- 	if (val == DIE_GPF) {
--		pr_emerg("CONFIG_KASAN_INLINE enabled");
--		pr_emerg("GPF could be caused by NULL-ptr deref or user memory access");
-+		pr_emerg("CONFIG_KASAN_INLINE enabled\n");
-+		pr_emerg("GPF could be caused by NULL-ptr deref or user memory access\n");
- 	}
- 	return NOTIFY_OK;
- }
+ 	int ret;
+ 	struct ptrn_gen_cmd line = {
+-		.r = r,
+-		.g = g,
+-		.b = b,
+-		.cet = cet,
+-		.tt = tt
++		{
++			{
++				.tt = tt,
++				.b = b,
++				.cet = cet,
++				.g = g,
++				.r = r,
++			},
++		},
+ 	};
+ 
+ 	if (cmd_index >= LP3952_CMD_REG_COUNT)
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-improve-recovery-performance-v2-fix.patch
+ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix.patch
+mm.patch
+mm-reorganize-slab-freelist-randomization-fix.patch
+mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
+mm-compaction-split-freepages-without-holding-the-zone-lock-fix-2.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+mm-fix-build-warnings-in-linux-compactionh-fix.patch
+mm-update-the-comment-in-__isolate_free_page-checkpatch-fixes.patch
+treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
+printk-create-pr_level-functions-fix.patch
+printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-checkpatch-fixes.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+allow-kdump-with-crash_kexec_post_notifiers-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug.patch
+bitmap-bitmap_equal-memcmp-optimization-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
