@@ -1,112 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: +
- printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-update.patch
- added to -mm tree
-Date: Tue, 19 Jul 2016 11:35:23 -0700
-Message-ID: <578e72eb.o69wt1DSeUBvusws%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 19 Jul 2016 11:35:30 -0700
+Message-ID: <578e72f2.NuleFSpFBt+GrfyB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44353 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44362 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752348AbcGSSfY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:35:24 -0400
+	with ESMTP id S1752278AbcGSSfb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:35:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@suse.de, dyoung@redhat.com, fbui@suse.com, gregkh@linuxfoundation.org, mingo@kernel.org, peterz@infradead.org, rostedt@goodmis.org, torvalds@linux-foundation.org, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bp@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk-add-kernel-parameter-to-control-writes-to-dev-kmsg=
--update
-has been added to the -mm tree.  Its filename is
-     printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-update.p=
-atch
+     Subject: printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-checkpatch-fixes.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-add-kernel-paramete=
-r-to-control-writes-to-dev-kmsg-update.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-add-kernel-paramete=
-r-to-control-writes-to-dev-kmsg-update.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-=46rom: Borislav Petkov <bp@suse.de>
-Subject: printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-upda=
-te
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-checkpatch-fixes
 
-Thanks for catching this, here's an updated 2/2 patch with the above
-integrated and the SYSTEM_BOOTING check removed because we set
-system_state to SYSTEM_RUNNING before we start init.
+ERROR: else should follow close brace '}'
+#160: FILE: kernel/printk/printk.c:120:
++	}
++	else
 
-Link: http://lkml.kernel.org/r/20160719072344.GC25563@nazgul.tnic
-Signed-off-by: Borislav Petkov <bp@suse.de>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Franck Bui <fbui@suse.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+WARNING: line over 80 characters
+#263: FILE: kernel/printk/printk.c:745:
++	if ((system_state != SYSTEM_BOOTING) && !(devkmsg_log & DEVKMSG_LOG_MASK_ON)) {
+
+total: 1 errors, 1 warnings, 250 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/printk-add-kernel-parameter-to-control-writes-to-dev-kmsg.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/printk/printk.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-add-kernel-parameter-to-control=
--writes-to-dev-kmsg-update kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-add-kernel-parameter-to-control-wri=
-tes-to-dev-kmsg-update
+diff -puN kernel/printk/printk.c~printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-checkpatch-fixes kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-checkpatch-fixes
 +++ a/kernel/printk/printk.c
 @@ -117,8 +117,7 @@ static int __control_devkmsg(char *str)
- 		devkmsg_log =3D DEVKMSG_LOG_MASK_DEFAULT;
+ 		devkmsg_log = DEVKMSG_LOG_MASK_DEFAULT;
  		return 9;
  	}
 -	else
 -		return -EINVAL;
 +	return -EINVAL;
  }
-=20
+ 
  static int __init control_devkmsg(char *str)
-@@ -741,8 +740,8 @@ static ssize_t devkmsg_write(struct kioc
- 	if (devkmsg_log & DEVKMSG_LOG_MASK_OFF)
- 		return len;
-=20
--	/* Ratelimit when not explicitly enabled or when we're not booting. *=
-/
--	if ((system_state !=3D SYSTEM_BOOTING) && !(devkmsg_log & DEVKMSG_LOG=
-_MASK_ON)) {
-+	/* Ratelimit when not explicitly enabled. */
-+	if (!(devkmsg_log & DEVKMSG_LOG_MASK_ON)) {
- 		if (!___ratelimit(&user->rs, current->comm))
- 			return ret;
- 	}
 _
 
-Patches currently in -mm which might be from bp@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ratelimit-extend-to-print-suppressed-messages-on-release.patch
-printk-add-kernel-parameter-to-control-writes-to-dev-kmsg.patch
-printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-update.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-improve-recovery-performance-v2-fix.patch
+ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix.patch
+mm.patch
+mm-reorganize-slab-freelist-randomization-fix.patch
+mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
+mm-compaction-split-freepages-without-holding-the-zone-lock-fix-2.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+mm-fix-build-warnings-in-linux-compactionh-fix.patch
+mm-update-the-comment-in-__isolate_free_page-checkpatch-fixes.patch
+treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
+printk-create-pr_level-functions-fix.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+allow-kdump-with-crash_kexec_post_notifiers-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug.patch
+bitmap-bitmap_equal-memcmp-optimization-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
