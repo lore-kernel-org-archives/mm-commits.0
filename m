@@ -1,115 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kasan-quarantine-fix-bugs-on-qlist_move_cache.patch
- removed from -mm tree
-Date: Tue, 19 Jul 2016 11:10:21 -0700
-Message-ID: <578e6d0d.5uZEoOnR0N3kw0l3%akpm@linux-foundation.org>
+Subject: [merged] nvme-dont-allocate-unused-nvme_major.patch removed from
+ -mm tree
+Date: Tue, 19 Jul 2016 11:10:43 -0700
+Message-ID: <578e6d23.yDSHyFxddvvUnPTa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44064 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44103 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753694AbcGSSKW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:22 -0400
+	with ESMTP id S1753425AbcGSSKo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, poll.stdin@gmail.com, mm-commits@vger.kernel.org
+To: neilb@suse.com, axboe@kernel.dk, gregkh@linuxfoundation.org, keith.busch@intel.com, maximlevitsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan/quarantine: fix bugs on qlist_move_cache()
+     Subject: NVMe: don't allocate unused nvme_major
 has been removed from the -mm tree.  Its filename was
-     kasan-quarantine-fix-bugs-on-qlist_move_cache.patch
+     nvme-dont-allocate-unused-nvme_major.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: kasan/quarantine: fix bugs on qlist_move_cache()
+From: NeilBrown <neilb@suse.com>
+Subject: NVMe: don't allocate unused nvme_major
 
-There are two bugs on qlist_move_cache().  One is that qlist's tail isn't
-set properly.  curr->next can be NULL since it is singly linked list and
-NULL value on tail is invalid if there is one item on qlist.  Another one
-is that if cache is matched, qlist_put() is called and it will set
-curr->next to NULL.  It would cause to stop the loop prematurely.
+When alloc_disk(0) is used, the ->major number is ignored.  All device
+numbers are allocated with a major of BLOCK_EXT_MAJOR.
 
-These problems come from complicated implementation so I'd like to
-re-implement it completely.  Implementation in this patch is really
-simple.  Iterate all qlist_nodes and put them to appropriate list.
+So remove all references to nvme_major.
 
-Unfortunately, I got this bug sometime ago and lose oops message.  But,
-the bug looks trivial and no need to attach oops.
-
-Fixes: 55834c59098d ("mm: kasan: initial memory quarantine implementation")
-Link: http://lkml.kernel.org/r/1467766348-22419-1-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Acked-by: Alexander Potapenko <glider@google.com>
-Cc: Kuthonuzo Luruo <poll.stdin@gmail.com>
+[akpm@linux-foundation.org: one unregister_blkdev() was missed]
+Link: http://lkml.kernel.org/r/20160602064318.4403.93301.stgit@noble
+Signed-off-by: NeilBrown <neilb@suse.com>
+Reviewed-by: Keith Busch <keith.busch@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/quarantine.c |   27 ++++++++++-----------------
- 1 file changed, 10 insertions(+), 17 deletions(-)
+ drivers/nvme/host/core.c |   16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
 
-diff -puN mm/kasan/quarantine.c~kasan-quarantine-fix-bugs-on-qlist_move_cache mm/kasan/quarantine.c
---- a/mm/kasan/quarantine.c~kasan-quarantine-fix-bugs-on-qlist_move_cache
-+++ a/mm/kasan/quarantine.c
-@@ -238,30 +238,23 @@ static void qlist_move_cache(struct qlis
- 				   struct qlist_head *to,
- 				   struct kmem_cache *cache)
+diff -puN drivers/nvme/host/core.c~nvme-dont-allocate-unused-nvme_major drivers/nvme/host/core.c
+--- a/drivers/nvme/host/core.c~nvme-dont-allocate-unused-nvme_major
++++ a/drivers/nvme/host/core.c
+@@ -53,9 +53,6 @@ module_param_named(max_retries, nvme_max
+ MODULE_PARM_DESC(max_retries, "max number of retries a command may have");
+ EXPORT_SYMBOL_GPL(nvme_max_retries);
+ 
+-static int nvme_major;
+-module_param(nvme_major, int, 0);
+-
+ static int nvme_char_major;
+ module_param(nvme_char_major, int, 0);
+ 
+@@ -1674,8 +1671,6 @@ static void nvme_alloc_ns(struct nvme_ct
+ 	blk_queue_logical_block_size(ns->queue, 1 << ns->lba_shift);
+ 	nvme_set_queue_limits(ctrl, ns->queue);
+ 
+-	disk->major = nvme_major;
+-	disk->first_minor = 0;
+ 	disk->fops = &nvme_fops;
+ 	disk->private_data = ns;
+ 	disk->queue = ns->queue;
+@@ -2085,16 +2080,10 @@ int __init nvme_core_init(void)
  {
--	struct qlist_node *prev = NULL, *curr;
-+	struct qlist_node *curr;
+ 	int result;
  
- 	if (unlikely(qlist_empty(from)))
- 		return;
+-	result = register_blkdev(nvme_major, "nvme");
+-	if (result < 0)
+-		return result;
+-	else if (result > 0)
+-		nvme_major = result;
+-
+ 	result = __register_chrdev(nvme_char_major, 0, NVME_MINORS, "nvme",
+ 							&nvme_dev_fops);
+ 	if (result < 0)
+-		goto unregister_blkdev;
++		return result;
+ 	else if (result > 0)
+ 		nvme_char_major = result;
  
- 	curr = from->head;
-+	qlist_init(from);
- 	while (curr) {
--		struct qlist_node *qlink = curr;
--		struct kmem_cache *obj_cache = qlink_to_cache(qlink);
-+		struct qlist_node *next = curr->next;
-+		struct kmem_cache *obj_cache = qlink_to_cache(curr);
+@@ -2108,8 +2097,6 @@ int __init nvme_core_init(void)
  
--		if (obj_cache == cache) {
--			if (unlikely(from->head == qlink)) {
--				from->head = curr->next;
--				prev = curr;
--			} else
--				prev->next = curr->next;
--			if (unlikely(from->tail == qlink))
--				from->tail = curr->next;
--			from->bytes -= cache->size;
--			qlist_put(to, qlink, cache->size);
--		} else {
--			prev = curr;
--		}
--		curr = curr->next;
-+		if (obj_cache == cache)
-+			qlist_put(to, curr, obj_cache->size);
-+		else
-+			qlist_put(from, curr, obj_cache->size);
-+
-+		curr = next;
- 	}
+  unregister_chrdev:
+ 	__unregister_chrdev(nvme_char_major, 0, NVME_MINORS, "nvme");
+- unregister_blkdev:
+-	unregister_blkdev(nvme_major, "nvme");
+ 	return result;
  }
  
+@@ -2117,7 +2104,6 @@ void nvme_core_exit(void)
+ {
+ 	class_destroy(nvme_class);
+ 	__unregister_chrdev(nvme_char_major, 0, NVME_MINORS, "nvme");
+-	unregister_blkdev(nvme_major, "nvme");
+ }
+ 
+ MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from neilb@suse.com are
 
-mm-compaction-split-freepages-without-holding-the-zone-lock.patch
-mm-page_owner-initialize-page-owner-without-holding-the-zone-lock.patch
-mm-page_owner-copy-last_migrate_reason-in-copy_page_owner.patch
-mm-page_owner-introduce-split_page_owner-and-replace-manual-handling.patch
-tools-vm-page_owner-increase-temporary-buffer-size.patch
-mm-page_owner-use-stackdepot-to-store-stacktrace.patch
-mm-page_owner-use-stackdepot-to-store-stacktrace-v3.patch
-mm-page_alloc-introduce-post-allocation-processing-on-page-allocator.patch
-mm-page_alloc-introduce-post-allocation-processing-on-page-allocator-v3.patch
-mm-page_isolation-clean-up-confused-code.patch
+memstick-dont-allocate-unused-major-for-ms_block.patch
 
