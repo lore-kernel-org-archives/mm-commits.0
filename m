@@ -1,60 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-gdb-silence-nothing-to-do-message.patch removed
- from -mm tree
-Date: Tue, 19 Jul 2016 11:10:04 -0700
-Message-ID: <578e6cfc.0ohwN7vMQuk2PJMV%akpm@linux-foundation.org>
+Subject: [merged]
+ madvise_free-thp-fix-madvise_free_huge_pmd-return-value-after-splitting.patch removed from -mm tree
+Date: Tue, 19 Jul 2016 11:10:16 -0700
+Message-ID: <578e6d08.HvAYOZfZqcku4L0Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44032 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44059 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753503AbcGSSKF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:05 -0400
+	with ESMTP id S1753694AbcGSSKR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kieran@ksquared.org.uk, jan.kiszka@siemens.comkieran@ksquared.org.uk, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, aarcange@redhat.com, ebru.akagunduz@gmail.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: silence 'nothing to do' message
+     Subject: madvise_free, thp: fix madvise_free_huge_pmd return value after splitting
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-silence-nothing-to-do-message.patch
+     madvise_free-thp-fix-madvise_free_huge_pmd-return-value-after-splitting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kieran Bingham <kieran@ksquared.org.uk>
-Subject: scripts/gdb: silence 'nothing to do' message
+From: Huang Ying <ying.huang@intel.com>
+Subject: madvise_free, thp: fix madvise_free_huge_pmd return value after splitting
 
-The constants.py generation, involves a rule to link into the main
-makefile.  This rule has no command and generates a spurious warning
-message in the build logs when CONFIG_SCRIPTS_GDB is enabled.
+madvise_free_huge_pmd should return 0 if the fallback PTE operations are
+required.  In madvise_free_huge_pmd, if part pages of THP are discarded,
+the THP will be split and fallback PTE operations should be used if
+splitting succeeds.  But the original code will make fallback PTE
+operations skipped, after splitting succeeds.  Fix that via make
+madvise_free_huge_pmd return 0 after splitting successfully, so that the
+fallback PTE operations will be done.
 
-Fix simply by giving a no-op action
-
-Link: http://lkml.kernel.org/r/1467127337-11135-2-git-send-email-kieran@bingham.xyz
-Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
-Reported-by: Jan Kiszka <jan.kiszka@siemens.com>
+Link: http://lkml.kernel.org/r/1467135452-16688-1-git-send-email-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ mm/huge_memory.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN scripts/gdb/linux/Makefile~scripts-gdb-silence-nothing-to-do-message scripts/gdb/linux/Makefile
---- a/scripts/gdb/linux/Makefile~scripts-gdb-silence-nothing-to-do-message
-+++ a/scripts/gdb/linux/Makefile
-@@ -17,5 +17,6 @@ $(obj)/constants.py: $(SRCTREE)/$(obj)/c
- 	$(call if_changed,gen_constants_py)
+diff -puN mm/huge_memory.c~madvise_free-thp-fix-madvise_free_huge_pmd-return-value-after-splitting mm/huge_memory.c
+--- a/mm/huge_memory.c~madvise_free-thp-fix-madvise_free_huge_pmd-return-value-after-splitting
++++ a/mm/huge_memory.c
+@@ -1624,14 +1624,9 @@ int madvise_free_huge_pmd(struct mmu_gat
+ 	if (next - addr != HPAGE_PMD_SIZE) {
+ 		get_page(page);
+ 		spin_unlock(ptl);
+-		if (split_huge_page(page)) {
+-			put_page(page);
+-			unlock_page(page);
+-			goto out_unlocked;
+-		}
++		split_huge_page(page);
+ 		put_page(page);
+ 		unlock_page(page);
+-		ret = 1;
+ 		goto out_unlocked;
+ 	}
  
- build_constants_py: $(obj)/constants.py
-+	@:
- 
- clean-files := *.pyc *.pyo $(if $(KBUILD_SRC),*.py) $(obj)/constants.py
 _
 
-Patches currently in -mm which might be from kieran@ksquared.org.uk are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
+thp-fix-comments-of-__pmd_trans_huge_lock.patch
+mm-thp-clean-up-return-value-of-madvise_free_huge_pmd.patch
 
