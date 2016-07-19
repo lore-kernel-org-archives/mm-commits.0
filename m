@@ -1,110 +1,70 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-meminit-ensure-node-is-online-before-checking-whether-pages-are-uninitialised.patch removed from -mm tree
-Date: Tue, 19 Jul 2016 11:10:26 -0700
-Message-ID: <578e6d12.5p3BOCarqLLqhVRT%akpm__23143.017156008$1468951842$gmane$org@linux-foundation.org>
+ mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch removed from -mm tree
+Date: Tue, 19 Jul 2016 11:10:34 -0700
+Message-ID: <578e6d1a.WcNx/YbxZS5iAE1H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44072 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44085 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753431AbcGSSK1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:27 -0400
+	with ESMTP id S1753425AbcGSSKf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, meminit: ensure node is online before checking whether pages are uninitialised
+     Subject: mm: rmap: call page_check_address() with sync enabled to avoid racy check
 has been removed from the -mm tree.  Its filename was
-     mm-meminit-ensure-node-is-online-before-checking-whether-pages-are-uninitialised.patch
+     mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, meminit: ensure node is online before checking whether pages are uninitialised
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: rmap: call page_check_address() with sync enabled to avoid racy check
 
-early_page_uninitialised looks up an arbitrary PFN.  While a machine
-without node 0 will boot with "mm, page_alloc: Always return a valid node
-from early_pfn_to_nid", it works because it assumes that nodes are always
-in PFN order.  This is not guaranteed so this patch adds robustness by
-always checking if the node being checked is online.
+The previous patch addresses the race between split_huge_pmd_address() and
+someone changing the pmd. The fix is only for splitting of normal thp
+(i.e. pmd-mapped thp,) and for splitting of pte-mapped thp there still is
+the similar race.
 
-Link: http://lkml.kernel.org/r/1468008031-3848-4-git-send-email-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[4.2+]
+For splitting pte-mapped thp, the pte's conversion is done by
+try_to_unmap_one(TTU_MIGRATION). This function checks page_check_address() to
+get the target pte, but it can return NULL under some race, leading to
+VM_BUG_ON() in freeze_page(). Fortunately, page_check_address() already has
+an argument to decide whether we do a quick/racy check or not, so let's flip
+it when called from freeze_page().
+
+Link: http://lkml.kernel.org/r/1466990929-7452-2-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/rmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-meminit-ensure-node-is-online-before-checking-whether-pages-are-uninitialised mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-ensure-node-is-online-before-checking-whether-pages-are-uninitialised
-+++ a/mm/page_alloc.c
-@@ -286,7 +286,9 @@ static inline void reset_deferred_memini
- /* Returns true if the struct page for the pfn is uninitialised */
- static inline bool __meminit early_page_uninitialised(unsigned long pfn)
- {
--	if (pfn >= NODE_DATA(early_pfn_to_nid(pfn))->first_deferred_pfn)
-+	int nid = early_pfn_to_nid(pfn);
-+
-+	if (node_online(nid) && pfn >= NODE_DATA(nid)->first_deferred_pfn)
- 		return true;
+diff -puN mm/rmap.c~mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check
++++ a/mm/rmap.c
+@@ -1427,7 +1427,8 @@ static int try_to_unmap_one(struct page
+ 			goto out;
+ 	}
  
- 	return false;
+-	pte = page_check_address(page, mm, address, &ptl, 0);
++	pte = page_check_address(page, mm, address, &ptl,
++				 PageTransCompound(page));
+ 	if (!pte)
+ 		goto out;
+ 
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-meminit-remove-early_page_nid_uninitialised.patch
-mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
-mm-vmscan-move-lru_lock-to-the-node.patch
-mm-vmscan-move-lru-lists-to-node.patch
-mm-mmzone-clarify-the-usage-of-zone-padding.patch
-mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
-mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
-mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
-mm-vmscan-remove-balance-gap.patch
-mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
-mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
-mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
-mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
-mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
-mm-workingset-make-working-set-detection-node-aware.patch
-mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
-mm-move-page-mapped-accounting-to-the-node.patch
-mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
-mm-move-most-file-based-accounting-to-the-node.patch
-mm-move-most-file-based-accounting-to-the-node-fix.patch
-mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
-mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
-mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
-mm-convert-zone_reclaim-to-node_reclaim.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
-mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
-mm-vmscan-add-classzone-information-to-tracepoints.patch
-mm-page_alloc-remove-fair-zone-allocation-policy.patch
-mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
-mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
-mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
-mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
-mm-vmscan-update-all-zone-lru-sizes-before-updating-memcg.patch
-mm-vmscan-remove-redundant-check-in-shrink_zones.patch
-mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
+mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
 
