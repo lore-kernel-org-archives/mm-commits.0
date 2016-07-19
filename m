@@ -1,70 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch removed from -mm tree
-Date: Tue, 19 Jul 2016 11:10:34 -0700
-Message-ID: <578e6d1a.WcNx/YbxZS5iAE1H%akpm@linux-foundation.org>
+Subject: [merged] m32r-fix-build-warning-about-putc.patch removed from -mm tree
+Date: Tue, 19 Jul 2016 11:10:41 -0700
+Message-ID: <578e6d21.HLbVKTFfKDfp8UM8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44085 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44095 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753425AbcGSSKf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:35 -0400
+	with ESMTP id S1753425AbcGSSKl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, sudip.mukherjee@codethink.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rmap: call page_check_address() with sync enabled to avoid racy check
+     Subject: m32r: fix build warning about putc
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check.patch
+     m32r-fix-build-warning-about-putc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: rmap: call page_check_address() with sync enabled to avoid racy check
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: m32r: fix build warning about putc
 
-The previous patch addresses the race between split_huge_pmd_address() and
-someone changing the pmd. The fix is only for splitting of normal thp
-(i.e. pmd-mapped thp,) and for splitting of pte-mapped thp there still is
-the similar race.
+We were getting build warning:
+arch/m32r/boot/compressed/m32r_sio.c:11:13:
+        warning: conflicting types for built-in function 'putc'
 
-For splitting pte-mapped thp, the pte's conversion is done by
-try_to_unmap_one(TTU_MIGRATION). This function checks page_check_address() to
-get the target pte, but it can return NULL under some race, leading to
-VM_BUG_ON() in freeze_page(). Fortunately, page_check_address() already has
-an argument to decide whether we do a quick/racy check or not, so let's flip
-it when called from freeze_page().
+Here putc is used as a static function so lets just rename it to avoid
+the conflict with the builtin putc.
 
-Link: http://lkml.kernel.org/r/1466990929-7452-2-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/1466977046-24724-1-git-send-email-sudipm.mukherjee@gmail.com
+Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/m32r/boot/compressed/m32r_sio.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/rmap.c~mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check mm/rmap.c
---- a/mm/rmap.c~mm-rmap-call-page_check_address-with-sync-enabled-to-avoid-racy-check
-+++ a/mm/rmap.c
-@@ -1427,7 +1427,8 @@ static int try_to_unmap_one(struct page
- 			goto out;
- 	}
+diff -puN arch/m32r/boot/compressed/m32r_sio.c~m32r-fix-build-warning-about-putc arch/m32r/boot/compressed/m32r_sio.c
+--- a/arch/m32r/boot/compressed/m32r_sio.c~m32r-fix-build-warning-about-putc
++++ a/arch/m32r/boot/compressed/m32r_sio.c
+@@ -8,12 +8,13 @@
  
--	pte = page_check_address(page, mm, address, &ptl, 0);
-+	pte = page_check_address(page, mm, address, &ptl,
-+				 PageTransCompound(page));
- 	if (!pte)
- 		goto out;
+ #include <asm/processor.h>
  
+-static void putc(char c);
++static void m32r_putc(char c);
+ 
+ static int puts(const char *s)
+ {
+ 	char c;
+-	while ((c = *s++)) putc(c);
++	while ((c = *s++))
++		m32r_putc(c);
+ 	return 0;
+ }
+ 
+@@ -41,7 +42,7 @@ static int puts(const char *s)
+ #define BOOT_SIO0TXB	PLD_ESIO0TXB
+ #endif
+ 
+-static void putc(char c)
++static void m32r_putc(char c)
+ {
+ 	while ((*BOOT_SIO0STS & 0x3) != 0x3)
+ 		cpu_relax();
+@@ -61,7 +62,7 @@ static void putc(char c)
+ #define SIO0TXB	(volatile unsigned short *)(0x00efd000 + 30)
+ #endif
+ 
+-static void putc(char c)
++static void m32r_putc(char c)
+ {
+ 	while ((*SIO0STS & 0x1) == 0)
+ 		cpu_relax();
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
 
-mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
+m32r-add-__ucmpdi2-to-fix-build-failure.patch
+fpga-zynq-fpga-fix-build-failure.patch
 
