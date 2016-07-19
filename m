@@ -1,78 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- madvise_free-thp-fix-madvise_free_huge_pmd-return-value-after-splitting.patch removed from -mm tree
-Date: Tue, 19 Jul 2016 11:10:16 -0700
-Message-ID: <578e6d08.HvAYOZfZqcku4L0Q%akpm@linux-foundation.org>
+Subject: [merged] added-support-for-gcc-version-=-6.patch removed from -mm tree
+Date: Tue, 19 Jul 2016 11:10:28 -0700
+Message-ID: <578e6d14.tF4bGwBq1fs4vcbb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44059 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44074 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753694AbcGSSKR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:17 -0400
+	with ESMTP id S1753846AbcGSSK3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, aarcange@redhat.com, ebru.akagunduz@gmail.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: Florian.Meier@informatik.uni-erlangen.de, oberpar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: madvise_free, thp: fix madvise_free_huge_pmd return value after splitting
+     Subject: gcov: add support for gcc version >= 6
 has been removed from the -mm tree.  Its filename was
-     madvise_free-thp-fix-madvise_free_huge_pmd-return-value-after-splitting.patch
+     added-support-for-gcc-version-=-6.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: madvise_free, thp: fix madvise_free_huge_pmd return value after splitting
+From: Florian Meier <Florian.Meier@informatik.uni-erlangen.de>
+Subject: gcov: add support for gcc version >= 6
 
-madvise_free_huge_pmd should return 0 if the fallback PTE operations are
-required.  In madvise_free_huge_pmd, if part pages of THP are discarded,
-the THP will be split and fallback PTE operations should be used if
-splitting succeeds.  But the original code will make fallback PTE
-operations skipped, after splitting succeeds.  Fix that via make
-madvise_free_huge_pmd return 0 after splitting successfully, so that the
-fallback PTE operations will be done.
-
-Link: http://lkml.kernel.org/r/1467135452-16688-1-git-send-email-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Link: http://lkml.kernel.org/r/20160701130914.GA23225@styxhp
+Signed-off-by: Florian Meier <Florian.Meier@informatik.uni-erlangen.de>
+Reviewed-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Tested-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ kernel/gcov/gcc_4_7.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~madvise_free-thp-fix-madvise_free_huge_pmd-return-value-after-splitting mm/huge_memory.c
---- a/mm/huge_memory.c~madvise_free-thp-fix-madvise_free_huge_pmd-return-value-after-splitting
-+++ a/mm/huge_memory.c
-@@ -1624,14 +1624,9 @@ int madvise_free_huge_pmd(struct mmu_gat
- 	if (next - addr != HPAGE_PMD_SIZE) {
- 		get_page(page);
- 		spin_unlock(ptl);
--		if (split_huge_page(page)) {
--			put_page(page);
--			unlock_page(page);
--			goto out_unlocked;
--		}
-+		split_huge_page(page);
- 		put_page(page);
- 		unlock_page(page);
--		ret = 1;
- 		goto out_unlocked;
- 	}
+diff -puN kernel/gcov/gcc_4_7.c~added-support-for-gcc-version-=-6 kernel/gcov/gcc_4_7.c
+--- a/kernel/gcov/gcc_4_7.c~added-support-for-gcc-version-=-6
++++ a/kernel/gcov/gcc_4_7.c
+@@ -18,7 +18,7 @@
+ #include <linux/vmalloc.h>
+ #include "gcov.h"
  
+-#if __GNUC__ == 5 && __GNUC_MINOR__ >= 1
++#if (__GNUC__ > 5) || (__GNUC__ == 5 && __GNUC_MINOR__ >= 1)
+ #define GCOV_COUNTERS			10
+ #elif __GNUC__ == 4 && __GNUC_MINOR__ >= 9
+ #define GCOV_COUNTERS			9
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from Florian.Meier@informatik.uni-erlangen.de are
 
-thp-fix-comments-of-__pmd_trans_huge_lock.patch
-mm-thp-clean-up-return-value-of-madvise_free_huge_pmd.patch
 
