@@ -1,108 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- module-do-a-warn_on_once-for-assert-module-mutex-not-held.patch removed
- from -mm tree
-Date: Tue, 19 Jul 2016 11:27:49 -0700
-Message-ID: <578e7125.VXxy+x/u82Ige88D%akpm@linux-foundation.org>
+Subject: +
+ printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-update.patch
+ added to -mm tree
+Date: Tue, 19 Jul 2016 11:35:23 -0700
+Message-ID: <578e72eb.o69wt1DSeUBvusws%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44297 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44353 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753261AbcGSS1u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:27:50 -0400
+	with ESMTP id S1752348AbcGSSfY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:35:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: bp@suse.de, dyoung@redhat.com, fbui@suse.com, gregkh@linuxfoundation.org, mingo@kernel.org, peterz@infradead.org, rostedt@goodmis.org, torvalds@linux-foundation.org, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/module.c: do a WARN_ON_ONCE() for assert module mutex not held
-has been removed from the -mm tree.  Its filename was
-     module-do-a-warn_on_once-for-assert-module-mutex-not-held.patch
+     Subject: printk-add-kernel-parameter-to-control-writes-to-dev-kmsg=
+-update
+has been added to the -mm tree.  Its filename is
+     printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-update.p=
+atch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-add-kernel-paramete=
+r-to-control-writes-to-dev-kmsg-update.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-add-kernel-paramete=
+r-to-control-writes-to-dev-kmsg-update.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: kernel/module.c: do a WARN_ON_ONCE() for assert module mutex not held
+=46rom: Borislav Petkov <bp@suse.de>
+Subject: printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-upda=
+te
 
-When running with lockdep enabled, I triggered the WARN_ON() in the module
-code that asserts when module_mutex or rcu_read_lock_sched are not held. 
-The issue I have is that this can also be called from the dump_stack()
-code, causing us to enter an infinite loop...
+Thanks for catching this, here's an updated 2/2 patch with the above
+integrated and the SYSTEM_BOOTING check removed because we set
+system_state to SYSTEM_RUNNING before we start init.
 
- ------------[ cut here ]------------
- WARNING: CPU: 1 PID: 0 at kernel/module.c:268 module_assert_mutex_or_preempt+0x3c/0x3e
- Modules linked in: ip6t_REJECT nf_reject_ipv6 nf_conntrack_ipv6
- CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.7.0-rc3-test-00013-g501c2375253c #14
- Hardware name: MSI MS-7823/CSM-H87M-G43 (MS-7823), BIOS V1.6 02/22/2014
-  ffff880215e8fa70 ffff880215e8fa70 ffffffff812fc8e3 0000000000000000
-  ffffffff81d3e55b ffff880215e8fac0 ffffffff8104fc88 ffffffff8104fcab
-  0000000915e88300 0000000000000046 ffffffffa019b29a 0000000000000001
- Call Trace:
-  [<ffffffff812fc8e3>] dump_stack+0x67/0x90
-  [<ffffffff8104fc88>] __warn+0xcb/0xe9
-  [<ffffffff8104fcab>] ? warn_slowpath_null+0x5/0x1f
- ------------[ cut here ]------------
- WARNING: CPU: 1 PID: 0 at kernel/module.c:268 module_assert_mutex_or_preempt+0x3c/0x3e
- Modules linked in: ip6t_REJECT nf_reject_ipv6 nf_conntrack_ipv6
- CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.7.0-rc3-test-00013-g501c2375253c #14
- Hardware name: MSI MS-7823/CSM-H87M-G43 (MS-7823), BIOS V1.6 02/22/2014
-  ffff880215e8f7a0 ffff880215e8f7a0 ffffffff812fc8e3 0000000000000000
-  ffffffff81d3e55b ffff880215e8f7f0 ffffffff8104fc88 ffffffff8104fcab
-  0000000915e88300 0000000000000046 ffffffffa019b29a 0000000000000001
- Call Trace:
-  [<ffffffff812fc8e3>] dump_stack+0x67/0x90
-  [<ffffffff8104fc88>] __warn+0xcb/0xe9
-  [<ffffffff8104fcab>] ? warn_slowpath_null+0x5/0x1f
- ------------[ cut here ]------------
- WARNING: CPU: 1 PID: 0 at kernel/module.c:268 module_assert_mutex_or_preempt+0x3c/0x3e
- Modules linked in: ip6t_REJECT nf_reject_ipv6 nf_conntrack_ipv6
- CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.7.0-rc3-test-00013-g501c2375253c #14
- Hardware name: MSI MS-7823/CSM-H87M-G43 (MS-7823), BIOS V1.6 02/22/2014
-  ffff880215e8f4d0 ffff880215e8f4d0 ffffffff812fc8e3 0000000000000000
-  ffffffff81d3e55b ffff880215e8f520 ffffffff8104fc88 ffffffff8104fcab
-  0000000915e88300 0000000000000046 ffffffffa019b29a 0000000000000001
- Call Trace:
-  [<ffffffff812fc8e3>] dump_stack+0x67/0x90
-  [<ffffffff8104fc88>] __warn+0xcb/0xe9
-  [<ffffffff8104fcab>] ? warn_slowpath_null+0x5/0x1f
- ------------[ cut here ]------------
- WARNING: CPU: 1 PID: 0 at kernel/module.c:268 module_assert_mutex_or_preempt+0x3c/0x3e
-[...]
-
-Which gives us rather useless information.  Worse yet, there's some race
-that causes this, and I seldom trigger it, so I have no idea what
-happened.
-
-This would not be an issue if that warning was a WARN_ON_ONCE().
-
-Link: http://lkml.kernel.org/r/20160712091550.30ddfff7@gandalf.local.home
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Link: http://lkml.kernel.org/r/20160719072344.GC25563@nazgul.tnic
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Franck Bui <fbui@suse.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/printk/printk.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN kernel/module.c~module-do-a-warn_on_once-for-assert-module-mutex-not-held kernel/module.c
---- a/kernel/module.c~module-do-a-warn_on_once-for-assert-module-mutex-not-held
-+++ a/kernel/module.c
-@@ -265,7 +265,7 @@ static void module_assert_mutex_or_preem
- 	if (unlikely(!debug_locks))
- 		return;
- 
--	WARN_ON(!rcu_read_lock_sched_held() &&
-+	WARN_ON_ONCE(!rcu_read_lock_sched_held() &&
- 		!lockdep_is_held(&module_mutex));
- #endif
+diff -puN kernel/printk/printk.c~printk-add-kernel-parameter-to-control=
+-writes-to-dev-kmsg-update kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-add-kernel-parameter-to-control-wri=
+tes-to-dev-kmsg-update
++++ a/kernel/printk/printk.c
+@@ -117,8 +117,7 @@ static int __control_devkmsg(char *str)
+ 		devkmsg_log =3D DEVKMSG_LOG_MASK_DEFAULT;
+ 		return 9;
+ 	}
+-	else
+-		return -EINVAL;
++	return -EINVAL;
  }
+=20
+ static int __init control_devkmsg(char *str)
+@@ -741,8 +740,8 @@ static ssize_t devkmsg_write(struct kioc
+ 	if (devkmsg_log & DEVKMSG_LOG_MASK_OFF)
+ 		return len;
+=20
+-	/* Ratelimit when not explicitly enabled or when we're not booting. *=
+/
+-	if ((system_state !=3D SYSTEM_BOOTING) && !(devkmsg_log & DEVKMSG_LOG=
+_MASK_ON)) {
++	/* Ratelimit when not explicitly enabled. */
++	if (!(devkmsg_log & DEVKMSG_LOG_MASK_ON)) {
+ 		if (!___ratelimit(&user->rs, current->comm))
+ 			return ret;
+ 	}
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from bp@suse.de are
 
+ratelimit-extend-to-print-suppressed-messages-on-release.patch
+printk-add-kernel-parameter-to-control-writes-to-dev-kmsg.patch
+printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-update.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
