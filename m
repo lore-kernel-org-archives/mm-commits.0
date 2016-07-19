@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-use-list_move-instead-of-list_del-list_add.patch added
- to -mm tree
-Date: Tue, 19 Jul 2016 16:33:22 -0700
-Message-ID: <578eb8c2.8dMJDjsppo9nTOFU%akpm@linux-foundation.org>
+Subject: + mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix.patch
+ added to -mm tree
+Date: Tue, 19 Jul 2016 16:43:36 -0700
+Message-ID: <578ebb28.AWUMDe5IRGJQCjJw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49067 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49083 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752107AbcGSXdX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 19:33:23 -0400
+	with ESMTP id S1751889AbcGSXnh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 19:43:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yongjun_wei@trendmicro.com.cn, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: use list_move instead of list_del/list_add
+     Subject: mm, vmscan: Release/reacquire lru_lock on pgdat change -fix
 has been added to the -mm tree.  Its filename is
-     mm-slab-use-list_move-instead-of-list_del-list_add.patch
+     mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-use-list_move-instead-of-list_del-list_add.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-use-list_move-instead-of-list_del-list_add.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,40 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: mm/slab: use list_move instead of list_del/list_add
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, vmscan: Release/reacquire lru_lock on pgdat change -fix
 
-Using list_move() instead of list_del() + list_add() to avoid needlessly
-poisoning the next and prev values.
+Remove double initialisation. It's harmless but odd looking.
 
-Link: http://lkml.kernel.org/r/1468929772-9174-1-git-send-email-weiyj_lk@163.com
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+This is a fix to the mmotm patch
+mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
+
+Link: http://lkml.kernel.org/r/20160719074835.GC10438@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/vmscan.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/slab.c~mm-slab-use-list_move-instead-of-list_del-list_add mm/slab.c
---- a/mm/slab.c~mm-slab-use-list_move-instead-of-list_del-list_add
-+++ a/mm/slab.c
-@@ -3452,8 +3452,7 @@ static void free_block(struct kmem_cache
- 		n->free_objects -= cachep->num;
+diff -puN mm/vmscan.c~mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix
++++ a/mm/vmscan.c
+@@ -3784,7 +3784,6 @@ void check_move_unevictable_pages(struct
+ 		struct pglist_data *pagepgdat = page_pgdat(page);
  
- 		page = list_last_entry(&n->slabs_free, struct page, lru);
--		list_del(&page->lru);
--		list_add(&page->lru, list);
-+		list_move(&page->lru, list);
- 	}
- }
- 
+ 		pgscanned++;
+-		pagepgdat = page_pgdat(page);
+ 		if (pagepgdat != pgdat) {
+ 			if (pgdat)
+ 				spin_unlock_irq(&pgdat->lru_lock);
 _
 
-Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-slab-use-list_move-instead-of-list_del-list_add.patch
+mm-meminit-remove-early_page_nid_uninitialised.patch
+mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
+mm-vmscan-move-lru_lock-to-the-node.patch
+mm-vmscan-move-lru-lists-to-node.patch
+mm-mmzone-clarify-the-usage-of-zone-padding.patch
+mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
+mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
+mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
+mm-vmscan-remove-balance-gap.patch
+mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
+mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
+mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
+mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
+mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
+mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
+mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
+mm-workingset-make-working-set-detection-node-aware.patch
+mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
+mm-move-page-mapped-accounting-to-the-node.patch
+mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
+mm-move-most-file-based-accounting-to-the-node.patch
+mm-move-most-file-based-accounting-to-the-node-fix.patch
+mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
+mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
+mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
+mm-convert-zone_reclaim-to-node_reclaim.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
+mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
+mm-vmscan-add-classzone-information-to-tracepoints.patch
+mm-page_alloc-remove-fair-zone-allocation-policy.patch
+mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
+mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
+mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
+mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
+mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
+mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
+mm-vmscan-update-all-zone-lru-sizes-before-updating-memcg.patch
+mm-vmscan-remove-redundant-check-in-shrink_zones.patch
+mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
+mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix.patch
 
