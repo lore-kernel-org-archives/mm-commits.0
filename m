@@ -1,63 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] uapi-export-lirch-header.patch removed from -mm tree
-Date: Tue, 19 Jul 2016 11:10:19 -0700
-Message-ID: <578e6d0b.+JX7ashLn4W8D2ps%akpm@linux-foundation.org>
+Subject: [merged] scripts-gdb-silence-nothing-to-do-message.patch removed
+ from -mm tree
+Date: Tue, 19 Jul 2016 11:10:04 -0700
+Message-ID: <578e6cfc.0ohwN7vMQuk2PJMV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44032 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753694AbcGSSKU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:20 -0400
+	with ESMTP id S1753503AbcGSSKF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jul 2016 14:10:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mchehab@s-opensource.com, leamas.alec@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: kieran@ksquared.org.uk, jan.kiszka@siemens.comkieran@ksquared.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uapi: export lirc.h header
+     Subject: scripts/gdb: silence 'nothing to do' message
 has been removed from the -mm tree.  Its filename was
-     uapi-export-lirch-header.patch
+     scripts-gdb-silence-nothing-to-do-message.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: uapi: export lirc.h header
+From: Kieran Bingham <kieran@ksquared.org.uk>
+Subject: scripts/gdb: silence 'nothing to do' message
 
-This header contains the userspace API for lirc.
+The constants.py generation, involves a rule to link into the main
+makefile.  This rule has no command and generates a spurious warning
+message in the build logs when CONFIG_SCRIPTS_GDB is enabled.
 
-This is a fixup for b7be755733dc44c72 ("[media] bz#75751: Move internal
-header file lirc.h to uapi/").  It moved the header to the right place,
-but it forgot to add it at Kbuild.  So, despite being at uapi, it is not
-copied to the right place.
+Fix simply by giving a no-op action
 
-Fixes: b7be755733dc44c72 ("[media] bz#75751: Move internal header file lirc.h to uapi/")
-Link: http://lkml.kernel.org/r/320c765d32bfc82c582e336d52ffe1026c73c644.1468439021.git.mchehab@s-opensource.com
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Alec Leamas <leamas.alec@gmail.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1467127337-11135-2-git-send-email-kieran@bingham.xyz
+Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
+Reported-by: Jan Kiszka <jan.kiszka@siemens.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/Kbuild |    1 +
+ scripts/gdb/linux/Makefile |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN include/uapi/linux/Kbuild~uapi-export-lirch-header include/uapi/linux/Kbuild
---- a/include/uapi/linux/Kbuild~uapi-export-lirch-header
-+++ a/include/uapi/linux/Kbuild
-@@ -245,6 +245,7 @@ endif
- header-y += hw_breakpoint.h
- header-y += l2tp.h
- header-y += libc-compat.h
-+header-y += lirc.h
- header-y += limits.h
- header-y += llc.h
- header-y += loop.h
+diff -puN scripts/gdb/linux/Makefile~scripts-gdb-silence-nothing-to-do-message scripts/gdb/linux/Makefile
+--- a/scripts/gdb/linux/Makefile~scripts-gdb-silence-nothing-to-do-message
++++ a/scripts/gdb/linux/Makefile
+@@ -17,5 +17,6 @@ $(obj)/constants.py: $(SRCTREE)/$(obj)/c
+ 	$(call if_changed,gen_constants_py)
+ 
+ build_constants_py: $(obj)/constants.py
++	@:
+ 
+ clean-files := *.pyc *.pyo $(if $(KBUILD_SRC),*.py) $(obj)/constants.py
 _
 
-Patches currently in -mm which might be from mchehab@s-opensource.com are
+Patches currently in -mm which might be from kieran@ksquared.org.uk are
 
 
