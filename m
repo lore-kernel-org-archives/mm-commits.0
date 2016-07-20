@@ -1,47 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/5] testing/radix-tree: fix a macro expansion bug
-Date: Wed, 20 Jul 2016 15:45:03 -0700
-Message-ID: <578ffeef.SP0r4NPKOcV2LdZW%akpm@linux-foundation.org>
+Subject: [patch 5/5] pps: do not crash when failed to register
+Date: Wed, 20 Jul 2016 15:45:08 -0700
+Message-ID: <578ffef4.HrXStweWZpXykNKD%akpm__993.032896849577$1469054729$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53297 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53307 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932141AbcGTWpE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jul 2016 18:45:04 -0400
+	with ESMTP id S932141AbcGTWpK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jul 2016 18:45:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.carpenter@oracle.com, ross.zwisler@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jslaby@suse.cz, giometti@enneenne.com, stable@vger.kernel.org
 
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: testing/radix-tree: fix a macro expansion bug
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: pps: do not crash when failed to register
 
-There are no parentheses around this macro and it causes a problem when
-we do:
+With this command sequence:
+ modprobe plip
+ modprobe pps_parport
+ rmmod pps_parport
+the partport_pps modules causes this crash:
 
-	index = rand() % THRASH_SIZE;
+===
 
-Link: http://lkml.kernel.org/r/20160715210953.GC19522@mwanda
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+BUG: unable to handle kernel NULL pointer dereference at           (null)
+IP: [<ffffffffa110301d>] parport_detach+0x1d/0x60 [pps_parport]
+Oops: 0000 [#1] SMP
+...
+Call Trace:
+ [<ffffffffa036a185>] parport_unregister_driver+0x65/0xc0 [parport]
+ [<ffffffff810ff667>] SyS_delete_module+0x187/0x210
+
+===
+
+1) plip is loaded and takes the parport device for exclusive use:
+  plip0: Parallel port at 0x378, using IRQ 7.
+
+2) pps_parport then fails to grab the device:
+  pps_parport: parallel port PPS client
+  parport0: cannot grant exclusive access for device pps_parport
+  pps_parport: couldn't register with parport0
+
+3) rmmod of pps_parport is then killed because it tries to access
+   pardev->name, but pardev (taken from port->cad) is NULL.
+
+So add a check for NULL in the test there too.
+
+Link: http://lkml.kernel.org/r/20160714115245.12651-1-jslaby@suse.cz
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Acked-by: Rodolfo Giometti <giometti@enneenne.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/tag_check.c |    2 +-
+ drivers/pps/clients/pps_parport.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/testing/radix-tree/tag_check.c~testing-radix-tree-fix-a-macro-expansion-bug tools/testing/radix-tree/tag_check.c
---- a/tools/testing/radix-tree/tag_check.c~testing-radix-tree-fix-a-macro-expansion-bug
-+++ a/tools/testing/radix-tree/tag_check.c
-@@ -122,7 +122,7 @@ enum {
- 	NODE_TAGGED = 2,
- };
+diff -puN drivers/pps/clients/pps_parport.c~pps-do-not-crash-when-failed-to-register drivers/pps/clients/pps_parport.c
+--- a/drivers/pps/clients/pps_parport.c~pps-do-not-crash-when-failed-to-register
++++ a/drivers/pps/clients/pps_parport.c
+@@ -195,7 +195,7 @@ static void parport_detach(struct parpor
+ 	struct pps_client_pp *device;
  
--#define THRASH_SIZE		1000 * 1000
-+#define THRASH_SIZE		(1000 * 1000)
- #define N 127
- #define BATCH	33
+ 	/* FIXME: oooh, this is ugly! */
+-	if (strcmp(pardev->name, KBUILD_MODNAME))
++	if (!pardev || strcmp(pardev->name, KBUILD_MODNAME))
+ 		/* not our port */
+ 		return;
  
 _
