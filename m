@@ -1,92 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hwpoison-remove-incorrect-comment.patch added to -mm tree
-Date: Wed, 20 Jul 2016 14:51:50 -0700
-Message-ID: <578ff276.Jseyx2gvy8OdnS0A%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs-fix.patch
+ removed from -mm tree
+Date: Wed, 20 Jul 2016 15:42:25 -0700
+Message-ID: <578ffe51.KZtMysNgzDSMfD3C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53276 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752043AbcGTVvv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jul 2016 17:51:51 -0400
+	with ESMTP id S1755084AbcGTWm1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jul 2016 18:42:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, mhocko@suse.com, zhanc1@andrew.cmu.edu, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, kernel@kyup.com, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hwpoison: remove incorrect comments
-has been added to the -mm tree.  Its filename is
-     mm-hwpoison-remove-incorrect-comment.patch
+     Subject: mm: memcontrol: fix cgroup creation failure after many small jobs fix
+has been removed from the -mm tree.  Its filename was
+     mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-remove-incorrect-comment.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-remove-incorrect-comment.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs.patch
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hwpoison: remove incorrect comments
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: fix cgroup creation failure after many small jobs fix
 
-dequeue_hwpoisoned_huge_page() can be called without page lock hold,
-so let's remove incorrect comment.
+init the IDR
 
-The reason why the page lock is not really needed is that
-dequeue_hwpoisoned_huge_page() checks page_huge_active() inside hugetlb_lock,
-which allows us to avoid trying to dequeue a hugepage that are just allocated
-but not linked to active list yet, even without taking page lock.
-
-Link: http://lkml.kernel.org/r/20160720092901.GA15995@www9186uo.sakura.ne.jp
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reported-by: Zhan Chen <zhanc1@andrew.cmu.edu>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20160621154601.GA22431@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Nikolay Borisov <kernel@kyup.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c        |    1 -
- mm/memory-failure.c |    2 --
- 2 files changed, 3 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hwpoison-remove-incorrect-comment mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hwpoison-remove-incorrect-comment
-+++ a/mm/hugetlb.c
-@@ -4396,7 +4396,6 @@ follow_huge_pud(struct mm_struct *mm, un
- 
- /*
-  * This function is called from memory failure code.
-- * Assume the caller holds page lock of the head page.
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs-fix
++++ a/mm/memcontrol.c
+@@ -4081,7 +4081,7 @@ static struct cftype mem_cgroup_legacy_f
+  * those references are manageable from userspace.
   */
- int dequeue_hwpoisoned_huge_page(struct page *hpage)
+ 
+-static struct idr mem_cgroup_idr;
++static DEFINE_IDR(mem_cgroup_idr);
+ 
+ static void mem_cgroup_id_get(struct mem_cgroup *memcg)
  {
-diff -puN mm/memory-failure.c~mm-hwpoison-remove-incorrect-comment mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-remove-incorrect-comment
-+++ a/mm/memory-failure.c
-@@ -741,8 +741,6 @@ static int me_huge_page(struct page *p,
- 	 * page->lru because it can be used in other hugepage operations,
- 	 * such as __unmap_hugepage_range() and gather_surplus_pages().
- 	 * So instead we use page_mapping() and PageAnon().
--	 * We assume that this function is called with page lock held,
--	 * so there is no race between isolation and mapping/unmapping.
- 	 */
- 	if (!(page_mapping(hpage) || PageAnon(hpage))) {
- 		res = dequeue_hwpoisoned_huge_page(hpage);
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
-mm-hwpoison-remove-incorrect-comment.patch
+mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs.patch
+cgroup-fix-idr-leak-for-the-first-cgroup-root.patch
+cgroup-remove-unnecessary-0-check-from-css_from_id.patch
+mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code.patch
+mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code-fix.patch
 
