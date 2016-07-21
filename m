@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
- added to -mm tree
-Date: Thu, 21 Jul 2016 14:09:37 -0700
-Message-ID: <57913a11.Qy+MhcRTw/N8ZRE7%akpm@linux-foundation.org>
+Subject: + mm-vmscan-remove-highmem_file_pages.patch added to -mm tree
+Date: Thu, 21 Jul 2016 14:09:48 -0700
+Message-ID: <57913a1c.PeZPsnLSlvEYP7Id%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53607 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53611 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754073AbcGUVJi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jul 2016 17:09:38 -0400
+	with ESMTP id S1754073AbcGUVJt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jul 2016 17:09:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, hannes@cmpxchg.org, mhocko@suse.cz, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: account for skipped pages as a partial scan
+     Subject: mm, vmscan: remove highmem_file_pages
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
+     mm-vmscan-remove-highmem_file_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-remove-highmem_file_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-remove-highmem_file_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,19 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: account for skipped pages as a partial scan
+Subject: mm, vmscan: remove highmem_file_pages
 
-Page reclaim determines whether a pgdat is unreclaimable by examining how
-many pages have been scanned since a page was freed and comparing that to
-the LRU sizes.  Skipped pages are not reclaim candidates but contribute to
-scanned.  This can prematurely mark a pgdat as unreclaimable and trigger
-an OOM kill.
+With the reintroduction of per-zone LRU stats, highmem_file_pages is
+redundant so remove it.
 
-This patch accounts for skipped pages as a partial scan so that an
-unreclaimable pgdat will still be marked as such but by scaling the cost
-of a skip, it'll avoid the pgdat being marked prematurely.
-
-Link: http://lkml.kernel.org/r/1469110261-7365-6-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1469110261-7365-3-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -61,60 +53,82 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   20 ++++++++++++++++++--
- 1 file changed, 18 insertions(+), 2 deletions(-)
+ include/linux/mm_inline.h |   17 -----------------
+ mm/page-writeback.c       |   12 ++++--------
+ 2 files changed, 4 insertions(+), 25 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-account-for-skipped-pages-as-a-partial-scan mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-account-for-skipped-pages-as-a-partial-scan
-+++ a/mm/vmscan.c
-@@ -1424,7 +1424,7 @@ static unsigned long isolate_lru_pages(u
- 	LIST_HEAD(pages_skipped);
+diff -puN include/linux/mm_inline.h~mm-vmscan-remove-highmem_file_pages include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-vmscan-remove-highmem_file_pages
++++ a/include/linux/mm_inline.h
+@@ -4,22 +4,6 @@
+ #include <linux/huge_mm.h>
+ #include <linux/swap.h>
  
- 	for (scan = 0; scan < nr_to_scan && nr_taken < nr_to_scan &&
--					!list_empty(src); scan++) {
-+					!list_empty(src);) {
- 		struct page *page;
+-#ifdef CONFIG_HIGHMEM
+-extern atomic_t highmem_file_pages;
+-
+-static inline void acct_highmem_file_pages(int zid, enum lru_list lru,
+-							int nr_pages)
+-{
+-	if (is_highmem_idx(zid) && is_file_lru(lru))
+-		atomic_add(nr_pages, &highmem_file_pages);
+-}
+-#else
+-static inline void acct_highmem_file_pages(int zid, enum lru_list lru,
+-							int nr_pages)
+-{
+-}
+-#endif
+-
+ /**
+  * page_is_file_cache - should the page be on a file LRU or anon LRU?
+  * @page: the page to test
+@@ -47,7 +31,6 @@ static __always_inline void __update_lru
+ 	__mod_node_page_state(pgdat, NR_LRU_BASE + lru, nr_pages);
+ 	__mod_zone_page_state(&pgdat->node_zones[zid],
+ 				NR_ZONE_LRU_BASE + lru, nr_pages);
+-	acct_highmem_file_pages(zid, lru, nr_pages);
+ }
  
- 		page = lru_to_page(src);
-@@ -1438,6 +1438,12 @@ static unsigned long isolate_lru_pages(u
- 			continue;
+ static __always_inline void update_lru_size(struct lruvec *lruvec,
+diff -puN mm/page-writeback.c~mm-vmscan-remove-highmem_file_pages mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-vmscan-remove-highmem_file_pages
++++ a/mm/page-writeback.c
+@@ -299,17 +299,13 @@ static unsigned long node_dirtyable_memo
+ 
+ 	return nr_pages;
+ }
+-#ifdef CONFIG_HIGHMEM
+-atomic_t highmem_file_pages;
+-#endif
+ 
+ static unsigned long highmem_dirtyable_memory(unsigned long total)
+ {
+ #ifdef CONFIG_HIGHMEM
+ 	int node;
+-	unsigned long x;
++	unsigned long x = 0;
+ 	int i;
+-	unsigned long dirtyable = 0;
+ 
+ 	for_each_node_state(node, N_HIGH_MEMORY) {
+ 		for (i = ZONE_NORMAL + 1; i < MAX_NR_ZONES; i++) {
+@@ -326,12 +322,12 @@ static unsigned long highmem_dirtyable_m
+ 			nr_pages = zone_page_state(z, NR_FREE_PAGES);
+ 			/* watch for underflows */
+ 			nr_pages -= min(nr_pages, high_wmark_pages(z));
+-			dirtyable += nr_pages;
++			nr_pages += zone_page_state(z, NR_INACTIVE_FILE);
++			nr_pages += zone_page_state(z, NR_ACTIVE_FILE);
++			x += nr_pages;
  		}
- 
-+		/*
-+		 * Account for scanned and skipped separetly to avoid the pgdat
-+		 * being prematurely marked unreclaimable by pgdat_reclaimable.
-+		 */
-+		scan++;
-+
- 		switch (__isolate_lru_page(page, mode)) {
- 		case 0:
- 			nr_pages = hpage_nr_pages(page);
-@@ -1465,14 +1471,24 @@ static unsigned long isolate_lru_pages(u
- 	 */
- 	if (!list_empty(&pages_skipped)) {
- 		int zid;
-+		unsigned long total_skipped = 0;
- 
--		list_splice(&pages_skipped, src);
- 		for (zid = 0; zid < MAX_NR_ZONES; zid++) {
- 			if (!nr_skipped[zid])
- 				continue;
- 
- 			__count_zid_vm_events(PGSCAN_SKIP, zid, nr_skipped[zid]);
-+			total_skipped += nr_skipped[zid];
- 		}
-+
-+		/*
-+		 * Account skipped pages as a partial scan as the pgdat may be
-+		 * close to unreclaimable. If the LRU list is empty, account
-+		 * skipped pages as a full scan.
-+		 */
-+		scan += list_empty(src) ? total_skipped : total_skipped >> 2;
-+
-+		list_splice(&pages_skipped, src);
  	}
- 	*nr_scanned = scan;
- 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, nr_to_scan, scan,
+ 
+-	x = dirtyable + atomic_read(&highmem_file_pages);
+-
+ 	/*
+ 	 * Unreclaimable memory (kernel memory or anonymous memory
+ 	 * without swap) can bring down the dirtyable pages below
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
