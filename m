@@ -1,82 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: +
- revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 21 Jul 2016 13:59:04 -0700
-Message-ID: <57913798.0sZsnLd9nTcc6RpX%akpm@linux-foundation.org>
+Subject: [merged]
+ kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug.patch removed from -mm tree
+Date: Thu, 21 Jul 2016 14:00:42 -0700
+Message-ID: <579137fa.PSljtRkbCO3NcvH4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53441 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53446 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754088AbcGUU7F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jul 2016 16:59:05 -0400
+	with ESMTP id S1753952AbcGUVAo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jul 2016 17:00:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ast@kernel.org, daniel@iogearbox.net, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes.patch
+     Subject: kernel/trace/bpf_trace.c: work around gcc-4.4.4 anon union initialization bug
+has been removed from the -mm tree.  Its filename was
+     kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes
+Subject: kernel/trace/bpf_trace.c: work around gcc-4.4.4 anon union initialization bug
 
-ERROR: "foo * bar" should be "foo *bar"
-#90: FILE: mm/mempool.c:311:
-+void * mempool_alloc(mempool_t *pool, gfp_t gfp_mask)
+kernel/trace/bpf_trace.c: In function 'bpf_event_output':
+kernel/trace/bpf_trace.c:312: error: unknown field 'next' specified in initializer
+kernel/trace/bpf_trace.c:312: warning: missing braces around initializer
+kernel/trace/bpf_trace.c:312: warning: (near initialization for 'raw.frag.<anonymous>')
 
-total: 5 errors, 0 warnings, 52 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michal Hocko <mhocko@suse.com>
+Fixes: 555c8a8623a3a87 ("bpf: avoid stack copy and use skb ctx for event output")
+Acked-by: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/trace/bpf_trace.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/mempool.c~revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes mm/mempool.c
---- a/mm/mempool.c~revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes
-+++ a/mm/mempool.c
-@@ -308,7 +308,7 @@ EXPORT_SYMBOL(mempool_resize);
-  * fail if called from an IRQ context.)
-  * Note: using __GFP_ZERO is not supported.
-  */
--void * mempool_alloc(mempool_t *pool, gfp_t gfp_mask)
-+void *mempool_alloc(mempool_t *pool, gfp_t gfp_mask)
- {
- 	void *element;
- 	unsigned long flags;
+diff -puN kernel/trace/bpf_trace.c~kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug kernel/trace/bpf_trace.c
+--- a/kernel/trace/bpf_trace.c~kernel-trace-bpf_tracec-work-around-gcc-444-anon-union-initialization-bug
++++ a/kernel/trace/bpf_trace.c
+@@ -309,7 +309,9 @@ u64 bpf_event_output(struct bpf_map *map
+ 	};
+ 	struct perf_raw_record raw = {
+ 		.frag = {
+-			.next	= ctx_size ? &frag : NULL,
++			{
++				.next	= ctx_size ? &frag : NULL,
++			},
+ 			.size	= meta_size,
+ 			.data	= meta,
+ 		},
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
