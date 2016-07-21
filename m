@@ -1,220 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] ipc-sem-sem_lock-with-hysteresis.patch removed from -mm tree
-Date: Thu, 21 Jul 2016 13:16:58 -0700
-Message-ID: <57912dba.aGm2zTeuwuCKeyZl%akpm@linux-foundation.org>
+Subject: +
+ revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements.patch added to -mm tree
+Date: Thu, 21 Jul 2016 13:58:08 -0700
+Message-ID: <57913760.ujjiirbQgpZNMQBy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53438 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753848AbcGUUQ7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jul 2016 16:16:59 -0400
+	with ESMTP id S1753986AbcGUU6K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jul 2016 16:58:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, 1vier1@web.de, dave@stgolabs.net, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, mgorman@suse.de, mpatocka@redhat.com, neilb@suse.de, okozina@redhat.com, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/sem: sem_lock with hysteresis
-has been removed from the -mm tree.  Its filename was
-     ipc-sem-sem_lock-with-hysteresis.patch
+     Subject: Revert "mm, mempool: only set __GFP_NOMEMALLOC if there are free elements"
+has been added to the -mm tree.  Its filename is
+     revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem: sem_lock with hysteresis
+From: Michal Hocko <mhocko@suse.com>
+Subject: Revert "mm, mempool: only set __GFP_NOMEMALLOC if there are free elements"
 
-sysv sem has two lock modes: One with per-semaphore locks, one lock mode
-with a single big lock for the whole array.
-When switching from the per-semaphore locks to the big lock, all
-per-semaphore locks must be scanned for ongoing operations.
+This reverts f9054c70d28bc214b ("mm, mempool: only set __GFP_NOMEMALLOC if
+there are free elements").
 
-The patch adds a hysteresis for switching from the big lock to the per
-semaphore locks. This reduces how often the per-semaphore locks must
-be scanned.
+There has been a report about OOM killer invoked when swapping out to a
+dm-crypt device.  The primary reason seems to be that the swapout out IO
+managed to completely deplete memory reserves.  Ondrej was able to bisect
+and explained the issue by pointing to f9054c70d28b ("mm, mempool: only
+set __GFP_NOMEMALLOC if there are free elements").
 
-Passed stress testing with sem-scalebench.
+The reason is that the swapout path is not throttled properly because the
+md-raid layer needs to allocate from the generic_make_request path which
+means it allocates from the PF_MEMALLOC context.  dm layer uses
+mempool_alloc in order to guarantee a forward progress which used to
+inhibit access to memory reserves when using page allocator.  This has
+changed by f9054c70d28b ("mm, mempool: only set __GFP_NOMEMALLOC if there
+are free elements") which has dropped the __GFP_NOMEMALLOC protection when
+the memory pool is depleted.
 
-Link: http://lkml.kernel.org/r/1466876272-3824-3-git-send-email-manfred@colorfullife.com
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <1vier1@web.de>
+If we are running out of memory and the only way forward to free memory is
+to perform swapout we just keep consuming memory reserves rather than
+throttling the mempool allocations and allowing the pending IO to complete
+up to a moment when the memory is depleted completely and there is no way
+forward but invoking the OOM killer.  This is less than optimal.
+
+The original intention of f9054c70d28b was to help with the OOM situations
+where the oom victim depends on mempool allocation to make a forward
+progress.  David has mentioned the following backtrace:
+
+schedule
+schedule_timeout
+io_schedule_timeout
+mempool_alloc
+__split_and_process_bio
+dm_request
+generic_make_request
+submit_bio
+mpage_readpages
+ext4_readpages
+__do_page_cache_readahead
+ra_submit
+filemap_fault
+handle_mm_fault
+__do_page_fault
+do_page_fault
+page_fault
+
+We do not know more about why the mempool is depleted without being
+replenished in time, though.  In any case the dm layer shouldn't depend on
+any allocations outside of the dedicated pools so a forward progress
+should be guaranteed.  If this is not the case then the dm should be fixed
+rather than papering over the problem and postponing it to later by
+accessing more memory reserves.
+
+mempools are a mechanism to maintain dedicated memory reserves to guaratee
+forward progress.  Allowing them an unbounded access to the page allocator
+memory reserves is going against the whole purpose of this mechanism.
+
+Bisected by Ondrej Kozina.
+
+Link: http://lkml.kernel.org/r/20160721145309.GR26379@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Ondrej Kozina <okozina@redhat.com>
+Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: Ondrej Kozina <okozina@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sem.h |    2 
- ipc/sem.c           |   89 ++++++++++++++++++++++--------------------
- 2 files changed, 49 insertions(+), 42 deletions(-)
+ mm/mempool.c |   20 ++++----------------
+ 1 file changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/sem.h~ipc-sem-sem_lock-with-hysteresis include/linux/sem.h
---- a/include/linux/sem.h~ipc-sem-sem_lock-with-hysteresis
-+++ a/include/linux/sem.h
-@@ -21,7 +21,7 @@ struct sem_array {
- 	struct list_head	list_id;	/* undo requests on this array */
- 	int			sem_nsems;	/* no. of semaphores in array */
- 	int			complex_count;	/* pending complex operations */
--	bool			complex_mode;	/* no parallel simple ops */
-+	int			complex_mode;	/* >0: no parallel simple ops */
- };
- 
- #ifdef CONFIG_SYSVIPC
-diff -puN ipc/sem.c~ipc-sem-sem_lock-with-hysteresis ipc/sem.c
---- a/ipc/sem.c~ipc-sem-sem_lock-with-hysteresis
-+++ a/ipc/sem.c
-@@ -161,6 +161,13 @@ static int sysvipc_sem_proc_show(struct
- #define SEMOPM_FAST	64  /* ~ 372 bytes on stack */
- 
- /*
-+ * Switching from the mode suitable for simple ops
-+ * to the mode for complex ops is costly. Therefore:
-+ * use some hysteresis
-+ */
-+#define COMPLEX_MODE_ENTER 10
-+
-+/*
-  * Locking:
-  * a) global sem_lock() for read/write
-  *	sem_undo.id_next,
-@@ -269,17 +276,25 @@ static void sem_rcu_free(struct rcu_head
- /*
-  * Enter the mode suitable for non-simple operations:
-  * Caller must own sem_perm.lock.
-+ * Note:
-+ * There is no leave complex mode function. Leaving
-+ * happens in sem_lock, with some hysteresis.
+diff -puN mm/mempool.c~revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements mm/mempool.c
+--- a/mm/mempool.c~revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements
++++ a/mm/mempool.c
+@@ -306,36 +306,25 @@ EXPORT_SYMBOL(mempool_resize);
+  * returns NULL. Note that due to preallocation, this function
+  * *never* fails when called from process contexts. (it might
+  * fail if called from an IRQ context.)
+- * Note: neither __GFP_NOMEMALLOC nor __GFP_ZERO are supported.
++ * Note: using __GFP_ZERO is not supported.
   */
- static void complexmode_enter(struct sem_array *sma)
+-void *mempool_alloc(mempool_t *pool, gfp_t gfp_mask)
++void * mempool_alloc(mempool_t *pool, gfp_t gfp_mask)
  {
- 	int i;
- 	struct sem *sem;
+ 	void *element;
+ 	unsigned long flags;
+ 	wait_queue_t wait;
+ 	gfp_t gfp_temp;
  
--	if (sma->complex_mode)  {
--		/* We are already in complex_mode. Nothing to do */
-+	if (sma->complex_mode > 0)  {
-+		/*
-+		 * We are already in complex_mode.
-+		 * Nothing to do, just increase
-+		 * counter until we return to simple mode
-+		 */
-+		WRITE_ONCE(sma->complex_mode, COMPLEX_MODE_ENTER);
- 		return;
- 	}
--	WRITE_ONCE(sma->complex_mode, true);
-+	WRITE_ONCE(sma->complex_mode, COMPLEX_MODE_ENTER);
- 
- 	/* We need a full barrier:
- 	 * The write to complex_mode must be visible
-@@ -294,27 +309,6 @@ static void complexmode_enter(struct sem
- }
- 
- /*
-- * Try to leave the mode that disallows simple operations:
-- * Caller must own sem_perm.lock.
-- */
--static void complexmode_tryleave(struct sem_array *sma)
--{
--	if (sma->complex_count)  {
--		/* Complex ops are sleeping.
--		 * We must stay in complex mode
--		 */
--		return;
--	}
--	/*
--	 * Immediately after setting complex_mode to false,
--	 * a simple op can start. Thus: all memory writes
--	 * performed by the current operation must be visible
--	 * before we set complex_mode to false.
--	 */
--	smp_store_release(&sma->complex_mode, false);
--}
+-	/* If oom killed, memory reserves are essential to prevent livelock */
+-	VM_WARN_ON_ONCE(gfp_mask & __GFP_NOMEMALLOC);
+-	/* No element size to zero on allocation */
+ 	VM_WARN_ON_ONCE(gfp_mask & __GFP_ZERO);
 -
--/*
-  * If the request contains only one semaphore operation, and there are
-  * no complex transactions pending, lock only the semaphore involved.
-  * Otherwise, lock the entire semaphore array, since we either have
-@@ -366,27 +360,42 @@ static inline int sem_lock(struct sem_ar
- 	ipc_lock_object(&sma->sem_perm);
+ 	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
  
- 	if (sma->complex_count == 0) {
--		/* False alarm:
--		 * There is no complex operation, thus we can switch
--		 * back to the fast path.
++	gfp_mask |= __GFP_NOMEMALLOC;	/* don't allocate emergency reserves */
+ 	gfp_mask |= __GFP_NORETRY;	/* don't loop in __alloc_pages */
+ 	gfp_mask |= __GFP_NOWARN;	/* failures are OK */
+ 
+ 	gfp_temp = gfp_mask & ~(__GFP_DIRECT_RECLAIM|__GFP_IO);
+ 
+ repeat_alloc:
+-	if (likely(pool->curr_nr)) {
+-		/*
+-		 * Don't allocate from emergency reserves if there are
+-		 * elements available.  This check is racy, but it will
+-		 * be rechecked each loop.
 -		 */
--		spin_lock(&sem->lock);
--		ipc_unlock_object(&sma->sem_perm);
--		return sops->sem_num;
--	} else {
--		/* Not a false alarm, thus complete the sequence for a
--		 * full lock.
-+		/*
-+		 * Check if fast path is possible:
-+		 * There is no complex operation, check hysteresis
-+		 * If 0, switch back to the fast path.
- 		 */
--		complexmode_enter(sma);
--		return -1;
-+		if (sma->complex_mode > 0) {
-+			/* Note:
-+			 * Immediately after setting complex_mode to 0,
-+			 * a simple op could start.
-+			 * The data it would access was written by the
-+			 * previous owner of sem->sem_perm.lock, i.e
-+			 * a release and an acquire memory barrier ago.
-+			 * No need for another barrier.
-+			 */
-+			WRITE_ONCE(sma->complex_mode, sma->complex_mode-1);
-+		}
-+		if (sma->complex_mode == 0) {
-+			spin_lock(&sem->lock);
-+			ipc_unlock_object(&sma->sem_perm);
-+			return sops->sem_num;
-+		}
- 	}
-+	/*
-+	 * Not a false alarm, full lock is required.
-+	 * Since we are already in complex_mode (either because of waiting
-+	 * complex ops or due to hysteresis), there is not need for a
-+	 * complexmode_enter().
-+	 */
-+	WARN_ON(sma->complex_mode == 0);
-+	return -1;
- }
+-		gfp_temp |= __GFP_NOMEMALLOC;
+-	}
  
- static inline void sem_unlock(struct sem_array *sma, int locknum)
- {
- 	if (locknum == -1) {
- 		unmerge_queues(sma);
--		complexmode_tryleave(sma);
- 		ipc_unlock_object(&sma->sem_perm);
- 	} else {
- 		struct sem *sem = sma->sem_base + locknum;
-@@ -538,7 +547,7 @@ static int newary(struct ipc_namespace *
- 	}
- 
- 	sma->complex_count = 0;
--	sma->complex_mode = true; /* dropped by sem_unlock below */
-+	WRITE_ONCE(sma->complex_mode, COMPLEX_MODE_ENTER);
- 	INIT_LIST_HEAD(&sma->pending_alter);
- 	INIT_LIST_HEAD(&sma->pending_const);
- 	INIT_LIST_HEAD(&sma->list_id);
-@@ -2195,7 +2204,7 @@ static int sysvipc_sem_proc_show(struct
- 	 * The proc interface isn't aware of sem_lock(), it calls
- 	 * ipc_lock_object() directly (in sysvipc_find_ipc).
- 	 * In order to stay compatible with sem_lock(), we must
--	 * enter / leave complex_mode.
-+	 * enter complex_mode.
+ 	element = pool->alloc(gfp_temp, pool->pool_data);
+ 	if (likely(element != NULL))
+@@ -359,12 +348,11 @@ repeat_alloc:
+ 	 * We use gfp mask w/o direct reclaim or IO for the first round.  If
+ 	 * alloc failed with that and @pool was empty, retry immediately.
  	 */
- 	complexmode_enter(sma);
+-	if ((gfp_temp & ~__GFP_NOMEMALLOC) != gfp_mask) {
++	if (gfp_temp != gfp_mask) {
+ 		spin_unlock_irqrestore(&pool->lock, flags);
+ 		gfp_temp = gfp_mask;
+ 		goto repeat_alloc;
+ 	}
+-	gfp_temp = gfp_mask;
  
-@@ -2214,8 +2223,6 @@ static int sysvipc_sem_proc_show(struct
- 		   sem_otime,
- 		   sma->sem_ctime);
- 
--	complexmode_tryleave(sma);
+ 	/* We must not sleep if !__GFP_DIRECT_RECLAIM */
+ 	if (!(gfp_mask & __GFP_DIRECT_RECLAIM)) {
+_
+
+Patches currently in -mm which might be from mhocko@suse.com are
+
+arm-get-rid-of-superfluous-__gfp_repeat.patch
+slab-make-gfp_slab_bug_mask-information-more-human-readable.patch
+slab-do-not-panic-on-invalid-gfp_mask.patch
+mm-oom_reaper-make-sure-that-mmput_async-is-called-only-when-memory-was-reaped.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-fix.patch
+proc-oom-drop-bogus-task_lock-and-mm-check.patch
+proc-oom-drop-bogus-sighand-lock.patch
+proc-oom_adj-extract-oom_score_adj-setting-into-a-helper.patch
+mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj.patch
+mm-oom-skip-vforked-tasks-from-being-selected.patch
+mm-oom-kill-all-tasks-sharing-the-mm.patch
+mm-oom-fortify-task_will_free_mem.patch
+mm-oom-task_will_free_mem-should-skip-oom_reaped-tasks.patch
+mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice.patch
+mm-oom-hide-mm-which-is-shared-with-kthread-or-global-init.patch
+mm-oom-fortify-task_will_free_mem-fix.patch
+freezer-oom-check-tif_memdie-on-the-correct-task.patch
+cpuset-mm-fix-tif_memdie-check-in-cpuset_change_task_nodemask.patch
+revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements.patch
+
