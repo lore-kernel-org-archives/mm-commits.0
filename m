@@ -1,32 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- ipc-semc-fix-complex_count-vs-simple-op-race.patch removed from -mm tree
-Date: Thu, 21 Jul 2016 13:13:23 -0700
-Message-ID: <57912ce3.NfBCsGVg6HX7Oue0%akpm@linux-foundation.org>
+Subject: + ipc-semc-fix-complex_count-vs-simple-op-race.patch added to -mm tree
+Date: Thu, 21 Jul 2016 13:14:33 -0700
+Message-ID: <57912d29.QjuZ3jj1js6H07Bw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52555 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52565 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753926AbcGUUNY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jul 2016 16:13:24 -0400
+	with ESMTP id S1753877AbcGUUOe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jul 2016 16:14:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: manfred@colorfullife.com, 1vier1@web.de, dave@stgolabs.net, felixh@informatik.uni-bremen.de, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/sem.c: Fix complex_count vs. simple op race
-has been removed from the -mm tree.  Its filename was
+     Subject: ipc/sem.c: fix complex_count vs. simple op race
+has been added to the -mm tree.  Its filename is
      ipc-semc-fix-complex_count-vs-simple-op-race.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-fix-complex_count-vs-simple-op-race.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-fix-complex_count-vs-simple-op-race.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: Fix complex_count vs. simple op race
+Subject: ipc/sem.c: fix complex_count vs. simple op race
 
 Commit 6d07b68ce16a ("ipc/sem.c: optimize sem_lock()") introduced a
 race:
@@ -50,6 +63,9 @@ The patch is required for all kernels that include the
 commit 6d07b68ce16a ("ipc/sem.c: optimize sem_lock()") (3.10?)
 
 The alternative is to revert the patch that introduced the race.
+
+The patch is safe for backporting, i.e. it makes no assumptions
+about memory barriers in spin_unlock_wait().
 
 Background:
 Here is the race of the current implementation:
@@ -79,12 +95,8 @@ Bug:
 Now both thread A and thread C operate on the same array, without
 any synchronization.
 
-Full memory barrier are required to synchronize changes of
-complex_mode and the lock operations.
-
 Fixes: 6d07b68ce16a ("ipc/sem.c: optimize sem_lock()")
-Link: http://lkml.kernel.org/r/1466876272-3824-2-git-send-email-manfred@colorfullife.com
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Link: http://lkml.kernel.org/r/1469123695-5661-1-git-send-email-manfred@colorfullife.com
 Reported-by: <felixh@informatik.uni-bremen.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -97,8 +109,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/sem.h |    1 
- ipc/sem.c           |  130 +++++++++++++++++++++++++-----------------
- 2 files changed, 79 insertions(+), 52 deletions(-)
+ ipc/sem.c           |  138 +++++++++++++++++++++++++-----------------
+ 2 files changed, 84 insertions(+), 55 deletions(-)
 
 diff -puN include/linux/sem.h~ipc-semc-fix-complex_count-vs-simple-op-race include/linux/sem.h
 --- a/include/linux/sem.h~ipc-semc-fix-complex_count-vs-simple-op-race
@@ -140,7 +152,7 @@ diff -puN ipc/sem.c~ipc-semc-fix-complex_count-vs-simple-op-race ipc/sem.c
   */
  
  #define sc_semmsl	sem_ctls[0]
-@@ -260,28 +267,59 @@ static void sem_rcu_free(struct rcu_head
+@@ -260,30 +267,61 @@ static void sem_rcu_free(struct rcu_head
  }
  
  /*
@@ -165,14 +177,13 @@ diff -puN ipc/sem.c~ipc-semc-fix-complex_count-vs-simple-op-race ipc/sem.c
 +		/* We are already in complex_mode. Nothing to do */
  		return;
  	}
-+	WRITE_ONCE(sma->complex_mode, true);
-+
-+	/* We need a full barrier:
+ 
++	/* We need a full barrier after seting complex_mode:
 +	 * The write to complex_mode must be visible
 +	 * before we read the first sem->lock spinlock state.
 +	 */
-+	smp_mb();
- 
++	smp_store_mb(sma->complex_mode, true);
++
  	for (i = 0; i < sma->sem_nsems; i++) {
  		sem = sma->sem_base + i;
  		spin_unlock_wait(&sem->lock);
@@ -208,8 +219,11 @@ diff -puN ipc/sem.c~ipc-semc-fix-complex_count-vs-simple-op-race ipc/sem.c
 +	smp_store_release(&sma->complex_mode, false);
  }
  
++#define SEM_GLOBAL_LOCK	(-1)
  /*
-@@ -300,56 +338,40 @@ static inline int sem_lock(struct sem_ar
+  * If the request contains only one semaphore operation, and there are
+  * no complex transactions pending, lock only the semaphore involved.
+@@ -300,56 +338,42 @@ static inline int sem_lock(struct sem_ar
  		/* Complex operation - acquire a full lock */
  		ipc_lock_object(&sma->sem_perm);
  
@@ -217,9 +231,10 @@ diff -puN ipc/sem.c~ipc-semc-fix-complex_count-vs-simple-op-race ipc/sem.c
 -		 * right now have dropped their locks.
 -		 */
 -		sem_wait_array(sma);
+-		return -1;
 +		/* Prevent parallel simple ops */
 +		complexmode_enter(sma);
- 		return -1;
++		return SEM_GLOBAL_LOCK;
  	}
  
  	/*
@@ -248,7 +263,7 @@ diff -puN ipc/sem.c~ipc-semc-fix-complex_count-vs-simple-op-race ipc/sem.c
 +	 * Initial check for complex_mode. Just an optimization,
 +	 * no locking, no memory barrier.
 +	 */
-+	if (!READ_ONCE(sma->complex_mode)) {
++	if (!sma->complex_mode) {
  		/*
  		 * It appears that no complex operation is around.
  		 * Acquire the per-semaphore lock.
@@ -265,6 +280,8 @@ diff -puN ipc/sem.c~ipc-semc-fix-complex_count-vs-simple-op-race ipc/sem.c
 -			 */
 -			smp_acquire__after_ctrl_dep();
 +		/*
++		 * See 51d7d5205d33
++		 * ("powerpc: Add smp_mb() to arch_spin_is_locked()"):
 +		 * A full barrier is required: the write of sem->lock
 +		 * must be visible before the read is executed
 +		 */
@@ -285,24 +302,27 @@ diff -puN ipc/sem.c~ipc-semc-fix-complex_count-vs-simple-op-race ipc/sem.c
  		}
  		spin_unlock(&sem->lock);
  	}
-@@ -369,7 +391,7 @@ static inline int sem_lock(struct sem_ar
+@@ -369,15 +393,16 @@ static inline int sem_lock(struct sem_ar
  		/* Not a false alarm, thus complete the sequence for a
  		 * full lock.
  		 */
 -		sem_wait_array(sma);
+-		return -1;
 +		complexmode_enter(sma);
- 		return -1;
++		return SEM_GLOBAL_LOCK;
  	}
  }
-@@ -378,6 +400,7 @@ static inline void sem_unlock(struct sem
+ 
+ static inline void sem_unlock(struct sem_array *sma, int locknum)
  {
- 	if (locknum == -1) {
+-	if (locknum == -1) {
++	if (locknum == SEM_GLOBAL_LOCK) {
  		unmerge_queues(sma);
 +		complexmode_tryleave(sma);
  		ipc_unlock_object(&sma->sem_perm);
  	} else {
  		struct sem *sem = sma->sem_base + locknum;
-@@ -529,6 +552,7 @@ static int newary(struct ipc_namespace *
+@@ -529,6 +554,7 @@ static int newary(struct ipc_namespace *
  	}
  
  	sma->complex_count = 0;
@@ -310,7 +330,7 @@ diff -puN ipc/sem.c~ipc-semc-fix-complex_count-vs-simple-op-race ipc/sem.c
  	INIT_LIST_HEAD(&sma->pending_alter);
  	INIT_LIST_HEAD(&sma->pending_const);
  	INIT_LIST_HEAD(&sma->list_id);
-@@ -2184,10 +2208,10 @@ static int sysvipc_sem_proc_show(struct
+@@ -2184,10 +2210,10 @@ static int sysvipc_sem_proc_show(struct
  	/*
  	 * The proc interface isn't aware of sem_lock(), it calls
  	 * ipc_lock_object() directly (in sysvipc_find_ipc).
@@ -324,7 +344,7 @@ diff -puN ipc/sem.c~ipc-semc-fix-complex_count-vs-simple-op-race ipc/sem.c
  
  	sem_otime = get_semotime(sma);
  
-@@ -2204,6 +2228,8 @@ static int sysvipc_sem_proc_show(struct
+@@ -2204,6 +2230,8 @@ static int sysvipc_sem_proc_show(struct
  		   sem_otime,
  		   sma->sem_ctime);
  
@@ -337,6 +357,7 @@ _
 
 Patches currently in -mm which might be from manfred@colorfullife.com are
 
+ipc-semc-fix-complex_count-vs-simple-op-race.patch
 ipc-semc-remove-duplicated-memory-barriers.patch
 ipc-sem-sem_lock-with-hysteresis.patch
 
