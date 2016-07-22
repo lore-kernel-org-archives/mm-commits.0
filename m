@@ -1,34 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- rapidio-add-rapidio-channelized-messaging-driver-fix-return-value-check-in-riocm_init.patch added to -mm tree
-Date: Fri, 22 Jul 2016 11:23:54 -0700
-Message-ID: <579264ba.+GjiPwx377tt1+zF%akpm@linux-foundation.org>
+ rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update.patch added to -mm tree
+Date: Fri, 22 Jul 2016 11:26:16 -0700
+Message-ID: <57926548.lWpo4NTTRMJ/+hH/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51428 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51554 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754432AbcGVSXz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jul 2016 14:23:55 -0400
-Received: from akpm3.mtv.corp.google.com (unknown [104.132.1.73])
-	by mail.linuxfoundation.org (Postfix) with ESMTPSA id 8D3792C
-	for <mm-commits@vger.kernel.org>; Fri, 22 Jul 2016 18:23:54 +0000 (UTC)
+	with ESMTP id S1753280AbcGVS0R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jul 2016 14:26:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/rio_cm: fix return value check in riocm_init()
+     Subject: rapidio: fix DocBook warning for gen3 update
 has been added to the -mm tree.  Its filename is
-     rapidio-add-rapidio-channelized-messaging-driver-fix-return-value-check-in-riocm_init.patch
+     rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-rapidio-channelized-messaging-driver-fix-return-value-check-in-riocm_init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-rapidio-channelized-messaging-driver-fix-return-value-check-in-riocm_init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,411 +39,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yongjun <[weiyj.lk@gmail.com]>
-Subject: rapidio/rio_cm: fix return value check in riocm_init()
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio: fix DocBook warning for gen3 update
 
-In case of error, the function class_create() returns ERR_PTR() and
-never returns NULL. The NULL test in the return value check should be
-replaced with IS_ERR().
+Add missing parameter description to fix kbuild warning for patch
+"rapidio: modify for rev.3 specification changes".
 
-Link: http://lkml.kernel.org/r/1469198221-21970-1-git-send-email-alexandre.bounine@idt.com
-Signed-off-by: Wei Yongjun <weiyj.lk@gmail.com>
+Link: http://lkml.kernel.org/r/1469191173-19338-1-git-send-email-alexandre.bounine@idt.com
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio_cm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rapidio/rio.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rapidio/rio_cm.c~rapidio-add-rapidio-channelized-messaging-driver-fix-return-value-check-in-riocm_init drivers/rapidio/rio_cm.c
---- a/drivers/rapidio/rio_cm.c~rapidio-add-rapidio-channelized-messaging-driver-fix-return-value-check-in-riocm_init
-+++ a/drivers/rapidio/rio_cm.c
-@@ -2288,9 +2288,9 @@ static int __init riocm_init(void)
- 
- 	/* Create device class needed by udev */
- 	dev_class = class_create(THIS_MODULE, DRV_NAME);
--	if (!dev_class) {
-+	if (IS_ERR(dev_class)) {
- 		riocm_error("Cannot create " DRV_NAME " class");
--		return -EINVAL;
-+		return PTR_ERR(dev_class);
- 	}
- 
- 	ret = alloc_chrdev_region(&dev_number, 0, 1, DRV_NAME);
+diff -puN drivers/rapidio/rio.c~rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update
++++ a/drivers/rapidio/rio.c
+@@ -786,6 +786,7 @@ EXPORT_SYMBOL_GPL(rio_unmap_outb_region)
+  * @local: Indicate a local master port or remote device access
+  * @destid: Destination ID of the device
+  * @hopcount: Number of switch hops to the device
++ * @rmap: pointer to location to store register map type info
+  */
+ u32
+ rio_mport_get_physefb(struct rio_mport *port, int local,
 _
 
-Patches currently in -mm which might be from [weiyj.lk@gmail.com] are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-memcontrol-fix-cgroup-creation-failure-after-many-small-jobs.patch
-radix-tree-fix-radix_tree_iter_retry-for-tagged-iterators.patch
-testing-radix-tree-fix-a-macro-expansion-bug.patch
-tools-vm-slabinfo-fix-an-unintentional-printf.patch
-pps-do-not-crash-when-failed-to-register.patch
-mm-hugetlb-fix-race-when-migrate-pages.patch
-arm-get-rid-of-superfluous-__gfp_repeat.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-dax-some-small-updates-to-daxtxt-documentation.patch
-dax-remote-unused-fault-wrappers.patch
-dma-debug-track-bucket-lock-state-for-static-checkers.patch
-fbmon-remove-unused-function-argument.patch
-cflags-add-wunused-but-set-parameter.patch
-kbuild-abort-build-on-bad-stack-protector-flag.patch
-kbuild-simpler-generation-of-assembly-constants.patch
-scripts-bloat-o-meter-fix-percent-on-1%-changes.patch
-m32r-add-__ucmpdi2-to-fix-build-failure.patch
-debugobjectsh-fix-trivial-kernel-doc-warning.patch
-ocfs2-fix-a-redundant-re-initialization.patch
-ocfs2-improve-recovery-performance.patch
-ocfs2-improve-recovery-performance-v2.patch
-ocfs2-improve-recovery-performance-v2-fix.patch
-ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks.patch
-ocfs2-dlm-fix-memory-leak-of-dlm_debug_ctxt.patch
-ocfs2-cleanup-implemented-prototypes.patch
-ocfs2-remove-obscure-bug_on-in-dlmglue.patch
-ocfs2-cluster-clean-up-unnecessary-assignment-for-ret.patch
-ocfs2-insure-dlm-lockspace-is-created-by-kernel-module.patch
-ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log.patch
-ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3.patch
-ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler.patch
-ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix.patch
-ocfs2-dlm-solve-a-bug-when-deref-failed-in-dlm_drop_lockres_ref.patch
-ocfs2-dlm-continue-to-purge-recovery-lockres-when-recovery-master-goes-down.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-sb-add-a-new-writeback-list-for-sync.patch
-wb-inode-writeback-list-tracking-tracepoints.patch
-kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
-mm.patch
-mm-reorganize-slab-freelist-randomization.patch
-mm-reorganize-slab-freelist-randomization-fix.patch
-mm-slub-freelist-randomization.patch
-slab-make-gfp_slab_bug_mask-information-more-human-readable.patch
-slab-do-not-panic-on-invalid-gfp_mask.patch
-mm-faster-kmalloc_array-kcalloc.patch
-mm-slab-use-list_move-instead-of-list_del-list_add.patch
-mm-memcontrol-remove-the-useless-parameter-for-mc_handle_swap_pte.patch
-mm-init-fix-zone-boundary-creation.patch
-memory-hotplug-add-move_pfn_range.patch
-memory-hotplug-more-general-validation-of-zone-during-online.patch
-memory-hotplug-use-zone_can_shift-for-sysfs-valid_zones-attribute.patch
-mm-zap-zone_oom_locked.patch
-mm-oom-add-memcg-to-oom_control.patch
-mm-debug-add-vm_warn-which-maps-to-warn.patch
-powerpc-mm-check-for-irq-disabled-only-if-debug_vm-is-enabled.patch
-zram-rename-zstrm-find-release-functions.patch
-zram-switch-to-crypto-compress-api.patch
-zram-use-crypto-api-to-check-alg-availability.patch
-zram-use-crypto-api-to-check-alg-availability-v3.patch
-zram-cosmetic-cleanup-documentation.patch
-zram-delete-custom-lzo-lz4.patch
-zram-delete-custom-lzo-lz4-v3.patch
-zram-add-more-compression-algorithms.patch
-zram-add-more-compression-algorithms-v3.patch
-zram-drop-gfp_t-from-zcomp_strm_alloc.patch
-mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
-mm-migrate-support-non-lru-movable-page-migration.patch
-mm-migrate-support-non-lru-movable-page-migration-fix.patch
-mm-balloon-use-general-non-lru-movable-page-feature.patch
-mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
-zsmalloc-keep-max_object-in-size_class.patch
-zsmalloc-use-bit_spin_lock.patch
-zsmalloc-use-accessor.patch
-zsmalloc-factor-page-chain-functionality-out.patch
-zsmalloc-introduce-zspage-structure.patch
-zsmalloc-separate-free_zspage-from-putback_zspage.patch
-zsmalloc-use-freeobj-for-index.patch
-zsmalloc-page-migration-support.patch
-zsmalloc-page-migration-support-fix.patch
-zsmalloc-page-migration-support-fix-2.patch
-zram-use-__gfp_movable-for-memory-allocation.patch
-zsmalloc-use-obj_tag_bit-for-bit-shifter.patch
-mm-compaction-split-freepages-without-holding-the-zone-lock.patch
-mm-compaction-split-freepages-without-holding-the-zone-lock-fix.patch
-mm-compaction-split-freepages-without-holding-the-zone-lock-fix-2.patch
-mm-page_owner-initialize-page-owner-without-holding-the-zone-lock.patch
-mm-page_owner-copy-last_migrate_reason-in-copy_page_owner.patch
-mm-page_owner-introduce-split_page_owner-and-replace-manual-handling.patch
-tools-vm-page_owner-increase-temporary-buffer-size.patch
-mm-page_owner-use-stackdepot-to-store-stacktrace.patch
-mm-page_owner-use-stackdepot-to-store-stacktrace-v3.patch
-mm-page_alloc-introduce-post-allocation-processing-on-page-allocator.patch
-mm-page_alloc-introduce-post-allocation-processing-on-page-allocator-v3.patch
-mm-page_isolation-clean-up-confused-code.patch
-mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
-mm-hugetlb-simplify-hugetlb-unmap.patch
-mm-change-the-interface-for-__tlb_remove_page.patch
-mm-change-the-interface-for-__tlb_remove_page-v3.patch
-mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change.patch
-mm-remove-pointless-struct-in-struct-page-definition.patch
-mm-clean-up-non-standard-page-_mapcount-users.patch
-mm-memcontrol-cleanup-kmem-charge-functions.patch
-mm-charge-uncharge-kmemcg-from-generic-page-allocator-paths.patch
-mm-memcontrol-teach-uncharge_list-to-deal-with-kmem-pages.patch
-arch-x86-charge-page-tables-to-kmemcg.patch
-pipe-account-to-kmemcg.patch
-af_unix-charge-buffers-to-kmemcg.patch
-mmoom-remove-unused-argument-from-oom_scan_process_thread.patch
-mm-frontswap-convert-frontswap_enabled-to-static-key.patch
-mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
-mm-add-nr_zsmalloc-to-vmstat.patch
-mm-add-nr_zsmalloc-to-vmstat-fix.patch
-mm-add-nr_zsmalloc-to-vmstat-fix-2.patch
-include-linux-memblockh-clean-up-code-for-several-trivial-details.patch
-mm-oom_reaper-make-sure-that-mmput_async-is-called-only-when-memory-was-reaped.patch
-mm-memcg-use-consistent-gfp-flags-during-readahead.patch
-mm-memcg-use-consistent-gfp-flags-during-readahead-fix.patch
-mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
-mm-memblock-if-nr_new-is-0-just-return.patch
-mm-make-optimistic-check-for-swapin-readahead.patch
-mm-make-optimistic-check-for-swapin-readahead-fix-2.patch
-mm-make-optimistic-check-for-swapin-readahead-fix-3.patch
-mm-make-optimistic-check-for-swapin-readahead-fix-4.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-ks.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
-mm-thp-fix-locking-inconsistency-in-collapse_huge_page.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
-khugepaged-recheck-pmd-after-mmap_sem-re-acquired.patch
-thp-mlock-update-unevictable-lrutxt.patch
-mm-do-not-pass-mm_struct-into-handle_mm_fault.patch
-mm-introduce-fault_env.patch
-mm-postpone-page-table-allocation-until-we-have-page-to-map.patch
-rmap-support-file-thp.patch
-mm-introduce-do_set_pmd.patch
-thp-vmstats-add-counters-for-huge-file-pages.patch
-thp-support-file-pages-in-zap_huge_pmd.patch
-thp-handle-file-pages-in-split_huge_pmd.patch
-thp-handle-file-cow-faults.patch
-thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
-thp-prepare-change_huge_pmd-for-file-thp.patch
-thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem.patch
-thp-file-pages-support-for-split_huge_page.patch
-thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
-vmscan-split-file-huge-pages-before-paging-them-out.patch
-page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim.patch
-radix-tree-implement-radix_tree_maybe_preload_order.patch
-filemap-prepare-find-and-delete-operations-for-huge-pages.patch
-truncate-handle-file-thp.patch
-mm-rmap-account-shmem-thp-pages.patch
-shmem-prepare-huge=-mount-option-and-sysfs-knob.patch
-shmem-get_unmapped_area-align-huge-page.patch
-shmem-add-huge-pages-support.patch
-shmem-thp-respect-madv_nohugepage-for-file-mappings.patch
-thp-extract-khugepaged-from-mm-huge_memoryc.patch
-khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
-shmem-make-shmem_inode_info-lock-irq-safe.patch
-khugepaged-add-support-of-collapse-for-tmpfs-shmem-pages.patch
-thp-introduce-config_transparent_huge_pagecache.patch
-shmem-split-huge-pages-beyond-i_size-under-memory-pressure.patch
-thp-update-documentation-vm-transhugefilesystems-proctxt.patch
-mm-thp-fix-comment-inconsistency-for-swapin-readahead-functions.patch
-mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative.patch
-mm-zsmalloc-add-trace-events-for-zs_compact.patch
-mm-fix-build-warnings-in-linux-compactionh.patch
-mm-fix-build-warnings-in-linux-compactionh-fix.patch
-mm-memcontrol-remove-bug_on-in-uncharge_list.patch
-mm-memcontrol-fix-documentation-for-compound-parameter.patch
-cgroup-fix-idr-leak-for-the-first-cgroup-root.patch
-cgroup-remove-unnecessary-0-check-from-css_from_id.patch
-thp-fix-comments-of-__pmd_trans_huge_lock.patch
-proc-oom-drop-bogus-task_lock-and-mm-check.patch
-proc-oom-drop-bogus-sighand-lock.patch
-proc-oom_adj-extract-oom_score_adj-setting-into-a-helper.patch
-mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj.patch
-mm-oom-skip-vforked-tasks-from-being-selected.patch
-mm-oom-kill-all-tasks-sharing-the-mm.patch
-mm-oom-fortify-task_will_free_mem.patch
-mm-oom-task_will_free_mem-should-skip-oom_reaped-tasks.patch
-mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice.patch
-mm-oom-hide-mm-which-is-shared-with-kthread-or-global-init.patch
-mm-oom-fortify-task_will_free_mem-fix.patch
-mm-update-the-comment-in-__isolate_free_page.patch
-mm-update-the-comment-in-__isolate_free_page-checkpatch-fixes.patch
-mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code.patch
-mm-fix-vm-scalability-regression-in-cgroup-aware-workingset-code-fix.patch
-mm-compaction-remove-unnecessary-order-check-in-try_to_compact_pages.patch
-freezer-oom-check-tif_memdie-on-the-correct-task.patch
-cpuset-mm-fix-tif_memdie-check-in-cpuset_change_task_nodemask.patch
-mm-meminit-remove-early_page_nid_uninitialised.patch
-mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
-mm-vmscan-move-lru_lock-to-the-node.patch
-mm-vmscan-move-lru-lists-to-node.patch
-mm-mmzone-clarify-the-usage-of-zone-padding.patch
-mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
-mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
-mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
-mm-vmscan-remove-balance-gap.patch
-mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
-mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
-mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
-mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
-mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
-mm-workingset-make-working-set-detection-node-aware.patch
-mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
-mm-move-page-mapped-accounting-to-the-node.patch
-mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
-mm-move-most-file-based-accounting-to-the-node.patch
-mm-move-most-file-based-accounting-to-the-node-fix.patch
-mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
-mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
-mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
-mm-convert-zone_reclaim-to-node_reclaim.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
-mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
-mm-vmscan-add-classzone-information-to-tracepoints.patch
-mm-page_alloc-remove-fair-zone-allocation-policy.patch
-mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
-mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
-mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
-mm-page_alloc-fix-dirtyable-highmem-calculation.patch
-mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
-mm-show-node_pages_scanned-per-node-not-zone.patch
-mm-show-node_pages_scanned-per-node-not-zone-fix.patch
-mm-vmscan-update-all-zone-lru-sizes-before-updating-memcg.patch
-mm-vmscan-remove-redundant-check-in-shrink_zones.patch
-mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
-mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix.patch
-mm-add-per-zone-lru-list-stat.patch
-mm-vmscan-remove-highmem_file_pages.patch
-mm-remove-reclaim-and-compaction-retry-approximations.patch
-mm-consider-per-zone-inactive-ratio-to-deactivate.patch
-mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
-mm-zsmalloc-use-obj_index-to-keep-consistent-with-others.patch
-mm-zsmalloc-take-obj-index-back-from-find_alloced_obj.patch
-mm-zsmalloc-use-class-objs_per_zspage-to-get-num-of-max-objects.patch
-mm-zsmalloc-avoid-calculate-max-objects-of-zspage-twice.patch
-mm-zsmalloc-keep-comments-consistent-with-code.patch
-mm-zsmalloc-add-__init__exit-attribute.patch
-mm-zsmalloc-use-helper-to-clear-page-flags-bit.patch
-mm-zsmalloc-add-per-class-compact-trace-event.patch
-mm-thp-clean-up-return-value-of-madvise_free_huge_pmd.patch
-memblock-include-asm-sectionsh-instead-of-asm-generic-sectionsh.patch
-mm-config_zone_device-stop-depending-on-config_expert.patch
-mm-cleanup-ifdef-guards-for-vmem_altmap.patch
-mm-track-nr_kernel_stack-in-kib-instead-of-number-of-stacks.patch
-mm-fix-memcg-stack-accounting-for-sub-page-stacks.patch
-kdb-use-task_cpu-instead-of-task_thread_info-cpu.patch
-printk-when-dumping-regs-show-the-stack-not-thread_info.patch
-mm-memblock-add-new-infrastructure-to-address-the-mem-limit-issue.patch
-arm64-acpi-fix-the-acpi-alignment-exception-when-mem=-specified.patch
-mem-hotplug-use-gfp_highuser_movable-in-alloc_migrate_target.patch
-mem-hotplug-use-different-mempolicy-in-alloc_migrate_target.patch
-kmemleak-dont-hang-if-user-disables-scanning-early.patch
-mm-page_owner-align-with-pageblock_nr-pages.patch
-make-__section_nr-more-efficient.patch
-mm-hwpoison-remove-incorrect-comment.patch
-mm-compaction-dont-isolate-pagewriteback-pages-in-migrate_sync_light-mode.patch
-revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements.patch
-revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes.patch
-mm-kasan-account-for-object-redzone-in-slubs-nearest_obj.patch
-mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub.patch
-mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix.patch
-lib-stackdepotc-use-__gfp_nowarn-for-stack-allocations.patch
-mm-page_alloc-set-alloc_flags-only-once-in-slowpath.patch
-mm-page_alloc-dont-retry-initial-attempt-in-slowpath.patch
-mm-page_alloc-restructure-direct-compaction-handling-in-slowpath.patch
-mm-page_alloc-make-thp-specific-decisions-more-generic.patch
-mm-thp-remove-__gfp_noretry-from-khugepaged-and-madvised-allocations.patch
-mm-compaction-introduce-direct-compaction-priority.patch
-mm-compaction-simplify-contended-compaction-handling.patch
-proc_oom_score-remove-tasklist_lock-and-pid_alive.patch
-procfs-avoid-32-bit-time_t-in-proc-stat.patch
-make-compile_test-depend-on-uml.patch
-memstick-dont-allocate-unused-major-for-ms_block.patch
-treewide-replace-obsolete-_refok-by-__ref.patch
-treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
-uapi-move-forward-declarations-of-internal-structures.patch
-mailmap-add-linus-lussing.patch
-task_work-use-read_once-lockless_dereference-avoid-pi_lock-if-task_works.patch
-dynamic_debug-only-add-header-when-used.patch
-dynamic_debug-only-add-header-when-used-fix.patch
-printk-do-not-include-interrupth.patch
-printk-create-pr_level-functions.patch
-printk-create-pr_level-functions-fix.patch
-printk-introduce-suppress_message_printing.patch
-printk-include-asm-sectionsh-instead-of-asm-generic-sectionsh.patch
-ratelimit-extend-to-print-suppressed-messages-on-release.patch
-printk-add-kernel-parameter-to-control-writes-to-dev-kmsg.patch
-printk-add-kernel-parameter-to-control-writes-to-dev-kmsg-update.patch
-lib-switch-config_printk_time-to-int.patch
-printk-allow-different-timestamps-for-printktime.patch
-lib-iommu-helper-skip-to-next-segment.patch
-crc32-use-ktime_get_ns-for-measurement.patch
-radix-tree-fix-comment-about-exceptional-bits.patch
-lib-add-crc64-ecma-module.patch
-compat-remove-compat_printk.patch
-firmware-consolidate-kmap-read-write-logic.patch
-firmware-provide-infrastructure-to-make-fw-caching-optional.patch
-firmware-support-loading-into-a-pre-allocated-buffer.patch
-firmware-support-loading-into-a-pre-allocated-buffer-fix.patch
-checkpatch-skip-long-lines-that-use-an-efi_guid-macro.patch
-checkpatch-allow-c99-style-comments.patch
-checkpatch-yet-another-commit-id-improvement.patch
-checkpatch-dont-complain-about-bit-macro-in-uapi.patch
-binfmt_elf-fix-calculations-for-bss-padding.patch
-mm-refuse-wrapped-vm_brk-requests.patch
-samples-kprobe-convert-the-printk-to-pr_info-pr_err.patch
-samples-jprobe-convert-the-printk-to-pr_info-pr_err.patch
-samples-kretprobe-convert-the-printk-to-pr_info-pr_err.patch
-samples-kretprobe-fix-the-wrong-type.patch
-fs-befs-move-useless-assignment.patch
-fs-befs-check-silent-flag-before-logging-errors.patch
-fs-befs-remove-useless-pr_err.patch
-fs-befs-remove-useless-befs_error.patch
-fs-befs-remove-useless-pr_err-in-befs_init_inodecache.patch
-befs-check-return-of-sb_min_blocksize.patch
-befs-fix-function-name-in-documentation.patch
-befs-remove-unused-functions.patch
-fs-befs-replace-befs_bread-by-sb_bread.patch
-nilfs2-hide-function-name-argument-from-nilfs_error.patch
-nilfs2-add-nilfs_msg-message-interface.patch
-nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object.patch
-nilfs2-reduce-bare-use-of-printk-with-nilfs_msg.patch
-nilfs2-replace-nilfs_warning-with-nilfs_msg.patch
-nilfs2-replace-nilfs_warning-with-nilfs_msg-fix.patch
-nilfs2-emit-error-message-when-i-o-error-is-detected.patch
-nilfs2-do-not-use-yield.patch
-nilfs2-refactor-parser-of-snapshot-mount-option.patch
-nilfs2-fix-misuse-of-a-semaphore-in-sysfs-code.patch
-nilfs2-use-bit-macro.patch
-nilfs2-move-ioctl-interface-and-disk-layout-to-uapi-separately.patch
-reiserfs-fix-new_insert_key-may-be-used-uninitialized.patch
-signal-consolidate-tstlf_restore_sigmask-code.patch
-exit-quieten-greatest-stack-depth-printk.patch
-cpumask-fix-code-comment.patch
-kexec-return-error-number-directly.patch
-arm-kdump-advertise-boot-aliased-crash-kernel-resource.patch
-arm-kexec-advertise-location-of-bootable-ram.patch
-kexec-dont-invoke-oom-killer-for-control-page-allocation.patch
-kexec-ensure-user-memory-sizes-do-not-wrap.patch
-kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
-kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t.patch
-kexec-allow-architectures-to-override-boot-mapping.patch
-kexec-allow-architectures-to-override-boot-mapping-fix.patch
-arm-keystone-dts-add-psci-command-definition.patch
-arm-kexec-fix-kexec-for-keystone-2.patch
-kexec-use-core_param-for-crash_kexec_post_notifiers-boot-option.patch
-add-a-kexec_crash_loaded-function.patch
-allow-kdump-with-crash_kexec_post_notifiers.patch
-allow-kdump-with-crash_kexec_post_notifiers-fix.patch
-kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
 rapidio-add-rapidio-channelized-messaging-driver.patch
-rapidio-add-rapidio-channelized-messaging-driver-fix-return-value-check-in-riocm_init.patch
-rapidio-remove-unnecessary-0x-prefixes-before-%pa-extension-uses.patch
 rapidio-documentation-fix-mangled-paragraph-in-mport_cdev.patch
 rapidio-fix-return-value-description-for-dma_prep-functions.patch
 rapidio-tsi721_dma-add-channel-mask-and-queue-size-parameters.patch
@@ -457,86 +79,8 @@ rapidio-fix-error-handling-in-mbox-request-release-functions.patch
 rapidio-idt_gen2-fix-locking-warning.patch
 rapidio-change-inbound-window-size-type-to-u64.patch
 rapidio-modify-for-rev3-specification-changes.patch
+rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update.patch
 powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3.patch
 rapidio-switches-add-driver-for-idt-gen3-switches.patch
 rapidio-switches-add-driver-for-idt-gen3-switches-fix.patch
-futex-fix-shared-futex-operations-on-nommu.patch
-w1-remove-need-for-ida-and-use-platform_devid_auto.patch
-w1-add-helper-macro-module_w1_family.patch
-init-allow-blacklisting-of-module_init-functions.patch
-relay-add-global-mode-support-for-buffer-only-channels.patch
-ban-config_localversion_auto-with-allmodconfig.patch
-config-add-android-config-fragments.patch
-kcov-allow-more-fine-grained-coverage-instrumentation.patch
-ipc-delete-nr_ipc_ns.patch
-ipc-msgc-msgsnd-use-freezable-blocking-call.patch
-msgrcv-use-freezable-blocking-call.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-fpga-zynq-fpga-fix-build-failure.patch
-tree-wide-replace-config_enabled-with-is_enabled.patch
-bitmap-bitmap_equal-memcmp-optimization-fix.patch
-powerpc-add-explicit-include-asm-asm-compath-for-jump-label.patch
-sparc-support-static_key-usage-in-non-module-__exit-sections.patch
-tile-support-static_key-usage-in-non-module-__exit-sections.patch
-arm-jump-label-may-reference-text-in-__exit.patch
-jump_label-remove-bugh-atomich-dependencies-for-have_jump_label.patch
-dynamic_debug-add-jump-label-support.patch
-ipc-semc-fix-complex_count-vs-simple-op-race.patch
-ipc-semc-remove-duplicated-memory-barriers.patch
-media-mtk-vcodec-remove-unused-dma_attrs.patch
-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-alpha-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-arm-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-arm64-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-avr32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-blackfin-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-c6x-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-cris-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-frv-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-drm-exynos-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-drm-mediatek-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-drm-msm-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-infiniband-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-iommu-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-media-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-xen-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-swiotlb-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-powerpc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-video-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-x86-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-h8300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-hexagon-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-ia64-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-metag-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-microblaze-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-mips-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-mn10300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-openrisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-parisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-misc-mic-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-s390-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-sh-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-sparc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-tile-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-unicore32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-xtensa-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-remoteproc-qcom-use-unsigned-long-for-dma_attrs.patch
-dma-mapping-remove-dma_get_attr.patch
-dma-mapping-document-the-dma-attributes-next-to-the-declaration.patch
-mm-add-strictlimit-knob-v2.patch
-make-sure-nobodys-leaking-resources.patch
-releasing-resources-with-children.patch
-make-frame_pointer-default=y.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-add-debugging-aid-for-memory-initialisation-problems.patch
-workaround-for-a-pci-restoring-bug.patch
 
