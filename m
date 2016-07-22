@@ -1,33 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-consider-per-zone-inactive-ratio-to-deactivate.patch removed from -mm
- tree
-Date: Fri, 22 Jul 2016 11:27:11 -0700
-Message-ID: <5792657f.otTZgjEH4O7yGAND%akpm@linux-foundation.org>
+Subject: +
+ mm-consider-whether-to-decivate-based-on-eligible-zones-inactive-ratio.patch added to -mm tree
+Date: Fri, 22 Jul 2016 11:28:59 -0700
+Message-ID: <579265eb.vGYrJmIB8sfsNN9Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51558 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51567 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753592AbcGVS1M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jul 2016 14:27:12 -0400
+	with ESMTP id S1752352AbcGVS3A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jul 2016 14:29:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.cz, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, hannes@cmpxchg.org, mhocko@suse.cz, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: consider per-zone inactive ratio to deactivate
-has been removed from the -mm tree.  Its filename was
-     mm-consider-per-zone-inactive-ratio-to-deactivate.patch
+     Subject: mm: consider whether to decivate based on eligible zones inactive ratio
+has been added to the -mm tree.  Its filename is
+     mm-consider-whether-to-decivate-based-on-eligible-zones-inactive-ratio.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-consider-whether-to-decivate-based-on-eligible-zones-inactive-ratio.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-consider-whether-to-decivate-based-on-eligible-zones-inactive-ratio.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: consider per-zone inactive ratio to deactivate
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm: consider whether to decivate based on eligible zones inactive ratio
 
 Minchan Kim reported that with per-zone lru state it was possible to
 identify that a normal zone with 8^M anonymous pages could trigger OOM
@@ -96,30 +109,30 @@ IOW, (inactive_anon of node * inactive_ratio > active_anon of node) due to
 highmem anonymous stat so VM never deactivates normal zone's anonymous pages.
 
 This patch is a modified version of Minchan's original solution but based
-upon it. The problem with Minchan's patch is that it didn't take memcg
-into account and any low zone with an imbalanced list could force a rotation.
+upon it. The problem with Minchan's patch is that any low zone with an
+imbalanced list could force a rotation.
 
 In this patch, a zone-constrained global reclaim will rotate the list if
 the inactive/active ratio of all eligible zones needs to be corrected. It
 is possible that higher zone pages will be initially rotated prematurely
 but this is the safer choice to maintain overall LRU age.
 
-Link: http://lkml.kernel.org/r/1469110261-7365-5-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/20160722090929.GJ10438@techsingularity.net
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   37 ++++++++++++++++++++++++++++++++-----
- 1 file changed, 32 insertions(+), 5 deletions(-)
+ mm/vmscan.c |   34 +++++++++++++++++++++++++++++-----
+ 1 file changed, 29 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-consider-per-zone-inactive-ratio-to-deactivate mm/vmscan.c
---- a/mm/vmscan.c~mm-consider-per-zone-inactive-ratio-to-deactivate
+diff -puN mm/vmscan.c~mm-consider-whether-to-decivate-based-on-eligible-zones-inactive-ratio mm/vmscan.c
+--- a/mm/vmscan.c~mm-consider-whether-to-decivate-based-on-eligible-zones-inactive-ratio
 +++ a/mm/vmscan.c
-@@ -1964,7 +1964,8 @@ static void shrink_active_list(unsigned
+@@ -1964,12 +1964,15 @@ static void shrink_active_list(unsigned
   *    1TB     101        10GB
   *   10TB     320        32GB
   */
@@ -129,40 +142,42 @@ diff -puN mm/vmscan.c~mm-consider-per-zone-inactive-ratio-to-deactivate mm/vmsca
  {
  	unsigned long inactive_ratio;
  	unsigned long inactive;
-@@ -1981,6 +1982,32 @@ static bool inactive_list_is_low(struct
+ 	unsigned long active;
+ 	unsigned long gb;
++	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
++	int zid;
+ 
+ 	/*
+ 	 * If we don't have swap space, anonymous page deactivation
+@@ -1981,6 +1984,27 @@ static bool inactive_list_is_low(struct
  	inactive = lruvec_lru_size(lruvec, file * LRU_FILE);
  	active = lruvec_lru_size(lruvec, file * LRU_FILE + LRU_ACTIVE);
  
 +	/*
-+	 * For global reclaim on zone-constrained allocations, it is necessary
-+	 * to check if rotations are required for lowmem to be reclaimed. This
++	 * For zone-constrained allocations, it is necessary to check if
++	 * deactivations are required for lowmem to be reclaimed. This
 +	 * calculates the inactive/active pages available in eligible zones.
 +	 */
-+	if (global_reclaim(sc)) {
-+		struct pglist_data *pgdat = lruvec_pgdat(lruvec);
-+		int zid;
++	for (zid = sc->reclaim_idx + 1; zid < MAX_NR_ZONES; zid++) {
++		struct zone *zone = &pgdat->node_zones[zid];
++		unsigned long inactive_zone, active_zone;
 +
-+		for (zid = sc->reclaim_idx + 1; zid < MAX_NR_ZONES; zid++) {
-+			struct zone *zone = &pgdat->node_zones[zid];
-+			unsigned long inactive_zone, active_zone;
++		if (!populated_zone(zone))
++			continue;
 +
-+			if (!populated_zone(zone))
-+				continue;
++		inactive_zone = zone_page_state(zone,
++				NR_ZONE_LRU_BASE + (file * LRU_FILE));
++		active_zone = zone_page_state(zone,
++				NR_ZONE_LRU_BASE + (file * LRU_FILE) + LRU_ACTIVE);
 +
-+			inactive_zone = zone_page_state(zone,
-+					NR_ZONE_LRU_BASE + (file * LRU_FILE));
-+			active_zone = zone_page_state(zone,
-+					NR_ZONE_LRU_BASE + (file * LRU_FILE) + LRU_ACTIVE);
-+
-+			inactive -= min(inactive, inactive_zone);
-+			active -= min(active, active_zone);
-+		}
++		inactive -= min(inactive, inactive_zone);
++		active -= min(active, active_zone);
 +	}
 +
  	gb = (inactive + active) >> (30 - PAGE_SHIFT);
  	if (gb)
  		inactive_ratio = int_sqrt(10 * gb);
-@@ -1994,7 +2021,7 @@ static unsigned long shrink_list(enum lr
+@@ -1994,7 +2018,7 @@ static unsigned long shrink_list(enum lr
  				 struct lruvec *lruvec, struct scan_control *sc)
  {
  	if (is_active_lru(lru)) {
@@ -171,7 +186,7 @@ diff -puN mm/vmscan.c~mm-consider-per-zone-inactive-ratio-to-deactivate mm/vmsca
  			shrink_active_list(nr_to_scan, lruvec, sc, lru);
  		return 0;
  	}
-@@ -2125,7 +2152,7 @@ static void get_scan_count(struct lruvec
+@@ -2125,7 +2149,7 @@ static void get_scan_count(struct lruvec
  	 * lruvec even if it has plenty of old anonymous pages unless the
  	 * system is under heavy pressure.
  	 */
@@ -180,7 +195,7 @@ diff -puN mm/vmscan.c~mm-consider-per-zone-inactive-ratio-to-deactivate mm/vmsca
  	    lruvec_lru_size(lruvec, LRU_INACTIVE_FILE) >> sc->priority) {
  		scan_balance = SCAN_FILE;
  		goto out;
-@@ -2367,7 +2394,7 @@ static void shrink_node_memcg(struct pgl
+@@ -2367,7 +2391,7 @@ static void shrink_node_memcg(struct pgl
  	 * Even if we did not try to evict anon pages at all, we want to
  	 * rebalance the anon lru active/inactive ratio.
  	 */
@@ -189,7 +204,7 @@ diff -puN mm/vmscan.c~mm-consider-per-zone-inactive-ratio-to-deactivate mm/vmsca
  		shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
  				   sc, LRU_ACTIVE_ANON);
  
-@@ -3020,7 +3047,7 @@ static void age_active_anon(struct pglis
+@@ -3020,7 +3044,7 @@ static void age_active_anon(struct pglis
  	do {
  		struct lruvec *lruvec = mem_cgroup_lruvec(pgdat, memcg);
  
@@ -200,28 +215,56 @@ diff -puN mm/vmscan.c~mm-consider-per-zone-inactive-ratio-to-deactivate mm/vmsca
  
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
-mm-migrate-support-non-lru-movable-page-migration.patch
-mm-balloon-use-general-non-lru-movable-page-feature.patch
-zsmalloc-keep-max_object-in-size_class.patch
-zsmalloc-use-bit_spin_lock.patch
-zsmalloc-use-accessor.patch
-zsmalloc-factor-page-chain-functionality-out.patch
-zsmalloc-introduce-zspage-structure.patch
-zsmalloc-separate-free_zspage-from-putback_zspage.patch
-zsmalloc-use-freeobj-for-index.patch
-zsmalloc-page-migration-support.patch
-zsmalloc-page-migration-support-fix.patch
-zsmalloc-page-migration-support-fix-2.patch
-zram-use-__gfp_movable-for-memory-allocation.patch
-zsmalloc-use-obj_tag_bit-for-bit-shifter.patch
-mm-add-nr_zsmalloc-to-vmstat.patch
-mm-add-nr_zsmalloc-to-vmstat-fix-2.patch
-mm-fix-build-warnings-in-linux-compactionh.patch
-mm-page_alloc-fix-dirtyable-highmem-calculation.patch
-mm-show-node_pages_scanned-per-node-not-zone.patch
-mm-show-node_pages_scanned-per-node-not-zone-fix.patch
-mm-add-per-zone-lru-list-stat.patch
+mm-meminit-remove-early_page_nid_uninitialised.patch
+mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
+mm-vmscan-move-lru_lock-to-the-node.patch
+mm-vmscan-move-lru-lists-to-node.patch
+mm-mmzone-clarify-the-usage-of-zone-padding.patch
+mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
+mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
+mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
+mm-vmscan-remove-balance-gap.patch
+mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
+mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
+mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
+mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
+mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
+mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
+mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
+mm-workingset-make-working-set-detection-node-aware.patch
+mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
+mm-move-page-mapped-accounting-to-the-node.patch
+mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
+mm-move-most-file-based-accounting-to-the-node.patch
+mm-move-most-file-based-accounting-to-the-node-fix.patch
+mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
+mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
+mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
+mm-convert-zone_reclaim-to-node_reclaim.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
+mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
+mm-vmscan-add-classzone-information-to-tracepoints.patch
+mm-page_alloc-remove-fair-zone-allocation-policy.patch
+mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
+mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
+mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
+mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
+mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
+mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
+mm-vmscan-update-all-zone-lru-sizes-before-updating-memcg.patch
+mm-vmscan-remove-redundant-check-in-shrink_zones.patch
+mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
+mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix.patch
+mm-vmscan-remove-highmem_file_pages.patch
+mm-remove-reclaim-and-compaction-retry-approximations.patch
+mm-consider-whether-to-decivate-based-on-eligible-zones-inactive-ratio.patch
+mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
 
