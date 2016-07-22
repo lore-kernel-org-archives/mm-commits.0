@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns.patch added
- to -mm tree
-Date: Fri, 22 Jul 2016 13:13:40 -0700
-Message-ID: <57927e74.xFB3o1w/y8+nq6SH%akpm@linux-foundation.org>
+Subject: + mm-optimize-copy_page_to-from_iter_iovec.patch added to -mm
+ tree
+Date: Fri, 22 Jul 2016 14:33:16 -0700
+Message-ID: <5792911c.NoxoJObNXbhG+RRB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56462 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752070AbcGVUNm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jul 2016 16:13:42 -0400
+	with ESMTP id S1751531AbcGVVdR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jul 2016 17:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john.stultz@linaro.org, arjan@linux.intel.com, ccross@android.com, dimitrysh@google.com, enh@google.com, jmorris@namei.org, kandoiruchi@google.com, keescook@chromium.org, kernel-team@android.com, nnk@google.com, orenl@cellrox.com, romlem@android.com, serge@hallyn.com, tglx@linutronix.de, tkjos@google.com, mm-commits@vger.kernel.org
+To: mpatocka@redhat.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mhocko@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: add LSM hook checks to /proc/<tid>/timerslack_ns
+     Subject: mm: optimize copy_page_to/from_iter_iovec
 has been added to the -mm tree.  Its filename is
-     proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns.patch
+     mm-optimize-copy_page_to-from_iter_iovec.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-optimize-copy_page_to-from_iter_iovec.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-optimize-copy_page_to-from_iter_iovec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,70 +39,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Stultz <john.stultz@linaro.org>
-Subject: proc: add LSM hook checks to /proc/<tid>/timerslack_ns
+From: Mikulas Patocka <mpatocka@redhat.com>
+Subject: mm: optimize copy_page_to/from_iter_iovec
 
-As requested, this patch checks the existing LSM hooks
-task_getscheduler/task_setscheduler when reading or modifying the task's
-timerslack value.
+copy_page_to_iter_iovec() and copy_page_from_iter_iovec() copy some data
+to userspace or from userspace.  These functions have a fast path where
+they map a page using kmap_atomic and a slow path where they use kmap.
 
-Previous versions added new get/settimerslack LSM hooks, but since they
-checked the same PROCESS__SET/GETSCHED values as existing hooks, it was
-suggested we just use the existing ones.
+kmap is slower than kmap_atomic, so the fast path is preferred.
 
-Link: http://lkml.kernel.org/r/1469132667-17377-2-git-send-email-john.stultz@linaro.org
-Signed-off-by: John Stultz <john.stultz@linaro.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Oren Laadan <orenl@cellrox.com>
-Cc: Ruchi Kandoi <kandoiruchi@google.com>
-Cc: Rom Lemarchand <romlem@android.com>
-Cc: Todd Kjos <tkjos@google.com>
-Cc: Colin Cross <ccross@android.com>
-Cc: Nick Kralevich <nnk@google.com>
-Cc: Dmitry Shmidt <dimitrysh@google.com>
-Cc: Elliott Hughes <enh@google.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Android Kernel Team <kernel-team@android.com>
+However, on kernels without highmem support, kmap just calls page_address,
+so there is no need to avoid kmap.  On kernels without highmem support,
+the fast path just increases code size (and cache footprint) and it
+doesn't improve copy performance in any way.
+
+This patch enables the fast path only if CONFIG_HIGHMEM is defined.
+
+Code size reduced by this patch:
+x86 (without highmem)	928
+x86-64			960
+sparc64			848
+alpha			1136
+pa-risc			1200
+
+Link: http://lkml.kernel.org/r/alpine.LRH.2.02.1607221711410.4818@file01.intranet.prod.int.rdu2.redhat.com
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ lib/iov_iter.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN fs/proc/base.c~proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns fs/proc/base.c
---- a/fs/proc/base.c~proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns
-+++ a/fs/proc/base.c
-@@ -2290,6 +2290,12 @@ static ssize_t timerslack_ns_write(struc
- 		goto out;
- 	}
+diff -puN lib/iov_iter.c~mm-optimize-copy_page_to-from_iter_iovec lib/iov_iter.c
+--- a/lib/iov_iter.c~mm-optimize-copy_page_to-from_iter_iovec
++++ a/lib/iov_iter.c
+@@ -159,6 +159,7 @@ static size_t copy_page_to_iter_iovec(st
+ 	buf = iov->iov_base + skip;
+ 	copy = min(bytes, iov->iov_len - skip);
  
-+	err = security_task_setscheduler(p);
-+	if (err) {
-+		count = err;
-+		goto out;
-+	}
-+
- 	task_lock(p);
- 	if (slack_ns == 0)
- 		p->timer_slack_ns = p->default_timer_slack_ns;
-@@ -2318,6 +2324,10 @@ static int timerslack_ns_show(struct seq
- 		goto out;
++#ifdef CONFIG_HIGHMEM
+ 	if (!fault_in_pages_writeable(buf, copy)) {
+ 		kaddr = kmap_atomic(page);
+ 		from = kaddr + offset;
+@@ -190,6 +191,8 @@ static size_t copy_page_to_iter_iovec(st
+ 		copy = min(bytes, iov->iov_len - skip);
  	}
- 
-+	err = security_task_getscheduler(p);
-+	if (err)
-+		goto out;
+ 	/* Too bad - revert to non-atomic kmap */
++#endif
 +
- 	task_lock(p);
- 	seq_printf(m, "%llu\n", p->timer_slack_ns);
- 	task_unlock(p);
+ 	kaddr = kmap(page);
+ 	from = kaddr + offset;
+ 	left = __copy_to_user(buf, from, copy);
+@@ -208,7 +211,10 @@ static size_t copy_page_to_iter_iovec(st
+ 		bytes -= copy;
+ 	}
+ 	kunmap(page);
++
++#ifdef CONFIG_HIGHMEM
+ done:
++#endif
+ 	if (skip == iov->iov_len) {
+ 		iov++;
+ 		skip = 0;
+@@ -240,6 +246,7 @@ static size_t copy_page_from_iter_iovec(
+ 	buf = iov->iov_base + skip;
+ 	copy = min(bytes, iov->iov_len - skip);
+ 
++#ifdef CONFIG_HIGHMEM
+ 	if (!fault_in_pages_readable(buf, copy)) {
+ 		kaddr = kmap_atomic(page);
+ 		to = kaddr + offset;
+@@ -271,6 +278,8 @@ static size_t copy_page_from_iter_iovec(
+ 		copy = min(bytes, iov->iov_len - skip);
+ 	}
+ 	/* Too bad - revert to non-atomic kmap */
++#endif
++
+ 	kaddr = kmap(page);
+ 	to = kaddr + offset;
+ 	left = __copy_from_user(to, buf, copy);
+@@ -289,7 +298,10 @@ static size_t copy_page_from_iter_iovec(
+ 		bytes -= copy;
+ 	}
+ 	kunmap(page);
++
++#ifdef CONFIG_HIGHMEM
+ done:
++#endif
+ 	if (skip == iov->iov_len) {
+ 		iov++;
+ 		skip = 0;
 _
 
-Patches currently in -mm which might be from john.stultz@linaro.org are
+Patches currently in -mm which might be from mpatocka@redhat.com are
 
-proc-relax-proc-tid-timerslack_ns-capability-requirements.patch
-proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns.patch
+mm-add-cond_resched-to-generic_swapfile_activate.patch
+mm-optimize-copy_page_to-from_iter_iovec.patch
 
