@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-remove-highmem_file_pages-fix.patch added to -mm tree
-Date: Mon, 25 Jul 2016 16:21:46 -0700
-Message-ID: <57969f0a.s0QBkjj7cv0Ik8rD%akpm@linux-foundation.org>
+Subject: + mm-bail-out-in-shrin_inactive_list.patch added to -mm tree
+Date: Mon, 25 Jul 2016 16:27:02 -0700
+Message-ID: <5796a046.ZbZXHmFgOF9pGEqq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49606 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49614 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753129AbcGYXVr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2016 19:21:47 -0400
+	with ESMTP id S1751966AbcGYX1D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2016 19:27:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, hannes@cmpxchg.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: remove highmem_file_pages -fix
+     Subject: mm: bail out in shrink_inactive_list()
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-remove-highmem_file_pages-fix.patch
+     mm-bail-out-in-shrin_inactive_list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-remove-highmem_file_pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-bail-out-in-shrin_inactive_list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-remove-highmem_file_pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-bail-out-in-shrin_inactive_list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,90 +38,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: remove highmem_file_pages -fix
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: bail out in shrink_inactive_list()
 
-The wrong stat is being accumulatedin highmem_dirtyable_memory, fix it.
+With node-lru, if there are enough reclaimable pages in highmem
+but nothing in lowmem, VM can try to shrink inactive list although
+the requested zone is lowmem.
 
-This is a fix to the mmotm patch mm-vmscan-remove-highmem_file_pages.patch
+The problem is that if the inactive list is full of highmem pages then a
+direct reclaimer searching for a lowmem page waste CPU scanning uselessly.
+It just burns out CPU.  Even, many direct reclaimers are stalled by
+too_many_isolated if lots of parallel reclaimer are going on although
+there are no reclaimable memory in inactive list.
 
-Link: http://lkml.kernel.org/r/20160725092324.GM10438@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Minchan Kim <minchan@kernel.org>
+I tried the experiment 4 times in 32bit 2G 8 CPU KVM machine to get
+elapsed time.
+
+	hackbench 500 process 2
+
+= Old =
+
+1st: 289s 2nd: 310s 3rd: 112s 4th: 272s
+
+= Now =
+
+1st: 31s  2nd: 132s 3rd: 162s 4th: 50s.
+
+Link: http://lkml.kernel.org/r/1469433119-1543-1-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff -puN mm/page-writeback.c~mm-vmscan-remove-highmem_file_pages-fix mm/page-writeback.c
---- a/mm/page-writeback.c~mm-vmscan-remove-highmem_file_pages-fix
-+++ a/mm/page-writeback.c
-@@ -322,8 +322,8 @@ static unsigned long highmem_dirtyable_m
- 			nr_pages = zone_page_state(z, NR_FREE_PAGES);
- 			/* watch for underflows */
- 			nr_pages -= min(nr_pages, high_wmark_pages(z));
--			nr_pages += zone_page_state(z, NR_INACTIVE_FILE);
--			nr_pages += zone_page_state(z, NR_ACTIVE_FILE);
-+			nr_pages += zone_page_state(z, NR_ZONE_INACTIVE_FILE);
-+			nr_pages += zone_page_state(z, NR_ZONE_ACTIVE_FILE);
- 			x += nr_pages;
- 		}
- 	}
+diff -puN mm/vmscan.c~mm-bail-out-in-shrin_inactive_list mm/vmscan.c
+--- a/mm/vmscan.c~mm-bail-out-in-shrin_inactive_list
++++ a/mm/vmscan.c
+@@ -1652,6 +1652,31 @@ static int current_may_throttle(void)
+ 		bdi_write_congested(current->backing_dev_info);
+ }
+ 
++static inline bool inactive_reclaimable_pages(struct lruvec *lruvec,
++				struct scan_control *sc,
++				enum lru_list lru)
++{
++	int zid;
++	struct zone *zone;
++	bool file = is_file_lru(lru);
++	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
++
++	if (!global_reclaim(sc))
++		return true;
++
++	for (zid = sc->reclaim_idx; zid >= 0; zid--) {
++		zone = &pgdat->node_zones[zid];
++		if (!populated_zone(zone))
++			continue;
++
++		if (zone_page_state_snapshot(zone, NR_ZONE_LRU_BASE +
++				LRU_FILE * file) >= SWAP_CLUSTER_MAX)
++			return true;
++	}
++
++	return false;
++}
++
+ /*
+  * shrink_inactive_list() is a helper for shrink_node().  It returns the number
+  * of reclaimed pages
+@@ -1674,6 +1699,9 @@ shrink_inactive_list(unsigned long nr_to
+ 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+ 
++	if (!inactive_reclaimable_pages(lruvec, sc, lru))
++		return 0;
++
+ 	while (unlikely(too_many_isolated(pgdat, file, sc))) {
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-meminit-remove-early_page_nid_uninitialised.patch
-mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
-mm-vmscan-move-lru_lock-to-the-node.patch
-mm-vmscan-move-lru-lists-to-node.patch
-mm-mmzone-clarify-the-usage-of-zone-padding.patch
-mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
-mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
-mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
-mm-vmscan-remove-balance-gap.patch
-mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
-mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
-mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
-mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
-mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
-mm-workingset-make-working-set-detection-node-aware.patch
-mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
-mm-move-page-mapped-accounting-to-the-node.patch
-mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
-mm-move-most-file-based-accounting-to-the-node.patch
-mm-move-most-file-based-accounting-to-the-node-fix.patch
-mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
-mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
-mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
-mm-convert-zone_reclaim-to-node_reclaim.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
-mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
-mm-vmscan-add-classzone-information-to-tracepoints.patch
-mm-page_alloc-remove-fair-zone-allocation-policy.patch
-mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
-mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
-mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
-mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
-mm-vmscan-update-all-zone-lru-sizes-before-updating-memcg.patch
-mm-vmscan-remove-redundant-check-in-shrink_zones.patch
-mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
-mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix.patch
-mm-add-per-zone-lru-list-stat-fix.patch
-mm-vmscan-remove-highmem_file_pages.patch
-mm-vmscan-remove-highmem_file_pages-fix.patch
-mm-remove-reclaim-and-compaction-retry-approximations.patch
-mm-consider-whether-to-decivate-based-on-eligible-zones-inactive-ratio.patch
-mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
+mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+mm-migrate-support-non-lru-movable-page-migration.patch
+mm-balloon-use-general-non-lru-movable-page-feature.patch
+zsmalloc-keep-max_object-in-size_class.patch
+zsmalloc-use-bit_spin_lock.patch
+zsmalloc-use-accessor.patch
+zsmalloc-factor-page-chain-functionality-out.patch
+zsmalloc-introduce-zspage-structure.patch
+zsmalloc-separate-free_zspage-from-putback_zspage.patch
+zsmalloc-use-freeobj-for-index.patch
+zsmalloc-page-migration-support.patch
+zsmalloc-page-migration-support-fix.patch
+zsmalloc-page-migration-support-fix-2.patch
+zram-use-__gfp_movable-for-memory-allocation.patch
+zsmalloc-use-obj_tag_bit-for-bit-shifter.patch
+mm-add-nr_zsmalloc-to-vmstat.patch
+mm-add-nr_zsmalloc-to-vmstat-fix-2.patch
+mm-fix-build-warnings-in-linux-compactionh.patch
+mm-page_alloc-fix-dirtyable-highmem-calculation.patch
+mm-show-node_pages_scanned-per-node-not-zone.patch
+mm-show-node_pages_scanned-per-node-not-zone-fix.patch
+mm-add-per-zone-lru-list-stat.patch
+mm-bail-out-in-shrin_inactive_list.patch
 
