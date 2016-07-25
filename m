@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mem-hotplug-alloc-new-page-from-a-nearest-neighbor-node-when-mem-offline.patch added to -mm tree
-Date: Mon, 25 Jul 2016 13:52:53 -0700
-Message-ID: <57967c25.4PWEFsKlGLVrcOjC%akpm@linux-foundation.org>
+Subject: + mm-optimize-copy_page_to-from_iter_iovec-fix-fix.patch added to -mm tree
+Date: Mon, 25 Jul 2016 15:27:44 -0700
+Message-ID: <57969260.C2SKB6WmRmMK1axy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45771 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48092 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753199AbcGYUwy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2016 16:52:54 -0400
+	with ESMTP id S1754882AbcGYW1p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2016 18:27:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, iamjoonsoo.kim@lge.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@firstfloor.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mhocko@kernel.org, mpatocka@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug: alloc new page from a nearest neighbor node when mem-offline
+     Subject: mm-optimize-copy_page_to-from_iter_iovec-fix-fix
 has been added to the -mm tree.  Its filename is
-     mem-hotplug-alloc-new-page-from-a-nearest-neighbor-node-when-mem-offline.patch
+     mm-optimize-copy_page_to-from_iter_iovec-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-alloc-new-page-from-a-nearest-neighbor-node-when-mem-offline.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-optimize-copy_page_to-from_iter_iovec-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-alloc-new-page-from-a-nearest-neighbor-node-when-mem-offline.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-optimize-copy_page_to-from_iter_iovec-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,87 +38,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mem-hotplug: alloc new page from a nearest neighbor node when mem-offline
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-optimize-copy_page_to-from_iter_iovec-fix-fix
 
-If we offline a node, alloc the new page from a nearest neighbor node
-instead of the current node or other remote nodes, because re-migrate is a
-waste of time and the distance of the remote nodes is often very large.
+change copy_page_from_iter_iovec() as well
 
-Also use GFP_HIGHUSER_MOVABLE to alloc new page if the zone is
-movable zone or highmem zone.
-
-Link: http://lkml.kernel.org/r/5795E18B.5060302@huawei.com
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   38 +++++++++++++++++++++++++++++++++-----
- 1 file changed, 33 insertions(+), 5 deletions(-)
+ lib/iov_iter.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mem-hotplug-alloc-new-page-from-a-nearest-neighbor-node-when-mem-offline mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mem-hotplug-alloc-new-page-from-a-nearest-neighbor-node-when-mem-offline
-+++ a/mm/memory_hotplug.c
-@@ -1548,6 +1548,37 @@ static unsigned long scan_movable_pages(
- 	return 0;
- }
+diff -puN lib/iov_iter.c~mm-optimize-copy_page_to-from_iter_iovec-fix-fix lib/iov_iter.c
+--- a/lib/iov_iter.c~mm-optimize-copy_page_to-from_iter_iovec-fix-fix
++++ a/lib/iov_iter.c
+@@ -242,8 +242,7 @@ static size_t copy_page_from_iter_iovec(
+ 	buf = iov->iov_base + skip;
+ 	copy = min(bytes, iov->iov_len - skip);
  
-+static struct page *new_node_page(struct page *page, unsigned long private,
-+		int **result)
-+{
-+	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
-+	int nid = page_to_nid(page);
-+	nodemask_t nmask = node_online_map;
-+	struct page *new_page;
-+
-+	/*
-+	 * TODO: allocate a destination hugepage from a nearest neighbor node,
-+	 * accordance with memory policy of the user process if possible. For
-+	 * now as a simple work-around, we use the next node for destination.
-+	 */
-+	if (PageHuge(page))
-+		return alloc_huge_page_node(page_hstate(compound_head(page)),
-+					next_node_in(nid, nmask));
-+
-+	node_clear(nid, nmask);
-+	if (PageHighMem(page)
-+	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
-+		gfp_mask |= __GFP_HIGHMEM;
-+
-+	new_page = __alloc_pages_nodemask(gfp_mask, 0,
-+					node_zonelist(nid, gfp_mask), &nmask);
-+	if (!new_page)
-+		new_page = __alloc_pages(gfp_mask, 0,
-+					node_zonelist(nid, gfp_mask));
-+
-+	return new_page;
-+}
-+
- #define NR_OFFLINE_AT_ONCE_PAGES	(256)
- static int
- do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
-@@ -1611,11 +1642,8 @@ do_migrate_range(unsigned long start_pfn
- 			goto out;
- 		}
+-#ifdef CONFIG_HIGHMEM
+-	if (!fault_in_pages_readable(buf, copy)) {
++	if (IS_ENABLED(CONFIG_HIGHMEM) && !fault_in_pages_readable(buf, copy)) {
+ 		kaddr = kmap_atomic(page);
+ 		to = kaddr + offset;
  
--		/*
--		 * alloc_migrate_target should be improooooved!!
--		 * migrate_pages returns # of failed pages.
--		 */
--		ret = migrate_pages(&source, alloc_migrate_target, NULL, 0,
-+		/* Allocate a new page from the nearest neighbor node */
-+		ret = migrate_pages(&source, new_node_page, NULL, 0,
- 					MIGRATE_SYNC, MR_MEMORY_HOTPLUG);
- 		if (ret)
- 			putback_movable_pages(&source);
+@@ -274,7 +273,6 @@ static size_t copy_page_from_iter_iovec(
+ 		copy = min(bytes, iov->iov_len - skip);
+ 	}
+ 	/* Too bad - revert to non-atomic kmap */
+-#endif
+ 
+ 	kaddr = kmap(page);
+ 	to = kaddr + offset;
+@@ -295,9 +293,7 @@ static size_t copy_page_from_iter_iovec(
+ 	}
+ 	kunmap(page);
+ 
+-#ifdef CONFIG_HIGHMEM
+ done:
+-#endif
+ 	if (skip == iov->iov_len) {
+ 		iov++;
+ 		skip = 0;
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mem-hotplug-use-gfp_highuser_movable-in-alloc_migrate_target.patch
-mem-hotplug-alloc-new-page-from-a-nearest-neighbor-node-when-mem-offline.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-improve-recovery-performance-v2-fix.patch
+ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix.patch
+mm.patch
+mm-reorganize-slab-freelist-randomization-fix.patch
+mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
+mm-compaction-split-freepages-without-holding-the-zone-lock-fix-2.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+mm-fix-build-warnings-in-linux-compactionh-fix.patch
+mm-update-the-comment-in-__isolate_free_page-checkpatch-fixes.patch
+revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes.patch
+mm-optimize-copy_page_to-from_iter_iovec-fix.patch
+mm-optimize-copy_page_to-from_iter_iovec-fix-fix.patch
+treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
+printk-create-pr_level-functions-fix.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+allow-kdump-with-crash_kexec_post_notifiers-fix.patch
+kexec-add-resriction-on-the-kexec_load-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+bitmap-bitmap_equal-memcmp-optimization-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
