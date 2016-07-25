@@ -1,87 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-add-resriction-on-the-kexec_load-update.patch added to
- -mm tree
-Date: Mon, 25 Jul 2016 13:27:00 -0700
-Message-ID: <57967614.RI1/Ym2P6dyuNJ3c%akpm@linux-foundation.org>
+Subject: [withdrawn] ipc-semc-remove-duplicated-memory-barriers.patch
+ removed from -mm tree
+Date: Mon, 25 Jul 2016 13:27:26 -0700
+Message-ID: <5796762e.c8b+vmMFK6w5dADg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45558 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45565 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752646AbcGYU1B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2016 16:27:01 -0400
+	with ESMTP id S1752646AbcGYU11 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2016 16:27:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhongjiang@huawei.com, dyoung@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, 1vier1@web.de, dave@stgolabs.net, felixh@informatik.uni-bremen.de, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: fix the add restriction on the kexec_load
-has been added to the -mm tree.  Its filename is
-     kexec-add-resriction-on-the-kexec_load-update.patch
+     Subject: ipc/sem.c: remove duplicated memory barriers
+has been removed from the -mm tree.  Its filename was
+     ipc-semc-remove-duplicated-memory-barriers.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-add-resriction-on-the-kexec_load-update.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-add-resriction-on-the-kexec_load-update.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: zhong jiang <zhongjiang@huawei.com>
-Subject: kexec: fix the add restriction on the kexec_load
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: remove duplicated memory barriers
 
-Because segments size is in bytes, while totalram_pages is in pages
-so we should fix it.
+With 2c610022711 ("locking/qspinlock: Fix spin_unlock_wait() some more"),
+memory barriers were added into spin_unlock_wait().  Thus another barrier
+is not required.
 
-Link: http://lkml.kernel.org/r/579353BE.9010600@huawei.com
-Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
+And as explained in 055ce0fd1b8 ("locking/qspinlock: Add comments"),
+spin_lock() provides a barrier so that reads within the critical section
+cannot happen before the write for the lock is visible.  i.e.  spin_lock
+provides an acquire barrier after the write of the lock variable, this
+barrier pairs with the smp_mb() in complexmode_enter().
+
+Link: http://lkml.kernel.org/r/1468386412-3608-3-git-send-email-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <1vier1@web.de>
+Cc: <felixh@informatik.uni-bremen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/sem.c |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff -puN kernel/kexec_core.c~kexec-add-resriction-on-the-kexec_load-update kernel/kexec_core.c
---- a/kernel/kexec_core.c~kexec-add-resriction-on-the-kexec_load-update
-+++ a/kernel/kexec_core.c
-@@ -221,13 +221,13 @@ int sanity_check_segment_list(struct kim
- 	 * allocating pages, which can cause a soft lockup.
- 	 */
- 	for (i = 0; i < nr_segments; i++) {
--		if (image->segment[i].memsz > (totalram_pages / 2))
-+		if (image->segment[i].memsz > (totalram_pages << 12) / 2)
- 			return -EINVAL;
- 
- 		total_segments += image->segment[i].memsz;
+diff -puN ipc/sem.c~ipc-semc-remove-duplicated-memory-barriers ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-remove-duplicated-memory-barriers
++++ a/ipc/sem.c
+@@ -290,14 +290,6 @@ static void complexmode_enter(struct sem
+ 		sem = sma->sem_base + i;
+ 		spin_unlock_wait(&sem->lock);
  	}
+-	/*
+-	 * spin_unlock_wait() is not a memory barriers, it is only a
+-	 * control barrier. The code must pair with spin_unlock(&sem->lock),
+-	 * thus just the control barrier is insufficient.
+-	 *
+-	 * smp_rmb() is sufficient, as writes cannot pass the control barrier.
+-	 */
+-	smp_rmb();
+ }
  
--	if (total_segments > (totalram_pages / 2))
-+	if (total_segments > (totalram_pages << 12) / 2)
- 		return -EINVAL;
+ /*
+@@ -363,14 +355,6 @@ static inline int sem_lock(struct sem_ar
+ 		 */
+ 		spin_lock(&sem->lock);
  
- 	/*
-_
-
-Patches currently in -mm which might be from zhongjiang@huawei.com are
-
-mm-hugetlb-fix-race-when-migrate-pages.patch
-mm-update-the-comment-in-__isolate_free_page.patch
-mm-page_owner-align-with-pageblock_nr-pages.patch
-kexec-add-resriction-on-the-kexec_load.patch
-kexec-add-resriction-on-the-kexec_load-update.patch
-
+-		/*
+-		 * See 51d7d5205d33
+-		 * ("powerpc: Add smp_mb() to arch_spin_is_locked()"):
+-		 * A full barrier is required: the write of sem->lock
+-		 * must be visible before the read is executed
+-		 */
+-		smp_mb();
