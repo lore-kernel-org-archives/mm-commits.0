@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-optimize-copy_page_to-from_iter_iovec-fix-fix.patch added to -mm tree
-Date: Mon, 25 Jul 2016 15:27:44 -0700
-Message-ID: <57969260.C2SKB6WmRmMK1axy%akpm@linux-foundation.org>
+Subject: + mm-vmscan-remove-highmem_file_pages-fix.patch added to -mm tree
+Date: Mon, 25 Jul 2016 16:21:46 -0700
+Message-ID: <57969f0a.s0QBkjj7cv0Ik8rD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48092 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49606 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754882AbcGYW1p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2016 18:27:45 -0400
+	with ESMTP id S1753129AbcGYXVr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jul 2016 19:21:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mhocko@kernel.org, mpatocka@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-optimize-copy_page_to-from_iter_iovec-fix-fix
+     Subject: mm, vmscan: remove highmem_file_pages -fix
 has been added to the -mm tree.  Its filename is
-     mm-optimize-copy_page_to-from_iter_iovec-fix-fix.patch
+     mm-vmscan-remove-highmem_file_pages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-optimize-copy_page_to-from_iter_iovec-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-remove-highmem_file_pages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-optimize-copy_page_to-from_iter_iovec-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-remove-highmem_file_pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,86 +38,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-optimize-copy_page_to-from_iter_iovec-fix-fix
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, vmscan: remove highmem_file_pages -fix
 
-change copy_page_from_iter_iovec() as well
+The wrong stat is being accumulatedin highmem_dirtyable_memory, fix it.
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
+This is a fix to the mmotm patch mm-vmscan-remove-highmem_file_pages.patch
+
+Link: http://lkml.kernel.org/r/20160725092324.GM10438@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/iov_iter.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/page-writeback.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/iov_iter.c~mm-optimize-copy_page_to-from_iter_iovec-fix-fix lib/iov_iter.c
---- a/lib/iov_iter.c~mm-optimize-copy_page_to-from_iter_iovec-fix-fix
-+++ a/lib/iov_iter.c
-@@ -242,8 +242,7 @@ static size_t copy_page_from_iter_iovec(
- 	buf = iov->iov_base + skip;
- 	copy = min(bytes, iov->iov_len - skip);
- 
--#ifdef CONFIG_HIGHMEM
--	if (!fault_in_pages_readable(buf, copy)) {
-+	if (IS_ENABLED(CONFIG_HIGHMEM) && !fault_in_pages_readable(buf, copy)) {
- 		kaddr = kmap_atomic(page);
- 		to = kaddr + offset;
- 
-@@ -274,7 +273,6 @@ static size_t copy_page_from_iter_iovec(
- 		copy = min(bytes, iov->iov_len - skip);
+diff -puN mm/page-writeback.c~mm-vmscan-remove-highmem_file_pages-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-vmscan-remove-highmem_file_pages-fix
++++ a/mm/page-writeback.c
+@@ -322,8 +322,8 @@ static unsigned long highmem_dirtyable_m
+ 			nr_pages = zone_page_state(z, NR_FREE_PAGES);
+ 			/* watch for underflows */
+ 			nr_pages -= min(nr_pages, high_wmark_pages(z));
+-			nr_pages += zone_page_state(z, NR_INACTIVE_FILE);
+-			nr_pages += zone_page_state(z, NR_ACTIVE_FILE);
++			nr_pages += zone_page_state(z, NR_ZONE_INACTIVE_FILE);
++			nr_pages += zone_page_state(z, NR_ZONE_ACTIVE_FILE);
+ 			x += nr_pages;
+ 		}
  	}
- 	/* Too bad - revert to non-atomic kmap */
--#endif
- 
- 	kaddr = kmap(page);
- 	to = kaddr + offset;
-@@ -295,9 +293,7 @@ static size_t copy_page_from_iter_iovec(
- 	}
- 	kunmap(page);
- 
--#ifdef CONFIG_HIGHMEM
- done:
--#endif
- 	if (skip == iov->iov_len) {
- 		iov++;
- 		skip = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-improve-recovery-performance-v2-fix.patch
-ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix.patch
-mm.patch
-mm-reorganize-slab-freelist-randomization-fix.patch
-mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
-mm-compaction-split-freepages-without-holding-the-zone-lock-fix-2.patch
-mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
-mm-add-nr_zsmalloc-to-vmstat-fix.patch
-mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
-mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
-mm-fix-build-warnings-in-linux-compactionh-fix.patch
-mm-update-the-comment-in-__isolate_free_page-checkpatch-fixes.patch
-revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes.patch
-mm-optimize-copy_page_to-from_iter_iovec-fix.patch
-mm-optimize-copy_page_to-from_iter_iovec-fix-fix.patch
-treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
-printk-create-pr_level-functions-fix.patch
-kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
-kexec-allow-architectures-to-override-boot-mapping-fix.patch
-allow-kdump-with-crash_kexec_post_notifiers-fix.patch
-kexec-add-resriction-on-the-kexec_load-fix.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-bitmap-bitmap_equal-memcmp-optimization-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-meminit-remove-early_page_nid_uninitialised.patch
+mm-vmstat-add-infrastructure-for-per-node-vmstats.patch
+mm-vmscan-move-lru_lock-to-the-node.patch
+mm-vmscan-move-lru-lists-to-node.patch
+mm-mmzone-clarify-the-usage-of-zone-padding.patch
+mm-vmscan-begin-reclaiming-pages-on-a-per-node-basis.patch
+mm-vmscan-have-kswapd-only-scan-based-on-the-highest-requested-zone.patch
+mm-vmscan-make-kswapd-reclaim-in-terms-of-nodes.patch
+mm-vmscan-remove-balance-gap.patch
+mm-vmscan-simplify-the-logic-deciding-whether-kswapd-sleeps.patch
+mm-vmscan-by-default-have-direct-reclaim-only-shrink-once-per-node.patch
+mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state.patch
+mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone.patch
+mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
+mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
+mm-memcg-move-memcg-limit-enforcement-from-zones-to-nodes.patch
+mm-workingset-make-working-set-detection-node-aware.patch
+mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
+mm-move-page-mapped-accounting-to-the-node.patch
+mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
+mm-move-most-file-based-accounting-to-the-node.patch
+mm-move-most-file-based-accounting-to-the-node-fix.patch
+mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
+mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
+mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
+mm-convert-zone_reclaim-to-node_reclaim.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
+mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
+mm-vmscan-add-classzone-information-to-tracepoints.patch
+mm-page_alloc-remove-fair-zone-allocation-policy.patch
+mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
+mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
+mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
+mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
+mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
+mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
+mm-vmscan-update-all-zone-lru-sizes-before-updating-memcg.patch
+mm-vmscan-remove-redundant-check-in-shrink_zones.patch
+mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
+mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix.patch
+mm-add-per-zone-lru-list-stat-fix.patch
+mm-vmscan-remove-highmem_file_pages.patch
+mm-vmscan-remove-highmem_file_pages-fix.patch
+mm-remove-reclaim-and-compaction-retry-approximations.patch
+mm-consider-whether-to-decivate-based-on-eligible-zones-inactive-ratio.patch
+mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
 
