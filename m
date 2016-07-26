@@ -1,106 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: [patch 078/126] include/linux/memblock.h: clean up code for
- several trivial details
-Date: Tue, 26 Jul 2016 15:24:47 -0700
-Message-ID: <5797e32f.1KJtPVWVFkyPycxW%akpm@linux-foundation.org>
+Subject: [patch 083/126] mm: make swapin readahead to improve thp collapse rate
+Date: Tue, 26 Jul 2016 15:25:03 -0700
+Message-ID: <5797e33f.rByQrwAtQgICDhU8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56922 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56981 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758415AbcGZWYt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:24:49 -0400
+	with ESMTP id S1758511AbcGZWZE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:25:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, chengang@emindsoft.com.cn, gang.chen.5i5j@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ebru.akagunduz@gmail.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gorcunov@openvz.org, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, xiexiuqi@huawei.com
 
-From: Chen Gang <chengang@emindsoft.com.cn>
-Subject: include/linux/memblock.h: Clean up code for several trivial details
+From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Subject: mm: make swapin readahead to improve thp collapse rate
 
-Correct the function parameters alignment, since original code already use
-both tabs and white spaces together for the incorrect parameters alignment
-functions.
+This patch makes swapin readahead to improve thp collapse rate.  When
+khugepaged scanned pages, there can be a few of the pages in swap area.
 
-If one line can hold one statement within 80 columns, let it in one line
-(original code did not consider about the tabs/spaces for 2nd line when a
-statement is separated into 2 lines).
+With the patch THP can collapse 4kB pages into a THP when there are up to
+max_ptes_swap swap ptes in a 2MB range.
 
-Try to let '' aligned within one macro, since all related lines are
-short enough.
+The patch was tested with a test program that allocates 400B of memory,
+writes to it, and then sleeps.  I force the system to swap out all. 
+Afterwards, the test program touches the area by writing, it skips a page
+in each 20 pages of the area.
 
-Remove useless statement "idx = 0;", and always assign rgn within the
-'for' statement.
+Without the patch, system did not swap in readahead.  THP rate was %65 of
+the program of the memory, it did not change over time.
 
-Link: http://lkml.kernel.org/r/1464904899-1714-1-git-send-email-chengang@emindsoft.com.cn
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+With this patch, after 10 minutes of waiting khugepaged had collapsed %99
+of the program's memory.
+
+[kirill.shutemov@linux.intel.com: trivial cleanup of exit path of the function]
+[kirill.shutemov@linux.intel.com: __collapse_huge_page_swapin(): drop unused 'pte' parameter]
+[kirill.shutemov@linux.intel.com: do not hold anon_vma lock during swap in]
+Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Xie XiuQi <xiexiuqi@huawei.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ include/trace/events/huge_memory.h |   24 +++++++++++++++
+ mm/huge_memory.c                   |   43 +++++++++++++++++++++++++--
+ mm/internal.h                      |    4 ++
+ mm/memory.c                        |    2 -
+ 4 files changed, 69 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/memblock.h~include-linux-memblockh-clean-up-code-for-several-trivial-details include/linux/memblock.h
---- a/include/linux/memblock.h~include-linux-memblockh-clean-up-code-for-several-trivial-details
-+++ a/include/linux/memblock.h
-@@ -73,8 +73,8 @@ extern bool movable_node_enabled;
- 	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
+diff -puN include/trace/events/huge_memory.h~mm-make-swapin-readahead-to-improve-thp-collapse-rate include/trace/events/huge_memory.h
+--- a/include/trace/events/huge_memory.h~mm-make-swapin-readahead-to-improve-thp-collapse-rate
++++ a/include/trace/events/huge_memory.h
+@@ -135,5 +135,29 @@ TRACE_EVENT(mm_collapse_huge_page_isolat
+ 		__print_symbolic(__entry->status, SCAN_STATUS))
+ );
  
- phys_addr_t memblock_find_in_range_node(phys_addr_t size, phys_addr_t align,
--					    phys_addr_t start, phys_addr_t end,
--					    int nid, ulong flags);
-+					phys_addr_t start, phys_addr_t end,
-+					int nid, ulong flags);
- phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
- 				   phys_addr_t size, phys_addr_t align);
- phys_addr_t get_allocated_memblock_reserved_regions_info(phys_addr_t *addr);
-@@ -110,7 +110,7 @@ void __next_mem_range_rev(u64 *idx, int
- 			  phys_addr_t *out_end, int *out_nid);
- 
- void __next_reserved_mem_region(u64 *idx, phys_addr_t *out_start,
--			       phys_addr_t *out_end);
-+				phys_addr_t *out_end);
- 
- /**
-  * for_each_mem_range - iterate through memblock areas from type_a and not
-@@ -148,7 +148,7 @@ void __next_reserved_mem_region(u64 *idx
- 			       p_start, p_end, p_nid)			\
- 	for (i = (u64)ULLONG_MAX,					\
- 		     __next_mem_range_rev(&i, nid, flags, type_a, type_b,\
--					 p_start, p_end, p_nid);	\
-+					  p_start, p_end, p_nid);	\
- 	     i != (u64)ULLONG_MAX;					\
- 	     __next_mem_range_rev(&i, nid, flags, type_a, type_b,	\
- 				  p_start, p_end, p_nid))
-@@ -163,8 +163,7 @@ void __next_reserved_mem_region(u64 *idx
-  * is initialized.
-  */
- #define for_each_reserved_mem_region(i, p_start, p_end)			\
--	for (i = 0UL,							\
--	     __next_reserved_mem_region(&i, p_start, p_end);		\
-+	for (i = 0UL, __next_reserved_mem_region(&i, p_start, p_end);	\
- 	     i != (u64)ULLONG_MAX;					\
- 	     __next_reserved_mem_region(&i, p_start, p_end))
- 
-@@ -403,15 +402,14 @@ static inline unsigned long memblock_reg
++TRACE_EVENT(mm_collapse_huge_page_swapin,
++
++	TP_PROTO(struct mm_struct *mm, int swapped_in, int ret),
++
++	TP_ARGS(mm, swapped_in, ret),
++
++	TP_STRUCT__entry(
++		__field(struct mm_struct *, mm)
++		__field(int, swapped_in)
++		__field(int, ret)
++	),
++
++	TP_fast_assign(
++		__entry->mm = mm;
++		__entry->swapped_in = swapped_in;
++		__entry->ret = ret;
++	),
++
++	TP_printk("mm=%p, swapped_in=%d, ret=%d",
++		__entry->mm,
++		__entry->swapped_in,
++		__entry->ret)
++);
++
+ #endif /* __HUGE_MEMORY_H */
+ #include <trace/define_trace.h>
+diff -puN mm/huge_memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate
++++ a/mm/huge_memory.c
+@@ -2373,6 +2373,44 @@ static bool hugepage_vma_check(struct vm
+ 	return !(vma->vm_flags & VM_NO_THP);
  }
  
- #define for_each_memblock(memblock_type, region)					\
--	for (region = memblock.memblock_type.regions;				\
-+	for (region = memblock.memblock_type.regions;					\
- 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
- 	     region++)
++/*
++ * Bring missing pages in from swap, to complete THP collapse.
++ * Only done if khugepaged_scan_pmd believes it is worthwhile.
++ *
++ * Called and returns without pte mapped or spinlocks held,
++ * but with mmap_sem held to protect against vma changes.
++ */
++
++static void __collapse_huge_page_swapin(struct mm_struct *mm,
++					struct vm_area_struct *vma,
++					unsigned long address, pmd_t *pmd)
++{
++	unsigned long _address;
++	pte_t *pte, pteval;
++	int swapped_in = 0, ret = 0;
++
++	pte = pte_offset_map(pmd, address);
++	for (_address = address; _address < address + HPAGE_PMD_NR*PAGE_SIZE;
++	     pte++, _address += PAGE_SIZE) {
++		pteval = *pte;
++		if (!is_swap_pte(pteval))
++			continue;
++		swapped_in++;
++		ret = do_swap_page(mm, vma, _address, pte, pmd,
++				   FAULT_FLAG_ALLOW_RETRY|FAULT_FLAG_RETRY_NOWAIT,
++				   pteval);
++		if (ret & VM_FAULT_ERROR) {
++			trace_mm_collapse_huge_page_swapin(mm, swapped_in, 0);
++			return;
++		}
++		/* pte is unmapped now, we need to map it */
++		pte = pte_offset_map(pmd, _address);
++	}
++	pte--;
++	pte_unmap(pte);
++	trace_mm_collapse_huge_page_swapin(mm, swapped_in, 1);
++}
++
+ static void collapse_huge_page(struct mm_struct *mm,
+ 				   unsigned long address,
+ 				   struct page **hpage,
+@@ -2440,6 +2478,8 @@ static void collapse_huge_page(struct mm
+ 		goto out;
+ 	}
  
- #define for_each_memblock_type(memblock_type, rgn)			\
--	idx = 0;							\
--	rgn = &memblock_type->regions[idx];				\
--	for (idx = 0; idx < memblock_type->cnt;				\
--	     idx++,rgn = &memblock_type->regions[idx])
-+	for (idx = 0, rgn = &memblock_type->regions[0];			\
-+	     idx < memblock_type->cnt;					\
-+	     idx++, rgn = &memblock_type->regions[idx])
++	__collapse_huge_page_swapin(mm, vma, address, pmd);
++
+ 	anon_vma_lock_write(vma->anon_vma);
  
- #ifdef CONFIG_MEMTEST
- extern void early_memtest(phys_addr_t start, phys_addr_t end);
+ 	pte = pte_offset_map(pmd, address);
+@@ -2516,9 +2556,6 @@ static void collapse_huge_page(struct mm
+ 	result = SCAN_SUCCEED;
+ out_up_write:
+ 	up_write(&mm->mmap_sem);
+-	trace_mm_collapse_huge_page(mm, isolated, result);
+-	return;
+-
+ out_nolock:
+ 	trace_mm_collapse_huge_page(mm, isolated, result);
+ 	return;
+diff -puN mm/internal.h~mm-make-swapin-readahead-to-improve-thp-collapse-rate mm/internal.h
+--- a/mm/internal.h~mm-make-swapin-readahead-to-improve-thp-collapse-rate
++++ a/mm/internal.h
+@@ -36,6 +36,10 @@
+ /* Do not use these with a slab allocator */
+ #define GFP_SLAB_BUG_MASK (__GFP_DMA32|__GFP_HIGHMEM|~__GFP_BITS_MASK)
+ 
++extern int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
++			unsigned long address, pte_t *page_table, pmd_t *pmd,
++			unsigned int flags, pte_t orig_pte);
++
+ void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
+ 		unsigned long floor, unsigned long ceiling);
+ 
+diff -puN mm/memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate mm/memory.c
+--- a/mm/memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate
++++ a/mm/memory.c
+@@ -2522,7 +2522,7 @@ EXPORT_SYMBOL(unmap_mapping_range);
+  * We return with the mmap_sem locked or unlocked in the same cases
+  * as does filemap_fault().
+  */
+-static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
++int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pte_t *page_table, pmd_t *pmd,
+ 		unsigned int flags, pte_t orig_pte)
+ {
 _
