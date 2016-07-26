@@ -1,82 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [patch 054/126] zsmalloc: use OBJ_TAG_BIT for bit shifter
-Date: Tue, 26 Jul 2016 15:23:37 -0700
-Message-ID: <5797e2e9.zAycZxN+FDrW256f%akpm@linux-foundation.org>
+Subject: [patch 053/126] zram: use __GFP_MOVABLE for memory allocation
+Date: Tue, 26 Jul 2016 15:23:34 -0700
+Message-ID: <5797e2e6.LFZdotySdb7s2YKK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56753 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56749 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758191AbcGZWXi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:23:38 -0400
+	with ESMTP id S1758191AbcGZWXf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:23:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, dan.carpenter@oracle.com, sergey.senozhatsky.work@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz
 
 From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: use OBJ_TAG_BIT for bit shifter
+Subject: zram: use __GFP_MOVABLE for memory allocation
 
-Static check warns using tag as bit shifter.  It doesn't break current
-working but not good for redability.  Let's use OBJ_TAG_BIT as bit shifter
-instead of OBJ_ALLOCATED_TAG.
+Zsmalloc is ready for page migration so zram can use __GFP_MOVABLE
+from now on.
 
-Link: http://lkml.kernel.org/r/20160607045146.GF26230@bbox
+I did test to see how it helps to make higher order pages.
+Test scenario is as follows.
+
+KVM guest, 1G memory, ext4 formated zram block device,
+
+for i in `seq 1 8`;
+do
+        dd if=/dev/vda1 of=mnt/test$i.txt bs=128M count=1 &
+done
+
+wait `pidof dd`
+
+for i in `seq 1 2 8`;
+do
+        rm -rf mnt/test$i.txt
+done
+fstrim -v mnt
+
+echo "init"
+cat /proc/buddyinfo
+
+echo "compaction"
+echo 1 > /proc/sys/vm/compact_memory
+cat /proc/buddyinfo
+
+old:
+
+init
+Node 0, zone      DMA    208    120     51     41     11      0      0      0      0      0      0
+Node 0, zone    DMA32  16380  13777   9184   3805    789     54      3      0      0      0      0
+compaction
+Node 0, zone      DMA    132     82     40     39     16      2      1      0      0      0      0
+Node 0, zone    DMA32   5219   5526   4969   3455   1831    677    139     15      0      0      0
+
+new:
+
+init
+Node 0, zone      DMA    379    115     97     19      2      0      0      0      0      0      0
+Node 0, zone    DMA32  18891  16774  10862   3947    637     21      0      0      0      0      0
+compaction  1
+Node 0, zone      DMA    214     66     87     29     10      3      0      0      0      0      0
+Node 0, zone    DMA32   1612   3139   3154   2469   1745    990    384     94      7      0      0
+
+As you can see, compaction made so many high-order pages. Yay!
+
+Link: http://lkml.kernel.org/r/1464736881-24886-13-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/block/zram/zram_drv.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-use-obj_tag_bit-for-bit-shifter mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-use-obj_tag_bit-for-bit-shifter
-+++ a/mm/zsmalloc.c
-@@ -1052,7 +1052,7 @@ static void init_zspage(struct size_clas
- 		link = (struct link_free *)vaddr + off / sizeof(*link);
+diff -puN drivers/block/zram/zram_drv.c~zram-use-__gfp_movable-for-memory-allocation drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-use-__gfp_movable-for-memory-allocation
++++ a/drivers/block/zram/zram_drv.c
+@@ -738,7 +738,8 @@ compress_again:
+ 		handle = zs_malloc(meta->mem_pool, clen,
+ 				__GFP_KSWAPD_RECLAIM |
+ 				__GFP_NOWARN |
+-				__GFP_HIGHMEM);
++				__GFP_HIGHMEM |
++				__GFP_MOVABLE);
+ 	if (!handle) {
+ 		zcomp_stream_put(zram->comp);
+ 		zstrm = NULL;
+@@ -746,7 +747,8 @@ compress_again:
+ 		atomic64_inc(&zram->stats.writestall);
  
- 		while ((off += class->size) < PAGE_SIZE) {
--			link->next = freeobj++ << OBJ_ALLOCATED_TAG;
-+			link->next = freeobj++ << OBJ_TAG_BITS;
- 			link += class->size / sizeof(*link);
- 		}
+ 		handle = zs_malloc(meta->mem_pool, clen,
+-				GFP_NOIO | __GFP_HIGHMEM);
++				GFP_NOIO | __GFP_HIGHMEM |
++				__GFP_MOVABLE);
+ 		if (handle)
+ 			goto compress_again;
  
-@@ -1063,13 +1063,13 @@ static void init_zspage(struct size_clas
- 		 */
- 		next_page = get_next_page(page);
- 		if (next_page) {
--			link->next = freeobj++ << OBJ_ALLOCATED_TAG;
-+			link->next = freeobj++ << OBJ_TAG_BITS;
- 		} else {
- 			/*
--			 * Reset OBJ_ALLOCATED_TAG bit to last link to tell
-+			 * Reset OBJ_TAG_BITS bit to last link to tell
- 			 * whether it's allocated object or not.
- 			 */
--			link->next = -1 << OBJ_ALLOCATED_TAG;
-+			link->next = -1 << OBJ_TAG_BITS;
- 		}
- 		kunmap_atomic(vaddr);
- 		page = next_page;
-@@ -1514,7 +1514,7 @@ static unsigned long obj_malloc(struct s
- 
- 	vaddr = kmap_atomic(m_page);
- 	link = (struct link_free *)vaddr + m_offset / sizeof(*link);
--	set_freeobj(zspage, link->next >> OBJ_ALLOCATED_TAG);
-+	set_freeobj(zspage, link->next >> OBJ_TAG_BITS);
- 	if (likely(!PageHugeObject(m_page)))
- 		/* record handle in the header of allocated chunk */
- 		link->handle = handle;
-@@ -1616,7 +1616,7 @@ static void obj_free(struct size_class *
- 
- 	/* Insert this object in containing zspage's freelist */
- 	link = (struct link_free *)(vaddr + f_offset);
--	link->next = get_freeobj(zspage) << OBJ_ALLOCATED_TAG;
-+	link->next = get_freeobj(zspage) << OBJ_TAG_BITS;
- 	kunmap_atomic(vaddr);
- 	set_freeobj(zspage, f_objidx);
- 	mod_zspage_inuse(zspage, -1);
 _
