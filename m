@@ -1,423 +1,196 @@
 From: akpm@linux-foundation.org
-Subject: [patch 105/126] filemap: prepare find and delete operations for
- huge pages
-Date: Tue, 26 Jul 2016 15:26:04 -0700
-Message-ID: <5797e37c.k9RLSNkJNOcu+LpF%akpm@linux-foundation.org>
+Subject: [patch 104/126] radix-tree: implement
+ radix_tree_maybe_preload_order()
+Date: Tue, 26 Jul 2016 15:26:02 -0700
+Message-ID: <5797e37a.jWQw4gOzj5h7n2hH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57069 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57066 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758604AbcGZW0G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:26:06 -0400
+	with ESMTP id S1758604AbcGZW0D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:26:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com
 
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: filemap: prepare find and delete operations for huge pages
+Subject: radix-tree: implement radix_tree_maybe_preload_order()
 
-For now, we would have HPAGE_PMD_NR entries in radix tree for every huge
-page. That's suboptimal and it will be changed to use Matthew's
-multi-order entries later.
+The new helper is similar to radix_tree_maybe_preload(), but tries to
+preload number of nodes required to insert (1 << order) continuous
+naturally-aligned elements.
 
-'add' operation is not changed, because we don't need it to implement
-hugetmpfs: shmem uses its own implementation.
+This is required to push huge pages into pagecache.
 
-Link: http://lkml.kernel.org/r/1466021202-61880-25-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1466021202-61880-24-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |  178 +++++++++++++++++++++++++++++++++----------------
- 1 file changed, 122 insertions(+), 56 deletions(-)
+ include/linux/radix-tree.h |    1 
+ lib/radix-tree.c           |   84 ++++++++++++++++++++++++++++++++---
+ 2 files changed, 80 insertions(+), 5 deletions(-)
 
-diff -puN mm/filemap.c~filemap-prepare-find-and-delete-operations-for-huge-pages mm/filemap.c
---- a/mm/filemap.c~filemap-prepare-find-and-delete-operations-for-huge-pages
-+++ a/mm/filemap.c
-@@ -114,14 +114,14 @@ static void page_cache_tree_delete(struc
- 				   struct page *page, void *shadow)
- {
- 	struct radix_tree_node *node;
-+	int i, nr = PageHuge(page) ? 1 : hpage_nr_pages(page);
+diff -puN include/linux/radix-tree.h~radix-tree-implement-radix_tree_maybe_preload_order include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-implement-radix_tree_maybe_preload_order
++++ a/include/linux/radix-tree.h
+@@ -291,6 +291,7 @@ unsigned int radix_tree_gang_lookup_slot
+ 			unsigned long first_index, unsigned int max_items);
+ int radix_tree_preload(gfp_t gfp_mask);
+ int radix_tree_maybe_preload(gfp_t gfp_mask);
++int radix_tree_maybe_preload_order(gfp_t gfp_mask, int order);
+ void radix_tree_init(void);
+ void *radix_tree_tag_set(struct radix_tree_root *root,
+ 			unsigned long index, unsigned int tag);
+diff -puN lib/radix-tree.c~radix-tree-implement-radix_tree_maybe_preload_order lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-implement-radix_tree_maybe_preload_order
++++ a/lib/radix-tree.c
+@@ -38,6 +38,9 @@
+ #include <linux/preempt.h>		/* in_interrupt() */
  
--	VM_BUG_ON(!PageLocked(page));
--
--	node = radix_tree_replace_clear_tags(&mapping->page_tree, page->index,
--								shadow);
-+	VM_BUG_ON_PAGE(!PageLocked(page), page);
-+	VM_BUG_ON_PAGE(PageTail(page), page);
-+	VM_BUG_ON_PAGE(nr != 1 && shadow, page);
  
- 	if (shadow) {
--		mapping->nrexceptional++;
-+		mapping->nrexceptional += nr;
- 		/*
- 		 * Make sure the nrexceptional update is committed before
- 		 * the nrpages update so that final truncate racing
-@@ -130,31 +130,38 @@ static void page_cache_tree_delete(struc
- 		 */
- 		smp_wmb();
- 	}
--	mapping->nrpages--;
--
--	if (!node)
--		return;
-+	mapping->nrpages -= nr;
- 
--	workingset_node_pages_dec(node);
--	if (shadow)
--		workingset_node_shadows_inc(node);
--	else
--		if (__radix_tree_delete_node(&mapping->page_tree, node))
-+	for (i = 0; i < nr; i++) {
-+		node = radix_tree_replace_clear_tags(&mapping->page_tree,
-+				page->index + i, shadow);
-+		if (!node) {
-+			VM_BUG_ON_PAGE(nr != 1, page);
- 			return;
-+		}
- 
--	/*
--	 * Track node that only contains shadow entries. DAX mappings contain
--	 * no shadow entries and may contain other exceptional entries so skip
--	 * those.
--	 *
--	 * Avoid acquiring the list_lru lock if already tracked.  The
--	 * list_empty() test is safe as node->private_list is
--	 * protected by mapping->tree_lock.
--	 */
--	if (!dax_mapping(mapping) && !workingset_node_pages(node) &&
--	    list_empty(&node->private_list)) {
--		node->private_data = mapping;
--		list_lru_add(&workingset_shadow_nodes, &node->private_list);
-+		workingset_node_pages_dec(node);
-+		if (shadow)
-+			workingset_node_shadows_inc(node);
-+		else
-+			if (__radix_tree_delete_node(&mapping->page_tree, node))
-+				continue;
++/* Number of nodes in fully populated tree of given height */
++static unsigned long height_to_maxnodes[RADIX_TREE_MAX_PATH + 1] __read_mostly;
 +
-+		/*
-+		 * Track node that only contains shadow entries. DAX mappings
-+		 * contain no shadow entries and may contain other exceptional
-+		 * entries so skip those.
-+		 *
-+		 * Avoid acquiring the list_lru lock if already tracked.
-+		 * The list_empty() test is safe as node->private_list is
-+		 * protected by mapping->tree_lock.
-+		 */
-+		if (!dax_mapping(mapping) && !workingset_node_pages(node) &&
-+				list_empty(&node->private_list)) {
-+			node->private_data = mapping;
-+			list_lru_add(&workingset_shadow_nodes,
-+					&node->private_list);
-+		}
- 	}
- }
- 
-@@ -166,6 +173,7 @@ static void page_cache_tree_delete(struc
- void __delete_from_page_cache(struct page *page, void *shadow)
- {
- 	struct address_space *mapping = page->mapping;
-+	int nr = hpage_nr_pages(page);
- 
- 	trace_mm_filemap_delete_from_page_cache(page);
- 	/*
-@@ -178,6 +186,7 @@ void __delete_from_page_cache(struct pag
- 	else
- 		cleancache_invalidate_page(mapping, page);
- 
-+	VM_BUG_ON_PAGE(PageTail(page), page);
- 	VM_BUG_ON_PAGE(page_mapped(page), page);
- 	if (!IS_ENABLED(CONFIG_DEBUG_VM) && unlikely(page_mapped(page))) {
- 		int mapcount;
-@@ -209,9 +218,9 @@ void __delete_from_page_cache(struct pag
- 
- 	/* hugetlb pages do not participate in page cache accounting. */
- 	if (!PageHuge(page))
--		__dec_zone_page_state(page, NR_FILE_PAGES);
-+		__mod_zone_page_state(page_zone(page), NR_FILE_PAGES, -nr);
- 	if (PageSwapBacked(page))
--		__dec_zone_page_state(page, NR_SHMEM);
-+		__mod_zone_page_state(page_zone(page), NR_SHMEM, -nr);
- 
- 	/*
- 	 * At this point page must be either written or cleaned by truncate.
-@@ -235,9 +244,8 @@ void __delete_from_page_cache(struct pag
+ /*
+  * Radix tree node cache.
   */
- void delete_from_page_cache(struct page *page)
+@@ -342,7 +345,7 @@ radix_tree_node_free(struct radix_tree_n
+  * To make use of this facility, the radix tree must be initialised without
+  * __GFP_DIRECT_RECLAIM being passed to INIT_RADIX_TREE().
+  */
+-static int __radix_tree_preload(gfp_t gfp_mask)
++static int __radix_tree_preload(gfp_t gfp_mask, int nr)
  {
--	struct address_space *mapping = page->mapping;
-+	struct address_space *mapping = page_mapping(page);
- 	unsigned long flags;
--
- 	void (*freepage)(struct page *);
+ 	struct radix_tree_preload *rtp;
+ 	struct radix_tree_node *node;
+@@ -350,14 +353,14 @@ static int __radix_tree_preload(gfp_t gf
  
- 	BUG_ON(!PageLocked(page));
-@@ -250,7 +258,13 @@ void delete_from_page_cache(struct page
- 
- 	if (freepage)
- 		freepage(page);
--	put_page(page);
-+
-+	if (PageTransHuge(page) && !PageHuge(page)) {
-+		page_ref_sub(page, HPAGE_PMD_NR);
-+		VM_BUG_ON_PAGE(page_count(page) <= 0, page);
-+	} else {
-+		put_page(page);
-+	}
- }
- EXPORT_SYMBOL(delete_from_page_cache);
- 
-@@ -1053,7 +1067,7 @@ EXPORT_SYMBOL(page_cache_prev_hole);
- struct page *find_get_entry(struct address_space *mapping, pgoff_t offset)
- {
- 	void **pagep;
--	struct page *page;
-+	struct page *head, *page;
- 
- 	rcu_read_lock();
- repeat:
-@@ -1073,8 +1087,16 @@ repeat:
- 			 */
+ 	preempt_disable();
+ 	rtp = this_cpu_ptr(&radix_tree_preloads);
+-	while (rtp->nr < RADIX_TREE_PRELOAD_SIZE) {
++	while (rtp->nr < nr) {
+ 		preempt_enable();
+ 		node = kmem_cache_alloc(radix_tree_node_cachep, gfp_mask);
+ 		if (node == NULL)
  			goto out;
- 		}
--		if (!page_cache_get_speculative(page))
-+
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
-+			goto repeat;
-+
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
- 			goto repeat;
-+		}
- 
- 		/*
- 		 * Has the page moved?
-@@ -1082,7 +1104,7 @@ repeat:
- 		 * include/linux/pagemap.h for details.
- 		 */
- 		if (unlikely(page != *pagep)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- 	}
-@@ -1118,12 +1140,12 @@ repeat:
- 	if (page && !radix_tree_exception(page)) {
- 		lock_page(page);
- 		/* Has the page been truncated? */
--		if (unlikely(page->mapping != mapping)) {
-+		if (unlikely(page_mapping(page) != mapping)) {
- 			unlock_page(page);
- 			put_page(page);
- 			goto repeat;
- 		}
--		VM_BUG_ON_PAGE(page->index != offset, page);
-+		VM_BUG_ON_PAGE(page_to_pgoff(page) != offset, page);
- 	}
- 	return page;
+ 		preempt_disable();
+ 		rtp = this_cpu_ptr(&radix_tree_preloads);
+-		if (rtp->nr < RADIX_TREE_PRELOAD_SIZE) {
++		if (rtp->nr < nr) {
+ 			node->private_data = rtp->nodes;
+ 			rtp->nodes = node;
+ 			rtp->nr++;
+@@ -383,7 +386,7 @@ int radix_tree_preload(gfp_t gfp_mask)
+ {
+ 	/* Warn on non-sensical use... */
+ 	WARN_ON_ONCE(!gfpflags_allow_blocking(gfp_mask));
+-	return __radix_tree_preload(gfp_mask);
++	return __radix_tree_preload(gfp_mask, RADIX_TREE_PRELOAD_SIZE);
  }
-@@ -1255,7 +1277,7 @@ unsigned find_get_entries(struct address
+ EXPORT_SYMBOL(radix_tree_preload);
  
- 	rcu_read_lock();
- 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
--		struct page *page;
-+		struct page *head, *page;
- repeat:
- 		page = radix_tree_deref_slot(slot);
- 		if (unlikely(!page))
-@@ -1272,12 +1294,20 @@ repeat:
- 			 */
- 			goto export;
- 		}
--		if (!page_cache_get_speculative(page))
+@@ -395,7 +398,7 @@ EXPORT_SYMBOL(radix_tree_preload);
+ int radix_tree_maybe_preload(gfp_t gfp_mask)
+ {
+ 	if (gfpflags_allow_blocking(gfp_mask))
+-		return __radix_tree_preload(gfp_mask);
++		return __radix_tree_preload(gfp_mask, RADIX_TREE_PRELOAD_SIZE);
+ 	/* Preloading doesn't help anything with this gfp mask, skip it */
+ 	preempt_disable();
+ 	return 0;
+@@ -403,6 +406,51 @@ int radix_tree_maybe_preload(gfp_t gfp_m
+ EXPORT_SYMBOL(radix_tree_maybe_preload);
+ 
+ /*
++ * The same as function above, but preload number of nodes required to insert
++ * (1 << order) continuous naturally-aligned elements.
++ */
++int radix_tree_maybe_preload_order(gfp_t gfp_mask, int order)
++{
++	unsigned long nr_subtrees;
++	int nr_nodes, subtree_height;
 +
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
-+			goto repeat;
++	/* Preloading doesn't help anything with this gfp mask, skip it */
++	if (!gfpflags_allow_blocking(gfp_mask)) {
++		preempt_disable();
++		return 0;
++	}
 +
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
- 			goto repeat;
-+		}
- 
- 		/* Has the page moved? */
- 		if (unlikely(page != *slot)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- export:
-@@ -1318,7 +1348,7 @@ unsigned find_get_pages(struct address_s
- 
- 	rcu_read_lock();
- 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
--		struct page *page;
-+		struct page *head, *page;
- repeat:
- 		page = radix_tree_deref_slot(slot);
- 		if (unlikely(!page))
-@@ -1337,12 +1367,19 @@ repeat:
- 			continue;
- 		}
- 
--		if (!page_cache_get_speculative(page))
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
-+			goto repeat;
++	/*
++	 * Calculate number and height of fully populated subtrees it takes to
++	 * store (1 << order) elements.
++	 */
++	nr_subtrees = 1 << order;
++	for (subtree_height = 0; nr_subtrees > RADIX_TREE_MAP_SIZE;
++			subtree_height++)
++		nr_subtrees >>= RADIX_TREE_MAP_SHIFT;
 +
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
- 			goto repeat;
-+		}
- 
- 		/* Has the page moved? */
- 		if (unlikely(page != *slot)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- 
-@@ -1379,7 +1416,7 @@ unsigned find_get_pages_contig(struct ad
- 
- 	rcu_read_lock();
- 	radix_tree_for_each_contig(slot, &mapping->page_tree, &iter, index) {
--		struct page *page;
-+		struct page *head, *page;
- repeat:
- 		page = radix_tree_deref_slot(slot);
- 		/* The hole, there no reason to continue */
-@@ -1399,12 +1436,19 @@ repeat:
- 			break;
- 		}
- 
--		if (!page_cache_get_speculative(page))
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
-+			goto repeat;
++	/*
++	 * The worst case is zero height tree with a single item at index 0 and
++	 * then inserting items starting at ULONG_MAX - (1 << order).
++	 *
++	 * This requires RADIX_TREE_MAX_PATH nodes to build branch from root to
++	 * 0-index item.
++	 */
++	nr_nodes = RADIX_TREE_MAX_PATH;
 +
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
- 			goto repeat;
-+		}
- 
- 		/* Has the page moved? */
- 		if (unlikely(page != *slot)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- 
-@@ -1413,7 +1457,7 @@ repeat:
- 		 * otherwise we can get both false positives and false
- 		 * negatives, which is just confusing to the caller.
- 		 */
--		if (page->mapping == NULL || page->index != iter.index) {
-+		if (page->mapping == NULL || page_to_pgoff(page) != iter.index) {
- 			put_page(page);
- 			break;
- 		}
-@@ -1451,7 +1495,7 @@ unsigned find_get_pages_tag(struct addre
- 	rcu_read_lock();
- 	radix_tree_for_each_tagged(slot, &mapping->page_tree,
- 				   &iter, *index, tag) {
--		struct page *page;
-+		struct page *head, *page;
- repeat:
- 		page = radix_tree_deref_slot(slot);
- 		if (unlikely(!page))
-@@ -1476,12 +1520,19 @@ repeat:
- 			continue;
- 		}
- 
--		if (!page_cache_get_speculative(page))
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
- 			goto repeat;
- 
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
-+			goto repeat;
-+		}
++	/* Plus branch to fully populated subtrees. */
++	nr_nodes += RADIX_TREE_MAX_PATH - subtree_height;
 +
- 		/* Has the page moved? */
- 		if (unlikely(page != *slot)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- 
-@@ -1525,7 +1576,7 @@ unsigned find_get_entries_tag(struct add
- 	rcu_read_lock();
- 	radix_tree_for_each_tagged(slot, &mapping->page_tree,
- 				   &iter, start, tag) {
--		struct page *page;
-+		struct page *head, *page;
- repeat:
- 		page = radix_tree_deref_slot(slot);
- 		if (unlikely(!page))
-@@ -1543,12 +1594,20 @@ repeat:
- 			 */
- 			goto export;
- 		}
--		if (!page_cache_get_speculative(page))
++	/* Root node is shared. */
++	nr_nodes--;
 +
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
- 			goto repeat;
- 
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
-+			goto repeat;
-+		}
++	/* Plus nodes required to build subtrees. */
++	nr_nodes += nr_subtrees * height_to_maxnodes[subtree_height];
 +
- 		/* Has the page moved? */
- 		if (unlikely(page != *slot)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
- export:
-@@ -2137,7 +2196,7 @@ void filemap_map_pages(struct fault_env
- 	struct address_space *mapping = file->f_mapping;
- 	pgoff_t last_pgoff = start_pgoff;
- 	loff_t size;
--	struct page *page;
-+	struct page *head, *page;
- 
- 	rcu_read_lock();
- 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter,
-@@ -2156,12 +2215,19 @@ repeat:
- 			goto next;
- 		}
- 
--		if (!page_cache_get_speculative(page))
-+		head = compound_head(page);
-+		if (!page_cache_get_speculative(head))
- 			goto repeat;
- 
-+		/* The page was split under us? */
-+		if (compound_head(page) != head) {
-+			put_page(head);
-+			goto repeat;
-+		}
++	return __radix_tree_preload(gfp_mask, nr_nodes);
++}
 +
- 		/* Has the page moved? */
- 		if (unlikely(page != *slot)) {
--			put_page(page);
-+			put_page(head);
- 			goto repeat;
- 		}
++/*
+  * The maximum index which can be stored in a radix tree
+  */
+ static inline unsigned long shift_maxindex(unsigned int shift)
+@@ -1571,6 +1619,31 @@ radix_tree_node_ctor(void *arg)
+ 	INIT_LIST_HEAD(&node->private_list);
+ }
  
++static __init unsigned long __maxindex(unsigned int height)
++{
++	unsigned int width = height * RADIX_TREE_MAP_SHIFT;
++	int shift = RADIX_TREE_INDEX_BITS - width;
++
++	if (shift < 0)
++		return ~0UL;
++	if (shift >= BITS_PER_LONG)
++		return 0UL;
++	return ~0UL >> shift;
++}
++
++static __init void radix_tree_init_maxnodes(void)
++{
++	unsigned long height_to_maxindex[RADIX_TREE_MAX_PATH + 1];
++	unsigned int i, j;
++
++	for (i = 0; i < ARRAY_SIZE(height_to_maxindex); i++)
++		height_to_maxindex[i] = __maxindex(i);
++	for (i = 0; i < ARRAY_SIZE(height_to_maxnodes); i++) {
++		for (j = i; j > 0; j--)
++			height_to_maxnodes[i] += height_to_maxindex[j - 1] + 1;
++	}
++}
++
+ static int radix_tree_callback(struct notifier_block *nfb,
+ 				unsigned long action, void *hcpu)
+ {
+@@ -1597,5 +1670,6 @@ void __init radix_tree_init(void)
+ 			sizeof(struct radix_tree_node), 0,
+ 			SLAB_PANIC | SLAB_RECLAIM_ACCOUNT,
+ 			radix_tree_node_ctor);
++	radix_tree_init_maxnodes();
+ 	hotcpu_notifier(radix_tree_callback, 0);
+ }
 _
