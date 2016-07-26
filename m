@@ -1,38 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [patch 072/126] arch: x86: charge page tables to kmemcg
-Date: Tue, 26 Jul 2016 15:24:30 -0700
-Message-ID: <5797e31e.qpGUpiDQSSwRPuHp%akpm@linux-foundation.org>
+Subject: [patch 074/126] af_unix: charge buffers to kmemcg
+Date: Tue, 26 Jul 2016 15:24:36 -0700
+Message-ID: <5797e324./vmu9CoJdP496J2z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56889 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56901 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758364AbcGZWYb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:24:31 -0400
+	with ESMTP id S1758380AbcGZWYh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:24:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, eric.dumazet@gmail.com, hannes@cmpxchg.org, hpa@zytor.com, mhocko@kernel.org, minchan@kernel.org, mingo@redhat.com, tglx@linutronix.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, davem@davemloft.net, eric.dumazet@gmail.com, hannes@cmpxchg.org, mhocko@kernel.org, minchan@kernel.org
 
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: arch: x86: charge page tables to kmemcg
+Subject: af_unix: charge buffers to kmemcg
 
-Page tables can bite a relatively big chunk off system memory and their
-allocations are easy to trigger from userspace, so they should be
-accounted to kmemcg.
+Unix sockets can consume a significant amount of system memory, hence
+they should be accounted to kmemcg.
 
-This patch marks page table allocations as __GFP_ACCOUNT for x86. Note
-we must not charge allocations of kernel page tables, because they can
-be shared among processes from different cgroups so accounting them to a
-particular one can pin other cgroups for indefinitely long. So we clear
-__GFP_ACCOUNT flag if a page table is allocated for the kernel.
+Since unix socket buffers are always allocated from process context,
+all we need to do to charge them to kmemcg is set __GFP_ACCOUNT in
+sock->sk_allocation mask.
 
-Link: http://lkml.kernel.org/r/7d5c54f6a2bcbe76f03171689440003d87e6c742.1464079538.git.vdavydov@virtuozzo.com
+Eric asked:
+
+> 1) What happens when a buffer, allocated from socket <A> lands in a
+> different socket <B>, maybe owned by another user/process.
+> 
+> Who owns it now, in term of kmemcg accounting ?
+
+We never move memcg charges.  E.g.  if two processes from different
+cgroups are sharing a memory region, each page will be charged to the
+process which touched it first.  Or if two processes are working with the
+same directory tree, inodes and dentries will be charged to the first
+user.  The same is fair for unix socket buffers - they will be charged to
+the sender.
+
+> 2) Has performance impact been evaluated ?
+
+I ran netperf STREAM_STREAM with default options in a kmemcg on
+a 4 core x 2 HT box. The results are below:
+
+ # clients            bandwidth (10^6bits/sec)
+                    base              patched
+         1      67643 +-  725      64874 +-  353    - 4.0 %
+         4     193585 +- 2516     186715 +- 1460    - 3.5 %
+         8     194820 +-  377     187443 +- 1229    - 3.7 %
+
+So the accounting doesn't come for free - it takes ~4% of performance.  I
+believe we could optimize it by using per cpu batching not only on charge,
+but also on uncharge in memcg core, but that's beyond the scope of this
+patch set - I'll take a look at this later.
+
+Anyway, if performance impact is found to be unacceptable, it is always
+possible to disable kmem accounting at boot time (cgroup.memory=nokmem) or
+not use memory cgroups at runtime at all (thanks to jump labels there'll
+be no overhead even if they are compiled in).
+
+Link: http://lkml.kernel.org/r/fcfe6cae27a59fbc5e40145664b3cf085a560c68.1464079538.git.vdavydov@virtuozzo.com
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Eric Dumazet <eric.dumazet@gmail.com>
@@ -40,73 +70,18 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgalloc.h |   12 ++++++++++--
- arch/x86/mm/pgtable.c          |   10 +++++++---
- 2 files changed, 17 insertions(+), 5 deletions(-)
+ net/unix/af_unix.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/include/asm/pgalloc.h~arch-x86-charge-page-tables-to-kmemcg arch/x86/include/asm/pgalloc.h
---- a/arch/x86/include/asm/pgalloc.h~arch-x86-charge-page-tables-to-kmemcg
-+++ a/arch/x86/include/asm/pgalloc.h
-@@ -81,7 +81,11 @@ static inline void pmd_populate(struct m
- static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long addr)
- {
- 	struct page *page;
--	page = alloc_pages(GFP_KERNEL |  __GFP_ZERO, 0);
-+	gfp_t gfp = GFP_KERNEL_ACCOUNT | __GFP_ZERO;
-+
-+	if (mm == &init_mm)
-+		gfp &= ~__GFP_ACCOUNT;
-+	page = alloc_pages(gfp, 0);
- 	if (!page)
- 		return NULL;
- 	if (!pgtable_pmd_page_ctor(page)) {
-@@ -125,7 +129,11 @@ static inline void pgd_populate(struct m
+diff -puN net/unix/af_unix.c~af_unix-charge-buffers-to-kmemcg net/unix/af_unix.c
+--- a/net/unix/af_unix.c~af_unix-charge-buffers-to-kmemcg
++++ a/net/unix/af_unix.c
+@@ -769,6 +769,7 @@ static struct sock *unix_create1(struct
+ 	lockdep_set_class(&sk->sk_receive_queue.lock,
+ 				&af_unix_sk_receive_queue_lock_key);
  
- static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long addr)
- {
--	return (pud_t *)get_zeroed_page(GFP_KERNEL);
-+	gfp_t gfp = GFP_KERNEL_ACCOUNT;
-+
-+	if (mm == &init_mm)
-+		gfp &= ~__GFP_ACCOUNT;
-+	return (pud_t *)get_zeroed_page(gfp);
- }
- 
- static inline void pud_free(struct mm_struct *mm, pud_t *pud)
-diff -puN arch/x86/mm/pgtable.c~arch-x86-charge-page-tables-to-kmemcg arch/x86/mm/pgtable.c
---- a/arch/x86/mm/pgtable.c~arch-x86-charge-page-tables-to-kmemcg
-+++ a/arch/x86/mm/pgtable.c
-@@ -6,7 +6,7 @@
- #include <asm/fixmap.h>
- #include <asm/mtrr.h>
- 
--#define PGALLOC_GFP GFP_KERNEL | __GFP_NOTRACK | __GFP_ZERO
-+#define PGALLOC_GFP (GFP_KERNEL_ACCOUNT | __GFP_NOTRACK | __GFP_ZERO)
- 
- #ifdef CONFIG_HIGHPTE
- #define PGALLOC_USER_GFP __GFP_HIGHMEM
-@@ -18,7 +18,7 @@ gfp_t __userpte_alloc_gfp = PGALLOC_GFP
- 
- pte_t *pte_alloc_one_kernel(struct mm_struct *mm, unsigned long address)
- {
--	return (pte_t *)__get_free_page(PGALLOC_GFP);
-+	return (pte_t *)__get_free_page(PGALLOC_GFP & ~__GFP_ACCOUNT);
- }
- 
- pgtable_t pte_alloc_one(struct mm_struct *mm, unsigned long address)
-@@ -207,9 +207,13 @@ static int preallocate_pmds(struct mm_st
- {
- 	int i;
- 	bool failed = false;
-+	gfp_t gfp = PGALLOC_GFP;
-+
-+	if (mm == &init_mm)
-+		gfp &= ~__GFP_ACCOUNT;
- 
- 	for(i = 0; i < PREALLOCATED_PMDS; i++) {
--		pmd_t *pmd = (pmd_t *)__get_free_page(PGALLOC_GFP);
-+		pmd_t *pmd = (pmd_t *)__get_free_page(gfp);
- 		if (!pmd)
- 			failed = true;
- 		if (pmd && !pgtable_pmd_page_ctor(virt_to_page(pmd))) {
++	sk->sk_allocation	= GFP_KERNEL_ACCOUNT;
+ 	sk->sk_write_space	= unix_write_space;
+ 	sk->sk_max_ack_backlog	= net->unx.sysctl_max_dgram_qlen;
+ 	sk->sk_destruct		= unix_sock_destructor;
 _
