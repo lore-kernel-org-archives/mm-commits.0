@@ -1,116 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [patch 009/126] m32r: add __ucmpdi2 to fix build failure
-Date: Tue, 26 Jul 2016 15:21:23 -0700
-Message-ID: <5797e263.lb7u13LoArdYAsq3%akpm@linux-foundation.org>
+Subject: [patch 010/126] debugobjects.h: fix trivial kernel doc warning
+Date: Tue, 26 Jul 2016 15:21:26 -0700
+Message-ID: <5797e266.R5creJlEoO4X+voB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56443 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56447 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757048AbcGZWVY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:21:24 -0400
+	with ESMTP id S1757048AbcGZWV1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:21:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sudipm.mukherjee@gmail.com, sudip.mukherjee@codethink.co.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rdunlap@infradead.org
 
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: add __ucmpdi2 to fix build failure
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: debugobjects.h: fix trivial kernel doc warning
 
-We are having build failure with m32r and the error message being:
-ERROR: "__ucmpdi2" [lib/842/842_decompress.ko] undefined!
-ERROR: "__ucmpdi2" [fs/btrfs/btrfs.ko] undefined!
-ERROR: "__ucmpdi2" [drivers/scsi/sd_mod.ko] undefined!
-ERROR: "__ucmpdi2" [drivers/media/i2c/adv7842.ko] undefined!
-ERROR: "__ucmpdi2" [drivers/md/bcache/bcache.ko] undefined!
-ERROR: "__ucmpdi2" [drivers/iio/imu/inv_mpu6050/inv-mpu6050.ko] undefined!
+Add ':' to fix trivial kernel-doc warning in <linux/debugobjects.h>:
 
-__ucmpdi2 is introduced to m32r architecture taking example from other
-architectures like h8300, microblaze, mips.
+..//include/linux/debugobjects.h:63: warning: No description found for parameter 'is_static_object'
 
-Link: http://lkml.kernel.org/r/1465509213-4280-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
+Link: http://lkml.kernel.org/r/575B01B8.5060600@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/m32r_ksyms.c |    3 +++
- arch/m32r/lib/Makefile        |    4 ++--
- arch/m32r/lib/libgcc.h        |   24 ++++++++++++++++++++++++
- arch/m32r/lib/ucmpdi2.c       |   17 +++++++++++++++++
- 4 files changed, 46 insertions(+), 2 deletions(-)
+ include/linux/debugobjects.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/kernel/m32r_ksyms.c~m32r-add-__ucmpdi2-to-fix-build-failure arch/m32r/kernel/m32r_ksyms.c
---- a/arch/m32r/kernel/m32r_ksyms.c~m32r-add-__ucmpdi2-to-fix-build-failure
-+++ a/arch/m32r/kernel/m32r_ksyms.c
-@@ -41,6 +41,9 @@ EXPORT_SYMBOL(cpu_data);
- EXPORT_SYMBOL(smp_flush_tlb_page);
- #endif
- 
-+extern int __ucmpdi2(unsigned long long a, unsigned long long b);
-+EXPORT_SYMBOL(__ucmpdi2);
-+
- /* compiler generated symbol */
- extern void __ashldi3(void);
- extern void __ashrdi3(void);
-diff -puN arch/m32r/lib/Makefile~m32r-add-__ucmpdi2-to-fix-build-failure arch/m32r/lib/Makefile
---- a/arch/m32r/lib/Makefile~m32r-add-__ucmpdi2-to-fix-build-failure
-+++ a/arch/m32r/lib/Makefile
-@@ -3,5 +3,5 @@
- #
- 
- lib-y  := checksum.o ashxdi3.o memset.o memcpy.o \
--	  delay.o strlen.o usercopy.o csum_partial_copy.o
--
-+	  delay.o strlen.o usercopy.o csum_partial_copy.o \
-+	  ucmpdi2.o
-diff -puN /dev/null arch/m32r/lib/libgcc.h
---- /dev/null
-+++ a/arch/m32r/lib/libgcc.h
-@@ -0,0 +1,24 @@
-+#ifndef __ASM_LIBGCC_H
-+#define __ASM_LIBGCC_H
-+
-+#include <asm/byteorder.h>
-+
-+#ifdef __BIG_ENDIAN
-+struct DWstruct {
-+	int high, low;
-+};
-+#elif defined(__LITTLE_ENDIAN)
-+struct DWstruct {
-+	int low, high;
-+};
-+#else
-+#error I feel sick.
-+#endif
-+
-+typedef union {
-+	struct DWstruct s;
-+	long long ll;
-+} DWunion;
-+
-+#endif /* __ASM_LIBGCC_H */
-+
-diff -puN /dev/null arch/m32r/lib/ucmpdi2.c
---- /dev/null
-+++ a/arch/m32r/lib/ucmpdi2.c
-@@ -0,0 +1,17 @@
-+#include "libgcc.h"
-+
-+int __ucmpdi2(unsigned long long a, unsigned long long b)
-+{
-+	const DWunion au = {.ll = a};
-+	const DWunion bu = {.ll = b};
-+
-+	if ((unsigned int)au.s.high < (unsigned int)bu.s.high)
-+		return 0;
-+	else if ((unsigned int)au.s.high > (unsigned int)bu.s.high)
-+		return 2;
-+	if ((unsigned int)au.s.low < (unsigned int)bu.s.low)
-+		return 0;
-+	else if ((unsigned int)au.s.low > (unsigned int)bu.s.low)
-+		return 2;
-+	return 1;
-+}
+diff -puN include/linux/debugobjects.h~debugobjectsh-fix-trivial-kernel-doc-warning include/linux/debugobjects.h
+--- a/include/linux/debugobjects.h~debugobjectsh-fix-trivial-kernel-doc-warning
++++ a/include/linux/debugobjects.h
+@@ -38,7 +38,7 @@ struct debug_obj {
+  * @name:		name of the object typee
+  * @debug_hint:		function returning address, which have associated
+  *			kernel symbol, to allow identify the object
+- * @is_static_object	return true if the obj is static, otherwise return false
++ * @is_static_object:	return true if the obj is static, otherwise return false
+  * @fixup_init:		fixup function, which is called when the init check
+  *			fails. All fixup functions must return true if fixup
+  *			was successful, otherwise return false
 _
