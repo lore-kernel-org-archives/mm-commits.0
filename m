@@ -1,330 +1,327 @@
 From: akpm@linux-foundation.org
-Subject: [patch 108/126] shmem: prepare huge= mount option and sysfs knob
-Date: Tue, 26 Jul 2016 15:26:13 -0700
-Message-ID: <5797e385.RSaHB9GxXo5tlu4F%akpm@linux-foundation.org>
+Subject: [patch 117/126] shmem: split huge pages beyond i_size under
+ memory pressure
+Date: Tue, 26 Jul 2016 15:26:38 -0700
+Message-ID: <5797e39e.DRxtJNCe6GYEVb41%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57079 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57112 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758661AbcGZW0O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:26:14 -0400
+	with ESMTP id S1758702AbcGZW0j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:26:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com
 
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: shmem: prepare huge= mount option and sysfs knob
+Subject: shmem: split huge pages beyond i_size under memory pressure
 
-This patch adds new mount option "huge=". It can have following values:
+Even if user asked to allocate huge pages always (huge=always), we
+should be able to free up some memory by splitting pages which are
+partly byound i_size if memory presure comes or once we hit limit on
+filesystem size (-o size=).
 
-  - "always":
-	Attempt to allocate huge pages every time we need a new page;
+In order to do this we maintain per-superblock list of inodes, which
+potentially have huge pages on the border of file size.
 
-  - "never":
-	Do not allocate huge pages;
+Per-fs shrinker can reclaim memory by splitting such pages.
 
-  - "within_size":
-	Only allocate huge page if it will be fully within i_size.
-	Also respect fadvise()/madvise() hints;
+If we hit -ENOSPC during shmem_getpage_gfp(), we try to split a page to
+free up space on the filesystem and retry allocation if it succeed.
 
-  - "advise:
-	Only allocate huge pages if requested with fadvise()/madvise();
-
-Default is "never" for now.
-
-"mount -o remount,huge= /mountpoint" works fine after mount: remounting
-huge=never will not attempt to break up huge pages at all, just stop
-more from being allocated.
-
-No new config option: put this under CONFIG_TRANSPARENT_HUGEPAGE,
-which is the appropriate option to protect those who don't want
-the new bloat, and with which we shall share some pmd code.
-
-Prohibit the option when !CONFIG_TRANSPARENT_HUGEPAGE, just as mpol is
-invalid without CONFIG_NUMA (was hidden in mpol_parse_str(): make it
-explicit).
-
-Allow enabling THP only if the machine has_transparent_hugepage().
-
-But what about Shmem with no user-visible mount?  SysV SHM, memfds,
-shared anonymous mmaps (of /dev/zero or MAP_ANONYMOUS), GPU drivers'
-DRM objects, Ashmem.  Though unlikely to suit all usages, provide
-sysfs knob /sys/kernel/mm/transparent_hugepage/shmem_enabled to
-experiment with huge on those.
-
-And allow shmem_enabled two further values:
-
-  - "deny":
-	For use in emergencies, to force the huge option off from
-	all mounts;
-  - "force":
-	Force the huge option on for all - very useful for testing;
-
-Based on patch by Hugh Dickins.
-
-Link: http://lkml.kernel.org/r/1466021202-61880-28-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1466021202-61880-37-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h  |    2 
- include/linux/shmem_fs.h |    3 
- mm/huge_memory.c         |    3 
- mm/shmem.c               |  161 +++++++++++++++++++++++++++++++++++++
- 4 files changed, 168 insertions(+), 1 deletion(-)
+ include/linux/shmem_fs.h |    6 +
+ mm/shmem.c               |  175 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 180 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/huge_mm.h~shmem-prepare-huge=-mount-option-and-sysfs-knob include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~shmem-prepare-huge=-mount-option-and-sysfs-knob
-+++ a/include/linux/huge_mm.h
-@@ -41,6 +41,8 @@ enum transparent_hugepage_flag {
- #endif
- };
- 
-+extern struct kobj_attribute shmem_enabled_attr;
-+
- #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
- #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
- 
-diff -puN include/linux/shmem_fs.h~shmem-prepare-huge=-mount-option-and-sysfs-knob include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~shmem-prepare-huge=-mount-option-and-sysfs-knob
+diff -puN include/linux/shmem_fs.h~shmem-split-huge-pages-beyond-i_size-under-memory-pressure include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~shmem-split-huge-pages-beyond-i_size-under-memory-pressure
 +++ a/include/linux/shmem_fs.h
-@@ -28,9 +28,10 @@ struct shmem_sb_info {
- 	unsigned long max_inodes;   /* How many inodes are allowed */
- 	unsigned long free_inodes;  /* How many are left for allocation */
- 	spinlock_t stat_lock;	    /* Serialize shmem_sb_info changes */
-+	umode_t mode;		    /* Mount mode for root directory */
-+	unsigned char huge;	    /* Whether to try for hugepages */
+@@ -16,8 +16,9 @@ struct shmem_inode_info {
+ 	unsigned long		flags;
+ 	unsigned long		alloced;	/* data pages alloced to file */
+ 	unsigned long		swapped;	/* subtotal assigned to swap */
+-	struct shared_policy	policy;		/* NUMA memory alloc policy */
++	struct list_head        shrinklist;     /* shrinkable hpage inodes */
+ 	struct list_head	swaplist;	/* chain of maybes on swap */
++	struct shared_policy	policy;		/* NUMA memory alloc policy */
+ 	struct simple_xattrs	xattrs;		/* list of xattrs */
+ 	struct inode		vfs_inode;
+ };
+@@ -33,6 +34,9 @@ struct shmem_sb_info {
  	kuid_t uid;		    /* Mount uid for root directory */
  	kgid_t gid;		    /* Mount gid for root directory */
--	umode_t mode;		    /* Mount mode for root directory */
  	struct mempolicy *mpol;     /* default memory policy for mappings */
++	spinlock_t shrinklist_lock;   /* Protects shrinklist */
++	struct list_head shrinklist;  /* List of shinkable inodes */
++	unsigned long shrinklist_len; /* Length of shrinklist */
  };
  
-diff -puN mm/huge_memory.c~shmem-prepare-huge=-mount-option-and-sysfs-knob mm/huge_memory.c
---- a/mm/huge_memory.c~shmem-prepare-huge=-mount-option-and-sysfs-knob
-+++ a/mm/huge_memory.c
-@@ -442,6 +442,9 @@ static struct attribute *hugepage_attr[]
- 	&enabled_attr.attr,
- 	&defrag_attr.attr,
- 	&use_zero_page_attr.attr,
-+#ifdef CONFIG_SHMEM
-+	&shmem_enabled_attr.attr,
-+#endif
- #ifdef CONFIG_DEBUG_VM
- 	&debug_cow_attr.attr,
- #endif
-diff -puN mm/shmem.c~shmem-prepare-huge=-mount-option-and-sysfs-knob mm/shmem.c
---- a/mm/shmem.c~shmem-prepare-huge=-mount-option-and-sysfs-knob
+ static inline struct shmem_inode_info *SHMEM_I(struct inode *inode)
+diff -puN mm/shmem.c~shmem-split-huge-pages-beyond-i_size-under-memory-pressure mm/shmem.c
+--- a/mm/shmem.c~shmem-split-huge-pages-beyond-i_size-under-memory-pressure
 +++ a/mm/shmem.c
-@@ -289,6 +289,87 @@ static bool shmem_confirm_swap(struct ad
- }
+@@ -188,6 +188,7 @@ static const struct inode_operations shm
+ static const struct inode_operations shmem_dir_inode_operations;
+ static const struct inode_operations shmem_special_inode_operations;
+ static const struct vm_operations_struct shmem_vm_ops;
++static struct file_system_type shmem_fs_type;
  
- /*
-+ * Definitions for "huge tmpfs": tmpfs mounted with the huge= option
-+ *
-+ * SHMEM_HUGE_NEVER:
-+ *	disables huge pages for the mount;
-+ * SHMEM_HUGE_ALWAYS:
-+ *	enables huge pages for the mount;
-+ * SHMEM_HUGE_WITHIN_SIZE:
-+ *	only allocate huge pages if the page will be fully within i_size,
-+ *	also respect fadvise()/madvise() hints;
-+ * SHMEM_HUGE_ADVISE:
-+ *	only allocate huge pages if requested with fadvise()/madvise();
-+ */
-+
-+#define SHMEM_HUGE_NEVER	0
-+#define SHMEM_HUGE_ALWAYS	1
-+#define SHMEM_HUGE_WITHIN_SIZE	2
-+#define SHMEM_HUGE_ADVISE	3
-+
-+/*
-+ * Special values.
-+ * Only can be set via /sys/kernel/mm/transparent_hugepage/shmem_enabled:
-+ *
-+ * SHMEM_HUGE_DENY:
-+ *	disables huge on shm_mnt and all mounts, for emergency use;
-+ * SHMEM_HUGE_FORCE:
-+ *	enables huge on shm_mnt and all mounts, w/o needing option, for testing;
-+ *
-+ */
-+#define SHMEM_HUGE_DENY		(-1)
-+#define SHMEM_HUGE_FORCE	(-2)
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+/* ifdef here to avoid bloating shmem.o when not necessary */
-+
-+int shmem_huge __read_mostly;
-+
-+static int shmem_parse_huge(const char *str)
-+{
-+	if (!strcmp(str, "never"))
-+		return SHMEM_HUGE_NEVER;
-+	if (!strcmp(str, "always"))
-+		return SHMEM_HUGE_ALWAYS;
-+	if (!strcmp(str, "within_size"))
-+		return SHMEM_HUGE_WITHIN_SIZE;
-+	if (!strcmp(str, "advise"))
-+		return SHMEM_HUGE_ADVISE;
-+	if (!strcmp(str, "deny"))
-+		return SHMEM_HUGE_DENY;
-+	if (!strcmp(str, "force"))
-+		return SHMEM_HUGE_FORCE;
-+	return -EINVAL;
-+}
-+
-+static const char *shmem_format_huge(int huge)
-+{
-+	switch (huge) {
-+	case SHMEM_HUGE_NEVER:
-+		return "never";
-+	case SHMEM_HUGE_ALWAYS:
-+		return "always";
-+	case SHMEM_HUGE_WITHIN_SIZE:
-+		return "within_size";
-+	case SHMEM_HUGE_ADVISE:
-+		return "advise";
-+	case SHMEM_HUGE_DENY:
-+		return "deny";
-+	case SHMEM_HUGE_FORCE:
-+		return "force";
-+	default:
-+		VM_BUG_ON(1);
-+		return "bad_val";
-+	}
-+}
-+
-+#else /* !CONFIG_TRANSPARENT_HUGEPAGE */
-+
-+#define shmem_huge SHMEM_HUGE_DENY
-+
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-+
-+/*
-  * Like add_to_page_cache_locked, but error if expected item has gone.
-  */
- static int shmem_add_to_page_cache(struct page *page,
-@@ -2860,11 +2941,24 @@ static int shmem_parse_options(char *opt
- 			sbinfo->gid = make_kgid(current_user_ns(), gid);
- 			if (!gid_valid(sbinfo->gid))
- 				goto bad_val;
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+		} else if (!strcmp(this_char, "huge")) {
-+			int huge;
-+			huge = shmem_parse_huge(value);
-+			if (huge < 0)
-+				goto bad_val;
-+			if (!has_transparent_hugepage() &&
-+					huge != SHMEM_HUGE_NEVER)
-+				goto bad_val;
-+			sbinfo->huge = huge;
-+#endif
-+#ifdef CONFIG_NUMA
- 		} else if (!strcmp(this_char,"mpol")) {
- 			mpol_put(mpol);
- 			mpol = NULL;
- 			if (mpol_parse_str(value, &mpol))
- 				goto bad_val;
-+#endif
- 		} else {
- 			pr_err("tmpfs: Bad mount option %s\n", this_char);
- 			goto error;
-@@ -2910,6 +3004,7 @@ static int shmem_remount_fs(struct super
- 		goto out;
- 
- 	error = 0;
-+	sbinfo->huge = config.huge;
- 	sbinfo->max_blocks  = config.max_blocks;
- 	sbinfo->max_inodes  = config.max_inodes;
- 	sbinfo->free_inodes = config.max_inodes - inodes;
-@@ -2943,6 +3038,11 @@ static int shmem_show_options(struct seq
- 	if (!gid_eq(sbinfo->gid, GLOBAL_ROOT_GID))
- 		seq_printf(seq, ",gid=%u",
- 				from_kgid_munged(&init_user_ns, sbinfo->gid));
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	/* Rightly or wrongly, show huge mount option unmasked by shmem_huge */
-+	if (sbinfo->huge)
-+		seq_printf(seq, ",huge=%s", shmem_format_huge(sbinfo->huge));
-+#endif
- 	shmem_show_mpol(seq, sbinfo->mpol);
- 	return 0;
- }
-@@ -3282,6 +3382,13 @@ int __init shmem_init(void)
- 		pr_err("Could not kern_mount tmpfs\n");
- 		goto out1;
+ static LIST_HEAD(shmem_swaplist);
+ static DEFINE_MUTEX(shmem_swaplist_mutex);
+@@ -406,10 +407,122 @@ static const char *shmem_format_huge(int
  	}
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	if (has_transparent_hugepage() && shmem_huge < SHMEM_HUGE_DENY)
-+		SHMEM_SB(shm_mnt->mnt_sb)->huge = shmem_huge;
-+	else
-+		shmem_huge = 0; /* just in case it was patched */
-+#endif
- 	return 0;
- 
- out1:
-@@ -3293,6 +3400,60 @@ out3:
- 	return error;
  }
  
-+#if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_SYSFS)
-+static ssize_t shmem_enabled_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
++static unsigned long shmem_unused_huge_shrink(struct shmem_sb_info *sbinfo,
++		struct shrink_control *sc, unsigned long nr_to_split)
 +{
-+	int values[] = {
-+		SHMEM_HUGE_ALWAYS,
-+		SHMEM_HUGE_WITHIN_SIZE,
-+		SHMEM_HUGE_ADVISE,
-+		SHMEM_HUGE_NEVER,
-+		SHMEM_HUGE_DENY,
-+		SHMEM_HUGE_FORCE,
-+	};
-+	int i, count;
++	LIST_HEAD(list), *pos, *next;
++	struct inode *inode;
++	struct shmem_inode_info *info;
++	struct page *page;
++	unsigned long batch = sc ? sc->nr_to_scan : 128;
++	int removed = 0, split = 0;
 +
-+	for (i = 0, count = 0; i < ARRAY_SIZE(values); i++) {
-+		const char *fmt = shmem_huge == values[i] ? "[%s] " : "%s ";
++	if (list_empty(&sbinfo->shrinklist))
++		return SHRINK_STOP;
 +
-+		count += sprintf(buf + count, fmt,
-+				shmem_format_huge(values[i]));
++	spin_lock(&sbinfo->shrinklist_lock);
++	list_for_each_safe(pos, next, &sbinfo->shrinklist) {
++		info = list_entry(pos, struct shmem_inode_info, shrinklist);
++
++		/* pin the inode */
++		inode = igrab(&info->vfs_inode);
++
++		/* inode is about to be evicted */
++		if (!inode) {
++			list_del_init(&info->shrinklist);
++			removed++;
++			goto next;
++		}
++
++		/* Check if there's anything to gain */
++		if (round_up(inode->i_size, PAGE_SIZE) ==
++				round_up(inode->i_size, HPAGE_PMD_SIZE)) {
++			list_del_init(&info->shrinklist);
++			removed++;
++			iput(inode);
++			goto next;
++		}
++
++		list_move(&info->shrinklist, &list);
++next:
++		if (!--batch)
++			break;
 +	}
-+	buf[count - 1] = '\n';
-+	return count;
++	spin_unlock(&sbinfo->shrinklist_lock);
++
++	list_for_each_safe(pos, next, &list) {
++		int ret;
++
++		info = list_entry(pos, struct shmem_inode_info, shrinklist);
++		inode = &info->vfs_inode;
++
++		if (nr_to_split && split >= nr_to_split) {
++			iput(inode);
++			continue;
++		}
++
++		page = find_lock_page(inode->i_mapping,
++				(inode->i_size & HPAGE_PMD_MASK) >> PAGE_SHIFT);
++		if (!page)
++			goto drop;
++
++		if (!PageTransHuge(page)) {
++			unlock_page(page);
++			put_page(page);
++			goto drop;
++		}
++
++		ret = split_huge_page(page);
++		unlock_page(page);
++		put_page(page);
++
++		if (ret) {
++			/* split failed: leave it on the list */
++			iput(inode);
++			continue;
++		}
++
++		split++;
++drop:
++		list_del_init(&info->shrinklist);
++		removed++;
++		iput(inode);
++	}
++
++	spin_lock(&sbinfo->shrinklist_lock);
++	list_splice_tail(&list, &sbinfo->shrinklist);
++	sbinfo->shrinklist_len -= removed;
++	spin_unlock(&sbinfo->shrinklist_lock);
++
++	return split;
 +}
 +
-+static ssize_t shmem_enabled_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
++static long shmem_unused_huge_scan(struct super_block *sb,
++		struct shrink_control *sc)
 +{
-+	char tmp[16];
-+	int huge;
++	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
 +
-+	if (count + 1 > sizeof(tmp))
-+		return -EINVAL;
-+	memcpy(tmp, buf, count);
-+	tmp[count] = '\0';
-+	if (count && tmp[count - 1] == '\n')
-+		tmp[count - 1] = '\0';
++	if (!READ_ONCE(sbinfo->shrinklist_len))
++		return SHRINK_STOP;
 +
-+	huge = shmem_parse_huge(tmp);
-+	if (huge == -EINVAL)
-+		return -EINVAL;
-+	if (!has_transparent_hugepage() &&
-+			huge != SHMEM_HUGE_NEVER && huge != SHMEM_HUGE_DENY)
-+		return -EINVAL;
-+
-+	shmem_huge = huge;
-+	if (shmem_huge < SHMEM_HUGE_DENY)
-+		SHMEM_SB(shm_mnt->mnt_sb)->huge = shmem_huge;
-+	return count;
++	return shmem_unused_huge_shrink(sbinfo, sc, 0);
 +}
 +
-+struct kobj_attribute shmem_enabled_attr =
-+	__ATTR(shmem_enabled, 0644, shmem_enabled_show, shmem_enabled_store);
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE && CONFIG_SYSFS */
-+
- #else /* !CONFIG_SHMEM */
++static long shmem_unused_huge_count(struct super_block *sb,
++		struct shrink_control *sc)
++{
++	struct shmem_sb_info *sbinfo = SHMEM_SB(sb);
++	return READ_ONCE(sbinfo->shrinklist_len);
++}
+ #else /* !CONFIG_TRANSPARENT_HUGE_PAGECACHE */
+ 
+ #define shmem_huge SHMEM_HUGE_DENY
+ 
++static unsigned long shmem_unused_huge_shrink(struct shmem_sb_info *sbinfo,
++		struct shrink_control *sc, unsigned long nr_to_split)
++{
++	return 0;
++}
+ #endif /* CONFIG_TRANSPARENT_HUGE_PAGECACHE */
  
  /*
+@@ -843,6 +956,7 @@ static int shmem_setattr(struct dentry *
+ {
+ 	struct inode *inode = d_inode(dentry);
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
++	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	int error;
+ 
+ 	error = inode_change_ok(inode, attr);
+@@ -878,6 +992,20 @@ static int shmem_setattr(struct dentry *
+ 			if (oldsize > holebegin)
+ 				unmap_mapping_range(inode->i_mapping,
+ 							holebegin, 0, 1);
++
++			/*
++			 * Part of the huge page can be beyond i_size: subject
++			 * to shrink under memory pressure.
++			 */
++			if (IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE)) {
++				spin_lock(&sbinfo->shrinklist_lock);
++				if (list_empty(&info->shrinklist)) {
++					list_add_tail(&info->shrinklist,
++							&sbinfo->shrinklist);
++					sbinfo->shrinklist_len++;
++				}
++				spin_unlock(&sbinfo->shrinklist_lock);
++			}
+ 		}
+ 	}
+ 
+@@ -890,11 +1018,20 @@ static int shmem_setattr(struct dentry *
+ static void shmem_evict_inode(struct inode *inode)
+ {
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
++	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 
+ 	if (inode->i_mapping->a_ops == &shmem_aops) {
+ 		shmem_unacct_size(info->flags, inode->i_size);
+ 		inode->i_size = 0;
+ 		shmem_truncate_range(inode, 0, (loff_t)-1);
++		if (!list_empty(&info->shrinklist)) {
++			spin_lock(&sbinfo->shrinklist_lock);
++			if (!list_empty(&info->shrinklist)) {
++				list_del_init(&info->shrinklist);
++				sbinfo->shrinklist_len--;
++			}
++			spin_unlock(&sbinfo->shrinklist_lock);
++		}
+ 		if (!list_empty(&info->swaplist)) {
+ 			mutex_lock(&shmem_swaplist_mutex);
+ 			list_del_init(&info->swaplist);
+@@ -1563,8 +1700,23 @@ alloc_nohuge:		page = shmem_alloc_and_ac
+ 					index, false);
+ 		}
+ 		if (IS_ERR(page)) {
++			int retry = 5;
+ 			error = PTR_ERR(page);
+ 			page = NULL;
++			if (error != -ENOSPC)
++				goto failed;
++			/*
++			 * Try to reclaim some spece by splitting a huge page
++			 * beyond i_size on the filesystem.
++			 */
++			while (retry--) {
++				int ret;
++				ret = shmem_unused_huge_shrink(sbinfo, NULL, 1);
++				if (ret == SHRINK_STOP)
++					break;
++				if (ret)
++					goto alloc_nohuge;
++			}
+ 			goto failed;
+ 		}
+ 
+@@ -1603,6 +1755,22 @@ alloc_nohuge:		page = shmem_alloc_and_ac
+ 		spin_unlock_irq(&info->lock);
+ 		alloced = true;
+ 
++		if (PageTransHuge(page) &&
++				DIV_ROUND_UP(i_size_read(inode), PAGE_SIZE) <
++				hindex + HPAGE_PMD_NR - 1) {
++			/*
++			 * Part of the huge page is beyond i_size: subject
++			 * to shrink under memory pressure.
++			 */
++			spin_lock(&sbinfo->shrinklist_lock);
++			if (list_empty(&info->shrinklist)) {
++				list_add_tail(&info->shrinklist,
++						&sbinfo->shrinklist);
++				sbinfo->shrinklist_len++;
++			}
++			spin_unlock(&sbinfo->shrinklist_lock);
++		}
++
+ 		/*
+ 		 * Let SGP_FALLOC use the SGP_WRITE optimization on a new page.
+ 		 */
+@@ -1920,6 +2088,7 @@ static struct inode *shmem_get_inode(str
+ 		spin_lock_init(&info->lock);
+ 		info->seals = F_SEAL_SEAL;
+ 		info->flags = flags & VM_NORESERVE;
++		INIT_LIST_HEAD(&info->shrinklist);
+ 		INIT_LIST_HEAD(&info->swaplist);
+ 		simple_xattrs_init(&info->xattrs);
+ 		cache_no_acl(inode);
+@@ -3518,6 +3687,8 @@ int shmem_fill_super(struct super_block
+ 	if (percpu_counter_init(&sbinfo->used_blocks, 0, GFP_KERNEL))
+ 		goto failed;
+ 	sbinfo->free_inodes = sbinfo->max_inodes;
++	spin_lock_init(&sbinfo->shrinklist_lock);
++	INIT_LIST_HEAD(&sbinfo->shrinklist);
+ 
+ 	sb->s_maxbytes = MAX_LFS_FILESIZE;
+ 	sb->s_blocksize = PAGE_SIZE;
+@@ -3680,6 +3851,10 @@ static const struct super_operations shm
+ 	.evict_inode	= shmem_evict_inode,
+ 	.drop_inode	= generic_delete_inode,
+ 	.put_super	= shmem_put_super,
++#ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
++	.nr_cached_objects	= shmem_unused_huge_count,
++	.free_cached_objects	= shmem_unused_huge_scan,
++#endif
+ };
+ 
+ static const struct vm_operations_struct shmem_vm_ops = {
 _
