@@ -1,79 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-migrate-support-non-lru-movable-page-migration-fix.patch removed from
+ mm-balloon-use-general-non-lru-movable-page-feature-fix.patch removed from
  -mm tree
-Date: Tue, 26 Jul 2016 14:51:42 -0700
-Message-ID: <5797db6e.ZwXPCHhzi2lfgUcd%akpm@linux-foundation.org>
+Date: Tue, 26 Jul 2016 14:52:41 -0700
+Message-ID: <5797dba9.RS7lmQHCCpprhcHN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55591 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55600 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753799AbcGZVvn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 17:51:43 -0400
+	with ESMTP id S1757978AbcGZVwn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 17:52:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: opensource.ganesh@gmail.com, hillf.zj@alibaba-inc.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aquini@redhat.com, gi-oh.kim@profitbricks.com, koct9i@gmail.com, minchan@kernel.org, rdunlap@infradead.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: remove local variable is_lru
+     Subject: mm-balloon-use-general-non-lru-movable-page-feature-fix
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-support-non-lru-movable-page-migration-fix.patch
+     mm-balloon-use-general-non-lru-movable-page-feature-fix.patch
 
-This patch was dropped because it was folded into mm-migrate-support-non-lru-movable-page-migration.patch
+This patch was dropped because it was folded into mm-balloon-use-general-non-lru-movable-page-feature.patch
 
 ------------------------------------------------------
-From: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Subject: mm/compaction: remove local variable is_lru
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-balloon-use-general-non-lru-movable-page-feature-fix
 
-local varialbe is_lru was used for tracking non-lru pages(such as
-balloon pages).
+compaction.h requires that the includer first include node.h
 
-But Minchan Kim's patch [1] introduced a common framework
-for non-lru page migration and moved the compound pages
-check before non-lru movable pages check.
-
-So there is no need to use local variable is_lru.
-
-[1] https://lkml.org/lkml/2016/5/31/932
-
-Link: http://lkml.kernel.org/r/20160618014841.GA7422@leo-test
-Signed-off-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Gioh Kim <gi-oh.kim@profitbricks.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/balloon_compaction.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/compaction.c~mm-migrate-support-non-lru-movable-page-migration-fix mm/compaction.c
---- a/mm/compaction.c~mm-migrate-support-non-lru-movable-page-migration-fix
-+++ a/mm/compaction.c
-@@ -708,7 +708,6 @@ isolate_migratepages_block(struct compac
- 
- 	/* Time to isolate some pages for migration */
- 	for (; low_pfn < end_pfn; low_pfn++) {
--		bool is_lru;
- 
- 		if (skip_on_failure && low_pfn >= next_skip_pfn) {
- 			/*
-@@ -791,8 +790,7 @@ isolate_migratepages_block(struct compac
- 		 * It's possible to migrate LRU and non-lru movable pages.
- 		 * Skip any other type of page
- 		 */
--		is_lru = PageLRU(page);
--		if (!is_lru) {
-+		if (!PageLRU(page)) {
- 			if (unlikely(balloon_page_movable(page))) {
- 				if (balloon_page_isolate(page)) {
- 					/* Successfully isolated */
+diff -puN include/linux/balloon_compaction.h~mm-balloon-use-general-non-lru-movable-page-feature-fix include/linux/balloon_compaction.h
+--- a/include/linux/balloon_compaction.h~mm-balloon-use-general-non-lru-movable-page-feature-fix
++++ a/include/linux/balloon_compaction.h
+@@ -45,6 +45,7 @@
+ #define _LINUX_BALLOON_COMPACTION_H
+ #include <linux/pagemap.h>
+ #include <linux/page-flags.h>
++#include <linux/node.h>
+ #include <linux/compaction.h>
+ #include <linux/gfp.h>
+ #include <linux/err.h>
 _
 
-Patches currently in -mm which might be from opensource.ganesh@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-migrate-support-non-lru-movable-page-migration.patch
+mm-balloon-use-general-non-lru-movable-page-feature.patch
+mm-compaction-split-freepages-without-holding-the-zone-lock-fix-2.patch
+mm-frontswap-convert-frontswap_enabled-to-static-key-checkpatch-fixes.patch
+mm-add-nr_zsmalloc-to-vmstat-fix.patch
+mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+mm-fix-build-warnings-in-linux-compactionh-fix.patch
 
