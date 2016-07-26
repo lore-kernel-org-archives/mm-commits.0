@@ -1,94 +1,104 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-make-optimistic-check-for-swapin-readahead-fix-4.patch removed from -mm
- tree
-Date: Tue, 26 Jul 2016 14:11:46 -0700
-Message-ID: <5797d212.AQJ4IltSThH/j6kh%akpm@linux-foundation.org>
+ mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch removed
+ from -mm tree
+Date: Tue, 26 Jul 2016 14:12:59 -0700
+Message-ID: <5797d25b.nRGPypCrW2XecEeN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54719 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54723 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758343AbcGZVLr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 17:11:47 -0400
+	with ESMTP id S1161003AbcGZVNA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 17:13:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, ebru.akagunduz@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next: build failure after merge of the akpm-current tree
+     Subject: mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix
 has been removed from the -mm tree.  Its filename was
-     mm-make-optimistic-check-for-swapin-readahead-fix-4.patch
+     mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
 
-This patch was dropped because it was folded into mm-make-optimistic-check-for-swapin-readahead.patch
+This patch was dropped because it was folded into mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: build failure after merge of the akpm-current tree
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix
 
-Hi Andrew,
+trivial cleanup of exit path of the function
 
-After merging the akpm-current tree, today's linux-next build (powerpc
-allyesconfig) failed like this:
-
-In file included from include/linux/mm.h:400:0,
-                 from mm/huge_memory.c:10:
-include/linux/huge_mm.h:53:22: error: initializer element is not constant
- #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
-                      ^
-mm/huge_memory.c:104:62: note: in expansion of macro 'HPAGE_PMD_NR'
- static unsigned int khugepaged_max_ptes_swap __read_mostly = HPAGE_PMD_NR/8;
-                                                              ^
-
-Caused by commit
-
-  5c38823a834f ("mm: make optimistic check for swapin readahead")
-
-We had this error some time ago, so I have added teh same patch as
-last time:
-
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Mon, 2 May 2016 18:25:42 +1000
-Subject: [PATCH] mm: make optimistic check for swapin readahead fix
-
-Link: http://lkml.kernel.org/r/20160616154503.65806e12@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
----
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-index f0cd9dbc1157..6aabfa166b6d 100644
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-make-optimistic-check-for-swapin-readahead-fix-4 mm/huge_memory.c
---- a/mm/huge_memory.c~mm-make-optimistic-check-for-swapin-readahead-fix-4
+diff -puN mm/huge_memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix
 +++ a/mm/huge_memory.c
-@@ -101,7 +101,7 @@ static DECLARE_WAIT_QUEUE_HEAD(khugepage
-  * fault.
-  */
- static unsigned int khugepaged_max_ptes_none __read_mostly;
--static unsigned int khugepaged_max_ptes_swap __read_mostly = HPAGE_PMD_NR/8;
-+static unsigned int khugepaged_max_ptes_swap __read_mostly;
+@@ -2412,8 +2412,6 @@ static void __collapse_huge_page_swapin(
+ 	trace_mm_collapse_huge_page_swapin(mm, swapped_in, 1);
+ }
  
- static int khugepaged(void *none);
- static int khugepaged_slab_init(void);
-@@ -704,6 +704,7 @@ static int __init hugepage_init(void)
- 
- 	khugepaged_pages_to_scan = HPAGE_PMD_NR * 8;
- 	khugepaged_max_ptes_none = HPAGE_PMD_NR - 1;
-+	khugepaged_max_ptes_swap = HPAGE_PMD_NR / 8;
- 	/*
- 	 * hugepages can't be allocated by the buddy allocator
- 	 */
+-
+-
+ static void collapse_huge_page(struct mm_struct *mm,
+ 				   unsigned long address,
+ 				   struct page **hpage,
+@@ -2559,9 +2557,6 @@ static void collapse_huge_page(struct mm
+ 	result = SCAN_SUCCEED;
+ out_up_write:
+ 	up_write(&mm->mmap_sem);
+-	trace_mm_collapse_huge_page(mm, isolated, result);
+-	return;
+-
+ out_nolock:
+ 	trace_mm_collapse_huge_page(mm, isolated, result);
+ 	return;
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-make-optimistic-check-for-swapin-readahead.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix.patch
+khugepaged-recheck-pmd-after-mmap_sem-re-acquired.patch
+thp-mlock-update-unevictable-lrutxt.patch
+mm-do-not-pass-mm_struct-into-handle_mm_fault.patch
+mm-introduce-fault_env.patch
+mm-postpone-page-table-allocation-until-we-have-page-to-map.patch
+rmap-support-file-thp.patch
+mm-introduce-do_set_pmd.patch
+thp-vmstats-add-counters-for-huge-file-pages.patch
+thp-support-file-pages-in-zap_huge_pmd.patch
+thp-handle-file-pages-in-split_huge_pmd.patch
+thp-handle-file-cow-faults.patch
+thp-skip-file-huge-pmd-on-copy_huge_pmd.patch
+thp-prepare-change_huge_pmd-for-file-thp.patch
+thp-run-vma_adjust_trans_huge-outside-i_mmap_rwsem.patch
+thp-file-pages-support-for-split_huge_page.patch
+thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
+vmscan-split-file-huge-pages-before-paging-them-out.patch
+page-flags-relax-policy-for-pg_mappedtodisk-and-pg_reclaim.patch
+radix-tree-implement-radix_tree_maybe_preload_order.patch
+filemap-prepare-find-and-delete-operations-for-huge-pages.patch
+truncate-handle-file-thp.patch
+mm-rmap-account-shmem-thp-pages.patch
+shmem-prepare-huge=-mount-option-and-sysfs-knob.patch
+shmem-add-huge-pages-support.patch
+shmem-thp-respect-madv_nohugepage-for-file-mappings.patch
+thp-extract-khugepaged-from-mm-huge_memoryc.patch
+khugepaged-move-up_readmmap_sem-out-of-khugepaged_alloc_page.patch
+shmem-make-shmem_inode_info-lock-irq-safe.patch
+khugepaged-add-support-of-collapse-for-tmpfs-shmem-pages.patch
+thp-introduce-config_transparent_huge_pagecache.patch
+shmem-split-huge-pages-beyond-i_size-under-memory-pressure.patch
+thp-update-documentation-vm-transhugefilesystems-proctxt.patch
 
