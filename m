@@ -1,49 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [patch 126/126] thp: fix comments of __pmd_trans_huge_lock()
-Date: Tue, 26 Jul 2016 15:27:04 -0700
-Message-ID: <5797e3b8.kOv0830NQEGZUpp5%akpm@linux-foundation.org>
+Subject: [patch 122/126] mm: memcontrol: remove BUG_ON in uncharge_list
+Date: Tue, 26 Jul 2016 15:26:53 -0700
+Message-ID: <5797e3ad.rXHquZZ//cxqfXXv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57161 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758640AbcGZW1F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:27:05 -0400
+	with ESMTP id S932162AbcGZW0y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:26:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ying.huang@intel.com, kirill.shutemov@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, roy.qing.li@gmail.com, hannes@cmpxchg.org, mhocko@suse.com, vdavydov@virtuozzo.com
 
-From: Huang Ying <ying.huang@intel.com>
-Subject: thp: fix comments of __pmd_trans_huge_lock()
+From: Li RongQing <roy.qing.li@gmail.com>
+Subject: mm: memcontrol: remove BUG_ON in uncharge_list
 
-To make the comments consistent with the already changed code.
+When calling uncharge_list, if a page is transparent huge we don't need to
+BUG_ON about non-transparent huge, since nobody should be able to see the
+page at this stage and this page cannot be raced against with a THP split.
 
-Link: http://lkml.kernel.org/r/1466200004-6196-1-git-send-email-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+This check became unneeded after 0a31bc97c80c ("mm: memcontrol: rewrite
+uncharge API").
+
+[mhocko@suse.com: changelog enhancements]
+Link: http://lkml.kernel.org/r/1465369248-13865-1-git-send-email-roy.qing.li@gmail.com
+Signed-off-by: Li RongQing <roy.qing.li@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-fix-comments-of-__pmd_trans_huge_lock mm/huge_memory.c
---- a/mm/huge_memory.c~thp-fix-comments-of-__pmd_trans_huge_lock
-+++ a/mm/huge_memory.c
-@@ -1458,10 +1458,10 @@ int change_huge_pmd(struct vm_area_struc
- }
+diff -puN mm/memcontrol.c~mm-memcontrol-remove-bug_on-in-uncharge_list mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-remove-bug_on-in-uncharge_list
++++ a/mm/memcontrol.c
+@@ -5580,7 +5580,6 @@ static void uncharge_list(struct list_he
  
- /*
-- * Returns true if a given pmd maps a thp, false otherwise.
-+ * Returns page table lock pointer if a given pmd maps a thp, NULL otherwise.
-  *
-- * Note that if it returns true, this routine returns without unlocking page
-- * table lock. So callers must unlock it.
-+ * Note that if it returns page table lock pointer, this routine returns without
-+ * unlocking page table lock. So callers must unlock it.
-  */
- spinlock_t *__pmd_trans_huge_lock(pmd_t *pmd, struct vm_area_struct *vma)
- {
+ 			if (PageTransHuge(page)) {
+ 				nr_pages <<= compound_order(page);
+-				VM_BUG_ON_PAGE(!PageTransHuge(page), page);
+ 				nr_huge += nr_pages;
+ 			}
+ 			if (PageAnon(page))
 _
