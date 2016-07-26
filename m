@@ -1,68 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [patch 074/126] af_unix: charge buffers to kmemcg
-Date: Tue, 26 Jul 2016 15:24:36 -0700
-Message-ID: <5797e324./vmu9CoJdP496J2z%akpm@linux-foundation.org>
+Subject: [patch 073/126] pipe: account to kmemcg
+Date: Tue, 26 Jul 2016 15:24:33 -0700
+Message-ID: <5797e321.OTnXCVU2oX2QnT2m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56901 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56894 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758380AbcGZWYh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:24:37 -0400
+	with ESMTP id S1758372AbcGZWYe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:24:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, davem@davemloft.net, eric.dumazet@gmail.com, hannes@cmpxchg.org, mhocko@kernel.org, minchan@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, eric.dumazet@gmail.com, hannes@cmpxchg.org, mhocko@kernel.org, minchan@kernel.org, viro@zeniv.linux.org.uk
 
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: af_unix: charge buffers to kmemcg
+Subject: pipe: account to kmemcg
 
-Unix sockets can consume a significant amount of system memory, hence
-they should be accounted to kmemcg.
+Pipes can consume a significant amount of system memory, hence they
+should be accounted to kmemcg.
 
-Since unix socket buffers are always allocated from process context,
-all we need to do to charge them to kmemcg is set __GFP_ACCOUNT in
-sock->sk_allocation mask.
+This patch marks pipe_inode_info and anonymous pipe buffer page
+allocations as __GFP_ACCOUNT so that they would be charged to kmemcg.
+Note, since a pipe buffer page can be "stolen" and get reused for other
+purposes, including mapping to userspace, we clear PageKmemcg thus
+resetting page->_mapcount and uncharge it in anon_pipe_buf_steal, which
+is introduced by this patch.
 
-Eric asked:
+A note regarding anon_pipe_buf_steal implementation. We allow to steal
+the page if its ref count equals 1. It looks racy, but it is correct for
+anonymous pipe buffer pages, because:
 
-> 1) What happens when a buffer, allocated from socket <A> lands in a
-> different socket <B>, maybe owned by another user/process.
-> 
-> Who owns it now, in term of kmemcg accounting ?
+ - We lock out all other pipe users, because ->steal is called with
+   pipe_lock held, so the page can't be spliced to another pipe from
+   under us.
 
-We never move memcg charges.  E.g.  if two processes from different
-cgroups are sharing a memory region, each page will be charged to the
-process which touched it first.  Or if two processes are working with the
-same directory tree, inodes and dentries will be charged to the first
-user.  The same is fair for unix socket buffers - they will be charged to
-the sender.
+ - The page is not on LRU and it never was.
 
-> 2) Has performance impact been evaluated ?
+ - Thus a parallel thread can access it only by PFN. Although this is
+   quite possible (e.g. see page_idle_get_page and balloon_page_isolate)
+   this is not dangerous, because all such functions do is increase page
+   ref count, check if the page is the one they are looking for, and
+   decrease ref count if it isn't. Since our page is clean except for
+   PageKmemcg mark, which doesn't conflict with other _mapcount users,
+   the worst that can happen is we see page_count > 2 due to a transient
+   ref, in which case we false-positively abort ->steal, which is still
+   fine, because ->steal is not guaranteed to succeed.
 
-I ran netperf STREAM_STREAM with default options in a kmemcg on
-a 4 core x 2 HT box. The results are below:
-
- # clients            bandwidth (10^6bits/sec)
-                    base              patched
-         1      67643 +-  725      64874 +-  353    - 4.0 %
-         4     193585 +- 2516     186715 +- 1460    - 3.5 %
-         8     194820 +-  377     187443 +- 1229    - 3.7 %
-
-So the accounting doesn't come for free - it takes ~4% of performance.  I
-believe we could optimize it by using per cpu batching not only on charge,
-but also on uncharge in memcg core, but that's beyond the scope of this
-patch set - I'll take a look at this later.
-
-Anyway, if performance impact is found to be unacceptable, it is always
-possible to disable kmem accounting at boot time (cgroup.memory=nokmem) or
-not use memory cgroups at runtime at all (thanks to jump labels there'll
-be no overhead even if they are compiled in).
-
-Link: http://lkml.kernel.org/r/fcfe6cae27a59fbc5e40145664b3cf085a560c68.1464079538.git.vdavydov@virtuozzo.com
+Link: http://lkml.kernel.org/r/20160527150313.GD26059@esperanza
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Eric Dumazet <eric.dumazet@gmail.com>
@@ -70,18 +58,98 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/unix/af_unix.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/pipe.c |   32 ++++++++++++++++++++++++++------
+ 1 file changed, 26 insertions(+), 6 deletions(-)
 
-diff -puN net/unix/af_unix.c~af_unix-charge-buffers-to-kmemcg net/unix/af_unix.c
---- a/net/unix/af_unix.c~af_unix-charge-buffers-to-kmemcg
-+++ a/net/unix/af_unix.c
-@@ -769,6 +769,7 @@ static struct sock *unix_create1(struct
- 	lockdep_set_class(&sk->sk_receive_queue.lock,
- 				&af_unix_sk_receive_queue_lock_key);
+diff -puN fs/pipe.c~pipe-account-to-kmemcg fs/pipe.c
+--- a/fs/pipe.c~pipe-account-to-kmemcg
++++ a/fs/pipe.c
+@@ -21,6 +21,7 @@
+ #include <linux/audit.h>
+ #include <linux/syscalls.h>
+ #include <linux/fcntl.h>
++#include <linux/memcontrol.h>
  
-+	sk->sk_allocation	= GFP_KERNEL_ACCOUNT;
- 	sk->sk_write_space	= unix_write_space;
- 	sk->sk_max_ack_backlog	= net->unx.sysctl_max_dgram_qlen;
- 	sk->sk_destruct		= unix_sock_destructor;
+ #include <asm/uaccess.h>
+ #include <asm/ioctls.h>
+@@ -137,6 +138,22 @@ static void anon_pipe_buf_release(struct
+ 		put_page(page);
+ }
+ 
++static int anon_pipe_buf_steal(struct pipe_inode_info *pipe,
++			       struct pipe_buffer *buf)
++{
++	struct page *page = buf->page;
++
++	if (page_count(page) == 1) {
++		if (memcg_kmem_enabled()) {
++			memcg_kmem_uncharge(page, 0);
++			__ClearPageKmemcg(page);
++		}
++		__SetPageLocked(page);
++		return 0;
++	}
++	return 1;
++}
++
+ /**
+  * generic_pipe_buf_steal - attempt to take ownership of a &pipe_buffer
+  * @pipe:	the pipe that the buffer belongs to
+@@ -219,7 +236,7 @@ static const struct pipe_buf_operations
+ 	.can_merge = 1,
+ 	.confirm = generic_pipe_buf_confirm,
+ 	.release = anon_pipe_buf_release,
+-	.steal = generic_pipe_buf_steal,
++	.steal = anon_pipe_buf_steal,
+ 	.get = generic_pipe_buf_get,
+ };
+ 
+@@ -227,7 +244,7 @@ static const struct pipe_buf_operations
+ 	.can_merge = 0,
+ 	.confirm = generic_pipe_buf_confirm,
+ 	.release = anon_pipe_buf_release,
+-	.steal = generic_pipe_buf_steal,
++	.steal = anon_pipe_buf_steal,
+ 	.get = generic_pipe_buf_get,
+ };
+ 
+@@ -405,7 +422,7 @@ pipe_write(struct kiocb *iocb, struct io
+ 			int copied;
+ 
+ 			if (!page) {
+-				page = alloc_page(GFP_HIGHUSER);
++				page = alloc_page(GFP_HIGHUSER | __GFP_ACCOUNT);
+ 				if (unlikely(!page)) {
+ 					ret = ret ? : -ENOMEM;
+ 					break;
+@@ -611,7 +628,7 @@ struct pipe_inode_info *alloc_pipe_info(
+ {
+ 	struct pipe_inode_info *pipe;
+ 
+-	pipe = kzalloc(sizeof(struct pipe_inode_info), GFP_KERNEL);
++	pipe = kzalloc(sizeof(struct pipe_inode_info), GFP_KERNEL_ACCOUNT);
+ 	if (pipe) {
+ 		unsigned long pipe_bufs = PIPE_DEF_BUFFERS;
+ 		struct user_struct *user = get_current_user();
+@@ -619,7 +636,9 @@ struct pipe_inode_info *alloc_pipe_info(
+ 		if (!too_many_pipe_buffers_hard(user)) {
+ 			if (too_many_pipe_buffers_soft(user))
+ 				pipe_bufs = 1;
+-			pipe->bufs = kzalloc(sizeof(struct pipe_buffer) * pipe_bufs, GFP_KERNEL);
++			pipe->bufs = kcalloc(pipe_bufs,
++					     sizeof(struct pipe_buffer),
++					     GFP_KERNEL_ACCOUNT);
+ 		}
+ 
+ 		if (pipe->bufs) {
+@@ -1010,7 +1029,8 @@ static long pipe_set_size(struct pipe_in
+ 	if (nr_pages < pipe->nrbufs)
+ 		return -EBUSY;
+ 
+-	bufs = kcalloc(nr_pages, sizeof(*bufs), GFP_KERNEL | __GFP_NOWARN);
++	bufs = kcalloc(nr_pages, sizeof(*bufs),
++		       GFP_KERNEL_ACCOUNT | __GFP_NOWARN);
+ 	if (unlikely(!bufs))
+ 		return -ENOMEM;
+ 
 _
