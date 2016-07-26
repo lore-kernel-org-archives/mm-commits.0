@@ -1,50 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [patch 025/126] mm/slab: use list_move instead of
- list_del/list_add
-Date: Tue, 26 Jul 2016 15:22:11 -0700
-Message-ID: <5797e293.MKMDht0RR6jVNld0%akpm@linux-foundation.org>
+Subject: [patch 026/126] mm/memcontrol.c: remove the useless parameter for mc_handle_swap_pte
+Date: Tue, 26 Jul 2016 15:22:14 -0700
+Message-ID: <5797e296.EETkc3ypPQ1BVbtY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56551 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56556 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757758AbcGZWWM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:22:12 -0400
+	with ESMTP id S1757758AbcGZWWP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:22:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yongjun_wei@trendmicro.com.cn, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, roy.qing.li@gmail.com, mhocko@suse.com
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: mm/slab: use list_move instead of list_del/list_add
+From: Li RongQing <roy.qing.li@gmail.com>
+Subject: mm/memcontrol.c: remove the useless parameter for mc_handle_swap_pte
 
-Using list_move() instead of list_del() + list_add() to avoid needlessly
-poisoning the next and prev values.
+It seems like this parameter has never been used since being introduced by
+90254a65833b ("memcg: clean up move charge").  Not a big deal because I
+assume the function would get inlined into the caller anyway but why not
+get rid of it.
 
-Link: http://lkml.kernel.org/r/1468929772-9174-1-git-send-email-weiyj_lk@163.com
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+[mhocko@suse.com: wrote changelog]
+  Link: http://lkml.kernel.org/r/20160525151831.GJ20132@dhcp22.suse.cz
+Link: http://lkml.kernel.org/r/1464145026-26693-1-git-send-email-roy.qing.li@gmail.com
+Signed-off-by: Li RongQing <roy.qing.li@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memcontrol.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-use-list_move-instead-of-list_del-list_add mm/slab.c
---- a/mm/slab.c~mm-slab-use-list_move-instead-of-list_del-list_add
-+++ a/mm/slab.c
-@@ -3452,8 +3452,7 @@ static void free_block(struct kmem_cache
- 		n->free_objects -= cachep->num;
+diff -puN mm/memcontrol.c~mm-memcontrol-remove-the-useless-parameter-for-mc_handle_swap_pte mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-remove-the-useless-parameter-for-mc_handle_swap_pte
++++ a/mm/memcontrol.c
+@@ -4409,7 +4409,7 @@ static struct page *mc_handle_present_pt
  
- 		page = list_last_entry(&n->slabs_free, struct page, lru);
--		list_del(&page->lru);
--		list_add(&page->lru, list);
-+		list_move(&page->lru, list);
- 	}
+ #ifdef CONFIG_SWAP
+ static struct page *mc_handle_swap_pte(struct vm_area_struct *vma,
+-			unsigned long addr, pte_t ptent, swp_entry_t *entry)
++			pte_t ptent, swp_entry_t *entry)
+ {
+ 	struct page *page = NULL;
+ 	swp_entry_t ent = pte_to_swp_entry(ptent);
+@@ -4428,7 +4428,7 @@ static struct page *mc_handle_swap_pte(s
  }
+ #else
+ static struct page *mc_handle_swap_pte(struct vm_area_struct *vma,
+-			unsigned long addr, pte_t ptent, swp_entry_t *entry)
++			pte_t ptent, swp_entry_t *entry)
+ {
+ 	return NULL;
+ }
+@@ -4593,7 +4593,7 @@ static enum mc_target_type get_mctgt_typ
+ 	if (pte_present(ptent))
+ 		page = mc_handle_present_pte(vma, addr, ptent);
+ 	else if (is_swap_pte(ptent))
+-		page = mc_handle_swap_pte(vma, addr, ptent, &ent);
++		page = mc_handle_swap_pte(vma, ptent, &ent);
+ 	else if (pte_none(ptent))
+ 		page = mc_handle_file_pte(vma, addr, ptent, &ent);
  
 _
