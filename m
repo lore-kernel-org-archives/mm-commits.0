@@ -1,16 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_allocc-needs-randomh.patch added to -mm tree
-Date: Tue, 26 Jul 2016 15:48:31 -0700
-Message-ID: <5797e8bf.3y3Xm1ZCN2Dayfzu%akpm@linux-foundation.org>
+Subject: [withdrawn] mm-page_allocc-needs-randomh.patch removed from -mm
+ tree
+Date: Tue, 26 Jul 2016 16:00:22 -0700
+Message-ID: <5797eb86.eMCFUD7BMx/Fizuv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57569 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57585 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754887AbcGZWsh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:48:37 -0400
+	with ESMTP id S1757517AbcGZXAY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 19:00:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, keescook@chromium.org, re.emese@gmail.com, mm-commits@vger.kernel.org
@@ -18,24 +19,10 @@ To: akpm@linux-foundation.org, keescook@chromium.org, re.emese@gmail.com, mm-com
 
 The patch titled
      Subject: mm/page_alloc.c needs random.h
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-page_allocc-needs-randomh.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-needs-randomh.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-needs-randomh.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -84,7 +71,6 @@ kexec-add-resriction-on-the-kexec_load-fix.patch
 linux-next-rejects.patch
 linux-next-git-rejects.patch
 drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-mm-page_allocc-needs-randomh.patch
 bitmap-bitmap_equal-memcmp-optimization-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
