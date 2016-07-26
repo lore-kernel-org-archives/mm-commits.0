@@ -1,97 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [patch 030/126] memory-hotplug: use zone_can_shift() for sysfs
- valid_zones attribute
-Date: Tue, 26 Jul 2016 15:22:27 -0700
-Message-ID: <5797e2a3.G7NpKWtXloKKtHww%akpm@linux-foundation.org>
+Subject: [patch 031/126] mm: zap ZONE_OOM_LOCKED
+Date: Tue, 26 Jul 2016 15:22:30 -0700
+Message-ID: <5797e2a6.rpfmrldwdKe2yCZG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56611 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56618 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757802AbcGZWW2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:22:28 -0400
+	with ESMTP id S1757579AbcGZWWb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:22:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, abanman@sgi.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, rientjes@google.com, shaohua.li@intel.com, slaoub@gmail.com, tangchen@cn.fujitsu.com, vbabka@suse.cz, vkuznets@redhat.com, y-goto@jp.fujitsu.com, zhenzhang.zhang@huawei.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp
 
-From: Reza Arbab <arbab@linux.vnet.ibm.com>
-Subject: memory-hotplug: use zone_can_shift() for sysfs valid_zones attribute
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: mm: zap ZONE_OOM_LOCKED
 
-Since zone_can_shift() is being used to validate the target zone during
-onlining, it should also be used to determine the content of valid_zones.
+Not used since oom_lock was instroduced.
 
-Link: http://lkml.kernel.org/r/1462816419-4479-4-git-send-email-arbab@linux.vnet.ibm.com
-Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Reviewd-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Andrew Banman <abanman@sgi.com>
-Cc: Chen Yucong <slaoub@gmail.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
+Link: http://lkml.kernel.org/r/1464358093-22663-1-git-send-email-vdavydov@virtuozzo.com
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   28 +++++++++++++++++-----------
- 1 file changed, 17 insertions(+), 11 deletions(-)
+ include/linux/mmzone.h |    1 -
+ mm/oom_kill.c          |    4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/memory.c~memory-hotplug-use-zone_can_shift-for-sysfs-valid_zones-attribute drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-use-zone_can_shift-for-sysfs-valid_zones-attribute
-+++ a/drivers/base/memory.c
-@@ -391,6 +391,7 @@ static ssize_t show_valid_zones(struct d
- 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
- 	struct page *first_page;
- 	struct zone *zone;
-+	int zone_shift = 0;
+diff -puN include/linux/mmzone.h~mm-zap-zone_oom_locked include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-zap-zone_oom_locked
++++ a/include/linux/mmzone.h
+@@ -524,7 +524,6 @@ struct zone {
  
- 	start_pfn = section_nr_to_pfn(mem->start_section_nr);
- 	end_pfn = start_pfn + nr_pages;
-@@ -402,21 +403,26 @@ static ssize_t show_valid_zones(struct d
+ enum zone_flags {
+ 	ZONE_RECLAIM_LOCKED,		/* prevents concurrent reclaim */
+-	ZONE_OOM_LOCKED,		/* zone is in OOM killer zonelist */
+ 	ZONE_CONGESTED,			/* zone has many dirty pages backed by
+ 					 * a congested BDI
+ 					 */
+diff -puN mm/oom_kill.c~mm-zap-zone_oom_locked mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-zap-zone_oom_locked
++++ a/mm/oom_kill.c
+@@ -988,8 +988,8 @@ bool out_of_memory(struct oom_control *o
  
- 	zone = page_zone(first_page);
- 
--	if (zone_idx(zone) == ZONE_MOVABLE - 1) {
--		/*The mem block is the last memoryblock of this zone.*/
--		if (end_pfn == zone_end_pfn(zone))
--			return sprintf(buf, "%s %s\n",
--					zone->name, (zone + 1)->name);
-+	/* MMOP_ONLINE_KEEP */
-+	sprintf(buf, "%s", zone->name);
-+
-+	/* MMOP_ONLINE_KERNEL */
-+	zone_shift = zone_can_shift(start_pfn, nr_pages, ZONE_NORMAL);
-+	if (zone_shift) {
-+		strcat(buf, " ");
-+		strcat(buf, (zone + zone_shift)->name);
- 	}
- 
--	if (zone_idx(zone) == ZONE_MOVABLE) {
--		/*The mem block is the first memoryblock of ZONE_MOVABLE.*/
--		if (start_pfn == zone->zone_start_pfn)
--			return sprintf(buf, "%s %s\n",
--					zone->name, (zone - 1)->name);
-+	/* MMOP_ONLINE_MOVABLE */
-+	zone_shift = zone_can_shift(start_pfn, nr_pages, ZONE_MOVABLE);
-+	if (zone_shift) {
-+		strcat(buf, " ");
-+		strcat(buf, (zone + zone_shift)->name);
- 	}
- 
--	return sprintf(buf, "%s\n", zone->name);
-+	strcat(buf, "\n");
-+
-+	return strlen(buf);
- }
- static DEVICE_ATTR(valid_zones, 0444, show_valid_zones, NULL);
- #endif
+ /*
+  * The pagefault handler calls here because it is out of memory, so kill a
+- * memory-hogging task.  If any populated zone has ZONE_OOM_LOCKED set, a
+- * parallel oom killing is already in progress so do nothing.
++ * memory-hogging task. If oom_lock is held by somebody else, a parallel oom
++ * killing is already in progress so do nothing.
+  */
+ void pagefault_out_of_memory(void)
+ {
 _
