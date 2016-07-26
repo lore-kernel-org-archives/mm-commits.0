@@ -1,79 +1,95 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-memcg-use-consistent-gfp-flags-during-readahead-fix.patch removed from
- -mm tree
-Date: Tue, 26 Jul 2016 15:03:02 -0700
-Message-ID: <5797de16.MAEf9HnUvNUImVPu%akpm@linux-foundation.org>
+ mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
+ removed from -mm tree
+Date: Tue, 26 Jul 2016 15:03:05 -0700
+Message-ID: <5797de19.REYkYbC3U2+tK1bt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55677 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55681 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161275AbcGZWDD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:03:03 -0400
+	with ESMTP id S1161275AbcGZWDG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:03:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: restrict gfp mask in mpage_alloc
+     Subject: mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-use-consistent-gfp-flags-during-readahead-fix.patch
+     mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into mm-memcg-use-consistent-gfp-flags-during-readahead.patch
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: restrict gfp mask in mpage_alloc
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes
 
-Sergey has reported that we might hit BUG_ON in new_slab() because
-unrestricted gfp mask used for the readahead purposes contains
-incompatible flags (__GFP_HIGHMEM in his case):
-[  429.191962] gfp: 2
-[  429.192634] ------------[ cut here ]------------
-[  429.193281] kernel BUG at mm/slub.c:1616!
-[...]
-[  429.217369]  [<ffffffff811ca221>] bio_alloc_bioset+0xbd/0x1b1
-[  429.218013]  [<ffffffff81148078>] mpage_alloc+0x28/0x7b
-[  429.218650]  [<ffffffff8114856a>] do_mpage_readpage+0x43d/0x545
-[  429.219282]  [<ffffffff81148767>] mpage_readpages+0xf5/0x152
+WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
+#155: FILE: mm/readahead.c:111:
++		struct list_head *pages, unsigned nr_pages, gfp_t gfp_mask)
 
-Make sure that mpage_alloc always restricts the mask to GFP_KERNEL subset.
-This is what was done before "mm, memcg: use consistent gfp flags during
-readahead" explicitly by mapping_gfp_constraint(mapping, GFP_KERNEL) in
-mpage_readpages.
+WARNING: line over 80 characters
+#165: FILE: mm/readahead.c:129:
++		if (!add_to_page_cache_lru(page, mapping, page->index, gfp_mask)) {
 
-Link: http://lkml.kernel.org/r/20160610074223.GC32285@dhcp22.suse.cz
-Reported-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
+WARNING: braces {} are not necessary for single statement blocks
+#165: FILE: mm/readahead.c:129:
++		if (!add_to_page_cache_lru(page, mapping, page->index, gfp_mask)) {
+ 			mapping->a_ops->readpage(filp, page);
+ 		}
+
+total: 0 errors, 3 warnings, 111 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-memcg-use-consistent-gfp-flags-during-readahead.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/mpage.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/readahead.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/mpage.c~mm-memcg-use-consistent-gfp-flags-during-readahead-fix fs/mpage.c
---- a/fs/mpage.c~mm-memcg-use-consistent-gfp-flags-during-readahead-fix
-+++ a/fs/mpage.c
-@@ -71,6 +71,8 @@ mpage_alloc(struct block_device *bdev,
+diff -puN mm/readahead.c~mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes mm/readahead.c
+--- a/mm/readahead.c~mm-memcg-use-consistent-gfp-flags-during-readahead-checkpatch-fixes
++++ a/mm/readahead.c
+@@ -108,7 +108,7 @@ int read_cache_pages(struct address_spac
+ EXPORT_SYMBOL(read_cache_pages);
+ 
+ static int read_pages(struct address_space *mapping, struct file *filp,
+-		struct list_head *pages, unsigned nr_pages, gfp_t gfp_mask)
++		struct list_head *pages, unsigned int nr_pages, gfp_t gfp)
  {
- 	struct bio *bio;
- 
-+	/* Restrict the given (page cache) mask for slab allocations */
-+	gfp_flags &= GFP_KERNEL;
- 	bio = bio_alloc(gfp_flags, nr_vecs);
- 
- 	if (bio == NULL && (current->flags & PF_MEMALLOC)) {
+ 	struct blk_plug plug;
+ 	unsigned page_idx;
+@@ -126,9 +126,8 @@ static int read_pages(struct address_spa
+ 	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
+ 		struct page *page = lru_to_page(pages);
+ 		list_del(&page->lru);
+-		if (!add_to_page_cache_lru(page, mapping, page->index, gfp_mask)) {
++		if (!add_to_page_cache_lru(page, mapping, page->index, gfp))
+ 			mapping->a_ops->readpage(filp, page);
+-		}
+ 		put_page(page);
+ 	}
+ 	ret = 0;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-arm-get-rid-of-superfluous-__gfp_repeat.patch
-slab-make-gfp_slab_bug_mask-information-more-human-readable.patch
-slab-do-not-panic-on-invalid-gfp_mask.patch
-mm-oom_reaper-make-sure-that-mmput_async-is-called-only-when-memory-was-reaped.patch
 mm-memcg-use-consistent-gfp-flags-during-readahead.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-fix-2-fix.patch
+mm-fix-build-warnings-in-linux-compactionh-fix.patch
 
