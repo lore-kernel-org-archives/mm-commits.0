@@ -1,60 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [patch 031/126] mm: zap ZONE_OOM_LOCKED
-Date: Tue, 26 Jul 2016 15:22:30 -0700
-Message-ID: <5797e2a6.rpfmrldwdKe2yCZG%akpm@linux-foundation.org>
+Subject: [patch 034/126] powerpc/mm: check for irq disabled() only if
+ DEBUG_VM is enabled
+Date: Tue, 26 Jul 2016 15:22:39 -0700
+Message-ID: <5797e2af.4u9nMgCzDcfqZUh6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56641 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757579AbcGZWWb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:22:31 -0400
+	with ESMTP id S1758117AbcGZWWk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:22:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, khandual@linux.vnet.ibm.com, mpe@ellerman.id.au
 
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: zap ZONE_OOM_LOCKED
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: powerpc/mm: check for irq disabled() only if DEBUG_VM is enabled
 
-Not used since oom_lock was instroduced.
+We don't need to check this always.  The idea here is to capture the wrong
+usage of find_linux_pte_or_hugepte and we can do that by occasionally
+running with DEBUG_VM enabled.
 
-Link: http://lkml.kernel.org/r/1464358093-22663-1-git-send-email-vdavydov@virtuozzo.com
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Link: http://lkml.kernel.org/r/1464692688-6612-2-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 -
- mm/oom_kill.c          |    4 ++--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ arch/powerpc/include/asm/pgtable.h |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-zap-zone_oom_locked include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-zap-zone_oom_locked
-+++ a/include/linux/mmzone.h
-@@ -524,7 +524,6 @@ struct zone {
- 
- enum zone_flags {
- 	ZONE_RECLAIM_LOCKED,		/* prevents concurrent reclaim */
--	ZONE_OOM_LOCKED,		/* zone is in OOM killer zonelist */
- 	ZONE_CONGESTED,			/* zone has many dirty pages backed by
- 					 * a congested BDI
- 					 */
-diff -puN mm/oom_kill.c~mm-zap-zone_oom_locked mm/oom_kill.c
---- a/mm/oom_kill.c~mm-zap-zone_oom_locked
-+++ a/mm/oom_kill.c
-@@ -988,8 +988,8 @@ bool out_of_memory(struct oom_control *o
- 
- /*
-  * The pagefault handler calls here because it is out of memory, so kill a
-- * memory-hogging task.  If any populated zone has ZONE_OOM_LOCKED set, a
-- * parallel oom killing is already in progress so do nothing.
-+ * memory-hogging task. If oom_lock is held by somebody else, a parallel oom
-+ * killing is already in progress so do nothing.
-  */
- void pagefault_out_of_memory(void)
+diff -puN arch/powerpc/include/asm/pgtable.h~powerpc-mm-check-for-irq-disabled-only-if-debug_vm-is-enabled arch/powerpc/include/asm/pgtable.h
+--- a/arch/powerpc/include/asm/pgtable.h~powerpc-mm-check-for-irq-disabled-only-if-debug_vm-is-enabled
++++ a/arch/powerpc/include/asm/pgtable.h
+@@ -71,10 +71,8 @@ pte_t *__find_linux_pte_or_hugepte(pgd_t
+ static inline pte_t *find_linux_pte_or_hugepte(pgd_t *pgdir, unsigned long ea,
+ 					       bool *is_thp, unsigned *shift)
  {
+-	if (!arch_irqs_disabled()) {
+-		pr_info("%s called with irq enabled\n", __func__);
+-		dump_stack();
+-	}
++	VM_WARN(!arch_irqs_disabled(),
++		"%s called with irq enabled\n", __func__);
+ 	return __find_linux_pte_or_hugepte(pgdir, ea, is_thp, shift);
+ }
+ 
 _
