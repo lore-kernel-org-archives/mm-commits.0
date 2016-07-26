@@ -1,53 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [patch 008/126] scripts/bloat-o-meter: fix percent on <1% changes
-Date: Tue, 26 Jul 2016 15:21:20 -0700
-Message-ID: <5797e260.yAg54ELJBIvMr9a7%akpm@linux-foundation.org>
+Subject: [patch 007/126] kbuild: abort build on bad stack protector flag
+Date: Tue, 26 Jul 2016 15:21:17 -0700
+Message-ID: <5797e25d.31kT9+s7/yGYzuz3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56432 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757066AbcGZWVV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:21:21 -0400
+	with ESMTP id S1757066AbcGZWVS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:21:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, riku.voipio@linaro.org, josh@joshtriplett.org, mmarek@suse.cz, vgupta@synopsys.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, keescook@chromium.org, mingo@kernel.org, mmarek@suse.com
 
-From: Riku Voipio <riku.voipio@linaro.org>
-Subject: scripts/bloat-o-meter: fix percent on <1% changes
+From: Kees Cook <keescook@chromium.org>
+Subject: kbuild: abort build on bad stack protector flag
 
-Python divisions are integer divisions unless at least one parameter is a
-float.  The current bloat-o-meter fails to print sub-percentage changes:
+Before, the stack protector flag was sanity checked before .config had
+been reprocessed.  This meant the build couldn't be aborted early, and
+only a warning could be emitted followed later by the compiler blowing up
+with an unknown flag.  This has caused a lot of confusion over time, so
+this splits the flag selection from sanity checking and performs the
+sanity checking after the make has been restarted from a reprocessed
+.config, so builds can be aborted as early as possible now.
 
-Total: Before=10515408, After=10604060, chg 0.000000%
+Additionally moves the x86-specific sanity check to the same location,
+since it suffered from the same warn-then-wait-for-compiler-failure
+problem.
 
-Force float division by using one float and pretty the print to
-two significant decimals:
-
-Total: Before=10515408, After=10604060, chg +0.84%
-
-Link: http://lkml.kernel.org/r/1465980311-23814-1-git-send-email-riku.voipio@linaro.org
-Signed-off-by: Riku Voipio <riku.voipio@linaro.org>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Michal Marek <mmarek@suse.cz>
+Link: http://lkml.kernel.org/r/20160712223043.GA11664@www.outflux.net
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Makefile          |   69 ++++++++++++++++++++++++++------------------
+ arch/x86/Makefile |    8 -----
+ 2 files changed, 42 insertions(+), 35 deletions(-)
 
-diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-fix-percent-on-1%-changes scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-fix-percent-on-1%-changes
-+++ a/scripts/bloat-o-meter
-@@ -67,5 +67,5 @@ print("%-40s %7s %7s %+7s" % ("function"
- for d, n in delta:
-     if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
+diff -puN Makefile~kbuild-abort-build-on-bad-stack-protector-flag Makefile
+--- a/Makefile~kbuild-abort-build-on-bad-stack-protector-flag
++++ a/Makefile
+@@ -647,41 +647,28 @@ ifneq ($(CONFIG_FRAME_WARN),0)
+ KBUILD_CFLAGS += $(call cc-option,-Wframe-larger-than=${CONFIG_FRAME_WARN})
+ endif
  
--print("Total: Before=%d, After=%d, chg %f%%" % \
--    (otot, ntot, (ntot - otot)*100/otot))
-+print("Total: Before=%d, After=%d, chg %+.2f%%" % \
-+    (otot, ntot, (ntot - otot)*100.0/otot))
-_
+-# Handle stack protector mode.
+-#
+-# Since kbuild can potentially perform two passes (first with the old
+-# .config values and then with updated .config values), we cannot error out
+-# if a desired compiler option is unsupported. If we were to error, kbuild
+-# could never get to the second pass and actually notice that we changed
+-# the option to something that was supported.
+-#
+-# Additionally, we don't want to fallback and/or silently change which compiler
+-# flags will be used, since that leads to producing kernels with different
+-# security feature characteristics depending on the compiler used. ("But I
+-# selected CC_STACKPROTECTOR_STRONG! Why did it build with _REGULAR?!")
+-#
+-# The middle ground is to warn here so that the failed option is obvious, but
+-# to let the build fail with bad compiler flags so that we can't produce a
+-# kernel when there is a CONFIG and compiler mismatch.
+-#
++# This selects the stack protector compiler flag. Testing it is delayed
++# until after .config has been reprocessed, in the prepare-compiler-check
++# target.
+ ifdef CONFIG_CC_STACKPROTECTOR_REGULAR
+   stackp-flag := -fstack-protector
+-  ifeq ($(call cc-option, $(stackp-flag)),)
+-    $(warning Cannot use CONFIG_CC_STACKPROTECTOR_REGULAR: \
+-             -fstack-protector not supported by compiler)
+-  endif
++  stackp-name := REGULAR
+ else
+ ifdef CONFIG_CC_STACKPROTECTOR_STRONG
+   stackp-flag := -fstack-protector-strong
+-  ifeq ($(call cc-option, $(stackp-flag)),)
+-    $(warning Cannot use CONFIG_CC_STACKPROTECTOR_STRONG: \
+-	      -fstack-protector-strong not supported by compiler)
+-  endif
++  stackp-name := STRONG
+ else
+   # Force off for distro compilers that enable stack protector by default.
+   stackp-flag := $(call cc-option, -fno-stack-protector)
+ endif
+ endif
++# Find arch-specific stack protector compiler sanity-checking script.
++ifdef CONFIG_CC_STACKPROTECTOR
++  stackp-path := $(srctree)/scripts/gcc-$(ARCH)_$(BITS)-has-stack-protector.sh
++  ifneq ($(wildcard $(stackp-path)),)
++    stackp-check := $(stackp-path)
++  endif
++endif
+ KBUILD_CFLAGS += $(stackp-flag)
+ 
+ ifdef CONFIG_KCOV
+@@ -1020,8 +1007,10 @@ ifneq ($(KBUILD_SRC),)
+ 	fi;
+ endif
+ 
+-# prepare2 creates a makefile if using a separate output directory
+-prepare2: prepare3 outputmakefile asm-generic
++# prepare2 creates a makefile if using a separate output directory.
++# From this point forward, .config has been reprocessed, so any rules
++# that need to depend on updated CONFIG_* values can be checked here.
++prepare2: prepare3 prepare-compiler-check outputmakefile asm-generic
+ 
+ prepare1: prepare2 $(version_h) include/generated/utsrelease.h \
+                    include/config/auto.conf
+@@ -1052,6 +1041,32 @@ endif
+ PHONY += prepare-objtool
+ prepare-objtool: $(objtool_target)
+ 
++# Check for CONFIG flags that require compiler support. Abort the build
++# after .config has been processed, but before the kernel build starts.
++#
++# For security-sensitive CONFIG options, we don't want to fallback and/or
++# silently change which compiler flags will be used, since that leads to
++# producing kernels with different security feature characteristics
++# depending on the compiler used. (For example, "But I selected
++# CC_STACKPROTECTOR_STRONG! Why did it build with _REGULAR?!")
++PHONY += prepare-compiler-check
++prepare-compiler-check: FORCE
++# Make sure compiler supports requested stack protector flag.
++ifdef stackp-name
++  ifeq ($(call cc-option, $(stackp-flag)),)
++	@echo Cannot use CONFIG_CC_STACKPROTECTOR_$(stackp-name): \
++		  $(stackp-flag) not supported by compiler >&2 && exit 1
++  endif
++endif
++# Make sure compiler does not have buggy stack-protector support.
++ifdef stackp-check
++  ifneq ($(shell $(CONFIG_SHELL) $(stackp-check) $(CC) $(KBUILD_CPPFLAGS) $(biarch)),y)
++	@echo Cannot use CONFIG_CC_STACKPROTECTOR_$(stackp-name): \
++                  $(stackp-flag) available but compiler is broken >&2 && exit 1
++  endif
++endif
++	@:
++
+ # Generate some files
+ # ---------------------------------------------------------------------------
+ 
+diff -puN arch/x86/Makefile~kbuild-abort-build-on-bad-stack-protector-flag arch/x86/Makefile
+--- a/arch/x86/Makefile~kbuild-abort-build-on-bad-stack-protector-flag
++++ a/arch/x86/Makefile
+@@ -126,14 +126,6 @@ else
+         KBUILD_CFLAGS += $(call cc-option,-maccumulate-outgoing-args)
+ endif
+ 
+-# Make sure compiler does not have buggy stack-protector support.
+-ifdef CONFIG_CC_STACKPROTECTOR
+-	cc_has_sp := $(srctree)/scripts/gcc-x86_$(BITS)-has-stack-protector.sh
+-        ifneq ($(shell $(CONFIG_SHELL) $(cc_has_sp) $(CC) $(KBUILD_CPPFLAGS) $(biarch)),y)
+-                $(warning stack-protector enabled but compiler support broken)
+-        endif
+-endif
