@@ -1,28 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [patch 059/126] tools/vm/page_owner: increase temporary buffer
- size
-Date: Tue, 26 Jul 2016 15:23:52 -0700
-Message-ID: <5797e2f8.ZCjwtYpMnFgpv45H%akpm@linux-foundation.org>
+Subject: [patch 061/126] mm/page_alloc: introduce post allocation
+ processing on page allocator
+Date: Tue, 26 Jul 2016 15:23:58 -0700
+Message-ID: <5797e2fe.ZMZrtXT/lARNeegT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56789 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56805 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758191AbcGZWXx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:23:53 -0400
+	with ESMTP id S1758191AbcGZWX7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:23:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, glider@google.com, hughd@google.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, vbabka@suse.cz
 
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: tools/vm/page_owner: increase temporary buffer size
+Subject: mm/page_alloc: introduce post allocation processing on page allocator
 
-Page owner will be changed to store more deep stacktrace so current
-temporary buffer size isn't enough.  Increase it.
+This patch is motivated from Hugh and Vlastimil's concern [1].
 
-Link: http://lkml.kernel.org/r/1464230275-25791-5-git-send-email-iamjoonsoo.kim@lge.com
+There are two ways to get freepage from the allocator.  One is using
+normal memory allocation API and the other is __isolate_free_page() which
+is internally used for compaction and pageblock isolation.  Later usage is
+rather tricky since it doesn't do whole post allocation processing done by
+normal API.
+
+One problematic thing I already know is that poisoned page would not be
+checked if it is allocated by __isolate_free_page().  Perhaps, there would
+be more.
+
+We could add more debug logic for allocated page in the future and this
+separation would cause more problem.  I'd like to fix this situation at
+this time.  Solution is simple.  This patch commonize some logic for newly
+allocated page and uses it on all sites.  This will solve the problem.
+
+[1] http://marc.info/?i=alpine.LSU.2.11.1604270029350.7066%40eggly.anvils%3E
+
+[iamjoonsoo.kim@lge.com: mm-page_alloc-introduce-post-allocation-processing-on-page-allocator-v3]
+  Link: http://lkml.kernel.org/r/1464230275-25791-7-git-send-email-iamjoonsoo.kim@lge.com
+  Link: http://lkml.kernel.org/r/1466150259-27727-9-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1464230275-25791-7-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Mel Gorman <mgorman@techsingularity.net>
@@ -33,37 +52,83 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page_owner_sort.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/compaction.c     |    8 +-------
+ mm/internal.h       |    2 ++
+ mm/page_alloc.c     |   23 ++++++++++++++---------
+ mm/page_isolation.c |    4 +---
+ 4 files changed, 18 insertions(+), 19 deletions(-)
 
-diff -puN tools/vm/page_owner_sort.c~tools-vm-page_owner-increase-temporary-buffer-size tools/vm/page_owner_sort.c
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner-increase-temporary-buffer-size
-+++ a/tools/vm/page_owner_sort.c
-@@ -79,12 +79,12 @@ static void add_list(char *buf, int len)
- 	}
+diff -puN mm/compaction.c~mm-page_alloc-introduce-post-allocation-processing-on-page-allocator mm/compaction.c
+--- a/mm/compaction.c~mm-page_alloc-introduce-post-allocation-processing-on-page-allocator
++++ a/mm/compaction.c
+@@ -74,14 +74,8 @@ static void map_pages(struct list_head *
+ 
+ 		order = page_private(page);
+ 		nr_pages = 1 << order;
+-		set_page_private(page, 0);
+-		set_page_refcounted(page);
+ 
+-		arch_alloc_page(page, order);
+-		kernel_map_pages(page, nr_pages, 1);
+-		kasan_alloc_pages(page, order);
+-
+-		set_page_owner(page, order, __GFP_MOVABLE);
++		post_alloc_hook(page, order, __GFP_MOVABLE);
+ 		if (order)
+ 			split_page(page, order);
+ 
+diff -puN mm/internal.h~mm-page_alloc-introduce-post-allocation-processing-on-page-allocator mm/internal.h
+--- a/mm/internal.h~mm-page_alloc-introduce-post-allocation-processing-on-page-allocator
++++ a/mm/internal.h
+@@ -150,6 +150,8 @@ extern int __isolate_free_page(struct pa
+ extern void __free_pages_bootmem(struct page *page, unsigned long pfn,
+ 					unsigned int order);
+ extern void prep_compound_page(struct page *page, unsigned int order);
++extern void post_alloc_hook(struct page *page, unsigned int order,
++					gfp_t gfp_flags);
+ extern int user_min_free_kbytes;
+ 
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+diff -puN mm/page_alloc.c~mm-page_alloc-introduce-post-allocation-processing-on-page-allocator mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-introduce-post-allocation-processing-on-page-allocator
++++ a/mm/page_alloc.c
+@@ -1724,6 +1724,19 @@ static bool check_new_pages(struct page
+ 	return false;
  }
  
--#define BUF_SIZE	1024
-+#define BUF_SIZE	(128 * 1024)
- 
- int main(int argc, char **argv)
++inline void post_alloc_hook(struct page *page, unsigned int order,
++				gfp_t gfp_flags)
++{
++	set_page_private(page, 0);
++	set_page_refcounted(page);
++
++	arch_alloc_page(page, order);
++	kernel_map_pages(page, 1 << order, 1);
++	kernel_poison_pages(page, 1 << order, 1);
++	kasan_alloc_pages(page, order);
++	set_page_owner(page, order, gfp_flags);
++}
++
+ static void prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags,
+ 							unsigned int alloc_flags)
  {
- 	FILE *fin, *fout;
--	char buf[BUF_SIZE];
-+	char *buf;
- 	int ret, i, count;
- 	struct block_list *list2;
- 	struct stat st;
-@@ -107,6 +107,11 @@ int main(int argc, char **argv)
- 	max_size = st.st_size / 100; /* hack ... */
+@@ -1736,13 +1749,7 @@ static void prep_new_page(struct page *p
+ 			poisoned &= page_is_poisoned(p);
+ 	}
  
- 	list = malloc(max_size * sizeof(*list));
-+	buf = malloc(BUF_SIZE);
-+	if (!list || !buf) {
-+		printf("Out of memory\n");
-+		exit(1);
-+	}
+-	set_page_private(page, 0);
+-	set_page_refcounted(page);
+-
+-	arch_alloc_page(page, order);
+-	kernel_map_pages(page, 1 << order, 1);
+-	kernel_poison_pages(page, 1 << order, 1);
+-	kasan_alloc_pages(page, order);
++	post_alloc_hook(page, order, gfp_flags);
  
- 	for ( ; ; ) {
- 		ret = read_block(buf, BUF_SIZE, fin);
-_
+ 	if (!free_pages_prezeroed(poisoned) && (gfp_flags & __GFP_ZERO))
+ 		for (i = 0; i < (1 << order); i++)
+@@ -1751,8 +1758,6 @@ static void prep_new_page(struct page *p
+ 	if (order && (gfp_flags & __GFP_COMP))
+ 		prep_compound_page(page, order);
+ 
+-	set_page_owner(page, order, gfp_flags);
