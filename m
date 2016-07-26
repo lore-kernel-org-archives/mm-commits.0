@@ -1,187 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [patch 035/126] zram: rename zstrm find-release functions
-Date: Tue, 26 Jul 2016 15:22:42 -0700
-Message-ID: <5797e2b2.9f+xLTDHEI2mRtsw%akpm@linux-foundation.org>
+Subject: [patch 038/126] zram: cosmetic: cleanup documentation
+Date: Tue, 26 Jul 2016 15:22:51 -0700
+Message-ID: <5797e2bb.4bAFI54SuplEOB75%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56645 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56662 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758117AbcGZWWn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:22:43 -0400
+	with ESMTP id S1758117AbcGZWWw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:22:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sergey.senozhatsky@gmail.com, iamjoonsoo.kim@lge.com, minchan@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sergey.senozhatsky@gmail.com, corbet@lwn.net, iamjoonsoo.kim@lge.com, minchan@kernel.org
 
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: rename zstrm find-release functions
+Subject: zram: cosmetic: cleanup documentation
 
-This has started as a 'add zlib support' work, but after some thinking I
-saw no blockers for a bigger change -- a switch to crypto API.
+zram documentation is a mix of different styles: spaces, tabs, tabs +
+spaces, etc.  Clean it up.
 
-We don't have an idle zstreams list anymore and our write path now works
-absolutely differently, preventing preemption during compression.  This
-removes possibilities of read paths preempting writes at wrong places and
-opens the door for a move from custom LZO/LZ4 compression backends
-implementation to a more generic one, using crypto compress API.
-
-This patch set also eliminates the need of a new context-less crypto API
-interface, which was quite hard to sell, so we can move along faster.
-
-benchmarks:
-
-(x86_64, 4GB, zram-perf script)
-
-perf reported run-time fio (max jobs=3).  I performed fio test with the
-increasing number of parallel jobs (max to 3) on a 3G zram device, using
-`static' data and the following crypto comp algorithms:
-
-	842, deflate, lz4, lz4hc, lzo
-
-the output was:
- - test running time (which can tell us what algorithms performs faster)
-and
- - zram mm_stat (which tells the compressed memory size, max used memory, etc).
-
-It's just for information.  for example, LZ4HC has twice the running time
-of LZO, but the compressed memory size is: 23592960 vs 34603008 bytes.
-
-test-fio-zram-842
-     197.907655282 seconds time elapsed
-     201.623142884 seconds time elapsed
-     226.854291345 seconds time elapsed
-test-fio-zram-DEFLATE
-     253.259516155 seconds time elapsed
-     258.148563401 seconds time elapsed
-     290.251909365 seconds time elapsed
-test-fio-zram-LZ4
-      27.022598717 seconds time elapsed
-      29.580522717 seconds time elapsed
-      33.293463430 seconds time elapsed
-test-fio-zram-LZ4HC
-      56.393954615 seconds time elapsed
-      74.904659747 seconds time elapsed
-     101.940998564 seconds time elapsed
-test-fio-zram-LZO
-      28.155948075 seconds time elapsed
-      30.390036330 seconds time elapsed
-      34.455773159 seconds time elapsed
-
-
-zram mm_stat-s (max fio jobs=3)
-
-test-fio-zram-842
-mm_stat (jobs1): 3221225472 673185792 690266112        0 690266112        0        0
-mm_stat (jobs2): 3221225472 673185792 690266112        0 690266112        0        0
-mm_stat (jobs3): 3221225472 673185792 690266112        0 690266112        0        0
-test-fio-zram-DEFLATE
-mm_stat (jobs1): 3221225472  24379392  37761024        0  37761024        0        0
-mm_stat (jobs2): 3221225472  24379392  37761024        0  37761024        0        0
-mm_stat (jobs3): 3221225472  24379392  37761024        0  37761024        0        0
-test-fio-zram-LZ4
-mm_stat (jobs1): 3221225472  23592960  37761024        0  37761024        0        0
-mm_stat (jobs2): 3221225472  23592960  37761024        0  37761024        0        0
-mm_stat (jobs3): 3221225472  23592960  37761024        0  37761024        0        0
-test-fio-zram-LZ4HC
-mm_stat (jobs1): 3221225472  23592960  37761024        0  37761024        0        0
-mm_stat (jobs2): 3221225472  23592960  37761024        0  37761024        0        0
-mm_stat (jobs3): 3221225472  23592960  37761024        0  37761024        0        0
-test-fio-zram-LZO
-mm_stat (jobs1): 3221225472  34603008  50335744        0  50335744        0        0
-mm_stat (jobs2): 3221225472  34603008  50335744        0  50335744        0        0
-mm_stat (jobs3): 3221225472  34603008  50335744        0  50339840        0        0
-
-
-This patch (of 8):
-
-We don't perform any zstream idle list lookup anymore, so
-zcomp_strm_find()/zcomp_strm_release() names are not representative.
-
-Rename to zcomp_stream_get()/zcomp_stream_put().
-
-Link: http://lkml.kernel.org/r/20160531122017.2878-2-sergey.senozhatsky@gmail.com
+Link: http://lkml.kernel.org/r/20160531122017.2878-6-sergey.senozhatsky@gmail.com
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c    |    4 ++--
- drivers/block/zram/zcomp.h    |    4 ++--
- drivers/block/zram/zram_drv.c |    8 ++++----
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ Documentation/blockdev/zram.txt |   89 ++++++++++++++----------------
+ 1 file changed, 44 insertions(+), 45 deletions(-)
 
-diff -puN drivers/block/zram/zcomp.c~zram-rename-zstrm-find-release-functions drivers/block/zram/zcomp.c
---- a/drivers/block/zram/zcomp.c~zram-rename-zstrm-find-release-functions
-+++ a/drivers/block/zram/zcomp.c
-@@ -95,12 +95,12 @@ bool zcomp_available_algorithm(const cha
- 	return find_backend(comp) != NULL;
- }
+diff -puN Documentation/blockdev/zram.txt~zram-cosmetic-cleanup-documentation Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-cosmetic-cleanup-documentation
++++ a/Documentation/blockdev/zram.txt
+@@ -59,23 +59,23 @@ num_devices parameter is optional and te
+ pre-created. Default: 1.
  
--struct zcomp_strm *zcomp_strm_find(struct zcomp *comp)
-+struct zcomp_strm *zcomp_stream_get(struct zcomp *comp)
- {
- 	return *get_cpu_ptr(comp->stream);
- }
+ 2) Set max number of compression streams
+-	Regardless the value passed to this attribute, ZRAM will always
+-	allocate multiple compression streams - one per online CPUs - thus
+-	allowing several concurrent compression operations. The number of
+-	allocated compression streams goes down when some of the CPUs
+-	become offline. There is no single-compression-stream mode anymore,
+-	unless you are running a UP system or has only 1 CPU online.
++Regardless the value passed to this attribute, ZRAM will always
++allocate multiple compression streams - one per online CPUs - thus
++allowing several concurrent compression operations. The number of
++allocated compression streams goes down when some of the CPUs
++become offline. There is no single-compression-stream mode anymore,
++unless you are running a UP system or has only 1 CPU online.
  
--void zcomp_strm_release(struct zcomp *comp, struct zcomp_strm *zstrm)
-+void zcomp_stream_put(struct zcomp *comp)
- {
- 	put_cpu_ptr(comp->stream);
- }
-diff -puN drivers/block/zram/zcomp.h~zram-rename-zstrm-find-release-functions drivers/block/zram/zcomp.h
---- a/drivers/block/zram/zcomp.h~zram-rename-zstrm-find-release-functions
-+++ a/drivers/block/zram/zcomp.h
-@@ -48,8 +48,8 @@ bool zcomp_available_algorithm(const cha
- struct zcomp *zcomp_create(const char *comp);
- void zcomp_destroy(struct zcomp *comp);
+-	To find out how many streams are currently available:
++To find out how many streams are currently available:
+ 	cat /sys/block/zram0/max_comp_streams
  
--struct zcomp_strm *zcomp_strm_find(struct zcomp *comp);
--void zcomp_strm_release(struct zcomp *comp, struct zcomp_strm *zstrm);
-+struct zcomp_strm *zcomp_stream_get(struct zcomp *comp);
-+void zcomp_stream_put(struct zcomp *comp);
+ 3) Select compression algorithm
+-	Using comp_algorithm device attribute one can see available and
+-	currently selected (shown in square brackets) compression algorithms,
+-	change selected compression algorithm (once the device is initialised
+-	there is no way to change compression algorithm).
++Using comp_algorithm device attribute one can see available and
++currently selected (shown in square brackets) compression algorithms,
++change selected compression algorithm (once the device is initialised
++there is no way to change compression algorithm).
  
- int zcomp_compress(struct zcomp *comp, struct zcomp_strm *zstrm,
- 		const unsigned char *src, size_t *dst_len);
-diff -puN drivers/block/zram/zram_drv.c~zram-rename-zstrm-find-release-functions drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-rename-zstrm-find-release-functions
-+++ a/drivers/block/zram/zram_drv.c
-@@ -695,7 +695,7 @@ compress_again:
- 		goto out;
- 	}
+-	Examples:
++Examples:
+ 	#show supported compression algorithms
+ 	cat /sys/block/zram0/comp_algorithm
+ 	lzo [lz4]
+@@ -83,28 +83,27 @@ pre-created. Default: 1.
+ 	#select lzo compression algorithm
+ 	echo lzo > /sys/block/zram0/comp_algorithm
  
--	zstrm = zcomp_strm_find(zram->comp);
-+	zstrm = zcomp_stream_get(zram->comp);
- 	ret = zcomp_compress(zram->comp, zstrm, uncmem, &clen);
- 	if (!is_partial_io(bvec)) {
- 		kunmap_atomic(user_mem);
-@@ -734,7 +734,7 @@ compress_again:
- 				__GFP_NOWARN |
- 				__GFP_HIGHMEM);
- 	if (!handle) {
--		zcomp_strm_release(zram->comp, zstrm);
-+		zcomp_stream_put(zram->comp);
- 		zstrm = NULL;
+-	For the time being, the `comp_algorithm' content does not necessarily
+-	show every compression algorithm supported by the kernel. We keep this
+-	list primarily to simplify device configuration and one can configure
+-	a new device with a compression algorithm that is not listed in
+-	`comp_algorithm'. The thing is that, internally, ZRAM uses Crypto API
+-	and, if some of the algorithms were built as modules, it's impossible
+-	to list all of them using, for instance, /proc/crypto or any other
+-	method. This, however, has an advantage of permitting the usage of
+-	custom crypto compression modules (implementing S/W or H/W
+-	compression).
++For the time being, the `comp_algorithm' content does not necessarily
++show every compression algorithm supported by the kernel. We keep this
++list primarily to simplify device configuration and one can configure
++a new device with a compression algorithm that is not listed in
++`comp_algorithm'. The thing is that, internally, ZRAM uses Crypto API
++and, if some of the algorithms were built as modules, it's impossible
++to list all of them using, for instance, /proc/crypto or any other
++method. This, however, has an advantage of permitting the usage of
++custom crypto compression modules (implementing S/W or H/W compression).
  
- 		atomic64_inc(&zram->stats.writestall);
-@@ -769,7 +769,7 @@ compress_again:
- 		memcpy(cmem, src, clen);
- 	}
+ 4) Set Disksize
+-        Set disk size by writing the value to sysfs node 'disksize'.
+-        The value can be either in bytes or you can use mem suffixes.
+-        Examples:
+-            # Initialize /dev/zram0 with 50MB disksize
+-            echo $((50*1024*1024)) > /sys/block/zram0/disksize
+-
+-            # Using mem suffixes
+-            echo 256K > /sys/block/zram0/disksize
+-            echo 512M > /sys/block/zram0/disksize
+-            echo 1G > /sys/block/zram0/disksize
++Set disk size by writing the value to sysfs node 'disksize'.
++The value can be either in bytes or you can use mem suffixes.
++Examples:
++	# Initialize /dev/zram0 with 50MB disksize
++	echo $((50*1024*1024)) > /sys/block/zram0/disksize
++
++	# Using mem suffixes
++	echo 256K > /sys/block/zram0/disksize
++	echo 512M > /sys/block/zram0/disksize
++	echo 1G > /sys/block/zram0/disksize
  
--	zcomp_strm_release(zram->comp, zstrm);
-+	zcomp_stream_put(zram->comp);
- 	zstrm = NULL;
- 	zs_unmap_object(meta->mem_pool, handle);
+ Note:
+ There is little point creating a zram of greater than twice the size of memory
+@@ -112,20 +111,20 @@ since we expect a 2:1 compression ratio.
+ size of the disk when not in use so a huge zram is wasteful.
  
-@@ -789,7 +789,7 @@ compress_again:
- 	atomic64_inc(&zram->stats.pages_stored);
- out:
- 	if (zstrm)
--		zcomp_strm_release(zram->comp, zstrm);
-+		zcomp_stream_put(zram->comp);
- 	if (is_partial_io(bvec))
- 		kfree(uncmem);
- 	return ret;
-_
+ 5) Set memory limit: Optional
+-	Set memory limit by writing the value to sysfs node 'mem_limit'.
+-	The value can be either in bytes or you can use mem suffixes.
+-	In addition, you could change the value in runtime.
+-	Examples:
+-	    # limit /dev/zram0 with 50MB memory
+-	    echo $((50*1024*1024)) > /sys/block/zram0/mem_limit
