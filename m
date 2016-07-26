@@ -1,97 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [patch 097/126] thp: skip file huge pmd on copy_huge_pmd()
-Date: Tue, 26 Jul 2016 15:25:42 -0700
-Message-ID: <5797e366.kBByWrqXbYBVxD7T%akpm@linux-foundation.org>
+Subject: [patch 093/126] thp, vmstats: add counters for huge file pages
+Date: Tue, 26 Jul 2016 15:25:31 -0700
+Message-ID: <5797e35b.3rTd1RMWR7zxJzcM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57044 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57030 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758604AbcGZWZn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:25:43 -0400
+	with ESMTP id S1758604AbcGZWZd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:25:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com
 
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: skip file huge pmd on copy_huge_pmd()
+Subject: thp, vmstats: add counters for huge file pages
 
-copy_page_range() has a check for "Don't copy ptes where a page fault
-will fill them correctly." It works on VMA level. We still copy all page
-table entries from private mappings, even if they map page cache.
+THP_FILE_ALLOC: how many times huge page was allocated and put page
+cache.
 
-We can simplify copy_huge_pmd() a bit by skipping file PMDs.
+THP_FILE_MAPPED: how many times file huge page was mapped.
 
-We don't map file private pages with PMDs, so they only can map page
-cache. It's safe to skip them as they can be re-faulted later.
-
-Link: http://lkml.kernel.org/r/1466021202-61880-17-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1466021202-61880-13-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   34 ++++++++++++++++------------------
- 1 file changed, 16 insertions(+), 18 deletions(-)
+ include/linux/vm_event_item.h |    7 +++++++
+ mm/memory.c                   |    1 +
+ mm/vmstat.c                   |    2 ++
+ 3 files changed, 10 insertions(+)
 
-diff -puN mm/huge_memory.c~thp-skip-file-huge-pmd-on-copy_huge_pmd mm/huge_memory.c
---- a/mm/huge_memory.c~thp-skip-file-huge-pmd-on-copy_huge_pmd
-+++ a/mm/huge_memory.c
-@@ -1098,14 +1098,15 @@ int copy_huge_pmd(struct mm_struct *dst_
- 	struct page *src_page;
- 	pmd_t pmd;
- 	pgtable_t pgtable = NULL;
--	int ret;
-+	int ret = -ENOMEM;
+diff -puN include/linux/vm_event_item.h~thp-vmstats-add-counters-for-huge-file-pages include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~thp-vmstats-add-counters-for-huge-file-pages
++++ a/include/linux/vm_event_item.h
+@@ -70,6 +70,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		THP_FAULT_FALLBACK,
+ 		THP_COLLAPSE_ALLOC,
+ 		THP_COLLAPSE_ALLOC_FAILED,
++		THP_FILE_ALLOC,
++		THP_FILE_MAPPED,
+ 		THP_SPLIT_PAGE,
+ 		THP_SPLIT_PAGE_FAILED,
+ 		THP_DEFERRED_SPLIT_PAGE,
+@@ -100,4 +102,9 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		NR_VM_EVENT_ITEMS
+ };
  
--	if (!vma_is_dax(vma)) {
--		ret = -ENOMEM;
--		pgtable = pte_alloc_one(dst_mm, addr);
--		if (unlikely(!pgtable))
--			goto out;
--	}
-+	/* Skip if can be re-fill on fault */
-+	if (!vma_is_anonymous(vma))
-+		return 0;
++#ifndef CONFIG_TRANSPARENT_HUGEPAGE
++#define THP_FILE_ALLOC ({ BUILD_BUG(); 0; })
++#define THP_FILE_MAPPED ({ BUILD_BUG(); 0; })
++#endif
 +
-+	pgtable = pte_alloc_one(dst_mm, addr);
-+	if (unlikely(!pgtable))
-+		goto out;
+ #endif		/* VM_EVENT_ITEM_H_INCLUDED */
+diff -puN mm/memory.c~thp-vmstats-add-counters-for-huge-file-pages mm/memory.c
+--- a/mm/memory.c~thp-vmstats-add-counters-for-huge-file-pages
++++ a/mm/memory.c
+@@ -2968,6 +2968,7 @@ static int do_set_pmd(struct fault_env *
  
- 	dst_ptl = pmd_lock(dst_mm, dst_pmd);
- 	src_ptl = pmd_lockptr(src_mm, src_pmd);
-@@ -1113,7 +1114,7 @@ int copy_huge_pmd(struct mm_struct *dst_
- 
- 	ret = -EAGAIN;
- 	pmd = *src_pmd;
--	if (unlikely(!pmd_trans_huge(pmd) && !pmd_devmap(pmd))) {
-+	if (unlikely(!pmd_trans_huge(pmd))) {
- 		pte_free(dst_mm, pgtable);
- 		goto out_unlock;
- 	}
-@@ -1136,16 +1137,13 @@ int copy_huge_pmd(struct mm_struct *dst_
- 		goto out_unlock;
- 	}
- 
--	if (!vma_is_dax(vma)) {
--		/* thp accounting separate from pmd_devmap accounting */
--		src_page = pmd_page(pmd);
--		VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
--		get_page(src_page);
--		page_dup_rmap(src_page, true);
--		add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
--		atomic_long_inc(&dst_mm->nr_ptes);
--		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
--	}
-+	src_page = pmd_page(pmd);
-+	VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
-+	get_page(src_page);
-+	page_dup_rmap(src_page, true);
-+	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
-+	atomic_long_inc(&dst_mm->nr_ptes);
-+	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
- 
- 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
- 	pmd = pmd_mkold(pmd_wrprotect(pmd));
+ 	/* fault is handled */
+ 	ret = 0;
++	count_vm_event(THP_FILE_MAPPED);
+ out:
+ 	spin_unlock(fe->ptl);
+ 	return ret;
+diff -puN mm/vmstat.c~thp-vmstats-add-counters-for-huge-file-pages mm/vmstat.c
+--- a/mm/vmstat.c~thp-vmstats-add-counters-for-huge-file-pages
++++ a/mm/vmstat.c
+@@ -817,6 +817,8 @@ const char * const vmstat_text[] = {
+ 	"thp_fault_fallback",
+ 	"thp_collapse_alloc",
+ 	"thp_collapse_alloc_failed",
++	"thp_file_alloc",
++	"thp_file_mapped",
+ 	"thp_split_page",
+ 	"thp_split_page_failed",
+ 	"thp_deferred_split_page",
 _
