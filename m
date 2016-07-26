@@ -1,155 +1,286 @@
 From: akpm@linux-foundation.org
-Subject: [patch 073/126] pipe: account to kmemcg
-Date: Tue, 26 Jul 2016 15:24:33 -0700
-Message-ID: <5797e321.OTnXCVU2oX2QnT2m%akpm@linux-foundation.org>
+Subject: [patch 076/126] mm, frontswap: convert frontswap_enabled to
+ static key
+Date: Tue, 26 Jul 2016 15:24:42 -0700
+Message-ID: <5797e32a.h1Rqoqoh+4q0Rglj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56910 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758372AbcGZWYe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:24:34 -0400
+	with ESMTP id S1758403AbcGZWYn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:24:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, eric.dumazet@gmail.com, hannes@cmpxchg.org, mhocko@kernel.org, minchan@kernel.org, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, jgross@suse.com, kirill.shutemov@linux.intel.com, konrad.wilk@oracle.com
 
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: pipe: account to kmemcg
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, frontswap: convert frontswap_enabled to static key
 
-Pipes can consume a significant amount of system memory, hence they
-should be accounted to kmemcg.
+I have noticed that frontswap.h first declares "frontswap_enabled" as
+extern bool variable, and then overrides it with "#define
+frontswap_enabled (1)" for CONFIG_FRONTSWAP=Y or (0) when disabled.  The
+bool variable isn't actually instantiated anywhere.
 
-This patch marks pipe_inode_info and anonymous pipe buffer page
-allocations as __GFP_ACCOUNT so that they would be charged to kmemcg.
-Note, since a pipe buffer page can be "stolen" and get reused for other
-purposes, including mapping to userspace, we clear PageKmemcg thus
-resetting page->_mapcount and uncharge it in anon_pipe_buf_steal, which
-is introduced by this patch.
+This all looks like an unfinished attempt to make frontswap_enabled
+reflect whether a backend is instantiated.  But in the current state, all
+frontswap hooks call unconditionally into frontswap.c just to check if
+frontswap_ops is non-NULL.  This should at least be checked inline, but we
+can further eliminate the overhead when CONFIG_FRONTSWAP is enabled and no
+backend registered, using a static key that is initially disabled, and
+gets enabled only upon first backend registration.
 
-A note regarding anon_pipe_buf_steal implementation. We allow to steal
-the page if its ref count equals 1. It looks racy, but it is correct for
-anonymous pipe buffer pages, because:
+Thus, checks for "frontswap_enabled" are replaced with "frontswap_enabled()"
+wrapping the static key check. There are two exceptions:
 
- - We lock out all other pipe users, because ->steal is called with
-   pipe_lock held, so the page can't be spliced to another pipe from
-   under us.
+- xen's selfballoon_process() was testing frontswap_enabled in code guarded
+  by #ifdef CONFIG_FRONTSWAP, which was effectively always true when reachable.
+  The patch just removes this check. Using frontswap_enabled() does not sound
+  correct here, as this can be true even without xen's own backend being
+  registered.
 
- - The page is not on LRU and it never was.
+- in SYSCALL_DEFINE2(swapon), change the check to IS_ENABLED(CONFIG_FRONTSWAP)
+  as it seems the bitmap allocation cannot currently be postponed until a
+  backend is registered. This means that frontswap will still have some
+  memory overhead by being configured, but without a backend.
 
- - Thus a parallel thread can access it only by PFN. Although this is
-   quite possible (e.g. see page_idle_get_page and balloon_page_isolate)
-   this is not dangerous, because all such functions do is increase page
-   ref count, check if the page is the one they are looking for, and
-   decrease ref count if it isn't. Since our page is clean except for
-   PageKmemcg mark, which doesn't conflict with other _mapcount users,
-   the worst that can happen is we see page_count > 2 due to a transient
-   ref, in which case we false-positively abort ->steal, which is still
-   fine, because ->steal is not guaranteed to succeed.
+After the patch, we can expect that some functions in frontswap.c are
+called only when frontswap_ops is non-NULL.  Change the checks there to
+VM_BUG_ONs.  While at it, convert other BUG_ONs to VM_BUG_ONs as frontswap
+has been stable for some time.
 
-Link: http://lkml.kernel.org/r/20160527150313.GD26059@esperanza
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/1463152235-9717-1-git-send-email-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   32 ++++++++++++++++++++++++++------
- 1 file changed, 26 insertions(+), 6 deletions(-)
+ drivers/xen/xen-selfballoon.c |    4 +--
+ include/linux/frontswap.h     |   34 ++++++++++++++++++-------------
+ mm/frontswap.c                |   35 +++++++++++++-------------------
+ mm/swapfile.c                 |    2 -
+ 4 files changed, 38 insertions(+), 37 deletions(-)
 
-diff -puN fs/pipe.c~pipe-account-to-kmemcg fs/pipe.c
---- a/fs/pipe.c~pipe-account-to-kmemcg
-+++ a/fs/pipe.c
-@@ -21,6 +21,7 @@
- #include <linux/audit.h>
- #include <linux/syscalls.h>
- #include <linux/fcntl.h>
-+#include <linux/memcontrol.h>
+diff -puN drivers/xen/xen-selfballoon.c~mm-frontswap-convert-frontswap_enabled-to-static-key drivers/xen/xen-selfballoon.c
+--- a/drivers/xen/xen-selfballoon.c~mm-frontswap-convert-frontswap_enabled-to-static-key
++++ a/drivers/xen/xen-selfballoon.c
+@@ -195,7 +195,7 @@ static void selfballoon_process(struct w
+ 				MB2PAGES(selfballoon_reserved_mb);
+ #ifdef CONFIG_FRONTSWAP
+ 		/* allow space for frontswap pages to be repatriated */
+-		if (frontswap_selfshrinking && frontswap_enabled)
++		if (frontswap_selfshrinking)
+ 			goal_pages += frontswap_curr_pages();
+ #endif
+ 		if (cur_pages > goal_pages)
+@@ -230,7 +230,7 @@ static void selfballoon_process(struct w
+ 		reset_timer = true;
+ 	}
+ #ifdef CONFIG_FRONTSWAP
+-	if (frontswap_selfshrinking && frontswap_enabled) {
++	if (frontswap_selfshrinking) {
+ 		frontswap_selfshrink();
+ 		reset_timer = true;
+ 	}
+diff -puN include/linux/frontswap.h~mm-frontswap-convert-frontswap_enabled-to-static-key include/linux/frontswap.h
+--- a/include/linux/frontswap.h~mm-frontswap-convert-frontswap_enabled-to-static-key
++++ a/include/linux/frontswap.h
+@@ -4,6 +4,7 @@
+ #include <linux/swap.h>
+ #include <linux/mm.h>
+ #include <linux/bitops.h>
++#include <linux/jump_label.h>
  
- #include <asm/uaccess.h>
- #include <asm/ioctls.h>
-@@ -137,6 +138,22 @@ static void anon_pipe_buf_release(struct
- 		put_page(page);
+ struct frontswap_ops {
+ 	void (*init)(unsigned); /* this swap type was just swapon'ed */
+@@ -14,7 +15,6 @@ struct frontswap_ops {
+ 	struct frontswap_ops *next; /* private pointer to next ops */
+ };
+ 
+-extern bool frontswap_enabled;
+ extern void frontswap_register_ops(struct frontswap_ops *ops);
+ extern void frontswap_shrink(unsigned long);
+ extern unsigned long frontswap_curr_pages(void);
+@@ -30,7 +30,12 @@ extern void __frontswap_invalidate_page(
+ extern void __frontswap_invalidate_area(unsigned);
+ 
+ #ifdef CONFIG_FRONTSWAP
+-#define frontswap_enabled (1)
++extern struct static_key_false frontswap_enabled_key;
++
++static inline bool frontswap_enabled(void)
++{
++	return static_branch_unlikely(&frontswap_enabled_key);
++}
+ 
+ static inline bool frontswap_test(struct swap_info_struct *sis, pgoff_t offset)
+ {
+@@ -50,7 +55,10 @@ static inline unsigned long *frontswap_m
+ #else
+ /* all inline routines become no-ops and all externs are ignored */
+ 
+-#define frontswap_enabled (0)
++static inline bool frontswap_enabled(void)
++{
++	return false;
++}
+ 
+ static inline bool frontswap_test(struct swap_info_struct *sis, pgoff_t offset)
+ {
+@@ -70,37 +78,35 @@ static inline unsigned long *frontswap_m
+ 
+ static inline int frontswap_store(struct page *page)
+ {
+-	int ret = -1;
++	if (frontswap_enabled())
++		return __frontswap_store(page);
+ 
+-	if (frontswap_enabled)
+-		ret = __frontswap_store(page);
+-	return ret;
++	return -1;
  }
  
-+static int anon_pipe_buf_steal(struct pipe_inode_info *pipe,
-+			       struct pipe_buffer *buf)
-+{
-+	struct page *page = buf->page;
-+
-+	if (page_count(page) == 1) {
-+		if (memcg_kmem_enabled()) {
-+			memcg_kmem_uncharge(page, 0);
-+			__ClearPageKmemcg(page);
-+		}
-+		__SetPageLocked(page);
-+		return 0;
-+	}
-+	return 1;
-+}
-+
- /**
-  * generic_pipe_buf_steal - attempt to take ownership of a &pipe_buffer
-  * @pipe:	the pipe that the buffer belongs to
-@@ -219,7 +236,7 @@ static const struct pipe_buf_operations
- 	.can_merge = 1,
- 	.confirm = generic_pipe_buf_confirm,
- 	.release = anon_pipe_buf_release,
--	.steal = generic_pipe_buf_steal,
-+	.steal = anon_pipe_buf_steal,
- 	.get = generic_pipe_buf_get,
- };
- 
-@@ -227,7 +244,7 @@ static const struct pipe_buf_operations
- 	.can_merge = 0,
- 	.confirm = generic_pipe_buf_confirm,
- 	.release = anon_pipe_buf_release,
--	.steal = generic_pipe_buf_steal,
-+	.steal = anon_pipe_buf_steal,
- 	.get = generic_pipe_buf_get,
- };
- 
-@@ -405,7 +422,7 @@ pipe_write(struct kiocb *iocb, struct io
- 			int copied;
- 
- 			if (!page) {
--				page = alloc_page(GFP_HIGHUSER);
-+				page = alloc_page(GFP_HIGHUSER | __GFP_ACCOUNT);
- 				if (unlikely(!page)) {
- 					ret = ret ? : -ENOMEM;
- 					break;
-@@ -611,7 +628,7 @@ struct pipe_inode_info *alloc_pipe_info(
+ static inline int frontswap_load(struct page *page)
  {
- 	struct pipe_inode_info *pipe;
+-	int ret = -1;
++	if (frontswap_enabled())
++		return __frontswap_load(page);
  
--	pipe = kzalloc(sizeof(struct pipe_inode_info), GFP_KERNEL);
-+	pipe = kzalloc(sizeof(struct pipe_inode_info), GFP_KERNEL_ACCOUNT);
- 	if (pipe) {
- 		unsigned long pipe_bufs = PIPE_DEF_BUFFERS;
- 		struct user_struct *user = get_current_user();
-@@ -619,7 +636,9 @@ struct pipe_inode_info *alloc_pipe_info(
- 		if (!too_many_pipe_buffers_hard(user)) {
- 			if (too_many_pipe_buffers_soft(user))
- 				pipe_bufs = 1;
--			pipe->bufs = kzalloc(sizeof(struct pipe_buffer) * pipe_bufs, GFP_KERNEL);
-+			pipe->bufs = kcalloc(pipe_bufs,
-+					     sizeof(struct pipe_buffer),
-+					     GFP_KERNEL_ACCOUNT);
- 		}
+-	if (frontswap_enabled)
+-		ret = __frontswap_load(page);
+-	return ret;
++	return -1;
+ }
  
- 		if (pipe->bufs) {
-@@ -1010,7 +1029,8 @@ static long pipe_set_size(struct pipe_in
- 	if (nr_pages < pipe->nrbufs)
- 		return -EBUSY;
+ static inline void frontswap_invalidate_page(unsigned type, pgoff_t offset)
+ {
+-	if (frontswap_enabled)
++	if (frontswap_enabled())
+ 		__frontswap_invalidate_page(type, offset);
+ }
  
--	bufs = kcalloc(nr_pages, sizeof(*bufs), GFP_KERNEL | __GFP_NOWARN);
-+	bufs = kcalloc(nr_pages, sizeof(*bufs),
-+		       GFP_KERNEL_ACCOUNT | __GFP_NOWARN);
- 	if (unlikely(!bufs))
- 		return -ENOMEM;
+ static inline void frontswap_invalidate_area(unsigned type)
+ {
+-	if (frontswap_enabled)
++	if (frontswap_enabled())
+ 		__frontswap_invalidate_area(type);
+ }
  
+ static inline void frontswap_init(unsigned type, unsigned long *map)
+ {
+-	if (frontswap_enabled)
++	if (frontswap_enabled())
+ 		__frontswap_init(type, map);
+ }
+ 
+diff -puN mm/frontswap.c~mm-frontswap-convert-frontswap_enabled-to-static-key mm/frontswap.c
+--- a/mm/frontswap.c~mm-frontswap-convert-frontswap_enabled-to-static-key
++++ a/mm/frontswap.c
+@@ -20,6 +20,8 @@
+ #include <linux/frontswap.h>
+ #include <linux/swapfile.h>
+ 
++DEFINE_STATIC_KEY_FALSE(frontswap_enabled_key);
++
+ /*
+  * frontswap_ops are added by frontswap_register_ops, and provide the
+  * frontswap "backend" implementation functions.  Multiple implementations
+@@ -139,6 +141,8 @@ void frontswap_register_ops(struct front
+ 		ops->next = frontswap_ops;
+ 	} while (cmpxchg(&frontswap_ops, ops->next, ops) != ops->next);
+ 
++	static_branch_inc(&frontswap_enabled_key);
++
+ 	spin_lock(&swap_lock);
+ 	plist_for_each_entry(si, &swap_active_head, list) {
+ 		if (si->frontswap_map)
+@@ -189,7 +193,7 @@ void __frontswap_init(unsigned type, uns
+ 	struct swap_info_struct *sis = swap_info[type];
+ 	struct frontswap_ops *ops;
+ 
+-	BUG_ON(sis == NULL);
++	VM_BUG_ON(sis == NULL);
+ 
+ 	/*
+ 	 * p->frontswap is a bitmap that we MUST have to figure out which page
+@@ -248,15 +252,9 @@ int __frontswap_store(struct page *page)
+ 	pgoff_t offset = swp_offset(entry);
+ 	struct frontswap_ops *ops;
+ 
+-	/*
+-	 * Return if no backend registed.
+-	 * Don't need to inc frontswap_failed_stores here.
+-	 */
+-	if (!frontswap_ops)
+-		return -1;
+-
+-	BUG_ON(!PageLocked(page));
+-	BUG_ON(sis == NULL);
++	VM_BUG_ON(!frontswap_ops);
++	VM_BUG_ON(!PageLocked(page));
++	VM_BUG_ON(sis == NULL);
+ 
+ 	/*
+ 	 * If a dup, we must remove the old page first; we can't leave the
+@@ -303,11 +301,10 @@ int __frontswap_load(struct page *page)
+ 	pgoff_t offset = swp_offset(entry);
+ 	struct frontswap_ops *ops;
+ 
+-	if (!frontswap_ops)
+-		return -1;
++	VM_BUG_ON(!frontswap_ops);
++	VM_BUG_ON(!PageLocked(page));
++	VM_BUG_ON(sis == NULL);
+ 
+-	BUG_ON(!PageLocked(page));
+-	BUG_ON(sis == NULL);
+ 	if (!__frontswap_test(sis, offset))
+ 		return -1;
+ 
+@@ -337,10 +334,9 @@ void __frontswap_invalidate_page(unsigne
+ 	struct swap_info_struct *sis = swap_info[type];
+ 	struct frontswap_ops *ops;
+ 
+-	if (!frontswap_ops)
+-		return;
++	VM_BUG_ON(!frontswap_ops);
++	VM_BUG_ON(sis == NULL);
+ 
+-	BUG_ON(sis == NULL);
+ 	if (!__frontswap_test(sis, offset))
+ 		return;
+ 
+@@ -360,10 +356,9 @@ void __frontswap_invalidate_area(unsigne
+ 	struct swap_info_struct *sis = swap_info[type];
+ 	struct frontswap_ops *ops;
+ 
+-	if (!frontswap_ops)
+-		return;
++	VM_BUG_ON(!frontswap_ops);
++	VM_BUG_ON(sis == NULL);
+ 
+-	BUG_ON(sis == NULL);
+ 	if (sis->frontswap_map == NULL)
+ 		return;
+ 
+diff -puN mm/swapfile.c~mm-frontswap-convert-frontswap_enabled-to-static-key mm/swapfile.c
+--- a/mm/swapfile.c~mm-frontswap-convert-frontswap_enabled-to-static-key
++++ a/mm/swapfile.c
+@@ -2493,7 +2493,7 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 		goto bad_swap;
+ 	}
+ 	/* frontswap enabled? set up bit-per-page map for frontswap */
+-	if (frontswap_enabled)
++	if (IS_ENABLED(CONFIG_FRONTSWAP))
+ 		frontswap_map = vzalloc(BITS_TO_LONGS(maxpages) * sizeof(long));
+ 
+ 	if (p->bdev &&(swap_flags & SWAP_FLAG_DISCARD) && swap_discardable(p)) {
 _
