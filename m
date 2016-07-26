@@ -1,125 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [patch 079/126] mm, oom_reaper: make sure that mmput_async is
- called only when memory was reaped
-Date: Tue, 26 Jul 2016 15:24:50 -0700
-Message-ID: <5797e332.LyPknr7ufyucJoz4%akpm@linux-foundation.org>
+Subject: [patch 078/126] include/linux/memblock.h: clean up code for
+ several trivial details
+Date: Tue, 26 Jul 2016 15:24:47 -0700
+Message-ID: <5797e32f.1KJtPVWVFkyPycxW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56927 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56922 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758420AbcGZWYv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:24:51 -0400
+	with ESMTP id S1758415AbcGZWYt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:24:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, chengang@emindsoft.com.cn, gang.chen.5i5j@gmail.com
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom_reaper: make sure that mmput_async is called only when memory was reaped
+From: Chen Gang <chengang@emindsoft.com.cn>
+Subject: include/linux/memblock.h: Clean up code for several trivial details
 
-Tetsuo is worried that mmput_async might still lead to a premature new oom
-victim selection due to the following race:
+Correct the function parameters alignment, since original code already use
+both tabs and white spaces together for the incorrect parameters alignment
+functions.
 
-__oom_reap_task				exit_mm
-  find_lock_task_mm
-  atomic_inc(mm->mm_users) # = 2
-  task_unlock
-  					  task_lock
-					  task->mm = NULL
-					  up_read(&mm->mmap_sem)
-		< somebody write locks mmap_sem >
-					  task_unlock
-					  mmput
-  					    atomic_dec_and_test # = 1
-					  exit_oom_victim
-  down_read_trylock # failed - no reclaim
-  mmput_async # Takes unpredictable amount of time
-  		< new OOM situation >
+If one line can hold one statement within 80 columns, let it in one line
+(original code did not consider about the tabs/spaces for 2nd line when a
+statement is separated into 2 lines).
 
-the final __mmput will be executed in the delayed context which might
-happen far in the future.  Such a race is highly unlikely because the
-write holder of mmap_sem would have to be an external task (all direct
-holders are already killed or exiting) and it usually have to pin mm_users
-in order to do anything reasonable.
+Try to let '' aligned within one macro, since all related lines are
+short enough.
 
-We can, however, make sure that the mmput_async is only called when we do
-not back off and reap some memory.  That would reduce the impact of the
-delayed __mmput because the real content would be already freed.  Pin
-mm_count to keep it alive after we drop task_lock and before we try to get
-mmap_sem.  If the mmap_sem succeeds we can try to grab mm_users reference
-and then go on with unmapping the address space.
+Remove useless statement "idx = 0;", and always assign rgn within the
+'for' statement.
 
-It is not clear whether this race is possible at all but it is better to
-be more robust and do not pin mm_users unless we are sure we are actually
-doing some real work during __oom_reap_task.
-
-Link: http://lkml.kernel.org/r/1465306987-30297-1-git-send-email-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Link: http://lkml.kernel.org/r/1464904899-1714-1-git-send-email-chengang@emindsoft.com.cn
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   25 ++++++++++++++++++-------
- 1 file changed, 18 insertions(+), 7 deletions(-)
+ include/linux/memblock.h |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_reaper-make-sure-that-mmput_async-is-called-only-when-memory-was-reaped mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_reaper-make-sure-that-mmput_async-is-called-only-when-memory-was-reaped
-+++ a/mm/oom_kill.c
-@@ -452,7 +452,7 @@ static bool __oom_reap_task(struct task_
- 	 * We have to make sure to not race with the victim exit path
- 	 * and cause premature new oom victim selection:
- 	 * __oom_reap_task		exit_mm
--	 *   atomic_inc_not_zero
-+	 *   mmget_not_zero
- 	 *				  mmput
- 	 *				    atomic_dec_and_test
- 	 *				  exit_oom_victim
-@@ -474,12 +474,22 @@ static bool __oom_reap_task(struct task_
- 	if (!p)
- 		goto unlock_oom;
- 	mm = p->mm;
--	atomic_inc(&mm->mm_users);
-+	atomic_inc(&mm->mm_count);
- 	task_unlock(p);
+diff -puN include/linux/memblock.h~include-linux-memblockh-clean-up-code-for-several-trivial-details include/linux/memblock.h
+--- a/include/linux/memblock.h~include-linux-memblockh-clean-up-code-for-several-trivial-details
++++ a/include/linux/memblock.h
+@@ -73,8 +73,8 @@ extern bool movable_node_enabled;
+ 	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
  
- 	if (!down_read_trylock(&mm->mmap_sem)) {
- 		ret = false;
--		goto unlock_oom;
-+		goto mm_drop;
-+	}
-+
-+	/*
-+	 * increase mm_users only after we know we will reap something so
-+	 * that the mmput_async is called only when we have reaped something
-+	 * and delayed __mmput doesn't matter that much
-+	 */
-+	if (!mmget_not_zero(mm)) {
-+		up_read(&mm->mmap_sem);
-+		goto mm_drop;
- 	}
+ phys_addr_t memblock_find_in_range_node(phys_addr_t size, phys_addr_t align,
+-					    phys_addr_t start, phys_addr_t end,
+-					    int nid, ulong flags);
++					phys_addr_t start, phys_addr_t end,
++					int nid, ulong flags);
+ phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
+ 				   phys_addr_t size, phys_addr_t align);
+ phys_addr_t get_allocated_memblock_reserved_regions_info(phys_addr_t *addr);
+@@ -110,7 +110,7 @@ void __next_mem_range_rev(u64 *idx, int
+ 			  phys_addr_t *out_end, int *out_nid);
  
- 	tlb_gather_mmu(&tlb, mm, 0, -1);
-@@ -521,15 +531,16 @@ static bool __oom_reap_task(struct task_
- 	 * to release its memory.
- 	 */
- 	set_bit(MMF_OOM_REAPED, &mm->flags);
--unlock_oom:
--	mutex_unlock(&oom_lock);
- 	/*
- 	 * Drop our reference but make sure the mmput slow path is called from a
- 	 * different context because we shouldn't risk we get stuck there and
- 	 * put the oom_reaper out of the way.
- 	 */
--	if (mm)
--		mmput_async(mm);
-+	mmput_async(mm);
-+mm_drop:
-+	mmdrop(mm);
-+unlock_oom:
-+	mutex_unlock(&oom_lock);
- 	return ret;
+ void __next_reserved_mem_region(u64 *idx, phys_addr_t *out_start,
+-			       phys_addr_t *out_end);
++				phys_addr_t *out_end);
+ 
+ /**
+  * for_each_mem_range - iterate through memblock areas from type_a and not
+@@ -148,7 +148,7 @@ void __next_reserved_mem_region(u64 *idx
+ 			       p_start, p_end, p_nid)			\
+ 	for (i = (u64)ULLONG_MAX,					\
+ 		     __next_mem_range_rev(&i, nid, flags, type_a, type_b,\
+-					 p_start, p_end, p_nid);	\
++					  p_start, p_end, p_nid);	\
+ 	     i != (u64)ULLONG_MAX;					\
+ 	     __next_mem_range_rev(&i, nid, flags, type_a, type_b,	\
+ 				  p_start, p_end, p_nid))
+@@ -163,8 +163,7 @@ void __next_reserved_mem_region(u64 *idx
+  * is initialized.
+  */
+ #define for_each_reserved_mem_region(i, p_start, p_end)			\
+-	for (i = 0UL,							\
+-	     __next_reserved_mem_region(&i, p_start, p_end);		\
++	for (i = 0UL, __next_reserved_mem_region(&i, p_start, p_end);	\
+ 	     i != (u64)ULLONG_MAX;					\
+ 	     __next_reserved_mem_region(&i, p_start, p_end))
+ 
+@@ -403,15 +402,14 @@ static inline unsigned long memblock_reg
  }
  
+ #define for_each_memblock(memblock_type, region)					\
+-	for (region = memblock.memblock_type.regions;				\
++	for (region = memblock.memblock_type.regions;					\
+ 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
+ 	     region++)
+ 
+ #define for_each_memblock_type(memblock_type, rgn)			\
+-	idx = 0;							\
+-	rgn = &memblock_type->regions[idx];				\
+-	for (idx = 0; idx < memblock_type->cnt;				\
+-	     idx++,rgn = &memblock_type->regions[idx])
++	for (idx = 0, rgn = &memblock_type->regions[0];			\
++	     idx < memblock_type->cnt;					\
++	     idx++, rgn = &memblock_type->regions[idx])
+ 
+ #ifdef CONFIG_MEMTEST
+ extern void early_memtest(phys_addr_t start, phys_addr_t end);
 _
