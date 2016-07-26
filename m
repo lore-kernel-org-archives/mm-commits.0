@@ -1,81 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [patch 075/126] mm,oom: remove unused argument from
- oom_scan_process_thread().
-Date: Tue, 26 Jul 2016 15:24:39 -0700
-Message-ID: <5797e327.0yOdJSaYRGSfJ4cO%akpm@linux-foundation.org>
+Subject: [patch 077/126] mm: add NR_ZSMALLOC to vmstat
+Date: Tue, 26 Jul 2016 15:24:45 -0700
+Message-ID: <5797e32d.K4BMNTaIjiedYKPc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56908 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56921 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758389AbcGZWYk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:24:40 -0400
+	with ESMTP id S1758407AbcGZWYq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:24:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, penguin-kernel@I-love.SAKURA.ne.jp, mhocko@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, chan.jeong@lge.com, chanho.min@lge.com, sangseok.lee@lge.com, sergey.senozhatsky.work@gmail.com
 
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm,oom: remove unused argument from oom_scan_process_thread().
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: add NR_ZSMALLOC to vmstat
 
-oom_scan_process_thread() does not use totalpages argument.  oom_badness()
-uses it.
+zram is very popular for some of the embedded world (e.g., TV, mobile
+phones).  On those system, zsmalloc's consumed memory size is never
+trivial (one of example from real product system, total memory: 800M,
+zsmalloc consumed: 150M), so we have used this out of tree patch to
+monitor system memory behavior via /proc/vmstat.
 
-Link: http://lkml.kernel.org/r/1463796041-7889-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
+With zsmalloc in vmstat, it helps in tracking down system behavior due to
+memory usage.
+
+[minchan@kernel.org: zsmalloc: follow up zsmalloc vmstat]
+  Link: http://lkml.kernel.org/r/20160607091737.GC23435@bbox
+[akpm@linux-foundation.org: fix build with CONFIG_ZSMALLOC=m]
+Link: http://lkml.kernel.org/r/1464919731-13255-1-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Sangseok Lee <sangseok.lee@lge.com>
+Cc: Chanho Min <chanho.min@lge.com>
+Cc: Chan Gyun Jeong <chan.jeong@lge.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    2 +-
- mm/memcontrol.c     |    2 +-
- mm/oom_kill.c       |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/mmzone.h |    3 +++
+ mm/vmstat.c            |    4 +++-
+ mm/zsmalloc.c          |    7 ++++++-
+ 3 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/oom.h~mmoom-remove-unused-argument-from-oom_scan_process_thread include/linux/oom.h
---- a/include/linux/oom.h~mmoom-remove-unused-argument-from-oom_scan_process_thread
-+++ a/include/linux/oom.h
-@@ -92,7 +92,7 @@ extern void check_panic_on_oom(struct oo
- 			       enum oom_constraint constraint);
+diff -puN include/linux/mmzone.h~mm-add-nr_zsmalloc-to-vmstat include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-add-nr_zsmalloc-to-vmstat
++++ a/include/linux/mmzone.h
+@@ -140,6 +140,9 @@ enum zone_stat_item {
+ 	NR_DIRTIED,		/* page dirtyings since bootup */
+ 	NR_WRITTEN,		/* page writings since bootup */
+ 	NR_PAGES_SCANNED,	/* pages scanned since last reclaim */
++#if IS_ENABLED(CONFIG_ZSMALLOC)
++	NR_ZSPAGES,		/* allocated in zsmalloc */
++#endif
+ #ifdef CONFIG_NUMA
+ 	NUMA_HIT,		/* allocated in intended node */
+ 	NUMA_MISS,		/* allocated in non intended node */
+diff -puN mm/vmstat.c~mm-add-nr_zsmalloc-to-vmstat mm/vmstat.c
+--- a/mm/vmstat.c~mm-add-nr_zsmalloc-to-vmstat
++++ a/mm/vmstat.c
+@@ -718,7 +718,9 @@ const char * const vmstat_text[] = {
+ 	"nr_dirtied",
+ 	"nr_written",
+ 	"nr_pages_scanned",
+-
++#if IS_ENABLED(CONFIG_ZSMALLOC)
++	"nr_zspages",
++#endif
+ #ifdef CONFIG_NUMA
+ 	"numa_hit",
+ 	"numa_miss",
+diff -puN mm/zsmalloc.c~mm-add-nr_zsmalloc-to-vmstat mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-add-nr_zsmalloc-to-vmstat
++++ a/mm/zsmalloc.c
+@@ -1007,6 +1007,7 @@ static void __free_zspage(struct zs_pool
+ 		next = get_next_page(page);
+ 		reset_page(page);
+ 		unlock_page(page);
++		dec_zone_page_state(page, NR_ZSPAGES);
+ 		put_page(page);
+ 		page = next;
+ 	} while (page != NULL);
+@@ -1137,11 +1138,15 @@ static struct zspage *alloc_zspage(struc
  
- extern enum oom_scan_t oom_scan_process_thread(struct oom_control *oc,
--		struct task_struct *task, unsigned long totalpages);
-+					       struct task_struct *task);
+ 		page = alloc_page(gfp);
+ 		if (!page) {
+-			while (--i >= 0)
++			while (--i >= 0) {
++				dec_zone_page_state(pages[i], NR_ZSPAGES);
+ 				__free_page(pages[i]);
++			}
+ 			cache_free_zspage(pool, zspage);
+ 			return NULL;
+ 		}
++
++		inc_zone_page_state(page, NR_ZSPAGES);
+ 		pages[i] = page;
+ 	}
  
- extern bool out_of_memory(struct oom_control *oc);
- 
-diff -puN mm/memcontrol.c~mmoom-remove-unused-argument-from-oom_scan_process_thread mm/memcontrol.c
---- a/mm/memcontrol.c~mmoom-remove-unused-argument-from-oom_scan_process_thread
-+++ a/mm/memcontrol.c
-@@ -1290,7 +1290,7 @@ static bool mem_cgroup_out_of_memory(str
- 
- 		css_task_iter_start(&iter->css, &it);
- 		while ((task = css_task_iter_next(&it))) {
--			switch (oom_scan_process_thread(&oc, task, totalpages)) {
-+			switch (oom_scan_process_thread(&oc, task)) {
- 			case OOM_SCAN_SELECT:
- 				if (chosen)
- 					put_task_struct(chosen);
-diff -puN mm/oom_kill.c~mmoom-remove-unused-argument-from-oom_scan_process_thread mm/oom_kill.c
---- a/mm/oom_kill.c~mmoom-remove-unused-argument-from-oom_scan_process_thread
-+++ a/mm/oom_kill.c
-@@ -274,7 +274,7 @@ static enum oom_constraint constrained_a
- #endif
- 
- enum oom_scan_t oom_scan_process_thread(struct oom_control *oc,
--			struct task_struct *task, unsigned long totalpages)
-+					struct task_struct *task)
- {
- 	if (oom_unkillable_task(task, NULL, oc->nodemask))
- 		return OOM_SCAN_CONTINUE;
-@@ -311,7 +311,7 @@ static struct task_struct *select_bad_pr
- 	for_each_process(p) {
- 		unsigned int points;
- 
--		switch (oom_scan_process_thread(oc, p, totalpages)) {
-+		switch (oom_scan_process_thread(oc, p)) {
- 		case OOM_SCAN_SELECT:
- 			chosen = p;
- 			chosen_points = ULONG_MAX;
 _
