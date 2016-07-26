@@ -1,371 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [patch 060/126] mm/page_owner: use stackdepot to store stacktrace
-Date: Tue, 26 Jul 2016 15:23:55 -0700
-Message-ID: <5797e2fb.21V4TO6JbfiEtHoN%akpm@linux-foundation.org>
+Subject: [patch 059/126] tools/vm/page_owner: increase temporary buffer
+ size
+Date: Tue, 26 Jul 2016 15:23:52 -0700
+Message-ID: <5797e2f8.ZCjwtYpMnFgpv45H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56789 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758191AbcGZWX4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:23:56 -0400
+	with ESMTP id S1758191AbcGZWXx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:23:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, glider@google.com, hughd@google.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, glider@google.com, hughd@google.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, vbabka@suse.cz
 
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_owner: use stackdepot to store stacktrace
+Subject: tools/vm/page_owner: increase temporary buffer size
 
-Currently, we store each page's allocation stacktrace on corresponding
-page_ext structure and it requires a lot of memory.  This causes the
-problem that memory tight system doesn't work well if page_owner is
-enabled.  Moreover, even with this large memory consumption, we cannot get
-full stacktrace because we allocate memory at boot time and just maintain
-8 stacktrace slots to balance memory consumption.  We could increase it to
-more but it would make system unusable or change system behaviour.
+Page owner will be changed to store more deep stacktrace so current
+temporary buffer size isn't enough.  Increase it.
 
-To solve the problem, this patch uses stackdepot to store stacktrace.  It
-obviously provides memory saving but there is a drawback that stackdepot
-could fail.
-
-stackdepot allocates memory at runtime so it could fail if system has not
-enough memory.  But, most of allocation stack are generated at very early
-time and there are much memory at this time.  So, failure would not happen
-easily.  And, one failure means that we miss just one page's allocation
-stacktrace so it would not be a big problem.  In this patch, when memory
-allocation failure happens, we store special stracktrace handle to the
-page that is failed to save stacktrace.  With it, user can guess memory
-usage properly even if failure happens.
-
-Memory saving looks as following.  (4GB memory system with page_owner)
-(before the patch -> after the patch)
-
-static allocation:
-92274688 bytes -> 25165824 bytes
-
-dynamic allocation after boot + kernel build:
-0 bytes -> 327680 bytes
-
-total:
-92274688 bytes -> 25493504 bytes
-
-72% reduction in total.
-
-Note that implementation looks complex than someone would imagine because
-there is recursion issue.  stackdepot uses page allocator and page_owner
-is called at page allocation.  Using stackdepot in page_owner could
-re-call page allcator and then page_owner.  That is a recursion.  To
-detect and avoid it, whenever we obtain stacktrace, recursion is checked
-and page_owner is set to dummy information if found.  Dummy information
-means that this page is allocated for page_owner feature itself (such as
-stackdepot) and it's understandable behavior for user.
-
-[iamjoonsoo.kim@lge.com: mm-page_owner-use-stackdepot-to-store-stacktrace-v3]
-  Link: http://lkml.kernel.org/r/1464230275-25791-6-git-send-email-iamjoonsoo.kim@lge.com
-  Link: http://lkml.kernel.org/r/1466150259-27727-7-git-send-email-iamjoonsoo.kim@lge.com
-Link: http://lkml.kernel.org/r/1464230275-25791-6-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1464230275-25791-5-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ext.h |    4 -
- lib/Kconfig.debug        |    1 
- mm/page_owner.c          |  142 ++++++++++++++++++++++++++++++++-----
- 3 files changed, 126 insertions(+), 21 deletions(-)
+ tools/vm/page_owner_sort.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/page_ext.h~mm-page_owner-use-stackdepot-to-store-stacktrace include/linux/page_ext.h
---- a/include/linux/page_ext.h~mm-page_owner-use-stackdepot-to-store-stacktrace
-+++ a/include/linux/page_ext.h
-@@ -3,6 +3,7 @@
- 
- #include <linux/types.h>
- #include <linux/stacktrace.h>
-+#include <linux/stackdepot.h>
- 
- struct pglist_data;
- struct page_ext_operations {
-@@ -44,9 +45,8 @@ struct page_ext {
- #ifdef CONFIG_PAGE_OWNER
- 	unsigned int order;
- 	gfp_t gfp_mask;
--	unsigned int nr_entries;
- 	int last_migrate_reason;
--	unsigned long trace_entries[8];
-+	depot_stack_handle_t handle;
- #endif
- };
- 
-diff -puN lib/Kconfig.debug~mm-page_owner-use-stackdepot-to-store-stacktrace lib/Kconfig.debug
---- a/lib/Kconfig.debug~mm-page_owner-use-stackdepot-to-store-stacktrace
-+++ a/lib/Kconfig.debug
-@@ -244,6 +244,7 @@ config PAGE_OWNER
- 	depends on DEBUG_KERNEL && STACKTRACE_SUPPORT
- 	select DEBUG_FS
- 	select STACKTRACE
-+	select STACKDEPOT
- 	select PAGE_EXTENSION
- 	help
- 	  This keeps track of what call chain is the owner of a page, may
-diff -puN mm/page_owner.c~mm-page_owner-use-stackdepot-to-store-stacktrace mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-use-stackdepot-to-store-stacktrace
-+++ a/mm/page_owner.c
-@@ -7,11 +7,22 @@
- #include <linux/page_owner.h>
- #include <linux/jump_label.h>
- #include <linux/migrate.h>
-+#include <linux/stackdepot.h>
-+
- #include "internal.h"
- 
-+/*
-+ * TODO: teach PAGE_OWNER_STACK_DEPTH (__dump_page_owner and save_stack)
-+ * to use off stack temporal storage
-+ */
-+#define PAGE_OWNER_STACK_DEPTH (16)
-+
- static bool page_owner_disabled = true;
- DEFINE_STATIC_KEY_FALSE(page_owner_inited);
- 
-+static depot_stack_handle_t dummy_handle;
-+static depot_stack_handle_t failure_handle;
-+
- static void init_early_allocated_pages(void);
- 
- static int early_page_owner_param(char *buf)
-@@ -34,11 +45,41 @@ static bool need_page_owner(void)
- 	return true;
- }
- 
-+static noinline void register_dummy_stack(void)
-+{
-+	unsigned long entries[4];
-+	struct stack_trace dummy;
-+
-+	dummy.nr_entries = 0;
-+	dummy.max_entries = ARRAY_SIZE(entries);
-+	dummy.entries = &entries[0];
-+	dummy.skip = 0;
-+
-+	save_stack_trace(&dummy);
-+	dummy_handle = depot_save_stack(&dummy, GFP_KERNEL);
-+}
-+
-+static noinline void register_failure_stack(void)
-+{
-+	unsigned long entries[4];
-+	struct stack_trace failure;
-+
-+	failure.nr_entries = 0;
-+	failure.max_entries = ARRAY_SIZE(entries);
-+	failure.entries = &entries[0];
-+	failure.skip = 0;
-+
-+	save_stack_trace(&failure);
-+	failure_handle = depot_save_stack(&failure, GFP_KERNEL);
-+}
-+
- static void init_page_owner(void)
- {
- 	if (page_owner_disabled)
- 		return;
- 
-+	register_dummy_stack();
-+	register_failure_stack();
- 	static_branch_enable(&page_owner_inited);
- 	init_early_allocated_pages();
- }
-@@ -61,25 +102,66 @@ void __reset_page_owner(struct page *pag
+diff -puN tools/vm/page_owner_sort.c~tools-vm-page_owner-increase-temporary-buffer-size tools/vm/page_owner_sort.c
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner-increase-temporary-buffer-size
++++ a/tools/vm/page_owner_sort.c
+@@ -79,12 +79,12 @@ static void add_list(char *buf, int len)
  	}
  }
  
--void __set_page_owner(struct page *page, unsigned int order, gfp_t gfp_mask)
-+static inline bool check_recursive_alloc(struct stack_trace *trace,
-+					unsigned long ip)
+-#define BUF_SIZE	1024
++#define BUF_SIZE	(128 * 1024)
+ 
+ int main(int argc, char **argv)
  {
--	struct page_ext *page_ext = lookup_page_ext(page);
-+	int i, count;
-+
-+	if (!trace->nr_entries)
-+		return false;
-+
-+	for (i = 0, count = 0; i < trace->nr_entries; i++) {
-+		if (trace->entries[i] == ip && ++count == 2)
-+			return true;
+ 	FILE *fin, *fout;
+-	char buf[BUF_SIZE];
++	char *buf;
+ 	int ret, i, count;
+ 	struct block_list *list2;
+ 	struct stat st;
+@@ -107,6 +107,11 @@ int main(int argc, char **argv)
+ 	max_size = st.st_size / 100; /* hack ... */
+ 
+ 	list = malloc(max_size * sizeof(*list));
++	buf = malloc(BUF_SIZE);
++	if (!list || !buf) {
++		printf("Out of memory\n");
++		exit(1);
 +	}
  
-+	return false;
-+}
-+
-+static noinline depot_stack_handle_t save_stack(gfp_t flags)
-+{
-+	unsigned long entries[PAGE_OWNER_STACK_DEPTH];
- 	struct stack_trace trace = {
- 		.nr_entries = 0,
--		.max_entries = ARRAY_SIZE(page_ext->trace_entries),
--		.entries = &page_ext->trace_entries[0],
--		.skip = 3,
-+		.entries = entries,
-+		.max_entries = PAGE_OWNER_STACK_DEPTH,
-+		.skip = 0
- 	};
-+	depot_stack_handle_t handle;
-+
-+	save_stack_trace(&trace);
-+	if (trace.nr_entries != 0 &&
-+	    trace.entries[trace.nr_entries-1] == ULONG_MAX)
-+		trace.nr_entries--;
-+
-+	/*
-+	 * We need to check recursion here because our request to stackdepot
-+	 * could trigger memory allocation to save new entry. New memory
-+	 * allocation would reach here and call depot_save_stack() again
-+	 * if we don't catch it. There is still not enough memory in stackdepot
-+	 * so it would try to allocate memory again and loop forever.
-+	 */
-+	if (check_recursive_alloc(&trace, _RET_IP_))
-+		return dummy_handle;
-+
-+	handle = depot_save_stack(&trace, flags);
-+	if (!handle)
-+		handle = failure_handle;
-+
-+	return handle;
-+}
-+
-+noinline void __set_page_owner(struct page *page, unsigned int order,
-+					gfp_t gfp_mask)
-+{
-+	struct page_ext *page_ext = lookup_page_ext(page);
- 
- 	if (unlikely(!page_ext))
- 		return;
- 
--	save_stack_trace(&trace);
--
-+	page_ext->handle = save_stack(gfp_mask);
- 	page_ext->order = order;
- 	page_ext->gfp_mask = gfp_mask;
--	page_ext->nr_entries = trace.nr_entries;
- 	page_ext->last_migrate_reason = -1;
- 
- 	__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
-@@ -111,7 +193,6 @@ void __copy_page_owner(struct page *oldp
- {
- 	struct page_ext *old_ext = lookup_page_ext(oldpage);
- 	struct page_ext *new_ext = lookup_page_ext(newpage);
--	int i;
- 
- 	if (unlikely(!old_ext || !new_ext))
- 		return;
-@@ -119,10 +200,7 @@ void __copy_page_owner(struct page *oldp
- 	new_ext->order = old_ext->order;
- 	new_ext->gfp_mask = old_ext->gfp_mask;
- 	new_ext->last_migrate_reason = old_ext->last_migrate_reason;
--	new_ext->nr_entries = old_ext->nr_entries;
--
--	for (i = 0; i < ARRAY_SIZE(new_ext->trace_entries); i++)
--		new_ext->trace_entries[i] = old_ext->trace_entries[i];
-+	new_ext->handle = old_ext->handle;
- 
- 	/*
- 	 * We don't clear the bit on the oldpage as it's going to be freed
-@@ -138,14 +216,18 @@ void __copy_page_owner(struct page *oldp
- 
- static ssize_t
- print_page_owner(char __user *buf, size_t count, unsigned long pfn,
--		struct page *page, struct page_ext *page_ext)
-+		struct page *page, struct page_ext *page_ext,
-+		depot_stack_handle_t handle)
- {
- 	int ret;
- 	int pageblock_mt, page_mt;
- 	char *kbuf;
-+	unsigned long entries[PAGE_OWNER_STACK_DEPTH];
- 	struct stack_trace trace = {
--		.nr_entries = page_ext->nr_entries,
--		.entries = &page_ext->trace_entries[0],
-+		.nr_entries = 0,
-+		.entries = entries,
-+		.max_entries = PAGE_OWNER_STACK_DEPTH,
-+		.skip = 0
- 	};
- 
- 	kbuf = kmalloc(count, GFP_KERNEL);
-@@ -174,6 +256,7 @@ print_page_owner(char __user *buf, size_
- 	if (ret >= count)
- 		goto err;
- 
-+	depot_fetch_stack(handle, &trace);
- 	ret += snprint_stack_trace(kbuf + ret, count - ret, &trace, 0);
- 	if (ret >= count)
- 		goto err;
-@@ -204,10 +287,14 @@ err:
- void __dump_page_owner(struct page *page)
- {
- 	struct page_ext *page_ext = lookup_page_ext(page);
-+	unsigned long entries[PAGE_OWNER_STACK_DEPTH];
- 	struct stack_trace trace = {
--		.nr_entries = page_ext->nr_entries,
--		.entries = &page_ext->trace_entries[0],
-+		.nr_entries = 0,
-+		.entries = entries,
-+		.max_entries = PAGE_OWNER_STACK_DEPTH,
-+		.skip = 0
- 	};
-+	depot_stack_handle_t handle;
- 	gfp_t gfp_mask;
- 	int mt;
- 
-@@ -223,6 +310,13 @@ void __dump_page_owner(struct page *page
- 		return;
- 	}
- 
-+	handle = READ_ONCE(page_ext->handle);
-+	if (!handle) {
-+		pr_alert("page_owner info is not active (free page?)\n");
-+		return;
-+	}
-+
-+	depot_fetch_stack(handle, &trace);
- 	pr_alert("page allocated via order %u, migratetype %s, gfp_mask %#x(%pGg)\n",
- 		 page_ext->order, migratetype_names[mt], gfp_mask, &gfp_mask);
- 	print_stack_trace(&trace, 0);
-@@ -238,6 +332,7 @@ read_page_owner(struct file *file, char
- 	unsigned long pfn;
- 	struct page *page;
- 	struct page_ext *page_ext;
-+	depot_stack_handle_t handle;
- 
- 	if (!static_branch_unlikely(&page_owner_inited))
- 		return -EINVAL;
-@@ -286,10 +381,19 @@ read_page_owner(struct file *file, char
- 		if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags))
- 			continue;
- 
-+		/*
-+		 * Access to page_ext->handle isn't synchronous so we should
-+		 * be careful to access it.
-+		 */
-+		handle = READ_ONCE(page_ext->handle);
-+		if (!handle)
-+			continue;
-+
- 		/* Record the next PFN to read in the file offset */
- 		*ppos = (pfn - min_low_pfn) + 1;
- 
--		return print_page_owner(buf, count, pfn, page, page_ext);
-+		return print_page_owner(buf, count, pfn, page,
-+				page_ext, handle);
- 	}
- 
- 	return 0;
-diff -puN tools/vm/page_owner_sort.c~mm-page_owner-use-stackdepot-to-store-stacktrace tools/vm/page_owner_sort.c
+ 	for ( ; ; ) {
+ 		ret = read_block(buf, BUF_SIZE, fin);
 _
