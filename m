@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [patch 056/126] mm/page_owner: initialize page owner without
- holding the zone lock
-Date: Tue, 26 Jul 2016 15:23:43 -0700
-Message-ID: <5797e2ef.pEtr1tJt1er1wnWS%akpm@linux-foundation.org>
+Subject: [patch 058/126] mm/page_owner: introduce split_page_owner and
+ replace manual handling
+Date: Tue, 26 Jul 2016 15:23:49 -0700
+Message-ID: <5797e2f5.D2eiAuCL5forbCaE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56767 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56783 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758191AbcGZWXo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:23:44 -0400
+	with ESMTP id S1758191AbcGZWXu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:23:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, glider@google.com, hughd@google.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, vbabka@suse.cz
 
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_owner: initialize page owner without holding the zone lock
+Subject: mm/page_owner: introduce split_page_owner and replace manual handling
 
-It's not necessary to initialized page_owner with holding the zone lock. 
-It would cause more contention on the zone lock although it's not a big
-problem since it is just debug feature.  But, it is better than before so
-do it.  This is also preparation step to use stackdepot in page owner
-feature.  Stackdepot allocates new pages when there is no reserved space
-and holding the zone lock in this case will cause deadlock.
+split_page() calls set_page_owner() to set up page_owner to each pages. 
+But, it has a drawback that head page and the others have different
+stacktrace because callsite of set_page_owner() is slightly differnt.  To
+avoid this problem, this patch copies head page's page_owner to the
+others.  It needs to introduce new function, split_page_owner() but it
+also remove the other function, get_page_owner_gfp() so looks good to do.
 
-Link: http://lkml.kernel.org/r/1464230275-25791-2-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1464230275-25791-4-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Mel Gorman <mgorman@techsingularity.net>
@@ -37,75 +37,102 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c     |    3 +++
- mm/page_alloc.c     |    2 --
- mm/page_isolation.c |    9 ++++++---
- 3 files changed, 9 insertions(+), 5 deletions(-)
+ include/linux/page_owner.h |   12 +++++-------
+ mm/page_alloc.c            |    8 ++------
+ mm/page_owner.c            |   14 +++++++-------
+ 3 files changed, 14 insertions(+), 20 deletions(-)
 
-diff -puN mm/compaction.c~mm-page_owner-initialize-page-owner-without-holding-the-zone-lock mm/compaction.c
---- a/mm/compaction.c~mm-page_owner-initialize-page-owner-without-holding-the-zone-lock
-+++ a/mm/compaction.c
-@@ -19,6 +19,7 @@
- #include <linux/kasan.h>
- #include <linux/kthread.h>
- #include <linux/freezer.h>
-+#include <linux/page_owner.h>
- #include "internal.h"
- 
- #ifdef CONFIG_COMPACTION
-@@ -79,6 +80,8 @@ static void map_pages(struct list_head *
- 		arch_alloc_page(page, order);
- 		kernel_map_pages(page, nr_pages, 1);
- 		kasan_alloc_pages(page, order);
-+
-+		set_page_owner(page, order, __GFP_MOVABLE);
- 		if (order)
- 			split_page(page, order);
- 
-diff -puN mm/page_alloc.c~mm-page_owner-initialize-page-owner-without-holding-the-zone-lock mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_owner-initialize-page-owner-without-holding-the-zone-lock
-+++ a/mm/page_alloc.c
-@@ -2509,8 +2509,6 @@ int __isolate_free_page(struct page *pag
- 	zone->free_area[order].nr_free--;
- 	rmv_page_order(page);
- 
--	set_page_owner(page, order, __GFP_MOVABLE);
--
- 	/* Set the pageblock if the isolated page is at least a pageblock */
- 	if (order >= pageblock_order - 1) {
- 		struct page *endpage = page + (1 << order) - 1;
-diff -puN mm/page_isolation.c~mm-page_owner-initialize-page-owner-without-holding-the-zone-lock mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_owner-initialize-page-owner-without-holding-the-zone-lock
-+++ a/mm/page_isolation.c
-@@ -7,6 +7,7 @@
- #include <linux/pageblock-flags.h>
- #include <linux/memory.h>
- #include <linux/hugetlb.h>
-+#include <linux/page_owner.h>
- #include "internal.h"
- 
- #define CREATE_TRACE_POINTS
-@@ -108,8 +109,6 @@ static void unset_migratetype_isolate(st
- 			if (pfn_valid_within(page_to_pfn(buddy)) &&
- 			    !is_migrate_isolate_page(buddy)) {
- 				__isolate_free_page(page, order);
--				kernel_map_pages(page, (1 << order), 1);
--				set_page_refcounted(page);
- 				isolated_page = page;
- 			}
- 		}
-@@ -128,8 +127,12 @@ static void unset_migratetype_isolate(st
- 	zone->nr_isolate_pageblock--;
- out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
--	if (isolated_page)
-+	if (isolated_page) {
-+		kernel_map_pages(page, (1 << order), 1);
-+		set_page_refcounted(page);
-+		set_page_owner(page, order, __GFP_MOVABLE);
- 		__free_pages(isolated_page, order);
-+	}
+diff -puN include/linux/page_owner.h~mm-page_owner-introduce-split_page_owner-and-replace-manual-handling include/linux/page_owner.h
+--- a/include/linux/page_owner.h~mm-page_owner-introduce-split_page_owner-and-replace-manual-handling
++++ a/include/linux/page_owner.h
+@@ -10,7 +10,7 @@ extern struct page_ext_operations page_o
+ extern void __reset_page_owner(struct page *page, unsigned int order);
+ extern void __set_page_owner(struct page *page,
+ 			unsigned int order, gfp_t gfp_mask);
+-extern gfp_t __get_page_owner_gfp(struct page *page);
++extern void __split_page_owner(struct page *page, unsigned int order);
+ extern void __copy_page_owner(struct page *oldpage, struct page *newpage);
+ extern void __set_page_owner_migrate_reason(struct page *page, int reason);
+ extern void __dump_page_owner(struct page *page);
+@@ -28,12 +28,10 @@ static inline void set_page_owner(struct
+ 		__set_page_owner(page, order, gfp_mask);
  }
  
- static inline struct page *
+-static inline gfp_t get_page_owner_gfp(struct page *page)
++static inline void split_page_owner(struct page *page, unsigned int order)
+ {
+ 	if (static_branch_unlikely(&page_owner_inited))
+-		return __get_page_owner_gfp(page);
+-	else
+-		return 0;
++		__split_page_owner(page, order);
+ }
+ static inline void copy_page_owner(struct page *oldpage, struct page *newpage)
+ {
+@@ -58,9 +56,9 @@ static inline void set_page_owner(struct
+ 			unsigned int order, gfp_t gfp_mask)
+ {
+ }
+-static inline gfp_t get_page_owner_gfp(struct page *page)
++static inline void split_page_owner(struct page *page,
++			unsigned int order)
+ {
+-	return 0;
+ }
+ static inline void copy_page_owner(struct page *oldpage, struct page *newpage)
+ {
+diff -puN mm/page_alloc.c~mm-page_owner-introduce-split_page_owner-and-replace-manual-handling mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_owner-introduce-split_page_owner-and-replace-manual-handling
++++ a/mm/page_alloc.c
+@@ -2461,7 +2461,6 @@ void free_hot_cold_page_list(struct list
+ void split_page(struct page *page, unsigned int order)
+ {
+ 	int i;
+-	gfp_t gfp_mask;
+ 
+ 	VM_BUG_ON_PAGE(PageCompound(page), page);
+ 	VM_BUG_ON_PAGE(!page_count(page), page);
+@@ -2475,12 +2474,9 @@ void split_page(struct page *page, unsig
+ 		split_page(virt_to_page(page[0].shadow), order);
+ #endif
+ 
+-	gfp_mask = get_page_owner_gfp(page);
+-	set_page_owner(page, 0, gfp_mask);
+-	for (i = 1; i < (1 << order); i++) {
++	for (i = 1; i < (1 << order); i++)
+ 		set_page_refcounted(page + i);
+-		set_page_owner(page + i, 0, gfp_mask);
+-	}
++	split_page_owner(page, order);
+ }
+ EXPORT_SYMBOL_GPL(split_page);
+ 
+diff -puN mm/page_owner.c~mm-page_owner-introduce-split_page_owner-and-replace-manual-handling mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-introduce-split_page_owner-and-replace-manual-handling
++++ a/mm/page_owner.c
+@@ -94,17 +94,17 @@ void __set_page_owner_migrate_reason(str
+ 	page_ext->last_migrate_reason = reason;
+ }
+ 
+-gfp_t __get_page_owner_gfp(struct page *page)
++void __split_page_owner(struct page *page, unsigned int order)
+ {
++	int i;
+ 	struct page_ext *page_ext = lookup_page_ext(page);
++
+ 	if (unlikely(!page_ext))
+-		/*
+-		 * The caller just returns 0 if no valid gfp
+-		 * So return 0 here too.
+-		 */
+-		return 0;
++		return;
+ 
+-	return page_ext->gfp_mask;
++	page_ext->order = 0;
++	for (i = 1; i < (1 << order); i++)
++		__copy_page_owner(page, page + i);
+ }
+ 
+ void __copy_page_owner(struct page *oldpage, struct page *newpage)
 _
