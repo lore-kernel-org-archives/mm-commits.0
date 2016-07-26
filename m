@@ -1,102 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: [patch 053/126] zram: use __GFP_MOVABLE for memory allocation
-Date: Tue, 26 Jul 2016 15:23:34 -0700
-Message-ID: <5797e2e6.LFZdotySdb7s2YKK%akpm@linux-foundation.org>
+Subject: [patch 055/126] mm/compaction: split freepages without holding
+ the zone lock
+Date: Tue, 26 Jul 2016 15:23:40 -0700
+Message-ID: <5797e2ec.m42ZsPbvodlVXqG+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56749 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56761 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758191AbcGZWXf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:23:35 -0400
+	with ESMTP id S1758191AbcGZWXl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:23:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, glider@google.com, hughd@google.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, rientjes@google.com, vbabka@suse.cz
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: use __GFP_MOVABLE for memory allocation
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/compaction: split freepages without holding the zone lock
 
-Zsmalloc is ready for page migration so zram can use __GFP_MOVABLE
-from now on.
+We don't need to split freepages with holding the zone lock.  It will
+cause more contention on zone lock so not desirable.
 
-I did test to see how it helps to make higher order pages.
-Test scenario is as follows.
-
-KVM guest, 1G memory, ext4 formated zram block device,
-
-for i in `seq 1 8`;
-do
-        dd if=/dev/vda1 of=mnt/test$i.txt bs=128M count=1 &
-done
-
-wait `pidof dd`
-
-for i in `seq 1 2 8`;
-do
-        rm -rf mnt/test$i.txt
-done
-fstrim -v mnt
-
-echo "init"
-cat /proc/buddyinfo
-
-echo "compaction"
-echo 1 > /proc/sys/vm/compact_memory
-cat /proc/buddyinfo
-
-old:
-
-init
-Node 0, zone      DMA    208    120     51     41     11      0      0      0      0      0      0
-Node 0, zone    DMA32  16380  13777   9184   3805    789     54      3      0      0      0      0
-compaction
-Node 0, zone      DMA    132     82     40     39     16      2      1      0      0      0      0
-Node 0, zone    DMA32   5219   5526   4969   3455   1831    677    139     15      0      0      0
-
-new:
-
-init
-Node 0, zone      DMA    379    115     97     19      2      0      0      0      0      0      0
-Node 0, zone    DMA32  18891  16774  10862   3947    637     21      0      0      0      0      0
-compaction  1
-Node 0, zone      DMA    214     66     87     29     10      3      0      0      0      0      0
-Node 0, zone    DMA32   1612   3139   3154   2469   1745    990    384     94      7      0      0
-
-As you can see, compaction made so many high-order pages. Yay!
-
-Link: http://lkml.kernel.org/r/1464736881-24886-13-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+[rientjes@google.com: if __isolate_free_page() fails, avoid adding to freelist so we don't call map_pages() with it]
+  Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1606211447001.43430@chino.kir.corp.google.com
+Link: http://lkml.kernel.org/r/1464230275-25791-1-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    1 
+ mm/compaction.c    |   47 ++++++++++++++++++++++++++++++-------------
+ mm/page_alloc.c    |   27 ------------------------
+ 3 files changed, 33 insertions(+), 42 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-use-__gfp_movable-for-memory-allocation drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-use-__gfp_movable-for-memory-allocation
-+++ a/drivers/block/zram/zram_drv.c
-@@ -738,7 +738,8 @@ compress_again:
- 		handle = zs_malloc(meta->mem_pool, clen,
- 				__GFP_KSWAPD_RECLAIM |
- 				__GFP_NOWARN |
--				__GFP_HIGHMEM);
-+				__GFP_HIGHMEM |
-+				__GFP_MOVABLE);
- 	if (!handle) {
- 		zcomp_stream_put(zram->comp);
- 		zstrm = NULL;
-@@ -746,7 +747,8 @@ compress_again:
- 		atomic64_inc(&zram->stats.writestall);
+diff -puN include/linux/mm.h~mm-compaction-split-freepages-without-holding-the-zone-lock include/linux/mm.h
+--- a/include/linux/mm.h~mm-compaction-split-freepages-without-holding-the-zone-lock
++++ a/include/linux/mm.h
+@@ -537,7 +537,6 @@ void __put_page(struct page *page);
+ void put_pages_list(struct list_head *pages);
  
- 		handle = zs_malloc(meta->mem_pool, clen,
--				GFP_NOIO | __GFP_HIGHMEM);
-+				GFP_NOIO | __GFP_HIGHMEM |
-+				__GFP_MOVABLE);
- 		if (handle)
- 			goto compress_again;
+ void split_page(struct page *page, unsigned int order);
+-int split_free_page(struct page *page);
  
-_
+ /*
+  * Compound pages have a destructor function.  Provide a
+diff -puN mm/compaction.c~mm-compaction-split-freepages-without-holding-the-zone-lock mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-split-freepages-without-holding-the-zone-lock
++++ a/mm/compaction.c
+@@ -64,13 +64,31 @@ static unsigned long release_freepages(s
+ 
+ static void map_pages(struct list_head *list)
+ {
+-	struct page *page;
++	unsigned int i, order, nr_pages;
++	struct page *page, *next;
++	LIST_HEAD(tmp_list);
++
++	list_for_each_entry_safe(page, next, list, lru) {
++		list_del(&page->lru);
++
++		order = page_private(page);
++		nr_pages = 1 << order;
++		set_page_private(page, 0);
++		set_page_refcounted(page);
++
++		arch_alloc_page(page, order);
++		kernel_map_pages(page, nr_pages, 1);
++		kasan_alloc_pages(page, order);
++		if (order)
++			split_page(page, order);
+ 
+-	list_for_each_entry(page, list, lru) {
+-		arch_alloc_page(page, 0);
+-		kernel_map_pages(page, 1, 1);
+-		kasan_alloc_pages(page, 0);
++		for (i = 0; i < nr_pages; i++) {
++			list_add(&page->lru, &tmp_list);
++			page++;
++		}
+ 	}
++
++	list_splice(&tmp_list, list);
+ }
+ 
+ static inline bool migrate_async_suitable(int migratetype)
+@@ -405,12 +423,13 @@ static unsigned long isolate_freepages_b
+ 	unsigned long flags = 0;
+ 	bool locked = false;
+ 	unsigned long blockpfn = *start_pfn;
++	unsigned int order;
+ 
+ 	cursor = pfn_to_page(blockpfn);
+ 
+ 	/* Isolate free pages. */
+ 	for (; blockpfn < end_pfn; blockpfn++, cursor++) {
+-		int isolated, i;
++		int isolated;
+ 		struct page *page = cursor;
+ 
+ 		/*
+@@ -476,17 +495,17 @@ static unsigned long isolate_freepages_b
+ 				goto isolate_fail;
+ 		}
+ 
+-		/* Found a free page, break it into order-0 pages */
+-		isolated = split_free_page(page);
++		/* Found a free page, will break it into order-0 pages */
++		order = page_order(page);
++		isolated = __isolate_free_page(page, order);
+ 		if (!isolated)
+ 			break;
++		set_page_private(page, order);
+ 
+ 		total_isolated += isolated;
+ 		cc->nr_freepages += isolated;
+-		for (i = 0; i < isolated; i++) {
+-			list_add(&page->lru, freelist);
+-			page++;
+-		}
++		list_add_tail(&page->lru, freelist);
++
+ 		if (!strict && cc->nr_migratepages <= cc->nr_freepages) {
+ 			blockpfn += isolated;
+ 			break;
+@@ -605,7 +624,7 @@ isolate_freepages_range(struct compact_c
+ 		 */
+ 	}
+ 
+-	/* split_free_page does not map the pages */
++	/* __isolate_free_page() does not map the pages */
+ 	map_pages(&freelist);
+ 
+ 	if (pfn < end_pfn) {
+@@ -1102,7 +1121,7 @@ static void isolate_freepages(struct com
+ 		}
+ 	}
+ 
+-	/* split_free_page does not map the pages */
++	/* __isolate_free_page() does not map the pages */
+ 	map_pages(freelist);
+ 
+ 	/*
+diff -puN mm/page_alloc.c~mm-compaction-split-freepages-without-holding-the-zone-lock mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-split-freepages-without-holding-the-zone-lock
++++ a/mm/page_alloc.c
+@@ -2527,33 +2527,6 @@ int __isolate_free_page(struct page *pag
+ }
+ 
+ /*
+- * Similar to split_page except the page is already free. As this is only
+- * being used for migration, the migratetype of the block also changes.
+- * As this is called with interrupts disabled, the caller is responsible
+- * for calling arch_alloc_page() and kernel_map_page() after interrupts
+- * are enabled.
+- *
+- * Note: this is probably too low level an operation for use in drivers.
+- * Please consult with lkml before using this in your driver.
+- */
+-int split_free_page(struct page *page)
+-{
+-	unsigned int order;
+-	int nr_pages;
+-
+-	order = page_order(page);
+-
+-	nr_pages = __isolate_free_page(page, order);
+-	if (!nr_pages)
+-		return 0;
+-
+-	/* Split into individual pages */
+-	set_page_refcounted(page);
+-	split_page(page, order);
+-	return nr_pages;
+-}
