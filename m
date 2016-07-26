@@ -1,153 +1,102 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-reorganize-slab-freelist-randomization-fix.patch removed from -mm tree
-Date: Tue, 26 Jul 2016 14:48:32 -0700
-Message-ID: <5797dab0.xwZGWp8LKYNCCSmK%akpm@linux-foundation.org>
+ zram-use-crypto-api-to-check-alg-availability-v3.patch removed from -mm
+ tree
+Date: Tue, 26 Jul 2016 14:49:13 -0700
+Message-ID: <5797dad9.mS+hMYQUqsuPJKLF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55341 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55347 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754734AbcGZVsd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 17:48:33 -0400
+	with ESMTP id S1753583AbcGZVtO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 17:49:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, penberg@kernel.org, rdunlap@infradead.org, rientjes@google.com, thgarnie@google.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, iamjoonsoo.kim@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slub-freelist-randomization-fix
+     Subject: zram-use-crypto-api-to-check-alg-availability-v3
 has been removed from the -mm tree.  Its filename was
-     mm-reorganize-slab-freelist-randomization-fix.patch
+     zram-use-crypto-api-to-check-alg-availability-v3.patch
 
-This patch was dropped because it was folded into mm-reorganize-slab-freelist-randomization.patch
+This patch was dropped because it was folded into zram-use-crypto-api-to-check-alg-availability.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-slub-freelist-randomization-fix
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram-use-crypto-api-to-check-alg-availability-v3
 
-freelist_randomize(), cache_random_seq_create() and
-cache_random_seq_destroy() should not be inside CONFIG_SLABINFO.
-
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
+Link: http://lkml.kernel.org/r/20160604024902.11778-4-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Thomas Garnier <thgarnie@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |   94 ++++++++++++++++++++++-----------------------
- 1 file changed, 47 insertions(+), 47 deletions(-)
+ drivers/block/zram/zcomp.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN mm/slab_common.c~mm-reorganize-slab-freelist-randomization-fix mm/slab_common.c
---- a/mm/slab_common.c~mm-reorganize-slab-freelist-randomization-fix
-+++ a/mm/slab_common.c
-@@ -1030,6 +1030,53 @@ void *kmalloc_order_trace(size_t size, g
- EXPORT_SYMBOL(kmalloc_order_trace);
- #endif
+diff -puN drivers/block/zram/zcomp.c~zram-use-crypto-api-to-check-alg-availability-v3 drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-use-crypto-api-to-check-alg-availability-v3
++++ a/drivers/block/zram/zcomp.c
+@@ -59,14 +59,20 @@ static struct zcomp_strm *zcomp_strm_all
  
-+#ifdef CONFIG_SLAB_FREELIST_RANDOM
-+/* Randomize a generic freelist */
-+static void freelist_randomize(struct rnd_state *state, unsigned int *list,
-+			size_t count)
-+{
-+	size_t i;
-+	unsigned int rand;
+ bool zcomp_available_algorithm(const char *comp)
+ {
++	int i = 0;
 +
-+	for (i = 0; i < count; i++)
-+		list[i] = i;
-+
-+	/* Fisher-Yates shuffle */
-+	for (i = count - 1; i > 0; i--) {
-+		rand = prandom_u32_state(state);
-+		rand %= (i + 1);
-+		swap(list[i], list[rand]);
++	while (backends[i]) {
++		if (sysfs_streq(comp, backends[i]))
++			return true;
++		i++;
 +	}
-+}
 +
-+/* Create a random sequence per cache */
-+int cache_random_seq_create(struct kmem_cache *cachep, unsigned int count,
-+				    gfp_t gfp)
-+{
-+	struct rnd_state state;
-+
-+	if (count < 2 || cachep->random_seq)
-+		return 0;
-+
-+	cachep->random_seq = kcalloc(count, sizeof(unsigned int), gfp);
-+	if (!cachep->random_seq)
-+		return -ENOMEM;
-+
-+	/* Get best entropy at this stage of boot */
-+	prandom_seed_state(&state, get_random_long());
-+
-+	freelist_randomize(&state, cachep->random_seq, count);
-+	return 0;
-+}
-+
-+/* Destroy the per-cache random freelist sequence */
-+void cache_random_seq_destroy(struct kmem_cache *cachep)
-+{
-+	kfree(cachep->random_seq);
-+	cachep->random_seq = NULL;
-+}
-+#endif /* CONFIG_SLAB_FREELIST_RANDOM */
-+
- #ifdef CONFIG_SLABINFO
- 
- #ifdef CONFIG_SLAB
-@@ -1142,53 +1189,6 @@ int memcg_slab_show(struct seq_file *m,
+ 	/*
+ 	 * Crypto does not ignore a trailing new line symbol,
+ 	 * so make sure you don't supply a string containing
+ 	 * one.
+-	 * This also means that we keep `backends' array for
+-	 * zcomp_available_show() only and will init a new zram
+-	 * device with any compressing algorithm known to crypto
+-	 * api.
++	 * This also means that we permit zcomp initialisation
++	 * with any compressing algorithm known to crypto api.
+ 	 */
+ 	return crypto_has_comp(comp, 0, 0) == 1;
  }
- #endif
+@@ -79,9 +85,6 @@ ssize_t zcomp_available_show(const char
+ 	int i = 0;
  
--#ifdef CONFIG_SLAB_FREELIST_RANDOM
--/* Randomize a generic freelist */
--static void freelist_randomize(struct rnd_state *state, unsigned int *list,
--			size_t count)
--{
--	size_t i;
--	unsigned int rand;
+ 	for (; backends[i]; i++) {
+-		if (!zcomp_available_algorithm(backends[i]))
+-			continue;
 -
--	for (i = 0; i < count; i++)
--		list[i] = i;
--
--	/* Fisher-Yates shuffle */
--	for (i = count - 1; i > 0; i--) {
--		rand = prandom_u32_state(state);
--		rand %= (i + 1);
--		swap(list[i], list[rand]);
--	}
--}
--
--/* Create a random sequence per cache */
--int cache_random_seq_create(struct kmem_cache *cachep, unsigned int count,
--				    gfp_t gfp)
--{
--	struct rnd_state state;
--
--	if (count < 2 || cachep->random_seq)
--		return 0;
--
--	cachep->random_seq = kcalloc(count, sizeof(unsigned int), gfp);
--	if (!cachep->random_seq)
--		return -ENOMEM;
--
--	/* Get best entropy at this stage of boot */
--	prandom_seed_state(&state, get_random_long());
--
--	freelist_randomize(&state, cachep->random_seq, count);
--	return 0;
--}
--
--/* Destroy the per-cache random freelist sequence */
--void cache_random_seq_destroy(struct kmem_cache *cachep)
--{
--	kfree(cachep->random_seq);
--	cachep->random_seq = NULL;
--}
--#endif /* CONFIG_SLAB_FREELIST_RANDOM */
+ 		if (!strcmp(comp, backends[i])) {
+ 			known_algorithm = true;
+ 			sz += scnprintf(buf + sz, PAGE_SIZE - sz - 2,
+@@ -96,7 +99,7 @@ ssize_t zcomp_available_show(const char
+ 	 * Out-of-tree module known to crypto api or a missing
+ 	 * entry in `backends'.
+ 	 */
+-	if (!known_algorithm && zcomp_available_algorithm(comp))
++	if (!known_algorithm && crypto_has_comp(comp, 0, 0) == 1)
+ 		sz += scnprintf(buf + sz, PAGE_SIZE - sz - 2,
+ 				"[%s] ", comp);
+ 
+_
+
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+
+zram-rename-zstrm-find-release-functions.patch
+zram-switch-to-crypto-compress-api.patch
+zram-use-crypto-api-to-check-alg-availability.patch
+zram-cosmetic-cleanup-documentation.patch
+zram-delete-custom-lzo-lz4.patch
+zram-delete-custom-lzo-lz4-v3.patch
+zram-add-more-compression-algorithms.patch
+zram-add-more-compression-algorithms-v3.patch
+zram-drop-gfp_t-from-zcomp_strm_alloc.patch
+
