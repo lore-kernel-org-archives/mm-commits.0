@@ -1,45 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 010/126] debugobjects.h: fix trivial kernel doc warning
-Date: Tue, 26 Jul 2016 15:21:26 -0700
-Message-ID: <5797e266.R5creJlEoO4X+voB%akpm@linux-foundation.org>
+Subject: [patch 011/126] ocfs2: fix a redundant re-initialization
+Date: Tue, 26 Jul 2016 15:21:29 -0700
+Message-ID: <5797e269.uSfmJchMtuJSyXER%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56447 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56453 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757048AbcGZWV1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:21:27 -0400
+	with ESMTP id S1757048AbcGZWVa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:21:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rdunlap@infradead.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zren@suse.com, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: debugobjects.h: fix trivial kernel doc warning
+From: Eric Ren <zren@suse.com>
+Subject: ocfs2: fix a redundant re-initialization
 
-Add ':' to fix trivial kernel-doc warning in <linux/debugobjects.h>:
+Obviously, memset() has zeroed the whole struct locking_max_version.
+So, it's no need to zero its two fields individually.
 
-..//include/linux/debugobjects.h:63: warning: No description found for parameter 'is_static_object'
-
-Link: http://lkml.kernel.org/r/575B01B8.5060600@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Link: http://lkml.kernel.org/r/1463970605-18354-1-git-send-email-zren@suse.com
+Signed-off-by: Eric Ren <zren@suse.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Gang He <ghe@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/debugobjects.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/stackglue.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/debugobjects.h~debugobjectsh-fix-trivial-kernel-doc-warning include/linux/debugobjects.h
---- a/include/linux/debugobjects.h~debugobjectsh-fix-trivial-kernel-doc-warning
-+++ a/include/linux/debugobjects.h
-@@ -38,7 +38,7 @@ struct debug_obj {
-  * @name:		name of the object typee
-  * @debug_hint:		function returning address, which have associated
-  *			kernel symbol, to allow identify the object
-- * @is_static_object	return true if the obj is static, otherwise return false
-+ * @is_static_object:	return true if the obj is static, otherwise return false
-  * @fixup_init:		fixup function, which is called when the init check
-  *			fails. All fixup functions must return true if fixup
-  *			was successful, otherwise return false
+diff -puN fs/ocfs2/stackglue.c~ocfs2-fix-a-redundant-re-initialization fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-fix-a-redundant-re-initialization
++++ a/fs/ocfs2/stackglue.c
+@@ -735,8 +735,6 @@ static void __exit ocfs2_stack_glue_exit
+ {
+ 	memset(&locking_max_version, 0,
+ 	       sizeof(struct ocfs2_protocol_version));
+-	locking_max_version.pv_major = 0;
+-	locking_max_version.pv_minor = 0;
+ 	ocfs2_sysfs_exit();
+ 	if (ocfs2_table_header)
+ 		unregister_sysctl_table(ocfs2_table_header);
 _
