@@ -1,80 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_em86-fix-incompatible-pointer-type.patch added to -mm
+Subject: [folded-merged]
+ mm-make-optimistic-check-for-swapin-readahead-fix-3.patch removed from -mm
  tree
-Date: Tue, 26 Jul 2016 13:45:43 -0700
-Message-ID: <5797cbf7.dOj2cvw/WBNK5PJY%akpm@linux-foundation.org>
+Date: Tue, 26 Jul 2016 14:11:43 -0700
+Message-ID: <5797d20f.nMPPK4Lk4ltQtPOP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53870 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54716 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757508AbcGZUpo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 16:45:44 -0400
+	with ESMTP id S1758333AbcGZVLo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 17:11:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.wagner@bmw-carit.de, mm-commits@vger.kernel.org
+To: ebru.akagunduz@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/binfmt_em86.c: fix incompatible pointer type
-has been added to the -mm tree.  Its filename is
-     binfmt_em86-fix-incompatible-pointer-type.patch
+     Subject: mm, thp: remove duplication of included header
+has been removed from the -mm tree.  Its filename was
+     mm-make-optimistic-check-for-swapin-readahead-fix-3.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/binfmt_em86-fix-incompatible-pointer-type.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/binfmt_em86-fix-incompatible-pointer-type.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-make-optimistic-check-for-swapin-readahead.patch
 
 ------------------------------------------------------
-From: Daniel Wagner <daniel.wagner@bmw-carit.de>
-Subject: fs/binfmt_em86.c: fix incompatible pointer type
+From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Subject: mm, thp: remove duplication of included header
 
-Since the -Wincompatible-pointer-types is reported as error, alpha
-doesn't build anymore. Let's fix it in a minimal way.
+swapops.h included for a second time in the commit:
+http://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/commit/?id=639040960a340f6f987065fc52e149f4ea25ce25
 
-fs/binfmt_em86.c:73:35: error: passing argument 2 of `copy_strings_kernel' from incompatible pointer type [-Werror=incompatible-pointer-types]
-   retval = copy_strings_kernel(1, &i_arg, bprm);
-                                   ^            ^
-fs/binfmt_em86.c:77:34: error: passing argument 2 of `copy_strings_kernel' from incompatible pointer type [-Werror=incompatible-pointer-types]
-  retval = copy_strings_kernel(1, &i_name, bprm);
-                                  ^
-Link: http://lkml.kernel.org/r/1469525978-23359-1-git-send-email-wagi@monom.org
-Signed-off-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
+This patch removes the duplication.
+
+Link: http://lkml.kernel.org/r/1464335964-6510-2-git-send-email-ebru.akagunduz@gmail.com
+Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_em86.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/binfmt_em86.c~binfmt_em86-fix-incompatible-pointer-type fs/binfmt_em86.c
---- a/fs/binfmt_em86.c~binfmt_em86-fix-incompatible-pointer-type
-+++ a/fs/binfmt_em86.c
-@@ -24,7 +24,8 @@
+diff -puN mm/huge_memory.c~mm-make-optimistic-check-for-swapin-readahead-fix-3 mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-make-optimistic-check-for-swapin-readahead-fix-3
++++ a/mm/huge_memory.c
+@@ -30,7 +30,6 @@
+ #include <linux/hashtable.h>
+ #include <linux/userfaultfd_k.h>
+ #include <linux/page_idle.h>
+-#include <linux/swapops.h>
  
- static int load_em86(struct linux_binprm *bprm)
- {
--	char *interp, *i_name, *i_arg;
-+	const char *i_name, *i_arg;
-+	char *interp;
- 	struct file * file;
- 	int retval;
- 	struct elfhdr	elf_ex;
+ #include <asm/tlb.h>
+ #include <asm/pgalloc.h>
 _
 
-Patches currently in -mm which might be from daniel.wagner@bmw-carit.de are
+Patches currently in -mm which might be from ebru.akagunduz@gmail.com are
 
-binfmt_em86-fix-incompatible-pointer-type.patch
+mm-make-optimistic-check-for-swapin-readahead.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
+mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-ks.patch
+mm-thp-fix-locking-inconsistency-in-collapse_huge_page.patch
+mm-thp-fix-comment-inconsistency-for-swapin-readahead-functions.patch
+mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative.patch
 
