@@ -1,184 +1,285 @@
 From: akpm@linux-foundation.org
-Subject: [patch 121/126] mm: fix build warnings in <linux/compaction.h>
-Date: Tue, 26 Jul 2016 15:26:50 -0700
-Message-ID: <5797e3aa.EEoVQGCH9m0mX5Tz%akpm@linux-foundation.org>
+Subject: [patch 107/126] mm, rmap: account shmem thp pages
+Date: Tue, 26 Jul 2016 15:26:10 -0700
+Message-ID: <5797e382.nfGmQowtuqGtozdu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57155 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57076 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932180AbcGZW0v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:26:51 -0400
+	with ESMTP id S1758640AbcGZW0L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:26:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, aquini@redhat.com, gi-oh.kim@profitbricks.com, koct9i@gmail.com, rdunlap@infradead.org, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: fix build warnings in <linux/compaction.h>
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm, rmap: account shmem thp pages
 
-Randy reported below build error.
+Let's add ShmemHugePages and ShmemPmdMapped fields into meminfo and
+smaps. It indicates how many times we allocate and map shmem THP.
 
-> In file included from ../include/linux/balloon_compaction.h:48:0,
->                  from ../mm/balloon_compaction.c:11:
-> ../include/linux/compaction.h:237:51: warning: 'struct node' declared inside parameter list [enabled by default]
->  static inline int compaction_register_node(struct node *node)
-> ../include/linux/compaction.h:237:51: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
-> ../include/linux/compaction.h:242:54: warning: 'struct node' declared inside parameter list [enabled by default]
->  static inline void compaction_unregister_node(struct node *node)
->
+NR_ANON_TRANSPARENT_HUGEPAGES is renamed to NR_ANON_THPS.
 
-It was caused by non-lru page migration which needs compaction.h but
-compaction.h doesn't include any header to be standalone.
-
-I think proper header for non-lru page migration is migrate.h rather
-than compaction.h because migrate.h has already headers needed to work
-non-lru page migration indirectly like isolate_mode_t, migrate_mode
-MIGRATEPAGE_SUCCESS.
-
-[akpm@linux-foundation.org: revert mm-balloon-use-general-non-lru-movable-page-feature-fix.patch temp fix]
-Link: http://lkml.kernel.org/r/20160610003304.GE29779@bbox
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Gioh Kim <gi-oh.kim@profitbricks.com>
-Cc: Rafael Aquini <aquini@redhat.com>
+Link: http://lkml.kernel.org/r/1466021202-61880-27-git-send-email-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_migration    |   11 ++++++-----
- drivers/virtio/virtio_balloon.c    |    2 +-
- include/linux/balloon_compaction.h |    3 +--
- include/linux/compaction.h         |   16 ----------------
- include/linux/migrate.h            |   15 +++++++++++++++
- mm/zsmalloc.c                      |    4 ++--
- 6 files changed, 25 insertions(+), 26 deletions(-)
+ drivers/base/node.c    |   13 +++++++++----
+ fs/proc/meminfo.c      |    7 +++++--
+ fs/proc/task_mmu.c     |   10 +++++++++-
+ include/linux/mmzone.h |    4 +++-
+ mm/huge_memory.c       |    4 +++-
+ mm/page_alloc.c        |   19 +++++++++++++++++++
+ mm/rmap.c              |   14 ++++++++------
+ mm/vmstat.c            |    2 ++
+ 8 files changed, 58 insertions(+), 15 deletions(-)
 
-diff -puN Documentation/vm/page_migration~mm-fix-build-warnings-in-linux-compactionh Documentation/vm/page_migration
---- a/Documentation/vm/page_migration~mm-fix-build-warnings-in-linux-compactionh
-+++ a/Documentation/vm/page_migration
-@@ -181,11 +181,12 @@ After isolation, VM calls migratepage of
- The function of migratepage is to move content of the old page to new page
- and set up fields of struct page newpage. Keep in mind that you should
- indicate to the VM the oldpage is no longer movable via __ClearPageMovable()
--under page_lock if you migrated the oldpage successfully and returns 0.
--If driver cannot migrate the page at the moment, driver can return -EAGAIN.
--On -EAGAIN, VM will retry page migration in a short time because VM interprets
---EAGAIN as "temporal migration failure". On returning any error except -EAGAIN,
--VM will give up the page migration without retrying in this time.
-+under page_lock if you migrated the oldpage successfully and returns
-+MIGRATEPAGE_SUCCESS. If driver cannot migrate the page at the moment, driver
-+can return -EAGAIN. On -EAGAIN, VM will retry page migration in a short time
-+because VM interprets -EAGAIN as "temporal migration failure". On returning
-+any error except -EAGAIN, VM will give up the page migration without retrying
-+in this time.
- 
- Driver shouldn't touch page.lru field VM using in the functions.
- 
-diff -puN drivers/virtio/virtio_balloon.c~mm-fix-build-warnings-in-linux-compactionh drivers/virtio/virtio_balloon.c
---- a/drivers/virtio/virtio_balloon.c~mm-fix-build-warnings-in-linux-compactionh
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -493,7 +493,7 @@ static int virtballoon_migratepage(struc
- 
- 	put_page(page); /* balloon reference */
- 
--	return 0;
-+	return MIGRATEPAGE_SUCCESS;
- }
- 
- static struct dentry *balloon_mount(struct file_system_type *fs_type,
-diff -puN include/linux/balloon_compaction.h~mm-fix-build-warnings-in-linux-compactionh include/linux/balloon_compaction.h
---- a/include/linux/balloon_compaction.h~mm-fix-build-warnings-in-linux-compactionh
-+++ a/include/linux/balloon_compaction.h
-@@ -45,8 +45,7 @@
- #define _LINUX_BALLOON_COMPACTION_H
- #include <linux/pagemap.h>
- #include <linux/page-flags.h>
--#include <linux/node.h>
--#include <linux/compaction.h>
-+#include <linux/migrate.h>
- #include <linux/gfp.h>
- #include <linux/err.h>
- #include <linux/fs.h>
-diff -puN include/linux/compaction.h~mm-fix-build-warnings-in-linux-compactionh include/linux/compaction.h
---- a/include/linux/compaction.h~mm-fix-build-warnings-in-linux-compactionh
-+++ a/include/linux/compaction.h
-@@ -54,9 +54,6 @@ enum compact_result {
- struct alloc_context; /* in mm/internal.h */
- 
- #ifdef CONFIG_COMPACTION
--extern int PageMovable(struct page *page);
--extern void __SetPageMovable(struct page *page, struct address_space *mapping);
--extern void __ClearPageMovable(struct page *page);
- extern int sysctl_compact_memory;
- extern int sysctl_compaction_handler(struct ctl_table *table, int write,
- 			void __user *buffer, size_t *length, loff_t *ppos);
-@@ -154,19 +151,6 @@ extern void kcompactd_stop(int nid);
- extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx);
- 
+diff -puN drivers/base/node.c~mm-rmap-account-shmem-thp-pages drivers/base/node.c
+--- a/drivers/base/node.c~mm-rmap-account-shmem-thp-pages
++++ a/drivers/base/node.c
+@@ -113,6 +113,8 @@ static ssize_t node_read_meminfo(struct
+ 		       "Node %d SUnreclaim:     %8lu kB\n"
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 		       "Node %d AnonHugePages:  %8lu kB\n"
++		       "Node %d ShmemHugePages: %8lu kB\n"
++		       "Node %d ShmemPmdMapped: %8lu kB\n"
+ #endif
+ 			,
+ 		       nid, K(node_page_state(nid, NR_FILE_DIRTY)),
+@@ -131,10 +133,13 @@ static ssize_t node_read_meminfo(struct
+ 				node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
+ 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE)),
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE))
+-			, nid,
+-			K(node_page_state(nid, NR_ANON_TRANSPARENT_HUGEPAGES) *
+-			HPAGE_PMD_NR));
++		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
++		       nid, K(node_page_state(nid, NR_ANON_THPS) *
++				       HPAGE_PMD_NR),
++		       nid, K(node_page_state(nid, NR_SHMEM_THPS) *
++				       HPAGE_PMD_NR),
++		       nid, K(node_page_state(nid, NR_SHMEM_PMDMAPPED) *
++				       HPAGE_PMD_NR));
  #else
--static inline int PageMovable(struct page *page)
--{
--	return 0;
--}
--static inline void __SetPageMovable(struct page *page,
--			struct address_space *mapping)
--{
--}
--
--static inline void __ClearPageMovable(struct page *page)
--{
--}
--
- static inline enum compact_result try_to_compact_pages(gfp_t gfp_mask,
- 			unsigned int order, int alloc_flags,
- 			const struct alloc_context *ac,
-diff -puN include/linux/migrate.h~mm-fix-build-warnings-in-linux-compactionh include/linux/migrate.h
---- a/include/linux/migrate.h~mm-fix-build-warnings-in-linux-compactionh
-+++ a/include/linux/migrate.h
-@@ -71,6 +71,21 @@ static inline int migrate_huge_page_move
+ 		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE)));
+ #endif
+diff -puN fs/proc/meminfo.c~mm-rmap-account-shmem-thp-pages fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-rmap-account-shmem-thp-pages
++++ a/fs/proc/meminfo.c
+@@ -105,6 +105,8 @@ static int meminfo_proc_show(struct seq_
+ #endif
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 		"AnonHugePages:  %8lu kB\n"
++		"ShmemHugePages: %8lu kB\n"
++		"ShmemPmdMapped: %8lu kB\n"
+ #endif
+ #ifdef CONFIG_CMA
+ 		"CmaTotal:       %8lu kB\n"
+@@ -162,8 +164,9 @@ static int meminfo_proc_show(struct seq_
+ 		, atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10)
+ #endif
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		, K(global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
+-		   HPAGE_PMD_NR)
++		, K(global_page_state(NR_ANON_THPS) * HPAGE_PMD_NR)
++		, K(global_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR)
++		, K(global_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR)
+ #endif
+ #ifdef CONFIG_CMA
+ 		, K(totalcma_pages)
+diff -puN fs/proc/task_mmu.c~mm-rmap-account-shmem-thp-pages fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-rmap-account-shmem-thp-pages
++++ a/fs/proc/task_mmu.c
+@@ -448,6 +448,7 @@ struct mem_size_stats {
+ 	unsigned long referenced;
+ 	unsigned long anonymous;
+ 	unsigned long anonymous_thp;
++	unsigned long shmem_thp;
+ 	unsigned long swap;
+ 	unsigned long shared_hugetlb;
+ 	unsigned long private_hugetlb;
+@@ -576,7 +577,12 @@ static void smaps_pmd_entry(pmd_t *pmd,
+ 	page = follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
+ 	if (IS_ERR_OR_NULL(page))
+ 		return;
+-	mss->anonymous_thp += HPAGE_PMD_SIZE;
++	if (PageAnon(page))
++		mss->anonymous_thp += HPAGE_PMD_SIZE;
++	else if (PageSwapBacked(page))
++		mss->shmem_thp += HPAGE_PMD_SIZE;
++	else
++		VM_BUG_ON_PAGE(1, page);
+ 	smaps_account(mss, page, true, pmd_young(*pmd), pmd_dirty(*pmd));
+ }
+ #else
+@@ -770,6 +776,7 @@ static int show_smap(struct seq_file *m,
+ 		   "Referenced:     %8lu kB\n"
+ 		   "Anonymous:      %8lu kB\n"
+ 		   "AnonHugePages:  %8lu kB\n"
++		   "ShmemPmdMapped: %8lu kB\n"
+ 		   "Shared_Hugetlb: %8lu kB\n"
+ 		   "Private_Hugetlb: %7lu kB\n"
+ 		   "Swap:           %8lu kB\n"
+@@ -787,6 +794,7 @@ static int show_smap(struct seq_file *m,
+ 		   mss.referenced >> 10,
+ 		   mss.anonymous >> 10,
+ 		   mss.anonymous_thp >> 10,
++		   mss.shmem_thp >> 10,
+ 		   mss.shared_hugetlb >> 10,
+ 		   mss.private_hugetlb >> 10,
+ 		   mss.swap >> 10,
+diff -puN include/linux/mmzone.h~mm-rmap-account-shmem-thp-pages include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-rmap-account-shmem-thp-pages
++++ a/include/linux/mmzone.h
+@@ -154,7 +154,9 @@ enum zone_stat_item {
+ 	WORKINGSET_REFAULT,
+ 	WORKINGSET_ACTIVATE,
+ 	WORKINGSET_NODERECLAIM,
+-	NR_ANON_TRANSPARENT_HUGEPAGES,
++	NR_ANON_THPS,
++	NR_SHMEM_THPS,
++	NR_SHMEM_PMDMAPPED,
+ 	NR_FREE_CMA_PAGES,
+ 	NR_VM_ZONE_STAT_ITEMS };
  
- #endif /* CONFIG_MIGRATION */
+diff -puN mm/huge_memory.c~mm-rmap-account-shmem-thp-pages mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-rmap-account-shmem-thp-pages
++++ a/mm/huge_memory.c
+@@ -3067,7 +3067,7 @@ static void __split_huge_pmd_locked(stru
  
-+#ifdef CONFIG_COMPACTION
-+extern int PageMovable(struct page *page);
-+extern void __SetPageMovable(struct page *page, struct address_space *mapping);
-+extern void __ClearPageMovable(struct page *page);
-+#else
-+static inline int PageMovable(struct page *page) { return 0; };
-+static inline void __SetPageMovable(struct page *page,
-+				struct address_space *mapping)
-+{
-+}
-+static inline void __ClearPageMovable(struct page *page)
-+{
-+}
+ 	if (atomic_add_negative(-1, compound_mapcount_ptr(page))) {
+ 		/* Last compound_mapcount is gone. */
+-		__dec_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
++		__dec_zone_page_state(page, NR_ANON_THPS);
+ 		if (TestClearPageDoubleMap(page)) {
+ 			/* No need in mapcount reference anymore */
+ 			for (i = 0; i < HPAGE_PMD_NR; i++)
+@@ -3539,6 +3539,8 @@ int split_huge_page_to_list(struct page
+ 			pgdata->split_queue_len--;
+ 			list_del(page_deferred_list(head));
+ 		}
++		if (mapping)
++			__dec_zone_page_state(page, NR_SHMEM_THPS);
+ 		spin_unlock(&pgdata->split_queue_lock);
+ 		__split_huge_page(page, list, flags);
+ 		ret = 0;
+diff -puN mm/page_alloc.c~mm-rmap-account-shmem-thp-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-rmap-account-shmem-thp-pages
++++ a/mm/page_alloc.c
+@@ -4312,6 +4312,9 @@ void show_free_areas(unsigned int filter
+ 		" unevictable:%lu dirty:%lu writeback:%lu unstable:%lu\n"
+ 		" slab_reclaimable:%lu slab_unreclaimable:%lu\n"
+ 		" mapped:%lu shmem:%lu pagetables:%lu bounce:%lu\n"
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++		" anon_thp: %lu shmem_thp: %lu shmem_pmdmapped: %lu\n"
 +#endif
-+
- #ifdef CONFIG_NUMA_BALANCING
- extern bool pmd_trans_migrating(pmd_t pmd);
- extern int migrate_misplaced_page(struct page *page,
-diff -puN mm/zsmalloc.c~mm-fix-build-warnings-in-linux-compactionh mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-fix-build-warnings-in-linux-compactionh
-+++ a/mm/zsmalloc.c
-@@ -50,7 +50,7 @@
- #include <linux/zsmalloc.h>
- #include <linux/zpool.h>
- #include <linux/mount.h>
--#include <linux/compaction.h>
-+#include <linux/migrate.h>
- #include <linux/pagemap.h>
+ 		" free:%lu free_pcp:%lu free_cma:%lu\n",
+ 		global_page_state(NR_ACTIVE_ANON),
+ 		global_page_state(NR_INACTIVE_ANON),
+@@ -4329,6 +4332,11 @@ void show_free_areas(unsigned int filter
+ 		global_page_state(NR_SHMEM),
+ 		global_page_state(NR_PAGETABLE),
+ 		global_page_state(NR_BOUNCE),
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++		global_page_state(NR_ANON_THPS) * HPAGE_PMD_NR,
++		global_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR,
++		global_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR,
++#endif
+ 		global_page_state(NR_FREE_PAGES),
+ 		free_pcp,
+ 		global_page_state(NR_FREE_CMA_PAGES));
+@@ -4363,6 +4371,11 @@ void show_free_areas(unsigned int filter
+ 			" writeback:%lukB"
+ 			" mapped:%lukB"
+ 			" shmem:%lukB"
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++			" shmem_thp: %lukB"
++			" shmem_pmdmapped: %lukB"
++			" anon_thp: %lukB"
++#endif
+ 			" slab_reclaimable:%lukB"
+ 			" slab_unreclaimable:%lukB"
+ 			" kernel_stack:%lukB"
+@@ -4395,6 +4408,12 @@ void show_free_areas(unsigned int filter
+ 			K(zone_page_state(zone, NR_WRITEBACK)),
+ 			K(zone_page_state(zone, NR_FILE_MAPPED)),
+ 			K(zone_page_state(zone, NR_SHMEM)),
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++			K(zone_page_state(zone, NR_SHMEM_THPS) * HPAGE_PMD_NR),
++			K(zone_page_state(zone, NR_SHMEM_PMDMAPPED)
++					* HPAGE_PMD_NR),
++			K(zone_page_state(zone, NR_ANON_THPS) * HPAGE_PMD_NR),
++#endif
+ 			K(zone_page_state(zone, NR_SLAB_RECLAIMABLE)),
+ 			K(zone_page_state(zone, NR_SLAB_UNRECLAIMABLE)),
+ 			zone_page_state(zone, NR_KERNEL_STACK) *
+diff -puN mm/rmap.c~mm-rmap-account-shmem-thp-pages mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-account-shmem-thp-pages
++++ a/mm/rmap.c
+@@ -1212,10 +1212,8 @@ void do_page_add_anon_rmap(struct page *
+ 		 * pte lock(a spinlock) is held, which implies preemption
+ 		 * disabled.
+ 		 */
+-		if (compound) {
+-			__inc_zone_page_state(page,
+-					      NR_ANON_TRANSPARENT_HUGEPAGES);
+-		}
++		if (compound)
++			__inc_zone_page_state(page, NR_ANON_THPS);
+ 		__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, nr);
+ 	}
+ 	if (unlikely(PageKsm(page)))
+@@ -1253,7 +1251,7 @@ void page_add_new_anon_rmap(struct page
+ 		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
+ 		/* increment count (starts at -1) */
+ 		atomic_set(compound_mapcount_ptr(page), 0);
+-		__inc_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
++		__inc_zone_page_state(page, NR_ANON_THPS);
+ 	} else {
+ 		/* Anon THP always mapped first with PMD */
+ 		VM_BUG_ON_PAGE(PageTransCompound(page), page);
+@@ -1283,6 +1281,8 @@ void page_add_file_rmap(struct page *pag
+ 		}
+ 		if (!atomic_inc_and_test(compound_mapcount_ptr(page)))
+ 			goto out;
++		VM_BUG_ON_PAGE(!PageSwapBacked(page), page);
++		__inc_zone_page_state(page, NR_SHMEM_PMDMAPPED);
+ 	} else {
+ 		if (PageTransCompound(page)) {
+ 			VM_BUG_ON_PAGE(!PageLocked(page), page);
+@@ -1321,6 +1321,8 @@ static void page_remove_file_rmap(struct
+ 		}
+ 		if (!atomic_add_negative(-1, compound_mapcount_ptr(page)))
+ 			goto out;
++		VM_BUG_ON_PAGE(!PageSwapBacked(page), page);
++		__dec_zone_page_state(page, NR_SHMEM_PMDMAPPED);
+ 	} else {
+ 		if (!atomic_add_negative(-1, &page->_mapcount))
+ 			goto out;
+@@ -1354,7 +1356,7 @@ static void page_remove_anon_compound_rm
+ 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
+ 		return;
  
- #define ZSPAGE_MAGIC	0x58
-@@ -2107,7 +2107,7 @@ int zs_page_migrate(struct address_space
- 	put_page(page);
- 	page = newpage;
+-	__dec_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
++	__dec_zone_page_state(page, NR_ANON_THPS);
  
--	ret = 0;
-+	ret = MIGRATEPAGE_SUCCESS;
- unpin_objects:
- 	for (addr = s_addr + offset; addr < s_addr + pos;
- 						addr += class->size) {
+ 	if (TestClearPageDoubleMap(page)) {
+ 		/*
+diff -puN mm/vmstat.c~mm-rmap-account-shmem-thp-pages mm/vmstat.c
+--- a/mm/vmstat.c~mm-rmap-account-shmem-thp-pages
++++ a/mm/vmstat.c
+@@ -733,6 +733,8 @@ const char * const vmstat_text[] = {
+ 	"workingset_activate",
+ 	"workingset_nodereclaim",
+ 	"nr_anon_transparent_hugepages",
++	"nr_shmem_hugepages",
++	"nr_shmem_pmdmapped",
+ 	"nr_free_cma",
+ 
+ 	/* enum writeback_stat_item counters */
 _
