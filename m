@@ -1,54 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 005/126] fbmon: remove unused function argument
-Date: Tue, 26 Jul 2016 15:21:11 -0700
-Message-ID: <5797e257.1qOPf+dGf8moglfc%akpm@linux-foundation.org>
+Subject: [patch 006/126] CFLAGS: add -Wunused-but-set-parameter
+Date: Tue, 26 Jul 2016 15:21:14 -0700
+Message-ID: <5797e25a.RBxReMjSzqd4kLtU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56423 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56429 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757059AbcGZWVN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:21:13 -0400
+	with ESMTP id S1757066AbcGZWVP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:21:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, adobriyan@gmail.com, plagnioj@jcrosoft.com, tomi.valkeinen@ti.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, adobriyan@gmail.com
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: fbmon: remove unused function argument
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: CFLAGS: add -Wunused-but-set-parameter
 
-When building with "make W=1", we get a warning about an empty stub
-function that does nothing but reassign its one of its arguments:
+-Wunused-but-set-parameter is finding stuff with current allmodconfig:
 
-drivers/video/fbdev/core/fbmon.c: In function 'fb_edid_to_monspecs':
-drivers/video/fbdev/core/fbmon.c:1497:67: error: parameter 'specs' set but not used [-Werror=unused-but-set-parameter]
+drivers/misc/mic/scif/scif_dma.c:118:27: warning: parameter 'ep' set but not used [-Wunused-but-set-parameter]
+drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.c:2156:8: warning: parameter 'function' set but not used [-Wunused-but-set-parameter]
+drivers/net/ethernet/ti/tlan.c:1647:59: warning: parameter 'host_int' set but not used [-Wunused-but-set-parameter]
+drivers/usb/gadget/udc/pxa27x_udc.c:1828:74: warning: parameter 'driver' set but not used [-Wunused-but-set-parameter]
 
-We can simply make that function completely empty to avoid the warning.
+and judging by changelogs, people were using it before,
+but were too scared to change top level Makefile.
 
-This prevents a warning which everyone will see after "CFLAGS: add
--Wunused-but-set-parameter" is merged.
-
-Link: http://lkml.kernel.org/r/20160715203229.1771162-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Link: http://lkml.kernel.org/r/20160713190622.GB1910@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbdev/core/fbmon.c |    1 -
- 1 file changed, 1 deletion(-)
+ Makefile |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/video/fbdev/core/fbmon.c~fbmon-remove-unused-function-argument drivers/video/fbdev/core/fbmon.c
---- a/drivers/video/fbdev/core/fbmon.c~fbmon-remove-unused-function-argument
-+++ a/drivers/video/fbdev/core/fbmon.c
-@@ -1496,7 +1496,6 @@ int fb_parse_edid(unsigned char *edid, s
- }
- void fb_edid_to_monspecs(unsigned char *edid, struct fb_monspecs *specs)
- {
--	specs = NULL;
- }
- void fb_edid_add_monspecs(unsigned char *edid, struct fb_monspecs *specs)
- {
+diff -puN Makefile~cflags-add-wunused-but-set-parameter Makefile
+--- a/Makefile~cflags-add-wunused-but-set-parameter
++++ a/Makefile
+@@ -796,6 +796,9 @@ KBUILD_CFLAGS   += $(call cc-option,-Wer
+ # enforce correct pointer usage
+ KBUILD_CFLAGS   += $(call cc-option,-Werror=incompatible-pointer-types)
+ 
++# dead code
++KBUILD_CFLAGS += $(call cc-option,-Wunused-but-set-parameter,)
++
+ # use the deterministic mode of AR if available
+ KBUILD_ARFLAGS := $(call ar-option,D)
+ 
 _
