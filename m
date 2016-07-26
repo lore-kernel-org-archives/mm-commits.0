@@ -1,73 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 123/126] mm: memcontrol: fix documentation for compound
- parameter
-Date: Tue, 26 Jul 2016 15:26:56 -0700
-Message-ID: <5797e3b0.VEJItMapfP0euK8s%akpm@linux-foundation.org>
+Subject: [patch 125/126] cgroup: remove unnecessary 0 check from
+ css_from_id()
+Date: Tue, 26 Jul 2016 15:27:01 -0700
+Message-ID: <5797e3b5.Lw7KVk+veQhDSb97%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57168 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57179 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932252AbcGZW05 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:26:57 -0400
+	with ESMTP id S1757204AbcGZW1C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jul 2016 18:27:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, roy.qing.li@gmail.com, hannes@cmpxchg.org, mhocko@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hannes@cmpxchg.org, kernel@kyup.com, tj@kernel.org, vdavydov@virtuozzo.com
 
-From: Li RongQing <roy.qing.li@gmail.com>
-Subject: mm: memcontrol: fix documentation for compound parameter
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: cgroup: remove unnecessary 0 check from css_from_id()
 
-commit f627c2f53786 ("memcg: adjust to support new THP refcounting")
-adds a compound parameter for several functions, and change one as
-compound for mem_cgroup_move_account but it does not change the
-comments.
+css_idr allocation starts at 1, so index 0 will never point to an item. 
+css_from_id() currently filters that before asking idr_find(), but
+idr_find() would also just return NULL, so this is not needed.
 
-Link: http://lkml.kernel.org/r/1465368216-9393-1-git-send-email-roy.qing.li@gmail.com
-Signed-off-by: Li RongQing <roy.qing.li@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/20160617162427.GC19084@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Nikolay Borisov <kernel@kyup.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fix-documentation-for-compound-parameter mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fix-documentation-for-compound-parameter
-+++ a/mm/memcontrol.c
-@@ -4507,7 +4507,7 @@ static struct page *mc_handle_file_pte(s
+diff -puN kernel/cgroup.c~cgroup-remove-unnecessary-0-check-from-css_from_id kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-remove-unnecessary-0-check-from-css_from_id
++++ a/kernel/cgroup.c
+@@ -6166,7 +6166,7 @@ struct cgroup_subsys_state *css_tryget_o
+ struct cgroup_subsys_state *css_from_id(int id, struct cgroup_subsys *ss)
+ {
+ 	WARN_ON_ONCE(!rcu_read_lock_held());
+-	return id > 0 ? idr_find(&ss->css_idr, id) : NULL;
++	return idr_find(&ss->css_idr, id);
+ }
+ 
  /**
-  * mem_cgroup_move_account - move account of the page
-  * @page: the page
-- * @nr_pages: number of regular pages (>1 for huge pages)
-+ * @compound: charge the page as compound or small page
-  * @from: mem_cgroup which the page is moved from.
-  * @to:	mem_cgroup which the page is moved to. @from != @to.
-  *
-@@ -5369,6 +5369,7 @@ bool mem_cgroup_low(struct mem_cgroup *r
-  * @mm: mm context of the victim
-  * @gfp_mask: reclaim mode
-  * @memcgp: charged memcg return
-+ * @compound: charge the page as compound or small page
-  *
-  * Try to charge @page to the memcg that @mm belongs to, reclaiming
-  * pages according to @gfp_mask if necessary.
-@@ -5431,6 +5432,7 @@ out:
-  * @page: page to charge
-  * @memcg: memcg to charge the page to
-  * @lrucare: page might be on LRU already
-+ * @compound: charge the page as compound or small page
-  *
-  * Finalize a charge transaction started by mem_cgroup_try_charge(),
-  * after page->mapping has been set up.  This must happen atomically
-@@ -5482,6 +5484,7 @@ void mem_cgroup_commit_charge(struct pag
-  * mem_cgroup_cancel_charge - cancel a page charge
-  * @page: page to charge
-  * @memcg: memcg to charge the page to
-+ * @compound: charge the page as compound or small page
-  *
-  * Cancel a charge transaction started by mem_cgroup_try_charge().
-  */
 _
