@@ -1,63 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slab-do-not-panic-on-invalid-gfp_mask.patch removed from -mm tree
-Date: Wed, 27 Jul 2016 11:59:25 -0700
-Message-ID: <5799048d.n661KDZb0nw+7+Hc%akpm@linux-foundation.org>
+Subject: [merged]
+ slab-make-gfp_slab_bug_mask-information-more-human-readable.patch removed
+ from -mm tree
+Date: Wed, 27 Jul 2016 11:59:22 -0700
+Message-ID: <5799048a.JStdZX4pQewz+gKE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39986 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39979 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758148AbcG0S70 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 14:59:26 -0400
+	with ESMTP id S1758148AbcG0S7X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 14:59:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: do not panic on invalid gfp_mask
+     Subject: slab: make GFP_SLAB_BUG_MASK information more human readable
 has been removed from the -mm tree.  Its filename was
-     slab-do-not-panic-on-invalid-gfp_mask.patch
+     slab-make-gfp_slab_bug_mask-information-more-human-readable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: slab: do not panic on invalid gfp_mask
+Subject: slab: make GFP_SLAB_BUG_MASK information more human readable
 
-Both SLAB and SLUB BUG() when a caller provides an invalid gfp_mask.  This
-is a rather harsh way to announce a non-critical issue.  Allocator is free
-to ignore invalid flags.  Let's simply replace BUG() by dump_stack to tell
-the offender and fixup the mask to move on with the allocation request.
+printk offers %pGg for quite some time so let's use it to get a human
+readable list of invalid flags.
 
-This is an example for kmalloc(GFP_KERNEL|__GFP_HIGHMEM) from a test
-module.
-[   31.914753] Unexpected gfp: 0x2 (__GFP_HIGHMEM). Fixing up to gfp: 0x24000c0 (GFP_KERNEL). Fix your code!
-[   31.914754] CPU: 0 PID: 2916 Comm: insmod Tainted: G           O    4.6.0-slabgfp2-00002-g4cdfc2ef4892-dirty #936
-[   31.914755] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Debian-1.8.2-1 04/01/2014
-[   31.914756]  0000000000000000 ffff88000d777c00 ffffffff8130e2fb ffff88000ec006c0
-[   31.914758]  000000000000000c ffff88000d777c58 ffffffff811791dd 0000000000000246
-[   31.914759]  0000000000000246 0000000000000046 00000002024000c0 ffff88000fa1d888
-[   31.914759] Call Trace:
-[   31.914760]  [<ffffffff8130e2fb>] dump_stack+0x67/0x90
-[   31.914762]  [<ffffffff811791dd>] cache_alloc_refill+0x201/0x617
-[   31.914763]  [<ffffffff81179b3f>] kmem_cache_alloc_trace+0xa7/0x24a
-[   31.914764]  [<ffffffffa0005000>] ? 0xffffffffa0005000
-[   31.914765]  [<ffffffffa0005020>] mymodule_init+0x20/0x1000 [test_slab]
-[   31.914767]  [<ffffffff81000402>] do_one_initcall+0xe7/0x16c
-[   31.914768]  [<ffffffff810b02de>] ? rcu_read_lock_sched_held+0x61/0x69
-[   31.914769]  [<ffffffff81179c2f>] ? kmem_cache_alloc_trace+0x197/0x24a
-[   31.914771]  [<ffffffff81125edc>] do_init_module+0x5f/0x1d9
-[   31.914772]  [<ffffffff810d2c66>] load_module+0x1a3d/0x1f21
-[   31.914774]  [<ffffffff81622931>] ? retint_kernel+0x2d/0x2d
-[   31.914775]  [<ffffffff810d3232>] SyS_init_module+0xe8/0x10e
-[   31.914776]  [<ffffffff810d3232>] ? SyS_init_module+0xe8/0x10e
-[   31.914778]  [<ffffffff81001d08>] do_syscall_64+0x68/0x13f
-[   31.914779]  [<ffffffff8162201a>] entry_SYSCALL64_slow_path+0x25/0x25
+The original output would be
+[  429.191962] gfp: 2
 
-Link: http://lkml.kernel.org/r/1465548200-11384-2-git-send-email-mhocko@kernel.org
+after the change
+[  429.191962] Unexpected gfp: 0x2 (__GFP_HIGHMEM)
+
+Link: http://lkml.kernel.org/r/1465548200-11384-1-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -67,41 +48,36 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    6 ++++--
- mm/slub.c |    5 +++--
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ mm/slab.c |    3 ++-
+ mm/slub.c |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~slab-do-not-panic-on-invalid-gfp_mask mm/slab.c
---- a/mm/slab.c~slab-do-not-panic-on-invalid-gfp_mask
+diff -puN mm/slab.c~slab-make-gfp_slab_bug_mask-information-more-human-readable mm/slab.c
+--- a/mm/slab.c~slab-make-gfp_slab_bug_mask-information-more-human-readable
 +++ a/mm/slab.c
-@@ -2687,8 +2687,10 @@ static struct page *cache_grow_begin(str
+@@ -2686,7 +2686,8 @@ static struct page *cache_grow_begin(str
+ 	 * critical path in kmem_cache_alloc().
  	 */
  	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
- 		gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
--		pr_emerg("Unexpected gfp: %#x (%pGg)\n", invalid_mask, &invalid_mask);
--		BUG();
-+		flags &= ~GFP_SLAB_BUG_MASK;
-+		pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
-+				invalid_mask, &invalid_mask, flags, &flags);
-+		dump_stack();
+-		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
++		gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
++		pr_emerg("Unexpected gfp: %#x (%pGg)\n", invalid_mask, &invalid_mask);
+ 		BUG();
  	}
  	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
- 
-diff -puN mm/slub.c~slab-do-not-panic-on-invalid-gfp_mask mm/slub.c
---- a/mm/slub.c~slab-do-not-panic-on-invalid-gfp_mask
+diff -puN mm/slub.c~slab-make-gfp_slab_bug_mask-information-more-human-readable mm/slub.c
+--- a/mm/slub.c~slab-make-gfp_slab_bug_mask-information-more-human-readable
 +++ a/mm/slub.c
-@@ -1613,8 +1613,9 @@ static struct page *new_slab(struct kmem
+@@ -1612,7 +1612,8 @@ out:
+ static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
  {
  	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
- 		gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
--		pr_emerg("Unexpected gfp: %#x (%pGg)\n", invalid_mask, &invalid_mask);
--		BUG();
-+		flags &= ~GFP_SLAB_BUG_MASK;
-+		pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
-+				invalid_mask, &invalid_mask, flags, &flags);
+-		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
++		gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
++		pr_emerg("Unexpected gfp: %#x (%pGg)\n", invalid_mask, &invalid_mask);
+ 		BUG();
  	}
  
- 	return allocate_slab(s,
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
