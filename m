@@ -1,64 +1,80 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] kexec: add restriction on kexec_load() segment sizes
-Date: Wed, 27 Jul 2016 13:03:13 -0700
-Message-ID: <20160727130313.c9afc876d405cc2e10da976c@linux-foundation.org>
-References: <1469502219-24140-1-git-send-email-zhongjiang@huawei.com>
-	<20160726125501.69c8186ab9c3b1cef89899d4@linux-foundation.org>
-	<57983425.4090901@huawei.com>
+From: akpm@linux-foundation.org
+Subject: + pnpbios-add-header-file-to-fix-build-errors.patch added to -mm
+ tree
+Date: Wed, 27 Jul 2016 13:10:49 -0700
+Message-ID: <57991549.yEEVshUkXY2n5LJ/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42445 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42857 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757365AbcG0UDP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 16:03:15 -0400
-In-Reply-To: <57983425.4090901@huawei.com>
+	with ESMTP id S1757365AbcG0UKu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 16:10:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhong jiang <zhongjiang@huawei.com>
-Cc: ebiederm@xmission.com, linux-mm@kvack.org, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, gregkh@linuxfoundation.org, mcgrof@suse.com, rafael.j.wysocki@intel.com, mm-commits@vger.kernel.org
 
-On Wed, 27 Jul 2016 12:10:13 +0800 zhong jiang <zhongjiang@huawei.com> wrote:
 
-> >> +	for (i = 0; i < nr_segments; i++) {
-> >> +		if (PAGE_COUNT(image->segment[i].memsz) > totalram_pages / 2
-> >> +				|| PAGE_COUNT(total_segments) > totalram_pages / 2)
-> >> +			return result;
-> > And I don't think we need this?  Unless we're worried about the sum of
-> > all segments overflowing an unsigned long, which I guess is possible. 
-> > But if we care about that we should handle it in the next statement:
-> >
-> >> +		total_segments += image->segment[i].memsz;
-> > Should this be 
-> >
-> > 		total_pages += PAGE_COUNT(image->segment[i].memsz);
->   ok
-> > ?  I think "yes", if the segments are allocated separately and "no" if
-> > they are all allocated in a big blob.
->    There is a possible that  most of segments size will exceed half of  the real memory.
-> 
->   if (PAGE_COUNT(image->segment[i].memsz) > totalram_pages / 2
-> 	|| total_pages > totalram_pages / 2)
->   I guess that it is ok , we should bail out timely when it happens to the condition.
->   
->   is right ?
-> 
->  your mean that above condition is no need. In the end, we check the overflow just one time.
->   or I misunderstand.
+The patch titled
+     From: Randy Dunlap <rdunlap@infradead.org>
+has been added to the -mm tree.  Its filename is
+     pnpbios-add-header-file-to-fix-build-errors.patch
 
-It doesn't matter much.  Actually I misread the code a bit.  How about
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/pnpbios-add-header-file-to-fix-build-errors.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/pnpbios-add-header-file-to-fix-build-errors.patch
 
-	for (i = 0; i < nr_segments; i++) {
-		unsigned long seg_pages = PAGE_COUNT(image->segment[i].memsz);
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-		if (seg_pages > totalram_pages / 2))
-			return -EINVAL;
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-		total_pages += seg_pages;
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-		if (total_pages > totalram_pages / 2)
-			return -EINVAL;
-	}
+------------------------------------------------------
+From: Randy Dunlap <rdunlap@infradead.org>
+
+Fix build errors due to missing header file:
+
+../drivers/pnp/pnpbios/core.c: In function 'pnp_dock_event':
+../drivers/pnp/pnpbios/core.c:141:2: error: implicit declaration of function 'call_usermodehelper' [-Werror=implicit-function-declaration]
+  value = call_usermodehelper(argv [0], argv, envp, UMH_WAIT_EXEC);
+  ^
+../drivers/pnp/pnpbios/core.c:141:52: error: 'UMH_WAIT_EXEC' undeclared (first use in this function)
+  value = call_usermodehelper(argv [0], argv, envp, UMH_WAIT_EXEC);
+                                                    ^
+Link: http://lkml.kernel.org/r/ae7a56b8-27a4-05c3-44f7-e1140bfd7acd@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Rafael Wysocki <rafael.j.wysocki@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Luis R. Rodriguez" <mcgrof@suse.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/pnp/pnpbios/core.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff -puN drivers/pnp/pnpbios/core.c~pnpbios-add-header-file-to-fix-build-errors drivers/pnp/pnpbios/core.c
+--- a/drivers/pnp/pnpbios/core.c~pnpbios-add-header-file-to-fix-build-errors
++++ a/drivers/pnp/pnpbios/core.c
+@@ -60,6 +60,7 @@
+ #include <linux/delay.h>
+ #include <linux/acpi.h>
+ #include <linux/freezer.h>
++#include <linux/kmod.h>
+ #include <linux/kthread.h>
+ 
+ #include <asm/page.h>
+_
+
+Patches currently in -mm which might be from rdunlap@infradead.org are
+
+pnpbios-add-header-file-to-fix-build-errors.patch
 
