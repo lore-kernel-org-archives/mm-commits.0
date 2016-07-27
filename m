@@ -1,202 +1,288 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-build-warnings-in-linux-compactionh.patch removed from -mm tree
-Date: Wed, 27 Jul 2016 12:03:20 -0700
-Message-ID: <57990578.YhJdZWo4Ye4lCyWE%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative.patch
+ removed from -mm tree
+Date: Wed, 27 Jul 2016 12:03:17 -0700
+Message-ID: <57990575.h8yYxxtsPA8CQps/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40782 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40774 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932342AbcG0TDV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:03:21 -0400
+	with ESMTP id S932342AbcG0TDS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:03:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, aquini@redhat.com, gi-oh.kim@profitbricks.com, koct9i@gmail.com, rdunlap@infradead.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ebru.akagunduz@gmail.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, boaz@plexistor.com, gorcunov@openvz.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix build warnings in <linux/compaction.h>
+     Subject: mm, thp: convert from optimistic swapin collapsing to conservative
 has been removed from the -mm tree.  Its filename was
-     mm-fix-build-warnings-in-linux-compactionh.patch
+     mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: fix build warnings in <linux/compaction.h>
+From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Subject: mm, thp: convert from optimistic swapin collapsing to conservative
 
-Randy reported below build error.
+To detect whether khugepaged swapin is worthwhile, this patch checks the
+amount of young pages.  There should be at least half of HPAGE_PMD_NR to
+swapin.
 
-> In file included from ../include/linux/balloon_compaction.h:48:0,
->                  from ../mm/balloon_compaction.c:11:
-> ../include/linux/compaction.h:237:51: warning: 'struct node' declared inside parameter list [enabled by default]
->  static inline int compaction_register_node(struct node *node)
-> ../include/linux/compaction.h:237:51: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
-> ../include/linux/compaction.h:242:54: warning: 'struct node' declared inside parameter list [enabled by default]
->  static inline void compaction_unregister_node(struct node *node)
->
-
-It was caused by non-lru page migration which needs compaction.h but
-compaction.h doesn't include any header to be standalone.
-
-I think proper header for non-lru page migration is migrate.h rather
-than compaction.h because migrate.h has already headers needed to work
-non-lru page migration indirectly like isolate_mode_t, migrate_mode
-MIGRATEPAGE_SUCCESS.
-
-[akpm@linux-foundation.org: revert mm-balloon-use-general-non-lru-movable-page-feature-fix.patch temp fix]
-Link: http://lkml.kernel.org/r/20160610003304.GE29779@bbox
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Link: http://lkml.kernel.org/r/1468109451-1615-1-git-send-email-ebru.akagunduz@gmail.com
+Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Gioh Kim <gi-oh.kim@profitbricks.com>
-Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Boaz Harrosh <boaz@plexistor.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_migration    |   11 ++++++-----
- drivers/virtio/virtio_balloon.c    |    2 +-
- include/linux/balloon_compaction.h |    3 +--
- include/linux/compaction.h         |   16 ----------------
- include/linux/migrate.h            |   15 +++++++++++++++
- mm/zsmalloc.c                      |    4 ++--
- 6 files changed, 25 insertions(+), 26 deletions(-)
+ include/trace/events/huge_memory.h |   19 +++++++------
+ mm/khugepaged.c                    |   38 ++++++++++++++++-----------
+ 2 files changed, 34 insertions(+), 23 deletions(-)
 
-diff -puN Documentation/vm/page_migration~mm-fix-build-warnings-in-linux-compactionh Documentation/vm/page_migration
---- a/Documentation/vm/page_migration~mm-fix-build-warnings-in-linux-compactionh
-+++ a/Documentation/vm/page_migration
-@@ -181,11 +181,12 @@ After isolation, VM calls migratepage of
- The function of migratepage is to move content of the old page to new page
- and set up fields of struct page newpage. Keep in mind that you should
- indicate to the VM the oldpage is no longer movable via __ClearPageMovable()
--under page_lock if you migrated the oldpage successfully and returns 0.
--If driver cannot migrate the page at the moment, driver can return -EAGAIN.
--On -EAGAIN, VM will retry page migration in a short time because VM interprets
---EAGAIN as "temporal migration failure". On returning any error except -EAGAIN,
--VM will give up the page migration without retrying in this time.
-+under page_lock if you migrated the oldpage successfully and returns
-+MIGRATEPAGE_SUCCESS. If driver cannot migrate the page at the moment, driver
-+can return -EAGAIN. On -EAGAIN, VM will retry page migration in a short time
-+because VM interprets -EAGAIN as "temporal migration failure". On returning
-+any error except -EAGAIN, VM will give up the page migration without retrying
-+in this time.
+diff -puN include/trace/events/huge_memory.h~mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative include/trace/events/huge_memory.h
+--- a/include/trace/events/huge_memory.h~mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative
++++ a/include/trace/events/huge_memory.h
+@@ -13,7 +13,7 @@
+ 	EM( SCAN_EXCEED_NONE_PTE,	"exceed_none_pte")		\
+ 	EM( SCAN_PTE_NON_PRESENT,	"pte_non_present")		\
+ 	EM( SCAN_PAGE_RO,		"no_writable_page")		\
+-	EM( SCAN_NO_REFERENCED_PAGE,	"no_referenced_page")		\
++	EM( SCAN_LACK_REFERENCED_PAGE,	"lack_referenced_page")		\
+ 	EM( SCAN_PAGE_NULL,		"page_null")			\
+ 	EM( SCAN_SCAN_ABORT,		"scan_aborted")			\
+ 	EM( SCAN_PAGE_COUNT,		"not_suitable_page_count")	\
+@@ -47,7 +47,7 @@ SCAN_STATUS
+ TRACE_EVENT(mm_khugepaged_scan_pmd,
  
- Driver shouldn't touch page.lru field VM using in the functions.
+ 	TP_PROTO(struct mm_struct *mm, struct page *page, bool writable,
+-		 bool referenced, int none_or_zero, int status, int unmapped),
++		 int referenced, int none_or_zero, int status, int unmapped),
  
-diff -puN drivers/virtio/virtio_balloon.c~mm-fix-build-warnings-in-linux-compactionh drivers/virtio/virtio_balloon.c
---- a/drivers/virtio/virtio_balloon.c~mm-fix-build-warnings-in-linux-compactionh
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -493,7 +493,7 @@ static int virtballoon_migratepage(struc
+ 	TP_ARGS(mm, page, writable, referenced, none_or_zero, status, unmapped),
  
- 	put_page(page); /* balloon reference */
+@@ -55,7 +55,7 @@ TRACE_EVENT(mm_khugepaged_scan_pmd,
+ 		__field(struct mm_struct *, mm)
+ 		__field(unsigned long, pfn)
+ 		__field(bool, writable)
+-		__field(bool, referenced)
++		__field(int, referenced)
+ 		__field(int, none_or_zero)
+ 		__field(int, status)
+ 		__field(int, unmapped)
+@@ -108,14 +108,14 @@ TRACE_EVENT(mm_collapse_huge_page,
+ TRACE_EVENT(mm_collapse_huge_page_isolate,
  
--	return 0;
-+	return MIGRATEPAGE_SUCCESS;
+ 	TP_PROTO(struct page *page, int none_or_zero,
+-		 bool referenced, bool  writable, int status),
++		 int referenced, bool  writable, int status),
+ 
+ 	TP_ARGS(page, none_or_zero, referenced, writable, status),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, pfn)
+ 		__field(int, none_or_zero)
+-		__field(bool, referenced)
++		__field(int, referenced)
+ 		__field(bool, writable)
+ 		__field(int, status)
+ 	),
+@@ -138,25 +138,28 @@ TRACE_EVENT(mm_collapse_huge_page_isolat
+ 
+ TRACE_EVENT(mm_collapse_huge_page_swapin,
+ 
+-	TP_PROTO(struct mm_struct *mm, int swapped_in, int ret),
++	TP_PROTO(struct mm_struct *mm, int swapped_in, int referenced, int ret),
+ 
+-	TP_ARGS(mm, swapped_in, ret),
++	TP_ARGS(mm, swapped_in, referenced, ret),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(struct mm_struct *, mm)
+ 		__field(int, swapped_in)
++		__field(int, referenced)
+ 		__field(int, ret)
+ 	),
+ 
+ 	TP_fast_assign(
+ 		__entry->mm = mm;
+ 		__entry->swapped_in = swapped_in;
++		__entry->referenced = referenced;
+ 		__entry->ret = ret;
+ 	),
+ 
+-	TP_printk("mm=%p, swapped_in=%d, ret=%d",
++	TP_printk("mm=%p, swapped_in=%d, referenced=%d, ret=%d",
+ 		__entry->mm,
+ 		__entry->swapped_in,
++		__entry->referenced,
+ 		__entry->ret)
+ );
+ 
+diff -puN mm/khugepaged.c~mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative mm/khugepaged.c
+--- a/mm/khugepaged.c~mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative
++++ a/mm/khugepaged.c
+@@ -27,7 +27,7 @@ enum scan_result {
+ 	SCAN_EXCEED_NONE_PTE,
+ 	SCAN_PTE_NON_PRESENT,
+ 	SCAN_PAGE_RO,
+-	SCAN_NO_REFERENCED_PAGE,
++	SCAN_LACK_REFERENCED_PAGE,
+ 	SCAN_PAGE_NULL,
+ 	SCAN_SCAN_ABORT,
+ 	SCAN_PAGE_COUNT,
+@@ -500,8 +500,8 @@ static int __collapse_huge_page_isolate(
+ {
+ 	struct page *page = NULL;
+ 	pte_t *_pte;
+-	int none_or_zero = 0, result = 0;
+-	bool referenced = false, writable = false;
++	int none_or_zero = 0, result = 0, referenced = 0;
++	bool writable = false;
+ 
+ 	for (_pte = pte; _pte < pte+HPAGE_PMD_NR;
+ 	     _pte++, address += PAGE_SIZE) {
+@@ -580,11 +580,11 @@ static int __collapse_huge_page_isolate(
+ 		VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 		VM_BUG_ON_PAGE(PageLRU(page), page);
+ 
+-		/* If there is no mapped pte young don't collapse the page */
++		/* There should be enough young pte to collapse the page */
+ 		if (pte_young(pteval) ||
+ 		    page_is_young(page) || PageReferenced(page) ||
+ 		    mmu_notifier_test_young(vma->vm_mm, address))
+-			referenced = true;
++			referenced++;
+ 	}
+ 	if (likely(writable)) {
+ 		if (likely(referenced)) {
+@@ -869,7 +869,8 @@ static int hugepage_vma_revalidate(struc
+ 
+ static bool __collapse_huge_page_swapin(struct mm_struct *mm,
+ 					struct vm_area_struct *vma,
+-					unsigned long address, pmd_t *pmd)
++					unsigned long address, pmd_t *pmd,
++					int referenced)
+ {
+ 	pte_t pteval;
+ 	int swapped_in = 0, ret = 0;
+@@ -887,12 +888,19 @@ static bool __collapse_huge_page_swapin(
+ 		if (!is_swap_pte(pteval))
+ 			continue;
+ 		swapped_in++;
++		/* we only decide to swapin, if there is enough young ptes */
++		if (referenced < HPAGE_PMD_NR/2) {
++			trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
++			return false;
++		}
+ 		ret = do_swap_page(&fe, pteval);
++
+ 		/* do_swap_page returns VM_FAULT_RETRY with released mmap_sem */
+ 		if (ret & VM_FAULT_RETRY) {
+ 			down_read(&mm->mmap_sem);
+ 			if (hugepage_vma_revalidate(mm, address)) {
+ 				/* vma is no longer available, don't continue to swapin */
++				trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
+ 				return false;
+ 			}
+ 			/* check if the pmd is still valid */
+@@ -900,7 +908,7 @@ static bool __collapse_huge_page_swapin(
+ 				return false;
+ 		}
+ 		if (ret & VM_FAULT_ERROR) {
+-			trace_mm_collapse_huge_page_swapin(mm, swapped_in, 0);
++			trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
+ 			return false;
+ 		}
+ 		/* pte is unmapped now, we need to map it */
+@@ -908,7 +916,7 @@ static bool __collapse_huge_page_swapin(
+ 	}
+ 	fe.pte--;
+ 	pte_unmap(fe.pte);
+-	trace_mm_collapse_huge_page_swapin(mm, swapped_in, 1);
++	trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 1);
+ 	return true;
  }
  
- static struct dentry *balloon_mount(struct file_system_type *fs_type,
-diff -puN include/linux/balloon_compaction.h~mm-fix-build-warnings-in-linux-compactionh include/linux/balloon_compaction.h
---- a/include/linux/balloon_compaction.h~mm-fix-build-warnings-in-linux-compactionh
-+++ a/include/linux/balloon_compaction.h
-@@ -45,8 +45,7 @@
- #define _LINUX_BALLOON_COMPACTION_H
- #include <linux/pagemap.h>
- #include <linux/page-flags.h>
--#include <linux/node.h>
--#include <linux/compaction.h>
-+#include <linux/migrate.h>
- #include <linux/gfp.h>
- #include <linux/err.h>
- #include <linux/fs.h>
-diff -puN include/linux/compaction.h~mm-fix-build-warnings-in-linux-compactionh include/linux/compaction.h
---- a/include/linux/compaction.h~mm-fix-build-warnings-in-linux-compactionh
-+++ a/include/linux/compaction.h
-@@ -54,9 +54,6 @@ enum compact_result {
- struct alloc_context; /* in mm/internal.h */
+@@ -916,7 +924,7 @@ static void collapse_huge_page(struct mm
+ 				   unsigned long address,
+ 				   struct page **hpage,
+ 				   struct vm_area_struct *vma,
+-				   int node)
++				   int node, int referenced)
+ {
+ 	pmd_t *pmd, _pmd;
+ 	pte_t *pte;
+@@ -973,7 +981,7 @@ static void collapse_huge_page(struct mm
+ 	 * If it fails, we release mmap_sem and jump out_nolock.
+ 	 * Continuing to collapse causes inconsistency.
+ 	 */
+-	if (!__collapse_huge_page_swapin(mm, vma, address, pmd)) {
++	if (!__collapse_huge_page_swapin(mm, vma, address, pmd, referenced)) {
+ 		mem_cgroup_cancel_charge(new_page, memcg, true);
+ 		up_read(&mm->mmap_sem);
+ 		goto out_nolock;
+@@ -1084,12 +1092,12 @@ static int khugepaged_scan_pmd(struct mm
+ {
+ 	pmd_t *pmd;
+ 	pte_t *pte, *_pte;
+-	int ret = 0, none_or_zero = 0, result = 0;
++	int ret = 0, none_or_zero = 0, result = 0, referenced = 0;
+ 	struct page *page = NULL;
+ 	unsigned long _address;
+ 	spinlock_t *ptl;
+ 	int node = NUMA_NO_NODE, unmapped = 0;
+-	bool writable = false, referenced = false;
++	bool writable = false;
  
- #ifdef CONFIG_COMPACTION
--extern int PageMovable(struct page *page);
--extern void __SetPageMovable(struct page *page, struct address_space *mapping);
--extern void __ClearPageMovable(struct page *page);
- extern int sysctl_compact_memory;
- extern int sysctl_compaction_handler(struct ctl_table *table, int write,
- 			void __user *buffer, size_t *length, loff_t *ppos);
-@@ -154,19 +151,6 @@ extern void kcompactd_stop(int nid);
- extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx);
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
  
- #else
--static inline int PageMovable(struct page *page)
--{
--	return 0;
--}
--static inline void __SetPageMovable(struct page *page,
--			struct address_space *mapping)
--{
--}
--
--static inline void __ClearPageMovable(struct page *page)
--{
--}
--
- static inline enum compact_result try_to_compact_pages(gfp_t gfp_mask,
- 			unsigned int order, int alloc_flags,
- 			const struct alloc_context *ac,
-diff -puN include/linux/migrate.h~mm-fix-build-warnings-in-linux-compactionh include/linux/migrate.h
---- a/include/linux/migrate.h~mm-fix-build-warnings-in-linux-compactionh
-+++ a/include/linux/migrate.h
-@@ -71,6 +71,21 @@ static inline int migrate_huge_page_move
- 
- #endif /* CONFIG_MIGRATION */
- 
-+#ifdef CONFIG_COMPACTION
-+extern int PageMovable(struct page *page);
-+extern void __SetPageMovable(struct page *page, struct address_space *mapping);
-+extern void __ClearPageMovable(struct page *page);
-+#else
-+static inline int PageMovable(struct page *page) { return 0; };
-+static inline void __SetPageMovable(struct page *page,
-+				struct address_space *mapping)
-+{
-+}
-+static inline void __ClearPageMovable(struct page *page)
-+{
-+}
-+#endif
-+
- #ifdef CONFIG_NUMA_BALANCING
- extern bool pmd_trans_migrating(pmd_t pmd);
- extern int migrate_misplaced_page(struct page *page,
-diff -puN mm/zsmalloc.c~mm-fix-build-warnings-in-linux-compactionh mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-fix-build-warnings-in-linux-compactionh
-+++ a/mm/zsmalloc.c
-@@ -50,7 +50,7 @@
- #include <linux/zsmalloc.h>
- #include <linux/zpool.h>
- #include <linux/mount.h>
--#include <linux/compaction.h>
-+#include <linux/migrate.h>
- #include <linux/pagemap.h>
- 
- #define ZSPAGE_MAGIC	0x58
-@@ -2107,7 +2107,7 @@ int zs_page_migrate(struct address_space
- 	put_page(page);
- 	page = newpage;
- 
--	ret = 0;
-+	ret = MIGRATEPAGE_SUCCESS;
- unpin_objects:
- 	for (addr = s_addr + offset; addr < s_addr + pos;
- 						addr += class->size) {
+@@ -1177,14 +1185,14 @@ static int khugepaged_scan_pmd(struct mm
+ 		if (pte_young(pteval) ||
+ 		    page_is_young(page) || PageReferenced(page) ||
+ 		    mmu_notifier_test_young(vma->vm_mm, address))
+-			referenced = true;
++			referenced++;
+ 	}
+ 	if (writable) {
+ 		if (referenced) {
+ 			result = SCAN_SUCCEED;
+ 			ret = 1;
+ 		} else {
+-			result = SCAN_NO_REFERENCED_PAGE;
++			result = SCAN_LACK_REFERENCED_PAGE;
+ 		}
+ 	} else {
+ 		result = SCAN_PAGE_RO;
+@@ -1194,7 +1202,7 @@ out_unmap:
+ 	if (ret) {
+ 		node = khugepaged_find_target_node();
+ 		/* collapse_huge_page will return with the mmap_sem released */
+-		collapse_huge_page(mm, address, hpage, vma, node);
++		collapse_huge_page(mm, address, hpage, vma, node, referenced);
+ 	}
+ out:
+ 	trace_mm_khugepaged_scan_pmd(mm, page, writable, referenced,
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from ebru.akagunduz@gmail.com are
 
-mm-page_alloc-fix-dirtyable-highmem-calculation.patch
-mm-show-node_pages_scanned-per-node-not-zone.patch
-mm-show-node_pages_scanned-per-node-not-zone-fix.patch
-mm-add-per-zone-lru-list-stat.patch
-mm-bail-out-in-shrin_inactive_list.patch
 
