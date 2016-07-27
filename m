@@ -1,144 +1,105 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-introduce-post-allocation-processing-on-page-allocator.patch
- removed from -mm tree
-Date: Wed, 27 Jul 2016 12:01:01 -0700
-Message-ID: <579904ed.hW7JXlaBxcOA7IzW%akpm@linux-foundation.org>
+ mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch removed from -mm tree
+Date: Wed, 27 Jul 2016 12:01:06 -0700
+Message-ID: <579904f2.7lEfKzBW3eyiTMvP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40348 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40357 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757190AbcG0TBC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:01:02 -0400
+	with ESMTP id S1757190AbcG0TBH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:01:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, glider@google.com, hughd@google.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, hughd@google.com, kirill@shutemov.name, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: introduce post allocation processing on page allocator
+     Subject: mm: thp: check pmd_trans_unstable() after split_huge_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-introduce-post-allocation-processing-on-page-allocator.patch
+     mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_alloc: introduce post allocation processing on page allocator
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: thp: check pmd_trans_unstable() after split_huge_pmd()
 
-This patch is motivated from Hugh and Vlastimil's concern [1].
+split_huge_pmd() doesn't guarantee that the pmd is normal pmd pointing to
+pte entries, which can be checked with pmd_trans_unstable().  Some callers
+make this assertion and some do it differently and some not, so let's do
+it in a unified manner.
 
-There are two ways to get freepage from the allocator.  One is using
-normal memory allocation API and the other is __isolate_free_page() which
-is internally used for compaction and pageblock isolation.  Later usage is
-rather tricky since it doesn't do whole post allocation processing done by
-normal API.
-
-One problematic thing I already know is that poisoned page would not be
-checked if it is allocated by __isolate_free_page().  Perhaps, there would
-be more.
-
-We could add more debug logic for allocated page in the future and this
-separation would cause more problem.  I'd like to fix this situation at
-this time.  Solution is simple.  This patch commonize some logic for newly
-allocated page and uses it on all sites.  This will solve the problem.
-
-[1] http://marc.info/?i=alpine.LSU.2.11.1604270029350.7066%40eggly.anvils%3E
-
-[iamjoonsoo.kim@lge.com: mm-page_alloc-introduce-post-allocation-processing-on-page-allocator-v3]
-  Link: http://lkml.kernel.org/r/1464230275-25791-7-git-send-email-iamjoonsoo.kim@lge.com
-  Link: http://lkml.kernel.org/r/1466150259-27727-9-git-send-email-iamjoonsoo.kim@lge.com
-Link: http://lkml.kernel.org/r/1464230275-25791-7-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/1464741400-12143-1-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c     |    8 +-------
- mm/internal.h       |    2 ++
- mm/page_alloc.c     |   23 ++++++++++++++---------
- mm/page_isolation.c |    4 +---
- 4 files changed, 18 insertions(+), 19 deletions(-)
+ mm/gup.c       |    2 ++
+ mm/mempolicy.c |    2 ++
+ mm/mprotect.c  |    2 +-
+ mm/mremap.c    |    3 +--
+ 4 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN mm/compaction.c~mm-page_alloc-introduce-post-allocation-processing-on-page-allocator mm/compaction.c
---- a/mm/compaction.c~mm-page_alloc-introduce-post-allocation-processing-on-page-allocator
-+++ a/mm/compaction.c
-@@ -74,14 +74,8 @@ static void map_pages(struct list_head *
- 
- 		order = page_private(page);
- 		nr_pages = 1 << order;
--		set_page_private(page, 0);
--		set_page_refcounted(page);
- 
--		arch_alloc_page(page, order);
--		kernel_map_pages(page, nr_pages, 1);
--		kasan_alloc_pages(page, order);
--
--		set_page_owner(page, order, __GFP_MOVABLE);
-+		post_alloc_hook(page, order, __GFP_MOVABLE);
- 		if (order)
- 			split_page(page, order);
- 
-diff -puN mm/internal.h~mm-page_alloc-introduce-post-allocation-processing-on-page-allocator mm/internal.h
---- a/mm/internal.h~mm-page_alloc-introduce-post-allocation-processing-on-page-allocator
-+++ a/mm/internal.h
-@@ -150,6 +150,8 @@ extern int __isolate_free_page(struct pa
- extern void __free_pages_bootmem(struct page *page, unsigned long pfn,
- 					unsigned int order);
- extern void prep_compound_page(struct page *page, unsigned int order);
-+extern void post_alloc_hook(struct page *page, unsigned int order,
-+					gfp_t gfp_flags);
- extern int user_min_free_kbytes;
- 
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
-diff -puN mm/page_alloc.c~mm-page_alloc-introduce-post-allocation-processing-on-page-allocator mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-introduce-post-allocation-processing-on-page-allocator
-+++ a/mm/page_alloc.c
-@@ -1724,6 +1724,19 @@ static bool check_new_pages(struct page
- 	return false;
- }
- 
-+inline void post_alloc_hook(struct page *page, unsigned int order,
-+				gfp_t gfp_flags)
-+{
-+	set_page_private(page, 0);
-+	set_page_refcounted(page);
-+
-+	arch_alloc_page(page, order);
-+	kernel_map_pages(page, 1 << order, 1);
-+	kernel_poison_pages(page, 1 << order, 1);
-+	kasan_alloc_pages(page, order);
-+	set_page_owner(page, order, gfp_flags);
-+}
-+
- static void prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags,
- 							unsigned int alloc_flags)
- {
-@@ -1736,13 +1749,7 @@ static void prep_new_page(struct page *p
- 			poisoned &= page_is_poisoned(p);
+diff -puN mm/gup.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/gup.c
+--- a/mm/gup.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
++++ a/mm/gup.c
+@@ -279,6 +279,8 @@ struct page *follow_page_mask(struct vm_
+ 			spin_unlock(ptl);
+ 			ret = 0;
+ 			split_huge_pmd(vma, pmd, address);
++			if (pmd_trans_unstable(pmd))
++				ret = -EBUSY;
+ 		} else {
+ 			get_page(page);
+ 			spin_unlock(ptl);
+diff -puN mm/mempolicy.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
++++ a/mm/mempolicy.c
+@@ -512,6 +512,8 @@ static int queue_pages_pte_range(pmd_t *
+ 		}
  	}
  
--	set_page_private(page, 0);
--	set_page_refcounted(page);
--
--	arch_alloc_page(page, order);
--	kernel_map_pages(page, 1 << order, 1);
--	kernel_poison_pages(page, 1 << order, 1);
--	kasan_alloc_pages(page, order);
-+	post_alloc_hook(page, order, gfp_flags);
- 
- 	if (!free_pages_prezeroed(poisoned) && (gfp_flags & __GFP_ZERO))
- 		for (i = 0; i < (1 << order); i++)
-@@ -1751,8 +1758,6 @@ static void prep_new_page(struct page *p
- 	if (order && (gfp_flags & __GFP_COMP))
- 		prep_compound_page(page, order);
- 
--	set_page_owner(page, order, gfp_flags);
++	if (pmd_trans_unstable(pmd))
++		return 0;
+ retry:
+ 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+ 	for (; addr != end; pte++, addr += PAGE_SIZE) {
+diff -puN mm/mprotect.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/mprotect.c
+--- a/mm/mprotect.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
++++ a/mm/mprotect.c
+@@ -163,7 +163,7 @@ static inline unsigned long change_pmd_r
+ 		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE) {
+ 				split_huge_pmd(vma, pmd, addr);
+-				if (pmd_none(*pmd))
++				if (pmd_trans_unstable(pmd))
+ 					continue;
+ 			} else {
+ 				int nr_ptes = change_huge_pmd(vma, pmd, addr,
+diff -puN mm/mremap.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/mremap.c
+--- a/mm/mremap.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
++++ a/mm/mremap.c
+@@ -210,9 +210,8 @@ unsigned long move_page_tables(struct vm
+ 				}
+ 			}
+ 			split_huge_pmd(vma, old_pmd, old_addr);
+-			if (pmd_none(*old_pmd))
++			if (pmd_trans_unstable(old_pmd))
+ 				continue;
+-			VM_BUG_ON(pmd_trans_huge(*old_pmd));
+ 		}
+ 		if (pte_alloc(new_vma->vm_mm, new_pmd, new_addr))
+ 			break;
+_
+
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+
+mm-hwpoison-remove-incorrect-comment.patch
+
