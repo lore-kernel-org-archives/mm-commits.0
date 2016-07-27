@@ -1,237 +1,289 @@
 From: akpm@linux-foundation.org
-Subject: [merged] shmem-make-shmem_inode_info-lock-irq-safe.patch removed
- from -mm tree
-Date: Wed, 27 Jul 2016 12:03:04 -0700
-Message-ID: <57990568.aueURHWwAMkprBrm%akpm@linux-foundation.org>
+Subject: [merged]
+ thp-update-documentation-vm-transhugefilesystems-proctxt.patch removed from -mm tree
+Date: Wed, 27 Jul 2016 12:03:12 -0700
+Message-ID: <57990570.e+ulLUICey7hFlP2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40736 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40746 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932342AbcG0TDF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:03:05 -0400
+	with ESMTP id S932342AbcG0TDN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:03:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: make shmem_inode_info::lock irq-safe
+     Subject: thp: update Documentation/{vm/transhuge,filesystems/proc}.txt
 has been removed from the -mm tree.  Its filename was
-     shmem-make-shmem_inode_info-lock-irq-safe.patch
+     thp-update-documentation-vm-transhugefilesystems-proctxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: shmem: make shmem_inode_info::lock irq-safe
+Subject: thp: update Documentation/{vm/transhuge,filesystems/proc}.txt
 
-We are going to need to call shmem_charge() under tree_lock to get
-accoutning right on collapse of small tmpfs pages into a huge one.
+Add info about tmpfs/shmem with huge pages.
 
-The problem is that tree_lock is irq-safe and lockdep is not happy, that
-we take irq-unsafe lock under irq-safe[1].
-
-Let's convert the lock to irq-safe.
-
-[1] https://gist.github.com/kiryl/80c0149e03ed35dfaf26628b8e03cdbc
-
-Link: http://lkml.kernel.org/r/1466021202-61880-34-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1466021202-61880-38-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c  |    4 ++--
- mm/shmem.c |   50 ++++++++++++++++++++++++++------------------------
- 2 files changed, 28 insertions(+), 26 deletions(-)
+ Documentation/filesystems/proc.txt |    9 +
+ Documentation/vm/transhuge.txt     |  130 +++++++++++++++++++--------
+ 2 files changed, 102 insertions(+), 37 deletions(-)
 
-diff -puN ipc/shm.c~shmem-make-shmem_inode_info-lock-irq-safe ipc/shm.c
---- a/ipc/shm.c~shmem-make-shmem_inode_info-lock-irq-safe
-+++ a/ipc/shm.c
-@@ -766,10 +766,10 @@ static void shm_add_rss_swap(struct shmi
- 	} else {
- #ifdef CONFIG_SHMEM
- 		struct shmem_inode_info *info = SHMEM_I(inode);
--		spin_lock(&info->lock);
-+		spin_lock_irq(&info->lock);
- 		*rss_add += inode->i_mapping->nrpages;
- 		*swp_add += info->swapped;
--		spin_unlock(&info->lock);
-+		spin_unlock_irq(&info->lock);
- #else
- 		*rss_add += inode->i_mapping->nrpages;
- #endif
-diff -puN mm/shmem.c~shmem-make-shmem_inode_info-lock-irq-safe mm/shmem.c
---- a/mm/shmem.c~shmem-make-shmem_inode_info-lock-irq-safe
-+++ a/mm/shmem.c
-@@ -258,14 +258,15 @@ bool shmem_charge(struct inode *inode, l
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
-+	unsigned long flags;
+diff -puN Documentation/filesystems/proc.txt~thp-update-documentation-vm-transhugefilesystems-proctxt Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~thp-update-documentation-vm-transhugefilesystems-proctxt
++++ a/Documentation/filesystems/proc.txt
+@@ -436,6 +436,7 @@ Private_Dirty:         0 kB
+ Referenced:          892 kB
+ Anonymous:             0 kB
+ AnonHugePages:         0 kB
++ShmemPmdMapped:        0 kB
+ Shared_Hugetlb:        0 kB
+ Private_Hugetlb:       0 kB
+ Swap:                  0 kB
+@@ -464,6 +465,8 @@ accessed.
+ a mapping associated with a file may contain anonymous pages: when MAP_PRIVATE
+ and a page is modified, the file page is replaced by a private anonymous copy.
+ "AnonHugePages" shows the ammount of memory backed by transparent hugepage.
++"ShmemPmdMapped" shows the ammount of shared (shmem/tmpfs) memory backed by
++huge pages.
+ "Shared_Hugetlb" and "Private_Hugetlb" show the ammounts of memory backed by
+ hugetlbfs page which is *not* counted in "RSS" or "PSS" field for historical
+ reasons. And these are not included in {Shared,Private}_{Clean,Dirty} field.
+@@ -868,6 +871,9 @@ VmallocTotal:   112216 kB
+ VmallocUsed:       428 kB
+ VmallocChunk:   111088 kB
+ AnonHugePages:   49152 kB
++ShmemHugePages:      0 kB
++ShmemPmdMapped:      0 kB
++
  
- 	if (shmem_acct_block(info->flags, pages))
- 		return false;
--	spin_lock(&info->lock);
-+	spin_lock_irqsave(&info->lock, flags);
- 	info->alloced += pages;
- 	inode->i_blocks += pages * BLOCKS_PER_PAGE;
- 	shmem_recalc_inode(inode);
--	spin_unlock(&info->lock);
-+	spin_unlock_irqrestore(&info->lock, flags);
- 	inode->i_mapping->nrpages += pages;
+     MemTotal: Total usable ram (i.e. physical ram minus a few reserved
+               bits and the kernel binary code)
+@@ -912,6 +918,9 @@ MemAvailable: An estimate of how much me
+ AnonHugePages: Non-file backed huge pages mapped into userspace page tables
+       Mapped: files which have been mmaped, such as libraries
+        Shmem: Total memory used by shared memory (shmem) and tmpfs
++ShmemHugePages: Memory used by shared memory (shmem) and tmpfs allocated
++              with huge pages
++ShmemPmdMapped: Shared memory mapped into userspace with huge pages
+         Slab: in-kernel data structures cache
+ SReclaimable: Part of Slab, that might be reclaimed, such as caches
+   SUnreclaim: Part of Slab, that cannot be reclaimed on memory pressure
+diff -puN Documentation/vm/transhuge.txt~thp-update-documentation-vm-transhugefilesystems-proctxt Documentation/vm/transhuge.txt
+--- a/Documentation/vm/transhuge.txt~thp-update-documentation-vm-transhugefilesystems-proctxt
++++ a/Documentation/vm/transhuge.txt
+@@ -9,8 +9,8 @@ using huge pages for the backing of virt
+ that supports the automatic promotion and demotion of page sizes and
+ without the shortcomings of hugetlbfs.
  
- 	if (!sbinfo->max_blocks)
-@@ -273,10 +274,10 @@ bool shmem_charge(struct inode *inode, l
- 	if (percpu_counter_compare(&sbinfo->used_blocks,
- 				sbinfo->max_blocks - pages) > 0) {
- 		inode->i_mapping->nrpages -= pages;
--		spin_lock(&info->lock);
-+		spin_lock_irqsave(&info->lock, flags);
- 		info->alloced -= pages;
- 		shmem_recalc_inode(inode);
--		spin_unlock(&info->lock);
-+		spin_unlock_irqrestore(&info->lock, flags);
+-Currently it only works for anonymous memory mappings but in the
+-future it can expand over the pagecache layer starting with tmpfs.
++Currently it only works for anonymous memory mappings and tmpfs/shmem.
++But in the future it can expand to other filesystems.
  
- 		return false;
- 	}
-@@ -288,12 +289,13 @@ void shmem_uncharge(struct inode *inode,
- {
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
-+	unsigned long flags;
+ The reason applications are running faster is because of two
+ factors. The first factor is almost completely irrelevant and it's not
+@@ -57,10 +57,6 @@ miss is going to run faster.
+   feature that applies to all dynamic high order allocations in the
+   kernel)
  
--	spin_lock(&info->lock);
-+	spin_lock_irqsave(&info->lock, flags);
- 	info->alloced -= pages;
- 	inode->i_blocks -= pages * BLOCKS_PER_PAGE;
- 	shmem_recalc_inode(inode);
--	spin_unlock(&info->lock);
-+	spin_unlock_irqrestore(&info->lock, flags);
+-- this initial support only offers the feature in the anonymous memory
+-  regions but it'd be ideal to move it to tmpfs and the pagecache
+-  later
+-
+ Transparent Hugepage Support maximizes the usefulness of free memory
+ if compared to the reservation approach of hugetlbfs by allowing all
+ unused memory to be used as cache or other movable (or even unmovable
+@@ -94,21 +90,21 @@ madvise(MADV_HUGEPAGE) on their critical
  
- 	if (sbinfo->max_blocks)
- 		percpu_counter_sub(&sbinfo->used_blocks, pages);
-@@ -818,10 +820,10 @@ static void shmem_undo_range(struct inod
- 		index++;
- 	}
+ == sysfs ==
  
--	spin_lock(&info->lock);
-+	spin_lock_irq(&info->lock);
- 	info->swapped -= nr_swaps_freed;
- 	shmem_recalc_inode(inode);
--	spin_unlock(&info->lock);
-+	spin_unlock_irq(&info->lock);
- }
+-Transparent Hugepage Support can be entirely disabled (mostly for
+-debugging purposes) or only enabled inside MADV_HUGEPAGE regions (to
+-avoid the risk of consuming more memory resources) or enabled system
+-wide. This can be achieved with one of:
++Transparent Hugepage Support for anonymous memory can be entirely disabled
++(mostly for debugging purposes) or only enabled inside MADV_HUGEPAGE
++regions (to avoid the risk of consuming more memory resources) or enabled
++system wide. This can be achieved with one of:
  
- void shmem_truncate_range(struct inode *inode, loff_t lstart, loff_t lend)
-@@ -838,9 +840,9 @@ static int shmem_getattr(struct vfsmount
- 	struct shmem_inode_info *info = SHMEM_I(inode);
+ echo always >/sys/kernel/mm/transparent_hugepage/enabled
+ echo madvise >/sys/kernel/mm/transparent_hugepage/enabled
+ echo never >/sys/kernel/mm/transparent_hugepage/enabled
  
- 	if (info->alloced - info->swapped != inode->i_mapping->nrpages) {
--		spin_lock(&info->lock);
-+		spin_lock_irq(&info->lock);
- 		shmem_recalc_inode(inode);
--		spin_unlock(&info->lock);
-+		spin_unlock_irq(&info->lock);
- 	}
- 	generic_fillattr(inode, stat);
- 	return 0;
-@@ -984,9 +986,9 @@ static int shmem_unuse_inode(struct shme
- 		delete_from_swap_cache(*pagep);
- 		set_page_dirty(*pagep);
- 		if (!error) {
--			spin_lock(&info->lock);
-+			spin_lock_irq(&info->lock);
- 			info->swapped--;
--			spin_unlock(&info->lock);
-+			spin_unlock_irq(&info->lock);
- 			swap_free(swap);
- 		}
- 	}
-@@ -1134,10 +1136,10 @@ static int shmem_writepage(struct page *
- 		list_add_tail(&info->swaplist, &shmem_swaplist);
+ It's also possible to limit defrag efforts in the VM to generate
+-hugepages in case they're not immediately free to madvise regions or
+-to never try to defrag memory and simply fallback to regular pages
+-unless hugepages are immediately available. Clearly if we spend CPU
+-time to defrag memory, we would expect to gain even more by the fact
+-we use hugepages later instead of regular pages. This isn't always
++anonymous hugepages in case they're not immediately free to madvise
++regions or to never try to defrag memory and simply fallback to regular
++pages unless hugepages are immediately available. Clearly if we spend CPU
++time to defrag memory, we would expect to gain even more by the fact we
++use hugepages later instead of regular pages. This isn't always
+ guaranteed, but it may be more likely in case the allocation is for a
+ MADV_HUGEPAGE region.
  
- 	if (add_to_swap_cache(page, swap, GFP_ATOMIC) == 0) {
--		spin_lock(&info->lock);
-+		spin_lock_irq(&info->lock);
- 		shmem_recalc_inode(inode);
- 		info->swapped++;
--		spin_unlock(&info->lock);
-+		spin_unlock_irq(&info->lock);
+@@ -133,9 +129,9 @@ that are have used madvise(MADV_HUGEPAGE
  
- 		swap_shmem_alloc(swap);
- 		shmem_delete_from_page_cache(page, swp_to_radix_entry(swap));
-@@ -1523,10 +1525,10 @@ repeat:
+ "never" should be self-explanatory.
  
- 		mem_cgroup_commit_charge(page, memcg, true, false);
+-By default kernel tries to use huge zero page on read page fault.
+-It's possible to disable huge zero page by writing 0 or enable it
+-back by writing 1:
++By default kernel tries to use huge zero page on read page fault to
++anonymous mapping. It's possible to disable huge zero page by writing 0
++or enable it back by writing 1:
  
--		spin_lock(&info->lock);
-+		spin_lock_irq(&info->lock);
- 		info->swapped--;
- 		shmem_recalc_inode(inode);
--		spin_unlock(&info->lock);
-+		spin_unlock_irq(&info->lock);
+ echo 0 >/sys/kernel/mm/transparent_hugepage/use_zero_page
+ echo 1 >/sys/kernel/mm/transparent_hugepage/use_zero_page
+@@ -204,21 +200,67 @@ Support by passing the parameter "transp
+ "transparent_hugepage=madvise" or "transparent_hugepage=never"
+ (without "") to the kernel command line.
  
- 		if (sgp == SGP_WRITE)
- 			mark_page_accessed(page);
-@@ -1603,11 +1605,11 @@ alloc_nohuge:		page = shmem_alloc_and_ac
- 				PageTransHuge(page));
- 		lru_cache_add_anon(page);
++== Hugepages in tmpfs/shmem ==
++
++You can control hugepage allocation policy in tmpfs with mount option
++"huge=". It can have following values:
++
++  - "always":
++    Attempt to allocate huge pages every time we need a new page;
++
++  - "never":
++    Do not allocate huge pages;
++
++  - "within_size":
++    Only allocate huge page if it will be fully within i_size.
++    Also respect fadvise()/madvise() hints;
++
++  - "advise:
++    Only allocate huge pages if requested with fadvise()/madvise();
++
++The default policy is "never".
++
++"mount -o remount,huge= /mountpoint" works fine after mount: remounting
++huge=never will not attempt to break up huge pages at all, just stop more
++from being allocated.
++
++There's also sysfs knob to control hugepage allocation policy for internal
++shmem mount: /sys/kernel/mm/transparent_hugepage/shmem_enabled. The mount
++is used for SysV SHM, memfds, shared anonymous mmaps (of /dev/zero or
++MAP_ANONYMOUS), GPU drivers' DRM objects, Ashmem.
++
++In addition to policies listed above, shmem_enabled allows two further
++values:
++
++  - "deny":
++    For use in emergencies, to force the huge option off from
++    all mounts;
++  - "force":
++    Force the huge option on for all - very useful for testing;
++
+ == Need of application restart ==
  
--		spin_lock(&info->lock);
-+		spin_lock_irq(&info->lock);
- 		info->alloced += 1 << compound_order(page);
- 		inode->i_blocks += BLOCKS_PER_PAGE << compound_order(page);
- 		shmem_recalc_inode(inode);
--		spin_unlock(&info->lock);
-+		spin_unlock_irq(&info->lock);
- 		alloced = true;
+-The transparent_hugepage/enabled values only affect future
+-behavior. So to make them effective you need to restart any
+-application that could have been using hugepages. This also applies to
+-the regions registered in khugepaged.
++The transparent_hugepage/enabled values and tmpfs mount option only affect
++future behavior. So to make them effective you need to restart any
++application that could have been using hugepages. This also applies to the
++regions registered in khugepaged.
  
- 		/*
-@@ -1639,9 +1641,9 @@ clear:
- 		if (alloced) {
- 			ClearPageDirty(page);
- 			delete_from_page_cache(page);
--			spin_lock(&info->lock);
-+			spin_lock_irq(&info->lock);
- 			shmem_recalc_inode(inode);
--			spin_unlock(&info->lock);
-+			spin_unlock_irq(&info->lock);
- 		}
- 		error = -EINVAL;
- 		goto unlock;
-@@ -1673,9 +1675,9 @@ unlock:
- 	}
- 	if (error == -ENOSPC && !once++) {
- 		info = SHMEM_I(inode);
--		spin_lock(&info->lock);
-+		spin_lock_irq(&info->lock);
- 		shmem_recalc_inode(inode);
--		spin_unlock(&info->lock);
-+		spin_unlock_irq(&info->lock);
- 		goto repeat;
- 	}
- 	if (error == -EEXIST)	/* from above or from radix_tree_insert */
-@@ -1874,7 +1876,7 @@ int shmem_lock(struct file *file, int lo
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 	int retval = -ENOMEM;
+ == Monitoring usage ==
  
--	spin_lock(&info->lock);
-+	spin_lock_irq(&info->lock);
- 	if (lock && !(info->flags & VM_LOCKED)) {
- 		if (!user_shm_lock(inode->i_size, user))
- 			goto out_nomem;
-@@ -1889,7 +1891,7 @@ int shmem_lock(struct file *file, int lo
- 	retval = 0;
+-The number of transparent huge pages currently used by the system is
+-available by reading the AnonHugePages field in /proc/meminfo. To
+-identify what applications are using transparent huge pages, it is
+-necessary to read /proc/PID/smaps and count the AnonHugePages fields
+-for each mapping. Note that reading the smaps file is expensive and
+-reading it frequently will incur overhead.
++The number of anonymous transparent huge pages currently used by the
++system is available by reading the AnonHugePages field in /proc/meminfo.
++To identify what applications are using anonymous transparent huge pages,
++it is necessary to read /proc/PID/smaps and count the AnonHugePages fields
++for each mapping.
++
++The number of file transparent huge pages mapped to userspace is available
++by reading ShmemPmdMapped and ShmemHugePages fields in /proc/meminfo.
++To identify what applications are mapping file  transparent huge pages, it
++is necessary to read /proc/PID/smaps and count the FileHugeMapped fields
++for each mapping.
++
++Note that reading the smaps file is expensive and reading it
++frequently will incur overhead.
  
- out_nomem:
--	spin_unlock(&info->lock);
-+	spin_unlock_irq(&info->lock);
- 	return retval;
- }
+ There are a number of counters in /proc/vmstat that may be used to
+ monitor how successfully the system is providing huge pages for use.
+@@ -238,6 +280,12 @@ thp_collapse_alloc_failed is incremented
+ 	of pages that should be collapsed into one huge page but failed
+ 	the allocation.
  
++thp_file_alloc is incremented every time a file huge page is successfully
++i	allocated.
++
++thp_file_mapped is incremented every time a file huge page is mapped into
++	user address space.
++
+ thp_split_page is incremented every time a huge page is split into base
+ 	pages. This can happen for a variety of reasons but a common
+ 	reason is that a huge page is old and is being reclaimed.
+@@ -403,19 +451,27 @@ pages:
+     on relevant sub-page of the compound page.
+ 
+   - map/unmap of the whole compound page accounted in compound_mapcount
+-    (stored in first tail page).
+-
+-PageDoubleMap() indicates that ->_mapcount in all subpages is offset up by one.
+-This additional reference is required to get race-free detection of unmap of
+-subpages when we have them mapped with both PMDs and PTEs.
++    (stored in first tail page). For file huge pages, we also increment
++    ->_mapcount of all sub-pages in order to have race-free detection of
++    last unmap of subpages.
++
++PageDoubleMap() indicates that the page is *possibly* mapped with PTEs.
++
++For anonymous pages PageDoubleMap() also indicates ->_mapcount in all
++subpages is offset up by one. This additional reference is required to
++get race-free detection of unmap of subpages when we have them mapped with
++both PMDs and PTEs.
+ 
+ This is optimization required to lower overhead of per-subpage mapcount
+ tracking. The alternative is alter ->_mapcount in all subpages on each
+ map/unmap of the whole compound page.
+ 
+-We set PG_double_map when a PMD of the page got split for the first time,
+-but still have PMD mapping. The additional references go away with last
+-compound_mapcount.
++For anonymous pages, we set PG_double_map when a PMD of the page got split
++for the first time, but still have PMD mapping. The additional references
++go away with last compound_mapcount.
++
++File pages get PG_double_map set on first map of the page with PTE and
++goes away when the page gets evicted from page cache.
+ 
+ split_huge_page internally has to distribute the refcounts in the head
+ page to the tail pages before clearing all PG_head/tail bits from the page
+@@ -427,7 +483,7 @@ sum of mapcount of all sub-pages plus on
+ have reference for head page).
+ 
+ split_huge_page uses migration entries to stabilize page->_refcount and
+-page->_mapcount.
++page->_mapcount of anonymous pages. File pages just got unmapped.
+ 
+ We safe against physical memory scanners too: the only legitimate way
+ scanner can get reference to a page is get_page_unless_zero().
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
