@@ -1,65 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-fix-a-redundant-re-initialization.patch removed
+Subject: [merged]
+ ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks.patch removed
  from -mm tree
-Date: Wed, 27 Jul 2016 11:58:52 -0700
-Message-ID: <5799046c.WAP5lVmGx6l9AUZ1%akpm@linux-foundation.org>
+Date: Wed, 27 Jul 2016 11:58:57 -0700
+Message-ID: <57990471.ex+YmfPWRRCUbcsF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39929 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757863AbcG0S6x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 14:58:53 -0400
+	with ESMTP id S1757863AbcG0S66 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 14:58:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zren@suse.com, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix a redundant re-initialization
+     Subject: ocfs2: cleanup unneeded goto in ocfs2_create_new_inode_locks
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-a-redundant-re-initialization.patch
+     ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric Ren <zren@suse.com>
-Subject: ocfs2: fix a redundant re-initialization
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: cleanup unneeded goto in ocfs2_create_new_inode_locks
 
-Obviously, memset() has zeroed the whole struct locking_max_version.
-So, it's no need to zero its two fields individually.
+The last goto is unneeded, so remove it.
 
-Link: http://lkml.kernel.org/r/1463970605-18354-1-git-send-email-zren@suse.com
-Signed-off-by: Eric Ren <zren@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Gang He <ghe@suse.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
+Link: http://lkml.kernel.org/r/576213D3.6080002@huawei.com
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stackglue.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/ocfs2/dlmglue.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/stackglue.c~ocfs2-fix-a-redundant-re-initialization fs/ocfs2/stackglue.c
---- a/fs/ocfs2/stackglue.c~ocfs2-fix-a-redundant-re-initialization
-+++ a/fs/ocfs2/stackglue.c
-@@ -735,8 +735,6 @@ static void __exit ocfs2_stack_glue_exit
- {
- 	memset(&locking_max_version, 0,
- 	       sizeof(struct ocfs2_protocol_version));
--	locking_max_version.pv_major = 0;
--	locking_max_version.pv_minor = 0;
- 	ocfs2_sysfs_exit();
- 	if (ocfs2_table_header)
- 		unregister_sysctl_table(ocfs2_table_header);
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-cleanup-unneeded-goto-in-ocfs2_create_new_inode_locks
++++ a/fs/ocfs2/dlmglue.c
+@@ -1665,10 +1665,8 @@ int ocfs2_create_new_inode_locks(struct
+ 	}
+ 
+ 	ret = ocfs2_create_new_lock(osb, &OCFS2_I(inode)->ip_open_lockres, 0, 0);
+-	if (ret) {
++	if (ret)
+ 		mlog_errno(ret);
+-		goto bail;
+-	}
+ 
+ bail:
+ 	return ret;
 _
 
-Patches currently in -mm which might be from zren@suse.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log.patch
-ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3.patch
 
