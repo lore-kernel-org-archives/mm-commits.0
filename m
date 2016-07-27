@@ -1,244 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch removed from -mm tree
-Date: Wed, 27 Jul 2016 12:00:16 -0700
-Message-ID: <579904c0.0I3M9/PUwSyA8tn1%akpm@linux-foundation.org>
+Subject: [merged] zsmalloc-keep-max_object-in-size_class.patch removed
+ from -mm tree
+Date: Wed, 27 Jul 2016 12:00:24 -0700
+Message-ID: <579904c8.argphnNqNtdQDLig%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40109 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40133 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757866AbcG0TAS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:00:18 -0400
+	with ESMTP id S1758041AbcG0TAZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:00:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, hughd@google.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, riel@redhat.com, sergey.senozhatsky@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: minchan@kernel.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use put_page() to free page instead of putback_lru_page()
+     Subject: zsmalloc: keep max_object in size_class
 has been removed from the -mm tree.  Its filename was
-     mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+     zsmalloc-keep-max_object-in-size_class.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: use put_page() to free page instead of putback_lru_page()
+Subject: zsmalloc: keep max_object in size_class
 
-Recently, I got many reports about perfermance degradation in embedded
-system(Android mobile phone, webOS TV and so on) and easy fork fail.
+Every zspage in a size_class has same number of max objects so
+we could move it to a size_class.
 
-The problem was fragmentation caused by zram and GPU driver mainly.  With
-memory pressure, their pages were spread out all of pageblock and it
-cannot be migrated with current compaction algorithm which supports only
-LRU pages.  In the end, compaction cannot work well so reclaimer shrinks
-all of working set pages.  It made system very slow and even to fail to
-fork easily which requires order-[2 or 3] allocations.
-
-Other pain point is that they cannot use CMA memory space so when OOM kill
-happens, I can see many free pages in CMA area, which is not memory
-efficient.  In our product which has big CMA memory, it reclaims zones too
-exccessively to allocate GPU and zram page although there are lots of free
-space in CMA so system becomes very slow easily.
-
-To solve these problem, this patch tries to add facility to migrate
-non-lru pages via introducing new functions and page flags to help
-migration.
-
-struct address_space_operations {
-	..
-	..
-	bool (*isolate_page)(struct page *, isolate_mode_t);
-	void (*putback_page)(struct page *);
-	..
-}
-
-new page flags
-
-	PG_movable
-	PG_isolated
-
-For details, please read description in "mm: migrate: support non-lru
-movable page migration".
-
-Originally, Gioh Kim had tried to support this feature but he moved so I
-took over the work.  I took many code from his work and changed a little
-bit and Konstantin Khlebnikov helped Gioh a lot so he should deserve to
-have many credit, too.
-
-And I should mention Chulmin who have tested this patchset heavily
-so I can find many bugs from him. :)
-
-Thanks, Gioh, Konstantin and Chulmin!
-
-This patchset consists of five parts.
-
-1. clean up migration
-  mm: use put_page to free page instead of putback_lru_page
-
-2. add non-lru page migration feature
-  mm: migrate: support non-lru movable page migration
-
-3. rework KVM memory-ballooning
-  mm: balloon: use general non-lru movable page feature
-
-4. zsmalloc refactoring for preparing page migration
-  zsmalloc: keep max_object in size_class
-  zsmalloc: use bit_spin_lock
-  zsmalloc: use accessor
-  zsmalloc: factor page chain functionality out
-  zsmalloc: introduce zspage structure
-  zsmalloc: separate free_zspage from putback_zspage
-  zsmalloc: use freeobj for index
-
-5. zsmalloc page migration
-  zsmalloc: page migration support
-  zram: use __GFP_MOVABLE for memory allocation
-
-
-
-This patch (of 12):
-
-Procedure of page migration is as follows:
-
-First of all, it should isolate a page from LRU and try to migrate the
-page.  If it is successful, it releases the page for freeing.  Otherwise,
-it should put the page back to LRU list.
-
-For LRU pages, we have used putback_lru_page for both freeing and putback
-to LRU list.  It's okay because put_page is aware of LRU list so if it
-releases last refcount of the page, it removes the page from LRU list. 
-However, It makes unnecessary operations (e.g., lru_cache_add, pagevec and
-flags operations.  It would be not significant but no worth to do) and
-harder to support new non-lru page migration because put_page isn't aware
-of non-lru page's data structure.
-
-To solve the problem, we can add new hook in put_page with PageMovable
-flags check but it can increase overhead in hot path and needs new locking
-scheme to stabilize the flag check with put_page.
-
-So, this patch cleans it up to divide two semantic(ie, put and putback). 
-If migration is successful, use put_page instead of putback_lru_page and
-use putback_lru_page only on failure.  That makes code more readable and
-doesn't add overhead in put_page.
-
-Comment from Vlastimil
-"Yeah, and compaction (perhaps also other migration users) has to drain
-the lru pvec... Getting rid of this stuff is worth even by itself."
-
-Link: http://lkml.kernel.org/r/1464736881-24886-2-git-send-email-minchan@kernel.org
+Link: http://lkml.kernel.org/r/1464736881-24886-5-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   64 ++++++++++++++++++++++++++++++-------------------
- 1 file changed, 40 insertions(+), 24 deletions(-)
+ mm/zsmalloc.c |   32 +++++++++++++++-----------------
+ 1 file changed, 15 insertions(+), 17 deletions(-)
 
-diff -puN mm/migrate.c~mm-use-put_page-to-free-page-instead-of-putback_lru_page mm/migrate.c
---- a/mm/migrate.c~mm-use-put_page-to-free-page-instead-of-putback_lru_page
-+++ a/mm/migrate.c
-@@ -915,6 +915,19 @@ out_unlock:
- 		put_anon_vma(anon_vma);
- 	unlock_page(page);
- out:
-+	/*
-+	 * If migration is successful, decrease refcount of the newpage
-+	 * which will not free the page because new page owner increased
-+	 * refcounter. As well, if it is LRU page, add the page to LRU
-+	 * list in here.
-+	 */
-+	if (rc == MIGRATEPAGE_SUCCESS) {
-+		if (unlikely(__is_movable_balloon_page(newpage)))
-+			put_page(newpage);
-+		else
-+			putback_lru_page(newpage);
-+	}
-+
- 	return rc;
+diff -puN mm/zsmalloc.c~zsmalloc-keep-max_object-in-size_class mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-keep-max_object-in-size_class
++++ a/mm/zsmalloc.c
+@@ -32,8 +32,6 @@
+  *	page->freelist: points to the first free object in zspage.
+  *		Free objects are linked together using in-place
+  *		metadata.
+- *	page->objects: maximum number of objects we can store in this
+- *		zspage (class->zspage_order * PAGE_SIZE / class->size)
+  *	page->lru: links together first pages of various zspages.
+  *		Basically forming list of zspages in a fullness group.
+  *	page->mapping: class index and fullness group of the zspage
+@@ -213,6 +211,7 @@ struct size_class {
+ 	 * of ZS_ALIGN.
+ 	 */
+ 	int size;
++	int objs_per_zspage;
+ 	unsigned int index;
+ 
+ 	struct zs_size_stat stats;
+@@ -631,21 +630,22 @@ static inline void zs_pool_stat_destroy(
+  * the pool (not yet implemented). This function returns fullness
+  * status of the given page.
+  */
+-static enum fullness_group get_fullness_group(struct page *first_page)
++static enum fullness_group get_fullness_group(struct size_class *class,
++						struct page *first_page)
+ {
+-	int inuse, max_objects;
++	int inuse, objs_per_zspage;
+ 	enum fullness_group fg;
+ 
+ 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
+ 
+ 	inuse = first_page->inuse;
+-	max_objects = first_page->objects;
++	objs_per_zspage = class->objs_per_zspage;
+ 
+ 	if (inuse == 0)
+ 		fg = ZS_EMPTY;
+-	else if (inuse == max_objects)
++	else if (inuse == objs_per_zspage)
+ 		fg = ZS_FULL;
+-	else if (inuse <= 3 * max_objects / fullness_threshold_frac)
++	else if (inuse <= 3 * objs_per_zspage / fullness_threshold_frac)
+ 		fg = ZS_ALMOST_EMPTY;
+ 	else
+ 		fg = ZS_ALMOST_FULL;
+@@ -732,7 +732,7 @@ static enum fullness_group fix_fullness_
+ 	enum fullness_group currfg, newfg;
+ 
+ 	get_zspage_mapping(first_page, &class_idx, &currfg);
+-	newfg = get_fullness_group(first_page);
++	newfg = get_fullness_group(class, first_page);
+ 	if (newfg == currfg)
+ 		goto out;
+ 
+@@ -1012,9 +1012,6 @@ static struct page *alloc_zspage(struct
+ 	init_zspage(class, first_page);
+ 
+ 	first_page->freelist = location_to_obj(first_page, 0);
+-	/* Maximum number of objects we can store in this zspage */
+-	first_page->objects = class->pages_per_zspage * PAGE_SIZE / class->size;
+-
+ 	error = 0; /* Success */
+ 
+ cleanup:
+@@ -1242,11 +1239,11 @@ static bool can_merge(struct size_class
+ 	return true;
  }
  
-@@ -948,6 +961,12 @@ static ICE_noinline int unmap_and_move(n
+-static bool zspage_full(struct page *first_page)
++static bool zspage_full(struct size_class *class, struct page *first_page)
+ {
+ 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
  
- 	if (page_count(page) == 1) {
- 		/* page was freed from under us. So we are done. */
-+		ClearPageActive(page);
-+		ClearPageUnevictable(page);
-+		if (put_new_page)
-+			put_new_page(newpage, private);
-+		else
-+			put_page(newpage);
- 		goto out;
- 	}
+-	return first_page->inuse == first_page->objects;
++	return first_page->inuse == class->objs_per_zspage;
+ }
  
-@@ -960,10 +979,8 @@ static ICE_noinline int unmap_and_move(n
- 	}
+ unsigned long zs_get_total_pages(struct zs_pool *pool)
+@@ -1632,7 +1629,7 @@ static int migrate_zspage(struct zs_pool
+ 		}
  
- 	rc = __unmap_and_move(page, newpage, force, mode);
--	if (rc == MIGRATEPAGE_SUCCESS) {
--		put_new_page = NULL;
-+	if (rc == MIGRATEPAGE_SUCCESS)
- 		set_page_owner_migrate_reason(newpage, reason);
--	}
+ 		/* Stop if there is no more space */
+-		if (zspage_full(d_page)) {
++		if (zspage_full(class, d_page)) {
+ 			unpin_tag(handle);
+ 			ret = -ENOMEM;
+ 			break;
+@@ -1691,7 +1688,7 @@ static enum fullness_group putback_zspag
+ {
+ 	enum fullness_group fullness;
  
- out:
- 	if (rc != -EAGAIN) {
-@@ -976,34 +993,33 @@ out:
- 		list_del(&page->lru);
- 		dec_zone_page_state(page, NR_ISOLATED_ANON +
- 				page_is_file_cache(page));
--		/* Soft-offlined page shouldn't go through lru cache list */
--		if (reason == MR_MEMORY_FAILURE && rc == MIGRATEPAGE_SUCCESS) {
-+	}
-+
-+	/*
-+	 * If migration is successful, releases reference grabbed during
-+	 * isolation. Otherwise, restore the page to right list unless
-+	 * we want to retry.
-+	 */
-+	if (rc == MIGRATEPAGE_SUCCESS) {
-+		put_page(page);
-+		if (reason == MR_MEMORY_FAILURE) {
- 			/*
--			 * With this release, we free successfully migrated
--			 * page and set PG_HWPoison on just freed page
--			 * intentionally. Although it's rather weird, it's how
--			 * HWPoison flag works at the moment.
-+			 * Set PG_HWPoison on just freed page
-+			 * intentionally. Although it's rather weird,
-+			 * it's how HWPoison flag works at the moment.
- 			 */
--			put_page(page);
- 			if (!test_set_page_hwpoison(page))
- 				num_poisoned_pages_inc();
--		} else
-+		}
-+	} else {
-+		if (rc != -EAGAIN)
- 			putback_lru_page(page);
-+		if (put_new_page)
-+			put_new_page(newpage, private);
-+		else
-+			put_page(newpage);
- 	}
+-	fullness = get_fullness_group(first_page);
++	fullness = get_fullness_group(class, first_page);
+ 	insert_zspage(class, fullness, first_page);
+ 	set_zspage_mapping(first_page, class->index, fullness);
  
--	/*
--	 * If migration was not successful and there's a freeing callback, use
--	 * it.  Otherwise, putback_lru_page() will drop the reference grabbed
--	 * during isolation.
--	 */
--	if (put_new_page)
--		put_new_page(newpage, private);
--	else if (unlikely(__is_movable_balloon_page(newpage))) {
--		/* drop our reference, page already in the balloon */
--		put_page(newpage);
--	} else
--		putback_lru_page(newpage);
+@@ -1943,8 +1940,9 @@ struct zs_pool *zs_create_pool(const cha
+ 		class->size = size;
+ 		class->index = i;
+ 		class->pages_per_zspage = pages_per_zspage;
+-		if (pages_per_zspage == 1 &&
+-			get_maxobj_per_zspage(size, pages_per_zspage) == 1)
++		class->objs_per_zspage = class->pages_per_zspage *
++						PAGE_SIZE / class->size;
++		if (pages_per_zspage == 1 && class->objs_per_zspage == 1)
+ 			class->huge = true;
+ 		spin_lock_init(&class->lock);
+ 		pool->size_class[i] = class;
+_
+
+Patches currently in -mm which might be from minchan@kernel.org are
+
+mm-page_alloc-fix-dirtyable-highmem-calculation.patch
+mm-show-node_pages_scanned-per-node-not-zone.patch
+mm-show-node_pages_scanned-per-node-not-zone-fix.patch
+mm-add-per-zone-lru-list-stat.patch
+mm-bail-out-in-shrin_inactive_list.patch
+
