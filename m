@@ -1,67 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-bloat-o-meter-fix-percent-on-1%-changes.patch
+Subject: [merged] debugobjectsh-fix-trivial-kernel-doc-warning.patch
  removed from -mm tree
-Date: Wed, 27 Jul 2016 11:58:44 -0700
-Message-ID: <57990464.ekaw1zT0WKnYr/xK%akpm@linux-foundation.org>
+Date: Wed, 27 Jul 2016 11:58:50 -0700
+Message-ID: <5799046a.W8dYvApCkyaBSjav%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39906 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39912 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932328AbcG0S6p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 14:58:45 -0400
+	with ESMTP id S932328AbcG0S6v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 14:58:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riku.voipio@linaro.org, josh@joshtriplett.org, mmarek@suse.cz, vgupta@synopsys.com, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/bloat-o-meter: fix percent on <1% changes
+     Subject: debugobjects.h: fix trivial kernel doc warning
 has been removed from the -mm tree.  Its filename was
-     scripts-bloat-o-meter-fix-percent-on-1%-changes.patch
+     debugobjectsh-fix-trivial-kernel-doc-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Riku Voipio <riku.voipio@linaro.org>
-Subject: scripts/bloat-o-meter: fix percent on <1% changes
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: debugobjects.h: fix trivial kernel doc warning
 
-Python divisions are integer divisions unless at least one parameter is a
-float.  The current bloat-o-meter fails to print sub-percentage changes:
+Add ':' to fix trivial kernel-doc warning in <linux/debugobjects.h>:
 
-Total: Before=10515408, After=10604060, chg 0.000000%
+..//include/linux/debugobjects.h:63: warning: No description found for parameter 'is_static_object'
 
-Force float division by using one float and pretty the print to
-two significant decimals:
-
-Total: Before=10515408, After=10604060, chg +0.84%
-
-Link: http://lkml.kernel.org/r/1465980311-23814-1-git-send-email-riku.voipio@linaro.org
-Signed-off-by: Riku Voipio <riku.voipio@linaro.org>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Michal Marek <mmarek@suse.cz>
+Link: http://lkml.kernel.org/r/575B01B8.5060600@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/debugobjects.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-fix-percent-on-1%-changes scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-fix-percent-on-1%-changes
-+++ a/scripts/bloat-o-meter
-@@ -67,5 +67,5 @@ print("%-40s %7s %7s %+7s" % ("function"
- for d, n in delta:
-     if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
- 
--print("Total: Before=%d, After=%d, chg %f%%" % \
--    (otot, ntot, (ntot - otot)*100/otot))
-+print("Total: Before=%d, After=%d, chg %+.2f%%" % \
-+    (otot, ntot, (ntot - otot)*100.0/otot))
+diff -puN include/linux/debugobjects.h~debugobjectsh-fix-trivial-kernel-doc-warning include/linux/debugobjects.h
+--- a/include/linux/debugobjects.h~debugobjectsh-fix-trivial-kernel-doc-warning
++++ a/include/linux/debugobjects.h
+@@ -38,7 +38,7 @@ struct debug_obj {
+  * @name:		name of the object typee
+  * @debug_hint:		function returning address, which have associated
+  *			kernel symbol, to allow identify the object
+- * @is_static_object	return true if the obj is static, otherwise return false
++ * @is_static_object:	return true if the obj is static, otherwise return false
+  * @fixup_init:		fixup function, which is called when the init check
+  *			fails. All fixup functions must return true if fixup
+  *			was successful, otherwise return false
 _
 
-Patches currently in -mm which might be from riku.voipio@linaro.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 
