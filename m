@@ -1,405 +1,323 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcontrol-cleanup-kmem-charge-functions.patch
- removed from -mm tree
-Date: Wed, 27 Jul 2016 12:01:21 -0700
-Message-ID: <57990501./y5SP6yR7Ynyl5Zv%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change.patch removed from -mm tree
+Date: Wed, 27 Jul 2016 12:01:14 -0700
+Message-ID: <579904fa.6ROroNdP93lh+KqK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40388 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757190AbcG0TBW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:01:22 -0400
+	with ESMTP id S1757190AbcG0TBP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:01:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, eric.dumazet@gmail.com, hannes@cmpxchg.org, mhocko@kernel.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, benh@kernel.crashing.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, minchan.kim@gmail.com, mpe@ellerman.id.au, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: cleanup kmem charge functions
+     Subject: mm/mmu_gather: track page size with mmu gather and force flush if page size change
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-cleanup-kmem-charge-functions.patch
+     mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: memcontrol: cleanup kmem charge functions
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/mmu_gather: track page size with mmu gather and force flush if page size change
 
- - Handle memcg_kmem_enabled check out to the caller. This reduces the
-   number of function definitions making the code easier to follow. At
-   the same time it doesn't result in code bloat, because all of these
-   functions are used only in one or two places.
- - Move __GFP_ACCOUNT check to the caller as well so that one wouldn't
-   have to dive deep into memcg implementation to see which allocations
-   are charged and which are not.
- - Refresh comments.
+This allows an arch which needs to do special handing with respect to
+different page size when flushing tlb to implement the same in mmu gather.
 
-Link: http://lkml.kernel.org/r/52882a28b542c1979fd9a033b4dc8637fc347399.1464079537.git.vdavydov@virtuozzo.com
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Link: http://lkml.kernel.org/r/1465049193-22197-3-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |  103 ++---------------------------------
- mm/memcontrol.c            |   75 ++++++++++++++++++-------
- mm/page_alloc.c            |    9 ++-
- mm/slab.h                  |   16 ++++-
- 4 files changed, 80 insertions(+), 123 deletions(-)
+ arch/arm/include/asm/tlb.h  |   12 ++++++++++++
+ arch/ia64/include/asm/tlb.h |   12 ++++++++++++
+ arch/s390/include/asm/tlb.h |   13 +++++++++++++
+ arch/sh/include/asm/tlb.h   |   12 ++++++++++++
+ arch/um/include/asm/tlb.h   |   12 ++++++++++++
+ include/asm-generic/tlb.h   |   27 +++++++++++++++++++++------
+ mm/huge_memory.c            |    2 +-
+ mm/hugetlb.c                |    2 +-
+ mm/memory.c                 |   10 +++++++++-
+ 9 files changed, 93 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-cleanup-kmem-charge-functions include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-cleanup-kmem-charge-functions
-+++ a/include/linux/memcontrol.h
-@@ -749,6 +749,13 @@ static inline bool mem_cgroup_under_sock
- }
- #endif
- 
-+struct kmem_cache *memcg_kmem_get_cache(struct kmem_cache *cachep);
-+void memcg_kmem_put_cache(struct kmem_cache *cachep);
-+int memcg_kmem_charge_memcg(struct page *page, gfp_t gfp, int order,
-+			    struct mem_cgroup *memcg);
-+int memcg_kmem_charge(struct page *page, gfp_t gfp, int order);
-+void memcg_kmem_uncharge(struct page *page, int order);
-+
- #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
- extern struct static_key_false memcg_kmem_enabled_key;
- 
-@@ -770,22 +777,6 @@ static inline bool memcg_kmem_enabled(vo
+diff -puN arch/arm/include/asm/tlb.h~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change arch/arm/include/asm/tlb.h
+--- a/arch/arm/include/asm/tlb.h~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change
++++ a/arch/arm/include/asm/tlb.h
+@@ -225,12 +225,24 @@ static inline void tlb_remove_page(struc
+ 	}
  }
  
- /*
-- * In general, we'll do everything in our power to not incur in any overhead
-- * for non-memcg users for the kmem functions. Not even a function call, if we
-- * can avoid it.
-- *
-- * Therefore, we'll inline all those functions so that in the best case, we'll
-- * see that kmemcg is off for everybody and proceed quickly.  If it is on,
-- * we'll still do most of the flag checking inline. We check a lot of
-- * conditions, but because they are pretty simple, they are expected to be
-- * fast.
-- */
--int __memcg_kmem_charge_memcg(struct page *page, gfp_t gfp, int order,
--			      struct mem_cgroup *memcg);
--int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order);
--void __memcg_kmem_uncharge(struct page *page, int order);
--
--/*
-  * helper for accessing a memcg's index. It will be used as an index in the
-  * child cache array in kmem_cache, and also to derive its name. This function
-  * will return -1 when this is not a kmem-limited memcg.
-@@ -795,67 +786,6 @@ static inline int memcg_cache_id(struct
- 	return memcg ? memcg->kmemcg_id : -1;
- }
- 
--struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp);
--void __memcg_kmem_put_cache(struct kmem_cache *cachep);
--
--static inline bool __memcg_kmem_bypass(void)
--{
--	if (!memcg_kmem_enabled())
--		return true;
--	if (in_interrupt() || (!current->mm) || (current->flags & PF_KTHREAD))
--		return true;
--	return false;
--}
--
--/**
-- * memcg_kmem_charge: charge a kmem page
-- * @page: page to charge
-- * @gfp: reclaim mode
-- * @order: allocation order
-- *
-- * Returns 0 on success, an error code on failure.
-- */
--static __always_inline int memcg_kmem_charge(struct page *page,
--					     gfp_t gfp, int order)
--{
--	if (__memcg_kmem_bypass())
--		return 0;
--	if (!(gfp & __GFP_ACCOUNT))
--		return 0;
--	return __memcg_kmem_charge(page, gfp, order);
--}
--
--/**
-- * memcg_kmem_uncharge: uncharge a kmem page
-- * @page: page to uncharge
-- * @order: allocation order
-- */
--static __always_inline void memcg_kmem_uncharge(struct page *page, int order)
--{
--	if (memcg_kmem_enabled())
--		__memcg_kmem_uncharge(page, order);
--}
--
--/**
-- * memcg_kmem_get_cache: selects the correct per-memcg cache for allocation
-- * @cachep: the original global kmem cache
-- *
-- * All memory allocated from a per-memcg cache is charged to the owner memcg.
-- */
--static __always_inline struct kmem_cache *
--memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp)
--{
--	if (__memcg_kmem_bypass())
--		return cachep;
--	return __memcg_kmem_get_cache(cachep, gfp);
--}
--
--static __always_inline void memcg_kmem_put_cache(struct kmem_cache *cachep)
--{
--	if (memcg_kmem_enabled())
--		__memcg_kmem_put_cache(cachep);
--}
--
- /**
-  * memcg_kmem_update_page_stat - update kmem page state statistics
-  * @page: the page
-@@ -878,15 +808,6 @@ static inline bool memcg_kmem_enabled(vo
- 	return false;
- }
- 
--static inline int memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
--{
--	return 0;
--}
--
--static inline void memcg_kmem_uncharge(struct page *page, int order)
--{
--}
--
- static inline int memcg_cache_id(struct mem_cgroup *memcg)
- {
- 	return -1;
-@@ -900,16 +821,6 @@ static inline void memcg_put_cache_ids(v
- {
- }
- 
--static inline struct kmem_cache *
--memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp)
--{
--	return cachep;
--}
--
--static inline void memcg_kmem_put_cache(struct kmem_cache *cachep)
--{
--}
--
- static inline void memcg_kmem_update_page_stat(struct page *page,
- 				enum mem_cgroup_stat_index idx, int val)
- {
-diff -puN mm/memcontrol.c~mm-memcontrol-cleanup-kmem-charge-functions mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-cleanup-kmem-charge-functions
-+++ a/mm/memcontrol.c
-@@ -2273,20 +2273,30 @@ static void memcg_schedule_kmem_cache_cr
- 	current->memcg_kmem_skip_account = 0;
- }
- 
--/*
-+static inline bool memcg_kmem_bypass(void)
++static inline bool __tlb_remove_page_size(struct mmu_gather *tlb,
++					  struct page *page, int page_size)
 +{
-+	if (in_interrupt() || !current->mm || (current->flags & PF_KTHREAD))
-+		return true;
-+	return false;
++	return __tlb_remove_page(tlb, page);
 +}
 +
-+/**
-+ * memcg_kmem_get_cache: select the correct per-memcg cache for allocation
-+ * @cachep: the original global kmem cache
-+ *
-  * Return the kmem_cache we're supposed to use for a slab allocation.
-  * We try to use the current memcg's version of the cache.
+ static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
+ 					 struct page *page)
+ {
+ 	return __tlb_remove_page(tlb, page);
+ }
+ 
++static inline void tlb_remove_page_size(struct mmu_gather *tlb,
++					struct page *page, int page_size)
++{
++	return tlb_remove_page(tlb, page);
++}
++
+ static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t pte,
+ 	unsigned long addr)
+ {
+diff -puN arch/ia64/include/asm/tlb.h~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change arch/ia64/include/asm/tlb.h
+--- a/arch/ia64/include/asm/tlb.h~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change
++++ a/arch/ia64/include/asm/tlb.h
+@@ -242,12 +242,24 @@ static inline void tlb_remove_page(struc
+ 	}
+ }
+ 
++static inline bool __tlb_remove_page_size(struct mmu_gather *tlb,
++					  struct page *page, int page_size)
++{
++	return __tlb_remove_page(tlb, page);
++}
++
+ static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
+ 					 struct page *page)
+ {
+ 	return __tlb_remove_page(tlb, page);
+ }
+ 
++static inline void tlb_remove_page_size(struct mmu_gather *tlb,
++					struct page *page, int page_size)
++{
++	return tlb_remove_page(tlb, page);
++}
++
+ /*
+  * Remove TLB entry for PTE mapped at virtual address ADDRESS.  This is called for any
+  * PTE, not just those pointing to (normal) physical memory.
+diff -puN arch/s390/include/asm/tlb.h~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change arch/s390/include/asm/tlb.h
+--- a/arch/s390/include/asm/tlb.h~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change
++++ a/arch/s390/include/asm/tlb.h
+@@ -98,11 +98,24 @@ static inline void tlb_remove_page(struc
+ 	free_page_and_swap_cache(page);
+ }
+ 
++static inline bool __tlb_remove_page_size(struct mmu_gather *tlb,
++					  struct page *page, int page_size)
++{
++	return __tlb_remove_page(tlb, page);
++}
++
+ static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
+ 					 struct page *page)
+ {
+ 	return __tlb_remove_page(tlb, page);
+ }
++
++static inline void tlb_remove_page_size(struct mmu_gather *tlb,
++					struct page *page, int page_size)
++{
++	return tlb_remove_page(tlb, page);
++}
++
+ /*
+  * pte_free_tlb frees a pte table and clears the CRSTE for the
+  * page table from the tlb.
+diff -puN arch/sh/include/asm/tlb.h~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change arch/sh/include/asm/tlb.h
+--- a/arch/sh/include/asm/tlb.h~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change
++++ a/arch/sh/include/asm/tlb.h
+@@ -109,12 +109,24 @@ static inline void tlb_remove_page(struc
+ 	__tlb_remove_page(tlb, page);
+ }
+ 
++static inline bool __tlb_remove_page_size(struct mmu_gather *tlb,
++					  struct page *page, int page_size)
++{
++	return __tlb_remove_page(tlb, page);
++}
++
+ static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
+ 					 struct page *page)
+ {
+ 	return __tlb_remove_page(tlb, page);
+ }
+ 
++static inline void tlb_remove_page_size(struct mmu_gather *tlb,
++					struct page *page, int page_size)
++{
++	return tlb_remove_page(tlb, page);
++}
++
+ #define pte_free_tlb(tlb, ptep, addr)	pte_free((tlb)->mm, ptep)
+ #define pmd_free_tlb(tlb, pmdp, addr)	pmd_free((tlb)->mm, pmdp)
+ #define pud_free_tlb(tlb, pudp, addr)	pud_free((tlb)->mm, pudp)
+diff -puN arch/um/include/asm/tlb.h~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change arch/um/include/asm/tlb.h
+--- a/arch/um/include/asm/tlb.h~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change
++++ a/arch/um/include/asm/tlb.h
+@@ -110,12 +110,24 @@ static inline void tlb_remove_page(struc
+ 	__tlb_remove_page(tlb, page);
+ }
+ 
++static inline bool __tlb_remove_page_size(struct mmu_gather *tlb,
++					  struct page *page, int page_size)
++{
++	return __tlb_remove_page(tlb, page);
++}
++
+ static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb,
+ 					 struct page *page)
+ {
+ 	return __tlb_remove_page(tlb, page);
+ }
+ 
++static inline void tlb_remove_page_size(struct mmu_gather *tlb,
++					struct page *page, int page_size)
++{
++	return tlb_remove_page(tlb, page);
++}
++
+ /**
+  * tlb_remove_tlb_entry - remember a pte unmapping for later tlb invalidation.
   *
-- * If the cache does not exist yet, if we are the first user of it,
-- * we either create it immediately, if possible, or create it asynchronously
-- * in a workqueue.
-- * In the latter case, we will let the current allocation go through with
-- * the original cache.
-+ * If the cache does not exist yet, if we are the first user of it, we
-+ * create it asynchronously in a workqueue and let the current allocation
-+ * go through with the original cache.
-  *
-- * Can't be called in interrupt context or from kernel threads.
-- * This function needs to be called with rcu_read_lock() held.
-+ * This function takes a reference to the cache it returns to assure it
-+ * won't get destroyed while we are working with it. Once the caller is
-+ * done with it, memcg_kmem_put_cache() must be called to release the
-+ * reference.
+diff -puN include/asm-generic/tlb.h~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change include/asm-generic/tlb.h
+--- a/include/asm-generic/tlb.h~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change
++++ a/include/asm-generic/tlb.h
+@@ -112,6 +112,7 @@ struct mmu_gather {
+ 	 * that that we can adjust the range after the flush
+ 	 */
+ 	unsigned long addr;
++	int page_size;
+ };
+ 
+ #define HAVE_GENERIC_MMU_GATHER
+@@ -120,7 +121,8 @@ void tlb_gather_mmu(struct mmu_gather *t
+ void tlb_flush_mmu(struct mmu_gather *tlb);
+ void tlb_finish_mmu(struct mmu_gather *tlb, unsigned long start,
+ 							unsigned long end);
+-bool __tlb_remove_page(struct mmu_gather *tlb, struct page *page);
++extern bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page,
++				   int page_size);
+ 
+ static inline void __tlb_adjust_range(struct mmu_gather *tlb,
+ 				      unsigned long address)
+@@ -145,23 +147,36 @@ static inline void __tlb_reset_range(str
+ 	}
+ }
+ 
++static inline void tlb_remove_page_size(struct mmu_gather *tlb,
++					struct page *page, int page_size)
++{
++	if (__tlb_remove_page_size(tlb, page, page_size)) {
++		tlb_flush_mmu(tlb);
++		tlb->page_size = page_size;
++		__tlb_adjust_range(tlb, tlb->addr);
++		__tlb_remove_page_size(tlb, page, page_size);
++	}
++}
++
++static bool __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
++{
++	return __tlb_remove_page_size(tlb, page, PAGE_SIZE);
++}
++
+ /* tlb_remove_page
+  *	Similar to __tlb_remove_page but will call tlb_flush_mmu() itself when
+  *	required.
   */
--struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp)
-+struct kmem_cache *memcg_kmem_get_cache(struct kmem_cache *cachep)
+ static inline void tlb_remove_page(struct mmu_gather *tlb, struct page *page)
  {
- 	struct mem_cgroup *memcg;
- 	struct kmem_cache *memcg_cachep;
-@@ -2294,10 +2304,7 @@ struct kmem_cache *__memcg_kmem_get_cach
- 
- 	VM_BUG_ON(!is_root_cache(cachep));
- 
--	if (cachep->flags & SLAB_ACCOUNT)
--		gfp |= __GFP_ACCOUNT;
--
--	if (!(gfp & __GFP_ACCOUNT))
-+	if (memcg_kmem_bypass())
- 		return cachep;
- 
- 	if (current->memcg_kmem_skip_account)
-@@ -2330,14 +2337,27 @@ out:
- 	return cachep;
+-	if (__tlb_remove_page(tlb, page)) {
+-		tlb_flush_mmu(tlb);
+-		__tlb_adjust_range(tlb, tlb->addr);
+-		__tlb_remove_page(tlb, page);
+-	}
++	return tlb_remove_page_size(tlb, page, PAGE_SIZE);
  }
  
--void __memcg_kmem_put_cache(struct kmem_cache *cachep)
-+/**
-+ * memcg_kmem_put_cache: drop reference taken by memcg_kmem_get_cache
-+ * @cachep: the cache returned by memcg_kmem_get_cache
-+ */
-+void memcg_kmem_put_cache(struct kmem_cache *cachep)
+ static inline bool __tlb_remove_pte_page(struct mmu_gather *tlb, struct page *page)
  {
- 	if (!is_root_cache(cachep))
- 		css_put(&cachep->memcg_params.memcg->css);
+ 	/* active->nr should be zero when we call this */
+ 	VM_BUG_ON_PAGE(tlb->active->nr, page);
++	tlb->page_size = PAGE_SIZE;
+ 	__tlb_adjust_range(tlb, tlb->addr);
+ 	return __tlb_remove_page(tlb, page);
  }
- 
--int __memcg_kmem_charge_memcg(struct page *page, gfp_t gfp, int order,
--			      struct mem_cgroup *memcg)
-+/**
-+ * memcg_kmem_charge: charge a kmem page
-+ * @page: page to charge
-+ * @gfp: reclaim mode
-+ * @order: allocation order
-+ * @memcg: memory cgroup to charge
-+ *
-+ * Returns 0 on success, an error code on failure.
-+ */
-+int memcg_kmem_charge_memcg(struct page *page, gfp_t gfp, int order,
-+			    struct mem_cgroup *memcg)
- {
- 	unsigned int nr_pages = 1 << order;
- 	struct page_counter *counter;
-@@ -2358,19 +2378,34 @@ int __memcg_kmem_charge_memcg(struct pag
- 	return 0;
- }
- 
--int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
-+/**
-+ * memcg_kmem_charge: charge a kmem page to the current memory cgroup
-+ * @page: page to charge
-+ * @gfp: reclaim mode
-+ * @order: allocation order
-+ *
-+ * Returns 0 on success, an error code on failure.
-+ */
-+int memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
- {
- 	struct mem_cgroup *memcg;
- 	int ret = 0;
- 
-+	if (memcg_kmem_bypass())
-+		return 0;
-+
- 	memcg = get_mem_cgroup_from_mm(current->mm);
- 	if (!mem_cgroup_is_root(memcg))
--		ret = __memcg_kmem_charge_memcg(page, gfp, order, memcg);
-+		ret = memcg_kmem_charge_memcg(page, gfp, order, memcg);
- 	css_put(&memcg->css);
- 	return ret;
- }
--
--void __memcg_kmem_uncharge(struct page *page, int order)
-+/**
-+ * memcg_kmem_uncharge: uncharge a kmem page
-+ * @page: page to uncharge
-+ * @order: allocation order
-+ */
-+void memcg_kmem_uncharge(struct page *page, int order)
- {
- 	struct mem_cgroup *memcg = page->mem_cgroup;
- 	unsigned int nr_pages = 1 << order;
-diff -puN mm/page_alloc.c~mm-memcontrol-cleanup-kmem-charge-functions mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memcontrol-cleanup-kmem-charge-functions
-+++ a/mm/page_alloc.c
-@@ -4009,7 +4009,8 @@ struct page *alloc_kmem_pages(gfp_t gfp_
- 	struct page *page;
- 
- 	page = alloc_pages(gfp_mask, order);
--	if (page && memcg_kmem_charge(page, gfp_mask, order) != 0) {
-+	if (memcg_kmem_enabled() && (gfp_mask & __GFP_ACCOUNT) &&
-+	    page && memcg_kmem_charge(page, gfp_mask, order) != 0) {
- 		__free_pages(page, order);
- 		page = NULL;
+diff -puN mm/huge_memory.c~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change
++++ a/mm/huge_memory.c
+@@ -1689,7 +1689,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 		pte_free(tlb->mm, pgtable_trans_huge_withdraw(tlb->mm, pmd));
+ 		atomic_long_dec(&tlb->mm->nr_ptes);
+ 		spin_unlock(ptl);
+-		tlb_remove_page(tlb, page);
++		tlb_remove_page_size(tlb, page, HPAGE_PMD_SIZE);
  	}
-@@ -4021,7 +4022,8 @@ struct page *alloc_kmem_pages_node(int n
- 	struct page *page;
+ 	return 1;
+ }
+diff -puN mm/hugetlb.c~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change
++++ a/mm/hugetlb.c
+@@ -3250,7 +3250,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 		page_remove_rmap(page, true);
  
- 	page = alloc_pages_node(nid, gfp_mask, order);
--	if (page && memcg_kmem_charge(page, gfp_mask, order) != 0) {
-+	if (memcg_kmem_enabled() && (gfp_mask & __GFP_ACCOUNT) &&
-+	    page && memcg_kmem_charge(page, gfp_mask, order) != 0) {
- 		__free_pages(page, order);
- 		page = NULL;
- 	}
-@@ -4034,7 +4036,8 @@ struct page *alloc_kmem_pages_node(int n
+ 		spin_unlock(ptl);
+-		tlb_remove_page(tlb, page);
++		tlb_remove_page_size(tlb, page, huge_page_size(h));
+ 		/*
+ 		 * Bail out after unmapping reference page if supplied
+ 		 */
+diff -puN mm/memory.c~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change mm/memory.c
+--- a/mm/memory.c~mm-mmu_gather-track-page-size-with-mmu-gather-and-force-flush-if-page-size-change
++++ a/mm/memory.c
+@@ -233,6 +233,7 @@ void tlb_gather_mmu(struct mmu_gather *t
+ #ifdef CONFIG_HAVE_RCU_TABLE_FREE
+ 	tlb->batch = NULL;
+ #endif
++	tlb->page_size = 0;
+ 
+ 	__tlb_reset_range(tlb);
+ }
+@@ -294,12 +295,19 @@ void tlb_finish_mmu(struct mmu_gather *t
+  *	When out of page slots we must call tlb_flush_mmu().
+  *returns true if the caller should flush.
   */
- void __free_kmem_pages(struct page *page, unsigned int order)
+-bool __tlb_remove_page(struct mmu_gather *tlb, struct page *page)
++bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page, int page_size)
  {
--	memcg_kmem_uncharge(page, order);
-+	if (memcg_kmem_enabled())
-+		memcg_kmem_uncharge(page, order);
- 	__free_pages(page, order);
- }
+ 	struct mmu_gather_batch *batch;
  
-diff -puN mm/slab.h~mm-memcontrol-cleanup-kmem-charge-functions mm/slab.h
---- a/mm/slab.h~mm-memcontrol-cleanup-kmem-charge-functions
-+++ a/mm/slab.h
-@@ -254,8 +254,7 @@ static __always_inline int memcg_charge_
- 	if (is_root_cache(s))
- 		return 0;
+ 	VM_BUG_ON(!tlb->end);
  
--	ret = __memcg_kmem_charge_memcg(page, gfp, order,
--					s->memcg_params.memcg);
-+	ret = memcg_kmem_charge_memcg(page, gfp, order, s->memcg_params.memcg);
- 	if (ret)
- 		return ret;
- 
-@@ -269,6 +268,9 @@ static __always_inline int memcg_charge_
- static __always_inline void memcg_uncharge_slab(struct page *page, int order,
- 						struct kmem_cache *s)
- {
-+	if (!memcg_kmem_enabled())
-+		return;
++	if (!tlb->page_size)
++		tlb->page_size = page_size;
++	else {
++		if (page_size != tlb->page_size)
++			return true;
++	}
 +
- 	memcg_kmem_update_page_stat(page,
- 			(s->flags & SLAB_RECLAIM_ACCOUNT) ?
- 			MEMCG_SLAB_RECLAIMABLE : MEMCG_SLAB_UNRECLAIMABLE,
-@@ -391,7 +393,11 @@ static inline struct kmem_cache *slab_pr
- 	if (should_failslab(s, flags))
- 		return NULL;
- 
--	return memcg_kmem_get_cache(s, flags);
-+	if (memcg_kmem_enabled() &&
-+	    ((flags & __GFP_ACCOUNT) || (s->flags & SLAB_ACCOUNT)))
-+		return memcg_kmem_get_cache(s);
-+
-+	return s;
- }
- 
- static inline void slab_post_alloc_hook(struct kmem_cache *s, gfp_t flags,
-@@ -408,7 +414,9 @@ static inline void slab_post_alloc_hook(
- 					 s->flags, flags);
- 		kasan_slab_alloc(s, object, flags);
- 	}
--	memcg_kmem_put_cache(s);
-+
-+	if (memcg_kmem_enabled())
-+		memcg_kmem_put_cache(s);
- }
- 
- #ifndef CONFIG_SLOB
+ 	batch = tlb->active;
+ 	if (batch->nr == batch->max) {
+ 		if (!tlb_next_batch(tlb))
 _
 
-Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 
