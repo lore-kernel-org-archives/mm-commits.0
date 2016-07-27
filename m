@@ -1,192 +1,304 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
- removed from -mm tree
-Date: Wed, 27 Jul 2016 12:02:38 -0700
-Message-ID: <5799054e.8tGQPeuOxPhmAWjc%akpm@linux-foundation.org>
+Subject: [merged] shmem-get_unmapped_area-align-huge-page.patch removed
+ from -mm tree
+Date: Wed, 27 Jul 2016 12:02:54 -0700
+Message-ID: <5799055e.OaAYcL3oTmp0e6Qa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40709 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40725 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757955AbcG0TCj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:02:39 -0400
+	with ESMTP id S932311AbcG0TCz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:02:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp, mlock: do not mlock PTE-mapped file huge pages
+     Subject: shmem: get_unmapped_area align huge page
 has been removed from the -mm tree.  Its filename was
-     thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
+     shmem-get_unmapped_area-align-huge-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp, mlock: do not mlock PTE-mapped file huge pages
+From: Hugh Dickins <hughd@google.com>
+Subject: shmem: get_unmapped_area align huge page
 
-As with anon THP, we only mlock file huge pages if we can prove that the
-page is not mapped with PTE. This way we can avoid mlock leak into
-non-mlocked vma on split.
+Provide a shmem_get_unmapped_area method in file_operations, called
+at mmap time to decide the mapping address.  It could be conditional
+on CONFIG_TRANSPARENT_HUGEPAGE, but save #ifdefs in other places by
+making it unconditional.
 
-We rely on PageDoubleMap() under lock_page() to check if the the page
-may be PTE mapped. PG_double_map is set by page_add_file_rmap() when the
-page mapped with PTEs.
+shmem_get_unmapped_area() first calls the usual mm->get_unmapped_area
+(which we treat as a black box, highly dependent on architecture and
+config and executable layout).  Lots of conditions, and in most cases
+it just goes with the address that chose; but when our huge stars are
+rightly aligned, yet that did not provide a suitable address, go back
+to ask for a larger arena, within which to align the mapping suitably.
 
-Link: http://lkml.kernel.org/r/1466021202-61880-21-git-send-email-kirill.shutemov@linux.intel.com
+There have to be some direct calls to shmem_get_unmapped_area(),
+not via the file_operations: because of the way shmem_zero_setup()
+is called to create a shmem object late in the mmap sequence, when
+MAP_SHARED is requested with MAP_ANONYMOUS or /dev/zero.  Though
+this only matters when /proc/sys/vm/shmem_huge has been set.
+
+Link: http://lkml.kernel.org/r/1466021202-61880-29-git-send-email-kirill.shutemov@linux.intel.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   13 ++++++++++++-
- mm/huge_memory.c           |   27 ++++++++++++++++++++-------
- mm/mmap.c                  |    6 ++++++
- mm/page_alloc.c            |    2 ++
- mm/rmap.c                  |   16 ++++++++++++++--
- 5 files changed, 54 insertions(+), 10 deletions(-)
+ drivers/char/mem.c       |   24 +++++++++
+ include/linux/shmem_fs.h |    2 
+ ipc/shm.c                |    6 +-
+ mm/mmap.c                |   16 +++++-
+ mm/shmem.c               |   98 +++++++++++++++++++++++++++++++++++++
+ 5 files changed, 142 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/page-flags.h~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages include/linux/page-flags.h
---- a/include/linux/page-flags.h~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
-+++ a/include/linux/page-flags.h
-@@ -581,6 +581,17 @@ static inline int PageDoubleMap(struct p
- 	return PageHead(page) && test_bit(PG_double_map, &page[1].flags);
+diff -puN drivers/char/mem.c~shmem-get_unmapped_area-align-huge-page drivers/char/mem.c
+--- a/drivers/char/mem.c~shmem-get_unmapped_area-align-huge-page
++++ a/drivers/char/mem.c
+@@ -22,6 +22,7 @@
+ #include <linux/device.h>
+ #include <linux/highmem.h>
+ #include <linux/backing-dev.h>
++#include <linux/shmem_fs.h>
+ #include <linux/splice.h>
+ #include <linux/pfn.h>
+ #include <linux/export.h>
+@@ -657,6 +658,28 @@ static int mmap_zero(struct file *file,
+ 	return 0;
  }
  
-+static inline void SetPageDoubleMap(struct page *page)
++static unsigned long get_unmapped_area_zero(struct file *file,
++				unsigned long addr, unsigned long len,
++				unsigned long pgoff, unsigned long flags)
 +{
-+	VM_BUG_ON_PAGE(!PageHead(page), page);
-+	set_bit(PG_double_map, &page[1].flags);
++#ifdef CONFIG_MMU
++	if (flags & MAP_SHARED) {
++		/*
++		 * mmap_zero() will call shmem_zero_setup() to create a file,
++		 * so use shmem's get_unmapped_area in case it can be huge;
++		 * and pass NULL for file as in mmap.c's get_unmapped_area(),
++		 * so as not to confuse shmem with our handle on "/dev/zero".
++		 */
++		return shmem_get_unmapped_area(NULL, addr, len, pgoff, flags);
++	}
++
++	/* Otherwise flags & MAP_PRIVATE: with no shmem object beneath it */
++	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
++#else
++	return -ENOSYS;
++#endif
 +}
 +
-+static inline void ClearPageDoubleMap(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(!PageHead(page), page);
-+	clear_bit(PG_double_map, &page[1].flags);
-+}
- static inline int TestSetPageDoubleMap(struct page *page)
+ static ssize_t write_full(struct file *file, const char __user *buf,
+ 			  size_t count, loff_t *ppos)
  {
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
-@@ -598,7 +609,7 @@ TESTPAGEFLAG_FALSE(TransHuge)
- TESTPAGEFLAG_FALSE(TransCompound)
- TESTPAGEFLAG_FALSE(TransCompoundMap)
- TESTPAGEFLAG_FALSE(TransTail)
--TESTPAGEFLAG_FALSE(DoubleMap)
-+PAGEFLAG_FALSE(DoubleMap)
- 	TESTSETFLAG_FALSE(DoubleMap)
- 	TESTCLEARFLAG_FALSE(DoubleMap)
+@@ -764,6 +787,7 @@ static const struct file_operations zero
+ 	.read_iter	= read_iter_zero,
+ 	.write_iter	= write_iter_zero,
+ 	.mmap		= mmap_zero,
++	.get_unmapped_area = get_unmapped_area_zero,
+ #ifndef CONFIG_MMU
+ 	.mmap_capabilities = zero_mmap_capabilities,
  #endif
-diff -puN mm/huge_memory.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/huge_memory.c
---- a/mm/huge_memory.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
-+++ a/mm/huge_memory.c
-@@ -1437,6 +1437,8 @@ struct page *follow_trans_huge_pmd(struc
- 		 * We don't mlock() pte-mapped THPs. This way we can avoid
- 		 * leaking mlocked pages into non-VM_LOCKED VMAs.
- 		 *
-+		 * For anon THP:
-+		 *
- 		 * In most cases the pmd is the only mapping of the page as we
- 		 * break COW for the mlock() -- see gup_flags |= FOLL_WRITE for
- 		 * writable private mappings in populate_vma_page_range().
-@@ -1444,15 +1446,26 @@ struct page *follow_trans_huge_pmd(struc
- 		 * The only scenario when we have the page shared here is if we
- 		 * mlocking read-only mapping shared over fork(). We skip
- 		 * mlocking such pages.
-+		 *
-+		 * For file THP:
-+		 *
-+		 * We can expect PageDoubleMap() to be stable under page lock:
-+		 * for file pages we set it in page_add_file_rmap(), which
-+		 * requires page to be locked.
- 		 */
--		if (compound_mapcount(page) == 1 && !PageDoubleMap(page) &&
--				page->mapping && trylock_page(page)) {
--			lru_add_drain();
--			if (page->mapping)
--				mlock_vma_page(page);
--			unlock_page(page);
--		}
-+
-+		if (PageAnon(page) && compound_mapcount(page) != 1)
-+			goto skip_mlock;
-+		if (PageDoubleMap(page) || !page->mapping)
-+			goto skip_mlock;
-+		if (!trylock_page(page))
-+			goto skip_mlock;
-+		lru_add_drain();
-+		if (page->mapping && !PageDoubleMap(page))
-+			mlock_vma_page(page);
-+		unlock_page(page);
- 	}
-+skip_mlock:
- 	page += (addr & ~HPAGE_PMD_MASK) >> PAGE_SHIFT;
- 	VM_BUG_ON_PAGE(!PageCompound(page), page);
- 	if (flags & FOLL_GET)
-diff -puN mm/mmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/mmap.c
---- a/mm/mmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
+diff -puN include/linux/shmem_fs.h~shmem-get_unmapped_area-align-huge-page include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~shmem-get_unmapped_area-align-huge-page
++++ a/include/linux/shmem_fs.h
+@@ -50,6 +50,8 @@ extern struct file *shmem_file_setup(con
+ extern struct file *shmem_kernel_file_setup(const char *name, loff_t size,
+ 					    unsigned long flags);
+ extern int shmem_zero_setup(struct vm_area_struct *);
++extern unsigned long shmem_get_unmapped_area(struct file *, unsigned long addr,
++		unsigned long len, unsigned long pgoff, unsigned long flags);
+ extern int shmem_lock(struct file *file, int lock, struct user_struct *user);
+ extern bool shmem_mapping(struct address_space *mapping);
+ extern void shmem_unlock_mapping(struct address_space *mapping);
+diff -puN ipc/shm.c~shmem-get_unmapped_area-align-huge-page ipc/shm.c
+--- a/ipc/shm.c~shmem-get_unmapped_area-align-huge-page
++++ a/ipc/shm.c
+@@ -476,13 +476,15 @@ static const struct file_operations shm_
+ 	.mmap		= shm_mmap,
+ 	.fsync		= shm_fsync,
+ 	.release	= shm_release,
+-#ifndef CONFIG_MMU
+ 	.get_unmapped_area	= shm_get_unmapped_area,
+-#endif
+ 	.llseek		= noop_llseek,
+ 	.fallocate	= shm_fallocate,
+ };
+ 
++/*
++ * shm_file_operations_huge is now identical to shm_file_operations,
++ * but we keep it distinct for the sake of is_file_shm_hugepages().
++ */
+ static const struct file_operations shm_file_operations_huge = {
+ 	.mmap		= shm_mmap,
+ 	.fsync		= shm_fsync,
+diff -puN mm/mmap.c~shmem-get_unmapped_area-align-huge-page mm/mmap.c
+--- a/mm/mmap.c~shmem-get_unmapped_area-align-huge-page
 +++ a/mm/mmap.c
-@@ -2591,6 +2591,12 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
- 		/* drop PG_Mlocked flag for over-mapped range */
- 		for (tmp = vma; tmp->vm_start >= start + size;
- 				tmp = tmp->vm_next) {
-+			/*
-+			 * Split pmd and munlock page on the border
-+			 * of the range.
-+			 */
-+			vma_adjust_trans_huge(tmp, start, start + size, 0);
+@@ -25,6 +25,7 @@
+ #include <linux/personality.h>
+ #include <linux/security.h>
+ #include <linux/hugetlb.h>
++#include <linux/shmem_fs.h>
+ #include <linux/profile.h>
+ #include <linux/export.h>
+ #include <linux/mount.h>
+@@ -1897,8 +1898,19 @@ get_unmapped_area(struct file *file, uns
+ 		return -ENOMEM;
+ 
+ 	get_area = current->mm->get_unmapped_area;
+-	if (file && file->f_op->get_unmapped_area)
+-		get_area = file->f_op->get_unmapped_area;
++	if (file) {
++		if (file->f_op->get_unmapped_area)
++			get_area = file->f_op->get_unmapped_area;
++	} else if (flags & MAP_SHARED) {
++		/*
++		 * mmap_region() will call shmem_zero_setup() to create a file,
++		 * so use shmem's get_unmapped_area in case it can be huge.
++		 * do_mmap_pgoff() will clear pgoff, so match alignment.
++		 */
++		pgoff = 0;
++		get_area = shmem_get_unmapped_area;
++	}
 +
- 			munlock_vma_pages_range(tmp,
- 					max(tmp->vm_start, start),
- 					min(tmp->vm_end, start + size));
-diff -puN mm/page_alloc.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/page_alloc.c
---- a/mm/page_alloc.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
-+++ a/mm/page_alloc.c
-@@ -1007,6 +1007,8 @@ static __always_inline bool free_pages_p
+ 	addr = get_area(file, addr, len, pgoff, flags);
+ 	if (IS_ERR_VALUE(addr))
+ 		return addr;
+diff -puN mm/shmem.c~shmem-get_unmapped_area-align-huge-page mm/shmem.c
+--- a/mm/shmem.c~shmem-get_unmapped_area-align-huge-page
++++ a/mm/shmem.c
+@@ -1513,6 +1513,94 @@ static int shmem_fault(struct vm_area_st
+ 	return ret;
+ }
  
- 		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
- 
-+		if (compound)
-+			ClearPageDoubleMap(page);
- 		for (i = 1; i < (1 << order); i++) {
- 			if (compound)
- 				bad += free_tail_pages_check(page, page + i);
-diff -puN mm/rmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/rmap.c
---- a/mm/rmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
-+++ a/mm/rmap.c
-@@ -1284,6 +1284,12 @@ void page_add_file_rmap(struct page *pag
- 		if (!atomic_inc_and_test(compound_mapcount_ptr(page)))
- 			goto out;
- 	} else {
-+		if (PageTransCompound(page)) {
-+			VM_BUG_ON_PAGE(!PageLocked(page), page);
-+			SetPageDoubleMap(compound_head(page));
-+			if (PageMlocked(page))
-+				clear_page_mlock(compound_head(page));
++unsigned long shmem_get_unmapped_area(struct file *file,
++				      unsigned long uaddr, unsigned long len,
++				      unsigned long pgoff, unsigned long flags)
++{
++	unsigned long (*get_area)(struct file *,
++		unsigned long, unsigned long, unsigned long, unsigned long);
++	unsigned long addr;
++	unsigned long offset;
++	unsigned long inflated_len;
++	unsigned long inflated_addr;
++	unsigned long inflated_offset;
++
++	if (len > TASK_SIZE)
++		return -ENOMEM;
++
++	get_area = current->mm->get_unmapped_area;
++	addr = get_area(file, uaddr, len, pgoff, flags);
++
++	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
++		return addr;
++	if (IS_ERR_VALUE(addr))
++		return addr;
++	if (addr & ~PAGE_MASK)
++		return addr;
++	if (addr > TASK_SIZE - len)
++		return addr;
++
++	if (shmem_huge == SHMEM_HUGE_DENY)
++		return addr;
++	if (len < HPAGE_PMD_SIZE)
++		return addr;
++	if (flags & MAP_FIXED)
++		return addr;
++	/*
++	 * Our priority is to support MAP_SHARED mapped hugely;
++	 * and support MAP_PRIVATE mapped hugely too, until it is COWed.
++	 * But if caller specified an address hint, respect that as before.
++	 */
++	if (uaddr)
++		return addr;
++
++	if (shmem_huge != SHMEM_HUGE_FORCE) {
++		struct super_block *sb;
++
++		if (file) {
++			VM_BUG_ON(file->f_op != &shmem_file_operations);
++			sb = file_inode(file)->i_sb;
++		} else {
++			/*
++			 * Called directly from mm/mmap.c, or drivers/char/mem.c
++			 * for "/dev/zero", to create a shared anonymous object.
++			 */
++			if (IS_ERR(shm_mnt))
++				return addr;
++			sb = shm_mnt->mnt_sb;
 +		}
- 		if (!atomic_inc_and_test(&page->_mapcount))
- 			goto out;
- 	}
-@@ -1458,8 +1464,14 @@ static int try_to_unmap_one(struct page
- 	 */
- 	if (!(flags & TTU_IGNORE_MLOCK)) {
- 		if (vma->vm_flags & VM_LOCKED) {
--			/* Holding pte lock, we do *not* need mmap_sem here */
--			mlock_vma_page(page);
-+			/* PTE-mapped THP are never mlocked */
-+			if (!PageTransCompound(page)) {
-+				/*
-+				 * Holding pte lock, we do *not* need
-+				 * mmap_sem here
-+				 */
-+				mlock_vma_page(page);
-+			}
- 			ret = SWAP_MLOCK;
- 			goto out_unmap;
- 		}
++		if (SHMEM_SB(sb)->huge != SHMEM_HUGE_NEVER)
++			return addr;
++	}
++
++	offset = (pgoff << PAGE_SHIFT) & (HPAGE_PMD_SIZE-1);
++	if (offset && offset + len < 2 * HPAGE_PMD_SIZE)
++		return addr;
++	if ((addr & (HPAGE_PMD_SIZE-1)) == offset)
++		return addr;
++
++	inflated_len = len + HPAGE_PMD_SIZE - PAGE_SIZE;
++	if (inflated_len > TASK_SIZE)
++		return addr;
++	if (inflated_len < len)
++		return addr;
++
++	inflated_addr = get_area(NULL, 0, inflated_len, 0, flags);
++	if (IS_ERR_VALUE(inflated_addr))
++		return addr;
++	if (inflated_addr & ~PAGE_MASK)
++		return addr;
++
++	inflated_offset = inflated_addr & (HPAGE_PMD_SIZE-1);
++	inflated_addr += offset - inflated_offset;
++	if (inflated_offset > offset)
++		inflated_addr += HPAGE_PMD_SIZE;
++
++	if (inflated_addr > TASK_SIZE - len)
++		return addr;
++	return inflated_addr;
++}
++
+ #ifdef CONFIG_NUMA
+ static int shmem_set_policy(struct vm_area_struct *vma, struct mempolicy *mpol)
+ {
+@@ -3261,6 +3349,7 @@ static const struct address_space_operat
+ 
+ static const struct file_operations shmem_file_operations = {
+ 	.mmap		= shmem_mmap,
++	.get_unmapped_area = shmem_get_unmapped_area,
+ #ifdef CONFIG_TMPFS
+ 	.llseek		= shmem_file_llseek,
+ 	.read_iter	= shmem_file_read_iter,
+@@ -3496,6 +3585,15 @@ void shmem_unlock_mapping(struct address
+ {
+ }
+ 
++#ifdef CONFIG_MMU
++unsigned long shmem_get_unmapped_area(struct file *file,
++				      unsigned long addr, unsigned long len,
++				      unsigned long pgoff, unsigned long flags)
++{
++	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
++}
++#endif
++
+ void shmem_truncate_range(struct inode *inode, loff_t lstart, loff_t lend)
+ {
+ 	truncate_inode_pages_range(inode->i_mapping, lstart, lend);
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from hughd@google.com are
 
+mm-compaction-dont-isolate-pagewriteback-pages-in-migrate_sync_light-mode.patch
 
