@@ -1,222 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-make-optimistic-check-for-swapin-readahead.patch
- removed from -mm tree
-Date: Wed, 27 Jul 2016 12:01:56 -0700
-Message-ID: <57990524.6n6mxNKO5ve4ifXc%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-ks.patch removed
+ from -mm tree
+Date: Wed, 27 Jul 2016 12:02:02 -0700
+Message-ID: <5799052a.60qd8TBdHFtmiUiU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40643 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40669 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757190AbcG0TB5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:01:57 -0400
+	with ESMTP id S1757190AbcG0TCD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:02:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebru.akagunduz@gmail.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gorcunov@openvz.org, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sfr@canb.auug.org.au, vbabka@suse.cz, xiexiuqi@huawei.com, mm-commits@vger.kernel.org
+To: ebru.akagunduz@gmail.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gorcunov@openvz.org, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make optimistic check for swapin readahead
+     Subject: mm, thp: make swapin readahead under down_read of mmap_sem
 has been removed from the -mm tree.  Its filename was
-     mm-make-optimistic-check-for-swapin-readahead.patch
+     mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-ks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Subject: mm: make optimistic check for swapin readahead
+Subject: mm, thp: make swapin readahead under down_read of mmap_sem
 
-Introduce a new sysfs integer knob
-/sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_swap which makes
-optimistic check for swapin readahead to increase thp collapse rate. 
-Before getting swapped out pages to memory, checks them and allows up to a
-certain number.  It also prints out using tracepoints amount of unmapped
-ptes.
+Currently khugepaged makes swapin readahead under down_write.  This patch
+supplies to make swapin readahead under down_read instead of down_write.
 
-[vdavydov@parallels.com: fix scan not aborted on SCAN_EXCEED_SWAP_PTE]
-[sfr@canb.auug.org.au: build fix]
-  Link: http://lkml.kernel.org/r/20160616154503.65806e12@canb.auug.org.au
+The patch was tested with a test program that allocates 800MB of memory,
+writes to it, and then sleeps.  The system was forced to swap out all.
+Afterwards, the test program touches the area by writing, it skips a page
+in each 20 pages of the area.
+
+[akpm@linux-foundation.org: update comment to match new code]
+[kirill.shutemov@linux.intel.com: passing 'vma' to hugepage_vma_revlidate() is useless]
+  Link: http://lkml.kernel.org/r/20160530095058.GA53044@black.fi.intel.com
+  Link: http://lkml.kernel.org/r/1466021202-61880-3-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1464335964-6510-4-git-send-email-ebru.akagunduz@gmail.com
+Link: http://lkml.kernel.org/r/1466021202-61880-2-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Xie XiuQi <xiexiuqi@huawei.com>
 Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |   14 +++++---
- mm/huge_memory.c                   |   45 +++++++++++++++++++++++++--
- 2 files changed, 51 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |   91 ++++++++++++++++++++++++++++++---------------
+ 1 file changed, 62 insertions(+), 29 deletions(-)
 
-diff -puN include/trace/events/huge_memory.h~mm-make-optimistic-check-for-swapin-readahead include/trace/events/huge_memory.h
---- a/include/trace/events/huge_memory.h~mm-make-optimistic-check-for-swapin-readahead
-+++ a/include/trace/events/huge_memory.h
-@@ -28,7 +28,8 @@
- 	EM( SCAN_SWAP_CACHE_PAGE,	"page_swap_cache")		\
- 	EM( SCAN_DEL_PAGE_LRU,		"could_not_delete_page_from_lru")\
- 	EM( SCAN_ALLOC_HUGE_PAGE_FAIL,	"alloc_huge_page_failed")	\
--	EMe( SCAN_CGROUP_CHARGE_FAIL,	"ccgroup_charge_failed")
-+	EM( SCAN_CGROUP_CHARGE_FAIL,	"ccgroup_charge_failed")	\
-+	EMe( SCAN_EXCEED_SWAP_PTE,	"exceed_swap_pte")
- 
- #undef EM
- #undef EMe
-@@ -45,9 +46,9 @@ SCAN_STATUS
- TRACE_EVENT(mm_khugepaged_scan_pmd,
- 
- 	TP_PROTO(struct mm_struct *mm, struct page *page, bool writable,
--		 bool referenced, int none_or_zero, int status),
-+		 bool referenced, int none_or_zero, int status, int unmapped),
- 
--	TP_ARGS(mm, page, writable, referenced, none_or_zero, status),
-+	TP_ARGS(mm, page, writable, referenced, none_or_zero, status, unmapped),
- 
- 	TP_STRUCT__entry(
- 		__field(struct mm_struct *, mm)
-@@ -56,6 +57,7 @@ TRACE_EVENT(mm_khugepaged_scan_pmd,
- 		__field(bool, referenced)
- 		__field(int, none_or_zero)
- 		__field(int, status)
-+		__field(int, unmapped)
- 	),
- 
- 	TP_fast_assign(
-@@ -65,15 +67,17 @@ TRACE_EVENT(mm_khugepaged_scan_pmd,
- 		__entry->referenced = referenced;
- 		__entry->none_or_zero = none_or_zero;
- 		__entry->status = status;
-+		__entry->unmapped = unmapped;
- 	),
- 
--	TP_printk("mm=%p, scan_pfn=0x%lx, writable=%d, referenced=%d, none_or_zero=%d, status=%s",
-+	TP_printk("mm=%p, scan_pfn=0x%lx, writable=%d, referenced=%d, none_or_zero=%d, status=%s, unmapped=%d",
- 		__entry->mm,
- 		__entry->pfn,
- 		__entry->writable,
- 		__entry->referenced,
- 		__entry->none_or_zero,
--		__print_symbolic(__entry->status, SCAN_STATUS))
-+		__print_symbolic(__entry->status, SCAN_STATUS),
-+		__entry->unmapped)
- );
- 
- TRACE_EVENT(mm_collapse_huge_page,
-diff -puN mm/huge_memory.c~mm-make-optimistic-check-for-swapin-readahead mm/huge_memory.c
---- a/mm/huge_memory.c~mm-make-optimistic-check-for-swapin-readahead
+diff -puN mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-ks mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-ks
 +++ a/mm/huge_memory.c
-@@ -57,7 +57,8 @@ enum scan_result {
- 	SCAN_SWAP_CACHE_PAGE,
- 	SCAN_DEL_PAGE_LRU,
- 	SCAN_ALLOC_HUGE_PAGE_FAIL,
--	SCAN_CGROUP_CHARGE_FAIL
-+	SCAN_CGROUP_CHARGE_FAIL,
-+	SCAN_EXCEED_SWAP_PTE
- };
- 
- #define CREATE_TRACE_POINTS
-@@ -100,6 +101,7 @@ static DECLARE_WAIT_QUEUE_HEAD(khugepage
-  * fault.
-  */
- static unsigned int khugepaged_max_ptes_none __read_mostly;
-+static unsigned int khugepaged_max_ptes_swap __read_mostly;
- 
- static int khugepaged(void *none);
- static int khugepaged_slab_init(void);
-@@ -598,6 +600,33 @@ static struct kobj_attribute khugepaged_
- 	__ATTR(max_ptes_none, 0644, khugepaged_max_ptes_none_show,
- 	       khugepaged_max_ptes_none_store);
- 
-+static ssize_t khugepaged_max_ptes_swap_show(struct kobject *kobj,
-+					     struct kobj_attribute *attr,
-+					     char *buf)
-+{
-+	return sprintf(buf, "%u\n", khugepaged_max_ptes_swap);
-+}
-+
-+static ssize_t khugepaged_max_ptes_swap_store(struct kobject *kobj,
-+					      struct kobj_attribute *attr,
-+					      const char *buf, size_t count)
-+{
-+	int err;
-+	unsigned long max_ptes_swap;
-+
-+	err  = kstrtoul(buf, 10, &max_ptes_swap);
-+	if (err || max_ptes_swap > HPAGE_PMD_NR-1)
-+		return -EINVAL;
-+
-+	khugepaged_max_ptes_swap = max_ptes_swap;
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute khugepaged_max_ptes_swap_attr =
-+	__ATTR(max_ptes_swap, 0644, khugepaged_max_ptes_swap_show,
-+	       khugepaged_max_ptes_swap_store);
-+
- static struct attribute *khugepaged_attr[] = {
- 	&khugepaged_defrag_attr.attr,
- 	&khugepaged_max_ptes_none_attr.attr,
-@@ -606,6 +635,7 @@ static struct attribute *khugepaged_attr
- 	&full_scans_attr.attr,
- 	&scan_sleep_millisecs_attr.attr,
- 	&alloc_sleep_millisecs_attr.attr,
-+	&khugepaged_max_ptes_swap_attr.attr,
- 	NULL,
- };
- 
-@@ -674,6 +704,7 @@ static int __init hugepage_init(void)
- 
- 	khugepaged_pages_to_scan = HPAGE_PMD_NR * 8;
- 	khugepaged_max_ptes_none = HPAGE_PMD_NR - 1;
-+	khugepaged_max_ptes_swap = HPAGE_PMD_NR / 8;
- 	/*
- 	 * hugepages can't be allocated by the buddy allocator
- 	 */
-@@ -2507,7 +2538,7 @@ static int khugepaged_scan_pmd(struct mm
- 	struct page *page = NULL;
- 	unsigned long _address;
- 	spinlock_t *ptl;
--	int node = NUMA_NO_NODE;
-+	int node = NUMA_NO_NODE, unmapped = 0;
- 	bool writable = false, referenced = false;
- 
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
-@@ -2523,6 +2554,14 @@ static int khugepaged_scan_pmd(struct mm
- 	for (_address = address, _pte = pte; _pte < pte+HPAGE_PMD_NR;
- 	     _pte++, _address += PAGE_SIZE) {
- 		pte_t pteval = *_pte;
-+		if (is_swap_pte(pteval)) {
-+			if (++unmapped <= khugepaged_max_ptes_swap) {
-+				continue;
-+			} else {
-+				result = SCAN_EXCEED_SWAP_PTE;
-+				goto out_unmap;
-+			}
-+		}
- 		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
- 			if (!userfaultfd_armed(vma) &&
- 			    ++none_or_zero <= khugepaged_max_ptes_none) {
-@@ -2609,7 +2648,7 @@ out_unmap:
- 	}
- out:
- 	trace_mm_khugepaged_scan_pmd(mm, page, writable, referenced,
--				     none_or_zero, result);
-+				     none_or_zero, result, unmapped);
- 	return ret;
+@@ -2374,6 +2374,34 @@ static bool hugepage_vma_check(struct vm
  }
+ 
+ /*
++ * If mmap_sem temporarily dropped, revalidate vma
++ * before taking mmap_sem.
++ * Return 0 if succeeds, otherwise return none-zero
++ * value (scan code).
++ */
++
++static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address)
++{
++	struct vm_area_struct *vma;
++	unsigned long hstart, hend;
++
++	if (unlikely(khugepaged_test_exit(mm)))
++		return SCAN_ANY_PROCESS;
++
++	vma = find_vma(mm, address);
++	if (!vma)
++		return SCAN_VMA_NULL;
++
++	hstart = (vma->vm_start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK;
++	hend = vma->vm_end & HPAGE_PMD_MASK;
++	if (address < hstart || address + HPAGE_PMD_SIZE > hend)
++		return SCAN_ADDRESS_RANGE;
++	if (!hugepage_vma_check(vma))
++		return SCAN_VMA_CHECK;
++	return 0;
++}
++
++/*
+  * Bring missing pages in from swap, to complete THP collapse.
+  * Only done if khugepaged_scan_pmd believes it is worthwhile.
+  *
+@@ -2381,7 +2409,7 @@ static bool hugepage_vma_check(struct vm
+  * but with mmap_sem held to protect against vma changes.
+  */
+ 
+-static void __collapse_huge_page_swapin(struct mm_struct *mm,
++static bool __collapse_huge_page_swapin(struct mm_struct *mm,
+ 					struct vm_area_struct *vma,
+ 					unsigned long address, pmd_t *pmd)
+ {
+@@ -2397,11 +2425,18 @@ static void __collapse_huge_page_swapin(
+ 			continue;
+ 		swapped_in++;
+ 		ret = do_swap_page(mm, vma, _address, pte, pmd,
+-				   FAULT_FLAG_ALLOW_RETRY|FAULT_FLAG_RETRY_NOWAIT,
++				   FAULT_FLAG_ALLOW_RETRY,
+ 				   pteval);
++		/* do_swap_page returns VM_FAULT_RETRY with released mmap_sem */
++		if (ret & VM_FAULT_RETRY) {
++			down_read(&mm->mmap_sem);
++			/* vma is no longer available, don't continue to swapin */
++			if (hugepage_vma_revalidate(mm, address))
++				return false;
++		}
+ 		if (ret & VM_FAULT_ERROR) {
+ 			trace_mm_collapse_huge_page_swapin(mm, swapped_in, 0);
+-			return;
++			return false;
+ 		}
+ 		/* pte is unmapped now, we need to map it */
+ 		pte = pte_offset_map(pmd, _address);
+@@ -2409,6 +2444,7 @@ static void __collapse_huge_page_swapin(
+ 	pte--;
+ 	pte_unmap(pte);
+ 	trace_mm_collapse_huge_page_swapin(mm, swapped_in, 1);
++	return true;
+ }
+ 
+ static void collapse_huge_page(struct mm_struct *mm,
+@@ -2423,7 +2459,6 @@ static void collapse_huge_page(struct mm
+ 	struct page *new_page;
+ 	spinlock_t *pmd_ptl, *pte_ptl;
+ 	int isolated = 0, result = 0;
+-	unsigned long hstart, hend;
+ 	struct mem_cgroup *memcg;
+ 	unsigned long mmun_start;	/* For mmu_notifiers */
+ 	unsigned long mmun_end;		/* For mmu_notifiers */
+@@ -2446,39 +2481,37 @@ static void collapse_huge_page(struct mm
+ 		goto out_nolock;
+ 	}
+ 
+-	/*
+-	 * Prevent all access to pagetables with the exception of
+-	 * gup_fast later hanlded by the ptep_clear_flush and the VM
+-	 * handled by the anon_vma lock + PG_lock.
+-	 */
+-	down_write(&mm->mmap_sem);
+-	if (unlikely(khugepaged_test_exit(mm))) {
+-		result = SCAN_ANY_PROCESS;
++	down_read(&mm->mmap_sem);
++	result = hugepage_vma_revalidate(mm, address);
++	if (result)
+ 		goto out;
+-	}
+ 
+-	vma = find_vma(mm, address);
+-	if (!vma) {
+-		result = SCAN_VMA_NULL;
+-		goto out;
+-	}
+-	hstart = (vma->vm_start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK;
+-	hend = vma->vm_end & HPAGE_PMD_MASK;
+-	if (address < hstart || address + HPAGE_PMD_SIZE > hend) {
+-		result = SCAN_ADDRESS_RANGE;
+-		goto out;
+-	}
+-	if (!hugepage_vma_check(vma)) {
+-		result = SCAN_VMA_CHECK;
+-		goto out;
+-	}
+ 	pmd = mm_find_pmd(mm, address);
+ 	if (!pmd) {
+ 		result = SCAN_PMD_NULL;
+ 		goto out;
+ 	}
+ 
+-	__collapse_huge_page_swapin(mm, vma, address, pmd);
++	/*
++	 * __collapse_huge_page_swapin always returns with mmap_sem locked.
++	 * If it fails, release mmap_sem and jump directly out.
++	 * Continuing to collapse causes inconsistency.
++	 */
++	if (!__collapse_huge_page_swapin(mm, vma, address, pmd)) {
++		up_read(&mm->mmap_sem);
++		goto out;
++	}
++
++	up_read(&mm->mmap_sem);
++	/*
++	 * Prevent all access to pagetables with the exception of
++	 * gup_fast later handled by the ptep_clear_flush and the VM
++	 * handled by the anon_vma lock + PG_lock.
++	 */
++	down_write(&mm->mmap_sem);
++	result = hugepage_vma_revalidate(mm, address);
++	if (result)
++		goto out;
+ 
+ 	anon_vma_lock_write(vma->anon_vma);
  
 _
 
