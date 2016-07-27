@@ -1,288 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative.patch
- removed from -mm tree
-Date: Wed, 27 Jul 2016 12:03:17 -0700
-Message-ID: <57990575.h8yYxxtsPA8CQps/%akpm@linux-foundation.org>
+ mm-memcontrol-fix-documentation-for-compound-parameter.patch removed from
+ -mm tree
+Date: Wed, 27 Jul 2016 12:03:26 -0700
+Message-ID: <5799057e.eeoX027UVKL/ZlAy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40774 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40790 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932342AbcG0TDS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:03:18 -0400
+	with ESMTP id S1757190AbcG0TD1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:03:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebru.akagunduz@gmail.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, boaz@plexistor.com, gorcunov@openvz.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: roy.qing.li@gmail.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: convert from optimistic swapin collapsing to conservative
+     Subject: mm: memcontrol: fix documentation for compound parameter
 has been removed from the -mm tree.  Its filename was
-     mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative.patch
+     mm-memcontrol-fix-documentation-for-compound-parameter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Subject: mm, thp: convert from optimistic swapin collapsing to conservative
+From: Li RongQing <roy.qing.li@gmail.com>
+Subject: mm: memcontrol: fix documentation for compound parameter
 
-To detect whether khugepaged swapin is worthwhile, this patch checks the
-amount of young pages.  There should be at least half of HPAGE_PMD_NR to
-swapin.
+commit f627c2f53786 ("memcg: adjust to support new THP refcounting")
+adds a compound parameter for several functions, and change one as
+compound for mem_cgroup_move_account but it does not change the
+comments.
 
-Link: http://lkml.kernel.org/r/1468109451-1615-1-git-send-email-ebru.akagunduz@gmail.com
-Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Boaz Harrosh <boaz@plexistor.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Link: http://lkml.kernel.org/r/1465368216-9393-1-git-send-email-roy.qing.li@gmail.com
+Signed-off-by: Li RongQing <roy.qing.li@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |   19 +++++++------
- mm/khugepaged.c                    |   38 ++++++++++++++++-----------
- 2 files changed, 34 insertions(+), 23 deletions(-)
+ mm/memcontrol.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/trace/events/huge_memory.h~mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative include/trace/events/huge_memory.h
---- a/include/trace/events/huge_memory.h~mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative
-+++ a/include/trace/events/huge_memory.h
-@@ -13,7 +13,7 @@
- 	EM( SCAN_EXCEED_NONE_PTE,	"exceed_none_pte")		\
- 	EM( SCAN_PTE_NON_PRESENT,	"pte_non_present")		\
- 	EM( SCAN_PAGE_RO,		"no_writable_page")		\
--	EM( SCAN_NO_REFERENCED_PAGE,	"no_referenced_page")		\
-+	EM( SCAN_LACK_REFERENCED_PAGE,	"lack_referenced_page")		\
- 	EM( SCAN_PAGE_NULL,		"page_null")			\
- 	EM( SCAN_SCAN_ABORT,		"scan_aborted")			\
- 	EM( SCAN_PAGE_COUNT,		"not_suitable_page_count")	\
-@@ -47,7 +47,7 @@ SCAN_STATUS
- TRACE_EVENT(mm_khugepaged_scan_pmd,
- 
- 	TP_PROTO(struct mm_struct *mm, struct page *page, bool writable,
--		 bool referenced, int none_or_zero, int status, int unmapped),
-+		 int referenced, int none_or_zero, int status, int unmapped),
- 
- 	TP_ARGS(mm, page, writable, referenced, none_or_zero, status, unmapped),
- 
-@@ -55,7 +55,7 @@ TRACE_EVENT(mm_khugepaged_scan_pmd,
- 		__field(struct mm_struct *, mm)
- 		__field(unsigned long, pfn)
- 		__field(bool, writable)
--		__field(bool, referenced)
-+		__field(int, referenced)
- 		__field(int, none_or_zero)
- 		__field(int, status)
- 		__field(int, unmapped)
-@@ -108,14 +108,14 @@ TRACE_EVENT(mm_collapse_huge_page,
- TRACE_EVENT(mm_collapse_huge_page_isolate,
- 
- 	TP_PROTO(struct page *page, int none_or_zero,
--		 bool referenced, bool  writable, int status),
-+		 int referenced, bool  writable, int status),
- 
- 	TP_ARGS(page, none_or_zero, referenced, writable, status),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, pfn)
- 		__field(int, none_or_zero)
--		__field(bool, referenced)
-+		__field(int, referenced)
- 		__field(bool, writable)
- 		__field(int, status)
- 	),
-@@ -138,25 +138,28 @@ TRACE_EVENT(mm_collapse_huge_page_isolat
- 
- TRACE_EVENT(mm_collapse_huge_page_swapin,
- 
--	TP_PROTO(struct mm_struct *mm, int swapped_in, int ret),
-+	TP_PROTO(struct mm_struct *mm, int swapped_in, int referenced, int ret),
- 
--	TP_ARGS(mm, swapped_in, ret),
-+	TP_ARGS(mm, swapped_in, referenced, ret),
- 
- 	TP_STRUCT__entry(
- 		__field(struct mm_struct *, mm)
- 		__field(int, swapped_in)
-+		__field(int, referenced)
- 		__field(int, ret)
- 	),
- 
- 	TP_fast_assign(
- 		__entry->mm = mm;
- 		__entry->swapped_in = swapped_in;
-+		__entry->referenced = referenced;
- 		__entry->ret = ret;
- 	),
- 
--	TP_printk("mm=%p, swapped_in=%d, ret=%d",
-+	TP_printk("mm=%p, swapped_in=%d, referenced=%d, ret=%d",
- 		__entry->mm,
- 		__entry->swapped_in,
-+		__entry->referenced,
- 		__entry->ret)
- );
- 
-diff -puN mm/khugepaged.c~mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative mm/khugepaged.c
---- a/mm/khugepaged.c~mm-thp-convert-from-optimistic-swapin-collapsing-to-conservative
-+++ a/mm/khugepaged.c
-@@ -27,7 +27,7 @@ enum scan_result {
- 	SCAN_EXCEED_NONE_PTE,
- 	SCAN_PTE_NON_PRESENT,
- 	SCAN_PAGE_RO,
--	SCAN_NO_REFERENCED_PAGE,
-+	SCAN_LACK_REFERENCED_PAGE,
- 	SCAN_PAGE_NULL,
- 	SCAN_SCAN_ABORT,
- 	SCAN_PAGE_COUNT,
-@@ -500,8 +500,8 @@ static int __collapse_huge_page_isolate(
- {
- 	struct page *page = NULL;
- 	pte_t *_pte;
--	int none_or_zero = 0, result = 0;
--	bool referenced = false, writable = false;
-+	int none_or_zero = 0, result = 0, referenced = 0;
-+	bool writable = false;
- 
- 	for (_pte = pte; _pte < pte+HPAGE_PMD_NR;
- 	     _pte++, address += PAGE_SIZE) {
-@@ -580,11 +580,11 @@ static int __collapse_huge_page_isolate(
- 		VM_BUG_ON_PAGE(!PageLocked(page), page);
- 		VM_BUG_ON_PAGE(PageLRU(page), page);
- 
--		/* If there is no mapped pte young don't collapse the page */
-+		/* There should be enough young pte to collapse the page */
- 		if (pte_young(pteval) ||
- 		    page_is_young(page) || PageReferenced(page) ||
- 		    mmu_notifier_test_young(vma->vm_mm, address))
--			referenced = true;
-+			referenced++;
- 	}
- 	if (likely(writable)) {
- 		if (likely(referenced)) {
-@@ -869,7 +869,8 @@ static int hugepage_vma_revalidate(struc
- 
- static bool __collapse_huge_page_swapin(struct mm_struct *mm,
- 					struct vm_area_struct *vma,
--					unsigned long address, pmd_t *pmd)
-+					unsigned long address, pmd_t *pmd,
-+					int referenced)
- {
- 	pte_t pteval;
- 	int swapped_in = 0, ret = 0;
-@@ -887,12 +888,19 @@ static bool __collapse_huge_page_swapin(
- 		if (!is_swap_pte(pteval))
- 			continue;
- 		swapped_in++;
-+		/* we only decide to swapin, if there is enough young ptes */
-+		if (referenced < HPAGE_PMD_NR/2) {
-+			trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
-+			return false;
-+		}
- 		ret = do_swap_page(&fe, pteval);
-+
- 		/* do_swap_page returns VM_FAULT_RETRY with released mmap_sem */
- 		if (ret & VM_FAULT_RETRY) {
- 			down_read(&mm->mmap_sem);
- 			if (hugepage_vma_revalidate(mm, address)) {
- 				/* vma is no longer available, don't continue to swapin */
-+				trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
- 				return false;
- 			}
- 			/* check if the pmd is still valid */
-@@ -900,7 +908,7 @@ static bool __collapse_huge_page_swapin(
- 				return false;
- 		}
- 		if (ret & VM_FAULT_ERROR) {
--			trace_mm_collapse_huge_page_swapin(mm, swapped_in, 0);
-+			trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
- 			return false;
- 		}
- 		/* pte is unmapped now, we need to map it */
-@@ -908,7 +916,7 @@ static bool __collapse_huge_page_swapin(
- 	}
- 	fe.pte--;
- 	pte_unmap(fe.pte);
--	trace_mm_collapse_huge_page_swapin(mm, swapped_in, 1);
-+	trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 1);
- 	return true;
- }
- 
-@@ -916,7 +924,7 @@ static void collapse_huge_page(struct mm
- 				   unsigned long address,
- 				   struct page **hpage,
- 				   struct vm_area_struct *vma,
--				   int node)
-+				   int node, int referenced)
- {
- 	pmd_t *pmd, _pmd;
- 	pte_t *pte;
-@@ -973,7 +981,7 @@ static void collapse_huge_page(struct mm
- 	 * If it fails, we release mmap_sem and jump out_nolock.
- 	 * Continuing to collapse causes inconsistency.
- 	 */
--	if (!__collapse_huge_page_swapin(mm, vma, address, pmd)) {
-+	if (!__collapse_huge_page_swapin(mm, vma, address, pmd, referenced)) {
- 		mem_cgroup_cancel_charge(new_page, memcg, true);
- 		up_read(&mm->mmap_sem);
- 		goto out_nolock;
-@@ -1084,12 +1092,12 @@ static int khugepaged_scan_pmd(struct mm
- {
- 	pmd_t *pmd;
- 	pte_t *pte, *_pte;
--	int ret = 0, none_or_zero = 0, result = 0;
-+	int ret = 0, none_or_zero = 0, result = 0, referenced = 0;
- 	struct page *page = NULL;
- 	unsigned long _address;
- 	spinlock_t *ptl;
- 	int node = NUMA_NO_NODE, unmapped = 0;
--	bool writable = false, referenced = false;
-+	bool writable = false;
- 
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 
-@@ -1177,14 +1185,14 @@ static int khugepaged_scan_pmd(struct mm
- 		if (pte_young(pteval) ||
- 		    page_is_young(page) || PageReferenced(page) ||
- 		    mmu_notifier_test_young(vma->vm_mm, address))
--			referenced = true;
-+			referenced++;
- 	}
- 	if (writable) {
- 		if (referenced) {
- 			result = SCAN_SUCCEED;
- 			ret = 1;
- 		} else {
--			result = SCAN_NO_REFERENCED_PAGE;
-+			result = SCAN_LACK_REFERENCED_PAGE;
- 		}
- 	} else {
- 		result = SCAN_PAGE_RO;
-@@ -1194,7 +1202,7 @@ out_unmap:
- 	if (ret) {
- 		node = khugepaged_find_target_node();
- 		/* collapse_huge_page will return with the mmap_sem released */
--		collapse_huge_page(mm, address, hpage, vma, node);
-+		collapse_huge_page(mm, address, hpage, vma, node, referenced);
- 	}
- out:
- 	trace_mm_khugepaged_scan_pmd(mm, page, writable, referenced,
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-documentation-for-compound-parameter mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-documentation-for-compound-parameter
++++ a/mm/memcontrol.c
+@@ -4507,7 +4507,7 @@ static struct page *mc_handle_file_pte(s
+ /**
+  * mem_cgroup_move_account - move account of the page
+  * @page: the page
+- * @nr_pages: number of regular pages (>1 for huge pages)
++ * @compound: charge the page as compound or small page
+  * @from: mem_cgroup which the page is moved from.
+  * @to:	mem_cgroup which the page is moved to. @from != @to.
+  *
+@@ -5369,6 +5369,7 @@ bool mem_cgroup_low(struct mem_cgroup *r
+  * @mm: mm context of the victim
+  * @gfp_mask: reclaim mode
+  * @memcgp: charged memcg return
++ * @compound: charge the page as compound or small page
+  *
+  * Try to charge @page to the memcg that @mm belongs to, reclaiming
+  * pages according to @gfp_mask if necessary.
+@@ -5431,6 +5432,7 @@ out:
+  * @page: page to charge
+  * @memcg: memcg to charge the page to
+  * @lrucare: page might be on LRU already
++ * @compound: charge the page as compound or small page
+  *
+  * Finalize a charge transaction started by mem_cgroup_try_charge(),
+  * after page->mapping has been set up.  This must happen atomically
+@@ -5482,6 +5484,7 @@ void mem_cgroup_commit_charge(struct pag
+  * mem_cgroup_cancel_charge - cancel a page charge
+  * @page: page to charge
+  * @memcg: memcg to charge the page to
++ * @compound: charge the page as compound or small page
+  *
+  * Cancel a charge transaction started by mem_cgroup_try_charge().
+  */
 _
 
-Patches currently in -mm which might be from ebru.akagunduz@gmail.com are
+Patches currently in -mm which might be from roy.qing.li@gmail.com are
 
 
