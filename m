@@ -1,130 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slub-freelist-randomization.patch removed from -mm
- tree
-Date: Wed, 27 Jul 2016 11:59:19 -0700
-Message-ID: <57990487.2Z+PuhYU6y6U8+Sn%akpm@linux-foundation.org>
+Subject: [merged] slab-do-not-panic-on-invalid-gfp_mask.patch removed from -mm tree
+Date: Wed, 27 Jul 2016 11:59:25 -0700
+Message-ID: <5799048d.n661KDZb0nw+7+Hc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39986 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758148AbcG0S7U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 14:59:20 -0400
+	with ESMTP id S1758148AbcG0S70 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 14:59:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thgarnie@google.com, cl@linux.com, iamjoonsoo.kim@lge.com, keescook@chromium.org, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: SLUB freelist randomization
+     Subject: slab: do not panic on invalid gfp_mask
 has been removed from the -mm tree.  Its filename was
-     mm-slub-freelist-randomization.patch
+     slab-do-not-panic-on-invalid-gfp_mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Thomas Garnier <thgarnie@google.com>
-Subject: mm: SLUB freelist randomization
+From: Michal Hocko <mhocko@suse.com>
+Subject: slab: do not panic on invalid gfp_mask
 
-Implements freelist randomization for the SLUB allocator.  It was previous
-implemented for the SLAB allocator.  Both use the same configuration
-option (CONFIG_SLAB_FREELIST_RANDOM).
+Both SLAB and SLUB BUG() when a caller provides an invalid gfp_mask.  This
+is a rather harsh way to announce a non-critical issue.  Allocator is free
+to ignore invalid flags.  Let's simply replace BUG() by dump_stack to tell
+the offender and fixup the mask to move on with the allocation request.
 
-The list is randomized during initialization of a new set of pages.  The
-order on different freelist sizes is pre-computed at boot for performance.
-Each kmem_cache has its own randomized freelist.  This security feature
-reduces the predictability of the kernel SLUB allocator against heap
-overflows rendering attacks much less stable.
+This is an example for kmalloc(GFP_KERNEL|__GFP_HIGHMEM) from a test
+module.
+[   31.914753] Unexpected gfp: 0x2 (__GFP_HIGHMEM). Fixing up to gfp: 0x24000c0 (GFP_KERNEL). Fix your code!
+[   31.914754] CPU: 0 PID: 2916 Comm: insmod Tainted: G           O    4.6.0-slabgfp2-00002-g4cdfc2ef4892-dirty #936
+[   31.914755] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Debian-1.8.2-1 04/01/2014
+[   31.914756]  0000000000000000 ffff88000d777c00 ffffffff8130e2fb ffff88000ec006c0
+[   31.914758]  000000000000000c ffff88000d777c58 ffffffff811791dd 0000000000000246
+[   31.914759]  0000000000000246 0000000000000046 00000002024000c0 ffff88000fa1d888
+[   31.914759] Call Trace:
+[   31.914760]  [<ffffffff8130e2fb>] dump_stack+0x67/0x90
+[   31.914762]  [<ffffffff811791dd>] cache_alloc_refill+0x201/0x617
+[   31.914763]  [<ffffffff81179b3f>] kmem_cache_alloc_trace+0xa7/0x24a
+[   31.914764]  [<ffffffffa0005000>] ? 0xffffffffa0005000
+[   31.914765]  [<ffffffffa0005020>] mymodule_init+0x20/0x1000 [test_slab]
+[   31.914767]  [<ffffffff81000402>] do_one_initcall+0xe7/0x16c
+[   31.914768]  [<ffffffff810b02de>] ? rcu_read_lock_sched_held+0x61/0x69
+[   31.914769]  [<ffffffff81179c2f>] ? kmem_cache_alloc_trace+0x197/0x24a
+[   31.914771]  [<ffffffff81125edc>] do_init_module+0x5f/0x1d9
+[   31.914772]  [<ffffffff810d2c66>] load_module+0x1a3d/0x1f21
+[   31.914774]  [<ffffffff81622931>] ? retint_kernel+0x2d/0x2d
+[   31.914775]  [<ffffffff810d3232>] SyS_init_module+0xe8/0x10e
+[   31.914776]  [<ffffffff810d3232>] ? SyS_init_module+0xe8/0x10e
+[   31.914778]  [<ffffffff81001d08>] do_syscall_64+0x68/0x13f
+[   31.914779]  [<ffffffff8162201a>] entry_SYSCALL64_slow_path+0x25/0x25
 
-For example these attacks exploit the predictability of the heap:
- - Linux Kernel CAN SLUB overflow (https://goo.gl/oMNWkU)
- - Exploiting Linux Kernel Heap corruptions (http://goo.gl/EXLn95)
-
-Performance results:
-
-slab_test impact is between 3% to 4% on average for 100000 attempts
-without smp.  It is a very focused testing, kernbench show the overall
-impact on the system is way lower.
-
-Before:
-
-Single thread testing
-=====================
-1. Kmalloc: Repeatedly allocate then free test
-100000 times kmalloc(8) -> 49 cycles kfree -> 77 cycles
-100000 times kmalloc(16) -> 51 cycles kfree -> 79 cycles
-100000 times kmalloc(32) -> 53 cycles kfree -> 83 cycles
-100000 times kmalloc(64) -> 62 cycles kfree -> 90 cycles
-100000 times kmalloc(128) -> 81 cycles kfree -> 97 cycles
-100000 times kmalloc(256) -> 98 cycles kfree -> 121 cycles
-100000 times kmalloc(512) -> 95 cycles kfree -> 122 cycles
-100000 times kmalloc(1024) -> 96 cycles kfree -> 126 cycles
-100000 times kmalloc(2048) -> 115 cycles kfree -> 140 cycles
-100000 times kmalloc(4096) -> 149 cycles kfree -> 171 cycles
-2. Kmalloc: alloc/free test
-100000 times kmalloc(8)/kfree -> 70 cycles
-100000 times kmalloc(16)/kfree -> 70 cycles
-100000 times kmalloc(32)/kfree -> 70 cycles
-100000 times kmalloc(64)/kfree -> 70 cycles
-100000 times kmalloc(128)/kfree -> 70 cycles
-100000 times kmalloc(256)/kfree -> 69 cycles
-100000 times kmalloc(512)/kfree -> 70 cycles
-100000 times kmalloc(1024)/kfree -> 73 cycles
-100000 times kmalloc(2048)/kfree -> 72 cycles
-100000 times kmalloc(4096)/kfree -> 71 cycles
-
-After:
-
-Single thread testing
-=====================
-1. Kmalloc: Repeatedly allocate then free test
-100000 times kmalloc(8) -> 57 cycles kfree -> 78 cycles
-100000 times kmalloc(16) -> 61 cycles kfree -> 81 cycles
-100000 times kmalloc(32) -> 76 cycles kfree -> 93 cycles
-100000 times kmalloc(64) -> 83 cycles kfree -> 94 cycles
-100000 times kmalloc(128) -> 106 cycles kfree -> 107 cycles
-100000 times kmalloc(256) -> 118 cycles kfree -> 117 cycles
-100000 times kmalloc(512) -> 114 cycles kfree -> 116 cycles
-100000 times kmalloc(1024) -> 115 cycles kfree -> 118 cycles
-100000 times kmalloc(2048) -> 147 cycles kfree -> 131 cycles
-100000 times kmalloc(4096) -> 214 cycles kfree -> 161 cycles
-2. Kmalloc: alloc/free test
-100000 times kmalloc(8)/kfree -> 66 cycles
-100000 times kmalloc(16)/kfree -> 66 cycles
-100000 times kmalloc(32)/kfree -> 66 cycles
-100000 times kmalloc(64)/kfree -> 66 cycles
-100000 times kmalloc(128)/kfree -> 65 cycles
-100000 times kmalloc(256)/kfree -> 67 cycles
-100000 times kmalloc(512)/kfree -> 67 cycles
-100000 times kmalloc(1024)/kfree -> 64 cycles
-100000 times kmalloc(2048)/kfree -> 67 cycles
-100000 times kmalloc(4096)/kfree -> 67 cycles
-
-Kernbench, before:
-
-Average Optimal load -j 12 Run (std deviation):
-Elapsed Time 101.873 (1.16069)
-User Time 1045.22 (1.60447)
-System Time 88.969 (0.559195)
-Percent CPU 1112.9 (13.8279)
-Context Switches 189140 (2282.15)
-Sleeps 99008.6 (768.091)
-
-After:
-
-Average Optimal load -j 12 Run (std deviation):
-Elapsed Time 102.47 (0.562732)
-User Time 1045.3 (1.34263)
-System Time 88.311 (0.342554)
-Percent CPU 1105.8 (6.49444)
-Context Switches 189081 (2355.78)
-Sleeps 99231.5 (800.358)
-
-Link: http://lkml.kernel.org/r/1464295031-26375-3-git-send-email-thgarnie@google.com
-Signed-off-by: Thomas Garnier <thgarnie@google.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/1465548200-11384-2-git-send-email-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
@@ -132,224 +67,57 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    5 +
- init/Kconfig             |    4 -
- mm/slub.c                |  133 +++++++++++++++++++++++++++++++++++--
- 3 files changed, 133 insertions(+), 9 deletions(-)
+ mm/slab.c |    6 ++++--
+ mm/slub.c |    5 +++--
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/slub_def.h~mm-slub-freelist-randomization include/linux/slub_def.h
---- a/include/linux/slub_def.h~mm-slub-freelist-randomization
-+++ a/include/linux/slub_def.h
-@@ -99,6 +99,11 @@ struct kmem_cache {
+diff -puN mm/slab.c~slab-do-not-panic-on-invalid-gfp_mask mm/slab.c
+--- a/mm/slab.c~slab-do-not-panic-on-invalid-gfp_mask
++++ a/mm/slab.c
+@@ -2687,8 +2687,10 @@ static struct page *cache_grow_begin(str
  	 */
- 	int remote_node_defrag_ratio;
- #endif
-+
-+#ifdef CONFIG_SLAB_FREELIST_RANDOM
-+	unsigned int *random_seq;
-+#endif
-+
- 	struct kmem_cache_node *node[MAX_NUMNODES];
- };
+ 	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
+ 		gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
+-		pr_emerg("Unexpected gfp: %#x (%pGg)\n", invalid_mask, &invalid_mask);
+-		BUG();
++		flags &= ~GFP_SLAB_BUG_MASK;
++		pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
++				invalid_mask, &invalid_mask, flags, &flags);
++		dump_stack();
+ 	}
+ 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
  
-diff -puN init/Kconfig~mm-slub-freelist-randomization init/Kconfig
---- a/init/Kconfig~mm-slub-freelist-randomization
-+++ a/init/Kconfig
-@@ -1786,10 +1786,10 @@ endchoice
- 
- config SLAB_FREELIST_RANDOM
- 	default n
--	depends on SLAB
-+	depends on SLAB || SLUB
- 	bool "SLAB freelist randomization"
- 	help
--	  Randomizes the freelist order used on creating new SLABs. This
-+	  Randomizes the freelist order used on creating new pages. This
- 	  security feature reduces the predictability of the kernel slab
- 	  allocator against heap overflows.
- 
-diff -puN mm/slub.c~mm-slub-freelist-randomization mm/slub.c
---- a/mm/slub.c~mm-slub-freelist-randomization
+diff -puN mm/slub.c~slab-do-not-panic-on-invalid-gfp_mask mm/slub.c
+--- a/mm/slub.c~slab-do-not-panic-on-invalid-gfp_mask
 +++ a/mm/slub.c
-@@ -1405,6 +1405,109 @@ static inline struct page *alloc_slab_pa
- 	return page;
- }
- 
-+#ifdef CONFIG_SLAB_FREELIST_RANDOM
-+/* Pre-initialize the random sequence cache */
-+static int init_cache_random_seq(struct kmem_cache *s)
-+{
-+	int err;
-+	unsigned long i, count = oo_objects(s->oo);
-+
-+	err = cache_random_seq_create(s, count, GFP_KERNEL);
-+	if (err) {
-+		pr_err("SLUB: Unable to initialize free list for %s\n",
-+			s->name);
-+		return err;
-+	}
-+
-+	/* Transform to an offset on the set of pages */
-+	if (s->random_seq) {
-+		for (i = 0; i < count; i++)
-+			s->random_seq[i] *= s->size;
-+	}
-+	return 0;
-+}
-+
-+/* Initialize each random sequence freelist per cache */
-+static void __init init_freelist_randomization(void)
-+{
-+	struct kmem_cache *s;
-+
-+	mutex_lock(&slab_mutex);
-+
-+	list_for_each_entry(s, &slab_caches, list)
-+		init_cache_random_seq(s);
-+
-+	mutex_unlock(&slab_mutex);
-+}
-+
-+/* Get the next entry on the pre-computed freelist randomized */
-+static void *next_freelist_entry(struct kmem_cache *s, struct page *page,
-+				unsigned long *pos, void *start,
-+				unsigned long page_limit,
-+				unsigned long freelist_count)
-+{
-+	unsigned int idx;
-+
-+	/*
-+	 * If the target page allocation failed, the number of objects on the
-+	 * page might be smaller than the usual size defined by the cache.
-+	 */
-+	do {
-+		idx = s->random_seq[*pos];
-+		*pos += 1;
-+		if (*pos >= freelist_count)
-+			*pos = 0;
-+	} while (unlikely(idx >= page_limit));
-+
-+	return (char *)start + idx;
-+}
-+
-+/* Shuffle the single linked freelist based on a random pre-computed sequence */
-+static bool shuffle_freelist(struct kmem_cache *s, struct page *page)
-+{
-+	void *start;
-+	void *cur;
-+	void *next;
-+	unsigned long idx, pos, page_limit, freelist_count;
-+
-+	if (page->objects < 2 || !s->random_seq)
-+		return false;
-+
-+	freelist_count = oo_objects(s->oo);
-+	pos = get_random_int() % freelist_count;
-+
-+	page_limit = page->objects * s->size;
-+	start = fixup_red_left(s, page_address(page));
-+
-+	/* First entry is used as the base of the freelist */
-+	cur = next_freelist_entry(s, page, &pos, start, page_limit,
-+				freelist_count);
-+	page->freelist = cur;
-+
-+	for (idx = 1; idx < page->objects; idx++) {
-+		setup_object(s, page, cur);
-+		next = next_freelist_entry(s, page, &pos, start, page_limit,
-+			freelist_count);
-+		set_freepointer(s, cur, next);
-+		cur = next;
-+	}
-+	setup_object(s, page, cur);
-+	set_freepointer(s, cur, NULL);
-+
-+	return true;
-+}
-+#else
-+static inline int init_cache_random_seq(struct kmem_cache *s)
-+{
-+	return 0;
-+}
-+static inline void init_freelist_randomization(void) { }
-+static inline bool shuffle_freelist(struct kmem_cache *s, struct page *page)
-+{
-+	return false;
-+}
-+#endif /* CONFIG_SLAB_FREELIST_RANDOM */
-+
- static struct page *allocate_slab(struct kmem_cache *s, gfp_t flags, int node)
+@@ -1613,8 +1613,9 @@ static struct page *new_slab(struct kmem
  {
- 	struct page *page;
-@@ -1412,6 +1515,7 @@ static struct page *allocate_slab(struct
- 	gfp_t alloc_gfp;
- 	void *start, *p;
- 	int idx, order;
-+	bool shuffle;
- 
- 	flags &= gfp_allowed_mask;
- 
-@@ -1473,15 +1577,19 @@ static struct page *allocate_slab(struct
- 
- 	kasan_poison_slab(page);
- 
--	for_each_object_idx(p, idx, s, start, page->objects) {
--		setup_object(s, page, p);
--		if (likely(idx < page->objects))
--			set_freepointer(s, p, p + s->size);
--		else
--			set_freepointer(s, p, NULL);
-+	shuffle = shuffle_freelist(s, page);
-+
-+	if (!shuffle) {
-+		for_each_object_idx(p, idx, s, start, page->objects) {
-+			setup_object(s, page, p);
-+			if (likely(idx < page->objects))
-+				set_freepointer(s, p, p + s->size);
-+			else
-+				set_freepointer(s, p, NULL);
-+		}
-+		page->freelist = fixup_red_left(s, start);
+ 	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
+ 		gfp_t invalid_mask = flags & GFP_SLAB_BUG_MASK;
+-		pr_emerg("Unexpected gfp: %#x (%pGg)\n", invalid_mask, &invalid_mask);
+-		BUG();
++		flags &= ~GFP_SLAB_BUG_MASK;
++		pr_warn("Unexpected gfp: %#x (%pGg). Fixing up to gfp: %#x (%pGg). Fix your code!\n",
++				invalid_mask, &invalid_mask, flags, &flags);
  	}
  
--	page->freelist = fixup_red_left(s, start);
- 	page->inuse = page->objects;
- 	page->frozen = 1;
- 
-@@ -3207,6 +3315,7 @@ static void free_kmem_cache_nodes(struct
- 
- void __kmem_cache_release(struct kmem_cache *s)
- {
-+	cache_random_seq_destroy(s);
- 	free_percpu(s->cpu_slab);
- 	free_kmem_cache_nodes(s);
- }
-@@ -3431,6 +3540,13 @@ static int kmem_cache_open(struct kmem_c
- #ifdef CONFIG_NUMA
- 	s->remote_node_defrag_ratio = 1000;
- #endif
-+
-+	/* Initialize the pre-computed randomized freelist if slab is up */
-+	if (slab_state >= UP) {
-+		if (init_cache_random_seq(s))
-+			goto error;
-+	}
-+
- 	if (!init_kmem_cache_nodes(s))
- 		goto error;
- 
-@@ -3947,6 +4063,9 @@ void __init kmem_cache_init(void)
- 	setup_kmalloc_cache_index_table();
- 	create_kmalloc_caches(0);
- 
-+	/* Setup random freelists for each cache */
-+	init_freelist_randomization();
-+
- #ifdef CONFIG_SMP
- 	register_cpu_notifier(&slab_notifier);
- #endif
+ 	return allocate_slab(s,
 _
 
-Patches currently in -mm which might be from thgarnie@google.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+proc-oom-drop-bogus-task_lock-and-mm-check.patch
+proc-oom-drop-bogus-sighand-lock.patch
+proc-oom_adj-extract-oom_score_adj-setting-into-a-helper.patch
+mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj.patch
+mm-oom-skip-vforked-tasks-from-being-selected.patch
+mm-oom-kill-all-tasks-sharing-the-mm.patch
+mm-oom-fortify-task_will_free_mem.patch
+mm-oom-task_will_free_mem-should-skip-oom_reaped-tasks.patch
+mm-oom_reaper-do-not-attempt-to-reap-a-task-more-than-twice.patch
+mm-oom-hide-mm-which-is-shared-with-kthread-or-global-init.patch
+mm-oom-fortify-task_will_free_mem-fix.patch
+freezer-oom-check-tif_memdie-on-the-correct-task.patch
+cpuset-mm-fix-tif_memdie-check-in-cpuset_change_task_nodemask.patch
+revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements.patch
 
