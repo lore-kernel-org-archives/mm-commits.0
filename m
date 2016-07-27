@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-befs-add-new-maintainers.patch added to -mm tree
-Date: Wed, 27 Jul 2016 13:44:51 -0700
-Message-ID: <57991d43.jtnX5x8aRu0eTTIa%akpm@linux-foundation.org>
+Subject: + kexec-add-restriction-on-kexec_load-segment-sizes-fix.patch
+ added to -mm tree
+Date: Wed, 27 Jul 2016 14:49:24 -0700
+Message-ID: <57992c64.KckNm21tdbfUYoUJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43545 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45251 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932318AbcG0Uow (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 16:44:52 -0400
+	with ESMTP id S1757365AbcG0VtZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 17:49:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luisbg@osg.samsung.com, gregkh@linuxfoundation.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dyoung@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, zhongjiang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: befs: add new maintainers
+     Subject: kexec-add-restriction-on-kexec_load-segment-sizes-fix
 has been added to the -mm tree.  Its filename is
-     maintainers-befs-add-new-maintainers.patch
+     kexec-add-restriction-on-kexec_load-segment-sizes-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-befs-add-new-maintainers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-add-restriction-on-kexec_load-segment-sizes-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-befs-add-new-maintainers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-add-restriction-on-kexec_load-segment-sizes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,44 +39,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Luis de Bethencourt <luisbg@osg.samsung.com>
-Subject: MAINTAINERS: befs: add new maintainers
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kexec-add-restriction-on-kexec_load-segment-sizes-fix
 
-Salah Triki and Luis de Bethencourt are taking over maintainership of befs.
+fix for kexec-return-error-number-directly.patch, update comment
 
-Link: http://lkml.kernel.org/r/1469651079-32455-1-git-send-email-luisbg@osg.samsung.com
-Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: Theodore Ts'o <tytso@mit.edu>
+Cc: zhong jiang <zhongjiang@huawei.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/kexec_core.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-befs-add-new-maintainers MAINTAINERS
---- a/MAINTAINERS~maintainers-befs-add-new-maintainers
-+++ a/MAINTAINERS
-@@ -2351,7 +2351,10 @@ S:	Supported
- F:	drivers/media/platform/sti/bdisp
+diff -puN kernel/kexec_core.c~kexec-add-restriction-on-kexec_load-segment-sizes-fix kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kexec-add-restriction-on-kexec_load-segment-sizes-fix
++++ a/kernel/kexec_core.c
+@@ -217,20 +217,19 @@ int sanity_check_segment_list(struct kim
+ 	}
  
- BEFS FILE SYSTEM
--S:	Orphan
-+M:	Luis de Bethencourt <luisbg@osg.samsung.com>
-+M:	Salah Triki <salah.triki@gmail.com>
-+S:	Maintained
-+T:	git git://github.com/luisbg/linux-befs.git
- F:	Documentation/filesystems/befs.txt
- F:	fs/befs/
+ 	/*
+-	 * Verify that no segment is larger than half of memory.
+-	 * If a segment from userspace is too large, a large amount
+-	 * of time will be wasted allocating pages, which can cause
+-	 * * a soft lockup.
++	 * Verify that no more than half of memory will be consumed. If the
++	 * request from userspace is too large, a large amount of time will be
++	 * wasted allocating pages, which can cause a soft lockup.
+ 	 */
+ 	for (i = 0; i < nr_segments; i++) {
+ 		if (PAGE_COUNT(image->segment[i].memsz) > totalram_pages / 2)
+-			return result;
++			return -EINVAL;
  
+ 		total_pages += PAGE_COUNT(image->segment[i].memsz);
+ 	}
+ 
+ 	if (total_pages > totalram_pages / 2)
+-		return result;
++		return -EINVAL;
+ 
+ 	/*
+ 	 * Verify we have good destination addresses.  Normally
 _
 
-Patches currently in -mm which might be from luisbg@osg.samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-dynamic_debug-only-add-header-when-used.patch
-dynamic_debug-only-add-header-when-used-fix.patch
-maintainers-befs-add-new-maintainers.patch
-befs-check-return-of-sb_min_blocksize.patch
-befs-fix-function-name-in-documentation.patch
-befs-remove-unused-functions.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix.patch
+mm.patch
+mm-update-the-comment-in-__isolate_free_page-checkpatch-fixes.patch
+mm-bail-out-in-shrin_inactive_list-fix.patch
+revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes.patch
+mm-optimize-copy_page_to-from_iter_iovec-fix.patch
+mm-optimize-copy_page_to-from_iter_iovec-fix-fix.patch
+treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
+printk-create-pr_level-functions-fix.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+allow-kdump-with-crash_kexec_post_notifiers-fix.patch
+kexec-add-restriction-on-kexec_load-segment-sizes-fix.patch
+kexec-add-resriction-on-the-kexec_load-fix.patch
+powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+bitmap-bitmap_equal-memcmp-optimization-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
