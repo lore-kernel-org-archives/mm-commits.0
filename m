@@ -1,121 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- include-linux-memblockh-clean-up-code-for-several-trivial-details.patch
- removed from -mm tree
-Date: Wed, 27 Jul 2016 12:01:46 -0700
-Message-ID: <5799051a.XiUbu3NuL5C/GzTA%akpm@linux-foundation.org>
+Subject: [merged] mm-memblock-if-nr_new-is-0-just-return.patch removed
+ from -mm tree
+Date: Wed, 27 Jul 2016 12:01:53 -0700
+Message-ID: <57990521.ALP2Eq3pTS756hxY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40606 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40628 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757190AbcG0TBr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:01:47 -0400
+	with ESMTP id S1757190AbcG0TBy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:01:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chengang@emindsoft.com.cn, gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
+To: nimisolo@gmail.com, kuleshovmail@gmail.com, mgorman@techsingularity.net, penberg@kernel.org, tangchen@cn.fujitsu.com, tony.luck@intel.com, weiyang@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/memblock.h: clean up code for several trivial details
+     Subject: mm/memblock.c:memblock_add_range(): if nr_new is 0 just return
 has been removed from the -mm tree.  Its filename was
-     include-linux-memblockh-clean-up-code-for-several-trivial-details.patch
+     mm-memblock-if-nr_new-is-0-just-return.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Gang <chengang@emindsoft.com.cn>
-Subject: include/linux/memblock.h: clean up code for several trivial details
+From: nimisolo <nimisolo@gmail.com>
+Subject: mm/memblock.c:memblock_add_range(): if nr_new is 0 just return
 
-Correct the function parameters alignment, since original code already use
-both tabs and white spaces together for the incorrect parameters alignment
-functions.
+If nr_new is 0 which means there's no region would be added, so just
+return to the caller.
 
-If one line can hold one statement within 80 columns, let it in one line
-(original code did not consider about the tabs/spaces for 2nd line when a
-statement is separated into 2 lines).
-
-Try to let '' aligned within one macro, since all related lines are
-short enough.
-
-Remove useless statement "idx = 0;", and always assign rgn within the
-'for' statement.
-
-Link: http://lkml.kernel.org/r/1464904899-1714-1-git-send-email-chengang@emindsoft.com.cn
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Signed-off-by: nimisolo <nimisolo@gmail.com>
+Cc: Alexander Kuleshov <kuleshovmail@gmail.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Wei Yang <weiyang@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ mm/memblock.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/memblock.h~include-linux-memblockh-clean-up-code-for-several-trivial-details include/linux/memblock.h
---- a/include/linux/memblock.h~include-linux-memblockh-clean-up-code-for-several-trivial-details
-+++ a/include/linux/memblock.h
-@@ -73,8 +73,8 @@ extern bool movable_node_enabled;
- 	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
+diff -puN mm/memblock.c~mm-memblock-if-nr_new-is-0-just-return mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-if-nr_new-is-0-just-return
++++ a/mm/memblock.c
+@@ -584,6 +584,9 @@ repeat:
+ 					       nid, flags);
+ 	}
  
- phys_addr_t memblock_find_in_range_node(phys_addr_t size, phys_addr_t align,
--					    phys_addr_t start, phys_addr_t end,
--					    int nid, ulong flags);
-+					phys_addr_t start, phys_addr_t end,
-+					int nid, ulong flags);
- phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
- 				   phys_addr_t size, phys_addr_t align);
- phys_addr_t get_allocated_memblock_reserved_regions_info(phys_addr_t *addr);
-@@ -110,7 +110,7 @@ void __next_mem_range_rev(u64 *idx, int
- 			  phys_addr_t *out_end, int *out_nid);
- 
- void __next_reserved_mem_region(u64 *idx, phys_addr_t *out_start,
--			       phys_addr_t *out_end);
-+				phys_addr_t *out_end);
- 
- /**
-  * for_each_mem_range - iterate through memblock areas from type_a and not
-@@ -148,7 +148,7 @@ void __next_reserved_mem_region(u64 *idx
- 			       p_start, p_end, p_nid)			\
- 	for (i = (u64)ULLONG_MAX,					\
- 		     __next_mem_range_rev(&i, nid, flags, type_a, type_b,\
--					 p_start, p_end, p_nid);	\
-+					  p_start, p_end, p_nid);	\
- 	     i != (u64)ULLONG_MAX;					\
- 	     __next_mem_range_rev(&i, nid, flags, type_a, type_b,	\
- 				  p_start, p_end, p_nid))
-@@ -163,8 +163,7 @@ void __next_reserved_mem_region(u64 *idx
-  * is initialized.
-  */
- #define for_each_reserved_mem_region(i, p_start, p_end)			\
--	for (i = 0UL,							\
--	     __next_reserved_mem_region(&i, p_start, p_end);		\
-+	for (i = 0UL, __next_reserved_mem_region(&i, p_start, p_end);	\
- 	     i != (u64)ULLONG_MAX;					\
- 	     __next_reserved_mem_region(&i, p_start, p_end))
- 
-@@ -403,15 +402,14 @@ static inline unsigned long memblock_reg
- }
- 
- #define for_each_memblock(memblock_type, region)					\
--	for (region = memblock.memblock_type.regions;				\
-+	for (region = memblock.memblock_type.regions;					\
- 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
- 	     region++)
- 
- #define for_each_memblock_type(memblock_type, rgn)			\
--	idx = 0;							\
--	rgn = &memblock_type->regions[idx];				\
--	for (idx = 0; idx < memblock_type->cnt;				\
--	     idx++,rgn = &memblock_type->regions[idx])
-+	for (idx = 0, rgn = &memblock_type->regions[0];			\
-+	     idx < memblock_type->cnt;					\
-+	     idx++, rgn = &memblock_type->regions[idx])
- 
- #ifdef CONFIG_MEMTEST
- extern void early_memtest(phys_addr_t start, phys_addr_t end);
++	if (!nr_new)
++		return 0;
++
+ 	/*
+ 	 * If this was the first round, resize array and repeat for actual
+ 	 * insertions; otherwise, merge and return.
 _
 
-Patches currently in -mm which might be from chengang@emindsoft.com.cn are
+Patches currently in -mm which might be from nimisolo@gmail.com are
 
-include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot.patch
 
