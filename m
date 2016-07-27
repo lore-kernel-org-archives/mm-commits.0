@@ -1,101 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zsmalloc-use-obj_tag_bit-for-bit-shifter.patch removed
- from -mm tree
-Date: Wed, 27 Jul 2016 12:00:40 -0700
-Message-ID: <579904d8.6UZvXq8Zr8CuoNX8%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_owner-initialize-page-owner-without-holding-the-zone-lock.patch
+ removed from -mm tree
+Date: Wed, 27 Jul 2016 12:00:46 -0700
+Message-ID: <579904de.YsyNhTBvgpX2j8Yt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40303 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40316 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757508AbcG0TAl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:00:41 -0400
+	with ESMTP id S1757508AbcG0TAr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:00:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, dan.carpenter@oracle.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, glider@google.com, hughd@google.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: use OBJ_TAG_BIT for bit shifter
+     Subject: mm/page_owner: initialize page owner without holding the zone lock
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-use-obj_tag_bit-for-bit-shifter.patch
+     mm-page_owner-initialize-page-owner-without-holding-the-zone-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: use OBJ_TAG_BIT for bit shifter
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/page_owner: initialize page owner without holding the zone lock
 
-Static check warns using tag as bit shifter.  It doesn't break current
-working but not good for redability.  Let's use OBJ_TAG_BIT as bit shifter
-instead of OBJ_ALLOCATED_TAG.
+It's not necessary to initialized page_owner with holding the zone lock. 
+It would cause more contention on the zone lock although it's not a big
+problem since it is just debug feature.  But, it is better than before so
+do it.  This is also preparation step to use stackdepot in page owner
+feature.  Stackdepot allocates new pages when there is no reserved space
+and holding the zone lock in this case will cause deadlock.
 
-Link: http://lkml.kernel.org/r/20160607045146.GF26230@bbox
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Link: http://lkml.kernel.org/r/1464230275-25791-2-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/compaction.c     |    3 +++
+ mm/page_alloc.c     |    2 --
+ mm/page_isolation.c |    9 ++++++---
+ 3 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-use-obj_tag_bit-for-bit-shifter mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-use-obj_tag_bit-for-bit-shifter
-+++ a/mm/zsmalloc.c
-@@ -1052,7 +1052,7 @@ static void init_zspage(struct size_clas
- 		link = (struct link_free *)vaddr + off / sizeof(*link);
+diff -puN mm/compaction.c~mm-page_owner-initialize-page-owner-without-holding-the-zone-lock mm/compaction.c
+--- a/mm/compaction.c~mm-page_owner-initialize-page-owner-without-holding-the-zone-lock
++++ a/mm/compaction.c
+@@ -19,6 +19,7 @@
+ #include <linux/kasan.h>
+ #include <linux/kthread.h>
+ #include <linux/freezer.h>
++#include <linux/page_owner.h>
+ #include "internal.h"
  
- 		while ((off += class->size) < PAGE_SIZE) {
--			link->next = freeobj++ << OBJ_ALLOCATED_TAG;
-+			link->next = freeobj++ << OBJ_TAG_BITS;
- 			link += class->size / sizeof(*link);
+ #ifdef CONFIG_COMPACTION
+@@ -79,6 +80,8 @@ static void map_pages(struct list_head *
+ 		arch_alloc_page(page, order);
+ 		kernel_map_pages(page, nr_pages, 1);
+ 		kasan_alloc_pages(page, order);
++
++		set_page_owner(page, order, __GFP_MOVABLE);
+ 		if (order)
+ 			split_page(page, order);
+ 
+diff -puN mm/page_alloc.c~mm-page_owner-initialize-page-owner-without-holding-the-zone-lock mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_owner-initialize-page-owner-without-holding-the-zone-lock
++++ a/mm/page_alloc.c
+@@ -2509,8 +2509,6 @@ int __isolate_free_page(struct page *pag
+ 	zone->free_area[order].nr_free--;
+ 	rmv_page_order(page);
+ 
+-	set_page_owner(page, order, __GFP_MOVABLE);
+-
+ 	/* Set the pageblock if the isolated page is at least a pageblock */
+ 	if (order >= pageblock_order - 1) {
+ 		struct page *endpage = page + (1 << order) - 1;
+diff -puN mm/page_isolation.c~mm-page_owner-initialize-page-owner-without-holding-the-zone-lock mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-page_owner-initialize-page-owner-without-holding-the-zone-lock
++++ a/mm/page_isolation.c
+@@ -7,6 +7,7 @@
+ #include <linux/pageblock-flags.h>
+ #include <linux/memory.h>
+ #include <linux/hugetlb.h>
++#include <linux/page_owner.h>
+ #include "internal.h"
+ 
+ #define CREATE_TRACE_POINTS
+@@ -108,8 +109,6 @@ static void unset_migratetype_isolate(st
+ 			if (pfn_valid_within(page_to_pfn(buddy)) &&
+ 			    !is_migrate_isolate_page(buddy)) {
+ 				__isolate_free_page(page, order);
+-				kernel_map_pages(page, (1 << order), 1);
+-				set_page_refcounted(page);
+ 				isolated_page = page;
+ 			}
  		}
+@@ -128,8 +127,12 @@ static void unset_migratetype_isolate(st
+ 	zone->nr_isolate_pageblock--;
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+-	if (isolated_page)
++	if (isolated_page) {
++		kernel_map_pages(page, (1 << order), 1);
++		set_page_refcounted(page);
++		set_page_owner(page, order, __GFP_MOVABLE);
+ 		__free_pages(isolated_page, order);
++	}
+ }
  
-@@ -1063,13 +1063,13 @@ static void init_zspage(struct size_clas
- 		 */
- 		next_page = get_next_page(page);
- 		if (next_page) {
--			link->next = freeobj++ << OBJ_ALLOCATED_TAG;
-+			link->next = freeobj++ << OBJ_TAG_BITS;
- 		} else {
- 			/*
--			 * Reset OBJ_ALLOCATED_TAG bit to last link to tell
-+			 * Reset OBJ_TAG_BITS bit to last link to tell
- 			 * whether it's allocated object or not.
- 			 */
--			link->next = -1 << OBJ_ALLOCATED_TAG;
-+			link->next = -1 << OBJ_TAG_BITS;
- 		}
- 		kunmap_atomic(vaddr);
- 		page = next_page;
-@@ -1514,7 +1514,7 @@ static unsigned long obj_malloc(struct s
- 
- 	vaddr = kmap_atomic(m_page);
- 	link = (struct link_free *)vaddr + m_offset / sizeof(*link);
--	set_freeobj(zspage, link->next >> OBJ_ALLOCATED_TAG);
-+	set_freeobj(zspage, link->next >> OBJ_TAG_BITS);
- 	if (likely(!PageHugeObject(m_page)))
- 		/* record handle in the header of allocated chunk */
- 		link->handle = handle;
-@@ -1616,7 +1616,7 @@ static void obj_free(struct size_class *
- 
- 	/* Insert this object in containing zspage's freelist */
- 	link = (struct link_free *)(vaddr + f_offset);
--	link->next = get_freeobj(zspage) << OBJ_ALLOCATED_TAG;
-+	link->next = get_freeobj(zspage) << OBJ_TAG_BITS;
- 	kunmap_atomic(vaddr);
- 	set_freeobj(zspage, f_objidx);
- 	mod_zspage_inuse(zspage, -1);
+ static inline struct page *
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-mm-page_alloc-fix-dirtyable-highmem-calculation.patch
-mm-show-node_pages_scanned-per-node-not-zone.patch
-mm-show-node_pages_scanned-per-node-not-zone-fix.patch
-mm-add-per-zone-lru-list-stat.patch
-mm-bail-out-in-shrin_inactive_list.patch
 
