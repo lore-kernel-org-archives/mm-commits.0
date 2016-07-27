@@ -1,109 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-init-fix-zone-boundary-creation.patch removed from
- -mm tree
-Date: Wed, 27 Jul 2016 11:59:36 -0700
-Message-ID: <57990498.ncdiBCtmznoPFcz6%akpm@linux-foundation.org>
+Subject: [merged] memory-hotplug-add-move_pfn_range.patch removed from -mm tree
+Date: Wed, 27 Jul 2016 11:59:39 -0700
+Message-ID: <5799049b.c4BjqUcWlJcZJzns%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40008 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40021 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758038AbcG0S7h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 14:59:37 -0400
+	with ESMTP id S1758038AbcG0S7k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 14:59:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oohall@gmail.com, anton@samba.org, benh@kernel.crashing.org, mgorman@techsingularity.net, paulus@samba.org, mm-commits@vger.kernel.org
+To: arbab@linux.vnet.ibm.com, abanman@sgi.com, dan.j.williams@intel.com, daniel.kiper@oracle.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, rientjes@google.com, shaohua.li@intel.com, slaoub@gmail.com, tangchen@cn.fujitsu.com, vbabka@suse.cz, vkuznets@redhat.com, y-goto@jp.fujitsu.com, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/init: fix zone boundary creation
+     Subject: memory-hotplug: add move_pfn_range()
 has been removed from the -mm tree.  Its filename was
-     mm-init-fix-zone-boundary-creation.patch
+     memory-hotplug-add-move_pfn_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Oliver O'Halloran" <oohall@gmail.com>
-Subject: mm/init: fix zone boundary creation
+From: Reza Arbab <arbab@linux.vnet.ibm.com>
+Subject: memory-hotplug: add move_pfn_range()
 
-As a part of memory initialisation the architecture passes an array to
-free_area_init_nodes() which specifies the max PFN of each memory zone. 
-This array is not necessarily monotonic (due to unused zones) so this
-array is parsed to build monotonic lists of the min and max PFN for each
-zone.  ZONE_MOVABLE is special cased here as its limits are managed by the
-mm subsystem rather than the architecture.  Unfortunately, this special
-casing is broken when ZONE_MOVABLE is the not the last zone in the zone
-list.  The core of the issue is:
+Add move_pfn_range(), a wrapper to call move_pfn_range_left() or
+move_pfn_range_right().
 
-	if (i == ZONE_MOVABLE)
-		continue;
-	arch_zone_lowest_possible_pfn[i] =
-		arch_zone_highest_possible_pfn[i-1];
+No functional change. This will be utilized by a later patch.
 
-As ZONE_MOVABLE is skipped the lowest_possible_pfn of the next zone will
-be set to zero.  This patch fixes this bug by adding explicitly tracking
-where the next zone should start rather than relying on the contents
-arch_zone_highest_possible_pfn[].
-
-Thie is low priority.  To get bitten by this you need to enable a zone
-that appears after ZONE_MOVABLE in the zone_type enum.  As far as I can
-tell this means running a kernel with ZONE_DEVICE or ZONE_CMA enabled,
-so I can't see this affecting too many people.
-
-I only noticed this because I've been fiddling with ZONE_DEVICE on
-powerpc and 4.6 broke my test kernel.  This bug, in conjunction with
-the changes in Taku Izumi's kernelcore=mirror patch (d91749c1dda71) and
-powerpc being the odd architecture which initialises max_zone_pfn[] to
-~0ul instead of 0 caused all of system memory to be placed into
-ZONE_DEVICE at boot, followed a panic since device memory cannot be
-used for kernel allocations.  I've already submitted a patch to fix the
-powerpc specific bits, but I figured this should be fixed too.
-
-Link: http://lkml.kernel.org/r/1462435033-15601-1-git-send-email-oohall@gmail.com
-Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/1462816419-4479-2-git-send-email-arbab@linux.vnet.ibm.com
+Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Daniel Kiper <daniel.kiper@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Andrew Banman <abanman@sgi.com>
+Cc: Chen Yucong <slaoub@gmail.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ mm/memory_hotplug.c |   38 ++++++++++++++++++++++++++++----------
+ 1 file changed, 28 insertions(+), 10 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-init-fix-zone-boundary-creation mm/page_alloc.c
---- a/mm/page_alloc.c~mm-init-fix-zone-boundary-creation
-+++ a/mm/page_alloc.c
-@@ -6467,15 +6467,18 @@ void __init free_area_init_nodes(unsigne
- 				sizeof(arch_zone_lowest_possible_pfn));
- 	memset(arch_zone_highest_possible_pfn, 0,
- 				sizeof(arch_zone_highest_possible_pfn));
--	arch_zone_lowest_possible_pfn[0] = find_min_pfn_with_active_regions();
--	arch_zone_highest_possible_pfn[0] = max_zone_pfn[0];
--	for (i = 1; i < MAX_NR_ZONES; i++) {
+diff -puN mm/memory_hotplug.c~memory-hotplug-add-move_pfn_range mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-add-move_pfn_range
++++ a/mm/memory_hotplug.c
+@@ -449,6 +449,25 @@ out_fail:
+ 	return -1;
+ }
+ 
++static struct zone * __meminit move_pfn_range(int zone_shift,
++		unsigned long start_pfn, unsigned long end_pfn)
++{
++	struct zone *zone = page_zone(pfn_to_page(start_pfn));
++	int ret = 0;
 +
-+	start_pfn = find_min_pfn_with_active_regions();
++	if (zone_shift < 0)
++		ret = move_pfn_range_left(zone + zone_shift, zone,
++					  start_pfn, end_pfn);
++	else if (zone_shift)
++		ret = move_pfn_range_right(zone, zone + zone_shift,
++					   start_pfn, end_pfn);
 +
-+	for (i = 0; i < MAX_NR_ZONES; i++) {
- 		if (i == ZONE_MOVABLE)
- 			continue;
--		arch_zone_lowest_possible_pfn[i] =
--			arch_zone_highest_possible_pfn[i-1];
--		arch_zone_highest_possible_pfn[i] =
--			max(max_zone_pfn[i], arch_zone_lowest_possible_pfn[i]);
++	if (ret)
++		return NULL;
 +
-+		end_pfn = max(max_zone_pfn[i], start_pfn);
-+		arch_zone_lowest_possible_pfn[i] = start_pfn;
-+		arch_zone_highest_possible_pfn[i] = end_pfn;
++	return zone + zone_shift;
++}
 +
-+		start_pfn = end_pfn;
- 	}
- 	arch_zone_lowest_possible_pfn[ZONE_MOVABLE] = 0;
- 	arch_zone_highest_possible_pfn[ZONE_MOVABLE] = 0;
+ static void __meminit grow_pgdat_span(struct pglist_data *pgdat, unsigned long start_pfn,
+ 				      unsigned long end_pfn)
+ {
+@@ -1039,6 +1058,7 @@ int __ref online_pages(unsigned long pfn
+ 	int nid;
+ 	int ret;
+ 	struct memory_notify arg;
++	int zone_shift = 0;
+ 
+ 	/*
+ 	 * This doesn't need a lock to do pfn_to_page().
+@@ -1053,18 +1073,16 @@ int __ref online_pages(unsigned long pfn
+ 		return -EINVAL;
+ 
+ 	if (online_type == MMOP_ONLINE_KERNEL &&
+-	    zone_idx(zone) == ZONE_MOVABLE) {
+-		if (move_pfn_range_left(zone - 1, zone, pfn, pfn + nr_pages))
+-			return -EINVAL;
+-	}
++	    zone_idx(zone) == ZONE_MOVABLE)
++		zone_shift = -1;
++
+ 	if (online_type == MMOP_ONLINE_MOVABLE &&
+-	    zone_idx(zone) == ZONE_MOVABLE - 1) {
+-		if (move_pfn_range_right(zone, zone + 1, pfn, pfn + nr_pages))
+-			return -EINVAL;
+-	}
++	    zone_idx(zone) == ZONE_MOVABLE - 1)
++		zone_shift = 1;
+ 
+-	/* Previous code may changed the zone of the pfn range */
+-	zone = page_zone(pfn_to_page(pfn));
++	zone = move_pfn_range(zone_shift, pfn, pfn + nr_pages);
++	if (!zone)
++		return -EINVAL;
+ 
+ 	arg.start_pfn = pfn;
+ 	arg.nr_pages = nr_pages;
 _
 
-Patches currently in -mm which might be from oohall@gmail.com are
+Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
 
 
