@@ -1,105 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch removed from -mm tree
-Date: Wed, 27 Jul 2016 12:01:06 -0700
-Message-ID: <579904f2.7lEfKzBW3eyiTMvP%akpm@linux-foundation.org>
+Subject: [merged] mm-hugetlb-simplify-hugetlb-unmap.patch removed from -mm tree
+Date: Wed, 27 Jul 2016 12:01:09 -0700
+Message-ID: <579904f5.3gMs2pTVvVceW6+3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40357 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40363 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757190AbcG0TBH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:01:07 -0400
+	with ESMTP id S1757190AbcG0TBK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:01:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, hughd@google.com, kirill@shutemov.name, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, kirill@shutemov.name, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: check pmd_trans_unstable() after split_huge_pmd()
+     Subject: mm/hugetlb: simplify hugetlb unmap
 has been removed from the -mm tree.  Its filename was
-     mm-thp-check-pmd_trans_unstable-after-split_huge_pmd.patch
+     mm-hugetlb-simplify-hugetlb-unmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: thp: check pmd_trans_unstable() after split_huge_pmd()
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/hugetlb: simplify hugetlb unmap
 
-split_huge_pmd() doesn't guarantee that the pmd is normal pmd pointing to
-pte entries, which can be checked with pmd_trans_unstable().  Some callers
-make this assertion and some do it differently and some not, so let's do
-it in a unified manner.
+For hugetlb like THP (and unlike regular page), we do tlb flush after
+dropping ptl. Because of the above, we don't need to track force_flush
+like we do now. Instead we can simply call tlb_remove_page() which
+will do the flush if needed.
 
-Link: http://lkml.kernel.org/r/1464741400-12143-1-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+No functionality change in this patch.
+
+Link: http://lkml.kernel.org/r/1465049193-22197-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c       |    2 ++
- mm/mempolicy.c |    2 ++
- mm/mprotect.c  |    2 +-
- mm/mremap.c    |    3 +--
- 4 files changed, 6 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   54 +++++++++++++++++++------------------------------
+ 1 file changed, 21 insertions(+), 33 deletions(-)
 
-diff -puN mm/gup.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/gup.c
---- a/mm/gup.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
-+++ a/mm/gup.c
-@@ -279,6 +279,8 @@ struct page *follow_page_mask(struct vm_
- 			spin_unlock(ptl);
- 			ret = 0;
- 			split_huge_pmd(vma, pmd, address);
-+			if (pmd_trans_unstable(pmd))
-+				ret = -EBUSY;
- 		} else {
- 			get_page(page);
- 			spin_unlock(ptl);
-diff -puN mm/mempolicy.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/mempolicy.c
---- a/mm/mempolicy.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
-+++ a/mm/mempolicy.c
-@@ -512,6 +512,8 @@ static int queue_pages_pte_range(pmd_t *
- 		}
- 	}
+diff -puN mm/hugetlb.c~mm-hugetlb-simplify-hugetlb-unmap mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-simplify-hugetlb-unmap
++++ a/mm/hugetlb.c
+@@ -3177,7 +3177,6 @@ void __unmap_hugepage_range(struct mmu_g
+ 			    unsigned long start, unsigned long end,
+ 			    struct page *ref_page)
+ {
+-	int force_flush = 0;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long address;
+ 	pte_t *ptep;
+@@ -3196,19 +3195,22 @@ void __unmap_hugepage_range(struct mmu_g
+ 	tlb_start_vma(tlb, vma);
+ 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 	address = start;
+-again:
+ 	for (; address < end; address += sz) {
+ 		ptep = huge_pte_offset(mm, address);
+ 		if (!ptep)
+ 			continue;
  
-+	if (pmd_trans_unstable(pmd))
-+		return 0;
- retry:
- 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
-diff -puN mm/mprotect.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/mprotect.c
---- a/mm/mprotect.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
-+++ a/mm/mprotect.c
-@@ -163,7 +163,7 @@ static inline unsigned long change_pmd_r
- 		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE) {
- 				split_huge_pmd(vma, pmd, addr);
--				if (pmd_none(*pmd))
-+				if (pmd_trans_unstable(pmd))
- 					continue;
- 			} else {
- 				int nr_ptes = change_huge_pmd(vma, pmd, addr,
-diff -puN mm/mremap.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd mm/mremap.c
---- a/mm/mremap.c~mm-thp-check-pmd_trans_unstable-after-split_huge_pmd
-+++ a/mm/mremap.c
-@@ -210,9 +210,8 @@ unsigned long move_page_tables(struct vm
- 				}
- 			}
- 			split_huge_pmd(vma, old_pmd, old_addr);
--			if (pmd_none(*old_pmd))
-+			if (pmd_trans_unstable(old_pmd))
- 				continue;
--			VM_BUG_ON(pmd_trans_huge(*old_pmd));
+ 		ptl = huge_pte_lock(h, mm, ptep);
+-		if (huge_pmd_unshare(mm, &address, ptep))
+-			goto unlock;
++		if (huge_pmd_unshare(mm, &address, ptep)) {
++			spin_unlock(ptl);
++			continue;
++		}
+ 
+ 		pte = huge_ptep_get(ptep);
+-		if (huge_pte_none(pte))
+-			goto unlock;
++		if (huge_pte_none(pte)) {
++			spin_unlock(ptl);
++			continue;
++		}
+ 
+ 		/*
+ 		 * Migrating hugepage or HWPoisoned hugepage is already
+@@ -3216,7 +3218,8 @@ again:
+ 		 */
+ 		if (unlikely(!pte_present(pte))) {
+ 			huge_pte_clear(mm, address, ptep);
+-			goto unlock;
++			spin_unlock(ptl);
++			continue;
  		}
- 		if (pte_alloc(new_vma->vm_mm, new_pmd, new_addr))
- 			break;
+ 
+ 		page = pte_page(pte);
+@@ -3226,9 +3229,10 @@ again:
+ 		 * are about to unmap is the actual page of interest.
+ 		 */
+ 		if (ref_page) {
+-			if (page != ref_page)
+-				goto unlock;
+-
++			if (page != ref_page) {
++				spin_unlock(ptl);
++				continue;
++			}
+ 			/*
+ 			 * Mark the VMA as having unmapped its page so that
+ 			 * future faults in this VMA will fail rather than
+@@ -3244,30 +3248,14 @@ again:
+ 
+ 		hugetlb_count_sub(pages_per_huge_page(h), mm);
+ 		page_remove_rmap(page, true);
+-		force_flush = !__tlb_remove_page(tlb, page);
+-		if (force_flush) {
+-			address += sz;
+-			spin_unlock(ptl);
+-			break;
+-		}
+-		/* Bail out after unmapping reference page if supplied */
+-		if (ref_page) {
+-			spin_unlock(ptl);
+-			break;
+-		}
+-unlock:
++
+ 		spin_unlock(ptl);
+-	}
+-	/*
+-	 * mmu_gather ran out of room to batch pages, we break out of
+-	 * the PTE lock to avoid doing the potential expensive TLB invalidate
+-	 * and page-free while holding it.
+-	 */
+-	if (force_flush) {
+-		force_flush = 0;
+-		tlb_flush_mmu(tlb);
+-		if (address < end && !ref_page)
+-			goto again;
++		tlb_remove_page(tlb, page);
++		/*
++		 * Bail out after unmapping reference page if supplied
++		 */
++		if (ref_page)
++			break;
+ 	}
+ 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ 	tlb_end_vma(tlb, vma);
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-mm-hwpoison-remove-incorrect-comment.patch
 
