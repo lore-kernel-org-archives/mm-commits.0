@@ -1,216 +1,204 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-ks.patch removed
- from -mm tree
-Date: Wed, 27 Jul 2016 12:02:02 -0700
-Message-ID: <5799052a.60qd8TBdHFtmiUiU%akpm@linux-foundation.org>
+ mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch removed from
+ -mm tree
+Date: Wed, 27 Jul 2016 12:01:59 -0700
+Message-ID: <57990527.W4nvH2Vh+6zpNEwn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40669 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40658 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757190AbcG0TCD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:02:03 -0400
+	with ESMTP id S1757190AbcG0TCA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:02:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebru.akagunduz@gmail.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gorcunov@openvz.org, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ebru.akagunduz@gmail.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gorcunov@openvz.org, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, xiexiuqi@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: make swapin readahead under down_read of mmap_sem
+     Subject: mm: make swapin readahead to improve thp collapse rate
 has been removed from the -mm tree.  Its filename was
-     mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-ks.patch
+     mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Subject: mm, thp: make swapin readahead under down_read of mmap_sem
+Subject: mm: make swapin readahead to improve thp collapse rate
 
-Currently khugepaged makes swapin readahead under down_write.  This patch
-supplies to make swapin readahead under down_read instead of down_write.
+This patch makes swapin readahead to improve thp collapse rate.  When
+khugepaged scanned pages, there can be a few of the pages in swap area.
 
-The patch was tested with a test program that allocates 800MB of memory,
-writes to it, and then sleeps.  The system was forced to swap out all.
+With the patch THP can collapse 4kB pages into a THP when there are up to
+max_ptes_swap swap ptes in a 2MB range.
+
+The patch was tested with a test program that allocates 400B of memory,
+writes to it, and then sleeps.  I force the system to swap out all. 
 Afterwards, the test program touches the area by writing, it skips a page
 in each 20 pages of the area.
 
-[akpm@linux-foundation.org: update comment to match new code]
-[kirill.shutemov@linux.intel.com: passing 'vma' to hugepage_vma_revlidate() is useless]
-  Link: http://lkml.kernel.org/r/20160530095058.GA53044@black.fi.intel.com
-  Link: http://lkml.kernel.org/r/1466021202-61880-3-git-send-email-kirill.shutemov@linux.intel.com
-Link: http://lkml.kernel.org/r/1464335964-6510-4-git-send-email-ebru.akagunduz@gmail.com
-Link: http://lkml.kernel.org/r/1466021202-61880-2-git-send-email-kirill.shutemov@linux.intel.com
+Without the patch, system did not swap in readahead.  THP rate was %65 of
+the program of the memory, it did not change over time.
+
+With this patch, after 10 minutes of waiting khugepaged had collapsed %99
+of the program's memory.
+
+[kirill.shutemov@linux.intel.com: trivial cleanup of exit path of the function]
+[kirill.shutemov@linux.intel.com: __collapse_huge_page_swapin(): drop unused 'pte' parameter]
+[kirill.shutemov@linux.intel.com: do not hold anon_vma lock during swap in]
 Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Xie XiuQi <xiexiuqi@huawei.com>
 Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   91 ++++++++++++++++++++++++++++++---------------
- 1 file changed, 62 insertions(+), 29 deletions(-)
+ include/trace/events/huge_memory.h |   24 +++++++++++++++
+ mm/huge_memory.c                   |   43 +++++++++++++++++++++++++--
+ mm/internal.h                      |    4 ++
+ mm/memory.c                        |    2 -
+ 4 files changed, 69 insertions(+), 4 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-ks mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-make-swapin-readahead-under-down_read-of-mmap_sem-ks
+diff -puN include/trace/events/huge_memory.h~mm-make-swapin-readahead-to-improve-thp-collapse-rate include/trace/events/huge_memory.h
+--- a/include/trace/events/huge_memory.h~mm-make-swapin-readahead-to-improve-thp-collapse-rate
++++ a/include/trace/events/huge_memory.h
+@@ -135,5 +135,29 @@ TRACE_EVENT(mm_collapse_huge_page_isolat
+ 		__print_symbolic(__entry->status, SCAN_STATUS))
+ );
+ 
++TRACE_EVENT(mm_collapse_huge_page_swapin,
++
++	TP_PROTO(struct mm_struct *mm, int swapped_in, int ret),
++
++	TP_ARGS(mm, swapped_in, ret),
++
++	TP_STRUCT__entry(
++		__field(struct mm_struct *, mm)
++		__field(int, swapped_in)
++		__field(int, ret)
++	),
++
++	TP_fast_assign(
++		__entry->mm = mm;
++		__entry->swapped_in = swapped_in;
++		__entry->ret = ret;
++	),
++
++	TP_printk("mm=%p, swapped_in=%d, ret=%d",
++		__entry->mm,
++		__entry->swapped_in,
++		__entry->ret)
++);
++
+ #endif /* __HUGE_MEMORY_H */
+ #include <trace/define_trace.h>
+diff -puN mm/huge_memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate
 +++ a/mm/huge_memory.c
-@@ -2374,6 +2374,34 @@ static bool hugepage_vma_check(struct vm
+@@ -2373,6 +2373,44 @@ static bool hugepage_vma_check(struct vm
+ 	return !(vma->vm_flags & VM_NO_THP);
  }
  
- /*
-+ * If mmap_sem temporarily dropped, revalidate vma
-+ * before taking mmap_sem.
-+ * Return 0 if succeeds, otherwise return none-zero
-+ * value (scan code).
++/*
++ * Bring missing pages in from swap, to complete THP collapse.
++ * Only done if khugepaged_scan_pmd believes it is worthwhile.
++ *
++ * Called and returns without pte mapped or spinlocks held,
++ * but with mmap_sem held to protect against vma changes.
 + */
 +
-+static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address)
++static void __collapse_huge_page_swapin(struct mm_struct *mm,
++					struct vm_area_struct *vma,
++					unsigned long address, pmd_t *pmd)
 +{
-+	struct vm_area_struct *vma;
-+	unsigned long hstart, hend;
++	unsigned long _address;
++	pte_t *pte, pteval;
++	int swapped_in = 0, ret = 0;
 +
-+	if (unlikely(khugepaged_test_exit(mm)))
-+		return SCAN_ANY_PROCESS;
-+
-+	vma = find_vma(mm, address);
-+	if (!vma)
-+		return SCAN_VMA_NULL;
-+
-+	hstart = (vma->vm_start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK;
-+	hend = vma->vm_end & HPAGE_PMD_MASK;
-+	if (address < hstart || address + HPAGE_PMD_SIZE > hend)
-+		return SCAN_ADDRESS_RANGE;
-+	if (!hugepage_vma_check(vma))
-+		return SCAN_VMA_CHECK;
-+	return 0;
++	pte = pte_offset_map(pmd, address);
++	for (_address = address; _address < address + HPAGE_PMD_NR*PAGE_SIZE;
++	     pte++, _address += PAGE_SIZE) {
++		pteval = *pte;
++		if (!is_swap_pte(pteval))
++			continue;
++		swapped_in++;
++		ret = do_swap_page(mm, vma, _address, pte, pmd,
++				   FAULT_FLAG_ALLOW_RETRY|FAULT_FLAG_RETRY_NOWAIT,
++				   pteval);
++		if (ret & VM_FAULT_ERROR) {
++			trace_mm_collapse_huge_page_swapin(mm, swapped_in, 0);
++			return;
++		}
++		/* pte is unmapped now, we need to map it */
++		pte = pte_offset_map(pmd, _address);
++	}
++	pte--;
++	pte_unmap(pte);
++	trace_mm_collapse_huge_page_swapin(mm, swapped_in, 1);
 +}
 +
-+/*
-  * Bring missing pages in from swap, to complete THP collapse.
-  * Only done if khugepaged_scan_pmd believes it is worthwhile.
-  *
-@@ -2381,7 +2409,7 @@ static bool hugepage_vma_check(struct vm
-  * but with mmap_sem held to protect against vma changes.
-  */
- 
--static void __collapse_huge_page_swapin(struct mm_struct *mm,
-+static bool __collapse_huge_page_swapin(struct mm_struct *mm,
- 					struct vm_area_struct *vma,
- 					unsigned long address, pmd_t *pmd)
- {
-@@ -2397,11 +2425,18 @@ static void __collapse_huge_page_swapin(
- 			continue;
- 		swapped_in++;
- 		ret = do_swap_page(mm, vma, _address, pte, pmd,
--				   FAULT_FLAG_ALLOW_RETRY|FAULT_FLAG_RETRY_NOWAIT,
-+				   FAULT_FLAG_ALLOW_RETRY,
- 				   pteval);
-+		/* do_swap_page returns VM_FAULT_RETRY with released mmap_sem */
-+		if (ret & VM_FAULT_RETRY) {
-+			down_read(&mm->mmap_sem);
-+			/* vma is no longer available, don't continue to swapin */
-+			if (hugepage_vma_revalidate(mm, address))
-+				return false;
-+		}
- 		if (ret & VM_FAULT_ERROR) {
- 			trace_mm_collapse_huge_page_swapin(mm, swapped_in, 0);
--			return;
-+			return false;
- 		}
- 		/* pte is unmapped now, we need to map it */
- 		pte = pte_offset_map(pmd, _address);
-@@ -2409,6 +2444,7 @@ static void __collapse_huge_page_swapin(
- 	pte--;
- 	pte_unmap(pte);
- 	trace_mm_collapse_huge_page_swapin(mm, swapped_in, 1);
-+	return true;
- }
- 
  static void collapse_huge_page(struct mm_struct *mm,
-@@ -2423,7 +2459,6 @@ static void collapse_huge_page(struct mm
- 	struct page *new_page;
- 	spinlock_t *pmd_ptl, *pte_ptl;
- 	int isolated = 0, result = 0;
--	unsigned long hstart, hend;
- 	struct mem_cgroup *memcg;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
- 	unsigned long mmun_end;		/* For mmu_notifiers */
-@@ -2446,39 +2481,37 @@ static void collapse_huge_page(struct mm
- 		goto out_nolock;
- 	}
- 
--	/*
--	 * Prevent all access to pagetables with the exception of
--	 * gup_fast later hanlded by the ptep_clear_flush and the VM
--	 * handled by the anon_vma lock + PG_lock.
--	 */
--	down_write(&mm->mmap_sem);
--	if (unlikely(khugepaged_test_exit(mm))) {
--		result = SCAN_ANY_PROCESS;
-+	down_read(&mm->mmap_sem);
-+	result = hugepage_vma_revalidate(mm, address);
-+	if (result)
- 		goto out;
--	}
- 
--	vma = find_vma(mm, address);
--	if (!vma) {
--		result = SCAN_VMA_NULL;
--		goto out;
--	}
--	hstart = (vma->vm_start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK;
--	hend = vma->vm_end & HPAGE_PMD_MASK;
--	if (address < hstart || address + HPAGE_PMD_SIZE > hend) {
--		result = SCAN_ADDRESS_RANGE;
--		goto out;
--	}
--	if (!hugepage_vma_check(vma)) {
--		result = SCAN_VMA_CHECK;
--		goto out;
--	}
- 	pmd = mm_find_pmd(mm, address);
- 	if (!pmd) {
- 		result = SCAN_PMD_NULL;
+ 				   unsigned long address,
+ 				   struct page **hpage,
+@@ -2440,6 +2478,8 @@ static void collapse_huge_page(struct mm
  		goto out;
  	}
  
--	__collapse_huge_page_swapin(mm, vma, address, pmd);
-+	/*
-+	 * __collapse_huge_page_swapin always returns with mmap_sem locked.
-+	 * If it fails, release mmap_sem and jump directly out.
-+	 * Continuing to collapse causes inconsistency.
-+	 */
-+	if (!__collapse_huge_page_swapin(mm, vma, address, pmd)) {
-+		up_read(&mm->mmap_sem);
-+		goto out;
-+	}
++	__collapse_huge_page_swapin(mm, vma, address, pmd);
 +
-+	up_read(&mm->mmap_sem);
-+	/*
-+	 * Prevent all access to pagetables with the exception of
-+	 * gup_fast later handled by the ptep_clear_flush and the VM
-+	 * handled by the anon_vma lock + PG_lock.
-+	 */
-+	down_write(&mm->mmap_sem);
-+	result = hugepage_vma_revalidate(mm, address);
-+	if (result)
-+		goto out;
- 
  	anon_vma_lock_write(vma->anon_vma);
  
+ 	pte = pte_offset_map(pmd, address);
+@@ -2516,9 +2556,6 @@ static void collapse_huge_page(struct mm
+ 	result = SCAN_SUCCEED;
+ out_up_write:
+ 	up_write(&mm->mmap_sem);
+-	trace_mm_collapse_huge_page(mm, isolated, result);
+-	return;
+-
+ out_nolock:
+ 	trace_mm_collapse_huge_page(mm, isolated, result);
+ 	return;
+diff -puN mm/internal.h~mm-make-swapin-readahead-to-improve-thp-collapse-rate mm/internal.h
+--- a/mm/internal.h~mm-make-swapin-readahead-to-improve-thp-collapse-rate
++++ a/mm/internal.h
+@@ -36,6 +36,10 @@
+ /* Do not use these with a slab allocator */
+ #define GFP_SLAB_BUG_MASK (__GFP_DMA32|__GFP_HIGHMEM|~__GFP_BITS_MASK)
+ 
++extern int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
++			unsigned long address, pte_t *page_table, pmd_t *pmd,
++			unsigned int flags, pte_t orig_pte);
++
+ void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
+ 		unsigned long floor, unsigned long ceiling);
+ 
+diff -puN mm/memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate mm/memory.c
+--- a/mm/memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate
++++ a/mm/memory.c
+@@ -2522,7 +2522,7 @@ EXPORT_SYMBOL(unmap_mapping_range);
+  * We return with the mmap_sem locked or unlocked in the same cases
+  * as does filemap_fault().
+  */
+-static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
++int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pte_t *page_table, pmd_t *pmd,
+ 		unsigned int flags, pte_t orig_pte)
+ {
 _
 
 Patches currently in -mm which might be from ebru.akagunduz@gmail.com are
