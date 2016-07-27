@@ -1,72 +1,296 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- dma-debug-track-bucket-lock-state-for-static-checkers.patch removed from
- -mm tree
-Date: Wed, 27 Jul 2016 11:58:36 -0700
-Message-ID: <5799045c.WHA56UEF6dVxFwmC%akpm@linux-foundation.org>
+Subject: [merged] dax-remote-unused-fault-wrappers.patch removed from -mm
+ tree
+Date: Wed, 27 Jul 2016 11:58:33 -0700
+Message-ID: <57990459.DhAQgeFWTv9KPNud%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39891 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39885 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932328AbcG0S6h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 14:58:37 -0400
+	with ESMTP id S932328AbcG0S6e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 14:58:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sboyd@codeaurora.org, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, corbet@lwn.net, dan.j.williams@intel.com, david@fromorbit.com, jack@suse.cz, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-debug: track bucket lock state for static checkers
+     Subject: dax: remote unused fault wrappers
 has been removed from the -mm tree.  Its filename was
-     dma-debug-track-bucket-lock-state-for-static-checkers.patch
+     dax-remote-unused-fault-wrappers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: dma-debug: track bucket lock state for static checkers
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: dax: remote unused fault wrappers
 
-get_hash_bucket() and put_hash_bucket() acquire and release the
-same spinlock, but this confuses static checkers such as sparse
+Remove the unused wrappers dax_fault() and dax_pmd_fault().  After this
+removal, rename __dax_fault() and __dax_pmd_fault() to dax_fault() and
+dax_pmd_fault() respectively, and update all callers.
 
-lib/dma-debug.c:254:27: warning: context imbalance in 'get_hash_bucket' - wrong count at exit
-lib/dma-debug.c:268:13: warning: context imbalance in 'put_hash_bucket' - unexpected unlock
+The dax_fault() and dax_pmd_fault() wrappers were initially intended to
+capture some filesystem independent functionality around page faults
+(calling sb_start_pagefault() & sb_end_pagefault(), updating file mtime
+and ctime).  However, the following commits:
 
-Add the appropriate acquire and release statements so that
-checkers can properly track the lock state.
+commit 5726b27b09cc ("ext2: Add locking for DAX faults")
+commit ea3d7209ca01 ("ext4: fix races between page faults and hole punching")
 
-Link: http://lkml.kernel.org/r/20160701191552.24295-1-sboyd@codeaurora.org
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Added locking to the ext2 and ext4 filesystems after these common
+operations but before __dax_fault() and __dax_pmd_fault() were called. 
+This means that these wrappers are no longer used, and are unlikely to be
+used in the future.  XFS has had locking analogous to what was recently
+added to ext2 and ext4 since DAX support was initially introduced by:
+
+commit 6b698edeeef0 ("xfs: add DAX file operations support")
+
+Link: http://lkml.kernel.org/r/20160714214049.20075-2-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/dax.c            |   73 ++++++++----------------------------------
+ fs/ext2/file.c      |    4 +-
+ fs/ext4/file.c      |    4 +-
+ fs/xfs/xfs_file.c   |    6 +--
+ include/linux/dax.h |    5 --
+ 5 files changed, 21 insertions(+), 71 deletions(-)
 
-diff -puN lib/dma-debug.c~dma-debug-track-bucket-lock-state-for-static-checkers lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-track-bucket-lock-state-for-static-checkers
-+++ a/lib/dma-debug.c
-@@ -253,6 +253,7 @@ static int hash_fn(struct dma_debug_entr
-  */
- static struct hash_bucket *get_hash_bucket(struct dma_debug_entry *entry,
- 					   unsigned long *flags)
-+	__acquires(&dma_entry_hash[idx].lock)
- {
- 	int idx = hash_fn(entry);
- 	unsigned long __flags;
-@@ -267,6 +268,7 @@ static struct hash_bucket *get_hash_buck
-  */
- static void put_hash_bucket(struct hash_bucket *bucket,
- 			    unsigned long *flags)
-+	__releases(&bucket->lock)
- {
- 	unsigned long __flags = *flags;
+diff -puN fs/dax.c~dax-remote-unused-fault-wrappers fs/dax.c
+--- a/fs/dax.c~dax-remote-unused-fault-wrappers
++++ a/fs/dax.c
+@@ -819,16 +819,16 @@ static int dax_insert_mapping(struct add
+ }
  
+ /**
+- * __dax_fault - handle a page fault on a DAX file
++ * dax_fault - handle a page fault on a DAX file
+  * @vma: The virtual memory area where the fault occurred
+  * @vmf: The description of the fault
+  * @get_block: The filesystem method used to translate file offsets to blocks
+  *
+  * When a page fault occurs, filesystems may call this helper in their
+- * fault handler for DAX files. __dax_fault() assumes the caller has done all
++ * fault handler for DAX files. dax_fault() assumes the caller has done all
+  * the necessary locking for the page fault to proceed successfully.
+  */
+-int __dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
++int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 			get_block_t get_block)
+ {
+ 	struct file *file = vma->vm_file;
+@@ -913,33 +913,6 @@ int __dax_fault(struct vm_area_struct *v
+ 		return VM_FAULT_SIGBUS | major;
+ 	return VM_FAULT_NOPAGE | major;
+ }
+-EXPORT_SYMBOL(__dax_fault);
+-
+-/**
+- * dax_fault - handle a page fault on a DAX file
+- * @vma: The virtual memory area where the fault occurred
+- * @vmf: The description of the fault
+- * @get_block: The filesystem method used to translate file offsets to blocks
+- *
+- * When a page fault occurs, filesystems may call this helper in their
+- * fault handler for DAX files.
+- */
+-int dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+-	      get_block_t get_block)
+-{
+-	int result;
+-	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
+-
+-	if (vmf->flags & FAULT_FLAG_WRITE) {
+-		sb_start_pagefault(sb);
+-		file_update_time(vma->vm_file);
+-	}
+-	result = __dax_fault(vma, vmf, get_block);
+-	if (vmf->flags & FAULT_FLAG_WRITE)
+-		sb_end_pagefault(sb);
+-
+-	return result;
+-}
+ EXPORT_SYMBOL_GPL(dax_fault);
+ 
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE)
+@@ -967,7 +940,16 @@ static void __dax_dbg(struct buffer_head
+ 
+ #define dax_pmd_dbg(bh, address, reason)	__dax_dbg(bh, address, reason, "dax_pmd")
+ 
+-int __dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
++/**
++ * dax_pmd_fault - handle a PMD fault on a DAX file
++ * @vma: The virtual memory area where the fault occurred
++ * @vmf: The description of the fault
++ * @get_block: The filesystem method used to translate file offsets to blocks
++ *
++ * When a page fault occurs, filesystems may call this helper in their
++ * pmd_fault handler for DAX files.
++ */
++int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+ 		pmd_t *pmd, unsigned int flags, get_block_t get_block)
+ {
+ 	struct file *file = vma->vm_file;
+@@ -1119,7 +1101,7 @@ int __dax_pmd_fault(struct vm_area_struc
+ 		 *
+ 		 * The PMD path doesn't have an equivalent to
+ 		 * dax_pfn_mkwrite(), though, so for a read followed by a
+-		 * write we traverse all the way through __dax_pmd_fault()
++		 * write we traverse all the way through dax_pmd_fault()
+ 		 * twice.  This means we can just skip inserting a radix tree
+ 		 * entry completely on the initial read and just wait until
+ 		 * the write to insert a dirty entry.
+@@ -1148,33 +1130,6 @@ int __dax_pmd_fault(struct vm_area_struc
+ 	result = VM_FAULT_FALLBACK;
+ 	goto out;
+ }
+-EXPORT_SYMBOL_GPL(__dax_pmd_fault);
+-
+-/**
+- * dax_pmd_fault - handle a PMD fault on a DAX file
+- * @vma: The virtual memory area where the fault occurred
+- * @vmf: The description of the fault
+- * @get_block: The filesystem method used to translate file offsets to blocks
+- *
+- * When a page fault occurs, filesystems may call this helper in their
+- * pmd_fault handler for DAX files.
+- */
+-int dax_pmd_fault(struct vm_area_struct *vma, unsigned long address,
+-			pmd_t *pmd, unsigned int flags, get_block_t get_block)
+-{
+-	int result;
+-	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
+-
+-	if (flags & FAULT_FLAG_WRITE) {
+-		sb_start_pagefault(sb);
+-		file_update_time(vma->vm_file);
+-	}
+-	result = __dax_pmd_fault(vma, address, pmd, flags, get_block);
+-	if (flags & FAULT_FLAG_WRITE)
+-		sb_end_pagefault(sb);
+-
+-	return result;
+-}
+ EXPORT_SYMBOL_GPL(dax_pmd_fault);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+diff -puN fs/ext2/file.c~dax-remote-unused-fault-wrappers fs/ext2/file.c
+--- a/fs/ext2/file.c~dax-remote-unused-fault-wrappers
++++ a/fs/ext2/file.c
+@@ -51,7 +51,7 @@ static int ext2_dax_fault(struct vm_area
+ 	}
+ 	down_read(&ei->dax_sem);
+ 
+-	ret = __dax_fault(vma, vmf, ext2_get_block);
++	ret = dax_fault(vma, vmf, ext2_get_block);
+ 
+ 	up_read(&ei->dax_sem);
+ 	if (vmf->flags & FAULT_FLAG_WRITE)
+@@ -72,7 +72,7 @@ static int ext2_dax_pmd_fault(struct vm_
+ 	}
+ 	down_read(&ei->dax_sem);
+ 
+-	ret = __dax_pmd_fault(vma, addr, pmd, flags, ext2_get_block);
++	ret = dax_pmd_fault(vma, addr, pmd, flags, ext2_get_block);
+ 
+ 	up_read(&ei->dax_sem);
+ 	if (flags & FAULT_FLAG_WRITE)
+diff -puN fs/ext4/file.c~dax-remote-unused-fault-wrappers fs/ext4/file.c
+--- a/fs/ext4/file.c~dax-remote-unused-fault-wrappers
++++ a/fs/ext4/file.c
+@@ -202,7 +202,7 @@ static int ext4_dax_fault(struct vm_area
+ 	if (IS_ERR(handle))
+ 		result = VM_FAULT_SIGBUS;
+ 	else
+-		result = __dax_fault(vma, vmf, ext4_dax_get_block);
++		result = dax_fault(vma, vmf, ext4_dax_get_block);
+ 
+ 	if (write) {
+ 		if (!IS_ERR(handle))
+@@ -237,7 +237,7 @@ static int ext4_dax_pmd_fault(struct vm_
+ 	if (IS_ERR(handle))
+ 		result = VM_FAULT_SIGBUS;
+ 	else
+-		result = __dax_pmd_fault(vma, addr, pmd, flags,
++		result = dax_pmd_fault(vma, addr, pmd, flags,
+ 					 ext4_dax_get_block);
+ 
+ 	if (write) {
+diff -puN fs/xfs/xfs_file.c~dax-remote-unused-fault-wrappers fs/xfs/xfs_file.c
+--- a/fs/xfs/xfs_file.c~dax-remote-unused-fault-wrappers
++++ a/fs/xfs/xfs_file.c
+@@ -1551,7 +1551,7 @@ xfs_filemap_page_mkwrite(
+ 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+ 
+ 	if (IS_DAX(inode)) {
+-		ret = __dax_mkwrite(vma, vmf, xfs_get_blocks_dax_fault);
++		ret = dax_mkwrite(vma, vmf, xfs_get_blocks_dax_fault);
+ 	} else {
+ 		ret = block_page_mkwrite(vma, vmf, xfs_get_blocks);
+ 		ret = block_page_mkwrite_return(ret);
+@@ -1585,7 +1585,7 @@ xfs_filemap_fault(
+ 		 * changes to xfs_get_blocks_direct() to map unwritten extent
+ 		 * ioend for conversion on read-only mappings.
+ 		 */
+-		ret = __dax_fault(vma, vmf, xfs_get_blocks_dax_fault);
++		ret = dax_fault(vma, vmf, xfs_get_blocks_dax_fault);
+ 	} else
+ 		ret = filemap_fault(vma, vmf);
+ 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+@@ -1622,7 +1622,7 @@ xfs_filemap_pmd_fault(
+ 	}
+ 
+ 	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+-	ret = __dax_pmd_fault(vma, addr, pmd, flags, xfs_get_blocks_dax_fault);
++	ret = dax_pmd_fault(vma, addr, pmd, flags, xfs_get_blocks_dax_fault);
+ 	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
+ 
+ 	if (flags & FAULT_FLAG_WRITE)
+diff -puN include/linux/dax.h~dax-remote-unused-fault-wrappers include/linux/dax.h
+--- a/include/linux/dax.h~dax-remote-unused-fault-wrappers
++++ a/include/linux/dax.h
+@@ -14,7 +14,6 @@ ssize_t dax_do_io(struct kiocb *, struct
+ int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
+ int dax_truncate_page(struct inode *, loff_t from, get_block_t);
+ int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
+-int __dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
+ int dax_delete_mapping_entry(struct address_space *mapping, pgoff_t index);
+ void dax_wake_mapping_entry_waiter(struct address_space *mapping,
+ 				   pgoff_t index, bool wake_all);
+@@ -46,19 +45,15 @@ static inline int __dax_zero_page_range(
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ int dax_pmd_fault(struct vm_area_struct *, unsigned long addr, pmd_t *,
+ 				unsigned int flags, get_block_t);
+-int __dax_pmd_fault(struct vm_area_struct *, unsigned long addr, pmd_t *,
+-				unsigned int flags, get_block_t);
+ #else
+ static inline int dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+ 				pmd_t *pmd, unsigned int flags, get_block_t gb)
+ {
+ 	return VM_FAULT_FALLBACK;
+ }
+-#define __dax_pmd_fault dax_pmd_fault
+ #endif
+ int dax_pfn_mkwrite(struct vm_area_struct *, struct vm_fault *);
+ #define dax_mkwrite(vma, vmf, gb)	dax_fault(vma, vmf, gb)
+-#define __dax_mkwrite(vma, vmf, gb)	__dax_fault(vma, vmf, gb)
+ 
+ static inline bool vma_is_dax(struct vm_area_struct *vma)
+ {
 _
 
-Patches currently in -mm which might be from sboyd@codeaurora.org are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
+radix-tree-fix-comment-about-exceptional-bits.patch
 
