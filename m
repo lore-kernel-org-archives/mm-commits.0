@@ -1,87 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memcontrol-fix-documentation-for-compound-parameter.patch removed from
- -mm tree
-Date: Wed, 27 Jul 2016 12:03:26 -0700
-Message-ID: <5799057e.eeoX027UVKL/ZlAy%akpm@linux-foundation.org>
+Subject: [merged] cgroup-fix-idr-leak-for-the-first-cgroup-root.patch
+ removed from -mm tree
+Date: Wed, 27 Jul 2016 12:03:28 -0700
+Message-ID: <57990580.+6+ZHrFG2MnpoOHe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40790 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40796 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757190AbcG0TD1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:03:27 -0400
+	with ESMTP id S1757190AbcG0TD3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:03:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roy.qing.li@gmail.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, kernel@kyup.com, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fix documentation for compound parameter
+     Subject: cgroup: fix idr leak for the first cgroup root
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-documentation-for-compound-parameter.patch
+     cgroup-fix-idr-leak-for-the-first-cgroup-root.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Li RongQing <roy.qing.li@gmail.com>
-Subject: mm: memcontrol: fix documentation for compound parameter
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: cgroup: fix idr leak for the first cgroup root
 
-commit f627c2f53786 ("memcg: adjust to support new THP refcounting")
-adds a compound parameter for several functions, and change one as
-compound for mem_cgroup_move_account but it does not change the
-comments.
+The valid cgroup hierarchy ID range includes 0, so we can't filter for
+positive numbers when freeing it, or it'll leak the first ID.  No big
+deal, just disruptive when reading the code.
 
-Link: http://lkml.kernel.org/r/1465368216-9393-1-git-send-email-roy.qing.li@gmail.com
-Signed-off-by: Li RongQing <roy.qing.li@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+The ID is freed during error handling and when the reference count hits
+zero, so the double-free test is not necessary; remove it.
+
+Link: http://lkml.kernel.org/r/20160617162359.GB19084@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Nikolay Borisov <kernel@kyup.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/cgroup.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fix-documentation-for-compound-parameter mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fix-documentation-for-compound-parameter
-+++ a/mm/memcontrol.c
-@@ -4507,7 +4507,7 @@ static struct page *mc_handle_file_pte(s
- /**
-  * mem_cgroup_move_account - move account of the page
-  * @page: the page
-- * @nr_pages: number of regular pages (>1 for huge pages)
-+ * @compound: charge the page as compound or small page
-  * @from: mem_cgroup which the page is moved from.
-  * @to:	mem_cgroup which the page is moved to. @from != @to.
-  *
-@@ -5369,6 +5369,7 @@ bool mem_cgroup_low(struct mem_cgroup *r
-  * @mm: mm context of the victim
-  * @gfp_mask: reclaim mode
-  * @memcgp: charged memcg return
-+ * @compound: charge the page as compound or small page
-  *
-  * Try to charge @page to the memcg that @mm belongs to, reclaiming
-  * pages according to @gfp_mask if necessary.
-@@ -5431,6 +5432,7 @@ out:
-  * @page: page to charge
-  * @memcg: memcg to charge the page to
-  * @lrucare: page might be on LRU already
-+ * @compound: charge the page as compound or small page
-  *
-  * Finalize a charge transaction started by mem_cgroup_try_charge(),
-  * after page->mapping has been set up.  This must happen atomically
-@@ -5482,6 +5484,7 @@ void mem_cgroup_commit_charge(struct pag
-  * mem_cgroup_cancel_charge - cancel a page charge
-  * @page: page to charge
-  * @memcg: memcg to charge the page to
-+ * @compound: charge the page as compound or small page
-  *
-  * Cancel a charge transaction started by mem_cgroup_try_charge().
-  */
-_
-
-Patches currently in -mm which might be from roy.qing.li@gmail.com are
-
-
+diff -puN kernel/cgroup.c~cgroup-fix-idr-leak-for-the-first-cgroup-root kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-fix-idr-leak-for-the-first-cgroup-root
++++ a/kernel/cgroup.c
+@@ -1160,18 +1160,12 @@ static void cgroup_exit_root_id(struct c
+ {
+ 	lockdep_assert_held(&cgroup_mutex);
+ 
+-	if (root->hierarchy_id) {
+-		idr_remove(&cgroup_hierarchy_idr, root->hierarchy_id);
+-		root->hierarchy_id = 0;
+-	}
++	idr_remove(&cgroup_hierarchy_idr, root->hierarchy_id);
+ }
+ 
+ static void cgroup_free_root(struct cgroup_root *root)
+ {
+ 	if (root) {
+-		/* hierarchy ID should already have been released */
+-		WARN_ON_ONCE(root->hierarchy_id);
