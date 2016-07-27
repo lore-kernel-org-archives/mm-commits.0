@@ -1,115 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: [merged] truncate-handle-file-thp.patch removed from -mm tree
-Date: Wed, 27 Jul 2016 12:02:48 -0700
-Message-ID: <57990558.+ccS2wQ0yf5mjLKz%akpm@linux-foundation.org>
+Subject: [merged] thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
+ removed from -mm tree
+Date: Wed, 27 Jul 2016 12:02:38 -0700
+Message-ID: <5799054e.8tGQPeuOxPhmAWjc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40719 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40709 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932311AbcG0TCt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:02:49 -0400
+	with ESMTP id S1757955AbcG0TCj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jul 2016 15:02:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: truncate: handle file thp
+     Subject: thp, mlock: do not mlock PTE-mapped file huge pages
 has been removed from the -mm tree.  Its filename was
-     truncate-handle-file-thp.patch
+     thp-mlock-do-not-mlock-pte-mapped-file-huge-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: truncate: handle file thp
+Subject: thp, mlock: do not mlock PTE-mapped file huge pages
 
-For shmem/tmpfs we only need to tweak truncate_inode_page() and
-invalidate_mapping_pages().
+As with anon THP, we only mlock file huge pages if we can prove that the
+page is not mapped with PTE. This way we can avoid mlock leak into
+non-mlocked vma on split.
 
-truncate_inode_pages_range() and invalidate_inode_pages2_range() are
-adjusted to use page_to_pgoff().
+We rely on PageDoubleMap() under lock_page() to check if the the page
+may be PTE mapped. PG_double_map is set by page_add_file_rmap() when the
+page mapped with PTEs.
 
-Link: http://lkml.kernel.org/r/1466021202-61880-26-git-send-email-kirill.shutemov@linux.intel.com
+Link: http://lkml.kernel.org/r/1466021202-61880-21-git-send-email-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |   28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+ include/linux/page-flags.h |   13 ++++++++++++-
+ mm/huge_memory.c           |   27 ++++++++++++++++++++-------
+ mm/mmap.c                  |    6 ++++++
+ mm/page_alloc.c            |    2 ++
+ mm/rmap.c                  |   16 ++++++++++++++--
+ 5 files changed, 54 insertions(+), 10 deletions(-)
 
-diff -puN mm/truncate.c~truncate-handle-file-thp mm/truncate.c
---- a/mm/truncate.c~truncate-handle-file-thp
-+++ a/mm/truncate.c
-@@ -155,10 +155,14 @@ invalidate_complete_page(struct address_
- 
- int truncate_inode_page(struct address_space *mapping, struct page *page)
- {
-+	loff_t holelen;
-+	VM_BUG_ON_PAGE(PageTail(page), page);
-+
-+	holelen = PageTransHuge(page) ? HPAGE_PMD_SIZE : PAGE_SIZE;
- 	if (page_mapped(page)) {
- 		unmap_mapping_range(mapping,
- 				   (loff_t)page->index << PAGE_SHIFT,
--				   PAGE_SIZE, 0);
-+				   holelen, 0);
- 	}
- 	return truncate_complete_page(mapping, page);
+diff -puN include/linux/page-flags.h~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
++++ a/include/linux/page-flags.h
+@@ -581,6 +581,17 @@ static inline int PageDoubleMap(struct p
+ 	return PageHead(page) && test_bit(PG_double_map, &page[1].flags);
  }
-@@ -279,7 +283,7 @@ void truncate_inode_pages_range(struct a
  
- 			if (!trylock_page(page))
- 				continue;
--			WARN_ON(page->index != index);
-+			WARN_ON(page_to_pgoff(page) != index);
- 			if (PageWriteback(page)) {
- 				unlock_page(page);
- 				continue;
-@@ -367,7 +371,7 @@ void truncate_inode_pages_range(struct a
- 			}
- 
- 			lock_page(page);
--			WARN_ON(page->index != index);
-+			WARN_ON(page_to_pgoff(page) != index);
- 			wait_on_page_writeback(page);
- 			truncate_inode_page(mapping, page);
- 			unlock_page(page);
-@@ -487,7 +491,21 @@ unsigned long invalidate_mapping_pages(s
- 
- 			if (!trylock_page(page))
- 				continue;
--			WARN_ON(page->index != index);
++static inline void SetPageDoubleMap(struct page *page)
++{
++	VM_BUG_ON_PAGE(!PageHead(page), page);
++	set_bit(PG_double_map, &page[1].flags);
++}
 +
-+			WARN_ON(page_to_pgoff(page) != index);
++static inline void ClearPageDoubleMap(struct page *page)
++{
++	VM_BUG_ON_PAGE(!PageHead(page), page);
++	clear_bit(PG_double_map, &page[1].flags);
++}
+ static inline int TestSetPageDoubleMap(struct page *page)
+ {
+ 	VM_BUG_ON_PAGE(!PageHead(page), page);
+@@ -598,7 +609,7 @@ TESTPAGEFLAG_FALSE(TransHuge)
+ TESTPAGEFLAG_FALSE(TransCompound)
+ TESTPAGEFLAG_FALSE(TransCompoundMap)
+ TESTPAGEFLAG_FALSE(TransTail)
+-TESTPAGEFLAG_FALSE(DoubleMap)
++PAGEFLAG_FALSE(DoubleMap)
+ 	TESTSETFLAG_FALSE(DoubleMap)
+ 	TESTCLEARFLAG_FALSE(DoubleMap)
+ #endif
+diff -puN mm/huge_memory.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
++++ a/mm/huge_memory.c
+@@ -1437,6 +1437,8 @@ struct page *follow_trans_huge_pmd(struc
+ 		 * We don't mlock() pte-mapped THPs. This way we can avoid
+ 		 * leaking mlocked pages into non-VM_LOCKED VMAs.
+ 		 *
++		 * For anon THP:
++		 *
+ 		 * In most cases the pmd is the only mapping of the page as we
+ 		 * break COW for the mlock() -- see gup_flags |= FOLL_WRITE for
+ 		 * writable private mappings in populate_vma_page_range().
+@@ -1444,15 +1446,26 @@ struct page *follow_trans_huge_pmd(struc
+ 		 * The only scenario when we have the page shared here is if we
+ 		 * mlocking read-only mapping shared over fork(). We skip
+ 		 * mlocking such pages.
++		 *
++		 * For file THP:
++		 *
++		 * We can expect PageDoubleMap() to be stable under page lock:
++		 * for file pages we set it in page_add_file_rmap(), which
++		 * requires page to be locked.
+ 		 */
+-		if (compound_mapcount(page) == 1 && !PageDoubleMap(page) &&
+-				page->mapping && trylock_page(page)) {
+-			lru_add_drain();
+-			if (page->mapping)
+-				mlock_vma_page(page);
+-			unlock_page(page);
+-		}
 +
-+			/* Middle of THP: skip */
-+			if (PageTransTail(page)) {
-+				unlock_page(page);
-+				continue;
-+			} else if (PageTransHuge(page)) {
-+				index += HPAGE_PMD_NR - 1;
-+				i += HPAGE_PMD_NR - 1;
-+				/* 'end' is in the middle of THP */
-+				if (index ==  round_down(end, HPAGE_PMD_NR))
-+					continue;
++		if (PageAnon(page) && compound_mapcount(page) != 1)
++			goto skip_mlock;
++		if (PageDoubleMap(page) || !page->mapping)
++			goto skip_mlock;
++		if (!trylock_page(page))
++			goto skip_mlock;
++		lru_add_drain();
++		if (page->mapping && !PageDoubleMap(page))
++			mlock_vma_page(page);
++		unlock_page(page);
+ 	}
++skip_mlock:
+ 	page += (addr & ~HPAGE_PMD_MASK) >> PAGE_SHIFT;
+ 	VM_BUG_ON_PAGE(!PageCompound(page), page);
+ 	if (flags & FOLL_GET)
+diff -puN mm/mmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/mmap.c
+--- a/mm/mmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
++++ a/mm/mmap.c
+@@ -2591,6 +2591,12 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 		/* drop PG_Mlocked flag for over-mapped range */
+ 		for (tmp = vma; tmp->vm_start >= start + size;
+ 				tmp = tmp->vm_next) {
++			/*
++			 * Split pmd and munlock page on the border
++			 * of the range.
++			 */
++			vma_adjust_trans_huge(tmp, start, start + size, 0);
++
+ 			munlock_vma_pages_range(tmp,
+ 					max(tmp->vm_start, start),
+ 					min(tmp->vm_end, start + size));
+diff -puN mm/page_alloc.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
++++ a/mm/page_alloc.c
+@@ -1007,6 +1007,8 @@ static __always_inline bool free_pages_p
+ 
+ 		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
+ 
++		if (compound)
++			ClearPageDoubleMap(page);
+ 		for (i = 1; i < (1 << order); i++) {
+ 			if (compound)
+ 				bad += free_tail_pages_check(page, page + i);
+diff -puN mm/rmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages mm/rmap.c
+--- a/mm/rmap.c~thp-mlock-do-not-mlock-pte-mapped-file-huge-pages
++++ a/mm/rmap.c
+@@ -1284,6 +1284,12 @@ void page_add_file_rmap(struct page *pag
+ 		if (!atomic_inc_and_test(compound_mapcount_ptr(page)))
+ 			goto out;
+ 	} else {
++		if (PageTransCompound(page)) {
++			VM_BUG_ON_PAGE(!PageLocked(page), page);
++			SetPageDoubleMap(compound_head(page));
++			if (PageMlocked(page))
++				clear_page_mlock(compound_head(page));
++		}
+ 		if (!atomic_inc_and_test(&page->_mapcount))
+ 			goto out;
+ 	}
+@@ -1458,8 +1464,14 @@ static int try_to_unmap_one(struct page
+ 	 */
+ 	if (!(flags & TTU_IGNORE_MLOCK)) {
+ 		if (vma->vm_flags & VM_LOCKED) {
+-			/* Holding pte lock, we do *not* need mmap_sem here */
+-			mlock_vma_page(page);
++			/* PTE-mapped THP are never mlocked */
++			if (!PageTransCompound(page)) {
++				/*
++				 * Holding pte lock, we do *not* need
++				 * mmap_sem here
++				 */
++				mlock_vma_page(page);
 +			}
-+
- 			ret = invalidate_inode_page(page);
- 			unlock_page(page);
- 			/*
-@@ -594,7 +612,7 @@ int invalidate_inode_pages2_range(struct
- 			}
- 
- 			lock_page(page);
--			WARN_ON(page->index != index);
-+			WARN_ON(page_to_pgoff(page) != index);
- 			if (page->mapping != mapping) {
- 				unlock_page(page);
- 				continue;
+ 			ret = SWAP_MLOCK;
+ 			goto out_unmap;
+ 		}
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
