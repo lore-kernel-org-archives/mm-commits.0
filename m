@@ -1,152 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [patch 001/101] proc, oom: drop bogus task_lock and mm check
-Date: Thu, 28 Jul 2016 15:44:34 -0700
-Message-ID: <579a8ad2.gxvvWQW9KAZEWpNO%akpm@linux-foundation.org>
+Subject: [patch 002/101] proc, oom: drop bogus sighand lock
+Date: Thu, 28 Jul 2016 15:44:37 -0700
+Message-ID: <579a8ad5.kIZ1CDas7Ib8Hsnu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56539 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56547 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751147AbcG1Wog (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:44:36 -0400
+	with ESMTP id S1751147AbcG1Woj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:44:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@virtuozzo.com
 
 From: Michal Hocko <mhocko@suse.com>
-Subject: proc, oom: drop bogus task_lock and mm check
+Subject: proc, oom: drop bogus sighand lock
 
-Series "Handle oom bypass more gracefully", V5
+Oleg has pointed out that can simplify both oom_adj_{read,write} and
+oom_score_adj_{read,write} even further and drop the sighand lock.  The
+main purpose of the lock was to protect p->signal from going away but this
+will not happen since ea6d290ca34c ("signals: make task_struct->signal
+immutable/refcountable").
 
+The other role of the lock was to synchronize different writers,
+especially those with CAP_SYS_RESOURCE.  Introduce a mutex for this
+purpose.  Later patches will need this lock anyway.
 
-The following 10 patches should put some order to very rare cases of mm
-shared between processes and make the paths which bypass the oom killer
-oom reapable and therefore much more reliable finally.  Even though mm
-shared outside of thread group is rare (either vforked tasks for a short
-period, use_mm by kernel threads or exotic thread model of clone(CLONE_VM)
-without CLONE_SIGHAND) it is better to cover them.  Not only it makes the
-current oom killer logic quite hard to follow and reason about it can lead
-to weird corner cases.  E.g.  it is possible to select an oom victim which
-shares the mm with unkillable process or bypass the oom killer even when
-other processes sharing the mm are still alive and other weird cases.
-
-Patch 1 drops bogus task_lock and mm check from oom_{score_}adj_write. 
-This can be considered a bug fix with a low impact as nobody has noticed
-for years.
-
-Patch 2 drops sighand lock because it is not needed anymore as pointed
-by Oleg.
-
-Patch 3 is a clean up of oom_score_adj handling and a preparatory
-work for later patches.
-
-Patch 4 enforces oom_adj_score to be consistent between processes
-sharing the mm to behave consistently with the regular thread
-groups. This can be considered a user visible behavior change because
-one thread group updating oom_score_adj will affect others which share
-the same mm via clone(CLONE_VM). I argue that this should be acceptable
-because we already have the same behavior for threads in the same thread
-group and sharing the mm without signal struct is just a different model
-of threading. This is probably the most controversial part of the series,
-I would like to find some consensus here. There were some suggestions
-to hook some counter/oom_score_adj into the mm_struct but I feel that
-this is not necessary right now and we can rely on proc handler +
-oom_kill_process to DTRT. I can be convinced otherwise but I strongly
-think that whatever we do the userspace has to have a way to see the
-current oom priority as consistently as possible.
-
-Patch 5 makes sure that no vforked task is selected if it is sharing
-the mm with oom unkillable task.
-
-Patch 6 ensures that all user tasks sharing the mm are killed which in
-turn makes sure that all oom victims are oom reapable.
-
-Patch 7 guarantees that task_will_free_mem will always imply reapable
-bypass of the oom killer.
-
-Patch 8 is new in this version and it addresses an issue pointed out
-by 0-day OOM report where an oom victim was reaped several times.
-
-Patch 9 puts an upper bound on how many times oom_reaper tries to reap a
-task and hides it from the oom killer to move on when no progress can be
-made. This will give an upper bound to how long an oom_reapable task can
-block the oom killer from selecting another victim if the oom_reaper is
-not able to reap the victim.
-
-Patch 10 tries to plug the (hopefully) last hole when we can still lock
-up when the oom victim is shared with oom unkillable tasks (kthreads
-and global init). We just try to be best effort in that case and rather
-fallback to kill something else than risk a lockup.
-
-
-This patch (of 10):
-
-Both oom_adj_write and oom_score_adj_write are using task_lock, check for
-task->mm and fail if it is NULL.  This is not needed because the
-oom_score_adj is per signal struct so we do not need mm at all.  The code
-has been introduced by 3d5992d2ac7d ("oom: add per-mm oom disable count")
-but we do not do per-mm oom disable since c9f01245b6a7 ("oom: remove
-oom_disable_count").
-
-The task->mm check is even not correct because the current thread might
-have exited but the thread group might be still alive - e.g.  thread group
-leader would lead that echo $VAL > /proc/pid/oom_score_adj would always
-fail with EINVAL while /proc/pid/task/$other_tid/oom_score_adj would
-succeed.  This is unexpected at best.
-
-Remove the lock along with the check to fix the unexpected behavior and
-also because there is not real need for the lock in the first place.
-
-Link: http://lkml.kernel.org/r/1466426628-15074-2-git-send-email-mhocko@kernel.org
+Suggested-by: Oleg Nesterov <oleg@redhat.com>
+Link: http://lkml.kernel.org/r/1466426628-15074-3-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ fs/proc/base.c |   51 +++++++++++++++--------------------------------
+ 1 file changed, 17 insertions(+), 34 deletions(-)
 
-diff -puN fs/proc/base.c~proc-oom-drop-bogus-task_lock-and-mm-check fs/proc/base.c
---- a/fs/proc/base.c~proc-oom-drop-bogus-task_lock-and-mm-check
+diff -puN fs/proc/base.c~proc-oom-drop-bogus-sighand-lock fs/proc/base.c
+--- a/fs/proc/base.c~proc-oom-drop-bogus-sighand-lock
 +++ a/fs/proc/base.c
-@@ -1083,15 +1083,9 @@ static ssize_t oom_adj_write(struct file
+@@ -1024,23 +1024,21 @@ static ssize_t oom_adj_read(struct file
+ 	char buffer[PROC_NUMBUF];
+ 	int oom_adj = OOM_ADJUST_MIN;
+ 	size_t len;
+-	unsigned long flags;
+ 
+ 	if (!task)
+ 		return -ESRCH;
+-	if (lock_task_sighand(task, &flags)) {
+-		if (task->signal->oom_score_adj == OOM_SCORE_ADJ_MAX)
+-			oom_adj = OOM_ADJUST_MAX;
+-		else
+-			oom_adj = (task->signal->oom_score_adj * -OOM_DISABLE) /
+-				  OOM_SCORE_ADJ_MAX;
+-		unlock_task_sighand(task, &flags);
+-	}
++	if (task->signal->oom_score_adj == OOM_SCORE_ADJ_MAX)
++		oom_adj = OOM_ADJUST_MAX;
++	else
++		oom_adj = (task->signal->oom_score_adj * -OOM_DISABLE) /
++			  OOM_SCORE_ADJ_MAX;
+ 	put_task_struct(task);
+ 	len = snprintf(buffer, sizeof(buffer), "%d\n", oom_adj);
+ 	return simple_read_from_buffer(buf, count, ppos, buffer, len);
+ }
+ 
++static DEFINE_MUTEX(oom_adj_mutex);
++
+ /*
+  * /proc/pid/oom_adj exists solely for backwards compatibility with previous
+  * kernels.  The effective policy is defined by oom_score_adj, which has a
+@@ -1057,7 +1055,6 @@ static ssize_t oom_adj_write(struct file
+ 	struct task_struct *task;
+ 	char buffer[PROC_NUMBUF];
+ 	int oom_adj;
+-	unsigned long flags;
+ 	int err;
+ 
+ 	memset(buffer, 0, sizeof(buffer));
+@@ -1083,11 +1080,6 @@ static ssize_t oom_adj_write(struct file
  		goto out;
  	}
  
--	task_lock(task);
--	if (!task->mm) {
--		err = -EINVAL;
--		goto err_task_lock;
+-	if (!lock_task_sighand(task, &flags)) {
+-		err = -ESRCH;
+-		goto err_put_task;
 -	}
 -
- 	if (!lock_task_sighand(task, &flags)) {
- 		err = -ESRCH;
--		goto err_task_lock;
-+		goto err_put_task;
+ 	/*
+ 	 * Scale /proc/pid/oom_score_adj appropriately ensuring that a maximum
+ 	 * value is always attainable.
+@@ -1097,10 +1089,11 @@ static ssize_t oom_adj_write(struct file
+ 	else
+ 		oom_adj = (oom_adj * OOM_SCORE_ADJ_MAX) / -OOM_DISABLE;
+ 
++	mutex_lock(&oom_adj_mutex);
+ 	if (oom_adj < task->signal->oom_score_adj &&
+ 	    !capable(CAP_SYS_RESOURCE)) {
+ 		err = -EACCES;
+-		goto err_sighand;
++		goto err_unlock;
  	}
  
  	/*
-@@ -1121,8 +1115,7 @@ static ssize_t oom_adj_write(struct file
+@@ -1113,9 +1106,8 @@ static ssize_t oom_adj_write(struct file
+ 
+ 	task->signal->oom_score_adj = oom_adj;
  	trace_oom_score_adj_update(task);
- err_sighand:
- 	unlock_task_sighand(task, &flags);
--err_task_lock:
--	task_unlock(task);
-+err_put_task:
+-err_sighand:
+-	unlock_task_sighand(task, &flags);
+-err_put_task:
++err_unlock:
++	mutex_unlock(&oom_adj_mutex);
  	put_task_struct(task);
  out:
  	return err < 0 ? err : count;
-@@ -1186,15 +1179,9 @@ static ssize_t oom_score_adj_write(struc
+@@ -1133,15 +1125,11 @@ static ssize_t oom_score_adj_read(struct
+ 	struct task_struct *task = get_proc_task(file_inode(file));
+ 	char buffer[PROC_NUMBUF];
+ 	short oom_score_adj = OOM_SCORE_ADJ_MIN;
+-	unsigned long flags;
+ 	size_t len;
+ 
+ 	if (!task)
+ 		return -ESRCH;
+-	if (lock_task_sighand(task, &flags)) {
+-		oom_score_adj = task->signal->oom_score_adj;
+-		unlock_task_sighand(task, &flags);
+-	}
++	oom_score_adj = task->signal->oom_score_adj;
+ 	put_task_struct(task);
+ 	len = snprintf(buffer, sizeof(buffer), "%hd\n", oom_score_adj);
+ 	return simple_read_from_buffer(buf, count, ppos, buffer, len);
+@@ -1152,7 +1140,6 @@ static ssize_t oom_score_adj_write(struc
+ {
+ 	struct task_struct *task;
+ 	char buffer[PROC_NUMBUF];
+-	unsigned long flags;
+ 	int oom_score_adj;
+ 	int err;
+ 
+@@ -1179,25 +1166,21 @@ static ssize_t oom_score_adj_write(struc
  		goto out;
  	}
  
--	task_lock(task);
--	if (!task->mm) {
--		err = -EINVAL;
--		goto err_task_lock;
+-	if (!lock_task_sighand(task, &flags)) {
+-		err = -ESRCH;
+-		goto err_put_task;
 -	}
