@@ -1,137 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch removed from -mm tree
-Date: Thu, 28 Jul 2016 14:54:06 -0700
-Message-ID: <579a7efe.bIMojzgj1QjElNuT%akpm@linux-foundation.org>
+ mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch removed from -mm tree
+Date: Thu, 28 Jul 2016 14:56:15 -0700
+Message-ID: <579a7f7f.dJ3BILt1CNuz5NKV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54647 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54666 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751956AbcG1VyI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 17:54:08 -0400
+	with ESMTP id S1751704AbcG1V4Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 17:56:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, hannes@cmpxchg.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: avoid passing in classzone_idx unnecessarily to compaction_ready
+     Subject: mm, vmscan: avoid passing in classzone_idx unnecessarily to compaction_ready -fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
+     mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
+This patch was dropped because it was folded into mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: avoid passing in classzone_idx unnecessarily to compaction_ready
+Subject: mm, vmscan: avoid passing in classzone_idx unnecessarily to compaction_ready -fix
 
-The scan_control structure has enough information available for
-compaction_ready() to make a decision. The classzone_idx manipulations in
-shrink_zones() are no longer necessary as the highest populated zone is
-no longer used to determine if shrink_slab should be called or not.
+As pointed out by Vlastimil, there is a redundant check in shrink_zones
+since commit "mm, vmscan: avoid passing in classzone_idx unnecessarily to
+compaction_ready".  The zonelist iterator only returns zones that already
+meet the requirements of the allocation request.
 
-Link: http://lkml.kernel.org/r/1467970510-21195-26-git-send-email-mgorman@techsingularity.net
+This is a fix to the mmotm patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
+
+Link: http://lkml.kernel.org/r/1468588165-12461-3-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   28 ++++++++--------------------
- 1 file changed, 8 insertions(+), 20 deletions(-)
+ mm/vmscan.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready
+diff -puN mm/vmscan.c~mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix
 +++ a/mm/vmscan.c
-@@ -2523,7 +2523,7 @@ static bool shrink_node(pg_data_t *pgdat
-  * Returns true if compaction should go ahead for a high-order request, or
-  * the high-order allocation would succeed without compaction.
-  */
--static inline bool compaction_ready(struct zone *zone, int order, int classzone_idx)
-+static inline bool compaction_ready(struct zone *zone, struct scan_control *sc)
- {
- 	unsigned long watermark;
- 	bool watermark_ok;
-@@ -2534,21 +2534,21 @@ static inline bool compaction_ready(stru
- 	 * there is a buffer of free pages available to give compaction
- 	 * a reasonable chance of completing and allocating the page
- 	 */
--	watermark = high_wmark_pages(zone) + (2UL << order);
--	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, classzone_idx);
-+	watermark = high_wmark_pages(zone) + (2UL << sc->order);
-+	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, sc->reclaim_idx);
- 
- 	/*
- 	 * If compaction is deferred, reclaim up to a point where
- 	 * compaction will have a chance of success when re-enabled
- 	 */
--	if (compaction_deferred(zone, order))
-+	if (compaction_deferred(zone, sc->order))
- 		return watermark_ok;
- 
- 	/*
- 	 * If compaction is not ready to start and allocation is not likely
- 	 * to succeed without it, then keep reclaiming.
- 	 */
--	if (compaction_suitable(zone, order, 0, classzone_idx) == COMPACT_SKIPPED)
-+	if (compaction_suitable(zone, sc->order, 0, sc->reclaim_idx) == COMPACT_SKIPPED)
- 		return false;
- 
- 	return watermark_ok;
-@@ -2569,7 +2569,6 @@ static void shrink_zones(struct zonelist
- 	unsigned long nr_soft_reclaimed;
- 	unsigned long nr_soft_scanned;
- 	gfp_t orig_mask;
--	enum zone_type classzone_idx;
- 	pg_data_t *last_pgdat = NULL;
- 
- 	/*
-@@ -2580,7 +2579,7 @@ static void shrink_zones(struct zonelist
- 	orig_mask = sc->gfp_mask;
- 	if (buffer_heads_over_limit) {
- 		sc->gfp_mask |= __GFP_HIGHMEM;
--		sc->reclaim_idx = classzone_idx = gfp_zone(sc->gfp_mask);
-+		sc->reclaim_idx = gfp_zone(sc->gfp_mask);
- 	}
- 
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
-@@ -2589,17 +2588,6 @@ static void shrink_zones(struct zonelist
- 			continue;
- 
- 		/*
--		 * Note that reclaim_idx does not change as it is the highest
--		 * zone reclaimed from which for empty zones is a no-op but
--		 * classzone_idx is used by shrink_node to test if the slabs
--		 * should be shrunk on a given node.
--		 */
--		classzone_idx = sc->reclaim_idx;
--		while (!populated_zone(zone->zone_pgdat->node_zones +
--							classzone_idx))
--			classzone_idx--;
--
--		/*
- 		 * Take care memory controller reclaiming has small influence
- 		 * to global LRU.
- 		 */
-@@ -2623,8 +2611,8 @@ static void shrink_zones(struct zonelist
+@@ -2611,7 +2611,6 @@ static void shrink_zones(struct zonelist
  			 */
  			if (IS_ENABLED(CONFIG_COMPACTION) &&
  			    sc->order > PAGE_ALLOC_COSTLY_ORDER &&
--			    zonelist_zone_idx(z) <= classzone_idx &&
--			    compaction_ready(zone, sc->order, classzone_idx)) {
-+			    zonelist_zone_idx(z) <= sc->reclaim_idx &&
-+			    compaction_ready(zone, sc)) {
+-			    zonelist_zone_idx(z) <= sc->reclaim_idx &&
+ 			    compaction_ready(zone, sc)) {
  				sc->compaction_ready = true;
  				continue;
- 			}
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
@@ -161,7 +86,7 @@ mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
 mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
 mm-convert-zone_reclaim-to-node_reclaim.patch
 mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
+mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
 mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
 mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
 mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
