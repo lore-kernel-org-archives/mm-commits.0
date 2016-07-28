@@ -1,84 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-optimize-copy_page_to-from_iter_iovec-fix.patch removed from -mm tree
-Date: Thu, 28 Jul 2016 15:12:41 -0700
-Message-ID: <579a8359.HQKa3RllzBd6jaGE%akpm@linux-foundation.org>
+ mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix.patch removed from -mm tree
+Date: Thu, 28 Jul 2016 15:13:22 -0700
+Message-ID: <579a8382.oLvLFJud9DkLzYUp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54854 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54870 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751147AbcG1WMm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:12:42 -0400
+	with ESMTP id S1751147AbcG1WNX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:13:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mhocko@kernel.org, mpatocka@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-optimize-copy_page_to-from_iter_iovec-fix
+     Subject:  mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix
 has been removed from the -mm tree.  Its filename was
-     mm-optimize-copy_page_to-from_iter_iovec-fix.patch
+     mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix.patch
 
-This patch was dropped because it was folded into mm-optimize-copy_page_to-from_iter_iovec.patch
+This patch was dropped because it was folded into mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-optimize-copy_page_to-from_iter_iovec-fix
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject:  mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix
 
-use IS_ENABLED(), per Andi
+- Remove CONFIG_SLAB ifdefs. The code works just fine with both allocators.
+- Reset metada offsets if metadata doesn't fit. Otherwise kasan_metadata_size()
+will give us the wrong results.
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Link: http://lkml.kernel.org/r/1468601423-28676-1-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Acked-by: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/iov_iter.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/kasan/kasan.c |   17 +++++------------
+ 1 file changed, 5 insertions(+), 12 deletions(-)
 
-diff -puN lib/iov_iter.c~mm-optimize-copy_page_to-from_iter_iovec-fix lib/iov_iter.c
---- a/lib/iov_iter.c~mm-optimize-copy_page_to-from_iter_iovec-fix
-+++ a/lib/iov_iter.c
-@@ -144,8 +144,7 @@ static size_t copy_page_to_iter_iovec(st
- 	buf = iov->iov_base + skip;
- 	copy = min(bytes, iov->iov_len - skip);
- 
--#ifdef CONFIG_HIGHMEM
--	if (!fault_in_pages_writeable(buf, copy)) {
-+	if (IS_ENABLED(CONFIG_HIGHMEM) && !fault_in_pages_writeable(buf, copy)) {
- 		kaddr = kmap_atomic(page);
- 		from = kaddr + offset;
- 
-@@ -176,7 +175,6 @@ static size_t copy_page_to_iter_iovec(st
- 		copy = min(bytes, iov->iov_len - skip);
- 	}
- 	/* Too bad - revert to non-atomic kmap */
+diff -puN mm/kasan/kasan.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub-fix
++++ a/mm/kasan/kasan.c
+@@ -372,9 +372,7 @@ void kasan_cache_create(struct kmem_cach
+ 			unsigned long *flags)
+ {
+ 	int redzone_adjust;
+-#ifdef CONFIG_SLAB
+ 	int orig_size = *size;
 -#endif
  
- 	kaddr = kmap(page);
- 	from = kaddr + offset;
-@@ -197,9 +195,7 @@ static size_t copy_page_to_iter_iovec(st
- 	}
- 	kunmap(page);
+ 	/* Add alloc meta. */
+ 	cache->kasan_info.alloc_meta_offset = *size;
+@@ -392,25 +390,20 @@ void kasan_cache_create(struct kmem_cach
+ 	if (redzone_adjust > 0)
+ 		*size += redzone_adjust;
  
--#ifdef CONFIG_HIGHMEM
- done:
+-#ifdef CONFIG_SLAB
+-	*size = min(KMALLOC_MAX_SIZE,
+-		    max(*size,
+-			cache->object_size +
+-			optimal_redzone(cache->object_size)));
++	*size = min(KMALLOC_MAX_SIZE, max(*size, cache->object_size +
++					optimal_redzone(cache->object_size)));
++
+ 	/*
+ 	 * If the metadata doesn't fit, don't enable KASAN at all.
+ 	 */
+ 	if (*size <= cache->kasan_info.alloc_meta_offset ||
+ 			*size <= cache->kasan_info.free_meta_offset) {
++		cache->kasan_info.alloc_meta_offset = 0;
++		cache->kasan_info.free_meta_offset = 0;
+ 		*size = orig_size;
+ 		return;
+ 	}
+-#else
+-	*size = max(*size,
+-			cache->object_size +
+-			optimal_redzone(cache->object_size));
+ 
 -#endif
- 	if (skip == iov->iov_len) {
- 		iov++;
- 		skip = 0;
+ 	*flags |= SLAB_KASAN;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements-checkpatch-fixes.patch
-mm-optimize-copy_page_to-from_iter_iovec.patch
-mm-optimize-copy_page_to-from_iter_iovec-fix-fix.patch
+mm-kasan-switch-slub-to-stackdepot-enable-memory-quarantine-for-slub.patch
 
