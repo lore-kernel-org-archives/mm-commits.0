@@ -1,59 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [patch 074/101] mm: cleanup ifdef guards for vmem_altmap
-Date: Thu, 28 Jul 2016 15:48:11 -0700
-Message-ID: <579a8bab.79K73Cc6GcS9I46u%akpm@linux-foundation.org>
+Subject: [patch 078/101] printk: when dumping regs, show the stack, not
+ thread_info
+Date: Thu, 28 Jul 2016 15:48:23 -0700
+Message-ID: <579a8bb7.H07KRN9+ZjbOIXHf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57149 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57172 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256AbcG1WsM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:48:12 -0400
+	with ESMTP id S1751438AbcG1WsY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:48:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.j.williams@intel.com, jmoyer@redhat.com, sandeen@redhat.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, luto@kernel.org
 
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: cleanup ifdef guards for vmem_altmap
+From: Andy Lutomirski <luto@kernel.org>
+Subject: printk: when dumping regs, show the stack, not thread_info
 
-Now that ZONE_DEVICE depends on SPARSEMEM_VMEMMAP we can simplify some
-ifdef guards to just ZONE_DEVICE.
+We currently show:
 
-Link: http://lkml.kernel.org/r/146687646788.39261.8020536391978771940.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Eric Sandeen <sandeen@redhat.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+  task: <current> ti: <current_thread_info()> task.ti: <task_thread_info(current)>"
+
+"ti" and "task.ti" are redundant, and neither is actually what we
+want to show, which the the base of the thread stack.  Change the
+display to show the stack pointer explicitly.
+
+Link: http://lkml.kernel.org/r/543ac5bd66ff94000a57a02e11af7239571a3055.1468523549.git.luto@kernel.org
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memremap.h |    2 +-
- kernel/memremap.c        |    8 --------
- 2 files changed, 1 insertion(+), 9 deletions(-)
+ kernel/printk/printk.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/memremap.h~mm-cleanup-ifdef-guards-for-vmem_altmap include/linux/memremap.h
---- a/include/linux/memremap.h~mm-cleanup-ifdef-guards-for-vmem_altmap
-+++ a/include/linux/memremap.h
-@@ -26,7 +26,7 @@ struct vmem_altmap {
- unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
- void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns);
+diff -puN kernel/printk/printk.c~printk-when-dumping-regs-show-the-stack-not-thread_info kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-when-dumping-regs-show-the-stack-not-thread_info
++++ a/kernel/printk/printk.c
+@@ -3177,9 +3177,8 @@ void show_regs_print_info(const char *lo
+ {
+ 	dump_stack_print_info(log_lvl);
  
--#if defined(CONFIG_SPARSEMEM_VMEMMAP) && defined(CONFIG_ZONE_DEVICE)
-+#ifdef CONFIG_ZONE_DEVICE
- struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start);
- #else
- static inline struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
-diff -puN kernel/memremap.c~mm-cleanup-ifdef-guards-for-vmem_altmap kernel/memremap.c
---- a/kernel/memremap.c~mm-cleanup-ifdef-guards-for-vmem_altmap
-+++ a/kernel/memremap.c
-@@ -308,12 +308,6 @@ void *devm_memremap_pages(struct device
- 	if (is_ram == REGION_INTERSECTS)
- 		return __va(res->start);
+-	printk("%stask: %p ti: %p task.ti: %p\n",
+-	       log_lvl, current, current_thread_info(),
+-	       task_thread_info(current));
++	printk("%stask: %p task.stack: %p\n",
++	       log_lvl, current, task_stack_page(current));
+ }
  
--	if (altmap && !IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)) {
--		dev_err(dev, "%s: altmap requires CONFIG_SPARSEMEM_VMEMMAP=y\n",
--				__func__);
--		return ERR_PTR(-ENXIO);
--	}
+ #endif
+_
