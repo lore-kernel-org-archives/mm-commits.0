@@ -1,101 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [patch 071/101] mm, THP: clean up return value of
- madvise_free_huge_pmd
-Date: Thu, 28 Jul 2016 15:48:03 -0700
-Message-ID: <579a8ba3.Ltj9VK/JKReSwC3Z%akpm@linux-foundation.org>
+Subject: [patch 075/101] mm: track NR_KERNEL_STACK in KiB instead of
+ number of stacks
+Date: Thu, 28 Jul 2016 15:48:14 -0700
+Message-ID: <579a8bae.QVNDo/8TNmzStItX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57135 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57156 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256AbcG1WsE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:48:04 -0400
+	with ESMTP id S1751530AbcG1WsP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:48:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ying.huang@intel.com, aarcange@redhat.com, dan.j.williams@intel.com, ebru.akagunduz@gmail.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, minchan@kernel.org, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, luto@kernel.org, hannes@cmpxchg.org, jpoimboe@redhat.com, mhocko@kernel.org, mhocko@suse.com, vdavydov@virtuozzo.com
 
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm, THP: clean up return value of madvise_free_huge_pmd
+From: Andy Lutomirski <luto@kernel.org>
+Subject: mm: track NR_KERNEL_STACK in KiB instead of number of stacks
 
-The definition of return value of madvise_free_huge_pmd is not clear
-before.  According to the suggestion of Minchan Kim, change the type of
-return value to bool and return true if we do MADV_FREE successfully on
-entire pmd page, otherwise, return false.  Comments are added too.
+Currently, NR_KERNEL_STACK tracks the number of kernel stacks in a zone. 
+This only makes sense if each kernel stack exists entirely in one zone,
+and allowing vmapped stacks could break this assumption.
 
-Link: http://lkml.kernel.org/r/1467135452-16688-2-git-send-email-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Since frv has THREAD_SIZE < PAGE_SIZE, we need to track kernel stack
+allocations in a unit that divides both THREAD_SIZE and PAGE_SIZE on all
+architectures.  Keep it simple and use KiB.
+
+Link: http://lkml.kernel.org/r/083c71e642c5fa5f1b6898902e1b2db7b48940d4.1468523549.git.luto@kernel.org
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Reviewed-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 +-
- mm/huge_memory.c        |   15 ++++++++-------
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ drivers/base/node.c    |    3 +--
+ fs/proc/meminfo.c      |    2 +-
+ include/linux/mmzone.h |    2 +-
+ kernel/fork.c          |    3 ++-
+ mm/page_alloc.c        |    3 +--
+ 5 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/huge_mm.h~mm-thp-clean-up-return-value-of-madvise_free_huge_pmd include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-thp-clean-up-return-value-of-madvise_free_huge_pmd
-+++ a/include/linux/huge_mm.h
-@@ -11,7 +11,7 @@ extern struct page *follow_trans_huge_pm
- 					  unsigned long addr,
- 					  pmd_t *pmd,
- 					  unsigned int flags);
--extern int madvise_free_huge_pmd(struct mmu_gather *tlb,
-+extern bool madvise_free_huge_pmd(struct mmu_gather *tlb,
- 			struct vm_area_struct *vma,
- 			pmd_t *pmd, unsigned long addr, unsigned long next);
- extern int zap_huge_pmd(struct mmu_gather *tlb,
-diff -puN mm/huge_memory.c~mm-thp-clean-up-return-value-of-madvise_free_huge_pmd mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-clean-up-return-value-of-madvise_free_huge_pmd
-+++ a/mm/huge_memory.c
-@@ -1249,25 +1249,26 @@ out:
- 	return 0;
+diff -puN drivers/base/node.c~mm-track-nr_kernel_stack-in-kib-instead-of-number-of-stacks drivers/base/node.c
+--- a/drivers/base/node.c~mm-track-nr_kernel_stack-in-kib-instead-of-number-of-stacks
++++ a/drivers/base/node.c
+@@ -124,8 +124,7 @@ static ssize_t node_read_meminfo(struct
+ 		       nid, K(node_page_state(pgdat, NR_FILE_MAPPED)),
+ 		       nid, K(node_page_state(pgdat, NR_ANON_MAPPED)),
+ 		       nid, K(i.sharedram),
+-		       nid, sum_zone_node_page_state(nid, NR_KERNEL_STACK) *
+-				THREAD_SIZE / 1024,
++		       nid, sum_zone_node_page_state(nid, NR_KERNEL_STACK_KB),
+ 		       nid, K(sum_zone_node_page_state(nid, NR_PAGETABLE)),
+ 		       nid, K(node_page_state(pgdat, NR_UNSTABLE_NFS)),
+ 		       nid, K(sum_zone_node_page_state(nid, NR_BOUNCE)),
+diff -puN fs/proc/meminfo.c~mm-track-nr_kernel_stack-in-kib-instead-of-number-of-stacks fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-track-nr_kernel_stack-in-kib-instead-of-number-of-stacks
++++ a/fs/proc/meminfo.c
+@@ -147,7 +147,7 @@ static int meminfo_proc_show(struct seq_
+ 				global_page_state(NR_SLAB_UNRECLAIMABLE)),
+ 		K(global_page_state(NR_SLAB_RECLAIMABLE)),
+ 		K(global_page_state(NR_SLAB_UNRECLAIMABLE)),
+-		global_page_state(NR_KERNEL_STACK) * THREAD_SIZE / 1024,
++		global_page_state(NR_KERNEL_STACK_KB),
+ 		K(global_page_state(NR_PAGETABLE)),
+ #ifdef CONFIG_QUICKLIST
+ 		K(quicklist_total_size()),
+diff -puN include/linux/mmzone.h~mm-track-nr_kernel_stack-in-kib-instead-of-number-of-stacks include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-track-nr_kernel_stack-in-kib-instead-of-number-of-stacks
++++ a/include/linux/mmzone.h
+@@ -121,7 +121,7 @@ enum zone_stat_item {
+ 	NR_SLAB_RECLAIMABLE,
+ 	NR_SLAB_UNRECLAIMABLE,
+ 	NR_PAGETABLE,		/* used for pagetables */
+-	NR_KERNEL_STACK,
++	NR_KERNEL_STACK_KB,	/* measured in KiB */
+ 	/* Second 128 byte cacheline */
+ 	NR_BOUNCE,
+ #if IS_ENABLED(CONFIG_ZSMALLOC)
+diff -puN kernel/fork.c~mm-track-nr_kernel_stack-in-kib-instead-of-number-of-stacks kernel/fork.c
+--- a/kernel/fork.c~mm-track-nr_kernel_stack-in-kib-instead-of-number-of-stacks
++++ a/kernel/fork.c
+@@ -225,7 +225,8 @@ static void account_kernel_stack(unsigne
+ {
+ 	struct zone *zone = page_zone(virt_to_page(stack));
+ 
+-	mod_zone_page_state(zone, NR_KERNEL_STACK, account);
++	mod_zone_page_state(zone, NR_KERNEL_STACK_KB,
++			    THREAD_SIZE / 1024 * account);
  }
  
--int madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+/*
-+ * Return true if we do MADV_FREE successfully on entire pmd page.
-+ * Otherwise, return false.
-+ */
-+bool madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 		pmd_t *pmd, unsigned long addr, unsigned long next)
--
- {
- 	spinlock_t *ptl;
- 	pmd_t orig_pmd;
- 	struct page *page;
- 	struct mm_struct *mm = tlb->mm;
--	int ret = 0;
-+	bool ret = false;
- 
- 	ptl = pmd_trans_huge_lock(pmd, vma);
- 	if (!ptl)
- 		goto out_unlocked;
- 
- 	orig_pmd = *pmd;
--	if (is_huge_zero_pmd(orig_pmd)) {
--		ret = 1;
-+	if (is_huge_zero_pmd(orig_pmd))
- 		goto out;
--	}
- 
- 	page = pmd_page(orig_pmd);
- 	/*
-@@ -1309,7 +1310,7 @@ int madvise_free_huge_pmd(struct mmu_gat
- 		set_pmd_at(mm, addr, pmd, orig_pmd);
- 		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
- 	}
--	ret = 1;
-+	ret = true;
- out:
- 	spin_unlock(ptl);
- out_unlocked:
+ void free_task(struct task_struct *tsk)
+diff -puN mm/page_alloc.c~mm-track-nr_kernel_stack-in-kib-instead-of-number-of-stacks mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-track-nr_kernel_stack-in-kib-instead-of-number-of-stacks
++++ a/mm/page_alloc.c
+@@ -4359,8 +4359,7 @@ void show_free_areas(unsigned int filter
+ 			K(zone_page_state(zone, NR_MLOCK)),
+ 			K(zone_page_state(zone, NR_SLAB_RECLAIMABLE)),
+ 			K(zone_page_state(zone, NR_SLAB_UNRECLAIMABLE)),
+-			zone_page_state(zone, NR_KERNEL_STACK) *
+-				THREAD_SIZE / 1024,
++			zone_page_state(zone, NR_KERNEL_STACK_KB),
+ 			K(zone_page_state(zone, NR_PAGETABLE)),
+ 			K(zone_page_state(zone, NR_BOUNCE)),
+ 			K(free_pcp),
 _
