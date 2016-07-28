@@ -1,84 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [patch 052/101] mm, page_alloc: fix dirtyable highmem calculation
-Date: Thu, 28 Jul 2016 15:47:08 -0700
-Message-ID: <579a8b6c.KCOUvMYYg+Ht7bAS%akpm@linux-foundation.org>
+Subject: [patch 054/101] mm: show node_pages_scanned per node, not zone
+Date: Thu, 28 Jul 2016 15:47:14 -0700
+Message-ID: <579a8b72.0o55wLn4eMMwcX2/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57049 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751853AbcG1WrK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:47:10 -0400
+	with ESMTP id S1751853AbcG1WrP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:47:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, hannes@cmpxchg.org, mgorman@techsingularity.net, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, mgorman@techsingularity.net
 
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm, page_alloc: fix dirtyable highmem calculation
+Subject: mm: show node_pages_scanned per node, not zone
 
-When I tested vmscale in mmtest in 32bit, I found the benchmark was slow
-down 0.5 times.
+The node_pages_scanned represents the number of scanned pages of node for
+reclaim so it's pointless to show it as kilobytes.
 
-                base        node
-                   1    global-1
-User           12.98       16.04
-System        147.61      166.42
-Elapsed        26.48       38.08
+As well, node_pages_scanned is per-node value, not per-zone.
 
-With vmstat, I found IO wait avg is much increased compared to base.
+This patch changes node_pages_scanned per-zone-killobytes
+with per-node-count.
 
-The reason was highmem_dirtyable_memory accumulates free pages and
-highmem_file_pages from HIGHMEM to MOVABLE zones which was wrong. With
-that, dirth_thresh in throtlle_vm_write is always 0 so that it calls
-congestion_wait frequently if writeback starts.
-
-With this patch, it is much recovered.
-
-                base        node          fi
-                   1    global-1         fix
-User           12.98       16.04       13.78
-System        147.61      166.42      143.92
-Elapsed        26.48       38.08       29.64
-
-Link: http://lkml.kernel.org/r/1468404004-5085-4-git-send-email-mgorman@techsingularity.net
+[minchan@kernel.org: fix node_pages_scanned]
+  Link: http://lkml.kernel.org/r/20160716101431.GA10305@bbox
+Link: http://lkml.kernel.org/r/1468588165-12461-5-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page-writeback.c~mm-page_alloc-fix-dirtyable-highmem-calculation mm/page-writeback.c
---- a/mm/page-writeback.c~mm-page_alloc-fix-dirtyable-highmem-calculation
-+++ a/mm/page-writeback.c
-@@ -307,27 +307,31 @@ static unsigned long highmem_dirtyable_m
- {
- #ifdef CONFIG_HIGHMEM
- 	int node;
--	unsigned long x = 0;
-+	unsigned long x;
- 	int i;
--	unsigned long dirtyable = atomic_read(&highmem_file_pages);
-+	unsigned long dirtyable = 0;
+diff -puN mm/page_alloc.c~mm-show-node_pages_scanned-per-node-not-zone mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-show-node_pages_scanned-per-node-not-zone
++++ a/mm/page_alloc.c
+@@ -4313,6 +4313,7 @@ void show_free_areas(unsigned int filter
+ #endif
+ 			" writeback_tmp:%lukB"
+ 			" unstable:%lukB"
++			" pages_scanned:%lu"
+ 			" all_unreclaimable? %s"
+ 			"\n",
+ 			pgdat->node_id,
+@@ -4335,6 +4336,7 @@ void show_free_areas(unsigned int filter
+ 			K(node_page_state(pgdat, NR_SHMEM)),
+ 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
+ 			K(node_page_state(pgdat, NR_UNSTABLE_NFS)),
++			node_page_state(pgdat, NR_PAGES_SCANNED),
+ 			!pgdat_reclaimable(pgdat) ? "yes" : "no");
+ 	}
  
- 	for_each_node_state(node, N_HIGH_MEMORY) {
- 		for (i = ZONE_NORMAL + 1; i < MAX_NR_ZONES; i++) {
- 			struct zone *z;
-+			unsigned long nr_pages;
- 
- 			if (!is_highmem_idx(i))
- 				continue;
- 
- 			z = &NODE_DATA(node)->node_zones[i];
--			dirtyable += zone_page_state(z, NR_FREE_PAGES);
-+			if (!populated_zone(z))
-+				continue;
- 
-+			nr_pages = zone_page_state(z, NR_FREE_PAGES);
- 			/* watch for underflows */
--			dirtyable -= min(dirtyable, high_wmark_pages(z));
+@@ -4365,7 +4367,6 @@ void show_free_areas(unsigned int filter
+ 			" free_pcp:%lukB"
+ 			" local_pcp:%ukB"
+ 			" free_cma:%lukB"
+-			" node_pages_scanned:%lu"
+ 			"\n",
+ 			zone->name,
+ 			K(zone_page_state(zone, NR_FREE_PAGES)),
+@@ -4383,8 +4384,7 @@ void show_free_areas(unsigned int filter
+ 			K(zone_page_state(zone, NR_BOUNCE)),
+ 			K(free_pcp),
+ 			K(this_cpu_read(zone->pageset->pcp.count)),
+-			K(zone_page_state(zone, NR_FREE_CMA_PAGES)),
+-			K(node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED)));
++			K(zone_page_state(zone, NR_FREE_CMA_PAGES)));
+ 		printk("lowmem_reserve[]:");
+ 		for (i = 0; i < MAX_NR_ZONES; i++)
+ 			printk(" %ld", zone->lowmem_reserve[i]);
+_
