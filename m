@@ -1,63 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 083/101] mm: hwpoison: remove incorrect comments
-Date: Thu, 28 Jul 2016 15:48:38 -0700
-Message-ID: <579a8bc6.4wge86LSnSf8hxjI%akpm@linux-foundation.org>
+Subject: [patch 086/101] mm: add cond_resched() to
+ generic_swapfile_activate()
+Date: Thu, 28 Jul 2016 15:48:47 -0700
+Message-ID: <579a8bcf.gxs8owBdYO8WF8bn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57225 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256AbcG1Wsj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:48:39 -0400
+	with ESMTP id S1751438AbcG1Wss (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:48:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, mhocko@suse.com, zhanc1@andrew.cmu.edu
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mpatocka@redhat.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mhocko@suse.com, viro@zeniv.linux.org.uk
 
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hwpoison: remove incorrect comments
+From: Mikulas Patocka <mpatocka@redhat.com>
+Subject: mm: add cond_resched() to generic_swapfile_activate()
 
-dequeue_hwpoisoned_huge_page() can be called without page lock hold,
-so let's remove incorrect comment.
+generic_swapfile_activate() can take quite long time, it iterates over all
+blocks of a file, so add cond_resched to it.  I observed about 1 second
+stalls when activating a swapfile that was almost unfragmented - this
+patch fixes it.
 
-The reason why the page lock is not really needed is that
-dequeue_hwpoisoned_huge_page() checks page_huge_active() inside hugetlb_lock,
-which allows us to avoid trying to dequeue a hugepage that are just allocated
-but not linked to active list yet, even without taking page lock.
-
-Link: http://lkml.kernel.org/r/20160720092901.GA15995@www9186uo.sakura.ne.jp
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reported-by: Zhan Chen <zhanc1@andrew.cmu.edu>
+Link: http://lkml.kernel.org/r/alpine.LRH.2.02.1607221710580.4818@file01.intranet.prod.int.rdu2.redhat.com
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c        |    1 -
- mm/memory-failure.c |    2 --
- 2 files changed, 3 deletions(-)
+ mm/page_io.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hwpoison-remove-incorrect-comment mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hwpoison-remove-incorrect-comment
-+++ a/mm/hugetlb.c
-@@ -4391,7 +4391,6 @@ follow_huge_pud(struct mm_struct *mm, un
+diff -puN mm/page_io.c~mm-add-cond_resched-to-generic_swapfile_activate mm/page_io.c
+--- a/mm/page_io.c~mm-add-cond_resched-to-generic_swapfile_activate
++++ a/mm/page_io.c
+@@ -166,6 +166,8 @@ int generic_swapfile_activate(struct swa
+ 		unsigned block_in_page;
+ 		sector_t first_block;
  
- /*
-  * This function is called from memory failure code.
-- * Assume the caller holds page lock of the head page.
-  */
- int dequeue_hwpoisoned_huge_page(struct page *hpage)
- {
-diff -puN mm/memory-failure.c~mm-hwpoison-remove-incorrect-comment mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-remove-incorrect-comment
-+++ a/mm/memory-failure.c
-@@ -741,8 +741,6 @@ static int me_huge_page(struct page *p,
- 	 * page->lru because it can be used in other hugepage operations,
- 	 * such as __unmap_hugepage_range() and gather_surplus_pages().
- 	 * So instead we use page_mapping() and PageAnon().
--	 * We assume that this function is called with page lock held,
--	 * so there is no race between isolation and mapping/unmapping.
- 	 */
- 	if (!(page_mapping(hpage) || PageAnon(hpage))) {
- 		res = dequeue_hwpoisoned_huge_page(hpage);
++		cond_resched();
++
+ 		first_block = bmap(inode, probe_block);
+ 		if (first_block == 0)
+ 			goto bad_bmap;
 _
