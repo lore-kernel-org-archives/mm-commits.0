@@ -1,81 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [patch 050/101] mm, vmstat: print node-based stats in zoneinfo
- file
-Date: Thu, 28 Jul 2016 15:47:02 -0700
-Message-ID: <579a8b66.gDaCO8ADPutYRPRW%akpm@linux-foundation.org>
+Subject: [patch 052/101] mm, page_alloc: fix dirtyable highmem calculation
+Date: Thu, 28 Jul 2016 15:47:08 -0700
+Message-ID: <579a8b6c.KCOUvMYYg+Ht7bAS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57025 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57040 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751853AbcG1WrE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:47:04 -0400
+	with ESMTP id S1751853AbcG1WrK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:47:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, riel@surriel.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, hannes@cmpxchg.org, mgorman@techsingularity.net, vbabka@suse.cz
 
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmstat: print node-based stats in zoneinfo file
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm, page_alloc: fix dirtyable highmem calculation
 
-There are a number of stats that were previously accessible via zoneinfo
-that are now invisible. While it is possible to create a new file for the
-node stats, this may be missed by users. Instead this patch prints the
-stats under the first populated zone in /proc/zoneinfo.
+When I tested vmscale in mmtest in 32bit, I found the benchmark was slow
+down 0.5 times.
 
-Link: http://lkml.kernel.org/r/1467970510-21195-34-git-send-email-mgorman@techsingularity.net
+                base        node
+                   1    global-1
+User           12.98       16.04
+System        147.61      166.42
+Elapsed        26.48       38.08
+
+With vmstat, I found IO wait avg is much increased compared to base.
+
+The reason was highmem_dirtyable_memory accumulates free pages and
+highmem_file_pages from HIGHMEM to MOVABLE zones which was wrong. With
+that, dirth_thresh in throtlle_vm_write is always 0 so that it calls
+congestion_wait frequently if writeback starts.
+
+With this patch, it is much recovered.
+
+                base        node          fi
+                   1    global-1         fix
+User           12.98       16.04       13.78
+System        147.61      166.42      143.92
+Elapsed        26.48       38.08       29.64
+
+Link: http://lkml.kernel.org/r/1468404004-5085-4-git-send-email-mgorman@techsingularity.net
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ mm/page-writeback.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmstat.c~mm-vmstat-print-node-based-stats-in-zoneinfo-file mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-print-node-based-stats-in-zoneinfo-file
-+++ a/mm/vmstat.c
-@@ -1415,11 +1415,35 @@ static const struct file_operations page
- 	.release	= seq_release,
- };
- 
-+static bool is_zone_first_populated(pg_data_t *pgdat, struct zone *zone)
-+{
-+	int zid;
-+
-+	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-+		struct zone *compare = &pgdat->node_zones[zid];
-+
-+		if (populated_zone(compare))
-+			return zone == compare;
-+	}
-+
-+	/* The zone must be somewhere! */
-+	WARN_ON_ONCE(1);
-+	return false;
-+}
-+
- static void zoneinfo_show_print(struct seq_file *m, pg_data_t *pgdat,
- 							struct zone *zone)
+diff -puN mm/page-writeback.c~mm-page_alloc-fix-dirtyable-highmem-calculation mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page_alloc-fix-dirtyable-highmem-calculation
++++ a/mm/page-writeback.c
+@@ -307,27 +307,31 @@ static unsigned long highmem_dirtyable_m
  {
+ #ifdef CONFIG_HIGHMEM
+ 	int node;
+-	unsigned long x = 0;
++	unsigned long x;
  	int i;
- 	seq_printf(m, "Node %d, zone %8s", pgdat->node_id, zone->name);
-+	if (is_zone_first_populated(pgdat, zone)) {
-+		seq_printf(m, "\n  per-node stats");
-+		for (i = 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
-+			seq_printf(m, "\n      %-12s %lu",
-+				vmstat_text[i + NR_VM_ZONE_STAT_ITEMS],
-+				node_page_state(pgdat, i));
-+		}
-+	}
- 	seq_printf(m,
- 		   "\n  pages free     %lu"
- 		   "\n        min      %lu"
-_
+-	unsigned long dirtyable = atomic_read(&highmem_file_pages);
++	unsigned long dirtyable = 0;
+ 
+ 	for_each_node_state(node, N_HIGH_MEMORY) {
+ 		for (i = ZONE_NORMAL + 1; i < MAX_NR_ZONES; i++) {
+ 			struct zone *z;
++			unsigned long nr_pages;
+ 
+ 			if (!is_highmem_idx(i))
+ 				continue;
+ 
+ 			z = &NODE_DATA(node)->node_zones[i];
+-			dirtyable += zone_page_state(z, NR_FREE_PAGES);
++			if (!populated_zone(z))
++				continue;
+ 
++			nr_pages = zone_page_state(z, NR_FREE_PAGES);
+ 			/* watch for underflows */
+-			dirtyable -= min(dirtyable, high_wmark_pages(z));
