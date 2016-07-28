@@ -1,63 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch removed
- from -mm tree
-Date: Thu, 28 Jul 2016 14:52:06 -0700
-Message-ID: <579a7e86.IJwB/NR4sReuYX+f%akpm@linux-foundation.org>
+ mm-move-most-file-based-accounting-to-the-node-fix.patch removed from -mm
+ tree
+Date: Thu, 28 Jul 2016 14:53:11 -0700
+Message-ID: <579a7ec7.ULAkZMtz8pJ9GBi+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54642 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751377AbcG1VwH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 17:52:07 -0400
+	with ESMTP id S1751377AbcG1VxM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 17:53:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: make shrink_node decisions more node-centric -fix
+     Subject: mm: move most file-based accounting to the node -fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-make-shrink_node-decisions-more-node-centric-fix.patch
+     mm-move-most-file-based-accounting-to-the-node-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
+This patch was dropped because it was folded into mm-move-most-file-based-accounting-to-the-node.patch
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: make shrink_node decisions more node-centric -fix
+Subject: mm: move most file-based accounting to the node -fix
 
-The patch "mm, vmscan: make shrink_node decisions more node-centric"
-checks whether compaction is suitable on empty nodes. This is expensive
-rather than wrong but is worth fixing.
+As noted by Johannes Weiner, NR_ZONE_WRITE_PENDING gets decremented twice
+during migration instead of a dec(old) -> inc(new) cycle as intended.
 
-This is a fix to the mmotm patch
-mm-vmscan-make-shrink_node-decisions-more-node-centric.patch
+This is a fix to mmotm patch
+mm-move-most-file-based-accounting-to-the-node.patch
 
-Link: http://lkml.kernel.org/r/1468588165-12461-2-git-send-email-mgorman@techsingularity.net
+Note that it'll cause a conflict with
+mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
+but that the resolution is trivial.
+
+Link: http://lkml.kernel.org/r/1468404004-5085-5-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-make-shrink_node-decisions-more-node-centric-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-make-shrink_node-decisions-more-node-centric-fix
-+++ a/mm/vmscan.c
-@@ -2414,6 +2414,8 @@ static inline bool should_continue_recla
- 	/* If compaction would go ahead or the allocation would succeed, stop */
- 	for (z = 0; z <= sc->reclaim_idx; z++) {
- 		struct zone *zone = &pgdat->node_zones[z];
-+		if (!populated_zone(zone))
-+			continue;
- 
- 		switch (compaction_suitable(zone, sc->order, 0, sc->reclaim_idx)) {
- 		case COMPACT_PARTIAL:
+diff -puN mm/migrate.c~mm-move-most-file-based-accounting-to-the-node-fix mm/migrate.c
+--- a/mm/migrate.c~mm-move-most-file-based-accounting-to-the-node-fix
++++ a/mm/migrate.c
+@@ -515,7 +515,7 @@ int migrate_page_move_mapping(struct add
+ 			__dec_node_state(oldzone->zone_pgdat, NR_FILE_DIRTY);
+ 			__dec_zone_state(oldzone, NR_ZONE_WRITE_PENDING);
+ 			__inc_node_state(newzone->zone_pgdat, NR_FILE_DIRTY);
+-			__dec_zone_state(newzone, NR_ZONE_WRITE_PENDING);
++			__inc_zone_state(newzone, NR_ZONE_WRITE_PENDING);
+ 		}
+ 	}
+ 	local_irq_enable();
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
@@ -82,7 +84,6 @@ mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
 mm-move-page-mapped-accounting-to-the-node.patch
 mm-rename-nr_anon_pages-to-nr_anon_mapped.patch
 mm-move-most-file-based-accounting-to-the-node.patch
-mm-move-most-file-based-accounting-to-the-node-fix.patch
 mm-move-vmscan-writes-and-file-write-accounting-to-the-node.patch
 mm-vmscan-only-wakeup-kswapd-once-per-node-for-the-requested-classzone.patch
 mm-page_alloc-wake-kswapd-based-on-the-highest-eligible-zone.patch
