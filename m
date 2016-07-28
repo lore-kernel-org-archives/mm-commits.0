@@ -1,57 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix.patch removed from -mm tree
-Date: Thu, 28 Jul 2016 15:03:00 -0700
-Message-ID: <579a8114.JAnEUsP0dVNL4TCD%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-add-per-zone-lru-list-stat-fix.patch removed
+ from -mm tree
+Date: Thu, 28 Jul 2016 15:03:48 -0700
+Message-ID: <579a8144.ALY7pSLuQMh3anh6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54689 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54694 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751375AbcG1WDB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:03:01 -0400
+	with ESMTP id S1751375AbcG1WDt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:03:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: Release/reacquire lru_lock on pgdat change -fix
+     Subject: mm: add per-zone lru list stat -fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix.patch
+     mm-add-per-zone-lru-list-stat-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
+This patch was dropped because it was folded into mm-add-per-zone-lru-list-stat.patch
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: Release/reacquire lru_lock on pgdat change -fix
+Subject: mm: add per-zone lru list stat -fix
 
-Remove double initialisation. It's harmless but odd looking.
+This patch renames the zone LRU stats as printed in /proc/vmstat to avoid
+confusion. This keeps both the node and zone stats which normally will be
+redundant but should always be roughly in sync.
 
-This is a fix to the mmotm patch
-mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
+This is a fix to the mmotm patch mm-add-per-zone-lru-list-stat.patch
 
-Link: http://lkml.kernel.org/r/20160719074835.GC10438@techsingularity.net
+Link: http://lkml.kernel.org/r/20160725072300.GK10438@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmstat.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-release-reacquire-lru_lock-on-pgdat-change-fix
-+++ a/mm/vmscan.c
-@@ -3784,7 +3784,6 @@ void check_move_unevictable_pages(struct
- 		struct pglist_data *pagepgdat = page_pgdat(page);
- 
- 		pgscanned++;
--		pagepgdat = page_pgdat(page);
- 		if (pagepgdat != pgdat) {
- 			if (pgdat)
- 				spin_unlock_irq(&pgdat->lru_lock);
+diff -puN mm/vmstat.c~mm-add-per-zone-lru-list-stat-fix mm/vmstat.c
+--- a/mm/vmstat.c~mm-add-per-zone-lru-list-stat-fix
++++ a/mm/vmstat.c
+@@ -921,11 +921,11 @@ int fragmentation_index(struct zone *zon
+ const char * const vmstat_text[] = {
+ 	/* enum zone_stat_item countes */
+ 	"nr_free_pages",
+-	"nr_inactive_anon",
+-	"nr_active_anon",
+-	"nr_inactive_file",
+-	"nr_active_file",
+-	"nr_unevictable",
++	"nr_zone_inactive_anon",
++	"nr_zone_active_anon",
++	"nr_zone_inactive_file",
++	"nr_zone_active_file",
++	"nr_zone_unevictable",
+ 	"nr_mlock",
+ 	"nr_slab_reclaimable",
+ 	"nr_slab_unreclaimable",
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
@@ -95,7 +106,7 @@ mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
 mm-vmscan-update-all-zone-lru-sizes-before-updating-memcg.patch
 mm-vmscan-remove-redundant-check-in-shrink_zones.patch
 mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
-mm-add-per-zone-lru-list-stat-fix.patch
+mm-add-per-zone-lru-list-stat.patch
 mm-vmscan-remove-highmem_file_pages.patch
 mm-vmscan-remove-highmem_file_pages-fix.patch
 mm-remove-reclaim-and-compaction-retry-approximations.patch
