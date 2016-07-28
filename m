@@ -1,153 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [patch 085/101] Revert "mm, mempool: only set __GFP_NOMEMALLOC if there are free elements"
-Date: Thu, 28 Jul 2016 15:48:44 -0700
-Message-ID: <579a8bcc./RqsE9zFaNg8BJr9%akpm__48386.677951976$1469746135$gmane$org@linux-foundation.org>
+Subject: [patch 088/101] mem-hotplug: alloc new page from a nearest
+ neighbor node when mem-offline
+Date: Thu, 28 Jul 2016 15:48:53 -0700
+Message-ID: <579a8bd5.9OeWBN2X9darp0D7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57219 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57243 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438AbcG1Wsp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:48:45 -0400
+	with ESMTP id S1751588AbcG1Wsy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:48:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, mgorman@suse.de, mpatocka@redhat.com, neilb@suse.com, okozina@redhat.com, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, qiuxishi@huawei.com, iamjoonsoo.kim@lge.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, vbabka@suse.cz
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: Revert "mm, mempool: only set __GFP_NOMEMALLOC if there are free elements"
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mem-hotplug: alloc new page from a nearest neighbor node when mem-offline
 
-This reverts f9054c70d28bc214b ("mm, mempool: only set __GFP_NOMEMALLOC if
-there are free elements").
+If we offline a node, alloc the new page from a nearest neighbor node
+instead of the current node or other remote nodes, because re-migrate is a
+waste of time and the distance of the remote nodes is often very large.
 
-There has been a report about OOM killer invoked when swapping out to a
-dm-crypt device.  The primary reason seems to be that the swapout out IO
-managed to completely deplete memory reserves.  Ondrej was able to bisect
-and explained the issue by pointing to f9054c70d28b ("mm, mempool: only
-set __GFP_NOMEMALLOC if there are free elements").
+Also use GFP_HIGHUSER_MOVABLE to alloc new page if the zone is
+movable zone or highmem zone.
 
-The reason is that the swapout path is not throttled properly because the
-md-raid layer needs to allocate from the generic_make_request path which
-means it allocates from the PF_MEMALLOC context.  dm layer uses
-mempool_alloc in order to guarantee a forward progress which used to
-inhibit access to memory reserves when using page allocator.  This has
-changed by f9054c70d28b ("mm, mempool: only set __GFP_NOMEMALLOC if there
-are free elements") which has dropped the __GFP_NOMEMALLOC protection when
-the memory pool is depleted.
-
-If we are running out of memory and the only way forward to free memory is
-to perform swapout we just keep consuming memory reserves rather than
-throttling the mempool allocations and allowing the pending IO to complete
-up to a moment when the memory is depleted completely and there is no way
-forward but invoking the OOM killer.  This is less than optimal.
-
-The original intention of f9054c70d28b was to help with the OOM situations
-where the oom victim depends on mempool allocation to make a forward
-progress.  David has mentioned the following backtrace:
-
-schedule
-schedule_timeout
-io_schedule_timeout
-mempool_alloc
-__split_and_process_bio
-dm_request
-generic_make_request
-submit_bio
-mpage_readpages
-ext4_readpages
-__do_page_cache_readahead
-ra_submit
-filemap_fault
-handle_mm_fault
-__do_page_fault
-do_page_fault
-page_fault
-
-We do not know more about why the mempool is depleted without being
-replenished in time, though.  In any case the dm layer shouldn't depend on
-any allocations outside of the dedicated pools so a forward progress
-should be guaranteed.  If this is not the case then the dm should be fixed
-rather than papering over the problem and postponing it to later by
-accessing more memory reserves.
-
-mempools are a mechanism to maintain dedicated memory reserves to guaratee
-forward progress.  Allowing them an unbounded access to the page allocator
-memory reserves is going against the whole purpose of this mechanism.
-
-Bisected by Ondrej Kozina.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20160721145309.GR26379@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Ondrej Kozina <okozina@redhat.com>
-Reviewed-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: NeilBrown <neilb@suse.com>
+Link: http://lkml.kernel.org/r/5795E18B.5060302@huawei.com
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Ondrej Kozina <okozina@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |   18 +++---------------
- 1 file changed, 3 insertions(+), 15 deletions(-)
+ mm/memory_hotplug.c |   38 +++++++++++++++++++++++++++++++++-----
+ 1 file changed, 33 insertions(+), 5 deletions(-)
 
-diff -puN mm/mempool.c~revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements mm/mempool.c
---- a/mm/mempool.c~revert-mm-mempool-only-set-__gfp_nomemalloc-if-there-are-free-elements
-+++ a/mm/mempool.c
-@@ -306,7 +306,7 @@ EXPORT_SYMBOL(mempool_resize);
-  * returns NULL. Note that due to preallocation, this function
-  * *never* fails when called from process contexts. (it might
-  * fail if called from an IRQ context.)
-- * Note: neither __GFP_NOMEMALLOC nor __GFP_ZERO are supported.
-+ * Note: using __GFP_ZERO is not supported.
-  */
- void *mempool_alloc(mempool_t *pool, gfp_t gfp_mask)
- {
-@@ -315,27 +315,16 @@ void *mempool_alloc(mempool_t *pool, gfp
- 	wait_queue_t wait;
- 	gfp_t gfp_temp;
+diff -puN mm/memory_hotplug.c~mem-hotplug-alloc-new-page-from-a-nearest-neighbor-node-when-mem-offline mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mem-hotplug-alloc-new-page-from-a-nearest-neighbor-node-when-mem-offline
++++ a/mm/memory_hotplug.c
+@@ -1548,6 +1548,37 @@ static unsigned long scan_movable_pages(
+ 	return 0;
+ }
  
--	/* If oom killed, memory reserves are essential to prevent livelock */
--	VM_WARN_ON_ONCE(gfp_mask & __GFP_NOMEMALLOC);
--	/* No element size to zero on allocation */
- 	VM_WARN_ON_ONCE(gfp_mask & __GFP_ZERO);
--
- 	might_sleep_if(gfp_mask & __GFP_DIRECT_RECLAIM);
++static struct page *new_node_page(struct page *page, unsigned long private,
++		int **result)
++{
++	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
++	int nid = page_to_nid(page);
++	nodemask_t nmask = node_online_map;
++	struct page *new_page;
++
++	/*
++	 * TODO: allocate a destination hugepage from a nearest neighbor node,
++	 * accordance with memory policy of the user process if possible. For
++	 * now as a simple work-around, we use the next node for destination.
++	 */
++	if (PageHuge(page))
++		return alloc_huge_page_node(page_hstate(compound_head(page)),
++					next_node_in(nid, nmask));
++
++	node_clear(nid, nmask);
++	if (PageHighMem(page)
++	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
++		gfp_mask |= __GFP_HIGHMEM;
++
++	new_page = __alloc_pages_nodemask(gfp_mask, 0,
++					node_zonelist(nid, gfp_mask), &nmask);
++	if (!new_page)
++		new_page = __alloc_pages(gfp_mask, 0,
++					node_zonelist(nid, gfp_mask));
++
++	return new_page;
++}
++
+ #define NR_OFFLINE_AT_ONCE_PAGES	(256)
+ static int
+ do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
+@@ -1611,11 +1642,8 @@ do_migrate_range(unsigned long start_pfn
+ 			goto out;
+ 		}
  
-+	gfp_mask |= __GFP_NOMEMALLOC;	/* don't allocate emergency reserves */
- 	gfp_mask |= __GFP_NORETRY;	/* don't loop in __alloc_pages */
- 	gfp_mask |= __GFP_NOWARN;	/* failures are OK */
- 
- 	gfp_temp = gfp_mask & ~(__GFP_DIRECT_RECLAIM|__GFP_IO);
- 
- repeat_alloc:
--	if (likely(pool->curr_nr)) {
 -		/*
--		 * Don't allocate from emergency reserves if there are
--		 * elements available.  This check is racy, but it will
--		 * be rechecked each loop.
+-		 * alloc_migrate_target should be improooooved!!
+-		 * migrate_pages returns # of failed pages.
 -		 */
--		gfp_temp |= __GFP_NOMEMALLOC;
--	}
- 
- 	element = pool->alloc(gfp_temp, pool->pool_data);
- 	if (likely(element != NULL))
-@@ -359,12 +348,11 @@ repeat_alloc:
- 	 * We use gfp mask w/o direct reclaim or IO for the first round.  If
- 	 * alloc failed with that and @pool was empty, retry immediately.
- 	 */
--	if ((gfp_temp & ~__GFP_NOMEMALLOC) != gfp_mask) {
-+	if (gfp_temp != gfp_mask) {
- 		spin_unlock_irqrestore(&pool->lock, flags);
- 		gfp_temp = gfp_mask;
- 		goto repeat_alloc;
- 	}
--	gfp_temp = gfp_mask;
- 
- 	/* We must not sleep if !__GFP_DIRECT_RECLAIM */
- 	if (!(gfp_mask & __GFP_DIRECT_RECLAIM)) {
+-		ret = migrate_pages(&source, alloc_migrate_target, NULL, 0,
++		/* Allocate a new page from the nearest neighbor node */
++		ret = migrate_pages(&source, new_node_page, NULL, 0,
+ 					MIGRATE_SYNC, MR_MEMORY_HOTPLUG);
+ 		if (ret)
+ 			putback_movable_pages(&source);
 _
