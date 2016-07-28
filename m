@@ -1,88 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch removed from -mm tree
-Date: Thu, 28 Jul 2016 14:58:01 -0700
-Message-ID: <579a7fe9.47C6yvvRfFMD8oE4%akpm@linux-foundation.org>
+ mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch removed from -mm tree
+Date: Thu, 28 Jul 2016 14:59:03 -0700
+Message-ID: <579a8027.bruSSfk0+QWXQ4Ch%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54678 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54682 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438AbcG1V6C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 17:58:02 -0400
+	with ESMTP id S1751409AbcG1V7E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 17:59:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, hannes@cmpxchg.org, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmstat: account per-zone stalls and pages skipped during reclaim -fix
+     Subject: mm, vmstat: remove zone and node double accounting by approximating retries -fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
+     mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
 
-This patch was dropped because it was folded into mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
+This patch was dropped because it was folded into mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: vmstat: account per-zone stalls and pages skipped during reclaim -fix
+Subject: mm, vmstat: remove zone and node double accounting by approximating retries -fix
 
-As pointed out by Johannes -- the PG prefix seems to stand for page, and
-all stat names that contain it represent some per-page event. PGSTALL is
-not a page event. This patch renames it.
+As pointed out by Vlastimil, the atomic_add() functions are already
+assumed to be able to handle negative numbers.  The atomic_sub handling
+was wrong anyway but this patch fixes it unconditionally.
 
-This is a fix for the mmotm patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
+This is a fix to the mmotm patch
+mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
 
-Link: http://lkml.kernel.org/r/1468404004-5085-3-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1468853426-12858-4-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    2 +-
- mm/vmscan.c                   |    2 +-
- mm/vmstat.c                   |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mm_inline.h |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/vm_event_item.h~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix
-+++ a/include/linux/vm_event_item.h
-@@ -23,7 +23,7 @@
- 
- enum vm_event_item { PGPGIN, PGPGOUT, PSWPIN, PSWPOUT,
- 		FOR_ALL_ZONES(PGALLOC),
--		FOR_ALL_ZONES(PGSTALL),
-+		FOR_ALL_ZONES(ALLOCSTALL),
- 		FOR_ALL_ZONES(PGSCAN_SKIP),
- 		PGFREE, PGACTIVATE, PGDEACTIVATE,
- 		PGFAULT, PGMAJFAULT,
-diff -puN mm/vmscan.c~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix
-+++ a/mm/vmscan.c
-@@ -2691,7 +2691,7 @@ retry:
- 	delayacct_freepages_start();
- 
- 	if (global_reclaim(sc))
--		__count_zid_vm_events(PGSTALL, sc->reclaim_idx, 1);
-+		__count_zid_vm_events(ALLOCSTALL, sc->reclaim_idx, 1);
- 
- 	do {
- 		vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
-diff -puN mm/vmstat.c~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix
-+++ a/mm/vmstat.c
-@@ -983,7 +983,7 @@ const char * const vmstat_text[] = {
- 	"pswpout",
- 
- 	TEXTS_FOR_ZONES("pgalloc")
--	TEXTS_FOR_ZONES("pgstall")
-+	TEXTS_FOR_ZONES("allocstall")
- 	TEXTS_FOR_ZONES("pgskip")
- 
- 	"pgfree",
+diff -puN include/linux/mm_inline.h~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix
++++ a/include/linux/mm_inline.h
+@@ -10,12 +10,8 @@ extern atomic_t highmem_file_pages;
+ static inline void acct_highmem_file_pages(int zid, enum lru_list lru,
+ 							int nr_pages)
+ {
+-	if (is_highmem_idx(zid) && is_file_lru(lru)) {
+-		if (nr_pages > 0)
+-			atomic_add(nr_pages, &highmem_file_pages);
+-		else
+-			atomic_sub(nr_pages, &highmem_file_pages);
+-	}
++	if (is_highmem_idx(zid) && is_file_lru(lru))
++		atomic_add(nr_pages, &highmem_file_pages);
+ }
+ #else
+ static inline void acct_highmem_file_pages(int zid, enum lru_list lru,
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
@@ -122,7 +103,6 @@ mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
 mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
 mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
 mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
-mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
 mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
 mm-vmscan-update-all-zone-lru-sizes-before-updating-memcg.patch
 mm-vmscan-remove-redundant-check-in-shrink_zones.patch
