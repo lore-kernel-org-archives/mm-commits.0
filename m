@@ -1,100 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 091/101] mm: fix use-after-free if memory allocation
- failed in vma_adjust()
-Date: Thu, 28 Jul 2016 15:49:01 -0700
-Message-ID: <579a8bdd.bZWnT5cQu3y/vbCi%akpm@linux-foundation.org>
+Subject: [patch 094/101] lib/stackdepot.c: use __GFP_NOWARN for stack
+ allocations
+Date: Thu, 28 Jul 2016 15:49:10 -0700
+Message-ID: <579a8be6.zbm/bidbSmgGYLOd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57279 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57305 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751448AbcG1WtD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:49:03 -0400
+	with ESMTP id S1751588AbcG1WtM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:49:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, riel@redhat.com, vbabka@suse.cz, vegard.nossum@oracle.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill@shutemov.name, aryabinin@virtuozzo.com, glider@google.com, mgorman@techsingularity.net, mhocko@suse.cz, riel@redhat.com, rientjes@google.com
 
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix use-after-free if memory allocation failed in vma_adjust()
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: lib/stackdepot.c: use __GFP_NOWARN for stack allocations
 
-There's one case when vma_adjust() expands the vma, overlapping with *two*
-next vma.  See case 6 of mprotect, described in the comment to
-vma_merge().
+This (large, atomic) allocation attempt can fail.  We expect and handle
+that, so avoid the scary warning.
 
-To handle this (and only this) situation we iterate twice over main part
-of the function.  See "goto again".
-
-Vegard reported[1] that he sees out-of-bounds access complain from KASAN,
-if anon_vma_clone() on the *second* iteration fails.
-
-This happens because we free 'next' vma by the end of first iteration and
-don't have a way to undo this if anon_vma_clone() fails on the second
-iteration.
-
-The solution is to do all required allocations upfront, before we touch
-vmas.
-
-The allocation on the second iteration is only required if first two vmas
-don't have anon_vma, but third does.  So we need, in total, one
-anon_vma_clone() call.
-
-It's easy to adjust 'exporter' to the third vma for such case.
-
-[1] http://lkml.kernel.org/r/1469514843-23778-1-git-send-email-vegard.nossum@oracle.com
-
-Link: http://lkml.kernel.org/r/1469625255-126641-1-git-send-email-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Vegard Nossum <vegard.nossum@oracle.com>
+Link: http://lkml.kernel.org/r/20160720151905.GB19146@node.shutemov.name
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ lib/stackdepot.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/mmap.c~mm-fix-use-after-free-if-memory-allocation-failed-in-vma_adjust mm/mmap.c
---- a/mm/mmap.c~mm-fix-use-after-free-if-memory-allocation-failed-in-vma_adjust
-+++ a/mm/mmap.c
-@@ -621,7 +621,6 @@ int vma_adjust(struct vm_area_struct *vm
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct vm_area_struct *next = vma->vm_next;
--	struct vm_area_struct *importer = NULL;
- 	struct address_space *mapping = NULL;
- 	struct rb_root *root = NULL;
- 	struct anon_vma *anon_vma = NULL;
-@@ -631,17 +630,25 @@ int vma_adjust(struct vm_area_struct *vm
- 	int remove_next = 0;
- 
- 	if (next && !insert) {
--		struct vm_area_struct *exporter = NULL;
-+		struct vm_area_struct *exporter = NULL, *importer = NULL;
- 
- 		if (end >= next->vm_end) {
- 			/*
- 			 * vma expands, overlapping all the next, and
- 			 * perhaps the one after too (mprotect case 6).
- 			 */
--again:			remove_next = 1 + (end > next->vm_end);
-+			remove_next = 1 + (end > next->vm_end);
- 			end = next->vm_end;
- 			exporter = next;
- 			importer = vma;
-+
-+			/*
-+			 * If next doesn't have anon_vma, import from vma after
-+			 * next, if the vma overlaps with it.
-+			 */
-+			if (remove_next == 2 && next && !next->anon_vma)
-+				exporter = next->vm_next;
-+
- 		} else if (end > next->vm_start) {
- 			/*
- 			 * vma expands, overlapping part of the next:
-@@ -675,7 +682,7 @@ again:			remove_next = 1 + (end > next->
- 				return error;
- 		}
- 	}
+diff -puN lib/stackdepot.c~lib-stackdepotc-use-__gfp_nowarn-for-stack-allocations lib/stackdepot.c
+--- a/lib/stackdepot.c~lib-stackdepotc-use-__gfp_nowarn-for-stack-allocations
++++ a/lib/stackdepot.c
+@@ -242,6 +242,7 @@ depot_stack_handle_t depot_save_stack(st
+ 		 */
+ 		alloc_flags &= ~GFP_ZONEMASK;
+ 		alloc_flags &= (GFP_ATOMIC | GFP_KERNEL);
++		alloc_flags |= __GFP_NOWARN;
+ 		page = alloc_pages(alloc_flags, STACK_ALLOC_ORDER);
+ 		if (page)
+ 			prealloc = page_address(page);
+_
