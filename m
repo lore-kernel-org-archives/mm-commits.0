@@ -1,74 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [patch 068/101] mm/zsmalloc: keep comments consistent with code
-Date: Thu, 28 Jul 2016 15:47:54 -0700
-Message-ID: <579a8b9a.S+qA6WLrk8pJ0nWI%akpm@linux-foundation.org>
+Subject: [patch 072/101] memblock: include <asm/sections.h> instead of
+ <asm-generic/sections.h>
+Date: Thu, 28 Jul 2016 15:48:06 -0700
+Message-ID: <579a8ba6.Bn2R8cCnQQhUtOyG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57119 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57141 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751329AbcG1Wrz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:47:55 -0400
+	with ESMTP id S1751256AbcG1WsH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:48:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, opensource.ganesh@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de
 
-From: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Subject: mm/zsmalloc: keep comments consistent with code
+From: Christoph Hellwig <hch@lst.de>
+Subject: memblock: include <asm/sections.h> instead of <asm-generic/sections.h>
 
-Some minor commebnt changes:
+asm-generic headers are generic implementations for architecture specific
+code and should not be included by common code.  Thus use the asm/ version
+of sections.h to get at the linker sections.
 
-1). update zs_malloc(),zs_create_pool() function header
-2). update "Usage of struct page fields"
-
-Link: http://lkml.kernel.org/r/1467882338-4300-5-git-send-email-opensource.ganesh@gmail.com
-Signed-off-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Link: http://lkml.kernel.org/r/1468285103-7470-1-git-send-email-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/memblock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-keep-comments-consistent-with-code mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-keep-comments-consistent-with-code
-+++ a/mm/zsmalloc.c
-@@ -20,6 +20,7 @@
-  *	page->freelist(index): links together all component pages of a zspage
-  *		For the huge page, this is always 0, so we use this field
-  *		to store handle.
-+ *	page->units: first object offset in a subpage of zspage
-  *
-  * Usage of struct page flags:
-  *	PG_private: identifies the first component page
-@@ -137,9 +138,6 @@
-  */
- #define ZS_SIZE_CLASS_DELTA	(PAGE_SIZE >> CLASS_BITS)
+diff -puN mm/memblock.c~memblock-include-asm-sectionsh-instead-of-asm-generic-sectionsh mm/memblock.c
+--- a/mm/memblock.c~memblock-include-asm-sectionsh-instead-of-asm-generic-sectionsh
++++ a/mm/memblock.c
+@@ -20,7 +20,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/memblock.h>
  
--/*
-- * We do not maintain any list for completely empty or full pages
-- */
- enum fullness_group {
- 	ZS_EMPTY,
- 	ZS_ALMOST_EMPTY,
-@@ -1532,6 +1530,7 @@ static unsigned long obj_malloc(struct s
-  * zs_malloc - Allocate block of given size from pool.
-  * @pool: pool to allocate from
-  * @size: size of block to allocate
-+ * @gfp: gfp flags when allocating object
-  *
-  * On success, handle to the allocated object is returned,
-  * otherwise 0.
-@@ -2391,7 +2390,7 @@ static int zs_register_shrinker(struct z
+-#include <asm-generic/sections.h>
++#include <asm/sections.h>
+ #include <linux/io.h>
  
- /**
-  * zs_create_pool - Creates an allocation pool to work from.
-- * @flags: allocation flags used to allocate pool metadata
-+ * @name: pool name to be created
-  *
-  * This function must be called before anything when using
-  * the zsmalloc allocator.
+ #include "internal.h"
 _
