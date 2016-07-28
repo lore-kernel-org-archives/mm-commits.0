@@ -1,73 +1,88 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch removed from -mm tree
-Date: Thu, 28 Jul 2016 14:57:11 -0700
-Message-ID: <579a7fb7.C0XoIvyGWAq3d/Lv%akpm@linux-foundation.org>
+ mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch removed from -mm tree
+Date: Thu, 28 Jul 2016 14:58:01 -0700
+Message-ID: <579a7fe9.47C6yvvRfFMD8oE4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54674 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54678 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438AbcG1V5M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 17:57:12 -0400
+	with ESMTP id S1751438AbcG1V6C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 17:58:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, hannes@cmpxchg.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: Have kswapd reclaim from all zones if reclaiming and buffer_heads_over_limit -fix
+     Subject: mm: vmstat: account per-zone stalls and pages skipped during reclaim -fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
+     mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
+This patch was dropped because it was folded into mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: Have kswapd reclaim from all zones if reclaiming and buffer_heads_over_limit -fix
+Subject: mm: vmstat: account per-zone stalls and pages skipped during reclaim -fix
 
-Johannes reported that the comment about buffer_heads_over_limit in
-balance_pgdat only made sense in the context of the patch. This patch
-clarifies the reasoning and how it applies to 32 and 64 bit systems.
+As pointed out by Johannes -- the PG prefix seems to stand for page, and
+all stat names that contain it represent some per-page event. PGSTALL is
+not a page event. This patch renames it.
 
-This is a fix to the mmotm patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
+This is a fix for the mmotm patch
+mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
 
-Link: http://lkml.kernel.org/r/1468404004-5085-2-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1468404004-5085-3-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ include/linux/vm_event_item.h |    2 +-
+ mm/vmscan.c                   |    2 +-
+ mm/vmstat.c                   |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix
-+++ a/mm/vmscan.c
-@@ -3134,12 +3134,13 @@ static int balance_pgdat(pg_data_t *pgda
+diff -puN include/linux/vm_event_item.h~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix
++++ a/include/linux/vm_event_item.h
+@@ -23,7 +23,7 @@
  
- 		/*
- 		 * If the number of buffer_heads exceeds the maximum allowed
--		 * then consider reclaiming from all zones. This is not
--		 * specific to highmem which may not exist but it is it is
--		 * expected that buffer_heads are stripped in writeback.
--		 * Reclaim may still not go ahead if all eligible zones
--		 * for the original allocation request are balanced to
--		 * avoid excessive reclaim from kswapd.
-+		 * then consider reclaiming from all zones. This has a dual
-+		 * purpose -- on 64-bit systems it is expected that
-+		 * buffer_heads are stripped during active rotation. On 32-bit
-+		 * systems, highmem pages can pin lowmem memory and shrinking
-+		 * buffers can relieve lowmem pressure. Reclaim may still not
-+		 * go ahead if all eligible zones for the original allocation
-+		 * request are balanced to avoid excessive reclaim from kswapd.
- 		 */
- 		if (buffer_heads_over_limit) {
- 			for (i = MAX_NR_ZONES - 1; i >= 0; i--) {
+ enum vm_event_item { PGPGIN, PGPGOUT, PSWPIN, PSWPOUT,
+ 		FOR_ALL_ZONES(PGALLOC),
+-		FOR_ALL_ZONES(PGSTALL),
++		FOR_ALL_ZONES(ALLOCSTALL),
+ 		FOR_ALL_ZONES(PGSCAN_SKIP),
+ 		PGFREE, PGACTIVATE, PGDEACTIVATE,
+ 		PGFAULT, PGMAJFAULT,
+diff -puN mm/vmscan.c~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix
++++ a/mm/vmscan.c
+@@ -2691,7 +2691,7 @@ retry:
+ 	delayacct_freepages_start();
+ 
+ 	if (global_reclaim(sc))
+-		__count_zid_vm_events(PGSTALL, sc->reclaim_idx, 1);
++		__count_zid_vm_events(ALLOCSTALL, sc->reclaim_idx, 1);
+ 
+ 	do {
+ 		vmpressure_prio(sc->gfp_mask, sc->target_mem_cgroup,
+diff -puN mm/vmstat.c~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix
++++ a/mm/vmstat.c
+@@ -983,7 +983,7 @@ const char * const vmstat_text[] = {
+ 	"pswpout",
+ 
+ 	TEXTS_FOR_ZONES("pgalloc")
+-	TEXTS_FOR_ZONES("pgstall")
++	TEXTS_FOR_ZONES("allocstall")
+ 	TEXTS_FOR_ZONES("pgskip")
+ 
+ 	"pgfree",
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
@@ -105,7 +120,6 @@ mm-page_alloc-remove-fair-zone-allocation-policy.patch
 mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
 mm-vmstat-replace-__count_zone_vm_events-with-a-zone-id-equivalent.patch
 mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim.patch
-mm-vmstat-account-per-zone-stalls-and-pages-skipped-during-reclaim-fix.patch
 mm-vmstat-print-node-based-stats-in-zoneinfo-file.patch
 mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries.patch
 mm-vmstat-remove-zone-and-node-double-accounting-by-approximating-retries-fix.patch
