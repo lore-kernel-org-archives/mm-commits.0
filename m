@@ -1,68 +1,54 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3.patch removed
- from -mm tree
-Date: Thu, 28 Jul 2016 14:02:34 -0700
-Message-ID: <579a72ea.cFu4aijOisJ7b/Qa%akpm@linux-foundation.org>
+ ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix.patch removed from -mm tree
+Date: Thu, 28 Jul 2016 14:03:18 -0700
+Message-ID: <579a7316.JExN6GyaoCH8W8GJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53078 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53089 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757829AbcG1VCg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 17:02:36 -0400
+	with ESMTP id S1751409AbcG1VDT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 17:03:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zren@suse.com, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, piaojun@huawei.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3
+     Subject: ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix
 has been removed from the -mm tree.  Its filename was
-     ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3.patch
+     ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix.patch
 
-This patch was dropped because it was folded into ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log.patch
+This patch was dropped because it was folded into ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler.patch
 
 ------------------------------------------------------
-From: Eric Ren <zren@suse.com>
-Subject: ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix
 
-v3:
-1. Also need to lock allocator inode when "= 0" is returned from
-ocfs2_schedule_truncate_log_flush(), which means no space really.
--- spotted by Joseph Qi
+fix duplicated write to `ret'
 
-Link: http://lkml.kernel.org/r/1468031546-4797-1-git-send-email-zren@suse.com
-Signed-off-by: Eric Ren <zren@suse.com>
-Cc: Gang He <ghe@suse.com>
+Cc: Jiufei Xue <xuejiufei@huawei.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: piaojun <piaojun@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/dlm/dlmmaster.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/ocfs2/suballoc.c~ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3 fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log-v3
-+++ a/fs/ocfs2/suballoc.c
-@@ -1204,6 +1204,9 @@ retry:
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler-fix
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -2466,9 +2466,6 @@ int dlm_deref_lockres_done_handler(struc
+ 	spin_unlock(&dlm->spinlock);
  
- 			if (ret < 0)
- 				mlog_errno(ret);
-+
-+			inode_lock((*ac)->ac_inode);
-+			ocfs2_inode_lock((*ac)->ac_inode, NULL, 1);
- 		}
- 		if (status < 0) {
- 			if (status != -ENOSPC)
-_
-
-Patches currently in -mm which might be from zren@suse.com are
-
-ocfs2-retry-on-enospc-if-sufficient-space-in-truncate-log.patch
-
+ 	ret = 0;
+-
+-	ret = 0;
