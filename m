@@ -1,39 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [patch 029/101] mm: vmscan: do not reclaim from kswapd if there
- is any eligible zone
-Date: Thu, 28 Jul 2016 15:45:59 -0700
-Message-ID: <579a8b27.8x78MLx5j1gGjeE1%akpm@linux-foundation.org>
+Subject: [patch 028/101] mm, vmscan: remove duplicate logic clearing node
+ congestion and dirty state
+Date: Thu, 28 Jul 2016 15:45:56 -0700
+Message-ID: <579a8b24.hafElMffsQJg1c3H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56811 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56796 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752106AbcG1WqA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:46:00 -0400
+	with ESMTP id S1752106AbcG1Wp5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:45:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, riel@surriel.com, vbabka@suse.cz
 
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: vmscan: do not reclaim from kswapd if there is any eligible zone
+Subject: mm, vmscan: remove duplicate logic clearing node congestion and dirty state
 
-kswapd scans from highest to lowest for a zone that requires balancing.
-This was necessary when reclaim was per-zone to fairly age pages on lower
-zones.  Now that we are reclaiming on a per-node basis, any eligible zone
-can be used and pages will still be aged fairly.  This patch avoids
-reclaiming excessively unless buffer_heads are over the limit and it's
-necessary to reclaim from a higher zone than requested by the waker of
-kswapd to relieve low memory pressure.
+Reclaim may stall if there is too much dirty or congested data on a node.
+This was previously based on zone flags and the logic for clearing the
+flags is in two places.  As congestion/dirty tracking is now tracked on a
+per-node basis, we can remove some duplicate logic.
 
-[hillf.zj@alibaba-inc.com: Force kswapd reclaim no more than needed]
-Link: http://lkml.kernel.org/r/1466518566-30034-12-git-send-email-mgorman@techsingularity.net
-Link: http://lkml.kernel.org/r/1467970510-21195-13-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1467970510-21195-12-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Signed-off-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -41,83 +36,56 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   59 ++++++++++++++++++++++----------------------------
- 1 file changed, 27 insertions(+), 32 deletions(-)
+ mm/vmscan.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-reclaim-from-kswapd-if-there-is-any-eligible-zone
+diff -puN mm/vmscan.c~mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-remove-duplicate-logic-clearing-node-congestion-and-dirty-state
 +++ a/mm/vmscan.c
-@@ -3144,31 +3144,39 @@ static int balance_pgdat(pg_data_t *pgda
+@@ -3008,7 +3008,17 @@ static bool zone_balanced(struct zone *z
+ {
+ 	unsigned long mark = high_wmark_pages(zone);
  
- 		sc.nr_reclaimed = 0;
+-	return zone_watermark_ok_safe(zone, order, mark, classzone_idx);
++	if (!zone_watermark_ok_safe(zone, order, mark, classzone_idx))
++		return false;
++
++	/*
++	 * If any eligible zone is balanced then the node is not considered
++	 * to be congested or dirty
++	 */
++	clear_bit(PGDAT_CONGESTED, &zone->zone_pgdat->flags);
++	clear_bit(PGDAT_DIRTY, &zone->zone_pgdat->flags);
++
++	return true;
+ }
  
--		/* Scan from the highest requested zone to dma */
--		for (i = classzone_idx; i >= 0; i--) {
--			zone = pgdat->node_zones + i;
--			if (!populated_zone(zone))
--				continue;
--
--			/*
--			 * If the number of buffer_heads in the machine
--			 * exceeds the maximum allowed level and this node
--			 * has a highmem zone, force kswapd to reclaim from
--			 * it to relieve lowmem pressure.
--			 */
--			if (buffer_heads_over_limit && is_highmem_idx(i)) {
--				classzone_idx = i;
--				break;
--			}
-+		/*
-+		 * If the number of buffer_heads in the machine exceeds the
-+		 * maximum allowed level then reclaim from all zones. This is
-+		 * not specific to highmem as highmem may not exist but it is
-+		 * it is expected that buffer_heads are stripped in writeback.
-+		 */
-+		if (buffer_heads_over_limit) {
-+			for (i = MAX_NR_ZONES - 1; i >= 0; i--) {
-+				zone = pgdat->node_zones + i;
-+				if (!populated_zone(zone))
-+					continue;
- 
--			if (!zone_balanced(zone, order, 0)) {
+ /*
+@@ -3154,13 +3164,6 @@ static int balance_pgdat(pg_data_t *pgda
+ 			if (!zone_balanced(zone, order, 0)) {
  				classzone_idx = i;
  				break;
+-			} else {
+-				/*
+-				 * If any eligible zone is balanced then the
+-				 * node is not considered congested or dirty.
+-				 */
+-				clear_bit(PGDAT_CONGESTED, &zone->zone_pgdat->flags);
+-				clear_bit(PGDAT_DIRTY, &zone->zone_pgdat->flags);
  			}
  		}
  
--		if (i < 0)
--			goto out;
-+		/*
-+		 * Only reclaim if there are no eligible zones. Check from
-+		 * high to low zone as allocations prefer higher zones.
-+		 * Scanning from low to high zone would allow congestion to be
-+		 * cleared during a very small window when a small low
-+		 * zone was balanced even under extreme pressure when the
-+		 * overall node may be congested.
-+		 */
-+		for (i = classzone_idx; i >= 0; i--) {
-+			zone = pgdat->node_zones + i;
-+			if (!populated_zone(zone))
-+				continue;
-+
+@@ -3219,11 +3222,8 @@ static int balance_pgdat(pg_data_t *pgda
+ 			if (!populated_zone(zone))
+ 				continue;
+ 
+-			if (zone_balanced(zone, sc.order, classzone_idx)) {
+-				clear_bit(PGDAT_CONGESTED, &pgdat->flags);
+-				clear_bit(PGDAT_DIRTY, &pgdat->flags);
 +			if (zone_balanced(zone, sc.order, classzone_idx))
-+				goto out;
-+		}
+ 				goto out;
+-			}
+ 		}
  
  		/*
- 		 * Do some background aging of the anon list, to give
-@@ -3214,19 +3222,6 @@ static int balance_pgdat(pg_data_t *pgda
- 			break;
- 
- 		/*
--		 * Stop reclaiming if any eligible zone is balanced and clear
--		 * node writeback or congested.
--		 */
--		for (i = 0; i <= classzone_idx; i++) {
--			zone = pgdat->node_zones + i;
--			if (!populated_zone(zone))
--				continue;
--
--			if (zone_balanced(zone, sc.order, classzone_idx))
--				goto out;
--		}
+_
