@@ -1,68 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-add-per-zone-lru-list-stat-fix.patch removed
- from -mm tree
-Date: Thu, 28 Jul 2016 15:03:48 -0700
-Message-ID: <579a8144.ALY7pSLuQMh3anh6%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-vmscan-remove-highmem_file_pages-fix.patch
+ removed from -mm tree
+Date: Thu, 28 Jul 2016 15:04:32 -0700
+Message-ID: <579a8170.XeyTbCCh6tx3u4Sa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54694 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54696 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751375AbcG1WDt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:03:49 -0400
+	with ESMTP id S1751813AbcG1WEd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 18:04:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add per-zone lru list stat -fix
+     Subject: mm, vmscan: remove highmem_file_pages -fix
 has been removed from the -mm tree.  Its filename was
-     mm-add-per-zone-lru-list-stat-fix.patch
+     mm-vmscan-remove-highmem_file_pages-fix.patch
 
-This patch was dropped because it was folded into mm-add-per-zone-lru-list-stat.patch
+This patch was dropped because it was folded into mm-vmscan-remove-highmem_file_pages.patch
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: add per-zone lru list stat -fix
+Subject: mm, vmscan: remove highmem_file_pages -fix
 
-This patch renames the zone LRU stats as printed in /proc/vmstat to avoid
-confusion. This keeps both the node and zone stats which normally will be
-redundant but should always be roughly in sync.
+The wrong stat is being accumulatedin highmem_dirtyable_memory, fix it.
 
-This is a fix to the mmotm patch mm-add-per-zone-lru-list-stat.patch
+This is a fix to the mmotm patch mm-vmscan-remove-highmem_file_pages.patch
 
-Link: http://lkml.kernel.org/r/20160725072300.GK10438@techsingularity.net
+Link: http://lkml.kernel.org/r/20160725092324.GM10438@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/page-writeback.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmstat.c~mm-add-per-zone-lru-list-stat-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-add-per-zone-lru-list-stat-fix
-+++ a/mm/vmstat.c
-@@ -921,11 +921,11 @@ int fragmentation_index(struct zone *zon
- const char * const vmstat_text[] = {
- 	/* enum zone_stat_item countes */
- 	"nr_free_pages",
--	"nr_inactive_anon",
--	"nr_active_anon",
--	"nr_inactive_file",
--	"nr_active_file",
--	"nr_unevictable",
-+	"nr_zone_inactive_anon",
-+	"nr_zone_active_anon",
-+	"nr_zone_inactive_file",
-+	"nr_zone_active_file",
-+	"nr_zone_unevictable",
- 	"nr_mlock",
- 	"nr_slab_reclaimable",
- 	"nr_slab_unreclaimable",
+diff -puN mm/page-writeback.c~mm-vmscan-remove-highmem_file_pages-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-vmscan-remove-highmem_file_pages-fix
++++ a/mm/page-writeback.c
+@@ -322,8 +322,8 @@ static unsigned long highmem_dirtyable_m
+ 			nr_pages = zone_page_state(z, NR_FREE_PAGES);
+ 			/* watch for underflows */
+ 			nr_pages -= min(nr_pages, high_wmark_pages(z));
+-			nr_pages += zone_page_state(z, NR_INACTIVE_FILE);
+-			nr_pages += zone_page_state(z, NR_ACTIVE_FILE);
++			nr_pages += zone_page_state(z, NR_ZONE_INACTIVE_FILE);
++			nr_pages += zone_page_state(z, NR_ZONE_ACTIVE_FILE);
+ 			x += nr_pages;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
@@ -106,9 +98,7 @@ mm-pagevec-release-reacquire-lru_lock-on-pgdat-change.patch
 mm-vmscan-update-all-zone-lru-sizes-before-updating-memcg.patch
 mm-vmscan-remove-redundant-check-in-shrink_zones.patch
 mm-vmscan-release-reacquire-lru_lock-on-pgdat-change.patch
-mm-add-per-zone-lru-list-stat.patch
 mm-vmscan-remove-highmem_file_pages.patch
-mm-vmscan-remove-highmem_file_pages-fix.patch
 mm-remove-reclaim-and-compaction-retry-approximations.patch
 mm-consider-whether-to-decivate-based-on-eligible-zones-inactive-ratio.patch
 mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
