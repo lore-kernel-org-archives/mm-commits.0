@@ -1,62 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch removed from -mm tree
-Date: Thu, 28 Jul 2016 14:56:15 -0700
-Message-ID: <579a7f7f.dJ3BILt1CNuz5NKV%akpm@linux-foundation.org>
+ mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch removed from -mm tree
+Date: Thu, 28 Jul 2016 14:57:11 -0700
+Message-ID: <579a7fb7.C0XoIvyGWAq3d/Lv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54666 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54674 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751704AbcG1V4Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 17:56:16 -0400
+	with ESMTP id S1751438AbcG1V5M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jul 2016 17:57:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: avoid passing in classzone_idx unnecessarily to compaction_ready -fix
+     Subject: mm, vmscan: Have kswapd reclaim from all zones if reclaiming and buffer_heads_over_limit -fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix.patch
+     mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
 
-This patch was dropped because it was folded into mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
+This patch was dropped because it was folded into mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: avoid passing in classzone_idx unnecessarily to compaction_ready -fix
+Subject: mm, vmscan: Have kswapd reclaim from all zones if reclaiming and buffer_heads_over_limit -fix
 
-As pointed out by Vlastimil, there is a redundant check in shrink_zones
-since commit "mm, vmscan: avoid passing in classzone_idx unnecessarily to
-compaction_ready".  The zonelist iterator only returns zones that already
-meet the requirements of the allocation request.
+Johannes reported that the comment about buffer_heads_over_limit in
+balance_pgdat only made sense in the context of the patch. This patch
+clarifies the reasoning and how it applies to 32 and 64 bit systems.
 
 This is a fix to the mmotm patch
-mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
+mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
 
-Link: http://lkml.kernel.org/r/1468588165-12461-3-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1468404004-5085-2-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmscan.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready-fix
+diff -puN mm/vmscan.c~mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix
 +++ a/mm/vmscan.c
-@@ -2611,7 +2611,6 @@ static void shrink_zones(struct zonelist
- 			 */
- 			if (IS_ENABLED(CONFIG_COMPACTION) &&
- 			    sc->order > PAGE_ALLOC_COSTLY_ORDER &&
--			    zonelist_zone_idx(z) <= sc->reclaim_idx &&
- 			    compaction_ready(zone, sc)) {
- 				sc->compaction_ready = true;
- 				continue;
+@@ -3134,12 +3134,13 @@ static int balance_pgdat(pg_data_t *pgda
+ 
+ 		/*
+ 		 * If the number of buffer_heads exceeds the maximum allowed
+-		 * then consider reclaiming from all zones. This is not
+-		 * specific to highmem which may not exist but it is it is
+-		 * expected that buffer_heads are stripped in writeback.
+-		 * Reclaim may still not go ahead if all eligible zones
+-		 * for the original allocation request are balanced to
+-		 * avoid excessive reclaim from kswapd.
++		 * then consider reclaiming from all zones. This has a dual
++		 * purpose -- on 64-bit systems it is expected that
++		 * buffer_heads are stripped during active rotation. On 32-bit
++		 * systems, highmem pages can pin lowmem memory and shrinking
++		 * buffers can relieve lowmem pressure. Reclaim may still not
++		 * go ahead if all eligible zones for the original allocation
++		 * request are balanced to avoid excessive reclaim from kswapd.
+ 		 */
+ 		if (buffer_heads_over_limit) {
+ 			for (i = MAX_NR_ZONES - 1; i >= 0; i--) {
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
@@ -89,7 +100,6 @@ mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
 mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
 mm-vmscan-avoid-passing-in-remaining-unnecessarily-to-prepare_kswapd_sleep.patch
 mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit.patch
-mm-vmscan-have-kswapd-reclaim-from-all-zones-if-reclaiming-and-buffer_heads_over_limit-fix.patch
 mm-vmscan-add-classzone-information-to-tracepoints.patch
 mm-page_alloc-remove-fair-zone-allocation-policy.patch
 mm-page_alloc-cache-the-last-node-whose-dirty-limit-is-reached.patch
