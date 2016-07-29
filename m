@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages.patch added
- to -mm tree
-Date: Fri, 29 Jul 2016 16:15:16 -0700
-Message-ID: <579be384.mToMrTRy2xwxCdEh%akpm@linux-foundation.org>
+Subject: + get_maintainerpl-reduce-need-for-command-line-option-f.patch
+ added to -mm tree
+Date: Fri, 29 Jul 2016 16:21:35 -0700
+Message-ID: <579be4ff.ZiGeHVX887JMplv/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41288 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41374 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752032AbcG2XPR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 19:15:17 -0400
+	with ESMTP id S1752032AbcG2XVg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 19:21:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hejianet@gmail.com, dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: avoid soft lockup in set_max_huge_pages()
+     Subject: get_maintainer.pl: reduce need for command-line option -f
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages.patch
+     get_maintainerpl-reduce-need-for-command-line-option-f.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/get_maintainerpl-reduce-need-for-command-line-option-f.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/get_maintainerpl-reduce-need-for-command-line-option-f.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,59 +39,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jia He <hejianet@gmail.com>
-Subject: mm/hugetlb: avoid soft lockup in set_max_huge_pages()
+From: Joe Perches <joe@perches.com>
+Subject: get_maintainer.pl: reduce need for command-line option -f
 
-In powerpc servers with large memory(32TB), we watched several soft
-lockups for hugepage under stress tests.
+If a vcs is used, look to see if the vcs tracks the file specified
+and so the -f option becomes optional.
 
-The call traces are as follows:
-1.
-get_page_from_freelist+0x2d8/0xd50
-__alloc_pages_nodemask+0x180/0xc20
-alloc_fresh_huge_page+0xb0/0x190
-set_max_huge_pages+0x164/0x3b0
-
-2.
-prep_new_huge_page+0x5c/0x100
-alloc_fresh_huge_page+0xc8/0x190
-set_max_huge_pages+0x164/0x3b0
-
-This patch fixes such soft lockups.  It is safe to call cond_resched()
-there because it is out of spin_lock/unlock section.
-
-Link: http://lkml.kernel.org/r/1469674442-14848-1-git-send-email-hejianet@gmail.com
-Signed-off-by: Jia He <hejianet@gmail.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/7c86a8df0d48770c45778a43b6b3e4627b2a90ee.1469746395.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ scripts/get_maintainer.pl |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages
-+++ a/mm/hugetlb.c
-@@ -2216,6 +2216,10 @@ static unsigned long set_max_huge_pages(
- 		 * and reducing the surplus.
- 		 */
- 		spin_unlock(&hugetlb_lock);
+diff -puN scripts/get_maintainer.pl~get_maintainerpl-reduce-need-for-command-line-option-f scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainerpl-reduce-need-for-command-line-option-f
++++ a/scripts/get_maintainer.pl
+@@ -133,6 +133,7 @@ my %VCS_cmds_git = (
+     "author_pattern" => "^GitAuthor: (.*)",
+     "subject_pattern" => "^GitSubject: (.*)",
+     "stat_pattern" => "^(\\d+)\\t(\\d+)\\t\$file\$",
++    "file_exists_cmd" => "git ls-files \$file",
+ );
+ 
+ my %VCS_cmds_hg = (
+@@ -161,6 +162,7 @@ my %VCS_cmds_hg = (
+     "author_pattern" => "^HgAuthor: (.*)",
+     "subject_pattern" => "^HgSubject: (.*)",
+     "stat_pattern" => "^(\\d+)\t(\\d+)\t\$file\$",
++    "file_exists_cmd" => "hg files \$file",
+ );
+ 
+ my $conf = which_conf(".get_maintainer.conf");
+@@ -430,7 +432,7 @@ foreach my $file (@ARGV) {
+ 	    die "$P: file '${file}' not found\n";
+ 	}
+     }
+-    if ($from_filename) {
++    if ($from_filename || vcs_file_exists($file)) {
+ 	$file =~ s/^\Q${cur_path}\E//;	#strip any absolute path
+ 	$file =~ s/^\Q${lk_path}\E//;	#or the path to the lk tree
+ 	push(@files, $file);
+@@ -2124,6 +2126,22 @@ sub vcs_file_blame {
+     }
+ }
+ 
++sub vcs_file_exists {
++    my ($file) = @_;
 +
-+		/* yield cpu to avoid soft lockup */
-+		cond_resched();
++    my $exists;
 +
- 		if (hstate_is_gigantic(h))
- 			ret = alloc_fresh_gigantic_page(h, nodes_allowed);
- 		else
++    my $vcs_used = vcs_exists();
++    return 0 if (!$vcs_used);
++
++    my $cmd = $VCS_cmds{"file_exists_cmd"};
++    $cmd =~ s/(\$\w+)/$1/eeg;		# interpolate $cmd
++
++    $exists = &{$VCS_cmds{"execute_cmd"}}($cmd);
++
++    return $exists;
++}
++
+ sub uniq {
+     my (@parms) = @_;
+ 
 _
 
-Patches currently in -mm which might be from hejianet@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages.patch
+printk-create-pr_level-functions.patch
+get_maintainerpl-reduce-need-for-command-line-option-f.patch
+checkpatch-skip-long-lines-that-use-an-efi_guid-macro.patch
+checkpatch-allow-c99-style-comments.patch
+checkpatch-yet-another-commit-id-improvement.patch
+checkpatch-improve-bare-use-of-signed-unsigned-types-warning.patch
+rapidio-remove-unnecessary-0x-prefixes-before-%pa-extension-uses.patch
 
