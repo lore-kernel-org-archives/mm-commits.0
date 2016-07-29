@@ -1,71 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- cpuset-mm-fix-tif_memdie-check-in-cpuset_change_task_nodemask.patch removed from -mm tree
-Date: Fri, 29 Jul 2016 11:54:21 -0700
-Message-ID: <579ba65d.CaYAiau0nArKgkOh%akpm@linux-foundation.org>
+Subject: [merged] mm-meminit-remove-early_page_nid_uninitialised.patch
+ removed from -mm tree
+Date: Fri, 29 Jul 2016 11:54:24 -0700
+Message-ID: <579ba660.jGYcFCHig6wsqHEX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37057 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37061 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834AbcG2SyW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:54:22 -0400
+	with ESMTP id S1751463AbcG2SyZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:54:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, miaox@cn.fujitsu.com, miaoxie@huawei.com, rientjes@google.com, rjw@rjwysocki.net, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpuset, mm: fix TIF_MEMDIE check in cpuset_change_task_nodemask
+     Subject: mm, meminit: remove early_page_nid_uninitialised
 has been removed from the -mm tree.  Its filename was
-     cpuset-mm-fix-tif_memdie-check-in-cpuset_change_task_nodemask.patch
+     mm-meminit-remove-early_page_nid_uninitialised.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: cpuset, mm: fix TIF_MEMDIE check in cpuset_change_task_nodemask
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, meminit: remove early_page_nid_uninitialised
 
-c0ff7453bb5c ("cpuset,mm: fix no node to alloc memory when changing
-cpuset's mems") has added TIF_MEMDIE and PF_EXITING check but it is
-checking the flag on the current task rather than the given one.  This
-doesn't make much sense and it is actually wrong.  If the current task
-which updates the nodemask of a cpuset got killed by the OOM killer then a
-part of the cpuset cgroup processes would have incompatible nodemask which
-is surprising to say the least.
+The helper early_page_nid_uninitialised() has been dead since commit
+974a786e63c9 ("mm, page_alloc: remove MIGRATE_RESERVE") so remove the
+dead code.
 
-The comment suggests the intention was to skip oom victim or an exiting
-task so we should be checking the given task.  But even then it would be
-layering violation because it is the memory allocator to interpret the
-TIF_MEMDIE meaning.  Simply drop both checks.  All tasks in the cpuset
-should simply follow the same mask.
-
-Link: http://lkml.kernel.org/r/1467029719-17602-3-git-send-email-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Miao Xie <miaox@cn.fujitsu.com>
-Cc: Miao Xie <miaoxie@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Link: http://lkml.kernel.org/r/1468008031-3848-2-git-send-email-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ mm/page_alloc.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff -puN kernel/cpuset.c~cpuset-mm-fix-tif_memdie-check-in-cpuset_change_task_nodemask kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-mm-fix-tif_memdie-check-in-cpuset_change_task_nodemask
-+++ a/kernel/cpuset.c
-@@ -1034,15 +1034,6 @@ static void cpuset_change_task_nodemask(
- {
- 	bool need_loop;
+diff -puN mm/page_alloc.c~mm-meminit-remove-early_page_nid_uninitialised mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-remove-early_page_nid_uninitialised
++++ a/mm/page_alloc.c
+@@ -295,14 +295,6 @@ static inline bool __meminit early_page_
+ 	return false;
+ }
  
--	/*
--	 * Allow tasks that have access to memory reserves because they have
--	 * been OOM killed to get memory anywhere.
--	 */
--	if (unlikely(test_thread_flag(TIF_MEMDIE)))
--		return;
--	if (current->flags & PF_EXITING) /* Let dying task have memory */
--		return;
+-static inline bool early_page_nid_uninitialised(unsigned long pfn, int nid)
+-{
+-	if (pfn >= NODE_DATA(nid)->first_deferred_pfn)
+-		return true;
+-
+-	return false;
+-}
+-
+ /*
+  * Returns false when the remaining initialisation should be deferred until
+  * later in the boot cycle when it can be parallelised.
+@@ -341,11 +333,6 @@ static inline bool early_page_uninitiali
+ {
+ 	return false;
+ }
