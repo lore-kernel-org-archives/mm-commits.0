@@ -1,65 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-zsmalloc-use-helper-to-clear-page-flags-bit.patch
- removed from -mm tree
-Date: Fri, 29 Jul 2016 11:56:24 -0700
-Message-ID: <579ba6d8.nQLd75SBsPul+jos%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-config_zone_device-stop-depending-on-config_expert.patch removed from
+ -mm tree
+Date: Fri, 29 Jul 2016 11:56:32 -0700
+Message-ID: <579ba6e0.d3XnKRQeuNokq39P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37568 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37583 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753312AbcG2S4Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:56:25 -0400
+	with ESMTP id S1751508AbcG2S4d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:56:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: opensource.ganesh@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, jmoyer@redhat.com, sandeen@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc: use helper to clear page->flags bit
+     Subject: mm: CONFIG_ZONE_DEVICE stop depending on CONFIG_EXPERT
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-use-helper-to-clear-page-flags-bit.patch
+     mm-config_zone_device-stop-depending-on-config_expert.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Subject: mm/zsmalloc: use helper to clear page->flags bit
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: CONFIG_ZONE_DEVICE stop depending on CONFIG_EXPERT
 
-Use ClearPagePrivate/ClearPagePrivate2 helpers to clear
-PG_private/PG_private_2 in page->flags
+When it was first introduced CONFIG_ZONE_DEVICE depended on disabling
+CONFIG_ZONE_DMA, a configuration choice reserved for "experts".  However,
+now that the ZONE_DMA conflict has been eliminated it no longer makes
+sense to require CONFIG_EXPERT.
 
-Link: http://lkml.kernel.org/r/1467882338-4300-7-git-send-email-opensource.ganesh@gmail.com
-Signed-off-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/146687646274.39261.14267596518720371009.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Eric Sandeen <sandeen@redhat.com>
+Reported-by: Jeff Moyer <jmoyer@redhat.com>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-use-helper-to-clear-page-flags-bit mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-use-helper-to-clear-page-flags-bit
-+++ a/mm/zsmalloc.c
-@@ -937,8 +937,8 @@ static void unpin_tag(unsigned long hand
- static void reset_page(struct page *page)
- {
- 	__ClearPageMovable(page);
--	clear_bit(PG_private, &page->flags);
--	clear_bit(PG_private_2, &page->flags);
-+	ClearPagePrivate(page);
-+	ClearPagePrivate2(page);
- 	set_page_private(page, 0);
- 	page_mapcount_reset(page);
- 	ClearPageHugeObject(page);
+diff -puN mm/Kconfig~mm-config_zone_device-stop-depending-on-config_expert mm/Kconfig
+--- a/mm/Kconfig~mm-config_zone_device-stop-depending-on-config_expert
++++ a/mm/Kconfig
+@@ -681,7 +681,7 @@ config IDLE_PAGE_TRACKING
+ 	  See Documentation/vm/idle_page_tracking.txt for more details.
+ 
+ config ZONE_DEVICE
+-	bool "Device memory (pmem, etc...) hotplug support" if EXPERT
++	bool "Device memory (pmem, etc...) hotplug support"
+ 	depends on MEMORY_HOTPLUG
+ 	depends on MEMORY_HOTREMOVE
+ 	depends on SPARSEMEM_VMEMMAP
 _
 
-Patches currently in -mm which might be from opensource.ganesh@gmail.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-mm-zsmalloc-add-trace-events-for-zs_compact.patch
-mm-zsmalloc-add-per-class-compact-trace-event.patch
 
