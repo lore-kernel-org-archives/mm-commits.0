@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-check-signoff-when-reading-stdin.patch added to -mm
- tree
-Date: Fri, 29 Jul 2016 15:59:52 -0700
-Message-ID: <579bdfe8.epTn4Q+2ck1yrKgB%akpm@linux-foundation.org>
+Subject: + init-kconfig-add-clarification-for-out-of-tree-modules.patch
+ added to -mm tree
+Date: Fri, 29 Jul 2016 16:04:21 -0700
+Message-ID: <579be0f5.F4+ijeE2bRV6ob3r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41156 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41173 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701AbcG2W7x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 18:59:53 -0400
+	with ESMTP id S1751564AbcG2XEW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 19:04:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: allenbh@gmail.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: Valdis.Kletnieks@vt.edu, mmarek@suse.cz, rusty@rustcorp.com.au, valdis.kletnieks@vt.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: check signoff when reading stdin
+     Subject: init/Kconfig: add clarification for out-of-tree modules
 has been added to the -mm tree.  Its filename is
-     checkpatch-check-signoff-when-reading-stdin.patch
+     init-kconfig-add-clarification-for-out-of-tree-modules.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-check-signoff-when-reading-stdin.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/init-kconfig-add-clarification-for-out-of-tree-modules.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-check-signoff-when-reading-stdin.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/init-kconfig-add-clarification-for-out-of-tree-modules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,76 +39,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Allen Hubbe <allenbh@gmail.com>
-Subject: checkpatch: check signoff when reading stdin
+From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Subject: init/Kconfig: add clarification for out-of-tree modules
 
-Signoff was not checked if the filename is '-', indicating reading the
-patch from stdin.  Commands such as the below would not warn about a
-missing signoff, because the patch filename is '-'.  This change allows
-checkpatch to warn about a missing signoff, even if the input filename is
-'-', but only if the patch has a commit message.
+It doesn't trim just symbols that are totally unused in-tree - it trims
+the symbols unused by any in-tree modules actually built.  If you've done
+a 'make localmodconfig' and only build a hundred or so modules, it's
+pretty likely that your out-of-tree module will come up lacking
+something...
 
-git show --pretty=email | scripts/checkpatch.pl -
+Hopefully this will save the next guy from a Homer Simpson "D'oh!" moment.
 
-A more common use of checkpatch with stdin is for piping git diff through
-checkpatch.  The diff output would not contain a commit message, and
-therefore it would not contain a signoff line.  For this common use case,
-a warning should not be printed about the missing signoff.  With this
-change we will only warn about a missing signoff if the input contains a
-commit message.
-
-git diff | scripts/checkpatch.pl -
-
-Before this patch, a workaround for the first command was to refer to
-stdin by a name other than '-'.  The workaround is not an elegant
-solution, because elsewhere checkpatch uses the fact that filename equals
-'-', such as in setting '$vname' to 'Your patch' for stdin.  The command
-below would report "/dev/stdin has style problems" instead of "Your patch
-has style problems."
-
-git show --pretty=email | scripts/checkpatch.pl /dev/stdin
-
-Link: http://lkml.kernel.org/r/48be31e414bddc65bccfa6b1322359be9ba032eb.1469670589.git.allenbh@gmail.com
-Signed-off-by: Allen Hubbe <allenbh@gmail.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/10177.1469787292@turing-police.cc.vt.edu
+Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ init/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-check-signoff-when-reading-stdin scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-check-signoff-when-reading-stdin
-+++ a/scripts/checkpatch.pl
-@@ -2069,6 +2069,7 @@ sub process {
- 	my $is_patch = 0;
- 	my $in_header_lines = $file ? 0 : 1;
- 	my $in_commit_log = 0;		#Scanning lines before patch
-+	my $has_commit_log = 0;		#Encountered lines before patch
-        my $commit_log_possible_stack_dump = 0;
- 	my $commit_log_long_line = 0;
- 	my $commit_log_has_diff = 0;
-@@ -2566,6 +2567,7 @@ sub process {
- 		      $rawline =~ /^(commit\b|from\b|[\w-]+:).*$/i)) {
- 			$in_header_lines = 0;
- 			$in_commit_log = 1;
-+			$has_commit_log = 1;
- 		}
+diff -puN init/Kconfig~init-kconfig-add-clarification-for-out-of-tree-modules init/Kconfig
+--- a/init/Kconfig~init-kconfig-add-clarification-for-out-of-tree-modules
++++ a/init/Kconfig
+@@ -2080,7 +2080,7 @@ config TRIM_UNUSED_KSYMS
+ 	  (especially when using LTO) for optimizing the code and reducing
+ 	  binary size.  This might have some security advantages as well.
  
- # Check if there is UTF-8 in a commit log when a mail header has explicitly
-@@ -6055,7 +6057,7 @@ sub process {
- 		ERROR("NOT_UNIFIED_DIFF",
- 		      "Does not appear to be a unified-diff format patch\n");
- 	}
--	if ($is_patch && $filename ne '-' && $chk_signoff && $signoff == 0) {
-+	if ($is_patch && $has_commit_log && $chk_signoff && $signoff == 0) {
- 		ERROR("MISSING_SIGN_OFF",
- 		      "Missing Signed-off-by: line(s)\n");
- 	}
+-	  If unsure say N.
++	  If unsure, or if you need to build out-of-tree modules, say N.
+ 
+ endif # MODULES
+ 
 _
 
-Patches currently in -mm which might be from allenbh@gmail.com are
+Patches currently in -mm which might be from Valdis.Kletnieks@vt.edu are
 
-checkpatch-check-signoff-when-reading-stdin.patch
+init-kconfig-add-clarification-for-out-of-tree-modules.patch
 
