@@ -1,260 +1,306 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-move-page-mapped-accounting-to-the-node.patch removed from -mm tree
-Date: Fri, 29 Jul 2016 11:54:59 -0700
-Message-ID: <579ba683.Vy7f+OzGEVKmgjoc%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch removed
+ from -mm tree
+Date: Fri, 29 Jul 2016 11:54:57 -0700
+Message-ID: <579ba681.wpBt/UxANr8/YyJm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37288 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37281 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752126AbcG2SzA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:55:00 -0400
+	with ESMTP id S1752126AbcG2Sy6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:54:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move page mapped accounting to the node
+     Subject: mm, page_alloc: consider dirtyable memory in terms of nodes
 has been removed from the -mm tree.  Its filename was
-     mm-move-page-mapped-accounting-to-the-node.patch
+     mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: move page mapped accounting to the node
+Subject: mm, page_alloc: consider dirtyable memory in terms of nodes
 
-Reclaim makes decisions based on the number of pages that are mapped but
-it's mixing node and zone information.  Account NR_FILE_MAPPED and
-NR_ANON_PAGES pages on the node.
+Historically dirty pages were spread among zones but now that LRUs are
+per-node it is more appropriate to consider dirty pages in a node.
 
-Link: http://lkml.kernel.org/r/1467970510-21195-18-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1467970510-21195-17-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/mm/pgtable.c |    2 +-
- drivers/base/node.c    |    4 ++--
- fs/proc/meminfo.c      |    4 ++--
- include/linux/mmzone.h |    6 +++---
- mm/page_alloc.c        |    6 +++---
- mm/rmap.c              |   14 +++++++-------
- mm/vmscan.c            |    2 +-
- mm/vmstat.c            |    4 ++--
- 8 files changed, 21 insertions(+), 21 deletions(-)
+ include/linux/mmzone.h    |   12 ++--
+ include/linux/writeback.h |    2 
+ mm/page-writeback.c       |   91 ++++++++++++++++++++++++------------
+ mm/page_alloc.c           |   26 ++++------
+ 4 files changed, 79 insertions(+), 52 deletions(-)
 
-diff -puN arch/tile/mm/pgtable.c~mm-move-page-mapped-accounting-to-the-node arch/tile/mm/pgtable.c
---- a/arch/tile/mm/pgtable.c~mm-move-page-mapped-accounting-to-the-node
-+++ a/arch/tile/mm/pgtable.c
-@@ -55,7 +55,7 @@ void show_mem(unsigned int filter)
- 	       global_page_state(NR_FREE_PAGES),
- 	       (global_page_state(NR_SLAB_RECLAIMABLE) +
- 		global_page_state(NR_SLAB_UNRECLAIMABLE)),
--	       global_page_state(NR_FILE_MAPPED),
-+	       global_node_page_state(NR_FILE_MAPPED),
- 	       global_page_state(NR_PAGETABLE),
- 	       global_page_state(NR_BOUNCE),
- 	       global_page_state(NR_FILE_PAGES),
-diff -puN drivers/base/node.c~mm-move-page-mapped-accounting-to-the-node drivers/base/node.c
---- a/drivers/base/node.c~mm-move-page-mapped-accounting-to-the-node
-+++ a/drivers/base/node.c
-@@ -121,8 +121,8 @@ static ssize_t node_read_meminfo(struct
- 		       nid, K(sum_zone_node_page_state(nid, NR_FILE_DIRTY)),
- 		       nid, K(sum_zone_node_page_state(nid, NR_WRITEBACK)),
- 		       nid, K(sum_zone_node_page_state(nid, NR_FILE_PAGES)),
--		       nid, K(sum_zone_node_page_state(nid, NR_FILE_MAPPED)),
--		       nid, K(sum_zone_node_page_state(nid, NR_ANON_PAGES)),
-+		       nid, K(node_page_state(pgdat, NR_FILE_MAPPED)),
-+		       nid, K(node_page_state(pgdat, NR_ANON_PAGES)),
- 		       nid, K(i.sharedram),
- 		       nid, sum_zone_node_page_state(nid, NR_KERNEL_STACK) *
- 				THREAD_SIZE / 1024,
-diff -puN fs/proc/meminfo.c~mm-move-page-mapped-accounting-to-the-node fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~mm-move-page-mapped-accounting-to-the-node
-+++ a/fs/proc/meminfo.c
-@@ -140,8 +140,8 @@ static int meminfo_proc_show(struct seq_
- 		K(i.freeswap),
- 		K(global_page_state(NR_FILE_DIRTY)),
- 		K(global_page_state(NR_WRITEBACK)),
--		K(global_page_state(NR_ANON_PAGES)),
--		K(global_page_state(NR_FILE_MAPPED)),
-+		K(global_node_page_state(NR_ANON_PAGES)),
-+		K(global_node_page_state(NR_FILE_MAPPED)),
- 		K(i.sharedram),
- 		K(global_page_state(NR_SLAB_RECLAIMABLE) +
- 				global_page_state(NR_SLAB_UNRECLAIMABLE)),
-diff -puN include/linux/mmzone.h~mm-move-page-mapped-accounting-to-the-node include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-move-page-mapped-accounting-to-the-node
+diff -puN include/linux/mmzone.h~mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes
 +++ a/include/linux/mmzone.h
-@@ -115,9 +115,6 @@ enum zone_stat_item {
- 	NR_ZONE_LRU_ANON = NR_ZONE_LRU_BASE,
- 	NR_ZONE_LRU_FILE,
- 	NR_MLOCK,		/* mlock()ed pages found and moved off LRU */
--	NR_ANON_PAGES,	/* Mapped anonymous pages */
--	NR_FILE_MAPPED,	/* pagecache pages mapped into pagetables.
--			   only modified from process context */
- 	NR_FILE_PAGES,
- 	NR_FILE_DIRTY,
- 	NR_WRITEBACK,
-@@ -164,6 +161,9 @@ enum node_stat_item {
- 	WORKINGSET_REFAULT,
- 	WORKINGSET_ACTIVATE,
- 	WORKINGSET_NODERECLAIM,
-+	NR_ANON_PAGES,	/* Mapped anonymous pages */
-+	NR_FILE_MAPPED,	/* pagecache pages mapped into pagetables.
-+			   only modified from process context */
- 	NR_VM_NODE_STAT_ITEMS
- };
+@@ -363,12 +363,6 @@ struct zone {
+ 	struct pglist_data	*zone_pgdat;
+ 	struct per_cpu_pageset __percpu *pageset;
  
-diff -puN mm/page_alloc.c~mm-move-page-mapped-accounting-to-the-node mm/page_alloc.c
---- a/mm/page_alloc.c~mm-move-page-mapped-accounting-to-the-node
-+++ a/mm/page_alloc.c
-@@ -4312,7 +4312,7 @@ void show_free_areas(unsigned int filter
- 		global_page_state(NR_UNSTABLE_NFS),
- 		global_page_state(NR_SLAB_RECLAIMABLE),
- 		global_page_state(NR_SLAB_UNRECLAIMABLE),
--		global_page_state(NR_FILE_MAPPED),
-+		global_node_page_state(NR_FILE_MAPPED),
- 		global_page_state(NR_SHMEM),
- 		global_page_state(NR_PAGETABLE),
- 		global_page_state(NR_BOUNCE),
-@@ -4334,6 +4334,7 @@ void show_free_areas(unsigned int filter
- 			" unevictable:%lukB"
- 			" isolated(anon):%lukB"
- 			" isolated(file):%lukB"
-+			" mapped:%lukB"
- 			" all_unreclaimable? %s"
- 			"\n",
- 			pgdat->node_id,
-@@ -4344,6 +4345,7 @@ void show_free_areas(unsigned int filter
- 			K(node_page_state(pgdat, NR_UNEVICTABLE)),
- 			K(node_page_state(pgdat, NR_ISOLATED_ANON)),
- 			K(node_page_state(pgdat, NR_ISOLATED_FILE)),
-+			K(node_page_state(pgdat, NR_FILE_MAPPED)),
- 			!pgdat_reclaimable(pgdat) ? "yes" : "no");
- 	}
- 
-@@ -4368,7 +4370,6 @@ void show_free_areas(unsigned int filter
- 			" mlocked:%lukB"
- 			" dirty:%lukB"
- 			" writeback:%lukB"
--			" mapped:%lukB"
- 			" shmem:%lukB"
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 			" shmem_thp: %lukB"
-@@ -4397,7 +4398,6 @@ void show_free_areas(unsigned int filter
- 			K(zone_page_state(zone, NR_MLOCK)),
- 			K(zone_page_state(zone, NR_FILE_DIRTY)),
- 			K(zone_page_state(zone, NR_WRITEBACK)),
--			K(zone_page_state(zone, NR_FILE_MAPPED)),
- 			K(zone_page_state(zone, NR_SHMEM)),
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 			K(zone_page_state(zone, NR_SHMEM_THPS) * HPAGE_PMD_NR),
-diff -puN mm/rmap.c~mm-move-page-mapped-accounting-to-the-node mm/rmap.c
---- a/mm/rmap.c~mm-move-page-mapped-accounting-to-the-node
-+++ a/mm/rmap.c
-@@ -1214,7 +1214,7 @@ void do_page_add_anon_rmap(struct page *
- 		 */
- 		if (compound)
- 			__inc_zone_page_state(page, NR_ANON_THPS);
--		__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, nr);
-+		__mod_node_page_state(page_pgdat(page), NR_ANON_PAGES, nr);
- 	}
- 	if (unlikely(PageKsm(page)))
- 		return;
-@@ -1258,7 +1258,7 @@ void page_add_new_anon_rmap(struct page
- 		/* increment count (starts at -1) */
- 		atomic_set(&page->_mapcount, 0);
- 	}
--	__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, nr);
-+	__mod_node_page_state(page_pgdat(page), NR_ANON_PAGES, nr);
- 	__page_set_anon_rmap(page, vma, address, 1);
- }
- 
-@@ -1293,7 +1293,7 @@ void page_add_file_rmap(struct page *pag
- 		if (!atomic_inc_and_test(&page->_mapcount))
- 			goto out;
- 	}
--	__mod_zone_page_state(page_zone(page), NR_FILE_MAPPED, nr);
-+	__mod_node_page_state(page_pgdat(page), NR_FILE_MAPPED, nr);
- 	mem_cgroup_inc_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED);
- out:
- 	unlock_page_memcg(page);
-@@ -1329,11 +1329,11 @@ static void page_remove_file_rmap(struct
- 	}
- 
+-	/*
+-	 * This is a per-zone reserve of pages that are not available
+-	 * to userspace allocations.
+-	 */
+-	unsigned long		totalreserve_pages;
+-
+ #ifndef CONFIG_SPARSEMEM
  	/*
--	 * We use the irq-unsafe __{inc|mod}_zone_page_stat because
-+	 * We use the irq-unsafe __{inc|mod}_zone_page_state because
- 	 * these counters are not modified in interrupt context, and
- 	 * pte lock(a spinlock) is held, which implies preemption disabled.
- 	 */
--	__mod_zone_page_state(page_zone(page), NR_FILE_MAPPED, -nr);
-+	__mod_node_page_state(page_pgdat(page), NR_FILE_MAPPED, -nr);
- 	mem_cgroup_dec_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED);
+ 	 * Flags for a pageblock_nr_pages block. See pageblock-flags.h.
+@@ -687,6 +681,12 @@ typedef struct pglist_data {
+ 	/* Number of pages migrated during the rate limiting time interval */
+ 	unsigned long numabalancing_migrate_nr_pages;
+ #endif
++	/*
++	 * This is a per-node reserve of pages that are not available
++	 * to userspace allocations.
++	 */
++	unsigned long		totalreserve_pages;
++
+ 	/* Write-intensive fields used by page reclaim */
+ 	ZONE_PADDING(_pad1_)
+ 	spinlock_t		lru_lock;
+diff -puN include/linux/writeback.h~mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes include/linux/writeback.h
+--- a/include/linux/writeback.h~mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes
++++ a/include/linux/writeback.h
+@@ -320,7 +320,7 @@ void laptop_mode_timer_fn(unsigned long
+ static inline void laptop_sync_completion(void) { }
+ #endif
+ void throttle_vm_writeout(gfp_t gfp_mask);
+-bool zone_dirty_ok(struct zone *zone);
++bool node_dirty_ok(struct pglist_data *pgdat);
+ int wb_domain_init(struct wb_domain *dom, gfp_t gfp);
+ #ifdef CONFIG_CGROUP_WRITEBACK
+ void wb_domain_exit(struct wb_domain *dom);
+diff -puN mm/page-writeback.c~mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes
++++ a/mm/page-writeback.c
+@@ -267,26 +267,35 @@ static void wb_min_max_ratio(struct bdi_
+  */
  
- 	if (unlikely(PageMlocked(page)))
-@@ -1375,7 +1375,7 @@ static void page_remove_anon_compound_rm
- 		clear_page_mlock(page);
- 
- 	if (nr) {
--		__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, -nr);
-+		__mod_node_page_state(page_pgdat(page), NR_ANON_PAGES, -nr);
- 		deferred_split_huge_page(page);
- 	}
- }
-@@ -1404,7 +1404,7 @@ void page_remove_rmap(struct page *page,
- 	 * these counters are not modified in interrupt context, and
- 	 * pte lock(a spinlock) is held, which implies preemption disabled.
- 	 */
--	__dec_zone_page_state(page, NR_ANON_PAGES);
-+	__dec_node_page_state(page, NR_ANON_PAGES);
- 
- 	if (unlikely(PageMlocked(page)))
- 		clear_page_mlock(page);
-diff -puN mm/vmscan.c~mm-move-page-mapped-accounting-to-the-node mm/vmscan.c
---- a/mm/vmscan.c~mm-move-page-mapped-accounting-to-the-node
-+++ a/mm/vmscan.c
-@@ -3589,7 +3589,7 @@ int sysctl_min_slab_ratio = 5;
- 
- static inline unsigned long zone_unmapped_file_pages(struct zone *zone)
+ /**
+- * zone_dirtyable_memory - number of dirtyable pages in a zone
+- * @zone: the zone
++ * node_dirtyable_memory - number of dirtyable pages in a node
++ * @pgdat: the node
+  *
+- * Returns the zone's number of pages potentially available for dirty
+- * page cache.  This is the base value for the per-zone dirty limits.
++ * Returns the node's number of pages potentially available for dirty
++ * page cache.  This is the base value for the per-node dirty limits.
+  */
+-static unsigned long zone_dirtyable_memory(struct zone *zone)
++static unsigned long node_dirtyable_memory(struct pglist_data *pgdat)
  {
--	unsigned long file_mapped = zone_page_state(zone, NR_FILE_MAPPED);
-+	unsigned long file_mapped = node_page_state(zone->zone_pgdat, NR_FILE_MAPPED);
- 	unsigned long file_lru = node_page_state(zone->zone_pgdat, NR_INACTIVE_FILE) +
- 		node_page_state(zone->zone_pgdat, NR_ACTIVE_FILE);
+-	unsigned long nr_pages;
++	unsigned long nr_pages = 0;
++	int z;
++
++	for (z = 0; z < MAX_NR_ZONES; z++) {
++		struct zone *zone = pgdat->node_zones + z;
++
++		if (!populated_zone(zone))
++			continue;
++
++		nr_pages += zone_page_state(zone, NR_FREE_PAGES);
++	}
  
-diff -puN mm/vmstat.c~mm-move-page-mapped-accounting-to-the-node mm/vmstat.c
---- a/mm/vmstat.c~mm-move-page-mapped-accounting-to-the-node
-+++ a/mm/vmstat.c
-@@ -925,8 +925,6 @@ const char * const vmstat_text[] = {
- 	"nr_zone_anon_lru",
- 	"nr_zone_file_lru",
- 	"nr_mlock",
--	"nr_anon_pages",
--	"nr_mapped",
- 	"nr_file_pages",
- 	"nr_dirty",
- 	"nr_writeback",
-@@ -970,6 +968,8 @@ const char * const vmstat_text[] = {
- 	"workingset_refault",
- 	"workingset_activate",
- 	"workingset_nodereclaim",
-+	"nr_anon_pages",
-+	"nr_mapped",
+-	nr_pages = zone_page_state(zone, NR_FREE_PAGES);
+ 	/*
+ 	 * Pages reserved for the kernel should not be considered
+ 	 * dirtyable, to prevent a situation where reclaim has to
+ 	 * clean pages in order to balance the zones.
+ 	 */
+-	nr_pages -= min(nr_pages, zone->totalreserve_pages);
++	nr_pages -= min(nr_pages, pgdat->totalreserve_pages);
  
- 	/* enum writeback_stat_item counters */
- 	"nr_dirty_threshold",
+-	nr_pages += node_page_state(zone->zone_pgdat, NR_INACTIVE_FILE);
+-	nr_pages += node_page_state(zone->zone_pgdat, NR_ACTIVE_FILE);
++	nr_pages += node_page_state(pgdat, NR_INACTIVE_FILE);
++	nr_pages += node_page_state(pgdat, NR_ACTIVE_FILE);
+ 
+ 	return nr_pages;
+ }
+@@ -299,13 +308,24 @@ static unsigned long highmem_dirtyable_m
+ 	int i;
+ 
+ 	for_each_node_state(node, N_HIGH_MEMORY) {
+-		for (i = 0; i < MAX_NR_ZONES; i++) {
+-			struct zone *z = &NODE_DATA(node)->node_zones[i];
++		for (i = ZONE_NORMAL + 1; i < MAX_NR_ZONES; i++) {
++			struct zone *z;
++			unsigned long dirtyable;
++
++			if (!is_highmem_idx(i))
++				continue;
++
++			z = &NODE_DATA(node)->node_zones[i];
++			dirtyable = zone_page_state(z, NR_FREE_PAGES) +
++				zone_page_state(z, NR_ZONE_LRU_FILE);
+ 
+-			if (is_highmem(z))
+-				x += zone_dirtyable_memory(z);
++			/* watch for underflows */
++			dirtyable -= min(dirtyable, high_wmark_pages(z));
++
++			x += dirtyable;
+ 		}
+ 	}
++
+ 	/*
+ 	 * Unreclaimable memory (kernel memory or anonymous memory
+ 	 * without swap) can bring down the dirtyable pages below
+@@ -445,23 +465,23 @@ void global_dirty_limits(unsigned long *
+ }
+ 
+ /**
+- * zone_dirty_limit - maximum number of dirty pages allowed in a zone
+- * @zone: the zone
++ * node_dirty_limit - maximum number of dirty pages allowed in a node
++ * @pgdat: the node
+  *
+- * Returns the maximum number of dirty pages allowed in a zone, based
+- * on the zone's dirtyable memory.
++ * Returns the maximum number of dirty pages allowed in a node, based
++ * on the node's dirtyable memory.
+  */
+-static unsigned long zone_dirty_limit(struct zone *zone)
++static unsigned long node_dirty_limit(struct pglist_data *pgdat)
+ {
+-	unsigned long zone_memory = zone_dirtyable_memory(zone);
++	unsigned long node_memory = node_dirtyable_memory(pgdat);
+ 	struct task_struct *tsk = current;
+ 	unsigned long dirty;
+ 
+ 	if (vm_dirty_bytes)
+ 		dirty = DIV_ROUND_UP(vm_dirty_bytes, PAGE_SIZE) *
+-			zone_memory / global_dirtyable_memory();
++			node_memory / global_dirtyable_memory();
+ 	else
+-		dirty = vm_dirty_ratio * zone_memory / 100;
++		dirty = vm_dirty_ratio * node_memory / 100;
+ 
+ 	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk))
+ 		dirty += dirty / 4;
+@@ -470,19 +490,30 @@ static unsigned long zone_dirty_limit(st
+ }
+ 
+ /**
+- * zone_dirty_ok - tells whether a zone is within its dirty limits
+- * @zone: the zone to check
++ * node_dirty_ok - tells whether a node is within its dirty limits
++ * @pgdat: the node to check
+  *
+- * Returns %true when the dirty pages in @zone are within the zone's
++ * Returns %true when the dirty pages in @pgdat are within the node's
+  * dirty limit, %false if the limit is exceeded.
+  */
+-bool zone_dirty_ok(struct zone *zone)
++bool node_dirty_ok(struct pglist_data *pgdat)
+ {
+-	unsigned long limit = zone_dirty_limit(zone);
++	int z;
++	unsigned long limit = node_dirty_limit(pgdat);
++	unsigned long nr_pages = 0;
++
++	for (z = 0; z < MAX_NR_ZONES; z++) {
++		struct zone *zone = pgdat->node_zones + z;
++
++		if (!populated_zone(zone))
++			continue;
++
++		nr_pages += zone_page_state(zone, NR_FILE_DIRTY);
++		nr_pages += zone_page_state(zone, NR_UNSTABLE_NFS);
++		nr_pages += zone_page_state(zone, NR_WRITEBACK);
++	}
+ 
+-	return zone_page_state(zone, NR_FILE_DIRTY) +
+-	       zone_page_state(zone, NR_UNSTABLE_NFS) +
+-	       zone_page_state(zone, NR_WRITEBACK) <= limit;
++	return nr_pages <= limit;
+ }
+ 
+ int dirty_background_ratio_handler(struct ctl_table *table, int write,
+diff -puN mm/page_alloc.c~mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-consider-dirtyable-memory-in-terms-of-nodes
++++ a/mm/page_alloc.c
+@@ -2912,31 +2912,24 @@ zonelist_scan:
+ 		}
+ 		/*
+ 		 * When allocating a page cache page for writing, we
+-		 * want to get it from a zone that is within its dirty
+-		 * limit, such that no single zone holds more than its
++		 * want to get it from a node that is within its dirty
++		 * limit, such that no single node holds more than its
+ 		 * proportional share of globally allowed dirty pages.
+-		 * The dirty limits take into account the zone's
++		 * The dirty limits take into account the node's
+ 		 * lowmem reserves and high watermark so that kswapd
+ 		 * should be able to balance it without having to
+ 		 * write pages from its LRU list.
+ 		 *
+-		 * This may look like it could increase pressure on
+-		 * lower zones by failing allocations in higher zones
+-		 * before they are full.  But the pages that do spill
+-		 * over are limited as the lower zones are protected
+-		 * by this very same mechanism.  It should not become
+-		 * a practical burden to them.
+-		 *
+ 		 * XXX: For now, allow allocations to potentially
+-		 * exceed the per-zone dirty limit in the slowpath
++		 * exceed the per-node dirty limit in the slowpath
+ 		 * (spread_dirty_pages unset) before going into reclaim,
+ 		 * which is important when on a NUMA setup the allowed
+-		 * zones are together not big enough to reach the
++		 * nodes are together not big enough to reach the
+ 		 * global limit.  The proper fix for these situations
+-		 * will require awareness of zones in the
++		 * will require awareness of nodes in the
+ 		 * dirty-throttling and the flusher threads.
+ 		 */
+-		if (ac->spread_dirty_pages && !zone_dirty_ok(zone))
++		if (ac->spread_dirty_pages && !node_dirty_ok(zone->zone_pgdat))
+ 			continue;
+ 
+ 		mark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
+@@ -6701,6 +6694,9 @@ static void calculate_totalreserve_pages
+ 	enum zone_type i, j;
+ 
+ 	for_each_online_pgdat(pgdat) {
++
++		pgdat->totalreserve_pages = 0;
++
+ 		for (i = 0; i < MAX_NR_ZONES; i++) {
+ 			struct zone *zone = pgdat->node_zones + i;
+ 			long max = 0;
+@@ -6717,7 +6713,7 @@ static void calculate_totalreserve_pages
+ 			if (max > zone->managed_pages)
+ 				max = zone->managed_pages;
+ 
+-			zone->totalreserve_pages = max;
++			pgdat->totalreserve_pages += max;
+ 
+ 			reserve_pages += max;
+ 		}
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
