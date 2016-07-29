@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-msgc-fix-memory-leak-in-do_msgsnd.patch added to -mm tree
-Date: Fri, 29 Jul 2016 15:11:49 -0700
-Message-ID: <579bd4a5.0jdhClDjjlK8D6hE%akpm@linux-foundation.org>
+Subject: + block-remove-blk_dev_dax-config-option.patch added to -mm tree
+Date: Fri, 29 Jul 2016 15:57:42 -0700
+Message-ID: <579bdf66.HdL8isPs82BZLpno%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40407 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41153 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752937AbcG2WLu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 18:11:50 -0400
+	with ESMTP id S1751701AbcG2W5n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 18:57:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, axboe@kernel.dk, dan.j.williams@intel.com, dave.hansen@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/msg.c: fix memory leak in do_msgsnd()
+     Subject: block: remove BLK_DEV_DAX config option
 has been added to the -mm tree.  Its filename is
-     ipc-msgc-fix-memory-leak-in-do_msgsnd.patch
+     block-remove-blk_dev_dax-config-option.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-msgc-fix-memory-leak-in-do_msgsnd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block-remove-blk_dev_dax-config-option.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-msgc-fix-memory-leak-in-do_msgsnd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-remove-blk_dev_dax-config-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,57 +38,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: ipc/msg.c: fix memory leak in do_msgsnd()
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: block: remove BLK_DEV_DAX config option
 
-Running LTP msgsnd06 with kmemleak gives the following:
+The functionality for block device DAX was already removed with this
+commit:
 
-cat /sys/kernel/debug/kmemleak
+commit acc93d30d7d4 ("Revert "block: enable dax for raw block devices"")
 
-unreferenced object 0xffff88003c0a11f8 (size 8):
-  comm "msgsnd06", pid 1645, jiffies 4294672526 (age 6.549s)
-  hex dump (first 8 bytes):
-    1b 00 00 00 01 00 00 00                          ........
-  backtrace:
-    [<ffffffff818e2c43>] kmemleak_alloc+0x23/0x40
-    [<ffffffff81177f31>] kmem_cache_alloc_trace+0xe1/0x180
-    [<ffffffff812d42af>] selinux_msg_queue_alloc_security+0x3f/0xd0
-    [<ffffffff812cc6be>] security_msg_queue_alloc+0x2e/0x40
-    [<ffffffff812b94ee>] newque+0x4e/0x150
-    [<ffffffff812b8cb9>] ipcget+0x159/0x1b0
-    [<ffffffff812b98d9>] SyS_msgget+0x39/0x40
-    [<ffffffff818e7bdb>] entry_SYSCALL_64_fastpath+0x13/0x8f
-    [<ffffffffffffffff>] 0xffffffffffffffff
+However, we still had a config option hanging around that was always
+disabled because it depended on CONFIG_BROKEN.  This config option was
+introduced in this commit:
 
-ipc_rcu_free() was given to ipc_rcu_putref() instead of msg_rcu_free()
-which does security cleaning.
+commit 03cdadb04077 ("block: disable block device DAX by default")
 
-Link: http://lkml.kernel.org/r/1469780120-315-1-git-send-email-fabf@skynet.be
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+This change reverts that commit, removing the dead config option.
+
+Link: http://lkml.kernel.org/r/20160729182314.6368-1-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Acked-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/Kconfig  |   13 -------------
+ fs/block_dev.c |    6 +-----
+ 2 files changed, 1 insertion(+), 18 deletions(-)
 
-diff -puN ipc/msg.c~ipc-msgc-fix-memory-leak-in-do_msgsnd ipc/msg.c
---- a/ipc/msg.c~ipc-msgc-fix-memory-leak-in-do_msgsnd
-+++ a/ipc/msg.c
-@@ -680,7 +680,7 @@ long do_msgsnd(int msqid, long mtype, vo
- 		rcu_read_lock();
- 		ipc_lock_object(&msq->q_perm);
+diff -puN block/Kconfig~block-remove-blk_dev_dax-config-option block/Kconfig
+--- a/block/Kconfig~block-remove-blk_dev_dax-config-option
++++ a/block/Kconfig
+@@ -88,19 +88,6 @@ config BLK_DEV_INTEGRITY
+ 	T10/SCSI Data Integrity Field or the T13/ATA External Path
+ 	Protection.  If in doubt, say N.
  
--		ipc_rcu_putref(msq, ipc_rcu_free);
-+		ipc_rcu_putref(msq, msg_rcu_free);
- 		/* raced with RMID? */
- 		if (!ipc_valid_object(&msq->q_perm)) {
- 			err = -EIDRM;
+-config BLK_DEV_DAX
+-	bool "Block device DAX support"
+-	depends on FS_DAX
+-	depends on BROKEN
+-	help
+-	  When DAX support is available (CONFIG_FS_DAX) raw block
+-	  devices can also support direct userspace access to the
+-	  storage capacity via MMAP(2) similar to a file on a
+-	  DAX-enabled filesystem.  However, the DAX I/O-path disables
+-	  some standard I/O-statistics, and the MMAP(2) path has some
+-	  operational differences due to bypassing the page
+-	  cache.  If in doubt, say N.
+-
+ config BLK_DEV_THROTTLING
+ 	bool "Block layer bio throttling support"
+ 	depends on BLK_CGROUP=y
+diff -puN fs/block_dev.c~block-remove-blk_dev_dax-config-option fs/block_dev.c
+--- a/fs/block_dev.c~block-remove-blk_dev_dax-config-option
++++ a/fs/block_dev.c
+@@ -1275,11 +1275,7 @@ static int __blkdev_get(struct block_dev
+ 		bdev->bd_disk = disk;
+ 		bdev->bd_queue = disk->queue;
+ 		bdev->bd_contains = bdev;
+-		if (IS_ENABLED(CONFIG_BLK_DEV_DAX) &&
+-		    blk_queue_dax(disk->queue))
+-			bdev->bd_inode->i_flags = S_DAX;
+-		else
+-			bdev->bd_inode->i_flags = 0;
++		bdev->bd_inode->i_flags = 0;
+ 
+ 		if (!partno) {
+ 			ret = -ENXIO;
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-treewide-replace-obsolete-_refok-by-__ref.patch
-ipc-msgc-fix-memory-leak-in-do_msgsnd.patch
+radix-tree-fix-comment-about-exceptional-bits.patch
+block-remove-blk_dev_dax-config-option.patch
 
