@@ -1,66 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pnpbios-add-header-file-to-fix-build-errors.patch
- removed from -mm tree
-Date: Fri, 29 Jul 2016 11:57:44 -0700
-Message-ID: <579ba728.i9+lUt5HdqZfhDkm%akpm@linux-foundation.org>
+Subject: + ipc-msgc-fix-memory-leak-in-do_msgsnd.patch added to -mm tree
+Date: Fri, 29 Jul 2016 15:11:49 -0700
+Message-ID: <579bd4a5.0jdhClDjjlK8D6hE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37741 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40407 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751704AbcG2S5p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:57:45 -0400
+	with ESMTP id S1752937AbcG2WLu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 18:11:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, gregkh@linuxfoundation.org, mcgrof@suse.com, rafael.j.wysocki@intel.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pnpbios: add header file to fix build errors
-has been removed from the -mm tree.  Its filename was
-     pnpbios-add-header-file-to-fix-build-errors.patch
+     Subject: ipc/msg.c: fix memory leak in do_msgsnd()
+has been added to the -mm tree.  Its filename is
+     ipc-msgc-fix-memory-leak-in-do_msgsnd.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-msgc-fix-memory-leak-in-do_msgsnd.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-msgc-fix-memory-leak-in-do_msgsnd.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: pnpbios: add header file to fix build errors
+From: Fabian Frederick <fabf@skynet.be>
+Subject: ipc/msg.c: fix memory leak in do_msgsnd()
 
-Fix build errors due to missing header file:
+Running LTP msgsnd06 with kmemleak gives the following:
 
-../drivers/pnp/pnpbios/core.c: In function 'pnp_dock_event':
-../drivers/pnp/pnpbios/core.c:141:2: error: implicit declaration of function 'call_usermodehelper' [-Werror=implicit-function-declaration]
-  value = call_usermodehelper(argv [0], argv, envp, UMH_WAIT_EXEC);
-  ^
-../drivers/pnp/pnpbios/core.c:141:52: error: 'UMH_WAIT_EXEC' undeclared (first use in this function)
-  value = call_usermodehelper(argv [0], argv, envp, UMH_WAIT_EXEC);
-                                                    ^
-Link: http://lkml.kernel.org/r/ae7a56b8-27a4-05c3-44f7-e1140bfd7acd@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rafael Wysocki <rafael.j.wysocki@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Luis R. Rodriguez" <mcgrof@suse.com>
+cat /sys/kernel/debug/kmemleak
+
+unreferenced object 0xffff88003c0a11f8 (size 8):
+  comm "msgsnd06", pid 1645, jiffies 4294672526 (age 6.549s)
+  hex dump (first 8 bytes):
+    1b 00 00 00 01 00 00 00                          ........
+  backtrace:
+    [<ffffffff818e2c43>] kmemleak_alloc+0x23/0x40
+    [<ffffffff81177f31>] kmem_cache_alloc_trace+0xe1/0x180
+    [<ffffffff812d42af>] selinux_msg_queue_alloc_security+0x3f/0xd0
+    [<ffffffff812cc6be>] security_msg_queue_alloc+0x2e/0x40
+    [<ffffffff812b94ee>] newque+0x4e/0x150
+    [<ffffffff812b8cb9>] ipcget+0x159/0x1b0
+    [<ffffffff812b98d9>] SyS_msgget+0x39/0x40
+    [<ffffffff818e7bdb>] entry_SYSCALL_64_fastpath+0x13/0x8f
+    [<ffffffffffffffff>] 0xffffffffffffffff
+
+ipc_rcu_free() was given to ipc_rcu_putref() instead of msg_rcu_free()
+which does security cleaning.
+
+Link: http://lkml.kernel.org/r/1469780120-315-1-git-send-email-fabf@skynet.be
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpbios/core.c |    1 +
- 1 file changed, 1 insertion(+)
+ ipc/msg.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pnp/pnpbios/core.c~pnpbios-add-header-file-to-fix-build-errors drivers/pnp/pnpbios/core.c
---- a/drivers/pnp/pnpbios/core.c~pnpbios-add-header-file-to-fix-build-errors
-+++ a/drivers/pnp/pnpbios/core.c
-@@ -60,6 +60,7 @@
- #include <linux/delay.h>
- #include <linux/acpi.h>
- #include <linux/freezer.h>
-+#include <linux/kmod.h>
- #include <linux/kthread.h>
+diff -puN ipc/msg.c~ipc-msgc-fix-memory-leak-in-do_msgsnd ipc/msg.c
+--- a/ipc/msg.c~ipc-msgc-fix-memory-leak-in-do_msgsnd
++++ a/ipc/msg.c
+@@ -680,7 +680,7 @@ long do_msgsnd(int msqid, long mtype, vo
+ 		rcu_read_lock();
+ 		ipc_lock_object(&msq->q_perm);
  
- #include <asm/page.h>
+-		ipc_rcu_putref(msq, ipc_rcu_free);
++		ipc_rcu_putref(msq, msg_rcu_free);
+ 		/* raced with RMID? */
+ 		if (!ipc_valid_object(&msq->q_perm)) {
+ 			err = -EIDRM;
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
+treewide-replace-obsolete-_refok-by-__ref.patch
+ipc-msgc-fix-memory-leak-in-do_msgsnd.patch
 
