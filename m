@@ -1,84 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Fri, 29 Jul 2016 11:50:00 -0700
-Message-ID: <579ba558.IAmhOW1KvjSks0k3%akpm@linux-foundation.org>
+Subject: [merged] proc-oom-drop-bogus-task_lock-and-mm-check.patch removed from -mm tree
+Date: Fri, 29 Jul 2016 11:53:37 -0700
+Message-ID: <579ba631.AxV/MOMk+MWl/WkP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36961 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36969 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751463AbcG2SuB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:50:01 -0400
+	with ESMTP id S1751347AbcG2Sxi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:53:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     Subject: proc, oom: drop bogus task_lock and mm check
+has been removed from the -mm tree.  Its filename was
+     proc-oom-drop-bogus-task_lock-and-mm-check.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Michal Hocko <mhocko@suse.com>
+Subject: proc, oom: drop bogus task_lock and mm check
 
+Series "Handle oom bypass more gracefully", V5
+
+
+The following 10 patches should put some order to very rare cases of mm
+shared between processes and make the paths which bypass the oom killer
+oom reapable and therefore much more reliable finally.  Even though mm
+shared outside of thread group is rare (either vforked tasks for a short
+period, use_mm by kernel threads or exotic thread model of clone(CLONE_VM)
+without CLONE_SIGHAND) it is better to cover them.  Not only it makes the
+current oom killer logic quite hard to follow and reason about it can lead
+to weird corner cases.  E.g.  it is possible to select an oom victim which
+shares the mm with unkillable process or bypass the oom killer even when
+other processes sharing the mm are still alive and other weird cases.
+
+Patch 1 drops bogus task_lock and mm check from oom_{score_}adj_write. 
+This can be considered a bug fix with a low impact as nobody has noticed
+for years.
+
+Patch 2 drops sighand lock because it is not needed anymore as pointed
+by Oleg.
+
+Patch 3 is a clean up of oom_score_adj handling and a preparatory
+work for later patches.
+
+Patch 4 enforces oom_adj_score to be consistent between processes
+sharing the mm to behave consistently with the regular thread
+groups. This can be considered a user visible behavior change because
+one thread group updating oom_score_adj will affect others which share
+the same mm via clone(CLONE_VM). I argue that this should be acceptable
+because we already have the same behavior for threads in the same thread
+group and sharing the mm without signal struct is just a different model
+of threading. This is probably the most controversial part of the series,
+I would like to find some consensus here. There were some suggestions
+to hook some counter/oom_score_adj into the mm_struct but I feel that
+this is not necessary right now and we can rely on proc handler +
+oom_kill_process to DTRT. I can be convinced otherwise but I strongly
+think that whatever we do the userspace has to have a way to see the
+current oom priority as consistently as possible.
+
+Patch 5 makes sure that no vforked task is selected if it is sharing
+the mm with oom unkillable task.
+
+Patch 6 ensures that all user tasks sharing the mm are killed which in
+turn makes sure that all oom victims are oom reapable.
+
+Patch 7 guarantees that task_will_free_mem will always imply reapable
+bypass of the oom killer.
+
+Patch 8 is new in this version and it addresses an issue pointed out
+by 0-day OOM report where an oom victim was reaped several times.
+
+Patch 9 puts an upper bound on how many times oom_reaper tries to reap a
+task and hides it from the oom killer to move on when no progress can be
+made. This will give an upper bound to how long an oom_reapable task can
+block the oom killer from selecting another victim if the oom_reaper is
+not able to reap the victim.
+
+Patch 10 tries to plug the (hopefully) last hole when we can still lock
+up when the oom victim is shared with oom unkillable tasks (kthreads
+and global init). We just try to be best effort in that case and rather
+fallback to kill something else than risk a lockup.
+
+
+This patch (of 10):
+
+Both oom_adj_write and oom_score_adj_write are using task_lock, check for
+task->mm and fail if it is NULL.  This is not needed because the
+oom_score_adj is per signal struct so we do not need mm at all.  The code
+has been introduced by 3d5992d2ac7d ("oom: add per-mm oom disable count")
+but we do not do per-mm oom disable since c9f01245b6a7 ("oom: remove
+oom_disable_count").
+
+The task->mm check is even not correct because the current thread might
+have exited but the thread group might be still alive - e.g.  thread group
+leader would lead that echo $VAL > /proc/pid/oom_score_adj would always
+fail with EINVAL while /proc/pid/task/$other_tid/oom_score_adj would
+succeed.  This is unexpected at best.
+
+Remove the lock along with the check to fix the unexpected behavior and
+also because there is not real need for the lock in the first place.
+
+Link: http://lkml.kernel.org/r/1466426628-15074-2-git-send-email-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/thread_info.h |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/proc/base.c |   22 ++++------------------
+ 1 file changed, 4 insertions(+), 18 deletions(-)
 
-diff -puN arch/x86/include/asm/thread_info.h~linux-next-rejects arch/x86/include/asm/thread_info.h
---- a/arch/x86/include/asm/thread_info.h~linux-next-rejects
-+++ a/arch/x86/include/asm/thread_info.h
-@@ -263,6 +263,9 @@ static inline int arch_within_stack_fram
-  * have to worry about atomic accesses.
-  */
- #define TS_COMPAT		0x0002	/* 32bit syscall active (64BIT)*/
-+#ifdef CONFIG_COMPAT
-+#define TS_I386_REGS_POKED	0x0004	/* regs poked by 32-bit ptracer */
-+#endif
+diff -puN fs/proc/base.c~proc-oom-drop-bogus-task_lock-and-mm-check fs/proc/base.c
+--- a/fs/proc/base.c~proc-oom-drop-bogus-task_lock-and-mm-check
++++ a/fs/proc/base.c
+@@ -1083,15 +1083,9 @@ static ssize_t oom_adj_write(struct file
+ 		goto out;
+ 	}
  
- #ifndef __ASSEMBLY__
+-	task_lock(task);
+-	if (!task->mm) {
+-		err = -EINVAL;
+-		goto err_task_lock;
+-	}
+-
+ 	if (!lock_task_sighand(task, &flags)) {
+ 		err = -ESRCH;
+-		goto err_task_lock;
++		goto err_put_task;
+ 	}
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
-printk-create-pr_level-functions-fix.patch
-kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
-kexec-allow-architectures-to-override-boot-mapping-fix.patch
-allow-kdump-with-crash_kexec_post_notifiers-fix.patch
-kexec-add-restriction-on-kexec_load-segment-sizes-fix.patch
-powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3-fix.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-bitmap-bitmap_equal-memcmp-optimization-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-rejects.patch
-
+ 	/*
+@@ -1121,8 +1115,7 @@ static ssize_t oom_adj_write(struct file
+ 	trace_oom_score_adj_update(task);
+ err_sighand:
+ 	unlock_task_sighand(task, &flags);
+-err_task_lock:
+-	task_unlock(task);
++err_put_task:
+ 	put_task_struct(task);
+ out:
+ 	return err < 0 ? err : count;
+@@ -1186,15 +1179,9 @@ static ssize_t oom_score_adj_write(struc
+ 		goto out;
+ 	}
+ 
+-	task_lock(task);
+-	if (!task->mm) {
+-		err = -EINVAL;
+-		goto err_task_lock;
+-	}
