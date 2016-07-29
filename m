@@ -1,288 +1,260 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-workingset-make-working-set-detection-node-aware.patch removed from -mm
- tree
-Date: Fri, 29 Jul 2016 11:54:55 -0700
-Message-ID: <579ba67f.Xq40QLB/+XAJYAR0%akpm@linux-foundation.org>
+Subject: [merged] mm-move-page-mapped-accounting-to-the-node.patch removed from -mm tree
+Date: Fri, 29 Jul 2016 11:54:59 -0700
+Message-ID: <579ba683.Vy7f+OzGEVKmgjoc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37272 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37288 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753312AbcG2Sy4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:54:56 -0400
+	with ESMTP id S1752126AbcG2SzA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:55:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, minchan@kernel.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, workingset: make working set detection node-aware
+     Subject: mm: move page mapped accounting to the node
 has been removed from the -mm tree.  Its filename was
-     mm-workingset-make-working-set-detection-node-aware.patch
+     mm-move-page-mapped-accounting-to-the-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, workingset: make working set detection node-aware
+Subject: mm: move page mapped accounting to the node
 
-Working set and refault detection is still zone-based, fix it.
+Reclaim makes decisions based on the number of pages that are mapped but
+it's mixing node and zone information.  Account NR_FILE_MAPPED and
+NR_ANON_PAGES pages on the node.
 
-Link: http://lkml.kernel.org/r/1467970510-21195-16-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1467970510-21195-18-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    6 ++---
- include/linux/vmstat.h |    1 
- mm/vmstat.c            |   20 ++----------------
- mm/workingset.c        |   43 ++++++++++++++++++---------------------
- 4 files changed, 26 insertions(+), 44 deletions(-)
+ arch/tile/mm/pgtable.c |    2 +-
+ drivers/base/node.c    |    4 ++--
+ fs/proc/meminfo.c      |    4 ++--
+ include/linux/mmzone.h |    6 +++---
+ mm/page_alloc.c        |    6 +++---
+ mm/rmap.c              |   14 +++++++-------
+ mm/vmscan.c            |    2 +-
+ mm/vmstat.c            |    4 ++--
+ 8 files changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-workingset-make-working-set-detection-node-aware include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-workingset-make-working-set-detection-node-aware
+diff -puN arch/tile/mm/pgtable.c~mm-move-page-mapped-accounting-to-the-node arch/tile/mm/pgtable.c
+--- a/arch/tile/mm/pgtable.c~mm-move-page-mapped-accounting-to-the-node
++++ a/arch/tile/mm/pgtable.c
+@@ -55,7 +55,7 @@ void show_mem(unsigned int filter)
+ 	       global_page_state(NR_FREE_PAGES),
+ 	       (global_page_state(NR_SLAB_RECLAIMABLE) +
+ 		global_page_state(NR_SLAB_UNRECLAIMABLE)),
+-	       global_page_state(NR_FILE_MAPPED),
++	       global_node_page_state(NR_FILE_MAPPED),
+ 	       global_page_state(NR_PAGETABLE),
+ 	       global_page_state(NR_BOUNCE),
+ 	       global_page_state(NR_FILE_PAGES),
+diff -puN drivers/base/node.c~mm-move-page-mapped-accounting-to-the-node drivers/base/node.c
+--- a/drivers/base/node.c~mm-move-page-mapped-accounting-to-the-node
++++ a/drivers/base/node.c
+@@ -121,8 +121,8 @@ static ssize_t node_read_meminfo(struct
+ 		       nid, K(sum_zone_node_page_state(nid, NR_FILE_DIRTY)),
+ 		       nid, K(sum_zone_node_page_state(nid, NR_WRITEBACK)),
+ 		       nid, K(sum_zone_node_page_state(nid, NR_FILE_PAGES)),
+-		       nid, K(sum_zone_node_page_state(nid, NR_FILE_MAPPED)),
+-		       nid, K(sum_zone_node_page_state(nid, NR_ANON_PAGES)),
++		       nid, K(node_page_state(pgdat, NR_FILE_MAPPED)),
++		       nid, K(node_page_state(pgdat, NR_ANON_PAGES)),
+ 		       nid, K(i.sharedram),
+ 		       nid, sum_zone_node_page_state(nid, NR_KERNEL_STACK) *
+ 				THREAD_SIZE / 1024,
+diff -puN fs/proc/meminfo.c~mm-move-page-mapped-accounting-to-the-node fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~mm-move-page-mapped-accounting-to-the-node
++++ a/fs/proc/meminfo.c
+@@ -140,8 +140,8 @@ static int meminfo_proc_show(struct seq_
+ 		K(i.freeswap),
+ 		K(global_page_state(NR_FILE_DIRTY)),
+ 		K(global_page_state(NR_WRITEBACK)),
+-		K(global_page_state(NR_ANON_PAGES)),
+-		K(global_page_state(NR_FILE_MAPPED)),
++		K(global_node_page_state(NR_ANON_PAGES)),
++		K(global_node_page_state(NR_FILE_MAPPED)),
+ 		K(i.sharedram),
+ 		K(global_page_state(NR_SLAB_RECLAIMABLE) +
+ 				global_page_state(NR_SLAB_UNRECLAIMABLE)),
+diff -puN include/linux/mmzone.h~mm-move-page-mapped-accounting-to-the-node include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-move-page-mapped-accounting-to-the-node
 +++ a/include/linux/mmzone.h
-@@ -145,9 +145,6 @@ enum zone_stat_item {
- 	NUMA_LOCAL,		/* allocation from local node */
- 	NUMA_OTHER,		/* allocation from other node */
- #endif
--	WORKINGSET_REFAULT,
--	WORKINGSET_ACTIVATE,
--	WORKINGSET_NODERECLAIM,
- 	NR_ANON_THPS,
- 	NR_SHMEM_THPS,
- 	NR_SHMEM_PMDMAPPED,
+@@ -115,9 +115,6 @@ enum zone_stat_item {
+ 	NR_ZONE_LRU_ANON = NR_ZONE_LRU_BASE,
+ 	NR_ZONE_LRU_FILE,
+ 	NR_MLOCK,		/* mlock()ed pages found and moved off LRU */
+-	NR_ANON_PAGES,	/* Mapped anonymous pages */
+-	NR_FILE_MAPPED,	/* pagecache pages mapped into pagetables.
+-			   only modified from process context */
+ 	NR_FILE_PAGES,
+ 	NR_FILE_DIRTY,
+ 	NR_WRITEBACK,
 @@ -164,6 +161,9 @@ enum node_stat_item {
- 	NR_ISOLATED_ANON,	/* Temporary isolated pages from anon lru */
- 	NR_ISOLATED_FILE,	/* Temporary isolated pages from file lru */
- 	NR_PAGES_SCANNED,	/* pages scanned since last reclaim */
-+	WORKINGSET_REFAULT,
-+	WORKINGSET_ACTIVATE,
-+	WORKINGSET_NODERECLAIM,
+ 	WORKINGSET_REFAULT,
+ 	WORKINGSET_ACTIVATE,
+ 	WORKINGSET_NODERECLAIM,
++	NR_ANON_PAGES,	/* Mapped anonymous pages */
++	NR_FILE_MAPPED,	/* pagecache pages mapped into pagetables.
++			   only modified from process context */
  	NR_VM_NODE_STAT_ITEMS
  };
  
-diff -puN include/linux/vmstat.h~mm-workingset-make-working-set-detection-node-aware include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-workingset-make-working-set-detection-node-aware
-+++ a/include/linux/vmstat.h
-@@ -227,7 +227,6 @@ void mod_node_page_state(struct pglist_d
- void inc_node_page_state(struct page *, enum node_stat_item);
- void dec_node_page_state(struct page *, enum node_stat_item);
+diff -puN mm/page_alloc.c~mm-move-page-mapped-accounting-to-the-node mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-move-page-mapped-accounting-to-the-node
++++ a/mm/page_alloc.c
+@@ -4312,7 +4312,7 @@ void show_free_areas(unsigned int filter
+ 		global_page_state(NR_UNSTABLE_NFS),
+ 		global_page_state(NR_SLAB_RECLAIMABLE),
+ 		global_page_state(NR_SLAB_UNRECLAIMABLE),
+-		global_page_state(NR_FILE_MAPPED),
++		global_node_page_state(NR_FILE_MAPPED),
+ 		global_page_state(NR_SHMEM),
+ 		global_page_state(NR_PAGETABLE),
+ 		global_page_state(NR_BOUNCE),
+@@ -4334,6 +4334,7 @@ void show_free_areas(unsigned int filter
+ 			" unevictable:%lukB"
+ 			" isolated(anon):%lukB"
+ 			" isolated(file):%lukB"
++			" mapped:%lukB"
+ 			" all_unreclaimable? %s"
+ 			"\n",
+ 			pgdat->node_id,
+@@ -4344,6 +4345,7 @@ void show_free_areas(unsigned int filter
+ 			K(node_page_state(pgdat, NR_UNEVICTABLE)),
+ 			K(node_page_state(pgdat, NR_ISOLATED_ANON)),
+ 			K(node_page_state(pgdat, NR_ISOLATED_FILE)),
++			K(node_page_state(pgdat, NR_FILE_MAPPED)),
+ 			!pgdat_reclaimable(pgdat) ? "yes" : "no");
+ 	}
  
--extern void inc_zone_state(struct zone *, enum zone_stat_item);
- extern void inc_node_state(struct pglist_data *, enum node_stat_item);
- extern void __inc_zone_state(struct zone *, enum zone_stat_item);
- extern void __inc_node_state(struct pglist_data *, enum node_stat_item);
-diff -puN mm/vmstat.c~mm-workingset-make-working-set-detection-node-aware mm/vmstat.c
---- a/mm/vmstat.c~mm-workingset-make-working-set-detection-node-aware
+@@ -4368,7 +4370,6 @@ void show_free_areas(unsigned int filter
+ 			" mlocked:%lukB"
+ 			" dirty:%lukB"
+ 			" writeback:%lukB"
+-			" mapped:%lukB"
+ 			" shmem:%lukB"
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 			" shmem_thp: %lukB"
+@@ -4397,7 +4398,6 @@ void show_free_areas(unsigned int filter
+ 			K(zone_page_state(zone, NR_MLOCK)),
+ 			K(zone_page_state(zone, NR_FILE_DIRTY)),
+ 			K(zone_page_state(zone, NR_WRITEBACK)),
+-			K(zone_page_state(zone, NR_FILE_MAPPED)),
+ 			K(zone_page_state(zone, NR_SHMEM)),
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 			K(zone_page_state(zone, NR_SHMEM_THPS) * HPAGE_PMD_NR),
+diff -puN mm/rmap.c~mm-move-page-mapped-accounting-to-the-node mm/rmap.c
+--- a/mm/rmap.c~mm-move-page-mapped-accounting-to-the-node
++++ a/mm/rmap.c
+@@ -1214,7 +1214,7 @@ void do_page_add_anon_rmap(struct page *
+ 		 */
+ 		if (compound)
+ 			__inc_zone_page_state(page, NR_ANON_THPS);
+-		__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, nr);
++		__mod_node_page_state(page_pgdat(page), NR_ANON_PAGES, nr);
+ 	}
+ 	if (unlikely(PageKsm(page)))
+ 		return;
+@@ -1258,7 +1258,7 @@ void page_add_new_anon_rmap(struct page
+ 		/* increment count (starts at -1) */
+ 		atomic_set(&page->_mapcount, 0);
+ 	}
+-	__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, nr);
++	__mod_node_page_state(page_pgdat(page), NR_ANON_PAGES, nr);
+ 	__page_set_anon_rmap(page, vma, address, 1);
+ }
+ 
+@@ -1293,7 +1293,7 @@ void page_add_file_rmap(struct page *pag
+ 		if (!atomic_inc_and_test(&page->_mapcount))
+ 			goto out;
+ 	}
+-	__mod_zone_page_state(page_zone(page), NR_FILE_MAPPED, nr);
++	__mod_node_page_state(page_pgdat(page), NR_FILE_MAPPED, nr);
+ 	mem_cgroup_inc_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED);
+ out:
+ 	unlock_page_memcg(page);
+@@ -1329,11 +1329,11 @@ static void page_remove_file_rmap(struct
+ 	}
+ 
+ 	/*
+-	 * We use the irq-unsafe __{inc|mod}_zone_page_stat because
++	 * We use the irq-unsafe __{inc|mod}_zone_page_state because
+ 	 * these counters are not modified in interrupt context, and
+ 	 * pte lock(a spinlock) is held, which implies preemption disabled.
+ 	 */
+-	__mod_zone_page_state(page_zone(page), NR_FILE_MAPPED, -nr);
++	__mod_node_page_state(page_pgdat(page), NR_FILE_MAPPED, -nr);
+ 	mem_cgroup_dec_page_stat(page, MEM_CGROUP_STAT_FILE_MAPPED);
+ 
+ 	if (unlikely(PageMlocked(page)))
+@@ -1375,7 +1375,7 @@ static void page_remove_anon_compound_rm
+ 		clear_page_mlock(page);
+ 
+ 	if (nr) {
+-		__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, -nr);
++		__mod_node_page_state(page_pgdat(page), NR_ANON_PAGES, -nr);
+ 		deferred_split_huge_page(page);
+ 	}
+ }
+@@ -1404,7 +1404,7 @@ void page_remove_rmap(struct page *page,
+ 	 * these counters are not modified in interrupt context, and
+ 	 * pte lock(a spinlock) is held, which implies preemption disabled.
+ 	 */
+-	__dec_zone_page_state(page, NR_ANON_PAGES);
++	__dec_node_page_state(page, NR_ANON_PAGES);
+ 
+ 	if (unlikely(PageMlocked(page)))
+ 		clear_page_mlock(page);
+diff -puN mm/vmscan.c~mm-move-page-mapped-accounting-to-the-node mm/vmscan.c
+--- a/mm/vmscan.c~mm-move-page-mapped-accounting-to-the-node
++++ a/mm/vmscan.c
+@@ -3589,7 +3589,7 @@ int sysctl_min_slab_ratio = 5;
+ 
+ static inline unsigned long zone_unmapped_file_pages(struct zone *zone)
+ {
+-	unsigned long file_mapped = zone_page_state(zone, NR_FILE_MAPPED);
++	unsigned long file_mapped = node_page_state(zone->zone_pgdat, NR_FILE_MAPPED);
+ 	unsigned long file_lru = node_page_state(zone->zone_pgdat, NR_INACTIVE_FILE) +
+ 		node_page_state(zone->zone_pgdat, NR_ACTIVE_FILE);
+ 
+diff -puN mm/vmstat.c~mm-move-page-mapped-accounting-to-the-node mm/vmstat.c
+--- a/mm/vmstat.c~mm-move-page-mapped-accounting-to-the-node
 +++ a/mm/vmstat.c
-@@ -446,11 +446,6 @@ void mod_zone_page_state(struct zone *zo
- }
- EXPORT_SYMBOL(mod_zone_page_state);
- 
--void inc_zone_state(struct zone *zone, enum zone_stat_item item)
--{
--	mod_zone_state(zone, item, 1, 1);
--}
--
- void inc_zone_page_state(struct page *page, enum zone_stat_item item)
- {
- 	mod_zone_state(page_zone(page), item, 1, 1);
-@@ -539,15 +534,6 @@ void mod_zone_page_state(struct zone *zo
- }
- EXPORT_SYMBOL(mod_zone_page_state);
- 
--void inc_zone_state(struct zone *zone, enum zone_stat_item item)
--{
--	unsigned long flags;
--
--	local_irq_save(flags);
--	__inc_zone_state(zone, item);
--	local_irq_restore(flags);
--}
--
- void inc_zone_page_state(struct page *page, enum zone_stat_item item)
- {
- 	unsigned long flags;
-@@ -967,9 +953,6 @@ const char * const vmstat_text[] = {
- 	"numa_local",
- 	"numa_other",
- #endif
--	"workingset_refault",
--	"workingset_activate",
--	"workingset_nodereclaim",
- 	"nr_anon_transparent_hugepages",
- 	"nr_shmem_hugepages",
- 	"nr_shmem_pmdmapped",
-@@ -984,6 +967,9 @@ const char * const vmstat_text[] = {
- 	"nr_isolated_anon",
- 	"nr_isolated_file",
- 	"nr_pages_scanned",
-+	"workingset_refault",
-+	"workingset_activate",
-+	"workingset_nodereclaim",
+@@ -925,8 +925,6 @@ const char * const vmstat_text[] = {
+ 	"nr_zone_anon_lru",
+ 	"nr_zone_file_lru",
+ 	"nr_mlock",
+-	"nr_anon_pages",
+-	"nr_mapped",
+ 	"nr_file_pages",
+ 	"nr_dirty",
+ 	"nr_writeback",
+@@ -970,6 +968,8 @@ const char * const vmstat_text[] = {
+ 	"workingset_refault",
+ 	"workingset_activate",
+ 	"workingset_nodereclaim",
++	"nr_anon_pages",
++	"nr_mapped",
  
  	/* enum writeback_stat_item counters */
  	"nr_dirty_threshold",
-diff -puN mm/workingset.c~mm-workingset-make-working-set-detection-node-aware mm/workingset.c
---- a/mm/workingset.c~mm-workingset-make-working-set-detection-node-aware
-+++ a/mm/workingset.c
-@@ -16,7 +16,7 @@
- /*
-  *		Double CLOCK lists
-  *
-- * Per zone, two clock lists are maintained for file pages: the
-+ * Per node, two clock lists are maintained for file pages: the
-  * inactive and the active list.  Freshly faulted pages start out at
-  * the head of the inactive list and page reclaim scans pages from the
-  * tail.  Pages that are accessed multiple times on the inactive list
-@@ -141,11 +141,11 @@
-  *
-  *		Implementation
-  *
-- * For each zone's file LRU lists, a counter for inactive evictions
-- * and activations is maintained (zone->inactive_age).
-+ * For each node's file LRU lists, a counter for inactive evictions
-+ * and activations is maintained (node->inactive_age).
-  *
-  * On eviction, a snapshot of this counter (along with some bits to
-- * identify the zone) is stored in the now empty page cache radix tree
-+ * identify the node) is stored in the now empty page cache radix tree
-  * slot of the evicted page.  This is called a shadow entry.
-  *
-  * On cache misses for which there are shadow entries, an eligible
-@@ -153,7 +153,7 @@
-  */
- 
- #define EVICTION_SHIFT	(RADIX_TREE_EXCEPTIONAL_ENTRY + \
--			 ZONES_SHIFT + NODES_SHIFT +	\
-+			 NODES_SHIFT +	\
- 			 MEM_CGROUP_ID_SHIFT)
- #define EVICTION_MASK	(~0UL >> EVICTION_SHIFT)
- 
-@@ -167,33 +167,30 @@
-  */
- static unsigned int bucket_order __read_mostly;
- 
--static void *pack_shadow(int memcgid, struct zone *zone, unsigned long eviction)
-+static void *pack_shadow(int memcgid, pg_data_t *pgdat, unsigned long eviction)
- {
- 	eviction >>= bucket_order;
- 	eviction = (eviction << MEM_CGROUP_ID_SHIFT) | memcgid;
--	eviction = (eviction << NODES_SHIFT) | zone_to_nid(zone);
--	eviction = (eviction << ZONES_SHIFT) | zone_idx(zone);
-+	eviction = (eviction << NODES_SHIFT) | pgdat->node_id;
- 	eviction = (eviction << RADIX_TREE_EXCEPTIONAL_SHIFT);
- 
- 	return (void *)(eviction | RADIX_TREE_EXCEPTIONAL_ENTRY);
- }
- 
--static void unpack_shadow(void *shadow, int *memcgidp, struct zone **zonep,
-+static void unpack_shadow(void *shadow, int *memcgidp, pg_data_t **pgdat,
- 			  unsigned long *evictionp)
- {
- 	unsigned long entry = (unsigned long)shadow;
--	int memcgid, nid, zid;
-+	int memcgid, nid;
- 
- 	entry >>= RADIX_TREE_EXCEPTIONAL_SHIFT;
--	zid = entry & ((1UL << ZONES_SHIFT) - 1);
--	entry >>= ZONES_SHIFT;
- 	nid = entry & ((1UL << NODES_SHIFT) - 1);
- 	entry >>= NODES_SHIFT;
- 	memcgid = entry & ((1UL << MEM_CGROUP_ID_SHIFT) - 1);
- 	entry >>= MEM_CGROUP_ID_SHIFT;
- 
- 	*memcgidp = memcgid;
--	*zonep = NODE_DATA(nid)->node_zones + zid;
-+	*pgdat = NODE_DATA(nid);
- 	*evictionp = entry << bucket_order;
- }
- 
-@@ -208,7 +205,7 @@ static void unpack_shadow(void *shadow,
- void *workingset_eviction(struct address_space *mapping, struct page *page)
- {
- 	struct mem_cgroup *memcg = page_memcg(page);
--	struct zone *zone = page_zone(page);
-+	struct pglist_data *pgdat = page_pgdat(page);
- 	int memcgid = mem_cgroup_id(memcg);
- 	unsigned long eviction;
- 	struct lruvec *lruvec;
-@@ -218,9 +215,9 @@ void *workingset_eviction(struct address
- 	VM_BUG_ON_PAGE(page_count(page), page);
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 
--	lruvec = mem_cgroup_lruvec(zone->zone_pgdat, memcg);
-+	lruvec = mem_cgroup_lruvec(pgdat, memcg);
- 	eviction = atomic_long_inc_return(&lruvec->inactive_age);
--	return pack_shadow(memcgid, zone, eviction);
-+	return pack_shadow(memcgid, pgdat, eviction);
- }
- 
- /**
-@@ -228,7 +225,7 @@ void *workingset_eviction(struct address
-  * @shadow: shadow entry of the evicted page
-  *
-  * Calculates and evaluates the refault distance of the previously
-- * evicted page in the context of the zone it was allocated in.
-+ * evicted page in the context of the node it was allocated in.
-  *
-  * Returns %true if the page should be activated, %false otherwise.
-  */
-@@ -240,10 +237,10 @@ bool workingset_refault(void *shadow)
- 	unsigned long eviction;
- 	struct lruvec *lruvec;
- 	unsigned long refault;
--	struct zone *zone;
-+	struct pglist_data *pgdat;
- 	int memcgid;
- 
--	unpack_shadow(shadow, &memcgid, &zone, &eviction);
-+	unpack_shadow(shadow, &memcgid, &pgdat, &eviction);
- 
- 	rcu_read_lock();
- 	/*
-@@ -267,7 +264,7 @@ bool workingset_refault(void *shadow)
- 		rcu_read_unlock();
- 		return false;
- 	}
--	lruvec = mem_cgroup_lruvec(zone->zone_pgdat, memcg);
-+	lruvec = mem_cgroup_lruvec(pgdat, memcg);
- 	refault = atomic_long_read(&lruvec->inactive_age);
- 	active_file = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE);
- 	rcu_read_unlock();
-@@ -290,10 +287,10 @@ bool workingset_refault(void *shadow)
- 	 */
- 	refault_distance = (refault - eviction) & EVICTION_MASK;
- 
--	inc_zone_state(zone, WORKINGSET_REFAULT);
-+	inc_node_state(pgdat, WORKINGSET_REFAULT);
- 
- 	if (refault_distance <= active_file) {
--		inc_zone_state(zone, WORKINGSET_ACTIVATE);
-+		inc_node_state(pgdat, WORKINGSET_ACTIVATE);
- 		return true;
- 	}
- 	return false;
-@@ -436,7 +433,7 @@ static enum lru_status shadow_lru_isolat
- 		}
- 	}
- 	BUG_ON(node->count);
--	inc_zone_state(page_zone(virt_to_page(node)), WORKINGSET_NODERECLAIM);
-+	inc_node_state(page_pgdat(virt_to_page(node)), WORKINGSET_NODERECLAIM);
- 	if (!__radix_tree_delete_node(&mapping->page_tree, node))
- 		BUG();
- 
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
