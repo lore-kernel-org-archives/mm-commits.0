@@ -1,111 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-oom-hide-mm-which-is-shared-with-kthread-or-global-init.patch removed
- from -mm tree
-Date: Fri, 29 Jul 2016 11:54:04 -0700
-Message-ID: <579ba64c.XC4+KxDc0OSGA6xJ%akpm@linux-foundation.org>
+Subject: [merged] mm-update-the-comment-in-__isolate_free_page.patch
+ removed from -mm tree
+Date: Fri, 29 Jul 2016 11:54:10 -0700
+Message-ID: <579ba652.5mxEstSBlJi4VZ8O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37022 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37033 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751482AbcG2SyF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:54:05 -0400
+	with ESMTP id S1751508AbcG2SyL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:54:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: zhongjiang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: hide mm which is shared with kthread or global init
+     Subject: mm: update the comment in __isolate_free_page
 has been removed from the -mm tree.  Its filename was
-     mm-oom-hide-mm-which-is-shared-with-kthread-or-global-init.patch
+     mm-update-the-comment-in-__isolate_free_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom: hide mm which is shared with kthread or global init
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: mm: update the comment in __isolate_free_page
 
-The only case where the oom_reaper is not triggered for the oom victim is
-when it shares the memory with a kernel thread (aka use_mm) or with the
-global init.  After "mm, oom: skip vforked tasks from being selected" the
-victim cannot be a vforked task of the global init so we are left with
-clone(CLONE_VM) (without CLONE_SIGHAND).  use_mm() users are quite rare as
-well.
+We need to assure the comment is consistent with the code.
 
-In order to help forward progress for the OOM killer, make sure that
-this really rare case will not get in the way - we do this by hiding
-the mm from the oom killer by setting MMF_OOM_REAPED flag for it. 
-oom_scan_process_thread will ignore any TIF_MEMDIE task if it has
-MMF_OOM_REAPED flag set to catch these oom victims.
-
-After this patch we should guarantee forward progress for the OOM
-killer even when the selected victim is sharing memory with a kernel
-thread or global init as long as the victims mm is still alive.
-
-Link: http://lkml.kernel.org/r/1466426628-15074-11-git-send-email-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/1466171914-21027-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   27 ++++++++++++++++++++++-----
- 1 file changed, 22 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mm-oom-hide-mm-which-is-shared-with-kthread-or-global-init mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-hide-mm-which-is-shared-with-kthread-or-global-init
-+++ a/mm/oom_kill.c
-@@ -283,10 +283,22 @@ enum oom_scan_t oom_scan_process_thread(
+diff -puN mm/page_alloc.c~mm-update-the-comment-in-__isolate_free_page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-update-the-comment-in-__isolate_free_page
++++ a/mm/page_alloc.c
+@@ -2517,7 +2517,10 @@ int __isolate_free_page(struct page *pag
+ 	zone->free_area[order].nr_free--;
+ 	rmv_page_order(page);
  
- 	/*
- 	 * This task already has access to memory reserves and is being killed.
--	 * Don't allow any other task to have access to the reserves.
--	 */
--	if (!is_sysrq_oom(oc) && atomic_read(&task->signal->oom_victims))
--		return OOM_SCAN_ABORT;
-+	 * Don't allow any other task to have access to the reserves unless
-+	 * the task has MMF_OOM_REAPED because chances that it would release
-+	 * any memory is quite low.
+-	/* Set the pageblock if the isolated page is at least a pageblock */
++	/*
++	 * Set the pageblock if the isolated page is at least half of a
++	 * pageblock
 +	 */
-+	if (!is_sysrq_oom(oc) && atomic_read(&task->signal->oom_victims)) {
-+		struct task_struct *p = find_lock_task_mm(task);
-+		enum oom_scan_t ret = OOM_SCAN_ABORT;
-+
-+		if (p) {
-+			if (test_bit(MMF_OOM_REAPED, &p->mm->flags))
-+				ret = OOM_SCAN_CONTINUE;
-+			task_unlock(p);
-+		}
-+
-+		return ret;
-+	}
- 
- 	/*
- 	 * If task is allocating a lot of memory and has been marked to be
-@@ -913,9 +925,14 @@ void oom_kill_process(struct oom_control
- 			/*
- 			 * We cannot use oom_reaper for the mm shared by this
- 			 * process because it wouldn't get killed and so the
--			 * memory might be still used.
-+			 * memory might be still used. Hide the mm from the oom
-+			 * killer to guarantee OOM forward progress.
- 			 */
- 			can_oom_reap = false;
-+			set_bit(MMF_OOM_REAPED, &mm->flags);
-+			pr_info("oom killer %d (%s) has mm pinned by %d (%s)\n",
-+					task_pid_nr(victim), victim->comm,
-+					task_pid_nr(p), p->comm);
- 			continue;
- 		}
- 		do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
+ 	if (order >= pageblock_order - 1) {
+ 		struct page *endpage = page + (1 << order) - 1;
+ 		for (; page < endpage; page += pageblock_nr_pages) {
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from zhongjiang@huawei.com are
 
+mm-page_owner-align-with-pageblock_nr-pages.patch
+mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+kexec-add-restriction-on-kexec_load-segment-sizes.patch
 
