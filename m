@@ -1,64 +1,110 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- zsmalloc-delete-an-unnecessary-check-before-the-function-call-iput.patch
+ mm-fix-use-after-free-if-memory-allocation-failed-in-vma_adjust.patch
  removed from -mm tree
-Date: Fri, 29 Jul 2016 11:57:14 -0700
-Message-ID: <579ba70a.eyHtfxQfsVs9vEe0%akpm@linux-foundation.org>
+Date: Fri, 29 Jul 2016 11:57:19 -0700
+Message-ID: <579ba70f.yEAMp4MjmYAk8eUV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37669 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37685 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750903AbcG2S5P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:57:15 -0400
+	with ESMTP id S1751755AbcG2S5U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:57:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elfring@users.sourceforge.net, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, riel@redhat.com, vbabka@suse.cz, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: Delete an unnecessary check before the function call "iput"
+     Subject: mm: fix use-after-free if memory allocation failed in vma_adjust()
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-delete-an-unnecessary-check-before-the-function-call-iput.patch
+     mm-fix-use-after-free-if-memory-allocation-failed-in-vma_adjust.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: zsmalloc: Delete an unnecessary check before the function call "iput"
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: fix use-after-free if memory allocation failed in vma_adjust()
 
-iput() tests whether its argument is NULL and then returns immediately. 
-Thus the test around the call is not needed.
+There's one case when vma_adjust() expands the vma, overlapping with *two*
+next vma.  See case 6 of mprotect, described in the comment to
+vma_merge().
 
-This issue was detected by using the Coccinelle software.
+To handle this (and only this) situation we iterate twice over main part
+of the function.  See "goto again".
 
-Link: http://lkml.kernel.org/r/559cf499-4a01-25f9-c87f-24d906626a57@users.sourceforge.net
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Vegard reported[1] that he sees out-of-bounds access complain from KASAN,
+if anon_vma_clone() on the *second* iteration fails.
+
+This happens because we free 'next' vma by the end of first iteration and
+don't have a way to undo this if anon_vma_clone() fails on the second
+iteration.
+
+The solution is to do all required allocations upfront, before we touch
+vmas.
+
+The allocation on the second iteration is only required if first two vmas
+don't have anon_vma, but third does.  So we need, in total, one
+anon_vma_clone() call.
+
+It's easy to adjust 'exporter' to the third vma for such case.
+
+[1] http://lkml.kernel.org/r/1469514843-23778-1-git-send-email-vegard.nossum@oracle.com
+
+Link: http://lkml.kernel.org/r/1469625255-126641-1-git-send-email-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Vegard Nossum <vegard.nossum@oracle.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/mmap.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-delete-an-unnecessary-check-before-the-function-call-iput mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-delete-an-unnecessary-check-before-the-function-call-iput
-+++ a/mm/zsmalloc.c
-@@ -2174,8 +2174,7 @@ static int zs_register_migration(struct
- static void zs_unregister_migration(struct zs_pool *pool)
+diff -puN mm/mmap.c~mm-fix-use-after-free-if-memory-allocation-failed-in-vma_adjust mm/mmap.c
+--- a/mm/mmap.c~mm-fix-use-after-free-if-memory-allocation-failed-in-vma_adjust
++++ a/mm/mmap.c
+@@ -621,7 +621,6 @@ int vma_adjust(struct vm_area_struct *vm
  {
- 	flush_work(&pool->free_work);
--	if (pool->inode)
--		iput(pool->inode);
-+	iput(pool->inode);
- }
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	struct vm_area_struct *next = vma->vm_next;
+-	struct vm_area_struct *importer = NULL;
+ 	struct address_space *mapping = NULL;
+ 	struct rb_root *root = NULL;
+ 	struct anon_vma *anon_vma = NULL;
+@@ -631,17 +630,25 @@ int vma_adjust(struct vm_area_struct *vm
+ 	int remove_next = 0;
  
- /*
-_
-
-Patches currently in -mm which might be from elfring@users.sourceforge.net are
-
-
+ 	if (next && !insert) {
+-		struct vm_area_struct *exporter = NULL;
++		struct vm_area_struct *exporter = NULL, *importer = NULL;
+ 
+ 		if (end >= next->vm_end) {
+ 			/*
+ 			 * vma expands, overlapping all the next, and
+ 			 * perhaps the one after too (mprotect case 6).
+ 			 */
+-again:			remove_next = 1 + (end > next->vm_end);
++			remove_next = 1 + (end > next->vm_end);
+ 			end = next->vm_end;
+ 			exporter = next;
+ 			importer = vma;
++
++			/*
++			 * If next doesn't have anon_vma, import from vma after
++			 * next, if the vma overlaps with it.
++			 */
++			if (remove_next == 2 && next && !next->anon_vma)
++				exporter = next->vm_next;
++
+ 		} else if (end > next->vm_start) {
+ 			/*
+ 			 * vma expands, overlapping part of the next:
+@@ -675,7 +682,7 @@ again:			remove_next = 1 + (end > next->
+ 				return error;
+ 		}
+ 	}
