@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + block-remove-blk_dev_dax-config-option.patch added to -mm tree
-Date: Fri, 29 Jul 2016 15:57:42 -0700
-Message-ID: <579bdf66.HdL8isPs82BZLpno%akpm@linux-foundation.org>
+Subject: + checkpatch-check-signoff-when-reading-stdin.patch added to -mm
+ tree
+Date: Fri, 29 Jul 2016 15:59:52 -0700
+Message-ID: <579bdfe8.epTn4Q+2ck1yrKgB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41153 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41156 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701AbcG2W5n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 18:57:43 -0400
+	with ESMTP id S1751701AbcG2W7x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 18:59:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, axboe@kernel.dk, dan.j.williams@intel.com, dave.hansen@linux.intel.com, mm-commits@vger.kernel.org
+To: allenbh@gmail.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: remove BLK_DEV_DAX config option
+     Subject: checkpatch: check signoff when reading stdin
 has been added to the -mm tree.  Its filename is
-     block-remove-blk_dev_dax-config-option.patch
+     checkpatch-check-signoff-when-reading-stdin.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/block-remove-blk_dev_dax-config-option.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-check-signoff-when-reading-stdin.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/block-remove-blk_dev_dax-config-option.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-check-signoff-when-reading-stdin.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,77 +39,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: block: remove BLK_DEV_DAX config option
+From: Allen Hubbe <allenbh@gmail.com>
+Subject: checkpatch: check signoff when reading stdin
 
-The functionality for block device DAX was already removed with this
-commit:
+Signoff was not checked if the filename is '-', indicating reading the
+patch from stdin.  Commands such as the below would not warn about a
+missing signoff, because the patch filename is '-'.  This change allows
+checkpatch to warn about a missing signoff, even if the input filename is
+'-', but only if the patch has a commit message.
 
-commit acc93d30d7d4 ("Revert "block: enable dax for raw block devices"")
+git show --pretty=email | scripts/checkpatch.pl -
 
-However, we still had a config option hanging around that was always
-disabled because it depended on CONFIG_BROKEN.  This config option was
-introduced in this commit:
+A more common use of checkpatch with stdin is for piping git diff through
+checkpatch.  The diff output would not contain a commit message, and
+therefore it would not contain a signoff line.  For this common use case,
+a warning should not be printed about the missing signoff.  With this
+change we will only warn about a missing signoff if the input contains a
+commit message.
 
-commit 03cdadb04077 ("block: disable block device DAX by default")
+git diff | scripts/checkpatch.pl -
 
-This change reverts that commit, removing the dead config option.
+Before this patch, a workaround for the first command was to refer to
+stdin by a name other than '-'.  The workaround is not an elegant
+solution, because elsewhere checkpatch uses the fact that filename equals
+'-', such as in setting '$vname' to 'Your patch' for stdin.  The command
+below would report "/dev/stdin has style problems" instead of "Your patch
+has style problems."
 
-Link: http://lkml.kernel.org/r/20160729182314.6368-1-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+git show --pretty=email | scripts/checkpatch.pl /dev/stdin
+
+Link: http://lkml.kernel.org/r/48be31e414bddc65bccfa6b1322359be9ba032eb.1469670589.git.allenbh@gmail.com
+Signed-off-by: Allen Hubbe <allenbh@gmail.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/Kconfig  |   13 -------------
- fs/block_dev.c |    6 +-----
- 2 files changed, 1 insertion(+), 18 deletions(-)
+ scripts/checkpatch.pl |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN block/Kconfig~block-remove-blk_dev_dax-config-option block/Kconfig
---- a/block/Kconfig~block-remove-blk_dev_dax-config-option
-+++ a/block/Kconfig
-@@ -88,19 +88,6 @@ config BLK_DEV_INTEGRITY
- 	T10/SCSI Data Integrity Field or the T13/ATA External Path
- 	Protection.  If in doubt, say N.
+diff -puN scripts/checkpatch.pl~checkpatch-check-signoff-when-reading-stdin scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-signoff-when-reading-stdin
++++ a/scripts/checkpatch.pl
+@@ -2069,6 +2069,7 @@ sub process {
+ 	my $is_patch = 0;
+ 	my $in_header_lines = $file ? 0 : 1;
+ 	my $in_commit_log = 0;		#Scanning lines before patch
++	my $has_commit_log = 0;		#Encountered lines before patch
+        my $commit_log_possible_stack_dump = 0;
+ 	my $commit_log_long_line = 0;
+ 	my $commit_log_has_diff = 0;
+@@ -2566,6 +2567,7 @@ sub process {
+ 		      $rawline =~ /^(commit\b|from\b|[\w-]+:).*$/i)) {
+ 			$in_header_lines = 0;
+ 			$in_commit_log = 1;
++			$has_commit_log = 1;
+ 		}
  
--config BLK_DEV_DAX
--	bool "Block device DAX support"
--	depends on FS_DAX
--	depends on BROKEN
--	help
--	  When DAX support is available (CONFIG_FS_DAX) raw block
--	  devices can also support direct userspace access to the
--	  storage capacity via MMAP(2) similar to a file on a
--	  DAX-enabled filesystem.  However, the DAX I/O-path disables
--	  some standard I/O-statistics, and the MMAP(2) path has some
--	  operational differences due to bypassing the page
--	  cache.  If in doubt, say N.
--
- config BLK_DEV_THROTTLING
- 	bool "Block layer bio throttling support"
- 	depends on BLK_CGROUP=y
-diff -puN fs/block_dev.c~block-remove-blk_dev_dax-config-option fs/block_dev.c
---- a/fs/block_dev.c~block-remove-blk_dev_dax-config-option
-+++ a/fs/block_dev.c
-@@ -1275,11 +1275,7 @@ static int __blkdev_get(struct block_dev
- 		bdev->bd_disk = disk;
- 		bdev->bd_queue = disk->queue;
- 		bdev->bd_contains = bdev;
--		if (IS_ENABLED(CONFIG_BLK_DEV_DAX) &&
--		    blk_queue_dax(disk->queue))
--			bdev->bd_inode->i_flags = S_DAX;
--		else
--			bdev->bd_inode->i_flags = 0;
-+		bdev->bd_inode->i_flags = 0;
- 
- 		if (!partno) {
- 			ret = -ENXIO;
+ # Check if there is UTF-8 in a commit log when a mail header has explicitly
+@@ -6055,7 +6057,7 @@ sub process {
+ 		ERROR("NOT_UNIFIED_DIFF",
+ 		      "Does not appear to be a unified-diff format patch\n");
+ 	}
+-	if ($is_patch && $filename ne '-' && $chk_signoff && $signoff == 0) {
++	if ($is_patch && $has_commit_log && $chk_signoff && $signoff == 0) {
+ 		ERROR("MISSING_SIGN_OFF",
+ 		      "Missing Signed-off-by: line(s)\n");
+ 	}
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from allenbh@gmail.com are
 
-radix-tree-fix-comment-about-exceptional-bits.patch
-block-remove-blk_dev_dax-config-option.patch
+checkpatch-check-signoff-when-reading-stdin.patch
 
