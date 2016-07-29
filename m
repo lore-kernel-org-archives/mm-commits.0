@@ -1,57 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kdb-use-task_cpu-instead-of-task_thread_info-cpu.patch
- removed from -mm tree
-Date: Fri, 29 Jul 2016 11:56:42 -0700
-Message-ID: <579ba6ea.ebfgnYxVdR6hEu+8%akpm@linux-foundation.org>
+Subject: [merged]
+ printk-when-dumping-regs-show-the-stack-not-thread_info.patch removed from
+ -mm tree
+Date: Fri, 29 Jul 2016 11:56:44 -0700
+Message-ID: <579ba6ec.TCIeIxMAi9HF++xn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37601 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37604 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750923AbcG2S4n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:56:43 -0400
+	with ESMTP id S1751463AbcG2S4p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:56:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: luto@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdb: use task_cpu() instead of task_thread_info()->cpu
+     Subject: printk: when dumping regs, show the stack, not thread_info
 has been removed from the -mm tree.  Its filename was
-     kdb-use-task_cpu-instead-of-task_thread_info-cpu.patch
+     printk-when-dumping-regs-show-the-stack-not-thread_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: kdb: use task_cpu() instead of task_thread_info()->cpu
+Subject: printk: when dumping regs, show the stack, not thread_info
 
-We'll need this cleanup to make the cpu field in thread_info be
-optional.
+We currently show:
 
-Link: http://lkml.kernel.org/r/da298328dc77ea494576c2f20a934218e758a6fa.1468523549.git.luto@kernel.org
+  task: <current> ti: <current_thread_info()> task.ti: <task_thread_info(current)>"
+
+"ti" and "task.ti" are redundant, and neither is actually what we
+want to show, which the the base of the thread stack.  Change the
+display to show the stack pointer explicitly.
+
+Link: http://lkml.kernel.org/r/543ac5bd66ff94000a57a02e11af7239571a3055.1468523549.git.luto@kernel.org
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kdb.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/printk/printk.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/kdb.h~kdb-use-task_cpu-instead-of-task_thread_info-cpu include/linux/kdb.h
---- a/include/linux/kdb.h~kdb-use-task_cpu-instead-of-task_thread_info-cpu
-+++ a/include/linux/kdb.h
-@@ -177,7 +177,7 @@ extern int kdb_get_kbd_char(void);
- static inline
- int kdb_process_cpu(const struct task_struct *p)
+diff -puN kernel/printk/printk.c~printk-when-dumping-regs-show-the-stack-not-thread_info kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-when-dumping-regs-show-the-stack-not-thread_info
++++ a/kernel/printk/printk.c
+@@ -3177,9 +3177,8 @@ void show_regs_print_info(const char *lo
  {
--	unsigned int cpu = task_thread_info(p)->cpu;
-+	unsigned int cpu = task_cpu(p);
- 	if (cpu > num_possible_cpus())
- 		cpu = 0;
- 	return cpu;
+ 	dump_stack_print_info(log_lvl);
+ 
+-	printk("%stask: %p ti: %p task.ti: %p\n",
+-	       log_lvl, current, current_thread_info(),
+-	       task_thread_info(current));
++	printk("%stask: %p task.stack: %p\n",
++	       log_lvl, current, task_stack_page(current));
+ }
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
