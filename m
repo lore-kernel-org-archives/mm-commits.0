@@ -1,61 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- memblock-include-asm-sectionsh-instead-of-asm-generic-sectionsh.patch
- removed from -mm tree
-Date: Fri, 29 Jul 2016 11:56:30 -0700
-Message-ID: <579ba6de.w6RurAK89JuXLkSJ%akpm@linux-foundation.org>
+Subject: [merged] mm-cleanup-ifdef-guards-for-vmem_altmap.patch removed
+ from -mm tree
+Date: Fri, 29 Jul 2016 11:56:34 -0700
+Message-ID: <579ba6e2.jNf2hW6tn7GrN3+7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37586 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752102AbcG2S4b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:56:31 -0400
+	with ESMTP id S1751701AbcG2S4f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:56:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, jmoyer@redhat.com, sandeen@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: include <asm/sections.h> instead of <asm-generic/sections.h>
+     Subject: mm: cleanup ifdef guards for vmem_altmap
 has been removed from the -mm tree.  Its filename was
-     memblock-include-asm-sectionsh-instead-of-asm-generic-sectionsh.patch
+     mm-cleanup-ifdef-guards-for-vmem_altmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: memblock: include <asm/sections.h> instead of <asm-generic/sections.h>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: cleanup ifdef guards for vmem_altmap
 
-asm-generic headers are generic implementations for architecture specific
-code and should not be included by common code.  Thus use the asm/ version
-of sections.h to get at the linker sections.
+Now that ZONE_DEVICE depends on SPARSEMEM_VMEMMAP we can simplify some
+ifdef guards to just ZONE_DEVICE.
 
-Link: http://lkml.kernel.org/r/1468285103-7470-1-git-send-email-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Link: http://lkml.kernel.org/r/146687646788.39261.8020536391978771940.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Eric Sandeen <sandeen@redhat.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memremap.h |    2 +-
+ kernel/memremap.c        |    8 --------
+ 2 files changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN mm/memblock.c~memblock-include-asm-sectionsh-instead-of-asm-generic-sectionsh mm/memblock.c
---- a/mm/memblock.c~memblock-include-asm-sectionsh-instead-of-asm-generic-sectionsh
-+++ a/mm/memblock.c
-@@ -20,7 +20,7 @@
- #include <linux/seq_file.h>
- #include <linux/memblock.h>
+diff -puN include/linux/memremap.h~mm-cleanup-ifdef-guards-for-vmem_altmap include/linux/memremap.h
+--- a/include/linux/memremap.h~mm-cleanup-ifdef-guards-for-vmem_altmap
++++ a/include/linux/memremap.h
+@@ -26,7 +26,7 @@ struct vmem_altmap {
+ unsigned long vmem_altmap_offset(struct vmem_altmap *altmap);
+ void vmem_altmap_free(struct vmem_altmap *altmap, unsigned long nr_pfns);
  
--#include <asm-generic/sections.h>
-+#include <asm/sections.h>
- #include <linux/io.h>
+-#if defined(CONFIG_SPARSEMEM_VMEMMAP) && defined(CONFIG_ZONE_DEVICE)
++#ifdef CONFIG_ZONE_DEVICE
+ struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start);
+ #else
+ static inline struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
+diff -puN kernel/memremap.c~mm-cleanup-ifdef-guards-for-vmem_altmap kernel/memremap.c
+--- a/kernel/memremap.c~mm-cleanup-ifdef-guards-for-vmem_altmap
++++ a/kernel/memremap.c
+@@ -308,12 +308,6 @@ void *devm_memremap_pages(struct device
+ 	if (is_ram == REGION_INTERSECTS)
+ 		return __va(res->start);
  
- #include "internal.h"
-_
-
-Patches currently in -mm which might be from hch@lst.de are
-
-printk-include-asm-sectionsh-instead-of-asm-generic-sectionsh.patch
-
+-	if (altmap && !IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)) {
+-		dev_err(dev, "%s: altmap requires CONFIG_SPARSEMEM_VMEMMAP=y\n",
+-				__func__);
+-		return ERR_PTR(-ENXIO);
+-	}
