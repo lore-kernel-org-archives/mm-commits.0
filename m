@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-move-swap-in-anonymous-page-into-active-list.patch added to
+Subject: +
+ fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph.patch added to
  -mm tree
-Date: Fri, 29 Jul 2016 16:11:09 -0700
-Message-ID: <579be28d.K8UjJLlxjPvu6Md6%akpm@linux-foundation.org>
+Date: Fri, 29 Jul 2016 16:12:53 -0700
+Message-ID: <579be2f5.NIiP1I7hemKoJUFM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41274 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41281 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753070AbcG2XLK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 19:11:10 -0400
+	with ESMTP id S1753297AbcG2XMy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 19:12:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, hannes@cmpxchg.org, mgorman@techsingularity.net, nadav.amit@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: Valdis.Kletnieks@vt.edu, valdis.kletnieks@vt.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move swap-in anonymous page into active list
+     Subject: tools/testing/radix-tree/linux/gfp.h: fix bitrotted value
 has been added to the -mm tree.  Its filename is
-     mm-move-swap-in-anonymous-page-into-active-list.patch
+     fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-swap-in-anonymous-page-into-active-list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-swap-in-anonymous-page-into-active-list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +40,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: move swap-in anonymous page into active list
+From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Subject: tools/testing/radix-tree/linux/gfp.h: fix bitrotted value
 
-Every swap-in anonymous page starts from inactive lru list's head.  It
-should be activated unconditionally when VM decide to reclaim because page
-table entry for the page always usually has marked accessed bit.  Thus,
-their window size for getting a new referece is 2 * NR_inactive +
-NR_active while others is NR_inactive + NR_active.
+Apparently, the tools/testing version dates to a few flags ago, and we've
+sprouted 4 new ones since.  Keep in sync with the value in the main
+tree...
 
-It's not fair that it has more chance to be referenced compared to other
-newly allocated page which starts from active lru list's head.
-
-Johannes:
-
-: The page can still have a valid copy on the swap device, so prefering to
-: reclaim that page over a fresh one could make sense.  But as you point
-: out, having it start inactive instead of active actually ends up giving it
-: *more* LRU time, and that seems to be without justification.
-
-Rik:
-
-: The reason newly read in swap cache pages start on the inactive list is
-: that we do some amount of read-around, and do not know which pages will
-: get used.
-:
-: However, immediately activating the ones that DO get used, like your patch
-: does, is the right thing to do.
-
-Link: http://lkml.kernel.org/r/1469762740-17860-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Nadav Amit <nadav.amit@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: http://lkml.kernel.org/r/23400.1469702675@turing-police.cc.vt.edu
+Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/radix-tree/linux/gfp.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-move-swap-in-anonymous-page-into-active-list mm/memory.c
---- a/mm/memory.c~mm-move-swap-in-anonymous-page-into-active-list
-+++ a/mm/memory.c
-@@ -2642,6 +2642,7 @@ int do_swap_page(struct fault_env *fe, p
- 	if (page == swapcache) {
- 		do_page_add_anon_rmap(page, vma, fe->address, exclusive);
- 		mem_cgroup_commit_charge(page, memcg, true, false);
-+		activate_page(page);
- 	} else { /* ksm created a completely new copy */
- 		page_add_new_anon_rmap(page, vma, fe->address, false);
- 		mem_cgroup_commit_charge(page, memcg, false, false);
+diff -puN tools/testing/radix-tree/linux/gfp.h~fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph tools/testing/radix-tree/linux/gfp.h
+--- a/tools/testing/radix-tree/linux/gfp.h~fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph
++++ a/tools/testing/radix-tree/linux/gfp.h
+@@ -1,7 +1,7 @@
+ #ifndef _GFP_H
+ #define _GFP_H
+ 
+-#define __GFP_BITS_SHIFT 22
++#define __GFP_BITS_SHIFT 26
+ #define __GFP_BITS_MASK ((gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+ #define __GFP_WAIT 1
+ #define __GFP_ACCOUNT 0
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from Valdis.Kletnieks@vt.edu are
 
-mm-move-swap-in-anonymous-page-into-active-list.patch
+fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph.patch
+init-kconfig-add-clarification-for-out-of-tree-modules.patch
 
