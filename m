@@ -1,45 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-oom-skip-vforked-tasks-from-being-selected.patch
- removed from -mm tree
-Date: Fri, 29 Jul 2016 11:53:49 -0700
-Message-ID: <579ba63d.zRYIlfsqo8Xk7VF9%akpm@linux-foundation.org>
+Subject: [merged] mm-oom-fortify-task_will_free_mem.patch removed from -mm tree
+Date: Fri, 29 Jul 2016 11:53:55 -0700
+Message-ID: <579ba643.L0TAUZ92834CXMZ3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36993 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37006 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751695AbcG2Sxu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:53:50 -0400
+	with ESMTP id S1750834AbcG2Sx4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:53:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: skip vforked tasks from being selected
+     Subject: mm, oom: fortify task_will_free_mem()
 has been removed from the -mm tree.  Its filename was
-     mm-oom-skip-vforked-tasks-from-being-selected.patch
+     mm-oom-fortify-task_will_free_mem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom: skip vforked tasks from being selected
+Subject: mm, oom: fortify task_will_free_mem()
 
-vforked tasks are not really sitting on any memory.  They are sharing the
-mm with parent until they exec into a new code.  Until then it is just
-pinning the address space.  OOM killer will kill the vforked task along
-with its parent but we still can end up selecting vforked task when the
-parent wouldn't be selected.  E.g.  init doing vfork to launch a task or
-vforked being a child of oom unkillable task with an updated oom_score_adj
-to be killable.
+task_will_free_mem is rather weak.  It doesn't really tell whether the
+task has chance to drop its mm.  98748bd72200 ("oom: consider
+multi-threaded tasks in task_will_free_mem") made a first step into making
+it more robust for multi-threaded applications so now we know that the
+whole process is going down and probably drop the mm.
 
-Add a new helper to check whether a task is in the vfork sharing memory
-with its parent and use it in oom_badness to skip over these tasks.
+This patch builds on top for more complex scenarios where mm is shared
+between different processes - CLONE_VM without CLONE_SIGHAND, or in kernel
+use_mm().
 
-Link: http://lkml.kernel.org/r/1466426628-15074-6-git-send-email-mhocko@kernel.org
+Make sure that all processes sharing the mm are killed or exiting.  This
+will allow us to replace try_oom_reaper by wake_oom_reaper because
+task_will_free_mem implies the task is reapable now.  Therefore all paths
+which bypass the oom killer are now reapable and so they shouldn't lock up
+the oom killer.
+
+Link: http://lkml.kernel.org/r/1466426628-15074-8-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
@@ -48,65 +52,253 @@ Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |   26 ++++++++++++++++++++++++++
- mm/oom_kill.c         |    6 ++++--
- 2 files changed, 30 insertions(+), 2 deletions(-)
+ include/linux/oom.h |   26 --------
+ mm/memcontrol.c     |    4 -
+ mm/oom_kill.c       |  133 +++++++++++++++++++++++++-----------------
+ 3 files changed, 85 insertions(+), 78 deletions(-)
 
-diff -puN include/linux/sched.h~mm-oom-skip-vforked-tasks-from-being-selected include/linux/sched.h
---- a/include/linux/sched.h~mm-oom-skip-vforked-tasks-from-being-selected
-+++ a/include/linux/sched.h
-@@ -1949,6 +1949,32 @@ static inline int tsk_nr_cpus_allowed(st
- #define TNF_FAULT_LOCAL	0x08
- #define TNF_MIGRATE_FAIL 0x10
+diff -puN include/linux/oom.h~mm-oom-fortify-task_will_free_mem include/linux/oom.h
+--- a/include/linux/oom.h~mm-oom-fortify-task_will_free_mem
++++ a/include/linux/oom.h
+@@ -73,9 +73,9 @@ static inline bool oom_task_origin(const
+ extern void mark_oom_victim(struct task_struct *tsk);
  
-+static inline bool in_vfork(struct task_struct *tsk)
+ #ifdef CONFIG_MMU
+-extern void try_oom_reaper(struct task_struct *tsk);
++extern void wake_oom_reaper(struct task_struct *tsk);
+ #else
+-static inline void try_oom_reaper(struct task_struct *tsk)
++static inline void wake_oom_reaper(struct task_struct *tsk)
+ {
+ }
+ #endif
+@@ -107,27 +107,7 @@ extern void oom_killer_enable(void);
+ 
+ extern struct task_struct *find_lock_task_mm(struct task_struct *p);
+ 
+-static inline bool task_will_free_mem(struct task_struct *task)
+-{
+-	struct signal_struct *sig = task->signal;
+-
+-	/*
+-	 * A coredumping process may sleep for an extended period in exit_mm(),
+-	 * so the oom killer cannot assume that the process will promptly exit
+-	 * and release memory.
+-	 */
+-	if (sig->flags & SIGNAL_GROUP_COREDUMP)
+-		return false;
+-
+-	if (!(task->flags & PF_EXITING))
+-		return false;
+-
+-	/* Make sure that the whole thread group is going down */
+-	if (!thread_group_empty(task) && !(sig->flags & SIGNAL_GROUP_EXIT))
+-		return false;
+-
+-	return true;
+-}
++bool task_will_free_mem(struct task_struct *task);
+ 
+ /* sysctls */
+ extern int sysctl_oom_dump_tasks;
+diff -puN mm/memcontrol.c~mm-oom-fortify-task_will_free_mem mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-oom-fortify-task_will_free_mem
++++ a/mm/memcontrol.c
+@@ -1276,9 +1276,9 @@ static bool mem_cgroup_out_of_memory(str
+ 	 * select it.  The goal is to allow it to allocate so that it may
+ 	 * quickly exit and free its memory.
+ 	 */
+-	if (fatal_signal_pending(current) || task_will_free_mem(current)) {
++	if (task_will_free_mem(current)) {
+ 		mark_oom_victim(current);
+-		try_oom_reaper(current);
++		wake_oom_reaper(current);
+ 		goto unlock;
+ 	}
+ 
+diff -puN mm/oom_kill.c~mm-oom-fortify-task_will_free_mem mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-fortify-task_will_free_mem
++++ a/mm/oom_kill.c
+@@ -596,7 +596,7 @@ static int oom_reaper(void *unused)
+ 	return 0;
+ }
+ 
+-static void wake_oom_reaper(struct task_struct *tsk)
++void wake_oom_reaper(struct task_struct *tsk)
+ {
+ 	if (!oom_reaper_th)
+ 		return;
+@@ -614,46 +614,6 @@ static void wake_oom_reaper(struct task_
+ 	wake_up(&oom_reaper_wait);
+ }
+ 
+-/* Check if we can reap the given task. This has to be called with stable
+- * tsk->mm
+- */
+-void try_oom_reaper(struct task_struct *tsk)
+-{
+-	struct mm_struct *mm = tsk->mm;
+-	struct task_struct *p;
+-
+-	if (!mm)
+-		return;
+-
+-	/*
+-	 * There might be other threads/processes which are either not
+-	 * dying or even not killable.
+-	 */
+-	if (atomic_read(&mm->mm_users) > 1) {
+-		rcu_read_lock();
+-		for_each_process(p) {
+-			if (!process_shares_mm(p, mm))
+-				continue;
+-			if (fatal_signal_pending(p))
+-				continue;
+-
+-			/*
+-			 * If the task is exiting make sure the whole thread group
+-			 * is exiting and cannot acces mm anymore.
+-			 */
+-			if (signal_group_exit(p->signal))
+-				continue;
+-
+-			/* Give up */
+-			rcu_read_unlock();
+-			return;
+-		}
+-		rcu_read_unlock();
+-	}
+-
+-	wake_oom_reaper(tsk);
+-}
+-
+ static int __init oom_init(void)
+ {
+ 	oom_reaper_th = kthread_run(oom_reaper, NULL, "oom_reaper");
+@@ -665,10 +625,6 @@ static int __init oom_init(void)
+ 	return 0;
+ }
+ subsys_initcall(oom_init)
+-#else
+-static void wake_oom_reaper(struct task_struct *tsk)
+-{
+-}
+ #endif
+ 
+ /**
+@@ -745,6 +701,81 @@ void oom_killer_enable(void)
+ 	oom_killer_disabled = false;
+ }
+ 
++static inline bool __task_will_free_mem(struct task_struct *task)
 +{
-+	bool ret;
++	struct signal_struct *sig = task->signal;
 +
 +	/*
-+	 * need RCU to access ->real_parent if CLONE_VM was used along with
-+	 * CLONE_PARENT.
-+	 *
-+	 * We check real_parent->mm == tsk->mm because CLONE_VFORK does not
-+	 * imply CLONE_VM
-+	 *
-+	 * CLONE_VFORK can be used with CLONE_PARENT/CLONE_THREAD and thus
-+	 * ->real_parent is not necessarily the task doing vfork(), so in
-+	 * theory we can't rely on task_lock() if we want to dereference it.
-+	 *
-+	 * And in this case we can't trust the real_parent->mm == tsk->mm
-+	 * check, it can be false negative. But we do not care, if init or
-+	 * another oom-unkillable task does this it should blame itself.
++	 * A coredumping process may sleep for an extended period in exit_mm(),
++	 * so the oom killer cannot assume that the process will promptly exit
++	 * and release memory.
++	 */
++	if (sig->flags & SIGNAL_GROUP_COREDUMP)
++		return false;
++
++	if (sig->flags & SIGNAL_GROUP_EXIT)
++		return true;
++
++	if (thread_group_empty(task) && (task->flags & PF_EXITING))
++		return true;
++
++	return false;
++}
++
++/*
++ * Checks whether the given task is dying or exiting and likely to
++ * release its address space. This means that all threads and processes
++ * sharing the same mm have to be killed or exiting.
++ */
++bool task_will_free_mem(struct task_struct *task)
++{
++	struct mm_struct *mm;
++	struct task_struct *p;
++	bool ret;
++
++	if (!__task_will_free_mem(task))
++		return false;
++
++	/*
++	 * If the process has passed exit_mm we have to skip it because
++	 * we have lost a link to other tasks sharing this mm, we do not
++	 * have anything to reap and the task might then get stuck waiting
++	 * for parent as zombie and we do not want it to hold TIF_MEMDIE
++	 */
++	p = find_lock_task_mm(task);
++	if (!p)
++		return false;
++
++	mm = p->mm;
++	if (atomic_read(&mm->mm_users) <= 1) {
++		task_unlock(p);
++		return true;
++	}
++
++	/* pin the mm to not get freed and reused */
++	atomic_inc(&mm->mm_count);
++	task_unlock(p);
++
++	/*
++	 * This is really pessimistic but we do not have any reliable way
++	 * to check that external processes share with our mm
 +	 */
 +	rcu_read_lock();
-+	ret = tsk->vfork_done && tsk->real_parent->mm == tsk->mm;
++	for_each_process(p) {
++		if (!process_shares_mm(p, mm))
++			continue;
++		if (same_thread_group(task, p))
++			continue;
++		ret = __task_will_free_mem(p);
++		if (!ret)
++			break;
++	}
 +	rcu_read_unlock();
++	mmdrop(mm);
 +
 +	return ret;
 +}
 +
- #ifdef CONFIG_NUMA_BALANCING
- extern void task_numa_fault(int last_node, int node, int pages, int flags);
- extern pid_t task_numa_group_id(struct task_struct *p);
-diff -puN mm/oom_kill.c~mm-oom-skip-vforked-tasks-from-being-selected mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-skip-vforked-tasks-from-being-selected
-+++ a/mm/oom_kill.c
-@@ -176,11 +176,13 @@ unsigned long oom_badness(struct task_st
- 
- 	/*
- 	 * Do not even consider tasks which are explicitly marked oom
--	 * unkillable or have been already oom reaped.
-+	 * unkillable or have been already oom reaped or the are in
-+	 * the middle of vfork
+ /*
+  * Must be called while holding a reference to p, which will be released upon
+  * returning.
+@@ -766,15 +797,12 @@ void oom_kill_process(struct oom_control
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+ 	 * its children or threads, just set TIF_MEMDIE so it can die quickly
  	 */
- 	adj = (long)p->signal->oom_score_adj;
- 	if (adj == OOM_SCORE_ADJ_MIN ||
--			test_bit(MMF_OOM_REAPED, &p->mm->flags)) {
-+			test_bit(MMF_OOM_REAPED, &p->mm->flags) ||
-+			in_vfork(p)) {
- 		task_unlock(p);
- 		return 0;
+-	task_lock(p);
+-	if (p->mm && task_will_free_mem(p)) {
++	if (task_will_free_mem(p)) {
+ 		mark_oom_victim(p);
+-		try_oom_reaper(p);
+-		task_unlock(p);
++		wake_oom_reaper(p);
+ 		put_task_struct(p);
+ 		return;
  	}
+-	task_unlock(p);
+ 
+ 	if (__ratelimit(&oom_rs))
+ 		dump_header(oc, p);
+@@ -944,10 +972,9 @@ bool out_of_memory(struct oom_control *o
+ 	 * But don't select if current has already released its mm and cleared
+ 	 * TIF_MEMDIE flag at exit_mm(), otherwise an OOM livelock may occur.
+ 	 */
+-	if (current->mm &&
+-	    (fatal_signal_pending(current) || task_will_free_mem(current))) {
++	if (current->mm && task_will_free_mem(current)) {
+ 		mark_oom_victim(current);
+-		try_oom_reaper(current);
++		wake_oom_reaper(current);
+ 		return true;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
