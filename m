@@ -1,115 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-remove-highmem_file_pages.patch removed from
- -mm tree
-Date: Fri, 29 Jul 2016 11:55:58 -0700
-Message-ID: <579ba6be.EYT+N6tKuOc11V7l%akpm@linux-foundation.org>
+Subject: [merged] mm-show-node_pages_scanned-per-node-not-zone.patch
+ removed from -mm tree
+Date: Fri, 29 Jul 2016 11:55:46 -0700
+Message-ID: <579ba6b2.a7fmOE+FiD9GgWSC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37526 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37503 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639AbcG2Sz7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:55:59 -0400
+	with ESMTP id S1753052AbcG2Szr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:55:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, mhocko@suse.cz, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: minchan@kernel.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: remove highmem_file_pages
+     Subject: mm: show node_pages_scanned per node, not zone
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-remove-highmem_file_pages.patch
+     mm-show-node_pages_scanned-per-node-not-zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: remove highmem_file_pages
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: show node_pages_scanned per node, not zone
 
-With the reintroduction of per-zone LRU stats, highmem_file_pages is
-redundant so remove it.
+The node_pages_scanned represents the number of scanned pages of node for
+reclaim so it's pointless to show it as kilobytes.
 
-[mgorman@techsingularity.net: wrong stat is being accumulated in highmem_dirtyable_memory]
-  Link: http://lkml.kernel.org/r/20160725092324.GM10438@techsingularity.netLink: http://lkml.kernel.org/r/1469110261-7365-3-git-send-email-mgorman@techsingularity.net
+As well, node_pages_scanned is per-node value, not per-zone.
+
+This patch changes node_pages_scanned per-zone-killobytes
+with per-node-count.
+
+[minchan@kernel.org: fix node_pages_scanned]
+  Link: http://lkml.kernel.org/r/20160716101431.GA10305@bbox
+Link: http://lkml.kernel.org/r/1468588165-12461-5-git-send-email-mgorman@techsingularity.net
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_inline.h |   17 -----------------
- mm/page-writeback.c       |   12 ++++--------
- 2 files changed, 4 insertions(+), 25 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm_inline.h~mm-vmscan-remove-highmem_file_pages include/linux/mm_inline.h
---- a/include/linux/mm_inline.h~mm-vmscan-remove-highmem_file_pages
-+++ a/include/linux/mm_inline.h
-@@ -4,22 +4,6 @@
- #include <linux/huge_mm.h>
- #include <linux/swap.h>
- 
--#ifdef CONFIG_HIGHMEM
--extern atomic_t highmem_file_pages;
--
--static inline void acct_highmem_file_pages(int zid, enum lru_list lru,
--							int nr_pages)
--{
--	if (is_highmem_idx(zid) && is_file_lru(lru))
--		atomic_add(nr_pages, &highmem_file_pages);
--}
--#else
--static inline void acct_highmem_file_pages(int zid, enum lru_list lru,
--							int nr_pages)
--{
--}
--#endif
--
- /**
-  * page_is_file_cache - should the page be on a file LRU or anon LRU?
-  * @page: the page to test
-@@ -47,7 +31,6 @@ static __always_inline void __update_lru
- 	__mod_node_page_state(pgdat, NR_LRU_BASE + lru, nr_pages);
- 	__mod_zone_page_state(&pgdat->node_zones[zid],
- 				NR_ZONE_LRU_BASE + lru, nr_pages);
--	acct_highmem_file_pages(zid, lru, nr_pages);
- }
- 
- static __always_inline void update_lru_size(struct lruvec *lruvec,
-diff -puN mm/page-writeback.c~mm-vmscan-remove-highmem_file_pages mm/page-writeback.c
---- a/mm/page-writeback.c~mm-vmscan-remove-highmem_file_pages
-+++ a/mm/page-writeback.c
-@@ -299,17 +299,13 @@ static unsigned long node_dirtyable_memo
- 
- 	return nr_pages;
- }
--#ifdef CONFIG_HIGHMEM
--atomic_t highmem_file_pages;
--#endif
- 
- static unsigned long highmem_dirtyable_memory(unsigned long total)
- {
- #ifdef CONFIG_HIGHMEM
- 	int node;
--	unsigned long x;
-+	unsigned long x = 0;
- 	int i;
--	unsigned long dirtyable = 0;
- 
- 	for_each_node_state(node, N_HIGH_MEMORY) {
- 		for (i = ZONE_NORMAL + 1; i < MAX_NR_ZONES; i++) {
-@@ -326,12 +322,12 @@ static unsigned long highmem_dirtyable_m
- 			nr_pages = zone_page_state(z, NR_FREE_PAGES);
- 			/* watch for underflows */
- 			nr_pages -= min(nr_pages, high_wmark_pages(z));
--			dirtyable += nr_pages;
-+			nr_pages += zone_page_state(z, NR_ZONE_INACTIVE_FILE);
-+			nr_pages += zone_page_state(z, NR_ZONE_ACTIVE_FILE);
-+			x += nr_pages;
- 		}
+diff -puN mm/page_alloc.c~mm-show-node_pages_scanned-per-node-not-zone mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-show-node_pages_scanned-per-node-not-zone
++++ a/mm/page_alloc.c
+@@ -4313,6 +4313,7 @@ void show_free_areas(unsigned int filter
+ #endif
+ 			" writeback_tmp:%lukB"
+ 			" unstable:%lukB"
++			" pages_scanned:%lu"
+ 			" all_unreclaimable? %s"
+ 			"\n",
+ 			pgdat->node_id,
+@@ -4335,6 +4336,7 @@ void show_free_areas(unsigned int filter
+ 			K(node_page_state(pgdat, NR_SHMEM)),
+ 			K(node_page_state(pgdat, NR_WRITEBACK_TEMP)),
+ 			K(node_page_state(pgdat, NR_UNSTABLE_NFS)),
++			node_page_state(pgdat, NR_PAGES_SCANNED),
+ 			!pgdat_reclaimable(pgdat) ? "yes" : "no");
  	}
  
--	x = dirtyable + atomic_read(&highmem_file_pages);
+@@ -4365,7 +4367,6 @@ void show_free_areas(unsigned int filter
+ 			" free_pcp:%lukB"
+ 			" local_pcp:%ukB"
+ 			" free_cma:%lukB"
+-			" node_pages_scanned:%lu"
+ 			"\n",
+ 			zone->name,
+ 			K(zone_page_state(zone, NR_FREE_PAGES)),
+@@ -4383,8 +4384,7 @@ void show_free_areas(unsigned int filter
+ 			K(zone_page_state(zone, NR_BOUNCE)),
+ 			K(free_pcp),
+ 			K(this_cpu_read(zone->pageset->pcp.count)),
+-			K(zone_page_state(zone, NR_FREE_CMA_PAGES)),
+-			K(node_page_state(zone->zone_pgdat, NR_PAGES_SCANNED)));
++			K(zone_page_state(zone, NR_FREE_CMA_PAGES)));
+ 		printk("lowmem_reserve[]:");
+ 		for (i = 0; i < MAX_NR_ZONES; i++)
+ 			printk(" %ld", zone->lowmem_reserve[i]);
+_
+
+Patches currently in -mm which might be from minchan@kernel.org are
+
+
