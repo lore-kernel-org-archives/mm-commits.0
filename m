@@ -1,59 +1,43 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj.patch removed from -mm tree
-Date: Fri, 29 Jul 2016 11:53:46 -0700
-Message-ID: <579ba63a.bRgaZB8NJFF5hBKZ%akpm@linux-foundation.org>
+ proc-oom_adj-extract-oom_score_adj-setting-into-a-helper.patch removed from -mm tree
+Date: Fri, 29 Jul 2016 11:53:43 -0700
+Message-ID: <579ba637.eYiESGcrP4AET78I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36987 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36981 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639AbcG2Sxr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:53:47 -0400
+	with ESMTP id S1751347AbcG2Sxo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:53:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom_adj: make sure processes sharing mm have same view of oom_score_adj
+     Subject: proc, oom_adj: extract oom_score_adj setting into a helper
 has been removed from the -mm tree.  Its filename was
-     mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj.patch
+     proc-oom_adj-extract-oom_score_adj-setting-into-a-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom_adj: make sure processes sharing mm have same view of oom_score_adj
+Subject: proc, oom_adj: extract oom_score_adj setting into a helper
 
-oom_score_adj is shared for the thread groups (via struct signal) but this
-is not sufficient to cover processes sharing mm (CLONE_VM without
-CLONE_SIGHAND) and so we can easily end up in a situation when some
-processes update their oom_score_adj and confuse the oom killer.  In the
-worst case some of those processes might hide from the oom killer
-altogether via OOM_SCORE_ADJ_MIN while others are eligible.  OOM killer
-would then pick up those eligible but won't be allowed to kill others
-sharing the same mm so the mm wouldn't release the mm and so the memory.
+Currently we have two proc interfaces to set oom_score_adj.  The legacy
+/proc/<pid>/oom_adj and /proc/<pid>/oom_score_adj which both have their
+specific handlers.  Big part of the logic is duplicated so extract the
+common code into __set_oom_adj helper.  Legacy knob still expects some
+details slightly different so make sure those are handled same way - e.g. 
+the legacy mode ignores oom_score_adj_min and it warns about the usage.
 
-It would be ideal to have the oom_score_adj per mm_struct because that is
-the natural entity OOM killer considers.  But this will not work because
-some programs are doing
+This patch shouldn't introduce any functional changes.
 
-	vfork()
-	set_oom_adj()
-	exec()
-
-We can achieve the same though.  oom_score_adj write handler can set the
-oom_score_adj for all processes sharing the same mm if the task is not in
-the middle of vfork.  As a result all the processes will share the same
-oom_score_adj.  The current implementation is rather pessimistic and
-checks all the existing processes by default if there is more than 1
-holder of the mm but we do not have any reliable way to check for external
-users yet.
-
-Link: http://lkml.kernel.org/r/1466426628-15074-5-git-send-email-mhocko@kernel.org
+Link: http://lkml.kernel.org/r/1466426628-15074-4-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
@@ -62,104 +46,137 @@ Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c     |   46 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/mm.h |    2 +
- mm/oom_kill.c      |    2 -
- 3 files changed, 49 insertions(+), 1 deletion(-)
+ fs/proc/base.c |   94 +++++++++++++++++++++--------------------------
+ 1 file changed, 43 insertions(+), 51 deletions(-)
 
-diff -puN fs/proc/base.c~mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj fs/proc/base.c
---- a/fs/proc/base.c~mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj
+diff -puN fs/proc/base.c~proc-oom_adj-extract-oom_score_adj-setting-into-a-helper fs/proc/base.c
+--- a/fs/proc/base.c~proc-oom_adj-extract-oom_score_adj-setting-into-a-helper
 +++ a/fs/proc/base.c
-@@ -1040,6 +1040,7 @@ static ssize_t oom_adj_read(struct file
- static int __set_oom_adj(struct file *file, int oom_adj, bool legacy)
- {
- 	static DEFINE_MUTEX(oom_adj_mutex);
-+	struct mm_struct *mm = NULL;
- 	struct task_struct *task;
- 	int err = 0;
+@@ -1037,7 +1037,47 @@ static ssize_t oom_adj_read(struct file
+ 	return simple_read_from_buffer(buf, count, ppos, buffer, len);
+ }
  
-@@ -1069,10 +1070,55 @@ static int __set_oom_adj(struct file *fi
- 		}
+-static DEFINE_MUTEX(oom_adj_mutex);
++static int __set_oom_adj(struct file *file, int oom_adj, bool legacy)
++{
++	static DEFINE_MUTEX(oom_adj_mutex);
++	struct task_struct *task;
++	int err = 0;
++
++	task = get_proc_task(file_inode(file));
++	if (!task)
++		return -ESRCH;
++
++	mutex_lock(&oom_adj_mutex);
++	if (legacy) {
++		if (oom_adj < task->signal->oom_score_adj &&
++				!capable(CAP_SYS_RESOURCE)) {
++			err = -EACCES;
++			goto err_unlock;
++		}
++		/*
++		 * /proc/pid/oom_adj is provided for legacy purposes, ask users to use
++		 * /proc/pid/oom_score_adj instead.
++		 */
++		pr_warn_once("%s (%d): /proc/%d/oom_adj is deprecated, please use /proc/%d/oom_score_adj instead.\n",
++			  current->comm, task_pid_nr(current), task_pid_nr(task),
++			  task_pid_nr(task));
++	} else {
++		if ((short)oom_adj < task->signal->oom_score_adj_min &&
++				!capable(CAP_SYS_RESOURCE)) {
++			err = -EACCES;
++			goto err_unlock;
++		}
++	}
++
++	task->signal->oom_score_adj = oom_adj;
++	if (!legacy && has_capability_noaudit(current, CAP_SYS_RESOURCE))
++		task->signal->oom_score_adj_min = (short)oom_adj;
++	trace_oom_score_adj_update(task);
++err_unlock:
++	mutex_unlock(&oom_adj_mutex);
++	put_task_struct(task);
++	return err;
++}
+ 
+ /*
+  * /proc/pid/oom_adj exists solely for backwards compatibility with previous
+@@ -1052,7 +1092,6 @@ static DEFINE_MUTEX(oom_adj_mutex);
+ static ssize_t oom_adj_write(struct file *file, const char __user *buf,
+ 			     size_t count, loff_t *ppos)
+ {
+-	struct task_struct *task;
+ 	char buffer[PROC_NUMBUF];
+ 	int oom_adj;
+ 	int err;
+@@ -1074,12 +1113,6 @@ static ssize_t oom_adj_write(struct file
+ 		goto out;
  	}
  
-+	/*
-+	 * Make sure we will check other processes sharing the mm if this is
-+	 * not vfrok which wants its own oom_score_adj.
-+	 * pin the mm so it doesn't go away and get reused after task_unlock
-+	 */
-+	if (!task->vfork_done) {
-+		struct task_struct *p = find_lock_task_mm(task);
-+
-+		if (p) {
-+			if (atomic_read(&p->mm->mm_users) > 1) {
-+				mm = p->mm;
-+				atomic_inc(&mm->mm_count);
-+			}
-+			task_unlock(p);
-+		}
-+	}
-+
- 	task->signal->oom_score_adj = oom_adj;
- 	if (!legacy && has_capability_noaudit(current, CAP_SYS_RESOURCE))
- 		task->signal->oom_score_adj_min = (short)oom_adj;
- 	trace_oom_score_adj_update(task);
-+
-+	if (mm) {
-+		struct task_struct *p;
-+
-+		rcu_read_lock();
-+		for_each_process(p) {
-+			if (same_thread_group(task, p))
-+				continue;
-+
-+			/* do not touch kernel threads or the global init */
-+			if (p->flags & PF_KTHREAD || is_global_init(p))
-+				continue;
-+
-+			task_lock(p);
-+			if (!p->vfork_done && process_shares_mm(p, mm)) {
-+				pr_info("updating oom_score_adj for %d (%s) from %d to %d because it shares mm with %d (%s). Report if this is unexpected.\n",
-+						task_pid_nr(p), p->comm,
-+						p->signal->oom_score_adj, oom_adj,
-+						task_pid_nr(task), task->comm);
-+				p->signal->oom_score_adj = oom_adj;
-+				if (!legacy && has_capability_noaudit(current, CAP_SYS_RESOURCE))
-+					p->signal->oom_score_adj_min = (short)oom_adj;
-+			}
-+			task_unlock(p);
-+		}
-+		rcu_read_unlock();
-+		mmdrop(mm);
-+	}
- err_unlock:
- 	mutex_unlock(&oom_adj_mutex);
- 	put_task_struct(task);
-diff -puN include/linux/mm.h~mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj include/linux/mm.h
---- a/include/linux/mm.h~mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj
-+++ a/include/linux/mm.h
-@@ -2284,6 +2284,8 @@ static inline int in_gate_area(struct mm
+-	task = get_proc_task(file_inode(file));
+-	if (!task) {
+-		err = -ESRCH;
+-		goto out;
+-	}
+-
+ 	/*
+ 	 * Scale /proc/pid/oom_score_adj appropriately ensuring that a maximum
+ 	 * value is always attainable.
+@@ -1089,26 +1122,7 @@ static ssize_t oom_adj_write(struct file
+ 	else
+ 		oom_adj = (oom_adj * OOM_SCORE_ADJ_MAX) / -OOM_DISABLE;
+ 
+-	mutex_lock(&oom_adj_mutex);
+-	if (oom_adj < task->signal->oom_score_adj &&
+-	    !capable(CAP_SYS_RESOURCE)) {
+-		err = -EACCES;
+-		goto err_unlock;
+-	}
+-
+-	/*
+-	 * /proc/pid/oom_adj is provided for legacy purposes, ask users to use
+-	 * /proc/pid/oom_score_adj instead.
+-	 */
+-	pr_warn_once("%s (%d): /proc/%d/oom_adj is deprecated, please use /proc/%d/oom_score_adj instead.\n",
+-		  current->comm, task_pid_nr(current), task_pid_nr(task),
+-		  task_pid_nr(task));
+-
+-	task->signal->oom_score_adj = oom_adj;
+-	trace_oom_score_adj_update(task);
+-err_unlock:
+-	mutex_unlock(&oom_adj_mutex);
+-	put_task_struct(task);
++	err = __set_oom_adj(file, oom_adj, true);
+ out:
+ 	return err < 0 ? err : count;
  }
- #endif	/* __HAVE_ARCH_GATE_AREA */
- 
-+extern bool process_shares_mm(struct task_struct *p, struct mm_struct *mm);
-+
- #ifdef CONFIG_SYSCTL
- extern int sysctl_drop_caches;
- int drop_caches_sysctl_handler(struct ctl_table *, int,
-diff -puN mm/oom_kill.c~mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_adj-make-sure-processes-sharing-mm-have-same-view-of-oom_score_adj
-+++ a/mm/oom_kill.c
-@@ -415,7 +415,7 @@ bool oom_killer_disabled __read_mostly;
-  * task's threads: if one of those is using this mm then this task was also
-  * using it.
-  */
--static bool process_shares_mm(struct task_struct *p, struct mm_struct *mm)
-+bool process_shares_mm(struct task_struct *p, struct mm_struct *mm)
+@@ -1138,7 +1152,6 @@ static ssize_t oom_score_adj_read(struct
+ static ssize_t oom_score_adj_write(struct file *file, const char __user *buf,
+ 					size_t count, loff_t *ppos)
  {
- 	struct task_struct *t;
+-	struct task_struct *task;
+ 	char buffer[PROC_NUMBUF];
+ 	int oom_score_adj;
+ 	int err;
+@@ -1160,28 +1173,7 @@ static ssize_t oom_score_adj_write(struc
+ 		goto out;
+ 	}
  
-_
-
-Patches currently in -mm which might be from mhocko@suse.com are
-
-
+-	task = get_proc_task(file_inode(file));
+-	if (!task) {
+-		err = -ESRCH;
+-		goto out;
+-	}
+-
+-	mutex_lock(&oom_adj_mutex);
+-	if ((short)oom_score_adj < task->signal->oom_score_adj_min &&
+-			!capable(CAP_SYS_RESOURCE)) {
+-		err = -EACCES;
+-		goto err_unlock;
+-	}
+-
+-	task->signal->oom_score_adj = (short)oom_score_adj;
+-	if (has_capability_noaudit(current, CAP_SYS_RESOURCE))
+-		task->signal->oom_score_adj_min = (short)oom_score_adj;
+-
+-	trace_oom_score_adj_update(task);
