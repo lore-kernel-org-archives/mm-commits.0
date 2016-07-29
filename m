@@ -1,113 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-bail-out-in-shrin_inactive_list.patch removed from
+Subject: [merged]
+ mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch removed from
  -mm tree
-Date: Fri, 29 Jul 2016 11:56:10 -0700
-Message-ID: <579ba6ca.1QqUKi3AFsMVuhx9%akpm@linux-foundation.org>
+Date: Fri, 29 Jul 2016 11:56:07 -0700
+Message-ID: <579ba6c7.B5Hunwso5C+C9Cin%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37548 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37542 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751463AbcG2S4L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:56:11 -0400
+	with ESMTP id S1750834AbcG2S4I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:56:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, hannes@cmpxchg.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, hannes@cmpxchg.org, mhocko@suse.cz, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: bail out in shrink_inactive_list()
+     Subject: mm, vmscan: account for skipped pages as a partial scan
 has been removed from the -mm tree.  Its filename was
-     mm-bail-out-in-shrin_inactive_list.patch
+     mm-vmscan-account-for-skipped-pages-as-a-partial-scan.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: bail out in shrink_inactive_list()
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm, vmscan: account for skipped pages as a partial scan
 
-With node-lru, if there are enough reclaimable pages in highmem
-but nothing in lowmem, VM can try to shrink inactive list although
-the requested zone is lowmem.
+Page reclaim determines whether a pgdat is unreclaimable by examining how
+many pages have been scanned since a page was freed and comparing that to
+the LRU sizes.  Skipped pages are not reclaim candidates but contribute to
+scanned.  This can prematurely mark a pgdat as unreclaimable and trigger
+an OOM kill.
 
-The problem is that if the inactive list is full of highmem pages then a
-direct reclaimer searching for a lowmem page waste CPU scanning uselessly.
-It just burns out CPU.  Even, many direct reclaimers are stalled by
-too_many_isolated if lots of parallel reclaimer are going on although
-there are no reclaimable memory in inactive list.
+This patch accounts for skipped pages as a partial scan so that an
+unreclaimable pgdat will still be marked as such but by scaling the cost
+of a skip, it'll avoid the pgdat being marked prematurely.
 
-I tried the experiment 4 times in 32bit 2G 8 CPU KVM machine to get
-elapsed time.
-
-	hackbench 500 process 2
-
-= Old =
-
-1st: 289s 2nd: 310s 3rd: 112s 4th: 272s
-
-= Now =
-
-1st: 31s  2nd: 132s 3rd: 162s 4th: 50s.
-
-[akpm@linux-foundation.org: fixes per Mel]
-Link: http://lkml.kernel.org/r/1469433119-1543-1-git-send-email-minchan@kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/1469110261-7365-6-git-send-email-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ mm/vmscan.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-bail-out-in-shrin_inactive_list mm/vmscan.c
---- a/mm/vmscan.c~mm-bail-out-in-shrin_inactive_list
+diff -puN mm/vmscan.c~mm-vmscan-account-for-skipped-pages-as-a-partial-scan mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-account-for-skipped-pages-as-a-partial-scan
 +++ a/mm/vmscan.c
-@@ -1652,6 +1652,30 @@ static int current_may_throttle(void)
- 		bdi_write_congested(current->backing_dev_info);
- }
+@@ -1424,7 +1424,7 @@ static unsigned long isolate_lru_pages(u
+ 	LIST_HEAD(pages_skipped);
  
-+static bool inactive_reclaimable_pages(struct lruvec *lruvec,
-+				struct scan_control *sc, enum lru_list lru)
-+{
-+	int zid;
-+	struct zone *zone;
-+	int file = is_file_lru(lru);
-+	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
-+
-+	if (!global_reclaim(sc))
-+		return true;
-+
-+	for (zid = sc->reclaim_idx; zid >= 0; zid--) {
-+		zone = &pgdat->node_zones[zid];
-+		if (!populated_zone(zone))
-+			continue;
-+
-+		if (zone_page_state_snapshot(zone, NR_ZONE_LRU_BASE +
-+				LRU_FILE * file) >= SWAP_CLUSTER_MAX)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
- /*
-  * shrink_inactive_list() is a helper for shrink_node().  It returns the number
-  * of reclaimed pages
-@@ -1674,6 +1698,9 @@ shrink_inactive_list(unsigned long nr_to
- 	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+ 	for (scan = 0; scan < nr_to_scan && nr_taken < nr_to_scan &&
+-					!list_empty(src); scan++) {
++					!list_empty(src);) {
+ 		struct page *page;
  
-+	if (!inactive_reclaimable_pages(lruvec, sc, lru))
-+		return 0;
-+
- 	while (unlikely(too_many_isolated(pgdat, file, sc))) {
- 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 		page = lru_to_page(src);
+@@ -1438,6 +1438,12 @@ static unsigned long isolate_lru_pages(u
+ 			continue;
+ 		}
  
++		/*
++		 * Account for scanned and skipped separetly to avoid the pgdat
++		 * being prematurely marked unreclaimable by pgdat_reclaimable.
++		 */
++		scan++;
++
+ 		switch (__isolate_lru_page(page, mode)) {
+ 		case 0:
+ 			nr_pages = hpage_nr_pages(page);
+@@ -1465,14 +1471,24 @@ static unsigned long isolate_lru_pages(u
+ 	 */
+ 	if (!list_empty(&pages_skipped)) {
+ 		int zid;
++		unsigned long total_skipped = 0;
+ 
+-		list_splice(&pages_skipped, src);
+ 		for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+ 			if (!nr_skipped[zid])
+ 				continue;
+ 
+ 			__count_zid_vm_events(PGSCAN_SKIP, zid, nr_skipped[zid]);
++			total_skipped += nr_skipped[zid];
+ 		}
++
++		/*
++		 * Account skipped pages as a partial scan as the pgdat may be
++		 * close to unreclaimable. If the LRU list is empty, account
++		 * skipped pages as a full scan.
++		 */
++		scan += list_empty(src) ? total_skipped : total_skipped >> 2;
++
++		list_splice(&pages_skipped, src);
+ 	}
+ 	*nr_scanned = scan;
+ 	trace_mm_vmscan_lru_isolate(sc->reclaim_idx, sc->order, nr_to_scan, scan,
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
 
