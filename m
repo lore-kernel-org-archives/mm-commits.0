@@ -1,37 +1,41 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch removed from -mm tree
-Date: Fri, 29 Jul 2016 11:55:14 -0700
-Message-ID: <579ba692.VCj96mq13JN9mqHU%akpm@linux-foundation.org>
+ mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch removed from -mm tree
+Date: Fri, 29 Jul 2016 11:55:17 -0700
+Message-ID: <579ba695.MKC7AhIs5Il/ilJQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37349 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37356 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751695AbcG2SzP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:55:15 -0400
+	with ESMTP id S1751695AbcG2SzS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:55:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, riel@surriel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: avoid passing in classzone_idx unnecessarily to shrink_node
+     Subject: mm, vmscan: avoid passing in classzone_idx unnecessarily to compaction_ready
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node.patch
+     mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: avoid passing in classzone_idx unnecessarily to shrink_node
+Subject: mm, vmscan: avoid passing in classzone_idx unnecessarily to compaction_ready
 
-shrink_node receives all information it needs about classzone_idx
-from sc->reclaim_idx so remove the aliases.
+The scan_control structure has enough information available for
+compaction_ready() to make a decision. The classzone_idx manipulations in
+shrink_zones() are no longer necessary as the highest populated zone is
+no longer used to determine if shrink_slab should be called or not.
 
-Link: http://lkml.kernel.org/r/1467970510-21195-25-git-send-email-mgorman@techsingularity.net
+[mgorman@techsingularity.net remove redundant check in shrink_zones()]
+  Link: http://lkml.kernel.org/r/1468588165-12461-3-git-send-email-mgorman@techsingularity.net
+Link: http://lkml.kernel.org/r/1467970510-21195-26-git-send-email-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -43,101 +47,74 @@ Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ mm/vmscan.c |   27 +++++++--------------------
+ 1 file changed, 7 insertions(+), 20 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-shrink_node
+diff -puN mm/vmscan.c~mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-avoid-passing-in-classzone_idx-unnecessarily-to-compaction_ready
 +++ a/mm/vmscan.c
-@@ -2428,8 +2428,7 @@ static inline bool should_continue_recla
- 	return true;
- }
- 
--static bool shrink_node(pg_data_t *pgdat, struct scan_control *sc,
--			enum zone_type classzone_idx)
-+static bool shrink_node(pg_data_t *pgdat, struct scan_control *sc)
+@@ -2523,7 +2523,7 @@ static bool shrink_node(pg_data_t *pgdat
+  * Returns true if compaction should go ahead for a high-order request, or
+  * the high-order allocation would succeed without compaction.
+  */
+-static inline bool compaction_ready(struct zone *zone, int order, int classzone_idx)
++static inline bool compaction_ready(struct zone *zone, struct scan_control *sc)
  {
- 	struct reclaim_state *reclaim_state = current->reclaim_state;
- 	unsigned long nr_reclaimed, nr_scanned;
-@@ -2658,7 +2657,7 @@ static void shrink_zones(struct zonelist
- 		if (zone->zone_pgdat == last_pgdat)
- 			continue;
- 		last_pgdat = zone->zone_pgdat;
--		shrink_node(zone->zone_pgdat, sc, classzone_idx);
-+		shrink_node(zone->zone_pgdat, sc);
+ 	unsigned long watermark;
+ 	bool watermark_ok;
+@@ -2534,21 +2534,21 @@ static inline bool compaction_ready(stru
+ 	 * there is a buffer of free pages available to give compaction
+ 	 * a reasonable chance of completing and allocating the page
+ 	 */
+-	watermark = high_wmark_pages(zone) + (2UL << order);
+-	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, classzone_idx);
++	watermark = high_wmark_pages(zone) + (2UL << sc->order);
++	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, sc->reclaim_idx);
+ 
+ 	/*
+ 	 * If compaction is deferred, reclaim up to a point where
+ 	 * compaction will have a chance of success when re-enabled
+ 	 */
+-	if (compaction_deferred(zone, order))
++	if (compaction_deferred(zone, sc->order))
+ 		return watermark_ok;
+ 
+ 	/*
+ 	 * If compaction is not ready to start and allocation is not likely
+ 	 * to succeed without it, then keep reclaiming.
+ 	 */
+-	if (compaction_suitable(zone, order, 0, classzone_idx) == COMPACT_SKIPPED)
++	if (compaction_suitable(zone, sc->order, 0, sc->reclaim_idx) == COMPACT_SKIPPED)
+ 		return false;
+ 
+ 	return watermark_ok;
+@@ -2569,7 +2569,6 @@ static void shrink_zones(struct zonelist
+ 	unsigned long nr_soft_reclaimed;
+ 	unsigned long nr_soft_scanned;
+ 	gfp_t orig_mask;
+-	enum zone_type classzone_idx;
+ 	pg_data_t *last_pgdat = NULL;
+ 
+ 	/*
+@@ -2580,7 +2579,7 @@ static void shrink_zones(struct zonelist
+ 	orig_mask = sc->gfp_mask;
+ 	if (buffer_heads_over_limit) {
+ 		sc->gfp_mask |= __GFP_HIGHMEM;
+-		sc->reclaim_idx = classzone_idx = gfp_zone(sc->gfp_mask);
++		sc->reclaim_idx = gfp_zone(sc->gfp_mask);
  	}
  
- 	/*
-@@ -3082,7 +3081,6 @@ static bool prepare_kswapd_sleep(pg_data
-  * This is used to determine if the scanning priority needs to be raised.
-  */
- static bool kswapd_shrink_node(pg_data_t *pgdat,
--			       int classzone_idx,
- 			       struct scan_control *sc)
- {
- 	struct zone *zone;
-@@ -3090,7 +3088,7 @@ static bool kswapd_shrink_node(pg_data_t
- 
- 	/* Reclaim a number of pages proportional to the number of zones */
- 	sc->nr_to_reclaim = 0;
--	for (z = 0; z <= classzone_idx; z++) {
-+	for (z = 0; z <= sc->reclaim_idx; z++) {
- 		zone = pgdat->node_zones + z;
- 		if (!populated_zone(zone))
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
+@@ -2589,17 +2588,6 @@ static void shrink_zones(struct zonelist
  			continue;
-@@ -3102,7 +3100,7 @@ static bool kswapd_shrink_node(pg_data_t
- 	 * Historically care was taken to put equal pressure on all zones but
- 	 * now pressure is applied based on node LRU order.
- 	 */
--	shrink_node(pgdat, sc, classzone_idx);
-+	shrink_node(pgdat, sc);
- 
- 	/*
- 	 * Fragmentation may mean that the system cannot be rebalanced for
-@@ -3164,7 +3162,7 @@ static int balance_pgdat(pg_data_t *pgda
- 				if (!populated_zone(zone))
- 					continue;
- 
--				classzone_idx = i;
-+				sc.reclaim_idx = i;
- 				break;
- 			}
- 		}
-@@ -3177,12 +3175,12 @@ static int balance_pgdat(pg_data_t *pgda
- 		 * zone was balanced even under extreme pressure when the
- 		 * overall node may be congested.
- 		 */
--		for (i = classzone_idx; i >= 0; i--) {
-+		for (i = sc.reclaim_idx; i >= 0; i--) {
- 			zone = pgdat->node_zones + i;
- 			if (!populated_zone(zone))
- 				continue;
- 
--			if (zone_balanced(zone, sc.order, classzone_idx))
-+			if (zone_balanced(zone, sc.order, sc.reclaim_idx))
- 				goto out;
- 		}
- 
-@@ -3213,7 +3211,7 @@ static int balance_pgdat(pg_data_t *pgda
- 		 * enough pages are already being scanned that that high
- 		 * watermark would be met at 100% efficiency.
- 		 */
--		if (kswapd_shrink_node(pgdat, classzone_idx, &sc))
-+		if (kswapd_shrink_node(pgdat, &sc))
- 			raise_priority = false;
  
  		/*
-@@ -3676,7 +3674,7 @@ static int __node_reclaim(struct pglist_
- 		 * priorities until we have enough memory freed.
- 		 */
- 		do {
--			shrink_node(pgdat, &sc, classzone_idx);
-+			shrink_node(pgdat, &sc);
- 		} while (sc.nr_reclaimed < nr_pages && --sc.priority >= 0);
- 	}
- 
-_
-
-Patches currently in -mm which might be from mgorman@techsingularity.net are
-
-
+-		 * Note that reclaim_idx does not change as it is the highest
+-		 * zone reclaimed from which for empty zones is a no-op but
+-		 * classzone_idx is used by shrink_node to test if the slabs
+-		 * should be shrunk on a given node.
+-		 */
+-		classzone_idx = sc->reclaim_idx;
+-		while (!populated_zone(zone->zone_pgdat->node_zones +
+-							classzone_idx))
+-			classzone_idx--;
