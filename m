@@ -1,97 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] mm-hugetlb-fix-race-when-migrate-pages.patch removed
- from -mm tree
-Date: Fri, 29 Jul 2016 11:14:08 -0700
-Message-ID: <579b9cf0.l5dmMMcHZX1fM802%akpm@linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Fri, 29 Jul 2016 11:50:00 -0700
+Message-ID: <579ba558.IAmhOW1KvjSks0k3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36578 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36961 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751695AbcG2SOK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:14:10 -0400
+	with ESMTP id S1751463AbcG2SuB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jul 2016 14:50:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhongjiang@huawei.com, hillf.zj@alibaba-inc.com, mhocko@suse.cz, qiuxishi@huawei.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb.c: fix race when migrating pages
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-race-when-migrate-pages.patch
+     Subject: linux-next-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-rejects.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: zhong jiang <zhongjiang@huawei.com>
-Subject: mm/hugetlb.c: fix race when migrating pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-I hit the following code in huge_pte_alloc when run the database and
-online-offline memory in the system.
-
-BUG_ON(pte && !pte_none(*pte) && !pte_huge(*pte));
-
-when pmd share function enable, we may be obtain a shared pmd entry.  due
-to ongoing offline memory , the pmd entry points to the page will turn
-into migrate condition.  therefore, the bug will come up.
-
-The patch fixes it by checking the pmd entry when we obtain the lock.  if
-the shared pmd entry points to page is under migration.  we should
-allocate a new pmd entry.
-
-Link: http://lkml.kernel.org/r/1468935958-21810-1-git-send-email-zhongjiang@huawei.com
-Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/thread_info.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-race-when-migrate-pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-race-when-migrate-pages
-+++ a/mm/hugetlb.c
-@@ -4204,7 +4204,7 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	struct vm_area_struct *svma;
- 	unsigned long saddr;
- 	pte_t *spte = NULL;
--	pte_t *pte;
-+	pte_t *pte, entry;
- 	spinlock_t *ptl;
+diff -puN arch/x86/include/asm/thread_info.h~linux-next-rejects arch/x86/include/asm/thread_info.h
+--- a/arch/x86/include/asm/thread_info.h~linux-next-rejects
++++ a/arch/x86/include/asm/thread_info.h
+@@ -263,6 +263,9 @@ static inline int arch_within_stack_fram
+  * have to worry about atomic accesses.
+  */
+ #define TS_COMPAT		0x0002	/* 32bit syscall active (64BIT)*/
++#ifdef CONFIG_COMPAT
++#define TS_I386_REGS_POKED	0x0004	/* regs poked by 32-bit ptracer */
++#endif
  
- 	if (!vma_shareable(vma, addr))
-@@ -4230,6 +4230,11 @@ pte_t *huge_pmd_share(struct mm_struct *
+ #ifndef __ASSEMBLY__
  
- 	ptl = huge_pte_lockptr(hstate_vma(vma), mm, spte);
- 	spin_lock(ptl);
-+	entry = huge_ptep_get(spte);
-+	if (is_hugetlb_entry_migration(entry) ||
-+			is_hugetlb_entry_hwpoisoned(entry)) {
-+		goto out_unlock;
-+	}
- 	if (pud_none(*pud)) {
- 		pud_populate(mm, pud,
- 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
-@@ -4237,6 +4242,8 @@ pte_t *huge_pmd_share(struct mm_struct *
- 	} else {
- 		put_page(virt_to_page(spte));
- 	}
-+
-+out_unlock:
- 	spin_unlock(ptl);
- out:
- 	pte = (pte_t *)pmd_alloc(mm, pud, addr);
 _
 
-Patches currently in -mm which might be from zhongjiang@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-update-the-comment-in-__isolate_free_page.patch
-mm-page_owner-align-with-pageblock_nr-pages.patch
-mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
-kexec-add-restriction-on-kexec_load-segment-sizes.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
+printk-create-pr_level-functions-fix.patch
+kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+allow-kdump-with-crash_kexec_post_notifiers-fix.patch
+kexec-add-restriction-on-kexec_load-segment-sizes-fix.patch
+powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3-fix.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+bitmap-bitmap_equal-memcmp-optimization-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-rejects.patch
 
