@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1.patch added to
- -mm tree
-Date: Mon, 01 Aug 2016 15:55:23 -0700
-Message-ID: <579fd35b.q5Gw+SSWPkRZC9t3%akpm@linux-foundation.org>
+Subject: + ubsan-fix-typo-in-format-string.patch added to -mm tree
+Date: Mon, 01 Aug 2016 15:59:33 -0700
+Message-ID: <579fd455.2MVO9QQiu48Q3Lj0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45420 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46382 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751460AbcHAWzY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2016 18:55:24 -0400
+	with ESMTP id S1752277AbcHAXRn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2016 19:17:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Valdis.Kletnieks@vt.edu, valdis.kletnieks@vt.edu, mm-commits@vger.kernel.org
+To: nicolas.iooss_linux@m4x.org, aryabinin@virtuozzo.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/task_mmu.c: suppress compilation warnings with W=1
+     Subject: UBSAN: fix typo in format string
 has been added to the -mm tree.  Its filename is
-     suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1.patch
+     ubsan-fix-typo-in-format-string.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w%3D1.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ubsan-fix-typo-in-format-string.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w%3D1.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ubsan-fix-typo-in-format-string.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,44 +38,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Subject: fs/proc/task_mmu.c: suppress compilation warnings with W=1
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Subject: UBSAN: fix typo in format string
 
-Suppress a bunch of warnings of the form:
+handle_object_size_mismatch() used %pk to format a kernel pointer with
+pr_err().  This seemed to be a misspelling for %pK, but using this to
+format a kernel pointer does not make much sence here.
 
-fs/proc/task_mmu.c: In function 'show_smap_vma_flags':
-fs/proc/task_mmu.c:635:22: warning: initialized field overwritten [-Wt override-init]
-   [ilog2(VM_READ)] = "rd",
-                      ^~~~
-fs/proc/task_mmu.c:635:22: note: (near initialization for 'mnemonics[0]')
+Therefore use %p instead, like in handle_missaligned_access().
 
-They happen because of the way we intentionally build the table, so
-silence the warning when building with 'make W=1'.
-
-Link: http://lkml.kernel.org/r/8727.1470022083@turing-police.cc.vt.edu
-Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Link: http://lkml.kernel.org/r/20160730083010.11569-1-nicolas.iooss_linux@m4x.org
+Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ lib/ubsan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/Makefile~suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1 fs/proc/Makefile
---- a/fs/proc/Makefile~suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1
-+++ a/fs/proc/Makefile
-@@ -4,6 +4,7 @@
+diff -puN lib/ubsan.c~ubsan-fix-typo-in-format-string lib/ubsan.c
+--- a/lib/ubsan.c~ubsan-fix-typo-in-format-string
++++ a/lib/ubsan.c
+@@ -308,7 +308,7 @@ static void handle_object_size_mismatch(
+ 		return;
  
- obj-y   += proc.o
- 
-+CFLAGS_task_mmu.o	+= -Wno-override-init
- proc-y			:= nommu.o task_nommu.o
- proc-$(CONFIG_MMU)	:= task_mmu.o
- 
+ 	ubsan_prologue(&data->location, &flags);
+-	pr_err("%s address %pk with insufficient space\n",
++	pr_err("%s address %p with insufficient space\n",
+ 		type_check_kinds[data->type_check_kind],
+ 		(void *) ptr);
+ 	pr_err("for an object of type %s\n", data->type->type_name);
 _
 
-Patches currently in -mm which might be from Valdis.Kletnieks@vt.edu are
+Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
 
-fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph.patch
-suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1.patch
-init-kconfig-add-clarification-for-out-of-tree-modules.patch
+ubsan-fix-typo-in-format-string.patch
 
