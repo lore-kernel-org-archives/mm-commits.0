@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-improve-double-free-reports.patch added to -mm tree
-Date: Mon, 01 Aug 2016 13:16:18 -0700
-Message-ID: <579fae12.m389Hd+Pwe0mc+ur%akpm@linux-foundation.org>
+Subject: + mm-kasan-dont-reduce-quarantine-in-atomic-contexts.patch added
+ to -mm tree
+Date: Mon, 01 Aug 2016 13:16:10 -0700
+Message-ID: <579fae0a.IMF4hteFEcXqitj4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41296 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41297 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755087AbcHAUlt (ORCPT
+	with ESMTP id S1755083AbcHAUlt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2016 16:41:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, davej@codemonkey.org.uk, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: improve double-free reports
+     Subject: mm/kasan: don't reduce quarantine in atomic contexts
 has been added to the -mm tree.  Its filename is
-     kasan-improve-double-free-reports.patch
+     mm-kasan-dont-reduce-quarantine-in-atomic-contexts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-improve-double-free-reports.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-dont-reduce-quarantine-in-atomic-contexts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-improve-double-free-reports.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-dont-reduce-quarantine-in-atomic-contexts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,152 +40,72 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: kasan: improve double-free reports
+Subject: mm/kasan: don't reduce quarantine in atomic contexts
 
-Currently we just dump stack in case of double free bug.
-Let's dump all info about the object that we have.
+Currently we call quarantine_reduce() for ___GFP_KSWAPD_RECLAIM (implied
+by __GFP_RECLAIM) allocation.  So, basically we call it on almost every
+allocation.  quarantine_reduce() sometimes is heavy operation, and calling
+it with disabled interrupts may trigger hard LOCKUP:
 
-Link: http://lkml.kernel.org/r/1470062715-14077-6-git-send-email-aryabinin@virtuozzo.com
+ NMI watchdog: Watchdog detected hard LOCKUP on cpu 2irq event stamp: 1411258
+ Call Trace:
+  <NMI>  [<ffffffff98a48532>] dump_stack+0x68/0x96
+  [<ffffffff98357fbb>] watchdog_overflow_callback+0x15b/0x190
+  [<ffffffff9842f7d1>] __perf_event_overflow+0x1b1/0x540
+  [<ffffffff98455b14>] perf_event_overflow+0x14/0x20
+  [<ffffffff9801976a>] intel_pmu_handle_irq+0x36a/0xad0
+  [<ffffffff9800ba4c>] perf_event_nmi_handler+0x2c/0x50
+  [<ffffffff98057058>] nmi_handle+0x128/0x480
+  [<ffffffff980576d2>] default_do_nmi+0xb2/0x210
+  [<ffffffff980579da>] do_nmi+0x1aa/0x220
+  [<ffffffff99a0bb07>] end_repeat_nmi+0x1a/0x1e
+  <<EOE>>  [<ffffffff981871e6>] __kernel_text_address+0x86/0xb0
+  [<ffffffff98055c4b>] print_context_stack+0x7b/0x100
+  [<ffffffff98054e9b>] dump_trace+0x12b/0x350
+  [<ffffffff98076ceb>] save_stack_trace+0x2b/0x50
+  [<ffffffff98573003>] set_track+0x83/0x140
+  [<ffffffff98575f4a>] free_debug_processing+0x1aa/0x420
+  [<ffffffff98578506>] __slab_free+0x1d6/0x2e0
+  [<ffffffff9857a9b6>] ___cache_free+0xb6/0xd0
+  [<ffffffff9857db53>] qlist_free_all+0x83/0x100
+  [<ffffffff9857df07>] quarantine_reduce+0x177/0x1b0
+  [<ffffffff9857c423>] kasan_kmalloc+0xf3/0x100
+
+Reduce the quarantine_reduce iff direct reclaim is allowed.
+
+Fixes: 55834c59098d("mm: kasan: initial memory quarantine implementation")
+Link: http://lkml.kernel.org/r/1470062715-14077-2-git-send-email-aryabinin@virtuozzo.com
 Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reported-by: Dave Jones <davej@codemonkey.org.uk>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c  |    3 --
- mm/kasan/kasan.h  |    2 +
- mm/kasan/report.c |   54 ++++++++++++++++++++++++++++++--------------
- 3 files changed, 41 insertions(+), 18 deletions(-)
+ mm/kasan/kasan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/kasan/kasan.c~kasan-improve-double-free-reports mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-improve-double-free-reports
+diff -puN mm/kasan/kasan.c~mm-kasan-dont-reduce-quarantine-in-atomic-contexts mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-dont-reduce-quarantine-in-atomic-contexts
 +++ a/mm/kasan/kasan.c
-@@ -543,8 +543,7 @@ bool kasan_slab_free(struct kmem_cache *
+@@ -565,7 +565,7 @@ void kasan_kmalloc(struct kmem_cache *ca
+ 	unsigned long redzone_start;
+ 	unsigned long redzone_end;
  
- 	shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(object));
- 	if (shadow_byte < 0 || shadow_byte >= KASAN_SHADOW_SCALE_SIZE) {
--		pr_err("Double free");
--		dump_stack();
-+		kasan_report_double_free(cache, object, shadow_byte);
- 		return true;
- 	}
+-	if (flags & __GFP_RECLAIM)
++	if (gfpflags_allow_blocking(flags))
+ 		quarantine_reduce();
  
-diff -puN mm/kasan/kasan.h~kasan-improve-double-free-reports mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-improve-double-free-reports
-+++ a/mm/kasan/kasan.h
-@@ -99,6 +99,8 @@ static inline bool kasan_report_enabled(
+ 	if (unlikely(object == NULL))
+@@ -596,7 +596,7 @@ void kasan_kmalloc_large(const void *ptr
+ 	unsigned long redzone_start;
+ 	unsigned long redzone_end;
  
- void kasan_report(unsigned long addr, size_t size,
- 		bool is_write, unsigned long ip);
-+void kasan_report_double_free(struct kmem_cache *cache, void *object,
-+			s8 shadow);
+-	if (flags & __GFP_RECLAIM)
++	if (gfpflags_allow_blocking(flags))
+ 		quarantine_reduce();
  
- #if defined(CONFIG_SLAB) || defined(CONFIG_SLUB)
- void quarantine_put(struct kasan_free_meta *info, struct kmem_cache *cache);
-diff -puN mm/kasan/report.c~kasan-improve-double-free-reports mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-improve-double-free-reports
-+++ a/mm/kasan/report.c
-@@ -116,6 +116,26 @@ static inline bool init_task_stack_addr(
- 			sizeof(init_thread_union.stack));
- }
- 
-+static DEFINE_SPINLOCK(report_lock);
-+
-+static void kasan_start_report(unsigned long *flags)
-+{
-+	/*
-+	 * Make sure we don't end up in loop.
-+	 */
-+	kasan_disable_current();
-+	spin_lock_irqsave(&report_lock, *flags);
-+	pr_err("==================================================================\n");
-+}
-+
-+static void kasan_end_report(unsigned long *flags)
-+{
-+	pr_err("==================================================================\n");
-+	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
-+	spin_unlock_irqrestore(&report_lock, *flags);
-+	kasan_enable_current();
-+}
-+
- static void print_track(struct kasan_track *track)
- {
- 	pr_err("PID = %u\n", track->pid);
-@@ -129,8 +149,7 @@ static void print_track(struct kasan_tra
- 	}
- }
- 
--static void kasan_object_err(struct kmem_cache *cache, struct page *page,
--				void *object, char *unused_reason)
-+static void kasan_object_err(struct kmem_cache *cache, void *object)
- {
- 	struct kasan_alloc_meta *alloc_info = get_alloc_info(cache, object);
- 
-@@ -147,6 +166,18 @@ static void kasan_object_err(struct kmem
- 	print_track(&alloc_info->free_track);
- }
- 
-+void kasan_report_double_free(struct kmem_cache *cache, void *object,
-+			s8 shadow)
-+{
-+	unsigned long flags;
-+
-+	kasan_start_report(&flags);
-+	pr_err("BUG: Double free or corrupt pointer\n");
-+	pr_err("Unexpected shadow byte: 0x%hhX\n", shadow);
-+	kasan_object_err(cache, object);
-+	kasan_end_report(&flags);
-+}
-+
- static void print_address_description(struct kasan_access_info *info)
- {
- 	const void *addr = info->access_addr;
-@@ -160,8 +191,7 @@ static void print_address_description(st
- 			struct kmem_cache *cache = page->slab_cache;
- 			object = nearest_obj(cache, page,
- 						(void *)info->access_addr);
--			kasan_object_err(cache, page, object,
--					"kasan: bad access detected");
-+			kasan_object_err(cache, object);
- 			return;
- 		}
- 		dump_page(page, "kasan: bad access detected");
-@@ -226,19 +256,13 @@ static void print_shadow_for_address(con
- 	}
- }
- 
--static DEFINE_SPINLOCK(report_lock);
--
- static void kasan_report_error(struct kasan_access_info *info)
- {
- 	unsigned long flags;
- 	const char *bug_type;
- 
--	/*
--	 * Make sure we don't end up in loop.
--	 */
--	kasan_disable_current();
--	spin_lock_irqsave(&report_lock, flags);
--	pr_err("==================================================================\n");
-+	kasan_start_report(&flags);
-+
- 	if (info->access_addr <
- 			kasan_shadow_to_mem((void *)KASAN_SHADOW_START)) {
- 		if ((unsigned long)info->access_addr < PAGE_SIZE)
-@@ -259,10 +283,8 @@ static void kasan_report_error(struct ka
- 		print_address_description(info);
- 		print_shadow_for_address(info->first_bad_addr);
- 	}
--	pr_err("==================================================================\n");
--	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
--	spin_unlock_irqrestore(&report_lock, flags);
--	kasan_enable_current();
-+
-+	kasan_end_report(&flags);
- }
- 
- void kasan_report(unsigned long addr, size_t size,
+ 	if (unlikely(ptr == NULL))
 _
 
 Patches currently in -mm which might be from aryabinin@virtuozzo.com are
