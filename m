@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch added to
- -mm tree
-Date: Mon, 01 Aug 2016 14:13:04 -0700
-Message-ID: <579fbb60.ed7d76R5UPniJSEc%akpm@linux-foundation.org>
+ radix-tree-account-nodes-to-memcg-only-if-explicitly-requested.patch added
+ to -mm tree
+Date: Mon, 01 Aug 2016 14:20:22 -0700
+Message-ID: <579fbd16.FWbSPU45IQkrdKG1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42569 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42837 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752485AbcHAVOk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2016 17:14:40 -0400
+	with ESMTP id S1751310AbcHAVUY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2016 17:20:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: add sanity checks for memcg->id.ref on get/put
+     Subject: radix-tree: account nodes to memcg only if explicitly requested
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
+     radix-tree-account-nodes-to-memcg-only-if-explicitly-requested.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-account-nodes-to-memcg-only-if-explicitly-requested.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-account-nodes-to-memcg-only-if-explicitly-requested.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,65 +41,84 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: memcontrol: add sanity checks for memcg->id.ref on get/put
+Subject: radix-tree: account nodes to memcg only if explicitly requested
 
-Link: http://lkml.kernel.org/r/ad702144f24374cbfb3a35b71658a0ae24ba7d84.1470057819.git.vdavydov@virtuozzo.com
+Radix trees may be used not only for storing page cache pages, so
+unconditionally accounting radix tree nodes to the current memory cgroup
+is bad: if a radix tree node is used for storing data shared among
+different cgroups we risk pinning dead memory cgroups forever. So let's
+only account radix tree nodes if it was explicitly requested by passing
+__GFP_ACCOUNT to INIT_RADIX_TREE. Currently, we only want to account
+page cache entries, so mark mapping->page_tree so.
+
+Link: http://lkml.kernel.org/r/1470057188-7864-1-git-send-email-vdavydov@virtuozzo.com
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/inode.c       |    2 +-
+ lib/radix-tree.c |   14 ++++++++++----
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put
-+++ a/mm/memcontrol.c
-@@ -4071,18 +4071,22 @@ static DEFINE_IDR(mem_cgroup_idr);
+diff -puN fs/inode.c~radix-tree-account-nodes-to-memcg-only-if-explicitly-requested fs/inode.c
+--- a/fs/inode.c~radix-tree-account-nodes-to-memcg-only-if-explicitly-requested
++++ a/fs/inode.c
+@@ -345,7 +345,7 @@ EXPORT_SYMBOL(inc_nlink);
+ void address_space_init_once(struct address_space *mapping)
+ {
+ 	memset(mapping, 0, sizeof(*mapping));
+-	INIT_RADIX_TREE(&mapping->page_tree, GFP_ATOMIC);
++	INIT_RADIX_TREE(&mapping->page_tree, GFP_ATOMIC | __GFP_ACCOUNT);
+ 	spin_lock_init(&mapping->tree_lock);
+ 	init_rwsem(&mapping->i_mmap_rwsem);
+ 	INIT_LIST_HEAD(&mapping->private_list);
+diff -puN lib/radix-tree.c~radix-tree-account-nodes-to-memcg-only-if-explicitly-requested lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-account-nodes-to-memcg-only-if-explicitly-requested
++++ a/lib/radix-tree.c
+@@ -277,10 +277,11 @@ radix_tree_node_alloc(struct radix_tree_
  
- static void mem_cgroup_id_get_many(struct mem_cgroup *memcg, unsigned int n)
- {
-+	VM_BUG_ON(atomic_read(&memcg->id.ref) <= 0);
- 	atomic_add(n, &memcg->id.ref);
- }
+ 		/*
+ 		 * Even if the caller has preloaded, try to allocate from the
+-		 * cache first for the new node to get accounted.
++		 * cache first for the new node to get accounted to the memory
++		 * cgroup.
+ 		 */
+ 		ret = kmem_cache_alloc(radix_tree_node_cachep,
+-				       gfp_mask | __GFP_ACCOUNT | __GFP_NOWARN);
++				       gfp_mask | __GFP_NOWARN);
+ 		if (ret)
+ 			goto out;
  
- static struct mem_cgroup *mem_cgroup_id_get_active(struct mem_cgroup *memcg)
- {
--	while (!atomic_inc_not_zero(&memcg->id.ref))
-+	while (!atomic_inc_not_zero(&memcg->id.ref)) {
-+		VM_BUG_ON(mem_cgroup_is_root(memcg));
- 		memcg = parent_mem_cgroup(memcg);
-+	}
- 	return memcg;
- }
+@@ -303,8 +304,7 @@ radix_tree_node_alloc(struct radix_tree_
+ 		kmemleak_update_trace(ret);
+ 		goto out;
+ 	}
+-	ret = kmem_cache_alloc(radix_tree_node_cachep,
+-			       gfp_mask | __GFP_ACCOUNT);
++	ret = kmem_cache_alloc(radix_tree_node_cachep, gfp_mask);
+ out:
+ 	BUG_ON(radix_tree_is_internal_node(ret));
+ 	return ret;
+@@ -351,6 +351,12 @@ static int __radix_tree_preload(gfp_t gf
+ 	struct radix_tree_node *node;
+ 	int ret = -ENOMEM;
  
- static void mem_cgroup_id_put_many(struct mem_cgroup *memcg, unsigned int n)
- {
-+	VM_BUG_ON(atomic_read(&memcg->id.ref) < n);
- 	if (atomic_sub_and_test(n, &memcg->id.ref)) {
- 		idr_remove(&mem_cgroup_idr, memcg->id.id);
- 		memcg->id.id = 0;
-@@ -4203,6 +4207,7 @@ static struct mem_cgroup *mem_cgroup_all
- 	INIT_LIST_HEAD(&memcg->cgwb_list);
- #endif
- 	idr_replace(&mem_cgroup_idr, memcg, memcg->id.id);
-+	atomic_set(&memcg->id.ref, 1);
- 	return memcg;
- fail:
- 	if (memcg->id.id > 0)
-@@ -4272,7 +4277,6 @@ fail:
- static int mem_cgroup_css_online(struct cgroup_subsys_state *css)
- {
- 	/* Online state pins memcg ID, memcg ID pins CSS */
--	mem_cgroup_id_get(mem_cgroup_from_css(css));
- 	css_get(css);
- 	return 0;
- }
++	/*
++	 * Nodes preloaded by one cgroup can be be used by another cgroup, so
++	 * they should never be accounted to any particular memory cgroup.
++	 */
++	gfp_mask &= ~__GFP_ACCOUNT;
++
+ 	preempt_disable();
+ 	rtp = this_cpu_ptr(&radix_tree_preloads);
+ 	while (rtp->nr < nr) {
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
+radix-tree-account-nodes-to-memcg-only-if-explicitly-requested.patch
 mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup.patch
 mm-memcontrol-fix-memcg-id-ref-counter-on-swap-charge-move.patch
 mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
