@@ -1,95 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [patch 003/111] ocfs2/dlm: disable BUG_ON when
- DLM_LOCK_RES_DROPPING_REF is cleared before dlm_deref_lockres_done_handler
-Date: Tue, 02 Aug 2016 14:02:13 -0700
-Message-ID: <57a10a55.kZcEFrgxsZcTqd99%akpm@linux-foundation.org>
+Subject: [patch 001/111] ocfs2: ensure that dlm lockspace is created by
+ kernel module
+Date: Tue, 02 Aug 2016 14:02:07 -0700
+Message-ID: <57a10a4f.H3WZDabi9hfSSqNb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59952 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59938 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754564AbcHBVCO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:02:14 -0400
+	with ESMTP id S1754564AbcHBVCJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:02:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, piaojun@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, xuejiufei@huawei.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, rgoldwyn@suse.com
 
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2/dlm: disable BUG_ON when DLM_LOCK_RES_DROPPING_REF is cleared before dlm_deref_lockres_done_handler
+From: Gang He <ghe@suse.com>
+Subject: ocfs2: ensure that dlm lockspace is created by kernel module
 
-We found a BUG situation in which DLM_LOCK_RES_DROPPING_REF is cleared
-unexpected that described below.  To solve the bug, we disable the BUG_ON
-and purge lockres in dlm_do_local_recovery_cleanup.
+We encountered a bug from the customer, the user did a fsck.ocfs2 on the
+file system and exited unusually, the lockspace (with LVB size = 32) was
+left in the kernel space, next, the user mounted this file system, the
+kernel module did not create a new lockspace (LVB size = 64) via calling
+dlm_new_lockspace() function in mounting stage, just used the existing
+lockspace, created by the user space tool, this would lead the user was
+not able to mount this file system from the other nodes, with the error
+message like:
 
-Node 1                               Node 2(master)
-dlm_purge_lockres
-                                     dlm_deref_lockres_handler
+dlm: 032F5......: config mismatch: 64,0 nodeid 177127961: 32,0
+(mount.ocfs2,26981,46):ocfs2_dlm_init:2995 ERROR: status = -71
+ocfs2_mount_volume:1881 ERROR: status = -71
+ocfs2_fill_super:1236 ERROR: status = -71
 
-                                     DLM_LOCK_RES_SETREF_INPROG is set
-                                     response DLM_DEREF_RESPONSE_INPROG
+The user found it very difficult to find the root cause, then, we brought
+out this patch to relieve such problem.  
 
-receive DLM_DEREF_RESPONSE_INPROG
-stop puring in dlm_purge_lockres
-and wait for DLM_DEREF_RESPONSE_DONE
+First, we add one more flag in calling dlm_new_lockspace() function, to
+make sure the lockspace is created by kernel module itself, and this
+change will not affect the backward compatibility.
 
-                                     dispatch dlm_deref_lockres_worker
-                                     response DLM_DEREF_RESPONSE_DONE
+Second, the obvious error message is reported in the kernel log, let the
+user be more easy to find the root cause.
 
-receive DLM_DEREF_RESPONSE_DONE and
-prepare to purge lockres
 
-                                     Node 2 goes down
 
-find Node2 down and do local
-clean up for Node2:
-dlm_do_local_recovery_cleanup
-  -> clear DLM_LOCK_RES_DROPPING_REF
+This patch will be used to insure the dlm lockspace is created by kernel
+module when mounting a ocfs2 file system.  There are two ways to create a
+lockspace, from user space and kernel space, but the same name lockspaces
+probably have different lvblen lengths/flags.
 
-when purging lockres, BUG_ON happens
-because DLM_LOCK_RES_DROPPING_REF is clear:
-dlm_deref_lockres_done_handler
-  ->BUG_ON(!(res->state & DLM_LOCK_RES_DROPPING_REF));
+To avoid this mix using, we add one more flag DLM_LSFL_NEWEXCL, it will
+make sure the dlm lockspace is created by kernel module when mounting. 
+Secondly, if a user space program (ocfs2-tools) is running on a file
+system, the user tries to mount this file system in the cluster, DLM
+module will return a -EEXIST or -EPROTO errno, we should give the user a
+obvious error message, then, the user can let that user space tool exit
+before mounting the file system again.
 
-[akpm@linux-foundation.org: fix duplicated write to `ret']
-Fixes: 60d663cb5273 ("ocfs2/dlm: add DEREF_DONE message")
-Link: http://lkml.kernel.org/r/57845055.9080702@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Jiufei Xue <xuejiufei@huawei.com>
+Link: http://lkml.kernel.org/r/1463731940-13044-2-git-send-email-ghe@suse.com
+Signed-off-by: Gang He <ghe@suse.com>
+Reviewed-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ fs/ocfs2/stack_user.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -2416,7 +2416,17 @@ int dlm_deref_lockres_done_handler(struc
- 	}
+diff -puN fs/ocfs2/stack_user.c~ocfs2-insure-dlm-lockspace-is-created-by-kernel-module fs/ocfs2/stack_user.c
+--- a/fs/ocfs2/stack_user.c~ocfs2-insure-dlm-lockspace-is-created-by-kernel-module
++++ a/fs/ocfs2/stack_user.c
+@@ -1007,10 +1007,17 @@ static int user_cluster_connect(struct o
+ 	lc->oc_type = NO_CONTROLD;
  
- 	spin_lock(&res->spinlock);
--	BUG_ON(!(res->state & DLM_LOCK_RES_DROPPING_REF));
-+	if (!(res->state & DLM_LOCK_RES_DROPPING_REF)) {
-+		spin_unlock(&res->spinlock);
-+		spin_unlock(&dlm->spinlock);
-+		mlog(ML_NOTICE, "%s:%.*s: node %u sends deref done "
-+			"but it is already derefed!\n", dlm->name,
-+			res->lockname.len, res->lockname.name, node);
-+		dlm_lockres_put(res);
-+		ret = 0;
-+		goto done;
+ 	rc = dlm_new_lockspace(conn->cc_name, conn->cc_cluster_name,
+-			       DLM_LSFL_FS, DLM_LVB_LEN,
++			       DLM_LSFL_FS | DLM_LSFL_NEWEXCL, DLM_LVB_LEN,
+ 			       &ocfs2_ls_ops, conn, &ops_rv, &fsdlm);
+-	if (rc)
++	if (rc) {
++		if (rc == -EEXIST || rc == -EPROTO)
++			printk(KERN_ERR "ocfs2: Unable to create the "
++				"lockspace %s (%d), because a ocfs2-tools "
++				"program is running on this file system "
++				"with the same name lockspace\n",
++				conn->cc_name, rc);
+ 		goto out;
 +	}
-+
- 	if (!list_empty(&res->purge)) {
- 		mlog(0, "%s: Removing res %.*s from purgelist\n",
- 			dlm->name, res->lockname.len, res->lockname.name);
-@@ -2456,7 +2466,6 @@ int dlm_deref_lockres_done_handler(struc
- 	spin_unlock(&dlm->spinlock);
  
- 	ret = 0;
+ 	if (ops_rv == -EOPNOTSUPP) {
+ 		lc->oc_type = WITH_CONTROLD;
+_
