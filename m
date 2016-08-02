@@ -1,78 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-if-no-filenames-then-read-stdin.patch added to -mm
- tree
-Date: Mon, 01 Aug 2016 16:48:33 -0700
-Message-ID: <579fdfd1.MfiT6Z0S7ymq8wO2%akpm@linux-foundation.org>
+Subject: [to-be-updated] ipc-msgc-fix-memory-leak-in-do_msgsnd.patch
+ removed from -mm tree
+Date: Mon, 01 Aug 2016 17:23:27 -0700
+Message-ID: <579fe7ff.s5C4KTFgIKileXjV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47270 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47750 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755362AbcHAX6Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2016 19:58:16 -0400
+	with ESMTP id S1752258AbcHBAY0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2016 20:24:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: allenbh@gmail.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: if no filenames then read stdin
-has been added to the -mm tree.  Its filename is
-     checkpatch-if-no-filenames-then-read-stdin.patch
+     Subject: ipc/msg.c: fix memory leak in do_msgsnd()
+has been removed from the -mm tree.  Its filename was
+     ipc-msgc-fix-memory-leak-in-do_msgsnd.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-if-no-filenames-then-read-stdin.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-if-no-filenames-then-read-stdin.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Allen Hubbe <allenbh@gmail.com>
-Subject: checkpatch: if no filenames then read stdin
+From: Fabian Frederick <fabf@skynet.be>
+Subject: ipc/msg.c: fix memory leak in do_msgsnd()
 
-If no filenames are given, then read the patch from stdin.
+Running LTP msgsnd06 with kmemleak gives the following:
 
-Link: http://lkml.kernel.org/r/a8784f291ccb5067361992bf5d41ff6cfb0ce5cb.1469830917.git.allenbh@gmail.com
-Signed-off-by: Allen Hubbe <allenbh@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+cat /sys/kernel/debug/kmemleak
+
+unreferenced object 0xffff88003c0a11f8 (size 8):
+  comm "msgsnd06", pid 1645, jiffies 4294672526 (age 6.549s)
+  hex dump (first 8 bytes):
+    1b 00 00 00 01 00 00 00                          ........
+  backtrace:
+    [<ffffffff818e2c43>] kmemleak_alloc+0x23/0x40
+    [<ffffffff81177f31>] kmem_cache_alloc_trace+0xe1/0x180
+    [<ffffffff812d42af>] selinux_msg_queue_alloc_security+0x3f/0xd0
+    [<ffffffff812cc6be>] security_msg_queue_alloc+0x2e/0x40
+    [<ffffffff812b94ee>] newque+0x4e/0x150
+    [<ffffffff812b8cb9>] ipcget+0x159/0x1b0
+    [<ffffffff812b98d9>] SyS_msgget+0x39/0x40
+    [<ffffffff818e7bdb>] entry_SYSCALL_64_fastpath+0x13/0x8f
+    [<ffffffffffffffff>] 0xffffffffffffffff
+
+ipc_rcu_free() was given to ipc_rcu_putref() instead of msg_rcu_free()
+which does security cleaning.
+
+Link: http://lkml.kernel.org/r/1469780120-315-1-git-send-email-fabf@skynet.be
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/msg.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-if-no-filenames-then-read-stdin scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-if-no-filenames-then-read-stdin
-+++ a/scripts/checkpatch.pl
-@@ -228,9 +228,9 @@ if ($^V && $^V lt $minimum_perl_version)
- 	}
- }
+diff -puN ipc/msg.c~ipc-msgc-fix-memory-leak-in-do_msgsnd ipc/msg.c
+--- a/ipc/msg.c~ipc-msgc-fix-memory-leak-in-do_msgsnd
++++ a/ipc/msg.c
+@@ -680,7 +680,7 @@ long do_msgsnd(int msqid, long mtype, vo
+ 		rcu_read_lock();
+ 		ipc_lock_object(&msq->q_perm);
  
-+#if no filenames are given, push '-' to read patch from stdin
- if ($#ARGV < 0) {
--	print "$P: no input files\n";
--	exit(1);
-+	push(@ARGV, '-');
- }
- 
- sub hash_save_array_words {
+-		ipc_rcu_putref(msq, ipc_rcu_free);
++		ipc_rcu_putref(msq, msg_rcu_free);
+ 		/* raced with RMID? */
+ 		if (!ipc_valid_object(&msq->q_perm)) {
+ 			err = -EIDRM;
 _
 
-Patches currently in -mm which might be from allenbh@gmail.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-checkpatch-check-signoff-when-reading-stdin.patch
-checkpatch-if-no-filenames-then-read-stdin.patch
+sysv-ipc-fix-security-layer-leaking.patch
+treewide-replace-obsolete-_refok-by-__ref.patch
 
