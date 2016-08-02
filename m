@@ -1,51 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [patch 052/111] checkpatch: yet another commit id improvement
-Date: Tue, 02 Aug 2016 14:04:36 -0700
-Message-ID: <57a10ae4.5DY8CYDHx4W0YqQf%akpm@linux-foundation.org>
+Subject: [patch 029/111] memstick: don't allocate unused major for
+ ms_block
+Date: Tue, 02 Aug 2016 14:03:30 -0700
+Message-ID: <57a10aa2.C1Quh56ZokxdPq3C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60622 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756860AbcHBVRW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:22 -0400
+	with ESMTP id S1755031AbcHBVRU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com, qiuxu.zhuo@intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, neilb@suse.com, axboe@fb.com, gregkh@linuxfoundation.org, keith.busch@intel.com, maximlevitsky@gmail.com
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: yet another commit id improvement
+From: NeilBrown <neilb@suse.com>
+Subject: memstick: don't allocate unused major for ms_block
 
-Using \b isn't good enough to isolate what appears to be a commit id in a
-commit message.
+When alloc_disk(0) is used the ->major number is completely ignored.  All
+devices are allocated with a major of BLOCK_EXT_MAJOR.
 
-Make sure there is a space or a quote like character after a continuous
-run of hexadecimal characters that could be a commit id.
+So remove registration and deregistration of 'major'.
 
-Link: http://lkml.kernel.org/r/fdd22b47463a21c21132edbb8aa35e372950a1e6.1468869915.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: "Zhuo, Qiuxu" <qiuxu.zhuo@intel.com>
+Link: http://lkml.kernel.org/r/20160602064318.4403.49955.stgit@noble
+Signed-off-by: NeilBrown <neilb@suse.com>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/memstick/core/ms_block.c |   17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-yet-another-commit-id-improvement scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-yet-another-commit-id-improvement
-+++ a/scripts/checkpatch.pl
-@@ -2459,9 +2459,9 @@ sub process {
+diff -puN drivers/memstick/core/ms_block.c~memstick-dont-allocate-unused-major-for-ms_block drivers/memstick/core/ms_block.c
+--- a/drivers/memstick/core/ms_block.c~memstick-dont-allocate-unused-major-for-ms_block
++++ a/drivers/memstick/core/ms_block.c
+@@ -2338,23 +2338,11 @@ static struct memstick_driver msb_driver
+ 	.resume   = msb_resume
+ };
  
- # Check for git id commit length and improperly formed commit descriptions
- 		if ($in_commit_log && !$commit_log_possible_stack_dump &&
--		    $line !~ /^\s*(?:Link|Patchwork|http|BugLink):/i &&
-+		    $line !~ /^\s*(?:Link|Patchwork|http|https|BugLink):/i &&
- 		    ($line =~ /\bcommit\s+[0-9a-f]{5,}\b/i ||
--		     ($line =~ /\b[0-9a-f]{12,40}\b/i &&
-+		     ($line =~ /(?:\s|^)[0-9a-f]{12,40}(?:[\s"'\(\[]|$)/i &&
- 		      $line !~ /[\<\[][0-9a-f]{12,40}[\>\]]/i &&
- 		      $line !~ /\bfixes:\s*[0-9a-f]{12,40}/i))) {
- 			my $init_char = "c";
-_
+-static int major;
+-
+ static int __init msb_init(void)
+ {
+-	int rc = register_blkdev(0, DRIVER_NAME);
+-
+-	if (rc < 0) {
+-		pr_err("failed to register major (error %d)\n", rc);
+-		return rc;
+-	}
