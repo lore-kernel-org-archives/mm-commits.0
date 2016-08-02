@@ -1,95 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: [patch 019/111] radix-tree: account nodes to memcg only if
- explicitly requested
-Date: Tue, 02 Aug 2016 14:03:01 -0700
-Message-ID: <57a10a85.93jpS7cZjtGHhnhs%akpm@linux-foundation.org>
+Subject: [patch 017/111] kasan: improve double-free reports
+Date: Tue, 02 Aug 2016 14:02:55 -0700
+Message-ID: <57a10a7f.vOGhgW7Yr/l2c9Bh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33373 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33370 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755526AbcHBV4t (ORCPT
+	with ESMTP id S1754765AbcHBV4t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:56:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com
 
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: radix-tree: account nodes to memcg only if explicitly requested
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: kasan: improve double-free reports
 
-Radix trees may be used not only for storing page cache pages, so
-unconditionally accounting radix tree nodes to the current memory cgroup
-is bad: if a radix tree node is used for storing data shared among
-different cgroups we risk pinning dead memory cgroups forever. So let's
-only account radix tree nodes if it was explicitly requested by passing
-__GFP_ACCOUNT to INIT_RADIX_TREE. Currently, we only want to account
-page cache entries, so mark mapping->page_tree so.
+Currently we just dump stack in case of double free bug.
+Let's dump all info about the object that we have.
 
-Fixes: 58e698af4c63 ("radix-tree: account radix_tree_node to memory cgroup")
-Link: http://lkml.kernel.org/r/1470057188-7864-1-git-send-email-vdavydov@virtuozzo.com
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>	[4.6+]
+[aryabinin@virtuozzo.com: change double free message per Alexander]
+  Link: http://lkml.kernel.org/r/1470153654-30160-1-git-send-email-aryabinin@virtuozzo.com
+Link: http://lkml.kernel.org/r/1470062715-14077-6-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c       |    2 +-
- lib/radix-tree.c |   14 ++++++++++----
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ mm/kasan/kasan.c  |    3 --
+ mm/kasan/kasan.h  |    2 +
+ mm/kasan/report.c |   54 ++++++++++++++++++++++++++++++--------------
+ 3 files changed, 41 insertions(+), 18 deletions(-)
 
-diff -puN fs/inode.c~radix-tree-account-nodes-to-memcg-only-if-explicitly-requested fs/inode.c
---- a/fs/inode.c~radix-tree-account-nodes-to-memcg-only-if-explicitly-requested
-+++ a/fs/inode.c
-@@ -345,7 +345,7 @@ EXPORT_SYMBOL(inc_nlink);
- void address_space_init_once(struct address_space *mapping)
- {
- 	memset(mapping, 0, sizeof(*mapping));
--	INIT_RADIX_TREE(&mapping->page_tree, GFP_ATOMIC);
-+	INIT_RADIX_TREE(&mapping->page_tree, GFP_ATOMIC | __GFP_ACCOUNT);
- 	spin_lock_init(&mapping->tree_lock);
- 	init_rwsem(&mapping->i_mmap_rwsem);
- 	INIT_LIST_HEAD(&mapping->private_list);
-diff -puN lib/radix-tree.c~radix-tree-account-nodes-to-memcg-only-if-explicitly-requested lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-account-nodes-to-memcg-only-if-explicitly-requested
-+++ a/lib/radix-tree.c
-@@ -277,10 +277,11 @@ radix_tree_node_alloc(struct radix_tree_
+diff -puN mm/kasan/kasan.c~kasan-improve-double-free-reports mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-improve-double-free-reports
++++ a/mm/kasan/kasan.c
+@@ -543,8 +543,7 @@ bool kasan_slab_free(struct kmem_cache *
  
- 		/*
- 		 * Even if the caller has preloaded, try to allocate from the
--		 * cache first for the new node to get accounted.
-+		 * cache first for the new node to get accounted to the memory
-+		 * cgroup.
- 		 */
- 		ret = kmem_cache_alloc(radix_tree_node_cachep,
--				       gfp_mask | __GFP_ACCOUNT | __GFP_NOWARN);
-+				       gfp_mask | __GFP_NOWARN);
- 		if (ret)
- 			goto out;
- 
-@@ -303,8 +304,7 @@ radix_tree_node_alloc(struct radix_tree_
- 		kmemleak_update_trace(ret);
- 		goto out;
+ 	shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(object));
+ 	if (shadow_byte < 0 || shadow_byte >= KASAN_SHADOW_SCALE_SIZE) {
+-		pr_err("Double free");
+-		dump_stack();
++		kasan_report_double_free(cache, object, shadow_byte);
+ 		return true;
  	}
--	ret = kmem_cache_alloc(radix_tree_node_cachep,
--			       gfp_mask | __GFP_ACCOUNT);
-+	ret = kmem_cache_alloc(radix_tree_node_cachep, gfp_mask);
- out:
- 	BUG_ON(radix_tree_is_internal_node(ret));
- 	return ret;
-@@ -351,6 +351,12 @@ static int __radix_tree_preload(gfp_t gf
- 	struct radix_tree_node *node;
- 	int ret = -ENOMEM;
  
-+	/*
-+	 * Nodes preloaded by one cgroup can be be used by another cgroup, so
-+	 * they should never be accounted to any particular memory cgroup.
-+	 */
-+	gfp_mask &= ~__GFP_ACCOUNT;
+diff -puN mm/kasan/kasan.h~kasan-improve-double-free-reports mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~kasan-improve-double-free-reports
++++ a/mm/kasan/kasan.h
+@@ -99,6 +99,8 @@ static inline bool kasan_report_enabled(
+ 
+ void kasan_report(unsigned long addr, size_t size,
+ 		bool is_write, unsigned long ip);
++void kasan_report_double_free(struct kmem_cache *cache, void *object,
++			s8 shadow);
+ 
+ #if defined(CONFIG_SLAB) || defined(CONFIG_SLUB)
+ void quarantine_put(struct kasan_free_meta *info, struct kmem_cache *cache);
+diff -puN mm/kasan/report.c~kasan-improve-double-free-reports mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-improve-double-free-reports
++++ a/mm/kasan/report.c
+@@ -116,6 +116,26 @@ static inline bool init_task_stack_addr(
+ 			sizeof(init_thread_union.stack));
+ }
+ 
++static DEFINE_SPINLOCK(report_lock);
 +
- 	preempt_disable();
- 	rtp = this_cpu_ptr(&radix_tree_preloads);
- 	while (rtp->nr < nr) {
++static void kasan_start_report(unsigned long *flags)
++{
++	/*
++	 * Make sure we don't end up in loop.
++	 */
++	kasan_disable_current();
++	spin_lock_irqsave(&report_lock, *flags);
++	pr_err("==================================================================\n");
++}
++
++static void kasan_end_report(unsigned long *flags)
++{
++	pr_err("==================================================================\n");
++	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
++	spin_unlock_irqrestore(&report_lock, *flags);
++	kasan_enable_current();
++}
++
+ static void print_track(struct kasan_track *track)
+ {
+ 	pr_err("PID = %u\n", track->pid);
+@@ -129,8 +149,7 @@ static void print_track(struct kasan_tra
+ 	}
+ }
+ 
+-static void kasan_object_err(struct kmem_cache *cache, struct page *page,
+-				void *object, char *unused_reason)
++static void kasan_object_err(struct kmem_cache *cache, void *object)
+ {
+ 	struct kasan_alloc_meta *alloc_info = get_alloc_info(cache, object);
+ 
+@@ -147,6 +166,18 @@ static void kasan_object_err(struct kmem
+ 	print_track(&alloc_info->free_track);
+ }
+ 
++void kasan_report_double_free(struct kmem_cache *cache, void *object,
++			s8 shadow)
++{
++	unsigned long flags;
++
++	kasan_start_report(&flags);
++	pr_err("BUG: Double free or freeing an invalid pointer\n");
++	pr_err("Unexpected shadow byte: 0x%hhX\n", shadow);
++	kasan_object_err(cache, object);
++	kasan_end_report(&flags);
++}
++
+ static void print_address_description(struct kasan_access_info *info)
+ {
+ 	const void *addr = info->access_addr;
+@@ -160,8 +191,7 @@ static void print_address_description(st
+ 			struct kmem_cache *cache = page->slab_cache;
+ 			object = nearest_obj(cache, page,
+ 						(void *)info->access_addr);
+-			kasan_object_err(cache, page, object,
+-					"kasan: bad access detected");
++			kasan_object_err(cache, object);
+ 			return;
+ 		}
+ 		dump_page(page, "kasan: bad access detected");
+@@ -226,19 +256,13 @@ static void print_shadow_for_address(con
+ 	}
+ }
+ 
+-static DEFINE_SPINLOCK(report_lock);
+-
+ static void kasan_report_error(struct kasan_access_info *info)
+ {
+ 	unsigned long flags;
+ 	const char *bug_type;
+ 
+-	/*
+-	 * Make sure we don't end up in loop.
+-	 */
+-	kasan_disable_current();
+-	spin_lock_irqsave(&report_lock, flags);
+-	pr_err("==================================================================\n");
++	kasan_start_report(&flags);
++
+ 	if (info->access_addr <
+ 			kasan_shadow_to_mem((void *)KASAN_SHADOW_START)) {
+ 		if ((unsigned long)info->access_addr < PAGE_SIZE)
+@@ -259,10 +283,8 @@ static void kasan_report_error(struct ka
+ 		print_address_description(info);
+ 		print_shadow_for_address(info->first_bad_addr);
+ 	}
+-	pr_err("==================================================================\n");
+-	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+-	spin_unlock_irqrestore(&report_lock, flags);
+-	kasan_enable_current();
++
++	kasan_end_report(&flags);
+ }
+ 
+ void kasan_report(unsigned long addr, size_t size,
 _
