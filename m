@@ -1,167 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [patch 017/111] kasan: improve double-free reports
-Date: Tue, 02 Aug 2016 14:02:55 -0700
-Message-ID: <57a10a7f.vOGhgW7Yr/l2c9Bh%akpm@linux-foundation.org>
+Subject: [patch 012/111] mm/kasan: fix corruptions and false positive
+ reports
+Date: Tue, 02 Aug 2016 14:02:40 -0700
+Message-ID: <57a10a70.nMSjKycBox99CvHM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33370 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33375 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754765AbcHBV4t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:56:49 -0400
+	with ESMTP id S1754138AbcHBV4u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:56:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aryabinin@virtuozzo.com, alexander.levin@verizon.com, davej@codemonkey.org.uk, dvyukov@google.com, glider@google.com, vegard.nossum@oracle.com
 
 From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: kasan: improve double-free reports
+Subject: mm/kasan: fix corruptions and false positive reports
 
-Currently we just dump stack in case of double free bug.
-Let's dump all info about the object that we have.
+Once an object is put into quarantine, we no longer own it, i.e.  object
+could leave the quarantine and be reallocated.  So having set_track() call
+after the quarantine_put() may corrupt slab objects.
 
-[aryabinin@virtuozzo.com: change double free message per Alexander]
-  Link: http://lkml.kernel.org/r/1470153654-30160-1-git-send-email-aryabinin@virtuozzo.com
-Link: http://lkml.kernel.org/r/1470062715-14077-6-git-send-email-aryabinin@virtuozzo.com
+ BUG kmalloc-4096 (Not tainted): Poison overwritten
+ -----------------------------------------------------------------------------
+ Disabling lock debugging due to kernel taint
+ INFO: 0xffff8804540de850-0xffff8804540de857. First byte 0xb5 instead of 0x6b
+...
+ INFO: Freed in qlist_free_all+0x42/0x100 age=75 cpu=3 pid=24492
+  __slab_free+0x1d6/0x2e0
+  ___cache_free+0xb6/0xd0
+  qlist_free_all+0x83/0x100
+  quarantine_reduce+0x177/0x1b0
+  kasan_kmalloc+0xf3/0x100
+  kasan_slab_alloc+0x12/0x20
+  kmem_cache_alloc+0x109/0x3e0
+  mmap_region+0x53e/0xe40
+  do_mmap+0x70f/0xa50
+  vm_mmap_pgoff+0x147/0x1b0
+  SyS_mmap_pgoff+0x2c7/0x5b0
+  SyS_mmap+0x1b/0x30
+  do_syscall_64+0x1a0/0x4e0
+  return_from_SYSCALL_64+0x0/0x7a
+ INFO: Slab 0xffffea0011503600 objects=7 used=7 fp=0x          (null) flags=0x8000000000004080
+ INFO: Object 0xffff8804540de848 @offset=26696 fp=0xffff8804540dc588
+ Redzone ffff8804540de840: bb bb bb bb bb bb bb bb                          ........
+ Object ffff8804540de848: 6b 6b 6b 6b 6b 6b 6b 6b b5 52 00 00 f2 01 60 cc  kkkkkkkk.R....`.
+
+Similarly, poisoning after the quarantine_put() leads to false positive
+use-after-free reports:
+
+ BUG: KASAN: use-after-free in anon_vma_interval_tree_insert+0x304/0x430 at addr ffff880405c540a0
+ Read of size 8 by task trinity-c0/3036
+ CPU: 0 PID: 3036 Comm: trinity-c0 Not tainted 4.7.0-think+ #9
+  ffff880405c54200 00000000c5c4423e ffff88044a5ef9f0 ffffffffaea48532
+  ffff88044a5efa88 ffff880461497a00 ffff88044a5efa78 ffffffffae57cfe2
+  ffff88046501c958 ffff880436aa5440 0000000000000282 0000000000000007
+ Call Trace:
+  [<ffffffffaea48532>] dump_stack+0x68/0x96
+  [<ffffffffae57cfe2>] kasan_report_error+0x222/0x600
+  [<ffffffffae57d571>] __asan_report_load8_noabort+0x61/0x70
+  [<ffffffffae4f8924>] anon_vma_interval_tree_insert+0x304/0x430
+  [<ffffffffae52f811>] anon_vma_chain_link+0x91/0xd0
+  [<ffffffffae536e46>] anon_vma_clone+0x136/0x3f0
+  [<ffffffffae537181>] anon_vma_fork+0x81/0x4c0
+  [<ffffffffae125663>] copy_process.part.47+0x2c43/0x5b20
+  [<ffffffffae12895d>] _do_fork+0x16d/0xbd0
+  [<ffffffffae129469>] SyS_clone+0x19/0x20
+  [<ffffffffae0064b0>] do_syscall_64+0x1a0/0x4e0
+  [<ffffffffafa09b1a>] entry_SYSCALL64_slow_path+0x25/0x25
+
+Fix this by putting an object in the quarantine after all other operations.
+
+Fixes: 80a9201a5965 ("mm, kasan: switch SLUB to stackdepot, enable memory quarantine for SLUB")
+Link: http://lkml.kernel.org/r/1470062715-14077-1-git-send-email-aryabinin@virtuozzo.com
 Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Reported-by: Dave Jones <davej@codemonkey.org.uk>
+Reported-by: Vegard Nossum <vegard.nossum@oracle.com>
+Reported-by: Sasha Levin <alexander.levin@verizon.com>
+Acked-by: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c  |    3 --
- mm/kasan/kasan.h  |    2 +
- mm/kasan/report.c |   54 ++++++++++++++++++++++++++++++--------------
- 3 files changed, 41 insertions(+), 18 deletions(-)
+ mm/kasan/kasan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/kasan/kasan.c~kasan-improve-double-free-reports mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-improve-double-free-reports
+diff -puN mm/kasan/kasan.c~mm-kasan-fix-corruptions-and-false-positive-reports mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-fix-corruptions-and-false-positive-reports
 +++ a/mm/kasan/kasan.c
-@@ -543,8 +543,7 @@ bool kasan_slab_free(struct kmem_cache *
- 
- 	shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(object));
- 	if (shadow_byte < 0 || shadow_byte >= KASAN_SHADOW_SCALE_SIZE) {
--		pr_err("Double free");
--		dump_stack();
-+		kasan_report_double_free(cache, object, shadow_byte);
- 		return true;
- 	}
- 
-diff -puN mm/kasan/kasan.h~kasan-improve-double-free-reports mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-improve-double-free-reports
-+++ a/mm/kasan/kasan.h
-@@ -99,6 +99,8 @@ static inline bool kasan_report_enabled(
- 
- void kasan_report(unsigned long addr, size_t size,
- 		bool is_write, unsigned long ip);
-+void kasan_report_double_free(struct kmem_cache *cache, void *object,
-+			s8 shadow);
- 
- #if defined(CONFIG_SLAB) || defined(CONFIG_SLUB)
- void quarantine_put(struct kasan_free_meta *info, struct kmem_cache *cache);
-diff -puN mm/kasan/report.c~kasan-improve-double-free-reports mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-improve-double-free-reports
-+++ a/mm/kasan/report.c
-@@ -116,6 +116,26 @@ static inline bool init_task_stack_addr(
- 			sizeof(init_thread_union.stack));
- }
- 
-+static DEFINE_SPINLOCK(report_lock);
-+
-+static void kasan_start_report(unsigned long *flags)
-+{
-+	/*
-+	 * Make sure we don't end up in loop.
-+	 */
-+	kasan_disable_current();
-+	spin_lock_irqsave(&report_lock, *flags);
-+	pr_err("==================================================================\n");
-+}
-+
-+static void kasan_end_report(unsigned long *flags)
-+{
-+	pr_err("==================================================================\n");
-+	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
-+	spin_unlock_irqrestore(&report_lock, *flags);
-+	kasan_enable_current();
-+}
-+
- static void print_track(struct kasan_track *track)
- {
- 	pr_err("PID = %u\n", track->pid);
-@@ -129,8 +149,7 @@ static void print_track(struct kasan_tra
- 	}
- }
- 
--static void kasan_object_err(struct kmem_cache *cache, struct page *page,
--				void *object, char *unused_reason)
-+static void kasan_object_err(struct kmem_cache *cache, void *object)
- {
- 	struct kasan_alloc_meta *alloc_info = get_alloc_info(cache, object);
- 
-@@ -147,6 +166,18 @@ static void kasan_object_err(struct kmem
- 	print_track(&alloc_info->free_track);
- }
- 
-+void kasan_report_double_free(struct kmem_cache *cache, void *object,
-+			s8 shadow)
-+{
-+	unsigned long flags;
-+
-+	kasan_start_report(&flags);
-+	pr_err("BUG: Double free or freeing an invalid pointer\n");
-+	pr_err("Unexpected shadow byte: 0x%hhX\n", shadow);
-+	kasan_object_err(cache, object);
-+	kasan_end_report(&flags);
-+}
-+
- static void print_address_description(struct kasan_access_info *info)
- {
- 	const void *addr = info->access_addr;
-@@ -160,8 +191,7 @@ static void print_address_description(st
- 			struct kmem_cache *cache = page->slab_cache;
- 			object = nearest_obj(cache, page,
- 						(void *)info->access_addr);
--			kasan_object_err(cache, page, object,
--					"kasan: bad access detected");
-+			kasan_object_err(cache, object);
- 			return;
- 		}
- 		dump_page(page, "kasan: bad access detected");
-@@ -226,19 +256,13 @@ static void print_shadow_for_address(con
- 	}
- }
- 
--static DEFINE_SPINLOCK(report_lock);
--
- static void kasan_report_error(struct kasan_access_info *info)
- {
- 	unsigned long flags;
- 	const char *bug_type;
- 
--	/*
--	 * Make sure we don't end up in loop.
--	 */
--	kasan_disable_current();
--	spin_lock_irqsave(&report_lock, flags);
--	pr_err("==================================================================\n");
-+	kasan_start_report(&flags);
-+
- 	if (info->access_addr <
- 			kasan_shadow_to_mem((void *)KASAN_SHADOW_START)) {
- 		if ((unsigned long)info->access_addr < PAGE_SIZE)
-@@ -259,10 +283,8 @@ static void kasan_report_error(struct ka
- 		print_address_description(info);
- 		print_shadow_for_address(info->first_bad_addr);
- 	}
--	pr_err("==================================================================\n");
--	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
--	spin_unlock_irqrestore(&report_lock, flags);
--	kasan_enable_current();
-+
-+	kasan_end_report(&flags);
- }
- 
- void kasan_report(unsigned long addr, size_t size,
+@@ -543,9 +543,9 @@ bool kasan_slab_free(struct kmem_cache *
+ 		switch (alloc_info->state) {
+ 		case KASAN_STATE_ALLOC:
+ 			alloc_info->state = KASAN_STATE_QUARANTINE;
+-			quarantine_put(free_info, cache);
+ 			set_track(&free_info->track, GFP_NOWAIT);
+ 			kasan_poison_slab_free(cache, object);
++			quarantine_put(free_info, cache);
+ 			return true;
+ 		case KASAN_STATE_QUARANTINE:
+ 		case KASAN_STATE_FREE:
 _
