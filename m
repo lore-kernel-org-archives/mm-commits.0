@@ -1,104 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [patch 062/111] nilfs2: embed a back pointer to super block
- instance in nilfs object
-Date: Tue, 02 Aug 2016 14:05:06 -0700
-Message-ID: <57a10b02.LW59mJXvR4oDGEx4%akpm@linux-foundation.org>
+Subject: [patch 066/111] nilfs2: do not use yield()
+Date: Tue, 02 Aug 2016 14:05:19 -0700
+Message-ID: <57a10b0f.M6gyERb09zpkkEwK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60608 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60610 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756474AbcHBVQu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:16:50 -0400
+	with ESMTP id S1756194AbcHBVQw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:16:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp
 
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: embed a back pointer to super block instance in nilfs object
+Subject: nilfs2: do not use yield()
 
-Insert a back pointer to super block instance in nilfs object so that
-functions of nilfs2 easily refer to the super block instance.  This
-simplifies replacement of printk() in the successive change.
+Use cond_resched() instead of yield() in the loop of
+nilfs_transaction_lock() since the usage corresponds to the "be nice for
+others" case that the comment of yield() says.
 
-Link: http://lkml.kernel.org/r/1464875891-5443-4-git-send-email-konishi.ryusuke@lab.ntt.co.jp
+This removes the following checkpatch.pl warning:
+
+ "WARNING: Using yield() is generally wrong. See yield() kernel-doc
+  (sched/core.c)"
+
+Link: http://lkml.kernel.org/r/1464875891-5443-8-git-send-email-konishi.ryusuke@lab.ntt.co.jp
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/super.c     |    2 +-
- fs/nilfs2/the_nilfs.c |    7 ++++---
- fs/nilfs2/the_nilfs.h |    4 +++-
- 3 files changed, 8 insertions(+), 5 deletions(-)
+ fs/nilfs2/segment.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/super.c~nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object
-+++ a/fs/nilfs2/super.c
-@@ -1076,7 +1076,7 @@ nilfs_fill_super(struct super_block *sb,
- 	__u64 cno;
- 	int err;
+diff -puN fs/nilfs2/segment.c~nilfs2-do-not-use-yield fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-do-not-use-yield
++++ a/fs/nilfs2/segment.c
+@@ -373,7 +373,7 @@ static void nilfs_transaction_lock(struc
+ 		nilfs_segctor_do_immediate_flush(sci);
  
--	nilfs = alloc_nilfs(sb->s_bdev);
-+	nilfs = alloc_nilfs(sb);
- 	if (!nilfs)
- 		return -ENOMEM;
- 
-diff -puN fs/nilfs2/the_nilfs.c~nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object fs/nilfs2/the_nilfs.c
---- a/fs/nilfs2/the_nilfs.c~nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -56,12 +56,12 @@ void nilfs_set_last_segment(struct the_n
- 
- /**
-  * alloc_nilfs - allocate a nilfs object
-- * @bdev: block device to which the_nilfs is related
-+ * @sb: super block instance
-  *
-  * Return Value: On success, pointer to the_nilfs is returned.
-  * On error, NULL is returned.
-  */
--struct the_nilfs *alloc_nilfs(struct block_device *bdev)
-+struct the_nilfs *alloc_nilfs(struct super_block *sb)
- {
- 	struct the_nilfs *nilfs;
- 
-@@ -69,7 +69,8 @@ struct the_nilfs *alloc_nilfs(struct blo
- 	if (!nilfs)
- 		return NULL;
- 
--	nilfs->ns_bdev = bdev;
-+	nilfs->ns_sb = sb;
-+	nilfs->ns_bdev = sb->s_bdev;
- 	atomic_set(&nilfs->ns_ndirtyblks, 0);
- 	init_rwsem(&nilfs->ns_sem);
- 	mutex_init(&nilfs->ns_snapshot_mount_mutex);
-diff -puN fs/nilfs2/the_nilfs.h~nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object fs/nilfs2/the_nilfs.h
---- a/fs/nilfs2/the_nilfs.h~nilfs2-embed-a-back-pointer-to-super-block-instance-in-nilfs-object
-+++ a/fs/nilfs2/the_nilfs.h
-@@ -43,6 +43,7 @@ enum {
-  * struct the_nilfs - struct to supervise multiple nilfs mount points
-  * @ns_flags: flags
-  * @ns_flushed_device: flag indicating if all volatile data was flushed
-+ * @ns_sb: back pointer to super block instance
-  * @ns_bdev: block device
-  * @ns_sem: semaphore for shared states
-  * @ns_snapshot_mount_mutex: mutex to protect snapshot mounts
-@@ -102,6 +103,7 @@ struct the_nilfs {
- 	unsigned long		ns_flags;
- 	int			ns_flushed_device;
- 
-+	struct super_block     *ns_sb;
- 	struct block_device    *ns_bdev;
- 	struct rw_semaphore	ns_sem;
- 	struct mutex		ns_snapshot_mount_mutex;
-@@ -281,7 +283,7 @@ static inline int nilfs_sb_will_flip(str
- }
- 
- void nilfs_set_last_segment(struct the_nilfs *, sector_t, u64, __u64);
--struct the_nilfs *alloc_nilfs(struct block_device *bdev);
-+struct the_nilfs *alloc_nilfs(struct super_block *sb);
- void destroy_nilfs(struct the_nilfs *nilfs);
- int init_nilfs(struct the_nilfs *nilfs, struct super_block *sb, char *data);
- int load_nilfs(struct the_nilfs *nilfs, struct super_block *sb);
+ 		up_write(&nilfs->ns_segctor_sem);
+-		yield();
++		cond_resched();
+ 	}
+ 	if (gcflag)
+ 		ti->ti_flags |= NILFS_TI_GC;
 _
