@@ -1,81 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [patch 034/111] task_work: use READ_ONCE/lockless_dereference,
- avoid pi_lock if !task_works
-Date: Tue, 02 Aug 2016 14:03:44 -0700
-Message-ID: <57a10ab0.n0i0ZIjn+PS/aZLr%akpm@linux-foundation.org>
+Subject: [patch 041/111] ratelimit: extend to print suppressed messages on release
+Date: Tue, 02 Aug 2016 14:04:04 -0700
+Message-ID: <57a10ac4.GP8paYBfJ1sYVFq2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60607 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60615 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754564AbcHBVRV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:21 -0400
+	with ESMTP id S1756842AbcHBVRT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, oleg@redhat.com, parri.andrea@gmail.com, peterz@infradead.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, bp@suse.de, dyoung@redhat.com, fbui@suse.com, gregkh@linuxfoundation.org, mingo@kernel.org, peterz@infradead.org, rostedt@goodmis.org, u.kleine-koenig@pengutronix.de
 
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: task_work: use READ_ONCE/lockless_dereference, avoid pi_lock if !task_works
+From: Borislav Petkov <bp@suse.de>
+Subject: ratelimit: extend to print suppressed messages on release
 
-Change task_work_cancel() to use lockless_dereference(), this is what the
-code really wants but we didn't have this helper when it was written.
+Extend the ratelimiting facility to print the amount of suppressed lines
+when it is being released.
 
-Also add the fast-path task->task_works == NULL check, in the likely case
-this task has no pending works and we can avoid spin_lock(task->pi_lock).
+This use case is aimed at short-termed, burst-like users for which we want
+to output the suppressed lines stats only once, after it has been disposed
+of.  For an example, see /dev/kmsg usage in a follow-on patch.
 
-While at it, change other users of ACCESS_ONCE() to use READ_ONCE().
+Also, change the printk() line we issue on release to not use "callbacks"
+as it is misleading: we're not suppressing callbacks but printk() calls.
 
-Link: http://lkml.kernel.org/r/20160610150042.GA13868@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Andrea Parri <parri.andrea@gmail.com>
+This has been separated from a previous patch by Linus.
+
+Link: http://lkml.kernel.org/r/20160716061745.15795-2-bp@alien8.de
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Franck Bui <fbui@suse.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/task_work.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/linux/ratelimit.h |   38 +++++++++++++++++++++++++++++++-----
+ lib/ratelimit.c           |   10 +++++----
+ 2 files changed, 39 insertions(+), 9 deletions(-)
 
-diff -puN kernel/task_work.c~task_work-use-read_once-lockless_dereference-avoid-pi_lock-if-task_works kernel/task_work.c
---- a/kernel/task_work.c~task_work-use-read_once-lockless_dereference-avoid-pi_lock-if-task_works
-+++ a/kernel/task_work.c
-@@ -29,7 +29,7 @@ task_work_add(struct task_struct *task,
- 	struct callback_head *head;
+diff -puN include/linux/ratelimit.h~ratelimit-extend-to-print-suppressed-messages-on-release include/linux/ratelimit.h
+--- a/include/linux/ratelimit.h~ratelimit-extend-to-print-suppressed-messages-on-release
++++ a/include/linux/ratelimit.h
+@@ -2,11 +2,15 @@
+ #define _LINUX_RATELIMIT_H
  
- 	do {
--		head = ACCESS_ONCE(task->task_works);
-+		head = READ_ONCE(task->task_works);
- 		if (unlikely(head == &work_exited))
- 			return -ESRCH;
- 		work->next = head;
-@@ -57,6 +57,9 @@ task_work_cancel(struct task_struct *tas
- 	struct callback_head **pprev = &task->task_works;
- 	struct callback_head *work;
- 	unsigned long flags;
+ #include <linux/param.h>
++#include <linux/sched.h>
+ #include <linux/spinlock.h>
+ 
+ #define DEFAULT_RATELIMIT_INTERVAL	(5 * HZ)
+ #define DEFAULT_RATELIMIT_BURST		10
+ 
++/* issue num suppressed message on exit */
++#define RATELIMIT_MSG_ON_RELEASE	BIT(0)
 +
-+	if (likely(!task->task_works))
-+		return NULL;
- 	/*
- 	 * If cmpxchg() fails we continue without updating pprev.
- 	 * Either we raced with task_work_add() which added the
-@@ -64,8 +67,7 @@ task_work_cancel(struct task_struct *tas
- 	 * we raced with task_work_run(), *pprev == NULL/exited.
- 	 */
- 	raw_spin_lock_irqsave(&task->pi_lock, flags);
--	while ((work = ACCESS_ONCE(*pprev))) {
--		smp_read_barrier_depends();
-+	while ((work = lockless_dereference(*pprev))) {
- 		if (work->func != func)
- 			pprev = &work->next;
- 		else if (cmpxchg(pprev, work, work->next) == work)
-@@ -95,7 +97,7 @@ void task_work_run(void)
- 		 * work_exited unless the list is empty.
- 		 */
- 		do {
--			work = ACCESS_ONCE(task->task_works);
-+			work = READ_ONCE(task->task_works);
- 			head = !work && (task->flags & PF_EXITING) ?
- 				&work_exited : NULL;
- 		} while (cmpxchg(&task->task_works, work, head) != work);
+ struct ratelimit_state {
+ 	raw_spinlock_t	lock;		/* protect the state */
+ 
+@@ -15,6 +19,7 @@ struct ratelimit_state {
+ 	int		printed;
+ 	int		missed;
+ 	unsigned long	begin;
++	unsigned long	flags;
+ };
+ 
+ #define RATELIMIT_STATE_INIT(name, interval_init, burst_init) {		\
+@@ -34,12 +39,35 @@ struct ratelimit_state {
+ static inline void ratelimit_state_init(struct ratelimit_state *rs,
+ 					int interval, int burst)
+ {
++	memset(rs, 0, sizeof(*rs));
++
+ 	raw_spin_lock_init(&rs->lock);
+-	rs->interval = interval;
+-	rs->burst = burst;
+-	rs->printed = 0;
+-	rs->missed = 0;
+-	rs->begin = 0;
++	rs->interval	= interval;
++	rs->burst	= burst;
++}
++
++static inline void ratelimit_default_init(struct ratelimit_state *rs)
++{
++	return ratelimit_state_init(rs, DEFAULT_RATELIMIT_INTERVAL,
++					DEFAULT_RATELIMIT_BURST);
++}
++
++static inline void ratelimit_state_exit(struct ratelimit_state *rs)
++{
++	if (!(rs->flags & RATELIMIT_MSG_ON_RELEASE))
++		return;
++
++	if (rs->missed) {
++		pr_warn("%s: %d output lines suppressed due to ratelimiting\n",
++			current->comm, rs->missed);
++		rs->missed = 0;
++	}
++}
++
++static inline void
++ratelimit_set_flags(struct ratelimit_state *rs, unsigned long flags)
++{
++	rs->flags = flags;
+ }
+ 
+ extern struct ratelimit_state printk_ratelimit_state;
+diff -puN lib/ratelimit.c~ratelimit-extend-to-print-suppressed-messages-on-release lib/ratelimit.c
+--- a/lib/ratelimit.c~ratelimit-extend-to-print-suppressed-messages-on-release
++++ a/lib/ratelimit.c
+@@ -46,12 +46,14 @@ int ___ratelimit(struct ratelimit_state
+ 		rs->begin = jiffies;
+ 
+ 	if (time_is_before_jiffies(rs->begin + rs->interval)) {
+-		if (rs->missed)
+-			printk(KERN_WARNING "%s: %d callbacks suppressed\n",
+-				func, rs->missed);
++		if (rs->missed) {
++			if (!(rs->flags & RATELIMIT_MSG_ON_RELEASE)) {
++				pr_warn("%s: %d callbacks suppressed\n", func, rs->missed);
++				rs->missed = 0;
++			}
++		}
+ 		rs->begin   = jiffies;
+ 		rs->printed = 0;
+-		rs->missed  = 0;
+ 	}
+ 	if (rs->burst && rs->burst > rs->printed) {
+ 		rs->printed++;
 _
