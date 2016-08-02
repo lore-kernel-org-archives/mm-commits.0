@@ -1,55 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [patch 029/111] memstick: don't allocate unused major for
- ms_block
-Date: Tue, 02 Aug 2016 14:03:30 -0700
-Message-ID: <57a10aa2.C1Quh56ZokxdPq3C%akpm@linux-foundation.org>
+Subject: [patch 033/111] include: mman: use bool instead of int for the
+ return value of arch_validate_prot
+Date: Tue, 02 Aug 2016 14:03:42 -0700
+Message-ID: <57a10aae.5nMDLWArszbF0YBR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60624 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755031AbcHBVRU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:20 -0400
+	with ESMTP id S1756723AbcHBVRW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, neilb@suse.com, axboe@fb.com, gregkh@linuxfoundation.org, keith.busch@intel.com, maximlevitsky@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, chengang@emindsoft.com.cn, gang.chen.5i5j@gmail.com, mpe@ellerman.id.au
 
-From: NeilBrown <neilb@suse.com>
-Subject: memstick: don't allocate unused major for ms_block
+From: Chen Gang <chengang@emindsoft.com.cn>
+Subject: include: mman: use bool instead of int for the return value of arch_validate_prot
 
-When alloc_disk(0) is used the ->major number is completely ignored.  All
-devices are allocated with a major of BLOCK_EXT_MAJOR.
+For pure bool function's return value, bool is a little better more or
+less than int.
 
-So remove registration and deregistration of 'major'.
-
-Link: http://lkml.kernel.org/r/20160602064318.4403.49955.stgit@noble
-Signed-off-by: NeilBrown <neilb@suse.com>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: http://lkml.kernel.org/r/1469331815-2026-1-git-send-email-chengang@emindsoft.com.cn
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/ms_block.c |   17 ++---------------
- 1 file changed, 2 insertions(+), 15 deletions(-)
+ arch/powerpc/include/asm/mman.h |    8 ++++----
+ include/linux/mman.h            |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/memstick/core/ms_block.c~memstick-dont-allocate-unused-major-for-ms_block drivers/memstick/core/ms_block.c
---- a/drivers/memstick/core/ms_block.c~memstick-dont-allocate-unused-major-for-ms_block
-+++ a/drivers/memstick/core/ms_block.c
-@@ -2338,23 +2338,11 @@ static struct memstick_driver msb_driver
- 	.resume   = msb_resume
- };
+diff -puN arch/powerpc/include/asm/mman.h~include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot arch/powerpc/include/asm/mman.h
+--- a/arch/powerpc/include/asm/mman.h~include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot
++++ a/arch/powerpc/include/asm/mman.h
+@@ -31,13 +31,13 @@ static inline pgprot_t arch_vm_get_page_
+ }
+ #define arch_vm_get_page_prot(vm_flags) arch_vm_get_page_prot(vm_flags)
  
--static int major;
--
- static int __init msb_init(void)
+-static inline int arch_validate_prot(unsigned long prot)
++static inline bool arch_validate_prot(unsigned long prot)
  {
--	int rc = register_blkdev(0, DRIVER_NAME);
--
--	if (rc < 0) {
--		pr_err("failed to register major (error %d)\n", rc);
--		return rc;
--	}
+ 	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_SAO))
+-		return 0;
++		return false;
+ 	if ((prot & PROT_SAO) && !cpu_has_feature(CPU_FTR_SAO))
+-		return 0;
+-	return 1;
++		return false;
++	return true;
+ }
+ #define arch_validate_prot(prot) arch_validate_prot(prot)
+ 
+diff -puN include/linux/mman.h~include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot include/linux/mman.h
+--- a/include/linux/mman.h~include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot
++++ a/include/linux/mman.h
+@@ -49,7 +49,7 @@ static inline void vm_unacct_memory(long
+  *
+  * Returns true if the prot flags are valid
+  */
+-static inline int arch_validate_prot(unsigned long prot)
++static inline bool arch_validate_prot(unsigned long prot)
+ {
+ 	return (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM)) == 0;
+ }
+_
