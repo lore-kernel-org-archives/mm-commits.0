@@ -1,74 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-befs-remove-useless-pr_err-in-befs_init_inodecache.patch removed from
- -mm tree
-Date: Mon, 01 Aug 2016 17:25:31 -0700
-Message-ID: <579fe87b.4zWb0noNNWcwbGkC%akpm@linux-foundation.org>
+Subject: [merged] befs-check-return-of-sb_min_blocksize.patch removed from -mm tree
+Date: Mon, 01 Aug 2016 17:25:33 -0700
+Message-ID: <579fe87d.AaTyyjmBI+BarnOa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47764 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47765 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752258AbcHBAZc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2016 20:25:32 -0400
+	with ESMTP id S1752258AbcHBAZe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Aug 2016 20:25:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: salah.triki@acm.org, mm-commits@vger.kernel.org
+To: luisbg@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: befs: remove useless pr_err in befs_init_inodecache()
+     Subject: befs: check return of sb_min_blocksize
 has been removed from the -mm tree.  Its filename was
-     fs-befs-remove-useless-pr_err-in-befs_init_inodecache.patch
+     befs-check-return-of-sb_min_blocksize.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Salah Triki <salah.triki@acm.org>
-Subject: fs: befs: remove useless pr_err in befs_init_inodecache()
+From: Luis de Bethencourt <luisbg@osg.samsung.com>
+Subject: befs: check return of sb_min_blocksize
 
-Remove pr_err since kmem_cache_create log error and dump stack.
+Confirm sb_min_blocksize() succeeded before continuing.
 
-Link: http://lkml.kernel.org/r/e6d03cbc9542495dc6174b59e32fcd41c1393cfc.1464226521.git.salah.triki@acm.org
-Signed-off-by: Salah Triki <salah.triki@acm.org>
----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-index 04541f3..c734f21 100644
+Link: http://lkml.kernel.org/r/1465700235-22881-1-git-send-email-luisbg@osg.samsung.com
+Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/befs/linuxvfs.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/befs/linuxvfs.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/befs/linuxvfs.c~fs-befs-remove-useless-pr_err-in-befs_init_inodecache fs/befs/linuxvfs.c
---- a/fs/befs/linuxvfs.c~fs-befs-remove-useless-pr_err-in-befs_init_inodecache
+diff -puN fs/befs/linuxvfs.c~befs-check-return-of-sb_min_blocksize fs/befs/linuxvfs.c
+--- a/fs/befs/linuxvfs.c~befs-check-return-of-sb_min_blocksize
 +++ a/fs/befs/linuxvfs.c
-@@ -436,10 +436,9 @@ befs_init_inodecache(void)
- 					      0, (SLAB_RECLAIM_ACCOUNT|
- 						SLAB_MEM_SPREAD|SLAB_ACCOUNT),
- 					      init_once);
--	if (befs_inode_cachep == NULL) {
--		pr_err("%s: Couldn't initialize inode slabcache\n", __func__);
-+	if (befs_inode_cachep == NULL)
- 		return -ENOMEM;
--	}
-+
- 	return 0;
- }
+@@ -756,6 +756,7 @@ befs_fill_super(struct super_block *sb,
+ 	long ret = -EINVAL;
+ 	const unsigned long sb_block = 0;
+ 	const off_t x86_sb_off = 512;
++	int blocksize;
  
-@@ -524,7 +523,6 @@ befs_utf2nls(struct super_block *sb, con
+ 	save_mount_options(sb, data);
  
- 	*out = result = kmalloc(maxlen, GFP_NOFS);
- 	if (!*out) {
--		*out_len = 0;
- 		return -ENOMEM;
- 	}
+@@ -788,7 +789,11 @@ befs_fill_super(struct super_block *sb,
+ 	 * least 1k to get the second 512 bytes of the volume.
+ 	 * -WD 10-26-01
+ 	 */ 
+-	sb_min_blocksize(sb, 1024);
++	blocksize = sb_min_blocksize(sb, 1024);
++	if (!blocksize) {
++		befs_error(sb, "unable to set blocksize");
++		goto unacquire_priv_sbp;
++	}
  
+ 	if (!(bh = sb_bread(sb, sb_block))) {
+ 		if (!silent)
 _
 
-Patches currently in -mm which might be from salah.triki@acm.org are
+Patches currently in -mm which might be from luisbg@osg.samsung.com are
 
+dynamic_debug-only-add-header-when-used.patch
+dynamic_debug-only-add-header-when-used-fix.patch
+maintainers-befs-add-new-maintainers.patch
 
