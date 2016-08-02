@@ -1,133 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [patch 047/111] firmware: consolidate kmap/read/write logic
-Date: Tue, 02 Aug 2016 14:04:22 -0700
-Message-ID: <57a10ad6.oqmVek2LeISogzpB%akpm@linux-foundation.org>
+Subject: [patch 055/111] checkpatch: check signoff when reading stdin
+Date: Tue, 02 Aug 2016 14:04:45 -0700
+Message-ID: <57a10aed.2dP45GG6KJiPdpSt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60607 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60615 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756723AbcHBVRK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:10 -0400
+	with ESMTP id S1756474AbcHBVRI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, stephen.boyd@linaro.org, broonie@kernel.org, gregkh@linuxfoundation.org, markivx@codeaurora.org, ming.lei@canonical.com, zohar@linux.vnet.ibm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, allenbh@gmail.com, apw@canonical.com, joe@perches.com
 
-From: Stephen Boyd <stephen.boyd@linaro.org>
-Subject: firmware: consolidate kmap/read/write logic
+From: Allen Hubbe <allenbh@gmail.com>
+Subject: checkpatch: check signoff when reading stdin
 
-Some systems are memory constrained but they need to load very large
-firmwares.  The firmware subsystem allows drivers to request this firmware
-be loaded from the filesystem, but this requires that the entire firmware
-be loaded into kernel memory first before it's provided to the driver. 
-This can lead to a situation where we map the firmware twice, once to load
-the firmware into kernel memory and once to copy the firmware into the
-final resting place.
+Signoff was not checked if the filename is '-', indicating reading the
+patch from stdin.  Commands such as the below would not warn about a
+missing signoff, because the patch filename is '-'.  This change allows
+checkpatch to warn about a missing signoff, even if the input filename is
+'-', but only if the patch has a commit message.
 
-This design creates needless memory pressure and delays loading because we
-have to copy from kernel memory to somewhere else.  This patch sets adds
-support to the request firmware API to load the firmware directly into a
-pre-allocated buffer, skipping the intermediate copying step and
-alleviating memory pressure during firmware loading.  The drawback is that
-we can't use the firmware caching feature because the memory for the
-firmware cache is not managed by the firmware layer.
+git show --pretty=email | scripts/checkpatch.pl -
 
+A more common use of checkpatch with stdin is for piping git diff through
+checkpatch.  The diff output would not contain a commit message, and
+therefore it would not contain a signoff line.  For this common use case,
+a warning should not be printed about the missing signoff.  With this
+change we will only warn about a missing signoff if the input contains a
+commit message.
 
-This patch (of 3):
+git diff | scripts/checkpatch.pl -
 
-We use similar structured code to read and write the kmapped firmware
-pages.  The only difference is read copies from the kmap region and write
-copies to it.  Consolidate this into one function to reduce duplication.
+Before this patch, a workaround for the first command was to refer to
+stdin by a name other than '-'.  The workaround is not an elegant
+solution, because elsewhere checkpatch uses the fact that filename equals
+'-', such as in setting '$vname' to 'Your patch' for stdin.  The command
+below would report "/dev/stdin has style problems" instead of "Your patch
+has style problems."
 
-Link: http://lkml.kernel.org/r/20160607164741.31849-2-stephen.boyd@linaro.org
-Signed-off-by: Stephen Boyd <stephen.boyd@linaro.org>
-Cc: Vikram Mulukutla <markivx@codeaurora.org>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Ming Lei <ming.lei@canonical.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+git show --pretty=email | scripts/checkpatch.pl /dev/stdin
+
+Link: http://lkml.kernel.org/r/48be31e414bddc65bccfa6b1322359be9ba032eb.1469670589.git.allenbh@gmail.com
+Signed-off-by: Allen Hubbe <allenbh@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/firmware_class.c |   57 ++++++++++++++------------------
- 1 file changed, 26 insertions(+), 31 deletions(-)
+ scripts/checkpatch.pl |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/firmware_class.c~firmware-consolidate-kmap-read-write-logic drivers/base/firmware_class.c
---- a/drivers/base/firmware_class.c~firmware-consolidate-kmap-read-write-logic
-+++ a/drivers/base/firmware_class.c
-@@ -691,6 +691,29 @@ out:
+diff -puN scripts/checkpatch.pl~checkpatch-check-signoff-when-reading-stdin scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-signoff-when-reading-stdin
++++ a/scripts/checkpatch.pl
+@@ -2069,6 +2069,7 @@ sub process {
+ 	my $is_patch = 0;
+ 	my $in_header_lines = $file ? 0 : 1;
+ 	my $in_commit_log = 0;		#Scanning lines before patch
++	my $has_commit_log = 0;		#Encountered lines before patch
+        my $commit_log_possible_stack_dump = 0;
+ 	my $commit_log_long_line = 0;
+ 	my $commit_log_has_diff = 0;
+@@ -2566,6 +2567,7 @@ sub process {
+ 		      $rawline =~ /^(commit\b|from\b|[\w-]+:).*$/i)) {
+ 			$in_header_lines = 0;
+ 			$in_commit_log = 1;
++			$has_commit_log = 1;
+ 		}
  
- static DEVICE_ATTR(loading, 0644, firmware_loading_show, firmware_loading_store);
- 
-+static void firmware_rw(struct firmware_buf *buf, char *buffer,
-+			loff_t offset, size_t count, bool read)
-+{
-+	while (count) {
-+		void *page_data;
-+		int page_nr = offset >> PAGE_SHIFT;
-+		int page_ofs = offset & (PAGE_SIZE-1);
-+		int page_cnt = min_t(size_t, PAGE_SIZE - page_ofs, count);
-+
-+		page_data = kmap(buf->pages[page_nr]);
-+
-+		if (read)
-+			memcpy(buffer, page_data + page_ofs, page_cnt);
-+		else
-+			memcpy(page_data + page_ofs, buffer, page_cnt);
-+
-+		kunmap(buf->pages[page_nr]);
-+		buffer += page_cnt;
-+		offset += page_cnt;
-+		count -= page_cnt;
-+	}
-+}
-+
- static ssize_t firmware_data_read(struct file *filp, struct kobject *kobj,
- 				  struct bin_attribute *bin_attr,
- 				  char *buffer, loff_t offset, size_t count)
-@@ -715,21 +738,8 @@ static ssize_t firmware_data_read(struct
- 
- 	ret_count = count;
- 
--	while (count) {
--		void *page_data;
--		int page_nr = offset >> PAGE_SHIFT;
--		int page_ofs = offset & (PAGE_SIZE-1);
--		int page_cnt = min_t(size_t, PAGE_SIZE - page_ofs, count);
--
--		page_data = kmap(buf->pages[page_nr]);
--
--		memcpy(buffer, page_data + page_ofs, page_cnt);
-+	firmware_rw(buf, buffer, offset, count, true);
- 
--		kunmap(buf->pages[page_nr]);
--		buffer += page_cnt;
--		offset += page_cnt;
--		count -= page_cnt;
--	}
- out:
- 	mutex_unlock(&fw_lock);
- 	return ret_count;
-@@ -809,24 +819,9 @@ static ssize_t firmware_data_write(struc
- 		goto out;
- 
- 	retval = count;
-+	firmware_rw(buf, buffer, offset, count, false);
- 
--	while (count) {
--		void *page_data;
--		int page_nr = offset >> PAGE_SHIFT;
--		int page_ofs = offset & (PAGE_SIZE - 1);
--		int page_cnt = min_t(size_t, PAGE_SIZE - page_ofs, count);
--
--		page_data = kmap(buf->pages[page_nr]);
--
--		memcpy(page_data + page_ofs, buffer, page_cnt);
--
--		kunmap(buf->pages[page_nr]);
--		buffer += page_cnt;
--		offset += page_cnt;
--		count -= page_cnt;
--	}
+ # Check if there is UTF-8 in a commit log when a mail header has explicitly
+@@ -6055,7 +6057,7 @@ sub process {
+ 		ERROR("NOT_UNIFIED_DIFF",
+ 		      "Does not appear to be a unified-diff format patch\n");
+ 	}
+-	if ($is_patch && $filename ne '-' && $chk_signoff && $signoff == 0) {
++	if ($is_patch && $has_commit_log && $chk_signoff && $signoff == 0) {
+ 		ERROR("MISSING_SIGN_OFF",
+ 		      "Missing Signed-off-by: line(s)\n");
+ 	}
+_
