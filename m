@@ -1,58 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [patch 010/111] mm, hugetlb: fix huge_pte_alloc BUG_ON
-Date: Tue, 02 Aug 2016 14:02:34 -0700
-Message-ID: <57a10a6a.tuADH/gq1pEYAJjk%akpm@linux-foundation.org>
+Subject: [patch 009/111] mm/hugetlb: avoid soft lockup in
+ set_max_huge_pages()
+Date: Tue, 02 Aug 2016 14:02:31 -0700
+Message-ID: <57a10a67.t/ObZcQI446RCKRk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60016 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60006 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932455AbcHBVCg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:02:36 -0400
+	with ESMTP id S932410AbcHBVCd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:02:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, zhongjiang@huawei.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hejianet@gmail.com, dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, stable@vger.kernel.org
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, hugetlb: fix huge_pte_alloc BUG_ON
+From: Jia He <hejianet@gmail.com>
+Subject: mm/hugetlb: avoid soft lockup in set_max_huge_pages()
 
-Zhong Jiang has reported a BUG_ON from huge_pte_alloc hitting when he runs
-his database load with memory online and offline running in parallel.  The
-reason is that huge_pmd_share might detect a shared pmd which is currently
-migrated and so it has migration pte which is !pte_huge.
+In powerpc servers with large memory(32TB), we watched several soft
+lockups for hugepage under stress tests.
 
-There doesn't seem to be any easy way to prevent from the race and in fact
-seeing the migration swap entry is not harmful.  Both callers of
-huge_pte_alloc are prepared to handle them.  copy_hugetlb_page_range will
-copy the swap entry and make it COW if needed.  hugetlb_fault will back
-off and so the page fault is retries if the page is still under migration
-and waits for its completion in hugetlb_fault.
+The call traces are as follows:
+1.
+get_page_from_freelist+0x2d8/0xd50
+__alloc_pages_nodemask+0x180/0xc20
+alloc_fresh_huge_page+0xb0/0x190
+set_max_huge_pages+0x164/0x3b0
 
-That means that the BUG_ON is wrong and we should update it.  Let's simply
-check that all present ptes are pte_huge instead.
+2.
+prep_new_huge_page+0x5c/0x100
+alloc_fresh_huge_page+0xc8/0x190
+set_max_huge_pages+0x164/0x3b0
 
-Link: http://lkml.kernel.org/r/20160721074340.GA26398@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: zhongjiang <zhongjiang@huawei.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+This patch fixes such soft lockups.  It is safe to call cond_resched()
+there because it is out of spin_lock/unlock section.
+
+Link: http://lkml.kernel.org/r/1469674442-14848-1-git-send-email-hejianet@gmail.com
+Signed-off-by: Jia He <hejianet@gmail.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-huge_pte_alloc-bug_on mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-huge_pte_alloc-bug_on
+diff -puN mm/hugetlb.c~mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages
 +++ a/mm/hugetlb.c
-@@ -4310,7 +4310,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 				pte = (pte_t *)pmd_alloc(mm, pud, addr);
- 		}
- 	}
--	BUG_ON(pte && !pte_none(*pte) && !pte_huge(*pte));
-+	BUG_ON(pte && pte_present(*pte) && !pte_huge(*pte));
- 
- 	return pte;
- }
+@@ -2216,6 +2216,10 @@ static unsigned long set_max_huge_pages(
+ 		 * and reducing the surplus.
+ 		 */
+ 		spin_unlock(&hugetlb_lock);
++
++		/* yield cpu to avoid soft lockup */
++		cond_resched();
++
+ 		if (hstate_is_gigantic(h))
+ 			ret = alloc_fresh_gigantic_page(h, nodes_allowed);
+ 		else
 _
