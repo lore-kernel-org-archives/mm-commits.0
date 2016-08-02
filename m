@@ -1,116 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [patch 075/111] kexec: return error number directly
-Date: Tue, 02 Aug 2016 14:05:45 -0700
-Message-ID: <57a10b29.+rElRgG5NDorlSsy%akpm@linux-foundation.org>
+Subject: [patch 044/111] lib/iommu-helper: skip to next segment
+Date: Tue, 02 Aug 2016 14:04:13 -0700
+Message-ID: <57a10acd.wcHqeXNopEpn+lv5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60619 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60620 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755479AbcHBVRI (ORCPT
+	with ESMTP id S1756442AbcHBVRI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mnghuan@gmail.com, ats-kumagai@wm.jp.nec.com, bhe@redhat.com, bp@suse.de, dyoung@redhat.com, vgoyal@redhat.com, xlpang@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sebott@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com
 
-From: Minfei Huang <mnghuan@gmail.com>
-Subject: kexec: return error number directly
+From: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Subject: lib/iommu-helper: skip to next segment
 
-This is a cleanup patch to make kexec more clear to return error number
-directly.  The variable result is useless, because there is no other
-function's return value assignes to it.  So remove it.
+When a large enough area in the iommu bitmap is found but would span a
+boundary we continue the search starting from the next bit position.  For
+large allocations this can lead to several useless invocations of
+bitmap_find_next_zero_area() and iommu_is_span_boundary().
 
-Link: http://lkml.kernel.org/r/1464179273-57668-1-git-send-email-mnghuan@gmail.com
-Signed-off-by: Minfei Huang <mnghuan@gmail.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Xunlei Pang <xlpang@redhat.com>
-Cc: Atsushi Kumagai <ats-kumagai@wm.jp.nec.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Continue the search from the start of the next segment (which is the next
+bit position such that we'll not cross the same segment boundary again).
+
+Link: http://lkml.kernel.org/r/alpine.LFD.2.20.1606081910070.3211@schleppi
+Signed-off-by: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Reviewed-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ lib/iommu-helper.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/kexec_core.c~kexec-return-error-number-directly kernel/kexec_core.c
---- a/kernel/kexec_core.c~kexec-return-error-number-directly
-+++ a/kernel/kexec_core.c
-@@ -147,7 +147,7 @@ static struct page *kimage_alloc_page(st
- 
- int sanity_check_segment_list(struct kimage *image)
- {
--	int result, i;
-+	int i;
- 	unsigned long nr_segments = image->nr_segments;
- 
- 	/*
-@@ -163,16 +163,15 @@ int sanity_check_segment_list(struct kim
- 	 * simply because addresses are changed to page size
- 	 * granularity.
- 	 */
--	result = -EADDRNOTAVAIL;
- 	for (i = 0; i < nr_segments; i++) {
- 		unsigned long mstart, mend;
- 
- 		mstart = image->segment[i].mem;
- 		mend   = mstart + image->segment[i].memsz;
- 		if ((mstart & ~PAGE_MASK) || (mend & ~PAGE_MASK))
--			return result;
-+			return -EADDRNOTAVAIL;
- 		if (mend >= KEXEC_DESTINATION_MEMORY_LIMIT)
--			return result;
-+			return -EADDRNOTAVAIL;
- 	}
- 
- 	/* Verify our destination addresses do not overlap.
-@@ -180,7 +179,6 @@ int sanity_check_segment_list(struct kim
- 	 * through very weird things can happen with no
- 	 * easy explanation as one segment stops on another.
- 	 */
--	result = -EINVAL;
- 	for (i = 0; i < nr_segments; i++) {
- 		unsigned long mstart, mend;
- 		unsigned long j;
-@@ -194,7 +192,7 @@ int sanity_check_segment_list(struct kim
- 			pend   = pstart + image->segment[j].memsz;
- 			/* Do the segments overlap ? */
- 			if ((mend > pstart) && (mstart < pend))
--				return result;
-+				return -EINVAL;
+diff -puN lib/iommu-helper.c~lib-iommu-helper-skip-to-next-segment lib/iommu-helper.c
+--- a/lib/iommu-helper.c~lib-iommu-helper-skip-to-next-segment
++++ a/lib/iommu-helper.c
+@@ -29,8 +29,7 @@ again:
+ 	index = bitmap_find_next_zero_area(map, size, start, nr, align_mask);
+ 	if (index < size) {
+ 		if (iommu_is_span_boundary(index, nr, shift, boundary_size)) {
+-			/* we could do more effectively */
+-			start = index + 1;
++			start = ALIGN(shift + index, boundary_size) - shift;
+ 			goto again;
  		}
- 	}
- 
-@@ -203,10 +201,9 @@ int sanity_check_segment_list(struct kim
- 	 * and it is easier to check up front than to be surprised
- 	 * later on.
- 	 */
--	result = -EINVAL;
- 	for (i = 0; i < nr_segments; i++) {
- 		if (image->segment[i].bufsz > image->segment[i].memsz)
--			return result;
-+			return -EINVAL;
- 	}
- 
- 	/*
-@@ -220,7 +217,6 @@ int sanity_check_segment_list(struct kim
- 	 */
- 
- 	if (image->type == KEXEC_TYPE_CRASH) {
--		result = -EADDRNOTAVAIL;
- 		for (i = 0; i < nr_segments; i++) {
- 			unsigned long mstart, mend;
- 
-@@ -229,7 +225,7 @@ int sanity_check_segment_list(struct kim
- 			/* Ensure we are within the crash kernel limits */
- 			if ((mstart < crashk_res.start) ||
- 			    (mend > crashk_res.end))
--				return result;
-+				return -EADDRNOTAVAIL;
- 		}
- 	}
- 
+ 		bitmap_set(map, index, nr);
 _
