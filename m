@@ -1,86 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [patch 006/111] mm: fail prefaulting if page table allocation
- fails
-Date: Tue, 02 Aug 2016 14:02:22 -0700
-Message-ID: <57a10a5e.xFmnw9qg+pTp8aW6%akpm@linux-foundation.org>
+Subject: [patch 007/111] mm: move swap-in anonymous page into active list
+Date: Tue, 02 Aug 2016 14:02:25 -0700
+Message-ID: <57a10a61./e/qc5m+dcOHwvhM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59996 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932283AbcHBVCY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:02:24 -0400
+	with ESMTP id S1753011AbcHBVC1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:02:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vegard.nossum@oracle.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, minchan@kernel.org, hannes@cmpxchg.org, mgorman@techsingularity.net, nadav.amit@gmail.com, riel@redhat.com
 
-From: Vegard Nossum <vegard.nossum@oracle.com>
-Subject: mm: fail prefaulting if page table allocation fails
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: move swap-in anonymous page into active list
 
-I ran into this:
+Every swap-in anonymous page starts from inactive lru list's head.  It
+should be activated unconditionally when VM decide to reclaim because page
+table entry for the page always usually has marked accessed bit.  Thus,
+their window size for getting a new referece is 2 * NR_inactive +
+NR_active while others is NR_inactive + NR_active.
 
-    BUG: sleeping function called from invalid context at mm/page_alloc.c:3784
-    in_atomic(): 0, irqs_disabled(): 0, pid: 1434, name: trinity-c1
-    2 locks held by trinity-c1/1434:
-     #0:  (&mm->mmap_sem){......}, at: [<ffffffff810ce31e>] __do_page_fault+0x1ce/0x8f0
-     #1:  (rcu_read_lock){......}, at: [<ffffffff81378f86>] filemap_map_pages+0xd6/0xdd0
+It's not fair that it has more chance to be referenced compared to other
+newly allocated page which starts from active lru list's head.
 
-    CPU: 0 PID: 1434 Comm: trinity-c1 Not tainted 4.7.0+ #58
-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
-     ffff8800b662f698 ffff8800b662f548 ffffffff81d6d001 ffffffff83a61100
-     ffff8800b662f620 ffff8800b662f610 ffffffff81373fd1 0000000041b58ab3
-     ffffffff8406ca21 ffffffff81373e4c 0000000041b58ab3 ffffffff00000008
-    Call Trace:
-     [<ffffffff81d6d001>] dump_stack+0x65/0x84
-     [<ffffffff81373fd1>] panic+0x185/0x2dd
-     [<ffffffff8118e38c>] ___might_sleep+0x51c/0x600
-     [<ffffffff8118e500>] __might_sleep+0x90/0x1a0
-     [<ffffffff81392761>] __alloc_pages_nodemask+0x5b1/0x2160
-     [<ffffffff814665ac>] alloc_pages_current+0xcc/0x370
-     [<ffffffff810d95b2>] pte_alloc_one+0x12/0x90
-     [<ffffffff814053cd>] __pte_alloc+0x1d/0x200
-     [<ffffffff8140be4e>] alloc_set_pte+0xe3e/0x14a0
-     [<ffffffff813792db>] filemap_map_pages+0x42b/0xdd0
-     [<ffffffff8140e0d5>] handle_mm_fault+0x17d5/0x28b0
-     [<ffffffff810ce460>] __do_page_fault+0x310/0x8f0
-     [<ffffffff810cec7d>] trace_do_page_fault+0x18d/0x310
-     [<ffffffff810c2177>] do_async_page_fault+0x27/0xa0
-     [<ffffffff8389e258>] async_page_fault+0x28/0x30
+Johannes:
 
-The important bits from the above is that filemap_map_pages() is calling
-into the page allocator while holding rcu_read_lock (sleeping is not
-allowed inside RCU read-side critical sections).
+: The page can still have a valid copy on the swap device, so prefering to
+: reclaim that page over a fresh one could make sense.  But as you point
+: out, having it start inactive instead of active actually ends up giving it
+: *more* LRU time, and that seems to be without justification.
 
-According to Kirill Shutemov, the prefaulting code in do_fault_around()
-is supposed to take care of this, but missing error handling means that
-the allocation failure can go unnoticed.
+Rik:
 
-We don't need to return VM_FAULT_OOM (or any other error) here, since we
-can just let the normal fault path try again.
+: The reason newly read in swap cache pages start on the inactive list is
+: that we do some amount of read-around, and do not know which pages will
+: get used.
+:
+: However, immediately activating the ones that DO get used, like your patch
+: does, is the right thing to do.
 
-Fixes: 7267ec008b5c ("mm: postpone page table allocation until we have page to map")
-Link: http://lkml.kernel.org/r/1469708107-11868-1-git-send-email-vegard.nossum@oracle.com
-Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: "Hillf Danton" <hillf.zj@alibaba-inc.com>
+Link: http://lkml.kernel.org/r/1469762740-17860-1-git-send-email-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memory.c~mm-fail-prefaulting-if-page-table-allocation-fails mm/memory.c
---- a/mm/memory.c~mm-fail-prefaulting-if-page-table-allocation-fails
+diff -puN mm/memory.c~mm-move-swap-in-anonymous-page-into-active-list mm/memory.c
+--- a/mm/memory.c~mm-move-swap-in-anonymous-page-into-active-list
 +++ a/mm/memory.c
-@@ -3133,6 +3133,8 @@ static int do_fault_around(struct fault_
- 
- 	if (pmd_none(*fe->pmd)) {
- 		fe->prealloc_pte = pte_alloc_one(fe->vma->vm_mm, fe->address);
-+		if (!fe->prealloc_pte)
-+			goto out;
- 		smp_wmb(); /* See comment in __pte_alloc() */
- 	}
- 
+@@ -2642,6 +2642,7 @@ int do_swap_page(struct fault_env *fe, p
+ 	if (page == swapcache) {
+ 		do_page_add_anon_rmap(page, vma, fe->address, exclusive);
+ 		mem_cgroup_commit_charge(page, memcg, true, false);
++		activate_page(page);
+ 	} else { /* ksm created a completely new copy */
+ 		page_add_new_anon_rmap(page, vma, fe->address, false);
+ 		mem_cgroup_commit_charge(page, memcg, false, false);
 _
