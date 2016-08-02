@@ -1,46 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 008/111] tools/testing/radix-tree/linux/gfp.h: fix
- bitrotted value
-Date: Tue, 02 Aug 2016 14:02:28 -0700
-Message-ID: <57a10a64.ljR2MCmaHpnmCq54%akpm@linux-foundation.org>
+Subject: [patch 010/111] mm, hugetlb: fix huge_pte_alloc BUG_ON
+Date: Tue, 02 Aug 2016 14:02:34 -0700
+Message-ID: <57a10a6a.tuADH/gq1pEYAJjk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60002 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60016 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756013AbcHBVC3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:02:29 -0400
+	with ESMTP id S932455AbcHBVCg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:02:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, valdis.kletnieks@vt.edu
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, zhongjiang@huawei.com
 
-From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Subject: tools/testing/radix-tree/linux/gfp.h: fix bitrotted value
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, hugetlb: fix huge_pte_alloc BUG_ON
 
-Apparently, the tools/testing version dates to a few flags ago, and we've
-sprouted 4 new ones since.  Keep in sync with the value in the main
-tree...
+Zhong Jiang has reported a BUG_ON from huge_pte_alloc hitting when he runs
+his database load with memory online and offline running in parallel.  The
+reason is that huge_pmd_share might detect a shared pmd which is currently
+migrated and so it has migration pte which is !pte_huge.
 
-Link: http://lkml.kernel.org/r/23400.1469702675@turing-police.cc.vt.edu
-Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+There doesn't seem to be any easy way to prevent from the race and in fact
+seeing the migration swap entry is not harmful.  Both callers of
+huge_pte_alloc are prepared to handle them.  copy_hugetlb_page_range will
+copy the swap entry and make it COW if needed.  hugetlb_fault will back
+off and so the page fault is retries if the page is still under migration
+and waits for its completion in hugetlb_fault.
+
+That means that the BUG_ON is wrong and we should update it.  Let's simply
+check that all present ptes are pte_huge instead.
+
+Link: http://lkml.kernel.org/r/20160721074340.GA26398@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: zhongjiang <zhongjiang@huawei.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux/gfp.h |    2 +-
+ mm/hugetlb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/testing/radix-tree/linux/gfp.h~fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph tools/testing/radix-tree/linux/gfp.h
---- a/tools/testing/radix-tree/linux/gfp.h~fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph
-+++ a/tools/testing/radix-tree/linux/gfp.h
-@@ -1,7 +1,7 @@
- #ifndef _GFP_H
- #define _GFP_H
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-huge_pte_alloc-bug_on mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-huge_pte_alloc-bug_on
++++ a/mm/hugetlb.c
+@@ -4310,7 +4310,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
+ 				pte = (pte_t *)pmd_alloc(mm, pud, addr);
+ 		}
+ 	}
+-	BUG_ON(pte && !pte_none(*pte) && !pte_huge(*pte));
++	BUG_ON(pte && pte_present(*pte) && !pte_huge(*pte));
  
--#define __GFP_BITS_SHIFT 22
-+#define __GFP_BITS_SHIFT 26
- #define __GFP_BITS_MASK ((gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
- #define __GFP_WAIT 1
- #define __GFP_ACCOUNT 0
+ 	return pte;
+ }
 _
