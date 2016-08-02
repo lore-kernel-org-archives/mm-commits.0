@@ -1,69 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [patch 009/111] mm/hugetlb: avoid soft lockup in
- set_max_huge_pages()
-Date: Tue, 02 Aug 2016 14:02:31 -0700
-Message-ID: <57a10a67.t/ObZcQI446RCKRk%akpm@linux-foundation.org>
+Subject: [patch 011/111] memcg: put soft limit reclaim out of way if the
+ excess tree is empty
+Date: Tue, 02 Aug 2016 14:02:37 -0700
+Message-ID: <57a10a6d.d+jL77Z6gp48EYMN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60006 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60021 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932410AbcHBVCd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:02:33 -0400
+	with ESMTP id S932540AbcHBVCj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:02:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hejianet@gmail.com, dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, vdavydov@virtuozzo.com
 
-From: Jia He <hejianet@gmail.com>
-Subject: mm/hugetlb: avoid soft lockup in set_max_huge_pages()
+From: Michal Hocko <mhocko@suse.com>
+Subject: memcg: put soft limit reclaim out of way if the excess tree is empty
 
-In powerpc servers with large memory(32TB), we watched several soft
-lockups for hugepage under stress tests.
+We've had a report about soft lockups caused by lock bouncing in the soft
+reclaim path:
 
-The call traces are as follows:
-1.
-get_page_from_freelist+0x2d8/0xd50
-__alloc_pages_nodemask+0x180/0xc20
-alloc_fresh_huge_page+0xb0/0x190
-set_max_huge_pages+0x164/0x3b0
+[331404.849734] BUG: soft lockup - CPU#0 stuck for 22s! [kav4proxy-kavic:3128]
+[331404.849920] RIP: 0010:[<ffffffff81469798>]  [<ffffffff81469798>] _raw_spin_lock+0x18/0x20
+[331404.849997] Call Trace:
+[331404.850010]  [<ffffffff811557ea>] mem_cgroup_soft_limit_reclaim+0x25a/0x280
+[331404.850020]  [<ffffffff8111041d>] shrink_zones+0xed/0x200
+[331404.850027]  [<ffffffff81111a94>] do_try_to_free_pages+0x74/0x320
+[331404.850034]  [<ffffffff81112072>] try_to_free_pages+0x112/0x180
+[331404.850042]  [<ffffffff81104a6f>] __alloc_pages_slowpath+0x3ff/0x820
+[331404.850049]  [<ffffffff81105079>] __alloc_pages_nodemask+0x1e9/0x200
+[331404.850056]  [<ffffffff81141e01>] alloc_pages_vma+0xe1/0x290
+[331404.850064]  [<ffffffff8112402f>] do_wp_page+0x19f/0x840
+[331404.850071]  [<ffffffff811257cd>] handle_pte_fault+0x1cd/0x230
+[331404.850079]  [<ffffffff8146d3ed>] do_page_fault+0x1fd/0x4c0
+[331404.850087]  [<ffffffff81469ec5>] page_fault+0x25/0x30
 
-2.
-prep_new_huge_page+0x5c/0x100
-alloc_fresh_huge_page+0xc8/0x190
-set_max_huge_pages+0x164/0x3b0
+There are no memcgs created so there cannot be any in the soft limit
+excess obviously:
+[...]
+memory  0       1       1
 
-This patch fixes such soft lockups.  It is safe to call cond_resched()
-there because it is out of spin_lock/unlock section.
+so all this just seems to be mem_cgroup_largest_soft_limit_node trying to
+get spin_lock_irq(&mctz->lock) just to find out that the soft limit excess
+tree is empty.  This is just pointless wasting of cycles and cache line
+bouncing during heavy parallel reclaim on large machines.  The particular
+machine wasn't very healthy and most probably suffering from a memory leak
+which just caused the memory reclaim to trash heavily.  But bouncing on
+the lock certainly didn't help...
 
-Link: http://lkml.kernel.org/r/1469674442-14848-1-git-send-email-hejianet@gmail.com
-Signed-off-by: Jia He <hejianet@gmail.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: <stable@vger.kernel.org>
+Fix this by optimistic lockless check and bail out early if the tree is
+empty.  This is theoretically racy but that shouldn't matter all that
+much.  First of all soft limit is a best effort feature and it is slowly
+getting deprecated and its usage should be really scarce.  Bouncing on a
+lock without a good reason is surely much bigger problem, especially on
+large CPU machines.
+
+Link: http://lkml.kernel.org/r/1470073277-1056-1-git-send-email-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/memcontrol.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages
-+++ a/mm/hugetlb.c
-@@ -2216,6 +2216,10 @@ static unsigned long set_max_huge_pages(
- 		 * and reducing the surplus.
- 		 */
- 		spin_unlock(&hugetlb_lock);
+diff -puN mm/memcontrol.c~memcg-put-soft-limit-reclaim-out-of-way-if-the-excess-tree-is-empty mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-put-soft-limit-reclaim-out-of-way-if-the-excess-tree-is-empty
++++ a/mm/memcontrol.c
+@@ -2559,6 +2559,15 @@ unsigned long mem_cgroup_soft_limit_recl
+ 		return 0;
+ 
+ 	mctz = soft_limit_tree_node(pgdat->node_id);
 +
-+		/* yield cpu to avoid soft lockup */
-+		cond_resched();
++	/*
++	 * Do not even bother to check the largest node if the root
++	 * is empty. Do it lockless to prevent lock bouncing. Races
++	 * are acceptable as soft limit is best effort anyway.
++	 */
++	if (RB_EMPTY_ROOT(&mctz->rb_root))
++		return 0;
 +
- 		if (hstate_is_gigantic(h))
- 			ret = alloc_fresh_gigantic_page(h, nodes_allowed);
- 		else
+ 	/*
+ 	 * This loop can run a while, specially if mem_cgroup's continuously
+ 	 * keep exceeding their soft limit and putting the system under
 _
