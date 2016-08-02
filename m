@@ -1,73 +1,62 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- rapidio-switches-add-driver-for-idt-gen3-switches-fix.patch removed from
- -mm tree
-Date: Tue, 02 Aug 2016 13:49:38 -0700
-Message-ID: <57a10762.b9ILR9pRNxmhuL2P%akpm@linux-foundation.org>
+ rapidio-change-inbound-window-size-type-to-u64-fix.patch removed from -mm
+ tree
+Date: Tue, 02 Aug 2016 13:47:46 -0700
+Message-ID: <57a106f2.hrC3zqdUuG2LlXw/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59742 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59740 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753629AbcHBU46 (ORCPT
+	with ESMTP id S1753291AbcHBU46 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 16:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mpe@ellerman.id.au, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/idt_gen3: fixup for original driver patch
+     Subject: rapidio: change inbound window size type to u64 fix
 has been removed from the -mm tree.  Its filename was
-     rapidio-switches-add-driver-for-idt-gen3-switches-fix.patch
+     rapidio-change-inbound-window-size-type-to-u64-fix.patch
 
-This patch was dropped because it was folded into rapidio-switches-add-driver-for-idt-gen3-switches.patch
+This patch was dropped because it was folded into rapidio-change-inbound-window-size-type-to-u64.patch
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/idt_gen3: fixup for original driver patch
+Subject: rapidio: change inbound window size type to u64 fix
 
-This patch has two fixes for the patch
-"rapidio/switches: add driver for IDT gen3 switches" currently in -mm tree.
+Fix for patch "rapidio: change inbound window size type to u64".
 
-First address Andrew's comment about blocking delay.
-The second fix was missed during the original patch preparation.
+Remove compiler warning about size of constant.
 
-Link: http://lkml.kernel.org/r/1469137596-18241-1-git-send-email-alexandre.bounine@idt.com
+Link: http://lkml.kernel.org/r/20160802184856.2566-1-alexandre.bounine@idt.com
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Cc: Barry Wood <barry.wood@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/switches/idt_gen3.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/powerpc/sysdev/fsl_rio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/switches/idt_gen3.c~rapidio-switches-add-driver-for-idt-gen3-switches-fix drivers/rapidio/switches/idt_gen3.c
---- a/drivers/rapidio/switches/idt_gen3.c~rapidio-switches-add-driver-for-idt-gen3-switches-fix
-+++ a/drivers/rapidio/switches/idt_gen3.c
-@@ -173,7 +173,8 @@ idtg3_em_init(struct rio_dev *rdev)
- 	rio_write_config_32(rdev, RIO_EM_DEV_INT_EN, 0);
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-change-inbound-window-size-type-to-u64-fix arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-change-inbound-window-size-type-to-u64-fix
++++ a/arch/powerpc/sysdev/fsl_rio.c
+@@ -298,7 +298,7 @@ int fsl_map_inb_mem(struct rio_mport *mp
+ 	u32 riwar;
+ 	int i;
  
- 	/* Disable port-write event notifications during initialization */
--	rio_write_config_32(rdev, rdev->em_efptr + RIO_EM_PW_TX_CTRL, 0);
-+	rio_write_config_32(rdev, rdev->em_efptr + RIO_EM_PW_TX_CTRL,
-+			    RIO_EM_PW_TX_CTRL_PW_DIS);
+-	if ((size & (size - 1)) != 0 || size > 0x400000000UL)
++	if ((size & (size - 1)) != 0 || size > 0x400000000ULL)
+ 		return -EINVAL;
  
- 	/* Configure Port-Write notifications for hot-swap events */
- 	tmp = RIO_GET_TOTAL_PORTS(rdev->swpinfo);
-@@ -255,7 +256,7 @@ idtg3_em_handler(struct rio_dev *rdev, u
- 				    rval | RIO_PLM_SPx_IMP_SPEC_CTL_SOFT_RST);
- 		udelay(10);
- 		rio_write_config_32(rdev, RIO_PLM_SPx_IMP_SPEC_CTL(pnum), rval);
--		mdelay(500);
-+		msleep(500);
- 	}
- 
- 	return 0;
+ 	base_size_log = ilog2(size);
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
@@ -83,6 +72,9 @@ rapidio-fix-error-handling-in-mbox-request-release-functions.patch
 rapidio-idt_gen2-fix-locking-warning.patch
 rapidio-change-inbound-window-size-type-to-u64.patch
 rapidio-modify-for-rev3-specification-changes.patch
+rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update.patch
 powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3.patch
+powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3-fix-fix.patch
 rapidio-switches-add-driver-for-idt-gen3-switches.patch
+rapidio-switches-add-driver-for-idt-gen3-switches-fix.patch
 
