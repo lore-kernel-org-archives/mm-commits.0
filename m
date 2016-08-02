@@ -1,55 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update.patch removed from -mm tree
-Date: Tue, 02 Aug 2016 13:48:22 -0700
-Message-ID: <57a10716.S6fknlkEzAIfjntP%akpm@linux-foundation.org>
+ rapidio-switches-add-driver-for-idt-gen3-switches-fix.patch removed from
+ -mm tree
+Date: Tue, 02 Aug 2016 13:49:38 -0700
+Message-ID: <57a10762.b9ILR9pRNxmhuL2P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59741 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59742 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753537AbcHBU46 (ORCPT
+	with ESMTP id S1753629AbcHBU46 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 16:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: fix DocBook warning for gen3 update
+     Subject: rapidio/idt_gen3: fixup for original driver patch
 has been removed from the -mm tree.  Its filename was
-     rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update.patch
+     rapidio-switches-add-driver-for-idt-gen3-switches-fix.patch
 
-This patch was dropped because it was folded into rapidio-modify-for-rev3-specification-changes.patch
+This patch was dropped because it was folded into rapidio-switches-add-driver-for-idt-gen3-switches.patch
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: fix DocBook warning for gen3 update
+Subject: rapidio/idt_gen3: fixup for original driver patch
 
-Add missing parameter description to fix kbuild warning for patch
-"rapidio: modify for rev.3 specification changes".
+This patch has two fixes for the patch
+"rapidio/switches: add driver for IDT gen3 switches" currently in -mm tree.
 
-Link: http://lkml.kernel.org/r/1469191173-19338-1-git-send-email-alexandre.bounine@idt.com
+First address Andrew's comment about blocking delay.
+The second fix was missed during the original patch preparation.
+
+Link: http://lkml.kernel.org/r/1469137596-18241-1-git-send-email-alexandre.bounine@idt.com
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
+Cc: Barry Wood <barry.wood@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rapidio/switches/idt_gen3.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update
-+++ a/drivers/rapidio/rio.c
-@@ -786,6 +786,7 @@ EXPORT_SYMBOL_GPL(rio_unmap_outb_region)
-  * @local: Indicate a local master port or remote device access
-  * @destid: Destination ID of the device
-  * @hopcount: Number of switch hops to the device
-+ * @rmap: pointer to location to store register map type info
-  */
- u32
- rio_mport_get_physefb(struct rio_mport *port, int local,
+diff -puN drivers/rapidio/switches/idt_gen3.c~rapidio-switches-add-driver-for-idt-gen3-switches-fix drivers/rapidio/switches/idt_gen3.c
+--- a/drivers/rapidio/switches/idt_gen3.c~rapidio-switches-add-driver-for-idt-gen3-switches-fix
++++ a/drivers/rapidio/switches/idt_gen3.c
+@@ -173,7 +173,8 @@ idtg3_em_init(struct rio_dev *rdev)
+ 	rio_write_config_32(rdev, RIO_EM_DEV_INT_EN, 0);
+ 
+ 	/* Disable port-write event notifications during initialization */
+-	rio_write_config_32(rdev, rdev->em_efptr + RIO_EM_PW_TX_CTRL, 0);
++	rio_write_config_32(rdev, rdev->em_efptr + RIO_EM_PW_TX_CTRL,
++			    RIO_EM_PW_TX_CTRL_PW_DIS);
+ 
+ 	/* Configure Port-Write notifications for hot-swap events */
+ 	tmp = RIO_GET_TOTAL_PORTS(rdev->swpinfo);
+@@ -255,7 +256,7 @@ idtg3_em_handler(struct rio_dev *rdev, u
+ 				    rval | RIO_PLM_SPx_IMP_SPEC_CTL_SOFT_RST);
+ 		udelay(10);
+ 		rio_write_config_32(rdev, RIO_PLM_SPx_IMP_SPEC_CTL(pnum), rval);
+-		mdelay(500);
++		msleep(500);
+ 	}
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
@@ -66,7 +84,5 @@ rapidio-idt_gen2-fix-locking-warning.patch
 rapidio-change-inbound-window-size-type-to-u64.patch
 rapidio-modify-for-rev3-specification-changes.patch
 powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3.patch
-powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3-fix-fix.patch
 rapidio-switches-add-driver-for-idt-gen3-switches.patch
-rapidio-switches-add-driver-for-idt-gen3-switches-fix.patch
 
