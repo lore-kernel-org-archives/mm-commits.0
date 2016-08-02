@@ -1,132 +1,272 @@
 From: akpm@linux-foundation.org
-Subject: [patch 106/111] relay: add global mode support for buffer-only
- channels
-Date: Tue, 02 Aug 2016 14:07:18 -0700
-Message-ID: <57a10b86.PqSNfcNlS2hZnxP6%akpm@linux-foundation.org>
+Subject: [patch 103/111] w1: add helper macro module_w1_family
+Date: Tue, 02 Aug 2016 14:07:09 -0700
+Message-ID: <57a10b7d.139+YeO+srA5VDfa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60729 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60726 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753748AbcHBVXt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:23:49 -0400
+	with ESMTP id S1754351AbcHBVXu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:23:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, akash.goel@intel.com, chris@chris-wilson.co.uk, eduard.munteanu@linux360.ro, tzanussi@gmail.com, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, afd@ti.com, greg@kroah.com, zbr@ioremap.net
 
-From: Akash Goel <akash.goel@intel.com>
-Subject: relay: add global mode support for buffer-only channels
+From: "Andrew F. Davis" <afd@ti.com>
+Subject: w1: add helper macro module_w1_family
 
-The following patch added support to use channels with no associated files.
-	commit 20d8b67c06fa5e74f44e80b0a0fd68c8327f7c6a
-	Author: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
-	Date:   Fri Jul 25 19:45:12 2008 -0700
+The helper macro module_w1_family can be used in module drivers that only
+register a w1 driver in their module init functions.  Add this macro and
+use it in all applicable drivers.
 
-		relay: add buffer-only channels; useful for early logging
-
-This is useful when the exact location of relay file is not known or the
-the parent directory of relay file is not available, while creating the
-channel and the logging has to start right from the boot.
-
-But there was no provision to use global mode with buffer-only channels,
-which is added by this patch, without modifying the interface where
-initially there will be a dummy invocation of create_buf_file callback
-through which kernel client can convey the need of a global buffer.
-
-For the use case where drivers/kernel clients want a simple interface for
-the userspace, which enables them to capture data/logs from relay file
-inorder & without any post processing, support of Global buffer mode is
-warranted.
-
-Modules, like i915, using relay_open() in early init would have to later
-register their buffer-only relays, once debugfs is available, by calling
-relay_late_setup_files().  Hence relay_late_setup_files() symbol also
-needs to be exported.
-
-Link: http://lkml.kernel.org/r/1468404563-11653-1-git-send-email-akash.goel@intel.com
-Signed-off-by: Akash Goel <akash.goel@intel.com>
-Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
-Cc: Tom Zanussi <tzanussi@gmail.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/20160531204313.20979-2-afd@ti.com
+Signed-off-by: Andrew F. Davis <afd@ti.com>
+Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |   34 ++++++++++++++++++++++++++++++++--
- 1 file changed, 32 insertions(+), 2 deletions(-)
+ drivers/w1/slaves/w1_ds2406.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2408.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2413.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2423.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2431.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2433.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2760.c  |   15 +--------------
+ drivers/w1/slaves/w1_ds2780.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds2781.c  |   14 +-------------
+ drivers/w1/slaves/w1_ds28e04.c |   14 +-------------
+ drivers/w1/w1_family.h         |   12 ++++++++++++
+ 11 files changed, 22 insertions(+), 131 deletions(-)
 
-diff -puN kernel/relay.c~relay-add-global-mode-support-for-buffer-only-channels kernel/relay.c
---- a/kernel/relay.c~relay-add-global-mode-support-for-buffer-only-channels
-+++ a/kernel/relay.c
-@@ -451,6 +451,13 @@ static struct rchan_buf *relay_open_buf(
- 		if (!dentry)
- 			goto free_buf;
- 		relay_set_buf_dentry(buf, dentry);
-+	} else {
-+		/* Only retrieve global info, nothing more, nothing less */
-+		dentry = chan->cb->create_buf_file(NULL, NULL,
-+						   S_IRUSR, buf,
-+						   &chan->is_global);
-+		if (WARN_ON(dentry))
-+			goto free_buf;
- 	}
+diff -puN drivers/w1/slaves/w1_ds2406.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2406.c
+--- a/drivers/w1/slaves/w1_ds2406.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2406.c
+@@ -153,16 +153,4 @@ static struct w1_family w1_family_12 = {
+ 	.fid = W1_FAMILY_DS2406,
+ 	.fops = &w1_f12_fops,
+ };
+-
+-static int __init w1_f12_init(void)
+-{
+-	return w1_register_family(&w1_family_12);
+-}
+-
+-static void __exit w1_f12_exit(void)
+-{
+-	w1_unregister_family(&w1_family_12);
+-}
+-
+-module_init(w1_f12_init);
+-module_exit(w1_f12_exit);
++module_w1_family(w1_family_12);
+diff -puN drivers/w1/slaves/w1_ds2408.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2408.c
+--- a/drivers/w1/slaves/w1_ds2408.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2408.c
+@@ -351,16 +351,4 @@ static struct w1_family w1_family_29 = {
+ 	.fid = W1_FAMILY_DS2408,
+ 	.fops = &w1_f29_fops,
+ };
+-
+-static int __init w1_f29_init(void)
+-{
+-	return w1_register_family(&w1_family_29);
+-}
+-
+-static void __exit w1_f29_exit(void)
+-{
+-	w1_unregister_family(&w1_family_29);
+-}
+-
+-module_init(w1_f29_init);
+-module_exit(w1_f29_exit);
++module_w1_family(w1_family_29);
+diff -puN drivers/w1/slaves/w1_ds2413.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2413.c
+--- a/drivers/w1/slaves/w1_ds2413.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2413.c
+@@ -135,16 +135,4 @@ static struct w1_family w1_family_3a = {
+ 	.fid = W1_FAMILY_DS2413,
+ 	.fops = &w1_f3a_fops,
+ };
+-
+-static int __init w1_f3a_init(void)
+-{
+-	return w1_register_family(&w1_family_3a);
+-}
+-
+-static void __exit w1_f3a_exit(void)
+-{
+-	w1_unregister_family(&w1_family_3a);
+-}
+-
+-module_init(w1_f3a_init);
+-module_exit(w1_f3a_exit);
++module_w1_family(w1_family_3a);
+diff -puN drivers/w1/slaves/w1_ds2423.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2423.c
+--- a/drivers/w1/slaves/w1_ds2423.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2423.c
+@@ -138,19 +138,7 @@ static struct w1_family w1_family_1d = {
+ 	.fid = W1_COUNTER_DS2423,
+ 	.fops = &w1_f1d_fops,
+ };
+-
+-static int __init w1_f1d_init(void)
+-{
+-	return w1_register_family(&w1_family_1d);
+-}
+-
+-static void __exit w1_f1d_exit(void)
+-{
+-	w1_unregister_family(&w1_family_1d);
+-}
+-
+-module_init(w1_f1d_init);
+-module_exit(w1_f1d_exit);
++module_w1_family(w1_family_1d);
  
-  	buf->cpu = cpu;
-@@ -562,6 +569,10 @@ static int relay_hotcpu_callback(struct
-  *	attributes specified.  The created channel buffer files
-  *	will be named base_filename0...base_filenameN-1.  File
-  *	permissions will be %S_IRUSR.
-+ *
-+ *	If opening a buffer (@parent = NULL) that you later wish to register
-+ *	in a filesystem, call relay_late_setup_files() once the @parent dentry
-+ *	is available.
-  */
- struct rchan *relay_open(const char *base_filename,
- 			 struct dentry *parent,
-@@ -640,8 +651,12 @@ static void __relay_set_buf_dentry(void
-  *
-  *	Returns 0 if successful, non-zero otherwise.
-  *
-- *	Use to setup files for a previously buffer-only channel.
-- *	Useful to do early tracing in kernel, before VFS is up, for example.
-+ *	Use to setup files for a previously buffer-only channel created
-+ *	by relay_open() with a NULL parent dentry.
-+ *
-+ *	For example, this is useful for perfomring early tracing in kernel,
-+ *	before VFS is up and then exposing the early results once the dentry
-+ *	is available.
-  */
- int relay_late_setup_files(struct rchan *chan,
- 			   const char *base_filename,
-@@ -666,6 +681,20 @@ int relay_late_setup_files(struct rchan
- 	}
- 	chan->has_base_filename = 1;
- 	chan->parent = parent;
-+
-+	if (chan->is_global) {
-+		err = -EINVAL;
-+		if (!WARN_ON_ONCE(!chan->buf[0])) {
-+			dentry = relay_create_buf_file(chan, chan->buf[0], 0);
-+			if (dentry && !WARN_ON_ONCE(!chan->is_global)) {
-+				relay_set_buf_dentry(chan->buf[0], dentry);
-+				err = 0;
-+			}
-+		}
-+		mutex_unlock(&relay_channels_mutex);
-+		return err;
-+	}
-+
- 	curr_cpu = get_cpu();
- 	/*
- 	 * The CPU hotplug notifier ran before us and created buffers with
-@@ -706,6 +735,7 @@ int relay_late_setup_files(struct rchan
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Mika Laitio <lamikr@pilppa.org>");
+diff -puN drivers/w1/slaves/w1_ds2431.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2431.c
+--- a/drivers/w1/slaves/w1_ds2431.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2431.c
+@@ -288,19 +288,7 @@ static struct w1_family w1_family_2d = {
+ 	.fid = W1_EEPROM_DS2431,
+ 	.fops = &w1_f2d_fops,
+ };
+-
+-static int __init w1_f2d_init(void)
+-{
+-	return w1_register_family(&w1_family_2d);
+-}
+-
+-static void __exit w1_f2d_fini(void)
+-{
+-	w1_unregister_family(&w1_family_2d);
+-}
+-
+-module_init(w1_f2d_init);
+-module_exit(w1_f2d_fini);
++module_w1_family(w1_family_2d);
  
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(relay_late_setup_files);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Bernhard Weirich <bernhard.weirich@riedel.net>");
+diff -puN drivers/w1/slaves/w1_ds2433.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2433.c
+--- a/drivers/w1/slaves/w1_ds2433.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2433.c
+@@ -305,16 +305,4 @@ static struct w1_family w1_family_23 = {
+ 	.fid = W1_EEPROM_DS2433,
+ 	.fops = &w1_f23_fops,
+ };
+-
+-static int __init w1_f23_init(void)
+-{
+-	return w1_register_family(&w1_family_23);
+-}
+-
+-static void __exit w1_f23_fini(void)
+-{
+-	w1_unregister_family(&w1_family_23);
+-}
+-
+-module_init(w1_f23_init);
+-module_exit(w1_f23_fini);
++module_w1_family(w1_family_23);
+diff -puN drivers/w1/slaves/w1_ds2760.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2760.c
+--- a/drivers/w1/slaves/w1_ds2760.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2760.c
+@@ -162,26 +162,13 @@ static struct w1_family w1_ds2760_family
+ 	.fid = W1_FAMILY_DS2760,
+ 	.fops = &w1_ds2760_fops,
+ };
+-
+-static int __init w1_ds2760_init(void)
+-{
+-	pr_info("1-Wire driver for the DS2760 battery monitor chip - (c) 2004-2005, Szabolcs Gyurko\n");
+-	return w1_register_family(&w1_ds2760_family);
+-}
+-
+-static void __exit w1_ds2760_exit(void)
+-{
+-	w1_unregister_family(&w1_ds2760_family);
+-}
++module_w1_family(w1_ds2760_family);
  
- /**
-  *	relay_switch_subbuf - switch to a new sub-buffer
-_
+ EXPORT_SYMBOL(w1_ds2760_read);
+ EXPORT_SYMBOL(w1_ds2760_write);
+ EXPORT_SYMBOL(w1_ds2760_store_eeprom);
+ EXPORT_SYMBOL(w1_ds2760_recall_eeprom);
+ 
+-module_init(w1_ds2760_init);
+-module_exit(w1_ds2760_exit);
+-
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Szabolcs Gyurko <szabolcs.gyurko@tlt.hu>");
+ MODULE_DESCRIPTION("1-wire Driver Dallas 2760 battery monitor chip");
+diff -puN drivers/w1/slaves/w1_ds2780.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2780.c
+--- a/drivers/w1/slaves/w1_ds2780.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2780.c
+@@ -154,19 +154,7 @@ static struct w1_family w1_ds2780_family
+ 	.fid = W1_FAMILY_DS2780,
+ 	.fops = &w1_ds2780_fops,
+ };
+-
+-static int __init w1_ds2780_init(void)
+-{
+-	return w1_register_family(&w1_ds2780_family);
+-}
+-
+-static void __exit w1_ds2780_exit(void)
+-{
+-	w1_unregister_family(&w1_ds2780_family);
+-}
+-
+-module_init(w1_ds2780_init);
+-module_exit(w1_ds2780_exit);
++module_w1_family(w1_ds2780_family);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Clifton Barnes <cabarnes@indesign-llc.com>");
+diff -puN drivers/w1/slaves/w1_ds2781.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds2781.c
+--- a/drivers/w1/slaves/w1_ds2781.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds2781.c
+@@ -151,19 +151,7 @@ static struct w1_family w1_ds2781_family
+ 	.fid = W1_FAMILY_DS2781,
+ 	.fops = &w1_ds2781_fops,
+ };
+-
+-static int __init w1_ds2781_init(void)
+-{
+-	return w1_register_family(&w1_ds2781_family);
+-}
+-
+-static void __exit w1_ds2781_exit(void)
+-{
+-	w1_unregister_family(&w1_ds2781_family);
+-}
+-
+-module_init(w1_ds2781_init);
+-module_exit(w1_ds2781_exit);
++module_w1_family(w1_ds2781_family);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Renata Sayakhova <renata@oktetlabs.ru>");
+diff -puN drivers/w1/slaves/w1_ds28e04.c~w1-add-helper-macro-module_w1_family drivers/w1/slaves/w1_ds28e04.c
+--- a/drivers/w1/slaves/w1_ds28e04.c~w1-add-helper-macro-module_w1_family
++++ a/drivers/w1/slaves/w1_ds28e04.c
+@@ -427,16 +427,4 @@ static struct w1_family w1_family_1C = {
+ 	.fid = W1_FAMILY_DS28E04,
+ 	.fops = &w1_f1C_fops,
+ };
+-
+-static int __init w1_f1C_init(void)
+-{
+-	return w1_register_family(&w1_family_1C);
+-}
+-
+-static void __exit w1_f1C_fini(void)
+-{
+-	w1_unregister_family(&w1_family_1C);
+-}
