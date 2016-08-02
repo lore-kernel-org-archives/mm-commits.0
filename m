@@ -1,68 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [patch 033/111] include: mman: use bool instead of int for the
- return value of arch_validate_prot
-Date: Tue, 02 Aug 2016 14:03:42 -0700
-Message-ID: <57a10aae.5nMDLWArszbF0YBR%akpm@linux-foundation.org>
+Subject: [patch 079/111] kexec: ensure user memory sizes do not wrap
+Date: Tue, 02 Aug 2016 14:05:57 -0700
+Message-ID: <57a10b35.OifvbOAP3LLW9aJm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60614 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756723AbcHBVRW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:22 -0400
+	with ESMTP id S1756060AbcHBVRT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, chengang@emindsoft.com.cn, gang.chen.5i5j@gmail.com, mpe@ellerman.id.au
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rmk+kernel@arm.linux.org.uk, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, horms@verge.net.au, j-keerthy@ti.com, panand@redhat.com, vgoyal@redhat.com, vitalya@ti.com
 
-From: Chen Gang <chengang@emindsoft.com.cn>
-Subject: include: mman: use bool instead of int for the return value of arch_validate_prot
+From: Russell King <rmk+kernel@arm.linux.org.uk>
+Subject: kexec: ensure user memory sizes do not wrap
 
-For pure bool function's return value, bool is a little better more or
-less than int.
+Ensure that user memory sizes do not wrap around when validating the user
+input, which can lead to the following input validation working
+incorrectly.
 
-Link: http://lkml.kernel.org/r/1469331815-2026-1-git-send-email-chengang@emindsoft.com.cn
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+[akpm@linux-foundation.org: fix it for kexec-return-error-number-directly.patch]
+Link: http://lkml.kernel.org/r/E1b8koF-0004HM-5x@rmk-PC.armlinux.org.uk
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Reviewed-by: Pratyush Anand <panand@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Vitaly Andrianov <vitalya@ti.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/mman.h |    8 ++++----
- include/linux/mman.h            |    2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ kernel/kexec_core.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/powerpc/include/asm/mman.h~include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot arch/powerpc/include/asm/mman.h
---- a/arch/powerpc/include/asm/mman.h~include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot
-+++ a/arch/powerpc/include/asm/mman.h
-@@ -31,13 +31,13 @@ static inline pgprot_t arch_vm_get_page_
- }
- #define arch_vm_get_page_prot(vm_flags) arch_vm_get_page_prot(vm_flags)
+diff -puN kernel/kexec_core.c~kexec-ensure-user-memory-sizes-do-not-wrap kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kexec-ensure-user-memory-sizes-do-not-wrap
++++ a/kernel/kexec_core.c
+@@ -168,6 +168,8 @@ int sanity_check_segment_list(struct kim
  
--static inline int arch_validate_prot(unsigned long prot)
-+static inline bool arch_validate_prot(unsigned long prot)
- {
- 	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_SAO))
--		return 0;
-+		return false;
- 	if ((prot & PROT_SAO) && !cpu_has_feature(CPU_FTR_SAO))
--		return 0;
--	return 1;
-+		return false;
-+	return true;
- }
- #define arch_validate_prot(prot) arch_validate_prot(prot)
- 
-diff -puN include/linux/mman.h~include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot include/linux/mman.h
---- a/include/linux/mman.h~include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot
-+++ a/include/linux/mman.h
-@@ -49,7 +49,7 @@ static inline void vm_unacct_memory(long
-  *
-  * Returns true if the prot flags are valid
-  */
--static inline int arch_validate_prot(unsigned long prot)
-+static inline bool arch_validate_prot(unsigned long prot)
- {
- 	return (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM)) == 0;
- }
+ 		mstart = image->segment[i].mem;
+ 		mend   = mstart + image->segment[i].memsz;
++		if (mstart > mend)
++			return -EADDRNOTAVAIL;
+ 		if ((mstart & ~PAGE_MASK) || (mend & ~PAGE_MASK))
+ 			return -EADDRNOTAVAIL;
+ 		if (mend >= KEXEC_DESTINATION_MEMORY_LIMIT)
 _
