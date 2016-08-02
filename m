@@ -1,99 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [patch 080/111] kdump: arrange for paddr_vmcoreinfo_note() to
- return phys_addr_t
-Date: Tue, 02 Aug 2016 14:06:00 -0700
-Message-ID: <57a10b38.Tk7ZsPMy+vJvcy6y%akpm@linux-foundation.org>
+Subject: [patch 051/111] checkpatch: allow c99 style // comments
+Date: Tue, 02 Aug 2016 14:04:33 -0700
+Message-ID: <57a10ae1.6U3MsHpHQa8SzbvF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60613 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60610 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756664AbcHBVQ7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:16:59 -0400
+	with ESMTP id S1755832AbcHBVRE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rmk+kernel@arm.linux.org.uk, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, horms@verge.net.au, j-keerthy@ti.com, panand@redhat.com, vgoyal@redhat.com, vitalya@ti.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com
 
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: kdump: arrange for paddr_vmcoreinfo_note() to return phys_addr_t
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: allow c99 style // comments
 
-On PAE systems (eg, ARM LPAE) the vmcore note may be located above 4GB
-physical on 32-bit architectures, so we need a wider type than "unsigned
-long" here.  Arrange for paddr_vmcoreinfo_note() to return a phys_addr_t,
-thereby allowing it to be located above 4GB.
+Sanitise the lines that contain c99 comments so that the error doesn't get
+emitted.
 
-This makes no difference for kexec-tools, as they already assume a 64-bit
-type when reading from this file.
-
-Link: http://lkml.kernel.org/r/E1b8koK-0004HS-K9@rmk-PC.armlinux.org.uk
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Reviewed-by: Pratyush Anand <panand@redhat.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Vitaly Andrianov <vitalya@ti.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Simon Horman <horms@verge.net.au>
+Link: http://lkml.kernel.org/r/d4d22c34ad7bcc1bceb52f0742f76b7a6d585235.1468368420.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/machine_kexec.c |    2 +-
- include/linux/kexec.h            |    2 +-
- kernel/kexec_core.c              |    2 +-
- kernel/ksysfs.c                  |    4 ++--
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN arch/ia64/kernel/machine_kexec.c~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t arch/ia64/kernel/machine_kexec.c
---- a/arch/ia64/kernel/machine_kexec.c~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t
-+++ a/arch/ia64/kernel/machine_kexec.c
-@@ -163,7 +163,7 @@ void arch_crash_save_vmcoreinfo(void)
- #endif
+diff -puN scripts/checkpatch.pl~checkpatch-allow-c99-style-comments scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-allow-c99-style-comments
++++ a/scripts/checkpatch.pl
+@@ -55,6 +55,7 @@ my $spelling_file = "$D/spelling.txt";
+ my $codespell = 0;
+ my $codespellfile = "/usr/share/codespell/dictionary.txt";
+ my $color = 1;
++my $allow_c99_comments = 1;
+ 
+ sub help {
+ 	my ($exitcode) = @_;
+@@ -1144,6 +1145,11 @@ sub sanitise_line {
+ 		$res =~ s@(\#\s*(?:error|warning)\s+).*@$1$clean@;
+ 	}
+ 
++	if ($allow_c99_comments && $res =~ m@(//.*$)@) {
++		my $match = $1;
++		$res =~ s/\Q$match\E/"$;" x length($match)/e;
++	}
++
+ 	return $res;
  }
  
--unsigned long paddr_vmcoreinfo_note(void)
-+phys_addr_t paddr_vmcoreinfo_note(void)
- {
- 	return ia64_tpa((unsigned long)(char *)&vmcoreinfo_note);
- }
-diff -puN include/linux/kexec.h~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t include/linux/kexec.h
---- a/include/linux/kexec.h~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t
-+++ a/include/linux/kexec.h
-@@ -233,7 +233,7 @@ void crash_save_vmcoreinfo(void);
- void arch_crash_save_vmcoreinfo(void);
- __printf(1, 2)
- void vmcoreinfo_append_str(const char *fmt, ...);
--unsigned long paddr_vmcoreinfo_note(void);
-+phys_addr_t paddr_vmcoreinfo_note(void);
- 
- #define VMCOREINFO_OSRELEASE(value) \
- 	vmcoreinfo_append_str("OSRELEASE=%s\n", value)
-diff -puN kernel/kexec_core.c~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t kernel/kexec_core.c
---- a/kernel/kexec_core.c~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t
-+++ a/kernel/kexec_core.c
-@@ -1372,7 +1372,7 @@ void vmcoreinfo_append_str(const char *f
- void __weak arch_crash_save_vmcoreinfo(void)
- {}
- 
--unsigned long __weak paddr_vmcoreinfo_note(void)
-+phys_addr_t __weak paddr_vmcoreinfo_note(void)
- {
- 	return __pa((unsigned long)(char *)&vmcoreinfo_note);
- }
-diff -puN kernel/ksysfs.c~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t kernel/ksysfs.c
---- a/kernel/ksysfs.c~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t
-+++ a/kernel/ksysfs.c
-@@ -128,8 +128,8 @@ KERNEL_ATTR_RW(kexec_crash_size);
- static ssize_t vmcoreinfo_show(struct kobject *kobj,
- 			       struct kobj_attribute *attr, char *buf)
- {
--	return sprintf(buf, "%lx %x\n",
--		       paddr_vmcoreinfo_note(),
-+	phys_addr_t vmcore_base = paddr_vmcoreinfo_note();
-+	return sprintf(buf, "%pa %x\n", &vmcore_base,
- 		       (unsigned int)sizeof(vmcoreinfo_note));
- }
- KERNEL_ATTR_RO(vmcoreinfo);
 _
