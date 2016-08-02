@@ -1,55 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [patch 051/111] checkpatch: allow c99 style // comments
-Date: Tue, 02 Aug 2016 14:04:33 -0700
-Message-ID: <57a10ae1.6U3MsHpHQa8SzbvF%akpm@linux-foundation.org>
+Subject: [patch 067/111] nilfs2: refactor parser of snapshot mount option
+Date: Tue, 02 Aug 2016 14:05:22 -0700
+Message-ID: <57a10b12.U0RYVo8t7q3Nn3ea%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60610 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60607 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755832AbcHBVRE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:04 -0400
+	with ESMTP id S1754915AbcHBVRD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, konishi.ryusuke@lab.ntt.co.jp
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: allow c99 style // comments
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: refactor parser of snapshot mount option
 
-Sanitise the lines that contain c99 comments so that the error doesn't get
-emitted.
+Move parser of snapshot mount option to a separate function
+nilfs_parse_snapshot_option(), replace simple_strtoull() with kstrtoull()
+to avoid checkpatch.pl warning "WARNING: simple_strtoull is obsolete, use
+kstrtoull instead", and refine the error message of the parser.
 
-Link: http://lkml.kernel.org/r/d4d22c34ad7bcc1bceb52f0742f76b7a6d585235.1468368420.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/1464875891-5443-9-git-send-email-konishi.ryusuke@lab.ntt.co.jp
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/nilfs2/super.c |   53 +++++++++++++++++++++++++++++---------------
+ 1 file changed, 35 insertions(+), 18 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-allow-c99-style-comments scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-allow-c99-style-comments
-+++ a/scripts/checkpatch.pl
-@@ -55,6 +55,7 @@ my $spelling_file = "$D/spelling.txt";
- my $codespell = 0;
- my $codespellfile = "/usr/share/codespell/dictionary.txt";
- my $color = 1;
-+my $allow_c99_comments = 1;
+diff -puN fs/nilfs2/super.c~nilfs2-refactor-parser-of-snapshot-mount-option fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-refactor-parser-of-snapshot-mount-option
++++ a/fs/nilfs2/super.c
+@@ -1205,6 +1205,38 @@ struct nilfs_super_data {
+ 	int flags;
+ };
  
- sub help {
- 	my ($exitcode) = @_;
-@@ -1144,6 +1145,11 @@ sub sanitise_line {
- 		$res =~ s@(\#\s*(?:error|warning)\s+).*@$1$clean@;
- 	}
- 
-+	if ($allow_c99_comments && $res =~ m@(//.*$)@) {
-+		my $match = $1;
-+		$res =~ s/\Q$match\E/"$;" x length($match)/e;
++static int nilfs_parse_snapshot_option(const char *option,
++				       const substring_t *arg,
++				       struct nilfs_super_data *sd)
++{
++	unsigned long long val;
++	const char *msg = NULL;
++	int err;
++
++	if (!(sd->flags & MS_RDONLY)) {
++		msg = "read-only option is not specified";
++		goto parse_error;
 +	}
 +
- 	return $res;
- }
- 
++	err = kstrtoull(arg->from, 0, &val);
++	if (err) {
++		if (err == -ERANGE)
++			msg = "too large checkpoint number";
++		else
++			msg = "malformed argument";
++		goto parse_error;
++	} else if (val == 0) {
++		msg = "invalid checkpoint number 0";
++		goto parse_error;
++	}
++	sd->cno = val;
++	return 0;
++
++parse_error:
++	nilfs_msg(NULL, KERN_ERR, "invalid option \"%s\": %s", option, msg);
++	return 1;
++}
++
+ /**
+  * nilfs_identify - pre-read mount options needed to identify mount instance
+  * @data: mount options
+@@ -1221,24 +1253,9 @@ static int nilfs_identify(char *data, st
+ 		p = strsep(&options, ",");
+ 		if (p != NULL && *p) {
+ 			token = match_token(p, tokens, args);
+-			if (token == Opt_snapshot) {
+-				if (!(sd->flags & MS_RDONLY)) {
+-					ret++;
+-				} else {
+-					sd->cno = simple_strtoull(args[0].from,
+-								  NULL, 0);
+-					/*
+-					 * No need to see the end pointer;
+-					 * match_token() has done syntax
+-					 * checking.
+-					 */
+-					if (sd->cno == 0)
+-						ret++;
+-				}
+-			}
+-			if (ret)
+-				nilfs_msg(NULL, KERN_ERR,
+-					  "invalid mount option: %s", p);
++			if (token == Opt_snapshot)
++				ret = nilfs_parse_snapshot_option(p, &args[0],
++								  sd);
+ 		}
+ 		if (!options)
+ 			break;
 _
