@@ -1,86 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [patch 013/111] mm/kasan: don't reduce quarantine in atomic
- contexts
-Date: Tue, 02 Aug 2016 14:02:43 -0700
-Message-ID: <57a10a73.0Wg80afpU5m1HrO1%akpm@linux-foundation.org>
+Subject: [patch 021/111] sysv, ipc: fix security-layer leaking
+Date: Tue, 02 Aug 2016 14:03:07 -0700
+Message-ID: <57a10a8b.ujotIa24CJij3aqC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60547 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60548 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753489AbcHBVNv (ORCPT
+	with ESMTP id S1753247AbcHBVNv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:13:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aryabinin@virtuozzo.com, davej@codemonkey.org.uk, dvyukov@google.com, glider@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, fabf@skynet.be, dbueso@suse.de, manfred@colorfullife.com, stable@vger.kernel.org
 
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm/kasan: don't reduce quarantine in atomic contexts
+From: Fabian Frederick <fabf@skynet.be>
+Subject: sysv, ipc: fix security-layer leaking
 
-Currently we call quarantine_reduce() for ___GFP_KSWAPD_RECLAIM (implied
-by __GFP_RECLAIM) allocation.  So, basically we call it on almost every
-allocation.  quarantine_reduce() sometimes is heavy operation, and calling
-it with disabled interrupts may trigger hard LOCKUP:
+53dad6d3a8e5 ("ipc: fix race with LSMs") updated ipc_rcu_putref() to
+receive rcu freeing function but used generic ipc_rcu_free() instead of
+msg_rcu_free() which does security cleaning.
 
- NMI watchdog: Watchdog detected hard LOCKUP on cpu 2irq event stamp: 1411258
- Call Trace:
-  <NMI>  [<ffffffff98a48532>] dump_stack+0x68/0x96
-  [<ffffffff98357fbb>] watchdog_overflow_callback+0x15b/0x190
-  [<ffffffff9842f7d1>] __perf_event_overflow+0x1b1/0x540
-  [<ffffffff98455b14>] perf_event_overflow+0x14/0x20
-  [<ffffffff9801976a>] intel_pmu_handle_irq+0x36a/0xad0
-  [<ffffffff9800ba4c>] perf_event_nmi_handler+0x2c/0x50
-  [<ffffffff98057058>] nmi_handle+0x128/0x480
-  [<ffffffff980576d2>] default_do_nmi+0xb2/0x210
-  [<ffffffff980579da>] do_nmi+0x1aa/0x220
-  [<ffffffff99a0bb07>] end_repeat_nmi+0x1a/0x1e
-  <<EOE>>  [<ffffffff981871e6>] __kernel_text_address+0x86/0xb0
-  [<ffffffff98055c4b>] print_context_stack+0x7b/0x100
-  [<ffffffff98054e9b>] dump_trace+0x12b/0x350
-  [<ffffffff98076ceb>] save_stack_trace+0x2b/0x50
-  [<ffffffff98573003>] set_track+0x83/0x140
-  [<ffffffff98575f4a>] free_debug_processing+0x1aa/0x420
-  [<ffffffff98578506>] __slab_free+0x1d6/0x2e0
-  [<ffffffff9857a9b6>] ___cache_free+0xb6/0xd0
-  [<ffffffff9857db53>] qlist_free_all+0x83/0x100
-  [<ffffffff9857df07>] quarantine_reduce+0x177/0x1b0
-  [<ffffffff9857c423>] kasan_kmalloc+0xf3/0x100
+Running LTP msgsnd06 with kmemleak gives the following:
 
-Reduce the quarantine_reduce iff direct reclaim is allowed.
+cat /sys/kernel/debug/kmemleak
 
-Fixes: 55834c59098d("mm: kasan: initial memory quarantine implementation")
-Link: http://lkml.kernel.org/r/1470062715-14077-2-git-send-email-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reported-by: Dave Jones <davej@codemonkey.org.uk>
-Acked-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+unreferenced object 0xffff88003c0a11f8 (size 8):
+  comm "msgsnd06", pid 1645, jiffies 4294672526 (age 6.549s)
+  hex dump (first 8 bytes):
+    1b 00 00 00 01 00 00 00                          ........
+  backtrace:
+    [<ffffffff818e2c43>] kmemleak_alloc+0x23/0x40
+    [<ffffffff81177f31>] kmem_cache_alloc_trace+0xe1/0x180
+    [<ffffffff812d42af>] selinux_msg_queue_alloc_security+0x3f/0xd0
+    [<ffffffff812cc6be>] security_msg_queue_alloc+0x2e/0x40
+    [<ffffffff812b94ee>] newque+0x4e/0x150
+    [<ffffffff812b8cb9>] ipcget+0x159/0x1b0
+    [<ffffffff812b98d9>] SyS_msgget+0x39/0x40
+    [<ffffffff818e7bdb>] entry_SYSCALL_64_fastpath+0x13/0x8f
+    [<ffffffffffffffff>] 0xffffffffffffffff
+
+Manfred Spraul suggested to fix sem.c as well and
+Davidlohr Bueso to only use ipc_rcu_free in case of security
+allocation failure in newary()
+
+Fixes: 53dad6d3a8e ("ipc: fix race with LSMs")
+Link: http://lkml.kernel.org/r/1470083552-22966-1-git-send-email-fabf@skynet.be
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: <stable@vger.kernel.org>	[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/msg.c |    2 +-
+ ipc/sem.c |   12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN mm/kasan/kasan.c~mm-kasan-dont-reduce-quarantine-in-atomic-contexts mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mm-kasan-dont-reduce-quarantine-in-atomic-contexts
-+++ a/mm/kasan/kasan.c
-@@ -565,7 +565,7 @@ void kasan_kmalloc(struct kmem_cache *ca
- 	unsigned long redzone_start;
- 	unsigned long redzone_end;
+diff -puN ipc/msg.c~sysv-ipc-fix-security-layer-leaking ipc/msg.c
+--- a/ipc/msg.c~sysv-ipc-fix-security-layer-leaking
++++ a/ipc/msg.c
+@@ -680,7 +680,7 @@ long do_msgsnd(int msqid, long mtype, vo
+ 		rcu_read_lock();
+ 		ipc_lock_object(&msq->q_perm);
  
--	if (flags & __GFP_RECLAIM)
-+	if (gfpflags_allow_blocking(flags))
- 		quarantine_reduce();
+-		ipc_rcu_putref(msq, ipc_rcu_free);
++		ipc_rcu_putref(msq, msg_rcu_free);
+ 		/* raced with RMID? */
+ 		if (!ipc_valid_object(&msq->q_perm)) {
+ 			err = -EIDRM;
+diff -puN ipc/sem.c~sysv-ipc-fix-security-layer-leaking ipc/sem.c
+--- a/ipc/sem.c~sysv-ipc-fix-security-layer-leaking
++++ a/ipc/sem.c
+@@ -438,7 +438,7 @@ static inline struct sem_array *sem_obta
+ static inline void sem_lock_and_putref(struct sem_array *sma)
+ {
+ 	sem_lock(sma, NULL, -1);
+-	ipc_rcu_putref(sma, ipc_rcu_free);
++	ipc_rcu_putref(sma, sem_rcu_free);
+ }
  
- 	if (unlikely(object == NULL))
-@@ -596,7 +596,7 @@ void kasan_kmalloc_large(const void *ptr
- 	unsigned long redzone_start;
- 	unsigned long redzone_end;
+ static inline void sem_rmid(struct ipc_namespace *ns, struct sem_array *s)
+@@ -1381,7 +1381,7 @@ static int semctl_main(struct ipc_namesp
+ 			rcu_read_unlock();
+ 			sem_io = ipc_alloc(sizeof(ushort)*nsems);
+ 			if (sem_io == NULL) {
+-				ipc_rcu_putref(sma, ipc_rcu_free);
++				ipc_rcu_putref(sma, sem_rcu_free);
+ 				return -ENOMEM;
+ 			}
  
--	if (flags & __GFP_RECLAIM)
-+	if (gfpflags_allow_blocking(flags))
- 		quarantine_reduce();
+@@ -1415,20 +1415,20 @@ static int semctl_main(struct ipc_namesp
+ 		if (nsems > SEMMSL_FAST) {
+ 			sem_io = ipc_alloc(sizeof(ushort)*nsems);
+ 			if (sem_io == NULL) {
+-				ipc_rcu_putref(sma, ipc_rcu_free);
++				ipc_rcu_putref(sma, sem_rcu_free);
+ 				return -ENOMEM;
+ 			}
+ 		}
  
- 	if (unlikely(ptr == NULL))
+ 		if (copy_from_user(sem_io, p, nsems*sizeof(ushort))) {
+-			ipc_rcu_putref(sma, ipc_rcu_free);
++			ipc_rcu_putref(sma, sem_rcu_free);
+ 			err = -EFAULT;
+ 			goto out_free;
+ 		}
+ 
+ 		for (i = 0; i < nsems; i++) {
+ 			if (sem_io[i] > SEMVMX) {
+-				ipc_rcu_putref(sma, ipc_rcu_free);
++				ipc_rcu_putref(sma, sem_rcu_free);
+ 				err = -ERANGE;
+ 				goto out_free;
+ 			}
+@@ -1720,7 +1720,7 @@ static struct sem_undo *find_alloc_undo(
+ 	/* step 2: allocate new undo structure */
+ 	new = kzalloc(sizeof(struct sem_undo) + sizeof(short)*nsems, GFP_KERNEL);
+ 	if (!new) {
+-		ipc_rcu_putref(sma, ipc_rcu_free);
++		ipc_rcu_putref(sma, sem_rcu_free);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
 _
