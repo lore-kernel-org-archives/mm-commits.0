@@ -1,272 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [patch 005/111] ocfs2/dlm: continue to purge recovery lockres
- when recovery master goes down
-Date: Tue, 02 Aug 2016 14:02:19 -0700
-Message-ID: <57a10a5b.qlO/x344s5hf3mED%akpm@linux-foundation.org>
+Subject: [patch 006/111] mm: fail prefaulting if page table allocation
+ fails
+Date: Tue, 02 Aug 2016 14:02:22 -0700
+Message-ID: <57a10a5e.xFmnw9qg+pTp8aW6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59967 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59968 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932283AbcHBVCV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:02:21 -0400
+	with ESMTP id S932283AbcHBVCY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:02:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, piaojun@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, xuejiufei@huawei.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vegard.nossum@oracle.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com
 
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2/dlm: continue to purge recovery lockres when recovery master goes down
+From: Vegard Nossum <vegard.nossum@oracle.com>
+Subject: mm: fail prefaulting if page table allocation fails
 
-We found a dlm-blocked situation caused by continuous breakdown of
-recovery masters described below.  To solve this problem, we should purge
-recovery lock once detecting recovery master goes down.
+I ran into this:
 
-N3                      N2                   N1(reco master)
-                        go down
-                                             pick up recovery lock and
-                                             begin recoverying for N2
+    BUG: sleeping function called from invalid context at mm/page_alloc.c:3784
+    in_atomic(): 0, irqs_disabled(): 0, pid: 1434, name: trinity-c1
+    2 locks held by trinity-c1/1434:
+     #0:  (&mm->mmap_sem){......}, at: [<ffffffff810ce31e>] __do_page_fault+0x1ce/0x8f0
+     #1:  (rcu_read_lock){......}, at: [<ffffffff81378f86>] filemap_map_pages+0xd6/0xdd0
 
-                                             go down
+    CPU: 0 PID: 1434 Comm: trinity-c1 Not tainted 4.7.0+ #58
+    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Ubuntu-1.8.2-1ubuntu1 04/01/2014
+     ffff8800b662f698 ffff8800b662f548 ffffffff81d6d001 ffffffff83a61100
+     ffff8800b662f620 ffff8800b662f610 ffffffff81373fd1 0000000041b58ab3
+     ffffffff8406ca21 ffffffff81373e4c 0000000041b58ab3 ffffffff00000008
+    Call Trace:
+     [<ffffffff81d6d001>] dump_stack+0x65/0x84
+     [<ffffffff81373fd1>] panic+0x185/0x2dd
+     [<ffffffff8118e38c>] ___might_sleep+0x51c/0x600
+     [<ffffffff8118e500>] __might_sleep+0x90/0x1a0
+     [<ffffffff81392761>] __alloc_pages_nodemask+0x5b1/0x2160
+     [<ffffffff814665ac>] alloc_pages_current+0xcc/0x370
+     [<ffffffff810d95b2>] pte_alloc_one+0x12/0x90
+     [<ffffffff814053cd>] __pte_alloc+0x1d/0x200
+     [<ffffffff8140be4e>] alloc_set_pte+0xe3e/0x14a0
+     [<ffffffff813792db>] filemap_map_pages+0x42b/0xdd0
+     [<ffffffff8140e0d5>] handle_mm_fault+0x17d5/0x28b0
+     [<ffffffff810ce460>] __do_page_fault+0x310/0x8f0
+     [<ffffffff810cec7d>] trace_do_page_fault+0x18d/0x310
+     [<ffffffff810c2177>] do_async_page_fault+0x27/0xa0
+     [<ffffffff8389e258>] async_page_fault+0x28/0x30
 
-pick up recovery
-lock failed, then
-purge it:
-dlm_purge_lockres
-  ->DROPPING_REF is set
+The important bits from the above is that filemap_map_pages() is calling
+into the page allocator while holding rcu_read_lock (sleeping is not
+allowed inside RCU read-side critical sections).
 
-send deref to N1 failed,
-recovery lock is not purged
+According to Kirill Shutemov, the prefaulting code in do_fault_around()
+is supposed to take care of this, but missing error handling means that
+the allocation failure can go unnoticed.
 
-find N1 go down, begin
-recoverying for N1, but
-blocked in dlm_do_recovery
-as DROPPING_REF is set:
-dlm_do_recovery
-  ->dlm_pick_recovery_master
-    ->dlmlock
-      ->dlm_get_lock_resource
-        ->__dlm_wait_on_lockres_flags(tmpres,
-	  	DLM_LOCK_RES_DROPPING_REF);
+We don't need to return VM_FAULT_OOM (or any other error) here, since we
+can just let the normal fault path try again.
 
-Fixes: 8c0343968163 ("ocfs2/dlm: clear DROPPING_REF flag when the master goes down")
-Link: http://lkml.kernel.org/r/578453AF.8030404@huawei.com
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Jiufei Xue <xuejiufei@huawei.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Fixes: 7267ec008b5c ("mm: postpone page table allocation until we have page to map")
+Link: http://lkml.kernel.org/r/1469708107-11868-1-git-send-email-vegard.nossum@oracle.com
+Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: "Hillf Danton" <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmcommon.h   |    2 +
- fs/ocfs2/dlm/dlmmaster.c   |   37 ++----------------------
- fs/ocfs2/dlm/dlmrecovery.c |   29 ++++++++++++++-----
- fs/ocfs2/dlm/dlmthread.c   |   52 ++++++++++++++++++++++++++++++++---
- 4 files changed, 74 insertions(+), 46 deletions(-)
+ mm/memory.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-continue-to-purge-recovery-lockres-when-recovery-master-goes-down fs/ocfs2/dlm/dlmcommon.h
---- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-continue-to-purge-recovery-lockres-when-recovery-master-goes-down
-+++ a/fs/ocfs2/dlm/dlmcommon.h
-@@ -1004,6 +1004,8 @@ int dlm_finalize_reco_handler(struct o2n
- int dlm_do_master_requery(struct dlm_ctxt *dlm, struct dlm_lock_resource *res,
- 			  u8 nodenum, u8 *real_master);
+diff -puN mm/memory.c~mm-fail-prefaulting-if-page-table-allocation-fails mm/memory.c
+--- a/mm/memory.c~mm-fail-prefaulting-if-page-table-allocation-fails
++++ a/mm/memory.c
+@@ -3133,6 +3133,8 @@ static int do_fault_around(struct fault_
  
-+void __dlm_do_purge_lockres(struct dlm_ctxt *dlm,
-+		struct dlm_lock_resource *res);
- 
- int dlm_dispatch_assert_master(struct dlm_ctxt *dlm,
- 			       struct dlm_lock_resource *res,
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-continue-to-purge-recovery-lockres-when-recovery-master-goes-down fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-continue-to-purge-recovery-lockres-when-recovery-master-goes-down
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -2425,51 +2425,20 @@ int dlm_deref_lockres_done_handler(struc
- 		mlog(ML_NOTICE, "%s:%.*s: node %u sends deref done "
- 			"but it is already derefed!\n", dlm->name,
- 			res->lockname.len, res->lockname.name, node);
--		dlm_lockres_put(res);
- 		ret = 0;
- 		goto done;
+ 	if (pmd_none(*fe->pmd)) {
+ 		fe->prealloc_pte = pte_alloc_one(fe->vma->vm_mm, fe->address);
++		if (!fe->prealloc_pte)
++			goto out;
+ 		smp_wmb(); /* See comment in __pte_alloc() */
  	}
  
--	if (!list_empty(&res->purge)) {
--		mlog(0, "%s: Removing res %.*s from purgelist\n",
--			dlm->name, res->lockname.len, res->lockname.name);
--		list_del_init(&res->purge);
--		dlm_lockres_put(res);
--		dlm->purge_count--;
--	}
--
--	if (!__dlm_lockres_unused(res)) {
--		mlog(ML_ERROR, "%s: res %.*s in use after deref\n",
--			dlm->name, res->lockname.len, res->lockname.name);
--		__dlm_print_one_lock_resource(res);
--		BUG();
--	}
--
--	__dlm_unhash_lockres(dlm, res);
--
--	spin_lock(&dlm->track_lock);
--	if (!list_empty(&res->tracking))
--		list_del_init(&res->tracking);
--	else {
--		mlog(ML_ERROR, "%s: Resource %.*s not on the Tracking list\n",
--		     dlm->name, res->lockname.len, res->lockname.name);
--		__dlm_print_one_lock_resource(res);
--	}
--	spin_unlock(&dlm->track_lock);
--
--	/* lockres is not in the hash now. drop the flag and wake up
--	 * any processes waiting in dlm_get_lock_resource.
--	 */
--	res->state &= ~DLM_LOCK_RES_DROPPING_REF;
-+	__dlm_do_purge_lockres(dlm, res);
- 	spin_unlock(&res->spinlock);
- 	wake_up(&res->wq);
- 
--	dlm_lockres_put(res);
--
- 	spin_unlock(&dlm->spinlock);
- 
- 	ret = 0;
- done:
-+	if (res)
-+		dlm_lockres_put(res);
- 	dlm_put(dlm);
- 	return ret;
- }
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-continue-to-purge-recovery-lockres-when-recovery-master-goes-down fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-continue-to-purge-recovery-lockres-when-recovery-master-goes-down
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -2343,6 +2343,7 @@ static void dlm_do_local_recovery_cleanu
- 	struct dlm_lock_resource *res;
- 	int i;
- 	struct hlist_head *bucket;
-+	struct hlist_node *tmp;
- 	struct dlm_lock *lock;
- 
- 
-@@ -2365,7 +2366,7 @@ static void dlm_do_local_recovery_cleanu
- 	 */
- 	for (i = 0; i < DLM_HASH_BUCKETS; i++) {
- 		bucket = dlm_lockres_hash(dlm, i);
--		hlist_for_each_entry(res, bucket, hash_node) {
-+		hlist_for_each_entry_safe(res, tmp, bucket, hash_node) {
-  			/* always prune any $RECOVERY entries for dead nodes,
-  			 * otherwise hangs can occur during later recovery */
- 			if (dlm_is_recovery_lock(res->lockname.name,
-@@ -2386,8 +2387,17 @@ static void dlm_do_local_recovery_cleanu
- 						break;
- 					}
- 				}
--				dlm_lockres_clear_refmap_bit(dlm, res,
--						dead_node);
-+
-+				if ((res->owner == dead_node) &&
-+							(res->state & DLM_LOCK_RES_DROPPING_REF)) {
-+					dlm_lockres_get(res);
-+					__dlm_do_purge_lockres(dlm, res);
-+					spin_unlock(&res->spinlock);
-+					wake_up(&res->wq);
-+					dlm_lockres_put(res);
-+					continue;
-+				} else if (res->owner == dlm->node_num)
-+					dlm_lockres_clear_refmap_bit(dlm, res, dead_node);
- 				spin_unlock(&res->spinlock);
- 				continue;
- 			}
-@@ -2398,14 +2408,17 @@ static void dlm_do_local_recovery_cleanu
- 				if (res->state & DLM_LOCK_RES_DROPPING_REF) {
- 					mlog(0, "%s:%.*s: owned by "
- 						"dead node %u, this node was "
--						"dropping its ref when it died. "
--						"continue, dropping the flag.\n",
-+						"dropping its ref when master died. "
-+						"continue, purging the lockres.\n",
- 						dlm->name, res->lockname.len,
- 						res->lockname.name, dead_node);
-+					dlm_lockres_get(res);
-+					__dlm_do_purge_lockres(dlm, res);
-+					spin_unlock(&res->spinlock);
-+					wake_up(&res->wq);
-+					dlm_lockres_put(res);
-+					continue;
- 				}
--				res->state &= ~DLM_LOCK_RES_DROPPING_REF;
--				dlm_move_lockres_to_recovery_list(dlm,
--						res);
- 			} else if (res->owner == dlm->node_num) {
- 				dlm_free_dead_locks(dlm, res, dead_node);
- 				__dlm_lockres_calc_usage(dlm, res);
-diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-continue-to-purge-recovery-lockres-when-recovery-master-goes-down fs/ocfs2/dlm/dlmthread.c
---- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-continue-to-purge-recovery-lockres-when-recovery-master-goes-down
-+++ a/fs/ocfs2/dlm/dlmthread.c
-@@ -160,6 +160,52 @@ void dlm_lockres_calc_usage(struct dlm_c
- 	spin_unlock(&dlm->spinlock);
- }
- 
-+/*
-+ * Do the real purge work:
-+ *     unhash the lockres, and
-+ *     clear flag DLM_LOCK_RES_DROPPING_REF.
-+ * It requires dlm and lockres spinlock to be taken.
-+ */
-+void __dlm_do_purge_lockres(struct dlm_ctxt *dlm,
-+		struct dlm_lock_resource *res)
-+{
-+	assert_spin_locked(&dlm->spinlock);
-+	assert_spin_locked(&res->spinlock);
-+
-+	if (!list_empty(&res->purge)) {
-+		mlog(0, "%s: Removing res %.*s from purgelist\n",
-+		     dlm->name, res->lockname.len, res->lockname.name);
-+		list_del_init(&res->purge);
-+		dlm_lockres_put(res);
-+		dlm->purge_count--;
-+	}
-+
-+	if (!__dlm_lockres_unused(res)) {
-+		mlog(ML_ERROR, "%s: res %.*s in use after deref\n",
-+		     dlm->name, res->lockname.len, res->lockname.name);
-+		__dlm_print_one_lock_resource(res);
-+		BUG();
-+	}
-+
-+	__dlm_unhash_lockres(dlm, res);
-+
-+	spin_lock(&dlm->track_lock);
-+	if (!list_empty(&res->tracking))
-+		list_del_init(&res->tracking);
-+	else {
-+		mlog(ML_ERROR, "%s: Resource %.*s not on the Tracking list\n",
-+		     dlm->name, res->lockname.len, res->lockname.name);
-+		__dlm_print_one_lock_resource(res);
-+	}
-+	spin_unlock(&dlm->track_lock);
-+
-+	/*
-+	 * lockres is not in the hash now. drop the flag and wake up
-+	 * any processes waiting in dlm_get_lock_resource.
-+	 */
-+	res->state &= ~DLM_LOCK_RES_DROPPING_REF;
-+}
-+
- static void dlm_purge_lockres(struct dlm_ctxt *dlm,
- 			     struct dlm_lock_resource *res)
- {
-@@ -176,10 +222,8 @@ static void dlm_purge_lockres(struct dlm
- 
- 	if (!master) {
- 		if (res->state & DLM_LOCK_RES_DROPPING_REF) {
--			mlog(ML_NOTICE, "%s: res %.*s already in "
--				"DLM_LOCK_RES_DROPPING_REF state\n",
--				dlm->name, res->lockname.len,
--				res->lockname.name);
-+			mlog(ML_NOTICE, "%s: res %.*s already in DLM_LOCK_RES_DROPPING_REF state\n",
-+				dlm->name, res->lockname.len, res->lockname.name);
- 			spin_unlock(&res->spinlock);
- 			return;
- 		}
 _
