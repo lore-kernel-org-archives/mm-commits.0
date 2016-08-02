@@ -1,72 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kasan-avoid-overflowing-quarantine-size-on-low-memory-systems-fix.patch
- removed from -mm tree
-Date: Tue, 02 Aug 2016 13:41:33 -0700
-Message-ID: <57a1057d.c1ZXnt4bUYg6Q6GM%akpm@linux-foundation.org>
+ treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch removed
+ from -mm tree
+Date: Tue, 02 Aug 2016 13:41:59 -0700
+Message-ID: <57a10597.3rMFHkM+Ga1r0hNF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59513 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59517 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752631AbcHBUle (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 16:41:34 -0400
+	with ESMTP id S1756422AbcHBUmA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 16:42:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fabf@skynet.be, mingo@redhat.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-avoid-overflowing-quarantine-size-on-low-memory-systems-fix
+     Subject: treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     kasan-avoid-overflowing-quarantine-size-on-low-memory-systems-fix.patch
+     treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into kasan-avoid-overflowing-quarantine-size-on-low-memory-systems.patch
+This patch was dropped because it was folded into treewide-replace-obsolete-_refok-by-__ref.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kasan-avoid-overflowing-quarantine-size-on-low-memory-systems-fix
+Subject: treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes
 
-cleanup: use WARN_ONCE return value
+ERROR: inline keyword should sit between storage class and type
+#590: FILE: mm/sparse.c:62:
++static struct mem_section noinline __ref *sparse_index_alloc(int nid)
 
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/quarantine.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/sparse.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/kasan/quarantine.c~kasan-avoid-overflowing-quarantine-size-on-low-memory-systems-fix mm/kasan/quarantine.c
---- a/mm/kasan/quarantine.c~kasan-avoid-overflowing-quarantine-size-on-low-memory-systems-fix
-+++ a/mm/kasan/quarantine.c
-@@ -217,14 +217,11 @@ void quarantine_reduce(void)
- 	new_quarantine_size = (READ_ONCE(totalram_pages) << PAGE_SHIFT) /
- 		QUARANTINE_FRACTION;
- 	percpu_quarantines = QUARANTINE_PERCPU_SIZE * num_online_cpus();
--	if (new_quarantine_size < percpu_quarantines) {
--		WARN_ONCE(1,
--			"Too little memory, disabling global KASAN quarantine.\n",
--		);
-+	if (WARN_ONCE(new_quarantine_size < percpu_quarantines,
-+		"Too little memory, disabling global KASAN quarantine.\n"))
- 		new_quarantine_size = 0;
--	} else {
-+	else
- 		new_quarantine_size -= percpu_quarantines;
--	}
- 	WRITE_ONCE(quarantine_size, new_quarantine_size);
+diff -puN mm/sparse.c~treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes mm/sparse.c
+--- a/mm/sparse.c~treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes
++++ a/mm/sparse.c
+@@ -59,7 +59,7 @@ static inline void set_section_nid(unsig
+ #endif
  
- 	last = global_quarantine.head;
+ #ifdef CONFIG_SPARSEMEM_EXTREME
+-static struct mem_section noinline __ref *sparse_index_alloc(int nid)
++static noinline struct mem_section __ref *sparse_index_alloc(int nid)
+ {
+ 	struct mem_section *section = NULL;
+ 	unsigned long array_size = SECTIONS_PER_ROOT *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kasan-avoid-overflowing-quarantine-size-on-low-memory-systems.patch
-treewide-replace-obsolete-_refok-by-__ref-checkpatch-fixes.patch
+treewide-replace-obsolete-_refok-by-__ref.patch
 printk-create-pr_level-functions-fix.patch
 kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
 kexec-allow-architectures-to-override-boot-mapping-fix.patch
