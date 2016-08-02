@@ -1,89 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [patch 083/111] ARM: kexec: fix kexec for Keystone 2
-Date: Tue, 02 Aug 2016 14:06:10 -0700
-Message-ID: <57a10b42.l84wtafXpkhcCLVS%akpm@linux-foundation.org>
+Subject: [patch 096/111] rapidio: fix error handling in mbox
+ request/release functions
+Date: Tue, 02 Aug 2016 14:06:49 -0700
+Message-ID: <57a10b69.qw0s3xB+8FJSP1XJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33340 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33341 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753790AbcHBVmQ (ORCPT
+	with ESMTP id S1753780AbcHBVmQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:42:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rmk+kernel@arm.linux.org.uk, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, horms@verge.net.au, j-keerthy@ti.com, panand@redhat.com, vgoyal@redhat.com, vitalya@ti.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org
 
-From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: ARM: kexec: fix kexec for Keystone 2
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio: fix error handling in mbox request/release functions
 
-Provide kexec with the boot view of memory by overriding the normal kexec
-translation functions added in a previous patch.  We also need to fix a
-call to memblock in machine_kexec_prepare() so that we provide it with a
-running-view physical address rather than a boot- view physical address.
+Add checking for error code returned by HW-specific mbox open routines.
+Ensure that resources are properly release if failed.
 
-Link: http://lkml.kernel.org/r/E1b8koa-0004Hl-Ey@rmk-PC.armlinux.org.uk
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Keerthy <j-keerthy@ti.com>
-Cc: Pratyush Anand <panand@redhat.com>
-Cc: Vitaly Andrianov <vitalya@ti.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Simon Horman <horms@verge.net.au>
+This patch is applicable to kernel versions starting from v2.6.15.
+
+Link: http://lkml.kernel.org/r/1469125134-16523-9-git-send-email-alexandre.bounine@idt.com
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
+Cc: Barry Wood <barry.wood@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/kexec.h    |   24 ++++++++++++++++++++++++
- arch/arm/kernel/machine_kexec.c |    2 +-
- 2 files changed, 25 insertions(+), 1 deletion(-)
+ drivers/rapidio/rio.c |   54 +++++++++++++++++++++++++++++++---------
+ 1 file changed, 42 insertions(+), 12 deletions(-)
 
-diff -puN arch/arm/include/asm/kexec.h~arm-kexec-fix-kexec-for-keystone-2 arch/arm/include/asm/kexec.h
---- a/arch/arm/include/asm/kexec.h~arm-kexec-fix-kexec-for-keystone-2
-+++ a/arch/arm/include/asm/kexec.h
-@@ -53,6 +53,30 @@ static inline void crash_setup_regs(stru
- /* Function pointer to optional machine-specific reinitialization */
- extern void (*kexec_reinit)(void);
+diff -puN drivers/rapidio/rio.c~rapidio-fix-error-handling-in-mbox-request-release-functions drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-fix-error-handling-in-mbox-request-release-functions
++++ a/drivers/rapidio/rio.c
+@@ -268,6 +268,12 @@ int rio_request_inb_mbox(struct rio_mpor
+ 		mport->inb_msg[mbox].mcback = minb;
  
-+static inline unsigned long phys_to_boot_phys(phys_addr_t phys)
-+{
-+	return phys_to_idmap(phys);
-+}
-+#define phys_to_boot_phys phys_to_boot_phys
-+
-+static inline phys_addr_t boot_phys_to_phys(unsigned long entry)
-+{
-+	return idmap_to_phys(entry);
-+}
-+#define boot_phys_to_phys boot_phys_to_phys
-+
-+static inline unsigned long page_to_boot_pfn(struct page *page)
-+{
-+	return page_to_pfn(page) + (arch_phys_to_idmap_offset >> PAGE_SHIFT);
-+}
-+#define page_to_boot_pfn page_to_boot_pfn
-+
-+static inline struct page *boot_pfn_to_page(unsigned long boot_pfn)
-+{
-+	return pfn_to_page(boot_pfn - (arch_phys_to_idmap_offset >> PAGE_SHIFT));
-+}
-+#define boot_pfn_to_page boot_pfn_to_page
-+
- #endif /* __ASSEMBLY__ */
+ 		rc = mport->ops->open_inb_mbox(mport, dev_id, mbox, entries);
++		if (rc) {
++			mport->inb_msg[mbox].mcback = NULL;
++			mport->inb_msg[mbox].res = NULL;
++			release_resource(res);
++			kfree(res);
++		}
+ 	} else
+ 		rc = -ENOMEM;
  
- #endif /* CONFIG_KEXEC */
-diff -puN arch/arm/kernel/machine_kexec.c~arm-kexec-fix-kexec-for-keystone-2 arch/arm/kernel/machine_kexec.c
---- a/arch/arm/kernel/machine_kexec.c~arm-kexec-fix-kexec-for-keystone-2
-+++ a/arch/arm/kernel/machine_kexec.c
-@@ -57,7 +57,7 @@ int machine_kexec_prepare(struct kimage
- 	for (i = 0; i < image->nr_segments; i++) {
- 		current_segment = &image->segment[i];
+@@ -285,13 +291,22 @@ int rio_request_inb_mbox(struct rio_mpor
+  */
+ int rio_release_inb_mbox(struct rio_mport *mport, int mbox)
+ {
+-	if (mport->ops->close_inb_mbox) {
+-		mport->ops->close_inb_mbox(mport, mbox);
++	int rc;
  
--		if (!memblock_is_region_memory(current_segment->mem,
-+		if (!memblock_is_region_memory(idmap_to_phys(current_segment->mem),
- 					       current_segment->memsz))
- 			return -EINVAL;
+-		/* Release the mailbox resource */
+-		return release_resource(mport->inb_msg[mbox].res);
+-	} else
+-		return -ENOSYS;
++	if (!mport->ops->close_inb_mbox || !mport->inb_msg[mbox].res)
++		return -EINVAL;
++
++	mport->ops->close_inb_mbox(mport, mbox);
++	mport->inb_msg[mbox].mcback = NULL;
++
++	rc = release_resource(mport->inb_msg[mbox].res);
++	if (rc)
++		return rc;
++
++	kfree(mport->inb_msg[mbox].res);
++	mport->inb_msg[mbox].res = NULL;
++
++	return 0;
+ }
  
+ /**
+@@ -336,6 +351,12 @@ int rio_request_outb_mbox(struct rio_mpo
+ 		mport->outb_msg[mbox].mcback = moutb;
+ 
+ 		rc = mport->ops->open_outb_mbox(mport, dev_id, mbox, entries);
++		if (rc) {
++			mport->outb_msg[mbox].mcback = NULL;
++			mport->outb_msg[mbox].res = NULL;
++			release_resource(res);
++			kfree(res);
++		}
+ 	} else
+ 		rc = -ENOMEM;
+ 
+@@ -353,13 +374,22 @@ int rio_request_outb_mbox(struct rio_mpo
+  */
+ int rio_release_outb_mbox(struct rio_mport *mport, int mbox)
+ {
+-	if (mport->ops->close_outb_mbox) {
+-		mport->ops->close_outb_mbox(mport, mbox);
++	int rc;
+ 
+-		/* Release the mailbox resource */
+-		return release_resource(mport->outb_msg[mbox].res);
+-	} else
+-		return -ENOSYS;
++	if (!mport->ops->close_outb_mbox || !mport->outb_msg[mbox].res)
++		return -EINVAL;
++
++	mport->ops->close_outb_mbox(mport, mbox);
++	mport->outb_msg[mbox].mcback = NULL;
++
++	rc = release_resource(mport->outb_msg[mbox].res);
++	if (rc)
++		return rc;
++
++	kfree(mport->outb_msg[mbox].res);
++	mport->outb_msg[mbox].res = NULL;
++
++	return 0;
+ }
+ 
+ /**
 _
