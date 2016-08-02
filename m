@@ -1,233 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [patch 081/111] kexec: allow architectures to override boot
- mapping
-Date: Tue, 02 Aug 2016 14:06:04 -0700
-Message-ID: <57a10b3c.LZYO7vl7fS+UEeLn%akpm@linux-foundation.org>
+Subject: [patch 080/111] kdump: arrange for paddr_vmcoreinfo_note() to
+ return phys_addr_t
+Date: Tue, 02 Aug 2016 14:06:00 -0700
+Message-ID: <57a10b38.Tk7ZsPMy+vJvcy6y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60614 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60613 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756707AbcHBVRA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:00 -0400
+	with ESMTP id S1756664AbcHBVQ7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:16:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, rmk+kernel@arm.linux.org.uk, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, horms@verge.net.au, j-keerthy@ti.com, panand@redhat.com, vgoyal@redhat.com, vitalya@ti.com
 
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: kexec: allow architectures to override boot mapping
+Subject: kdump: arrange for paddr_vmcoreinfo_note() to return phys_addr_t
 
-kexec physical addresses are the boot-time view of the system.  For
-certain ARM systems (such as Keystone 2), the boot view of the system does
-not match the kernel's view of the system: the boot view uses a special
-alias in the lower 4GB of the physical address space.
+On PAE systems (eg, ARM LPAE) the vmcore note may be located above 4GB
+physical on 32-bit architectures, so we need a wider type than "unsigned
+long" here.  Arrange for paddr_vmcoreinfo_note() to return a phys_addr_t,
+thereby allowing it to be located above 4GB.
 
-To cater for these kinds of setups, we need to translate between the boot
-view physical addresses and the normal kernel view physical addresses. 
-This patch extracts the current transation points into linux/kexec.h, and
-allows an architecture to override the functions.
+This makes no difference for kexec-tools, as they already assume a 64-bit
+type when reading from this file.
 
-Due to the translations required, we unfortunately end up with six
-translation functions, which are reduced down to four that the
-architecture can override.
-
-[akpm@linux-foundation.org: kexec.h needs asm/io.h for phys_to_virt()]
-Link: http://lkml.kernel.org/r/E1b8koP-0004HZ-Vf@rmk-PC.armlinux.org.uk
+Link: http://lkml.kernel.org/r/E1b8koK-0004HS-K9@rmk-PC.armlinux.org.uk
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Reviewed-by: Pratyush Anand <panand@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
 Cc: Keerthy <j-keerthy@ti.com>
-Cc: Pratyush Anand <panand@redhat.com>
 Cc: Vitaly Andrianov <vitalya@ti.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |   40 ++++++++++++++++++++++++++++++++++++++++
- kernel/kexec.c        |    3 ++-
- kernel/kexec_core.c   |   26 +++++++++++++-------------
- 3 files changed, 55 insertions(+), 14 deletions(-)
+ arch/ia64/kernel/machine_kexec.c |    2 +-
+ include/linux/kexec.h            |    2 +-
+ kernel/kexec_core.c              |    2 +-
+ kernel/ksysfs.c                  |    4 ++--
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/kexec.h~kexec-allow-architectures-to-override-boot-mapping include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-allow-architectures-to-override-boot-mapping
-+++ a/include/linux/kexec.h
-@@ -14,6 +14,8 @@
+diff -puN arch/ia64/kernel/machine_kexec.c~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t arch/ia64/kernel/machine_kexec.c
+--- a/arch/ia64/kernel/machine_kexec.c~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t
++++ a/arch/ia64/kernel/machine_kexec.c
+@@ -163,7 +163,7 @@ void arch_crash_save_vmcoreinfo(void)
+ #endif
+ }
  
- #if !defined(__ASSEMBLY__)
- 
-+#include <asm/io.h>
-+
- #include <uapi/linux/kexec.h>
- 
- #ifdef CONFIG_KEXEC_CORE
-@@ -318,6 +320,44 @@ int __weak arch_kexec_apply_relocations(
- void arch_kexec_protect_crashkres(void);
- void arch_kexec_unprotect_crashkres(void);
- 
-+#ifndef page_to_boot_pfn
-+static inline unsigned long page_to_boot_pfn(struct page *page)
-+{
-+	return page_to_pfn(page);
-+}
-+#endif
-+
-+#ifndef boot_pfn_to_page
-+static inline struct page *boot_pfn_to_page(unsigned long boot_pfn)
-+{
-+	return pfn_to_page(boot_pfn);
-+}
-+#endif
-+
-+#ifndef phys_to_boot_phys
-+static inline unsigned long phys_to_boot_phys(phys_addr_t phys)
-+{
-+	return phys;
-+}
-+#endif
-+
-+#ifndef boot_phys_to_phys
-+static inline phys_addr_t boot_phys_to_phys(unsigned long boot_phys)
-+{
-+	return boot_phys;
-+}
-+#endif
-+
-+static inline unsigned long virt_to_boot_phys(void *addr)
-+{
-+	return phys_to_boot_phys(__pa((unsigned long)addr));
-+}
-+
-+static inline void *boot_phys_to_virt(unsigned long entry)
-+{
-+	return phys_to_virt(boot_phys_to_phys(entry));
-+}
-+
- #else /* !CONFIG_KEXEC_CORE */
- struct pt_regs;
- struct task_struct;
-diff -puN kernel/kexec.c~kexec-allow-architectures-to-override-boot-mapping kernel/kexec.c
---- a/kernel/kexec.c~kexec-allow-architectures-to-override-boot-mapping
-+++ a/kernel/kexec.c
-@@ -48,7 +48,8 @@ static int kimage_alloc_init(struct kima
- 
- 	if (kexec_on_panic) {
- 		/* Verify we have a valid entry point */
--		if ((entry < crashk_res.start) || (entry > crashk_res.end))
-+		if ((entry < phys_to_boot_phys(crashk_res.start)) ||
-+		    (entry > phys_to_boot_phys(crashk_res.end)))
- 			return -EADDRNOTAVAIL;
- 	}
- 
-diff -puN kernel/kexec_core.c~kexec-allow-architectures-to-override-boot-mapping kernel/kexec_core.c
---- a/kernel/kexec_core.c~kexec-allow-architectures-to-override-boot-mapping
-+++ a/kernel/kexec_core.c
-@@ -225,8 +225,8 @@ int sanity_check_segment_list(struct kim
- 			mstart = image->segment[i].mem;
- 			mend = mstart + image->segment[i].memsz - 1;
- 			/* Ensure we are within the crash kernel limits */
--			if ((mstart < crashk_res.start) ||
--			    (mend > crashk_res.end))
-+			if ((mstart < phys_to_boot_phys(crashk_res.start)) ||
-+			    (mend > phys_to_boot_phys(crashk_res.end)))
- 				return -EADDRNOTAVAIL;
- 		}
- 	}
-@@ -350,7 +350,7 @@ static struct page *kimage_alloc_normal_
- 		pages = kimage_alloc_pages(KEXEC_CONTROL_MEMORY_GFP, order);
- 		if (!pages)
- 			break;
--		pfn   = page_to_pfn(pages);
-+		pfn   = page_to_boot_pfn(pages);
- 		epfn  = pfn + count;
- 		addr  = pfn << PAGE_SHIFT;
- 		eaddr = epfn << PAGE_SHIFT;
-@@ -476,7 +476,7 @@ static int kimage_add_entry(struct kimag
- 			return -ENOMEM;
- 
- 		ind_page = page_address(page);
--		*image->entry = virt_to_phys(ind_page) | IND_INDIRECTION;
-+		*image->entry = virt_to_boot_phys(ind_page) | IND_INDIRECTION;
- 		image->entry = ind_page;
- 		image->last_entry = ind_page +
- 				      ((PAGE_SIZE/sizeof(kimage_entry_t)) - 1);
-@@ -531,13 +531,13 @@ void kimage_terminate(struct kimage *ima
- #define for_each_kimage_entry(image, ptr, entry) \
- 	for (ptr = &image->head; (entry = *ptr) && !(entry & IND_DONE); \
- 		ptr = (entry & IND_INDIRECTION) ? \
--			phys_to_virt((entry & PAGE_MASK)) : ptr + 1)
-+			boot_phys_to_virt((entry & PAGE_MASK)) : ptr + 1)
- 
- static void kimage_free_entry(kimage_entry_t entry)
+-unsigned long paddr_vmcoreinfo_note(void)
++phys_addr_t paddr_vmcoreinfo_note(void)
  {
- 	struct page *page;
- 
--	page = pfn_to_page(entry >> PAGE_SHIFT);
-+	page = boot_pfn_to_page(entry >> PAGE_SHIFT);
- 	kimage_free_pages(page);
+ 	return ia64_tpa((unsigned long)(char *)&vmcoreinfo_note);
  }
+diff -puN include/linux/kexec.h~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t include/linux/kexec.h
+--- a/include/linux/kexec.h~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t
++++ a/include/linux/kexec.h
+@@ -233,7 +233,7 @@ void crash_save_vmcoreinfo(void);
+ void arch_crash_save_vmcoreinfo(void);
+ __printf(1, 2)
+ void vmcoreinfo_append_str(const char *fmt, ...);
+-unsigned long paddr_vmcoreinfo_note(void);
++phys_addr_t paddr_vmcoreinfo_note(void);
  
-@@ -631,7 +631,7 @@ static struct page *kimage_alloc_page(st
- 	 * have a match.
- 	 */
- 	list_for_each_entry(page, &image->dest_pages, lru) {
--		addr = page_to_pfn(page) << PAGE_SHIFT;
-+		addr = page_to_boot_pfn(page) << PAGE_SHIFT;
- 		if (addr == destination) {
- 			list_del(&page->lru);
- 			return page;
-@@ -646,12 +646,12 @@ static struct page *kimage_alloc_page(st
- 		if (!page)
- 			return NULL;
- 		/* If the page cannot be used file it away */
--		if (page_to_pfn(page) >
-+		if (page_to_boot_pfn(page) >
- 				(KEXEC_SOURCE_MEMORY_LIMIT >> PAGE_SHIFT)) {
- 			list_add(&page->lru, &image->unusable_pages);
- 			continue;
- 		}
--		addr = page_to_pfn(page) << PAGE_SHIFT;
-+		addr = page_to_boot_pfn(page) << PAGE_SHIFT;
+ #define VMCOREINFO_OSRELEASE(value) \
+ 	vmcoreinfo_append_str("OSRELEASE=%s\n", value)
+diff -puN kernel/kexec_core.c~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t
++++ a/kernel/kexec_core.c
+@@ -1372,7 +1372,7 @@ void vmcoreinfo_append_str(const char *f
+ void __weak arch_crash_save_vmcoreinfo(void)
+ {}
  
- 		/* If it is the destination page we want use it */
- 		if (addr == destination)
-@@ -674,7 +674,7 @@ static struct page *kimage_alloc_page(st
- 			struct page *old_page;
- 
- 			old_addr = *old & PAGE_MASK;
--			old_page = pfn_to_page(old_addr >> PAGE_SHIFT);
-+			old_page = boot_pfn_to_page(old_addr >> PAGE_SHIFT);
- 			copy_highpage(page, old_page);
- 			*old = addr | (*old & ~PAGE_MASK);
- 
-@@ -730,7 +730,7 @@ static int kimage_load_normal_segment(st
- 			result  = -ENOMEM;
- 			goto out;
- 		}
--		result = kimage_add_page(image, page_to_pfn(page)
-+		result = kimage_add_page(image, page_to_boot_pfn(page)
- 								<< PAGE_SHIFT);
- 		if (result < 0)
- 			goto out;
-@@ -791,7 +791,7 @@ static int kimage_load_crash_segment(str
- 		char *ptr;
- 		size_t uchunk, mchunk;
- 
--		page = pfn_to_page(maddr >> PAGE_SHIFT);
-+		page = boot_pfn_to_page(maddr >> PAGE_SHIFT);
- 		if (!page) {
- 			result  = -ENOMEM;
- 			goto out;
-@@ -919,7 +919,7 @@ void __weak crash_free_reserved_phys_ran
- 	unsigned long addr;
- 
- 	for (addr = begin; addr < end; addr += PAGE_SIZE)
--		free_reserved_page(pfn_to_page(addr >> PAGE_SHIFT));
-+		free_reserved_page(boot_pfn_to_page(addr >> PAGE_SHIFT));
+-unsigned long __weak paddr_vmcoreinfo_note(void)
++phys_addr_t __weak paddr_vmcoreinfo_note(void)
+ {
+ 	return __pa((unsigned long)(char *)&vmcoreinfo_note);
  }
- 
- int crash_shrink_memory(unsigned long new_size)
+diff -puN kernel/ksysfs.c~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t kernel/ksysfs.c
+--- a/kernel/ksysfs.c~kdump-arrange-for-paddr_vmcoreinfo_note-to-return-phys_addr_t
++++ a/kernel/ksysfs.c
+@@ -128,8 +128,8 @@ KERNEL_ATTR_RW(kexec_crash_size);
+ static ssize_t vmcoreinfo_show(struct kobject *kobj,
+ 			       struct kobj_attribute *attr, char *buf)
+ {
+-	return sprintf(buf, "%lx %x\n",
+-		       paddr_vmcoreinfo_note(),
++	phys_addr_t vmcore_base = paddr_vmcoreinfo_note();
++	return sprintf(buf, "%pa %x\n", &vmcore_base,
+ 		       (unsigned int)sizeof(vmcoreinfo_note));
+ }
+ KERNEL_ATTR_RO(vmcoreinfo);
 _
