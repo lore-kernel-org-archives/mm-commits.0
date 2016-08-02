@@ -1,94 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-change-inbound-window-size-type-to-u64-fix.patch added
- to -mm tree
-Date: Tue, 02 Aug 2016 12:27:39 -0700
-Message-ID: <57a0f42b.wNs/lW5ygdJAhIMJ%akpm@linux-foundation.org>
+Subject: [folded-merged] kasan-improve-double-free-reports-fix.patch
+ removed from -mm tree
+Date: Tue, 02 Aug 2016 13:40:57 -0700
+Message-ID: <57a10559.az7cHxMkNA8pwlXI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57730 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59510 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753329AbcHBT2w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 15:28:52 -0400
+	with ESMTP id S1752631AbcHBUlS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 16:41:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mpe@ellerman.id.au, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: change inbound window size type to u64 fix
-has been added to the -mm tree.  Its filename is
-     rapidio-change-inbound-window-size-type-to-u64-fix.patch
+     Subject: kasan-improve-double-free-reports-fix
+has been removed from the -mm tree.  Its filename was
+     kasan-improve-double-free-reports-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-change-inbound-window-size-type-to-u64-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-change-inbound-window-size-type-to-u64-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into kasan-improve-double-free-reports.patch
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: change inbound window size type to u64 fix
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: kasan-improve-double-free-reports-fix
 
-Fix for patch "rapidio: change inbound window size type to u64".
+Change double free message per Alexander
 
-Remove compiler warning about size of constant.
-
-Link: http://lkml.kernel.org/r/20160802184856.2566-1-alexandre.bounine@idt.com
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
-Cc: Barry Wood <barry.wood@idt.com>
+Link: http://lkml.kernel.org/r/1470153654-30160-1-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |    2 +-
+ mm/kasan/report.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-change-inbound-window-size-type-to-u64-fix arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-change-inbound-window-size-type-to-u64-fix
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -298,7 +298,7 @@ int fsl_map_inb_mem(struct rio_mport *mp
- 	u32 riwar;
- 	int i;
+diff -puN mm/kasan/report.c~kasan-improve-double-free-reports-fix mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-improve-double-free-reports-fix
++++ a/mm/kasan/report.c
+@@ -172,7 +172,7 @@ void kasan_report_double_free(struct kme
+ 	unsigned long flags;
  
--	if ((size & (size - 1)) != 0 || size > 0x400000000UL)
-+	if ((size & (size - 1)) != 0 || size > 0x400000000ULL)
- 		return -EINVAL;
- 
- 	base_size_log = ilog2(size);
+ 	kasan_start_report(&flags);
+-	pr_err("BUG: Double free or corrupt pointer\n");
++	pr_err("BUG: Double free or freeing an invalid pointer\n");
+ 	pr_err("Unexpected shadow byte: 0x%hhX\n", shadow);
+ 	kasan_object_err(cache, object);
+ 	kasan_end_report(&flags);
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-rapidio-add-rapidio-channelized-messaging-driver.patch
-rapidio-documentation-fix-mangled-paragraph-in-mport_cdev.patch
-rapidio-fix-return-value-description-for-dma_prep-functions.patch
-rapidio-tsi721_dma-add-channel-mask-and-queue-size-parameters.patch
-rapidio-tsi721-add-pcie-mrrs-override-parameter.patch
-rapidio-tsi721-add-messaging-mbox-selector-parameter.patch
-rapidio-tsi721_dma-advance-queue-processing-from-transfer-submit-call.patch
-rapidio-fix-error-handling-in-mbox-request-release-functions.patch
-rapidio-idt_gen2-fix-locking-warning.patch
-rapidio-change-inbound-window-size-type-to-u64.patch
-rapidio-change-inbound-window-size-type-to-u64-fix.patch
-rapidio-modify-for-rev3-specification-changes.patch
-rapidio-modify-for-rev3-specification-changes-fix-docbook-warning-for-gen3-update.patch
-powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3.patch
-powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3-fix-fix.patch
-rapidio-switches-add-driver-for-idt-gen3-switches.patch
-rapidio-switches-add-driver-for-idt-gen3-switches-fix.patch
+mm-kasan-fix-corruptions-and-false-positive-reports.patch
+mm-kasan-dont-reduce-quarantine-in-atomic-contexts.patch
+mm-kasan-slub-dont-disable-interrupts-when-object-leaves-quarantine.patch
+mm-kasan-get-rid-of-alloc_size-in-struct-kasan_alloc_meta.patch
+mm-kasan-get-rid-of-state-in-struct-kasan_alloc_meta.patch
+kasan-improve-double-free-reports.patch
 
