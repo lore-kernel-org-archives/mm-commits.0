@@ -1,73 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- nilfs2-replace-nilfs_warning-with-nilfs_msg-fix.patch removed from -mm tree
-Date: Tue, 02 Aug 2016 13:44:28 -0700
-Message-ID: <57a1062c.pwCZbgldSuminYxy%akpm@linux-foundation.org>
+ kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch removed from -mm tree
+Date: Tue, 02 Aug 2016 13:45:10 -0700
+Message-ID: <57a10656.bDuMuCjY087gS3wZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59542 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59546 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753059AbcHBUo3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 16:44:29 -0400
+	with ESMTP id S932428AbcHBUpM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 16:45:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, horms@verge.net.au, j-keerthy@ti.com, panand@redhat.com, rmk+kernel@arm.linux.org.uk, vgoyal@redhat.com, vitalya@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs: avoid warning about unused variables
+     Subject: kexec-ensure-user-memory-sizes-do-not-wrap-fix
 has been removed from the -mm tree.  Its filename was
-     nilfs2-replace-nilfs_warning-with-nilfs_msg-fix.patch
+     kexec-ensure-user-memory-sizes-do-not-wrap-fix.patch
 
-This patch was dropped because it was folded into nilfs2-replace-nilfs_warning-with-nilfs_msg.patch
+This patch was dropped because it was folded into kexec-ensure-user-memory-sizes-do-not-wrap.patch
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: nilfs: avoid warning about unused variables
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kexec-ensure-user-memory-sizes-do-not-wrap-fix
 
-The newly added nilfs_msg() infrastructure caused a warning in
-nilfs_clear_dirty_page() when it is disabled:
+fix it for kexec-return-error-number-directly.patch
 
-fs/nilfs2/page.c: In function 'nilfs_clear_dirty_page':
-fs/nilfs2/page.c:402:22: error: unused variable 'sb' [-Werror=unused-variable]
-  struct super_block *sb = inode->i_sb;
-
-We can avoid the warning by adding a cast to void for the first
-argument of the macro.
-
-Fixes: aede53d223f0 ("nilfs2: replace nilfs_warning() with nilfs_msg()")
-Link: http://lkml.kernel.org/r/20160615201945.3348205-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Keerthy <j-keerthy@ti.com>
+Cc: Pratyush Anand <panand@redhat.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Vitaly Andrianov <vitalya@ti.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/nilfs.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/kexec_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/nilfs.h~nilfs2-replace-nilfs_warning-with-nilfs_msg-fix fs/nilfs2/nilfs.h
---- a/fs/nilfs2/nilfs.h~nilfs2-replace-nilfs_warning-with-nilfs_msg-fix
-+++ a/fs/nilfs2/nilfs.h
-@@ -317,7 +317,10 @@ void __nilfs_error(struct super_block *s
- #else
- 
- #define nilfs_msg(sb, level, fmt, ...)					\
--	no_printk(fmt, ##__VA_ARGS__)
-+	do {								\
-+		no_printk(fmt, ##__VA_ARGS__);				\
-+		(void)(sb);						\
-+	} while (0)
- #define nilfs_error(sb, fmt, ...)					\
- 	do {								\
- 		no_printk(fmt, ##__VA_ARGS__);				\
+diff -puN kernel/kexec_core.c~kexec-ensure-user-memory-sizes-do-not-wrap-fix kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kexec-ensure-user-memory-sizes-do-not-wrap-fix
++++ a/kernel/kexec_core.c
+@@ -169,7 +169,7 @@ int sanity_check_segment_list(struct kim
+ 		mstart = image->segment[i].mem;
+ 		mend   = mstart + image->segment[i].memsz;
+ 		if (mstart > mend)
+-			return result;
++			return -EADDRNOTAVAIL;
+ 		if ((mstart & ~PAGE_MASK) || (mend & ~PAGE_MASK))
+ 			return -EADDRNOTAVAIL;
+ 		if (mend >= KEXEC_DESTINATION_MEMORY_LIMIT)
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-procfs-avoid-32-bit-time_t-in-proc-stat.patch
-crc32-use-ktime_get_ns-for-measurement.patch
-nilfs2-replace-nilfs_warning-with-nilfs_msg.patch
+kexec-ensure-user-memory-sizes-do-not-wrap.patch
+kexec-allow-architectures-to-override-boot-mapping-fix.patch
+allow-kdump-with-crash_kexec_post_notifiers-fix.patch
+kexec-add-restriction-on-kexec_load-segment-sizes-fix.patch
+powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3-fix.patch
 
