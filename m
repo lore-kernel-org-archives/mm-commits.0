@@ -1,233 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [patch 037/111] printk: create pr_<level> functions
-Date: Tue, 02 Aug 2016 14:03:53 -0700
-Message-ID: <57a10ab9.FXuUd1yWIl5HI2sY%akpm@linux-foundation.org>
+Subject: [patch 057/111] binfmt_elf: fix calculations for bss padding
+Date: Tue, 02 Aug 2016 14:04:51 -0700
+Message-ID: <57a10af3.jgMS1u7Lz8ASTCtY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60617 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60609 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755746AbcHBVRN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:13 -0400
+	with ESMTP id S1756801AbcHBVRO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Aug 2016 17:17:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, keescook@chromium.org, aarcange@redhat.com, aryabinin@virtuozzo.com, gang.chen.5i5j@gmail.com, hecmargi@upv.es, iripoll@upv.es, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mhocko@suse.com, oleg@redhat.com, viro@zeniv.linux.org.uk
 
-From: Joe Perches <joe@perches.com>
-Subject: printk: create pr_<level> functions
+From: Kees Cook <keescook@chromium.org>
+Subject: binfmt_elf: fix calculations for bss padding
 
-Using functions instead of macros can reduce overall code size by
-eliminating unnecessary "KERN_SOH<digit>" prefixes from format strings.
+A double-bug exists in the bss calculation code, where an overflow can
+happen in the "last_bss - elf_bss" calculation, but vm_brk internally
+aligns the argument, underflowing it, wrapping back around safe.  We
+shouldn't depend on these bugs staying in sync, so this cleans up the bss
+padding handling to avoid the overflow.
 
-defconfig x86-64:
+This moves the bss padzero() before the last_bss > elf_bss case, since the
+zero-filling of the ELF_PAGE should have nothing to do with the
+relationship of last_bss and elf_bss: any trailing portion should be
+zeroed, and a zero size is already handled by padzero().
 
-$ size vmlinux*
-   text    data     bss      dec     hex  filename
-10193570 4331464 1105920 15630954  ee826a vmlinux.new
-10192623 4335560 1105920 15634103  ee8eb7 vmlinux.old
+Then it handles the math on elf_bss vs last_bss correctly.  These need to
+both be ELF_PAGE aligned to get the comparison correct, since that's the
+expected granularity of the mappings.  Since elf_bss already had
+alignment-based padding happen in padzero(), the "start" of the new
+vm_brk() should be moved forward as done in the original code.  However,
+since the "end" of the vm_brk() area will already become PAGE_ALIGNed in
+vm_brk() then last_bss should get aligned here to avoid hiding it as a
+side-effect.
 
-As the return value are unimportant and unused in the kernel tree,
-these new functions return void.
+Additionally makes a cosmetic change to the initial last_bss calculation
+so it's easier to read in comparison to the load_addr calculation above it
+(i.e.  the only difference is p_filesz vs p_memsz).
 
-Miscellanea:
-
-o change pr_<level> macros to call new __pr_<level> functions
-o change vprintk_nmi and vprintk_default to add LOGLEVEL_<level> argument
-
-[akpm@linux-foundation.org: fix LOGLEVEL_INFO, per Joe]
-Link: http://lkml.kernel.org/r/e16cc34479dfefcae37c98b481e6646f0f69efc3.1466718827.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/1468014494-25291-2-git-send-email-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Hector Marco-Gisbert <hecmargi@upv.es>
+Cc: Ismael Ripoll Ripoll <iripoll@upv.es>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Chen Gang <gang.chen.5i5j@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h   |   48 +++++++++++++++++++++++++------------
- kernel/printk/internal.h |   16 +++++++-----
- kernel/printk/nmi.c      |   13 ++++++++--
- kernel/printk/printk.c   |   27 ++++++++++++++++++--
- 4 files changed, 78 insertions(+), 26 deletions(-)
+ fs/binfmt_elf.c |   34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/printk.h~printk-create-pr_level-functions include/linux/printk.h
---- a/include/linux/printk.h~printk-create-pr_level-functions
-+++ a/include/linux/printk.h
-@@ -257,21 +257,39 @@ extern asmlinkage void dump_stack(void)
-  * and other debug macros are compiled out unless either DEBUG is defined
-  * or CONFIG_DYNAMIC_DEBUG is set.
-  */
--#define pr_emerg(fmt, ...) \
--	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_alert(fmt, ...) \
--	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_crit(fmt, ...) \
--	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_err(fmt, ...) \
--	printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_warning(fmt, ...) \
--	printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_warn pr_warning
--#define pr_notice(fmt, ...) \
--	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
--#define pr_info(fmt, ...) \
--	printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-+
-+#ifdef CONFIG_PRINTK
-+
-+asmlinkage __printf(1, 2) __cold void __pr_emerg(const char *fmt, ...);
-+asmlinkage __printf(1, 2) __cold void __pr_alert(const char *fmt, ...);
-+asmlinkage __printf(1, 2) __cold void __pr_crit(const char *fmt, ...);
-+asmlinkage __printf(1, 2) __cold void __pr_err(const char *fmt, ...);
-+asmlinkage __printf(1, 2) __cold void __pr_warn(const char *fmt, ...);
-+asmlinkage __printf(1, 2) __cold void __pr_notice(const char *fmt, ...);
-+asmlinkage __printf(1, 2) __cold void __pr_info(const char *fmt, ...);
-+
-+#define pr_emerg(fmt, ...)	__pr_emerg(pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_alert(fmt, ...)	__pr_alert(pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_crit(fmt, ...)	__pr_crit(pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_err(fmt, ...)	__pr_err(pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_warn(fmt, ...)	__pr_warn(pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_notice(fmt, ...)	__pr_notice(pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_info(fmt, ...)	__pr_info(pr_fmt(fmt), ##__VA_ARGS__)
-+
-+#else
-+
-+#define pr_emerg(fmt, ...)	printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_alert(fmt, ...)	printk(KERN_ALERT pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_crit(fmt, ...)	printk(KERN_CRIT pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_err(fmt, ...)	printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_warn(fmt, ...)	printk(KERN_WARNING pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_notice(fmt, ...)	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
-+#define pr_info(fmt, ...)	printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-+
-+#endif
-+
-+#define pr_warning pr_warn
-+
- /*
-  * Like KERN_CONT, pr_cont() should only be used when continuing
-  * a line with no newline ('\n') enclosed. Otherwise it defaults
-diff -puN kernel/printk/internal.h~printk-create-pr_level-functions kernel/printk/internal.h
---- a/kernel/printk/internal.h~printk-create-pr_level-functions
-+++ a/kernel/printk/internal.h
-@@ -16,9 +16,11 @@
-  */
- #include <linux/percpu.h>
- 
--typedef __printf(1, 0) int (*printk_func_t)(const char *fmt, va_list args);
-+typedef __printf(2, 0) int (*printk_func_t)(int level, const char *fmt,
-+					    va_list args);
- 
--int __printf(1, 0) vprintk_default(const char *fmt, va_list args);
-+__printf(2, 0)
-+int vprintk_default(int level, const char *fmt, va_list args);
- 
- #ifdef CONFIG_PRINTK_NMI
- 
-@@ -31,9 +33,10 @@ extern raw_spinlock_t logbuf_lock;
-  * via per-CPU variable.
-  */
- DECLARE_PER_CPU(printk_func_t, printk_func);
--static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
-+__printf(2, 0)
-+static inline int vprintk_func(int level, const char *fmt, va_list args)
- {
--	return this_cpu_read(printk_func)(fmt, args);
-+	return this_cpu_read(printk_func)(level, fmt, args);
- }
- 
- extern atomic_t nmi_message_lost;
-@@ -44,9 +47,10 @@ static inline int get_nmi_message_lost(v
- 
- #else /* CONFIG_PRINTK_NMI */
- 
--static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
-+__printf(2, 0)
-+static inline int vprintk_func(int level, const char *fmt, va_list args)
- {
--	return vprintk_default(fmt, args);
-+	return vprintk_default(level, fmt, args);
- }
- 
- static inline int get_nmi_message_lost(void)
-diff -puN kernel/printk/nmi.c~printk-create-pr_level-functions kernel/printk/nmi.c
---- a/kernel/printk/nmi.c~printk-create-pr_level-functions
-+++ a/kernel/printk/nmi.c
-@@ -58,7 +58,7 @@ static DEFINE_PER_CPU(struct nmi_seq_buf
-  * one writer running. But the buffer might get flushed from another
-  * CPU, so we need to be careful.
-  */
--static int vprintk_nmi(const char *fmt, va_list args)
-+static int vprintk_nmi(int level, const char *fmt, va_list args)
- {
- 	struct nmi_seq_buf *s = this_cpu_ptr(&nmi_print_seq);
- 	int add = 0;
-@@ -79,7 +79,16 @@ again:
- 	if (!len)
- 		smp_rmb();
- 
--	add = vsnprintf(s->buffer + len, sizeof(s->buffer) - len, fmt, args);
-+	if (level != LOGLEVEL_DEFAULT) {
-+		add = snprintf(s->buffer + len, sizeof(s->buffer) - len,
-+				KERN_SOH "%c", '0' + level);
-+		add += vsnprintf(s->buffer + len + add,
-+				 sizeof(s->buffer) - len - add,
-+				 fmt, args);
-+	} else {
-+		add = vsnprintf(s->buffer + len, sizeof(s->buffer) - len,
-+				fmt, args);
-+	}
- 
- 	/*
- 	 * Do it once again if the buffer has been flushed in the meantime.
-diff -puN kernel/printk/printk.c~printk-create-pr_level-functions kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-create-pr_level-functions
-+++ a/kernel/printk/printk.c
-@@ -1801,7 +1801,28 @@ asmlinkage int printk_emit(int facility,
- }
- EXPORT_SYMBOL(printk_emit);
- 
--int vprintk_default(const char *fmt, va_list args)
-+#ifdef CONFIG_PRINTK
-+#define define_pr_level(func, loglevel)				\
-+asmlinkage __visible void func(const char *fmt, ...)		\
-+{								\
-+	va_list args;						\
-+								\
-+	va_start(args, fmt);					\
-+	vprintk_default(loglevel, fmt, args);			\
-+	va_end(args);						\
-+}								\
-+EXPORT_SYMBOL(func)
-+
-+define_pr_level(__pr_emerg, LOGLEVEL_EMERG);
-+define_pr_level(__pr_alert, LOGLEVEL_ALERT);
-+define_pr_level(__pr_crit, LOGLEVEL_CRIT);
-+define_pr_level(__pr_err, LOGLEVEL_ERR);
-+define_pr_level(__pr_warn, LOGLEVEL_WARNING);
-+define_pr_level(__pr_notice, LOGLEVEL_NOTICE);
-+define_pr_level(__pr_info, LOGLEVEL_INFO);
-+#endif
-+
-+int vprintk_default(int level, const char *fmt, va_list args)
- {
- 	int r;
- 
-@@ -1811,7 +1832,7 @@ int vprintk_default(const char *fmt, va_
- 		return r;
+diff -puN fs/binfmt_elf.c~binfmt_elf-fix-calculations-for-bss-padding fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-fix-calculations-for-bss-padding
++++ a/fs/binfmt_elf.c
+@@ -605,28 +605,30 @@ static unsigned long load_elf_interp(str
+ 			 * Do the same thing for the memory mapping - between
+ 			 * elf_bss and last_bss is the bss section.
+ 			 */
+-			k = load_addr + eppnt->p_memsz + eppnt->p_vaddr;
++			k = load_addr + eppnt->p_vaddr + eppnt->p_memsz;
+ 			if (k > last_bss)
+ 				last_bss = k;
+ 		}
  	}
- #endif
--	r = vprintk_emit(0, LOGLEVEL_DEFAULT, NULL, 0, fmt, args);
-+	r = vprintk_emit(0, level, NULL, 0, fmt, args);
  
- 	return r;
- }
-@@ -1844,7 +1865,7 @@ asmlinkage __visible int printk(const ch
- 	int r;
- 
- 	va_start(args, fmt);
--	r = vprintk_func(fmt, args);
-+	r = vprintk_func(LOGLEVEL_DEFAULT, fmt, args);
- 	va_end(args);
- 
- 	return r;
-_
++	/*
++	 * Now fill out the bss section: first pad the last page from
++	 * the file up to the page boundary, and zero it from elf_bss
++	 * up to the end of the page.
++	 */
++	if (padzero(elf_bss)) {
++		error = -EFAULT;
++		goto out;
++	}
++	/*
++	 * Next, align both the file and mem bss up to the page size,
++	 * since this is where elf_bss was just zeroed up to, and where
++	 * last_bss will end after the vm_brk() below.
++	 */
++	elf_bss = ELF_PAGEALIGN(elf_bss);
++	last_bss = ELF_PAGEALIGN(last_bss);
++	/* Finally, if there is still more bss to allocate, do it. */
+ 	if (last_bss > elf_bss) {
+-		/*
+-		 * Now fill out the bss section.  First pad the last page up
+-		 * to the page boundary, and then perform a mmap to make sure
+-		 * that there are zero-mapped pages up to and including the
+-		 * last bss page.
+-		 */
+-		if (padzero(elf_bss)) {
+-			error = -EFAULT;
+-			goto out;
+-		}
+-
+-		/* What we have mapped so far */
+-		elf_bss = ELF_PAGESTART(elf_bss + ELF_MIN_ALIGN - 1);
