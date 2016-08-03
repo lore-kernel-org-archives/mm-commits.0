@@ -1,16 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler.patch removed from -mm tree
-Date: Wed, 03 Aug 2016 11:10:31 -0700
-Message-ID: <57a23397.eIyWw6mJyoIA4u8q%akpm@linux-foundation.org>
+ ocfs2-dlm-solve-a-bug-when-deref-failed-in-dlm_drop_lockres_ref.patch
+ removed from -mm tree
+Date: Wed, 03 Aug 2016 11:10:34 -0700
+Message-ID: <57a2339a.JvaBOM351/tbwp4e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33845 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33848 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756803AbcHCSQv (ORCPT
+	with ESMTP id S1756850AbcHCSQv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:16:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,52 +19,48 @@ To: piaojun@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@ora
 
 
 The patch titled
-     Subject: ocfs2/dlm: disable BUG_ON when DLM_LOCK_RES_DROPPING_REF is cleared before dlm_deref_lockres_done_handler
+     Subject: ocfs2/dlm: solve a BUG when deref failed in dlm_drop_lockres_ref
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler.patch
+     ocfs2-dlm-solve-a-bug-when-deref-failed-in-dlm_drop_lockres_ref.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: piaojun <piaojun@huawei.com>
-Subject: ocfs2/dlm: disable BUG_ON when DLM_LOCK_RES_DROPPING_REF is cleared before dlm_deref_lockres_done_handler
+Subject: ocfs2/dlm: solve a BUG when deref failed in dlm_drop_lockres_ref
 
-We found a BUG situation in which DLM_LOCK_RES_DROPPING_REF is cleared
-unexpected that described below.  To solve the bug, we disable the BUG_ON
-and purge lockres in dlm_do_local_recovery_cleanup.
+We found a BUG situation that lockres is migrated during deref described
+below.  To solve the BUG, we could purge lockres directly when other node
+says I did not have a ref.  Additionally, we'd better purge lockres if
+master goes down, as no one will response deref done.
 
-Node 1                               Node 2(master)
+Node 1                  Node 2(old master)             Node3(new master)
 dlm_purge_lockres
-                                     dlm_deref_lockres_handler
+send deref to N2
 
-                                     DLM_LOCK_RES_SETREF_INPROG is set
-                                     response DLM_DEREF_RESPONSE_INPROG
+                        leave domain
+                        migrate lockres to N3
+                                                       finish migration
+                                                       send do assert
+                                                       master to N1
 
-receive DLM_DEREF_RESPONSE_INPROG
-stop puring in dlm_purge_lockres
-and wait for DLM_DEREF_RESPONSE_DONE
+receive do assert msg
+form N3, but can not
+find lockres because
+DROPPING_REF is set,
+so the owner is still
+N2.
 
-                                     dispatch dlm_deref_lockres_worker
-                                     response DLM_DEREF_RESPONSE_DONE
+                        receive deref from N1
+                        and response -EINVAL
+                        because lockres is migrated
 
-receive DLM_DEREF_RESPONSE_DONE and
-prepare to purge lockres
+BUG when receive -EINVAL
+in dlm_drop_lockres_ref
 
-                                     Node 2 goes down
+Fixes: 842b90b62461d ("ocfs2/dlm: return in progress if master can not clear the refmap bit right now")
 
-find Node2 down and do local
-clean up for Node2:
-dlm_do_local_recovery_cleanup
-  -> clear DLM_LOCK_RES_DROPPING_REF
-
-when purging lockres, BUG_ON happens
-because DLM_LOCK_RES_DROPPING_REF is clear:
-dlm_deref_lockres_done_handler
-  ->BUG_ON(!(res->state & DLM_LOCK_RES_DROPPING_REF));
-
-[akpm@linux-foundation.org: fix duplicated write to `ret']
-Fixes: 60d663cb5273 ("ocfs2/dlm: add DEREF_DONE message")
-Link: http://lkml.kernel.org/r/57845055.9080702@huawei.com
+Link: http://lkml.kernel.org/r/57845103.3070406@huawei.com
 Signed-off-by: Jun Piao <piaojun@huawei.com>
 Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
 Reviewed-by: Jiufei Xue <xuejiufei@huawei.com>
@@ -73,32 +70,61 @@ Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |    9 ++++++---
+ fs/ocfs2/dlm/dlmthread.c |   13 +++++++++++--
+ 2 files changed, 17 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-disable-bug_on-when-dlm_lock_res_dropping_ref-is-cleared-before-dlm_deref_lockres_done_handler
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-solve-a-bug-when-deref-failed-in-dlm_drop_lockres_ref fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-solve-a-bug-when-deref-failed-in-dlm_drop_lockres_ref
 +++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -2416,7 +2416,17 @@ int dlm_deref_lockres_done_handler(struc
+@@ -2276,9 +2276,12 @@ int dlm_drop_lockres_ref(struct dlm_ctxt
+ 		mlog(ML_ERROR, "%s: res %.*s, DEREF to node %u got %d\n",
+ 		     dlm->name, namelen, lockname, res->owner, r);
+ 		dlm_print_one_lock_resource(res);
+-		BUG();
+-	}
+-	return ret ? ret : r;
++		if (r == -ENOMEM)
++			BUG();
++	} else
++		ret = r;
++
++	return ret;
+ }
+ 
+ int dlm_deref_lockres_handler(struct o2net_msg *msg, u32 len, void *data,
+diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-solve-a-bug-when-deref-failed-in-dlm_drop_lockres_ref fs/ocfs2/dlm/dlmthread.c
+--- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-solve-a-bug-when-deref-failed-in-dlm_drop_lockres_ref
++++ a/fs/ocfs2/dlm/dlmthread.c
+@@ -175,6 +175,15 @@ static void dlm_purge_lockres(struct dlm
+ 	     res->lockname.len, res->lockname.name, master);
+ 
+ 	if (!master) {
++		if (res->state & DLM_LOCK_RES_DROPPING_REF) {
++			mlog(ML_NOTICE, "%s: res %.*s already in "
++				"DLM_LOCK_RES_DROPPING_REF state\n",
++				dlm->name, res->lockname.len,
++				res->lockname.name);
++			spin_unlock(&res->spinlock);
++			return;
++		}
++
+ 		res->state |= DLM_LOCK_RES_DROPPING_REF;
+ 		/* drop spinlock...  retake below */
+ 		spin_unlock(&res->spinlock);
+@@ -203,8 +212,8 @@ static void dlm_purge_lockres(struct dlm
+ 		dlm->purge_count--;
  	}
  
- 	spin_lock(&res->spinlock);
--	BUG_ON(!(res->state & DLM_LOCK_RES_DROPPING_REF));
-+	if (!(res->state & DLM_LOCK_RES_DROPPING_REF)) {
-+		spin_unlock(&res->spinlock);
-+		spin_unlock(&dlm->spinlock);
-+		mlog(ML_NOTICE, "%s:%.*s: node %u sends deref done "
-+			"but it is already derefed!\n", dlm->name,
-+			res->lockname.len, res->lockname.name, node);
-+		dlm_lockres_put(res);
-+		ret = 0;
-+		goto done;
-+	}
-+
- 	if (!list_empty(&res->purge)) {
- 		mlog(0, "%s: Removing res %.*s from purgelist\n",
+-	if (!master && ret != 0) {
+-		mlog(0, "%s: deref %.*s in progress or master goes down\n",
++	if (!master && ret == DLM_DEREF_RESPONSE_INPROG) {
++		mlog(0, "%s: deref %.*s in progress\n",
  			dlm->name, res->lockname.len, res->lockname.name);
-@@ -2456,7 +2466,6 @@ int dlm_deref_lockres_done_handler(struc
- 	spin_unlock(&dlm->spinlock);
- 
- 	ret = 0;
+ 		spin_unlock(&res->spinlock);
+ 		return;
+_
+
+Patches currently in -mm which might be from piaojun@huawei.com are
+
+
