@@ -1,146 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- relay-add-global-mode-support-for-buffer-only-channels.patch removed from
- -mm tree
-Date: Wed, 03 Aug 2016 11:14:55 -0700
-Message-ID: <57a2349f.MUjgDXOZOw7PlV4h%akpm@linux-foundation.org>
+Subject: [merged] ipc-delete-nr_ipc_ns.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 11:15:06 -0700
+Message-ID: <57a234aa.N2xtY0acr2OzqkHj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33680 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33702 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755211AbcHCSO4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:14:56 -0400
+	with ESMTP id S1755211AbcHCSPH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:15:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akash.goel@intel.com, chris@chris-wilson.co.uk, eduard.munteanu@linux360.ro, tzanussi@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: relay: add global mode support for buffer-only channels
+     Subject: ipc: delete "nr_ipc_ns"
 has been removed from the -mm tree.  Its filename was
-     relay-add-global-mode-support-for-buffer-only-channels.patch
+     ipc-delete-nr_ipc_ns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akash Goel <akash.goel@intel.com>
-Subject: relay: add global mode support for buffer-only channels
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: ipc: delete "nr_ipc_ns"
 
-The following patch added support to use channels with no associated files.
-	commit 20d8b67c06fa5e74f44e80b0a0fd68c8327f7c6a
-	Author: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
-	Date:   Fri Jul 25 19:45:12 2008 -0700
+Write-only variable.
 
-		relay: add buffer-only channels; useful for early logging
-
-This is useful when the exact location of relay file is not known or the
-the parent directory of relay file is not available, while creating the
-channel and the logging has to start right from the boot.
-
-But there was no provision to use global mode with buffer-only channels,
-which is added by this patch, without modifying the interface where
-initially there will be a dummy invocation of create_buf_file callback
-through which kernel client can convey the need of a global buffer.
-
-For the use case where drivers/kernel clients want a simple interface for
-the userspace, which enables them to capture data/logs from relay file
-inorder & without any post processing, support of Global buffer mode is
-warranted.
-
-Modules, like i915, using relay_open() in early init would have to later
-register their buffer-only relays, once debugfs is available, by calling
-relay_late_setup_files().  Hence relay_late_setup_files() symbol also
-needs to be exported.
-
-Link: http://lkml.kernel.org/r/1468404563-11653-1-git-send-email-akash.goel@intel.com
-Signed-off-by: Akash Goel <akash.goel@intel.com>
-Cc: Eduard - Gabriel Munteanu <eduard.munteanu@linux360.ro>
-Cc: Tom Zanussi <tzanussi@gmail.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/20160708214356.GA6785@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |   34 ++++++++++++++++++++++++++++++++--
- 1 file changed, 32 insertions(+), 2 deletions(-)
+ include/linux/ipc_namespace.h |    2 --
+ ipc/msgutil.c                 |    2 --
+ ipc/namespace.c               |    2 --
+ 3 files changed, 6 deletions(-)
 
-diff -puN kernel/relay.c~relay-add-global-mode-support-for-buffer-only-channels kernel/relay.c
---- a/kernel/relay.c~relay-add-global-mode-support-for-buffer-only-channels
-+++ a/kernel/relay.c
-@@ -451,6 +451,13 @@ static struct rchan_buf *relay_open_buf(
- 		if (!dentry)
- 			goto free_buf;
- 		relay_set_buf_dentry(buf, dentry);
-+	} else {
-+		/* Only retrieve global info, nothing more, nothing less */
-+		dentry = chan->cb->create_buf_file(NULL, NULL,
-+						   S_IRUSR, buf,
-+						   &chan->is_global);
-+		if (WARN_ON(dentry))
-+			goto free_buf;
+diff -puN include/linux/ipc_namespace.h~ipc-delete-nr_ipc_ns include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~ipc-delete-nr_ipc_ns
++++ a/include/linux/ipc_namespace.h
+@@ -63,8 +63,6 @@ struct ipc_namespace {
+ };
+ 
+ extern struct ipc_namespace init_ipc_ns;
+-extern atomic_t nr_ipc_ns;
+-
+ extern spinlock_t mq_lock;
+ 
+ #ifdef CONFIG_SYSVIPC
+diff -puN ipc/msgutil.c~ipc-delete-nr_ipc_ns ipc/msgutil.c
+--- a/ipc/msgutil.c~ipc-delete-nr_ipc_ns
++++ a/ipc/msgutil.c
+@@ -37,8 +37,6 @@ struct ipc_namespace init_ipc_ns = {
+ #endif
+ };
+ 
+-atomic_t nr_ipc_ns = ATOMIC_INIT(1);
+-
+ struct msg_msgseg {
+ 	struct msg_msgseg *next;
+ 	/* the next part of the message follows immediately */
+diff -puN ipc/namespace.c~ipc-delete-nr_ipc_ns ipc/namespace.c
+--- a/ipc/namespace.c~ipc-delete-nr_ipc_ns
++++ a/ipc/namespace.c
+@@ -43,7 +43,6 @@ static struct ipc_namespace *create_ipc_
+ 		kfree(ns);
+ 		return ERR_PTR(err);
  	}
+-	atomic_inc(&nr_ipc_ns);
  
-  	buf->cpu = cpu;
-@@ -562,6 +569,10 @@ static int relay_hotcpu_callback(struct
-  *	attributes specified.  The created channel buffer files
-  *	will be named base_filename0...base_filenameN-1.  File
-  *	permissions will be %S_IRUSR.
-+ *
-+ *	If opening a buffer (@parent = NULL) that you later wish to register
-+ *	in a filesystem, call relay_late_setup_files() once the @parent dentry
-+ *	is available.
-  */
- struct rchan *relay_open(const char *base_filename,
- 			 struct dentry *parent,
-@@ -640,8 +651,12 @@ static void __relay_set_buf_dentry(void
-  *
-  *	Returns 0 if successful, non-zero otherwise.
-  *
-- *	Use to setup files for a previously buffer-only channel.
-- *	Useful to do early tracing in kernel, before VFS is up, for example.
-+ *	Use to setup files for a previously buffer-only channel created
-+ *	by relay_open() with a NULL parent dentry.
-+ *
-+ *	For example, this is useful for perfomring early tracing in kernel,
-+ *	before VFS is up and then exposing the early results once the dentry
-+ *	is available.
-  */
- int relay_late_setup_files(struct rchan *chan,
- 			   const char *base_filename,
-@@ -666,6 +681,20 @@ int relay_late_setup_files(struct rchan
- 	}
- 	chan->has_base_filename = 1;
- 	chan->parent = parent;
-+
-+	if (chan->is_global) {
-+		err = -EINVAL;
-+		if (!WARN_ON_ONCE(!chan->buf[0])) {
-+			dentry = relay_create_buf_file(chan, chan->buf[0], 0);
-+			if (dentry && !WARN_ON_ONCE(!chan->is_global)) {
-+				relay_set_buf_dentry(chan->buf[0], dentry);
-+				err = 0;
-+			}
-+		}
-+		mutex_unlock(&relay_channels_mutex);
-+		return err;
-+	}
-+
- 	curr_cpu = get_cpu();
- 	/*
- 	 * The CPU hotplug notifier ran before us and created buffers with
-@@ -706,6 +735,7 @@ int relay_late_setup_files(struct rchan
+ 	sem_init_ns(ns);
+ 	msg_init_ns(ns);
+@@ -96,7 +95,6 @@ static void free_ipc_ns(struct ipc_names
+ 	sem_exit_ns(ns);
+ 	msg_exit_ns(ns);
+ 	shm_exit_ns(ns);
+-	atomic_dec(&nr_ipc_ns);
  
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(relay_late_setup_files);
- 
- /**
-  *	relay_switch_subbuf - switch to a new sub-buffer
+ 	put_user_ns(ns->user_ns);
+ 	ns_free_inum(&ns->ns);
 _
 
-Patches currently in -mm which might be from akash.goel@intel.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+kbuild-simpler-generation-of-assembly-constants.patch
 
