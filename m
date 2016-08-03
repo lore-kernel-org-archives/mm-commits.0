@@ -1,48 +1,1389 @@
 From: akpm@linux-foundation.org
-Subject: [patch 01/18] drivers/fpga/Kconfig: fix build failure
-Date: Wed, 03 Aug 2016 13:45:46 -0700
-Message-ID: <57a257fa.XSlT26U7HzEaBxvL%akpm@linux-foundation.org>
+Subject: [patch 02/18] tree-wide: replace config_enabled() with
+ IS_ENABLED()
+Date: Wed, 03 Aug 2016 13:45:50 -0700
+Message-ID: <57a257fe.EQvs0/rZTUye77Nz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39689 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39707 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932606AbcHCUpr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:45:47 -0400
+	with ESMTP id S932606AbcHCUpx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:45:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, sudipm.mukherjee@gmail.com, atull@opensource.altera.com, moritz.fischer@ettus.com, sudip.mukherjee@codethink.co.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yamada.masahiro@socionext.com, James.Cowgill@imgtec.com, Leonid.Yegoshin@imgtec.com, adam.buchbinder@gmail.com, alex.smith@imgtec.com, andrea.gelmini@gelma.net, ast@kernel.org, bhelgaas@google.com, bp@suse.de, brgerst@gmail.com, chenhc@lemote.com, computersforpeace@gmail.com, daniel@iogearbox.net, dave.hansen@linux.intel.com, davem@davemloft.net, david.daney@cavium.com, dvlasenk@redhat.com, dwmw2@infradead.org, gregkh@linuxfoundation.org, hidehiro.kawai.ez@hitachi.com, hpa@zytor.com, huaitong.han@intel.com, james.hogan@imgtec.com, jason@lakedaemon.net, jgross@suse.com, jiang.liu@linux.intel.com, johannes@sipsolutions.net, jslaby@suse.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, kumba@gentoo.org, kvalo@qca.qualcomm.com, ldv@altlinux.org, luto@amacapital.net, macro@imgte
 
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: drivers/fpga/Kconfig: fix build failure
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: tree-wide: replace config_enabled() with IS_ENABLED()
 
-While building m32r allmodconfig the build is failing with the error:
-ERROR: "bad_dma_ops" [drivers/fpga/zynq-fpga.ko] undefined!
+The use of config_enabled() against config options is ambiguous.  In
+practical terms, config_enabled() is equivalent to IS_BUILTIN(), but the
+author might have used it for the meaning of IS_ENABLED().  Using
+IS_ENABLED(), IS_BUILTIN(), IS_MODULE() etc.  makes the intention clearer.
 
-Xilinx Zynq FPGA is using DMA but there was no dependency while
-building.
+This commit replaces config_enabled() with IS_ENABLED() where
+possible.  This commit is only touching bool config options.
 
-Link: http://lkml.kernel.org/r/1464346526-13913-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
-Acked-by: Moritz Fischer <moritz.fischer@ettus.com>
-Cc: Alan Tull <atull@opensource.altera.com>
+I noticed two cases where config_enabled() is used against a tristate
+option:
+
+ - config_enabled(CONFIG_HWMON)
+  [ drivers/net/wireless/ath/ath10k/thermal.c ]
+
+ - config_enabled(CONFIG_BACKLIGHT_CLASS_DEVICE)
+  [ drivers/gpu/drm/gma500/opregion.c ]
+
+I did not touch them because they should be converted to IS_BUILTIN()
+in order to keep the logic, but I was not sure it was the authors'
+intention.
+
+Link: http://lkml.kernel.org/r/1465215656-20569-1-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Stas Sergeev <stsp@list.ru>
+Cc: Matt Redfearn <matt.redfearn@imgtec.com>
+Cc: Joshua Kinard <kumba@gentoo.org>
+Cc: Jiri Slaby <jslaby@suse.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Markos Chandras <markos.chandras@imgtec.com>
+Cc: "Dmitry V. Levin" <ldv@altlinux.org>
+Cc: yu-cheng yu <yu-cheng.yu@intel.com>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Will Drewry <wad@chromium.org>
+Cc: Nikolay Martynov <mar.kolya@gmail.com>
+Cc: Huacai Chen <chenhc@lemote.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Leonid Yegoshin <Leonid.Yegoshin@imgtec.com>
+Cc: Rafal Milecki <zajec5@gmail.com>
+Cc: James Cowgill <James.Cowgill@imgtec.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Alex Smith <alex.smith@imgtec.com>
+Cc: Adam Buchbinder <adam.buchbinder@gmail.com>
+Cc: Qais Yousef <qais.yousef@imgtec.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Mikko Rapeli <mikko.rapeli@iki.fi>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: Brian Norris <computersforpeace@gmail.com>
+Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
+Cc: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Roland McGrath <roland@hack.frob.com>
+Cc: Paul Burton <paul.burton@imgtec.com>
+Cc: Kalle Valo <kvalo@qca.qualcomm.com>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Tony Wu <tung7970@gmail.com>
+Cc: Huaitong Han <huaitong.han@intel.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Jason Cooper <jason@lakedaemon.net>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Andrea Gelmini <andrea.gelmini@gelma.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Rabin Vincent <rabin@rab.in>
+Cc: "Maciej W. Rozycki" <macro@imgtec.com>
+Cc: David Daney <david.daney@cavium.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/fpga/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/mips/include/asm/mips-cm.h                  |    2 
+ arch/mips/include/asm/pgtable.h                  |   16 +++---
+ arch/mips/include/asm/seccomp.h                  |    4 -
+ arch/mips/include/asm/signal.h                   |    4 -
+ arch/mips/include/asm/syscall.h                  |    2 
+ arch/mips/include/asm/uaccess.h                  |    2 
+ arch/mips/jz4740/setup.c                         |    2 
+ arch/mips/kernel/cpu-bugs64.c                    |    6 +-
+ arch/mips/kernel/elf.c                           |    4 -
+ arch/mips/kernel/mips-cm.c                       |    2 
+ arch/mips/kernel/mips-r2-to-r6-emul.c            |   34 ++++++-------
+ arch/mips/kernel/pm-cps.c                        |    4 -
+ arch/mips/kernel/signal.c                        |   10 +--
+ arch/mips/kernel/smp-cps.c                       |    4 -
+ arch/mips/kernel/unaligned.c                     |   10 +--
+ arch/mips/math-emu/cp1emu.c                      |    6 +-
+ arch/mips/mm/tlbex.c                             |   10 +--
+ arch/mips/mti-malta/malta-dtshim.c               |    4 -
+ arch/mips/mti-malta/malta-memory.c               |    2 
+ arch/mips/mti-malta/malta-setup.c                |    2 
+ arch/mips/net/bpf_jit.c                          |    4 -
+ arch/x86/include/asm/elf.h                       |    4 -
+ arch/x86/include/asm/fpu/internal.h              |   16 +++---
+ arch/x86/include/asm/mmu_context.h               |    2 
+ arch/x86/kernel/apic/apic.c                      |    2 
+ arch/x86/kernel/apic/vector.c                    |    2 
+ arch/x86/kernel/fpu/signal.c                     |   12 ++--
+ arch/x86/kernel/signal.c                         |   14 ++---
+ drivers/firmware/broadcom/bcm47xx_sprom.c        |    2 
+ drivers/irqchip/irq-mips-gic.c                   |    2 
+ drivers/mtd/bcm47xxpart.c                        |    2 
+ drivers/net/wireless/ath/ath10k/debug.c          |   12 ++--
+ drivers/net/wireless/ath/ath10k/mac.c            |   10 +--
+ drivers/net/wireless/ath/ath10k/wmi.c            |    2 
+ drivers/net/wireless/ath/ath6kl/cfg80211.c       |    2 
+ drivers/net/wireless/ath/ath9k/common-spectral.c |    6 +-
+ drivers/net/wireless/ath/ath9k/init.c            |    2 
+ drivers/net/wireless/ath/ath9k/main.c            |   12 ++--
+ drivers/net/wireless/ath/ath9k/recv.c            |    2 
+ drivers/net/wireless/ath/dfs_pattern_detector.c  |    2 
+ drivers/net/wireless/ath/regd.c                  |    4 -
+ drivers/pci/ecam.c                               |    2 
+ drivers/tty/serial/ar933x_uart.c                 |    4 -
+ include/linux/fence.h                            |    2 
+ include/linux/ww_mutex.h                         |    4 -
+ kernel/ptrace.c                                  |    4 -
+ kernel/seccomp.c                                 |    6 +-
+ net/wireless/chan.c                              |    2 
+ 48 files changed, 135 insertions(+), 135 deletions(-)
 
-diff -puN drivers/fpga/Kconfig~fpga-zynq-fpga-fix-build-failure drivers/fpga/Kconfig
---- a/drivers/fpga/Kconfig~fpga-zynq-fpga-fix-build-failure
-+++ a/drivers/fpga/Kconfig
-@@ -21,6 +21,7 @@ config FPGA_MGR_SOCFPGA
+diff -puN arch/mips/include/asm/mips-cm.h~tree-wide-replace-config_enabled-with-is_enabled arch/mips/include/asm/mips-cm.h
+--- a/arch/mips/include/asm/mips-cm.h~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/include/asm/mips-cm.h
+@@ -462,7 +462,7 @@ static inline unsigned int mips_cm_max_v
+ 	if (mips_cm_revision() >= CM_REV_CM3)
+ 		return read_gcr_sys_config2() & CM_GCR_SYS_CONFIG2_MAXVPW_MSK;
  
- config FPGA_MGR_ZYNQ_FPGA
- 	tristate "Xilinx Zynq FPGA"
-+	depends on HAS_DMA
- 	help
- 	  FPGA manager driver support for Xilinx Zynq FPGAs.
+-	if (config_enabled(CONFIG_SMP))
++	if (IS_ENABLED(CONFIG_SMP))
+ 		return smp_num_siblings;
+ 
+ 	return 1;
+diff -puN arch/mips/include/asm/pgtable.h~tree-wide-replace-config_enabled-with-is_enabled arch/mips/include/asm/pgtable.h
+--- a/arch/mips/include/asm/pgtable.h~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/include/asm/pgtable.h
+@@ -159,7 +159,7 @@ static inline void set_pte(pte_t *ptep,
+ 		 * it better already be global)
+ 		 */
+ 		if (pte_none(*buddy)) {
+-			if (!config_enabled(CONFIG_XPA))
++			if (!IS_ENABLED(CONFIG_XPA))
+ 				buddy->pte_low |= _PAGE_GLOBAL;
+ 			buddy->pte_high |= _PAGE_GLOBAL;
+ 		}
+@@ -172,7 +172,7 @@ static inline void pte_clear(struct mm_s
+ 
+ 	htw_stop();
+ 	/* Preserve global status for the pair */
+-	if (config_enabled(CONFIG_XPA)) {
++	if (IS_ENABLED(CONFIG_XPA)) {
+ 		if (ptep_buddy(ptep)->pte_high & _PAGE_GLOBAL)
+ 			null.pte_high = _PAGE_GLOBAL;
+ 	} else {
+@@ -319,7 +319,7 @@ static inline int pte_young(pte_t pte)	{
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+ 	pte.pte_low  &= ~_PAGE_WRITE;
+-	if (!config_enabled(CONFIG_XPA))
++	if (!IS_ENABLED(CONFIG_XPA))
+ 		pte.pte_low &= ~_PAGE_SILENT_WRITE;
+ 	pte.pte_high &= ~_PAGE_SILENT_WRITE;
+ 	return pte;
+@@ -328,7 +328,7 @@ static inline pte_t pte_wrprotect(pte_t
+ static inline pte_t pte_mkclean(pte_t pte)
+ {
+ 	pte.pte_low  &= ~_PAGE_MODIFIED;
+-	if (!config_enabled(CONFIG_XPA))
++	if (!IS_ENABLED(CONFIG_XPA))
+ 		pte.pte_low &= ~_PAGE_SILENT_WRITE;
+ 	pte.pte_high &= ~_PAGE_SILENT_WRITE;
+ 	return pte;
+@@ -337,7 +337,7 @@ static inline pte_t pte_mkclean(pte_t pt
+ static inline pte_t pte_mkold(pte_t pte)
+ {
+ 	pte.pte_low  &= ~_PAGE_ACCESSED;
+-	if (!config_enabled(CONFIG_XPA))
++	if (!IS_ENABLED(CONFIG_XPA))
+ 		pte.pte_low &= ~_PAGE_SILENT_READ;
+ 	pte.pte_high &= ~_PAGE_SILENT_READ;
+ 	return pte;
+@@ -347,7 +347,7 @@ static inline pte_t pte_mkwrite(pte_t pt
+ {
+ 	pte.pte_low |= _PAGE_WRITE;
+ 	if (pte.pte_low & _PAGE_MODIFIED) {
+-		if (!config_enabled(CONFIG_XPA))
++		if (!IS_ENABLED(CONFIG_XPA))
+ 			pte.pte_low |= _PAGE_SILENT_WRITE;
+ 		pte.pte_high |= _PAGE_SILENT_WRITE;
+ 	}
+@@ -358,7 +358,7 @@ static inline pte_t pte_mkdirty(pte_t pt
+ {
+ 	pte.pte_low |= _PAGE_MODIFIED;
+ 	if (pte.pte_low & _PAGE_WRITE) {
+-		if (!config_enabled(CONFIG_XPA))
++		if (!IS_ENABLED(CONFIG_XPA))
+ 			pte.pte_low |= _PAGE_SILENT_WRITE;
+ 		pte.pte_high |= _PAGE_SILENT_WRITE;
+ 	}
+@@ -369,7 +369,7 @@ static inline pte_t pte_mkyoung(pte_t pt
+ {
+ 	pte.pte_low |= _PAGE_ACCESSED;
+ 	if (!(pte.pte_low & _PAGE_NO_READ)) {
+-		if (!config_enabled(CONFIG_XPA))
++		if (!IS_ENABLED(CONFIG_XPA))
+ 			pte.pte_low |= _PAGE_SILENT_READ;
+ 		pte.pte_high |= _PAGE_SILENT_READ;
+ 	}
+diff -puN arch/mips/include/asm/seccomp.h~tree-wide-replace-config_enabled-with-is_enabled arch/mips/include/asm/seccomp.h
+--- a/arch/mips/include/asm/seccomp.h~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/include/asm/seccomp.h
+@@ -16,10 +16,10 @@ static inline const int *get_compat_mode
+ 		0, /* null terminated */
+ 	};
+ 
+-	if (config_enabled(CONFIG_MIPS32_O32) && test_thread_flag(TIF_32BIT_REGS))
++	if (IS_ENABLED(CONFIG_MIPS32_O32) && test_thread_flag(TIF_32BIT_REGS))
+ 		return syscalls_O32;
+ 
+-	if (config_enabled(CONFIG_MIPS32_N32))
++	if (IS_ENABLED(CONFIG_MIPS32_N32))
+ 		return syscalls_N32;
+ 
+ 	BUG();
+diff -puN arch/mips/include/asm/signal.h~tree-wide-replace-config_enabled-with-is_enabled arch/mips/include/asm/signal.h
+--- a/arch/mips/include/asm/signal.h~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/include/asm/signal.h
+@@ -19,8 +19,8 @@ extern struct mips_abi mips_abi_32;
+ 		((ka)->sa.sa_flags & SA_SIGINFO))
+ #else
+ #define sig_uses_siginfo(ka, abi)                               \
+-	(config_enabled(CONFIG_64BIT) ? 1 :                     \
+-		(config_enabled(CONFIG_TRAD_SIGNALS) ?          \
++	(IS_ENABLED(CONFIG_64BIT) ? 1 :                     \
++		(IS_ENABLED(CONFIG_TRAD_SIGNALS) ?          \
+ 			((ka)->sa.sa_flags & SA_SIGINFO) : 1) )
+ #endif
+ 
+diff -puN arch/mips/include/asm/syscall.h~tree-wide-replace-config_enabled-with-is_enabled arch/mips/include/asm/syscall.h
+--- a/arch/mips/include/asm/syscall.h~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/include/asm/syscall.h
+@@ -99,7 +99,7 @@ static inline void syscall_get_arguments
+ {
+ 	int ret;
+ 	/* O32 ABI syscall() - Either 64-bit with O32 or 32-bit */
+-	if ((config_enabled(CONFIG_32BIT) ||
++	if ((IS_ENABLED(CONFIG_32BIT) ||
+ 	    test_tsk_thread_flag(task, TIF_32BIT_REGS)) &&
+ 	    (regs->regs[2] == __NR_syscall))
+ 		i++;
+diff -puN arch/mips/include/asm/uaccess.h~tree-wide-replace-config_enabled-with-is_enabled arch/mips/include/asm/uaccess.h
+--- a/arch/mips/include/asm/uaccess.h~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/include/asm/uaccess.h
+@@ -88,7 +88,7 @@ extern u64 __ua_limit;
+  */
+ static inline bool eva_kernel_access(void)
+ {
+-	if (!config_enabled(CONFIG_EVA))
++	if (!IS_ENABLED(CONFIG_EVA))
+ 		return false;
+ 
+ 	return segment_eq(get_fs(), get_ds());
+diff -puN arch/mips/jz4740/setup.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/jz4740/setup.c
+--- a/arch/mips/jz4740/setup.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/jz4740/setup.c
+@@ -75,7 +75,7 @@ void __init device_tree_init(void)
+ 
+ const char *get_system_type(void)
+ {
+-	if (config_enabled(CONFIG_MACH_JZ4780))
++	if (IS_ENABLED(CONFIG_MACH_JZ4780))
+ 		return "JZ4780";
+ 
+ 	return "JZ4740";
+diff -puN arch/mips/kernel/cpu-bugs64.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/kernel/cpu-bugs64.c
+--- a/arch/mips/kernel/cpu-bugs64.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/kernel/cpu-bugs64.c
+@@ -244,7 +244,7 @@ static inline void check_daddi(void)
+ 	panic(bug64hit, !DADDI_WAR ? daddiwar : nowar);
+ }
+ 
+-int daddiu_bug	= config_enabled(CONFIG_CPU_MIPSR6) ? 0 : -1;
++int daddiu_bug	= IS_ENABLED(CONFIG_CPU_MIPSR6) ? 0 : -1;
+ 
+ static inline void check_daddiu(void)
+ {
+@@ -314,7 +314,7 @@ static inline void check_daddiu(void)
+ 
+ void __init check_bugs64_early(void)
+ {
+-	if (!config_enabled(CONFIG_CPU_MIPSR6)) {
++	if (!IS_ENABLED(CONFIG_CPU_MIPSR6)) {
+ 		check_mult_sh();
+ 		check_daddiu();
+ 	}
+@@ -322,6 +322,6 @@ void __init check_bugs64_early(void)
+ 
+ void __init check_bugs64(void)
+ {
+-	if (!config_enabled(CONFIG_CPU_MIPSR6))
++	if (!IS_ENABLED(CONFIG_CPU_MIPSR6))
+ 		check_daddi();
+ }
+diff -puN arch/mips/kernel/elf.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/kernel/elf.c
+--- a/arch/mips/kernel/elf.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/kernel/elf.c
+@@ -179,7 +179,7 @@ int arch_check_elf(void *_ehdr, bool has
+ 			return -ELIBBAD;
+ 	}
+ 
+-	if (!config_enabled(CONFIG_MIPS_O32_FP64_SUPPORT))
++	if (!IS_ENABLED(CONFIG_MIPS_O32_FP64_SUPPORT))
+ 		return 0;
+ 
+ 	fp_abi = state->fp_abi;
+@@ -285,7 +285,7 @@ void mips_set_personality_fp(struct arch
+ 	 * not be worried about N32/N64 binaries.
+ 	 */
+ 
+-	if (!config_enabled(CONFIG_MIPS_O32_FP64_SUPPORT))
++	if (!IS_ENABLED(CONFIG_MIPS_O32_FP64_SUPPORT))
+ 		return;
+ 
+ 	switch (state->overall_fp_mode) {
+diff -puN arch/mips/kernel/mips-cm.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/kernel/mips-cm.c
+--- a/arch/mips/kernel/mips-cm.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/kernel/mips-cm.c
+@@ -251,7 +251,7 @@ int mips_cm_probe(void)
+ 	mips_cm_probe_l2sync();
+ 
+ 	/* determine register width for this CM */
+-	mips_cm_is64 = config_enabled(CONFIG_64BIT) && (mips_cm_revision() >= CM_REV_CM3);
++	mips_cm_is64 = IS_ENABLED(CONFIG_64BIT) && (mips_cm_revision() >= CM_REV_CM3);
+ 
+ 	for_each_possible_cpu(cpu)
+ 		spin_lock_init(&per_cpu(cm_core_lock, cpu));
+diff -puN arch/mips/kernel/mips-r2-to-r6-emul.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/kernel/mips-r2-to-r6-emul.c
+--- a/arch/mips/kernel/mips-r2-to-r6-emul.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/kernel/mips-r2-to-r6-emul.c
+@@ -84,7 +84,7 @@ static inline int mipsr6_emul(struct pt_
+ 				(s32)MIPSInst_SIMM(ir);
+ 		return 0;
+ 	case daddiu_op:
+-		if (config_enabled(CONFIG_32BIT))
++		if (IS_ENABLED(CONFIG_32BIT))
+ 			break;
+ 
+ 		if (MIPSInst_RT(ir))
+@@ -143,7 +143,7 @@ static inline int mipsr6_emul(struct pt_
+ 					      (u32)regs->regs[MIPSInst_RT(ir)]);
+ 			return 0;
+ 		case dsll_op:
+-			if (config_enabled(CONFIG_32BIT) || MIPSInst_RS(ir))
++			if (IS_ENABLED(CONFIG_32BIT) || MIPSInst_RS(ir))
+ 				break;
+ 
+ 			if (MIPSInst_RD(ir))
+@@ -152,7 +152,7 @@ static inline int mipsr6_emul(struct pt_
+ 						MIPSInst_FD(ir));
+ 			return 0;
+ 		case dsrl_op:
+-			if (config_enabled(CONFIG_32BIT) || MIPSInst_RS(ir))
++			if (IS_ENABLED(CONFIG_32BIT) || MIPSInst_RS(ir))
+ 				break;
+ 
+ 			if (MIPSInst_RD(ir))
+@@ -161,7 +161,7 @@ static inline int mipsr6_emul(struct pt_
+ 						MIPSInst_FD(ir));
+ 			return 0;
+ 		case daddu_op:
+-			if (config_enabled(CONFIG_32BIT) || MIPSInst_FD(ir))
++			if (IS_ENABLED(CONFIG_32BIT) || MIPSInst_FD(ir))
+ 				break;
+ 
+ 			if (MIPSInst_RD(ir))
+@@ -170,7 +170,7 @@ static inline int mipsr6_emul(struct pt_
+ 					(u64)regs->regs[MIPSInst_RT(ir)];
+ 			return 0;
+ 		case dsubu_op:
+-			if (config_enabled(CONFIG_32BIT) || MIPSInst_FD(ir))
++			if (IS_ENABLED(CONFIG_32BIT) || MIPSInst_FD(ir))
+ 				break;
+ 
+ 			if (MIPSInst_RD(ir))
+@@ -498,7 +498,7 @@ static int dmult_func(struct pt_regs *re
+ 	s64 res;
+ 	s64 rt, rs;
+ 
+-	if (config_enabled(CONFIG_32BIT))
++	if (IS_ENABLED(CONFIG_32BIT))
+ 		return SIGILL;
+ 
+ 	rt = regs->regs[MIPSInst_RT(ir)];
+@@ -530,7 +530,7 @@ static int dmultu_func(struct pt_regs *r
+ 	u64 res;
+ 	u64 rt, rs;
+ 
+-	if (config_enabled(CONFIG_32BIT))
++	if (IS_ENABLED(CONFIG_32BIT))
+ 		return SIGILL;
+ 
+ 	rt = regs->regs[MIPSInst_RT(ir)];
+@@ -561,7 +561,7 @@ static int ddiv_func(struct pt_regs *reg
+ {
+ 	s64 rt, rs;
+ 
+-	if (config_enabled(CONFIG_32BIT))
++	if (IS_ENABLED(CONFIG_32BIT))
+ 		return SIGILL;
+ 
+ 	rt = regs->regs[MIPSInst_RT(ir)];
+@@ -586,7 +586,7 @@ static int ddivu_func(struct pt_regs *re
+ {
+ 	u64 rt, rs;
+ 
+-	if (config_enabled(CONFIG_32BIT))
++	if (IS_ENABLED(CONFIG_32BIT))
+ 		return SIGILL;
+ 
+ 	rt = regs->regs[MIPSInst_RT(ir)];
+@@ -825,7 +825,7 @@ static int dclz_func(struct pt_regs *reg
+ 	u64 res;
+ 	u64 rs;
+ 
+-	if (config_enabled(CONFIG_32BIT))
++	if (IS_ENABLED(CONFIG_32BIT))
+ 		return SIGILL;
+ 
+ 	if (!MIPSInst_RD(ir))
+@@ -852,7 +852,7 @@ static int dclo_func(struct pt_regs *reg
+ 	u64 res;
+ 	u64 rs;
+ 
+-	if (config_enabled(CONFIG_32BIT))
++	if (IS_ENABLED(CONFIG_32BIT))
+ 		return SIGILL;
+ 
+ 	if (!MIPSInst_RD(ir))
+@@ -1484,7 +1484,7 @@ fpu_emul:
+ 		break;
+ 
+ 	case ldl_op:
+-		if (config_enabled(CONFIG_32BIT)) {
++		if (IS_ENABLED(CONFIG_32BIT)) {
+ 		    err = SIGILL;
+ 		    break;
+ 		}
+@@ -1603,7 +1603,7 @@ fpu_emul:
+ 		break;
+ 
+ 	case ldr_op:
+-		if (config_enabled(CONFIG_32BIT)) {
++		if (IS_ENABLED(CONFIG_32BIT)) {
+ 		    err = SIGILL;
+ 		    break;
+ 		}
+@@ -1722,7 +1722,7 @@ fpu_emul:
+ 		break;
+ 
+ 	case sdl_op:
+-		if (config_enabled(CONFIG_32BIT)) {
++		if (IS_ENABLED(CONFIG_32BIT)) {
+ 		    err = SIGILL;
+ 		    break;
+ 		}
+@@ -1840,7 +1840,7 @@ fpu_emul:
+ 		break;
+ 
+ 	case sdr_op:
+-		if (config_enabled(CONFIG_32BIT)) {
++		if (IS_ENABLED(CONFIG_32BIT)) {
+ 		    err = SIGILL;
+ 		    break;
+ 		}
+@@ -2072,7 +2072,7 @@ fpu_emul:
+ 		break;
+ 
+ 	case lld_op:
+-		if (config_enabled(CONFIG_32BIT)) {
++		if (IS_ENABLED(CONFIG_32BIT)) {
+ 		    err = SIGILL;
+ 		    break;
+ 		}
+@@ -2133,7 +2133,7 @@ fpu_emul:
+ 		break;
+ 
+ 	case scd_op:
+-		if (config_enabled(CONFIG_32BIT)) {
++		if (IS_ENABLED(CONFIG_32BIT)) {
+ 		    err = SIGILL;
+ 		    break;
+ 		}
+diff -puN arch/mips/kernel/pm-cps.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/kernel/pm-cps.c
+--- a/arch/mips/kernel/pm-cps.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/kernel/pm-cps.c
+@@ -148,7 +148,7 @@ int cps_pm_enter_state(enum cps_pm_state
+ 	}
+ 
+ 	/* Setup the VPE to run mips_cps_pm_restore when started again */
+-	if (config_enabled(CONFIG_CPU_PM) && state == CPS_PM_POWER_GATED) {
++	if (IS_ENABLED(CONFIG_CPU_PM) && state == CPS_PM_POWER_GATED) {
+ 		/* Power gating relies upon CPS SMP */
+ 		if (!mips_cps_smp_in_use())
+ 			return -EINVAL;
+@@ -387,7 +387,7 @@ static void * __init cps_gen_entry_code(
+ 	memset(labels, 0, sizeof(labels));
+ 	memset(relocs, 0, sizeof(relocs));
+ 
+-	if (config_enabled(CONFIG_CPU_PM) && state == CPS_PM_POWER_GATED) {
++	if (IS_ENABLED(CONFIG_CPU_PM) && state == CPS_PM_POWER_GATED) {
+ 		/* Power gating relies upon CPS SMP */
+ 		if (!mips_cps_smp_in_use())
+ 			goto out_err;
+diff -puN arch/mips/kernel/signal.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/kernel/signal.c
+--- a/arch/mips/kernel/signal.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/kernel/signal.c
+@@ -165,7 +165,7 @@ static int save_msa_extcontext(void __us
+ 		 * should already have been done when handling scalar FP
+ 		 * context.
+ 		 */
+-		BUG_ON(config_enabled(CONFIG_EVA));
++		BUG_ON(IS_ENABLED(CONFIG_EVA));
+ 
+ 		err = __put_user(read_msa_csr(), &msa->csr);
+ 		err |= _save_msa_all_upper(&msa->wr);
+@@ -195,7 +195,7 @@ static int restore_msa_extcontext(void _
+ 	unsigned int csr;
+ 	int i, err;
+ 
+-	if (!config_enabled(CONFIG_CPU_HAS_MSA))
++	if (!IS_ENABLED(CONFIG_CPU_HAS_MSA))
+ 		return SIGSYS;
+ 
+ 	if (size != sizeof(*msa))
+@@ -215,7 +215,7 @@ static int restore_msa_extcontext(void _
+ 		 * scalar FP context, so FPU & MSA should have already been
+ 		 * disabled whilst handling scalar FP context.
+ 		 */
+-		BUG_ON(config_enabled(CONFIG_EVA));
++		BUG_ON(IS_ENABLED(CONFIG_EVA));
+ 
+ 		write_msa_csr(csr);
+ 		err |= _restore_msa_all_upper(&msa->wr);
+@@ -315,7 +315,7 @@ int protected_save_fp_context(void __use
+ 	 * EVA does not have userland equivalents of ldc1 or sdc1, so
+ 	 * save to the kernel FP context & copy that to userland below.
+ 	 */
+-	if (config_enabled(CONFIG_EVA))
++	if (IS_ENABLED(CONFIG_EVA))
+ 		lose_fpu(1);
+ 
+ 	while (1) {
+@@ -378,7 +378,7 @@ int protected_restore_fp_context(void __
+ 	 * disable the FPU here such that the code below simply copies to
+ 	 * the kernel FP context.
+ 	 */
+-	if (config_enabled(CONFIG_EVA))
++	if (IS_ENABLED(CONFIG_EVA))
+ 		lose_fpu(0);
+ 
+ 	while (1) {
+diff -puN arch/mips/kernel/smp-cps.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/kernel/smp-cps.c
+--- a/arch/mips/kernel/smp-cps.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/kernel/smp-cps.c
+@@ -46,8 +46,8 @@ static unsigned core_vpe_count(unsigned
+ 	if (threads_disabled)
+ 		return 1;
+ 
+-	if ((!config_enabled(CONFIG_MIPS_MT_SMP) || !cpu_has_mipsmt)
+-		&& (!config_enabled(CONFIG_CPU_MIPSR6) || !cpu_has_vp))
++	if ((!IS_ENABLED(CONFIG_MIPS_MT_SMP) || !cpu_has_mipsmt)
++		&& (!IS_ENABLED(CONFIG_CPU_MIPSR6) || !cpu_has_vp))
+ 		return 1;
+ 
+ 	mips_cm_lock_other(core, 0);
+diff -puN arch/mips/kernel/unaligned.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/kernel/unaligned.c
+--- a/arch/mips/kernel/unaligned.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/kernel/unaligned.c
+@@ -1025,7 +1025,7 @@ static void emulate_load_store_insn(stru
+ 		if (!access_ok(VERIFY_READ, addr, 2))
+ 			goto sigbus;
+ 
+-		if (config_enabled(CONFIG_EVA)) {
++		if (IS_ENABLED(CONFIG_EVA)) {
+ 			if (segment_eq(get_fs(), get_ds()))
+ 				LoadHW(addr, value, res);
+ 			else
+@@ -1044,7 +1044,7 @@ static void emulate_load_store_insn(stru
+ 		if (!access_ok(VERIFY_READ, addr, 4))
+ 			goto sigbus;
+ 
+-		if (config_enabled(CONFIG_EVA)) {
++		if (IS_ENABLED(CONFIG_EVA)) {
+ 			if (segment_eq(get_fs(), get_ds()))
+ 				LoadW(addr, value, res);
+ 			else
+@@ -1063,7 +1063,7 @@ static void emulate_load_store_insn(stru
+ 		if (!access_ok(VERIFY_READ, addr, 2))
+ 			goto sigbus;
+ 
+-		if (config_enabled(CONFIG_EVA)) {
++		if (IS_ENABLED(CONFIG_EVA)) {
+ 			if (segment_eq(get_fs(), get_ds()))
+ 				LoadHWU(addr, value, res);
+ 			else
+@@ -1131,7 +1131,7 @@ static void emulate_load_store_insn(stru
+ 		compute_return_epc(regs);
+ 		value = regs->regs[insn.i_format.rt];
+ 
+-		if (config_enabled(CONFIG_EVA)) {
++		if (IS_ENABLED(CONFIG_EVA)) {
+ 			if (segment_eq(get_fs(), get_ds()))
+ 				StoreHW(addr, value, res);
+ 			else
+@@ -1151,7 +1151,7 @@ static void emulate_load_store_insn(stru
+ 		compute_return_epc(regs);
+ 		value = regs->regs[insn.i_format.rt];
+ 
+-		if (config_enabled(CONFIG_EVA)) {
++		if (IS_ENABLED(CONFIG_EVA)) {
+ 			if (segment_eq(get_fs(), get_ds()))
+ 				StoreW(addr, value, res);
+ 			else
+diff -puN arch/mips/math-emu/cp1emu.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/math-emu/cp1emu.c
+--- a/arch/mips/math-emu/cp1emu.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/math-emu/cp1emu.c
+@@ -784,10 +784,10 @@ static int isBranchInstr(struct pt_regs
+  */
+ static inline int cop1_64bit(struct pt_regs *xcp)
+ {
+-	if (config_enabled(CONFIG_64BIT) && !config_enabled(CONFIG_MIPS32_O32))
++	if (IS_ENABLED(CONFIG_64BIT) && !IS_ENABLED(CONFIG_MIPS32_O32))
+ 		return 1;
+-	else if (config_enabled(CONFIG_32BIT) &&
+-		 !config_enabled(CONFIG_MIPS_O32_FP64_SUPPORT))
++	else if (IS_ENABLED(CONFIG_32BIT) &&
++		 !IS_ENABLED(CONFIG_MIPS_O32_FP64_SUPPORT))
+ 		return 0;
+ 
+ 	return !test_thread_flag(TIF_32BIT_FPREGS);
+diff -puN arch/mips/mm/tlbex.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/mm/tlbex.c
+--- a/arch/mips/mm/tlbex.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/mm/tlbex.c
+@@ -1025,7 +1025,7 @@ static void build_update_entries(u32 **p
+ 	pte_off_odd += offsetof(pte_t, pte_high);
+ #endif
+ 
+-	if (config_enabled(CONFIG_XPA)) {
++	if (IS_ENABLED(CONFIG_XPA)) {
+ 		uasm_i_lw(p, tmp, pte_off_even, ptep); /* even pte */
+ 		UASM_i_ROTR(p, tmp, tmp, ilog2(_PAGE_GLOBAL));
+ 		UASM_i_MTC0(p, tmp, C0_ENTRYLO0);
+@@ -1643,7 +1643,7 @@ iPTE_SW(u32 **p, struct uasm_reloc **r,
+ 	unsigned int hwmode = mode & (_PAGE_VALID | _PAGE_DIRTY);
+ 	unsigned int swmode = mode & ~hwmode;
+ 
+-	if (config_enabled(CONFIG_XPA) && !cpu_has_64bits) {
++	if (IS_ENABLED(CONFIG_XPA) && !cpu_has_64bits) {
+ 		uasm_i_lui(p, scratch, swmode >> 16);
+ 		uasm_i_or(p, pte, pte, scratch);
+ 		BUG_ON(swmode & 0xffff);
+@@ -2432,7 +2432,7 @@ static void config_htw_params(void)
+ 		pwsize |= ilog2(PTRS_PER_PMD) << MIPS_PWSIZE_MDW_SHIFT;
+ 
+ 	/* Set pointer size to size of directory pointers */
+-	if (config_enabled(CONFIG_64BIT))
++	if (IS_ENABLED(CONFIG_64BIT))
+ 		pwsize |= MIPS_PWSIZE_PS_MASK;
+ 	/* PTEs may be multiple pointers long (e.g. with XPA) */
+ 	pwsize |= ((PTE_T_LOG2 - PGD_T_LOG2) << MIPS_PWSIZE_PTEW_SHIFT)
+@@ -2448,7 +2448,7 @@ static void config_htw_params(void)
+ 	 * the pwctl fields.
+ 	 */
+ 	config = 1 << MIPS_PWCTL_PWEN_SHIFT;
+-	if (config_enabled(CONFIG_64BIT))
++	if (IS_ENABLED(CONFIG_64BIT))
+ 		config |= MIPS_PWCTL_XU_MASK;
+ 	write_c0_pwctl(config);
+ 	pr_info("Hardware Page Table Walker enabled\n");
+@@ -2522,7 +2522,7 @@ void build_tlb_refill_handler(void)
+ 	 */
+ 	static int run_once = 0;
+ 
+-	if (config_enabled(CONFIG_XPA) && !cpu_has_rixi)
++	if (IS_ENABLED(CONFIG_XPA) && !cpu_has_rixi)
+ 		panic("Kernels supporting XPA currently require CPUs with RIXI");
+ 
+ 	output_pgtable_bits_defines();
+diff -puN arch/mips/mti-malta/malta-dtshim.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/mti-malta/malta-dtshim.c
+--- a/arch/mips/mti-malta/malta-dtshim.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/mti-malta/malta-dtshim.c
+@@ -31,7 +31,7 @@ static unsigned __init gen_fdt_mem_array
+ 
+ 	entries = 1;
+ 	mem_array[0] = cpu_to_be32(PHYS_OFFSET);
+-	if (config_enabled(CONFIG_EVA)) {
++	if (IS_ENABLED(CONFIG_EVA)) {
+ 		/*
+ 		 * The current Malta EVA configuration is "special" in that it
+ 		 * always makes use of addresses in the upper half of the 32 bit
+@@ -82,7 +82,7 @@ static void __init append_memory(void *f
+ 		physical_memsize = 32 << 20;
+ 	}
+ 
+-	if (config_enabled(CONFIG_CPU_BIG_ENDIAN)) {
++	if (IS_ENABLED(CONFIG_CPU_BIG_ENDIAN)) {
+ 		/*
+ 		 * SOC-it swaps, or perhaps doesn't swap, when DMA'ing
+ 		 * the last word of physical memory.
+diff -puN arch/mips/mti-malta/malta-memory.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/mti-malta/malta-memory.c
+--- a/arch/mips/mti-malta/malta-memory.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/mti-malta/malta-memory.c
+@@ -32,7 +32,7 @@ static void free_init_pages_eva_malta(vo
+ 
+ void __init fw_meminit(void)
+ {
+-	bool eva = config_enabled(CONFIG_EVA);
++	bool eva = IS_ENABLED(CONFIG_EVA);
+ 
+ 	free_init_pages_eva = eva ? free_init_pages_eva_malta : NULL;
+ }
+diff -puN arch/mips/mti-malta/malta-setup.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/mti-malta/malta-setup.c
+--- a/arch/mips/mti-malta/malta-setup.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/mti-malta/malta-setup.c
+@@ -261,7 +261,7 @@ void __init plat_mem_setup(void)
+ 	fdt = malta_dt_shim(fdt);
+ 	__dt_setup_arch(fdt);
+ 
+-	if (config_enabled(CONFIG_EVA))
++	if (IS_ENABLED(CONFIG_EVA))
+ 		/* EVA has already been configured in mach-malta/kernel-init.h */
+ 		pr_info("Enhanced Virtual Addressing (EVA) activated\n");
+ 
+diff -puN arch/mips/net/bpf_jit.c~tree-wide-replace-config_enabled-with-is_enabled arch/mips/net/bpf_jit.c
+--- a/arch/mips/net/bpf_jit.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/mips/net/bpf_jit.c
+@@ -426,7 +426,7 @@ static inline void emit_load_ptr(unsigne
+ static inline void emit_load_func(unsigned int reg, ptr imm,
+ 				  struct jit_ctx *ctx)
+ {
+-	if (config_enabled(CONFIG_64BIT)) {
++	if (IS_ENABLED(CONFIG_64BIT)) {
+ 		/* At this point imm is always 64-bit */
+ 		emit_load_imm(r_tmp, (u64)imm >> 32, ctx);
+ 		emit_dsll(r_tmp_imm, r_tmp, 16, ctx); /* left shift by 16 */
+@@ -516,7 +516,7 @@ static inline void emit_jr(unsigned int
+ static inline u16 align_sp(unsigned int num)
+ {
+ 	/* Double word alignment for 32-bit, quadword for 64-bit */
+-	unsigned int align = config_enabled(CONFIG_64BIT) ? 16 : 8;
++	unsigned int align = IS_ENABLED(CONFIG_64BIT) ? 16 : 8;
+ 	num = (num + (align - 1)) & -align;
+ 	return num;
+ }
+diff -puN arch/x86/include/asm/elf.h~tree-wide-replace-config_enabled-with-is_enabled arch/x86/include/asm/elf.h
+--- a/arch/x86/include/asm/elf.h~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/x86/include/asm/elf.h
+@@ -344,8 +344,8 @@ extern int compat_arch_setup_additional_
+  */
+ static inline int mmap_is_ia32(void)
+ {
+-	return config_enabled(CONFIG_X86_32) ||
+-	       (config_enabled(CONFIG_COMPAT) &&
++	return IS_ENABLED(CONFIG_X86_32) ||
++	       (IS_ENABLED(CONFIG_COMPAT) &&
+ 		test_thread_flag(TIF_ADDR32));
+ }
+ 
+diff -puN arch/x86/include/asm/fpu/internal.h~tree-wide-replace-config_enabled-with-is_enabled arch/x86/include/asm/fpu/internal.h
+--- a/arch/x86/include/asm/fpu/internal.h~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/x86/include/asm/fpu/internal.h
+@@ -137,9 +137,9 @@ static inline int copy_fregs_to_user(str
+ 
+ static inline int copy_fxregs_to_user(struct fxregs_state __user *fx)
+ {
+-	if (config_enabled(CONFIG_X86_32))
++	if (IS_ENABLED(CONFIG_X86_32))
+ 		return user_insn(fxsave %[fx], [fx] "=m" (*fx), "m" (*fx));
+-	else if (config_enabled(CONFIG_AS_FXSAVEQ))
++	else if (IS_ENABLED(CONFIG_AS_FXSAVEQ))
+ 		return user_insn(fxsaveq %[fx], [fx] "=m" (*fx), "m" (*fx));
+ 
+ 	/* See comment in copy_fxregs_to_kernel() below. */
+@@ -150,10 +150,10 @@ static inline void copy_kernel_to_fxregs
+ {
+ 	int err;
+ 
+-	if (config_enabled(CONFIG_X86_32)) {
++	if (IS_ENABLED(CONFIG_X86_32)) {
+ 		err = check_insn(fxrstor %[fx], "=m" (*fx), [fx] "m" (*fx));
+ 	} else {
+-		if (config_enabled(CONFIG_AS_FXSAVEQ)) {
++		if (IS_ENABLED(CONFIG_AS_FXSAVEQ)) {
+ 			err = check_insn(fxrstorq %[fx], "=m" (*fx), [fx] "m" (*fx));
+ 		} else {
+ 			/* See comment in copy_fxregs_to_kernel() below. */
+@@ -166,9 +166,9 @@ static inline void copy_kernel_to_fxregs
+ 
+ static inline int copy_user_to_fxregs(struct fxregs_state __user *fx)
+ {
+-	if (config_enabled(CONFIG_X86_32))
++	if (IS_ENABLED(CONFIG_X86_32))
+ 		return user_insn(fxrstor %[fx], "=m" (*fx), [fx] "m" (*fx));
+-	else if (config_enabled(CONFIG_AS_FXSAVEQ))
++	else if (IS_ENABLED(CONFIG_AS_FXSAVEQ))
+ 		return user_insn(fxrstorq %[fx], "=m" (*fx), [fx] "m" (*fx));
+ 
+ 	/* See comment in copy_fxregs_to_kernel() below. */
+@@ -190,9 +190,9 @@ static inline int copy_user_to_fregs(str
+ 
+ static inline void copy_fxregs_to_kernel(struct fpu *fpu)
+ {
+-	if (config_enabled(CONFIG_X86_32))
++	if (IS_ENABLED(CONFIG_X86_32))
+ 		asm volatile( "fxsave %[fx]" : [fx] "=m" (fpu->state.fxsave));
+-	else if (config_enabled(CONFIG_AS_FXSAVEQ))
++	else if (IS_ENABLED(CONFIG_AS_FXSAVEQ))
+ 		asm volatile("fxsaveq %[fx]" : [fx] "=m" (fpu->state.fxsave));
+ 	else {
+ 		/* Using "rex64; fxsave %0" is broken because, if the memory
+diff -puN arch/x86/include/asm/mmu_context.h~tree-wide-replace-config_enabled-with-is_enabled arch/x86/include/asm/mmu_context.h
+--- a/arch/x86/include/asm/mmu_context.h~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/x86/include/asm/mmu_context.h
+@@ -155,7 +155,7 @@ static inline void arch_exit_mmap(struct
+ #ifdef CONFIG_X86_64
+ static inline bool is_64bit_mm(struct mm_struct *mm)
+ {
+-	return	!config_enabled(CONFIG_IA32_EMULATION) ||
++	return	!IS_ENABLED(CONFIG_IA32_EMULATION) ||
+ 		!(mm->context.ia32_compat == TIF_IA32);
+ }
+ #else
+diff -puN arch/x86/kernel/apic/apic.c~tree-wide-replace-config_enabled-with-is_enabled arch/x86/kernel/apic/apic.c
+--- a/arch/x86/kernel/apic/apic.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/x86/kernel/apic/apic.c
+@@ -147,7 +147,7 @@ static int force_enable_local_apic __ini
+  */
+ static int __init parse_lapic(char *arg)
+ {
+-	if (config_enabled(CONFIG_X86_32) && !arg)
++	if (IS_ENABLED(CONFIG_X86_32) && !arg)
+ 		force_enable_local_apic = 1;
+ 	else if (arg && !strncmp(arg, "notscdeadline", 13))
+ 		setup_clear_cpu_cap(X86_FEATURE_TSC_DEADLINE_TIMER);
+diff -puN arch/x86/kernel/apic/vector.c~tree-wide-replace-config_enabled-with-is_enabled arch/x86/kernel/apic/vector.c
+--- a/arch/x86/kernel/apic/vector.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/x86/kernel/apic/vector.c
+@@ -523,7 +523,7 @@ static int apic_set_affinity(struct irq_
+ 	struct apic_chip_data *data = irq_data->chip_data;
+ 	int err, irq = irq_data->irq;
+ 
+-	if (!config_enabled(CONFIG_SMP))
++	if (!IS_ENABLED(CONFIG_SMP))
+ 		return -EPERM;
+ 
+ 	if (!cpumask_intersects(dest, cpu_online_mask))
+diff -puN arch/x86/kernel/fpu/signal.c~tree-wide-replace-config_enabled-with-is_enabled arch/x86/kernel/fpu/signal.c
+--- a/arch/x86/kernel/fpu/signal.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/x86/kernel/fpu/signal.c
+@@ -159,8 +159,8 @@ int copy_fpstate_to_sigframe(void __user
+ 	struct task_struct *tsk = current;
+ 	int ia32_fxstate = (buf != buf_fx);
+ 
+-	ia32_fxstate &= (config_enabled(CONFIG_X86_32) ||
+-			 config_enabled(CONFIG_IA32_EMULATION));
++	ia32_fxstate &= (IS_ENABLED(CONFIG_X86_32) ||
++			 IS_ENABLED(CONFIG_IA32_EMULATION));
+ 
+ 	if (!access_ok(VERIFY_WRITE, buf, size))
+ 		return -EACCES;
+@@ -268,8 +268,8 @@ static int __fpu__restore_sig(void __use
+ 	u64 xfeatures = 0;
+ 	int fx_only = 0;
+ 
+-	ia32_fxstate &= (config_enabled(CONFIG_X86_32) ||
+-			 config_enabled(CONFIG_IA32_EMULATION));
++	ia32_fxstate &= (IS_ENABLED(CONFIG_X86_32) ||
++			 IS_ENABLED(CONFIG_IA32_EMULATION));
+ 
+ 	if (!buf) {
+ 		fpu__clear(fpu);
+@@ -416,8 +416,8 @@ void fpu__init_prepare_fx_sw_frame(void)
+ 	fx_sw_reserved.xfeatures = xfeatures_mask;
+ 	fx_sw_reserved.xstate_size = fpu_user_xstate_size;
+ 
+-	if (config_enabled(CONFIG_IA32_EMULATION) ||
+-	    config_enabled(CONFIG_X86_32)) {
++	if (IS_ENABLED(CONFIG_IA32_EMULATION) ||
++	    IS_ENABLED(CONFIG_X86_32)) {
+ 		int fsave_header_size = sizeof(struct fregs_state);
+ 
+ 		fx_sw_reserved_ia32 = fx_sw_reserved;
+diff -puN arch/x86/kernel/signal.c~tree-wide-replace-config_enabled-with-is_enabled arch/x86/kernel/signal.c
+--- a/arch/x86/kernel/signal.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/arch/x86/kernel/signal.c
+@@ -146,7 +146,7 @@ static int restore_sigcontext(struct pt_
+ 		buf = (void __user *)buf_val;
+ 	} get_user_catch(err);
+ 
+-	err |= fpu__restore_sig(buf, config_enabled(CONFIG_X86_32));
++	err |= fpu__restore_sig(buf, IS_ENABLED(CONFIG_X86_32));
+ 
+ 	force_iret();
+ 
+@@ -245,14 +245,14 @@ get_sigframe(struct k_sigaction *ka, str
+ 	struct fpu *fpu = &current->thread.fpu;
+ 
+ 	/* redzone */
+-	if (config_enabled(CONFIG_X86_64))
++	if (IS_ENABLED(CONFIG_X86_64))
+ 		sp -= 128;
+ 
+ 	/* This is the X/Open sanctioned signal stack switching.  */
+ 	if (ka->sa.sa_flags & SA_ONSTACK) {
+ 		if (sas_ss_flags(sp) == 0)
+ 			sp = current->sas_ss_sp + current->sas_ss_size;
+-	} else if (config_enabled(CONFIG_X86_32) &&
++	} else if (IS_ENABLED(CONFIG_X86_32) &&
+ 		   !onsigstack &&
+ 		   (regs->ss & 0xffff) != __USER_DS &&
+ 		   !(ka->sa.sa_flags & SA_RESTORER) &&
+@@ -262,7 +262,7 @@ get_sigframe(struct k_sigaction *ka, str
+ 	}
+ 
+ 	if (fpu->fpstate_active) {
+-		sp = fpu__alloc_mathframe(sp, config_enabled(CONFIG_X86_32),
++		sp = fpu__alloc_mathframe(sp, IS_ENABLED(CONFIG_X86_32),
+ 					  &buf_fx, &math_size);
+ 		*fpstate = (void __user *)sp;
+ 	}
+@@ -662,18 +662,18 @@ badframe:
+ 
+ static inline int is_ia32_compat_frame(void)
+ {
+-	return config_enabled(CONFIG_IA32_EMULATION) &&
++	return IS_ENABLED(CONFIG_IA32_EMULATION) &&
+ 	       test_thread_flag(TIF_IA32);
+ }
+ 
+ static inline int is_ia32_frame(void)
+ {
+-	return config_enabled(CONFIG_X86_32) || is_ia32_compat_frame();
++	return IS_ENABLED(CONFIG_X86_32) || is_ia32_compat_frame();
+ }
+ 
+ static inline int is_x32_frame(void)
+ {
+-	return config_enabled(CONFIG_X86_X32_ABI) && test_thread_flag(TIF_X32);
++	return IS_ENABLED(CONFIG_X86_X32_ABI) && test_thread_flag(TIF_X32);
+ }
+ 
+ static int
+diff -puN drivers/firmware/broadcom/bcm47xx_sprom.c~tree-wide-replace-config_enabled-with-is_enabled drivers/firmware/broadcom/bcm47xx_sprom.c
+--- a/drivers/firmware/broadcom/bcm47xx_sprom.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/firmware/broadcom/bcm47xx_sprom.c
+@@ -669,7 +669,7 @@ static int bcm47xx_get_sprom_bcma(struct
+ 	case BCMA_HOSTTYPE_PCI:
+ 		memset(out, 0, sizeof(struct ssb_sprom));
+ 		/* On BCM47XX all PCI buses share the same domain */
+-		if (config_enabled(CONFIG_BCM47XX))
++		if (IS_ENABLED(CONFIG_BCM47XX))
+ 			snprintf(buf, sizeof(buf), "pci/%u/%u/",
+ 				 bus->host_pci->bus->number + 1,
+ 				 PCI_SLOT(bus->host_pci->devfn));
+diff -puN drivers/irqchip/irq-mips-gic.c~tree-wide-replace-config_enabled-with-is_enabled drivers/irqchip/irq-mips-gic.c
+--- a/drivers/irqchip/irq-mips-gic.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/irqchip/irq-mips-gic.c
+@@ -359,7 +359,7 @@ static void gic_handle_shared_int(bool c
+ 		pending_reg += gic_reg_step;
+ 		intrmask_reg += gic_reg_step;
+ 
+-		if (!config_enabled(CONFIG_64BIT) || mips_cm_is64)
++		if (!IS_ENABLED(CONFIG_64BIT) || mips_cm_is64)
+ 			continue;
+ 
+ 		pending[i] |= (u64)gic_read(pending_reg) << 32;
+diff -puN drivers/mtd/bcm47xxpart.c~tree-wide-replace-config_enabled-with-is_enabled drivers/mtd/bcm47xxpart.c
+--- a/drivers/mtd/bcm47xxpart.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/mtd/bcm47xxpart.c
+@@ -122,7 +122,7 @@ static int bcm47xxpart_parse(struct mtd_
+ 	for (offset = 0; offset <= master->size - blocksize;
+ 	     offset += blocksize) {
+ 		/* Nothing more in higher memory on BCM47XX (MIPS) */
+-		if (config_enabled(CONFIG_BCM47XX) && offset >= 0x2000000)
++		if (IS_ENABLED(CONFIG_BCM47XX) && offset >= 0x2000000)
+ 			break;
+ 
+ 		if (curr_part >= BCM47XXPART_MAX_PARTS) {
+diff -puN drivers/net/wireless/ath/ath10k/debug.c~tree-wide-replace-config_enabled-with-is_enabled drivers/net/wireless/ath/ath10k/debug.c
+--- a/drivers/net/wireless/ath/ath10k/debug.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/net/wireless/ath/ath10k/debug.c
+@@ -139,11 +139,11 @@ void ath10k_debug_print_hwfw_info(struct
+ 		    ar->id.subsystem_vendor, ar->id.subsystem_device);
+ 
+ 	ath10k_info(ar, "kconfig debug %d debugfs %d tracing %d dfs %d testmode %d\n",
+-		    config_enabled(CONFIG_ATH10K_DEBUG),
+-		    config_enabled(CONFIG_ATH10K_DEBUGFS),
+-		    config_enabled(CONFIG_ATH10K_TRACING),
+-		    config_enabled(CONFIG_ATH10K_DFS_CERTIFIED),
+-		    config_enabled(CONFIG_NL80211_TESTMODE));
++		    IS_ENABLED(CONFIG_ATH10K_DEBUG),
++		    IS_ENABLED(CONFIG_ATH10K_DEBUGFS),
++		    IS_ENABLED(CONFIG_ATH10K_TRACING),
++		    IS_ENABLED(CONFIG_ATH10K_DFS_CERTIFIED),
++		    IS_ENABLED(CONFIG_NL80211_TESTMODE));
+ 
+ 	firmware = ar->normal_mode_fw.fw_file.firmware;
+ 	if (firmware)
+@@ -2424,7 +2424,7 @@ int ath10k_debug_register(struct ath10k
+ 	debugfs_create_file("nf_cal_period", S_IRUSR | S_IWUSR,
+ 			    ar->debug.debugfs_phy, ar, &fops_nf_cal_period);
+ 
+-	if (config_enabled(CONFIG_ATH10K_DFS_CERTIFIED)) {
++	if (IS_ENABLED(CONFIG_ATH10K_DFS_CERTIFIED)) {
+ 		debugfs_create_file("dfs_simulate_radar", S_IWUSR,
+ 				    ar->debug.debugfs_phy, ar,
+ 				    &fops_simulate_radar);
+diff -puN drivers/net/wireless/ath/ath10k/mac.c~tree-wide-replace-config_enabled-with-is_enabled drivers/net/wireless/ath/ath10k/mac.c
+--- a/drivers/net/wireless/ath/ath10k/mac.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/net/wireless/ath/ath10k/mac.c
+@@ -3039,7 +3039,7 @@ static void ath10k_regd_update(struct at
+ 
+ 	regpair = ar->ath_common.regulatory.regpair;
+ 
+-	if (config_enabled(CONFIG_ATH10K_DFS_CERTIFIED) && ar->dfs_detector) {
++	if (IS_ENABLED(CONFIG_ATH10K_DFS_CERTIFIED) && ar->dfs_detector) {
+ 		nl_dfs_reg = ar->dfs_detector->region;
+ 		wmi_dfs_reg = ath10k_mac_get_dfs_region(nl_dfs_reg);
+ 	} else {
+@@ -3068,7 +3068,7 @@ static void ath10k_reg_notifier(struct w
+ 
+ 	ath_reg_notifier_apply(wiphy, request, &ar->ath_common.regulatory);
+ 
+-	if (config_enabled(CONFIG_ATH10K_DFS_CERTIFIED) && ar->dfs_detector) {
++	if (IS_ENABLED(CONFIG_ATH10K_DFS_CERTIFIED) && ar->dfs_detector) {
+ 		ath10k_dbg(ar, ATH10K_DBG_REGULATORY, "dfs region 0x%x\n",
+ 			   request->dfs_region);
+ 		result = ar->dfs_detector->set_dfs_domain(ar->dfs_detector,
+@@ -7955,7 +7955,7 @@ int ath10k_mac_register(struct ath10k *a
+ 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+ 		ar->hw->netdev_features = NETIF_F_HW_CSUM;
+ 
+-	if (config_enabled(CONFIG_ATH10K_DFS_CERTIFIED)) {
++	if (IS_ENABLED(CONFIG_ATH10K_DFS_CERTIFIED)) {
+ 		/* Init ath dfs pattern detector */
+ 		ar->ath_common.debug_mask = ATH_DBG_DFS;
+ 		ar->dfs_detector = dfs_pattern_detector_init(&ar->ath_common,
+@@ -8003,7 +8003,7 @@ err_unregister:
+ 	ieee80211_unregister_hw(ar->hw);
+ 
+ err_dfs_detector_exit:
+-	if (config_enabled(CONFIG_ATH10K_DFS_CERTIFIED) && ar->dfs_detector)
++	if (IS_ENABLED(CONFIG_ATH10K_DFS_CERTIFIED) && ar->dfs_detector)
+ 		ar->dfs_detector->exit(ar->dfs_detector);
+ 
+ err_free:
+@@ -8018,7 +8018,7 @@ void ath10k_mac_unregister(struct ath10k
+ {
+ 	ieee80211_unregister_hw(ar->hw);
+ 
+-	if (config_enabled(CONFIG_ATH10K_DFS_CERTIFIED) && ar->dfs_detector)
++	if (IS_ENABLED(CONFIG_ATH10K_DFS_CERTIFIED) && ar->dfs_detector)
+ 		ar->dfs_detector->exit(ar->dfs_detector);
+ 
+ 	kfree(ar->mac.sbands[NL80211_BAND_2GHZ].channels);
+diff -puN drivers/net/wireless/ath/ath10k/wmi.c~tree-wide-replace-config_enabled-with-is_enabled drivers/net/wireless/ath/ath10k/wmi.c
+--- a/drivers/net/wireless/ath/ath10k/wmi.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/net/wireless/ath/ath10k/wmi.c
+@@ -3704,7 +3704,7 @@ void ath10k_wmi_event_dfs(struct ath10k
+ 		   phyerr->tsf_timestamp, tsf, buf_len);
+ 
+ 	/* Skip event if DFS disabled */
+-	if (!config_enabled(CONFIG_ATH10K_DFS_CERTIFIED))
++	if (!IS_ENABLED(CONFIG_ATH10K_DFS_CERTIFIED))
+ 		return;
+ 
+ 	ATH10K_DFS_STAT_INC(ar, pulses_total);
+diff -puN drivers/net/wireless/ath/ath6kl/cfg80211.c~tree-wide-replace-config_enabled-with-is_enabled drivers/net/wireless/ath/ath6kl/cfg80211.c
+--- a/drivers/net/wireless/ath/ath6kl/cfg80211.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/net/wireless/ath/ath6kl/cfg80211.c
+@@ -3881,7 +3881,7 @@ int ath6kl_cfg80211_init(struct ath6kl *
+ 					  BIT(NL80211_IFTYPE_P2P_CLIENT);
+ 	}
+ 
+-	if (config_enabled(CONFIG_ATH6KL_REGDOMAIN) &&
++	if (IS_ENABLED(CONFIG_ATH6KL_REGDOMAIN) &&
+ 	    test_bit(ATH6KL_FW_CAPABILITY_REGDOMAIN, ar->fw_capabilities)) {
+ 		wiphy->reg_notifier = ath6kl_cfg80211_reg_notify;
+ 		ar->wiphy->features |= NL80211_FEATURE_CELL_BASE_REG_HINTS;
+diff -puN drivers/net/wireless/ath/ath9k/common-spectral.c~tree-wide-replace-config_enabled-with-is_enabled drivers/net/wireless/ath/ath9k/common-spectral.c
+--- a/drivers/net/wireless/ath/ath9k/common-spectral.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/net/wireless/ath/ath9k/common-spectral.c
+@@ -731,7 +731,7 @@ void ath9k_cmn_spectral_scan_trigger(str
+ 	struct ath_hw *ah = spec_priv->ah;
+ 	u32 rxfilter;
+ 
+-	if (config_enabled(CONFIG_ATH9K_TX99))
++	if (IS_ENABLED(CONFIG_ATH9K_TX99))
+ 		return;
+ 
+ 	if (!ath9k_hw_ops(ah)->spectral_scan_trigger) {
+@@ -806,7 +806,7 @@ static ssize_t write_file_spec_scan_ctl(
+ 	char buf[32];
+ 	ssize_t len;
+ 
+-	if (config_enabled(CONFIG_ATH9K_TX99))
++	if (IS_ENABLED(CONFIG_ATH9K_TX99))
+ 		return -EOPNOTSUPP;
+ 
+ 	len = min(count, sizeof(buf) - 1);
+@@ -1072,7 +1072,7 @@ static struct rchan_callbacks rfs_spec_s
+ 
+ void ath9k_cmn_spectral_deinit_debug(struct ath_spec_scan_priv *spec_priv)
+ {
+-	if (config_enabled(CONFIG_ATH9K_DEBUGFS)) {
++	if (IS_ENABLED(CONFIG_ATH9K_DEBUGFS)) {
+ 		relay_close(spec_priv->rfs_chan_spec_scan);
+ 		spec_priv->rfs_chan_spec_scan = NULL;
+ 	}
+diff -puN drivers/net/wireless/ath/ath9k/init.c~tree-wide-replace-config_enabled-with-is_enabled drivers/net/wireless/ath/ath9k/init.c
+--- a/drivers/net/wireless/ath/ath9k/init.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/net/wireless/ath/ath9k/init.c
+@@ -843,7 +843,7 @@ static void ath9k_set_hw_capab(struct at
+ 			       NL80211_FEATURE_AP_MODE_CHAN_WIDTH_CHANGE |
+ 			       NL80211_FEATURE_P2P_GO_CTWIN;
+ 
+-	if (!config_enabled(CONFIG_ATH9K_TX99)) {
++	if (!IS_ENABLED(CONFIG_ATH9K_TX99)) {
+ 		hw->wiphy->interface_modes =
+ 			BIT(NL80211_IFTYPE_P2P_GO) |
+ 			BIT(NL80211_IFTYPE_P2P_CLIENT) |
+diff -puN drivers/net/wireless/ath/ath9k/main.c~tree-wide-replace-config_enabled-with-is_enabled drivers/net/wireless/ath/ath9k/main.c
+--- a/drivers/net/wireless/ath/ath9k/main.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/net/wireless/ath/ath9k/main.c
+@@ -1250,7 +1250,7 @@ static int ath9k_add_interface(struct ie
+ 
+ 	mutex_lock(&sc->mutex);
+ 
+-	if (config_enabled(CONFIG_ATH9K_TX99)) {
++	if (IS_ENABLED(CONFIG_ATH9K_TX99)) {
+ 		if (sc->cur_chan->nvifs >= 1) {
+ 			mutex_unlock(&sc->mutex);
+ 			return -EOPNOTSUPP;
+@@ -1300,7 +1300,7 @@ static int ath9k_change_interface(struct
+ 
+ 	mutex_lock(&sc->mutex);
+ 
+-	if (config_enabled(CONFIG_ATH9K_TX99)) {
++	if (IS_ENABLED(CONFIG_ATH9K_TX99)) {
+ 		mutex_unlock(&sc->mutex);
+ 		return -EOPNOTSUPP;
+ 	}
+@@ -1360,7 +1360,7 @@ static void ath9k_enable_ps(struct ath_s
+ 	struct ath_hw *ah = sc->sc_ah;
+ 	struct ath_common *common = ath9k_hw_common(ah);
+ 
+-	if (config_enabled(CONFIG_ATH9K_TX99))
++	if (IS_ENABLED(CONFIG_ATH9K_TX99))
+ 		return;
+ 
+ 	sc->ps_enabled = true;
+@@ -1379,7 +1379,7 @@ static void ath9k_disable_ps(struct ath_
+ 	struct ath_hw *ah = sc->sc_ah;
+ 	struct ath_common *common = ath9k_hw_common(ah);
+ 
+-	if (config_enabled(CONFIG_ATH9K_TX99))
++	if (IS_ENABLED(CONFIG_ATH9K_TX99))
+ 		return;
+ 
+ 	sc->ps_enabled = false;
+@@ -1953,7 +1953,7 @@ static int ath9k_get_survey(struct ieee8
+ 	struct ieee80211_channel *chan;
+ 	int pos;
+ 
+-	if (config_enabled(CONFIG_ATH9K_TX99))
++	if (IS_ENABLED(CONFIG_ATH9K_TX99))
+ 		return -EOPNOTSUPP;
+ 
+ 	spin_lock_bh(&common->cc_lock);
+@@ -2003,7 +2003,7 @@ static void ath9k_set_coverage_class(str
+ 	struct ath_softc *sc = hw->priv;
+ 	struct ath_hw *ah = sc->sc_ah;
+ 
+-	if (config_enabled(CONFIG_ATH9K_TX99))
++	if (IS_ENABLED(CONFIG_ATH9K_TX99))
+ 		return;
+ 
+ 	mutex_lock(&sc->mutex);
+diff -puN drivers/net/wireless/ath/ath9k/recv.c~tree-wide-replace-config_enabled-with-is_enabled drivers/net/wireless/ath/ath9k/recv.c
+--- a/drivers/net/wireless/ath/ath9k/recv.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/net/wireless/ath/ath9k/recv.c
+@@ -377,7 +377,7 @@ u32 ath_calcrxfilter(struct ath_softc *s
+ 	struct ath_common *common = ath9k_hw_common(sc->sc_ah);
+ 	u32 rfilt;
+ 
+-	if (config_enabled(CONFIG_ATH9K_TX99))
++	if (IS_ENABLED(CONFIG_ATH9K_TX99))
+ 		return 0;
+ 
+ 	rfilt = ATH9K_RX_FILTER_UCAST | ATH9K_RX_FILTER_BCAST
+diff -puN drivers/net/wireless/ath/dfs_pattern_detector.c~tree-wide-replace-config_enabled-with-is_enabled drivers/net/wireless/ath/dfs_pattern_detector.c
+--- a/drivers/net/wireless/ath/dfs_pattern_detector.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/net/wireless/ath/dfs_pattern_detector.c
+@@ -352,7 +352,7 @@ dfs_pattern_detector_init(struct ath_com
+ {
+ 	struct dfs_pattern_detector *dpd;
+ 
+-	if (!config_enabled(CONFIG_CFG80211_CERTIFICATION_ONUS))
++	if (!IS_ENABLED(CONFIG_CFG80211_CERTIFICATION_ONUS))
+ 		return NULL;
+ 
+ 	dpd = kmalloc(sizeof(*dpd), GFP_KERNEL);
+diff -puN drivers/net/wireless/ath/regd.c~tree-wide-replace-config_enabled-with-is_enabled drivers/net/wireless/ath/regd.c
+--- a/drivers/net/wireless/ath/regd.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/net/wireless/ath/regd.c
+@@ -116,7 +116,7 @@ static const struct ieee80211_regdomain
+ 
+ static bool dynamic_country_user_possible(struct ath_regulatory *reg)
+ {
+-	if (config_enabled(CONFIG_ATH_REG_DYNAMIC_USER_CERT_TESTING))
++	if (IS_ENABLED(CONFIG_ATH_REG_DYNAMIC_USER_CERT_TESTING))
+ 		return true;
+ 
+ 	switch (reg->country_code) {
+@@ -188,7 +188,7 @@ static bool dynamic_country_user_possibl
+ 
+ static bool ath_reg_dyn_country_user_allow(struct ath_regulatory *reg)
+ {
+-	if (!config_enabled(CONFIG_ATH_REG_DYNAMIC_USER_REG_HINTS))
++	if (!IS_ENABLED(CONFIG_ATH_REG_DYNAMIC_USER_REG_HINTS))
+ 		return false;
+ 	if (!dynamic_country_user_possible(reg))
+ 		return false;
+diff -puN drivers/pci/ecam.c~tree-wide-replace-config_enabled-with-is_enabled drivers/pci/ecam.c
+--- a/drivers/pci/ecam.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/pci/ecam.c
+@@ -27,7 +27,7 @@
+  * since we have enough virtual address range available.  On 32-bit, we
+  * ioremap the config space for each bus individually.
+  */
+-static const bool per_bus_mapping = !config_enabled(CONFIG_64BIT);
++static const bool per_bus_mapping = !IS_ENABLED(CONFIG_64BIT);
+ 
+ /*
+  * Create a PCI config space window
+diff -puN drivers/tty/serial/ar933x_uart.c~tree-wide-replace-config_enabled-with-is_enabled drivers/tty/serial/ar933x_uart.c
+--- a/drivers/tty/serial/ar933x_uart.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/drivers/tty/serial/ar933x_uart.c
+@@ -54,7 +54,7 @@ struct ar933x_uart_port {
+ 
+ static inline bool ar933x_uart_console_enabled(void)
+ {
+-	return config_enabled(CONFIG_SERIAL_AR933X_CONSOLE);
++	return IS_ENABLED(CONFIG_SERIAL_AR933X_CONSOLE);
+ }
+ 
+ static inline unsigned int ar933x_uart_read(struct ar933x_uart_port *up,
+@@ -636,7 +636,7 @@ static int ar933x_uart_probe(struct plat
+ 	int ret;
+ 
+ 	np = pdev->dev.of_node;
+-	if (config_enabled(CONFIG_OF) && np) {
++	if (IS_ENABLED(CONFIG_OF) && np) {
+ 		id = of_alias_get_id(np, "serial");
+ 		if (id < 0) {
+ 			dev_err(&pdev->dev, "unable to get alias id, err=%d\n",
+diff -puN include/linux/fence.h~tree-wide-replace-config_enabled-with-is_enabled include/linux/fence.h
+--- a/include/linux/fence.h~tree-wide-replace-config_enabled-with-is_enabled
++++ a/include/linux/fence.h
+@@ -358,7 +358,7 @@ u64 fence_context_alloc(unsigned num);
+ #define FENCE_TRACE(f, fmt, args...) \
+ 	do {								\
+ 		struct fence *__ff = (f);				\
+-		if (config_enabled(CONFIG_FENCE_TRACE))			\
++		if (IS_ENABLED(CONFIG_FENCE_TRACE))			\
+ 			pr_info("f %llu#%u: " fmt,			\
+ 				__ff->context, __ff->seqno, ##args);	\
+ 	} while (0)
+diff -puN include/linux/ww_mutex.h~tree-wide-replace-config_enabled-with-is_enabled include/linux/ww_mutex.h
+--- a/include/linux/ww_mutex.h~tree-wide-replace-config_enabled-with-is_enabled
++++ a/include/linux/ww_mutex.h
+@@ -173,14 +173,14 @@ static inline void ww_acquire_fini(struc
+ 	mutex_release(&ctx->dep_map, 0, _THIS_IP_);
+ 
+ 	DEBUG_LOCKS_WARN_ON(ctx->acquired);
+-	if (!config_enabled(CONFIG_PROVE_LOCKING))
++	if (!IS_ENABLED(CONFIG_PROVE_LOCKING))
+ 		/*
+ 		 * lockdep will normally handle this,
+ 		 * but fail without anyway
+ 		 */
+ 		ctx->done_acquire = 1;
+ 
+-	if (!config_enabled(CONFIG_DEBUG_LOCK_ALLOC))
++	if (!IS_ENABLED(CONFIG_DEBUG_LOCK_ALLOC))
+ 		/* ensure ww_acquire_fini will still fail if called twice */
+ 		ctx->acquired = ~0U;
+ #endif
+diff -puN kernel/ptrace.c~tree-wide-replace-config_enabled-with-is_enabled kernel/ptrace.c
+--- a/kernel/ptrace.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/kernel/ptrace.c
+@@ -585,8 +585,8 @@ static int ptrace_setoptions(struct task
+ 		return -EINVAL;
+ 
+ 	if (unlikely(data & PTRACE_O_SUSPEND_SECCOMP)) {
+-		if (!config_enabled(CONFIG_CHECKPOINT_RESTORE) ||
+-		    !config_enabled(CONFIG_SECCOMP))
++		if (!IS_ENABLED(CONFIG_CHECKPOINT_RESTORE) ||
++		    !IS_ENABLED(CONFIG_SECCOMP))
+ 			return -EINVAL;
+ 
+ 		if (!capable(CAP_SYS_ADMIN))
+diff -puN kernel/seccomp.c~tree-wide-replace-config_enabled-with-is_enabled kernel/seccomp.c
+--- a/kernel/seccomp.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/kernel/seccomp.c
+@@ -347,7 +347,7 @@ static struct seccomp_filter *seccomp_pr
+ {
+ 	struct seccomp_filter *sfilter;
+ 	int ret;
+-	const bool save_orig = config_enabled(CONFIG_CHECKPOINT_RESTORE);
++	const bool save_orig = IS_ENABLED(CONFIG_CHECKPOINT_RESTORE);
+ 
+ 	if (fprog->len == 0 || fprog->len > BPF_MAXINSNS)
+ 		return ERR_PTR(-EINVAL);
+@@ -542,7 +542,7 @@ void secure_computing_strict(int this_sy
+ {
+ 	int mode = current->seccomp.mode;
+ 
+-	if (config_enabled(CONFIG_CHECKPOINT_RESTORE) &&
++	if (IS_ENABLED(CONFIG_CHECKPOINT_RESTORE) &&
+ 	    unlikely(current->ptrace & PT_SUSPEND_SECCOMP))
+ 		return;
+ 
+@@ -655,7 +655,7 @@ int __secure_computing(const struct secc
+ 	int mode = current->seccomp.mode;
+ 	int this_syscall;
+ 
+-	if (config_enabled(CONFIG_CHECKPOINT_RESTORE) &&
++	if (IS_ENABLED(CONFIG_CHECKPOINT_RESTORE) &&
+ 	    unlikely(current->ptrace & PT_SUSPEND_SECCOMP))
+ 		return 0;
+ 
+diff -puN net/wireless/chan.c~tree-wide-replace-config_enabled-with-is_enabled net/wireless/chan.c
+--- a/net/wireless/chan.c~tree-wide-replace-config_enabled-with-is_enabled
++++ a/net/wireless/chan.c
+@@ -715,7 +715,7 @@ static bool cfg80211_ir_permissive_chan(
+ 
+ 	ASSERT_RTNL();
+ 
+-	if (!config_enabled(CONFIG_CFG80211_REG_RELAX_NO_IR) ||
++	if (!IS_ENABLED(CONFIG_CFG80211_REG_RELAX_NO_IR) ||
+ 	    !(wiphy->regulatory_flags & REGULATORY_ENABLE_RELAX_NO_IR))
+ 		return false;
  
 _
