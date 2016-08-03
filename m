@@ -1,117 +1,107 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from
- -mm tree
-Date: Wed, 03 Aug 2016 13:14:14 -0700
-Message-ID: <57a25096.2FmzycDzubM2fUf4%akpm@linux-foundation.org>
+ nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from -mm
+ tree
+Date: Wed, 03 Aug 2016 13:14:32 -0700
+Message-ID: <57a250a8.7+wBuyOANt5iIWKS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38992 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38977 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932567AbcHCUOb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:14:31 -0400
+	with ESMTP id S932650AbcHCUOd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:14:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, jroedel@suse.de, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iommu: intel: dma-mapping: use unsigned long for dma_attrs
+     Subject: nios2: dma-mapping: use unsigned long for dma_attrs
 has been removed from the -mm tree.  Its filename was
-     iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch was dropped because it was folded into dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: iommu: intel: dma-mapping: use unsigned long for dma_attrs
+Subject: nios2: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-25-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468399300-5399-34-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Joerg Roedel <jroedel@suse.de> [iommu]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/intel-iommu.c |   12 ++++++------
+ arch/nios2/mm/dma-mapping.c |   12 ++++++------
  1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/iommu/intel-iommu.c~iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs drivers/iommu/intel-iommu.c
---- a/drivers/iommu/intel-iommu.c~iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/iommu/intel-iommu.c
-@@ -3552,7 +3552,7 @@ error:
- static dma_addr_t intel_map_page(struct device *dev, struct page *page,
- 				 unsigned long offset, size_t size,
- 				 enum dma_data_direction dir,
--				 struct dma_attrs *attrs)
-+				 unsigned long attrs)
- {
- 	return __intel_map_single(dev, page_to_phys(page) + offset, size,
- 				  dir, *dev->dma_mask);
-@@ -3711,14 +3711,14 @@ static void intel_unmap(struct device *d
- 
- static void intel_unmap_page(struct device *dev, dma_addr_t dev_addr,
- 			     size_t size, enum dma_data_direction dir,
--			     struct dma_attrs *attrs)
-+			     unsigned long attrs)
- {
- 	intel_unmap(dev, dev_addr, size);
+diff -puN arch/nios2/mm/dma-mapping.c~nios2-dma-mapping-use-unsigned-long-for-dma_attrs arch/nios2/mm/dma-mapping.c
+--- a/arch/nios2/mm/dma-mapping.c~nios2-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/nios2/mm/dma-mapping.c
+@@ -59,7 +59,7 @@ static inline void __dma_sync_for_cpu(vo
  }
  
- static void *intel_alloc_coherent(struct device *dev, size_t size,
- 				  dma_addr_t *dma_handle, gfp_t flags,
--				  struct dma_attrs *attrs)
-+				  unsigned long attrs)
+ static void *nios2_dma_alloc(struct device *dev, size_t size,
+-		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
++		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
  {
- 	struct page *page = NULL;
- 	int order;
-@@ -3764,7 +3764,7 @@ static void *intel_alloc_coherent(struct
+ 	void *ret;
+ 
+@@ -84,7 +84,7 @@ static void *nios2_dma_alloc(struct devi
  }
  
- static void intel_free_coherent(struct device *dev, size_t size, void *vaddr,
--				dma_addr_t dma_handle, struct dma_attrs *attrs)
-+				dma_addr_t dma_handle, unsigned long attrs)
+ static void nios2_dma_free(struct device *dev, size_t size, void *vaddr,
+-		dma_addr_t dma_handle, struct dma_attrs *attrs)
++		dma_addr_t dma_handle, unsigned long attrs)
  {
- 	int order;
- 	struct page *page = virt_to_page(vaddr);
-@@ -3779,7 +3779,7 @@ static void intel_free_coherent(struct d
+ 	unsigned long addr = (unsigned long) CAC_ADDR((unsigned long) vaddr);
  
- static void intel_unmap_sg(struct device *dev, struct scatterlist *sglist,
- 			   int nelems, enum dma_data_direction dir,
--			   struct dma_attrs *attrs)
-+			   unsigned long attrs)
- {
- 	dma_addr_t startaddr = sg_dma_address(sglist) & PAGE_MASK;
- 	unsigned long nrpages = 0;
-@@ -3808,7 +3808,7 @@ static int intel_nontranslate_map_sg(str
- }
+@@ -93,7 +93,7 @@ static void nios2_dma_free(struct device
  
- static int intel_map_sg(struct device *dev, struct scatterlist *sglist, int nelems,
--			enum dma_data_direction dir, struct dma_attrs *attrs)
-+			enum dma_data_direction dir, unsigned long attrs)
+ static int nios2_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 		int nents, enum dma_data_direction direction,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
  {
  	int i;
- 	struct dmar_domain *domain;
+ 
+@@ -113,7 +113,7 @@ static int nios2_dma_map_sg(struct devic
+ static dma_addr_t nios2_dma_map_page(struct device *dev, struct page *page,
+ 			unsigned long offset, size_t size,
+ 			enum dma_data_direction direction,
+-			struct dma_attrs *attrs)
++			unsigned long attrs)
+ {
+ 	void *addr = page_address(page) + offset;
+ 
+@@ -123,14 +123,14 @@ static dma_addr_t nios2_dma_map_page(str
+ 
+ static void nios2_dma_unmap_page(struct device *dev, dma_addr_t dma_address,
+ 		size_t size, enum dma_data_direction direction,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
+ {
+ 	__dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
+ }
+ 
+ static void nios2_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+ 		int nhwentries, enum dma_data_direction direction,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
+ {
+ 	void *addr;
+ 	int i;
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
 media-mtk-vcodec-remove-unused-dma_attrs.patch
 dma-mapping-use-unsigned-long-for-dma_attrs.patch
-h8300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-hexagon-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-ia64-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-metag-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-microblaze-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-mips-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-mn10300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 openrisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 parisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 misc-mic-dma-mapping-use-unsigned-long-for-dma_attrs.patch
