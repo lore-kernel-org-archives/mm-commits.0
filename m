@@ -1,159 +1,120 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- xen-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from -mm tree
-Date: Wed, 03 Aug 2016 13:14:04 -0700
-Message-ID: <57a2508c.ApStJw5XaeaWYOjg%akpm@linux-foundation.org>
+ drm-mediatek-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 13:13:50 -0700
+Message-ID: <57a2507e.CZ/rqNayY7x7hFo9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38988 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38982 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758266AbcHCUO2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:14:28 -0400
+	with ESMTP id S1758232AbcHCUO1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:14:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, daniel.vetter@ffwll.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xen: dma-mapping: use unsigned long for dma_attrs
+     Subject: drm/mediatek: dma-mapping: use unsigned long for dma_attrs
 has been removed from the -mm tree.  Its filename was
-     xen-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     drm-mediatek-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch was dropped because it was folded into dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: xen: dma-mapping: use unsigned long for dma_attrs
+Subject: drm/mediatek: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-20-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468399300-5399-13-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: David Vrabel <david.vrabel@citrix.com> [xen]
-Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> [xen swiotlb]
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch> [drm]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/swiotlb-xen.c |   14 +++++++-------
- include/xen/swiotlb-xen.h |   12 ++++++------
- 2 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/gpu/drm/mediatek/mtk_drm_gem.c |   13 ++++++-------
+ drivers/gpu/drm/mediatek/mtk_drm_gem.h |    2 +-
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/xen/swiotlb-xen.c~xen-dma-mapping-use-unsigned-long-for-dma_attrs drivers/xen/swiotlb-xen.c
---- a/drivers/xen/swiotlb-xen.c~xen-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/xen/swiotlb-xen.c
-@@ -294,7 +294,7 @@ error:
- void *
- xen_swiotlb_alloc_coherent(struct device *hwdev, size_t size,
- 			   dma_addr_t *dma_handle, gfp_t flags,
--			   struct dma_attrs *attrs)
-+			   unsigned long attrs)
- {
- 	void *ret;
- 	int order = get_order(size);
-@@ -346,7 +346,7 @@ EXPORT_SYMBOL_GPL(xen_swiotlb_alloc_cohe
+diff -puN drivers/gpu/drm/mediatek/mtk_drm_gem.c~drm-mediatek-dma-mapping-use-unsigned-long-for-dma_attrs drivers/gpu/drm/mediatek/mtk_drm_gem.c
+--- a/drivers/gpu/drm/mediatek/mtk_drm_gem.c~drm-mediatek-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/gpu/drm/mediatek/mtk_drm_gem.c
+@@ -54,15 +54,14 @@ struct mtk_drm_gem_obj *mtk_drm_gem_crea
  
- void
- xen_swiotlb_free_coherent(struct device *hwdev, size_t size, void *vaddr,
--			  dma_addr_t dev_addr, struct dma_attrs *attrs)
-+			  dma_addr_t dev_addr, unsigned long attrs)
- {
- 	int order = get_order(size);
- 	phys_addr_t phys;
-@@ -378,7 +378,7 @@ EXPORT_SYMBOL_GPL(xen_swiotlb_free_coher
- dma_addr_t xen_swiotlb_map_page(struct device *dev, struct page *page,
- 				unsigned long offset, size_t size,
- 				enum dma_data_direction dir,
--				struct dma_attrs *attrs)
-+				unsigned long attrs)
- {
- 	phys_addr_t map, phys = page_to_phys(page) + offset;
- 	dma_addr_t dev_addr = xen_phys_to_bus(phys);
-@@ -434,7 +434,7 @@ EXPORT_SYMBOL_GPL(xen_swiotlb_map_page);
-  */
- static void xen_unmap_single(struct device *hwdev, dma_addr_t dev_addr,
- 			     size_t size, enum dma_data_direction dir,
--				 struct dma_attrs *attrs)
-+			     unsigned long attrs)
- {
- 	phys_addr_t paddr = xen_bus_to_phys(dev_addr);
+ 	obj = &mtk_gem->base;
  
-@@ -462,7 +462,7 @@ static void xen_unmap_single(struct devi
+-	init_dma_attrs(&mtk_gem->dma_attrs);
+-	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &mtk_gem->dma_attrs);
++	mtk_gem->dma_attrs = DMA_ATTR_WRITE_COMBINE;
  
- void xen_swiotlb_unmap_page(struct device *hwdev, dma_addr_t dev_addr,
- 			    size_t size, enum dma_data_direction dir,
--			    struct dma_attrs *attrs)
-+			    unsigned long attrs)
- {
- 	xen_unmap_single(hwdev, dev_addr, size, dir, attrs);
- }
-@@ -538,7 +538,7 @@ EXPORT_SYMBOL_GPL(xen_swiotlb_sync_singl
- int
- xen_swiotlb_map_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
- 			 int nelems, enum dma_data_direction dir,
--			 struct dma_attrs *attrs)
-+			 unsigned long attrs)
- {
- 	struct scatterlist *sg;
- 	int i;
-@@ -599,7 +599,7 @@ EXPORT_SYMBOL_GPL(xen_swiotlb_map_sg_att
- void
- xen_swiotlb_unmap_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
- 			   int nelems, enum dma_data_direction dir,
--			   struct dma_attrs *attrs)
-+			   unsigned long attrs)
- {
- 	struct scatterlist *sg;
- 	int i;
-diff -puN include/xen/swiotlb-xen.h~xen-dma-mapping-use-unsigned-long-for-dma_attrs include/xen/swiotlb-xen.h
---- a/include/xen/swiotlb-xen.h~xen-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/include/xen/swiotlb-xen.h
-@@ -9,30 +9,30 @@ extern int xen_swiotlb_init(int verbose,
- extern void
- *xen_swiotlb_alloc_coherent(struct device *hwdev, size_t size,
- 			    dma_addr_t *dma_handle, gfp_t flags,
--			    struct dma_attrs *attrs);
-+			    unsigned long attrs);
+ 	if (!alloc_kmap)
+-		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &mtk_gem->dma_attrs);
++		mtk_gem->dma_attrs |= DMA_ATTR_NO_KERNEL_MAPPING;
  
- extern void
- xen_swiotlb_free_coherent(struct device *hwdev, size_t size,
- 			  void *vaddr, dma_addr_t dma_handle,
--			  struct dma_attrs *attrs);
-+			  unsigned long attrs);
+ 	mtk_gem->cookie = dma_alloc_attrs(priv->dma_dev, obj->size,
+ 					  &mtk_gem->dma_addr, GFP_KERNEL,
+-					  &mtk_gem->dma_attrs);
++					  mtk_gem->dma_attrs);
+ 	if (!mtk_gem->cookie) {
+ 		DRM_ERROR("failed to allocate %zx byte dma buffer", obj->size);
+ 		ret = -ENOMEM;
+@@ -93,7 +92,7 @@ void mtk_drm_gem_free_object(struct drm_
+ 		drm_prime_gem_destroy(obj, mtk_gem->sg);
+ 	else
+ 		dma_free_attrs(priv->dma_dev, obj->size, mtk_gem->cookie,
+-			       mtk_gem->dma_addr, &mtk_gem->dma_attrs);
++			       mtk_gem->dma_addr, mtk_gem->dma_attrs);
  
- extern dma_addr_t xen_swiotlb_map_page(struct device *dev, struct page *page,
- 				       unsigned long offset, size_t size,
- 				       enum dma_data_direction dir,
--				       struct dma_attrs *attrs);
-+				       unsigned long attrs);
+ 	/* release file pointer to gem object. */
+ 	drm_gem_object_release(obj);
+@@ -173,7 +172,7 @@ static int mtk_drm_gem_object_mmap(struc
+ 	vma->vm_pgoff = 0;
  
- extern void xen_swiotlb_unmap_page(struct device *hwdev, dma_addr_t dev_addr,
- 				   size_t size, enum dma_data_direction dir,
--				   struct dma_attrs *attrs);
-+				   unsigned long attrs);
- extern int
- xen_swiotlb_map_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
- 			 int nelems, enum dma_data_direction dir,
--			 struct dma_attrs *attrs);
-+			 unsigned long attrs);
+ 	ret = dma_mmap_attrs(priv->dma_dev, vma, mtk_gem->cookie,
+-			     mtk_gem->dma_addr, obj->size, &mtk_gem->dma_attrs);
++			     mtk_gem->dma_addr, obj->size, mtk_gem->dma_attrs);
+ 	if (ret)
+ 		drm_gem_vm_close(vma);
  
- extern void
- xen_swiotlb_unmap_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
- 			   int nelems, enum dma_data_direction dir,
--			   struct dma_attrs *attrs);
-+			   unsigned long attrs);
+@@ -224,7 +223,7 @@ struct sg_table *mtk_gem_prime_get_sg_ta
  
- extern void
- xen_swiotlb_sync_single_for_cpu(struct device *hwdev, dma_addr_t dev_addr,
+ 	ret = dma_get_sgtable_attrs(priv->dma_dev, sgt, mtk_gem->cookie,
+ 				    mtk_gem->dma_addr, obj->size,
+-				    &mtk_gem->dma_attrs);
++				    mtk_gem->dma_attrs);
+ 	if (ret) {
+ 		DRM_ERROR("failed to allocate sgt, %d\n", ret);
+ 		kfree(sgt);
+diff -puN drivers/gpu/drm/mediatek/mtk_drm_gem.h~drm-mediatek-dma-mapping-use-unsigned-long-for-dma_attrs drivers/gpu/drm/mediatek/mtk_drm_gem.h
+--- a/drivers/gpu/drm/mediatek/mtk_drm_gem.h~drm-mediatek-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/gpu/drm/mediatek/mtk_drm_gem.h
+@@ -35,7 +35,7 @@ struct mtk_drm_gem_obj {
+ 	void			*cookie;
+ 	void			*kvaddr;
+ 	dma_addr_t		dma_addr;
+-	struct dma_attrs	dma_attrs;
++	unsigned long		dma_attrs;
+ 	struct sg_table		*sg;
+ };
+ 
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
 media-mtk-vcodec-remove-unused-dma_attrs.patch
 dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-msm-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+infiniband-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+iommu-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+media-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+xen-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 swiotlb-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 powerpc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 video-dma-mapping-use-unsigned-long-for-dma_attrs.patch
