@@ -1,141 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysv-ipc-fix-security-layer-leaking.patch removed from
- -mm tree
-Date: Wed, 03 Aug 2016 11:11:21 -0700
-Message-ID: <57a233c9.MgrMDgChKqd4VA5n%akpm@linux-foundation.org>
+Subject: [merged] kasan-improve-double-free-reports.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 11:11:11 -0700
+Message-ID: <57a233bf.1ZIgRE238HZezdqQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33344 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33339 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753959AbcHCSN0 (ORCPT
+	with ESMTP id S1753163AbcHCSN0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, dbueso@suse.de, manfred@colorfullife.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysv, ipc: fix security-layer leaking
+     Subject: kasan: improve double-free reports
 has been removed from the -mm tree.  Its filename was
-     sysv-ipc-fix-security-layer-leaking.patch
+     kasan-improve-double-free-reports.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: sysv, ipc: fix security-layer leaking
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: kasan: improve double-free reports
 
-53dad6d3a8e5 ("ipc: fix race with LSMs") updated ipc_rcu_putref() to
-receive rcu freeing function but used generic ipc_rcu_free() instead of
-msg_rcu_free() which does security cleaning.
+Currently we just dump stack in case of double free bug.
+Let's dump all info about the object that we have.
 
-Running LTP msgsnd06 with kmemleak gives the following:
-
-cat /sys/kernel/debug/kmemleak
-
-unreferenced object 0xffff88003c0a11f8 (size 8):
-  comm "msgsnd06", pid 1645, jiffies 4294672526 (age 6.549s)
-  hex dump (first 8 bytes):
-    1b 00 00 00 01 00 00 00                          ........
-  backtrace:
-    [<ffffffff818e2c43>] kmemleak_alloc+0x23/0x40
-    [<ffffffff81177f31>] kmem_cache_alloc_trace+0xe1/0x180
-    [<ffffffff812d42af>] selinux_msg_queue_alloc_security+0x3f/0xd0
-    [<ffffffff812cc6be>] security_msg_queue_alloc+0x2e/0x40
-    [<ffffffff812b94ee>] newque+0x4e/0x150
-    [<ffffffff812b8cb9>] ipcget+0x159/0x1b0
-    [<ffffffff812b98d9>] SyS_msgget+0x39/0x40
-    [<ffffffff818e7bdb>] entry_SYSCALL_64_fastpath+0x13/0x8f
-    [<ffffffffffffffff>] 0xffffffffffffffff
-
-Manfred Spraul suggested to fix sem.c as well and
-Davidlohr Bueso to only use ipc_rcu_free in case of security
-allocation failure in newary()
-
-Fixes: 53dad6d3a8e ("ipc: fix race with LSMs")
-Link: http://lkml.kernel.org/r/1470083552-22966-1-git-send-email-fabf@skynet.be
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: <stable@vger.kernel.org>	[3.12+]
+[aryabinin@virtuozzo.com: change double free message per Alexander]
+  Link: http://lkml.kernel.org/r/1470153654-30160-1-git-send-email-aryabinin@virtuozzo.com
+Link: http://lkml.kernel.org/r/1470062715-14077-6-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    2 +-
- ipc/sem.c |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ mm/kasan/kasan.c  |    3 --
+ mm/kasan/kasan.h  |    2 +
+ mm/kasan/report.c |   54 ++++++++++++++++++++++++++++++--------------
+ 3 files changed, 41 insertions(+), 18 deletions(-)
 
-diff -puN ipc/msg.c~sysv-ipc-fix-security-layer-leaking ipc/msg.c
---- a/ipc/msg.c~sysv-ipc-fix-security-layer-leaking
-+++ a/ipc/msg.c
-@@ -680,7 +680,7 @@ long do_msgsnd(int msqid, long mtype, vo
- 		rcu_read_lock();
- 		ipc_lock_object(&msq->q_perm);
+diff -puN mm/kasan/kasan.c~kasan-improve-double-free-reports mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-improve-double-free-reports
++++ a/mm/kasan/kasan.c
+@@ -543,8 +543,7 @@ bool kasan_slab_free(struct kmem_cache *
  
--		ipc_rcu_putref(msq, ipc_rcu_free);
-+		ipc_rcu_putref(msq, msg_rcu_free);
- 		/* raced with RMID? */
- 		if (!ipc_valid_object(&msq->q_perm)) {
- 			err = -EIDRM;
-diff -puN ipc/sem.c~sysv-ipc-fix-security-layer-leaking ipc/sem.c
---- a/ipc/sem.c~sysv-ipc-fix-security-layer-leaking
-+++ a/ipc/sem.c
-@@ -438,7 +438,7 @@ static inline struct sem_array *sem_obta
- static inline void sem_lock_and_putref(struct sem_array *sma)
- {
- 	sem_lock(sma, NULL, -1);
--	ipc_rcu_putref(sma, ipc_rcu_free);
-+	ipc_rcu_putref(sma, sem_rcu_free);
- }
- 
- static inline void sem_rmid(struct ipc_namespace *ns, struct sem_array *s)
-@@ -1381,7 +1381,7 @@ static int semctl_main(struct ipc_namesp
- 			rcu_read_unlock();
- 			sem_io = ipc_alloc(sizeof(ushort)*nsems);
- 			if (sem_io == NULL) {
--				ipc_rcu_putref(sma, ipc_rcu_free);
-+				ipc_rcu_putref(sma, sem_rcu_free);
- 				return -ENOMEM;
- 			}
- 
-@@ -1415,20 +1415,20 @@ static int semctl_main(struct ipc_namesp
- 		if (nsems > SEMMSL_FAST) {
- 			sem_io = ipc_alloc(sizeof(ushort)*nsems);
- 			if (sem_io == NULL) {
--				ipc_rcu_putref(sma, ipc_rcu_free);
-+				ipc_rcu_putref(sma, sem_rcu_free);
- 				return -ENOMEM;
- 			}
- 		}
- 
- 		if (copy_from_user(sem_io, p, nsems*sizeof(ushort))) {
--			ipc_rcu_putref(sma, ipc_rcu_free);
-+			ipc_rcu_putref(sma, sem_rcu_free);
- 			err = -EFAULT;
- 			goto out_free;
- 		}
- 
- 		for (i = 0; i < nsems; i++) {
- 			if (sem_io[i] > SEMVMX) {
--				ipc_rcu_putref(sma, ipc_rcu_free);
-+				ipc_rcu_putref(sma, sem_rcu_free);
- 				err = -ERANGE;
- 				goto out_free;
- 			}
-@@ -1720,7 +1720,7 @@ static struct sem_undo *find_alloc_undo(
- 	/* step 2: allocate new undo structure */
- 	new = kzalloc(sizeof(struct sem_undo) + sizeof(short)*nsems, GFP_KERNEL);
- 	if (!new) {
--		ipc_rcu_putref(sma, ipc_rcu_free);
-+		ipc_rcu_putref(sma, sem_rcu_free);
- 		return ERR_PTR(-ENOMEM);
+ 	shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(object));
+ 	if (shadow_byte < 0 || shadow_byte >= KASAN_SHADOW_SCALE_SIZE) {
+-		pr_err("Double free");
+-		dump_stack();
++		kasan_report_double_free(cache, object, shadow_byte);
+ 		return true;
  	}
  
+diff -puN mm/kasan/kasan.h~kasan-improve-double-free-reports mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~kasan-improve-double-free-reports
++++ a/mm/kasan/kasan.h
+@@ -99,6 +99,8 @@ static inline bool kasan_report_enabled(
+ 
+ void kasan_report(unsigned long addr, size_t size,
+ 		bool is_write, unsigned long ip);
++void kasan_report_double_free(struct kmem_cache *cache, void *object,
++			s8 shadow);
+ 
+ #if defined(CONFIG_SLAB) || defined(CONFIG_SLUB)
+ void quarantine_put(struct kasan_free_meta *info, struct kmem_cache *cache);
+diff -puN mm/kasan/report.c~kasan-improve-double-free-reports mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-improve-double-free-reports
++++ a/mm/kasan/report.c
+@@ -116,6 +116,26 @@ static inline bool init_task_stack_addr(
+ 			sizeof(init_thread_union.stack));
+ }
+ 
++static DEFINE_SPINLOCK(report_lock);
++
++static void kasan_start_report(unsigned long *flags)
++{
++	/*
++	 * Make sure we don't end up in loop.
++	 */
++	kasan_disable_current();
++	spin_lock_irqsave(&report_lock, *flags);
++	pr_err("==================================================================\n");
++}
++
++static void kasan_end_report(unsigned long *flags)
++{
++	pr_err("==================================================================\n");
++	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
++	spin_unlock_irqrestore(&report_lock, *flags);
++	kasan_enable_current();
++}
++
+ static void print_track(struct kasan_track *track)
+ {
+ 	pr_err("PID = %u\n", track->pid);
+@@ -129,8 +149,7 @@ static void print_track(struct kasan_tra
+ 	}
+ }
+ 
+-static void kasan_object_err(struct kmem_cache *cache, struct page *page,
+-				void *object, char *unused_reason)
++static void kasan_object_err(struct kmem_cache *cache, void *object)
+ {
+ 	struct kasan_alloc_meta *alloc_info = get_alloc_info(cache, object);
+ 
+@@ -147,6 +166,18 @@ static void kasan_object_err(struct kmem
+ 	print_track(&alloc_info->free_track);
+ }
+ 
++void kasan_report_double_free(struct kmem_cache *cache, void *object,
++			s8 shadow)
++{
++	unsigned long flags;
++
++	kasan_start_report(&flags);
++	pr_err("BUG: Double free or freeing an invalid pointer\n");
++	pr_err("Unexpected shadow byte: 0x%hhX\n", shadow);
++	kasan_object_err(cache, object);
++	kasan_end_report(&flags);
++}
++
+ static void print_address_description(struct kasan_access_info *info)
+ {
+ 	const void *addr = info->access_addr;
+@@ -160,8 +191,7 @@ static void print_address_description(st
+ 			struct kmem_cache *cache = page->slab_cache;
+ 			object = nearest_obj(cache, page,
+ 						(void *)info->access_addr);
+-			kasan_object_err(cache, page, object,
+-					"kasan: bad access detected");
++			kasan_object_err(cache, object);
+ 			return;
+ 		}
+ 		dump_page(page, "kasan: bad access detected");
+@@ -226,19 +256,13 @@ static void print_shadow_for_address(con
+ 	}
+ }
+ 
+-static DEFINE_SPINLOCK(report_lock);
+-
+ static void kasan_report_error(struct kasan_access_info *info)
+ {
+ 	unsigned long flags;
+ 	const char *bug_type;
+ 
+-	/*
+-	 * Make sure we don't end up in loop.
+-	 */
+-	kasan_disable_current();
+-	spin_lock_irqsave(&report_lock, flags);
+-	pr_err("==================================================================\n");
++	kasan_start_report(&flags);
++
+ 	if (info->access_addr <
+ 			kasan_shadow_to_mem((void *)KASAN_SHADOW_START)) {
+ 		if ((unsigned long)info->access_addr < PAGE_SIZE)
+@@ -259,10 +283,8 @@ static void kasan_report_error(struct ka
+ 		print_address_description(info);
+ 		print_shadow_for_address(info->first_bad_addr);
+ 	}
+-	pr_err("==================================================================\n");
+-	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+-	spin_unlock_irqrestore(&report_lock, flags);
+-	kasan_enable_current();
++
++	kasan_end_report(&flags);
+ }
+ 
+ void kasan_report(unsigned long addr, size_t size,
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
 
