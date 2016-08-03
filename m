@@ -1,67 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroup-update-cgroups-document-path.patch removed from
- -mm tree
-Date: Wed, 03 Aug 2016 11:11:26 -0700
-Message-ID: <57a233ce.tCemdXPIWsgORKod%akpm@linux-foundation.org>
+Subject: [merged]
+ suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1.patch removed
+ from -mm tree
+Date: Wed, 03 Aug 2016 11:11:36 -0700
+Message-ID: <57a233d8.UsyVm9tFQLjrHmWP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33447 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33450 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754352AbcHCSN0 (ORCPT
+	with ESMTP id S1755167AbcHCSN0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamyooon@gmail.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: Valdis.Kletnieks@vt.edu, valdis.kletnieks@vt.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup: update cgroup's document path
+     Subject: fs/proc/task_mmu.c: suppress compilation warnings with W=1
 has been removed from the -mm tree.  Its filename was
-     cgroup-update-cgroups-document-path.patch
+     suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "seokhoon.yoon" <iamyooon@gmail.com>
-Subject: cgroup: update cgroup's document path
+From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Subject: fs/proc/task_mmu.c: suppress compilation warnings with W=1
 
-cgroup's document path is changed to "cgroup-v1". update it.
+Suppress a bunch of warnings of the form:
 
-Link: http://lkml.kernel.org/r/1470148443-6509-1-git-send-email-iamyooon@gmail.com
-Signed-off-by: seokhoon.yoon <iamyooon@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+fs/proc/task_mmu.c: In function 'show_smap_vma_flags':
+fs/proc/task_mmu.c:635:22: warning: initialized field overwritten [-Wt override-init]
+   [ilog2(VM_READ)] = "rd",
+                      ^~~~
+fs/proc/task_mmu.c:635:22: note: (near initialization for 'mnemonics[0]')
+
+They happen because of the way we intentionally build the table, so
+silence the warning when building with 'make W=1'.
+
+Link: http://lkml.kernel.org/r/8727.1470022083@turing-police.cc.vt.edu
+Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN init/Kconfig~cgroup-update-cgroups-document-path init/Kconfig
---- a/init/Kconfig~cgroup-update-cgroups-document-path
-+++ a/init/Kconfig
-@@ -952,7 +952,7 @@ menuconfig CGROUPS
- 	  controls or device isolation.
- 	  See
- 		- Documentation/scheduler/sched-design-CFS.txt	(CFS)
--		- Documentation/cgroups/ (features for grouping, isolation
-+		- Documentation/cgroup-v1/ (features for grouping, isolation
- 					  and resource control)
+diff -puN fs/proc/Makefile~suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1 fs/proc/Makefile
+--- a/fs/proc/Makefile~suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1
++++ a/fs/proc/Makefile
+@@ -4,6 +4,7 @@
  
- 	  Say N if unsure.
-@@ -1009,7 +1009,7 @@ config BLK_CGROUP
- 	CONFIG_CFQ_GROUP_IOSCHED=y; for enabling throttling policy, set
- 	CONFIG_BLK_DEV_THROTTLING=y.
+ obj-y   += proc.o
  
--	See Documentation/cgroups/blkio-controller.txt for more information.
-+	See Documentation/cgroup-v1/blkio-controller.txt for more information.
++CFLAGS_task_mmu.o	+= -Wno-override-init
+ proc-y			:= nommu.o task_nommu.o
+ proc-$(CONFIG_MMU)	:= task_mmu.o
  
- config DEBUG_BLK_CGROUP
- 	bool "IO controller debugging"
 _
 
-Patches currently in -mm which might be from iamyooon@gmail.com are
+Patches currently in -mm which might be from Valdis.Kletnieks@vt.edu are
 
 
