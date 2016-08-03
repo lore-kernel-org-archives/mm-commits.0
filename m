@@ -1,103 +1,110 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- hexagon-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from -mm
- tree
-Date: Wed, 03 Aug 2016 13:14:18 -0700
-Message-ID: <57a2509a.C/qthO/QOILX2gcz%akpm@linux-foundation.org>
+ iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from
+ -mm tree
+Date: Wed, 03 Aug 2016 13:14:14 -0700
+Message-ID: <57a25096.2FmzycDzubM2fUf4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38993 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38992 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932606AbcHCUOb (ORCPT
+	with ESMTP id S932567AbcHCUOb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:14:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, rkuo@codeaurora.org, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, jroedel@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexagon: dma-mapping: use unsigned long for dma_attrs
+     Subject: iommu: intel: dma-mapping: use unsigned long for dma_attrs
 has been removed from the -mm tree.  Its filename was
-     hexagon-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch was dropped because it was folded into dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: hexagon: dma-mapping: use unsigned long for dma_attrs
+Subject: iommu: intel: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-27-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468399300-5399-25-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Richard Kuo <rkuo@codeaurora.org> [hexagon]
+Acked-by: Joerg Roedel <jroedel@suse.de> [iommu]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/include/asm/dma-mapping.h |    1 -
- arch/hexagon/kernel/dma.c              |    8 ++++----
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/iommu/intel-iommu.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/hexagon/include/asm/dma-mapping.h~hexagon-dma-mapping-use-unsigned-long-for-dma_attrs arch/hexagon/include/asm/dma-mapping.h
---- a/arch/hexagon/include/asm/dma-mapping.h~hexagon-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/hexagon/include/asm/dma-mapping.h
-@@ -26,7 +26,6 @@
- #include <linux/mm.h>
- #include <linux/scatterlist.h>
- #include <linux/dma-debug.h>
--#include <linux/dma-attrs.h>
- #include <asm/io.h>
- 
- struct device;
-diff -puN arch/hexagon/kernel/dma.c~hexagon-dma-mapping-use-unsigned-long-for-dma_attrs arch/hexagon/kernel/dma.c
---- a/arch/hexagon/kernel/dma.c~hexagon-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/hexagon/kernel/dma.c
-@@ -51,7 +51,7 @@ static struct gen_pool *coherent_pool;
- 
- static void *hexagon_dma_alloc_coherent(struct device *dev, size_t size,
- 				 dma_addr_t *dma_addr, gfp_t flag,
+diff -puN drivers/iommu/intel-iommu.c~iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs drivers/iommu/intel-iommu.c
+--- a/drivers/iommu/intel-iommu.c~iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/iommu/intel-iommu.c
+@@ -3552,7 +3552,7 @@ error:
+ static dma_addr_t intel_map_page(struct device *dev, struct page *page,
+ 				 unsigned long offset, size_t size,
+ 				 enum dma_data_direction dir,
 -				 struct dma_attrs *attrs)
 +				 unsigned long attrs)
  {
- 	void *ret;
+ 	return __intel_map_single(dev, page_to_phys(page) + offset, size,
+ 				  dir, *dev->dma_mask);
+@@ -3711,14 +3711,14 @@ static void intel_unmap(struct device *d
  
-@@ -84,7 +84,7 @@ static void *hexagon_dma_alloc_coherent(
+ static void intel_unmap_page(struct device *dev, dma_addr_t dev_addr,
+ 			     size_t size, enum dma_data_direction dir,
+-			     struct dma_attrs *attrs)
++			     unsigned long attrs)
+ {
+ 	intel_unmap(dev, dev_addr, size);
  }
  
- static void hexagon_free_coherent(struct device *dev, size_t size, void *vaddr,
--				  dma_addr_t dma_addr, struct dma_attrs *attrs)
-+				  dma_addr_t dma_addr, unsigned long attrs)
+ static void *intel_alloc_coherent(struct device *dev, size_t size,
+ 				  dma_addr_t *dma_handle, gfp_t flags,
+-				  struct dma_attrs *attrs)
++				  unsigned long attrs)
  {
- 	gen_pool_free(coherent_pool, (unsigned long) vaddr, size);
+ 	struct page *page = NULL;
+ 	int order;
+@@ -3764,7 +3764,7 @@ static void *intel_alloc_coherent(struct
  }
-@@ -105,7 +105,7 @@ static int check_addr(const char *name,
  
- static int hexagon_map_sg(struct device *hwdev, struct scatterlist *sg,
- 			  int nents, enum dma_data_direction dir,
--			  struct dma_attrs *attrs)
-+			  unsigned long attrs)
+ static void intel_free_coherent(struct device *dev, size_t size, void *vaddr,
+-				dma_addr_t dma_handle, struct dma_attrs *attrs)
++				dma_addr_t dma_handle, unsigned long attrs)
  {
- 	struct scatterlist *s;
+ 	int order;
+ 	struct page *page = virt_to_page(vaddr);
+@@ -3779,7 +3779,7 @@ static void intel_free_coherent(struct d
+ 
+ static void intel_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 			   int nelems, enum dma_data_direction dir,
+-			   struct dma_attrs *attrs)
++			   unsigned long attrs)
+ {
+ 	dma_addr_t startaddr = sg_dma_address(sglist) & PAGE_MASK;
+ 	unsigned long nrpages = 0;
+@@ -3808,7 +3808,7 @@ static int intel_nontranslate_map_sg(str
+ }
+ 
+ static int intel_map_sg(struct device *dev, struct scatterlist *sglist, int nelems,
+-			enum dma_data_direction dir, struct dma_attrs *attrs)
++			enum dma_data_direction dir, unsigned long attrs)
+ {
  	int i;
-@@ -172,7 +172,7 @@ static inline void dma_sync(void *addr,
- static dma_addr_t hexagon_map_page(struct device *dev, struct page *page,
- 				   unsigned long offset, size_t size,
- 				   enum dma_data_direction dir,
--				   struct dma_attrs *attrs)
-+				   unsigned long attrs)
- {
- 	dma_addr_t bus = page_to_phys(page) + offset;
- 	WARN_ON(size == 0);
+ 	struct dmar_domain *domain;
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
 media-mtk-vcodec-remove-unused-dma_attrs.patch
 dma-mapping-use-unsigned-long-for-dma_attrs.patch
+h8300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+hexagon-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 ia64-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 metag-dma-mapping-use-unsigned-long-for-dma_attrs.patch
