@@ -1,99 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-check-signoff-when-reading-stdin.patch
+Subject: [merged] binfmt_elf-fix-calculations-for-bss-padding.patch
  removed from -mm tree
-Date: Wed, 03 Aug 2016 11:12:46 -0700
-Message-ID: <57a2341e.V+cuVVSsizgSp1ZT%akpm@linux-foundation.org>
+Date: Wed, 03 Aug 2016 11:12:50 -0700
+Message-ID: <57a23422.OxRQPq5JXdGzMc40%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33352 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753497AbcHCSNj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:39 -0400
+	with ESMTP id S1757543AbcHCSNk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: allenbh@gmail.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, aarcange@redhat.com, aryabinin@virtuozzo.com, gang.chen.5i5j@gmail.com, hecmargi@upv.es, iripoll@upv.es, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mhocko@suse.com, oleg@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: check signoff when reading stdin
+     Subject: binfmt_elf: fix calculations for bss padding
 has been removed from the -mm tree.  Its filename was
-     checkpatch-check-signoff-when-reading-stdin.patch
+     binfmt_elf-fix-calculations-for-bss-padding.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Allen Hubbe <allenbh@gmail.com>
-Subject: checkpatch: check signoff when reading stdin
+From: Kees Cook <keescook@chromium.org>
+Subject: binfmt_elf: fix calculations for bss padding
 
-Signoff was not checked if the filename is '-', indicating reading the
-patch from stdin.  Commands such as the below would not warn about a
-missing signoff, because the patch filename is '-'.  This change allows
-checkpatch to warn about a missing signoff, even if the input filename is
-'-', but only if the patch has a commit message.
+A double-bug exists in the bss calculation code, where an overflow can
+happen in the "last_bss - elf_bss" calculation, but vm_brk internally
+aligns the argument, underflowing it, wrapping back around safe.  We
+shouldn't depend on these bugs staying in sync, so this cleans up the bss
+padding handling to avoid the overflow.
 
-git show --pretty=email | scripts/checkpatch.pl -
+This moves the bss padzero() before the last_bss > elf_bss case, since the
+zero-filling of the ELF_PAGE should have nothing to do with the
+relationship of last_bss and elf_bss: any trailing portion should be
+zeroed, and a zero size is already handled by padzero().
 
-A more common use of checkpatch with stdin is for piping git diff through
-checkpatch.  The diff output would not contain a commit message, and
-therefore it would not contain a signoff line.  For this common use case,
-a warning should not be printed about the missing signoff.  With this
-change we will only warn about a missing signoff if the input contains a
-commit message.
+Then it handles the math on elf_bss vs last_bss correctly.  These need to
+both be ELF_PAGE aligned to get the comparison correct, since that's the
+expected granularity of the mappings.  Since elf_bss already had
+alignment-based padding happen in padzero(), the "start" of the new
+vm_brk() should be moved forward as done in the original code.  However,
+since the "end" of the vm_brk() area will already become PAGE_ALIGNed in
+vm_brk() then last_bss should get aligned here to avoid hiding it as a
+side-effect.
 
-git diff | scripts/checkpatch.pl -
+Additionally makes a cosmetic change to the initial last_bss calculation
+so it's easier to read in comparison to the load_addr calculation above it
+(i.e.  the only difference is p_filesz vs p_memsz).
 
-Before this patch, a workaround for the first command was to refer to
-stdin by a name other than '-'.  The workaround is not an elegant
-solution, because elsewhere checkpatch uses the fact that filename equals
-'-', such as in setting '$vname' to 'Your patch' for stdin.  The command
-below would report "/dev/stdin has style problems" instead of "Your patch
-has style problems."
-
-git show --pretty=email | scripts/checkpatch.pl /dev/stdin
-
-Link: http://lkml.kernel.org/r/48be31e414bddc65bccfa6b1322359be9ba032eb.1469670589.git.allenbh@gmail.com
-Signed-off-by: Allen Hubbe <allenbh@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Link: http://lkml.kernel.org/r/1468014494-25291-2-git-send-email-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Hector Marco-Gisbert <hecmargi@upv.es>
+Cc: Ismael Ripoll Ripoll <iripoll@upv.es>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Chen Gang <gang.chen.5i5j@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/binfmt_elf.c |   34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-check-signoff-when-reading-stdin scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-check-signoff-when-reading-stdin
-+++ a/scripts/checkpatch.pl
-@@ -2069,6 +2069,7 @@ sub process {
- 	my $is_patch = 0;
- 	my $in_header_lines = $file ? 0 : 1;
- 	my $in_commit_log = 0;		#Scanning lines before patch
-+	my $has_commit_log = 0;		#Encountered lines before patch
-        my $commit_log_possible_stack_dump = 0;
- 	my $commit_log_long_line = 0;
- 	my $commit_log_has_diff = 0;
-@@ -2566,6 +2567,7 @@ sub process {
- 		      $rawline =~ /^(commit\b|from\b|[\w-]+:).*$/i)) {
- 			$in_header_lines = 0;
- 			$in_commit_log = 1;
-+			$has_commit_log = 1;
+diff -puN fs/binfmt_elf.c~binfmt_elf-fix-calculations-for-bss-padding fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-fix-calculations-for-bss-padding
++++ a/fs/binfmt_elf.c
+@@ -605,28 +605,30 @@ static unsigned long load_elf_interp(str
+ 			 * Do the same thing for the memory mapping - between
+ 			 * elf_bss and last_bss is the bss section.
+ 			 */
+-			k = load_addr + eppnt->p_memsz + eppnt->p_vaddr;
++			k = load_addr + eppnt->p_vaddr + eppnt->p_memsz;
+ 			if (k > last_bss)
+ 				last_bss = k;
  		}
+ 	}
  
- # Check if there is UTF-8 in a commit log when a mail header has explicitly
-@@ -6055,7 +6057,7 @@ sub process {
- 		ERROR("NOT_UNIFIED_DIFF",
- 		      "Does not appear to be a unified-diff format patch\n");
- 	}
--	if ($is_patch && $filename ne '-' && $chk_signoff && $signoff == 0) {
-+	if ($is_patch && $has_commit_log && $chk_signoff && $signoff == 0) {
- 		ERROR("MISSING_SIGN_OFF",
- 		      "Missing Signed-off-by: line(s)\n");
- 	}
-_
-
-Patches currently in -mm which might be from allenbh@gmail.com are
-
-
++	/*
++	 * Now fill out the bss section: first pad the last page from
++	 * the file up to the page boundary, and zero it from elf_bss
++	 * up to the end of the page.
++	 */
++	if (padzero(elf_bss)) {
++		error = -EFAULT;
++		goto out;
++	}
++	/*
++	 * Next, align both the file and mem bss up to the page size,
++	 * since this is where elf_bss was just zeroed up to, and where
++	 * last_bss will end after the vm_brk() below.
++	 */
++	elf_bss = ELF_PAGEALIGN(elf_bss);
++	last_bss = ELF_PAGEALIGN(last_bss);
++	/* Finally, if there is still more bss to allocate, do it. */
+ 	if (last_bss > elf_bss) {
+-		/*
+-		 * Now fill out the bss section.  First pad the last page up
+-		 * to the page boundary, and then perform a mmap to make sure
+-		 * that there are zero-mapped pages up to and including the
+-		 * last bss page.
+-		 */
+-		if (padzero(elf_bss)) {
+-			error = -EFAULT;
+-			goto out;
+-		}
+-
+-		/* What we have mapped so far */
+-		elf_bss = ELF_PAGESTART(elf_bss + ELF_MIN_ALIGN - 1);
