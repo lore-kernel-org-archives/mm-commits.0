@@ -1,105 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kcov-allow-more-fine-grained-coverage-instrumentation.patch removed from
- -mm tree
-Date: Wed, 03 Aug 2016 11:15:04 -0700
-Message-ID: <57a234a8.CbC7JQDqnmYyDcz3%akpm@linux-foundation.org>
+Subject: [merged] ban-config_localversion_auto-with-allmodconfig.patch
+ removed from -mm tree
+Date: Wed, 03 Aug 2016 11:14:57 -0700
+Message-ID: <57a234a1.pV53CkW0Xjasex5M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33699 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33686 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755211AbcHCSPF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:15:05 -0400
+	with ESMTP id S1752312AbcHCSO6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:14:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vegard.nossum@oracle.com, dvyukov@google.com, quentin.casasnovas@oracle.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: allow more fine-grained coverage instrumentation
+     Subject: init/Kconfig: ban CONFIG_LOCALVERSION_AUTO with allmodconfig
 has been removed from the -mm tree.  Its filename was
-     kcov-allow-more-fine-grained-coverage-instrumentation.patch
+     ban-config_localversion_auto-with-allmodconfig.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vegard Nossum <vegard.nossum@oracle.com>
-Subject: kcov: allow more fine-grained coverage instrumentation
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: init/Kconfig: ban CONFIG_LOCALVERSION_AUTO with allmodconfig
 
-For more targeted fuzzing, it's better to disable kernel-wide
-instrumentation and instead enable it on a per-subsystem basis. This
-follows the pattern of UBSAN and allows you to compile in the kcov driver
-without instrumenting the whole kernel.
+Doing patches with allmodconfig kernel compiled and committing stuff into
+local tree have unfortunate consequence: kernel version changes (as it
+should) leading to recompiling and relinking of several files even if they
+weren't touched (or interesting at all).  This and "git-whatever" figuring
+out current version slow down compilation for no good reason.
 
-To instrument a part of the kernel, you can use either
+But lets face it, "allmodconfig" kernels don't care about kernel version,
+they are simply compile check guinea pigs.
 
-    # for a single file in the current directory
-    KCOV_INSTRUMENT_filename.o := y
+Make LOCALVERSION_AUTO depend on !COMPILE_TEST, so it doesn't sneak into
+allmodconfig .config.
 
-or
-
-    # for all the files in the current directory (excluding subdirectories)
-    KCOV_INSTRUMENT := y
-
-or
-
-    # (same as above)
-    ccflags-y += $(CFLAGS_KCOV)
-
-or
-
-    # for all the files in the current directory (including subdirectories)
-    subdir-ccflags-y += $(CFLAGS_KCOV)
-
-Link: http://lkml.kernel.org/r/1464008380-11405-1-git-send-email-vegard.nossum@oracle.com
-Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Quentin Casasnovas <quentin.casasnovas@oracle.com>
+Link: http://lkml.kernel.org/r/20160707214954.GC31678@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug    |   11 +++++++++++
- scripts/Makefile.lib |    2 +-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ init/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/Kconfig.debug~kcov-allow-more-fine-grained-coverage-instrumentation lib/Kconfig.debug
---- a/lib/Kconfig.debug~kcov-allow-more-fine-grained-coverage-instrumentation
-+++ a/lib/Kconfig.debug
-@@ -719,6 +719,17 @@ config KCOV
- 
- 	  For more details, see Documentation/kcov.txt.
- 
-+config KCOV_INSTRUMENT_ALL
-+	bool "Instrument all code by default"
-+	depends on KCOV
-+	default y if KCOV
-+	help
-+	  If you are doing generic system call fuzzing (like e.g. syzkaller),
-+	  then you will want to instrument the whole kernel and you should
-+	  say y here. If you are doing more targeted fuzzing (like e.g.
-+	  filesystem fuzzing with AFL) then you will want to enable coverage
-+	  for more specific subsets of files, and should say n here.
-+
- config DEBUG_SHIRQ
- 	bool "Debug shared IRQ handlers"
- 	depends on DEBUG_KERNEL
-diff -puN scripts/Makefile.lib~kcov-allow-more-fine-grained-coverage-instrumentation scripts/Makefile.lib
---- a/scripts/Makefile.lib~kcov-allow-more-fine-grained-coverage-instrumentation
-+++ a/scripts/Makefile.lib
-@@ -138,7 +138,7 @@ endif
- 
- ifeq ($(CONFIG_KCOV),y)
- _c_flags += $(if $(patsubst n%,, \
--	$(KCOV_INSTRUMENT_$(basetarget).o)$(KCOV_INSTRUMENT)y), \
-+	$(KCOV_INSTRUMENT_$(basetarget).o)$(KCOV_INSTRUMENT)$(CONFIG_KCOV_INSTRUMENT_ALL)), \
- 	$(CFLAGS_KCOV))
- endif
- 
+diff -puN init/Kconfig~ban-config_localversion_auto-with-allmodconfig init/Kconfig
+--- a/init/Kconfig~ban-config_localversion_auto-with-allmodconfig
++++ a/init/Kconfig
+@@ -81,6 +81,7 @@ config LOCALVERSION
+ config LOCALVERSION_AUTO
+ 	bool "Automatically append version information to the version string"
+ 	default y
++	depends on !COMPILE_TEST
+ 	help
+ 	  This will try to automatically determine if the current tree is a
+ 	  release tree by looking for git tags that belong to the current
 _
 
-Patches currently in -mm which might be from vegard.nossum@oracle.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+kbuild-simpler-generation-of-assembly-constants.patch
 
