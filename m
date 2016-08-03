@@ -1,366 +1,513 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-replace-nilfs_warning-with-nilfs_msg.patch
+Subject: [merged] signal-consolidate-tstlf_restore_sigmask-code.patch
  removed from -mm tree
-Date: Wed, 03 Aug 2016 11:13:06 -0700
-Message-ID: <57a23432.zzTvqT4ehH2ZwW1z%akpm@linux-foundation.org>
+Date: Wed, 03 Aug 2016 11:13:24 -0700
+Message-ID: <57a23444.VTJRgKbaWT7JqWin%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33355 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33350 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754977AbcHCSNr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:47 -0400
+	with ESMTP id S1758003AbcHCSNx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: luto@kernel.org, benh@kernel.crashing.org, bp@suse.de, brgerst@gmail.com, cmetcalf@mellanox.com, dalias@libc.org, davem@davemloft.net, dsafonov@virtuozzo.com, fenghua.yu@intel.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, monstr@monstr.eu, mpe@ellerman.id.au, oleg@redhat.com, paulus@samba.org, peterz@infradead.org, rth@twiddle.net, tony.luck@intel.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: replace nilfs_warning() with nilfs_msg()
+     Subject: signal: consolidate {TS,TLF}_RESTORE_SIGMASK code
 has been removed from the -mm tree.  Its filename was
-     nilfs2-replace-nilfs_warning-with-nilfs_msg.patch
+     signal-consolidate-tstlf_restore_sigmask-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: replace nilfs_warning() with nilfs_msg()
+From: Andy Lutomirski <luto@kernel.org>
+Subject: signal: consolidate {TS,TLF}_RESTORE_SIGMASK code
 
-Use nilfs_msg() to output warning messages and get rid of nilfs_warning()
-function.  This also removes function names from the messages unless we
-embed them explicitly in format strings.  Instead, some messages are
-revised to clarify the context.
+In general, there's no need for the "restore sigmask" flag to live in
+ti->flags.  alpha, ia64, microblaze, powerpc, sh, sparc (64-bit only),
+tile, and x86 use essentially identical alternative implementations,
+placing the flag in ti->status.
 
-[arnd@arndb.de: avoid warning about unused variables]
-  Link: http://lkml.kernel.org/r/20160615201945.3348205-1-arnd@arndb.de
-Link: http://lkml.kernel.org/r/1464875891-5443-6-git-send-email-konishi.ryusuke@lab.ntt.co.jp
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Replace those optimized implementations with an equally good common
+implementation that stores it in a bitfield in struct task_struct and drop
+the custom implementations.
+
+Additional architectures can opt in by removing their TIF_RESTORE_SIGMASK
+defines.
+
+Link: http://lkml.kernel.org/r/8a14321d64a28e40adfddc90e18a96c086a6d6f9.1468522723.git.luto@kernel.org
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+Tested-by: Michael Ellerman <mpe@ellerman.id.au>	[powerpc]
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Dmitry Safonov <dsafonov@virtuozzo.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/alloc.c   |   45 +++++++++++++++++++-----------------------
- fs/nilfs2/ifile.c   |    4 +--
- fs/nilfs2/inode.c   |   21 ++++++++++---------
- fs/nilfs2/namei.c   |    6 ++---
- fs/nilfs2/nilfs.h   |    7 +++---
- fs/nilfs2/page.c    |   19 ++++++++---------
- fs/nilfs2/segment.c |   20 +++++++++---------
- fs/nilfs2/super.c   |   21 -------------------
- 8 files changed, 61 insertions(+), 82 deletions(-)
+ arch/alpha/include/asm/thread_info.h      |   27 --------
+ arch/ia64/include/asm/thread_info.h       |   28 --------
+ arch/microblaze/include/asm/thread_info.h |   27 --------
+ arch/powerpc/include/asm/thread_info.h    |   25 -------
+ arch/sh/include/asm/thread_info.h         |   26 --------
+ arch/sparc/include/asm/thread_info_64.h   |   24 -------
+ arch/tile/include/asm/thread_info.h       |   27 --------
+ arch/x86/include/asm/thread_info.h        |   24 -------
+ include/linux/sched.h                     |   63 ++++++++++++++++++++
+ include/linux/thread_info.h               |   41 -------------
+ 10 files changed, 63 insertions(+), 249 deletions(-)
 
-diff -puN fs/nilfs2/alloc.c~nilfs2-replace-nilfs_warning-with-nilfs_msg fs/nilfs2/alloc.c
---- a/fs/nilfs2/alloc.c~nilfs2-replace-nilfs_warning-with-nilfs_msg
-+++ a/fs/nilfs2/alloc.c
-@@ -622,10 +622,10 @@ void nilfs_palloc_commit_free_entry(stru
- 	lock = nilfs_mdt_bgl_lock(inode, group);
- 
- 	if (!nilfs_clear_bit_atomic(lock, group_offset, bitmap))
--		nilfs_warning(inode->i_sb, __func__,
--			      "entry number %llu already freed: ino=%lu",
--			      (unsigned long long)req->pr_entry_nr,
--			      (unsigned long)inode->i_ino);
-+		nilfs_msg(inode->i_sb, KERN_WARNING,
-+			  "%s (ino=%lu): entry number %llu already freed",
-+			  __func__, inode->i_ino,
-+			  (unsigned long long)req->pr_entry_nr);
- 	else
- 		nilfs_palloc_group_desc_add_entries(desc, lock, 1);
- 
-@@ -663,10 +663,10 @@ void nilfs_palloc_abort_alloc_entry(stru
- 	lock = nilfs_mdt_bgl_lock(inode, group);
- 
- 	if (!nilfs_clear_bit_atomic(lock, group_offset, bitmap))
--		nilfs_warning(inode->i_sb, __func__,
--			      "entry number %llu already freed: ino=%lu",
--			      (unsigned long long)req->pr_entry_nr,
--			      (unsigned long)inode->i_ino);
-+		nilfs_msg(inode->i_sb, KERN_WARNING,
-+			  "%s (ino=%lu): entry number %llu already freed",
-+			  __func__, inode->i_ino,
-+			  (unsigned long long)req->pr_entry_nr);
- 	else
- 		nilfs_palloc_group_desc_add_entries(desc, lock, 1);
- 
-@@ -772,10 +772,10 @@ int nilfs_palloc_freev(struct inode *ino
- 		do {
- 			if (!nilfs_clear_bit_atomic(lock, group_offset,
- 						    bitmap)) {
--				nilfs_warning(inode->i_sb, __func__,
--					      "entry number %llu already freed: ino=%lu",
--					      (unsigned long long)entry_nrs[j],
--					      (unsigned long)inode->i_ino);
-+				nilfs_msg(inode->i_sb, KERN_WARNING,
-+					  "%s (ino=%lu): entry number %llu already freed",
-+					  __func__, inode->i_ino,
-+					  (unsigned long long)entry_nrs[j]);
- 			} else {
- 				n++;
- 			}
-@@ -816,12 +816,11 @@ int nilfs_palloc_freev(struct inode *ino
- 		for (k = 0; k < nempties; k++) {
- 			ret = nilfs_palloc_delete_entry_block(inode,
- 							      last_nrs[k]);
--			if (ret && ret != -ENOENT) {
--				nilfs_warning(inode->i_sb, __func__,
--					      "failed to delete block of entry %llu: ino=%lu, err=%d",
--					      (unsigned long long)last_nrs[k],
--					      (unsigned long)inode->i_ino, ret);
--			}
-+			if (ret && ret != -ENOENT)
-+				nilfs_msg(inode->i_sb, KERN_WARNING,
-+					  "error %d deleting block that object (entry=%llu, ino=%lu) belongs to",
-+					  ret, (unsigned long long)last_nrs[k],
-+					  inode->i_ino);
- 		}
- 
- 		desc_kaddr = kmap_atomic(desc_bh->b_page);
-@@ -835,12 +834,10 @@ int nilfs_palloc_freev(struct inode *ino
- 
- 		if (nfree == nilfs_palloc_entries_per_group(inode)) {
- 			ret = nilfs_palloc_delete_bitmap_block(inode, group);
--			if (ret && ret != -ENOENT) {
--				nilfs_warning(inode->i_sb, __func__,
--					      "failed to delete bitmap block of group %lu: ino=%lu, err=%d",
--					      group,
--					      (unsigned long)inode->i_ino, ret);
--			}
-+			if (ret && ret != -ENOENT)
-+				nilfs_msg(inode->i_sb, KERN_WARNING,
-+					  "error %d deleting bitmap block of group=%lu, ino=%lu",
-+					  ret, group, inode->i_ino);
- 		}
- 	}
- 	return 0;
-diff -puN fs/nilfs2/ifile.c~nilfs2-replace-nilfs_warning-with-nilfs_msg fs/nilfs2/ifile.c
---- a/fs/nilfs2/ifile.c~nilfs2-replace-nilfs_warning-with-nilfs_msg
-+++ a/fs/nilfs2/ifile.c
-@@ -151,8 +151,8 @@ int nilfs_ifile_get_inode_block(struct i
- 
- 	err = nilfs_palloc_get_entry_block(ifile, ino, 0, out_bh);
- 	if (unlikely(err))
--		nilfs_warning(sb, __func__, "unable to read inode: %lu",
--			      (unsigned long) ino);
-+		nilfs_msg(sb, KERN_WARNING, "error %d reading inode: ino=%lu",
-+			  err, (unsigned long)ino);
- 	return err;
- }
- 
-diff -puN fs/nilfs2/inode.c~nilfs2-replace-nilfs_warning-with-nilfs_msg fs/nilfs2/inode.c
---- a/fs/nilfs2/inode.c~nilfs2-replace-nilfs_warning-with-nilfs_msg
-+++ a/fs/nilfs2/inode.c
-@@ -723,9 +723,9 @@ repeat:
- 		goto repeat;
- 
- failed:
--	nilfs_warning(ii->vfs_inode.i_sb, __func__,
--		      "failed to truncate bmap (ino=%lu, err=%d)",
--		      ii->vfs_inode.i_ino, ret);
-+	nilfs_msg(ii->vfs_inode.i_sb, KERN_WARNING,
-+		  "error %d truncating bmap (ino=%lu)", ret,
-+		  ii->vfs_inode.i_ino);
- }
- 
- void nilfs_truncate(struct inode *inode)
-@@ -936,9 +936,9 @@ int nilfs_set_file_dirty(struct inode *i
- 			 * This will happen when somebody is freeing
- 			 * this inode.
- 			 */
--			nilfs_warning(inode->i_sb, __func__,
--				      "cannot get inode (ino=%lu)",
--				      inode->i_ino);
-+			nilfs_msg(inode->i_sb, KERN_WARNING,
-+				  "cannot set file dirty (ino=%lu): the file is being freed",
-+				  inode->i_ino);
- 			spin_unlock(&nilfs->ns_inode_lock);
- 			return -EINVAL; /*
- 					 * NILFS_I_DIRTY may remain for
-@@ -959,8 +959,9 @@ int __nilfs_mark_inode_dirty(struct inod
- 
- 	err = nilfs_load_inode_block(inode, &ibh);
- 	if (unlikely(err)) {
--		nilfs_warning(inode->i_sb, __func__,
--			      "failed to reget inode block.");
-+		nilfs_msg(inode->i_sb, KERN_WARNING,
-+			  "cannot mark inode dirty (ino=%lu): error %d loading inode block",
-+			  inode->i_ino, err);
- 		return err;
- 	}
- 	nilfs_update_inode(inode, ibh, flags);
-@@ -986,8 +987,8 @@ void nilfs_dirty_inode(struct inode *ino
- 	struct nilfs_mdt_info *mdi = NILFS_MDT(inode);
- 
- 	if (is_bad_inode(inode)) {
--		nilfs_warning(inode->i_sb, __func__,
--			      "tried to mark bad_inode dirty. ignored.");
-+		nilfs_msg(inode->i_sb, KERN_WARNING,
-+			  "tried to mark bad_inode dirty. ignored.");
- 		dump_stack();
- 		return;
- 	}
-diff -puN fs/nilfs2/namei.c~nilfs2-replace-nilfs_warning-with-nilfs_msg fs/nilfs2/namei.c
---- a/fs/nilfs2/namei.c~nilfs2-replace-nilfs_warning-with-nilfs_msg
-+++ a/fs/nilfs2/namei.c
-@@ -283,9 +283,9 @@ static int nilfs_do_unlink(struct inode
- 		goto out;
- 
- 	if (!inode->i_nlink) {
--		nilfs_warning(inode->i_sb, __func__,
--			      "deleting nonexistent file (%lu), %d",
--			      inode->i_ino, inode->i_nlink);
-+		nilfs_msg(inode->i_sb, KERN_WARNING,
-+			  "deleting nonexistent file (ino=%lu), %d",
-+			  inode->i_ino, inode->i_nlink);
- 		set_nlink(inode, 1);
- 	}
- 	err = nilfs_delete_entry(de, page);
-diff -puN fs/nilfs2/nilfs.h~nilfs2-replace-nilfs_warning-with-nilfs_msg fs/nilfs2/nilfs.h
---- a/fs/nilfs2/nilfs.h~nilfs2-replace-nilfs_warning-with-nilfs_msg
-+++ a/fs/nilfs2/nilfs.h
-@@ -306,8 +306,6 @@ void __nilfs_msg(struct super_block *sb,
- extern __printf(3, 4)
- void __nilfs_error(struct super_block *sb, const char *function,
- 		   const char *fmt, ...);
--extern __printf(3, 4)
--void nilfs_warning(struct super_block *, const char *, const char *, ...);
- 
- #ifdef CONFIG_PRINTK
- 
-@@ -319,7 +317,10 @@ void nilfs_warning(struct super_block *,
- #else
- 
- #define nilfs_msg(sb, level, fmt, ...)					\
--	no_printk(fmt, ##__VA_ARGS__)
-+	do {								\
-+		no_printk(fmt, ##__VA_ARGS__);				\
-+		(void)(sb);						\
-+	} while (0)
- #define nilfs_error(sb, fmt, ...)					\
- 	do {								\
- 		no_printk(fmt, ##__VA_ARGS__);				\
-diff -puN fs/nilfs2/page.c~nilfs2-replace-nilfs_warning-with-nilfs_msg fs/nilfs2/page.c
---- a/fs/nilfs2/page.c~nilfs2-replace-nilfs_warning-with-nilfs_msg
-+++ a/fs/nilfs2/page.c
-@@ -403,11 +403,10 @@ void nilfs_clear_dirty_page(struct page
- 
- 	BUG_ON(!PageLocked(page));
- 
--	if (!silent) {
--		nilfs_warning(sb, __func__,
--				"discard page: offset %lld, ino %lu",
--				page_offset(page), inode->i_ino);
--	}
-+	if (!silent)
-+		nilfs_msg(sb, KERN_WARNING,
-+			  "discard dirty page: offset=%lld, ino=%lu",
-+			  page_offset(page), inode->i_ino);
- 
- 	ClearPageUptodate(page);
- 	ClearPageMappedToDisk(page);
-@@ -422,11 +421,11 @@ void nilfs_clear_dirty_page(struct page
- 		bh = head = page_buffers(page);
- 		do {
- 			lock_buffer(bh);
--			if (!silent) {
--				nilfs_warning(sb, __func__,
--					"discard block %llu, size %zu",
--					(u64)bh->b_blocknr, bh->b_size);
--			}
-+			if (!silent)
-+				nilfs_msg(sb, KERN_WARNING,
-+					  "discard dirty block: blocknr=%llu, size=%zu",
-+					  (u64)bh->b_blocknr, bh->b_size);
-+
- 			set_mask_bits(&bh->b_state, clear_bits, 0);
- 			unlock_buffer(bh);
- 		} while (bh = bh->b_this_page, bh != head);
-diff -puN fs/nilfs2/segment.c~nilfs2-replace-nilfs_warning-with-nilfs_msg fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-replace-nilfs_warning-with-nilfs_msg
-+++ a/fs/nilfs2/segment.c
-@@ -1951,8 +1951,9 @@ static int nilfs_segctor_collect_dirty_f
- 			err = nilfs_ifile_get_inode_block(
- 				ifile, ii->vfs_inode.i_ino, &ibh);
- 			if (unlikely(err)) {
--				nilfs_warning(sci->sc_super, __func__,
--					      "failed to get inode block.");
-+				nilfs_msg(sci->sc_super, KERN_WARNING,
-+					  "log writer: error %d getting inode block (ino=%lu)",
-+					  err, ii->vfs_inode.i_ino);
- 				return err;
- 			}
- 			mark_buffer_dirty(ibh);
-@@ -2458,8 +2459,7 @@ int nilfs_clean_segments(struct super_bl
- 		if (likely(!err))
- 			break;
- 
--		nilfs_warning(sb, __func__,
--			      "segment construction failed. (err=%d)", err);
-+		nilfs_msg(sb, KERN_WARNING, "error %d cleaning segments", err);
- 		set_current_state(TASK_INTERRUPTIBLE);
- 		schedule_timeout(sci->sc_interval);
- 	}
-@@ -2738,14 +2738,14 @@ static void nilfs_segctor_destroy(struct
- 		nilfs_segctor_write_out(sci);
- 
- 	if (!list_empty(&sci->sc_dirty_files)) {
--		nilfs_warning(sci->sc_super, __func__,
--			      "dirty file(s) after the final construction");
-+		nilfs_msg(sci->sc_super, KERN_WARNING,
-+			  "disposed unprocessed dirty file(s) when stopping log writer");
- 		nilfs_dispose_list(nilfs, &sci->sc_dirty_files, 1);
- 	}
- 
- 	if (!list_empty(&sci->sc_iput_queue)) {
--		nilfs_warning(sci->sc_super, __func__,
--			      "iput queue is not empty");
-+		nilfs_msg(sci->sc_super, KERN_WARNING,
-+			  "disposed unprocessed inode(s) in iput queue when stopping log writer");
- 		nilfs_dispose_list(nilfs, &sci->sc_iput_queue, 1);
- 	}
- 
-@@ -2821,8 +2821,8 @@ void nilfs_detach_log_writer(struct supe
- 	spin_lock(&nilfs->ns_inode_lock);
- 	if (!list_empty(&nilfs->ns_dirty_files)) {
- 		list_splice_init(&nilfs->ns_dirty_files, &garbage_list);
--		nilfs_warning(sb, __func__,
--			      "Hit dirty file after stopped log writer");
-+		nilfs_msg(sb, KERN_WARNING,
-+			  "disposed unprocessed dirty file(s) when detaching log writer");
- 	}
- 	spin_unlock(&nilfs->ns_inode_lock);
- 	up_write(&nilfs->ns_segctor_sem);
-diff -puN fs/nilfs2/super.c~nilfs2-replace-nilfs_warning-with-nilfs_msg fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-replace-nilfs_warning-with-nilfs_msg
-+++ a/fs/nilfs2/super.c
-@@ -115,8 +115,7 @@ static void nilfs_set_error(struct super
-  *
-  * This implements the body of nilfs_error() macro.  Normally,
-  * nilfs_error() should be used.  As for sustainable errors such as a
-- * single-shot I/O error, nilfs_warning() or printk() should be used
-- * instead.
-+ * single-shot I/O error, nilfs_msg() should be used instead.
-  *
-  * Callers should not add a trailing newline since this will do it.
-  */
-@@ -151,24 +150,6 @@ void __nilfs_error(struct super_block *s
- 		      sb->s_id);
- }
- 
--void nilfs_warning(struct super_block *sb, const char *function,
--		   const char *fmt, ...)
+diff -puN arch/alpha/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code arch/alpha/include/asm/thread_info.h
+--- a/arch/alpha/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code
++++ a/arch/alpha/include/asm/thread_info.h
+@@ -86,33 +86,6 @@ register struct thread_info *__current_t
+ #define TS_UAC_NOPRINT		0x0001	/* ! Preserve the following three */
+ #define TS_UAC_NOFIX		0x0002	/* ! flags as they match          */
+ #define TS_UAC_SIGBUS		0x0004	/* ! userspace part of 'osf_sysinfo' */
+-#define TS_RESTORE_SIGMASK	0x0008	/* restore signal mask in do_signal() */
+-
+-#ifndef __ASSEMBLY__
+-#define HAVE_SET_RESTORE_SIGMASK	1
+-static inline void set_restore_sigmask(void)
 -{
--	struct va_format vaf;
--	va_list args;
+-	struct thread_info *ti = current_thread_info();
+-	ti->status |= TS_RESTORE_SIGMASK;
+-	WARN_ON(!test_bit(TIF_SIGPENDING, (unsigned long *)&ti->flags));
+-}
+-static inline void clear_restore_sigmask(void)
+-{
+-	current_thread_info()->status &= ~TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_restore_sigmask(void)
+-{
+-	return current_thread_info()->status & TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_and_clear_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	if (!(ti->status & TS_RESTORE_SIGMASK))
+-		return false;
+-	ti->status &= ~TS_RESTORE_SIGMASK;
+-	return true;
+-}
+-#endif
+ 
+ #define SET_UNALIGN_CTL(task,value)	({				\
+ 	__u32 status = task_thread_info(task)->status & ~UAC_BITMASK;	\
+diff -puN arch/ia64/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code arch/ia64/include/asm/thread_info.h
+--- a/arch/ia64/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code
++++ a/arch/ia64/include/asm/thread_info.h
+@@ -121,32 +121,4 @@ struct thread_info {
+ /* like TIF_ALLWORK_BITS but sans TIF_SYSCALL_TRACE or TIF_SYSCALL_AUDIT */
+ #define TIF_WORK_MASK		(TIF_ALLWORK_MASK&~(_TIF_SYSCALL_TRACE|_TIF_SYSCALL_AUDIT))
+ 
+-#define TS_RESTORE_SIGMASK	2	/* restore signal mask in do_signal() */
 -
--	va_start(args, fmt);
+-#ifndef __ASSEMBLY__
+-#define HAVE_SET_RESTORE_SIGMASK	1
+-static inline void set_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	ti->status |= TS_RESTORE_SIGMASK;
+-	WARN_ON(!test_bit(TIF_SIGPENDING, &ti->flags));
+-}
+-static inline void clear_restore_sigmask(void)
+-{
+-	current_thread_info()->status &= ~TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_restore_sigmask(void)
+-{
+-	return current_thread_info()->status & TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_and_clear_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	if (!(ti->status & TS_RESTORE_SIGMASK))
+-		return false;
+-	ti->status &= ~TS_RESTORE_SIGMASK;
+-	return true;
+-}
+-#endif	/* !__ASSEMBLY__ */
 -
--	vaf.fmt = fmt;
--	vaf.va = &args;
+ #endif /* _ASM_IA64_THREAD_INFO_H */
+diff -puN arch/microblaze/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code arch/microblaze/include/asm/thread_info.h
+--- a/arch/microblaze/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code
++++ a/arch/microblaze/include/asm/thread_info.h
+@@ -148,33 +148,6 @@ static inline struct thread_info *curren
+  */
+ /* FPU was used by this task this quantum (SMP) */
+ #define TS_USEDFPU		0x0001
+-#define TS_RESTORE_SIGMASK	0x0002
 -
--	printk(KERN_WARNING "NILFS warning (device %s): %s: %pV\n",
--	       sb->s_id, function, &vaf);
--
--	va_end(args);
+-#ifndef __ASSEMBLY__
+-#define HAVE_SET_RESTORE_SIGMASK 1
+-static inline void set_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	ti->status |= TS_RESTORE_SIGMASK;
+-	WARN_ON(!test_bit(TIF_SIGPENDING, (unsigned long *)&ti->flags));
+-}
+-static inline void clear_restore_sigmask(void)
+-{
+-	current_thread_info()->status &= ~TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_restore_sigmask(void)
+-{
+-	return current_thread_info()->status & TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_and_clear_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	if (!(ti->status & TS_RESTORE_SIGMASK))
+-		return false;
+-	ti->status &= ~TS_RESTORE_SIGMASK;
+-	return true;
+-}
+-#endif
+ 
+ #endif /* __KERNEL__ */
+ #endif /* _ASM_MICROBLAZE_THREAD_INFO_H */
+diff -puN arch/powerpc/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code arch/powerpc/include/asm/thread_info.h
+--- a/arch/powerpc/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code
++++ a/arch/powerpc/include/asm/thread_info.h
+@@ -138,40 +138,15 @@ static inline struct thread_info *curren
+ /* Don't move TLF_NAPPING without adjusting the code in entry_32.S */
+ #define TLF_NAPPING		0	/* idle thread enabled NAP mode */
+ #define TLF_SLEEPING		1	/* suspend code enabled SLEEP mode */
+-#define TLF_RESTORE_SIGMASK	2	/* Restore signal mask in do_signal */
+ #define TLF_LAZY_MMU		3	/* tlb_batch is active */
+ #define TLF_RUNLATCH		4	/* Is the runlatch enabled? */
+ 
+ #define _TLF_NAPPING		(1 << TLF_NAPPING)
+ #define _TLF_SLEEPING		(1 << TLF_SLEEPING)
+-#define _TLF_RESTORE_SIGMASK	(1 << TLF_RESTORE_SIGMASK)
+ #define _TLF_LAZY_MMU		(1 << TLF_LAZY_MMU)
+ #define _TLF_RUNLATCH		(1 << TLF_RUNLATCH)
+ 
+ #ifndef __ASSEMBLY__
+-#define HAVE_SET_RESTORE_SIGMASK	1
+-static inline void set_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	ti->local_flags |= _TLF_RESTORE_SIGMASK;
+-	WARN_ON(!test_bit(TIF_SIGPENDING, &ti->flags));
+-}
+-static inline void clear_restore_sigmask(void)
+-{
+-	current_thread_info()->local_flags &= ~_TLF_RESTORE_SIGMASK;
+-}
+-static inline bool test_restore_sigmask(void)
+-{
+-	return current_thread_info()->local_flags & _TLF_RESTORE_SIGMASK;
+-}
+-static inline bool test_and_clear_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	if (!(ti->local_flags & _TLF_RESTORE_SIGMASK))
+-		return false;
+-	ti->local_flags &= ~_TLF_RESTORE_SIGMASK;
+-	return true;
+-}
+ 
+ static inline bool test_thread_local_flags(unsigned int flags)
+ {
+diff -puN arch/sh/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code arch/sh/include/asm/thread_info.h
+--- a/arch/sh/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code
++++ a/arch/sh/include/asm/thread_info.h
+@@ -151,19 +151,10 @@ extern void init_thread_xstate(void);
+  * ever touches our thread-synchronous status, so we don't
+  * have to worry about atomic accesses.
+  */
+-#define TS_RESTORE_SIGMASK	0x0001	/* restore signal mask in do_signal() */
+ #define TS_USEDFPU		0x0002	/* FPU used by this task this quantum */
+ 
+ #ifndef __ASSEMBLY__
+ 
+-#define HAVE_SET_RESTORE_SIGMASK	1
+-static inline void set_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	ti->status |= TS_RESTORE_SIGMASK;
+-	WARN_ON(!test_bit(TIF_SIGPENDING, (unsigned long *)&ti->flags));
 -}
 -
+ #define TI_FLAG_FAULT_CODE_SHIFT	24
+ 
+ /*
+@@ -182,23 +173,6 @@ static inline unsigned int get_thread_fa
+ 	return ti->flags >> TI_FLAG_FAULT_CODE_SHIFT;
+ }
+ 
+-static inline void clear_restore_sigmask(void)
+-{
+-	current_thread_info()->status &= ~TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_restore_sigmask(void)
+-{
+-	return current_thread_info()->status & TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_and_clear_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	if (!(ti->status & TS_RESTORE_SIGMASK))
+-		return false;
+-	ti->status &= ~TS_RESTORE_SIGMASK;
+-	return true;
+-}
+-
+ #endif	/* !__ASSEMBLY__ */
+ 
+ #endif /* __KERNEL__ */
+diff -puN arch/sparc/include/asm/thread_info_64.h~signal-consolidate-tstlf_restore_sigmask-code arch/sparc/include/asm/thread_info_64.h
+--- a/arch/sparc/include/asm/thread_info_64.h~signal-consolidate-tstlf_restore_sigmask-code
++++ a/arch/sparc/include/asm/thread_info_64.h
+@@ -222,32 +222,8 @@ register struct thread_info *current_thr
+  *
+  * Note that there are only 8 bits available.
+  */
+-#define TS_RESTORE_SIGMASK	0x0001	/* restore signal mask in do_signal() */
+ 
+ #ifndef __ASSEMBLY__
+-#define HAVE_SET_RESTORE_SIGMASK	1
+-static inline void set_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	ti->status |= TS_RESTORE_SIGMASK;
+-	WARN_ON(!test_bit(TIF_SIGPENDING, &ti->flags));
+-}
+-static inline void clear_restore_sigmask(void)
+-{
+-	current_thread_info()->status &= ~TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_restore_sigmask(void)
+-{
+-	return current_thread_info()->status & TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_and_clear_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	if (!(ti->status & TS_RESTORE_SIGMASK))
+-		return false;
+-	ti->status &= ~TS_RESTORE_SIGMASK;
+-	return true;
+-}
+ 
+ #define thread32_stack_is_64bit(__SP) (((__SP) & 0x1) != 0)
+ #define test_thread_64bit_stack(__SP) \
+diff -puN arch/tile/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code arch/tile/include/asm/thread_info.h
+--- a/arch/tile/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code
++++ a/arch/tile/include/asm/thread_info.h
+@@ -166,32 +166,5 @@ extern void _cpu_idle(void);
+ #ifdef __tilegx__
+ #define TS_COMPAT		0x0001	/* 32-bit compatibility mode */
+ #endif
+-#define TS_RESTORE_SIGMASK	0x0008	/* restore signal mask in do_signal */
+-
+-#ifndef __ASSEMBLY__
+-#define HAVE_SET_RESTORE_SIGMASK	1
+-static inline void set_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	ti->status |= TS_RESTORE_SIGMASK;
+-	WARN_ON(!test_bit(TIF_SIGPENDING, &ti->flags));
+-}
+-static inline void clear_restore_sigmask(void)
+-{
+-	current_thread_info()->status &= ~TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_restore_sigmask(void)
+-{
+-	return current_thread_info()->status & TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_and_clear_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	if (!(ti->status & TS_RESTORE_SIGMASK))
+-		return false;
+-	ti->status &= ~TS_RESTORE_SIGMASK;
+-	return true;
+-}
+-#endif	/* !__ASSEMBLY__ */
+ 
+ #endif /* _ASM_TILE_THREAD_INFO_H */
+diff -puN arch/x86/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code arch/x86/include/asm/thread_info.h
+--- a/arch/x86/include/asm/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code
++++ a/arch/x86/include/asm/thread_info.h
+@@ -219,32 +219,8 @@ static inline unsigned long current_stac
+  * have to worry about atomic accesses.
+  */
+ #define TS_COMPAT		0x0002	/* 32bit syscall active (64BIT)*/
+-#define TS_RESTORE_SIGMASK	0x0008	/* restore signal mask in do_signal() */
+ 
+ #ifndef __ASSEMBLY__
+-#define HAVE_SET_RESTORE_SIGMASK	1
+-static inline void set_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	ti->status |= TS_RESTORE_SIGMASK;
+-	WARN_ON(!test_bit(TIF_SIGPENDING, (unsigned long *)&ti->flags));
+-}
+-static inline void clear_restore_sigmask(void)
+-{
+-	current_thread_info()->status &= ~TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_restore_sigmask(void)
+-{
+-	return current_thread_info()->status & TS_RESTORE_SIGMASK;
+-}
+-static inline bool test_and_clear_restore_sigmask(void)
+-{
+-	struct thread_info *ti = current_thread_info();
+-	if (!(ti->status & TS_RESTORE_SIGMASK))
+-		return false;
+-	ti->status &= ~TS_RESTORE_SIGMASK;
+-	return true;
+-}
+ 
+ static inline bool in_ia32_syscall(void)
+ {
+diff -puN include/linux/sched.h~signal-consolidate-tstlf_restore_sigmask-code include/linux/sched.h
+--- a/include/linux/sched.h~signal-consolidate-tstlf_restore_sigmask-code
++++ a/include/linux/sched.h
+@@ -1547,6 +1547,9 @@ struct task_struct {
+ 	/* unserialized, strictly 'current' */
+ 	unsigned in_execve:1; /* bit to tell LSMs we're in execve */
+ 	unsigned in_iowait:1;
++#if !defined(TIF_RESTORE_SIGMASK)
++	unsigned restore_sigmask:1;
++#endif
+ #ifdef CONFIG_MEMCG
+ 	unsigned memcg_may_oom:1;
+ #ifndef CONFIG_SLOB
+@@ -2680,6 +2683,66 @@ extern void sigqueue_free(struct sigqueu
+ extern int send_sigqueue(struct sigqueue *,  struct task_struct *, int group);
+ extern int do_sigaction(int, struct k_sigaction *, struct k_sigaction *);
+ 
++#ifdef TIF_RESTORE_SIGMASK
++/*
++ * Legacy restore_sigmask accessors.  These are inefficient on
++ * SMP architectures because they require atomic operations.
++ */
++
++/**
++ * set_restore_sigmask() - make sure saved_sigmask processing gets done
++ *
++ * This sets TIF_RESTORE_SIGMASK and ensures that the arch signal code
++ * will run before returning to user mode, to process the flag.  For
++ * all callers, TIF_SIGPENDING is already set or it's no harm to set
++ * it.  TIF_RESTORE_SIGMASK need not be in the set of bits that the
++ * arch code will notice on return to user mode, in case those bits
++ * are scarce.  We set TIF_SIGPENDING here to ensure that the arch
++ * signal code always gets run when TIF_RESTORE_SIGMASK is set.
++ */
++static inline void set_restore_sigmask(void)
++{
++	set_thread_flag(TIF_RESTORE_SIGMASK);
++	WARN_ON(!test_thread_flag(TIF_SIGPENDING));
++}
++static inline void clear_restore_sigmask(void)
++{
++	clear_thread_flag(TIF_RESTORE_SIGMASK);
++}
++static inline bool test_restore_sigmask(void)
++{
++	return test_thread_flag(TIF_RESTORE_SIGMASK);
++}
++static inline bool test_and_clear_restore_sigmask(void)
++{
++	return test_and_clear_thread_flag(TIF_RESTORE_SIGMASK);
++}
++
++#else	/* TIF_RESTORE_SIGMASK */
++
++/* Higher-quality implementation, used if TIF_RESTORE_SIGMASK doesn't exist. */
++static inline void set_restore_sigmask(void)
++{
++	current->restore_sigmask = true;
++	WARN_ON(!test_thread_flag(TIF_SIGPENDING));
++}
++static inline void clear_restore_sigmask(void)
++{
++	current->restore_sigmask = false;
++}
++static inline bool test_restore_sigmask(void)
++{
++	return current->restore_sigmask;
++}
++static inline bool test_and_clear_restore_sigmask(void)
++{
++	if (!current->restore_sigmask)
++		return false;
++	current->restore_sigmask = false;
++	return true;
++}
++#endif
++
+ static inline void restore_saved_sigmask(void)
+ {
+ 	if (test_and_clear_restore_sigmask())
+diff -puN include/linux/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code include/linux/thread_info.h
+--- a/include/linux/thread_info.h~signal-consolidate-tstlf_restore_sigmask-code
++++ a/include/linux/thread_info.h
+@@ -105,47 +105,6 @@ static inline int test_ti_thread_flag(st
+ 
+ #define tif_need_resched() test_thread_flag(TIF_NEED_RESCHED)
+ 
+-#if defined TIF_RESTORE_SIGMASK && !defined HAVE_SET_RESTORE_SIGMASK
+-/*
+- * An arch can define its own version of set_restore_sigmask() to get the
+- * job done however works, with or without TIF_RESTORE_SIGMASK.
+- */
+-#define HAVE_SET_RESTORE_SIGMASK	1
+-
+-/**
+- * set_restore_sigmask() - make sure saved_sigmask processing gets done
+- *
+- * This sets TIF_RESTORE_SIGMASK and ensures that the arch signal code
+- * will run before returning to user mode, to process the flag.  For
+- * all callers, TIF_SIGPENDING is already set or it's no harm to set
+- * it.  TIF_RESTORE_SIGMASK need not be in the set of bits that the
+- * arch code will notice on return to user mode, in case those bits
+- * are scarce.  We set TIF_SIGPENDING here to ensure that the arch
+- * signal code always gets run when TIF_RESTORE_SIGMASK is set.
+- */
+-static inline void set_restore_sigmask(void)
+-{
+-	set_thread_flag(TIF_RESTORE_SIGMASK);
+-	WARN_ON(!test_thread_flag(TIF_SIGPENDING));
+-}
+-static inline void clear_restore_sigmask(void)
+-{
+-	clear_thread_flag(TIF_RESTORE_SIGMASK);
+-}
+-static inline bool test_restore_sigmask(void)
+-{
+-	return test_thread_flag(TIF_RESTORE_SIGMASK);
+-}
+-static inline bool test_and_clear_restore_sigmask(void)
+-{
+-	return test_and_clear_thread_flag(TIF_RESTORE_SIGMASK);
+-}
+-#endif	/* TIF_RESTORE_SIGMASK && !HAVE_SET_RESTORE_SIGMASK */
+-
+-#ifndef HAVE_SET_RESTORE_SIGMASK
+-#error "no set_restore_sigmask() provided and default one won't work"
+-#endif
