@@ -1,103 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memcg-put-soft-limit-reclaim-out-of-way-if-the-excess-tree-is-empty.patch
+ mm-kasan-slub-dont-disable-interrupts-when-object-leaves-quarantine.patch
  removed from -mm tree
-Date: Wed, 03 Aug 2016 11:10:54 -0700
-Message-ID: <57a233ae.rzZ0w6uAArQ1PxNX%akpm@linux-foundation.org>
+Date: Wed, 03 Aug 2016 11:11:03 -0700
+Message-ID: <57a233b7.T5Ier7jQLyIoR8y9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34121 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34125 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756407AbcHCSVv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:21:51 -0400
+	with ESMTP id S1755555AbcHCSVw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:21:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: put soft limit reclaim out of way if the excess tree is empty
+     Subject: mm/kasan, slub: don't disable interrupts when object leaves quarantine
 has been removed from the -mm tree.  Its filename was
-     memcg-put-soft-limit-reclaim-out-of-way-if-the-excess-tree-is-empty.patch
+     mm-kasan-slub-dont-disable-interrupts-when-object-leaves-quarantine.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: memcg: put soft limit reclaim out of way if the excess tree is empty
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: mm/kasan, slub: don't disable interrupts when object leaves quarantine
 
-We've had a report about soft lockups caused by lock bouncing in the soft
-reclaim path:
+SLUB doesn't require disabled interrupts to call ___cache_free().
 
-[331404.849734] BUG: soft lockup - CPU#0 stuck for 22s! [kav4proxy-kavic:3128]
-[331404.849920] RIP: 0010:[<ffffffff81469798>]  [<ffffffff81469798>] _raw_spin_lock+0x18/0x20
-[331404.849997] Call Trace:
-[331404.850010]  [<ffffffff811557ea>] mem_cgroup_soft_limit_reclaim+0x25a/0x280
-[331404.850020]  [<ffffffff8111041d>] shrink_zones+0xed/0x200
-[331404.850027]  [<ffffffff81111a94>] do_try_to_free_pages+0x74/0x320
-[331404.850034]  [<ffffffff81112072>] try_to_free_pages+0x112/0x180
-[331404.850042]  [<ffffffff81104a6f>] __alloc_pages_slowpath+0x3ff/0x820
-[331404.850049]  [<ffffffff81105079>] __alloc_pages_nodemask+0x1e9/0x200
-[331404.850056]  [<ffffffff81141e01>] alloc_pages_vma+0xe1/0x290
-[331404.850064]  [<ffffffff8112402f>] do_wp_page+0x19f/0x840
-[331404.850071]  [<ffffffff811257cd>] handle_pte_fault+0x1cd/0x230
-[331404.850079]  [<ffffffff8146d3ed>] do_page_fault+0x1fd/0x4c0
-[331404.850087]  [<ffffffff81469ec5>] page_fault+0x25/0x30
-
-There are no memcgs created so there cannot be any in the soft limit
-excess obviously:
-[...]
-memory  0       1       1
-
-so all this just seems to be mem_cgroup_largest_soft_limit_node trying to
-get spin_lock_irq(&mctz->lock) just to find out that the soft limit excess
-tree is empty.  This is just pointless wasting of cycles and cache line
-bouncing during heavy parallel reclaim on large machines.  The particular
-machine wasn't very healthy and most probably suffering from a memory leak
-which just caused the memory reclaim to trash heavily.  But bouncing on
-the lock certainly didn't help...
-
-Fix this by optimistic lockless check and bail out early if the tree is
-empty.  This is theoretically racy but that shouldn't matter all that
-much.  First of all soft limit is a best effort feature and it is slowly
-getting deprecated and its usage should be really scarce.  Bouncing on a
-lock without a good reason is surely much bigger problem, especially on
-large CPU machines.
-
-Link: http://lkml.kernel.org/r/1470073277-1056-1-git-send-email-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: http://lkml.kernel.org/r/1470062715-14077-3-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/kasan/quarantine.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-put-soft-limit-reclaim-out-of-way-if-the-excess-tree-is-empty mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-put-soft-limit-reclaim-out-of-way-if-the-excess-tree-is-empty
-+++ a/mm/memcontrol.c
-@@ -2559,6 +2559,15 @@ unsigned long mem_cgroup_soft_limit_recl
- 		return 0;
+diff -puN mm/kasan/quarantine.c~mm-kasan-slub-dont-disable-interrupts-when-object-leaves-quarantine mm/kasan/quarantine.c
+--- a/mm/kasan/quarantine.c~mm-kasan-slub-dont-disable-interrupts-when-object-leaves-quarantine
++++ a/mm/kasan/quarantine.c
+@@ -147,10 +147,14 @@ static void qlink_free(struct qlist_node
+ 	struct kasan_alloc_meta *alloc_info = get_alloc_info(cache, object);
+ 	unsigned long flags;
  
- 	mctz = soft_limit_tree_node(pgdat->node_id);
+-	local_irq_save(flags);
++	if (IS_ENABLED(CONFIG_SLAB))
++		local_irq_save(flags);
 +
-+	/*
-+	 * Do not even bother to check the largest node if the root
-+	 * is empty. Do it lockless to prevent lock bouncing. Races
-+	 * are acceptable as soft limit is best effort anyway.
-+	 */
-+	if (RB_EMPTY_ROOT(&mctz->rb_root))
-+		return 0;
+ 	alloc_info->state = KASAN_STATE_FREE;
+ 	___cache_free(cache, object, _THIS_IP_);
+-	local_irq_restore(flags);
 +
- 	/*
- 	 * This loop can run a while, specially if mem_cgroup's continuously
- 	 * keep exceeding their soft limit and putting the system under
++	if (IS_ENABLED(CONFIG_SLAB))
++		local_irq_restore(flags);
+ }
+ 
+ static void qlist_free_all(struct qlist_head *q, struct kmem_cache *cache)
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
 
