@@ -1,180 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kasan-improve-double-free-reports.patch removed from -mm tree
-Date: Wed, 03 Aug 2016 11:11:11 -0700
-Message-ID: <57a233bf.1ZIgRE238HZezdqQ%akpm@linux-foundation.org>
+Subject: [merged]
+ task_work-use-read_once-lockless_dereference-avoid-pi_lock-if-task_works.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 11:11:53 -0700
+Message-ID: <57a233e9.5oAP/DuiDCX5RuQ3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33339 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33440 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753163AbcHCSN0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:26 -0400
+	with ESMTP id S1753497AbcHCSN1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, parri.andrea@gmail.com, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: improve double-free reports
+     Subject: task_work: use READ_ONCE/lockless_dereference, avoid pi_lock if !task_works
 has been removed from the -mm tree.  Its filename was
-     kasan-improve-double-free-reports.patch
+     task_work-use-read_once-lockless_dereference-avoid-pi_lock-if-task_works.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: kasan: improve double-free reports
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: task_work: use READ_ONCE/lockless_dereference, avoid pi_lock if !task_works
 
-Currently we just dump stack in case of double free bug.
-Let's dump all info about the object that we have.
+Change task_work_cancel() to use lockless_dereference(), this is what the
+code really wants but we didn't have this helper when it was written.
 
-[aryabinin@virtuozzo.com: change double free message per Alexander]
-  Link: http://lkml.kernel.org/r/1470153654-30160-1-git-send-email-aryabinin@virtuozzo.com
-Link: http://lkml.kernel.org/r/1470062715-14077-6-git-send-email-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Also add the fast-path task->task_works == NULL check, in the likely case
+this task has no pending works and we can avoid spin_lock(task->pi_lock).
+
+While at it, change other users of ACCESS_ONCE() to use READ_ONCE().
+
+Link: http://lkml.kernel.org/r/20160610150042.GA13868@redhat.com
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Andrea Parri <parri.andrea@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c  |    3 --
- mm/kasan/kasan.h  |    2 +
- mm/kasan/report.c |   54 ++++++++++++++++++++++++++++++--------------
- 3 files changed, 41 insertions(+), 18 deletions(-)
+ kernel/task_work.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/kasan/kasan.c~kasan-improve-double-free-reports mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-improve-double-free-reports
-+++ a/mm/kasan/kasan.c
-@@ -543,8 +543,7 @@ bool kasan_slab_free(struct kmem_cache *
+diff -puN kernel/task_work.c~task_work-use-read_once-lockless_dereference-avoid-pi_lock-if-task_works kernel/task_work.c
+--- a/kernel/task_work.c~task_work-use-read_once-lockless_dereference-avoid-pi_lock-if-task_works
++++ a/kernel/task_work.c
+@@ -29,7 +29,7 @@ task_work_add(struct task_struct *task,
+ 	struct callback_head *head;
  
- 	shadow_byte = READ_ONCE(*(s8 *)kasan_mem_to_shadow(object));
- 	if (shadow_byte < 0 || shadow_byte >= KASAN_SHADOW_SCALE_SIZE) {
--		pr_err("Double free");
--		dump_stack();
-+		kasan_report_double_free(cache, object, shadow_byte);
- 		return true;
- 	}
- 
-diff -puN mm/kasan/kasan.h~kasan-improve-double-free-reports mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-improve-double-free-reports
-+++ a/mm/kasan/kasan.h
-@@ -99,6 +99,8 @@ static inline bool kasan_report_enabled(
- 
- void kasan_report(unsigned long addr, size_t size,
- 		bool is_write, unsigned long ip);
-+void kasan_report_double_free(struct kmem_cache *cache, void *object,
-+			s8 shadow);
- 
- #if defined(CONFIG_SLAB) || defined(CONFIG_SLUB)
- void quarantine_put(struct kasan_free_meta *info, struct kmem_cache *cache);
-diff -puN mm/kasan/report.c~kasan-improve-double-free-reports mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-improve-double-free-reports
-+++ a/mm/kasan/report.c
-@@ -116,6 +116,26 @@ static inline bool init_task_stack_addr(
- 			sizeof(init_thread_union.stack));
- }
- 
-+static DEFINE_SPINLOCK(report_lock);
-+
-+static void kasan_start_report(unsigned long *flags)
-+{
-+	/*
-+	 * Make sure we don't end up in loop.
-+	 */
-+	kasan_disable_current();
-+	spin_lock_irqsave(&report_lock, *flags);
-+	pr_err("==================================================================\n");
-+}
-+
-+static void kasan_end_report(unsigned long *flags)
-+{
-+	pr_err("==================================================================\n");
-+	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
-+	spin_unlock_irqrestore(&report_lock, *flags);
-+	kasan_enable_current();
-+}
-+
- static void print_track(struct kasan_track *track)
- {
- 	pr_err("PID = %u\n", track->pid);
-@@ -129,8 +149,7 @@ static void print_track(struct kasan_tra
- 	}
- }
- 
--static void kasan_object_err(struct kmem_cache *cache, struct page *page,
--				void *object, char *unused_reason)
-+static void kasan_object_err(struct kmem_cache *cache, void *object)
- {
- 	struct kasan_alloc_meta *alloc_info = get_alloc_info(cache, object);
- 
-@@ -147,6 +166,18 @@ static void kasan_object_err(struct kmem
- 	print_track(&alloc_info->free_track);
- }
- 
-+void kasan_report_double_free(struct kmem_cache *cache, void *object,
-+			s8 shadow)
-+{
-+	unsigned long flags;
-+
-+	kasan_start_report(&flags);
-+	pr_err("BUG: Double free or freeing an invalid pointer\n");
-+	pr_err("Unexpected shadow byte: 0x%hhX\n", shadow);
-+	kasan_object_err(cache, object);
-+	kasan_end_report(&flags);
-+}
-+
- static void print_address_description(struct kasan_access_info *info)
- {
- 	const void *addr = info->access_addr;
-@@ -160,8 +191,7 @@ static void print_address_description(st
- 			struct kmem_cache *cache = page->slab_cache;
- 			object = nearest_obj(cache, page,
- 						(void *)info->access_addr);
--			kasan_object_err(cache, page, object,
--					"kasan: bad access detected");
-+			kasan_object_err(cache, object);
- 			return;
- 		}
- 		dump_page(page, "kasan: bad access detected");
-@@ -226,19 +256,13 @@ static void print_shadow_for_address(con
- 	}
- }
- 
--static DEFINE_SPINLOCK(report_lock);
--
- static void kasan_report_error(struct kasan_access_info *info)
- {
+ 	do {
+-		head = ACCESS_ONCE(task->task_works);
++		head = READ_ONCE(task->task_works);
+ 		if (unlikely(head == &work_exited))
+ 			return -ESRCH;
+ 		work->next = head;
+@@ -57,6 +57,9 @@ task_work_cancel(struct task_struct *tas
+ 	struct callback_head **pprev = &task->task_works;
+ 	struct callback_head *work;
  	unsigned long flags;
- 	const char *bug_type;
- 
--	/*
--	 * Make sure we don't end up in loop.
--	 */
--	kasan_disable_current();
--	spin_lock_irqsave(&report_lock, flags);
--	pr_err("==================================================================\n");
-+	kasan_start_report(&flags);
 +
- 	if (info->access_addr <
- 			kasan_shadow_to_mem((void *)KASAN_SHADOW_START)) {
- 		if ((unsigned long)info->access_addr < PAGE_SIZE)
-@@ -259,10 +283,8 @@ static void kasan_report_error(struct ka
- 		print_address_description(info);
- 		print_shadow_for_address(info->first_bad_addr);
- 	}
--	pr_err("==================================================================\n");
--	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
--	spin_unlock_irqrestore(&report_lock, flags);
--	kasan_enable_current();
-+
-+	kasan_end_report(&flags);
- }
- 
- void kasan_report(unsigned long addr, size_t size,
++	if (likely(!task->task_works))
++		return NULL;
+ 	/*
+ 	 * If cmpxchg() fails we continue without updating pprev.
+ 	 * Either we raced with task_work_add() which added the
+@@ -64,8 +67,7 @@ task_work_cancel(struct task_struct *tas
+ 	 * we raced with task_work_run(), *pprev == NULL/exited.
+ 	 */
+ 	raw_spin_lock_irqsave(&task->pi_lock, flags);
+-	while ((work = ACCESS_ONCE(*pprev))) {
+-		smp_read_barrier_depends();
++	while ((work = lockless_dereference(*pprev))) {
+ 		if (work->func != func)
+ 			pprev = &work->next;
+ 		else if (cmpxchg(pprev, work, work->next) == work)
+@@ -95,7 +97,7 @@ void task_work_run(void)
+ 		 * work_exited unless the list is empty.
+ 		 */
+ 		do {
+-			work = ACCESS_ONCE(task->task_works);
++			work = READ_ONCE(task->task_works);
+ 			head = !work && (task->flags & PF_EXITING) ?
+ 				&work_exited : NULL;
+ 		} while (cmpxchg(&task->task_works, work, head) != work);
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 
