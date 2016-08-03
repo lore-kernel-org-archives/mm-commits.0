@@ -1,63 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ubsan-fix-typo-in-format-string.patch removed from -mm
+Subject: [merged] make-compile_test-depend-on-uml.patch removed from -mm
  tree
-Date: Wed, 03 Aug 2016 11:11:24 -0700
-Message-ID: <57a233cc.S7v81zGkoTf3G6WO%akpm@linux-foundation.org>
+Date: Wed, 03 Aug 2016 11:11:38 -0700
+Message-ID: <57a233da.zDrwya+vmTqYxZiP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33356 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754314AbcHCSN0 (ORCPT
+	with ESMTP id S1755211AbcHCSN0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.iooss_linux@m4x.org, aryabinin@virtuozzo.com, joe@perches.com, mm-commits@vger.kernel.org
+To: richard@nod.at, arnd@arndb.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: UBSAN: fix typo in format string
+     Subject: init/Kconfig: make COMPILE_TEST depend on !UML
 has been removed from the -mm tree.  Its filename was
-     ubsan-fix-typo-in-format-string.patch
+     make-compile_test-depend-on-uml.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: UBSAN: fix typo in format string
+From: Richard Weinberger <richard@nod.at>
+Subject: init/Kconfig: make COMPILE_TEST depend on !UML
 
-handle_object_size_mismatch() used %pk to format a kernel pointer with
-pr_err().  This seemed to be a misspelling for %pK, but using this to
-format a kernel pointer does not make much sence here.
+UML is a bit special since it does not have iomem nor dma.  That means a
+lot of drivers will not build if they miss a dependency on HAS_IOMEM. 
+s390 used to have the same issues but since it gained PCI support UML is
+the only stranger.
 
-Therefore use %p instead, like in handle_missaligned_access().
+We are tired of patching dozens of new drivers after every merge window
+just to un-break allmod/yesconfig UML builds.  One could argue that a
+decent driver has to know on what it depends and therefore a missing
+HAS_IOMEM dependency is a clear driver bug.  But the dependency not
+obvious and not everyone does UML builds with COMPILE_TEST enabled when
+developing a device driver.
 
-Link: http://lkml.kernel.org/r/20160730083010.11569-1-nicolas.iooss_linux@m4x.org
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Joe Perches <joe@perches.com>
+A possible solution to make these builds succeed on UML would be providing
+stub functions for ioremap() and friends which fail upon runtime.  Another
+one is simply disabling COMPILE_TEST for UML.  Since it is the least
+hassle and does not force use to fake iomem support let's do the latter.
+
+Link: http://lkml.kernel.org/r/1466152995-28367-1-git-send-email-richard@nod.at
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ubsan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/ubsan.c~ubsan-fix-typo-in-format-string lib/ubsan.c
---- a/lib/ubsan.c~ubsan-fix-typo-in-format-string
-+++ a/lib/ubsan.c
-@@ -308,7 +308,7 @@ static void handle_object_size_mismatch(
- 		return;
+diff -puN init/Kconfig~make-compile_test-depend-on-uml init/Kconfig
+--- a/init/Kconfig~make-compile_test-depend-on-uml
++++ a/init/Kconfig
+@@ -55,6 +55,7 @@ config CROSS_COMPILE
  
- 	ubsan_prologue(&data->location, &flags);
--	pr_err("%s address %pk with insufficient space\n",
-+	pr_err("%s address %p with insufficient space\n",
- 		type_check_kinds[data->type_check_kind],
- 		(void *) ptr);
- 	pr_err("for an object of type %s\n", data->type->type_name);
+ config COMPILE_TEST
+ 	bool "Compile also drivers which will not load"
++	depends on !UML
+ 	default n
+ 	help
+ 	  Some drivers can be compiled on a different platform than they are
 _
 
-Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
+Patches currently in -mm which might be from richard@nod.at are
 
 
