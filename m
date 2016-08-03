@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + tile-use-simpler-api-for-random-address-requests.patch added to -mm tree
-Date: Wed, 03 Aug 2016 16:57:10 -0700
-Message-ID: <57a284d6.QmxI8HkoFp4fKzgw%akpm@linux-foundation.org>
+Subject: + x86-use-simpler-api-for-random-address-requests.patch added to
+ -mm tree
+Date: Wed, 03 Aug 2016 16:57:04 -0700
+Message-ID: <57a284d0.34GcxeqOFRR9wbew%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44342 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44324 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758398AbcHCX6a (ORCPT
+	with ESMTP id S1756005AbcHCX6a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 19:58:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jason@lakedaemon.net, cmetcalf@mellanox.com, keescook@chromium.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: jason@lakedaemon.net, hpa@zytor.com, keescook@chromium.org, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tile: use simpler API for random address requests
+     Subject: x86: use simpler API for random address requests
 has been added to the -mm tree.  Its filename is
-     tile-use-simpler-api-for-random-address-requests.patch
+     x86-use-simpler-api-for-random-address-requests.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tile-use-simpler-api-for-random-address-requests.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-use-simpler-api-for-random-address-requests.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tile-use-simpler-api-for-random-address-requests.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-use-simpler-api-for-random-address-requests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jason Cooper <jason@lakedaemon.net>
-Subject: tile: use simpler API for random address requests
+Subject: x86: use simpler API for random address requests
 
 Currently, all callers to randomize_range() set the length to 0 and
 calculate end by adding a constant to the start address.  We can simplify
@@ -48,21 +49,24 @@ the API to remove a bunch of needless checks and variables.
 Use the new randomize_addr(start, range) call to set the requested
 address.
 
-Link: http://lkml.kernel.org/r/20160803233913.32511-6-jason@lakedaemon.net
+Link: http://lkml.kernel.org/r/20160803233913.32511-3-jason@lakedaemon.net
 Signed-off-by: Jason Cooper <jason@lakedaemon.net>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H . Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/mm/mmap.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/x86/kernel/process.c    |    3 +--
+ arch/x86/kernel/sys_x86_64.c |    5 +----
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN arch/tile/mm/mmap.c~tile-use-simpler-api-for-random-address-requests arch/tile/mm/mmap.c
---- a/arch/tile/mm/mmap.c~tile-use-simpler-api-for-random-address-requests
-+++ a/arch/tile/mm/mmap.c
-@@ -88,6 +88,5 @@ void arch_pick_mmap_layout(struct mm_str
+diff -puN arch/x86/kernel/process.c~x86-use-simpler-api-for-random-address-requests arch/x86/kernel/process.c
+--- a/arch/x86/kernel/process.c~x86-use-simpler-api-for-random-address-requests
++++ a/arch/x86/kernel/process.c
+@@ -508,8 +508,7 @@ unsigned long arch_align_stack(unsigned
  
  unsigned long arch_randomize_brk(struct mm_struct *mm)
  {
@@ -70,6 +74,30 @@ diff -puN arch/tile/mm/mmap.c~tile-use-simpler-api-for-random-address-requests a
 -	return randomize_range(mm->brk, range_end, 0) ? : mm->brk;
 +	return randomize_page(mm->brk, 0x02000000);
  }
+ 
+ /*
+diff -puN arch/x86/kernel/sys_x86_64.c~x86-use-simpler-api-for-random-address-requests arch/x86/kernel/sys_x86_64.c
+--- a/arch/x86/kernel/sys_x86_64.c~x86-use-simpler-api-for-random-address-requests
++++ a/arch/x86/kernel/sys_x86_64.c
+@@ -101,7 +101,6 @@ static void find_start_end(unsigned long
+ 			   unsigned long *end)
+ {
+ 	if (!test_thread_flag(TIF_ADDR32) && (flags & MAP_32BIT)) {
+-		unsigned long new_begin;
+ 		/* This is usually used needed to map code in small
+ 		   model, so it needs to be in the first 31bit. Limit
+ 		   it to that.  This means we need to move the
+@@ -112,9 +111,7 @@ static void find_start_end(unsigned long
+ 		*begin = 0x40000000;
+ 		*end = 0x80000000;
+ 		if (current->flags & PF_RANDOMIZE) {
+-			new_begin = randomize_range(*begin, *begin + 0x02000000, 0);
+-			if (new_begin)
+-				*begin = new_begin;
++			*begin = randomize_page(*begin, 0x02000000);
+ 		}
+ 	} else {
+ 		*begin = current->mm->mmap_legacy_base;
 _
 
 Patches currently in -mm which might be from jason@lakedaemon.net are
