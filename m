@@ -1,153 +1,121 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- swiotlb-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from -mm
+ video-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from -mm
  tree
-Date: Wed, 03 Aug 2016 13:14:06 -0700
-Message-ID: <57a2508e.WRHuB34pwWmnT1Ub%akpm@linux-foundation.org>
+Date: Wed, 03 Aug 2016 13:14:10 -0700
+Message-ID: <57a25092.rx02NWwEiEXh/lI/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38980 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38979 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932434AbcHCUOa (ORCPT
+	with ESMTP id S932439AbcHCUOa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:14:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swiotlb: dma-mapping: use unsigned long for dma_attrs
+     Subject: video: dma-mapping: use unsigned long for dma_attrs
 has been removed from the -mm tree.  Its filename was
-     swiotlb-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     video-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch was dropped because it was folded into dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: swiotlb: dma-mapping: use unsigned long for dma_attrs
+Subject: video: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-21-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468399300-5399-23-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> [xen swiotlb]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swiotlb.h |   10 +++++-----
- lib/swiotlb.c           |   13 +++++++------
- 2 files changed, 12 insertions(+), 11 deletions(-)
+ drivers/video/fbdev/omap2/omapfb/omapfb-main.c |   12 ++++++------
+ drivers/video/fbdev/omap2/omapfb/omapfb.h      |    3 +--
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/swiotlb.h~swiotlb-dma-mapping-use-unsigned-long-for-dma_attrs include/linux/swiotlb.h
---- a/include/linux/swiotlb.h~swiotlb-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/include/linux/swiotlb.h
-@@ -6,7 +6,6 @@
- #include <linux/types.h>
+diff -puN drivers/video/fbdev/omap2/omapfb/omapfb-main.c~video-dma-mapping-use-unsigned-long-for-dma_attrs drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+--- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c~video-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+@@ -1332,7 +1332,7 @@ static void omapfb_free_fbmem(struct fb_
+ 	}
  
- struct device;
--struct dma_attrs;
- struct page;
- struct scatterlist;
+ 	dma_free_attrs(fbdev->dev, rg->size, rg->token, rg->dma_handle,
+-			&rg->attrs);
++			rg->attrs);
  
-@@ -68,10 +67,10 @@ swiotlb_free_coherent(struct device *hwd
- extern dma_addr_t swiotlb_map_page(struct device *dev, struct page *page,
- 				   unsigned long offset, size_t size,
- 				   enum dma_data_direction dir,
--				   struct dma_attrs *attrs);
-+				   unsigned long attrs);
- extern void swiotlb_unmap_page(struct device *hwdev, dma_addr_t dev_addr,
- 			       size_t size, enum dma_data_direction dir,
--			       struct dma_attrs *attrs);
-+			       unsigned long attrs);
+ 	rg->token = NULL;
+ 	rg->vaddr = NULL;
+@@ -1370,7 +1370,7 @@ static int omapfb_alloc_fbmem(struct fb_
+ 	struct omapfb2_device *fbdev = ofbi->fbdev;
+ 	struct omapfb2_mem_region *rg;
+ 	void *token;
+-	DEFINE_DMA_ATTRS(attrs);
++	unsigned long attrs;
+ 	dma_addr_t dma_handle;
+ 	int r;
  
- extern int
- swiotlb_map_sg(struct device *hwdev, struct scatterlist *sg, int nents,
-@@ -83,12 +82,13 @@ swiotlb_unmap_sg(struct device *hwdev, s
+@@ -1386,15 +1386,15 @@ static int omapfb_alloc_fbmem(struct fb_
  
- extern int
- swiotlb_map_sg_attrs(struct device *hwdev, struct scatterlist *sgl, int nelems,
--		     enum dma_data_direction dir, struct dma_attrs *attrs);
-+		     enum dma_data_direction dir,
-+		     unsigned long attrs);
+ 	size = PAGE_ALIGN(size);
  
- extern void
- swiotlb_unmap_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
- 		       int nelems, enum dma_data_direction dir,
--		       struct dma_attrs *attrs);
-+		       unsigned long attrs);
+-	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
++	attrs = DMA_ATTR_WRITE_COMBINE;
  
- extern void
- swiotlb_sync_single_for_cpu(struct device *hwdev, dma_addr_t dev_addr,
-diff -puN lib/swiotlb.c~swiotlb-dma-mapping-use-unsigned-long-for-dma_attrs lib/swiotlb.c
---- a/lib/swiotlb.c~swiotlb-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/lib/swiotlb.c
-@@ -738,7 +738,7 @@ swiotlb_full(struct device *dev, size_t
- dma_addr_t swiotlb_map_page(struct device *dev, struct page *page,
- 			    unsigned long offset, size_t size,
- 			    enum dma_data_direction dir,
--			    struct dma_attrs *attrs)
-+			    unsigned long attrs)
- {
- 	phys_addr_t map, phys = page_to_phys(page) + offset;
- 	dma_addr_t dev_addr = phys_to_dma(dev, phys);
-@@ -807,7 +807,7 @@ static void unmap_single(struct device *
+ 	if (ofbi->rotation_type == OMAP_DSS_ROT_VRFB)
+-		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &attrs);
++		attrs |= DMA_ATTR_NO_KERNEL_MAPPING;
  
- void swiotlb_unmap_page(struct device *hwdev, dma_addr_t dev_addr,
- 			size_t size, enum dma_data_direction dir,
--			struct dma_attrs *attrs)
-+			unsigned long attrs)
- {
- 	unmap_single(hwdev, dev_addr, size, dir);
- }
-@@ -877,7 +877,7 @@ EXPORT_SYMBOL(swiotlb_sync_single_for_de
-  */
- int
- swiotlb_map_sg_attrs(struct device *hwdev, struct scatterlist *sgl, int nelems,
--		     enum dma_data_direction dir, struct dma_attrs *attrs)
-+		     enum dma_data_direction dir, unsigned long attrs)
- {
- 	struct scatterlist *sg;
- 	int i;
-@@ -914,7 +914,7 @@ int
- swiotlb_map_sg(struct device *hwdev, struct scatterlist *sgl, int nelems,
- 	       enum dma_data_direction dir)
- {
--	return swiotlb_map_sg_attrs(hwdev, sgl, nelems, dir, NULL);
-+	return swiotlb_map_sg_attrs(hwdev, sgl, nelems, dir, 0);
- }
- EXPORT_SYMBOL(swiotlb_map_sg);
+ 	DBG("allocating %lu bytes for fb %d\n", size, ofbi->id);
  
-@@ -924,7 +924,8 @@ EXPORT_SYMBOL(swiotlb_map_sg);
-  */
- void
- swiotlb_unmap_sg_attrs(struct device *hwdev, struct scatterlist *sgl,
--		       int nelems, enum dma_data_direction dir, struct dma_attrs *attrs)
-+		       int nelems, enum dma_data_direction dir,
-+		       unsigned long attrs)
- {
- 	struct scatterlist *sg;
- 	int i;
-@@ -941,7 +942,7 @@ void
- swiotlb_unmap_sg(struct device *hwdev, struct scatterlist *sgl, int nelems,
- 		 enum dma_data_direction dir)
- {
--	return swiotlb_unmap_sg_attrs(hwdev, sgl, nelems, dir, NULL);
-+	return swiotlb_unmap_sg_attrs(hwdev, sgl, nelems, dir, 0);
- }
- EXPORT_SYMBOL(swiotlb_unmap_sg);
+ 	token = dma_alloc_attrs(fbdev->dev, size, &dma_handle,
+-			GFP_KERNEL, &attrs);
++			GFP_KERNEL, attrs);
  
+ 	if (token == NULL) {
+ 		dev_err(fbdev->dev, "failed to allocate framebuffer\n");
+@@ -1408,7 +1408,7 @@ static int omapfb_alloc_fbmem(struct fb_
+ 		r = omap_vrfb_request_ctx(&rg->vrfb);
+ 		if (r) {
+ 			dma_free_attrs(fbdev->dev, size, token, dma_handle,
+-					&attrs);
++					attrs);
+ 			dev_err(fbdev->dev, "vrfb create ctx failed\n");
+ 			return r;
+ 		}
+diff -puN drivers/video/fbdev/omap2/omapfb/omapfb.h~video-dma-mapping-use-unsigned-long-for-dma_attrs drivers/video/fbdev/omap2/omapfb/omapfb.h
+--- a/drivers/video/fbdev/omap2/omapfb/omapfb.h~video-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/video/fbdev/omap2/omapfb/omapfb.h
+@@ -28,7 +28,6 @@
+ #endif
+ 
+ #include <linux/rwsem.h>
+-#include <linux/dma-attrs.h>
+ #include <linux/dma-mapping.h>
+ 
+ #include <video/omapfb_dss.h>
+@@ -51,7 +50,7 @@ extern bool omapfb_debug;
+ 
+ struct omapfb2_mem_region {
+ 	int             id;
+-	struct dma_attrs attrs;
++	unsigned long	attrs;
+ 	void		*token;
+ 	dma_addr_t	dma_handle;
+ 	u32		paddr;
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
 media-mtk-vcodec-remove-unused-dma_attrs.patch
 dma-mapping-use-unsigned-long-for-dma_attrs.patch
-powerpc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-video-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 x86-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 h8300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
