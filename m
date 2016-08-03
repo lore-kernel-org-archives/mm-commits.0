@@ -1,129 +1,109 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- rapidio-remove-unnecessary-0x-prefixes-before-%pa-extension-uses.patch
- removed from -mm tree
-Date: Wed, 03 Aug 2016 11:14:13 -0700
-Message-ID: <57a23475.2sK3onec2Oo87XEw%akpm@linux-foundation.org>
+ rapidio-tsi721-add-messaging-mbox-selector-parameter.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 11:14:28 -0700
+Message-ID: <57a23484.F+ocJ+Ky98Qc3pdH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33447 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33623 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932343AbcHCSOO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:14:14 -0400
+	with ESMTP id S1757981AbcHCSOe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:14:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: remove unnecessary 0x prefixes before %pa extension uses
+     Subject: rapidio/tsi721: add messaging mbox selector parameter
 has been removed from the -mm tree.  Its filename was
-     rapidio-remove-unnecessary-0x-prefixes-before-%pa-extension-uses.patch
+     rapidio-tsi721-add-messaging-mbox-selector-parameter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: rapidio: remove unnecessary 0x prefixes before %pa extension uses
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/tsi721: add messaging mbox selector parameter
 
-Patch series "RapidIO subsystem updates".
+Add module parameter to allow load time configuration of available RapidIO
+messaging mailboxes (MBOX1 - MBOX4).
 
-This set of patches contains RapidIO subsystem fixes and updates that have
-been made since kernel v4.6.  The most significant update brings changes
-related to the latest revision of RapidIO specification (rev.3.x) and
-introduction of next generation of RapidIO switches by IDT (RXS1632 and
-RXS2448).
+Having a messaging MBOX selector mask allows to define which MBOXes are
+controlled by the mport device driver and reserve some of them for direct
+use by other drivers.
 
-
-
-This patch (of 13):
-
-This is RapidIO part of the original patch submitted by Joe Perches.
-(see: https://lkml.org/lkml/2016/3/5/19)
-
-Since commit 3cab1e711297 ("lib/vsprintf: refactor duplicate code
-to special_hex_number()") %pa uses have been output with a 0x prefix.
-
-These 0x prefixes in the formats are unnecessary.
-
-Link: http://lkml.kernel.org/r/1469125134-16523-2-git-send-email-alexandre.bounine@idt.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/1469125134-16523-7-git-send-email-alexandre.bounine@idt.com
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Tested-by: Barry Wood <barry.wood@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
 Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Cc: Barry Wood <barry.wood@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |    4 ++--
- drivers/rapidio/devices/tsi721.c         |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ Documentation/rapidio/tsi721.txt |    5 +++++
+ drivers/rapidio/devices/tsi721.c |   15 +++++++++++++++
+ 2 files changed, 20 insertions(+)
 
-diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-remove-unnecessary-0x-prefixes-before-%pa-extension-uses drivers/rapidio/devices/rio_mport_cdev.c
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-remove-unnecessary-0x-prefixes-before-%pa-extension-uses
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -2242,7 +2242,7 @@ static void mport_mm_open(struct vm_area
- {
- 	struct rio_mport_mapping *map = vma->vm_private_data;
+diff -puN Documentation/rapidio/tsi721.txt~rapidio-tsi721-add-messaging-mbox-selector-parameter Documentation/rapidio/tsi721.txt
+--- a/Documentation/rapidio/tsi721.txt~rapidio-tsi721-add-messaging-mbox-selector-parameter
++++ a/Documentation/rapidio/tsi721.txt
+@@ -46,6 +46,11 @@ fully compatible with RIONET driver (Eth
+         0 = 128B, 1 = 256B, 2 = 512B, 3 = 1024B, 4 = 2048B and 5 = 4096B.
+         Default value is '-1' (= keep platform setting).
  
--rmcd_debug(MMAP, "0x%pad", &map->phys_addr);
-+	rmcd_debug(MMAP, "%pad", &map->phys_addr);
- 	kref_get(&map->ref);
- }
++- 'mbox_sel' - RIO messaging MBOX selection mask. This is a bitmask that defines
++        messaging MBOXes are managed by this device driver. Mask bits 0 - 3
++        correspond to MBOX0 - MBOX3. MBOX is under driver's control if the
++        corresponding bit is set to '1'. Default value is 0x0f (= all).
++
+ II. Known problems
  
-@@ -2250,7 +2250,7 @@ static void mport_mm_close(struct vm_are
- {
- 	struct rio_mport_mapping *map = vma->vm_private_data;
- 
--rmcd_debug(MMAP, "0x%pad", &map->phys_addr);
-+	rmcd_debug(MMAP, "%pad", &map->phys_addr);
- 	mutex_lock(&map->md->buf_mutex);
- 	kref_put(&map->ref, mport_release_mapping);
- 	mutex_unlock(&map->md->buf_mutex);
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-remove-unnecessary-0x-prefixes-before-%pa-extension-uses drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-remove-unnecessary-0x-prefixes-before-%pa-extension-uses
+   None.
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-messaging-mbox-selector-parameter drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-messaging-mbox-selector-parameter
 +++ a/drivers/rapidio/devices/tsi721.c
-@@ -1101,7 +1101,7 @@ static int tsi721_rio_map_inb_mem(struct
- 		ibw_start = lstart & ~(ibw_size - 1);
+@@ -46,6 +46,11 @@ static int pcie_mrrs = -1;
+ module_param(pcie_mrrs, int, S_IRUGO);
+ MODULE_PARM_DESC(pcie_mrrs, "PCIe MRRS override value (0...5)");
  
- 		tsi_debug(IBW, &priv->pdev->dev,
--			"Direct (RIO_0x%llx -> PCIe_0x%pad), size=0x%x, ibw_start = 0x%llx",
-+			"Direct (RIO_0x%llx -> PCIe_%pad), size=0x%x, ibw_start = 0x%llx",
- 			rstart, &lstart, size, ibw_start);
++static u8 mbox_sel = 0x0f;
++module_param(mbox_sel, byte, S_IRUGO);
++MODULE_PARM_DESC(mbox_sel,
++		 "RIO Messaging MBOX Selection Mask (default: 0x0f = all)");
++
+ static void tsi721_omsg_handler(struct tsi721_device *priv, int ch);
+ static void tsi721_imsg_handler(struct tsi721_device *priv, int ch);
  
- 		while ((lstart + size) > (ibw_start + ibw_size)) {
-@@ -1120,7 +1120,7 @@ static int tsi721_rio_map_inb_mem(struct
+@@ -1881,6 +1886,11 @@ static int tsi721_open_outb_mbox(struct
+ 		goto out;
+ 	}
  
- 	} else {
- 		tsi_debug(IBW, &priv->pdev->dev,
--			"Translated (RIO_0x%llx -> PCIe_0x%pad), size=0x%x",
-+			"Translated (RIO_0x%llx -> PCIe_%pad), size=0x%x",
- 			rstart, &lstart, size);
++	if ((mbox_sel & (1 << mbox)) == 0) {
++		rc = -ENODEV;
++		goto out;
++	}
++
+ 	priv->omsg_ring[mbox].dev_id = dev_id;
+ 	priv->omsg_ring[mbox].size = entries;
+ 	priv->omsg_ring[mbox].sts_rdptr = 0;
+@@ -2165,6 +2175,11 @@ static int tsi721_open_inb_mbox(struct r
+ 		goto out;
+ 	}
  
- 		if (!is_power_of_2(size) || size < 0x1000 ||
-@@ -1215,7 +1215,7 @@ static int tsi721_rio_map_inb_mem(struct
- 	priv->ibwin_cnt--;
- 
- 	tsi_debug(IBW, &priv->pdev->dev,
--		"Configured IBWIN%d (RIO_0x%llx -> PCIe_0x%pad), size=0x%llx",
-+		"Configured IBWIN%d (RIO_0x%llx -> PCIe_%pad), size=0x%llx",
- 		i, ibw_start, &loc_start, ibw_size);
- 
- 	return 0;
-@@ -1237,7 +1237,7 @@ static void tsi721_rio_unmap_inb_mem(str
- 	int i;
- 
- 	tsi_debug(IBW, &priv->pdev->dev,
--		"Unmap IBW mapped to PCIe_0x%pad", &lstart);
-+		"Unmap IBW mapped to PCIe_%pad", &lstart);
- 
- 	/* Search for matching active inbound translation window */
- 	for (i = 0; i < TSI721_IBWIN_NUM; i++) {
++	if ((mbox_sel & (1 << mbox)) == 0) {
++		rc = -ENODEV;
++		goto out;
++	}
++
+ 	/* Initialize IB Messaging Ring */
+ 	priv->imsg_ring[mbox].dev_id = dev_id;
+ 	priv->imsg_ring[mbox].size = entries;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
 
