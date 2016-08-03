@@ -1,139 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- alpha-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from -mm
- tree
-Date: Wed, 03 Aug 2016 13:13:30 -0700
-Message-ID: <57a2506a.L4/V1wqetjmyq7k/%akpm@linux-foundation.org>
+ blackfin-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 13:13:40 -0700
+Message-ID: <57a25074.x5FgrKJ9SUD/idMC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38918 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38978 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751501AbcHCUOZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:14:25 -0400
+	with ESMTP id S1752682AbcHCUO0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:14:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: dma-mapping: use unsigned long for dma_attrs
+     Subject: blackfin: dma-mapping: use unsigned long for dma_attrs
 has been removed from the -mm tree.  Its filename was
-     alpha-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     blackfin-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch was dropped because it was folded into dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: alpha: dma-mapping: use unsigned long for dma_attrs
+Subject: blackfin: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-3-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468399300-5399-8-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/dma-mapping.h |    2 --
- arch/alpha/kernel/pci-noop.c         |    2 +-
- arch/alpha/kernel/pci_iommu.c        |   12 ++++++------
- 3 files changed, 7 insertions(+), 9 deletions(-)
+ arch/blackfin/kernel/dma-mapping.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/alpha/include/asm/dma-mapping.h~alpha-dma-mapping-use-unsigned-long-for-dma_attrs arch/alpha/include/asm/dma-mapping.h
---- a/arch/alpha/include/asm/dma-mapping.h~alpha-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/alpha/include/asm/dma-mapping.h
-@@ -1,8 +1,6 @@
- #ifndef _ALPHA_DMA_MAPPING_H
- #define _ALPHA_DMA_MAPPING_H
+diff -puN arch/blackfin/kernel/dma-mapping.c~blackfin-dma-mapping-use-unsigned-long-for-dma_attrs arch/blackfin/kernel/dma-mapping.c
+--- a/arch/blackfin/kernel/dma-mapping.c~blackfin-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/blackfin/kernel/dma-mapping.c
+@@ -79,7 +79,7 @@ static void __free_dma_pages(unsigned lo
+ }
  
--#include <linux/dma-attrs.h>
--
- extern struct dma_map_ops *dma_ops;
- 
- static inline struct dma_map_ops *get_dma_ops(struct device *dev)
-diff -puN arch/alpha/kernel/pci-noop.c~alpha-dma-mapping-use-unsigned-long-for-dma_attrs arch/alpha/kernel/pci-noop.c
---- a/arch/alpha/kernel/pci-noop.c~alpha-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/alpha/kernel/pci-noop.c
-@@ -109,7 +109,7 @@ sys_pciconfig_write(unsigned long bus, u
- 
- static void *alpha_noop_alloc_coherent(struct device *dev, size_t size,
- 				       dma_addr_t *dma_handle, gfp_t gfp,
--				       struct dma_attrs *attrs)
-+				       unsigned long attrs)
+ static void *bfin_dma_alloc(struct device *dev, size_t size,
+-		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
++		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
  {
  	void *ret;
  
-diff -puN arch/alpha/kernel/pci_iommu.c~alpha-dma-mapping-use-unsigned-long-for-dma_attrs arch/alpha/kernel/pci_iommu.c
---- a/arch/alpha/kernel/pci_iommu.c~alpha-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/alpha/kernel/pci_iommu.c
-@@ -349,7 +349,7 @@ static struct pci_dev *alpha_gendev_to_p
- static dma_addr_t alpha_pci_map_page(struct device *dev, struct page *page,
- 				     unsigned long offset, size_t size,
- 				     enum dma_data_direction dir,
--				     struct dma_attrs *attrs)
-+				     unsigned long attrs)
- {
- 	struct pci_dev *pdev = alpha_gendev_to_pci(dev);
- 	int dac_allowed;
-@@ -369,7 +369,7 @@ static dma_addr_t alpha_pci_map_page(str
+@@ -94,7 +94,7 @@ static void *bfin_dma_alloc(struct devic
+ }
  
- static void alpha_pci_unmap_page(struct device *dev, dma_addr_t dma_addr,
- 				 size_t size, enum dma_data_direction dir,
--				 struct dma_attrs *attrs)
-+				 unsigned long attrs)
+ static void bfin_dma_free(struct device *dev, size_t size, void *vaddr,
+-		  dma_addr_t dma_handle, struct dma_attrs *attrs)
++		  dma_addr_t dma_handle, unsigned long attrs)
  {
- 	unsigned long flags;
- 	struct pci_dev *pdev = alpha_gendev_to_pci(dev);
-@@ -433,7 +433,7 @@ static void alpha_pci_unmap_page(struct
+ 	__free_dma_pages((unsigned long)vaddr, get_pages(size));
+ }
+@@ -111,7 +111,7 @@ EXPORT_SYMBOL(__dma_sync);
  
- static void *alpha_pci_alloc_coherent(struct device *dev, size_t size,
- 				      dma_addr_t *dma_addrp, gfp_t gfp,
--				      struct dma_attrs *attrs)
-+				      unsigned long attrs)
+ static int bfin_dma_map_sg(struct device *dev, struct scatterlist *sg_list,
+ 		int nents, enum dma_data_direction direction,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
  {
- 	struct pci_dev *pdev = alpha_gendev_to_pci(dev);
- 	void *cpu_addr;
-@@ -478,7 +478,7 @@ try_again:
+ 	struct scatterlist *sg;
+ 	int i;
+@@ -139,7 +139,7 @@ static void bfin_dma_sync_sg_for_device(
  
- static void alpha_pci_free_coherent(struct device *dev, size_t size,
- 				    void *cpu_addr, dma_addr_t dma_addr,
--				    struct dma_attrs *attrs)
-+				    unsigned long attrs)
+ static dma_addr_t bfin_dma_map_page(struct device *dev, struct page *page,
+ 		unsigned long offset, size_t size, enum dma_data_direction dir,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
  {
- 	struct pci_dev *pdev = alpha_gendev_to_pci(dev);
- 	pci_unmap_single(pdev, dma_addr, size, PCI_DMA_BIDIRECTIONAL);
-@@ -651,7 +651,7 @@ sg_fill(struct device *dev, struct scatt
+ 	dma_addr_t handle = (dma_addr_t)(page_address(page) + offset);
  
- static int alpha_pci_map_sg(struct device *dev, struct scatterlist *sg,
- 			    int nents, enum dma_data_direction dir,
--			    struct dma_attrs *attrs)
-+			    unsigned long attrs)
- {
- 	struct pci_dev *pdev = alpha_gendev_to_pci(dev);
- 	struct scatterlist *start, *end, *out;
-@@ -729,7 +729,7 @@ static int alpha_pci_map_sg(struct devic
- 
- static void alpha_pci_unmap_sg(struct device *dev, struct scatterlist *sg,
- 			       int nents, enum dma_data_direction dir,
--			       struct dma_attrs *attrs)
-+			       unsigned long attrs)
- {
- 	struct pci_dev *pdev = alpha_gendev_to_pci(dev);
- 	unsigned long flags;
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
 media-mtk-vcodec-remove-unused-dma_attrs.patch
 dma-mapping-use-unsigned-long-for-dma_attrs.patch
-arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-arm-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-arm64-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-avr32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-blackfin-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 c6x-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 cris-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 frv-dma-mapping-use-unsigned-long-for-dma_attrs.patch
