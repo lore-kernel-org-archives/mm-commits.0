@@ -1,60 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mailmap-add-linus-lussing.patch removed from -mm tree
-Date: Wed, 03 Aug 2016 11:11:49 -0700
-Message-ID: <57a233e5.yJnMwDXC6v79Oz4T%akpm@linux-foundation.org>
+Subject: [merged] radix-tree-fix-comment-about-exceptional-bits.patch
+ removed from -mm tree
+Date: Wed, 03 Aug 2016 11:12:23 -0700
+Message-ID: <57a23407.lhl7nfWq0TBy8YD1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33433 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33340 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756273AbcHCSN1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:27 -0400
+	with ESMTP id S1755297AbcHCSNc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linus.luessing@c0d3.blue, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, david@fromorbit.com, jack@suse.com, jthumshirn@suse.de, koct9i@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: add Linus Lüssing
+     Subject: radix-tree: fix comment about "exceptional" bits
 has been removed from the -mm tree.  Its filename was
-     mailmap-add-linus-lussing.patch
+     radix-tree-fix-comment-about-exceptional-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Linus Lüssing <linus.luessing@c0d3.blue>
-Subject: mailmap: add Linus Lüssing
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: radix-tree: fix comment about "exceptional" bits
 
-For one thing, summarizes all non-umlaut versions into the umlaut one
-(Linus Luessing -> Linus LÃ¼ssing).
+The bottom two bits of radix tree entries are reserved for special use by
+the radix tree code itself.  A comment detailing their usage was added by:
 
-For another, maps obsolete email addresses to the current @c0d3.blue
-one.
+commit 3bcadd6fa6c4 ("radix-tree: free up the bottom bit of exceptional
+entries for reuse")
 
-Link: http://lkml.kernel.org/r/1467805371-2773-1-git-send-email-linus.luessing@c0d3.blue
-Signed-off-by: Linus Lüssing <linus.luessing@c0d3.blue>
+This comment states that if the bottom two bits are '11', this means that
+this is a locked exceptional entry.
+
+It turns out that this bit combination was never actually used.  Radix tree
+locking for DAX was indeed implemented, but it actually used the third LSB:
+
+  /* We use lowest available exceptional entry bit for locking */
+  #define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
+
+This locking code was also made specific to the DAX code instead of being
+generally implemented in radix-tree.h.
+
+So, fix the comment.
+
+Link: http://lkml.kernel.org/r/1468997731-2155-1-git-send-email-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/radix-tree.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN .mailmap~mailmap-add-linus-lussing .mailmap
---- a/.mailmap~mailmap-add-linus-lussing
-+++ a/.mailmap
-@@ -92,6 +92,8 @@ Krzysztof Kozlowski <krzk@kernel.org> <k
- Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
- Leonid I Ananiev <leonid.i.ananiev@intel.com>
- Linas Vepstas <linas@austin.ibm.com>
-+Linus LÃ¼ssing <linus.luessing@c0d3.blue> <linus.luessing@web.de>
-+Linus LÃ¼ssing <linus.luessing@c0d3.blue> <linus.luessing@ascom.ch>
- Mark Brown <broonie@sirena.org.uk>
- Matthieu CASTET <castet.matthieu@free.fr>
- Mauro Carvalho Chehab <mchehab@kernel.org> <maurochehab@gmail.com> <mchehab@infradead.org> <mchehab@redhat.com> <m.chehab@samsung.com> <mchehab@osg.samsung.com> <mchehab@s-opensource.com>
+diff -puN include/linux/radix-tree.h~radix-tree-fix-comment-about-exceptional-bits include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-fix-comment-about-exceptional-bits
++++ a/include/linux/radix-tree.h
+@@ -35,7 +35,7 @@
+  * 00 - data pointer
+  * 01 - internal entry
+  * 10 - exceptional entry
+- * 11 - locked exceptional entry
++ * 11 - this bit combination is currently unused/reserved
+  *
+  * The internal entry may be a pointer to the next level in the tree, a
+  * sibling entry, or an indicator that the entry in this slot has been moved
 _
 
-Patches currently in -mm which might be from linus.luessing@c0d3.blue are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
+block-remove-blk_dev_dax-config-option.patch
 
