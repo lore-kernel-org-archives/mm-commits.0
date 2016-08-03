@@ -1,66 +1,370 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- init-kconfig-add-clarification-for-out-of-tree-modules.patch removed from
+Subject: [merged] config-add-android-config-fragments.patch removed from
  -mm tree
-Date: Wed, 03 Aug 2016 11:15:02 -0700
-Message-ID: <57a234a6.NdTM/7BSee2P/EE1%akpm@linux-foundation.org>
+Date: Wed, 03 Aug 2016 11:14:59 -0700
+Message-ID: <57a234a3.qwa6ud+CuCsqCxOX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33698 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33688 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755211AbcHCSPD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:15:03 -0400
+	with ESMTP id S1752312AbcHCSPA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:15:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Valdis.Kletnieks@vt.edu, mmarek@suse.cz, rusty@rustcorp.com.au, valdis.kletnieks@vt.edu, mm-commits@vger.kernel.org
+To: robh@kernel.org, amit.pundir@linaro.org, dimitrysh@google.com, gregkh@linuxfoundation.org, john.stultz@linaro.org, romlem@android.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init/Kconfig: add clarification for out-of-tree modules
+     Subject: config: add android config fragments
 has been removed from the -mm tree.  Its filename was
-     init-kconfig-add-clarification-for-out-of-tree-modules.patch
+     config-add-android-config-fragments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Subject: init/Kconfig: add clarification for out-of-tree modules
+From: Rob Herring <robh@kernel.org>
+Subject: config: add android config fragments
 
-It doesn't trim just symbols that are totally unused in-tree - it trims
-the symbols unused by any in-tree modules actually built.  If you've done
-a 'make localmodconfig' and only build a hundred or so modules, it's
-pretty likely that your out-of-tree module will come up lacking
-something...
+Copy the config fragments from the AOSP common kernel android-4.4
+branch. It is becoming possible to run mainline kernels with Android,
+but the kernel defconfigs don't work as-is and debugging missing config
+options is a pain. Adding the config fragments into the kernel tree,
+makes configuring a mainline kernel as simple as:
 
-Hopefully this will save the next guy from a Homer Simpson "D'oh!" moment.
+make ARCH=arm multi_v7_defconfig android-base.config android-recommended.config
 
-Link: http://lkml.kernel.org/r/10177.1469787292@turing-police.cc.vt.edu
-Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+The following non-upstream config options were removed:
+
+CONFIG_NETFILTER_XT_MATCH_QTAGUID
+CONFIG_NETFILTER_XT_MATCH_QUOTA2
+CONFIG_NETFILTER_XT_MATCH_QUOTA2_LOG
+CONFIG_PPPOLAC
+CONFIG_PPPOPNS
+CONFIG_SECURITY_PERF_EVENTS_RESTRICT
+CONFIG_USB_CONFIGFS_F_MTP
+CONFIG_USB_CONFIGFS_F_PTP
+CONFIG_USB_CONFIGFS_F_ACC
+CONFIG_USB_CONFIGFS_F_AUDIO_SRC
+CONFIG_USB_CONFIGFS_UEVENT
+CONFIG_INPUT_KEYCHORD
+CONFIG_INPUT_KEYRESET
+
+Link: http://lkml.kernel.org/r/1466708235-28593-1-git-send-email-robh@kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
+Cc: Amit Pundir <amit.pundir@linaro.org>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Dmitry Shmidt <dimitrysh@google.com>
+Cc: Rom Lemarchand <romlem@android.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS                               |    5 
+ kernel/configs/android-base.config        |  152 ++++++++++++++++++++
+ kernel/configs/android-recommended.config |  121 +++++++++++++++
+ 3 files changed, 278 insertions(+)
 
-diff -puN init/Kconfig~init-kconfig-add-clarification-for-out-of-tree-modules init/Kconfig
---- a/init/Kconfig~init-kconfig-add-clarification-for-out-of-tree-modules
-+++ a/init/Kconfig
-@@ -2080,7 +2080,7 @@ config TRIM_UNUSED_KSYMS
- 	  (especially when using LTO) for optimizing the code and reducing
- 	  binary size.  This might have some security advantages as well.
+diff -puN MAINTAINERS~config-add-android-config-fragments MAINTAINERS
+--- a/MAINTAINERS~config-add-android-config-fragments
++++ a/MAINTAINERS
+@@ -778,6 +778,11 @@ W:	http://ez.analog.com/community/linux-
+ S:	Supported
+ F:	drivers/dma/dma-axi-dmac.c
  
--	  If unsure say N.
-+	  If unsure, or if you need to build out-of-tree modules, say N.
- 
- endif # MODULES
- 
++ANDROID CONFIG FRAGMENTS
++M:	Rob Herring <robh@kernel.org>
++S:	Supported
++F:	kernel/configs/android*
++
+ ANDROID DRIVERS
+ M:	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+ M:	Arve Hjønnevåg <arve@android.com>
+diff -puN /dev/null kernel/configs/android-base.config
+--- /dev/null
++++ a/kernel/configs/android-base.config
+@@ -0,0 +1,152 @@
++#  KEEP ALPHABETICALLY SORTED
++# CONFIG_DEVKMEM is not set
++# CONFIG_DEVMEM is not set
++# CONFIG_INET_LRO is not set
++# CONFIG_MODULES is not set
++# CONFIG_OABI_COMPAT is not set
++# CONFIG_SYSVIPC is not set
++CONFIG_ANDROID=y
++CONFIG_ANDROID_BINDER_IPC=y
++CONFIG_ANDROID_LOW_MEMORY_KILLER=y
++CONFIG_ARMV8_DEPRECATED=y
++CONFIG_ASHMEM=y
++CONFIG_AUDIT=y
++CONFIG_BLK_DEV_DM=y
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_CGROUPS=y
++CONFIG_CGROUP_CPUACCT=y
++CONFIG_CGROUP_DEBUG=y
++CONFIG_CGROUP_FREEZER=y
++CONFIG_CGROUP_SCHED=y
++CONFIG_CP15_BARRIER_EMULATION=y
++CONFIG_DM_CRYPT=y
++CONFIG_DM_VERITY=y
++CONFIG_DM_VERITY_FEC=y
++CONFIG_EMBEDDED=y
++CONFIG_FB=y
++CONFIG_HIGH_RES_TIMERS=y
++CONFIG_INET6_AH=y
++CONFIG_INET6_ESP=y
++CONFIG_INET6_IPCOMP=y
++CONFIG_INET=y
++CONFIG_INET_DIAG_DESTROY=y
++CONFIG_INET_ESP=y
++CONFIG_INET_XFRM_MODE_TUNNEL=y
++CONFIG_IP6_NF_FILTER=y
++CONFIG_IP6_NF_IPTABLES=y
++CONFIG_IP6_NF_MANGLE=y
++CONFIG_IP6_NF_RAW=y
++CONFIG_IP6_NF_TARGET_REJECT=y
++CONFIG_IPV6=y
++CONFIG_IPV6_MIP6=y
++CONFIG_IPV6_MULTIPLE_TABLES=y
++CONFIG_IPV6_OPTIMISTIC_DAD=y
++CONFIG_IPV6_PRIVACY=y
++CONFIG_IPV6_ROUTER_PREF=y
++CONFIG_IPV6_ROUTE_INFO=y
++CONFIG_IP_ADVANCED_ROUTER=y
++CONFIG_IP_MULTICAST=y
++CONFIG_IP_MULTIPLE_TABLES=y
++CONFIG_IP_NF_ARPFILTER=y
++CONFIG_IP_NF_ARPTABLES=y
++CONFIG_IP_NF_ARP_MANGLE=y
++CONFIG_IP_NF_FILTER=y
++CONFIG_IP_NF_IPTABLES=y
++CONFIG_IP_NF_MANGLE=y
++CONFIG_IP_NF_MATCH_AH=y
++CONFIG_IP_NF_MATCH_ECN=y
++CONFIG_IP_NF_MATCH_TTL=y
++CONFIG_IP_NF_NAT=y
++CONFIG_IP_NF_RAW=y
++CONFIG_IP_NF_SECURITY=y
++CONFIG_IP_NF_TARGET_MASQUERADE=y
++CONFIG_IP_NF_TARGET_NETMAP=y
++CONFIG_IP_NF_TARGET_REDIRECT=y
++CONFIG_IP_NF_TARGET_REJECT=y
++CONFIG_NET=y
++CONFIG_NETDEVICES=y
++CONFIG_NETFILTER=y
++CONFIG_NETFILTER_TPROXY=y
++CONFIG_NETFILTER_XT_MATCH_COMMENT=y
++CONFIG_NETFILTER_XT_MATCH_CONNLIMIT=y
++CONFIG_NETFILTER_XT_MATCH_CONNMARK=y
++CONFIG_NETFILTER_XT_MATCH_CONNTRACK=y
++CONFIG_NETFILTER_XT_MATCH_HASHLIMIT=y
++CONFIG_NETFILTER_XT_MATCH_HELPER=y
++CONFIG_NETFILTER_XT_MATCH_IPRANGE=y
++CONFIG_NETFILTER_XT_MATCH_LENGTH=y
++CONFIG_NETFILTER_XT_MATCH_LIMIT=y
++CONFIG_NETFILTER_XT_MATCH_MAC=y
++CONFIG_NETFILTER_XT_MATCH_MARK=y
++CONFIG_NETFILTER_XT_MATCH_PKTTYPE=y
++CONFIG_NETFILTER_XT_MATCH_POLICY=y
++CONFIG_NETFILTER_XT_MATCH_QUOTA=y
++CONFIG_NETFILTER_XT_MATCH_SOCKET=y
++CONFIG_NETFILTER_XT_MATCH_STATE=y
++CONFIG_NETFILTER_XT_MATCH_STATISTIC=y
++CONFIG_NETFILTER_XT_MATCH_STRING=y
++CONFIG_NETFILTER_XT_MATCH_TIME=y
++CONFIG_NETFILTER_XT_MATCH_U32=y
++CONFIG_NETFILTER_XT_TARGET_CLASSIFY=y
++CONFIG_NETFILTER_XT_TARGET_CONNMARK=y
++CONFIG_NETFILTER_XT_TARGET_CONNSECMARK=y
++CONFIG_NETFILTER_XT_TARGET_IDLETIMER=y
++CONFIG_NETFILTER_XT_TARGET_MARK=y
++CONFIG_NETFILTER_XT_TARGET_NFLOG=y
++CONFIG_NETFILTER_XT_TARGET_NFQUEUE=y
++CONFIG_NETFILTER_XT_TARGET_SECMARK=y
++CONFIG_NETFILTER_XT_TARGET_TCPMSS=y
++CONFIG_NETFILTER_XT_TARGET_TPROXY=y
++CONFIG_NETFILTER_XT_TARGET_TRACE=y
++CONFIG_NET_CLS_ACT=y
++CONFIG_NET_CLS_U32=y
++CONFIG_NET_EMATCH=y
++CONFIG_NET_EMATCH_U32=y
++CONFIG_NET_KEY=y
++CONFIG_NET_SCHED=y
++CONFIG_NET_SCH_HTB=y
++CONFIG_NF_CONNTRACK=y
++CONFIG_NF_CONNTRACK_AMANDA=y
++CONFIG_NF_CONNTRACK_EVENTS=y
++CONFIG_NF_CONNTRACK_FTP=y
++CONFIG_NF_CONNTRACK_H323=y
++CONFIG_NF_CONNTRACK_IPV4=y
++CONFIG_NF_CONNTRACK_IPV6=y
++CONFIG_NF_CONNTRACK_IRC=y
++CONFIG_NF_CONNTRACK_NETBIOS_NS=y
++CONFIG_NF_CONNTRACK_PPTP=y
++CONFIG_NF_CONNTRACK_SANE=y
++CONFIG_NF_CONNTRACK_SECMARK=y
++CONFIG_NF_CONNTRACK_TFTP=y
++CONFIG_NF_CT_NETLINK=y
++CONFIG_NF_CT_PROTO_DCCP=y
++CONFIG_NF_CT_PROTO_SCTP=y
++CONFIG_NF_CT_PROTO_UDPLITE=y
++CONFIG_NF_NAT=y
++CONFIG_NO_HZ=y
++CONFIG_PACKET=y
++CONFIG_PM_AUTOSLEEP=y
++CONFIG_PM_WAKELOCKS=y
++CONFIG_PPP=y
++CONFIG_PPP_BSDCOMP=y
++CONFIG_PPP_DEFLATE=y
++CONFIG_PPP_MPPE=y
++CONFIG_PREEMPT=y
++CONFIG_QUOTA=y
++CONFIG_RTC_CLASS=y
++CONFIG_RT_GROUP_SCHED=y
++CONFIG_SECURITY=y
++CONFIG_SECURITY_NETWORK=y
++CONFIG_SECURITY_SELINUX=y
++CONFIG_SETEND_EMULATION=y
++CONFIG_STAGING=y
++CONFIG_SWP_EMULATION=y
++CONFIG_SYNC=y
++CONFIG_TUN=y
++CONFIG_UNIX=y
++CONFIG_USB_GADGET=y
++CONFIG_USB_CONFIGFS=y
++CONFIG_USB_CONFIGFS_F_FS=y
++CONFIG_USB_CONFIGFS_F_MIDI=y
++CONFIG_USB_OTG_WAKELOCK=y
++CONFIG_XFRM_USER=y
+diff -puN /dev/null kernel/configs/android-recommended.config
+--- /dev/null
++++ a/kernel/configs/android-recommended.config
+@@ -0,0 +1,121 @@
++#  KEEP ALPHABETICALLY SORTED
++# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
++# CONFIG_INPUT_MOUSE is not set
++# CONFIG_LEGACY_PTYS is not set
++# CONFIG_NF_CONNTRACK_SIP is not set
++# CONFIG_PM_WAKELOCKS_GC is not set
++# CONFIG_VT is not set
++CONFIG_BACKLIGHT_LCD_SUPPORT=y
++CONFIG_BLK_DEV_LOOP=y
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_SIZE=8192
++CONFIG_COMPACTION=y
++CONFIG_DEBUG_RODATA=y
++CONFIG_DM_UEVENT=y
++CONFIG_DRAGONRISE_FF=y
++CONFIG_ENABLE_DEFAULT_TRACERS=y
++CONFIG_EXT4_FS=y
++CONFIG_EXT4_FS_SECURITY=y
++CONFIG_FUSE_FS=y
++CONFIG_GREENASIA_FF=y
++CONFIG_HIDRAW=y
++CONFIG_HID_A4TECH=y
++CONFIG_HID_ACRUX=y
++CONFIG_HID_ACRUX_FF=y
++CONFIG_HID_APPLE=y
++CONFIG_HID_BELKIN=y
++CONFIG_HID_CHERRY=y
++CONFIG_HID_CHICONY=y
++CONFIG_HID_CYPRESS=y
++CONFIG_HID_DRAGONRISE=y
++CONFIG_HID_ELECOM=y
++CONFIG_HID_EMS_FF=y
++CONFIG_HID_EZKEY=y
++CONFIG_HID_GREENASIA=y
++CONFIG_HID_GYRATION=y
++CONFIG_HID_HOLTEK=y
++CONFIG_HID_KENSINGTON=y
++CONFIG_HID_KEYTOUCH=y
++CONFIG_HID_KYE=y
++CONFIG_HID_LCPOWER=y
++CONFIG_HID_LOGITECH=y
++CONFIG_HID_LOGITECH_DJ=y
++CONFIG_HID_MAGICMOUSE=y
++CONFIG_HID_MICROSOFT=y
++CONFIG_HID_MONTEREY=y
++CONFIG_HID_MULTITOUCH=y
++CONFIG_HID_NTRIG=y
++CONFIG_HID_ORTEK=y
++CONFIG_HID_PANTHERLORD=y
++CONFIG_HID_PETALYNX=y
++CONFIG_HID_PICOLCD=y
++CONFIG_HID_PRIMAX=y
++CONFIG_HID_PRODIKEYS=y
++CONFIG_HID_ROCCAT=y
++CONFIG_HID_SAITEK=y
++CONFIG_HID_SAMSUNG=y
++CONFIG_HID_SMARTJOYPLUS=y
++CONFIG_HID_SONY=y
++CONFIG_HID_SPEEDLINK=y
++CONFIG_HID_SUNPLUS=y
++CONFIG_HID_THRUSTMASTER=y
++CONFIG_HID_TIVO=y
++CONFIG_HID_TOPSEED=y
++CONFIG_HID_TWINHAN=y
++CONFIG_HID_UCLOGIC=y
++CONFIG_HID_WACOM=y
++CONFIG_HID_WALTOP=y
++CONFIG_HID_WIIMOTE=y
++CONFIG_HID_ZEROPLUS=y
++CONFIG_HID_ZYDACRON=y
++CONFIG_INPUT_EVDEV=y
++CONFIG_INPUT_GPIO=y
++CONFIG_INPUT_JOYSTICK=y
++CONFIG_INPUT_MISC=y
++CONFIG_INPUT_TABLET=y
++CONFIG_INPUT_UINPUT=y
++CONFIG_ION=y
++CONFIG_JOYSTICK_XPAD=y
++CONFIG_JOYSTICK_XPAD_FF=y
++CONFIG_JOYSTICK_XPAD_LEDS=y
++CONFIG_KALLSYMS_ALL=y
++CONFIG_KSM=y
++CONFIG_LOGIG940_FF=y
++CONFIG_LOGIRUMBLEPAD2_FF=y
++CONFIG_LOGITECH_FF=y
++CONFIG_MD=y
++CONFIG_MEDIA_SUPPORT=y
++CONFIG_MSDOS_FS=y
++CONFIG_PANIC_TIMEOUT=5
++CONFIG_PANTHERLORD_FF=y
++CONFIG_PERF_EVENTS=y
++CONFIG_PM_DEBUG=y
++CONFIG_PM_RUNTIME=y
++CONFIG_PM_WAKELOCKS_LIMIT=0
++CONFIG_POWER_SUPPLY=y
++CONFIG_PSTORE=y
++CONFIG_PSTORE_CONSOLE=y
++CONFIG_PSTORE_RAM=y
++CONFIG_SCHEDSTATS=y
++CONFIG_SMARTJOYPLUS_FF=y
++CONFIG_SND=y
++CONFIG_SOUND=y
++CONFIG_SUSPEND_TIME=y
++CONFIG_TABLET_USB_ACECAD=y
++CONFIG_TABLET_USB_AIPTEK=y
++CONFIG_TABLET_USB_GTCO=y
++CONFIG_TABLET_USB_HANWANG=y
++CONFIG_TABLET_USB_KBTAB=y
++CONFIG_TASKSTATS=y
++CONFIG_TASK_DELAY_ACCT=y
++CONFIG_TASK_IO_ACCOUNTING=y
++CONFIG_TASK_XACCT=y
++CONFIG_TIMER_STATS=y
++CONFIG_TMPFS=y
++CONFIG_TMPFS_POSIX_ACL=y
++CONFIG_UHID=y
++CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
++CONFIG_USB_EHCI_HCD=y
++CONFIG_USB_HIDDEV=y
++CONFIG_USB_USBNET=y
++CONFIG_VFAT_FS=y
 _
 
-Patches currently in -mm which might be from Valdis.Kletnieks@vt.edu are
+Patches currently in -mm which might be from robh@kernel.org are
 
 
