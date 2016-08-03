@@ -1,69 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc_oom_score-remove-tasklist_lock-and-pid_alive.patch
- removed from -mm tree
-Date: Wed, 03 Aug 2016 11:11:30 -0700
-Message-ID: <57a233d2.71KeU/oVWj5CPS5Y%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-kasan-get-rid-of-alloc_size-in-struct-kasan_alloc_meta.patch removed
+ from -mm tree
+Date: Wed, 03 Aug 2016 11:11:05 -0700
+Message-ID: <57a233b9.OV4t3ZjiU8v0TKA8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33449 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33432 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755129AbcHCSN0 (ORCPT
+	with ESMTP id S1753319AbcHCSN0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, mhocko@suse.com, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc_oom_score: remove tasklist_lock and pid_alive()
+     Subject: mm/kasan: get rid of ->alloc_size in struct kasan_alloc_meta
 has been removed from the -mm tree.  Its filename was
-     proc_oom_score-remove-tasklist_lock-and-pid_alive.patch
+     mm-kasan-get-rid-of-alloc_size-in-struct-kasan_alloc_meta.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: proc_oom_score: remove tasklist_lock and pid_alive()
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: mm/kasan: get rid of ->alloc_size in struct kasan_alloc_meta
 
-This was needed before to ensure that ->signal != 0 and do_each_thread()
-is safe, see b95c35e76b29b ("oom: fix the unsafe usage of badness() in
-proc_oom_score()") for details.
+Size of slab object already stored in cache->object_size.
 
-Today tsk->signal can't go away and for_each_thread(tsk) is always safe.
+Note, that kmalloc() internally rounds up size of allocation, so
+object_size may be not equal to alloc_size, but, usually we don't need
+to know the exact size of allocated object. In case if we need that
+information, we still can figure it out from the report. The dump of
+shadow memory allows to identify the end of allocated memory, and thereby
+the exact allocation size.
 
-Link: http://lkml.kernel.org/r/20160608211921.GA15508@redhat.com
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Link: http://lkml.kernel.org/r/1470062715-14077-4-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/kasan/kasan.c  |    1 -
+ mm/kasan/kasan.h  |    3 +--
+ mm/kasan/report.c |    8 +++-----
+ 3 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/base.c~proc_oom_score-remove-tasklist_lock-and-pid_alive fs/proc/base.c
---- a/fs/proc/base.c~proc_oom_score-remove-tasklist_lock-and-pid_alive
-+++ a/fs/proc/base.c
-@@ -579,11 +579,8 @@ static int proc_oom_score(struct seq_fil
- 	unsigned long totalpages = totalram_pages + total_swap_pages;
- 	unsigned long points = 0;
+diff -puN mm/kasan/kasan.c~mm-kasan-get-rid-of-alloc_size-in-struct-kasan_alloc_meta mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-get-rid-of-alloc_size-in-struct-kasan_alloc_meta
++++ a/mm/kasan/kasan.c
+@@ -584,7 +584,6 @@ void kasan_kmalloc(struct kmem_cache *ca
+ 			get_alloc_info(cache, object);
  
--	read_lock(&tasklist_lock);
--	if (pid_alive(task))
--		points = oom_badness(task, NULL, NULL, totalpages) *
--						1000 / totalpages;
--	read_unlock(&tasklist_lock);
-+	points = oom_badness(task, NULL, NULL, totalpages) *
-+					1000 / totalpages;
- 	seq_printf(m, "%lu\n", points);
+ 		alloc_info->state = KASAN_STATE_ALLOC;
+-		alloc_info->alloc_size = size;
+ 		set_track(&alloc_info->track, flags);
+ 	}
+ }
+diff -puN mm/kasan/kasan.h~mm-kasan-get-rid-of-alloc_size-in-struct-kasan_alloc_meta mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~mm-kasan-get-rid-of-alloc_size-in-struct-kasan_alloc_meta
++++ a/mm/kasan/kasan.h
+@@ -75,8 +75,7 @@ struct kasan_track {
  
- 	return 0;
+ struct kasan_alloc_meta {
+ 	struct kasan_track track;
+-	u32 state : 2;	/* enum kasan_state */
+-	u32 alloc_size : 30;
++	u32 state;
+ };
+ 
+ struct qlist_node {
+diff -puN mm/kasan/report.c~mm-kasan-get-rid-of-alloc_size-in-struct-kasan_alloc_meta mm/kasan/report.c
+--- a/mm/kasan/report.c~mm-kasan-get-rid-of-alloc_size-in-struct-kasan_alloc_meta
++++ a/mm/kasan/report.c
+@@ -136,7 +136,9 @@ static void kasan_object_err(struct kmem
+ 	struct kasan_free_meta *free_info;
+ 
+ 	dump_stack();
+-	pr_err("Object at %p, in cache %s\n", object, cache->name);
++	pr_err("Object at %p, in cache %s size: %d\n", object, cache->name,
++		cache->object_size);
++
+ 	if (!(cache->flags & SLAB_KASAN))
+ 		return;
+ 	switch (alloc_info->state) {
+@@ -144,15 +146,11 @@ static void kasan_object_err(struct kmem
+ 		pr_err("Object not allocated yet\n");
+ 		break;
+ 	case KASAN_STATE_ALLOC:
+-		pr_err("Object allocated with size %u bytes.\n",
+-		       alloc_info->alloc_size);
+ 		pr_err("Allocation:\n");
+ 		print_track(&alloc_info->track);
+ 		break;
+ 	case KASAN_STATE_FREE:
+ 	case KASAN_STATE_QUARANTINE:
+-		pr_err("Object freed, allocated with size %u bytes\n",
+-		       alloc_info->alloc_size);
+ 		free_info = get_free_info(cache, object);
+ 		pr_err("Allocation:\n");
+ 		print_track(&alloc_info->track);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
 
