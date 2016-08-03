@@ -1,118 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-kasan-fix-corruptions-and-false-positive-reports.patch removed from -mm
- tree
-Date: Wed, 03 Aug 2016 11:10:57 -0700
-Message-ID: <57a233b1.bmSKGYQrjQn5R6X8%akpm@linux-foundation.org>
+Subject: [merged] mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 11:10:48 -0700
+Message-ID: <57a233a8.XCWCe+5LHCEZoRVi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34117 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34119 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756276AbcHCSVv (ORCPT
+	with ESMTP id S1756122AbcHCSVv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:21:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, alexander.levin@verizon.com, davej@codemonkey.org.uk, dvyukov@google.com, glider@google.com, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
+To: hejianet@gmail.com, dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kasan: fix corruptions and false positive reports
+     Subject: mm/hugetlb: avoid soft lockup in set_max_huge_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-kasan-fix-corruptions-and-false-positive-reports.patch
+     mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: mm/kasan: fix corruptions and false positive reports
+From: Jia He <hejianet@gmail.com>
+Subject: mm/hugetlb: avoid soft lockup in set_max_huge_pages()
 
-Once an object is put into quarantine, we no longer own it, i.e.  object
-could leave the quarantine and be reallocated.  So having set_track() call
-after the quarantine_put() may corrupt slab objects.
+In powerpc servers with large memory(32TB), we watched several soft
+lockups for hugepage under stress tests.
 
- BUG kmalloc-4096 (Not tainted): Poison overwritten
- -----------------------------------------------------------------------------
- Disabling lock debugging due to kernel taint
- INFO: 0xffff8804540de850-0xffff8804540de857. First byte 0xb5 instead of 0x6b
-...
- INFO: Freed in qlist_free_all+0x42/0x100 age=75 cpu=3 pid=24492
-  __slab_free+0x1d6/0x2e0
-  ___cache_free+0xb6/0xd0
-  qlist_free_all+0x83/0x100
-  quarantine_reduce+0x177/0x1b0
-  kasan_kmalloc+0xf3/0x100
-  kasan_slab_alloc+0x12/0x20
-  kmem_cache_alloc+0x109/0x3e0
-  mmap_region+0x53e/0xe40
-  do_mmap+0x70f/0xa50
-  vm_mmap_pgoff+0x147/0x1b0
-  SyS_mmap_pgoff+0x2c7/0x5b0
-  SyS_mmap+0x1b/0x30
-  do_syscall_64+0x1a0/0x4e0
-  return_from_SYSCALL_64+0x0/0x7a
- INFO: Slab 0xffffea0011503600 objects=7 used=7 fp=0x          (null) flags=0x8000000000004080
- INFO: Object 0xffff8804540de848 @offset=26696 fp=0xffff8804540dc588
- Redzone ffff8804540de840: bb bb bb bb bb bb bb bb                          ........
- Object ffff8804540de848: 6b 6b 6b 6b 6b 6b 6b 6b b5 52 00 00 f2 01 60 cc  kkkkkkkk.R....`.
+The call traces are as follows:
+1.
+get_page_from_freelist+0x2d8/0xd50
+__alloc_pages_nodemask+0x180/0xc20
+alloc_fresh_huge_page+0xb0/0x190
+set_max_huge_pages+0x164/0x3b0
 
-Similarly, poisoning after the quarantine_put() leads to false positive
-use-after-free reports:
+2.
+prep_new_huge_page+0x5c/0x100
+alloc_fresh_huge_page+0xc8/0x190
+set_max_huge_pages+0x164/0x3b0
 
- BUG: KASAN: use-after-free in anon_vma_interval_tree_insert+0x304/0x430 at addr ffff880405c540a0
- Read of size 8 by task trinity-c0/3036
- CPU: 0 PID: 3036 Comm: trinity-c0 Not tainted 4.7.0-think+ #9
-  ffff880405c54200 00000000c5c4423e ffff88044a5ef9f0 ffffffffaea48532
-  ffff88044a5efa88 ffff880461497a00 ffff88044a5efa78 ffffffffae57cfe2
-  ffff88046501c958 ffff880436aa5440 0000000000000282 0000000000000007
- Call Trace:
-  [<ffffffffaea48532>] dump_stack+0x68/0x96
-  [<ffffffffae57cfe2>] kasan_report_error+0x222/0x600
-  [<ffffffffae57d571>] __asan_report_load8_noabort+0x61/0x70
-  [<ffffffffae4f8924>] anon_vma_interval_tree_insert+0x304/0x430
-  [<ffffffffae52f811>] anon_vma_chain_link+0x91/0xd0
-  [<ffffffffae536e46>] anon_vma_clone+0x136/0x3f0
-  [<ffffffffae537181>] anon_vma_fork+0x81/0x4c0
-  [<ffffffffae125663>] copy_process.part.47+0x2c43/0x5b20
-  [<ffffffffae12895d>] _do_fork+0x16d/0xbd0
-  [<ffffffffae129469>] SyS_clone+0x19/0x20
-  [<ffffffffae0064b0>] do_syscall_64+0x1a0/0x4e0
-  [<ffffffffafa09b1a>] entry_SYSCALL64_slow_path+0x25/0x25
+This patch fixes such soft lockups.  It is safe to call cond_resched()
+there because it is out of spin_lock/unlock section.
 
-Fix this by putting an object in the quarantine after all other operations.
-
-Fixes: 80a9201a5965 ("mm, kasan: switch SLUB to stackdepot, enable memory quarantine for SLUB")
-Link: http://lkml.kernel.org/r/1470062715-14077-1-git-send-email-aryabinin@virtuozzo.com
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reported-by: Dave Jones <davej@codemonkey.org.uk>
-Reported-by: Vegard Nossum <vegard.nossum@oracle.com>
-Reported-by: Sasha Levin <alexander.levin@verizon.com>
-Acked-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: http://lkml.kernel.org/r/1469674442-14848-1-git-send-email-hejianet@gmail.com
+Signed-off-by: Jia He <hejianet@gmail.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/kasan/kasan.c~mm-kasan-fix-corruptions-and-false-positive-reports mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mm-kasan-fix-corruptions-and-false-positive-reports
-+++ a/mm/kasan/kasan.c
-@@ -543,9 +543,9 @@ bool kasan_slab_free(struct kmem_cache *
- 		switch (alloc_info->state) {
- 		case KASAN_STATE_ALLOC:
- 			alloc_info->state = KASAN_STATE_QUARANTINE;
--			quarantine_put(free_info, cache);
- 			set_track(&free_info->track, GFP_NOWAIT);
- 			kasan_poison_slab_free(cache, object);
-+			quarantine_put(free_info, cache);
- 			return true;
- 		case KASAN_STATE_QUARANTINE:
- 		case KASAN_STATE_FREE:
+diff -puN mm/hugetlb.c~mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-avoid-soft-lockup-in-set_max_huge_pages
++++ a/mm/hugetlb.c
+@@ -2216,6 +2216,10 @@ static unsigned long set_max_huge_pages(
+ 		 * and reducing the surplus.
+ 		 */
+ 		spin_unlock(&hugetlb_lock);
++
++		/* yield cpu to avoid soft lockup */
++		cond_resched();
++
+ 		if (hstate_is_gigantic(h))
+ 			ret = alloc_fresh_gigantic_page(h, nodes_allowed);
+ 		else
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from hejianet@gmail.com are
 
 
