@@ -1,64 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [patch 10/18] block: remove BLK_DEV_DAX config option
-Date: Wed, 03 Aug 2016 13:46:15 -0700
-Message-ID: <57a25817.dRHPWU6T/lSW+lzO%akpm@linux-foundation.org>
+Subject: mmotm 2016-08-03-15-19 uploaded
+Date: Wed, 03 Aug 2016 15:19:48 -0700
+Message-ID: <57a26e04.+wBCBljpAc+ZsNLb%akpm__29187.5255680226$1470262878$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39867 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41679 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758329AbcHCUqi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:46:38 -0400
+	with ESMTP id S1755127AbcHCWUt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 18:20:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, axboe@kernel.dk, dan.j.williams@intel.com, dave.hansen@linux.intel.com
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: block: remove BLK_DEV_DAX config option
+The mm-of-the-moment snapshot 2016-08-03-15-19 has been uploaded to
 
-The functionality for block device DAX was already removed with this
-commit:
+   http://www.ozlabs.org/~akpm/mmotm/
 
-commit acc93d30d7d4 ("Revert "block: enable dax for raw block devices"")
+mmotm-readme.txt says
 
-However, we still had a config option hanging around that was always
-disabled because it depended on CONFIG_BROKEN.  This config option was
-introduced in this commit:
+README for mm-of-the-moment:
 
-commit 03cdadb04077 ("block: disable block device DAX by default")
+http://www.ozlabs.org/~akpm/mmotm/
 
-This change reverts that commit, removing the dead config option.
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
 
-Link: http://lkml.kernel.org/r/20160729182314.6368-1-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
 
- block/Kconfig  |   13 -------------
- fs/block_dev.c |    6 +-----
- 2 files changed, 1 insertion(+), 18 deletions(-)
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
 
-diff -puN block/Kconfig~block-remove-blk_dev_dax-config-option block/Kconfig
---- a/block/Kconfig~block-remove-blk_dev_dax-config-option
-+++ a/block/Kconfig
-@@ -88,19 +88,6 @@ config BLK_DEV_INTEGRITY
- 	T10/SCSI Data Integrity Field or the T13/ATA External Path
- 	Protection.  If in doubt, say N.
- 
--config BLK_DEV_DAX
--	bool "Block device DAX support"
--	depends on FS_DAX
--	depends on BROKEN
--	help
--	  When DAX support is available (CONFIG_FS_DAX) raw block
--	  devices can also support direct userspace access to the
--	  storage capacity via MMAP(2) similar to a file on a
--	  DAX-enabled filesystem.  However, the DAX I/O-path disables
--	  some standard I/O-statistics, and the MMAP(2) path has some
--	  operational differences due to bypassing the page
--	  cache.  If in doubt, say N.
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
+
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
+
+
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
+
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+
+To develop on top of mmotm git:
+
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
+
+To rebase a branch with older patches to a new mmotm release:
+
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
+
+
+
+
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
+
+A git copy of this tree is available at
+
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+
+
+This mmotm tree contains the following patches against 4.7:
+(patches marked "*" will be included in linux-next)
+
+  origin.patch
+* fpga-zynq-fpga-fix-build-failure.patch
+* tree-wide-replace-config_enabled-with-is_enabled.patch
+* bitmap-bitmap_equal-memcmp-optimization-fix.patch
+* media-mtk-vcodec-remove-unused-dma_attrs.patch
+* dma-mapping-use-unsigned-long-for-dma_attrs.patch
+* samples-kprobe-convert-the-printk-to-pr_info-pr_err.patch
+* samples-jprobe-convert-the-printk-to-pr_info-pr_err.patch
+* samples-kretprobe-convert-the-printk-to-pr_info-pr_err.patch
+* samples-kretprobe-fix-the-wrong-type.patch
+* block-remove-blk_dev_dax-config-option.patch
+* maintainers-update-email-and-list-of-samsung-hw-driver-maintainers.patch
+* cxd2841er-avoid-misleading-gcc-warning.patch
+* powerpc-add-explicit-include-asm-asm-compath-for-jump-label.patch
+* sparc-support-static_key-usage-in-non-module-__exit-sections.patch
+* tile-support-static_key-usage-in-non-module-__exit-sections.patch
+* arm-jump-label-may-reference-text-in-__exit.patch
+* jump_label-remove-bugh-atomich-dependencies-for-have_jump_label.patch
+* dynamic_debug-add-jump-label-support.patch
+  arch-alpha-kernel-systblss-remove-debug-check.patch
+  i-need-old-gcc.patch
+* mm-add-restriction-when-memory_hotplug-config-enable.patch
+* mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup.patch
+* mm-memcontrol-fix-memcg-id-ref-counter-on-swap-charge-move.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* kbuild-simpler-generation-of-assembly-constants.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+* kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
+  mm.patch
+* mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
+* mm-oom-deduplicate-victim-selection-code-for-memcg-and-global-oom.patch
+* mm-zsmalloc-add-trace-events-for-zs_compact.patch
+* mm-zsmalloc-add-per-class-compact-trace-event.patch
+* mm-page_owner-align-with-pageblock_nr-pages.patch
+* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+* proc-relax-proc-tid-timerslack_ns-capability-requirements.patch
+* proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns.patch
+* lib-add-crc64-ecma-module.patch
+* compat-remove-compat_printk.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* ipc-msgc-msgsnd-use-freezable-blocking-call.patch
+* msgrcv-use-freezable-blocking-call.patch
+  linux-next.patch
+  linux-next-git-rejects.patch
+* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+* ipc-semc-fix-complex_count-vs-simple-op-race.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  make-frame_pointer-default=y.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  add-debugging-aid-for-memory-initialisation-problems.patch
+  workaround-for-a-pci-restoring-bug.patch
