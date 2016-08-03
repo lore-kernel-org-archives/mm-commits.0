@@ -1,95 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- cris-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from -mm
- tree
-Date: Wed, 03 Aug 2016 13:13:44 -0700
-Message-ID: <57a25078.JanYWo6IAqe3zaoe%akpm@linux-foundation.org>
+ drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from
+ -mm tree
+Date: Wed, 03 Aug 2016 13:13:54 -0700
+Message-ID: <57a25082.JDdVtcln9xGD/14U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38979 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38985 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757747AbcHCUO0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:14:26 -0400
+	with ESMTP id S1758235AbcHCUO1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:14:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, jesper.nilsson@axis.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, daniel.vetter@ffwll.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cris: dma-mapping: use unsigned long for dma_attrs
+     Subject: drm/nouveau: dma-mapping: use unsigned long for dma_attrs
 has been removed from the -mm tree.  Its filename was
-     cris-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+     drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 This patch was dropped because it was folded into dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 ------------------------------------------------------
 From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: cris: dma-mapping: use unsigned long for dma_attrs
+Subject: drm/nouveau: dma-mapping: use unsigned long for dma_attrs
 
 Split out subsystem specific changes for easier reviews. This will be
 squashed with main commit.
 
-Link: http://lkml.kernel.org/r/1468399300-5399-10-git-send-email-k.kozlowski@samsung.com
+Link: http://lkml.kernel.org/r/1468399300-5399-15-git-send-email-k.kozlowski@samsung.com
 Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Jesper Nilsson <jesper.nilsson@axis.com> [cris]
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch> [drm]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/drivers/pci/dma.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c |   13 ++++------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN arch/cris/arch-v32/drivers/pci/dma.c~cris-dma-mapping-use-unsigned-long-for-dma_attrs arch/cris/arch-v32/drivers/pci/dma.c
---- a/arch/cris/arch-v32/drivers/pci/dma.c~cris-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/arch/cris/arch-v32/drivers/pci/dma.c
-@@ -17,7 +17,7 @@
- #include <asm/io.h>
+diff -puN drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c~drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c~drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
+@@ -109,7 +109,7 @@ struct gk20a_instmem {
+ 	u16 iommu_bit;
  
- static void *v32_dma_alloc(struct device *dev, size_t size,
--		dma_addr_t *dma_handle, gfp_t gfp,  struct dma_attrs *attrs)
-+		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
- {
- 	void *ret;
+ 	/* Only used by DMA API */
+-	struct dma_attrs attrs;
++	unsigned long attrs;
+ };
+ #define gk20a_instmem(p) container_of((p), struct gk20a_instmem, base)
  
-@@ -37,22 +37,21 @@ static void *v32_dma_alloc(struct device
- }
+@@ -293,7 +293,7 @@ gk20a_instobj_dtor_dma(struct nvkm_memor
+ 		goto out;
  
- static void v32_dma_free(struct device *dev, size_t size, void *vaddr,
--		dma_addr_t dma_handle, struct dma_attrs *attrs)
-+		dma_addr_t dma_handle, unsigned long attrs)
- {
- 	free_pages((unsigned long)vaddr, get_order(size));
- }
+ 	dma_free_attrs(dev, node->base.mem.size << PAGE_SHIFT, node->base.vaddr,
+-		       node->handle, &imem->attrs);
++		       node->handle, imem->attrs);
  
- static inline dma_addr_t v32_dma_map_page(struct device *dev,
- 		struct page *page, unsigned long offset, size_t size,
--		enum dma_data_direction direction,
--		struct dma_attrs *attrs)
-+		enum dma_data_direction direction, unsigned long attrs)
- {
- 	return page_to_phys(page) + offset;
- }
+ out:
+ 	return node;
+@@ -386,7 +386,7 @@ gk20a_instobj_ctor_dma(struct gk20a_inst
  
- static inline int v32_dma_map_sg(struct device *dev, struct scatterlist *sg,
- 		int nents, enum dma_data_direction direction,
--		struct dma_attrs *attrs)
-+		unsigned long attrs)
- {
- 	printk("Map sg\n");
- 	return nents;
+ 	node->base.vaddr = dma_alloc_attrs(dev, npages << PAGE_SHIFT,
+ 					   &node->handle, GFP_KERNEL,
+-					   &imem->attrs);
++					   imem->attrs);
+ 	if (!node->base.vaddr) {
+ 		nvkm_error(subdev, "cannot allocate DMA memory\n");
+ 		return -ENOMEM;
+@@ -597,10 +597,9 @@ gk20a_instmem_new(struct nvkm_device *de
+ 
+ 		nvkm_info(&imem->base.subdev, "using IOMMU\n");
+ 	} else {
+-		init_dma_attrs(&imem->attrs);
+-		dma_set_attr(DMA_ATTR_NON_CONSISTENT, &imem->attrs);
+-		dma_set_attr(DMA_ATTR_WEAK_ORDERING, &imem->attrs);
+-		dma_set_attr(DMA_ATTR_WRITE_COMBINE, &imem->attrs);
++		imem->attrs = DMA_ATTR_NON_CONSISTENT |
++			      DMA_ATTR_WEAK_ORDERING |
++			      DMA_ATTR_WRITE_COMBINE;
+ 
+ 		nvkm_info(&imem->base.subdev, "using DMA API\n");
+ 	}
 _
 
 Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
 media-mtk-vcodec-remove-unused-dma_attrs.patch
 dma-mapping-use-unsigned-long-for-dma_attrs.patch
-frv-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-drm-exynos-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-drm-mediatek-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-drm-msm-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 infiniband-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 iommu-dma-mapping-use-unsigned-long-for-dma_attrs.patch
