@@ -1,159 +1,78 @@
-From: akpm@linux-foundation.org
-Subject: [folded-merged]
- drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from -mm tree
-Date: Wed, 03 Aug 2016 13:13:56 -0700
-Message-ID: <57a25084.TjCz002/zb3x4ucX%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Wed, 3 Aug 2016 13:45:09 -0700
+Message-ID: <20160803134509.c28f5c0ac869d940ff641740@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__3_Aug_2016_13_45_09_-0700_budd15Ni4SSbKfCg"
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38984 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39688 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758246AbcHCUO1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:14:27 -0400
+	with ESMTP id S932662AbcHCUpS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:45:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, daniel.vetter@ffwll.ch, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
+
+--Signature=_Wed__3_Aug_2016_13_45_09_-0700_budd15Ni4SSbKfCg
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
 
-The patch titled
-     Subject: drm/rockship: dma-mapping: use unsigned long for dma_attrs
-has been removed from the -mm tree.  Its filename was
-     drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+- dma-mapping API cleanup
 
-This patch was dropped because it was folded into dma-mapping-use-unsigned-long-for-dma_attrs.patch
+- a few cleanups and misc things
 
-------------------------------------------------------
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: drm/rockship: dma-mapping: use unsigned long for dma_attrs
+- use jump labels in dynamic-debug
 
-Split out subsystem specific changes for easier reviews. This will be
-squashed with main commit.
+18 patches, based on bf0f500bd0199aab613eb0ecb3412edd5472740d:
 
-Link: http://lkml.kernel.org/r/1468399300-5399-16-git-send-email-k.kozlowski@samsung.com
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch> [drm]
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Subject: drivers/fpga/Kconfig: fix build failure
+Subject: tree-wide: replace config_enabled() with IS_ENABLED()
+Subject: include/linux/bitmap.h: cleanup
+Subject: media: mtk-vcodec: remove unused dma_attrs
+Subject: dma-mapping: use unsigned long for dma_attrs
+Subject: samples/kprobe: convert the printk to pr_info/pr_err
+Subject: samples/jprobe: convert the printk to pr_info/pr_err
+Subject: samples/kretprobe: convert the printk to pr_info/pr_err
+Subject: samples/kretprobe: fix the wrong type
+Subject: block: remove BLK_DEV_DAX config option
+Subject: MAINTAINERS: update email and list of Samsung HW driver maintainers
+Subject: drivers/media/dvb-frontends/cxd2841er.c: avoid misleading gcc warn=
+ing
+Subject: powerpc: add explicit #include <asm/asm-compat.h> for jump label
+Subject: sparc: support static_key usage in non-module __exit sections
+Subject: tile: support static_key usage in non-module __exit sections
+Subject: arm: jump label may reference text in __exit
+Subject: jump_label: remove bug.h, atomic.h dependencies for HAVE_JUMP_LABEL
+Subject: dynamic_debug: add jump label support
 
- drivers/gpu/drm/rockchip/rockchip_drm_gem.c |   17 +++++++----------
- drivers/gpu/drm/rockchip/rockchip_drm_gem.h |    2 +-
- 2 files changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN drivers/gpu/drm/rockchip/rockchip_drm_gem.c~drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs drivers/gpu/drm/rockchip/rockchip_drm_gem.c
---- a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c~drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/gpu/drm/rockchip/rockchip_drm_gem.c
-@@ -17,8 +17,6 @@
- #include <drm/drm_gem.h>
- #include <drm/drm_vma_manager.h>
- 
--#include <linux/dma-attrs.h>
--
- #include "rockchip_drm_drv.h"
- #include "rockchip_drm_gem.h"
- 
-@@ -28,15 +26,14 @@ static int rockchip_gem_alloc_buf(struct
- 	struct drm_gem_object *obj = &rk_obj->base;
- 	struct drm_device *drm = obj->dev;
- 
--	init_dma_attrs(&rk_obj->dma_attrs);
--	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &rk_obj->dma_attrs);
-+	rk_obj->dma_attrs = DMA_ATTR_WRITE_COMBINE;
- 
- 	if (!alloc_kmap)
--		dma_set_attr(DMA_ATTR_NO_KERNEL_MAPPING, &rk_obj->dma_attrs);
-+		rk_obj->dma_attrs |= DMA_ATTR_NO_KERNEL_MAPPING;
- 
- 	rk_obj->kvaddr = dma_alloc_attrs(drm->dev, obj->size,
- 					 &rk_obj->dma_addr, GFP_KERNEL,
--					 &rk_obj->dma_attrs);
-+					 rk_obj->dma_attrs);
- 	if (!rk_obj->kvaddr) {
- 		DRM_ERROR("failed to allocate %zu byte dma buffer", obj->size);
- 		return -ENOMEM;
-@@ -51,7 +48,7 @@ static void rockchip_gem_free_buf(struct
- 	struct drm_device *drm = obj->dev;
- 
- 	dma_free_attrs(drm->dev, obj->size, rk_obj->kvaddr, rk_obj->dma_addr,
--		       &rk_obj->dma_attrs);
-+		       rk_obj->dma_attrs);
- }
- 
- static int rockchip_drm_gem_object_mmap(struct drm_gem_object *obj,
-@@ -70,7 +67,7 @@ static int rockchip_drm_gem_object_mmap(
- 	vma->vm_pgoff = 0;
- 
- 	ret = dma_mmap_attrs(drm->dev, vma, rk_obj->kvaddr, rk_obj->dma_addr,
--			     obj->size, &rk_obj->dma_attrs);
-+			     obj->size, rk_obj->dma_attrs);
- 	if (ret)
- 		drm_gem_vm_close(vma);
- 
-@@ -262,7 +259,7 @@ struct sg_table *rockchip_gem_prime_get_
- 
- 	ret = dma_get_sgtable_attrs(drm->dev, sgt, rk_obj->kvaddr,
- 				    rk_obj->dma_addr, obj->size,
--				    &rk_obj->dma_attrs);
-+				    rk_obj->dma_attrs);
- 	if (ret) {
- 		DRM_ERROR("failed to allocate sgt, %d\n", ret);
- 		kfree(sgt);
-@@ -276,7 +273,7 @@ void *rockchip_gem_prime_vmap(struct drm
- {
- 	struct rockchip_gem_object *rk_obj = to_rockchip_obj(obj);
- 
--	if (dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, &rk_obj->dma_attrs))
-+	if (dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, rk_obj->dma_attrs))
- 		return NULL;
- 
- 	return rk_obj->kvaddr;
-diff -puN drivers/gpu/drm/rockchip/rockchip_drm_gem.h~drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs drivers/gpu/drm/rockchip/rockchip_drm_gem.h
---- a/drivers/gpu/drm/rockchip/rockchip_drm_gem.h~drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs
-+++ a/drivers/gpu/drm/rockchip/rockchip_drm_gem.h
-@@ -23,7 +23,7 @@ struct rockchip_gem_object {
- 
- 	void *kvaddr;
- 	dma_addr_t dma_addr;
--	struct dma_attrs dma_attrs;
-+	unsigned long dma_attrs;
- };
- 
- struct sg_table *rockchip_gem_prime_get_sg_table(struct drm_gem_object *obj);
-_
 
-Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
-media-mtk-vcodec-remove-unused-dma_attrs.patch
-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-infiniband-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-iommu-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-media-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-xen-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-swiotlb-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-powerpc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-video-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-x86-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-h8300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-hexagon-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-ia64-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-metag-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-microblaze-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-mips-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-mn10300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-openrisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-parisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-misc-mic-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-s390-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-sh-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-sparc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-tile-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-unicore32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-xtensa-dma-mapping-use-unsigned-long-for-dma_attrs.patch
-remoteproc-qcom-use-unsigned-long-for-dma_attrs.patch
-dma-mapping-remove-dma_get_attr.patch
-dma-mapping-document-the-dma-attributes-next-to-the-declaration.patch
+--Signature=_Wed__3_Aug_2016_13_45_09_-0700_budd15Ni4SSbKfCg
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAEBAgAGBQJXolfbAAoJEJxZ78cCqAIHJbUQALZurX4LhRIyhaA1XOZ88u7N
+A6OtKv1HvhaS6Y3DX0x/UcQar2qhA9NVJmT7Yh24Xl4H097KTK0kPF898BaEWXuP
+T0alTztQKDmF9QdxwUJGPOR1E2gOONeJxzod3VjHnzEaGLe+VGQnaoEc1KfQZ8Mp
+srCi1s6oFGEELD6ES5UGzHVZm+N3uzJp7l1naNMWcT6Iqfc6Gw6N1ZcmR+aUYQ/W
+SBlgWKTKJGMX2dFkLBiUP5Kv78xYXCDxhiBJ5aZTisKjF6BtTPCeGcr24GYr9pqq
+K4cLo7mFBwaXyXF4ismXUQC3JhKG+vNCe2nLa+wErWisfED0j99d4TfSCoxmObvu
+ToV/6Zhp/hD6yT7q1n1NhAhc17y2eOWRSa5WjzAHhrZSRWZUfAvlIqBZeEOccRm/
+v51UJkwpFytQbh8wm84v8L2hh4SKEsMnnj8TvIvLXKah1T/+FZbacxe06NlutX3Q
+/suz0GkYmc8QU2gLUEbC8hNDNkPXRSJX6hK7R1JoeDtTvGqkllKl994VnzzR2SOU
+HzPAIYiV986k+ZbuwOaFm1SFCkv00XJm8beoF80rDaMR2NufyMsMJ4NHOhtR1cRA
+iCBXj4APjC6ZPx7h0CZbwiv/CqBKA63ENrgB6FNPPXC3kaKYdm3/zC0vk127okWC
+Bjp6/7i8IS/RUml27FAd
+=U7I5
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__3_Aug_2016_13_45_09_-0700_budd15Ni4SSbKfCg--
