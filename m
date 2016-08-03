@@ -1,78 +1,268 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3.patch
- removed from -mm tree
-Date: Wed, 03 Aug 2016 11:14:41 -0700
-Message-ID: <57a23491.0tLZ082ykW3aDYX2%akpm@linux-foundation.org>
+Subject: [merged] w1-remove-need-for-ida-and-use-platform_devid_auto.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 11:14:46 -0700
+Message-ID: <57a23496.X60LwbCqrUq5rH1Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33643 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33629 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758035AbcHCSOm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:14:42 -0400
+	with ESMTP id S1753163AbcHCSOr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:14:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, benh@kernel.crashing.org, mpe@ellerman.id.au, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: afd@ti.com, greg@kroah.com, zbr@ioremap.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/fsl_rio: apply changes for RIO spec rev 3
+     Subject: w1: remove need for ida and use PLATFORM_DEVID_AUTO
 has been removed from the -mm tree.  Its filename was
-     powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3.patch
+     w1-remove-need-for-ida-and-use-platform_devid_auto.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: powerpc/fsl_rio: apply changes for RIO spec rev 3
+From: "Andrew F. Davis" <afd@ti.com>
+Subject: w1: remove need for ida and use PLATFORM_DEVID_AUTO
 
-- Remove check for parallel PHY
-- Set LP-Serial Register Map type
+PLATFORM_DEVID_AUTO can be used to have the platform core assign
+a unique ID instead of manually creating one with IDA. Do this
+in all applicable drivers.
 
-[akpm@linux-foundation.org: fix build]
-[alexandre.bounine@idt.com: fix build fix]
- Link: http://lkml.kernel.org/r/20160802184932.2755-1-alexandre.bounine@idt.com
-Link: http://lkml.kernel.org/r/1469125134-16523-13-git-send-email-alexandre.bounine@idt.com
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
-Cc: Barry Wood <barry.wood@idt.com>
+Link: http://lkml.kernel.org/r/20160531204313.20979-1-afd@ti.com
+Signed-off-by: Andrew F. Davis <afd@ti.com>
+Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |   20 +++++---------------
- 1 file changed, 5 insertions(+), 15 deletions(-)
+ drivers/w1/slaves/w1_ds2760.c |   28 +++++-----------------------
+ drivers/w1/slaves/w1_ds2780.c |   25 ++++---------------------
+ drivers/w1/slaves/w1_ds2781.c |   26 ++++----------------------
+ 3 files changed, 13 insertions(+), 66 deletions(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3 arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~powerpc-fsl_rio-apply-changes-for-rio-spec-rev-3
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -643,19 +643,11 @@ int fsl_rio_setup(struct platform_device
- 		port->ops = ops;
- 		port->priv = priv;
- 		port->phys_efptr = 0x100;
-+		port->phys_rmap = 1;
- 		priv->regs_win = rio_regs_win;
+diff -puN drivers/w1/slaves/w1_ds2760.c~w1-remove-need-for-ida-and-use-platform_devid_auto drivers/w1/slaves/w1_ds2760.c
+--- a/drivers/w1/slaves/w1_ds2760.c~w1-remove-need-for-ida-and-use-platform_devid_auto
++++ a/drivers/w1/slaves/w1_ds2760.c
+@@ -121,25 +121,14 @@ static const struct attribute_group *w1_
+ 	NULL,
+ };
  
--		/* Probe the master port phy type */
- 		ccsr = in_be32(priv->regs_win + RIO_CCSR + i*0x20);
--		port->phy_type = (ccsr & 1) ? RIO_PHY_SERIAL : RIO_PHY_PARALLEL;
--		if (port->phy_type == RIO_PHY_PARALLEL) {
--			dev_err(&dev->dev, "RIO: Parallel PHY type, unsupported port type!\n");
--			release_resource(&port->iores);
--			kfree(priv);
--			kfree(port);
--			continue;
--		}
--		dev_info(&dev->dev, "RapidIO PHY type: Serial\n");
+-static DEFINE_IDA(bat_ida);
+-
+ static int w1_ds2760_add_slave(struct w1_slave *sl)
+ {
+ 	int ret;
+-	int id;
+ 	struct platform_device *pdev;
+ 
+-	id = ida_simple_get(&bat_ida, 0, 0, GFP_KERNEL);
+-	if (id < 0) {
+-		ret = id;
+-		goto noid;
+-	}
+-
+-	pdev = platform_device_alloc("ds2760-battery", id);
+-	if (!pdev) {
+-		ret = -ENOMEM;
+-		goto pdev_alloc_failed;
+-	}
++	pdev = platform_device_alloc("ds2760-battery", PLATFORM_DEVID_AUTO);
++	if (!pdev)
++		return -ENOMEM;
+ 	pdev->dev.parent = &sl->dev;
+ 
+ 	ret = platform_device_add(pdev);
+@@ -148,24 +137,19 @@ static int w1_ds2760_add_slave(struct w1
+ 
+ 	dev_set_drvdata(&sl->dev, pdev);
+ 
+-	goto success;
++	return 0;
+ 
+ pdev_add_failed:
+ 	platform_device_put(pdev);
+-pdev_alloc_failed:
+-	ida_simple_remove(&bat_ida, id);
+-noid:
+-success:
 +
- 		/* Checking the port training status */
- 		if (in_be32((priv->regs_win + RIO_ESCSR + i*0x20)) & 1) {
- 			dev_err(&dev->dev, "Port %d is not ready. "
-@@ -705,11 +697,9 @@ int fsl_rio_setup(struct platform_device
- 			((i == 0) ? RIO_INB_ATMU_REGS_PORT1_OFFSET :
- 			RIO_INB_ATMU_REGS_PORT2_OFFSET));
+ 	return ret;
+ }
  
+ static void w1_ds2760_remove_slave(struct w1_slave *sl)
+ {
+ 	struct platform_device *pdev = dev_get_drvdata(&sl->dev);
+-	int id = pdev->id;
+ 
+ 	platform_device_unregister(pdev);
+-	ida_simple_remove(&bat_ida, id);
+ }
+ 
+ static struct w1_family_ops w1_ds2760_fops = {
+@@ -182,14 +166,12 @@ static struct w1_family w1_ds2760_family
+ static int __init w1_ds2760_init(void)
+ {
+ 	pr_info("1-Wire driver for the DS2760 battery monitor chip - (c) 2004-2005, Szabolcs Gyurko\n");
+-	ida_init(&bat_ida);
+ 	return w1_register_family(&w1_ds2760_family);
+ }
+ 
+ static void __exit w1_ds2760_exit(void)
+ {
+ 	w1_unregister_family(&w1_ds2760_family);
+-	ida_destroy(&bat_ida);
+ }
+ 
+ EXPORT_SYMBOL(w1_ds2760_read);
+diff -puN drivers/w1/slaves/w1_ds2780.c~w1-remove-need-for-ida-and-use-platform_devid_auto drivers/w1/slaves/w1_ds2780.c
+--- a/drivers/w1/slaves/w1_ds2780.c~w1-remove-need-for-ida-and-use-platform_devid_auto
++++ a/drivers/w1/slaves/w1_ds2780.c
+@@ -113,25 +113,14 @@ static const struct attribute_group *w1_
+ 	NULL,
+ };
+ 
+-static DEFINE_IDA(bat_ida);
+-
+ static int w1_ds2780_add_slave(struct w1_slave *sl)
+ {
+ 	int ret;
+-	int id;
+ 	struct platform_device *pdev;
+ 
+-	id = ida_simple_get(&bat_ida, 0, 0, GFP_KERNEL);
+-	if (id < 0) {
+-		ret = id;
+-		goto noid;
+-	}
+-
+-	pdev = platform_device_alloc("ds2780-battery", id);
+-	if (!pdev) {
+-		ret = -ENOMEM;
+-		goto pdev_alloc_failed;
+-	}
++	pdev = platform_device_alloc("ds2780-battery", PLATFORM_DEVID_AUTO);
++	if (!pdev)
++		return -ENOMEM;
+ 	pdev->dev.parent = &sl->dev;
+ 
+ 	ret = platform_device_add(pdev);
+@@ -144,19 +133,15 @@ static int w1_ds2780_add_slave(struct w1
+ 
+ pdev_add_failed:
+ 	platform_device_put(pdev);
+-pdev_alloc_failed:
+-	ida_simple_remove(&bat_ida, id);
+-noid:
++
+ 	return ret;
+ }
+ 
+ static void w1_ds2780_remove_slave(struct w1_slave *sl)
+ {
+ 	struct platform_device *pdev = dev_get_drvdata(&sl->dev);
+-	int id = pdev->id;
+ 
+ 	platform_device_unregister(pdev);
+-	ida_simple_remove(&bat_ida, id);
+ }
+ 
+ static struct w1_family_ops w1_ds2780_fops = {
+@@ -172,14 +157,12 @@ static struct w1_family w1_ds2780_family
+ 
+ static int __init w1_ds2780_init(void)
+ {
+-	ida_init(&bat_ida);
+ 	return w1_register_family(&w1_ds2780_family);
+ }
+ 
+ static void __exit w1_ds2780_exit(void)
+ {
+ 	w1_unregister_family(&w1_ds2780_family);
+-	ida_destroy(&bat_ida);
+ }
+ 
+ module_init(w1_ds2780_init);
+diff -puN drivers/w1/slaves/w1_ds2781.c~w1-remove-need-for-ida-and-use-platform_devid_auto drivers/w1/slaves/w1_ds2781.c
+--- a/drivers/w1/slaves/w1_ds2781.c~w1-remove-need-for-ida-and-use-platform_devid_auto
++++ a/drivers/w1/slaves/w1_ds2781.c
+@@ -17,7 +17,6 @@
+ #include <linux/types.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
+-#include <linux/idr.h>
+ 
+ #include "../w1.h"
+ #include "../w1_int.h"
+@@ -111,25 +110,14 @@ static const struct attribute_group *w1_
+ 	NULL,
+ };
+ 
+-static DEFINE_IDA(bat_ida);
+-
+ static int w1_ds2781_add_slave(struct w1_slave *sl)
+ {
+ 	int ret;
+-	int id;
+ 	struct platform_device *pdev;
+ 
+-	id = ida_simple_get(&bat_ida, 0, 0, GFP_KERNEL);
+-	if (id < 0) {
+-		ret = id;
+-		goto noid;
+-	}
+-
+-	pdev = platform_device_alloc("ds2781-battery", id);
+-	if (!pdev) {
+-		ret = -ENOMEM;
+-		goto pdev_alloc_failed;
+-	}
++	pdev = platform_device_alloc("ds2781-battery", PLATFORM_DEVID_AUTO);
++	if (!pdev)
++		return -ENOMEM;
+ 	pdev->dev.parent = &sl->dev;
+ 
+ 	ret = platform_device_add(pdev);
+@@ -142,19 +130,15 @@ static int w1_ds2781_add_slave(struct w1
+ 
+ pdev_add_failed:
+ 	platform_device_put(pdev);
+-pdev_alloc_failed:
+-	ida_simple_remove(&bat_ida, id);
+-noid:
++
+ 	return ret;
+ }
+ 
+ static void w1_ds2781_remove_slave(struct w1_slave *sl)
+ {
+ 	struct platform_device *pdev = dev_get_drvdata(&sl->dev);
+-	int id = pdev->id;
+ 
+ 	platform_device_unregister(pdev);
+-	ida_simple_remove(&bat_ida, id);
+ }
+ 
+ static struct w1_family_ops w1_ds2781_fops = {
+@@ -170,14 +154,12 @@ static struct w1_family w1_ds2781_family
+ 
+ static int __init w1_ds2781_init(void)
+ {
+-	ida_init(&bat_ida);
+ 	return w1_register_family(&w1_ds2781_family);
+ }
+ 
+ static void __exit w1_ds2781_exit(void)
+ {
+ 	w1_unregister_family(&w1_ds2781_family);
+-	ida_destroy(&bat_ida);
+ }
+ 
+ module_init(w1_ds2781_init);
+_
+
+Patches currently in -mm which might be from afd@ti.com are
+
+
