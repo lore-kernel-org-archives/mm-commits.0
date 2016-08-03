@@ -1,80 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix-tree-fix-comment-about-exceptional-bits.patch
- removed from -mm tree
-Date: Wed, 03 Aug 2016 11:12:23 -0700
-Message-ID: <57a23407.lhl7nfWq0TBy8YD1%akpm@linux-foundation.org>
+Subject: [merged]
+ get_maintainerpl-reduce-need-for-command-line-option-f.patch removed from
+ -mm tree
+Date: Wed, 03 Aug 2016 11:12:17 -0700
+Message-ID: <57a23401.jj/ERYjs/LJwRas4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33340 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33356 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755297AbcHCSNc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:32 -0400
+	with ESMTP id S1754977AbcHCSNa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, david@fromorbit.com, jack@suse.com, jthumshirn@suse.de, koct9i@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: fix comment about "exceptional" bits
+     Subject: get_maintainer.pl: reduce need for command-line option -f
 has been removed from the -mm tree.  Its filename was
-     radix-tree-fix-comment-about-exceptional-bits.patch
+     get_maintainerpl-reduce-need-for-command-line-option-f.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: radix-tree: fix comment about "exceptional" bits
+From: Joe Perches <joe@perches.com>
+Subject: get_maintainer.pl: reduce need for command-line option -f
 
-The bottom two bits of radix tree entries are reserved for special use by
-the radix tree code itself.  A comment detailing their usage was added by:
+If a vcs is used, look to see if the vcs tracks the file specified
+and so the -f option becomes optional.
 
-commit 3bcadd6fa6c4 ("radix-tree: free up the bottom bit of exceptional
-entries for reuse")
-
-This comment states that if the bottom two bits are '11', this means that
-this is a locked exceptional entry.
-
-It turns out that this bit combination was never actually used.  Radix tree
-locking for DAX was indeed implemented, but it actually used the third LSB:
-
-  /* We use lowest available exceptional entry bit for locking */
-  #define RADIX_DAX_ENTRY_LOCK (1 << RADIX_TREE_EXCEPTIONAL_SHIFT)
-
-This locking code was also made specific to the DAX code instead of being
-generally implemented in radix-tree.h.
-
-So, fix the comment.
-
-Link: http://lkml.kernel.org/r/1468997731-2155-1-git-send-email-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Link: http://lkml.kernel.org/r/7c86a8df0d48770c45778a43b6b3e4627b2a90ee.1469746395.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/get_maintainer.pl |   20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-fix-comment-about-exceptional-bits include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-fix-comment-about-exceptional-bits
-+++ a/include/linux/radix-tree.h
-@@ -35,7 +35,7 @@
-  * 00 - data pointer
-  * 01 - internal entry
-  * 10 - exceptional entry
-- * 11 - locked exceptional entry
-+ * 11 - this bit combination is currently unused/reserved
-  *
-  * The internal entry may be a pointer to the next level in the tree, a
-  * sibling entry, or an indicator that the entry in this slot has been moved
+diff -puN scripts/get_maintainer.pl~get_maintainerpl-reduce-need-for-command-line-option-f scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainerpl-reduce-need-for-command-line-option-f
++++ a/scripts/get_maintainer.pl
+@@ -133,6 +133,7 @@ my %VCS_cmds_git = (
+     "author_pattern" => "^GitAuthor: (.*)",
+     "subject_pattern" => "^GitSubject: (.*)",
+     "stat_pattern" => "^(\\d+)\\t(\\d+)\\t\$file\$",
++    "file_exists_cmd" => "git ls-files \$file",
+ );
+ 
+ my %VCS_cmds_hg = (
+@@ -161,6 +162,7 @@ my %VCS_cmds_hg = (
+     "author_pattern" => "^HgAuthor: (.*)",
+     "subject_pattern" => "^HgSubject: (.*)",
+     "stat_pattern" => "^(\\d+)\t(\\d+)\t\$file\$",
++    "file_exists_cmd" => "hg files \$file",
+ );
+ 
+ my $conf = which_conf(".get_maintainer.conf");
+@@ -430,7 +432,7 @@ foreach my $file (@ARGV) {
+ 	    die "$P: file '${file}' not found\n";
+ 	}
+     }
+-    if ($from_filename) {
++    if ($from_filename || vcs_file_exists($file)) {
+ 	$file =~ s/^\Q${cur_path}\E//;	#strip any absolute path
+ 	$file =~ s/^\Q${lk_path}\E//;	#or the path to the lk tree
+ 	push(@files, $file);
+@@ -2124,6 +2126,22 @@ sub vcs_file_blame {
+     }
+ }
+ 
++sub vcs_file_exists {
++    my ($file) = @_;
++
++    my $exists;
++
++    my $vcs_used = vcs_exists();
++    return 0 if (!$vcs_used);
++
++    my $cmd = $VCS_cmds{"file_exists_cmd"};
++    $cmd =~ s/(\$\w+)/$1/eeg;		# interpolate $cmd
++
++    $exists = &{$VCS_cmds{"execute_cmd"}}($cmd);
++
++    return $exists;
++}
++
+ sub uniq {
+     my (@parms) = @_;
+ 
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-block-remove-blk_dev_dax-config-option.patch
 
