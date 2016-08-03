@@ -1,72 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlb-fix-huge_pte_alloc-bug_on.patch removed from
- -mm tree
-Date: Wed, 03 Aug 2016 11:10:51 -0700
-Message-ID: <57a233ab.UlEZUrtlu85jSzjL%akpm@linux-foundation.org>
+Subject: [merged] mm-kasan-dont-reduce-quarantine-in-atomic-contexts.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 11:11:00 -0700
+Message-ID: <57a233b4.P7xDp13x+x8pImge%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34120 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34123 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755555AbcHCSVv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:21:51 -0400
+	with ESMTP id S1753959AbcHCSVw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:21:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, n-horiguchi@ah.jp.nec.com, zhongjiang@huawei.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, davej@codemonkey.org.uk, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlb: fix huge_pte_alloc BUG_ON
+     Subject: mm/kasan: don't reduce quarantine in atomic contexts
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-huge_pte_alloc-bug_on.patch
+     mm-kasan-dont-reduce-quarantine-in-atomic-contexts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, hugetlb: fix huge_pte_alloc BUG_ON
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: mm/kasan: don't reduce quarantine in atomic contexts
 
-Zhong Jiang has reported a BUG_ON from huge_pte_alloc hitting when he runs
-his database load with memory online and offline running in parallel.  The
-reason is that huge_pmd_share might detect a shared pmd which is currently
-migrated and so it has migration pte which is !pte_huge.
+Currently we call quarantine_reduce() for ___GFP_KSWAPD_RECLAIM (implied
+by __GFP_RECLAIM) allocation.  So, basically we call it on almost every
+allocation.  quarantine_reduce() sometimes is heavy operation, and calling
+it with disabled interrupts may trigger hard LOCKUP:
 
-There doesn't seem to be any easy way to prevent from the race and in fact
-seeing the migration swap entry is not harmful.  Both callers of
-huge_pte_alloc are prepared to handle them.  copy_hugetlb_page_range will
-copy the swap entry and make it COW if needed.  hugetlb_fault will back
-off and so the page fault is retries if the page is still under migration
-and waits for its completion in hugetlb_fault.
+ NMI watchdog: Watchdog detected hard LOCKUP on cpu 2irq event stamp: 1411258
+ Call Trace:
+  <NMI>  [<ffffffff98a48532>] dump_stack+0x68/0x96
+  [<ffffffff98357fbb>] watchdog_overflow_callback+0x15b/0x190
+  [<ffffffff9842f7d1>] __perf_event_overflow+0x1b1/0x540
+  [<ffffffff98455b14>] perf_event_overflow+0x14/0x20
+  [<ffffffff9801976a>] intel_pmu_handle_irq+0x36a/0xad0
+  [<ffffffff9800ba4c>] perf_event_nmi_handler+0x2c/0x50
+  [<ffffffff98057058>] nmi_handle+0x128/0x480
+  [<ffffffff980576d2>] default_do_nmi+0xb2/0x210
+  [<ffffffff980579da>] do_nmi+0x1aa/0x220
+  [<ffffffff99a0bb07>] end_repeat_nmi+0x1a/0x1e
+  <<EOE>>  [<ffffffff981871e6>] __kernel_text_address+0x86/0xb0
+  [<ffffffff98055c4b>] print_context_stack+0x7b/0x100
+  [<ffffffff98054e9b>] dump_trace+0x12b/0x350
+  [<ffffffff98076ceb>] save_stack_trace+0x2b/0x50
+  [<ffffffff98573003>] set_track+0x83/0x140
+  [<ffffffff98575f4a>] free_debug_processing+0x1aa/0x420
+  [<ffffffff98578506>] __slab_free+0x1d6/0x2e0
+  [<ffffffff9857a9b6>] ___cache_free+0xb6/0xd0
+  [<ffffffff9857db53>] qlist_free_all+0x83/0x100
+  [<ffffffff9857df07>] quarantine_reduce+0x177/0x1b0
+  [<ffffffff9857c423>] kasan_kmalloc+0xf3/0x100
 
-That means that the BUG_ON is wrong and we should update it.  Let's simply
-check that all present ptes are pte_huge instead.
+Reduce the quarantine_reduce iff direct reclaim is allowed.
 
-Link: http://lkml.kernel.org/r/20160721074340.GA26398@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: zhongjiang <zhongjiang@huawei.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Fixes: 55834c59098d("mm: kasan: initial memory quarantine implementation")
+Link: http://lkml.kernel.org/r/1470062715-14077-2-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reported-by: Dave Jones <davej@codemonkey.org.uk>
+Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/kasan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-huge_pte_alloc-bug_on mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-huge_pte_alloc-bug_on
-+++ a/mm/hugetlb.c
-@@ -4310,7 +4310,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 				pte = (pte_t *)pmd_alloc(mm, pud, addr);
- 		}
- 	}
--	BUG_ON(pte && !pte_none(*pte) && !pte_huge(*pte));
-+	BUG_ON(pte && pte_present(*pte) && !pte_huge(*pte));
+diff -puN mm/kasan/kasan.c~mm-kasan-dont-reduce-quarantine-in-atomic-contexts mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-dont-reduce-quarantine-in-atomic-contexts
++++ a/mm/kasan/kasan.c
+@@ -565,7 +565,7 @@ void kasan_kmalloc(struct kmem_cache *ca
+ 	unsigned long redzone_start;
+ 	unsigned long redzone_end;
  
- 	return pte;
- }
+-	if (flags & __GFP_RECLAIM)
++	if (gfpflags_allow_blocking(flags))
+ 		quarantine_reduce();
+ 
+ 	if (unlikely(object == NULL))
+@@ -596,7 +596,7 @@ void kasan_kmalloc_large(const void *ptr
+ 	unsigned long redzone_start;
+ 	unsigned long redzone_end;
+ 
+-	if (flags & __GFP_RECLAIM)
++	if (gfpflags_allow_blocking(flags))
+ 		quarantine_reduce();
+ 
+ 	if (unlikely(ptr == NULL))
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
 
