@@ -1,51 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [patch 03/18] include/linux/bitmap.h: cleanup
-Date: Wed, 03 Aug 2016 13:45:54 -0700
-Message-ID: <57a25802.thsZvHJXgDiWozLT%akpm@linux-foundation.org>
+Subject: [patch 06/18] samples/kprobe: convert the printk to
+ pr_info/pr_err
+Date: Wed, 03 Aug 2016 13:46:03 -0700
+Message-ID: <57a2580b.vvqk/fsVlDQ3OV1U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39738 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39766 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757411AbcHCUqh (ORCPT
+	with ESMTP id S1758274AbcHCUqh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:46:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dahi@linux.vnet.ibm.com, schwidefsky@de.ibm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, shijie.huang@arm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, mhiramat@kernel.org, pmladek@suse.com, steve.capper@arm.com
 
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/bitmap.h: cleanup
+From: Huang Shijie <shijie.huang@arm.com>
+Subject: samples/kprobe: convert the printk to pr_info/pr_err
 
-Remove two unneeded `else's.
+We prefer to use the pr_* to print out the log now, this patch converts
+the printk to pr_info.  In the error path, use the pr_err to replace the
+printk.
 
-Cc: David Hildenbrand <dahi@linux.vnet.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Link: http://lkml.kernel.org/r/1464143083-3877-1-git-send-email-shijie.huang@arm.com
+Signed-off-by: Huang Shijie <shijie.huang@arm.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Steve Capper <steve.capper@arm.com>
+Cc: Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ samples/kprobes/kprobe_example.c |   29 ++++++++++++-----------------
+ 1 file changed, 12 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/bitmap.h~bitmap-bitmap_equal-memcmp-optimization-fix include/linux/bitmap.h
---- a/include/linux/bitmap.h~bitmap-bitmap_equal-memcmp-optimization-fix
-+++ a/include/linux/bitmap.h
-@@ -266,13 +266,12 @@ static inline int bitmap_equal(const uns
- 			const unsigned long *src2, unsigned int nbits)
+diff -puN samples/kprobes/kprobe_example.c~samples-kprobe-convert-the-printk-to-pr_info-pr_err samples/kprobes/kprobe_example.c
+--- a/samples/kprobes/kprobe_example.c~samples-kprobe-convert-the-printk-to-pr_info-pr_err
++++ a/samples/kprobes/kprobe_example.c
+@@ -27,23 +27,19 @@ static struct kprobe kp = {
+ static int handler_pre(struct kprobe *p, struct pt_regs *regs)
  {
- 	if (small_const_nbits(nbits))
--		return ! ((*src1 ^ *src2) & BITMAP_LAST_WORD_MASK(nbits));
-+		return !((*src1 ^ *src2) & BITMAP_LAST_WORD_MASK(nbits));
- #ifdef CONFIG_S390
--	else if (__builtin_constant_p(nbits) && (nbits % BITS_PER_LONG) == 0)
-+	if (__builtin_constant_p(nbits) && (nbits % BITS_PER_LONG) == 0)
- 		return !memcmp(src1, src2, nbits / 8);
+ #ifdef CONFIG_X86
+-	printk(KERN_INFO "<%s> pre_handler: p->addr = 0x%p, ip = %lx,"
+-			" flags = 0x%lx\n",
++	pr_info("<%s> pre_handler: p->addr = 0x%p, ip = %lx, flags = 0x%lx\n",
+ 		p->symbol_name, p->addr, regs->ip, regs->flags);
  #endif
--	else
--		return __bitmap_equal(src1, src2, nbits);
-+	return __bitmap_equal(src1, src2, nbits);
+ #ifdef CONFIG_PPC
+-	printk(KERN_INFO "<%s> pre_handler: p->addr = 0x%p, nip = 0x%lx,"
+-			" msr = 0x%lx\n",
++	pr_info("<%s> pre_handler: p->addr = 0x%p, nip = 0x%lx, msr = 0x%lx\n",
+ 		p->symbol_name, p->addr, regs->nip, regs->msr);
+ #endif
+ #ifdef CONFIG_MIPS
+-	printk(KERN_INFO "<%s> pre_handler: p->addr = 0x%p, epc = 0x%lx,"
+-			" status = 0x%lx\n",
++	pr_info("<%s> pre_handler: p->addr = 0x%p, epc = 0x%lx, status = 0x%lx\n",
+ 		p->symbol_name, p->addr, regs->cp0_epc, regs->cp0_status);
+ #endif
+ #ifdef CONFIG_TILEGX
+-	printk(KERN_INFO "<%s> pre_handler: p->addr = 0x%p, pc = 0x%lx,"
+-			" ex1 = 0x%lx\n",
++	pr_info("<%s> pre_handler: p->addr = 0x%p, pc = 0x%lx, ex1 = 0x%lx\n",
+ 		p->symbol_name, p->addr, regs->pc, regs->ex1);
+ #endif
+ #ifdef CONFIG_ARM64
+@@ -61,19 +57,19 @@ static void handler_post(struct kprobe *
+ 				unsigned long flags)
+ {
+ #ifdef CONFIG_X86
+-	printk(KERN_INFO "<%s> post_handler: p->addr = 0x%p, flags = 0x%lx\n",
++	pr_info("<%s> post_handler: p->addr = 0x%p, flags = 0x%lx\n",
+ 		p->symbol_name, p->addr, regs->flags);
+ #endif
+ #ifdef CONFIG_PPC
+-	printk(KERN_INFO "<%s> post_handler: p->addr = 0x%p, msr = 0x%lx\n",
++	pr_info("<%s> post_handler: p->addr = 0x%p, msr = 0x%lx\n",
+ 		p->symbol_name, p->addr, regs->msr);
+ #endif
+ #ifdef CONFIG_MIPS
+-	printk(KERN_INFO "<%s> post_handler: p->addr = 0x%p, status = 0x%lx\n",
++	pr_info("<%s> post_handler: p->addr = 0x%p, status = 0x%lx\n",
+ 		p->symbol_name, p->addr, regs->cp0_status);
+ #endif
+ #ifdef CONFIG_TILEGX
+-	printk(KERN_INFO "<%s> post_handler: p->addr = 0x%p, ex1 = 0x%lx\n",
++	pr_info("<%s> post_handler: p->addr = 0x%p, ex1 = 0x%lx\n",
+ 		p->symbol_name, p->addr, regs->ex1);
+ #endif
+ #ifdef CONFIG_ARM64
+@@ -89,8 +85,7 @@ static void handler_post(struct kprobe *
+  */
+ static int handler_fault(struct kprobe *p, struct pt_regs *regs, int trapnr)
+ {
+-	printk(KERN_INFO "fault_handler: p->addr = 0x%p, trap #%dn",
+-		p->addr, trapnr);
++	pr_info("fault_handler: p->addr = 0x%p, trap #%dn", p->addr, trapnr);
+ 	/* Return 0 because we don't handle the fault. */
+ 	return 0;
+ }
+@@ -104,17 +99,17 @@ static int __init kprobe_init(void)
+ 
+ 	ret = register_kprobe(&kp);
+ 	if (ret < 0) {
+-		printk(KERN_INFO "register_kprobe failed, returned %d\n", ret);
++		pr_err("register_kprobe failed, returned %d\n", ret);
+ 		return ret;
+ 	}
+-	printk(KERN_INFO "Planted kprobe at %p\n", kp.addr);
++	pr_info("Planted kprobe at %p\n", kp.addr);
+ 	return 0;
  }
  
- static inline int bitmap_intersects(const unsigned long *src1,
+ static void __exit kprobe_exit(void)
+ {
+ 	unregister_kprobe(&kp);
+-	printk(KERN_INFO "kprobe at %p unregistered\n", kp.addr);
++	pr_info("kprobe at %p unregistered\n", kp.addr);
+ }
+ 
+ module_init(kprobe_init)
 _
