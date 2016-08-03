@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + x86-use-simpler-api-for-random-address-requests.patch added to
- -mm tree
-Date: Wed, 03 Aug 2016 16:57:04 -0700
-Message-ID: <57a284d0.34GcxeqOFRR9wbew%akpm@linux-foundation.org>
+Subject: + arm64-use-simpler-api-for-random-address-requests.patch added
+ to -mm tree
+Date: Wed, 03 Aug 2016 16:57:08 -0700
+Message-ID: <57a284d4.ADVcOFwOzy5pmfVi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44324 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44338 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756005AbcHCX6a (ORCPT
+	with ESMTP id S1757064AbcHCX6a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 19:58:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jason@lakedaemon.net, hpa@zytor.com, keescook@chromium.org, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, mm-commits@vger.kernel.org
+To: jason@lakedaemon.net, catalin.marinas@arm.com, keescook@chromium.org, linux@arm.linux.org.uk, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: use simpler API for random address requests
+     Subject: arm64: use simpler API for random address requests
 has been added to the -mm tree.  Its filename is
-     x86-use-simpler-api-for-random-address-requests.patch
+     arm64-use-simpler-api-for-random-address-requests.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-use-simpler-api-for-random-address-requests.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-use-simpler-api-for-random-address-requests.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-use-simpler-api-for-random-address-requests.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-use-simpler-api-for-random-address-requests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jason Cooper <jason@lakedaemon.net>
-Subject: x86: use simpler API for random address requests
+Subject: arm64: use simpler API for random address requests
 
 Currently, all callers to randomize_range() set the length to 0 and
 calculate end by adding a constant to the start address.  We can simplify
@@ -49,64 +49,29 @@ the API to remove a bunch of needless checks and variables.
 Use the new randomize_addr(start, range) call to set the requested
 address.
 
-Link: http://lkml.kernel.org/r/20160803233913.32511-3-jason@lakedaemon.net
+Link: http://lkml.kernel.org/r/20160803233913.32511-5-jason@lakedaemon.net
 Signed-off-by: Jason Cooper <jason@lakedaemon.net>
+Acked-by: Will Deacon <will.deacon@arm.com>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H . Peter Anvin" <hpa@zytor.com>
+Cc: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/process.c    |    3 +--
- arch/x86/kernel/sys_x86_64.c |    5 +----
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ arch/arm64/kernel/process.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/kernel/process.c~x86-use-simpler-api-for-random-address-requests arch/x86/kernel/process.c
---- a/arch/x86/kernel/process.c~x86-use-simpler-api-for-random-address-requests
-+++ a/arch/x86/kernel/process.c
-@@ -508,8 +508,7 @@ unsigned long arch_align_stack(unsigned
+diff -puN arch/arm64/kernel/process.c~arm64-use-simpler-api-for-random-address-requests arch/arm64/kernel/process.c
+--- a/arch/arm64/kernel/process.c~arm64-use-simpler-api-for-random-address-requests
++++ a/arch/arm64/kernel/process.c
+@@ -374,12 +374,8 @@ unsigned long arch_align_stack(unsigned
  
  unsigned long arch_randomize_brk(struct mm_struct *mm)
  {
--	unsigned long range_end = mm->brk + 0x02000000;
--	return randomize_range(mm->brk, range_end, 0) ? : mm->brk;
-+	return randomize_page(mm->brk, 0x02000000);
- }
- 
- /*
-diff -puN arch/x86/kernel/sys_x86_64.c~x86-use-simpler-api-for-random-address-requests arch/x86/kernel/sys_x86_64.c
---- a/arch/x86/kernel/sys_x86_64.c~x86-use-simpler-api-for-random-address-requests
-+++ a/arch/x86/kernel/sys_x86_64.c
-@@ -101,7 +101,6 @@ static void find_start_end(unsigned long
- 			   unsigned long *end)
- {
- 	if (!test_thread_flag(TIF_ADDR32) && (flags & MAP_32BIT)) {
--		unsigned long new_begin;
- 		/* This is usually used needed to map code in small
- 		   model, so it needs to be in the first 31bit. Limit
- 		   it to that.  This means we need to move the
-@@ -112,9 +111,7 @@ static void find_start_end(unsigned long
- 		*begin = 0x40000000;
- 		*end = 0x80000000;
- 		if (current->flags & PF_RANDOMIZE) {
--			new_begin = randomize_range(*begin, *begin + 0x02000000, 0);
--			if (new_begin)
--				*begin = new_begin;
-+			*begin = randomize_page(*begin, 0x02000000);
- 		}
- 	} else {
- 		*begin = current->mm->mmap_legacy_base;
-_
-
-Patches currently in -mm which might be from jason@lakedaemon.net are
-
-random-simplify-api-for-random-address-requests.patch
-x86-use-simpler-api-for-random-address-requests.patch
-arm-use-simpler-api-for-random-address-requests.patch
-arm64-use-simpler-api-for-random-address-requests.patch
-tile-use-simpler-api-for-random-address-requests.patch
-unicore32-use-simpler-api-for-random-address-requests.patch
-random-remove-unused-randomize_range.patch
-
+-	unsigned long range_end = mm->brk;
+-
+ 	if (is_compat_task())
+-		range_end += 0x02000000;
++		return randomize_page(mm->brk, 0x02000000);
+ 	else
+-		range_end += 0x40000000;
