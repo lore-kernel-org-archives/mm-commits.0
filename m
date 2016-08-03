@@ -1,57 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-do-not-include-interrupth.patch removed from -mm
- tree
-Date: Wed, 03 Aug 2016 11:11:59 -0700
-Message-ID: <57a233ef.s3y+JW4Gq8Ij5evL%akpm@linux-foundation.org>
+Subject: [merged]
+ include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 11:11:51 -0700
+Message-ID: <57a233e7.GVJmfg2hTEeYdHAt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33521 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756580AbcHCSN1 (ORCPT
+	with ESMTP id S1756541AbcHCSN1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: chengang@emindsoft.com.cn, gang.chen.5i5j@gmail.com, mpe@ellerman.id.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: do not include interrupt.h
+     Subject: include: mman: use bool instead of int for the return value of arch_validate_prot
 has been removed from the -mm tree.  Its filename was
-     printk-do-not-include-interrupth.patch
+     include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: printk: do not include interrupt.h
+From: Chen Gang <chengang@emindsoft.com.cn>
+Subject: include: mman: use bool instead of int for the return value of arch_validate_prot
 
-A trivial cosmetic change: interrupt.h header is redundant since
-'commit 6b898c07cb1d ("console: use might_sleep in console_lock")'.
+For pure bool function's return value, bool is a little better more or
+less than int.
 
-Link: http://lkml.kernel.org/r/20160620132847.21930-1-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Link: http://lkml.kernel.org/r/1469331815-2026-1-git-send-email-chengang@emindsoft.com.cn
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/powerpc/include/asm/mman.h |    8 ++++----
+ include/linux/mman.h            |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-do-not-include-interrupth kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-do-not-include-interrupth
-+++ a/kernel/printk/printk.c
-@@ -26,7 +26,6 @@
- #include <linux/nmi.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
--#include <linux/interrupt.h>			/* For in_interrupt() */
- #include <linux/delay.h>
- #include <linux/smp.h>
- #include <linux/security.h>
+diff -puN arch/powerpc/include/asm/mman.h~include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot arch/powerpc/include/asm/mman.h
+--- a/arch/powerpc/include/asm/mman.h~include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot
++++ a/arch/powerpc/include/asm/mman.h
+@@ -31,13 +31,13 @@ static inline pgprot_t arch_vm_get_page_
+ }
+ #define arch_vm_get_page_prot(vm_flags) arch_vm_get_page_prot(vm_flags)
+ 
+-static inline int arch_validate_prot(unsigned long prot)
++static inline bool arch_validate_prot(unsigned long prot)
+ {
+ 	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_SAO))
+-		return 0;
++		return false;
+ 	if ((prot & PROT_SAO) && !cpu_has_feature(CPU_FTR_SAO))
+-		return 0;
+-	return 1;
++		return false;
++	return true;
+ }
+ #define arch_validate_prot(prot) arch_validate_prot(prot)
+ 
+diff -puN include/linux/mman.h~include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot include/linux/mman.h
+--- a/include/linux/mman.h~include-mman-use-bool-instead-of-int-for-the-return-value-of-arch_validate_prot
++++ a/include/linux/mman.h
+@@ -49,7 +49,7 @@ static inline void vm_unacct_memory(long
+  *
+  * Returns true if the prot flags are valid
+  */
+-static inline int arch_validate_prot(unsigned long prot)
++static inline bool arch_validate_prot(unsigned long prot)
+ {
+ 	return (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM)) == 0;
+ }
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from chengang@emindsoft.com.cn are
 
 
