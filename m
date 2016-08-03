@@ -1,101 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-kexec-fix-kexec-for-keystone-2.patch removed from
+Subject: [merged]
+ arm-kdump-advertise-boot-aliased-crash-kernel-resource.patch removed from
  -mm tree
-Date: Wed, 03 Aug 2016 11:13:52 -0700
-Message-ID: <57a23460.gZpFviOV4S+NMdBV%akpm@linux-foundation.org>
+Date: Wed, 03 Aug 2016 11:13:34 -0700
+Message-ID: <57a2344e.anb7oFwYdMVNVd7P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33450 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33522 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756378AbcHCSNz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:55 -0400
+	with ESMTP id S1756273AbcHCSNx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rmk+kernel@arm.linux.org.uk, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, horms@verge.net.au, j-keerthy@ti.com, panand@redhat.com, vgoyal@redhat.com, vitalya@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: kexec: fix kexec for Keystone 2
+     Subject: ARM: kdump: advertise boot aliased crash kernel resource
 has been removed from the -mm tree.  Its filename was
-     arm-kexec-fix-kexec-for-keystone-2.patch
+     arm-kdump-advertise-boot-aliased-crash-kernel-resource.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: ARM: kexec: fix kexec for Keystone 2
+Subject: ARM: kdump: advertise boot aliased crash kernel resource
 
-Provide kexec with the boot view of memory by overriding the normal kexec
-translation functions added in a previous patch.  We also need to fix a
-call to memblock in machine_kexec_prepare() so that we provide it with a
-running-view physical address rather than a boot- view physical address.
+Advertise a resource which describes where the crash kernel is located in
+the boot view of RAM.  This allows kexec-tools to have this vital
+information.
 
-Link: http://lkml.kernel.org/r/E1b8koa-0004Hl-Ey@rmk-PC.armlinux.org.uk
+Link: http://lkml.kernel.org/r/E1b8knz-0004H4-Bd@rmk-PC.armlinux.org.uk
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Keerthy <j-keerthy@ti.com>
 Cc: Pratyush Anand <panand@redhat.com>
 Cc: Vitaly Andrianov <vitalya@ti.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Simon Horman <horms@verge.net.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/kexec.h    |   24 ++++++++++++++++++++++++
- arch/arm/kernel/machine_kexec.c |    2 +-
- 2 files changed, 25 insertions(+), 1 deletion(-)
+ arch/arm/kernel/setup.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN arch/arm/include/asm/kexec.h~arm-kexec-fix-kexec-for-keystone-2 arch/arm/include/asm/kexec.h
---- a/arch/arm/include/asm/kexec.h~arm-kexec-fix-kexec-for-keystone-2
-+++ a/arch/arm/include/asm/kexec.h
-@@ -53,6 +53,30 @@ static inline void crash_setup_regs(stru
- /* Function pointer to optional machine-specific reinitialization */
- extern void (*kexec_reinit)(void);
+diff -puN arch/arm/kernel/setup.c~arm-kdump-advertise-boot-aliased-crash-kernel-resource arch/arm/kernel/setup.c
+--- a/arch/arm/kernel/setup.c~arm-kdump-advertise-boot-aliased-crash-kernel-resource
++++ a/arch/arm/kernel/setup.c
+@@ -1000,9 +1000,25 @@ static void __init reserve_crashkernel(v
+ 		(unsigned long)(crash_base >> 20),
+ 		(unsigned long)(total_mem >> 20));
  
-+static inline unsigned long phys_to_boot_phys(phys_addr_t phys)
-+{
-+	return phys_to_idmap(phys);
-+}
-+#define phys_to_boot_phys phys_to_boot_phys
++	/* The crashk resource must always be located in normal mem */
+ 	crashk_res.start = crash_base;
+ 	crashk_res.end = crash_base + crash_size - 1;
+ 	insert_resource(&iomem_resource, &crashk_res);
 +
-+static inline phys_addr_t boot_phys_to_phys(unsigned long entry)
-+{
-+	return idmap_to_phys(entry);
-+}
-+#define boot_phys_to_phys boot_phys_to_phys
++	if (arm_has_idmap_alias()) {
++		/*
++		 * If we have a special RAM alias for use at boot, we
++		 * need to advertise to kexec tools where the alias is.
++		 */
++		static struct resource crashk_boot_res = {
++			.name = "Crash kernel (boot alias)",
++			.flags = IORESOURCE_BUSY | IORESOURCE_MEM,
++		};
 +
-+static inline unsigned long page_to_boot_pfn(struct page *page)
-+{
-+	return page_to_pfn(page) + (arch_phys_to_idmap_offset >> PAGE_SHIFT);
-+}
-+#define page_to_boot_pfn page_to_boot_pfn
-+
-+static inline struct page *boot_pfn_to_page(unsigned long boot_pfn)
-+{
-+	return pfn_to_page(boot_pfn - (arch_phys_to_idmap_offset >> PAGE_SHIFT));
-+}
-+#define boot_pfn_to_page boot_pfn_to_page
-+
- #endif /* __ASSEMBLY__ */
- 
- #endif /* CONFIG_KEXEC */
-diff -puN arch/arm/kernel/machine_kexec.c~arm-kexec-fix-kexec-for-keystone-2 arch/arm/kernel/machine_kexec.c
---- a/arch/arm/kernel/machine_kexec.c~arm-kexec-fix-kexec-for-keystone-2
-+++ a/arch/arm/kernel/machine_kexec.c
-@@ -57,7 +57,7 @@ int machine_kexec_prepare(struct kimage
- 	for (i = 0; i < image->nr_segments; i++) {
- 		current_segment = &image->segment[i];
- 
--		if (!memblock_is_region_memory(current_segment->mem,
-+		if (!memblock_is_region_memory(idmap_to_phys(current_segment->mem),
- 					       current_segment->memsz))
- 			return -EINVAL;
- 
++		crashk_boot_res.start = phys_to_idmap(crash_base);
++		crashk_boot_res.end = crashk_boot_res.start + crash_size - 1;
++		insert_resource(&iomem_resource, &crashk_boot_res);
++	}
+ }
+ #else
+ static inline void reserve_crashkernel(void) {}
 _
 
 Patches currently in -mm which might be from rmk+kernel@arm.linux.org.uk are
