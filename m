@@ -1,197 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-introduce-suppress_message_printing.patch removed from -mm tree
-Date: Wed, 03 Aug 2016 11:12:03 -0700
-Message-ID: <57a233f3.xALhiOuEekIyvd44%akpm@linux-foundation.org>
+Subject: [merged] firmware-consolidate-kmap-read-write-logic.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 11:12:26 -0700
+Message-ID: <57a2340a.qcXhM/JHuymrA79V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33447 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33432 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754314AbcHCSN2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:28 -0400
+	with ESMTP id S1756803AbcHCSNc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, calvinowens@fb.com, jack@suse.cz, pmladek@suse.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: stephen.boyd@linaro.org, broonie@kernel.org, gregkh@linuxfoundation.org, markivx@codeaurora.org, ming.lei@canonical.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: introduce suppress_message_printing()
+     Subject: firmware: consolidate kmap/read/write logic
 has been removed from the -mm tree.  Its filename was
-     printk-introduce-suppress_message_printing.patch
+     firmware-consolidate-kmap-read-write-logic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: printk: introduce suppress_message_printing()
+From: Stephen Boyd <stephen.boyd@linaro.org>
+Subject: firmware: consolidate kmap/read/write logic
 
-Messages' levels and console log level are inspected when the actual
-printing occurs, which may provoke console_unlock() and
-console_cont_flush() to waste CPU cycles on every message that has
-loglevel above the current console_loglevel.
+Some systems are memory constrained but they need to load very large
+firmwares.  The firmware subsystem allows drivers to request this firmware
+be loaded from the filesystem, but this requires that the entire firmware
+be loaded into kernel memory first before it's provided to the driver. 
+This can lead to a situation where we map the firmware twice, once to load
+the firmware into kernel memory and once to copy the firmware into the
+final resting place.
 
-Schematically, console_unlock() does the following:
+This design creates needless memory pressure and delays loading because we
+have to copy from kernel memory to somewhere else.  This patch sets adds
+support to the request firmware API to load the firmware directly into a
+pre-allocated buffer, skipping the intermediate copying step and
+alleviating memory pressure during firmware loading.  The drawback is that
+we can't use the firmware caching feature because the memory for the
+firmware cache is not managed by the firmware layer.
 
-console_unlock()
-{
-        ...
-        for (;;) {
-                ...
-                raw_spin_lock_irqsave(&logbuf_lock, flags);
-skip:
-                msg = log_from_idx(console_idx);
 
-                if (msg->flags & LOG_NOCONS) {
-                        ...
-                        goto skip;
-                }
+This patch (of 3):
 
-                level = msg->level;
-                len += msg_print_text();                        >> sprintfs
-                                                                   memcpy,
-                                                                   etc.
+We use similar structured code to read and write the kmapped firmware
+pages.  The only difference is read copies from the kmap region and write
+copies to it.  Consolidate this into one function to reduce duplication.
 
-                if (nr_ext_console_drivers) {
-                        ext_len = msg_print_ext_header();       >> scnprintf
-                        ext_len += msg_print_ext_body();        >> scnprintfs
-                                                                   etc.
-                }
-                ...
-                raw_spin_unlock(&logbuf_lock);
-
-                call_console_drivers(level, ext_text, ext_len, text, len)
-                {
-                        if (level >= console_loglevel &&        >> drop the message
-                                        !ignore_loglevel)
-                                return;
-
-                        console->write(...);
-                }
-
-                local_irq_restore(flags);
-        }
-        ...
-}
-
-The thing here is this deferred `level >= console_loglevel' check.  We are
-wasting CPU cycles on sprintfs/memcpy/etc.  preparing the messages that we
-will eventually drop.
-
-This can be huge when we register a new CON_PRINTBUFFER console, for
-instance.  For every such a console register_console() resets the
-
-        console_seq, console_idx, console_prev
-
-and sets a `exclusive console' pointer to replay the log buffer to that
-just-registered console.  And there can be a lot of messages to replay, in
-the worst case most of which can be dropped after console_loglevel test.
-
-We know messages' levels long before we call msg_print_text() and friends,
-so we can just move console_loglevel check out of call_console_drivers()
-and format a new message only if we are sure that it won't be dropped.
-
-The patch factors out loglevel check into suppress_message_printing()
-function and tests message->level and console_loglevel before formatting
-functions in console_unlock() and console_cont_flush() are getting
-executed.  This improves things not only for exclusive CON_PRINTBUFFER
-consoles, but for every console_unlock() that attempts to print a message
-of level above the console_loglevel.
-
-Link: http://lkml.kernel.org/r/20160627135012.8229-1-sergey.senozhatsky@gmail.com
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Calvin Owens <calvinowens@fb.com>
+Link: http://lkml.kernel.org/r/20160607164741.31849-2-stephen.boyd@linaro.org
+Signed-off-by: Stephen Boyd <stephen.boyd@linaro.org>
+Cc: Vikram Mulukutla <markivx@codeaurora.org>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Ming Lei <ming.lei@canonical.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
+ drivers/base/firmware_class.c |   57 ++++++++++++++------------------
+ 1 file changed, 26 insertions(+), 31 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-introduce-suppress_message_printing kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-introduce-suppress_message_printing
-+++ a/kernel/printk/printk.c
-@@ -985,6 +985,11 @@ module_param(ignore_loglevel, bool, S_IR
- MODULE_PARM_DESC(ignore_loglevel,
- 		 "ignore loglevel setting (prints all kernel messages to the console)");
+diff -puN drivers/base/firmware_class.c~firmware-consolidate-kmap-read-write-logic drivers/base/firmware_class.c
+--- a/drivers/base/firmware_class.c~firmware-consolidate-kmap-read-write-logic
++++ a/drivers/base/firmware_class.c
+@@ -691,6 +691,29 @@ out:
  
-+static bool suppress_message_printing(int level)
+ static DEVICE_ATTR(loading, 0644, firmware_loading_show, firmware_loading_store);
+ 
++static void firmware_rw(struct firmware_buf *buf, char *buffer,
++			loff_t offset, size_t count, bool read)
 +{
-+	return (level >= console_loglevel && !ignore_loglevel);
++	while (count) {
++		void *page_data;
++		int page_nr = offset >> PAGE_SHIFT;
++		int page_ofs = offset & (PAGE_SIZE-1);
++		int page_cnt = min_t(size_t, PAGE_SIZE - page_ofs, count);
++
++		page_data = kmap(buf->pages[page_nr]);
++
++		if (read)
++			memcpy(buffer, page_data + page_ofs, page_cnt);
++		else
++			memcpy(page_data + page_ofs, buffer, page_cnt);
++
++		kunmap(buf->pages[page_nr]);
++		buffer += page_cnt;
++		offset += page_cnt;
++		count -= page_cnt;
++	}
 +}
 +
- #ifdef CONFIG_BOOT_PRINTK_DELAY
+ static ssize_t firmware_data_read(struct file *filp, struct kobject *kobj,
+ 				  struct bin_attribute *bin_attr,
+ 				  char *buffer, loff_t offset, size_t count)
+@@ -715,21 +738,8 @@ static ssize_t firmware_data_read(struct
  
- static int boot_delay; /* msecs delay after each printk during bootup */
-@@ -1014,7 +1019,7 @@ static void boot_delay_msec(int level)
- 	unsigned long timeout;
+ 	ret_count = count;
  
- 	if ((boot_delay == 0 || system_state != SYSTEM_BOOTING)
--		|| (level >= console_loglevel && !ignore_loglevel)) {
-+		|| suppress_message_printing(level)) {
- 		return;
- 	}
+-	while (count) {
+-		void *page_data;
+-		int page_nr = offset >> PAGE_SHIFT;
+-		int page_ofs = offset & (PAGE_SIZE-1);
+-		int page_cnt = min_t(size_t, PAGE_SIZE - page_ofs, count);
+-
+-		page_data = kmap(buf->pages[page_nr]);
+-
+-		memcpy(buffer, page_data + page_ofs, page_cnt);
++	firmware_rw(buf, buffer, offset, count, true);
  
-@@ -1438,8 +1443,6 @@ static void call_console_drivers(int lev
- 
- 	trace_console(text, len);
- 
--	if (level >= console_loglevel && !ignore_loglevel)
--		return;
- 	if (!console_drivers)
- 		return;
- 
-@@ -1908,6 +1911,7 @@ static void call_console_drivers(int lev
- static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
- 			     bool syslog, char *buf, size_t size) { return 0; }
- static size_t cont_print_text(char *text, size_t size) { return 0; }
-+static bool suppress_message_printing(int level) { return false; }
- 
- /* Still needs to be defined for users */
- DEFINE_PER_CPU(printk_func_t, printk_func);
-@@ -2187,6 +2191,13 @@ static void console_cont_flush(char *tex
- 	if (!cont.len)
+-		kunmap(buf->pages[page_nr]);
+-		buffer += page_cnt;
+-		offset += page_cnt;
+-		count -= page_cnt;
+-	}
+ out:
+ 	mutex_unlock(&fw_lock);
+ 	return ret_count;
+@@ -809,24 +819,9 @@ static ssize_t firmware_data_write(struc
  		goto out;
  
-+	if (suppress_message_printing(cont.level)) {
-+		cont.cons = cont.len;
-+		if (cont.flushed)
-+			cont.len = 0;
-+		goto out;
-+	}
-+
- 	/*
- 	 * We still queue earlier records, likely because the console was
- 	 * busy. The earlier ones need to be printed before this one, we
-@@ -2290,10 +2301,13 @@ skip:
- 			break;
+ 	retval = count;
++	firmware_rw(buf, buffer, offset, count, false);
  
- 		msg = log_from_idx(console_idx);
--		if (msg->flags & LOG_NOCONS) {
-+		level = msg->level;
-+		if ((msg->flags & LOG_NOCONS) ||
-+				suppress_message_printing(level)) {
- 			/*
- 			 * Skip record we have buffered and already printed
--			 * directly to the console when we received it.
-+			 * directly to the console when we received it, and
-+			 * record that has level above the console loglevel.
- 			 */
- 			console_idx = log_next(console_idx);
- 			console_seq++;
-@@ -2307,7 +2321,6 @@ skip:
- 			goto skip;
- 		}
- 
--		level = msg->level;
- 		len += msg_print_text(msg, console_prev, false,
- 				      text + len, sizeof(text) - len);
- 		if (nr_ext_console_drivers) {
-_
-
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
-
-
+-	while (count) {
+-		void *page_data;
+-		int page_nr = offset >> PAGE_SHIFT;
+-		int page_ofs = offset & (PAGE_SIZE - 1);
+-		int page_cnt = min_t(size_t, PAGE_SIZE - page_ofs, count);
+-
+-		page_data = kmap(buf->pages[page_nr]);
+-
+-		memcpy(page_data + page_ofs, buffer, page_cnt);
+-
+-		kunmap(buf->pages[page_nr]);
+-		buffer += page_cnt;
+-		offset += page_cnt;
+-		count -= page_cnt;
+-	}
