@@ -1,92 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] procfs-avoid-32-bit-time_t-in-proc-stat.patch removed
- from -mm tree
-Date: Wed, 03 Aug 2016 11:11:33 -0700
-Message-ID: <57a233d5.BRus8FoTp139KC6U%akpm@linux-foundation.org>
+Subject: [merged] memstick-dont-allocate-unused-major-for-ms_block.patch
+ removed from -mm tree
+Date: Wed, 03 Aug 2016 11:11:41 -0700
+Message-ID: <57a233dd.SwWFaF+D8I6fQjIh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33353 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33355 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754977AbcHCSN0 (ORCPT
+	with ESMTP id S1755297AbcHCSN0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, mm-commits@vger.kernel.org
+To: neilb@suse.com, axboe@fb.com, gregkh@linuxfoundation.org, keith.busch@intel.com, maximlevitsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: avoid 32-bit time_t in /proc/*/stat
+     Subject: memstick: don't allocate unused major for ms_block
 has been removed from the -mm tree.  Its filename was
-     procfs-avoid-32-bit-time_t-in-proc-stat.patch
+     memstick-dont-allocate-unused-major-for-ms_block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: procfs: avoid 32-bit time_t in /proc/*/stat
+From: NeilBrown <neilb@suse.com>
+Subject: memstick: don't allocate unused major for ms_block
 
-/proc/stat shows (among lots of other things) the current boottime (i.e. 
-number of seconds since boot).  While a 32-bit number is sufficient for
-this particular case, we want to get rid of the 'struct timespec' suffers
-from a 32-bit overflow in 2038.
+When alloc_disk(0) is used the ->major number is completely ignored.  All
+devices are allocated with a major of BLOCK_EXT_MAJOR.
 
-This changes the code to use a struct timespec64, which is known to
-be safe in all cases.
+So remove registration and deregistration of 'major'.
 
-Link: http://lkml.kernel.org/r/20160617201247.2292101-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Link: http://lkml.kernel.org/r/20160602064318.4403.49955.stgit@noble
+Signed-off-by: NeilBrown <neilb@suse.com>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/memstick/core/ms_block.c |   17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
 
-diff -puN fs/proc/stat.c~procfs-avoid-32-bit-time_t-in-proc-stat fs/proc/stat.c
---- a/fs/proc/stat.c~procfs-avoid-32-bit-time_t-in-proc-stat
-+++ a/fs/proc/stat.c
-@@ -80,19 +80,17 @@ static u64 get_iowait_time(int cpu)
- static int show_stat(struct seq_file *p, void *v)
+diff -puN drivers/memstick/core/ms_block.c~memstick-dont-allocate-unused-major-for-ms_block drivers/memstick/core/ms_block.c
+--- a/drivers/memstick/core/ms_block.c~memstick-dont-allocate-unused-major-for-ms_block
++++ a/drivers/memstick/core/ms_block.c
+@@ -2338,23 +2338,11 @@ static struct memstick_driver msb_driver
+ 	.resume   = msb_resume
+ };
+ 
+-static int major;
+-
+ static int __init msb_init(void)
  {
- 	int i, j;
--	unsigned long jif;
- 	u64 user, nice, system, idle, iowait, irq, softirq, steal;
- 	u64 guest, guest_nice;
- 	u64 sum = 0;
- 	u64 sum_softirq = 0;
- 	unsigned int per_softirq_sums[NR_SOFTIRQS] = {0};
--	struct timespec boottime;
-+	struct timespec64 boottime;
- 
- 	user = nice = system = idle = iowait =
- 		irq = softirq = steal = 0;
- 	guest = guest_nice = 0;
--	getboottime(&boottime);
--	jif = boottime.tv_sec;
-+	getboottime64(&boottime);
- 
- 	for_each_possible_cpu(i) {
- 		user += kcpustat_cpu(i).cpustat[CPUTIME_USER];
-@@ -163,12 +161,12 @@ static int show_stat(struct seq_file *p,
- 
- 	seq_printf(p,
- 		"\nctxt %llu\n"
--		"btime %lu\n"
-+		"btime %llu\n"
- 		"processes %lu\n"
- 		"procs_running %lu\n"
- 		"procs_blocked %lu\n",
- 		nr_context_switches(),
--		(unsigned long)jif,
-+		(unsigned long long)boottime.tv_sec,
- 		total_forks,
- 		nr_running(),
- 		nr_iowait());
-_
-
-Patches currently in -mm which might be from arnd@arndb.de are
-
-compat-remove-compat_printk.patch
-
+-	int rc = register_blkdev(0, DRIVER_NAME);
+-
+-	if (rc < 0) {
+-		pr_err("failed to register major (error %d)\n", rc);
+-		return rc;
+-	}
