@@ -1,60 +1,103 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph.patch removed
- from -mm tree
-Date: Wed, 03 Aug 2016 11:10:46 -0700
-Message-ID: <57a233a6.R+Cyiv/H8Scyh7Js%akpm@linux-foundation.org>
+ memcg-put-soft-limit-reclaim-out-of-way-if-the-excess-tree-is-empty.patch
+ removed from -mm tree
+Date: Wed, 03 Aug 2016 11:10:54 -0700
+Message-ID: <57a233ae.rzZ0w6uAArQ1PxNX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34121 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755250AbcHCSVw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:21:52 -0400
+	with ESMTP id S1756407AbcHCSVv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:21:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Valdis.Kletnieks@vt.edu, valdis.kletnieks@vt.edu, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hannes@cmpxchg.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/testing/radix-tree/linux/gfp.h: fix bitrotted value
+     Subject: memcg: put soft limit reclaim out of way if the excess tree is empty
 has been removed from the -mm tree.  Its filename was
-     fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph.patch
+     memcg-put-soft-limit-reclaim-out-of-way-if-the-excess-tree-is-empty.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Subject: tools/testing/radix-tree/linux/gfp.h: fix bitrotted value
+From: Michal Hocko <mhocko@suse.com>
+Subject: memcg: put soft limit reclaim out of way if the excess tree is empty
 
-Apparently, the tools/testing version dates to a few flags ago, and we've
-sprouted 4 new ones since.  Keep in sync with the value in the main
-tree...
+We've had a report about soft lockups caused by lock bouncing in the soft
+reclaim path:
 
-Link: http://lkml.kernel.org/r/23400.1469702675@turing-police.cc.vt.edu
-Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+[331404.849734] BUG: soft lockup - CPU#0 stuck for 22s! [kav4proxy-kavic:3128]
+[331404.849920] RIP: 0010:[<ffffffff81469798>]  [<ffffffff81469798>] _raw_spin_lock+0x18/0x20
+[331404.849997] Call Trace:
+[331404.850010]  [<ffffffff811557ea>] mem_cgroup_soft_limit_reclaim+0x25a/0x280
+[331404.850020]  [<ffffffff8111041d>] shrink_zones+0xed/0x200
+[331404.850027]  [<ffffffff81111a94>] do_try_to_free_pages+0x74/0x320
+[331404.850034]  [<ffffffff81112072>] try_to_free_pages+0x112/0x180
+[331404.850042]  [<ffffffff81104a6f>] __alloc_pages_slowpath+0x3ff/0x820
+[331404.850049]  [<ffffffff81105079>] __alloc_pages_nodemask+0x1e9/0x200
+[331404.850056]  [<ffffffff81141e01>] alloc_pages_vma+0xe1/0x290
+[331404.850064]  [<ffffffff8112402f>] do_wp_page+0x19f/0x840
+[331404.850071]  [<ffffffff811257cd>] handle_pte_fault+0x1cd/0x230
+[331404.850079]  [<ffffffff8146d3ed>] do_page_fault+0x1fd/0x4c0
+[331404.850087]  [<ffffffff81469ec5>] page_fault+0x25/0x30
+
+There are no memcgs created so there cannot be any in the soft limit
+excess obviously:
+[...]
+memory  0       1       1
+
+so all this just seems to be mem_cgroup_largest_soft_limit_node trying to
+get spin_lock_irq(&mctz->lock) just to find out that the soft limit excess
+tree is empty.  This is just pointless wasting of cycles and cache line
+bouncing during heavy parallel reclaim on large machines.  The particular
+machine wasn't very healthy and most probably suffering from a memory leak
+which just caused the memory reclaim to trash heavily.  But bouncing on
+the lock certainly didn't help...
+
+Fix this by optimistic lockless check and bail out early if the tree is
+empty.  This is theoretically racy but that shouldn't matter all that
+much.  First of all soft limit is a best effort feature and it is slowly
+getting deprecated and its usage should be really scarce.  Bouncing on a
+lock without a good reason is surely much bigger problem, especially on
+large CPU machines.
+
+Link: http://lkml.kernel.org/r/1470073277-1056-1-git-send-email-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/linux/gfp.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN tools/testing/radix-tree/linux/gfp.h~fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph tools/testing/radix-tree/linux/gfp.h
---- a/tools/testing/radix-tree/linux/gfp.h~fix-bitrotted-value-in-tools-testing-radix-tree-linux-gfph
-+++ a/tools/testing/radix-tree/linux/gfp.h
-@@ -1,7 +1,7 @@
- #ifndef _GFP_H
- #define _GFP_H
+diff -puN mm/memcontrol.c~memcg-put-soft-limit-reclaim-out-of-way-if-the-excess-tree-is-empty mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-put-soft-limit-reclaim-out-of-way-if-the-excess-tree-is-empty
++++ a/mm/memcontrol.c
+@@ -2559,6 +2559,15 @@ unsigned long mem_cgroup_soft_limit_recl
+ 		return 0;
  
--#define __GFP_BITS_SHIFT 22
-+#define __GFP_BITS_SHIFT 26
- #define __GFP_BITS_MASK ((gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
- #define __GFP_WAIT 1
- #define __GFP_ACCOUNT 0
+ 	mctz = soft_limit_tree_node(pgdat->node_id);
++
++	/*
++	 * Do not even bother to check the largest node if the root
++	 * is empty. Do it lockless to prevent lock bouncing. Races
++	 * are acceptable as soft limit is best effort anyway.
++	 */
++	if (RB_EMPTY_ROOT(&mctz->rb_root))
++		return 0;
++
+ 	/*
+ 	 * This loop can run a while, specially if mem_cgroup's continuously
+ 	 * keep exceeding their soft limit and putting the system under
 _
 
-Patches currently in -mm which might be from Valdis.Kletnieks@vt.edu are
+Patches currently in -mm which might be from mhocko@suse.com are
 
 
