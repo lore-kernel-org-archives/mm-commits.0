@@ -1,66 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1.patch removed
+Subject: [merged] procfs-avoid-32-bit-time_t-in-proc-stat.patch removed
  from -mm tree
-Date: Wed, 03 Aug 2016 11:11:36 -0700
-Message-ID: <57a233d8.UsyVm9tFQLjrHmWP%akpm@linux-foundation.org>
+Date: Wed, 03 Aug 2016 11:11:33 -0700
+Message-ID: <57a233d5.BRus8FoTp139KC6U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33450 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33353 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755167AbcHCSN0 (ORCPT
+	with ESMTP id S1754977AbcHCSN0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Valdis.Kletnieks@vt.edu, valdis.kletnieks@vt.edu, mm-commits@vger.kernel.org
+To: arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/task_mmu.c: suppress compilation warnings with W=1
+     Subject: procfs: avoid 32-bit time_t in /proc/*/stat
 has been removed from the -mm tree.  Its filename was
-     suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1.patch
+     procfs-avoid-32-bit-time_t-in-proc-stat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Subject: fs/proc/task_mmu.c: suppress compilation warnings with W=1
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: procfs: avoid 32-bit time_t in /proc/*/stat
 
-Suppress a bunch of warnings of the form:
+/proc/stat shows (among lots of other things) the current boottime (i.e. 
+number of seconds since boot).  While a 32-bit number is sufficient for
+this particular case, we want to get rid of the 'struct timespec' suffers
+from a 32-bit overflow in 2038.
 
-fs/proc/task_mmu.c: In function 'show_smap_vma_flags':
-fs/proc/task_mmu.c:635:22: warning: initialized field overwritten [-Wt override-init]
-   [ilog2(VM_READ)] = "rd",
-                      ^~~~
-fs/proc/task_mmu.c:635:22: note: (near initialization for 'mnemonics[0]')
+This changes the code to use a struct timespec64, which is known to
+be safe in all cases.
 
-They happen because of the way we intentionally build the table, so
-silence the warning when building with 'make W=1'.
-
-Link: http://lkml.kernel.org/r/8727.1470022083@turing-police.cc.vt.edu
-Signed-off-by: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Link: http://lkml.kernel.org/r/20160617201247.2292101-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/stat.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/Makefile~suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1 fs/proc/Makefile
---- a/fs/proc/Makefile~suppress-warnings-when-compiling-fs-proc-task_mmuc-with-w=1
-+++ a/fs/proc/Makefile
-@@ -4,6 +4,7 @@
+diff -puN fs/proc/stat.c~procfs-avoid-32-bit-time_t-in-proc-stat fs/proc/stat.c
+--- a/fs/proc/stat.c~procfs-avoid-32-bit-time_t-in-proc-stat
++++ a/fs/proc/stat.c
+@@ -80,19 +80,17 @@ static u64 get_iowait_time(int cpu)
+ static int show_stat(struct seq_file *p, void *v)
+ {
+ 	int i, j;
+-	unsigned long jif;
+ 	u64 user, nice, system, idle, iowait, irq, softirq, steal;
+ 	u64 guest, guest_nice;
+ 	u64 sum = 0;
+ 	u64 sum_softirq = 0;
+ 	unsigned int per_softirq_sums[NR_SOFTIRQS] = {0};
+-	struct timespec boottime;
++	struct timespec64 boottime;
  
- obj-y   += proc.o
+ 	user = nice = system = idle = iowait =
+ 		irq = softirq = steal = 0;
+ 	guest = guest_nice = 0;
+-	getboottime(&boottime);
+-	jif = boottime.tv_sec;
++	getboottime64(&boottime);
  
-+CFLAGS_task_mmu.o	+= -Wno-override-init
- proc-y			:= nommu.o task_nommu.o
- proc-$(CONFIG_MMU)	:= task_mmu.o
+ 	for_each_possible_cpu(i) {
+ 		user += kcpustat_cpu(i).cpustat[CPUTIME_USER];
+@@ -163,12 +161,12 @@ static int show_stat(struct seq_file *p,
  
+ 	seq_printf(p,
+ 		"\nctxt %llu\n"
+-		"btime %lu\n"
++		"btime %llu\n"
+ 		"processes %lu\n"
+ 		"procs_running %lu\n"
+ 		"procs_blocked %lu\n",
+ 		nr_context_switches(),
+-		(unsigned long)jif,
++		(unsigned long long)boottime.tv_sec,
+ 		total_forks,
+ 		nr_running(),
+ 		nr_iowait());
 _
 
-Patches currently in -mm which might be from Valdis.Kletnieks@vt.edu are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+compat-remove-compat_printk.patch
 
