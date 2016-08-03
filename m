@@ -1,110 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-add-nilfs_msg-message-interface.patch removed
- from -mm tree
-Date: Wed, 03 Aug 2016 11:13:00 -0700
-Message-ID: <57a2342c.qSM+HHKAen59bqJW%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-if-no-filenames-then-read-stdin.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 11:12:48 -0700
+Message-ID: <57a23420.g/AbM9nz17POVpTZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33353 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33522 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756168AbcHCSNp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:45 -0400
+	with ESMTP id S1757365AbcHCSNj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:13:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: allenbh@gmail.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: add nilfs_msg() message interface
+     Subject: checkpatch: if no filenames then read stdin
 has been removed from the -mm tree.  Its filename was
-     nilfs2-add-nilfs_msg-message-interface.patch
+     checkpatch-if-no-filenames-then-read-stdin.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: add nilfs_msg() message interface
+From: Allen Hubbe <allenbh@gmail.com>
+Subject: checkpatch: if no filenames then read stdin
 
-Define an own output routine to replace bare use of printk() function. 
-The output routine is implemented with a macro and a helper function,
-which are named nilfs_msg() and __nilfs_msg(), respectively.
+If no filenames are given, then read the patch from stdin.
 
-__nilfs_msg() formats a message like "NILFS (<device-name>): <message>",
-prefixing it with a given log level, and terminates the statement with a
-newline.  The "device-name" is optional to make it available in early
-stages; it will be omitted if a NULL pointer is passed to super block
-instance argument.  nilfs_msg() wraps __nilfs_msg() and is removed if
-CONFIG_PRINTK is not set.
-
-Link: http://lkml.kernel.org/r/1464875891-5443-3-git-send-email-konishi.ryusuke@lab.ntt.co.jp
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Link: http://lkml.kernel.org/r/a8784f291ccb5067361992bf5d41ff6cfb0ce5cb.1469830917.git.allenbh@gmail.com
+Signed-off-by: Allen Hubbe <allenbh@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/nilfs.h |    7 +++++++
- fs/nilfs2/super.c |   16 ++++++++++++++++
- 2 files changed, 23 insertions(+)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/nilfs2/nilfs.h~nilfs2-add-nilfs_msg-message-interface fs/nilfs2/nilfs.h
---- a/fs/nilfs2/nilfs.h~nilfs2-add-nilfs_msg-message-interface
-+++ a/fs/nilfs2/nilfs.h
-@@ -301,6 +301,9 @@ extern struct inode *nilfs_alloc_inode(s
- extern void nilfs_destroy_inode(struct inode *);
+diff -puN scripts/checkpatch.pl~checkpatch-if-no-filenames-then-read-stdin scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-if-no-filenames-then-read-stdin
++++ a/scripts/checkpatch.pl
+@@ -228,9 +228,9 @@ if ($^V && $^V lt $minimum_perl_version)
+ 	}
+ }
  
- extern __printf(3, 4)
-+void __nilfs_msg(struct super_block *sb, const char *level,
-+		 const char *fmt, ...);
-+extern __printf(3, 4)
- void __nilfs_error(struct super_block *sb, const char *function,
- 		   const char *fmt, ...);
- extern __printf(3, 4)
-@@ -308,11 +311,15 @@ void nilfs_warning(struct super_block *,
++#if no filenames are given, push '-' to read patch from stdin
+ if ($#ARGV < 0) {
+-	print "$P: no input files\n";
+-	exit(1);
++	push(@ARGV, '-');
+ }
  
- #ifdef CONFIG_PRINTK
- 
-+#define nilfs_msg(sb, level, fmt, ...)					\
-+	__nilfs_msg(sb, level, fmt, ##__VA_ARGS__)
- #define nilfs_error(sb, fmt, ...)					\
- 	__nilfs_error(sb, __func__, fmt, ##__VA_ARGS__)
- 
- #else
- 
-+#define nilfs_msg(sb, level, fmt, ...)					\
-+	no_printk(fmt, ##__VA_ARGS__)
- #define nilfs_error(sb, fmt, ...)					\
- 	do {								\
- 		no_printk(fmt, ##__VA_ARGS__);				\
-diff -puN fs/nilfs2/super.c~nilfs2-add-nilfs_msg-message-interface fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-add-nilfs_msg-message-interface
-+++ a/fs/nilfs2/super.c
-@@ -71,6 +71,22 @@ struct kmem_cache *nilfs_btree_path_cach
- static int nilfs_setup_super(struct super_block *sb, int is_mount);
- static int nilfs_remount(struct super_block *sb, int *flags, char *data);
- 
-+void __nilfs_msg(struct super_block *sb, const char *level, const char *fmt,
-+		 ...)
-+{
-+	struct va_format vaf;
-+	va_list args;
-+
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+	if (sb)
-+		printk("%sNILFS (%s): %pV\n", level, sb->s_id, &vaf);
-+	else
-+		printk("%sNILFS: %pV\n", level, &vaf);
-+	va_end(args);
-+}
-+
- static void nilfs_set_error(struct super_block *sb)
- {
- 	struct the_nilfs *nilfs = sb->s_fs_info;
+ sub hash_save_array_words {
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from allenbh@gmail.com are
 
 
