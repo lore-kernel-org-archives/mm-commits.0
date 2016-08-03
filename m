@@ -1,62 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Wed, 03 Aug 2016 11:22:40 -0700
-Message-ID: <57a23670.NcNK4ukoHN1rRoZr%akpm@linux-foundation.org>
+Subject: + cxd2841er-avoid-misleading-gcc-warning.patch added to -mm tree
+Date: Wed, 03 Aug 2016 12:38:13 -0700
+Message-ID: <57a24825.OM1h5AIkpVIFCySD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38140 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752912AbcHCSW7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:22:59 -0400
+	with ESMTP id S1757792AbcHCTrG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 15:47:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: arnd@arndb.de, aospan@netup.ru, jbaron@akamai.com, mchehab@kernel.org, serjk@netup.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     Subject: drivers/media/dvb-frontends/cxd2841er.c: avoid misleading gcc warning
+has been added to the -mm tree.  Its filename is
+     cxd2841er-avoid-misleading-gcc-warning.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/cxd2841er-avoid-misleading-gcc-warning.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/cxd2841er-avoid-misleading-gcc-warning.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: drivers/media/dvb-frontends/cxd2841er.c: avoid misleading gcc warning
 
+The addition of jump label support in dynamic_debug caused an unexpected
+warning in exactly one file in the kernel:
+
+drivers/media/dvb-frontends/cxd2841er.c: In function 'cxd2841er_tune_tc':
+include/linux/dynamic_debug.h:134:3: error: 'carrier_offset' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+   __dynamic_dev_dbg(&descriptor, dev, fmt, \
+   ^~~~~~~~~~~~~~~~~
+drivers/media/dvb-frontends/cxd2841er.c:3177:11: note: 'carrier_offset' was declared here
+  int ret, carrier_offset;
+           ^~~~~~~~~~~~~~
+
+The problem seems to be that the compiler gets confused by the extra
+conditionals in static_branch_unlikely, to the point where it can no
+longer keep track of which branches have already been taken, and it
+doesn't realize that this variable is now always initialized when it gets
+used.
+
+I have done lots of randconfig kernel builds and could not find any other
+file with this behavior, so I assume it's a rare enough glitch that we
+don't need to change the jump label support but instead just work around
+the warning in the driver.
+
+To achieve that, I'm moving the check for the return value into the
+switch() statement, which is an obvious transformation, but is enough to
+un-confuse the compiler here.  The resulting code is not as nice to read,
+but at least we retain the behavior of warning if it gets changed to
+actually access an uninitialized carrier offset value in the future.
+
+Link: http://lkml.kernel.org/r/20160713204342.1221511-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Abylay Ospan <aospan@netup.ru>
+Cc: Sergey Kozlov <serjk@netup.ru>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Jason Baron <jbaron@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/thread_info.h |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/dvb-frontends/cxd2841er.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/include/asm/thread_info.h~linux-next-rejects arch/x86/include/asm/thread_info.h
---- a/arch/x86/include/asm/thread_info.h~linux-next-rejects
-+++ a/arch/x86/include/asm/thread_info.h
-@@ -263,6 +263,9 @@ static inline int arch_within_stack_fram
-  * have to worry about atomic accesses.
-  */
- #define TS_COMPAT		0x0002	/* 32bit syscall active (64BIT)*/
-+#ifdef CONFIG_COMPAT
-+#define TS_I386_REGS_POKED	0x0004	/* regs poked by 32-bit ptracer */
-+#endif
- 
- #ifndef __ASSEMBLY__
- 
+diff -puN drivers/media/dvb-frontends/cxd2841er.c~cxd2841er-avoid-misleading-gcc-warning drivers/media/dvb-frontends/cxd2841er.c
+--- a/drivers/media/dvb-frontends/cxd2841er.c~cxd2841er-avoid-misleading-gcc-warning
++++ a/drivers/media/dvb-frontends/cxd2841er.c
+@@ -3378,20 +3378,28 @@ static int cxd2841er_tune_tc(struct dvb_
+ 				ret = cxd2841er_get_carrier_offset_i(
+ 						priv, p->bandwidth_hz,
+ 						&carrier_offset);
++				if (ret)
++					return ret;
+ 				break;
+ 			case SYS_DVBT:
+ 				ret = cxd2841er_get_carrier_offset_t(
+ 					priv, p->bandwidth_hz,
+ 					&carrier_offset);
++				if (ret)
++					return ret;
+ 				break;
+ 			case SYS_DVBT2:
+ 				ret = cxd2841er_get_carrier_offset_t2(
+ 					priv, p->bandwidth_hz,
+ 					&carrier_offset);
++				if (ret)
++					return ret;
+ 				break;
+ 			case SYS_DVBC_ANNEX_A:
+ 				ret = cxd2841er_get_carrier_offset_c(
+ 					priv, &carrier_offset);
++				if (ret)
++					return ret;
+ 				break;
+ 			default:
+ 				dev_dbg(&priv->i2c->dev,
+@@ -3399,8 +3407,6 @@ static int cxd2841er_tune_tc(struct dvb_
+ 					__func__, priv->system);
+ 				return -EINVAL;
+ 			}
+-			if (ret)
+-				return ret;
+ 			dev_dbg(&priv->i2c->dev, "%s(): carrier offset %d\n",
+ 				__func__, carrier_offset);
+ 			p->frequency += carrier_offset;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-bitmap-bitmap_equal-memcmp-optimization-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+cxd2841er-avoid-misleading-gcc-warning.patch
 
