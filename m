@@ -1,130 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: + cxd2841er-avoid-misleading-gcc-warning.patch added to -mm tree
-Date: Wed, 03 Aug 2016 12:38:13 -0700
-Message-ID: <57a24825.OM1h5AIkpVIFCySD%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch removed from -mm tree
+Date: Wed, 03 Aug 2016 13:13:32 -0700
+Message-ID: <57a2506c.e/7S+1DcqlM4S6CE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38920 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757792AbcHCTrG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 15:47:06 -0400
+	with ESMTP id S1752682AbcHCUOZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 16:14:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, aospan@netup.ru, jbaron@akamai.com, mchehab@kernel.org, serjk@netup.ru, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/media/dvb-frontends/cxd2841er.c: avoid misleading gcc warning
-has been added to the -mm tree.  Its filename is
-     cxd2841er-avoid-misleading-gcc-warning.patch
+     Subject: arc: dma-mapping: use unsigned long for dma_attrs
+has been removed from the -mm tree.  Its filename was
+     arc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cxd2841er-avoid-misleading-gcc-warning.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cxd2841er-avoid-misleading-gcc-warning.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into dma-mapping-use-unsigned-long-for-dma_attrs.patch
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: drivers/media/dvb-frontends/cxd2841er.c: avoid misleading gcc warning
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: arc: dma-mapping: use unsigned long for dma_attrs
 
-The addition of jump label support in dynamic_debug caused an unexpected
-warning in exactly one file in the kernel:
+Split out subsystem specific changes for easier reviews. This will be
+squashed with main commit.
 
-drivers/media/dvb-frontends/cxd2841er.c: In function 'cxd2841er_tune_tc':
-include/linux/dynamic_debug.h:134:3: error: 'carrier_offset' may be used uninitialized in this function [-Werror=maybe-uninitialized]
-   __dynamic_dev_dbg(&descriptor, dev, fmt, \
-   ^~~~~~~~~~~~~~~~~
-drivers/media/dvb-frontends/cxd2841er.c:3177:11: note: 'carrier_offset' was declared here
-  int ret, carrier_offset;
-           ^~~~~~~~~~~~~~
-
-The problem seems to be that the compiler gets confused by the extra
-conditionals in static_branch_unlikely, to the point where it can no
-longer keep track of which branches have already been taken, and it
-doesn't realize that this variable is now always initialized when it gets
-used.
-
-I have done lots of randconfig kernel builds and could not find any other
-file with this behavior, so I assume it's a rare enough glitch that we
-don't need to change the jump label support but instead just work around
-the warning in the driver.
-
-To achieve that, I'm moving the check for the return value into the
-switch() statement, which is an obvious transformation, but is enough to
-un-confuse the compiler here.  The resulting code is not as nice to read,
-but at least we retain the behavior of warning if it gets changed to
-actually access an uninitialized carrier offset value in the future.
-
-Link: http://lkml.kernel.org/r/20160713204342.1221511-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Abylay Ospan <aospan@netup.ru>
-Cc: Sergey Kozlov <serjk@netup.ru>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Jason Baron <jbaron@akamai.com>
+Link: http://lkml.kernel.org/r/1468399300-5399-4-git-send-email-k.kozlowski@samsung.com
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+[for arc]
+Acked-by: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb-frontends/cxd2841er.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/arc/mm/dma.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/media/dvb-frontends/cxd2841er.c~cxd2841er-avoid-misleading-gcc-warning drivers/media/dvb-frontends/cxd2841er.c
---- a/drivers/media/dvb-frontends/cxd2841er.c~cxd2841er-avoid-misleading-gcc-warning
-+++ a/drivers/media/dvb-frontends/cxd2841er.c
-@@ -3378,20 +3378,28 @@ static int cxd2841er_tune_tc(struct dvb_
- 				ret = cxd2841er_get_carrier_offset_i(
- 						priv, p->bandwidth_hz,
- 						&carrier_offset);
-+				if (ret)
-+					return ret;
- 				break;
- 			case SYS_DVBT:
- 				ret = cxd2841er_get_carrier_offset_t(
- 					priv, p->bandwidth_hz,
- 					&carrier_offset);
-+				if (ret)
-+					return ret;
- 				break;
- 			case SYS_DVBT2:
- 				ret = cxd2841er_get_carrier_offset_t2(
- 					priv, p->bandwidth_hz,
- 					&carrier_offset);
-+				if (ret)
-+					return ret;
- 				break;
- 			case SYS_DVBC_ANNEX_A:
- 				ret = cxd2841er_get_carrier_offset_c(
- 					priv, &carrier_offset);
-+				if (ret)
-+					return ret;
- 				break;
- 			default:
- 				dev_dbg(&priv->i2c->dev,
-@@ -3399,8 +3407,6 @@ static int cxd2841er_tune_tc(struct dvb_
- 					__func__, priv->system);
- 				return -EINVAL;
- 			}
--			if (ret)
--				return ret;
- 			dev_dbg(&priv->i2c->dev, "%s(): carrier offset %d\n",
- 				__func__, carrier_offset);
- 			p->frequency += carrier_offset;
+diff -puN arch/arc/mm/dma.c~arc-dma-mapping-use-unsigned-long-for-dma_attrs arch/arc/mm/dma.c
+--- a/arch/arc/mm/dma.c~arc-dma-mapping-use-unsigned-long-for-dma_attrs
++++ a/arch/arc/mm/dma.c
+@@ -22,7 +22,7 @@
+ 
+ 
+ static void *arc_dma_alloc(struct device *dev, size_t size,
+-		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
++		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+ 	unsigned long order = get_order(size);
+ 	struct page *page;
+@@ -90,7 +90,7 @@ static void *arc_dma_alloc(struct device
+ }
+ 
+ static void arc_dma_free(struct device *dev, size_t size, void *vaddr,
+-		dma_addr_t dma_handle, struct dma_attrs *attrs)
++		dma_addr_t dma_handle, unsigned long attrs)
+ {
+ 	phys_addr_t paddr = plat_dma_to_phys(dev, dma_handle);
+ 	struct page *page = virt_to_page(paddr);
+@@ -130,7 +130,7 @@ static void _dma_cache_sync(phys_addr_t
+ 
+ static dma_addr_t arc_dma_map_page(struct device *dev, struct page *page,
+ 		unsigned long offset, size_t size, enum dma_data_direction dir,
+-		struct dma_attrs *attrs)
++		unsigned long attrs)
+ {
+ 	phys_addr_t paddr = page_to_phys(page) + offset;
+ 	_dma_cache_sync(paddr, size, dir);
+@@ -138,7 +138,7 @@ static dma_addr_t arc_dma_map_page(struc
+ }
+ 
+ static int arc_dma_map_sg(struct device *dev, struct scatterlist *sg,
+-	   int nents, enum dma_data_direction dir, struct dma_attrs *attrs)
++	   int nents, enum dma_data_direction dir, unsigned long attrs)
+ {
+ 	struct scatterlist *s;
+ 	int i;
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
-cxd2841er-avoid-misleading-gcc-warning.patch
+media-mtk-vcodec-remove-unused-dma_attrs.patch
+dma-mapping-use-unsigned-long-for-dma_attrs.patch
+arm-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+arm64-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+avr32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+blackfin-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+c6x-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+cris-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+frv-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-exynos-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-mediatek-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-msm-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-nouveau-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+drm-rockship-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+infiniband-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+iommu-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+media-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+xen-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+swiotlb-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+powerpc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+video-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+x86-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+iommu-intel-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+h8300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+hexagon-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+ia64-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+m68k-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+metag-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+microblaze-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+mips-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+mn10300-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+nios2-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+openrisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+parisc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+misc-mic-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+s390-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+sh-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+sparc-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+tile-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+unicore32-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+xtensa-dma-mapping-use-unsigned-long-for-dma_attrs.patch
+remoteproc-qcom-use-unsigned-long-for-dma_attrs.patch
+dma-mapping-remove-dma_get_attr.patch
+dma-mapping-document-the-dma-attributes-next-to-the-declaration.patch
 
