@@ -1,111 +1,118 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-insure-dlm-lockspace-is-created-by-kernel-module.patch removed from
- -mm tree
-Date: Wed, 03 Aug 2016 11:10:25 -0700
-Message-ID: <57a23391.12MeUA1l+LgRntKG%akpm@linux-foundation.org>
+ mm-kasan-fix-corruptions-and-false-positive-reports.patch removed from -mm
+ tree
+Date: Wed, 03 Aug 2016 11:10:57 -0700
+Message-ID: <57a233b1.bmSKGYQrjQn5R6X8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34117 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756627AbcHCSQv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:16:51 -0400
+	with ESMTP id S1756276AbcHCSVv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Aug 2016 14:21:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, rgoldwyn@suse.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, alexander.levin@verizon.com, davej@codemonkey.org.uk, dvyukov@google.com, glider@google.com, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: ensure that dlm lockspace is created by kernel module
+     Subject: mm/kasan: fix corruptions and false positive reports
 has been removed from the -mm tree.  Its filename was
-     ocfs2-insure-dlm-lockspace-is-created-by-kernel-module.patch
+     mm-kasan-fix-corruptions-and-false-positive-reports.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gang He <ghe@suse.com>
-Subject: ocfs2: ensure that dlm lockspace is created by kernel module
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: mm/kasan: fix corruptions and false positive reports
 
-We encountered a bug from the customer, the user did a fsck.ocfs2 on the
-file system and exited unusually, the lockspace (with LVB size = 32) was
-left in the kernel space, next, the user mounted this file system, the
-kernel module did not create a new lockspace (LVB size = 64) via calling
-dlm_new_lockspace() function in mounting stage, just used the existing
-lockspace, created by the user space tool, this would lead the user was
-not able to mount this file system from the other nodes, with the error
-message like:
+Once an object is put into quarantine, we no longer own it, i.e.  object
+could leave the quarantine and be reallocated.  So having set_track() call
+after the quarantine_put() may corrupt slab objects.
 
-dlm: 032F5......: config mismatch: 64,0 nodeid 177127961: 32,0
-(mount.ocfs2,26981,46):ocfs2_dlm_init:2995 ERROR: status = -71
-ocfs2_mount_volume:1881 ERROR: status = -71
-ocfs2_fill_super:1236 ERROR: status = -71
+ BUG kmalloc-4096 (Not tainted): Poison overwritten
+ -----------------------------------------------------------------------------
+ Disabling lock debugging due to kernel taint
+ INFO: 0xffff8804540de850-0xffff8804540de857. First byte 0xb5 instead of 0x6b
+...
+ INFO: Freed in qlist_free_all+0x42/0x100 age=75 cpu=3 pid=24492
+  __slab_free+0x1d6/0x2e0
+  ___cache_free+0xb6/0xd0
+  qlist_free_all+0x83/0x100
+  quarantine_reduce+0x177/0x1b0
+  kasan_kmalloc+0xf3/0x100
+  kasan_slab_alloc+0x12/0x20
+  kmem_cache_alloc+0x109/0x3e0
+  mmap_region+0x53e/0xe40
+  do_mmap+0x70f/0xa50
+  vm_mmap_pgoff+0x147/0x1b0
+  SyS_mmap_pgoff+0x2c7/0x5b0
+  SyS_mmap+0x1b/0x30
+  do_syscall_64+0x1a0/0x4e0
+  return_from_SYSCALL_64+0x0/0x7a
+ INFO: Slab 0xffffea0011503600 objects=7 used=7 fp=0x          (null) flags=0x8000000000004080
+ INFO: Object 0xffff8804540de848 @offset=26696 fp=0xffff8804540dc588
+ Redzone ffff8804540de840: bb bb bb bb bb bb bb bb                          ........
+ Object ffff8804540de848: 6b 6b 6b 6b 6b 6b 6b 6b b5 52 00 00 f2 01 60 cc  kkkkkkkk.R....`.
 
-The user found it very difficult to find the root cause, then, we brought
-out this patch to relieve such problem.  
+Similarly, poisoning after the quarantine_put() leads to false positive
+use-after-free reports:
 
-First, we add one more flag in calling dlm_new_lockspace() function, to
-make sure the lockspace is created by kernel module itself, and this
-change will not affect the backward compatibility.
+ BUG: KASAN: use-after-free in anon_vma_interval_tree_insert+0x304/0x430 at addr ffff880405c540a0
+ Read of size 8 by task trinity-c0/3036
+ CPU: 0 PID: 3036 Comm: trinity-c0 Not tainted 4.7.0-think+ #9
+  ffff880405c54200 00000000c5c4423e ffff88044a5ef9f0 ffffffffaea48532
+  ffff88044a5efa88 ffff880461497a00 ffff88044a5efa78 ffffffffae57cfe2
+  ffff88046501c958 ffff880436aa5440 0000000000000282 0000000000000007
+ Call Trace:
+  [<ffffffffaea48532>] dump_stack+0x68/0x96
+  [<ffffffffae57cfe2>] kasan_report_error+0x222/0x600
+  [<ffffffffae57d571>] __asan_report_load8_noabort+0x61/0x70
+  [<ffffffffae4f8924>] anon_vma_interval_tree_insert+0x304/0x430
+  [<ffffffffae52f811>] anon_vma_chain_link+0x91/0xd0
+  [<ffffffffae536e46>] anon_vma_clone+0x136/0x3f0
+  [<ffffffffae537181>] anon_vma_fork+0x81/0x4c0
+  [<ffffffffae125663>] copy_process.part.47+0x2c43/0x5b20
+  [<ffffffffae12895d>] _do_fork+0x16d/0xbd0
+  [<ffffffffae129469>] SyS_clone+0x19/0x20
+  [<ffffffffae0064b0>] do_syscall_64+0x1a0/0x4e0
+  [<ffffffffafa09b1a>] entry_SYSCALL64_slow_path+0x25/0x25
 
-Second, the obvious error message is reported in the kernel log, let the
-user be more easy to find the root cause.
+Fix this by putting an object in the quarantine after all other operations.
 
-
-
-This patch will be used to insure the dlm lockspace is created by kernel
-module when mounting a ocfs2 file system.  There are two ways to create a
-lockspace, from user space and kernel space, but the same name lockspaces
-probably have different lvblen lengths/flags.
-
-To avoid this mix using, we add one more flag DLM_LSFL_NEWEXCL, it will
-make sure the dlm lockspace is created by kernel module when mounting. 
-Secondly, if a user space program (ocfs2-tools) is running on a file
-system, the user tries to mount this file system in the cluster, DLM
-module will return a -EEXIST or -EPROTO errno, we should give the user a
-obvious error message, then, the user can let that user space tool exit
-before mounting the file system again.
-
-Link: http://lkml.kernel.org/r/1463731940-13044-2-git-send-email-ghe@suse.com
-Signed-off-by: Gang He <ghe@suse.com>
-Reviewed-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Fixes: 80a9201a5965 ("mm, kasan: switch SLUB to stackdepot, enable memory quarantine for SLUB")
+Link: http://lkml.kernel.org/r/1470062715-14077-1-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reported-by: Dave Jones <davej@codemonkey.org.uk>
+Reported-by: Vegard Nossum <vegard.nossum@oracle.com>
+Reported-by: Sasha Levin <alexander.levin@verizon.com>
+Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stack_user.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/kasan/kasan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/stack_user.c~ocfs2-insure-dlm-lockspace-is-created-by-kernel-module fs/ocfs2/stack_user.c
---- a/fs/ocfs2/stack_user.c~ocfs2-insure-dlm-lockspace-is-created-by-kernel-module
-+++ a/fs/ocfs2/stack_user.c
-@@ -1007,10 +1007,17 @@ static int user_cluster_connect(struct o
- 	lc->oc_type = NO_CONTROLD;
- 
- 	rc = dlm_new_lockspace(conn->cc_name, conn->cc_cluster_name,
--			       DLM_LSFL_FS, DLM_LVB_LEN,
-+			       DLM_LSFL_FS | DLM_LSFL_NEWEXCL, DLM_LVB_LEN,
- 			       &ocfs2_ls_ops, conn, &ops_rv, &fsdlm);
--	if (rc)
-+	if (rc) {
-+		if (rc == -EEXIST || rc == -EPROTO)
-+			printk(KERN_ERR "ocfs2: Unable to create the "
-+				"lockspace %s (%d), because a ocfs2-tools "
-+				"program is running on this file system "
-+				"with the same name lockspace\n",
-+				conn->cc_name, rc);
- 		goto out;
-+	}
- 
- 	if (ops_rv == -EOPNOTSUPP) {
- 		lc->oc_type = WITH_CONTROLD;
+diff -puN mm/kasan/kasan.c~mm-kasan-fix-corruptions-and-false-positive-reports mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-fix-corruptions-and-false-positive-reports
++++ a/mm/kasan/kasan.c
+@@ -543,9 +543,9 @@ bool kasan_slab_free(struct kmem_cache *
+ 		switch (alloc_info->state) {
+ 		case KASAN_STATE_ALLOC:
+ 			alloc_info->state = KASAN_STATE_QUARANTINE;
+-			quarantine_put(free_info, cache);
+ 			set_track(&free_info->track, GFP_NOWAIT);
+ 			kasan_poison_slab_free(cache, object);
++			quarantine_put(free_info, cache);
+ 			return true;
+ 		case KASAN_STATE_QUARANTINE:
+ 		case KASAN_STATE_FREE:
 _
 
-Patches currently in -mm which might be from ghe@suse.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
 
