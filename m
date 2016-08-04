@@ -1,17 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve.patch added to
+Subject: + fadump-register-the-memory-reserved-by-fadump.patch added to
  -mm tree
-Date: Thu, 04 Aug 2016 14:01:41 -0700
-Message-ID: <57a3ad35.QqW1Yke0YVk3QAWF%akpm@linux-foundation.org>
+Date: Thu, 04 Aug 2016 14:01:43 -0700
+Message-ID: <57a3ad37.D7UX13KfBOctPdj2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50151 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50161 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753097AbcHDVDN (ORCPT
+	with ESMTP id S1753116AbcHDVDN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 17:03:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -19,14 +18,14 @@ To: srikar@linux.vnet.ibm.com, bsingharora@gmail.com, dave.hansen@intel.com, hba
 
 
 The patch titled
-     Subject: mm/page_alloc.c: replace set_dma_reserve to set_memory_reserve
+     Subject: arch/powerpc/kernel/fadump.c: register the memory reserved by fadump
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve.patch
+     fadump-register-the-memory-reserved-by-fadump.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fadump-register-the-memory-reserved-by-fadump.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fadump-register-the-memory-reserved-by-fadump.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,16 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Subject: mm/page_alloc.c: replace set_dma_reserve to set_memory_reserve
+Subject: arch/powerpc/kernel/fadump.c: register the memory reserved by fadump
 
-Expand the scope of the existing dma_reserve to accommodate other memory
-reserves too.  Accordingly rename variable dma_reserve to
-nr_memory_reserve.
+Fadump kernel reserves large chunks of memory even before the pages are
+initialized.  This could mean memory that corresponds to several nodes
+might fall in memblock reserved regions.
 
-set_memory_reserve() also takes a new parameter that helps to identify if
-the current value needs to be incremented.
+Kernels compiled with CONFIG_DEFERRED_STRUCT_PAGE_INIT will initialize
+only certain size memory per node.  The certain size takes into account
+the dentry and inode cache sizes.  Currently the cache sizes are
+calculated based on the total system memory including the reserved memory.
+However such a kernel when booting the same kernel as fadump kernel will
+not be able to allocate the required amount of memory to suffice for the
+dentry and inode caches.  This results in crashes like the below on large
+systems such as 32 TB systems.
 
-Link: http://lkml.kernel.org/r/1470330729-6273-1-git-send-email-srikar@linux.vnet.ibm.com
+Dentry cache hash table entries: 536870912 (order: 16, 4294967296 bytes)
+vmalloc: allocation failure, allocated 4097114112 of 17179934720 bytes
+swapper/0: page allocation failure: order:0, mode:0x2080020(GFP_ATOMIC)
+CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.6-master+ #3
+Call Trace:
+[c00000000108fb10] [c0000000007fac88] dump_stack+0xb0/0xf0 (unreliable)
+[c00000000108fb50] [c000000000235264] warn_alloc_failed+0x114/0x160
+[c00000000108fbf0] [c000000000281484] __vmalloc_node_range+0x304/0x340
+[c00000000108fca0] [c00000000028152c] __vmalloc+0x6c/0x90
+[c00000000108fd40] [c000000000aecfb0]
+alloc_large_system_hash+0x1b8/0x2c0
+[c00000000108fe00] [c000000000af7240] inode_init+0x94/0xe4
+[c00000000108fe80] [c000000000af6fec] vfs_caches_init+0x8c/0x13c
+[c00000000108ff00] [c000000000ac4014] start_kernel+0x50c/0x578
+[c00000000108ff90] [c000000000008c6c] start_here_common+0x20/0xa8
+
+Register the memory reserved by fadump, so that the cache sizes are
+calculated based on the free memory (i.e Total memory - reserved memory).
+
+Link: http://lkml.kernel.org/r/1470330729-6273-2-git-send-email-srikar@linux.vnet.ibm.com
 Signed-off-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Suggested-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -63,87 +87,20 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/e820.c |    2 +-
- include/linux/mm.h     |    2 +-
- mm/page_alloc.c        |   20 ++++++++++++--------
- 3 files changed, 14 insertions(+), 10 deletions(-)
+ arch/powerpc/kernel/fadump.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/e820.c~mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve arch/x86/kernel/e820.c
---- a/arch/x86/kernel/e820.c~mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve
-+++ a/arch/x86/kernel/e820.c
-@@ -1188,6 +1188,6 @@ void __init memblock_find_dma_reserve(vo
- 			nr_free_pages += end_pfn - start_pfn;
+diff -puN arch/powerpc/kernel/fadump.c~fadump-register-the-memory-reserved-by-fadump arch/powerpc/kernel/fadump.c
+--- a/arch/powerpc/kernel/fadump.c~fadump-register-the-memory-reserved-by-fadump
++++ a/arch/powerpc/kernel/fadump.c
+@@ -330,6 +330,7 @@ int __init fadump_reserve_mem(void)
  	}
- 
--	set_dma_reserve(nr_pages - nr_free_pages);
-+	set_memory_reserve(nr_pages - nr_free_pages, false);
- #endif
- }
-diff -puN include/linux/mm.h~mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve include/linux/mm.h
---- a/include/linux/mm.h~mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve
-+++ a/include/linux/mm.h
-@@ -1913,7 +1913,7 @@ extern int __meminit __early_pfn_to_nid(
- 					struct mminit_pfnnid_cache *state);
- #endif
- 
--extern void set_dma_reserve(unsigned long new_dma_reserve);
-+extern void set_memory_reserve(unsigned long nr_reserve, bool inc);
- extern void memmap_init_zone(unsigned long, int, unsigned long,
- 				unsigned long, enum memmap_context);
- extern void setup_per_zone_wmarks(void);
-diff -puN mm/page_alloc.c~mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve
-+++ a/mm/page_alloc.c
-@@ -254,7 +254,7 @@ int watermark_scale_factor = 10;
- 
- static unsigned long __meminitdata nr_kernel_pages;
- static unsigned long __meminitdata nr_all_pages;
--static unsigned long __meminitdata dma_reserve;
-+static unsigned long __meminitdata nr_memory_reserve;
- 
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- static unsigned long __meminitdata arch_zone_lowest_possible_pfn[MAX_NR_ZONES];
-@@ -5861,10 +5861,10 @@ static void __paginginit free_area_init_
- 		}
- 
- 		/* Account for reserved pages */
--		if (j == 0 && freesize > dma_reserve) {
--			freesize -= dma_reserve;
-+		if (j == 0 && freesize > nr_memory_reserve) {
-+			freesize -= nr_memory_reserve;
- 			printk(KERN_DEBUG "  %s zone: %lu pages reserved\n",
--					zone_names[0], dma_reserve);
-+					zone_names[0], nr_memory_reserve);
- 		}
- 
- 		if (!is_highmem_idx(j))
-@@ -6553,8 +6553,9 @@ void __init mem_init_print_info(const ch
+ 	fw_dump.reserve_dump_area_start = base;
+ 	fw_dump.reserve_dump_area_size = size;
++	set_memory_reserve(size/PAGE_SIZE, true);
+ 	return 1;
  }
  
- /**
-- * set_dma_reserve - set the specified number of pages reserved in the first zone
-- * @new_dma_reserve: The number of pages to mark reserved
-+ * set_memory_reserve - set number of pages reserved in the first zone
-+ * @nr_reserve: The number of pages to mark reserved
-+ * @inc: true increment to existing value; false set new value.
-  *
-  * The per-cpu batchsize and zone watermarks are determined by managed_pages.
-  * In the DMA zone, a significant percentage may be consumed by kernel image
-@@ -6563,9 +6564,12 @@ void __init mem_init_print_info(const ch
-  * first zone (e.g., ZONE_DMA). The effect will be lower watermarks and
-  * smaller per-cpu batchsize.
-  */
--void __init set_dma_reserve(unsigned long new_dma_reserve)
-+void __init set_memory_reserve(unsigned long nr_reserve, bool inc)
- {
--	dma_reserve = new_dma_reserve;
-+	if (inc)
-+		nr_memory_reserve += nr_reserve;
-+	else
-+		nr_memory_reserve = nr_reserve;
- }
- 
- void __init free_area_init(unsigned long *zones_size)
 _
 
 Patches currently in -mm which might be from srikar@linux.vnet.ibm.com are
