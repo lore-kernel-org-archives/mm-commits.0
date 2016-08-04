@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + slub-drop-bogus-inline-for-fixup_red_left.patch added to -mm
+Subject: + powerpc-fsl_rio-fix-a-missing-error-code.patch added to -mm
  tree
-Date: Thu, 04 Aug 2016 13:17:11 -0700
-Message-ID: <57a3a2c7.9udt2B9fOcG5wIgq%akpm@linux-foundation.org>
+Date: Thu, 04 Aug 2016 13:16:26 -0700
+Message-ID: <57a3a29a.8rZ4cija85bdZWza%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49519 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49509 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934160AbcHDURM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 16:17:12 -0400
+	with ESMTP id S934287AbcHDURF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 16:17:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, glider@google.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, alexandre.bounine@idt.com, benh@kernel.crashing.org, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: drop bogus inline for fixup_red_left()
+     Subject: powerpc/fsl_rio: fix a missing error code
 has been added to the -mm tree.  Its filename is
-     slub-drop-bogus-inline-for-fixup_red_left.patch
+     powerpc-fsl_rio-fix-a-missing-error-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-drop-bogus-inline-for-fixup_red_left.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-fsl_rio-fix-a-missing-error-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-drop-bogus-inline-for-fixup_red_left.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-fsl_rio-fix-a-missing-error-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,43 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: slub: drop bogus inline for fixup_red_left()
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: powerpc/fsl_rio: fix a missing error code
 
-With m68k-linux-gnu-gcc-4.1:
+We should set the error code here rather than incorrectly returning 0. 
+Otherwise static checkers complain.
 
-    include/linux/slub_def.h:126: warning: `fixup_red_left' declared inline after being called
-    include/linux/slub_def.h:126: warning: previous declaration of `fixup_red_left' was here
-
-Commit c146a2b98eb5898e ("mm, kasan: account for object redzone in SLUB's
-nearest_obj()") made fixup_red_left() global, but forgot to remove the
-inline keyword.
-
-Fixes: c146a2b98eb5898e ("mm, kasan: account for object redzone in SLUB's nearest_obj()")
-Link: http://lkml.kernel.org/r/1470256262-1586-1-git-send-email-geert@linux-m68k.org
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/20160804053525.GM775@mwanda
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Alexandre Bounine <alexandre.bounine@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/sysdev/fsl_rio.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/slub.c~slub-drop-bogus-inline-for-fixup_red_left mm/slub.c
---- a/mm/slub.c~slub-drop-bogus-inline-for-fixup_red_left
-+++ a/mm/slub.c
-@@ -124,7 +124,7 @@ static inline int kmem_cache_debug(struc
- #endif
- }
- 
--inline void *fixup_red_left(struct kmem_cache *s, void *p)
-+void *fixup_red_left(struct kmem_cache *s, void *p)
- {
- 	if (kmem_cache_debug(s) && s->flags & SLAB_RED_ZONE)
- 		p += s->red_left_pad;
+diff -puN arch/powerpc/sysdev/fsl_rio.c~powerpc-fsl_rio-fix-a-missing-error-code arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~powerpc-fsl_rio-fix-a-missing-error-code
++++ a/arch/powerpc/sysdev/fsl_rio.c
+@@ -491,6 +491,7 @@ int fsl_rio_setup(struct platform_device
+ 	rmu_node = of_parse_phandle(dev->dev.of_node, "fsl,srio-rmu-handle", 0);
+ 	if (!rmu_node) {
+ 		dev_err(&dev->dev, "No valid fsl,srio-rmu-handle property\n");
++		rc = -ENOENT;
+ 		goto err_rmu;
+ 	}
+ 	rc = of_address_to_resource(rmu_node, 0, &rmu_regs);
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-slub-drop-bogus-inline-for-fixup_red_left.patch
+powerpc-fsl_rio-fix-a-missing-error-code.patch
 
