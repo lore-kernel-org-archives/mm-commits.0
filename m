@@ -1,39 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- samples-jprobe-convert-the-printk-to-pr_info-pr_err.patch removed from -mm
- tree
-Date: Thu, 04 Aug 2016 13:03:31 -0700
-Message-ID: <57a39f93./qnfbsXLe/Kaxwgh%akpm@linux-foundation.org>
+Subject: [merged] samples-kretprobe-fix-the-wrong-type.patch removed from
+ -mm tree
+Date: Thu, 04 Aug 2016 13:03:37 -0700
+Message-ID: <57a39f99.abV4jbBtOOPf/Qxp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48943 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48952 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934140AbcHDUDc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 16:03:32 -0400
+	with ESMTP id S934295AbcHDUDi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 16:03:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: shijie.huang@arm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, mhiramat@kernel.org, pmladek@suse.com, steve.capper@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: samples/jprobe: convert the printk to pr_info/pr_err
+     Subject: samples/kretprobe: fix the wrong type
 has been removed from the -mm tree.  Its filename was
-     samples-jprobe-convert-the-printk-to-pr_info-pr_err.patch
+     samples-kretprobe-fix-the-wrong-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Huang Shijie <shijie.huang@arm.com>
-Subject: samples/jprobe: convert the printk to pr_info/pr_err
+Subject: samples/kretprobe: fix the wrong type
 
-We prefer to use the pr_* to print out the log now, this patch converts
-the printk to pr_info.  In the error path, use the pr_err to replace the
-printk.
+The regs_return_value() returns "unsigned long" or "long" value.  But the
+retval is int type now, it may cause overflow, the log may becomes:
+.................
 
-Link: http://lkml.kernel.org/r/1464143083-3877-2-git-send-email-shijie.huang@arm.com
+    [ 2911.078869] do_brk returned -2003877888 and took 4620 ns to execute
+    ................
+
+This patch converts the retval to "unsigned long" type, and fixes the
+overflow issue.
+
+Link: http://lkml.kernel.org/r/1464143083-3877-4-git-send-email-shijie.huang@arm.com
 Signed-off-by: Huang Shijie <shijie.huang@arm.com>
 Cc: Petr Mladek <pmladek@suse.com>
 Cc: Steve Capper <steve.capper@arm.com>
@@ -43,34 +48,29 @@ Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/kprobes/jprobe_example.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ samples/kprobes/kretprobe_example.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN samples/kprobes/jprobe_example.c~samples-jprobe-convert-the-printk-to-pr_info-pr_err samples/kprobes/jprobe_example.c
---- a/samples/kprobes/jprobe_example.c~samples-jprobe-convert-the-printk-to-pr_info-pr_err
-+++ a/samples/kprobes/jprobe_example.c
-@@ -48,10 +48,10 @@ static int __init jprobe_init(void)
+diff -puN samples/kprobes/kretprobe_example.c~samples-kretprobe-fix-the-wrong-type samples/kprobes/kretprobe_example.c
+--- a/samples/kprobes/kretprobe_example.c~samples-kretprobe-fix-the-wrong-type
++++ a/samples/kprobes/kretprobe_example.c
+@@ -55,14 +55,14 @@ static int entry_handler(struct kretprob
+  */
+ static int ret_handler(struct kretprobe_instance *ri, struct pt_regs *regs)
+ {
+-	int retval = regs_return_value(regs);
++	unsigned long retval = regs_return_value(regs);
+ 	struct my_data *data = (struct my_data *)ri->data;
+ 	s64 delta;
+ 	ktime_t now;
  
- 	ret = register_jprobe(&my_jprobe);
- 	if (ret < 0) {
--		printk(KERN_INFO "register_jprobe failed, returned %d\n", ret);
-+		pr_err("register_jprobe failed, returned %d\n", ret);
- 		return -1;
- 	}
--	printk(KERN_INFO "Planted jprobe at %p, handler addr %p\n",
-+	pr_info("Planted jprobe at %p, handler addr %p\n",
- 	       my_jprobe.kp.addr, my_jprobe.entry);
+ 	now = ktime_get();
+ 	delta = ktime_to_ns(ktime_sub(now, data->entry_stamp));
+-	pr_info("%s returned %d and took %lld ns to execute\n",
++	pr_info("%s returned %lu and took %lld ns to execute\n",
+ 			func_name, retval, (long long)delta);
  	return 0;
  }
-@@ -59,7 +59,7 @@ static int __init jprobe_init(void)
- static void __exit jprobe_exit(void)
- {
- 	unregister_jprobe(&my_jprobe);
--	printk(KERN_INFO "jprobe at %p unregistered\n", my_jprobe.kp.addr);
-+	pr_info("jprobe at %p unregistered\n", my_jprobe.kp.addr);
- }
- 
- module_init(jprobe_init)
 _
 
 Patches currently in -mm which might be from shijie.huang@arm.com are
