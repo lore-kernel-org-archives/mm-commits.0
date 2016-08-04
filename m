@@ -1,93 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- samples-kretprobe-convert-the-printk-to-pr_info-pr_err.patch removed from
- -mm tree
-Date: Thu, 04 Aug 2016 13:03:34 -0700
-Message-ID: <57a39f96.5+bVGoFJPpD85aDy%akpm@linux-foundation.org>
+ maintainers-update-email-and-list-of-samsung-hw-driver-maintainers.patch
+ removed from -mm tree
+Date: Thu, 04 Aug 2016 13:03:43 -0700
+Message-ID: <57a39f9f.O4Qj9z9++Hjd70fg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48946 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48966 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934140AbcHDUDf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 16:03:35 -0400
+	with ESMTP id S934295AbcHDUDo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 16:03:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shijie.huang@arm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, mhiramat@kernel.org, pmladek@suse.com, steve.capper@arm.com, mm-commits@vger.kernel.org
+To: k.debski@samsung.com, a.hajda@samsung.com, gregkh@linuxfoundation.org, jdelvare@suse.de, kamil@wypas.org, kishon@ti.com, l.majewski@samsung.com, linux@roeck-us.net, mchehab@kernel.org, s.nawrocki@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: samples/kretprobe: convert the printk to pr_info/pr_err
+     Subject: MAINTAINERS: update email and list of Samsung HW driver maintainers
 has been removed from the -mm tree.  Its filename was
-     samples-kretprobe-convert-the-printk-to-pr_info-pr_err.patch
+     maintainers-update-email-and-list-of-samsung-hw-driver-maintainers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huang Shijie <shijie.huang@arm.com>
-Subject: samples/kretprobe: convert the printk to pr_info/pr_err
+From: Kamil Debski <k.debski@samsung.com>
+Subject: MAINTAINERS: update email and list of Samsung HW driver maintainers
 
-We prefer to use the pr_* to print out the log now, this patch converts
-the printk to pr_info.  In the error path, use the pr_err to replace the
-printk.
+Change my email address in the MAINTAINERS file.
+Add new maintainers of selected Samsung HW drivers.
 
-Link: http://lkml.kernel.org/r/1464143083-3877-3-git-send-email-shijie.huang@arm.com
-Signed-off-by: Huang Shijie <shijie.huang@arm.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Link: http://lkml.kernel.org/r/1470060703-20423-1-git-send-email-k.debski@samsung.com
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Reviewed-by: Jean Delvare <jdelvare@suse.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Lukasz Majewski <l.majewski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Kamil Debski <kamil@wypas.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/kprobes/kretprobe_example.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ MAINTAINERS |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN samples/kprobes/kretprobe_example.c~samples-kretprobe-convert-the-printk-to-pr_info-pr_err samples/kprobes/kretprobe_example.c
---- a/samples/kprobes/kretprobe_example.c~samples-kretprobe-convert-the-printk-to-pr_info-pr_err
-+++ a/samples/kprobes/kretprobe_example.c
-@@ -62,7 +62,7 @@ static int ret_handler(struct kretprobe_
+diff -puN MAINTAINERS~maintainers-update-email-and-list-of-samsung-hw-driver-maintainers MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-email-and-list-of-samsung-hw-driver-maintainers
++++ a/MAINTAINERS
+@@ -1648,7 +1648,8 @@ F:	arch/arm/mach-s5pv210/
  
- 	now = ktime_get();
- 	delta = ktime_to_ns(ktime_sub(now, data->entry_stamp));
--	printk(KERN_INFO "%s returned %d and took %lld ns to execute\n",
-+	pr_info("%s returned %d and took %lld ns to execute\n",
- 			func_name, retval, (long long)delta);
- 	return 0;
- }
-@@ -82,11 +82,10 @@ static int __init kretprobe_init(void)
- 	my_kretprobe.kp.symbol_name = func_name;
- 	ret = register_kretprobe(&my_kretprobe);
- 	if (ret < 0) {
--		printk(KERN_INFO "register_kretprobe failed, returned %d\n",
--				ret);
-+		pr_err("register_kretprobe failed, returned %d\n", ret);
- 		return -1;
- 	}
--	printk(KERN_INFO "Planted return probe at %s: %p\n",
-+	pr_info("Planted return probe at %s: %p\n",
- 			my_kretprobe.kp.symbol_name, my_kretprobe.kp.addr);
- 	return 0;
- }
-@@ -94,11 +93,10 @@ static int __init kretprobe_init(void)
- static void __exit kretprobe_exit(void)
- {
- 	unregister_kretprobe(&my_kretprobe);
--	printk(KERN_INFO "kretprobe at %p unregistered\n",
--			my_kretprobe.kp.addr);
-+	pr_info("kretprobe at %p unregistered\n", my_kretprobe.kp.addr);
+ ARM/SAMSUNG S5P SERIES 2D GRAPHICS ACCELERATION (G2D) SUPPORT
+ M:	Kyungmin Park <kyungmin.park@samsung.com>
+-M:	Kamil Debski <k.debski@samsung.com>
++M:	Kamil Debski <kamil@wypas.org>
++M:	Andrzej Hajda <a.hajda@samsung.com>
+ L:	linux-arm-kernel@lists.infradead.org
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
+@@ -1656,8 +1657,9 @@ F:	drivers/media/platform/s5p-g2d/
  
- 	/* nmissed > 0 suggests that maxactive was set too low. */
--	printk(KERN_INFO "Missed probing %d instances of %s\n",
-+	pr_info("Missed probing %d instances of %s\n",
- 		my_kretprobe.nmissed, my_kretprobe.kp.symbol_name);
- }
+ ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC) SUPPORT
+ M:	Kyungmin Park <kyungmin.park@samsung.com>
+-M:	Kamil Debski <k.debski@samsung.com>
++M:	Kamil Debski <kamil@wypas.org>
+ M:	Jeongtae Park <jtp.park@samsung.com>
++M:	Andrzej Hajda <a.hajda@samsung.com>
+ L:	linux-arm-kernel@lists.infradead.org
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
+@@ -9470,7 +9472,8 @@ S:	Odd Fixes
+ F:	drivers/media/usb/pwc/*
  
+ PWM FAN DRIVER
+-M:	Kamil Debski <k.debski@samsung.com>
++M:	Kamil Debski <kamil@wypas.org>
++M:	Lukasz Majewski <l.majewski@samsung.com>
+ L:	linux-hwmon@vger.kernel.org
+ S:	Supported
+ F:	Documentation/devicetree/bindings/hwmon/pwm-fan.txt
+@@ -10218,7 +10221,8 @@ T:	git https://github.com/lmajewski/linu
+ F:	drivers/thermal/samsung/
+ 
+ SAMSUNG USB2 PHY DRIVER
+-M:	Kamil Debski <k.debski@samsung.com>
++M:	Kamil Debski <kamil@wypas.org>
++M:	Sylwester Nawrocki <s.nawrocki@samsung.com>
+ L:	linux-kernel@vger.kernel.org
+ S:	Supported
+ F:	Documentation/devicetree/bindings/phy/samsung-phy.txt
 _
 
-Patches currently in -mm which might be from shijie.huang@arm.com are
+Patches currently in -mm which might be from k.debski@samsung.com are
 
 
