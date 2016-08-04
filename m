@@ -1,55 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 7/7] mm/memblock.c: fix NULL dereference error
-Date: Thu, 04 Aug 2016 15:32:00 -0700
-Message-ID: <57a3c260.Fr/vmIbeOFDOJPog%akpm@linux-foundation.org>
+Subject: [patch 6/7] MAINTAINERS: update cgroup's document path
+Date: Thu, 04 Aug 2016 15:31:57 -0700
+Message-ID: <57a3c25d.TytYVlEDXO7brg6g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52812 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52809 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759227AbcHDWcB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 18:32:01 -0400
+	with ESMTP id S1759227AbcHDWb6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 18:31:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zijun_hu@htc.com, tj@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamyooon@gmail.com
 
-From: zijun_hu <zijun_hu@htc.com>
-Subject: mm/memblock.c: fix NULL dereference error
+From: "seokhoon.yoon" <iamyooon@gmail.com>
+Subject: MAINTAINERS: update cgroup's document path
 
-It causes NULL dereference error and failure to get type_a->regions[0]
-info if parameter type_b of __next_mem_range_rev() == NULL
+cgroup's document path is changed to "cgroup-v1". update it.
 
-Fix this by checking before dereferring and initializing idx_b to 0
-
-The approach is tested by dumping all types of region via
-__memblock_dump_all() and __next_mem_range_rev() fixed to UART separately
-the result is okay after checking the logs.
-
-Link: http://lkml.kernel.org/r/57A0320D.6070102@zoho.com
-Signed-off-by: zijun_hu <zijun_hu@htc.com>
-Tested-by: zijun_hu <zijun_hu@htc.com>
-Acked-by: Tejun Heo <tj@kernel.org>
+Link: http://lkml.kernel.org/r/1470322507-5161-1-git-send-email-iamyooon@gmail.com
+Signed-off-by: seokhoon.yoon <iamyooon@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memblock.c~mm-memblockc-fix-null-dereference-error mm/memblock.c
---- a/mm/memblock.c~mm-memblockc-fix-null-dereference-error
-+++ a/mm/memblock.c
-@@ -994,7 +994,10 @@ void __init_memblock __next_mem_range_re
+diff -puN MAINTAINERS~maintainers-update-cgroups-document-path MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-cgroups-document-path
++++ a/MAINTAINERS
+@@ -3219,7 +3219,7 @@ M:	Johannes Weiner <hannes@cmpxchg.org>
+ L:	cgroups@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tj/cgroup.git
+ S:	Maintained
+-F:	Documentation/cgroups/
++F:	Documentation/cgroup*
+ F:	include/linux/cgroup*
+ F:	kernel/cgroup*
  
- 	if (*idx == (u64)ULLONG_MAX) {
- 		idx_a = type_a->cnt - 1;
--		idx_b = type_b->cnt;
-+		if (type_b != NULL)
-+			idx_b = type_b->cnt;
-+		else
-+			idx_b = 0;
- 	}
+@@ -3230,7 +3230,7 @@ W:	http://www.bullopensource.org/cpuset/
+ W:	http://oss.sgi.com/projects/cpusets/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tj/cgroup.git
+ S:	Maintained
+-F:	Documentation/cgroups/cpusets.txt
++F:	Documentation/cgroup-v1/cpusets.txt
+ F:	include/linux/cpuset.h
+ F:	kernel/cpuset.c
  
- 	for (; idx_a >= 0; idx_a--) {
 _
