@@ -1,53 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [patch 5/7] slub: drop bogus inline for fixup_red_left()
-Date: Thu, 04 Aug 2016 15:31:55 -0700
-Message-ID: <57a3c25b.sh1d7ul+GmM8PZOn%akpm@linux-foundation.org>
+Subject: [patch 7/7] mm/memblock.c: fix NULL dereference error
+Date: Thu, 04 Aug 2016 15:32:00 -0700
+Message-ID: <57a3c260.Fr/vmIbeOFDOJPog%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52806 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52812 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759229AbcHDWb4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 18:31:56 -0400
+	with ESMTP id S1759227AbcHDWcB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 18:32:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, geert@linux-m68k.org, glider@google.com, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zijun_hu@htc.com, tj@kernel.org
 
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: slub: drop bogus inline for fixup_red_left()
+From: zijun_hu <zijun_hu@htc.com>
+Subject: mm/memblock.c: fix NULL dereference error
 
-With m68k-linux-gnu-gcc-4.1:
+It causes NULL dereference error and failure to get type_a->regions[0]
+info if parameter type_b of __next_mem_range_rev() == NULL
 
-    include/linux/slub_def.h:126: warning: `fixup_red_left' declared inline after being called
-    include/linux/slub_def.h:126: warning: previous declaration of `fixup_red_left' was here
+Fix this by checking before dereferring and initializing idx_b to 0
 
-Commit c146a2b98eb5898e ("mm, kasan: account for object redzone in SLUB's
-nearest_obj()") made fixup_red_left() global, but forgot to remove the
-inline keyword.
+The approach is tested by dumping all types of region via
+__memblock_dump_all() and __next_mem_range_rev() fixed to UART separately
+the result is okay after checking the logs.
 
-Fixes: c146a2b98eb5898e ("mm, kasan: account for object redzone in SLUB's nearest_obj()")
-Link: http://lkml.kernel.org/r/1470256262-1586-1-git-send-email-geert@linux-m68k.org
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Alexander Potapenko <glider@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Link: http://lkml.kernel.org/r/57A0320D.6070102@zoho.com
+Signed-off-by: zijun_hu <zijun_hu@htc.com>
+Tested-by: zijun_hu <zijun_hu@htc.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memblock.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-drop-bogus-inline-for-fixup_red_left mm/slub.c
---- a/mm/slub.c~slub-drop-bogus-inline-for-fixup_red_left
-+++ a/mm/slub.c
-@@ -124,7 +124,7 @@ static inline int kmem_cache_debug(struc
- #endif
- }
+diff -puN mm/memblock.c~mm-memblockc-fix-null-dereference-error mm/memblock.c
+--- a/mm/memblock.c~mm-memblockc-fix-null-dereference-error
++++ a/mm/memblock.c
+@@ -994,7 +994,10 @@ void __init_memblock __next_mem_range_re
  
--inline void *fixup_red_left(struct kmem_cache *s, void *p)
-+void *fixup_red_left(struct kmem_cache *s, void *p)
- {
- 	if (kmem_cache_debug(s) && s->flags & SLAB_RED_ZONE)
- 		p += s->red_left_pad;
+ 	if (*idx == (u64)ULLONG_MAX) {
+ 		idx_a = type_a->cnt - 1;
+-		idx_b = type_b->cnt;
++		if (type_b != NULL)
++			idx_b = type_b->cnt;
++		else
++			idx_b = 0;
+ 	}
+ 
+ 	for (; idx_a >= 0; idx_a--) {
 _
