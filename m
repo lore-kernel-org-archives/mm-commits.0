@@ -1,74 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-remove-blk_dev_dax-config-option.patch removed
- from -mm tree
-Date: Thu, 04 Aug 2016 13:03:40 -0700
-Message-ID: <57a39f9c.eswYEQBFYuMAlru2%akpm@linux-foundation.org>
+Subject: [merged]
+ samples-kretprobe-convert-the-printk-to-pr_info-pr_err.patch removed from
+ -mm tree
+Date: Thu, 04 Aug 2016 13:03:34 -0700
+Message-ID: <57a39f96.5+bVGoFJPpD85aDy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48959 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48946 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934295AbcHDUDl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 16:03:41 -0400
+	with ESMTP id S934140AbcHDUDf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 16:03:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, axboe@kernel.dk, dan.j.williams@intel.com, dave.hansen@linux.intel.com, mm-commits@vger.kernel.org
+To: shijie.huang@arm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, mhiramat@kernel.org, pmladek@suse.com, steve.capper@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: remove BLK_DEV_DAX config option
+     Subject: samples/kretprobe: convert the printk to pr_info/pr_err
 has been removed from the -mm tree.  Its filename was
-     block-remove-blk_dev_dax-config-option.patch
+     samples-kretprobe-convert-the-printk-to-pr_info-pr_err.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: block: remove BLK_DEV_DAX config option
+From: Huang Shijie <shijie.huang@arm.com>
+Subject: samples/kretprobe: convert the printk to pr_info/pr_err
 
-The functionality for block device DAX was already removed with this
-commit:
+We prefer to use the pr_* to print out the log now, this patch converts
+the printk to pr_info.  In the error path, use the pr_err to replace the
+printk.
 
-commit acc93d30d7d4 ("Revert "block: enable dax for raw block devices"")
-
-However, we still had a config option hanging around that was always
-disabled because it depended on CONFIG_BROKEN.  This config option was
-introduced in this commit:
-
-commit 03cdadb04077 ("block: disable block device DAX by default")
-
-This change reverts that commit, removing the dead config option.
-
-Link: http://lkml.kernel.org/r/20160729182314.6368-1-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Acked-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Link: http://lkml.kernel.org/r/1464143083-3877-3-git-send-email-shijie.huang@arm.com
+Signed-off-by: Huang Shijie <shijie.huang@arm.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Steve Capper <steve.capper@arm.com>
+Cc: Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/Kconfig  |   13 -------------
- fs/block_dev.c |    6 +-----
- 2 files changed, 1 insertion(+), 18 deletions(-)
+ samples/kprobes/kretprobe_example.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN block/Kconfig~block-remove-blk_dev_dax-config-option block/Kconfig
---- a/block/Kconfig~block-remove-blk_dev_dax-config-option
-+++ a/block/Kconfig
-@@ -88,19 +88,6 @@ config BLK_DEV_INTEGRITY
- 	T10/SCSI Data Integrity Field or the T13/ATA External Path
- 	Protection.  If in doubt, say N.
+diff -puN samples/kprobes/kretprobe_example.c~samples-kretprobe-convert-the-printk-to-pr_info-pr_err samples/kprobes/kretprobe_example.c
+--- a/samples/kprobes/kretprobe_example.c~samples-kretprobe-convert-the-printk-to-pr_info-pr_err
++++ a/samples/kprobes/kretprobe_example.c
+@@ -62,7 +62,7 @@ static int ret_handler(struct kretprobe_
  
--config BLK_DEV_DAX
--	bool "Block device DAX support"
--	depends on FS_DAX
--	depends on BROKEN
--	help
--	  When DAX support is available (CONFIG_FS_DAX) raw block
--	  devices can also support direct userspace access to the
--	  storage capacity via MMAP(2) similar to a file on a
--	  DAX-enabled filesystem.  However, the DAX I/O-path disables
--	  some standard I/O-statistics, and the MMAP(2) path has some
--	  operational differences due to bypassing the page
--	  cache.  If in doubt, say N.
+ 	now = ktime_get();
+ 	delta = ktime_to_ns(ktime_sub(now, data->entry_stamp));
+-	printk(KERN_INFO "%s returned %d and took %lld ns to execute\n",
++	pr_info("%s returned %d and took %lld ns to execute\n",
+ 			func_name, retval, (long long)delta);
+ 	return 0;
+ }
+@@ -82,11 +82,10 @@ static int __init kretprobe_init(void)
+ 	my_kretprobe.kp.symbol_name = func_name;
+ 	ret = register_kretprobe(&my_kretprobe);
+ 	if (ret < 0) {
+-		printk(KERN_INFO "register_kretprobe failed, returned %d\n",
+-				ret);
++		pr_err("register_kretprobe failed, returned %d\n", ret);
+ 		return -1;
+ 	}
+-	printk(KERN_INFO "Planted return probe at %s: %p\n",
++	pr_info("Planted return probe at %s: %p\n",
+ 			my_kretprobe.kp.symbol_name, my_kretprobe.kp.addr);
+ 	return 0;
+ }
+@@ -94,11 +93,10 @@ static int __init kretprobe_init(void)
+ static void __exit kretprobe_exit(void)
+ {
+ 	unregister_kretprobe(&my_kretprobe);
+-	printk(KERN_INFO "kretprobe at %p unregistered\n",
+-			my_kretprobe.kp.addr);
++	pr_info("kretprobe at %p unregistered\n", my_kretprobe.kp.addr);
+ 
+ 	/* nmissed > 0 suggests that maxactive was set too low. */
+-	printk(KERN_INFO "Missed probing %d instances of %s\n",
++	pr_info("Missed probing %d instances of %s\n",
+ 		my_kretprobe.nmissed, my_kretprobe.kp.symbol_name);
+ }
+ 
+_
+
+Patches currently in -mm which might be from shijie.huang@arm.com are
+
+
