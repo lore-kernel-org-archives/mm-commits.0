@@ -1,43 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-jump-label-may-reference-text-in-__exit.patch
- removed from -mm tree
-Date: Thu, 04 Aug 2016 13:03:57 -0700
-Message-ID: <57a39fad.eSUNPmDpjUXPLiS/%akpm@linux-foundation.org>
+Subject: [merged]
+ tile-support-static_key-usage-in-non-module-__exit-sections.patch removed
+ from -mm tree
+Date: Thu, 04 Aug 2016 13:03:54 -0700
+Message-ID: <57a39faa.8u/mMQwUrZquQFPA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49009 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964796AbcHDUD6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 16:03:58 -0400
+	with ESMTP id S964796AbcHDUDz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 16:03:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbaron@akamai.com, a.p.zijlstra@chello.nl, arnd@arndb.de, benh@kernel.crashing.org, cmetcalf@mellanox.com, davem@davemloft.net, heiko.carstens@de.ibm.com, joe@perches.com, mpe@ellerman.id.au, paulus@samba.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: cmetcalf@mellanox.com, a.p.zijlstra@chello.nl, arnd@arndb.de, benh@kernel.crashing.org, davem@davemloft.net, heiko.carstens@de.ibm.com, jbaron@akamai.com, joe@perches.com, mpe@ellerman.id.au, paulus@samba.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: jump label may reference text in __exit
+     Subject: tile: support static_key usage in non-module __exit sections
 has been removed from the -mm tree.  Its filename was
-     arm-jump-label-may-reference-text-in-__exit.patch
+     tile-support-static_key-usage-in-non-module-__exit-sections.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jason Baron <jbaron@akamai.com>
-Subject: arm: jump label may reference text in __exit
+From: Chris Metcalf <cmetcalf@mellanox.com>
+Subject: tile: support static_key usage in non-module __exit sections
 
-The jump table can reference text found in an __exit section.  Thus,
-instead of discarding it at build time, include EXIT_TEXT as part of
-__init and it will be released when the system boots.
+Previously, all the __exit sections were just dropped by the link phase. 
+However, if there are static_key (jump label) constructs in __exit
+sections that are not modules, the link fails with the message:
 
-Link: http://lkml.kernel.org/r/60284113bb759121e8ae3e99af1535647e52123f.1467837322.git.jbaron@akamai.com
+   `.exit.text' referenced in section `__jump_table' of xxx.o:
+   defined in discarded section `.exit.text' of xxx.o
+
+Support this usage by keeping the .exit.text sections in the final image
+if JUMP_LABEL is defined, then discarding them once initialization is
+complete.
+
+Link: http://lkml.kernel.org/r/bfd7c107c610c30e992868ebfe2a5d796a097464.1467837322.git.jbaron@akamai.com
 Signed-off-by: Jason Baron <jbaron@akamai.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Chris Metcalf <cmetcalf@mellanox.com>
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Chris Metcalf <cmetcalf@mellanox.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
@@ -47,23 +55,33 @@ Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/vmlinux.lds.S |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/tile/kernel/vmlinux.lds.S |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN arch/arm/kernel/vmlinux.lds.S~arm-jump-label-may-reference-text-in-__exit arch/arm/kernel/vmlinux.lds.S
---- a/arch/arm/kernel/vmlinux.lds.S~arm-jump-label-may-reference-text-in-__exit
-+++ a/arch/arm/kernel/vmlinux.lds.S
-@@ -44,7 +44,7 @@
- #endif
+diff -puN arch/tile/kernel/vmlinux.lds.S~tile-support-static_key-usage-in-non-module-__exit-sections arch/tile/kernel/vmlinux.lds.S
+--- a/arch/tile/kernel/vmlinux.lds.S~tile-support-static_key-usage-in-non-module-__exit-sections
++++ a/arch/tile/kernel/vmlinux.lds.S
+@@ -60,6 +60,18 @@ SECTIONS
+   /* "Init" is divided into two areas with very different virtual addresses. */
+   INIT_TEXT_SECTION(PAGE_SIZE)
  
- #if (defined(CONFIG_SMP_ON_UP) && !defined(CONFIG_DEBUG_SPINLOCK)) || \
--	defined(CONFIG_GENERIC_BUG)
-+	defined(CONFIG_GENERIC_BUG) || defined(CONFIG_JUMP_LABEL)
- #define ARM_EXIT_KEEP(x)	x
- #define ARM_EXIT_DISCARD(x)
- #else
++  /*
++   * Some things, like the __jump_table, may contain symbol references
++   * to __exit text, so include such text in the final image if so.
++   * In that case we also override the _einittext from INIT_TEXT_SECTION.
++   */
++#ifdef CONFIG_JUMP_LABEL
++  .exit.text : {
++    EXIT_TEXT
++    _einittext = .;
++  }
++#endif
++
+   /* Now we skip back to PAGE_OFFSET for the data. */
+   . = (. - TEXT_OFFSET + PAGE_OFFSET);
+   #undef LOAD_OFFSET
 _
 
-Patches currently in -mm which might be from jbaron@akamai.com are
+Patches currently in -mm which might be from cmetcalf@mellanox.com are
 
 
