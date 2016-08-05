@@ -1,147 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2016-08-04-15-53 uploaded
-Date: Thu, 04 Aug 2016 15:54:28 -0700
-Message-ID: <57a3c7a4.gCWzM2XkCo5koanA%akpm__49088.1582875319$1470351304$gmane$org@linux-foundation.org>
+Subject: + rapidio-dereferencing-an-error-pointer.patch added to -mm tree
+Date: Fri, 05 Aug 2016 10:05:17 -0700
+Message-ID: <57a4c74d.cUQviiRtbaviPJAE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53515 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45469 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759275AbcHDWya (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Aug 2016 18:54:30 -0400
+	with ESMTP id S1759759AbcHERFS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Aug 2016 13:05:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
-
-The mm-of-the-moment snapshot 2016-08-04-15-53 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: dan.carpenter@oracle.com, alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: rapidio: dereferencing an error pointer
+has been added to the -mm tree.  Its filename is
+     rapidio-dereferencing-an-error-pointer.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-dereferencing-an-error-pointer.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-dereferencing-an-error-pointer.patch
 
-To develop on top of mmotm git:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-To rebase a branch with older patches to a new mmotm release:
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+------------------------------------------------------
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: rapidio: dereferencing an error pointer
 
+Original patch: https://lkml.org/lkml/2016/8/4/32
 
+If riocm_ch_alloc() fails then we end up dereferencing the error pointer.
 
+The problem is that we're not unwinding in the reverse order from how we
+allocate things so it gets confusing.  I've changed this around so now
+"ch" is NULL when we are done with it after we call riocm_put_channel(). 
+That way we can check if it's NULL and avoid calling riocm_put_channel()
+on it twice.
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+I renamed err_nodev to err_put_new_ch so that it better reflects what the
+goto does.
 
-A git copy of this tree is available at
+Then because we had flipping things around, it means we don't neeed to
+initialize the pointers to NULL and we can remove an if statement and pull
+things in an indent level.
 
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+Link: http://lkml.kernel.org/r/20160805152406.20713-1-alexandre.bounine@idt.com
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
+Cc: Barry Wood <barry.wood@idt.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+ drivers/rapidio/rio_cm.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
+diff -puN drivers/rapidio/rio_cm.c~rapidio-dereferencing-an-error-pointer drivers/rapidio/rio_cm.c
+--- a/drivers/rapidio/rio_cm.c~rapidio-dereferencing-an-error-pointer
++++ a/drivers/rapidio/rio_cm.c
+@@ -1080,8 +1080,8 @@ static int riocm_send_ack(struct rio_cha
+ static struct rio_channel *riocm_ch_accept(u16 ch_id, u16 *new_ch_id,
+ 					   long timeout)
+ {
+-	struct rio_channel *ch = NULL;
+-	struct rio_channel *new_ch = NULL;
++	struct rio_channel *ch;
++	struct rio_channel *new_ch;
+ 	struct conn_req *req;
+ 	struct cm_peer *peer;
+ 	int found = 0;
+@@ -1155,6 +1155,7 @@ static struct rio_channel *riocm_ch_acce
+ 
+ 	spin_unlock_bh(&ch->lock);
+ 	riocm_put_channel(ch);
++	ch = NULL;
+ 	kfree(req);
+ 
+ 	down_read(&rdev_sem);
+@@ -1172,7 +1173,7 @@ static struct rio_channel *riocm_ch_acce
+ 	if (!found) {
+ 		/* If peer device object not found, simply ignore the request */
+ 		err = -ENODEV;
+-		goto err_nodev;
++		goto err_put_new_ch;
+ 	}
+ 
+ 	new_ch->rdev = peer->rdev;
+@@ -1184,15 +1185,16 @@ static struct rio_channel *riocm_ch_acce
+ 
+ 	*new_ch_id = new_ch->id;
+ 	return new_ch;
++
++err_put_new_ch:
++	spin_lock_bh(&idr_lock);
++	idr_remove(&ch_idr, new_ch->id);
++	spin_unlock_bh(&idr_lock);
++	riocm_put_channel(new_ch);
++
+ err_put:
+-	riocm_put_channel(ch);
+-err_nodev:
+-	if (new_ch) {
+-		spin_lock_bh(&idr_lock);
+-		idr_remove(&ch_idr, new_ch->id);
+-		spin_unlock_bh(&idr_lock);
+-		riocm_put_channel(new_ch);
+-	}
++	if (ch)
++		riocm_put_channel(ch);
+ 	*new_ch_id = 0;
+ 	return ERR_PTR(err);
+ }
+_
 
-This mmotm tree contains the following patches against 4.7:
-(patches marked "*" will be included in linux-next)
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-  origin.patch
-* mm-add-restriction-when-memory_hotplug-config-enable.patch
-* mm-memblock-fix-a-typo-in-a-comment.patch
-* mm-initialise-per_cpu_nodestats-for-all-online-pgdats-at-boot.patch
-* powerpc-fsl_rio-fix-a-missing-error-code.patch
-* slub-drop-bogus-inline-for-fixup_red_left.patch
-* maintainers-update-cgroups-document-path.patch
-* mm-memblockc-fix-null-dereference-error.patch
-  arch-alpha-kernel-systblss-remove-debug-check.patch
-  i-need-old-gcc.patch
-* mm-oom-fix-uninitialized-ret-in-task_will_free_mem.patch
-* mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve.patch
-* fadump-register-the-memory-reserved-by-fadump.patch
-* mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup.patch
-* mm-memcontrol-fix-memcg-id-ref-counter-on-swap-charge-move.patch
-* mm-slab-improve-performance-of-gathering-slabinfo-stats.patch
-* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-* kbuild-simpler-generation-of-assembly-constants.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
-  mm.patch
-* mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
-* mm-oom-deduplicate-victim-selection-code-for-memcg-and-global-oom.patch
-* mm-zsmalloc-add-trace-events-for-zs_compact.patch
-* mm-zsmalloc-add-per-class-compact-trace-event.patch
-* mm-page_owner-align-with-pageblock_nr-pages.patch
-* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
-* proc-relax-proc-tid-timerslack_ns-capability-requirements.patch
-* proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns.patch
-* printk-remove-unnecessary-ifdef-config_printk.patch
-* lib-add-crc64-ecma-module.patch
-* compat-remove-compat_printk.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* random-simplify-api-for-random-address-requests.patch
-* x86-use-simpler-api-for-random-address-requests.patch
-* arm-use-simpler-api-for-random-address-requests.patch
-* arm64-use-simpler-api-for-random-address-requests.patch
-* tile-use-simpler-api-for-random-address-requests.patch
-* unicore32-use-simpler-api-for-random-address-requests.patch
-* random-remove-unused-randomize_range.patch
-* dma-mapping-introduce-the-dma_attr_no_warn-attribute.patch
-* powerpc-implement-the-dma_attr_no_warn-attribute.patch
-* nvme-use-the-dma_attr_no_warn-attribute.patch
-* ipc-msgc-msgsnd-use-freezable-blocking-call.patch
-* msgrcv-use-freezable-blocking-call.patch
-  linux-next.patch
-  linux-next-git-rejects.patch
-* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-* ipc-semc-fix-complex_count-vs-simple-op-race.patch
-  mm-add-strictlimit-knob-v2.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
+powerpc-fsl_rio-fix-a-missing-error-code.patch
+rapidio-dereferencing-an-error-pointer.patch
+
