@@ -1,68 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-drop-bogus-inline-for-fixup_red_left.patch removed
- from -mm tree
-Date: Mon, 08 Aug 2016 13:15:15 -0700
-Message-ID: <57a8e853.WvnozLhG8/1f5mpj%akpm@linux-foundation.org>
+Subject: + revert-arm-keystone-dts-add-psci-command-definition.patch added to -mm tree
+Date: Mon, 08 Aug 2016 15:35:18 -0700
+Message-ID: <57a90926.+xK+sOlZndCGCpZx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37366 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41101 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752318AbcHHUPQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Aug 2016 16:15:16 -0400
+	with ESMTP id S1751433AbcHHWfT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Aug 2016 18:35:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, glider@google.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linux@armlinux.org.uk, vitalya@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: drop bogus inline for fixup_red_left()
-has been removed from the -mm tree.  Its filename was
-     slub-drop-bogus-inline-for-fixup_red_left.patch
+     Subject: revert "ARM: keystone: dts: add psci command definition"
+has been added to the -mm tree.  Its filename is
+     revert-arm-keystone-dts-add-psci-command-definition.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-arm-keystone-dts-add-psci-command-definition.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-arm-keystone-dts-add-psci-command-definition.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: slub: drop bogus inline for fixup_red_left()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "ARM: keystone: dts: add psci command definition"
 
-With m68k-linux-gnu-gcc-4.1:
+Revert 51d5d12b8f3d ("ARM: keystone: dts: add psci command definition"),
+which was inadvertently added twice.
 
-    include/linux/slub_def.h:126: warning: `fixup_red_left' declared inline after being called
-    include/linux/slub_def.h:126: warning: previous declaration of `fixup_red_left' was here
-
-Commit c146a2b98eb5898e ("mm, kasan: account for object redzone in SLUB's
-nearest_obj()") made fixup_red_left() global, but forgot to remove the
-inline keyword.
-
-Fixes: c146a2b98eb5898e ("mm, kasan: account for object redzone in SLUB's nearest_obj()")
-Link: http://lkml.kernel.org/r/1470256262-1586-1-git-send-email-geert@linux-m68k.org
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Alexander Potapenko <glider@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Vitaly Andrianov <vitalya@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/keystone.dtsi |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN mm/slub.c~slub-drop-bogus-inline-for-fixup_red_left mm/slub.c
---- a/mm/slub.c~slub-drop-bogus-inline-for-fixup_red_left
-+++ a/mm/slub.c
-@@ -124,7 +124,7 @@ static inline int kmem_cache_debug(struc
- #endif
- }
+diff -puN arch/arm/boot/dts/keystone.dtsi~revert-arm-keystone-dts-add-psci-command-definition arch/arm/boot/dts/keystone.dtsi
+--- a/arch/arm/boot/dts/keystone.dtsi~revert-arm-keystone-dts-add-psci-command-definition
++++ a/arch/arm/boot/dts/keystone.dtsi
+@@ -70,14 +70,6 @@
+ 		cpu_on		= <0x84000003>;
+ 	};
  
--inline void *fixup_red_left(struct kmem_cache *s, void *p)
-+void *fixup_red_left(struct kmem_cache *s, void *p)
- {
- 	if (kmem_cache_debug(s) && s->flags & SLAB_RED_ZONE)
- 		p += s->red_left_pad;
-_
-
-Patches currently in -mm which might be from geert@linux-m68k.org are
-
-mm-oom-fix-uninitialized-ret-in-task_will_free_mem.patch
-
+-	psci {
+-		compatible	= "arm,psci";
+-		method		= "smc";
+-		cpu_suspend	= <0x84000001>;
+-		cpu_off		= <0x84000002>;
+-		cpu_on		= <0x84000003>;
+-	};
