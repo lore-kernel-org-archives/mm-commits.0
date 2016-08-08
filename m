@@ -1,69 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memblockc-fix-null-dereference-error.patch removed
+Subject: [merged] slub-drop-bogus-inline-for-fixup_red_left.patch removed
  from -mm tree
-Date: Mon, 08 Aug 2016 13:15:19 -0700
-Message-ID: <57a8e857.YMTzVrBiRoW2upMs%akpm@linux-foundation.org>
+Date: Mon, 08 Aug 2016 13:15:15 -0700
+Message-ID: <57a8e853.WvnozLhG8/1f5mpj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37370 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37366 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752318AbcHHUPU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Aug 2016 16:15:20 -0400
+	with ESMTP id S1752318AbcHHUPQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Aug 2016 16:15:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zijun_hu@htc.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, glider@google.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock.c: fix NULL dereference error
+     Subject: slub: drop bogus inline for fixup_red_left()
 has been removed from the -mm tree.  Its filename was
-     mm-memblockc-fix-null-dereference-error.patch
+     slub-drop-bogus-inline-for-fixup_red_left.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: zijun_hu <zijun_hu@htc.com>
-Subject: mm/memblock.c: fix NULL dereference error
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: slub: drop bogus inline for fixup_red_left()
 
-It causes NULL dereference error and failure to get type_a->regions[0]
-info if parameter type_b of __next_mem_range_rev() == NULL
+With m68k-linux-gnu-gcc-4.1:
 
-Fix this by checking before dereferring and initializing idx_b to 0
+    include/linux/slub_def.h:126: warning: `fixup_red_left' declared inline after being called
+    include/linux/slub_def.h:126: warning: previous declaration of `fixup_red_left' was here
 
-The approach is tested by dumping all types of region via
-__memblock_dump_all() and __next_mem_range_rev() fixed to UART separately
-the result is okay after checking the logs.
+Commit c146a2b98eb5898e ("mm, kasan: account for object redzone in SLUB's
+nearest_obj()") made fixup_red_left() global, but forgot to remove the
+inline keyword.
 
-Link: http://lkml.kernel.org/r/57A0320D.6070102@zoho.com
-Signed-off-by: zijun_hu <zijun_hu@htc.com>
-Tested-by: zijun_hu <zijun_hu@htc.com>
-Acked-by: Tejun Heo <tj@kernel.org>
+Fixes: c146a2b98eb5898e ("mm, kasan: account for object redzone in SLUB's nearest_obj()")
+Link: http://lkml.kernel.org/r/1470256262-1586-1-git-send-email-geert@linux-m68k.org
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Alexander Potapenko <glider@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~mm-memblockc-fix-null-dereference-error mm/memblock.c
---- a/mm/memblock.c~mm-memblockc-fix-null-dereference-error
-+++ a/mm/memblock.c
-@@ -994,7 +994,10 @@ void __init_memblock __next_mem_range_re
+diff -puN mm/slub.c~slub-drop-bogus-inline-for-fixup_red_left mm/slub.c
+--- a/mm/slub.c~slub-drop-bogus-inline-for-fixup_red_left
++++ a/mm/slub.c
+@@ -124,7 +124,7 @@ static inline int kmem_cache_debug(struc
+ #endif
+ }
  
- 	if (*idx == (u64)ULLONG_MAX) {
- 		idx_a = type_a->cnt - 1;
--		idx_b = type_b->cnt;
-+		if (type_b != NULL)
-+			idx_b = type_b->cnt;
-+		else
-+			idx_b = 0;
- 	}
- 
- 	for (; idx_a >= 0; idx_a--) {
+-inline void *fixup_red_left(struct kmem_cache *s, void *p)
++void *fixup_red_left(struct kmem_cache *s, void *p)
+ {
+ 	if (kmem_cache_debug(s) && s->flags & SLAB_RED_ZONE)
+ 		p += s->red_left_pad;
 _
 
-Patches currently in -mm which might be from zijun_hu@htc.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
+mm-oom-fix-uninitialized-ret-in-task_will_free_mem.patch
 
