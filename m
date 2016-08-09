@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 09 Aug 2016 12:28:58 -0700
-Message-ID: <57aa2efa.1NOExdMG8R9S9TBL%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-fix-wrong-initialization-when-sysctl_min_unmapped_ratio-changes.patch added to -mm tree
+Date: Tue, 09 Aug 2016 13:59:04 -0700
+Message-ID: <57aa4418.SoM72qxRyS8lIWoJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37645 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39532 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932235AbcHIT27 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 15:28:59 -0400
+	with ESMTP id S932324AbcHIU7G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 16:59:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, mgorman@techsingularity.net, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm/page_alloc.c: fix wrong initialization when sysctl_min_unmapped_ratio changes
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-page_alloc-fix-wrong-initialization-when-sysctl_min_unmapped_ratio-changes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-wrong-initialization-when-sysctl_min_unmapped_ratio-changes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-wrong-initialization-when-sysctl_min_unmapped_ratio-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,55 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/page_alloc.c: fix wrong initialization when sysctl_min_unmapped_ratio changes
 
+Before resetting min_unmapped_pages, we need to initialize
+min_unmapped_pages rather than min_slab_pages.
+
+Fixes: a5f5f91da6 (mm: convert zone_reclaim to node_reclaim)
+Link: http://lkml.kernel.org/r/1470724248-26780-1-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.gcc-plugins |   16 ----------------
- scripts/gcc-plugins/Makefile |    5 -----
- 2 files changed, 21 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/Makefile.gcc-plugins~linux-next-git-rejects scripts/Makefile.gcc-plugins
---- a/scripts/Makefile.gcc-plugins~linux-next-git-rejects
-+++ a/scripts/Makefile.gcc-plugins
-@@ -26,21 +26,6 @@ ifdef CONFIG_GCC_PLUGINS
-   endif
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-wrong-initialization-when-sysctl_min_unmapped_ratio-changes mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-wrong-initialization-when-sysctl_min_unmapped_ratio-changes
++++ a/mm/page_alloc.c
+@@ -6858,7 +6858,7 @@ int sysctl_min_unmapped_ratio_sysctl_han
+ 		return rc;
  
-   GCC_PLUGINS_CFLAGS := $(strip $(addprefix -fplugin=$(objtree)/scripts/gcc-plugins/, $(gcc-plugin-y)) $(gcc-plugin-cflags-y))
--<<<<<<< HEAD
--
--  export PLUGINCC GCC_PLUGINS_CFLAGS GCC_PLUGIN GCC_PLUGIN_SUBDIR SANCOV_PLUGIN
--
--  ifneq ($(PLUGINCC),)
--    # SANCOV_PLUGIN can be only in CFLAGS_KCOV because avoid duplication.
--    GCC_PLUGINS_CFLAGS := $(filter-out $(SANCOV_PLUGIN), $(GCC_PLUGINS_CFLAGS))
--  endif
--
--  KBUILD_CFLAGS += $(GCC_PLUGINS_CFLAGS)
--  GCC_PLUGIN := $(gcc-plugin-y)
--  GCC_PLUGIN_SUBDIR := $(gcc-plugin-subdir-y)
--endif
--
--=======
+ 	for_each_online_pgdat(pgdat)
+-		pgdat->min_slab_pages = 0;
++		pgdat->min_unmapped_pages = 0;
  
-   export PLUGINCC GCC_PLUGINS_CFLAGS GCC_PLUGIN GCC_PLUGIN_SUBDIR SANCOV_PLUGIN DISABLE_LATENT_ENTROPY_PLUGIN
- 
-@@ -54,7 +39,6 @@ endif
-   GCC_PLUGIN_SUBDIR := $(gcc-plugin-subdir-y)
- endif
- 
-->>>>>>> linux-next/akpm-base
- # If plugins aren't supported, abort the build before hard-to-read compiler
- # errors start getting spewed by the main build.
- PHONY += gcc-plugins-check
-diff -puN scripts/gcc-plugins/Makefile~linux-next-git-rejects scripts/gcc-plugins/Makefile
---- a/scripts/gcc-plugins/Makefile~linux-next-git-rejects
-+++ a/scripts/gcc-plugins/Makefile
-@@ -22,11 +22,6 @@ $(HOSTLIBS)-y := $(foreach p,$(GCC_PLUGI
- always := $($(HOSTLIBS)-y)
- $(foreach p,$($(HOSTLIBS)-y:%.so=%),$(eval $(p)-objs := $(p).o))
- 
--<<<<<<< HEAD
--$(foreach p,$($(HOSTLIBS)-y:%.so=%),$(eval $(p)-objs := $(p).o))
+ 	for_each_zone(zone)
+ 		zone->zone_pgdat->min_unmapped_pages += (zone->managed_pages *
+_
+
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+
+mm-page_alloc-fix-wrong-initialization-when-sysctl_min_unmapped_ratio-changes.patch
+mm-page_alloc-recalculate-some-of-node-threshold-when-on-offline-memory.patch
+
