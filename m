@@ -1,72 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] printk-remove-unnecessary-ifdef-config_printk.patch
- removed from -mm tree
-Date: Tue, 09 Aug 2016 12:27:44 -0700
-Message-ID: <57aa2eb0.wTsOpkszIeThfcrY%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 09 Aug 2016 12:28:58 -0700
+Message-ID: <57aa2efa.1NOExdMG8R9S9TBL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37571 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37645 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751774AbcHIT1q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 15:27:46 -0400
+	with ESMTP id S932235AbcHIT27 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 15:28:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.ziegler@fau.de, bp@suse.de, joe@perches.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: remove unnecessary #ifdef CONFIG_PRINTK
-has been removed from the -mm tree.  Its filename was
-     printk-remove-unnecessary-ifdef-config_printk.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andreas Ziegler <andreas.ziegler@fau.de>
-Subject: printk: remove unnecessary #ifdef CONFIG_PRINTK
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-In commit 874f9c7da9a4 ("printk: create pr_<level> functions") in
-linux-next, new pr_level defines were added to printk.c.  These defines
-are guarded by an #ifdef CONFIG_PRINTK - however, there is already a
-surrounding #ifdef CONFIG_PRINTK starting a lot earlier in line 249 which
-means the newly introduced #ifdef is unnecessary.
-
-Let's remove it to avoid confusion.
-
-Link: http://lkml.kernel.org/r/1470297129-28049-1-git-send-email-andreas.ziegler@fau.de
-Signed-off-by: Andreas Ziegler <andreas.ziegler@fau.de>
-Cc: Joe Perches <joe@perches.com>
-Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    2 --
- 1 file changed, 2 deletions(-)
+ scripts/Makefile.gcc-plugins |   16 ----------------
+ scripts/gcc-plugins/Makefile |    5 -----
+ 2 files changed, 21 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-remove-unnecessary-ifdef-config_printk kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-remove-unnecessary-ifdef-config_printk
-+++ a/kernel/printk/printk.c
-@@ -1930,7 +1930,6 @@ asmlinkage int printk_emit(int facility,
- }
- EXPORT_SYMBOL(printk_emit);
+diff -puN scripts/Makefile.gcc-plugins~linux-next-git-rejects scripts/Makefile.gcc-plugins
+--- a/scripts/Makefile.gcc-plugins~linux-next-git-rejects
++++ a/scripts/Makefile.gcc-plugins
+@@ -26,21 +26,6 @@ ifdef CONFIG_GCC_PLUGINS
+   endif
  
--#ifdef CONFIG_PRINTK
- #define define_pr_level(func, loglevel)				\
- asmlinkage __visible void func(const char *fmt, ...)		\
- {								\
-@@ -1949,7 +1948,6 @@ define_pr_level(__pr_err, LOGLEVEL_ERR);
- define_pr_level(__pr_warn, LOGLEVEL_WARNING);
- define_pr_level(__pr_notice, LOGLEVEL_NOTICE);
- define_pr_level(__pr_info, LOGLEVEL_INFO);
--#endif
+   GCC_PLUGINS_CFLAGS := $(strip $(addprefix -fplugin=$(objtree)/scripts/gcc-plugins/, $(gcc-plugin-y)) $(gcc-plugin-cflags-y))
+-<<<<<<< HEAD
+-
+-  export PLUGINCC GCC_PLUGINS_CFLAGS GCC_PLUGIN GCC_PLUGIN_SUBDIR SANCOV_PLUGIN
+-
+-  ifneq ($(PLUGINCC),)
+-    # SANCOV_PLUGIN can be only in CFLAGS_KCOV because avoid duplication.
+-    GCC_PLUGINS_CFLAGS := $(filter-out $(SANCOV_PLUGIN), $(GCC_PLUGINS_CFLAGS))
+-  endif
+-
+-  KBUILD_CFLAGS += $(GCC_PLUGINS_CFLAGS)
+-  GCC_PLUGIN := $(gcc-plugin-y)
+-  GCC_PLUGIN_SUBDIR := $(gcc-plugin-subdir-y)
+-endif
+-
+-=======
  
- int vprintk_default(int level, const char *fmt, va_list args)
- {
-_
-
-Patches currently in -mm which might be from andreas.ziegler@fau.de are
-
-
+   export PLUGINCC GCC_PLUGINS_CFLAGS GCC_PLUGIN GCC_PLUGIN_SUBDIR SANCOV_PLUGIN DISABLE_LATENT_ENTROPY_PLUGIN
+ 
+@@ -54,7 +39,6 @@ endif
+   GCC_PLUGIN_SUBDIR := $(gcc-plugin-subdir-y)
+ endif
+ 
+->>>>>>> linux-next/akpm-base
+ # If plugins aren't supported, abort the build before hard-to-read compiler
+ # errors start getting spewed by the main build.
+ PHONY += gcc-plugins-check
+diff -puN scripts/gcc-plugins/Makefile~linux-next-git-rejects scripts/gcc-plugins/Makefile
+--- a/scripts/gcc-plugins/Makefile~linux-next-git-rejects
++++ a/scripts/gcc-plugins/Makefile
+@@ -22,11 +22,6 @@ $(HOSTLIBS)-y := $(foreach p,$(GCC_PLUGI
+ always := $($(HOSTLIBS)-y)
+ $(foreach p,$($(HOSTLIBS)-y:%.so=%),$(eval $(p)-objs := $(p).o))
+ 
+-<<<<<<< HEAD
+-$(foreach p,$($(HOSTLIBS)-y:%.so=%),$(eval $(p)-objs := $(p).o))
