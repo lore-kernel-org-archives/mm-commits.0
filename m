@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-fix-align-value-calculation-error-fix.patch added to -mm tree
-Date: Tue, 09 Aug 2016 14:29:11 -0700
-Message-ID: <57aa4b27.Q8UGZRJFNOq0hpEw%akpm@linux-foundation.org>
+Subject: +
+ console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
+ added to -mm tree
+Date: Tue, 09 Aug 2016 14:57:32 -0700
+Message-ID: <57aa51cc.IQV7QPdDDEQmmKVD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39913 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40139 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932382AbcHIV3M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 17:29:12 -0400
+	with ESMTP id S932676AbcHIV5d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 17:57:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, minchan@kernel.org, rientjes@google.com, tj@kernel.org, zijun_hu@htc.com, mm-commits@vger.kernel.org
+To: paul.burton@imgtec.com, bp@suse.de, colona@arista.com, daniel.vetter@ffwll.ch, frowand.list@gmail.com, gregkh@linuxfoundation.org, jack@suse.com, joe@perches.com, jslaby@suse.cz, pmladek@suse.com, ralf@linux-mips.org, robh+dt@kernel.org, sergey.senozhatsky@gmail.com, tj@kernel.org, treding@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmalloc-fix-align-value-calculation-error-fix
+     Subject: console: don't prefer first registered if DT specifies stdout-path
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-fix-align-value-calculation-error-fix.patch
+     console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-align-value-calculation-error-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-align-value-calculation-error-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,98 +40,124 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmalloc-fix-align-value-calculation-error-fix
+From: Paul Burton <paul.burton@imgtec.com>
+Subject: console: don't prefer first registered if DT specifies stdout-path
 
-s/get_order_long()/get_count_order_long()/ to match get_count_order()
+If a device tree specifies a preferred device for kernel console output
+via the stdout-path or linux,stdout-path chosen node properties or the
+stdout alias then the kernel ought to honor it & output the kernel console
+to that device.  As it stands, this isn't the case.  Whilst we parse the
+stdout-path properties & set an of_stdout variable from of_alias_scan(),
+and use that from of_console_check() to determine whether to add a console
+device as a preferred console whilst registering it, we also prefer the
+first registered console if no other has been selected at the time of its
+registration.
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
+This means that if a console other than the one the device tree selects
+via stdout-path is registered first, we will switch to using it & when the
+stdout-path console is later registered the call to
+add_preferred_console() via of_console_check() is too late to do anything
+useful.  In practice this seems to mean that we switch to the dummy
+console device fairly early & see no further console output:
+
+    Console: colour dummy device 80x25
+    console [tty0] enabled
+    bootconsole [ns16550a0] disabled
+
+Fix this by not automatically preferring the first registered console if
+one is specified by the device tree.  This allows consoles to be
+registered but not enabled, and once the driver for the console selected
+by stdout-path calls of_console_check() the driver will be added to the
+list of preferred consoles before any other console has been enabled. 
+When that console is then registered via register_console() it will be
+enabled as expected.
+
+Link: http://lkml.kernel.org/r/20160809151937.26118-1-paul.burton@imgtec.com
+Signed-off-by: Paul Burton <paul.burton@imgtec.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Burton <paul.burton@imgtec.com>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: zijun_hu <zijun_hu@htc.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Ivan Delalande <colona@arista.com>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Jan Kara <jack@suse.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Frank Rowand <frowand.list@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |   34 +++++++++++++++++-----------------
- mm/vmalloc.c           |    2 +-
- 2 files changed, 18 insertions(+), 18 deletions(-)
+ drivers/of/base.c       |    2 ++
+ include/linux/console.h |    6 ++++++
+ kernel/printk/printk.c  |   13 ++++++++++++-
+ 3 files changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error-fix include/linux/bitops.h
---- a/include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error-fix
-+++ a/include/linux/bitops.h
-@@ -75,6 +75,23 @@ static inline int get_count_order(unsign
- 	return order;
- }
+diff -puN drivers/of/base.c~console-dont-prefer-first-registered-if-dt-specifies-stdout-path drivers/of/base.c
+--- a/drivers/of/base.c~console-dont-prefer-first-registered-if-dt-specifies-stdout-path
++++ a/drivers/of/base.c
+@@ -2011,6 +2011,8 @@ void of_alias_scan(void * (*dt_alloc)(u6
+ 			name = of_get_property(of_aliases, "stdout", NULL);
+ 		if (name)
+ 			of_stdout = of_find_node_opts_by_path(name, &of_stdout_options);
++		if (of_stdout)
++			console_set_by_of();
+ 	}
  
-+/**
-+ * get_count_order_long - get order after rounding @l up to power of 2
-+ * @l: parameter
-+ *
-+ * The same as get_count_order() but accepts a long type parameter
-+ * or 0 is returned if @l == 0UL
-+ */
-+static inline int get_count_order_long(unsigned long l)
-+{
-+	if (l == 0UL)
-+		return 0;
-+	else if (l & (l - 1UL))
-+		return fls_long(l);
-+	else
-+		return fls_long(l) - 1;
-+}
+ 	if (!of_aliases)
+diff -puN include/linux/console.h~console-dont-prefer-first-registered-if-dt-specifies-stdout-path include/linux/console.h
+--- a/include/linux/console.h~console-dont-prefer-first-registered-if-dt-specifies-stdout-path
++++ a/include/linux/console.h
+@@ -173,6 +173,12 @@ static inline void console_sysfs_notify(
+ #endif
+ extern bool console_suspend_enabled;
+ 
++#ifdef CONFIG_OF
++extern void console_set_by_of(void);
++#else
++static inline void console_set_by_of(void) {}
++#endif
 +
- static __always_inline unsigned long hweight_long(unsigned long w)
- {
- 	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
-@@ -192,23 +209,6 @@ static inline unsigned fls_long(unsigned
- }
+ /* Suspend and resume console messages over PM events */
+ extern void suspend_console(void);
+ extern void resume_console(void);
+diff -puN kernel/printk/printk.c~console-dont-prefer-first-registered-if-dt-specifies-stdout-path kernel/printk/printk.c
+--- a/kernel/printk/printk.c~console-dont-prefer-first-registered-if-dt-specifies-stdout-path
++++ a/kernel/printk/printk.c
+@@ -253,6 +253,17 @@ static int preferred_console = -1;
+ int console_set_on_cmdline;
+ EXPORT_SYMBOL(console_set_on_cmdline);
  
- /**
-- * get_order_long - get order after rounding @l up to power of 2
-- * @l: parameter
-- *
-- * it is same as get_count_order() but long type parameter
-- * or 0 is returned if @l == 0UL
-- */
--static inline int get_order_long(unsigned long l)
--{
--	if (l == 0UL)
--		return 0;
--	else if (l & (l - 1UL))
--		return fls_long(l);
--	else
--		return fls_long(l) - 1;
--}
--
--/**
-  * __ffs64 - find first set bit in a 64 bit word
-  * @word: The 64 bit word
-  *
-diff -puN mm/vmalloc.c~mm-vmalloc-fix-align-value-calculation-error-fix mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-fix-align-value-calculation-error-fix
-+++ a/mm/vmalloc.c
-@@ -1360,7 +1360,7 @@ static struct vm_struct *__get_vm_area_n
++#ifdef CONFIG_OF
++static bool of_specified_console;
++
++void console_set_by_of(void)
++{
++	of_specified_console = true;
++}
++#else
++# define of_specified_console false
++#endif
++
+ /* Flag: console code may call schedule() */
+ static int console_may_schedule;
  
- 	BUG_ON(in_interrupt());
- 	if (flags & VM_IOREMAP)
--		align = 1ul << clamp_t(int, get_order_long(size),
-+		align = 1ul << clamp_t(int, get_count_order_long(size),
- 				       PAGE_SHIFT, IOREMAP_MAX_ORDER);
- 
- 	size = PAGE_ALIGN(size);
+@@ -2647,7 +2658,7 @@ void register_console(struct console *ne
+ 	 *	didn't select a console we take the first one
+ 	 *	that registers here.
+ 	 */
+-	if (preferred_console < 0) {
++	if (preferred_console < 0 && !of_specified_console) {
+ 		if (newcon->index < 0)
+ 			newcon->index = 0;
+ 		if (newcon->setup == NULL ||
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from paul.burton@imgtec.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-arm-keystone-dts-add-psci-command-definition.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-vmalloc-fix-align-value-calculation-error-fix.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
 
