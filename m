@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
+Subject: + kthread-rename-probe_kthread_data-to-kthread_probe_data.patch
  added to -mm tree
-Date: Tue, 09 Aug 2016 14:57:32 -0700
-Message-ID: <57aa51cc.IQV7QPdDDEQmmKVD%akpm@linux-foundation.org>
+Date: Tue, 09 Aug 2016 15:10:54 -0700
+Message-ID: <57aa54ee.5+zinOKKKBDRO+OY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40139 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40218 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932676AbcHIV5d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 17:57:33 -0400
+	with ESMTP id S932360AbcHIWK5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 18:10:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paul.burton@imgtec.com, bp@suse.de, colona@arista.com, daniel.vetter@ffwll.ch, frowand.list@gmail.com, gregkh@linuxfoundation.org, jack@suse.com, joe@perches.com, jslaby@suse.cz, pmladek@suse.com, ralf@linux-mips.org, robh+dt@kernel.org, sergey.senozhatsky@gmail.com, tj@kernel.org, treding@nvidia.com, mm-commits@vger.kernel.org
+To: pmladek@suse.com, akpm@linux-foundation.org, bp@suse.de, jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: console: don't prefer first registered if DT specifies stdout-path
+     Subject: kthread: rename probe_kthread_data() to kthread_probe_data()
 has been added to the -mm tree.  Its filename is
-     console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
+     kthread-rename-probe_kthread_data-to-kthread_probe_data.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kthread-rename-probe_kthread_data-to-kthread_probe_data.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kthread-rename-probe_kthread_data-to-kthread_probe_data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,124 +39,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Paul Burton <paul.burton@imgtec.com>
-Subject: console: don't prefer first registered if DT specifies stdout-path
+From: Petr Mladek <pmladek@suse.com>
+Subject: kthread: rename probe_kthread_data() to kthread_probe_data()
 
-If a device tree specifies a preferred device for kernel console output
-via the stdout-path or linux,stdout-path chosen node properties or the
-stdout alias then the kernel ought to honor it & output the kernel console
-to that device.  As it stands, this isn't the case.  Whilst we parse the
-stdout-path properties & set an of_stdout variable from of_alias_scan(),
-and use that from of_console_check() to determine whether to add a console
-device as a preferred console whilst registering it, we also prefer the
-first registered console if no other has been selected at the time of its
-registration.
+Patch series "kthread: Kthread worker API improvements"
 
-This means that if a console other than the one the device tree selects
-via stdout-path is registered first, we will switch to using it & when the
-stdout-path console is later registered the call to
-add_preferred_console() via of_console_check() is too late to do anything
-useful.  In practice this seems to mean that we switch to the dummy
-console device fairly early & see no further console output:
+The intention of this patchset is to make it easier to manipulate and
+maintain kthreads.  Especially, I want to replace all the custom main
+cycles with a generic one.  Also I want to make the kthreads sleep in a
+consistent state in a common place when there is no work.
 
-    Console: colour dummy device 80x25
-    console [tty0] enabled
-    bootconsole [ns16550a0] disabled
 
-Fix this by not automatically preferring the first registered console if
-one is specified by the device tree.  This allows consoles to be
-registered but not enabled, and once the driver for the console selected
-by stdout-path calls of_console_check() the driver will be added to the
-list of preferred consoles before any other console has been enabled. 
-When that console is then registered via register_console() it will be
-enabled as expected.
+This patch (of 11):
 
-Link: http://lkml.kernel.org/r/20160809151937.26118-1-paul.burton@imgtec.com
-Signed-off-by: Paul Burton <paul.burton@imgtec.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Paul Burton <paul.burton@imgtec.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Ivan Delalande <colona@arista.com>
-Cc: Thierry Reding <treding@nvidia.com>
+A good practice is to prefix the names of functions by the name of the
+subsystem.
+
+This patch fixes the name of probe_kthread_data().  The other wrong
+functions names are part of the kthread worker API and will be fixed
+separately.
+
+Link: http://lkml.kernel.org/r/1470754545-17632-2-git-send-email-pmladek@suse.com
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Cc: Borislav Petkov <bp@suse.de>
-Cc: Jan Kara <jack@suse.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/of/base.c       |    2 ++
- include/linux/console.h |    6 ++++++
- kernel/printk/printk.c  |   13 ++++++++++++-
- 3 files changed, 20 insertions(+), 1 deletion(-)
+ include/linux/kthread.h |    2 +-
+ kernel/kthread.c        |    4 ++--
+ kernel/workqueue.c      |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/of/base.c~console-dont-prefer-first-registered-if-dt-specifies-stdout-path drivers/of/base.c
---- a/drivers/of/base.c~console-dont-prefer-first-registered-if-dt-specifies-stdout-path
-+++ a/drivers/of/base.c
-@@ -2011,6 +2011,8 @@ void of_alias_scan(void * (*dt_alloc)(u6
- 			name = of_get_property(of_aliases, "stdout", NULL);
- 		if (name)
- 			of_stdout = of_find_node_opts_by_path(name, &of_stdout_options);
-+		if (of_stdout)
-+			console_set_by_of();
- 	}
+diff -puN include/linux/kthread.h~kthread-rename-probe_kthread_data-to-kthread_probe_data include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-rename-probe_kthread_data-to-kthread_probe_data
++++ a/include/linux/kthread.h
+@@ -44,7 +44,7 @@ bool kthread_should_stop(void);
+ bool kthread_should_park(void);
+ bool kthread_freezable_should_stop(bool *was_frozen);
+ void *kthread_data(struct task_struct *k);
+-void *probe_kthread_data(struct task_struct *k);
++void *kthread_probe_data(struct task_struct *k);
+ int kthread_park(struct task_struct *k);
+ void kthread_unpark(struct task_struct *k);
+ void kthread_parkme(void);
+diff -puN kernel/kthread.c~kthread-rename-probe_kthread_data-to-kthread_probe_data kernel/kthread.c
+--- a/kernel/kthread.c~kthread-rename-probe_kthread_data-to-kthread_probe_data
++++ a/kernel/kthread.c
+@@ -138,7 +138,7 @@ void *kthread_data(struct task_struct *t
+ }
  
- 	if (!of_aliases)
-diff -puN include/linux/console.h~console-dont-prefer-first-registered-if-dt-specifies-stdout-path include/linux/console.h
---- a/include/linux/console.h~console-dont-prefer-first-registered-if-dt-specifies-stdout-path
-+++ a/include/linux/console.h
-@@ -173,6 +173,12 @@ static inline void console_sysfs_notify(
- #endif
- extern bool console_suspend_enabled;
- 
-+#ifdef CONFIG_OF
-+extern void console_set_by_of(void);
-+#else
-+static inline void console_set_by_of(void) {}
-+#endif
-+
- /* Suspend and resume console messages over PM events */
- extern void suspend_console(void);
- extern void resume_console(void);
-diff -puN kernel/printk/printk.c~console-dont-prefer-first-registered-if-dt-specifies-stdout-path kernel/printk/printk.c
---- a/kernel/printk/printk.c~console-dont-prefer-first-registered-if-dt-specifies-stdout-path
-+++ a/kernel/printk/printk.c
-@@ -253,6 +253,17 @@ static int preferred_console = -1;
- int console_set_on_cmdline;
- EXPORT_SYMBOL(console_set_on_cmdline);
- 
-+#ifdef CONFIG_OF
-+static bool of_specified_console;
-+
-+void console_set_by_of(void)
-+{
-+	of_specified_console = true;
-+}
-+#else
-+# define of_specified_console false
-+#endif
-+
- /* Flag: console code may call schedule() */
- static int console_may_schedule;
- 
-@@ -2647,7 +2658,7 @@ void register_console(struct console *ne
- 	 *	didn't select a console we take the first one
- 	 *	that registers here.
+ /**
+- * probe_kthread_data - speculative version of kthread_data()
++ * kthread_probe_data - speculative version of kthread_data()
+  * @task: possible kthread task in question
+  *
+  * @task could be a kthread task.  Return the data value specified when it
+@@ -146,7 +146,7 @@ void *kthread_data(struct task_struct *t
+  * inaccessible for any reason, %NULL is returned.  This function requires
+  * that @task itself is safe to dereference.
+  */
+-void *probe_kthread_data(struct task_struct *task)
++void *kthread_probe_data(struct task_struct *task)
+ {
+ 	struct kthread *kthread = to_kthread(task);
+ 	void *data = NULL;
+diff -puN kernel/workqueue.c~kthread-rename-probe_kthread_data-to-kthread_probe_data kernel/workqueue.c
+--- a/kernel/workqueue.c~kthread-rename-probe_kthread_data-to-kthread_probe_data
++++ a/kernel/workqueue.c
+@@ -4249,7 +4249,7 @@ void print_worker_info(const char *log_l
+ 	 * This function is called without any synchronization and @task
+ 	 * could be in any state.  Be careful with dereferences.
  	 */
--	if (preferred_console < 0) {
-+	if (preferred_console < 0 && !of_specified_console) {
- 		if (newcon->index < 0)
- 			newcon->index = 0;
- 		if (newcon->setup == NULL ||
+-	worker = probe_kthread_data(task);
++	worker = kthread_probe_data(task);
+ 
+ 	/*
+ 	 * Carefully copy the associated workqueue's workfn and name.  Keep
 _
 
-Patches currently in -mm which might be from paul.burton@imgtec.com are
+Patches currently in -mm which might be from pmladek@suse.com are
 
-console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
+kthread-rename-probe_kthread_data-to-kthread_probe_data.patch
+kthread-kthread-worker-api-cleanup.patch
+kthread-smpboot-do-not-park-in-kthread_create_on_cpu.patch
+kthread-allow-to-call-__kthread_create_on_node-with-va_list-args.patch
+kthread-add-kthread_create_worker.patch
+kthread-add-kthread_destroy_worker.patch
+kthread-detect-when-a-kthread-work-is-used-by-more-workers.patch
+kthread-initial-support-for-delayed-kthread-work.patch
+kthread-allow-to-cancel-kthread-work.patch
+kthread-allow-to-modify-delayed-kthread-work.patch
+kthread-better-support-freezable-kthread-workers.patch
 
