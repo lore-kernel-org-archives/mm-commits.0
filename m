@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo.patch added to -mm tree
-Date: Tue, 09 Aug 2016 16:30:14 -0700
-Message-ID: <57aa6786.e3PnMb6bU6z99dWY%akpm@linux-foundation.org>
+Subject: + mm-writeback-flush-plugged-io-in-wakeup_flusher_threads.patch
+ added to -mm tree
+Date: Tue, 09 Aug 2016 16:33:11 -0700
+Message-ID: <57aa6837.6CSr9gHSQWR5wJDc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42262 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42272 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932540AbcHIXaP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 19:30:15 -0400
+	with ESMTP id S932753AbcHIXdM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 19:33:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, david@fromorbit.com, mm-commits@vger.kernel.org
+To: khlebnikov@yandex-team.ru, axboe@kernel.dk, dchinner@redhat.com, mgorman@techsingularity.net, mhocko@suse.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc, meminfo: use correct helpers for calculating LRU sizes in meminfo
+     Subject: mm, writeback: flush plugged IO in wakeup_flusher_threads()
 has been added to the -mm tree.  Its filename is
-     proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo.patch
+     mm-writeback-flush-plugged-io-in-wakeup_flusher_threads.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-writeback-flush-plugged-io-in-wakeup_flusher_threads.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-writeback-flush-plugged-io-in-wakeup_flusher_threads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: proc, meminfo: use correct helpers for calculating LRU sizes in meminfo
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: mm, writeback: flush plugged IO in wakeup_flusher_threads()
 
-meminfo_proc_show() and si_mem_available() are using the wrong helpers for
-calculating the size of the LRUs.  The user-visible impact is that there
-appears to be an abnormally high number of unevictable pages.
+I've found funny livelock between raid10 barriers during resync and memory
+controller hard limits.  Inside mpage_readpages() task holds on its plug
+bio which blocks barrier in raid10.  Its memory cgroup have no free memory
+thus task goes into reclaimer but all reclaimable pages are dirty and
+cannot be written because raid10 is rebuilding and stuck on barrier.
 
-Link: http://lkml.kernel.org/r/20160805105805.GR2799@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Dave Chinner <david@fromorbit.com>
+Common flush of such IO in schedule() never happens because machine where
+that happened has a lot of free cpus and task never goes sleep.
+
+Lock is 'live' because changing memory limit or killing tasks which holds
+that stuck bio unblock whole progress.
+
+That was happened in 3.18.x but I see no difference in upstream logic.
+Theoretically this might happen even without memory cgroup.
+
+Link: http://lkml.kernel.org/r/147033576532.682609.2277943215598867297.stgit@buzz
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c |    2 +-
- mm/page_alloc.c   |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/fs-writeback.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/proc/meminfo.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo
-+++ a/fs/proc/meminfo.c
-@@ -46,7 +46,7 @@ static int meminfo_proc_show(struct seq_
- 		cached = 0;
+diff -puN fs/fs-writeback.c~mm-writeback-flush-plugged-io-in-wakeup_flusher_threads fs/fs-writeback.c
+--- a/fs/fs-writeback.c~mm-writeback-flush-plugged-io-in-wakeup_flusher_threads
++++ a/fs/fs-writeback.c
+@@ -1949,6 +1949,12 @@ void wakeup_flusher_threads(long nr_page
+ {
+ 	struct backing_dev_info *bdi;
  
- 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
--		pages[lru] = global_page_state(NR_LRU_BASE + lru);
-+		pages[lru] = global_node_page_state(NR_LRU_BASE + lru);
++	/*
++	 * If we are expecting writeback progress we must submit plugged IO.
++	 */
++	if (blk_needs_flush_plug(current))
++		blk_schedule_flush_plug(current);
++
+ 	if (!nr_pages)
+ 		nr_pages = get_nr_dirty_pages();
  
- 	available = si_mem_available();
- 
-diff -puN mm/page_alloc.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo mm/page_alloc.c
---- a/mm/page_alloc.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo
-+++ a/mm/page_alloc.c
-@@ -4060,7 +4060,7 @@ long si_mem_available(void)
- 	int lru;
- 
- 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
--		pages[lru] = global_page_state(NR_LRU_BASE + lru);
-+		pages[lru] = global_node_page_state(NR_LRU_BASE + lru);
- 
- 	for_each_zone(zone)
- 		wmark_low += zone->watermark[WMARK_LOW];
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
 
-proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo.patch
+mm-writeback-flush-plugged-io-in-wakeup_flusher_threads.patch
+kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
 
