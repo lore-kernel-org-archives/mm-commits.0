@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-faster-proc-status.patch added to -mm tree
-Date: Tue, 09 Aug 2016 16:25:12 -0700
-Message-ID: <57aa6658.oAkt0iHfmzK9f831%akpm@linux-foundation.org>
+Subject: + proc-much-faster-proc-vmstat.patch added to -mm tree
+Date: Tue, 09 Aug 2016 16:26:50 -0700
+Message-ID: <57aa66ba.jwDnJ74WCnFZ9H37%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41637 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933023AbcHIXZN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 19:25:13 -0400
+	with ESMTP id S932677AbcHIX0v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 19:26:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, andi@firstfloor.org, joe@perches.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: faster /proc/*/status
+     Subject: proc: much faster /proc/vmstat
 has been added to the -mm tree.  Its filename is
-     proc-faster-proc-status.patch
+     proc-much-faster-proc-vmstat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-faster-proc-status.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-much-faster-proc-vmstat.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-faster-proc-status.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-much-faster-proc-vmstat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +39,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: faster /proc/*/status
+Subject: proc: much faster /proc/vmstat
 
-top(1) opens the following files for every PID:
+Every current KDE system has process named ksysguardd polling files below
+once in several seconds:
 
-	/proc/*/stat
-	/proc/*/statm
-	/proc/*/status
+	$ strace -e trace=open -p $(pidof ksysguardd)
+	Process 1812 attached
+	open("/etc/mtab", O_RDONLY|O_CLOEXEC)   = 8
+	open("/etc/mtab", O_RDONLY|O_CLOEXEC)   = 8
+	open("/proc/net/dev", O_RDONLY)         = 8
+	open("/proc/net/wireless", O_RDONLY)    = -1 ENOENT (No such file or directory)
+	open("/proc/stat", O_RDONLY)            = 8
+	open("/proc/vmstat", O_RDONLY)          = 8
 
-This patch switches /proc/*/status away from seq_printf().
-The result is 13.5% speedup.
+Hell knows what it is doing but speed up reading /proc/vmstat by 33%!
 
-Benchmark is open("/proc/self/status")+read+close 1.000.000 million times.
+Benchmark is open+read+close 1.000.000 times.
 
-				BEFORE
-$ perf stat -r 10 taskset -c 3 ./proc-self-status
+			BEFORE
+$ perf stat -r 10 taskset -c 3 ./proc-vmstat
 
- Performance counter stats for 'taskset -c 3 ./proc-self-status' (10 runs):
+ Performance counter stats for 'taskset -c 3 ./proc-vmstat' (10 runs):
 
-      10748.474301      task-clock (msec)         #    0.954 CPUs utilized            ( +-  0.91% )
-                12      context-switches          #    0.001 K/sec                    ( +-  1.09% )
-                 1      cpu-migrations            #    0.000 K/sec
-               104      page-faults               #    0.010 K/sec                    ( +-  0.45% )
-    37,424,127,876      cycles                    #    3.482 GHz                      ( +-  0.04% )
-     8,453,010,029      stalled-cycles-frontend   #   22.59% frontend cycles idle     ( +-  0.12% )
-     3,747,609,427      stalled-cycles-backend    #  10.01% backend cycles idle       ( +-  0.68% )
-    65,632,764,147      instructions              #    1.75  insn per cycle
+      13146.768464      task-clock (msec)         #    0.960 CPUs utilized            ( +-  0.60% )
+                15      context-switches          #    0.001 K/sec                    ( +-  1.41% )
+                 1      cpu-migrations            #    0.000 K/sec                    ( +- 11.11% )
+               104      page-faults               #    0.008 K/sec                    ( +-  0.57% )
+    45,489,799,349      cycles                    #    3.460 GHz                      ( +-  0.03% )
+     9,970,175,743      stalled-cycles-frontend   #   21.92% frontend cycles idle     ( +-  0.10% )
+     2,800,298,015      stalled-cycles-backend    #   6.16% backend cycles idle       ( +-  0.32% )
+    79,241,190,850      instructions              #    1.74  insn per cycle
                                                   #    0.13  stalled cycles per insn  ( +-  0.00% )
-    13,981,324,775      branches                  # 1300.773 M/sec                    ( +-  0.00% )
-       138,967,110      branch-misses             #    0.99% of all branches          ( +-  0.18% )
+    17,616,096,146      branches                  # 1339.956 M/sec                    ( +-  0.00% )
+       176,106,232      branch-misses             #    1.00% of all branches          ( +-  0.18% )
 
-      11.263885428 seconds time elapsed                                          ( +-  0.04% )
+      13.691078109 seconds time elapsed                                          ( +-  0.03% )
       ^^^^^^^^^^^^
 
-				AFTER
-$ perf stat -r 10 taskset -c 3 ./proc-self-status
+			AFTER
+$ perf stat -r 10 taskset -c 3 ./proc-vmstat
 
- Performance counter stats for 'taskset -c 3 ./proc-self-status' (10 runs):
+ Performance counter stats for 'taskset -c 3 ./proc-vmstat' (10 runs):
 
-       9010.521776      task-clock (msec)         #    0.925 CPUs utilized            ( +-  1.54% )
-                11      context-switches          #    0.001 K/sec                    ( +-  1.54% )
-                 1      cpu-migrations            #    0.000 K/sec                    ( +- 11.11% )
-               103      page-faults               #    0.011 K/sec                    ( +-  0.60% )
-    32,352,310,603      cycles                    #    3.591 GHz                      ( +-  0.07% )
-     7,849,199,578      stalled-cycles-frontend   #   24.26% frontend cycles idle     ( +-  0.27% )
-     3,269,738,842      stalled-cycles-backend    #  10.11% backend cycles idle       ( +-  0.73% )
-    56,012,163,567      instructions              #    1.73  insn per cycle
-                                                  #    0.14  stalled cycles per insn  ( +-  0.00% )
-    11,735,778,795      branches                  # 1302.453 M/sec                    ( +-  0.00% )
-        98,084,459      branch-misses             #    0.84% of all branches          ( +-  0.28% )
+       8688.353749      task-clock (msec)         #    0.950 CPUs utilized            ( +-  1.25% )
+                10      context-switches          #    0.001 K/sec                    ( +-  2.13% )
+                 1      cpu-migrations            #    0.000 K/sec
+               104      page-faults               #    0.012 K/sec                    ( +-  0.56% )
+    30,384,010,730      cycles                    #    3.497 GHz                      ( +-  0.07% )
+    12,296,259,407      stalled-cycles-frontend   #   40.47% frontend cycles idle     ( +-  0.13% )
+     3,370,668,651      stalled-cycles-backend    #  11.09% backend cycles idle       ( +-  0.69% )
+    28,969,052,879      instructions              #    0.95  insn per cycle
+                                                  #    0.42  stalled cycles per insn  ( +-  0.01% )
+     6,308,245,891      branches                  #  726.058 M/sec                    ( +-  0.00% )
+       214,685,502      branch-misses             #    3.40% of all branches          ( +-  0.26% )
 
-       9.741247736 seconds time elapsed                                          ( +-  0.07% )
+       9.146081052 seconds time elapsed                                          ( +-  0.07% )
        ^^^^^^^^^^^
 
-Link: http://lkml.kernel.org/r/20160806125608.GB1187@p183.telecom.by
+vsnprintf() is slow because:
+
+1.  format_decode() is busy looking for format specifier: 2 branches
+   per character (not in this case, but in others)
+
+2. approximately million branches while parsing format mini language
+   and everywhere
+
+3.  just look at what string() does /proc/vmstat is good case because
+   most of its content are strings
+
+Link: http://lkml.kernel.org/r/20160806125455.GA1187@p183.telecom.by
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -100,144 +116,29 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |   85 ++++++++++++++++++++++++----------------------
- 1 file changed, 46 insertions(+), 39 deletions(-)
+ mm/vmstat.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/array.c~proc-faster-proc-status fs/proc/array.c
---- a/fs/proc/array.c~proc-faster-proc-status
-+++ a/fs/proc/array.c
-@@ -186,51 +186,52 @@ static inline void task_state(struct seq
- 	task_unlock(p);
- 	rcu_read_unlock();
- 
--	seq_printf(m,
--		"State:\t%s\n"
--		"Tgid:\t%d\n"
--		"Ngid:\t%d\n"
--		"Pid:\t%d\n"
--		"PPid:\t%d\n"
--		"TracerPid:\t%d\n"
--		"Uid:\t%d\t%d\t%d\t%d\n"
--		"Gid:\t%d\t%d\t%d\t%d\n"
--		"FDSize:\t%d\nGroups:\t",
--		get_task_state(p),
--		tgid, ngid, pid_nr_ns(pid, ns), ppid, tpid,
--		from_kuid_munged(user_ns, cred->uid),
--		from_kuid_munged(user_ns, cred->euid),
--		from_kuid_munged(user_ns, cred->suid),
--		from_kuid_munged(user_ns, cred->fsuid),
--		from_kgid_munged(user_ns, cred->gid),
--		from_kgid_munged(user_ns, cred->egid),
--		from_kgid_munged(user_ns, cred->sgid),
--		from_kgid_munged(user_ns, cred->fsgid),
--		max_fds);
-+	seq_printf(m, "State:\t%s", get_task_state(p));
- 
-+	seq_puts(m, "\nTgid:\t");
-+	seq_put_decimal_ull(m, 0, tgid);
-+	seq_puts(m, "\nNgid:\t");
-+	seq_put_decimal_ull(m, 0, ngid);
-+	seq_puts(m, "\nPid:\t");
-+	seq_put_decimal_ull(m, 0, pid_nr_ns(pid, ns));
-+	seq_puts(m, "\nPPid:\t");
-+	seq_put_decimal_ull(m, 0, ppid);
-+	seq_puts(m, "\nTracerPid:\t");
-+	seq_put_decimal_ull(m, 0, tpid);
-+	seq_puts(m, "\nUid:");
-+	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->uid));
-+	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->euid));
-+	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->suid));
-+	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->fsuid));
-+	seq_puts(m, "\nGid:");
-+	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->gid));
-+	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->egid));
-+	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->sgid));
-+	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->fsgid));
-+	seq_puts(m, "\nFDSize:\t");
-+	seq_put_decimal_ull(m, 0, max_fds);
+diff -puN mm/vmstat.c~proc-much-faster-proc-vmstat mm/vmstat.c
+--- a/mm/vmstat.c~proc-much-faster-proc-vmstat
++++ a/mm/vmstat.c
+@@ -1592,7 +1592,10 @@ static int vmstat_show(struct seq_file *
+ {
+ 	unsigned long *l = arg;
+ 	unsigned long off = l - (unsigned long *)m->private;
+-	seq_printf(m, "%s %lu\n", vmstat_text[off], *l);
 +
-+	seq_puts(m, "\nGroups:\t");
- 	group_info = cred->group_info;
- 	for (g = 0; g < group_info->ngroups; g++)
--		seq_printf(m, "%d ",
--			   from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
-+		seq_put_decimal_ull(m, g ? ' ' : 0, from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
- 	put_cred(cred);
-+	/* Trailing space shouldn't have been added in the first place. */
-+	seq_putc(m, ' ');
- 
- #ifdef CONFIG_PID_NS
- 	seq_puts(m, "\nNStgid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_printf(m, "\t%d",
--			task_tgid_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, '\t', task_tgid_nr_ns(p, pid->numbers[g].ns));
- 	seq_puts(m, "\nNSpid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_printf(m, "\t%d",
--			task_pid_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, '\t', task_pid_nr_ns(p, pid->numbers[g].ns));
- 	seq_puts(m, "\nNSpgid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_printf(m, "\t%d",
--			task_pgrp_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, '\t', task_pgrp_nr_ns(p, pid->numbers[g].ns));
- 	seq_puts(m, "\nNSsid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_printf(m, "\t%d",
--			task_session_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, '\t', task_session_nr_ns(p, pid->numbers[g].ns));
- #endif
- 	seq_putc(m, '\n');
- }
-@@ -299,11 +300,14 @@ static inline void task_sig(struct seq_f
- 		unlock_task_sighand(p, &flags);
- 	}
- 
--	seq_printf(m, "Threads:\t%d\n", num_threads);
--	seq_printf(m, "SigQ:\t%lu/%lu\n", qsize, qlim);
-+	seq_puts(m, "Threads:\t");
-+	seq_put_decimal_ull(m, 0, num_threads);
-+	seq_puts(m, "\nSigQ:\t");
-+	seq_put_decimal_ull(m, 0, qsize);
-+	seq_put_decimal_ull(m, '/', qlim);
- 
- 	/* render them all */
--	render_sigset_t(m, "SigPnd:\t", &pending);
-+	render_sigset_t(m, "\nSigPnd:\t", &pending);
- 	render_sigset_t(m, "ShdPnd:\t", &shpending);
- 	render_sigset_t(m, "SigBlk:\t", &blocked);
- 	render_sigset_t(m, "SigIgn:\t", &ignored);
-@@ -348,17 +352,20 @@ static inline void task_cap(struct seq_f
- static inline void task_seccomp(struct seq_file *m, struct task_struct *p)
- {
- #ifdef CONFIG_SECCOMP
--	seq_printf(m, "Seccomp:\t%d\n", p->seccomp.mode);
-+	seq_puts(m, "Seccomp:\t");
-+	seq_put_decimal_ull(m, 0, p->seccomp.mode);
++	seq_puts(m, vmstat_text[off]);
++	seq_put_decimal_ull(m, ' ', *l);
 +	seq_putc(m, '\n');
- #endif
+ 	return 0;
  }
  
- static inline void task_context_switch_counts(struct seq_file *m,
- 						struct task_struct *p)
- {
--	seq_printf(m,	"voluntary_ctxt_switches:\t%lu\n"
--			"nonvoluntary_ctxt_switches:\t%lu\n",
--			p->nvcsw,
--			p->nivcsw);
-+	seq_puts(m, "voluntary_ctxt_switches:\t");
-+	seq_put_decimal_ull(m, 0, p->nvcsw);
-+	seq_puts(m, "\nnonvoluntary_ctxt_switches:\t");
-+	seq_put_decimal_ull(m, 0, p->nivcsw);
-+	seq_putc(m, '\n');
- }
- 
- static void task_cpus_allowed(struct seq_file *m, struct task_struct *task)
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
 
 kbuild-simpler-generation-of-assembly-constants.patch
+proc-much-faster-proc-vmstat.patch
 proc-faster-proc-status.patch
 
