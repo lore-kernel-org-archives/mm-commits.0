@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-recalculate-some-of-node-threshold-when-on-offline-memory.patch added to -mm tree
-Date: Tue, 09 Aug 2016 13:59:06 -0700
-Message-ID: <57aa441a.mwkbw5vpKbIIW9Wh%akpm@linux-foundation.org>
+Subject: + mm-vmalloc-fix-align-value-calculation-error.patch added to -mm tree
+Date: Tue, 09 Aug 2016 14:29:09 -0700
+Message-ID: <57aa4b25.5RYiT4/TWrFIYEUJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39543 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39908 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932324AbcHIU7H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 16:59:07 -0400
+	with ESMTP id S932382AbcHIV3K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 17:29:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, mgorman@techsingularity.net, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: zijun_hu@htc.com, hannes@cmpxchg.org, minchan@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: recalculate some of node threshold when on/offline memory
+     Subject: mm/vmalloc.c: fix align value calculation error
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-recalculate-some-of-node-threshold-when-on-offline-memory.patch
+     mm-vmalloc-fix-align-value-calculation-error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-recalculate-some-of-node-threshold-when-on-offline-memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-align-value-calculation-error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-recalculate-some-of-node-threshold-when-on-offline-memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-align-value-calculation-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,138 +38,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_alloc.c: recalculate some of node threshold when on/offline memory
+From: zijun_hu <zijun_hu@htc.com>
+Subject: mm/vmalloc.c: fix align value calculation error
 
-Some of node threshold depends on number of managed pages in the node. 
-When memory is going on/offline, it can be changed and we need to adjust
-them.
+It causes a doubled alignment requirement for __get_vm_area_node() if
+parameter `size' is power of 2 and VM_IOREMAP is set in parameter flags
 
-Add recalculation to appropriate places and clean-up related functions for
-better maintenance.
+get_count_order_long() is implemented and used instead of fls_long() to
+fix the bug
 
-Link: http://lkml.kernel.org/r/1470724248-26780-2-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/fc045ecf-20fa-0722-b3ac-9a6140488fad@zoho.com
+Signed-off-by: zijun_hu <zijun_hu@htc.com>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   50 ++++++++++++++++++++++++++++++++--------------
- 1 file changed, 35 insertions(+), 15 deletions(-)
+ include/linux/bitops.h |   17 +++++++++++++++++
+ mm/vmalloc.c           |    2 +-
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-recalculate-some-of-node-threshold-when-on-offline-memory mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-recalculate-some-of-node-threshold-when-on-offline-memory
-+++ a/mm/page_alloc.c
-@@ -4757,6 +4757,8 @@ int local_memory_node(int node)
- }
- #endif
- 
-+static void setup_min_unmapped_ratio(void);
-+static void setup_min_slab_ratio(void);
- #else	/* CONFIG_NUMA */
- 
- static void set_zonelist_order(void)
-@@ -5878,9 +5880,6 @@ static void __paginginit free_area_init_
- 		zone->managed_pages = is_highmem_idx(j) ? realsize : freesize;
- #ifdef CONFIG_NUMA
- 		zone->node = nid;
--		pgdat->min_unmapped_pages += (freesize*sysctl_min_unmapped_ratio)
--						/ 100;
--		pgdat->min_slab_pages += (freesize * sysctl_min_slab_ratio) / 100;
- #endif
- 		zone->name = zone_names[j];
- 		zone->zone_pgdat = pgdat;
-@@ -6805,6 +6804,12 @@ int __meminit init_per_zone_wmark_min(vo
- 	setup_per_zone_wmarks();
- 	refresh_zone_stat_thresholds();
- 	setup_per_zone_lowmem_reserve();
-+
-+#ifdef CONFIG_NUMA
-+	setup_min_unmapped_ratio();
-+	setup_min_slab_ratio();
-+#endif
-+
- 	return 0;
- }
- core_initcall(init_per_zone_wmark_min)
-@@ -6846,16 +6851,10 @@ int watermark_scale_factor_sysctl_handle
+diff -puN include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error include/linux/bitops.h
+--- a/include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error
++++ a/include/linux/bitops.h
+@@ -192,6 +192,23 @@ static inline unsigned fls_long(unsigned
  }
  
- #ifdef CONFIG_NUMA
--int sysctl_min_unmapped_ratio_sysctl_handler(struct ctl_table *table, int write,
--	void __user *buffer, size_t *length, loff_t *ppos)
-+static void setup_min_unmapped_ratio(void)
- {
--	struct pglist_data *pgdat;
-+	pg_data_t *pgdat;
- 	struct zone *zone;
--	int rc;
--
--	rc = proc_dointvec_minmax(table, write, buffer, length, ppos);
--	if (rc)
--		return rc;
- 
- 	for_each_online_pgdat(pgdat)
- 		pgdat->min_unmapped_pages = 0;
-@@ -6863,26 +6862,47 @@ int sysctl_min_unmapped_ratio_sysctl_han
- 	for_each_zone(zone)
- 		zone->zone_pgdat->min_unmapped_pages += (zone->managed_pages *
- 				sysctl_min_unmapped_ratio) / 100;
--	return 0;
- }
- 
--int sysctl_min_slab_ratio_sysctl_handler(struct ctl_table *table, int write,
-+
-+int sysctl_min_unmapped_ratio_sysctl_handler(struct ctl_table *table, int write,
- 	void __user *buffer, size_t *length, loff_t *ppos)
- {
--	struct pglist_data *pgdat;
--	struct zone *zone;
- 	int rc;
- 
- 	rc = proc_dointvec_minmax(table, write, buffer, length, ppos);
- 	if (rc)
- 		return rc;
- 
-+	setup_min_unmapped_ratio();
-+
-+	return 0;
+ /**
++ * get_order_long - get order after rounding @l up to power of 2
++ * @l: parameter
++ *
++ * it is same as get_count_order() but long type parameter
++ * or 0 is returned if @l == 0UL
++ */
++static inline int get_order_long(unsigned long l)
++{
++	if (l == 0UL)
++		return 0;
++	else if (l & (l - 1UL))
++		return fls_long(l);
++	else
++		return fls_long(l) - 1;
 +}
 +
-+static void setup_min_slab_ratio(void)
-+{
-+	pg_data_t *pgdat;
-+	struct zone *zone;
-+
- 	for_each_online_pgdat(pgdat)
- 		pgdat->min_slab_pages = 0;
++/**
+  * __ffs64 - find first set bit in a 64 bit word
+  * @word: The 64 bit word
+  *
+diff -puN mm/vmalloc.c~mm-vmalloc-fix-align-value-calculation-error mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-fix-align-value-calculation-error
++++ a/mm/vmalloc.c
+@@ -1360,7 +1360,7 @@ static struct vm_struct *__get_vm_area_n
  
- 	for_each_zone(zone)
- 		zone->zone_pgdat->min_slab_pages += (zone->managed_pages *
- 				sysctl_min_slab_ratio) / 100;
-+}
-+
-+int sysctl_min_slab_ratio_sysctl_handler(struct ctl_table *table, int write,
-+	void __user *buffer, size_t *length, loff_t *ppos)
-+{
-+	int rc;
-+
-+	rc = proc_dointvec_minmax(table, write, buffer, length, ppos);
-+	if (rc)
-+		return rc;
-+
-+	setup_min_slab_ratio();
-+
- 	return 0;
- }
- #endif
+ 	BUG_ON(in_interrupt());
+ 	if (flags & VM_IOREMAP)
+-		align = 1ul << clamp_t(int, fls_long(size),
++		align = 1ul << clamp_t(int, get_order_long(size),
+ 				       PAGE_SHIFT, IOREMAP_MAX_ORDER);
+ 
+ 	size = PAGE_ALIGN(size);
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from zijun_hu@htc.com are
 
-mm-page_alloc-fix-wrong-initialization-when-sysctl_min_unmapped_ratio-changes.patch
-mm-page_alloc-recalculate-some-of-node-threshold-when-on-offline-memory.patch
+mm-vmalloc-fix-align-value-calculation-error.patch
 
