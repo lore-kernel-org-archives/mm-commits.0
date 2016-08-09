@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + kthread-smpboot-do-not-park-in-kthread_create_on_cpu.patch
+Subject: +
+ kthread-allow-to-call-__kthread_create_on_node-with-va_list-args.patch
  added to -mm tree
-Date: Tue, 09 Aug 2016 15:11:00 -0700
-Message-ID: <57aa54f4.6aYbaPINXVaLFUT7%akpm@linux-foundation.org>
+Date: Tue, 09 Aug 2016 15:11:02 -0700
+Message-ID: <57aa54f6.m0LbWmdm3VYMioxD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40242 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40253 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932482AbcHIWLC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 18:11:02 -0400
+	with ESMTP id S932506AbcHIWLE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 18:11:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: pmladek@suse.com, bp@suse.de, jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread/smpboot: do not park in kthread_create_on_cpu()
+     Subject: kthread: allow to call __kthread_create_on_node() with va_list args
 has been added to the -mm tree.  Its filename is
-     kthread-smpboot-do-not-park-in-kthread_create_on_cpu.patch
+     kthread-allow-to-call-__kthread_create_on_node-with-va_list-args.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kthread-smpboot-do-not-park-in-kthread_create_on_cpu.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kthread-allow-to-call-__kthread_create_on_node-with-va_list-args.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kthread-smpboot-do-not-park-in-kthread_create_on_cpu.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kthread-allow-to-call-__kthread_create_on_node-with-va_list-args.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,34 +41,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Petr Mladek <pmladek@suse.com>
-Subject: kthread/smpboot: do not park in kthread_create_on_cpu()
+Subject: kthread: allow to call __kthread_create_on_node() with va_list args
 
-kthread_create_on_cpu() was added by the commit 2a1d446019f9a5983e
-("kthread: Implement park/unpark facility").  It is currently used only
-when enabling new CPU.  For this purpose, the newly created kthread has to
-be parked.
+kthread_create_on_node() implements a bunch of logic to create the
+kthread.  It is already called by kthread_create_on_cpu().
 
-The CPU binding is a bit tricky.  The kthread is parked when the CPU has
-not been allowed yet.  And the CPU is bound when the kthread is unparked.
+We are going to extend the kthread worker API and will need to call
+kthread_create_on_node() with va_list args there.
 
-The function would be useful for more per-CPU kthreads, e.g. 
-bnx2fc_thread, fcoethread.  For this purpose, the newly created kthread
-should stay in the uninterruptible state.
+This patch does only a refactoring and does not modify the existing
+behavior.
 
-This patch moves the parking into smpboot.  It binds the thread already
-when created.  Then the function might be used universally.  Also the
-behavior is consistent with kthread_create() and kthread_create_on_node().
-
-Link: http://lkml.kernel.org/r/1470754545-17632-4-git-send-email-pmladek@suse.com
+Link: http://lkml.kernel.org/r/1470754545-17632-5-git-send-email-pmladek@suse.com
 Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Tejun Heo <tj@kernel.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Jiri Kosina <jkosina@suse.cz>
 Cc: Borislav Petkov <bp@suse.de>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -75,52 +69,107 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    8 ++++++--
- kernel/smpboot.c |    5 +++++
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ kernel/kthread.c |   72 ++++++++++++++++++++++++++-------------------
+ 1 file changed, 42 insertions(+), 30 deletions(-)
 
-diff -puN kernel/kthread.c~kthread-smpboot-do-not-park-in-kthread_create_on_cpu kernel/kthread.c
---- a/kernel/kthread.c~kthread-smpboot-do-not-park-in-kthread_create_on_cpu
+diff -puN kernel/kthread.c~kthread-allow-to-call-__kthread_create_on_node-with-va_list-args kernel/kthread.c
+--- a/kernel/kthread.c~kthread-allow-to-call-__kthread_create_on_node-with-va_list-args
 +++ a/kernel/kthread.c
-@@ -390,10 +390,10 @@ struct task_struct *kthread_create_on_cp
- 				   cpu);
- 	if (IS_ERR(p))
- 		return p;
-+	kthread_bind(p, cpu);
-+	/* CPU hotplug need to bind once again when unparking the thread. */
- 	set_bit(KTHREAD_IS_PER_CPU, &to_kthread(p)->flags);
- 	to_kthread(p)->cpu = cpu;
--	/* Park the thread to get it out of TASK_UNINTERRUPTIBLE state */
--	kthread_park(p);
- 	return p;
+@@ -244,33 +244,10 @@ static void create_kthread(struct kthrea
+ 	}
  }
  
-@@ -407,6 +407,10 @@ static void __kthread_unpark(struct task
- 	 * which might be about to be cleared.
- 	 */
- 	if (test_and_clear_bit(KTHREAD_IS_PARKED, &kthread->flags)) {
-+		/*
-+		 * Newly created kthread was parked when the CPU was offline.
-+		 * The binding was lost and we need to set it again.
-+		 */
- 		if (test_bit(KTHREAD_IS_PER_CPU, &kthread->flags))
- 			__kthread_bind(k, kthread->cpu, TASK_PARKED);
- 		wake_up_state(k, TASK_PARKED);
-diff -puN kernel/smpboot.c~kthread-smpboot-do-not-park-in-kthread_create_on_cpu kernel/smpboot.c
---- a/kernel/smpboot.c~kthread-smpboot-do-not-park-in-kthread_create_on_cpu
-+++ a/kernel/smpboot.c
-@@ -186,6 +186,11 @@ __smpboot_create_thread(struct smp_hotpl
- 		kfree(td);
- 		return PTR_ERR(tsk);
- 	}
-+	/*
-+	 * Park the thread so that it could start right on the CPU
-+	 * when it is available.
-+	 */
-+	kthread_park(tsk);
- 	get_task_struct(tsk);
- 	*per_cpu_ptr(ht->store, cpu) = tsk;
- 	if (ht->create) {
+-/**
+- * kthread_create_on_node - create a kthread.
+- * @threadfn: the function to run until signal_pending(current).
+- * @data: data ptr for @threadfn.
+- * @node: task and thread structures for the thread are allocated on this node
+- * @namefmt: printf-style name for the thread.
+- *
+- * Description: This helper function creates and names a kernel
+- * thread.  The thread will be stopped: use wake_up_process() to start
+- * it.  See also kthread_run().  The new thread has SCHED_NORMAL policy and
+- * is affine to all CPUs.
+- *
+- * If thread is going to be bound on a particular cpu, give its node
+- * in @node, to get NUMA affinity for kthread stack, or else give NUMA_NO_NODE.
+- * When woken, the thread will run @threadfn() with @data as its
+- * argument. @threadfn() can either call do_exit() directly if it is a
+- * standalone thread for which no one will call kthread_stop(), or
+- * return when 'kthread_should_stop()' is true (which means
+- * kthread_stop() has been called).  The return value should be zero
+- * or a negative error number; it will be passed to kthread_stop().
+- *
+- * Returns a task_struct or ERR_PTR(-ENOMEM) or ERR_PTR(-EINTR).
+- */
+-struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
+-					   void *data, int node,
+-					   const char namefmt[],
+-					   ...)
++static struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
++						    void *data, int node,
++						    const char namefmt[],
++						    va_list args)
+ {
+ 	DECLARE_COMPLETION_ONSTACK(done);
+ 	struct task_struct *task;
+@@ -311,11 +288,8 @@ struct task_struct *kthread_create_on_no
+ 	task = create->result;
+ 	if (!IS_ERR(task)) {
+ 		static const struct sched_param param = { .sched_priority = 0 };
+-		va_list args;
+ 
+-		va_start(args, namefmt);
+ 		vsnprintf(task->comm, sizeof(task->comm), namefmt, args);
+-		va_end(args);
+ 		/*
+ 		 * root may have changed our (kthreadd's) priority or CPU mask.
+ 		 * The kernel thread should not inherit these properties.
+@@ -326,6 +300,44 @@ struct task_struct *kthread_create_on_no
+ 	kfree(create);
+ 	return task;
+ }
++
++/**
++ * kthread_create_on_node - create a kthread.
++ * @threadfn: the function to run until signal_pending(current).
++ * @data: data ptr for @threadfn.
++ * @node: task and thread structures for the thread are allocated on this node
++ * @namefmt: printf-style name for the thread.
++ *
++ * Description: This helper function creates and names a kernel
++ * thread.  The thread will be stopped: use wake_up_process() to start
++ * it.  See also kthread_run().  The new thread has SCHED_NORMAL policy and
++ * is affine to all CPUs.
++ *
++ * If thread is going to be bound on a particular cpu, give its node
++ * in @node, to get NUMA affinity for kthread stack, or else give NUMA_NO_NODE.
++ * When woken, the thread will run @threadfn() with @data as its
++ * argument. @threadfn() can either call do_exit() directly if it is a
++ * standalone thread for which no one will call kthread_stop(), or
++ * return when 'kthread_should_stop()' is true (which means
++ * kthread_stop() has been called).  The return value should be zero
++ * or a negative error number; it will be passed to kthread_stop().
++ *
++ * Returns a task_struct or ERR_PTR(-ENOMEM) or ERR_PTR(-EINTR).
++ */
++struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
++					   void *data, int node,
++					   const char namefmt[],
++					   ...)
++{
++	struct task_struct *task;
++	va_list args;
++
++	va_start(args, namefmt);
++	task = __kthread_create_on_node(threadfn, data, node, namefmt, args);
++	va_end(args);
++
++	return task;
++}
+ EXPORT_SYMBOL(kthread_create_on_node);
+ 
+ static void __kthread_bind_mask(struct task_struct *p, const struct cpumask *mask, long state)
 _
 
 Patches currently in -mm which might be from pmladek@suse.com are
