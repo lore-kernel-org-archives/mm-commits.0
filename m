@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + x86-use-simpler-api-for-random-address-requests-v2.patch added
- to -mm tree
-Date: Wed, 10 Aug 2016 16:00:50 -0700
-Message-ID: <57abb222.T5GDIjnPLJ4X586M%akpm@linux-foundation.org>
+Subject: + arm64-use-simpler-api-for-random-address-requests-v2.patch
+ added to -mm tree
+Date: Wed, 10 Aug 2016 16:00:54 -0700
+Message-ID: <57abb226.jypbQK9raMLC7W7r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54594 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54598 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933709AbcHJXAv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 19:00:51 -0400
+	with ESMTP id S932582AbcHJXAz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 19:00:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jason@lakedaemon.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-use-simpler-api-for-random-address-requests-v2
+     Subject: arm64-use-simpler-api-for-random-address-requests-v2
 has been added to the -mm tree.  Its filename is
-     x86-use-simpler-api-for-random-address-requests-v2.patch
+     arm64-use-simpler-api-for-random-address-requests-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-use-simpler-api-for-random-address-requests-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-use-simpler-api-for-random-address-requests-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-use-simpler-api-for-random-address-requests-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-use-simpler-api-for-random-address-requests-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jason Cooper <jason@lakedaemon.net>
-Subject: x86-use-simpler-api-for-random-address-requests-v2
+Subject: arm64-use-simpler-api-for-random-address-requests-v2
 
 s/randomize_page/randomize_addr/
 
-Link: http://lkml.kernel.org/r/20160728204730.27453-3-jason@lakedaemon.net
+Link: http://lkml.kernel.org/r/20160728204730.27453-5-jason@lakedaemon.net
 Signed-off-by: Jason Cooper <jason@lakedaemon.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/process.c    |    2 +-
- arch/x86/kernel/sys_x86_64.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/kernel/process.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/process.c~x86-use-simpler-api-for-random-address-requests-v2 arch/x86/kernel/process.c
---- a/arch/x86/kernel/process.c~x86-use-simpler-api-for-random-address-requests-v2
-+++ a/arch/x86/kernel/process.c
-@@ -508,7 +508,7 @@ unsigned long arch_align_stack(unsigned
- 
+diff -puN arch/arm64/kernel/process.c~arm64-use-simpler-api-for-random-address-requests-v2 arch/arm64/kernel/process.c
+--- a/arch/arm64/kernel/process.c~arm64-use-simpler-api-for-random-address-requests-v2
++++ a/arch/arm64/kernel/process.c
+@@ -375,7 +375,7 @@ unsigned long arch_align_stack(unsigned
  unsigned long arch_randomize_brk(struct mm_struct *mm)
  {
--	return randomize_page(mm->brk, 0x02000000);
-+	return randomize_addr(mm->brk, 0x02000000);
+ 	if (is_compat_task())
+-		return randomize_page(mm->brk, 0x02000000);
++		return randomize_addr(mm->brk, 0x02000000);
+ 	else
+-		return randomize_page(mm->brk, 0x40000000);
++		return randomize_addr(mm->brk, 0x40000000);
  }
- 
- /*
-diff -puN arch/x86/kernel/sys_x86_64.c~x86-use-simpler-api-for-random-address-requests-v2 arch/x86/kernel/sys_x86_64.c
---- a/arch/x86/kernel/sys_x86_64.c~x86-use-simpler-api-for-random-address-requests-v2
-+++ a/arch/x86/kernel/sys_x86_64.c
-@@ -111,7 +111,7 @@ static void find_start_end(unsigned long
- 		*begin = 0x40000000;
- 		*end = 0x80000000;
- 		if (current->flags & PF_RANDOMIZE) {
--			*begin = randomize_page(*begin, 0x02000000);
-+			*begin = randomize_addr(*begin, 0x02000000);
- 		}
- 	} else {
- 		*begin = current->mm->mmap_legacy_base;
 _
 
 Patches currently in -mm which might be from jason@lakedaemon.net are
