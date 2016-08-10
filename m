@@ -1,84 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: + unicore32-use-simpler-api-for-random-address-requests-v2.patch
- added to -mm tree
-Date: Wed, 10 Aug 2016 16:00:58 -0700
-Message-ID: <57abb22a.lmbBeyKgEqUMk5TQ%akpm@linux-foundation.org>
+Subject: [patch 6/8] mm, rmap: fix false positive VM_BUG() in
+ page_add_file_rmap()
+Date: Wed, 10 Aug 2016 16:27:52 -0700
+Message-ID: <57abb878.yb4DFzQN90bL28f0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54975 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933709AbcHJXA7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 19:00:59 -0400
+	with ESMTP id S1752569AbcHJX1x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 19:27:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jason@lakedaemon.net, mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, labbott@redhat.com
 
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm, rmap: fix false positive VM_BUG() in page_add_file_rmap()
 
-The patch titled
-     Subject: unicore32-use-simpler-api-for-random-address-requests-v2
-has been added to the -mm tree.  Its filename is
-     unicore32-use-simpler-api-for-random-address-requests-v2.patch
+PageTransCompound() doesn't distinguish THP from from any other type of
+compound pages.  This can lead to false-positive VM_BUG_ON() in
+page_add_file_rmap() if called on compound page from a driver[1].
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/unicore32-use-simpler-api-for-random-address-requests-v2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/unicore32-use-simpler-api-for-random-address-requests-v2.patch
+I think we can exclude such cases by checking if the page belong to a
+mapping.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+The VM_BUG_ON_PAGE() is downgraded to VM_WARN_ON_ONCE().  This path should
+not cause any harm to non-THP page, but good to know if we step on
+anything else.
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+[1] http://lkml.kernel.org/r/c711e067-0bff-a6cb-3c37-04dfe77d2db1@redhat.com
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Jason Cooper <jason@lakedaemon.net>
-Subject: unicore32-use-simpler-api-for-random-address-requests-v2
-
-s/randomize_page/randomize_addr/
-
-Link: http://lkml.kernel.org/r/20160728204730.27453-7-jason@lakedaemon.net
-Signed-off-by: Jason Cooper <jason@lakedaemon.net>
+Link: http://lkml.kernel.org/r/20160810161345.GA67522@black.fi.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Laura Abbott <labbott@redhat.com>
+Tested-by: Laura Abbott <labbott@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/kernel/process.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/unicore32/kernel/process.c~unicore32-use-simpler-api-for-random-address-requests-v2 arch/unicore32/kernel/process.c
---- a/arch/unicore32/kernel/process.c~unicore32-use-simpler-api-for-random-address-requests-v2
-+++ a/arch/unicore32/kernel/process.c
-@@ -295,7 +295,7 @@ unsigned long get_wchan(struct task_stru
- 
- unsigned long arch_randomize_brk(struct mm_struct *mm)
- {
--	return randomize_page(mm->brk, 0x02000000);
-+	return randomize_addr(mm->brk, 0x02000000);
- }
- 
- /*
+diff -puN mm/rmap.c~mm-rmap-fix-false-positive-vm_bug-in-page_add_file_rmap mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-fix-false-positive-vm_bug-in-page_add_file_rmap
++++ a/mm/rmap.c
+@@ -1284,8 +1284,9 @@ void page_add_file_rmap(struct page *pag
+ 		VM_BUG_ON_PAGE(!PageSwapBacked(page), page);
+ 		__inc_node_page_state(page, NR_SHMEM_PMDMAPPED);
+ 	} else {
+-		if (PageTransCompound(page)) {
+-			VM_BUG_ON_PAGE(!PageLocked(page), page);
++		if (PageTransCompound(page) && page_mapping(page)) {
++			VM_WARN_ON_ONCE(!PageLocked(page));
++
+ 			SetPageDoubleMap(compound_head(page));
+ 			if (PageMlocked(page))
+ 				clear_page_mlock(compound_head(page));
 _
-
-Patches currently in -mm which might be from jason@lakedaemon.net are
-
-random-simplify-api-for-random-address-requests.patch
-random-simplify-api-for-random-address-requests-v2.patch
-x86-use-simpler-api-for-random-address-requests.patch
-x86-use-simpler-api-for-random-address-requests-v2.patch
-arm-use-simpler-api-for-random-address-requests.patch
-arm-use-simpler-api-for-random-address-requests-v2.patch
-arm64-use-simpler-api-for-random-address-requests.patch
-arm64-use-simpler-api-for-random-address-requests-v2.patch
-tile-use-simpler-api-for-random-address-requests.patch
-tile-use-simpler-api-for-random-address-requests-v2.patch
-unicore32-use-simpler-api-for-random-address-requests.patch
-unicore32-use-simpler-api-for-random-address-requests-v2.patch
-random-remove-unused-randomize_range.patch
-
