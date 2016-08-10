@@ -1,88 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: + rmap-fix-compound-check-logic-in-page_remove_file_rmap.patch
- added to -mm tree
-Date: Wed, 10 Aug 2016 15:18:41 -0700
-Message-ID: <57aba841.Z3Q4rczbLkbiHoVU%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup.patch
+ removed from -mm tree
+Date: Wed, 10 Aug 2016 15:24:07 -0700
+Message-ID: <57aba987.GWcg6qWeflbVnxQs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53379 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932427AbcHJWSm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 18:18:42 -0400
+	with ESMTP id S933552AbcHJWYI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 18:24:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steve.capper@arm.com, catalin.marinas@arm.com, kirill.shutemov@linux.intel.com, shijie.huang@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rmap: fix compound check logic in page_remove_file_rmap
-has been added to the -mm tree.  Its filename is
-     rmap-fix-compound-check-logic-in-page_remove_file_rmap.patch
+     Subject: mm: memcontrol: fix swap counter leak on swapout from offline cgroup
+has been removed from the -mm tree.  Its filename was
+     mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rmap-fix-compound-check-logic-in-page_remove_file_rmap.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rmap-fix-compound-check-logic-in-page_remove_file_rmap.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Steve Capper <steve.capper@arm.com>
-Subject: rmap: fix compound check logic in page_remove_file_rmap
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: mm: memcontrol: fix swap counter leak on swapout from offline cgroup
 
-In page_remove_file_rmap(.) we have the following check:
-  VM_BUG_ON_PAGE(compound && !PageTransHuge(page), page);
+An offline memory cgroup might have anonymous memory or shmem left charged
+to it and no swap.  Since only swap entries pin the id of an offline
+cgroup, such a cgroup will have no id and so an attempt to swapout its
+anon/shmem will not store memory cgroup info in the swap cgroup map.  As a
+result, memcg->swap or memcg->memsw will never get uncharged from it and
+any of its ascendants.
 
-This is meant to check for either HugeTLB pages or THP when a compound
-page is passed in.
+Fix this by always charging swapout to the first ancestor cgroup that
+hasn't released its id yet.
 
-Unfortunately, if one disables CONFIG_TRANSPARENT_HUGEPAGE, then
-PageTransHuge(.) will always return false, provoking BUGs when one runs
-the libhugetlbfs test suite.
-
-This patch replaces PageTransHuge(), with PageHead() which will work for
-both HugeTLB and THP.
-
-Fixes: dd78fedde4b9 ("rmap: support file thp")
-Link: http://lkml.kernel.org/r/1470838217-5889-1-git-send-email-steve.capper@arm.com
-Signed-off-by: Steve Capper <steve.capper@arm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Huang Shijie <shijie.huang@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Fixes: 73f576c04b941 ("mm: memcontrol: fix cgroup creation failure after many small jobs")
+Link: http://lkml.kernel.org/r/01cbe4d1a9fd9bbd42c95e91694d8ed9c9fc2208.1470057819.git.vdavydov@virtuozzo.com
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |   27 +++++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
 
-diff -puN mm/rmap.c~rmap-fix-compound-check-logic-in-page_remove_file_rmap mm/rmap.c
---- a/mm/rmap.c~rmap-fix-compound-check-logic-in-page_remove_file_rmap
-+++ a/mm/rmap.c
-@@ -1304,7 +1304,7 @@ static void page_remove_file_rmap(struct
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup
++++ a/mm/memcontrol.c
+@@ -4082,6 +4082,13 @@ static void mem_cgroup_id_get(struct mem
+ 	atomic_inc(&memcg->id.ref);
+ }
+ 
++static struct mem_cgroup *mem_cgroup_id_get_active(struct mem_cgroup *memcg)
++{
++	while (!atomic_inc_not_zero(&memcg->id.ref))
++		memcg = parent_mem_cgroup(memcg);
++	return memcg;
++}
++
+ static void mem_cgroup_id_put(struct mem_cgroup *memcg)
  {
- 	int i, nr = 1;
+ 	if (atomic_dec_and_test(&memcg->id.ref)) {
+@@ -5800,7 +5807,7 @@ subsys_initcall(mem_cgroup_init);
+  */
+ void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
+ {
+-	struct mem_cgroup *memcg;
++	struct mem_cgroup *memcg, *swap_memcg;
+ 	unsigned short oldid;
  
--	VM_BUG_ON_PAGE(compound && !PageTransHuge(page), page);
-+	VM_BUG_ON_PAGE(compound && !PageHead(page), page);
- 	lock_page_memcg(page);
+ 	VM_BUG_ON_PAGE(PageLRU(page), page);
+@@ -5815,15 +5822,20 @@ void mem_cgroup_swapout(struct page *pag
+ 	if (!memcg)
+ 		return;
  
- 	/* Hugepages are not counted in NR_FILE_MAPPED for now. */
+-	mem_cgroup_id_get(memcg);
+-	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
++	swap_memcg = mem_cgroup_id_get_active(memcg);
++	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg));
+ 	VM_BUG_ON_PAGE(oldid, page);
+-	mem_cgroup_swap_statistics(memcg, true);
++	mem_cgroup_swap_statistics(swap_memcg, true);
+ 
+ 	page->mem_cgroup = NULL;
+ 
+ 	if (!mem_cgroup_is_root(memcg))
+ 		page_counter_uncharge(&memcg->memory, 1);
++	if (memcg != swap_memcg) {
++		if (!mem_cgroup_is_root(swap_memcg))
++			page_counter_charge(&swap_memcg->memsw, 1);
++		page_counter_uncharge(&memcg->memsw, 1);
++	}
+ 
+ 	/*
+ 	 * Interrupts should be disabled here because the caller holds the
+@@ -5863,11 +5875,14 @@ int mem_cgroup_try_charge_swap(struct pa
+ 	if (!memcg)
+ 		return 0;
+ 
++	memcg = mem_cgroup_id_get_active(memcg);
++
+ 	if (!mem_cgroup_is_root(memcg) &&
+-	    !page_counter_try_charge(&memcg->swap, 1, &counter))
++	    !page_counter_try_charge(&memcg->swap, 1, &counter)) {
++		mem_cgroup_id_put(memcg);
+ 		return -ENOMEM;
++	}
+ 
+-	mem_cgroup_id_get(memcg);
+ 	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
+ 	VM_BUG_ON_PAGE(oldid, page);
+ 	mem_cgroup_swap_statistics(memcg, true);
 _
 
-Patches currently in -mm which might be from steve.capper@arm.com are
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
-rmap-fix-compound-check-logic-in-page_remove_file_rmap.patch
+mm-memcontrol-fix-memcg-id-ref-counter-on-swap-charge-move.patch
+mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
+mm-oom-deduplicate-victim-selection-code-for-memcg-and-global-oom.patch
 
