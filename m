@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arm64-use-simpler-api-for-random-address-requests-v2.patch
- added to -mm tree
-Date: Wed, 10 Aug 2016 16:00:54 -0700
-Message-ID: <57abb226.jypbQK9raMLC7W7r%akpm@linux-foundation.org>
+Subject: + arm-use-simpler-api-for-random-address-requests-v2.patch added
+ to -mm tree
+Date: Wed, 10 Aug 2016 16:00:52 -0700
+Message-ID: <57abb224.yhwg2JWo2SjxvXAb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54598 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54597 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932582AbcHJXAz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 19:00:55 -0400
+	with ESMTP id S933740AbcHJXAx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 19:00:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jason@lakedaemon.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64-use-simpler-api-for-random-address-requests-v2
+     Subject: arm-use-simpler-api-for-random-address-requests-v2
 has been added to the -mm tree.  Its filename is
-     arm64-use-simpler-api-for-random-address-requests-v2.patch
+     arm-use-simpler-api-for-random-address-requests-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-use-simpler-api-for-random-address-requests-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-use-simpler-api-for-random-address-requests-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-use-simpler-api-for-random-address-requests-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-use-simpler-api-for-random-address-requests-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +40,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jason Cooper <jason@lakedaemon.net>
-Subject: arm64-use-simpler-api-for-random-address-requests-v2
+Subject: arm-use-simpler-api-for-random-address-requests-v2
 
 s/randomize_page/randomize_addr/
 
-Link: http://lkml.kernel.org/r/20160728204730.27453-5-jason@lakedaemon.net
+Link: http://lkml.kernel.org/r/20160728204730.27453-4-jason@lakedaemon.net
 Signed-off-by: Jason Cooper <jason@lakedaemon.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/process.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/kernel/process.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm64/kernel/process.c~arm64-use-simpler-api-for-random-address-requests-v2 arch/arm64/kernel/process.c
---- a/arch/arm64/kernel/process.c~arm64-use-simpler-api-for-random-address-requests-v2
-+++ a/arch/arm64/kernel/process.c
-@@ -375,7 +375,7 @@ unsigned long arch_align_stack(unsigned
+diff -puN arch/arm/kernel/process.c~arm-use-simpler-api-for-random-address-requests-v2 arch/arm/kernel/process.c
+--- a/arch/arm/kernel/process.c~arm-use-simpler-api-for-random-address-requests-v2
++++ a/arch/arm/kernel/process.c
+@@ -318,7 +318,7 @@ unsigned long get_wchan(struct task_stru
+ 
  unsigned long arch_randomize_brk(struct mm_struct *mm)
  {
- 	if (is_compat_task())
--		return randomize_page(mm->brk, 0x02000000);
-+		return randomize_addr(mm->brk, 0x02000000);
- 	else
--		return randomize_page(mm->brk, 0x40000000);
-+		return randomize_addr(mm->brk, 0x40000000);
+-	return randomize_page(mm->brk, 0x02000000);
++	return randomize_addr(mm->brk, 0x02000000);
  }
+ 
+ #ifdef CONFIG_MMU
 _
 
 Patches currently in -mm which might be from jason@lakedaemon.net are
