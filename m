@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- get_maintainer-dont-check-if-stdin-exists-in-a-vcs-repository.patch added
- to -mm tree
-Date: Wed, 10 Aug 2016 15:17:15 -0700
-Message-ID: <57aba7eb.DYKZtTSOzNWSWSuu%akpm@linux-foundation.org>
+Subject: + rmap-fix-compound-check-logic-in-page_remove_file_rmap.patch
+ added to -mm tree
+Date: Wed, 10 Aug 2016 15:18:41 -0700
+Message-ID: <57aba841.Z3Q4rczbLkbiHoVU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53370 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53372 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932949AbcHJWRQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 18:17:16 -0400
+	with ESMTP id S932427AbcHJWSm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 18:18:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, cov@codeaurora.org, mm-commits@vger.kernel.org
+To: steve.capper@arm.com, catalin.marinas@arm.com, kirill.shutemov@linux.intel.com, shijie.huang@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: get_maintainer: Don't check if STDIN exists in a VCS repository
+     Subject: rmap: fix compound check logic in page_remove_file_rmap
 has been added to the -mm tree.  Its filename is
-     get_maintainer-dont-check-if-stdin-exists-in-a-vcs-repository.patch
+     rmap-fix-compound-check-logic-in-page_remove_file_rmap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/get_maintainer-dont-check-if-stdin-exists-in-a-vcs-repository.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rmap-fix-compound-check-logic-in-page_remove_file_rmap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/get_maintainer-dont-check-if-stdin-exists-in-a-vcs-repository.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rmap-fix-compound-check-logic-in-page_remove_file_rmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: get_maintainer: Don't check if STDIN exists in a VCS repository
+From: Steve Capper <steve.capper@arm.com>
+Subject: rmap: fix compound check logic in page_remove_file_rmap
 
-If get_maintainer is not given any filename arguments on the command line,
-the standard input is read for a patch.
+In page_remove_file_rmap(.) we have the following check:
+  VM_BUG_ON_PAGE(compound && !PageTransHuge(page), page);
 
-But checking if a VCS has a file named &STDIN is not a good idea and fails.
+This is meant to check for either HugeTLB pages or THP when a compound
+page is passed in.
 
-Verify the nominal input file is not &STDIN before checking the VCS.
+Unfortunately, if one disables CONFIG_TRANSPARENT_HUGEPAGE, then
+PageTransHuge(.) will always return false, provoking BUGs when one runs
+the libhugetlbfs test suite.
 
-Fixes: 4cad35a7ca69 ("get_maintainer.pl: reduce need for command-line option -f")
-Link: http://lkml.kernel.org/r/f8910b64c4987753a642b0200f5509ea7d8bd818.1470843485.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Christopher Covington <cov@codeaurora.org>
-Tested-by: Christopher Covington <cov@codeaurora.org>
+This patch replaces PageTransHuge(), with PageHead() which will work for
+both HugeTLB and THP.
+
+Fixes: dd78fedde4b9 ("rmap: support file thp")
+Link: http://lkml.kernel.org/r/1470838217-5889-1-git-send-email-steve.capper@arm.com
+Signed-off-by: Steve Capper <steve.capper@arm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Huang Shijie <shijie.huang@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    2 +-
+ mm/rmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/get_maintainer.pl~get_maintainer-dont-check-if-stdin-exists-in-a-vcs-repository scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainer-dont-check-if-stdin-exists-in-a-vcs-repository
-+++ a/scripts/get_maintainer.pl
-@@ -432,7 +432,7 @@ foreach my $file (@ARGV) {
- 	    die "$P: file '${file}' not found\n";
- 	}
-     }
--    if ($from_filename || vcs_file_exists($file)) {
-+    if ($from_filename || ($file ne "&STDIN" && vcs_file_exists($file))) {
- 	$file =~ s/^\Q${cur_path}\E//;	#strip any absolute path
- 	$file =~ s/^\Q${lk_path}\E//;	#or the path to the lk tree
- 	push(@files, $file);
+diff -puN mm/rmap.c~rmap-fix-compound-check-logic-in-page_remove_file_rmap mm/rmap.c
+--- a/mm/rmap.c~rmap-fix-compound-check-logic-in-page_remove_file_rmap
++++ a/mm/rmap.c
+@@ -1304,7 +1304,7 @@ static void page_remove_file_rmap(struct
+ {
+ 	int i, nr = 1;
+ 
+-	VM_BUG_ON_PAGE(compound && !PageTransHuge(page), page);
++	VM_BUG_ON_PAGE(compound && !PageHead(page), page);
+ 	lock_page_memcg(page);
+ 
+ 	/* Hugepages are not counted in NR_FILE_MAPPED for now. */
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from steve.capper@arm.com are
 
-get_maintainer-dont-check-if-stdin-exists-in-a-vcs-repository.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
+rmap-fix-compound-check-logic-in-page_remove_file_rmap.patch
 
