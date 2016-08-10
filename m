@@ -1,60 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [patch 7/8] rmap: fix compound check logic in
- page_remove_file_rmap
-Date: Wed, 10 Aug 2016 16:27:55 -0700
-Message-ID: <57abb87b.CMVU8uIyI9uZFGhM%akpm@linux-foundation.org>
+Subject: [patch 2/8] revert "ARM: keystone: dts: add psci command
+ definition"
+Date: Wed, 10 Aug 2016 16:27:41 -0700
+Message-ID: <57abb86d.VBvp0mDyXL2020pp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54979 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54952 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752876AbcHJX14 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 19:27:56 -0400
+	with ESMTP id S1751004AbcHJX1m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 19:27:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, steve.capper@arm.com, catalin.marinas@arm.com, kirill.shutemov@linux.intel.com, shijie.huang@arm.com, will.deacon@arm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, linux@armlinux.org.uk, vitalya@ti.com
 
-From: Steve Capper <steve.capper@arm.com>
-Subject: rmap: fix compound check logic in page_remove_file_rmap
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "ARM: keystone: dts: add psci command definition"
 
-In page_remove_file_rmap(.) we have the following check:
-  VM_BUG_ON_PAGE(compound && !PageTransHuge(page), page);
+Revert 51d5d12b8f3d ("ARM: keystone: dts: add psci command definition"),
+which was inadvertently added twice.
 
-This is meant to check for either HugeTLB pages or THP when a compound
-page is passed in.
-
-Unfortunately, if one disables CONFIG_TRANSPARENT_HUGEPAGE, then
-PageTransHuge(.) will always return false, provoking BUGs when one runs
-the libhugetlbfs test suite.
-
-This patch replaces PageTransHuge(), with PageHead() which will work for
-both HugeTLB and THP.
-
-Fixes: dd78fedde4b9 ("rmap: support file thp")
-Link: http://lkml.kernel.org/r/1470838217-5889-1-git-send-email-steve.capper@arm.com
-Signed-off-by: Steve Capper <steve.capper@arm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Huang Shijie <shijie.huang@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Vitaly Andrianov <vitalya@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/keystone.dtsi |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN mm/rmap.c~rmap-fix-compound-check-logic-in-page_remove_file_rmap mm/rmap.c
---- a/mm/rmap.c~rmap-fix-compound-check-logic-in-page_remove_file_rmap
-+++ a/mm/rmap.c
-@@ -1304,7 +1304,7 @@ static void page_remove_file_rmap(struct
- {
- 	int i, nr = 1;
+diff -puN arch/arm/boot/dts/keystone.dtsi~revert-arm-keystone-dts-add-psci-command-definition arch/arm/boot/dts/keystone.dtsi
+--- a/arch/arm/boot/dts/keystone.dtsi~revert-arm-keystone-dts-add-psci-command-definition
++++ a/arch/arm/boot/dts/keystone.dtsi
+@@ -70,14 +70,6 @@
+ 		cpu_on		= <0x84000003>;
+ 	};
  
--	VM_BUG_ON_PAGE(compound && !PageTransHuge(page), page);
-+	VM_BUG_ON_PAGE(compound && !PageHead(page), page);
- 	lock_page_memcg(page);
- 
- 	/* Hugepages are not counted in NR_FILE_MAPPED for now. */
-_
+-	psci {
+-		compatible	= "arm,psci";
+-		method		= "smc";
+-		cpu_suspend	= <0x84000001>;
+-		cpu_off		= <0x84000002>;
+-		cpu_on		= <0x84000003>;
+-	};
