@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+Subject: + mm-rmap-fix-false-positive-vm_bug-in-page_add_file_rmap.patch
  added to -mm tree
-Date: Tue, 09 Aug 2016 16:34:33 -0700
-Message-ID: <57aa6889.dNO6AePxr3Eh9cWR%akpm@linux-foundation.org>
+Date: Wed, 10 Aug 2016 14:54:19 -0700
+Message-ID: <57aba28b.mvG3osMG0qjwcJsJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42279 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53050 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932593AbcHIXee (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Aug 2016 19:34:34 -0400
+	with ESMTP id S1751752AbcHJVyU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Aug 2016 17:54:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, joe@perches.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, labbott@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix
+     Subject: mm, rmap: fix false positive VM_BUG() in page_add_file_rmap()
 has been added to the -mm tree.  Its filename is
-     seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+     mm-rmap-fix-false-positive-vm_bug-in-page_add_file_rmap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-fix-false-positive-vm_bug-in-page_add_file_rmap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-fix-false-positive-vm_bug-in-page_add_file_rmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm, rmap: fix false positive VM_BUG() in page_add_file_rmap()
 
-update vmstat_show(), per Joe
+PageTransCompound() doesn't distinguish THP from from any other type of
+compound pages.  This can lead to false-positive VM_BUG_ON() in
+page_add_file_rmap() if called on compound page from a driver[1].
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Joe Perches <joe@perches.com>
+I think we can exclude such cases by checking if the page belong to a
+mapping.
+
+The VM_BUG_ON_PAGE() is downgraded to VM_WARN_ON_ONCE().  This path should
+not cause any harm to non-THP page, but good to know if we step on
+anything else.
+
+[1] http://lkml.kernel.org/r/c711e067-0bff-a6cb-3c37-04dfe77d2db1@redhat.com
+
+Link: http://lkml.kernel.org/r/20160810161345.GA67522@black.fi.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Laura Abbott <labbott@redhat.com>
+Tested-by: Laura Abbott <labbott@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/rmap.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmstat.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix mm/vmstat.c
---- a/mm/vmstat.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix
-+++ a/mm/vmstat.c
-@@ -1594,7 +1594,7 @@ static int vmstat_show(struct seq_file *
- 	unsigned long off = l - (unsigned long *)m->private;
- 
- 	seq_puts(m, vmstat_text[off]);
--	seq_put_decimal_ull(m, ' ', *l);
-+	seq_put_decimal_ull(m, " ", *l);
- 	seq_putc(m, '\n');
- 	return 0;
- }
+diff -puN mm/rmap.c~mm-rmap-fix-false-positive-vm_bug-in-page_add_file_rmap mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-fix-false-positive-vm_bug-in-page_add_file_rmap
++++ a/mm/rmap.c
+@@ -1284,8 +1284,9 @@ void page_add_file_rmap(struct page *pag
+ 		VM_BUG_ON_PAGE(!PageSwapBacked(page), page);
+ 		__inc_node_page_state(page, NR_SHMEM_PMDMAPPED);
+ 	} else {
+-		if (PageTransCompound(page)) {
+-			VM_BUG_ON_PAGE(!PageLocked(page), page);
++		if (PageTransCompound(page) && page_mapping(page)) {
++			VM_WARN_ON_ONCE(!PageLocked(page));
++
+ 			SetPageDoubleMap(compound_head(page));
+ 			if (PageMlocked(page))
+ 				clear_page_mlock(compound_head(page));
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-revert-arm-keystone-dts-add-psci-command-definition.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-vmalloc-fix-align-value-calculation-error-fix.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-rmap-fix-false-positive-vm_bug-in-page_add_file_rmap.patch
 
