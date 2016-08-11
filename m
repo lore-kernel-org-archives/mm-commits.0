@@ -1,60 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [patch 2/7] proc, meminfo: use correct helpers for calculating
- LRU sizes in meminfo
-Date: Thu, 11 Aug 2016 15:32:57 -0700
-Message-ID: <57acfd19.EOcwOfbZz0sUFPsw%akpm@linux-foundation.org>
+Subject: [patch 3/7] mm: memcontrol: fix swap counter leak on swapout from offline cgroup
+Date: Thu, 11 Aug 2016 15:33:00 -0700
+Message-ID: <57acfd1c.u+vgvMiZiu97RVOk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53807 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53814 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356AbcHKWc6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 18:32:58 -0400
+	with ESMTP id S1751356AbcHKWdB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 18:33:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mgorman@techsingularity.net, david@fromorbit.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org
 
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: proc, meminfo: use correct helpers for calculating LRU sizes in meminfo
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: mm: memcontrol: fix swap counter leak on swapout from offline cgroup
 
-meminfo_proc_show() and si_mem_available() are using the wrong helpers for
-calculating the size of the LRUs.  The user-visible impact is that there
-appears to be an abnormally high number of unevictable pages.
+An offline memory cgroup might have anonymous memory or shmem left charged
+to it and no swap.  Since only swap entries pin the id of an offline
+cgroup, such a cgroup will have no id and so an attempt to swapout its
+anon/shmem will not store memory cgroup info in the swap cgroup map.  As a
+result, memcg->swap or memcg->memsw will never get uncharged from it and
+any of its ascendants.
 
-Link: http://lkml.kernel.org/r/20160805105805.GR2799@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Dave Chinner <david@fromorbit.com>
+Fix this by always charging swapout to the first ancestor cgroup that
+hasn't released its id yet.
+
+[hannes@cmpxchg.org: add comment to mem_cgroup_swapout]
+[vdavydov@virtuozzo.com: use WARN_ON_ONCE() in mem_cgroup_id_get_online()]
+  Link: http://lkml.kernel.org/r/20160803123445.GJ13263@esperanza
+Fixes: 73f576c04b941 ("mm: memcontrol: fix cgroup creation failure after many small jobs")
+Link: http://lkml.kernel.org/r/5336daa5c9a32e776067773d9da655d2dc126491.1470219853.git.vdavydov@virtuozzo.com
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: <stable@vger.kernel.org>	[3.19+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c |    2 +-
- mm/page_alloc.c   |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   44 ++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 38 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/meminfo.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo
-+++ a/fs/proc/meminfo.c
-@@ -46,7 +46,7 @@ static int meminfo_proc_show(struct seq_
- 		cached = 0;
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup
++++ a/mm/memcontrol.c
+@@ -4082,6 +4082,24 @@ static void mem_cgroup_id_get(struct mem
+ 	atomic_inc(&memcg->id.ref);
+ }
  
- 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
--		pages[lru] = global_page_state(NR_LRU_BASE + lru);
-+		pages[lru] = global_node_page_state(NR_LRU_BASE + lru);
++static struct mem_cgroup *mem_cgroup_id_get_online(struct mem_cgroup *memcg)
++{
++	while (!atomic_inc_not_zero(&memcg->id.ref)) {
++		/*
++		 * The root cgroup cannot be destroyed, so it's refcount must
++		 * always be >= 1.
++		 */
++		if (WARN_ON_ONCE(memcg == root_mem_cgroup)) {
++			VM_BUG_ON(1);
++			break;
++		}
++		memcg = parent_mem_cgroup(memcg);
++		if (!memcg)
++			memcg = root_mem_cgroup;
++	}
++	return memcg;
++}
++
+ static void mem_cgroup_id_put(struct mem_cgroup *memcg)
+ {
+ 	if (atomic_dec_and_test(&memcg->id.ref)) {
+@@ -5800,7 +5818,7 @@ subsys_initcall(mem_cgroup_init);
+  */
+ void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
+ {
+-	struct mem_cgroup *memcg;
++	struct mem_cgroup *memcg, *swap_memcg;
+ 	unsigned short oldid;
  
- 	available = si_mem_available();
+ 	VM_BUG_ON_PAGE(PageLRU(page), page);
+@@ -5815,16 +5833,27 @@ void mem_cgroup_swapout(struct page *pag
+ 	if (!memcg)
+ 		return;
  
-diff -puN mm/page_alloc.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo mm/page_alloc.c
---- a/mm/page_alloc.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo
-+++ a/mm/page_alloc.c
-@@ -4060,7 +4060,7 @@ long si_mem_available(void)
- 	int lru;
+-	mem_cgroup_id_get(memcg);
+-	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
++	/*
++	 * In case the memcg owning these pages has been offlined and doesn't
++	 * have an ID allocated to it anymore, charge the closest online
++	 * ancestor for the swap instead and transfer the memory+swap charge.
++	 */
++	swap_memcg = mem_cgroup_id_get_online(memcg);
++	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg));
+ 	VM_BUG_ON_PAGE(oldid, page);
+-	mem_cgroup_swap_statistics(memcg, true);
++	mem_cgroup_swap_statistics(swap_memcg, true);
  
- 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
--		pages[lru] = global_page_state(NR_LRU_BASE + lru);
-+		pages[lru] = global_node_page_state(NR_LRU_BASE + lru);
+ 	page->mem_cgroup = NULL;
  
- 	for_each_zone(zone)
- 		wmark_low += zone->watermark[WMARK_LOW];
+ 	if (!mem_cgroup_is_root(memcg))
+ 		page_counter_uncharge(&memcg->memory, 1);
+ 
++	if (memcg != swap_memcg) {
++		if (!mem_cgroup_is_root(swap_memcg))
++			page_counter_charge(&swap_memcg->memsw, 1);
++		page_counter_uncharge(&memcg->memsw, 1);
++	}
++
+ 	/*
+ 	 * Interrupts should be disabled here because the caller holds the
+ 	 * mapping->tree_lock lock which is taken with interrupts-off. It is
+@@ -5863,11 +5892,14 @@ int mem_cgroup_try_charge_swap(struct pa
+ 	if (!memcg)
+ 		return 0;
+ 
++	memcg = mem_cgroup_id_get_online(memcg);
++
+ 	if (!mem_cgroup_is_root(memcg) &&
+-	    !page_counter_try_charge(&memcg->swap, 1, &counter))
++	    !page_counter_try_charge(&memcg->swap, 1, &counter)) {
++		mem_cgroup_id_put(memcg);
+ 		return -ENOMEM;
++	}
+ 
+-	mem_cgroup_id_get(memcg);
+ 	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
+ 	VM_BUG_ON_PAGE(oldid, page);
+ 	mem_cgroup_swap_statistics(memcg, true);
 _
