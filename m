@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers.patch
- added to -mm tree
-Date: Thu, 11 Aug 2016 13:56:05 -0700
-Message-ID: <57ace665.Pjkeke0vL3xR0CSp%akpm@linux-foundation.org>
+Subject: + mm-initialize-per_cpu_nodestats-for-hotadded-pgdats.patch added to -mm tree
+Date: Thu, 11 Aug 2016 14:00:16 -0700
+Message-ID: <57ace760.TVfyCNx34AKFjhDg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52743 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932291AbcHKU4G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 16:56:06 -0400
+	with ESMTP id S1750708AbcHKVAR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 17:00:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akash.goel@intel.com, chris@chris-wilson.co.uk, tvrtko.ursulin@intel.com, mm-commits@vger.kernel.org
+To: arbab@linux.vnet.ibm.com, mgorman@techsingularity.net, paulus@ozlabs.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: relay: Use per CPU constructs for the relay channel buffer pointers
+     Subject: mm/memory_hotplug.c: initialize per_cpu_nodestats for hotadded pgdats
 has been added to the -mm tree.  Its filename is
-     relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers.patch
+     mm-initialize-per_cpu_nodestats-for-hotadded-pgdats.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-initialize-per_cpu_nodestats-for-hotadded-pgdats.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-initialize-per_cpu_nodestats-for-hotadded-pgdats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,336 +38,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akash Goel <akash.goel@intel.com>
-Subject: relay: Use per CPU constructs for the relay channel buffer pointers
+From: Reza Arbab <arbab@linux.vnet.ibm.com>
+Subject: mm/memory_hotplug.c: initialize per_cpu_nodestats for hotadded pgdats
 
-relay essentially needs to maintain the per CPU array of channel buffer
-pointers but it manually creates that array.  Instead its better to avail
-the per CPU constructs, provided by the kernel, to allocate & access the
-array of pointer to channel buffers.
+The following oops occurs after a pgdat is hotadded:
 
-Link: http://lkml.kernel.org/r/1470909140-25919-1-git-send-email-akash.goel@intel.com
-Signed-off-by: Akash Goel <akash.goel@intel.com>
-Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+[   86.839956] Unable to handle kernel paging request for data at address 0x00c30001
+[   86.840132] Faulting instruction address: 0xc00000000022f8f4
+[   86.840328] Oops: Kernel access of bad area, sig: 11 [#1]
+[   86.840468] SMP NR_CPUS=2048 NUMA pSeries
+[   86.840612] Modules linked in: ip6t_rpfilter ip6t_REJECT nf_reject_ipv6 ipt_REJECT nf_reject_ipv4 xt_conntrack ebtable_nat ebtable_broute bridge stp llc ebtable_filter ebtables ip6table_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_security ip6table_raw ip6table_filter ip6_tables iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack iptable_mangle iptable_security iptable_raw iptable_filter nls_utf8 isofs sg virtio_balloon uio_pdrv_genirq uio ip_tables xfs libcrc32c sr_mod cdrom sd_mod virtio_net ibmvscsi scsi_transport_srp virtio_pci virtio_ring virtio dm_mirror dm_region_hash dm_log dm_mod
+[   86.842955] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G        W 4.8.0-rc1-device #110
+[   86.843140] task: c000000000ef3080 task.stack: c000000000f6c000
+[   86.843323] NIP: c00000000022f8f4 LR: c00000000022f948 CTR: 0000000000000000
+[   86.843595] REGS: c000000000f6fa50 TRAP: 0300   Tainted: G        W (4.8.0-rc1-device)
+[   86.843889] MSR: 800000010280b033 <SF,VEC,VSX,EE,FP,ME,IR,DR,RI,LE,TM[E]>  CR: 84002028  XER: 20000000
+[   86.844624] CFAR: d000000001d2013c DAR: 0000000000c30001 DSISR: 40000000 SOFTE: 0
+GPR00: c00000000022f948 c000000000f6fcd0 c000000000f71400 0000000000000001
+GPR04: 0000000000000100 0000000000000000 0000000000000000 0000000000c30000
+GPR08: ffffffffffffffff 0000000000000001 0000000000c30000 00000000ffffffff
+GPR12: 0000000000002200 c000000001300000 c000000000faefb4 c000000000faefa8
+GPR16: c000000000f6c000 c000000000f6c080 c000000000bf15b0 c000000000f6c080
+GPR20: c000000000bf4928 0000000000000000 0000000000000003 c000000000bf4968
+GPR24: c0000000ffed0000 0000000000000000 0000000000000000 c000000000f6fd58
+GPR28: 0000000000000001 0000000000000001 c000000000f6fcf0 c0000000ffed9c08
+[   86.847747] NIP [c00000000022f8f4] refresh_cpu_vm_stats+0x1a4/0x2f0
+[   86.847897] LR [c00000000022f948] refresh_cpu_vm_stats+0x1f8/0x2f0
+[   86.848060] Call Trace:
+[   86.848183] [c000000000f6fcd0] [c00000000022f948] refresh_cpu_vm_stats+0x1f8/0x2f0 (unreliable)
+
+Add per_cpu_nodestats initialization to the hotplug codepath.
+
+Link: http://lkml.kernel.org/r/1470931473-7090-1-git-send-email-arbab@linux.vnet.ibm.com
+Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Paul Mackerras <paulus@ozlabs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/relay.h |   17 +++++----
- kernel/relay.c        |   74 ++++++++++++++++++++++------------------
- 2 files changed, 52 insertions(+), 39 deletions(-)
+ mm/memory_hotplug.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/relay.h~relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers include/linux/relay.h
---- a/include/linux/relay.h~relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers
-+++ a/include/linux/relay.h
-@@ -19,6 +19,7 @@
- #include <linux/fs.h>
- #include <linux/poll.h>
- #include <linux/kref.h>
-+#include <linux/percpu.h>
+diff -puN mm/memory_hotplug.c~mm-initialize-per_cpu_nodestats-for-hotadded-pgdats mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-initialize-per_cpu_nodestats-for-hotadded-pgdats
++++ a/mm/memory_hotplug.c
+@@ -1219,6 +1219,7 @@ static pg_data_t __ref *hotadd_new_pgdat
  
- /*
-  * Tracks changes to rchan/rchan_buf structs
-@@ -63,7 +64,7 @@ struct rchan
- 	struct kref kref;		/* channel refcount */
- 	void *private_data;		/* for user-defined data */
- 	size_t last_toobig;		/* tried to log event > subbuf size */
--	struct rchan_buf *buf[NR_CPUS]; /* per-cpu channel buffers */
-+	struct rchan_buf ** __percpu buf; /* per-cpu channel buffers */
- 	int is_global;			/* One global buffer ? */
- 	struct list_head list;		/* for channel list */
- 	struct dentry *parent;		/* parent dentry passed to open */
-@@ -204,7 +205,7 @@ static inline void relay_write(struct rc
- 	struct rchan_buf *buf;
+ 	/* init node's zones as empty zones, we don't have any present pages.*/
+ 	free_area_init_node(nid, zones_size, start_pfn, zholes_size);
++	pgdat->per_cpu_nodestats = alloc_percpu(struct per_cpu_nodestat);
  
- 	local_irq_save(flags);
--	buf = chan->buf[smp_processor_id()];
-+	buf = *this_cpu_ptr(chan->buf);
- 	if (unlikely(buf->offset + length > chan->subbuf_size))
- 		length = relay_switch_subbuf(buf, length);
- 	memcpy(buf->data + buf->offset, data, length);
-@@ -230,12 +231,12 @@ static inline void __relay_write(struct
+ 	/*
+ 	 * The node we allocated has no zone fallback lists. For avoiding
+@@ -1249,6 +1250,7 @@ static pg_data_t __ref *hotadd_new_pgdat
+ static void rollback_node_hotadd(int nid, pg_data_t *pgdat)
  {
- 	struct rchan_buf *buf;
- 
--	buf = chan->buf[get_cpu()];
-+	buf = *get_cpu_ptr(chan->buf);
- 	if (unlikely(buf->offset + length > buf->chan->subbuf_size))
- 		length = relay_switch_subbuf(buf, length);
- 	memcpy(buf->data + buf->offset, data, length);
- 	buf->offset += length;
--	put_cpu();
-+	put_cpu_ptr(chan->buf);
+ 	arch_refresh_nodedata(nid, NULL);
++	free_percpu(pgdat->per_cpu_nodestats);
+ 	arch_free_nodedata(pgdat);
+ 	return;
  }
- 
- /**
-@@ -251,17 +252,19 @@ static inline void __relay_write(struct
-  */
- static inline void *relay_reserve(struct rchan *chan, size_t length)
- {
--	void *reserved;
--	struct rchan_buf *buf = chan->buf[smp_processor_id()];
-+	void *reserved = NULL;
-+	struct rchan_buf *buf = *get_cpu_ptr(chan->buf);
- 
- 	if (unlikely(buf->offset + length > buf->chan->subbuf_size)) {
- 		length = relay_switch_subbuf(buf, length);
- 		if (!length)
--			return NULL;
-+			goto end;
- 	}
- 	reserved = buf->data + buf->offset;
- 	buf->offset += length;
- 
-+end:
-+	put_cpu_ptr(chan->buf);
- 	return reserved;
- }
- 
-diff -puN kernel/relay.c~relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers kernel/relay.c
---- a/kernel/relay.c~relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers
-+++ a/kernel/relay.c
-@@ -214,7 +214,7 @@ static void relay_destroy_buf(struct rch
- 			__free_page(buf->page_array[i]);
- 		relay_free_page_array(buf->page_array);
- 	}
--	chan->buf[buf->cpu] = NULL;
-+	*per_cpu_ptr(chan->buf, buf->cpu) = NULL;
- 	kfree(buf->padding);
- 	kfree(buf);
- 	kref_put(&chan->kref, relay_destroy_channel);
-@@ -382,20 +382,21 @@ static void __relay_reset(struct rchan_b
-  */
- void relay_reset(struct rchan *chan)
- {
-+	struct rchan_buf *buf;
- 	unsigned int i;
- 
- 	if (!chan)
- 		return;
- 
--	if (chan->is_global && chan->buf[0]) {
--		__relay_reset(chan->buf[0], 0);
-+	if (chan->is_global && (buf = *per_cpu_ptr(chan->buf, 0))) {
-+		__relay_reset(buf, 0);
- 		return;
- 	}
- 
- 	mutex_lock(&relay_channels_mutex);
- 	for_each_possible_cpu(i)
--		if (chan->buf[i])
--			__relay_reset(chan->buf[i], 0);
-+		if ((buf = *per_cpu_ptr(chan->buf, i)))
-+			__relay_reset(buf, 0);
- 	mutex_unlock(&relay_channels_mutex);
- }
- EXPORT_SYMBOL_GPL(relay_reset);
-@@ -440,7 +441,7 @@ static struct rchan_buf *relay_open_buf(
- 	struct dentry *dentry;
- 
-  	if (chan->is_global)
--		return chan->buf[0];
-+		return *per_cpu_ptr(chan->buf, 0);
- 
- 	buf = relay_create_buf(chan);
- 	if (!buf)
-@@ -464,7 +465,7 @@ static struct rchan_buf *relay_open_buf(
-  	__relay_reset(buf, 1);
- 
-  	if(chan->is_global) {
-- 		chan->buf[0] = buf;
-+		*per_cpu_ptr(chan->buf, 0) = buf;
-  		buf->cpu = 0;
-   	}
- 
-@@ -526,22 +527,24 @@ static int relay_hotcpu_callback(struct
- {
- 	unsigned int hotcpu = (unsigned long)hcpu;
- 	struct rchan *chan;
-+	struct rchan_buf *buf;
- 
- 	switch(action) {
- 	case CPU_UP_PREPARE:
- 	case CPU_UP_PREPARE_FROZEN:
- 		mutex_lock(&relay_channels_mutex);
- 		list_for_each_entry(chan, &relay_channels, list) {
--			if (chan->buf[hotcpu])
-+			if ((buf = *per_cpu_ptr(chan->buf, hotcpu)))
- 				continue;
--			chan->buf[hotcpu] = relay_open_buf(chan, hotcpu);
--			if(!chan->buf[hotcpu]) {
-+			buf = relay_open_buf(chan, hotcpu);
-+			if(!buf) {
- 				printk(KERN_ERR
- 					"relay_hotcpu_callback: cpu %d buffer "
- 					"creation failed\n", hotcpu);
- 				mutex_unlock(&relay_channels_mutex);
- 				return notifier_from_errno(-ENOMEM);
- 			}
-+			*per_cpu_ptr(chan->buf, hotcpu) = buf;
- 		}
- 		mutex_unlock(&relay_channels_mutex);
- 		break;
-@@ -583,6 +586,7 @@ struct rchan *relay_open(const char *bas
- {
- 	unsigned int i;
- 	struct rchan *chan;
-+	struct rchan_buf *buf;
- 
- 	if (!(subbuf_size && n_subbufs))
- 		return NULL;
-@@ -593,6 +597,7 @@ struct rchan *relay_open(const char *bas
- 	if (!chan)
- 		return NULL;
- 
-+	chan->buf = alloc_percpu(struct rchan_buf *);
- 	chan->version = RELAYFS_CHANNEL_VERSION;
- 	chan->n_subbufs = n_subbufs;
- 	chan->subbuf_size = subbuf_size;
-@@ -608,9 +613,10 @@ struct rchan *relay_open(const char *bas
- 
- 	mutex_lock(&relay_channels_mutex);
- 	for_each_online_cpu(i) {
--		chan->buf[i] = relay_open_buf(chan, i);
--		if (!chan->buf[i])
-+		buf = relay_open_buf(chan, i);
-+		if (!buf)
- 			goto free_bufs;
-+		*per_cpu_ptr(chan->buf, i) = buf;
- 	}
- 	list_add(&chan->list, &relay_channels);
- 	mutex_unlock(&relay_channels_mutex);
-@@ -619,8 +625,8 @@ struct rchan *relay_open(const char *bas
- 
- free_bufs:
- 	for_each_possible_cpu(i) {
--		if (chan->buf[i])
--			relay_close_buf(chan->buf[i]);
-+		if ((buf = *per_cpu_ptr(chan->buf, i)))
-+			relay_close_buf(buf);
- 	}
- 
- 	kref_put(&chan->kref, relay_destroy_channel);
-@@ -666,6 +672,7 @@ int relay_late_setup_files(struct rchan
- 	unsigned int i, curr_cpu;
- 	unsigned long flags;
- 	struct dentry *dentry;
-+	struct rchan_buf *buf;
- 	struct rchan_percpu_buf_dispatcher disp;
- 
- 	if (!chan || !base_filename)
-@@ -684,10 +691,11 @@ int relay_late_setup_files(struct rchan
- 
- 	if (chan->is_global) {
- 		err = -EINVAL;
--		if (!WARN_ON_ONCE(!chan->buf[0])) {
--			dentry = relay_create_buf_file(chan, chan->buf[0], 0);
-+		buf = *per_cpu_ptr(chan->buf, 0);
-+		if (!WARN_ON_ONCE(!buf)) {
-+			dentry = relay_create_buf_file(chan, buf, 0);
- 			if (dentry && !WARN_ON_ONCE(!chan->is_global)) {
--				relay_set_buf_dentry(chan->buf[0], dentry);
-+				relay_set_buf_dentry(buf, dentry);
- 				err = 0;
- 			}
- 		}
-@@ -702,13 +710,14 @@ int relay_late_setup_files(struct rchan
- 	 * on all currently online CPUs.
- 	 */
- 	for_each_online_cpu(i) {
--		if (unlikely(!chan->buf[i])) {
-+		buf = *per_cpu_ptr(chan->buf, i);
-+		if (unlikely(!buf)) {
- 			WARN_ONCE(1, KERN_ERR "CPU has no buffer!\n");
- 			err = -EINVAL;
- 			break;
- 		}
- 
--		dentry = relay_create_buf_file(chan, chan->buf[i], i);
-+		dentry = relay_create_buf_file(chan, buf, i);
- 		if (unlikely(!dentry)) {
- 			err = -EINVAL;
- 			break;
-@@ -716,10 +725,10 @@ int relay_late_setup_files(struct rchan
- 
- 		if (curr_cpu == i) {
- 			local_irq_save(flags);
--			relay_set_buf_dentry(chan->buf[i], dentry);
-+			relay_set_buf_dentry(buf, dentry);
- 			local_irq_restore(flags);
- 		} else {
--			disp.buf = chan->buf[i];
-+			disp.buf = buf;
- 			disp.dentry = dentry;
- 			smp_mb();
- 			/* relay_channels_mutex must be held, so wait. */
-@@ -822,11 +831,10 @@ void relay_subbufs_consumed(struct rchan
- 	if (!chan)
- 		return;
- 
--	if (cpu >= NR_CPUS || !chan->buf[cpu] ||
--					subbufs_consumed > chan->n_subbufs)
-+	buf = *per_cpu_ptr(chan->buf, cpu);
-+	if (cpu >= NR_CPUS || !buf || subbufs_consumed > chan->n_subbufs)
- 		return;
- 
--	buf = chan->buf[cpu];
- 	if (subbufs_consumed > buf->subbufs_produced - buf->subbufs_consumed)
- 		buf->subbufs_consumed = buf->subbufs_produced;
- 	else
-@@ -842,18 +850,19 @@ EXPORT_SYMBOL_GPL(relay_subbufs_consumed
-  */
- void relay_close(struct rchan *chan)
- {
-+	struct rchan_buf *buf;
- 	unsigned int i;
- 
- 	if (!chan)
- 		return;
- 
- 	mutex_lock(&relay_channels_mutex);
--	if (chan->is_global && chan->buf[0])
--		relay_close_buf(chan->buf[0]);
-+	if (chan->is_global && (buf = *per_cpu_ptr(chan->buf, 0)))
-+		relay_close_buf(buf);
- 	else
- 		for_each_possible_cpu(i)
--			if (chan->buf[i])
--				relay_close_buf(chan->buf[i]);
-+			if ((buf = *per_cpu_ptr(chan->buf, i)))
-+				relay_close_buf(buf);
- 
- 	if (chan->last_toobig)
- 		printk(KERN_WARNING "relay: one or more items not logged "
-@@ -874,20 +883,21 @@ EXPORT_SYMBOL_GPL(relay_close);
-  */
- void relay_flush(struct rchan *chan)
- {
-+	struct rchan_buf *buf;
- 	unsigned int i;
- 
- 	if (!chan)
- 		return;
- 
--	if (chan->is_global && chan->buf[0]) {
--		relay_switch_subbuf(chan->buf[0], 0);
-+	if (chan->is_global && (buf = *per_cpu_ptr(chan->buf, 0))) {
-+		relay_switch_subbuf(buf, 0);
- 		return;
- 	}
- 
- 	mutex_lock(&relay_channels_mutex);
- 	for_each_possible_cpu(i)
--		if (chan->buf[i])
--			relay_switch_subbuf(chan->buf[i], 0);
-+		if ((buf = *per_cpu_ptr(chan->buf, i)))
-+			relay_switch_subbuf(buf, 0);
- 	mutex_unlock(&relay_channels_mutex);
- }
- EXPORT_SYMBOL_GPL(relay_flush);
 _
 
-Patches currently in -mm which might be from akash.goel@intel.com are
+Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
 
-relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers.patch
+mm-initialize-per_cpu_nodestats-for-hotadded-pgdats.patch
 
