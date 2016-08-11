@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-compaction-more-reliably-increase-direct-compaction-priority.patch added to -mm tree
-Date: Thu, 11 Aug 2016 14:29:51 -0700
-Message-ID: <57acee4f.Oc/8exYor+e5d53x%akpm@linux-foundation.org>
+ mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
+ added to -mm tree
+Date: Thu, 11 Aug 2016 14:29:53 -0700
+Message-ID: <57acee51.x/j7wx21i/yKmMTL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53027 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752297AbcHKV3w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 17:29:52 -0400
+	with ESMTP id S1752395AbcHKV3y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 17:29:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: more reliably increase direct compaction priority
+     Subject: mm, compaction: use correct watermark when checking compaction success
 has been added to the -mm tree.  Its filename is
-     mm-compaction-more-reliably-increase-direct-compaction-priority.patch
+     mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-more-reliably-increase-direct-compaction-priority.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-more-reliably-increase-direct-compaction-priority.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,23 +41,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: more reliably increase direct compaction priority
+Subject: mm, compaction: use correct watermark when checking compaction success
 
-During reclaim/compaction loop, compaction priority can be increased by
-the should_compact_retry() function, but the current code is not optimal. 
-Priority is only increased when compaction_failed() is true, which means
-that compaction has scanned the whole zone.  This may not happen even
-after multiple attempts with a lower priority due to parallel activity, so
-we might needlessly struggle on the lower priorities and possibly run out
-of compaction retry attempts in the process.
+The __compact_finished() function uses low watermark in a check that has
+to pass if the direct compaction is to finish and allocation should
+succeed.  This is too pessimistic, as the allocation will typically use
+min watermark.  It may happen that during compaction, we drop below the
+low watermark (due to parallel activity), but still form the target
+high-order page.  By checking against low watermark, we might needlessly
+continue compaction.
 
-After this patch we are guaranteed at least one attempt at the highest
-compaction priority even if we exhaust all retries at the lower
-priorities.
+Similarly, __compaction_suitable() uses low watermark in a check whether
+allocation can succeed without compaction.  Again, this is unnecessarily
+pessimistic.
 
-Link: http://lkml.kernel.org/r/20160810091226.6709-7-vbabka@suse.cz
+After this patch, these check will use direct compactor's alloc_flags to
+determine the watermark, which is effectively the min watermark.
+
+Link: http://lkml.kernel.org/r/20160810091226.6709-8-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -64,44 +68,39 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ mm/compaction.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-compaction-more-reliably-increase-direct-compaction-priority mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-more-reliably-increase-direct-compaction-priority
-+++ a/mm/page_alloc.c
-@@ -3153,13 +3153,8 @@ should_compact_retry(struct alloc_contex
- 	 * so it doesn't really make much sense to retry except when the
- 	 * failure could be caused by insufficient priority
- 	 */
--	if (compaction_failed(compact_result)) {
--		if (*compact_priority > MIN_COMPACT_PRIORITY) {
--			(*compact_priority)--;
--			return true;
--		}
--		return false;
--	}
-+	if (compaction_failed(compact_result))
-+		goto check_priority;
+diff -puN mm/compaction.c~mm-compaction-use-correct-watermark-when-checking-compaction-success mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-use-correct-watermark-when-checking-compaction-success
++++ a/mm/compaction.c
+@@ -1316,7 +1316,7 @@ static enum compact_result __compact_fin
+ 		return COMPACT_CONTINUE;
  
+ 	/* Compaction run is not finished if the watermark is not met */
+-	watermark = low_wmark_pages(zone);
++	watermark = zone->watermark[cc->alloc_flags & ALLOC_WMARK_MASK];
+ 
+ 	if (!zone_watermark_ok(zone, cc->order, watermark, cc->classzone_idx,
+ 							cc->alloc_flags))
+@@ -1381,7 +1381,7 @@ static enum compact_result __compaction_
+ 	if (is_via_compact_memory(order))
+ 		return COMPACT_CONTINUE;
+ 
+-	watermark = low_wmark_pages(zone);
++	watermark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
  	/*
- 	 * make sure the compaction wasn't deferred or didn't bail out early
-@@ -3183,6 +3178,15 @@ should_compact_retry(struct alloc_contex
- 	if (compaction_retries <= max_retries)
- 		return true;
- 
-+	/*
-+	 * Make sure there is at least one attempt at the highest priority
-+	 * if we exhausted all retries at the lower priorities
-+	 */
-+check_priority:
-+	if (*compact_priority > MIN_COMPACT_PRIORITY) {
-+		(*compact_priority)--;
-+		return true;
-+	}
- 	return false;
- }
- #else
+ 	 * If watermarks for high-order allocation are already met, there
+ 	 * should be no need for compaction at all.
+@@ -1395,7 +1395,7 @@ static enum compact_result __compaction_
+ 	 * This is because during migration, copies of pages need to be
+ 	 * allocated and for a short time, the footprint is higher
+ 	 */
+-	watermark += (2UL << order);
++	watermark = low_wmark_pages(zone) + (2UL << order);
+ 	if (!__zone_watermark_ok(zone, 0, watermark, classzone_idx,
+ 				 alloc_flags, wmark_target))
+ 		return COMPACT_SKIPPED;
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
