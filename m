@@ -1,323 +1,195 @@
 From: akpm@linux-foundation.org
-Subject: + meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
- added to -mm tree
-Date: Thu, 11 Aug 2016 14:52:21 -0700
-Message-ID: <57acf395.rkdQJlUGVi5DIIQN%akpm@linux-foundation.org>
+Subject: mmotm 2016-08-11-15-29 uploaded
+Date: Thu, 11 Aug 2016 15:30:27 -0700
+Message-ID: <57acfc83.m1jfhXlimbkvzxCS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53195 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53772 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752074AbcHKVwW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 17:52:22 -0400
+	with ESMTP id S932249AbcHKWa2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 18:30:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, adobriyan@gmail.com, andi@firstfloor.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
+
+The mm-of-the-moment snapshot 2016-08-11-15-29 has been uploaded to
+
+   http://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+http://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
+
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
 
 
-The patch titled
-     Subject: meminfo: break apart a very long seq_printf with #ifdefs
-has been added to the -mm tree.  Its filename is
-     meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+To develop on top of mmotm git:
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+To rebase a branch with older patches to a new mmotm release:
 
-------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: meminfo: break apart a very long seq_printf with #ifdefs
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
 
-Use a specific routine to emit most lines so that the code is
-easier to read and maintain.
 
-akpm:
-   text    data     bss     dec     hex filename
-   2976       8       0    2984     ba8 fs/proc/meminfo.o before
-   2669       8       0    2677     a75 fs/proc/meminfo.o after
 
-Link: http://lkml.kernel.org/r/8fce7fdef2ba081a4ef531594e97da8a9feebb58.1470810406.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
 
- fs/proc/meminfo.c |  211 +++++++++++++++++++-------------------------
- 1 file changed, 95 insertions(+), 116 deletions(-)
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
-diff -puN fs/proc/meminfo.c~meminfo-break-apart-a-very-long-seq_printf-with-ifdefs fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~meminfo-break-apart-a-very-long-seq_printf-with-ifdefs
-+++ a/fs/proc/meminfo.c
-@@ -23,6 +23,25 @@ void __attribute__((weak)) arch_report_m
- {
- }
- 
-+static void show_val_kb(struct seq_file *m, const char *s, unsigned long num)
-+{
-+	char v[32];
-+	static const char blanks[7] = {' ', ' ', ' ', ' ',' ', ' ', ' '};
-+	int len;
-+
-+	len = num_to_str(v, sizeof(v), num << (PAGE_SHIFT - 10));
-+
-+	seq_write(m, s, 16);
-+
-+	if (len > 0) {
-+		if (len < 8)
-+			seq_write(m, blanks, 8 - len);
-+
-+		seq_write(m, v, len);
-+	}
-+	seq_write(m, " kB\n", 4);
-+}
-+
- static int meminfo_proc_show(struct seq_file *m, void *v)
- {
- 	struct sysinfo i;
-@@ -32,10 +51,6 @@ static int meminfo_proc_show(struct seq_
- 	unsigned long pages[NR_LRU_LISTS];
- 	int lru;
- 
--/*
-- * display in kilobytes.
-- */
--#define K(x) ((x) << (PAGE_SHIFT - 10))
- 	si_meminfo(&i);
- 	si_swapinfo(&i);
- 	committed = percpu_counter_read_positive(&vm_committed_as);
-@@ -50,136 +65,100 @@ static int meminfo_proc_show(struct seq_
- 
- 	available = si_mem_available();
- 
--	/*
--	 * Tagged format, for easy grepping and expansion.
--	 */
--	seq_printf(m,
--		"MemTotal:       %8lu kB\n"
--		"MemFree:        %8lu kB\n"
--		"MemAvailable:   %8lu kB\n"
--		"Buffers:        %8lu kB\n"
--		"Cached:         %8lu kB\n"
--		"SwapCached:     %8lu kB\n"
--		"Active:         %8lu kB\n"
--		"Inactive:       %8lu kB\n"
--		"Active(anon):   %8lu kB\n"
--		"Inactive(anon): %8lu kB\n"
--		"Active(file):   %8lu kB\n"
--		"Inactive(file): %8lu kB\n"
--		"Unevictable:    %8lu kB\n"
--		"Mlocked:        %8lu kB\n"
--#ifdef CONFIG_HIGHMEM
--		"HighTotal:      %8lu kB\n"
--		"HighFree:       %8lu kB\n"
--		"LowTotal:       %8lu kB\n"
--		"LowFree:        %8lu kB\n"
--#endif
--#ifndef CONFIG_MMU
--		"MmapCopy:       %8lu kB\n"
--#endif
--		"SwapTotal:      %8lu kB\n"
--		"SwapFree:       %8lu kB\n"
--		"Dirty:          %8lu kB\n"
--		"Writeback:      %8lu kB\n"
--		"AnonPages:      %8lu kB\n"
--		"Mapped:         %8lu kB\n"
--		"Shmem:          %8lu kB\n"
--		"Slab:           %8lu kB\n"
--		"SReclaimable:   %8lu kB\n"
--		"SUnreclaim:     %8lu kB\n"
--		"KernelStack:    %8lu kB\n"
--		"PageTables:     %8lu kB\n"
--#ifdef CONFIG_QUICKLIST
--		"Quicklists:     %8lu kB\n"
--#endif
--		"NFS_Unstable:   %8lu kB\n"
--		"Bounce:         %8lu kB\n"
--		"WritebackTmp:   %8lu kB\n"
--		"CommitLimit:    %8lu kB\n"
--		"Committed_AS:   %8lu kB\n"
--		"VmallocTotal:   %8lu kB\n"
--		"VmallocUsed:    %8lu kB\n"
--		"VmallocChunk:   %8lu kB\n"
--#ifdef CONFIG_MEMORY_FAILURE
--		"HardwareCorrupted: %5lu kB\n"
--#endif
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		"AnonHugePages:  %8lu kB\n"
--		"ShmemHugePages: %8lu kB\n"
--		"ShmemPmdMapped: %8lu kB\n"
--#endif
--#ifdef CONFIG_CMA
--		"CmaTotal:       %8lu kB\n"
--		"CmaFree:        %8lu kB\n"
--#endif
--		,
--		K(i.totalram),
--		K(i.freeram),
--		K(available),
--		K(i.bufferram),
--		K(cached),
--		K(total_swapcache_pages()),
--		K(pages[LRU_ACTIVE_ANON]   + pages[LRU_ACTIVE_FILE]),
--		K(pages[LRU_INACTIVE_ANON] + pages[LRU_INACTIVE_FILE]),
--		K(pages[LRU_ACTIVE_ANON]),
--		K(pages[LRU_INACTIVE_ANON]),
--		K(pages[LRU_ACTIVE_FILE]),
--		K(pages[LRU_INACTIVE_FILE]),
--		K(pages[LRU_UNEVICTABLE]),
--		K(global_page_state(NR_MLOCK)),
-+	show_val_kb(m, "MemTotal:       ", i.totalram);
-+	show_val_kb(m, "MemFree:        ", i.freeram);
-+	show_val_kb(m, "MemAvailable:   ", available);
-+	show_val_kb(m, "Buffers:        ", i.bufferram);
-+	show_val_kb(m, "Cached:         ", cached);
-+	show_val_kb(m, "SwapCached:     ", total_swapcache_pages());
-+	show_val_kb(m, "Active:         ", pages[LRU_ACTIVE_ANON] +
-+					   pages[LRU_ACTIVE_FILE]);
-+	show_val_kb(m, "Inactive:       ", pages[LRU_INACTIVE_ANON] +
-+					   pages[LRU_INACTIVE_FILE]);
-+	show_val_kb(m, "Active(anon):   ", pages[LRU_ACTIVE_ANON]);
-+	show_val_kb(m, "Inactive(anon): ", pages[LRU_INACTIVE_ANON]);
-+	show_val_kb(m, "Active(file):   ", pages[LRU_ACTIVE_FILE]);
-+	show_val_kb(m, "Inactive(file): ", pages[LRU_INACTIVE_FILE]);
-+	show_val_kb(m, "Unevictable:    ", pages[LRU_UNEVICTABLE]);
-+	show_val_kb(m, "Mlocked:        ", global_page_state(NR_MLOCK));
-+
- #ifdef CONFIG_HIGHMEM
--		K(i.totalhigh),
--		K(i.freehigh),
--		K(i.totalram-i.totalhigh),
--		K(i.freeram-i.freehigh),
-+	show_val_kb(m, "HighTotal:      ", i.totalhigh);
-+	show_val_kb(m, "HighFree:       ", i.freehigh);
-+	show_val_kb(m, "LowTotal:       ", i.totalram - i.totalhigh);
-+	show_val_kb(m, "LowFree:        ", i.freeram - i.freehigh);
- #endif
-+
- #ifndef CONFIG_MMU
--		K((unsigned long) atomic_long_read(&mmap_pages_allocated)),
-+	show_val_kb(m, "MmapCopy:       ",
-+		    (unsigned long)atomic_long_read(&mmap_pages_allocated));
- #endif
--		K(i.totalswap),
--		K(i.freeswap),
--		K(global_node_page_state(NR_FILE_DIRTY)),
--		K(global_node_page_state(NR_WRITEBACK)),
--		K(global_node_page_state(NR_ANON_MAPPED)),
--		K(global_node_page_state(NR_FILE_MAPPED)),
--		K(i.sharedram),
--		K(global_page_state(NR_SLAB_RECLAIMABLE) +
--				global_page_state(NR_SLAB_UNRECLAIMABLE)),
--		K(global_page_state(NR_SLAB_RECLAIMABLE)),
--		K(global_page_state(NR_SLAB_UNRECLAIMABLE)),
--		global_page_state(NR_KERNEL_STACK_KB),
--		K(global_page_state(NR_PAGETABLE)),
-+
-+	show_val_kb(m, "SwapTotal:      ", i.totalswap);
-+	show_val_kb(m, "SwapFree:       ", i.freeswap);
-+	show_val_kb(m, "Dirty:          ",
-+		    global_node_page_state(NR_FILE_DIRTY));
-+	show_val_kb(m, "Writeback:      ",
-+		    global_node_page_state(NR_WRITEBACK));
-+	show_val_kb(m, "AnonPages:      ",
-+		    global_node_page_state(NR_ANON_MAPPED));
-+	show_val_kb(m, "Mapped:         ",
-+		    global_node_page_state(NR_FILE_MAPPED));
-+	show_val_kb(m, "Shmem:          ", i.sharedram);
-+	show_val_kb(m, "Slab:           ",
-+		    global_page_state(NR_SLAB_RECLAIMABLE) +
-+		    global_page_state(NR_SLAB_UNRECLAIMABLE));
-+
-+	show_val_kb(m, "SReclaimable:   ",
-+		    global_page_state(NR_SLAB_RECLAIMABLE));
-+	show_val_kb(m, "SUnreclaim:     ",
-+		    global_page_state(NR_SLAB_UNRECLAIMABLE));
-+	seq_printf(m, "KernelStack:    %8lu kB\n",
-+		   global_page_state(NR_KERNEL_STACK_KB));
-+	show_val_kb(m, "PageTables:     ",
-+		    global_page_state(NR_PAGETABLE));
- #ifdef CONFIG_QUICKLIST
--		K(quicklist_total_size()),
-+	show_val_kb(m, "Quicklists:     ", quicklist_total_size());
- #endif
--		K(global_node_page_state(NR_UNSTABLE_NFS)),
--		K(global_page_state(NR_BOUNCE)),
--		K(global_node_page_state(NR_WRITEBACK_TEMP)),
--		K(vm_commit_limit()),
--		K(committed),
--		(unsigned long)VMALLOC_TOTAL >> 10,
--		0ul, // used to be vmalloc 'used'
--		0ul  // used to be vmalloc 'largest_chunk'
-+
-+	show_val_kb(m, "NFS_Unstable:   ",
-+		    global_node_page_state(NR_UNSTABLE_NFS));
-+	show_val_kb(m, "Bounce:         ",
-+		    global_page_state(NR_BOUNCE));
-+	show_val_kb(m, "WritebackTmp:   ",
-+		    global_node_page_state(NR_WRITEBACK_TEMP));
-+	show_val_kb(m, "CommitLimit:    ", vm_commit_limit());
-+	show_val_kb(m, "Committed_AS:   ", committed);
-+	seq_printf(m, "VmallocTotal:   %8lu kB\n",
-+		   (unsigned long)VMALLOC_TOTAL >> 10);
-+	show_val_kb(m, "VmallocUsed:    ", 0ul);
-+	show_val_kb(m, "VmallocChunk:   ", 0ul);
-+
- #ifdef CONFIG_MEMORY_FAILURE
--		, atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10)
-+	seq_printf(m, "HardwareCorrupted: %5lu kB\n",
-+		   atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10));
- #endif
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		, K(global_node_page_state(NR_ANON_THPS) * HPAGE_PMD_NR)
--		, K(global_node_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR)
--		, K(global_node_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR)
-+	show_val_kb(m, "AnonHugePages:  ",
-+		    global_node_page_state(NR_ANON_THPS) * HPAGE_PMD_NR);
-+	show_val_kb(m, "ShmemHugePages: ",
-+		    global_node_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR);
-+	show_val_kb(m, "ShmemPmdMapped: ",
-+		    global_node_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR);
- #endif
-+
- #ifdef CONFIG_CMA
--		, K(totalcma_pages)
--		, K(global_page_state(NR_FREE_CMA_PAGES))
-+	show_val_kb(m, "CmaTotal:       ", totalcma_pages);
-+	show_val_kb(m, "CmaFree:        ",
-+		    global_page_state(NR_FREE_CMA_PAGES));
- #endif
--		);
- 
- 	hugetlb_report_meminfo(m);
- 
- 	arch_report_meminfo(m);
- 
- 	return 0;
--#undef K
- }
- 
- static int meminfo_proc_open(struct inode *inode, struct file *file)
-_
+A git copy of this tree is available at
 
-Patches currently in -mm which might be from joe@perches.com are
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
 
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
-meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
 
+
+This mmotm tree contains the following patches against 4.8-rc1:
+(patches marked "*" will be included in linux-next)
+
+  origin.patch
+  arch-alpha-kernel-systblss-remove-debug-check.patch
+  i-need-old-gcc.patch
+* mm-fix-the-incorrect-hugepages-count.patch
+* proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo.patch
+* mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup.patch
+* mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup-fix.patch
+* mm-memcontrol-fix-memcg-id-ref-counter-on-swap-charge-move.patch
+* kasan-remove-the-unnecessary-warn_once-from-quarantinec.patch
+* mm-oom-fix-uninitialized-ret-in-task_will_free_mem.patch
+* mm-initialize-per_cpu_nodestats-for-hotadded-pgdats.patch
+* byteswap-dont-use-__builtin_bswap-with-sparse.patch
+* mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve.patch
+* fadump-register-the-memory-reserved-by-fadump.patch
+* mm-slab-improve-performance-of-gathering-slabinfo-stats.patch
+* kthread-rename-probe_kthread_data-to-kthread_probe_data.patch
+* kthread-kthread-worker-api-cleanup.patch
+* kthread-smpboot-do-not-park-in-kthread_create_on_cpu.patch
+* kthread-allow-to-call-__kthread_create_on_node-with-va_list-args.patch
+* kthread-add-kthread_create_worker.patch
+* kthread-add-kthread_destroy_worker.patch
+* kthread-detect-when-a-kthread-work-is-used-by-more-workers.patch
+* kthread-initial-support-for-delayed-kthread-work.patch
+* kthread-allow-to-cancel-kthread-work.patch
+* kthread-allow-to-modify-delayed-kthread-work.patch
+* kthread-better-support-freezable-kthread-workers.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* kbuild-simpler-generation-of-assembly-constants.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+* kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
+  mm.patch
+* mm-oom-deduplicate-victim-selection-code-for-memcg-and-global-oom.patch
+* mm-zsmalloc-add-trace-events-for-zs_compact.patch
+* mm-zsmalloc-add-per-class-compact-trace-event.patch
+* mm-vmalloc-fix-align-value-calculation-error.patch
+* mm-vmalloc-fix-align-value-calculation-error-fix.patch
+* mm-vmalloc-fix-align-value-calculation-error-v2.patch
+* mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
+* mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+* mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
+* mm-oom_killc-fix-task_will_free_mem-comment.patch
+* mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
+* mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+* mm-compaction-cleanup-unused-functions.patch
+* mm-compaction-rename-compact_partial-to-compact_success.patch
+* mm-compaction-dont-recheck-watermarks-after-compact_success.patch
+* mm-compaction-add-the-ultimate-direct-compaction-priority.patch
+* mm-compaction-more-reliably-increase-direct-compaction-priority.patch
+* mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
+* mm-compaction-create-compact_gap-wrapper.patch
+* mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
+* mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
+* mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
+* mm-page_owner-align-with-pageblock_nr-pages.patch
+* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+* proc-much-faster-proc-vmstat.patch
+* proc-faster-proc-status.patch
+* seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
+* seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+* meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
+* proc-relax-proc-tid-timerslack_ns-capability-requirements.patch
+* proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns.patch
+* console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
+* lib-add-crc64-ecma-module.patch
+* compat-remove-compat_printk.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code.patch
+* random-simplify-api-for-random-address-requests.patch
+* random-simplify-api-for-random-address-requests-v2.patch
+* x86-use-simpler-api-for-random-address-requests.patch
+* x86-use-simpler-api-for-random-address-requests-v2.patch
+* arm-use-simpler-api-for-random-address-requests.patch
+* arm-use-simpler-api-for-random-address-requests-v2.patch
+* arm64-use-simpler-api-for-random-address-requests.patch
+* arm64-use-simpler-api-for-random-address-requests-v2.patch
+* tile-use-simpler-api-for-random-address-requests.patch
+* tile-use-simpler-api-for-random-address-requests-v2.patch
+* unicore32-use-simpler-api-for-random-address-requests.patch
+* unicore32-use-simpler-api-for-random-address-requests-v2.patch
+* random-remove-unused-randomize_range.patch
+* dma-mapping-introduce-the-dma_attr_no_warn-attribute.patch
+* powerpc-implement-the-dma_attr_no_warn-attribute.patch
+* nvme-use-the-dma_attr_no_warn-attribute.patch
+* x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path.patch
+* mips-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path.patch
+* relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers.patch
+* config-android-remove-config_ipv6_privacy.patch
+* ipc-semc-fix-complex_count-vs-simple-op-race.patch
+* ipc-msg-implement-lockless-pipelined-wakeups.patch
+* ipc-msg-batch-queue-sender-wakeups.patch
+* ipc-msg-make-ss_wakeup-kill-arg-boolean.patch
+* ipc-msg-lockless-security-checks-for-msgsnd.patch
+* ipc-msg-avoid-waking-sender-upon-full-queue.patch
+* ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+  linux-next.patch
+* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+* mm-writeback-flush-plugged-io-in-wakeup_flusher_threads.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  make-frame_pointer-default=y.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  add-debugging-aid-for-memory-initialisation-problems.patch
+  workaround-for-a-pci-restoring-bug.patch
