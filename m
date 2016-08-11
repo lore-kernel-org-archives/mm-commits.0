@@ -1,59 +1,55 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Thu, 11 Aug 2016 15:32:42 -0700
-Message-ID: <20160811153242.7fd4c5c7147c5e99345b5aca@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [patch 1/7] mm/hugetlb: fix incorrect hugepages count during mem
+ hotplug
+Date: Thu, 11 Aug 2016 15:32:55 -0700
+Message-ID: <57acfd17.sSLI+fIeLApXvXE1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__11_Aug_2016_15_32_42_-0700_iT1Svftrr6rqb+P_"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53799 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53804 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356AbcHKWcs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 18:32:48 -0400
+	with ESMTP id S1751505AbcHKWc4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 18:32:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zhongjiang@huawei.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com
 
---Signature=_Thu__11_Aug_2016_15_32_42_-0700_iT1Svftrr6rqb+P_
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-7 fixes, based on 85e97be32c6242c98dbbc7a241b4a78c1b93327b:
-
+From: zhong jiang <zhongjiang@huawei.com>
 Subject: mm/hugetlb: fix incorrect hugepages count during mem hotplug
-Subject: proc, meminfo: use correct helpers for calculating LRU sizes in me=
-minfo
-Subject: mm: memcontrol: fix swap counter leak on swapout from offline cgro=
-up
-Subject: mm: memcontrol: fix memcg id ref counter on swap charge move
-Subject: kasan: remove the unnecessary WARN_ONCE from quarantine.c
-Subject: mm, oom: fix uninitialized ret in task_will_free_mem()
-Subject: mm/memory_hotplug.c: initialize per_cpu_nodestats for hotadded pgd=
-ats
 
---Signature=_Thu__11_Aug_2016_15_32_42_-0700_iT1Svftrr6rqb+P_
-Content-Type: application/pgp-signature
+When memory hotplug operates, free hugepages will be freed if the movable
+node is offline.  Therefore, /proc/sys/vm/nr_hugepages will be incorrect.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Fix it by reducing max_huge_pages when the node is offlined.
 
-iQIcBAEBAgAGBQJXrP0PAAoJEJxZ78cCqAIH+V4P/3aBtSlzXji/LEpRLfTqUTji
-FSWSQspAvrJbD6TlkIfLNWRmCQ5HymkoBMmNZaP1FTd8aN/eb5FN7h5SHC7hu9tt
-iCLblvVHP+Vf4KUG1dbd4O5pgrrxpi+DQmmvjpV6NY5T0Z9By4Ev+uZDwN550HDh
-vyWDTs0TJW5U6/xkdlh+stiQ5je2E6Fn/8E62bslgtaKQWfqjWD/RVTCdn2Wzer+
-mgrRzjisJCeUBPCjI6e0iKPOb9SrubNSK+rDat7eltz0Yv27KWGDFOUkogUcy5fp
-Itju79XV2pXHuIlCSRhk3oW4zX61MRccYjG0+MhZTBeWLbG12/pII3iNGdmnDcS0
-rXhCED9Sax+14MaN6XEW+oVUalFmhBSpQESC36yH6G0WIIKITe/DGvFn+KiffQ7z
-yx7xkswno9LdOGQyPYqFe6NZkQvdmvKI3J6yc1bTjjODjQNvbdkwZS+CPKRAq17N
-m4WOCXAHfDDiURLzYRCZ+/9QlKSYFUN1Ih85CrtOaaVa72njWwAXqao3slhjiO7A
-9uyLkD+3FEQnqtk+knFhp0I60B6fmTzLgRQerH0XiWVibtvfybWGZMzg4t0DNDau
-qF1vtE1Nxey3FsunbT2abs4+9Z2LRJ+VmctrT5p3t/EEWo+pzkL0Dib6N0AfoLW9
-8RZwMmW8saOlIr7T6lO8
-=T3kY
------END PGP SIGNATURE-----
+n-horiguchi@ah.jp.nec.com said:
 
---Signature=_Thu__11_Aug_2016_15_32_42_-0700_iT1Svftrr6rqb+P_--
+: dissolve_free_huge_page intends to break a hugepage into buddy, and the
+: destination hugepage is supposed to be allocated from the pool of the
+: destination node, so the system-wide pool size is reduced.  So adding
+: h->max_huge_pages-- makes sense to me.
+
+Link: http://lkml.kernel.org/r/1470624546-902-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/hugetlb.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff -puN mm/hugetlb.c~mm-fix-the-incorrect-hugepages-count mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-fix-the-incorrect-hugepages-count
++++ a/mm/hugetlb.c
+@@ -1448,6 +1448,7 @@ static void dissolve_free_huge_page(stru
+ 		list_del(&page->lru);
+ 		h->free_huge_pages--;
+ 		h->free_huge_pages_node[nid]--;
++		h->max_huge_pages--;
+ 		update_and_free_page(h, page);
+ 	}
+ 	spin_unlock(&hugetlb_lock);
+_
