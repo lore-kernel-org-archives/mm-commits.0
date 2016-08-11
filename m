@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + config-android-remove-config_ipv6_privacy.patch added to -mm
- tree
-Date: Thu, 11 Aug 2016 13:50:18 -0700
-Message-ID: <57ace50a.GRpbtEwLPhvzAEaT%akpm@linux-foundation.org>
+Subject: + byteswap-dont-use-__builtin_bswap-with-sparse.patch added to
+ -mm tree
+Date: Thu, 11 Aug 2016 13:51:36 -0700
+Message-ID: <57ace558.72c85X5RI7R0Xjhs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52721 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52723 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932180AbcHKUuT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 16:50:19 -0400
+	with ESMTP id S1752039AbcHKUvh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 16:51:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@suse.de, robh@kernel.org, mm-commits@vger.kernel.org
+To: johannes.berg@intel.com, arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: config/android: Remove CONFIG_IPV6_PRIVACY
+     Subject: byteswap: don't use __builtin_bswap*() with sparse
 has been added to the -mm tree.  Its filename is
-     config-android-remove-config_ipv6_privacy.patch
+     byteswap-dont-use-__builtin_bswap-with-sparse.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/config-android-remove-config_ipv6_privacy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/byteswap-dont-use-__builtin_bswap-with-sparse.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/config-android-remove-config_ipv6_privacy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/byteswap-dont-use-__builtin_bswap-with-sparse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Borislav Petkov <bp@suse.de>
-Subject: config/android: Remove CONFIG_IPV6_PRIVACY
+From: Johannes Berg <johannes.berg@intel.com>
+Subject: byteswap: don't use __builtin_bswap*() with sparse
 
-Option is long gone, see
+Although sparse declares __builtin_bswap*(), it can't actually do constant
+folding inside them (yet).  As such, things like
 
-  5d9efa7ee99e ("ipv6: Remove privacy config option.")
+  switch (protocol) {
+  case htons(ETH_P_IP):
+          break;
+  }
 
-Link: http://lkml.kernel.org/r/20160811170340.9859-1-bp@alien8.de
-Signed-off-by: Borislav Petkov <bp@suse.de>
-Cc: Rob Herring <robh@kernel.org>
+which we do all over the place cause sparse to warn that it expects a
+constant instead of a function call.
+
+Disable __HAVE_BUILTIN_BSWAP*__ if __CHECKER__ is defined to
+avoid this.
+
+Fixes: 7322dd755e7d ("byteswap: try to avoid __builtin_constant_p gcc bug")
+Link: http://lkml.kernel.org/r/1470914102-26389-1-git-send-email-johannes@sipsolutions.net
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/configs/android-base.config |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/compiler-gcc.h |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN kernel/configs/android-base.config~config-android-remove-config_ipv6_privacy kernel/configs/android-base.config
---- a/kernel/configs/android-base.config~config-android-remove-config_ipv6_privacy
-+++ a/kernel/configs/android-base.config
-@@ -41,7 +41,6 @@ CONFIG_IPV6=y
- CONFIG_IPV6_MIP6=y
- CONFIG_IPV6_MULTIPLE_TABLES=y
- CONFIG_IPV6_OPTIMISTIC_DAD=y
--CONFIG_IPV6_PRIVACY=y
- CONFIG_IPV6_ROUTER_PREF=y
- CONFIG_IPV6_ROUTE_INFO=y
- CONFIG_IP_ADVANCED_ROUTER=y
+diff -puN include/linux/compiler-gcc.h~byteswap-dont-use-__builtin_bswap-with-sparse include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~byteswap-dont-use-__builtin_bswap-with-sparse
++++ a/include/linux/compiler-gcc.h
+@@ -242,7 +242,11 @@
+  */
+ #define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
+ 
+-#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
++/*
++ * sparse (__CHECKER__) pretends to be gcc, but can't do constant
++ * folding in __builtin_bswap*() (yet), so don't set these for it.
++ */
++#if defined(CONFIG_ARCH_USE_BUILTIN_BSWAP) && !defined(__CHECKER__)
+ #if GCC_VERSION >= 40400
+ #define __HAVE_BUILTIN_BSWAP32__
+ #define __HAVE_BUILTIN_BSWAP64__
+@@ -250,7 +254,7 @@
+ #if GCC_VERSION >= 40800
+ #define __HAVE_BUILTIN_BSWAP16__
+ #endif
+-#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
++#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP && !__CHECKER__ */
+ 
+ #if GCC_VERSION >= 50000
+ #define KASAN_ABI_VERSION 4
 _
 
-Patches currently in -mm which might be from bp@suse.de are
+Patches currently in -mm which might be from johannes.berg@intel.com are
 
-config-android-remove-config_ipv6_privacy.patch
+byteswap-dont-use-__builtin_bswap-with-sparse.patch
 
