@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-create-compact_gap-wrapper.patch added to -mm
- tree
-Date: Thu, 11 Aug 2016 14:29:55 -0700
-Message-ID: <57acee53.dlwTrcKo3bNtjkxI%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch added
+ to -mm tree
+Date: Thu, 11 Aug 2016 14:29:57 -0700
+Message-ID: <57acee55./9zB35GMrdOEmSTT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53033 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53041 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752395AbcHKV34 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 17:29:56 -0400
+	with ESMTP id S1752395AbcHKV36 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 17:29:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: create compact_gap wrapper
+     Subject: mm, compaction: use proper alloc_flags in __compaction_suitable()
 has been added to the -mm tree.  Its filename is
-     mm-compaction-create-compact_gap-wrapper.patch
+     mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-create-compact_gap-wrapper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-create-compact_gap-wrapper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,15 +41,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: create compact_gap wrapper
+Subject: mm, compaction: use proper alloc_flags in __compaction_suitable()
 
-Compaction uses a watermark gap of (2UL << order) pages at various places
-and it's not immediately obvious why.  Abstract it through a compact_gap()
-wrapper to create a single place with a thorough explanation.
+The __compaction_suitable() function checks the low watermark plus a
+compact_gap() gap to decide if there's enough free memory to perform
+compaction.  This check uses direct compactor's alloc_flags, but that's
+wrong, since these flags are not applicable for freepage isolation.
 
-Link: http://lkml.kernel.org/r/20160810091226.6709-9-vbabka@suse.cz
+For example, alloc_flags may indicate access to memory reserves, making
+compaction proceed, and then fail watermark check during the isolation.
+
+A similar problem exists for ALLOC_CMA, which may be part of alloc_flags,
+but not during freepage isolation.  In this case however it makes sense to
+use ALLOC_CMA both in __compaction_suitable() and __isolate_free_page(),
+since there's actually nothing preventing the freepage scanner to isolate
+from CMA pageblocks, with the assumption that a page that could be
+migrated once by compaction can be migrated also later by CMA allocation. 
+Thus we should count pages in CMA pageblocks when considering compaction
+suitability and when isolating freepages.
+
+To sum up, this patch should remove some false positives from
+__compaction_suitable(), and allow compaction to proceed when free pages
+required for compaction reside in the CMA pageblocks.
+
+Link: http://lkml.kernel.org/r/20160810091226.6709-10-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -56,85 +74,47 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |   16 ++++++++++++++++
- mm/compaction.c            |    7 +++----
- mm/vmscan.c                |    6 +++---
- 3 files changed, 22 insertions(+), 7 deletions(-)
+ mm/compaction.c |   12 ++++++++++--
+ mm/page_alloc.c |    2 +-
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-create-compact_gap-wrapper include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-create-compact_gap-wrapper
-+++ a/include/linux/compaction.h
-@@ -58,6 +58,22 @@ enum compact_result {
- 
- struct alloc_context; /* in mm/internal.h */
- 
-+/*
-+ * Number of free order-0 pages that should be available above given watermark
-+ * to make sure compaction has reasonable chance of not running out of free
-+ * pages that it needs to isolate as migration target during its work.
-+ */
-+static inline unsigned long compact_gap(unsigned int order)
-+{
-+	/*
-+	 * Although all the isolations for migration are temporary, compaction
-+	 * may have up to 1 << order pages on its list and then try to split
-+	 * an (order - 1) free page. At that point, a gap of 1 << order might
-+	 * not be enough, so it's safer to require twice that amount.
-+	 */
-+	return 2UL << order;
-+}
-+
- #ifdef CONFIG_COMPACTION
- extern int sysctl_compact_memory;
- extern int sysctl_compaction_handler(struct ctl_table *table, int write,
-diff -puN mm/compaction.c~mm-compaction-create-compact_gap-wrapper mm/compaction.c
---- a/mm/compaction.c~mm-compaction-create-compact_gap-wrapper
+diff -puN mm/compaction.c~mm-compaction-use-proper-alloc_flags-in-__compaction_suitable mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-use-proper-alloc_flags-in-__compaction_suitable
 +++ a/mm/compaction.c
-@@ -1391,11 +1391,10 @@ static enum compact_result __compaction_
- 		return COMPACT_SUCCESS;
+@@ -1392,11 +1392,19 @@ static enum compact_result __compaction_
  
  	/*
--	 * Watermarks for order-0 must be met for compaction. Note the 2UL.
--	 * This is because during migration, copies of pages need to be
--	 * allocated and for a short time, the footprint is higher
-+	 * Watermarks for order-0 must be met for compaction to be able to
-+	 * isolate free pages for migration targets.
+ 	 * Watermarks for order-0 must be met for compaction to be able to
+-	 * isolate free pages for migration targets.
++	 * isolate free pages for migration targets. This means that the
++	 * watermark and alloc_flags have to match, or be more pessimistic than
++	 * the check in __isolate_free_page(). We don't use the direct
++	 * compactor's alloc_flags, as they are not relevant for freepage
++	 * isolation. We however do use the direct compactor's classzone_idx to
++	 * skip over zones where lowmem reserves would prevent allocation even
++	 * if compaction succeeds.
++	 * ALLOC_CMA is used, as pages in CMA pageblocks are considered
++	 * suitable migration targets
  	 */
--	watermark = low_wmark_pages(zone) + (2UL << order);
-+	watermark = low_wmark_pages(zone) + compact_gap(order);
+ 	watermark = low_wmark_pages(zone) + compact_gap(order);
  	if (!__zone_watermark_ok(zone, 0, watermark, classzone_idx,
- 				 alloc_flags, wmark_target))
+-				 alloc_flags, wmark_target))
++						ALLOC_CMA, wmark_target))
  		return COMPACT_SKIPPED;
-diff -puN mm/vmscan.c~mm-compaction-create-compact_gap-wrapper mm/vmscan.c
---- a/mm/vmscan.c~mm-compaction-create-compact_gap-wrapper
-+++ a/mm/vmscan.c
-@@ -2499,7 +2499,7 @@ static inline bool should_continue_recla
- 	 * If we have not reclaimed enough pages for compaction and the
- 	 * inactive lists are large enough, continue reclaiming
- 	 */
--	pages_for_compaction = (2UL << sc->order);
-+	pages_for_compaction = compact_gap(sc->order);
- 	inactive_lru_pages = node_page_state(pgdat, NR_INACTIVE_FILE);
- 	if (get_nr_swap_pages() > 0)
- 		inactive_lru_pages += node_page_state(pgdat, NR_INACTIVE_ANON);
-@@ -2631,7 +2631,7 @@ static inline bool compaction_ready(stru
- 	 * there is a buffer of free pages available to give compaction
- 	 * a reasonable chance of completing and allocating the page
- 	 */
--	watermark = high_wmark_pages(zone) + (2UL << sc->order);
-+	watermark = high_wmark_pages(zone) + compact_gap(sc->order);
- 	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, sc->reclaim_idx);
  
  	/*
-@@ -3188,7 +3188,7 @@ static bool kswapd_shrink_node(pg_data_t
- 	 * excessive reclaim. Assume that a process requested a high-order
- 	 * can direct reclaim/compact.
- 	 */
--	if (sc->order && sc->nr_reclaimed >= 2UL << sc->order)
-+	if (sc->order && sc->nr_reclaimed >= compact_gap(sc->order))
- 		sc->order = 0;
+diff -puN mm/page_alloc.c~mm-compaction-use-proper-alloc_flags-in-__compaction_suitable mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-use-proper-alloc_flags-in-__compaction_suitable
++++ a/mm/page_alloc.c
+@@ -2491,7 +2491,7 @@ int __isolate_free_page(struct page *pag
+ 	if (!is_migrate_isolate(mt)) {
+ 		/* Obey watermarks as if the page was being allocated */
+ 		watermark = low_wmark_pages(zone) + (1 << order);
+-		if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
++		if (!zone_watermark_ok(zone, 0, watermark, 0, ALLOC_CMA))
+ 			return 0;
  
- 	return sc->nr_scanned >= sc->nr_to_reclaim;
+ 		__mod_zone_freepage_state(zone, -(1UL << order), mt);
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
