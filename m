@@ -1,120 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-dereferencing-an-error-pointer.patch removed
- from -mm tree
-Date: Thu, 11 Aug 2016 11:36:00 -0700
-Message-ID: <57acc590.goSamQ8wL/2a7iQ4%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_alloc-fix-wrong-initialization-when-sysctl_min_unmapped_ratio-changes.patch removed from -mm tree
+Date: Thu, 11 Aug 2016 11:36:06 -0700
+Message-ID: <57acc596.2gNn5xnc56NJcTWR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50687 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50699 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752234AbcHKSgB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 14:36:01 -0400
+	with ESMTP id S1752234AbcHKSgH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 14:36:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, mgorman@techsingularity.net, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: dereferencing an error pointer
+     Subject: mm/page_alloc.c: fix wrong initialization when sysctl_min_unmapped_ratio changes
 has been removed from the -mm tree.  Its filename was
-     rapidio-dereferencing-an-error-pointer.patch
+     mm-page_alloc-fix-wrong-initialization-when-sysctl_min_unmapped_ratio-changes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: rapidio: dereferencing an error pointer
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/page_alloc.c: fix wrong initialization when sysctl_min_unmapped_ratio changes
 
-Original patch: https://lkml.org/lkml/2016/8/4/32
+Before resetting min_unmapped_pages, we need to initialize
+min_unmapped_pages rather than min_slab_pages.
 
-If riocm_ch_alloc() fails then we end up dereferencing the error pointer.
-
-The problem is that we're not unwinding in the reverse order from how we
-allocate things so it gets confusing.  I've changed this around so now
-"ch" is NULL when we are done with it after we call riocm_put_channel(). 
-That way we can check if it's NULL and avoid calling riocm_put_channel()
-on it twice.
-
-I renamed err_nodev to err_put_new_ch so that it better reflects what the
-goto does.
-
-Then because we had flipping things around, it means we don't neeed to
-initialize the pointers to NULL and we can remove an if statement and pull
-things in an indent level.
-
-Link: http://lkml.kernel.org/r/20160805152406.20713-1-alexandre.bounine@idt.com
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
-Cc: Barry Wood <barry.wood@idt.com>
+Fixes: a5f5f91da6 (mm: convert zone_reclaim to node_reclaim)
+Link: http://lkml.kernel.org/r/1470724248-26780-1-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio_cm.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/rio_cm.c~rapidio-dereferencing-an-error-pointer drivers/rapidio/rio_cm.c
---- a/drivers/rapidio/rio_cm.c~rapidio-dereferencing-an-error-pointer
-+++ a/drivers/rapidio/rio_cm.c
-@@ -1080,8 +1080,8 @@ static int riocm_send_ack(struct rio_cha
- static struct rio_channel *riocm_ch_accept(u16 ch_id, u16 *new_ch_id,
- 					   long timeout)
- {
--	struct rio_channel *ch = NULL;
--	struct rio_channel *new_ch = NULL;
-+	struct rio_channel *ch;
-+	struct rio_channel *new_ch;
- 	struct conn_req *req;
- 	struct cm_peer *peer;
- 	int found = 0;
-@@ -1155,6 +1155,7 @@ static struct rio_channel *riocm_ch_acce
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-wrong-initialization-when-sysctl_min_unmapped_ratio-changes mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-wrong-initialization-when-sysctl_min_unmapped_ratio-changes
++++ a/mm/page_alloc.c
+@@ -6854,7 +6854,7 @@ int sysctl_min_unmapped_ratio_sysctl_han
+ 		return rc;
  
- 	spin_unlock_bh(&ch->lock);
- 	riocm_put_channel(ch);
-+	ch = NULL;
- 	kfree(req);
+ 	for_each_online_pgdat(pgdat)
+-		pgdat->min_slab_pages = 0;
++		pgdat->min_unmapped_pages = 0;
  
- 	down_read(&rdev_sem);
-@@ -1172,7 +1173,7 @@ static struct rio_channel *riocm_ch_acce
- 	if (!found) {
- 		/* If peer device object not found, simply ignore the request */
- 		err = -ENODEV;
--		goto err_nodev;
-+		goto err_put_new_ch;
- 	}
- 
- 	new_ch->rdev = peer->rdev;
-@@ -1184,15 +1185,16 @@ static struct rio_channel *riocm_ch_acce
- 
- 	*new_ch_id = new_ch->id;
- 	return new_ch;
-+
-+err_put_new_ch:
-+	spin_lock_bh(&idr_lock);
-+	idr_remove(&ch_idr, new_ch->id);
-+	spin_unlock_bh(&idr_lock);
-+	riocm_put_channel(new_ch);
-+
- err_put:
--	riocm_put_channel(ch);
--err_nodev:
--	if (new_ch) {
--		spin_lock_bh(&idr_lock);
--		idr_remove(&ch_idr, new_ch->id);
--		spin_unlock_bh(&idr_lock);
--		riocm_put_channel(new_ch);
--	}
-+	if (ch)
-+		riocm_put_channel(ch);
- 	*new_ch_id = 0;
- 	return ERR_PTR(err);
- }
+ 	for_each_zone(zone)
+ 		zone->zone_pgdat->min_unmapped_pages += (zone->managed_pages *
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 
