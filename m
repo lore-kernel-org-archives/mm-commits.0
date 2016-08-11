@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+Subject: + meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
  added to -mm tree
-Date: Thu, 11 Aug 2016 14:47:19 -0700
-Message-ID: <57acf267.W8MKYC4WLk9HWSHT%akpm@linux-foundation.org>
+Date: Thu, 11 Aug 2016 14:52:21 -0700
+Message-ID: <57acf395.rkdQJlUGVi5DIIQN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53183 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53195 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751900AbcHKVrU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 17:47:20 -0400
+	with ESMTP id S1752074AbcHKVwW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 17:52:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, zijun_hu@htc.com, mm-commits@vger.kernel.org
+To: joe@perches.com, adobriyan@gmail.com, andi@firstfloor.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix
+     Subject: meminfo: break apart a very long seq_printf with #ifdefs
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+     meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,102 +39,285 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix
+From: Joe Perches <joe@perches.com>
+Subject: meminfo: break apart a very long seq_printf with #ifdefs
 
-move get_count_order[_long] definitions to pick up fls_long()
+Use a specific routine to emit most lines so that the code is
+easier to read and maintain.
 
-Cc: zijun_hu <zijun_hu@htc.com>
+akpm:
+   text    data     bss     dec     hex filename
+   2976       8       0    2984     ba8 fs/proc/meminfo.o before
+   2669       8       0    2677     a75 fs/proc/meminfo.o after
+
+Link: http://lkml.kernel.org/r/8fce7fdef2ba081a4ef531594e97da8a9feebb58.1470810406.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |   52 +++++++++++++++++++--------------------
- 1 file changed, 26 insertions(+), 26 deletions(-)
+ fs/proc/meminfo.c |  211 +++++++++++++++++++-------------------------
+ 1 file changed, 95 insertions(+), 116 deletions(-)
 
-diff -puN include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix include/linux/bitops.h
---- a/include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix
-+++ a/include/linux/bitops.h
-@@ -65,32 +65,6 @@ static inline int get_bitmask_order(unsi
- 	return order;	/* We could be slightly more clever with -1 here... */
+diff -puN fs/proc/meminfo.c~meminfo-break-apart-a-very-long-seq_printf-with-ifdefs fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~meminfo-break-apart-a-very-long-seq_printf-with-ifdefs
++++ a/fs/proc/meminfo.c
+@@ -23,6 +23,25 @@ void __attribute__((weak)) arch_report_m
+ {
  }
  
--static inline int get_count_order(unsigned int count)
--{
--	int order;
--
--	order = fls(count) - 1;
--	if (count & (count - 1))
--		order++;
--	return order;
--}
--
--/**
-- * get_count_order_long - get order after rounding @l up to power of 2
-- * @l: parameter
-- *
-- * it is same as get_count_order() but with long type parameter
-- */
--static inline int get_count_order_long(unsigned long l)
--{
--	if (l == 0UL)
--		return -1;
--	else if (l & (l - 1UL))
--		return (int)fls_long(l);
--	else
--		return (int)fls_long(l) - 1;
--}
--
- static __always_inline unsigned long hweight_long(unsigned long w)
++static void show_val_kb(struct seq_file *m, const char *s, unsigned long num)
++{
++	char v[32];
++	static const char blanks[7] = {' ', ' ', ' ', ' ',' ', ' ', ' '};
++	int len;
++
++	len = num_to_str(v, sizeof(v), num << (PAGE_SHIFT - 10));
++
++	seq_write(m, s, 16);
++
++	if (len > 0) {
++		if (len < 8)
++			seq_write(m, blanks, 8 - len);
++
++		seq_write(m, v, len);
++	}
++	seq_write(m, " kB\n", 4);
++}
++
+ static int meminfo_proc_show(struct seq_file *m, void *v)
  {
- 	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
-@@ -259,6 +233,32 @@ static inline unsigned long __ffs64(u64
- })
- #endif
+ 	struct sysinfo i;
+@@ -32,10 +51,6 @@ static int meminfo_proc_show(struct seq_
+ 	unsigned long pages[NR_LRU_LISTS];
+ 	int lru;
  
-+static inline int get_count_order(unsigned int count)
-+{
-+	int order;
+-/*
+- * display in kilobytes.
+- */
+-#define K(x) ((x) << (PAGE_SHIFT - 10))
+ 	si_meminfo(&i);
+ 	si_swapinfo(&i);
+ 	committed = percpu_counter_read_positive(&vm_committed_as);
+@@ -50,136 +65,100 @@ static int meminfo_proc_show(struct seq_
+ 
+ 	available = si_mem_available();
+ 
+-	/*
+-	 * Tagged format, for easy grepping and expansion.
+-	 */
+-	seq_printf(m,
+-		"MemTotal:       %8lu kB\n"
+-		"MemFree:        %8lu kB\n"
+-		"MemAvailable:   %8lu kB\n"
+-		"Buffers:        %8lu kB\n"
+-		"Cached:         %8lu kB\n"
+-		"SwapCached:     %8lu kB\n"
+-		"Active:         %8lu kB\n"
+-		"Inactive:       %8lu kB\n"
+-		"Active(anon):   %8lu kB\n"
+-		"Inactive(anon): %8lu kB\n"
+-		"Active(file):   %8lu kB\n"
+-		"Inactive(file): %8lu kB\n"
+-		"Unevictable:    %8lu kB\n"
+-		"Mlocked:        %8lu kB\n"
+-#ifdef CONFIG_HIGHMEM
+-		"HighTotal:      %8lu kB\n"
+-		"HighFree:       %8lu kB\n"
+-		"LowTotal:       %8lu kB\n"
+-		"LowFree:        %8lu kB\n"
+-#endif
+-#ifndef CONFIG_MMU
+-		"MmapCopy:       %8lu kB\n"
+-#endif
+-		"SwapTotal:      %8lu kB\n"
+-		"SwapFree:       %8lu kB\n"
+-		"Dirty:          %8lu kB\n"
+-		"Writeback:      %8lu kB\n"
+-		"AnonPages:      %8lu kB\n"
+-		"Mapped:         %8lu kB\n"
+-		"Shmem:          %8lu kB\n"
+-		"Slab:           %8lu kB\n"
+-		"SReclaimable:   %8lu kB\n"
+-		"SUnreclaim:     %8lu kB\n"
+-		"KernelStack:    %8lu kB\n"
+-		"PageTables:     %8lu kB\n"
+-#ifdef CONFIG_QUICKLIST
+-		"Quicklists:     %8lu kB\n"
+-#endif
+-		"NFS_Unstable:   %8lu kB\n"
+-		"Bounce:         %8lu kB\n"
+-		"WritebackTmp:   %8lu kB\n"
+-		"CommitLimit:    %8lu kB\n"
+-		"Committed_AS:   %8lu kB\n"
+-		"VmallocTotal:   %8lu kB\n"
+-		"VmallocUsed:    %8lu kB\n"
+-		"VmallocChunk:   %8lu kB\n"
+-#ifdef CONFIG_MEMORY_FAILURE
+-		"HardwareCorrupted: %5lu kB\n"
+-#endif
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		"AnonHugePages:  %8lu kB\n"
+-		"ShmemHugePages: %8lu kB\n"
+-		"ShmemPmdMapped: %8lu kB\n"
+-#endif
+-#ifdef CONFIG_CMA
+-		"CmaTotal:       %8lu kB\n"
+-		"CmaFree:        %8lu kB\n"
+-#endif
+-		,
+-		K(i.totalram),
+-		K(i.freeram),
+-		K(available),
+-		K(i.bufferram),
+-		K(cached),
+-		K(total_swapcache_pages()),
+-		K(pages[LRU_ACTIVE_ANON]   + pages[LRU_ACTIVE_FILE]),
+-		K(pages[LRU_INACTIVE_ANON] + pages[LRU_INACTIVE_FILE]),
+-		K(pages[LRU_ACTIVE_ANON]),
+-		K(pages[LRU_INACTIVE_ANON]),
+-		K(pages[LRU_ACTIVE_FILE]),
+-		K(pages[LRU_INACTIVE_FILE]),
+-		K(pages[LRU_UNEVICTABLE]),
+-		K(global_page_state(NR_MLOCK)),
++	show_val_kb(m, "MemTotal:       ", i.totalram);
++	show_val_kb(m, "MemFree:        ", i.freeram);
++	show_val_kb(m, "MemAvailable:   ", available);
++	show_val_kb(m, "Buffers:        ", i.bufferram);
++	show_val_kb(m, "Cached:         ", cached);
++	show_val_kb(m, "SwapCached:     ", total_swapcache_pages());
++	show_val_kb(m, "Active:         ", pages[LRU_ACTIVE_ANON] +
++					   pages[LRU_ACTIVE_FILE]);
++	show_val_kb(m, "Inactive:       ", pages[LRU_INACTIVE_ANON] +
++					   pages[LRU_INACTIVE_FILE]);
++	show_val_kb(m, "Active(anon):   ", pages[LRU_ACTIVE_ANON]);
++	show_val_kb(m, "Inactive(anon): ", pages[LRU_INACTIVE_ANON]);
++	show_val_kb(m, "Active(file):   ", pages[LRU_ACTIVE_FILE]);
++	show_val_kb(m, "Inactive(file): ", pages[LRU_INACTIVE_FILE]);
++	show_val_kb(m, "Unevictable:    ", pages[LRU_UNEVICTABLE]);
++	show_val_kb(m, "Mlocked:        ", global_page_state(NR_MLOCK));
 +
-+	order = fls(count) - 1;
-+	if (count & (count - 1))
-+		order++;
-+	return order;
-+}
+ #ifdef CONFIG_HIGHMEM
+-		K(i.totalhigh),
+-		K(i.freehigh),
+-		K(i.totalram-i.totalhigh),
+-		K(i.freeram-i.freehigh),
++	show_val_kb(m, "HighTotal:      ", i.totalhigh);
++	show_val_kb(m, "HighFree:       ", i.freehigh);
++	show_val_kb(m, "LowTotal:       ", i.totalram - i.totalhigh);
++	show_val_kb(m, "LowFree:        ", i.freeram - i.freehigh);
+ #endif
 +
-+/**
-+ * get_count_order_long - get order after rounding @l up to power of 2
-+ * @l: parameter
-+ *
-+ * it is same as get_count_order() but with long type parameter
-+ */
-+static inline int get_count_order_long(unsigned long l)
-+{
-+	if (l == 0UL)
-+		return -1;
-+	else if (l & (l - 1UL))
-+		return (int)fls_long(l);
-+	else
-+		return (int)fls_long(l) - 1;
-+}
+ #ifndef CONFIG_MMU
+-		K((unsigned long) atomic_long_read(&mmap_pages_allocated)),
++	show_val_kb(m, "MmapCopy:       ",
++		    (unsigned long)atomic_long_read(&mmap_pages_allocated));
+ #endif
+-		K(i.totalswap),
+-		K(i.freeswap),
+-		K(global_node_page_state(NR_FILE_DIRTY)),
+-		K(global_node_page_state(NR_WRITEBACK)),
+-		K(global_node_page_state(NR_ANON_MAPPED)),
+-		K(global_node_page_state(NR_FILE_MAPPED)),
+-		K(i.sharedram),
+-		K(global_page_state(NR_SLAB_RECLAIMABLE) +
+-				global_page_state(NR_SLAB_UNRECLAIMABLE)),
+-		K(global_page_state(NR_SLAB_RECLAIMABLE)),
+-		K(global_page_state(NR_SLAB_UNRECLAIMABLE)),
+-		global_page_state(NR_KERNEL_STACK_KB),
+-		K(global_page_state(NR_PAGETABLE)),
 +
- #ifndef find_last_bit
- /**
-  * find_last_bit - find the last set bit in a memory region
++	show_val_kb(m, "SwapTotal:      ", i.totalswap);
++	show_val_kb(m, "SwapFree:       ", i.freeswap);
++	show_val_kb(m, "Dirty:          ",
++		    global_node_page_state(NR_FILE_DIRTY));
++	show_val_kb(m, "Writeback:      ",
++		    global_node_page_state(NR_WRITEBACK));
++	show_val_kb(m, "AnonPages:      ",
++		    global_node_page_state(NR_ANON_MAPPED));
++	show_val_kb(m, "Mapped:         ",
++		    global_node_page_state(NR_FILE_MAPPED));
++	show_val_kb(m, "Shmem:          ", i.sharedram);
++	show_val_kb(m, "Slab:           ",
++		    global_page_state(NR_SLAB_RECLAIMABLE) +
++		    global_page_state(NR_SLAB_UNRECLAIMABLE));
++
++	show_val_kb(m, "SReclaimable:   ",
++		    global_page_state(NR_SLAB_RECLAIMABLE));
++	show_val_kb(m, "SUnreclaim:     ",
++		    global_page_state(NR_SLAB_UNRECLAIMABLE));
++	seq_printf(m, "KernelStack:    %8lu kB\n",
++		   global_page_state(NR_KERNEL_STACK_KB));
++	show_val_kb(m, "PageTables:     ",
++		    global_page_state(NR_PAGETABLE));
+ #ifdef CONFIG_QUICKLIST
+-		K(quicklist_total_size()),
++	show_val_kb(m, "Quicklists:     ", quicklist_total_size());
+ #endif
+-		K(global_node_page_state(NR_UNSTABLE_NFS)),
+-		K(global_page_state(NR_BOUNCE)),
+-		K(global_node_page_state(NR_WRITEBACK_TEMP)),
+-		K(vm_commit_limit()),
+-		K(committed),
+-		(unsigned long)VMALLOC_TOTAL >> 10,
+-		0ul, // used to be vmalloc 'used'
+-		0ul  // used to be vmalloc 'largest_chunk'
++
++	show_val_kb(m, "NFS_Unstable:   ",
++		    global_node_page_state(NR_UNSTABLE_NFS));
++	show_val_kb(m, "Bounce:         ",
++		    global_page_state(NR_BOUNCE));
++	show_val_kb(m, "WritebackTmp:   ",
++		    global_node_page_state(NR_WRITEBACK_TEMP));
++	show_val_kb(m, "CommitLimit:    ", vm_commit_limit());
++	show_val_kb(m, "Committed_AS:   ", committed);
++	seq_printf(m, "VmallocTotal:   %8lu kB\n",
++		   (unsigned long)VMALLOC_TOTAL >> 10);
++	show_val_kb(m, "VmallocUsed:    ", 0ul);
++	show_val_kb(m, "VmallocChunk:   ", 0ul);
++
+ #ifdef CONFIG_MEMORY_FAILURE
+-		, atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10)
++	seq_printf(m, "HardwareCorrupted: %5lu kB\n",
++		   atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10));
+ #endif
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		, K(global_node_page_state(NR_ANON_THPS) * HPAGE_PMD_NR)
+-		, K(global_node_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR)
+-		, K(global_node_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR)
++	show_val_kb(m, "AnonHugePages:  ",
++		    global_node_page_state(NR_ANON_THPS) * HPAGE_PMD_NR);
++	show_val_kb(m, "ShmemHugePages: ",
++		    global_node_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR);
++	show_val_kb(m, "ShmemPmdMapped: ",
++		    global_node_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR);
+ #endif
++
+ #ifdef CONFIG_CMA
+-		, K(totalcma_pages)
+-		, K(global_page_state(NR_FREE_CMA_PAGES))
++	show_val_kb(m, "CmaTotal:       ", totalcma_pages);
++	show_val_kb(m, "CmaFree:        ",
++		    global_page_state(NR_FREE_CMA_PAGES));
+ #endif
+-		);
+ 
+ 	hugetlb_report_meminfo(m);
+ 
+ 	arch_report_meminfo(m);
+ 
+ 	return 0;
+-#undef K
+ }
+ 
+ static int meminfo_proc_open(struct inode *inode, struct file *file)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-vmalloc-fix-align-value-calculation-error-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
-ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
+meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
 
