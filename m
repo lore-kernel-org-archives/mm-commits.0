@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-dont-recheck-watermarks-after-compact_success.patch added to
- -mm tree
-Date: Thu, 11 Aug 2016 14:29:47 -0700
-Message-ID: <57acee4b.d+OWVtANaJB+65Ir%akpm@linux-foundation.org>
+Subject: + mm-compaction-add-the-ultimate-direct-compaction-priority.patch added to -mm tree
+Date: Thu, 11 Aug 2016 14:29:49 -0700
+Message-ID: <57acee4d.j+MHVcP7wjoTnban%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53005 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53014 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752255AbcHKV3s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 17:29:48 -0400
+	with ESMTP id S1751359AbcHKV3u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 17:29:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: don't recheck watermarks after COMPACT_SUCCESS
+     Subject: mm, compaction: add the ultimate direct compaction priority
 has been added to the -mm tree.  Its filename is
-     mm-compaction-dont-recheck-watermarks-after-compact_success.patch
+     mm-compaction-add-the-ultimate-direct-compaction-priority.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-dont-recheck-watermarks-after-compact_success.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-add-the-ultimate-direct-compaction-priority.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-dont-recheck-watermarks-after-compact_success.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-add-the-ultimate-direct-compaction-priority.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,66 +39,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: don't recheck watermarks after COMPACT_SUCCESS
+Subject: mm, compaction: add the ultimate direct compaction priority
 
-Joonsoo has reminded me that in a later patch changing watermark checks
-throughout compaction I forgot to update checks in try_to_compact_pages()
-and compactd_do_work().  Closer inspection however shows that they are
-redundant now that compact_zone() reliably reports success with
-COMPACT_SUCCESS, as they just repeat (a subset) of checks that have just
-passed.  So instead of checking watermarks again, just test the return
-value.
+During reclaim/compaction loop, it's desirable to get a final answer from
+unsuccessful compaction so we can either fail the allocation or invoke the
+OOM killer.  However, heuristics such as deferred compaction or pageblock
+skip bits can cause compaction to skip parts or whole zones and lead to
+premature OOM's, failures or excessive reclaim/compaction retries.
 
-Also remove the stray "bool success" variable from kcompactd_do_work().
+To remedy this, we introduce a new direct compaction priority called
+COMPACT_PRIO_SYNC_FULL, which instructs direct compaction to:
 
-Link: http://lkml.kernel.org/r/20160810091226.6709-5-vbabka@suse.cz
+- ignore deferred compaction status for a zone
+- ignore pageblock skip hints
+- ignore cached scanner positions and scan the whole zone
+
+The new priority should get eventually picked up by should_compact_retry()
+and this should improve success rates for costly allocations using
+__GFP_REPEAT, such as hugetlbfs allocations, and reduce some corner-case
+OOM's for non-costly allocations.
+
+Link: http://lkml.kernel.org/r/20160810091226.6709-6-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ include/linux/compaction.h |    3 ++-
+ mm/compaction.c            |    5 ++++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-dont-recheck-watermarks-after-compact_success mm/compaction.c
---- a/mm/compaction.c~mm-compaction-dont-recheck-watermarks-after-compact_success
+diff -puN include/linux/compaction.h~mm-compaction-add-the-ultimate-direct-compaction-priority include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-add-the-ultimate-direct-compaction-priority
++++ a/include/linux/compaction.h
+@@ -6,8 +6,9 @@
+  * Lower value means higher priority, analogically to reclaim priority.
+  */
+ enum compact_priority {
++	COMPACT_PRIO_SYNC_FULL,
++	MIN_COMPACT_PRIORITY = COMPACT_PRIO_SYNC_FULL,
+ 	COMPACT_PRIO_SYNC_LIGHT,
+-	MIN_COMPACT_PRIORITY = COMPACT_PRIO_SYNC_LIGHT,
+ 	DEF_COMPACT_PRIORITY = COMPACT_PRIO_SYNC_LIGHT,
+ 	COMPACT_PRIO_ASYNC,
+ 	INIT_COMPACT_PRIORITY = COMPACT_PRIO_ASYNC
+diff -puN mm/compaction.c~mm-compaction-add-the-ultimate-direct-compaction-priority mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-add-the-ultimate-direct-compaction-priority
 +++ a/mm/compaction.c
-@@ -1698,9 +1698,8 @@ enum compact_result try_to_compact_pages
- 					alloc_flags, ac_classzone_idx(ac));
- 		rc = max(status, rc);
- 
--		/* If a normal allocation would succeed, stop compacting */
--		if (zone_watermark_ok(zone, order, low_wmark_pages(zone),
--					ac_classzone_idx(ac), alloc_flags)) {
-+		/* The allocation should succeed, stop compacting */
-+		if (status == COMPACT_SUCCESS) {
- 			/*
- 			 * We think the allocation will succeed in this zone,
- 			 * but it is not certain, hence the false. The caller
-@@ -1873,8 +1872,6 @@ static void kcompactd_do_work(pg_data_t
- 		.ignore_skip_hint = true,
- 
+@@ -1644,6 +1644,8 @@ static enum compact_result compact_zone_
+ 		.alloc_flags = alloc_flags,
+ 		.classzone_idx = classzone_idx,
+ 		.direct_compaction = true,
++		.whole_zone = (prio == COMPACT_PRIO_SYNC_FULL),
++		.ignore_skip_hint = (prio == COMPACT_PRIO_SYNC_FULL)
  	};
--	bool success = false;
--
- 	trace_mm_compaction_kcompactd_wake(pgdat->node_id, cc.order,
- 							cc.classzone_idx);
- 	count_vm_event(KCOMPACTD_WAKE);
-@@ -1903,9 +1900,7 @@ static void kcompactd_do_work(pg_data_t
- 			return;
- 		status = compact_zone(zone, &cc);
+ 	INIT_LIST_HEAD(&cc.freepages);
+ 	INIT_LIST_HEAD(&cc.migratepages);
+@@ -1689,7 +1691,8 @@ enum compact_result try_to_compact_pages
+ 								ac->nodemask) {
+ 		enum compact_result status;
  
--		if (zone_watermark_ok(zone, cc.order, low_wmark_pages(zone),
--						cc.classzone_idx, 0)) {
--			success = true;
-+		if (status == COMPACT_SUCCESS) {
- 			compaction_defer_reset(zone, cc.order, false);
- 		} else if (status == COMPACT_PARTIAL_SKIPPED || status == COMPACT_COMPLETE) {
- 			/*
+-		if (compaction_deferred(zone, order)) {
++		if (prio > COMPACT_PRIO_SYNC_FULL
++					&& compaction_deferred(zone, order)) {
+ 			rc = max_t(enum compact_result, COMPACT_DEFERRED, rc);
+ 			continue;
+ 		}
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
