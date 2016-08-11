@@ -1,58 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 5/7] kasan: remove the unnecessary WARN_ONCE from
- quarantine.c
-Date: Thu, 11 Aug 2016 15:33:06 -0700
-Message-ID: <57acfd22.L/F6w/HxfmQ2Tr+X%akpm@linux-foundation.org>
+Subject: [patch 6/7] mm, oom: fix uninitialized ret in
+ task_will_free_mem()
+Date: Thu, 11 Aug 2016 15:33:09 -0700
+Message-ID: <57acfd25.A89vo56LFl27Eqkn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53827 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53832 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356AbcHKWdH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 18:33:07 -0400
+	with ESMTP id S1751356AbcHKWdK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 18:33:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, glider@google.com, adech.fo@gmail.com, aryabinin@virtuozzo.com, cl@linux.com, dvyukov@google.com, iamjoonsoo.kim@lge.com, kuthonuzo.luruo@hpe.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, geert@linux-m68k.org, mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp
 
-From: Alexander Potapenko <glider@google.com>
-Subject: kasan: remove the unnecessary WARN_ONCE from quarantine.c
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: mm, oom: fix uninitialized ret in task_will_free_mem()
 
-It's quite unlikely that the user will so little memory that the
-per-CPU quarantines won't fit into the given fraction of the available
-memory. Even in that case he won't be able to do anything with the
-information given in the warning.
+    mm/oom_kill.c: In function `task_will_free_mem':
+    mm/oom_kill.c:767: warning: `ret' may be used uninitialized in this function
 
-Link: http://lkml.kernel.org/r/1470929182-101413-1-git-send-email-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Konovalov <adech.fo@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kuthonuzo Luruo <kuthonuzo.luruo@hpe.com>
+If __task_will_free_mem() is never called inside the for_each_process()
+loop, ret will not be initialized.
+
+Fixes: 1af8bb43269563e4 ("mm, oom: fortify task_will_free_mem()")
+Link: http://lkml.kernel.org/r/1470255599-24841-1-git-send-email-geert@linux-m68k.org
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/quarantine.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/kasan/quarantine.c~kasan-remove-the-unnecessary-warn_once-from-quarantinec mm/kasan/quarantine.c
---- a/mm/kasan/quarantine.c~kasan-remove-the-unnecessary-warn_once-from-quarantinec
-+++ a/mm/kasan/quarantine.c
-@@ -217,11 +217,8 @@ void quarantine_reduce(void)
- 	new_quarantine_size = (READ_ONCE(totalram_pages) << PAGE_SHIFT) /
- 		QUARANTINE_FRACTION;
- 	percpu_quarantines = QUARANTINE_PERCPU_SIZE * num_online_cpus();
--	if (WARN_ONCE(new_quarantine_size < percpu_quarantines,
--		"Too little memory, disabling global KASAN quarantine.\n"))
--		new_quarantine_size = 0;
--	else
--		new_quarantine_size -= percpu_quarantines;
-+	new_quarantine_size = (new_quarantine_size < percpu_quarantines) ?
-+		0 : new_quarantine_size - percpu_quarantines;
- 	WRITE_ONCE(quarantine_size, new_quarantine_size);
+diff -puN mm/oom_kill.c~mm-oom-fix-uninitialized-ret-in-task_will_free_mem mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-fix-uninitialized-ret-in-task_will_free_mem
++++ a/mm/oom_kill.c
+@@ -764,7 +764,7 @@ bool task_will_free_mem(struct task_stru
+ {
+ 	struct mm_struct *mm = task->mm;
+ 	struct task_struct *p;
+-	bool ret;
++	bool ret = true;
  
- 	last = global_quarantine.head;
+ 	/*
+ 	 * Skip tasks without mm because it might have passed its exit_mm and
 _
