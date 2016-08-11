@@ -1,78 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 11 Aug 2016 11:35:49 -0700
-Message-ID: <57acc585.UOEZrVP8K6yoFKU9%akpm@linux-foundation.org>
+Subject: [merged] rapidio-dereferencing-an-error-pointer.patch removed
+ from -mm tree
+Date: Thu, 11 Aug 2016 11:36:00 -0700
+Message-ID: <57acc590.goSamQ8wL/2a7iQ4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50684 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50687 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751284AbcHKSfv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 14:35:51 -0400
+	with ESMTP id S1752234AbcHKSgB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 14:36:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: rapidio: dereferencing an error pointer
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     rapidio-dereferencing-an-error-pointer.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: rapidio: dereferencing an error pointer
 
+Original patch: https://lkml.org/lkml/2016/8/4/32
+
+If riocm_ch_alloc() fails then we end up dereferencing the error pointer.
+
+The problem is that we're not unwinding in the reverse order from how we
+allocate things so it gets confusing.  I've changed this around so now
+"ch" is NULL when we are done with it after we call riocm_put_channel(). 
+That way we can check if it's NULL and avoid calling riocm_put_channel()
+on it twice.
+
+I renamed err_nodev to err_put_new_ch so that it better reflects what the
+goto does.
+
+Then because we had flipping things around, it means we don't neeed to
+initialize the pointers to NULL and we can remove an if statement and pull
+things in an indent level.
+
+Link: http://lkml.kernel.org/r/20160805152406.20713-1-alexandre.bounine@idt.com
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
+Cc: Barry Wood <barry.wood@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.gcc-plugins |   16 ----------------
- scripts/gcc-plugins/Makefile |    5 -----
- 2 files changed, 21 deletions(-)
+ drivers/rapidio/rio_cm.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN scripts/Makefile.gcc-plugins~linux-next-git-rejects scripts/Makefile.gcc-plugins
---- a/scripts/Makefile.gcc-plugins~linux-next-git-rejects
-+++ a/scripts/Makefile.gcc-plugins
-@@ -26,21 +26,6 @@ ifdef CONFIG_GCC_PLUGINS
-   endif
+diff -puN drivers/rapidio/rio_cm.c~rapidio-dereferencing-an-error-pointer drivers/rapidio/rio_cm.c
+--- a/drivers/rapidio/rio_cm.c~rapidio-dereferencing-an-error-pointer
++++ a/drivers/rapidio/rio_cm.c
+@@ -1080,8 +1080,8 @@ static int riocm_send_ack(struct rio_cha
+ static struct rio_channel *riocm_ch_accept(u16 ch_id, u16 *new_ch_id,
+ 					   long timeout)
+ {
+-	struct rio_channel *ch = NULL;
+-	struct rio_channel *new_ch = NULL;
++	struct rio_channel *ch;
++	struct rio_channel *new_ch;
+ 	struct conn_req *req;
+ 	struct cm_peer *peer;
+ 	int found = 0;
+@@ -1155,6 +1155,7 @@ static struct rio_channel *riocm_ch_acce
  
-   GCC_PLUGINS_CFLAGS := $(strip $(addprefix -fplugin=$(objtree)/scripts/gcc-plugins/, $(gcc-plugin-y)) $(gcc-plugin-cflags-y))
--<<<<<<< HEAD
--
--  export PLUGINCC GCC_PLUGINS_CFLAGS GCC_PLUGIN GCC_PLUGIN_SUBDIR SANCOV_PLUGIN
--
--  ifneq ($(PLUGINCC),)
--    # SANCOV_PLUGIN can be only in CFLAGS_KCOV because avoid duplication.
--    GCC_PLUGINS_CFLAGS := $(filter-out $(SANCOV_PLUGIN), $(GCC_PLUGINS_CFLAGS))
--  endif
--
--  KBUILD_CFLAGS += $(GCC_PLUGINS_CFLAGS)
--  GCC_PLUGIN := $(gcc-plugin-y)
--  GCC_PLUGIN_SUBDIR := $(gcc-plugin-subdir-y)
--endif
--
--=======
+ 	spin_unlock_bh(&ch->lock);
+ 	riocm_put_channel(ch);
++	ch = NULL;
+ 	kfree(req);
  
-   export PLUGINCC GCC_PLUGINS_CFLAGS GCC_PLUGIN GCC_PLUGIN_SUBDIR SANCOV_PLUGIN DISABLE_LATENT_ENTROPY_PLUGIN
+ 	down_read(&rdev_sem);
+@@ -1172,7 +1173,7 @@ static struct rio_channel *riocm_ch_acce
+ 	if (!found) {
+ 		/* If peer device object not found, simply ignore the request */
+ 		err = -ENODEV;
+-		goto err_nodev;
++		goto err_put_new_ch;
+ 	}
  
-@@ -54,7 +39,6 @@ endif
-   GCC_PLUGIN_SUBDIR := $(gcc-plugin-subdir-y)
- endif
+ 	new_ch->rdev = peer->rdev;
+@@ -1184,15 +1185,16 @@ static struct rio_channel *riocm_ch_acce
  
-->>>>>>> linux-next/akpm-base
- # If plugins aren't supported, abort the build before hard-to-read compiler
- # errors start getting spewed by the main build.
- PHONY += gcc-plugins-check
-diff -puN scripts/gcc-plugins/Makefile~linux-next-git-rejects scripts/gcc-plugins/Makefile
---- a/scripts/gcc-plugins/Makefile~linux-next-git-rejects
-+++ a/scripts/gcc-plugins/Makefile
-@@ -22,11 +22,6 @@ $(HOSTLIBS)-y := $(foreach p,$(GCC_PLUGI
- always := $($(HOSTLIBS)-y)
- $(foreach p,$($(HOSTLIBS)-y:%.so=%),$(eval $(p)-objs := $(p).o))
- 
--<<<<<<< HEAD
--$(foreach p,$($(HOSTLIBS)-y:%.so=%),$(eval $(p)-objs := $(p).o))
+ 	*new_ch_id = new_ch->id;
+ 	return new_ch;
++
++err_put_new_ch:
++	spin_lock_bh(&idr_lock);
++	idr_remove(&ch_idr, new_ch->id);
++	spin_unlock_bh(&idr_lock);
++	riocm_put_channel(new_ch);
++
+ err_put:
+-	riocm_put_channel(ch);
+-err_nodev:
+-	if (new_ch) {
+-		spin_lock_bh(&idr_lock);
+-		idr_remove(&ch_idr, new_ch->id);
+-		spin_unlock_bh(&idr_lock);
+-		riocm_put_channel(new_ch);
+-	}
++	if (ch)
++		riocm_put_channel(ch);
+ 	*new_ch_id = 0;
+ 	return ERR_PTR(err);
+ }
+_
+
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
+
+
