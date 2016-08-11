@@ -1,103 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 4/7] mm: memcontrol: fix memcg id ref counter on swap
- charge move
-Date: Thu, 11 Aug 2016 15:33:03 -0700
-Message-ID: <57acfd1f.HsZ7ZZgm1FnjQyJj%akpm@linux-foundation.org>
+Subject: [patch 5/7] kasan: remove the unnecessary WARN_ONCE from
+ quarantine.c
+Date: Thu, 11 Aug 2016 15:33:06 -0700
+Message-ID: <57acfd22.L/F6w/HxfmQ2Tr+X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53817 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53827 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356AbcHKWdE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 18:33:04 -0400
+	with ESMTP id S1751356AbcHKWdH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 18:33:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, glider@google.com, adech.fo@gmail.com, aryabinin@virtuozzo.com, cl@linux.com, dvyukov@google.com, iamjoonsoo.kim@lge.com, kuthonuzo.luruo@hpe.com
 
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: memcontrol: fix memcg id ref counter on swap charge move
+From: Alexander Potapenko <glider@google.com>
+Subject: kasan: remove the unnecessary WARN_ONCE from quarantine.c
 
-Since commit 73f576c04b941 swap entries do not pin memcg->css.refcnt
-directly.  Instead, they pin memcg->id.ref.  So we should adjust the
-reference counters accordingly when moving swap charges between cgroups.
+It's quite unlikely that the user will so little memory that the
+per-CPU quarantines won't fit into the given fraction of the available
+memory. Even in that case he won't be able to do anything with the
+information given in the warning.
 
-Fixes: 73f576c04b941 ("mm: memcontrol: fix cgroup creation failure after many small jobs")
-Link: http://lkml.kernel.org/r/9ce297c64954a42dc90b543bc76106c4a94f07e8.1470219853.git.vdavydov@virtuozzo.com
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>	[3.19+]
+Link: http://lkml.kernel.org/r/1470929182-101413-1-git-send-email-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Konovalov <adech.fo@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kuthonuzo Luruo <kuthonuzo.luruo@hpe.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ mm/kasan/quarantine.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fix-memcg-id-ref-counter-on-swap-charge-move mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fix-memcg-id-ref-counter-on-swap-charge-move
-+++ a/mm/memcontrol.c
-@@ -4077,9 +4077,9 @@ static struct cftype mem_cgroup_legacy_f
+diff -puN mm/kasan/quarantine.c~kasan-remove-the-unnecessary-warn_once-from-quarantinec mm/kasan/quarantine.c
+--- a/mm/kasan/quarantine.c~kasan-remove-the-unnecessary-warn_once-from-quarantinec
++++ a/mm/kasan/quarantine.c
+@@ -217,11 +217,8 @@ void quarantine_reduce(void)
+ 	new_quarantine_size = (READ_ONCE(totalram_pages) << PAGE_SHIFT) /
+ 		QUARANTINE_FRACTION;
+ 	percpu_quarantines = QUARANTINE_PERCPU_SIZE * num_online_cpus();
+-	if (WARN_ONCE(new_quarantine_size < percpu_quarantines,
+-		"Too little memory, disabling global KASAN quarantine.\n"))
+-		new_quarantine_size = 0;
+-	else
+-		new_quarantine_size -= percpu_quarantines;
++	new_quarantine_size = (new_quarantine_size < percpu_quarantines) ?
++		0 : new_quarantine_size - percpu_quarantines;
+ 	WRITE_ONCE(quarantine_size, new_quarantine_size);
  
- static DEFINE_IDR(mem_cgroup_idr);
- 
--static void mem_cgroup_id_get(struct mem_cgroup *memcg)
-+static void mem_cgroup_id_get_many(struct mem_cgroup *memcg, unsigned int n)
- {
--	atomic_inc(&memcg->id.ref);
-+	atomic_add(n, &memcg->id.ref);
- }
- 
- static struct mem_cgroup *mem_cgroup_id_get_online(struct mem_cgroup *memcg)
-@@ -4100,9 +4100,9 @@ static struct mem_cgroup *mem_cgroup_id_
- 	return memcg;
- }
- 
--static void mem_cgroup_id_put(struct mem_cgroup *memcg)
-+static void mem_cgroup_id_put_many(struct mem_cgroup *memcg, unsigned int n)
- {
--	if (atomic_dec_and_test(&memcg->id.ref)) {
-+	if (atomic_sub_and_test(n, &memcg->id.ref)) {
- 		idr_remove(&mem_cgroup_idr, memcg->id.id);
- 		memcg->id.id = 0;
- 
-@@ -4111,6 +4111,16 @@ static void mem_cgroup_id_put(struct mem
- 	}
- }
- 
-+static inline void mem_cgroup_id_get(struct mem_cgroup *memcg)
-+{
-+	mem_cgroup_id_get_many(memcg, 1);
-+}
-+
-+static inline void mem_cgroup_id_put(struct mem_cgroup *memcg)
-+{
-+	mem_cgroup_id_put_many(memcg, 1);
-+}
-+
- /**
-  * mem_cgroup_from_id - look up a memcg from a memcg id
-  * @id: the memcg id to look up
-@@ -4745,6 +4755,8 @@ static void __mem_cgroup_clear_mc(void)
- 		if (!mem_cgroup_is_root(mc.from))
- 			page_counter_uncharge(&mc.from->memsw, mc.moved_swap);
- 
-+		mem_cgroup_id_put_many(mc.from, mc.moved_swap);
-+
- 		/*
- 		 * we charged both to->memory and to->memsw, so we
- 		 * should uncharge to->memory.
-@@ -4752,9 +4764,9 @@ static void __mem_cgroup_clear_mc(void)
- 		if (!mem_cgroup_is_root(mc.to))
- 			page_counter_uncharge(&mc.to->memory, mc.moved_swap);
- 
--		css_put_many(&mc.from->css, mc.moved_swap);
-+		mem_cgroup_id_get_many(mc.to, mc.moved_swap);
-+		css_put_many(&mc.to->css, mc.moved_swap);
- 
--		/* we've already done css_get(mc.to) */
- 		mc.moved_swap = 0;
- 	}
- 	memcg_oom_recover(from);
+ 	last = global_quarantine.head;
 _
