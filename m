@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-fix-print-format-for-ioctl-warning-message.patch added
- to -mm tree
-Date: Thu, 11 Aug 2016 20:07:30 -0700
-Message-ID: <57ad3d72.dANcFmc7ILT0dDde%akpm@linux-foundation.org>
+Subject: +
+ autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd.patch
+ added to -mm tree
+Date: Thu, 11 Aug 2016 20:07:28 -0700
+Message-ID: <57ad3d70.3tgcDPK3rlmP6INL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58242 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58245 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751500AbcHLDRb (ORCPT
+	with ESMTP id S1751934AbcHLDRb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 23:17:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kusumi.tomohiro@gmail.com, ikent@redhat.com, mm-commits@vger.kernel.org
+To: raven@themaw.net, ikent@redhat.com, kusumi.tomohiro@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: fix print format for ioctl warning message
+     Subject: autofs: add autofs_dev_ioctl_version() for AUTOFS_DEV_IOCTL_VERSION_CMD
 has been added to the -mm tree.  Its filename is
-     autofs-fix-print-format-for-ioctl-warning-message.patch
+     autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-fix-print-format-for-ioctl-warning-message.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-fix-print-format-for-ioctl-warning-message.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +40,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: fix print format for ioctl warning message
+From: Ian Kent <raven@themaw.net>
+Subject: autofs: add autofs_dev_ioctl_version() for AUTOFS_DEV_IOCTL_VERSION_CMD
 
-All other warnings use "cmd(0x%08x)" and this is the only one with
-"cmd(%d)".  (below comes from my userspace debug program, but not
-automount daemon)
+No functional changes, based on the following justification.
 
-[ 1139.905676] autofs4:pid:1640:check_dev_ioctl_version: ioctl control interface version mismatch: kernel(1.0), user(0.0), cmd(-1072131215)
+1. Make the code more consistent using the ioctl vector _ioctls[],
+   rather than assigning NULL only for this ioctl command.
+2. Remove goto done; for better maintainability in the long run.
+3. The existing code is based on the fact that validate_dev_ioctl()
+   sets ioctl version for any command, but AUTOFS_DEV_IOCTL_VERSION_CMD
+   should explicitly set it regardless of the default behavior.
 
-Link: http://lkml.kernel.org/r/20160812024851.12352.75458.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/20160812024846.12352.9885.stgit@pluto.themaw.net
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Signed-off-by: Ian Kent <ikent@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/autofs4/dev-ioctl.c |   25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs-fix-print-format-for-ioctl-warning-message fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs-fix-print-format-for-ioctl-warning-message
+diff -puN fs/autofs4/dev-ioctl.c~autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd
 +++ a/fs/autofs4/dev-ioctl.c
-@@ -75,7 +75,7 @@ static int check_dev_ioctl_version(int c
- 	if ((param->ver_major != AUTOFS_DEV_IOCTL_VERSION_MAJOR) ||
- 	    (param->ver_minor > AUTOFS_DEV_IOCTL_VERSION_MINOR)) {
- 		pr_warn("ioctl control interface version mismatch: "
--			"kernel(%u.%u), user(%u.%u), cmd(%d)\n",
-+			"kernel(%u.%u), user(%u.%u), cmd(0x%08x)\n",
- 			AUTOFS_DEV_IOCTL_VERSION_MAJOR,
- 			AUTOFS_DEV_IOCTL_VERSION_MINOR,
- 			param->ver_major, param->ver_minor, cmd);
+@@ -172,6 +172,17 @@ static struct autofs_sb_info *autofs_dev
+ 	return sbi;
+ }
+ 
++/* Return autofs dev ioctl version */
++static int autofs_dev_ioctl_version(struct file *fp,
++				    struct autofs_sb_info *sbi,
++				    struct autofs_dev_ioctl *param)
++{
++	/* This should have already been set. */
++	param->ver_major = AUTOFS_DEV_IOCTL_VERSION_MAJOR;
++	param->ver_minor = AUTOFS_DEV_IOCTL_VERSION_MINOR;
++	return 0;
++}
++
+ /* Return autofs module protocol version */
+ static int autofs_dev_ioctl_protover(struct file *fp,
+ 				     struct autofs_sb_info *sbi,
+@@ -590,7 +601,8 @@ static ioctl_fn lookup_dev_ioctl(unsigne
+ 		int cmd;
+ 		ioctl_fn fn;
+ 	} _ioctls[] = {
+-		{cmd_idx(AUTOFS_DEV_IOCTL_VERSION_CMD), NULL},
++		{cmd_idx(AUTOFS_DEV_IOCTL_VERSION_CMD),
++			 autofs_dev_ioctl_version},
+ 		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOVER_CMD),
+ 			 autofs_dev_ioctl_protover},
+ 		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD),
+@@ -655,10 +667,6 @@ static int _autofs_dev_ioctl(unsigned in
+ 	if (err)
+ 		goto out;
+ 
+-	/* The validate routine above always sets the version */
+-	if (cmd == AUTOFS_DEV_IOCTL_VERSION_CMD)
+-		goto done;
+-
+ 	fn = lookup_dev_ioctl(cmd);
+ 	if (!fn) {
+ 		pr_warn("unknown command 0x%08x\n", command);
+@@ -672,9 +680,11 @@ static int _autofs_dev_ioctl(unsigned in
+ 	/*
+ 	 * For obvious reasons the openmount can't have a file
+ 	 * descriptor yet. We don't take a reference to the
+-	 * file during close to allow for immediate release.
++	 * file during close to allow for immediate release,
++	 * and the same for retrieving ioctl version.
+ 	 */
+-	if (cmd != AUTOFS_DEV_IOCTL_OPENMOUNT_CMD &&
++	if (cmd != AUTOFS_DEV_IOCTL_VERSION_CMD &&
++	    cmd != AUTOFS_DEV_IOCTL_OPENMOUNT_CMD &&
+ 	    cmd != AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD) {
+ 		fp = fget(param->ioctlfd);
+ 		if (!fp) {
+@@ -707,7 +717,6 @@ cont:
+ 
+ 	if (fp)
+ 		fput(fp);
+-done:
+ 	if (err >= 0 && copy_to_user(user, param, AUTOFS_DEV_IOCTL_SIZE))
+ 		err = -EFAULT;
+ out:
 _
 
-Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
+Patches currently in -mm which might be from raven@themaw.net are
 
-autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
-autofs-drop-unnecessary-extern-in-autofs_ih.patch
-autofs-test-autofs-versions-first-on-sb-initialization.patch
-autofs-add-warn_on1-for-non-dir-link-inode-case.patch
-autofs-use-autofs4_free_ino-to-kfree-dentry-data.patch
-autofs-remove-obsolete-sb-fields.patch
-autofs-dont-fail-to-free_dev_ioctlparam.patch
-autofs-remove-autofs_devid_len.patch
-autofs-fix-documentation-regarding-devid-on-ioctl.patch
-autofs-update-struct-autofs_dev_ioctl-in-documentation.patch
-autofs-fix-pr_debug-message.patch
-autofs-fix-print-format-for-ioctl-warning-message.patch
-autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+autofs-fix-autofs4_fill_super-error-exit-handling.patch
+autofs-remove-ino-free-in-autofs4_dir_symlink.patch
+autofs-fix-dev-ioctl-number-range-check.patch
+autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd.patch
+autofs4-move-linux-auto_dev-ioctlh-to-uapi-linux.patch
 
