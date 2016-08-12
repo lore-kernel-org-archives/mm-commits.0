@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-dont-fail-to-free_dev_ioctlparam.patch added to -mm tree
-Date: Thu, 11 Aug 2016 20:07:16 -0700
-Message-ID: <57ad3d64.8AIb5jUbeCYZ06h9%akpm@linux-foundation.org>
+Subject: + autofs-fix-print-format-for-ioctl-warning-message.patch added
+ to -mm tree
+Date: Thu, 11 Aug 2016 20:07:30 -0700
+Message-ID: <57ad3d72.dANcFmc7ILT0dDde%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58242 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752040AbcHLDHR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 23:07:17 -0400
+	with ESMTP id S1751500AbcHLDRb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 23:17:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kusumi.tomohiro@gmail.com, ikent@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: don't fail to free_dev_ioctl(param)
+     Subject: autofs: fix print format for ioctl warning message
 has been added to the -mm tree.  Its filename is
-     autofs-dont-fail-to-free_dev_ioctlparam.patch
+     autofs-fix-print-format-for-ioctl-warning-message.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-dont-fail-to-free_dev_ioctlparam.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-fix-print-format-for-ioctl-warning-message.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-dont-fail-to-free_dev_ioctlparam.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-fix-print-format-for-ioctl-warning-message.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,32 +40,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: don't fail to free_dev_ioctl(param)
+Subject: autofs: fix print format for ioctl warning message
 
-Returning -ENOTTY here fails to free dynamically allocated param.
+All other warnings use "cmd(0x%08x)" and this is the only one with
+"cmd(%d)".  (below comes from my userspace debug program, but not
+automount daemon)
 
-Link: http://lkml.kernel.org/r/20160812024815.12352.69153.stgit@pluto.themaw.net
+[ 1139.905676] autofs4:pid:1640:check_dev_ioctl_version: ioctl control interface version mismatch: kernel(1.0), user(0.0), cmd(-1072131215)
+
+Link: http://lkml.kernel.org/r/20160812024851.12352.75458.stgit@pluto.themaw.net
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Signed-off-by: Ian Kent <ikent@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/autofs4/dev-ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs-dont-fail-to-free_dev_ioctlparam fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs-dont-fail-to-free_dev_ioctlparam
+diff -puN fs/autofs4/dev-ioctl.c~autofs-fix-print-format-for-ioctl-warning-message fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-fix-print-format-for-ioctl-warning-message
 +++ a/fs/autofs4/dev-ioctl.c
-@@ -662,7 +662,8 @@ static int _autofs_dev_ioctl(unsigned in
- 	fn = lookup_dev_ioctl(cmd);
- 	if (!fn) {
- 		pr_warn("unknown command 0x%08x\n", command);
--		return -ENOTTY;
-+		err = -ENOTTY;
-+		goto out;
- 	}
- 
- 	fp = NULL;
+@@ -75,7 +75,7 @@ static int check_dev_ioctl_version(int c
+ 	if ((param->ver_major != AUTOFS_DEV_IOCTL_VERSION_MAJOR) ||
+ 	    (param->ver_minor > AUTOFS_DEV_IOCTL_VERSION_MINOR)) {
+ 		pr_warn("ioctl control interface version mismatch: "
+-			"kernel(%u.%u), user(%u.%u), cmd(%d)\n",
++			"kernel(%u.%u), user(%u.%u), cmd(0x%08x)\n",
+ 			AUTOFS_DEV_IOCTL_VERSION_MAJOR,
+ 			AUTOFS_DEV_IOCTL_VERSION_MINOR,
+ 			param->ver_major, param->ver_minor, cmd);
 _
 
 Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
