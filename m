@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-test-autofs-versions-first-on-sb-initialization.patch
- added to -mm tree
-Date: Thu, 11 Aug 2016 20:07:03 -0700
-Message-ID: <57ad3d57.w93kNihO2DSRbiap%akpm@linux-foundation.org>
+Subject: + autofs-drop-unnecessary-extern-in-autofs_ih.patch added to -mm
+ tree
+Date: Thu, 11 Aug 2016 20:07:01 -0700
+Message-ID: <57ad3d55.bzkuFSAk8Ad0VPtX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58167 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58165 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948AbcHLDHE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 23:07:04 -0400
+	with ESMTP id S1751862AbcHLDHC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 23:07:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kusumi.tomohiro@gmail.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: test autofs versions first on sb initialization
+     Subject: autofs: drop unnecessary extern in autofs_i.h
 has been added to the -mm tree.  Its filename is
-     autofs-test-autofs-versions-first-on-sb-initialization.patch
+     autofs-drop-unnecessary-extern-in-autofs_ih.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-test-autofs-versions-first-on-sb-initialization.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-drop-unnecessary-extern-in-autofs_ih.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-test-autofs-versions-first-on-sb-initialization.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-drop-unnecessary-extern-in-autofs_ih.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,67 +40,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: test autofs versions first on sb initialization
+Subject: autofs: drop unnecessary extern in autofs_i.h
 
-This patch does what the below comment says.  It could be and it's
-considered better to do this first before various functions get called
-during initialization.
+autofs4_kill_sb() doesn't need to be declared as extern, and no other
+functions in .h are explicitly declared as extern.
 
-/* Couldn't this be tested earlier? */
-
-Link: http://lkml.kernel.org/r/20160812024744.12352.43075.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/20160812024739.12352.99354.stgit@pluto.themaw.net
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/inode.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ fs/autofs4/autofs_i.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/inode.c~autofs-test-autofs-versions-first-on-sb-initialization fs/autofs4/inode.c
---- a/fs/autofs4/inode.c~autofs-test-autofs-versions-first-on-sb-initialization
-+++ a/fs/autofs4/inode.c
-@@ -274,6 +274,23 @@ int autofs4_fill_super(struct super_bloc
- 		goto fail_dput;
+diff -puN fs/autofs4/autofs_i.h~autofs-drop-unnecessary-extern-in-autofs_ih fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs-drop-unnecessary-extern-in-autofs_ih
++++ a/fs/autofs4/autofs_i.h
+@@ -271,4 +271,4 @@ static inline void autofs4_del_expiring(
  	}
+ }
  
-+	/* Test versions first */
-+	if (sbi->max_proto < AUTOFS_MIN_PROTO_VERSION ||
-+	    sbi->min_proto > AUTOFS_MAX_PROTO_VERSION) {
-+		pr_err("kernel does not match daemon version "
-+		       "daemon (%d, %d) kernel (%d, %d)\n",
-+		       sbi->min_proto, sbi->max_proto,
-+		       AUTOFS_MIN_PROTO_VERSION, AUTOFS_MAX_PROTO_VERSION);
-+		goto fail_dput;
-+	}
-+
-+	/* Establish highest kernel protocol version */
-+	if (sbi->max_proto > AUTOFS_MAX_PROTO_VERSION)
-+		sbi->version = AUTOFS_MAX_PROTO_VERSION;
-+	else
-+		sbi->version = sbi->max_proto;
-+	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
-+
- 	if (pgrp_set) {
- 		sbi->oz_pgrp = find_get_pid(pgrp);
- 		if (!sbi->oz_pgrp) {
-@@ -291,23 +308,6 @@ int autofs4_fill_super(struct super_bloc
- 	root_inode->i_fop = &autofs4_root_operations;
- 	root_inode->i_op = &autofs4_dir_inode_operations;
- 
--	/* Couldn't this be tested earlier? */
--	if (sbi->max_proto < AUTOFS_MIN_PROTO_VERSION ||
--	    sbi->min_proto > AUTOFS_MAX_PROTO_VERSION) {
--		pr_err("kernel does not match daemon version "
--		       "daemon (%d, %d) kernel (%d, %d)\n",
--		       sbi->min_proto, sbi->max_proto,
--		       AUTOFS_MIN_PROTO_VERSION, AUTOFS_MAX_PROTO_VERSION);
--		goto fail_dput;
--	}
--
--	/* Establish highest kernel protocol version */
--	if (sbi->max_proto > AUTOFS_MAX_PROTO_VERSION)
--		sbi->version = AUTOFS_MAX_PROTO_VERSION;
--	else
--		sbi->version = sbi->max_proto;
--	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
+-extern void autofs4_kill_sb(struct super_block *);
++void autofs4_kill_sb(struct super_block *);
+_
+
+Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
+
+autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
+autofs-drop-unnecessary-extern-in-autofs_ih.patch
+autofs-test-autofs-versions-first-on-sb-initialization.patch
+autofs-add-warn_on1-for-non-dir-link-inode-case.patch
+autofs-use-autofs4_free_ino-to-kfree-dentry-data.patch
+autofs-remove-obsolete-sb-fields.patch
+autofs-dont-fail-to-free_dev_ioctlparam.patch
+autofs-remove-autofs_devid_len.patch
+autofs-fix-documentation-regarding-devid-on-ioctl.patch
+autofs-update-struct-autofs_dev_ioctl-in-documentation.patch
+autofs-fix-pr_debug-message.patch
+autofs-fix-print-format-for-ioctl-warning-message.patch
+autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+
