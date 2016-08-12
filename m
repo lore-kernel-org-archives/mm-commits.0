@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-drop-unnecessary-extern-in-autofs_ih.patch added to -mm
- tree
-Date: Thu, 11 Aug 2016 20:07:01 -0700
-Message-ID: <57ad3d55.bzkuFSAk8Ad0VPtX%akpm@linux-foundation.org>
+Subject: + autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
+ added to -mm tree
+Date: Thu, 11 Aug 2016 20:06:59 -0700
+Message-ID: <57ad3d53.sHRn2ahzbVO9xb7B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58165 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58162 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862AbcHLDHC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 23:07:02 -0400
+	with ESMTP id S1751258AbcHLDHB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 23:07:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kusumi.tomohiro@gmail.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: drop unnecessary extern in autofs_i.h
+     Subject: autofs: fix typos in Documentation/filesystems/autofs4.txt
 has been added to the -mm tree.  Its filename is
-     autofs-drop-unnecessary-extern-in-autofs_ih.patch
+     autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-drop-unnecessary-extern-in-autofs_ih.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-drop-unnecessary-extern-in-autofs_ih.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,29 +40,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: drop unnecessary extern in autofs_i.h
+Subject: autofs: fix typos in Documentation/filesystems/autofs4.txt
 
-autofs4_kill_sb() doesn't need to be declared as extern, and no other
-functions in .h are explicitly declared as extern.
+plus minor whitespace fixes.
 
-Link: http://lkml.kernel.org/r/20160812024739.12352.99354.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/20160812024734.12352.17122.stgit@pluto.themaw.net
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/filesystems/autofs4.txt |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/autofs4/autofs_i.h~autofs-drop-unnecessary-extern-in-autofs_ih fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs-drop-unnecessary-extern-in-autofs_ih
-+++ a/fs/autofs4/autofs_i.h
-@@ -271,4 +271,4 @@ static inline void autofs4_del_expiring(
- 	}
- }
+diff -puN Documentation/filesystems/autofs4.txt~autofs-fix-typos-in-documentation-filesystems-autofs4txt Documentation/filesystems/autofs4.txt
+--- a/Documentation/filesystems/autofs4.txt~autofs-fix-typos-in-documentation-filesystems-autofs4txt
++++ a/Documentation/filesystems/autofs4.txt
+@@ -203,9 +203,9 @@ initiated or is being considered, otherw
+ Mountpoint expiry
+ -----------------
  
--extern void autofs4_kill_sb(struct super_block *);
-+void autofs4_kill_sb(struct super_block *);
+-The VFS has a mechansim for automatically expiring unused mounts,
++The VFS has a mechanism for automatically expiring unused mounts,
+ much as it can expire any unused dentry information from the dcache.
+-This is guided by the MNT_SHRINKABLE flag.  This  only applies to
++This is guided by the MNT_SHRINKABLE flag.  This only applies to
+ mounts that were created by `d_automount()` returning a filesystem to be
+ mounted.  As autofs doesn't return such a filesystem but leaves the
+ mounting to the automount daemon, it must involve the automount daemon
+@@ -298,7 +298,7 @@ remove directories and symlinks using no
+ autofs knows whether a process requesting some operation is the daemon
+ or not based on its process-group id number (see getpgid(1)).
+ 
+-When an autofs filesystem it mounted the pgid of the mounting
++When an autofs filesystem is mounted the pgid of the mounting
+ processes is recorded unless the "pgrp=" option is given, in which
+ case that number is recorded instead.  Any request arriving from a
+ process in that process group is considered to come from the daemon.
+@@ -450,7 +450,7 @@ Commands are:
+     numbers for existing filesystems can be found in
+     `/proc/self/mountinfo`.
+ - **AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD**: same as `close(ioctlfd)`.
+-- **AUTOFS_DEV_IOCTL_SETPIPEFD_CMD**: if the  filesystem is in
++- **AUTOFS_DEV_IOCTL_SETPIPEFD_CMD**: if the filesystem is in
+     catatonic mode, this can provide the write end of a new pipe
+     in `arg1` to re-establish communication with a daemon.  The
+     process group of the calling process is used to identify the
 _
 
 Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
