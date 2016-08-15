@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-move-inclusion-of-linux-limitsh-to-uapi.patch added to
- -mm tree
-Date: Thu, 11 Aug 2016 20:07:32 -0700
-Message-ID: <57ad3d74.Sjor+B5sLlw7xYEq%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Mon, 15 Aug 2016 13:40:04 -0700
+Message-ID: <57b228a4.8RlYghdokBtS1V5w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58241 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36423 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751443AbcHLDRb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Aug 2016 23:17:31 -0400
+	with ESMTP id S932115AbcHOUkF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 16:40:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kusumi.tomohiro@gmail.com, ikent@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: move inclusion of linux/limits.h to uapi
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,72 +38,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: move inclusion of linux/limits.h to uapi
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-linux/limits.h should be included by uapi instead of linux/auto_fs.h
-so as not to cause compile error in userspace.
-
- # cat << EOF > ./test1.c
- > #include <stdio.h>
- > #include <linux/auto_fs.h>
- > int main(void) {
- >     return 0;
- > }
- > EOF
- # gcc -Wall -g ./test1.c
- In file included from ./test1.c:2:0:
- /usr/include/linux/auto_fs.h:54:12: error: 'NAME_MAX' undeclared here (not in a function)
-   char name[NAME_MAX+1];
-             ^
-
-Link: http://lkml.kernel.org/r/20160812024856.12352.24092.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Signed-off-by: Ian Kent <ikent@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/auto_fs.h      |    1 -
- include/uapi/linux/auto_fs.h |    1 +
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ drivers/thermal/thermal_core.c |   69 -------------------------------
+ 1 file changed, 69 deletions(-)
 
-diff -puN include/linux/auto_fs.h~autofs-move-inclusion-of-linux-limitsh-to-uapi include/linux/auto_fs.h
---- a/include/linux/auto_fs.h~autofs-move-inclusion-of-linux-limitsh-to-uapi
-+++ a/include/linux/auto_fs.h
-@@ -10,7 +10,6 @@
- #define _LINUX_AUTO_FS_H
+diff -puN drivers/thermal/thermal_core.c~linux-next-git-rejects drivers/thermal/thermal_core.c
+--- a/drivers/thermal/thermal_core.c~linux-next-git-rejects
++++ a/drivers/thermal/thermal_core.c
+@@ -1122,80 +1122,11 @@ static void bind_tz(struct thermal_zone_
+ 	struct thermal_cooling_device *pos = NULL;
+ 	const struct thermal_zone_params *tzp = tz->tzp;
  
- #include <linux/fs.h>
--#include <linux/limits.h>
- #include <linux/ioctl.h>
- #include <uapi/linux/auto_fs.h>
- #endif /* _LINUX_AUTO_FS_H */
-diff -puN include/uapi/linux/auto_fs.h~autofs-move-inclusion-of-linux-limitsh-to-uapi include/uapi/linux/auto_fs.h
---- a/include/uapi/linux/auto_fs.h~autofs-move-inclusion-of-linux-limitsh-to-uapi
-+++ a/include/uapi/linux/auto_fs.h
-@@ -12,6 +12,7 @@
- #define _UAPI_LINUX_AUTO_FS_H
+-<<<<<<< HEAD
+-	mutex_lock(&cdev->lock);
+-	/* cooling device is updated*/
+-	if (cdev->updated) {
+-		mutex_unlock(&cdev->lock);
+-=======
+ 	if (!tzp && !tz->ops->bind)
+->>>>>>> linux-next/akpm-base
+ 		return;
+ 	}
  
- #include <linux/types.h>
-+#include <linux/limits.h>
- #ifndef __KERNEL__
- #include <sys/ioctl.h>
- #endif /* __KERNEL__ */
+-<<<<<<< HEAD
+-	/* Make sure cdev enters the deepest cooling state */
+-	list_for_each_entry(instance, &cdev->thermal_instances, cdev_node) {
+-		dev_dbg(&cdev->device, "zone%d->target=%lu\n",
+-				instance->tz->id, instance->target);
+-		if (instance->target == THERMAL_NO_TARGET)
+-			continue;
+-		if (instance->target > target)
+-			target = instance->target;
+-	}
+-	cdev->ops->set_cur_state(cdev, target);
+-	cdev->updated = true;
+-	mutex_unlock(&cdev->lock);
+-	trace_cdev_update(cdev, target);
+-	dev_dbg(&cdev->device, "set to state %lu\n", target);
+-}
+-EXPORT_SYMBOL(thermal_cdev_update);
+-
+-/**
+- * thermal_notify_framework - Sensor drivers use this API to notify framework
+- * @tz:		thermal zone device
+- * @trip:	indicates which trip point has been crossed
+- *
+- * This function handles the trip events from sensor drivers. It starts
+- * throttling the cooling devices according to the policy configured.
+- * For CRITICAL and HOT trip points, this notifies the respective drivers,
+- * and does actual throttling for other trip points i.e ACTIVE and PASSIVE.
+- * The throttling policy is based on the configured platform data; if no
+- * platform data is provided, this uses the step_wise throttling policy.
+- */
+-void thermal_notify_framework(struct thermal_zone_device *tz, int trip)
+-{
+-	handle_thermal_trip(tz, trip);
+-}
+-EXPORT_SYMBOL_GPL(thermal_notify_framework);
+-
+-/**
+- * create_trip_attrs() - create attributes for trip points
+- * @tz:		the thermal zone device
+- * @mask:	Writeable trip point bitmap.
+- *
+- * helper function to instantiate sysfs entries for every trip
+- * point and its properties of a struct thermal_zone_device.
+- *
+- * Return: 0 on success, the proper error value otherwise.
+- */
+-static int create_trip_attrs(struct thermal_zone_device *tz, int mask)
+-{
+-	int indx;
+-	int size = sizeof(struct thermal_attr) * tz->trips;
+-
+-	tz->trip_type_attrs = kzalloc(size, GFP_KERNEL);
+-	if (!tz->trip_type_attrs)
+-		return -ENOMEM;
+-
+-	tz->trip_temp_attrs = kzalloc(size, GFP_KERNEL);
+-	if (!tz->trip_temp_attrs) {
+-		kfree(tz->trip_type_attrs);
+-		return -ENOMEM;
+-	}
+-=======
+ 	mutex_lock(&thermal_list_lock);
+->>>>>>> linux-next/akpm-base
+ 
+ 	/* If there is ops->bind, try to use ops->bind */
+ 	if (tz->ops->bind) {
 _
 
-Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
-autofs-drop-unnecessary-extern-in-autofs_ih.patch
-autofs-test-autofs-versions-first-on-sb-initialization.patch
-autofs-add-warn_on1-for-non-dir-link-inode-case.patch
-autofs-use-autofs4_free_ino-to-kfree-dentry-data.patch
-autofs-remove-obsolete-sb-fields.patch
-autofs-dont-fail-to-free_dev_ioctlparam.patch
-autofs-remove-autofs_devid_len.patch
-autofs-fix-documentation-regarding-devid-on-ioctl.patch
-autofs-update-struct-autofs_dev_ioctl-in-documentation.patch
-autofs-fix-pr_debug-message.patch
-autofs-fix-print-format-for-ioctl-warning-message.patch
-autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-vmalloc-fix-align-value-calculation-error-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
