@@ -1,73 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo.patch removed from -mm tree
-Date: Mon, 15 Aug 2016 13:40:26 -0700
-Message-ID: <57b228ba.Y3ZuHWEaz/12zWWH%akpm@linux-foundation.org>
+Subject: [merged] mm-oom-fix-uninitialized-ret-in-task_will_free_mem.patch removed from -mm tree
+Date: Mon, 15 Aug 2016 13:40:35 -0700
+Message-ID: <57b228c3.67UmtfyxeL/Fbe9g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36429 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36448 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932393AbcHOUk1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 16:40:27 -0400
+	with ESMTP id S932307AbcHOUkg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 16:40:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, david@fromorbit.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc, meminfo: use correct helpers for calculating LRU sizes in meminfo
+     Subject: mm, oom: fix uninitialized ret in task_will_free_mem()
 has been removed from the -mm tree.  Its filename was
-     proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo.patch
+     mm-oom-fix-uninitialized-ret-in-task_will_free_mem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: proc, meminfo: use correct helpers for calculating LRU sizes in meminfo
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: mm, oom: fix uninitialized ret in task_will_free_mem()
 
-meminfo_proc_show() and si_mem_available() are using the wrong helpers for
-calculating the size of the LRUs.  The user-visible impact is that there
-appears to be an abnormally high number of unevictable pages.
+    mm/oom_kill.c: In function `task_will_free_mem':
+    mm/oom_kill.c:767: warning: `ret' may be used uninitialized in this function
 
-Link: http://lkml.kernel.org/r/20160805105805.GR2799@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Dave Chinner <david@fromorbit.com>
+If __task_will_free_mem() is never called inside the for_each_process()
+loop, ret will not be initialized.
+
+Fixes: 1af8bb43269563e4 ("mm, oom: fortify task_will_free_mem()")
+Link: http://lkml.kernel.org/r/1470255599-24841-1-git-send-email-geert@linux-m68k.org
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c |    2 +-
- mm/page_alloc.c   |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/meminfo.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo
-+++ a/fs/proc/meminfo.c
-@@ -46,7 +46,7 @@ static int meminfo_proc_show(struct seq_
- 		cached = 0;
+diff -puN mm/oom_kill.c~mm-oom-fix-uninitialized-ret-in-task_will_free_mem mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-fix-uninitialized-ret-in-task_will_free_mem
++++ a/mm/oom_kill.c
+@@ -764,7 +764,7 @@ bool task_will_free_mem(struct task_stru
+ {
+ 	struct mm_struct *mm = task->mm;
+ 	struct task_struct *p;
+-	bool ret;
++	bool ret = true;
  
- 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
--		pages[lru] = global_page_state(NR_LRU_BASE + lru);
-+		pages[lru] = global_node_page_state(NR_LRU_BASE + lru);
- 
- 	available = si_mem_available();
- 
-diff -puN mm/page_alloc.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo mm/page_alloc.c
---- a/mm/page_alloc.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo
-+++ a/mm/page_alloc.c
-@@ -4060,7 +4060,7 @@ long si_mem_available(void)
- 	int lru;
- 
- 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
--		pages[lru] = global_page_state(NR_LRU_BASE + lru);
-+		pages[lru] = global_node_page_state(NR_LRU_BASE + lru);
- 
- 	for_each_zone(zone)
- 		wmark_low += zone->watermark[WMARK_LOW];
+ 	/*
+ 	 * Skip tasks without mm because it might have passed its exit_mm and
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 
