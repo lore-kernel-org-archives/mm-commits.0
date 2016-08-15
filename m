@@ -1,70 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-the-incorrect-hugepages-count.patch removed from
- -mm tree
-Date: Mon, 15 Aug 2016 13:40:23 -0700
-Message-ID: <57b228b7.zixknFE9bt7vJJ2C%akpm@linux-foundation.org>
+Subject: [merged]
+ proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo.patch removed from -mm tree
+Date: Mon, 15 Aug 2016 13:40:26 -0700
+Message-ID: <57b228ba.Y3ZuHWEaz/12zWWH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36428 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36429 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932275AbcHOUkZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 16:40:25 -0400
+	with ESMTP id S932393AbcHOUk1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 16:40:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhongjiang@huawei.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, david@fromorbit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix incorrect hugepages count during mem hotplug
+     Subject: proc, meminfo: use correct helpers for calculating LRU sizes in meminfo
 has been removed from the -mm tree.  Its filename was
-     mm-fix-the-incorrect-hugepages-count.patch
+     proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: zhong jiang <zhongjiang@huawei.com>
-Subject: mm/hugetlb: fix incorrect hugepages count during mem hotplug
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: proc, meminfo: use correct helpers for calculating LRU sizes in meminfo
 
-When memory hotplug operates, free hugepages will be freed if the movable
-node is offline.  Therefore, /proc/sys/vm/nr_hugepages will be incorrect.
+meminfo_proc_show() and si_mem_available() are using the wrong helpers for
+calculating the size of the LRUs.  The user-visible impact is that there
+appears to be an abnormally high number of unevictable pages.
 
-Fix it by reducing max_huge_pages when the node is offlined.
-
-n-horiguchi@ah.jp.nec.com said:
-
-: dissolve_free_huge_page intends to break a hugepage into buddy, and the
-: destination hugepage is supposed to be allocated from the pool of the
-: destination node, so the system-wide pool size is reduced.  So adding
-: h->max_huge_pages-- makes sense to me.
-
-Link: http://lkml.kernel.org/r/1470624546-902-1-git-send-email-zhongjiang@huawei.com
-Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/20160805105805.GR2799@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/meminfo.c |    2 +-
+ mm/page_alloc.c   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-fix-the-incorrect-hugepages-count mm/hugetlb.c
---- a/mm/hugetlb.c~mm-fix-the-incorrect-hugepages-count
-+++ a/mm/hugetlb.c
-@@ -1448,6 +1448,7 @@ static void dissolve_free_huge_page(stru
- 		list_del(&page->lru);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
-+		h->max_huge_pages--;
- 		update_and_free_page(h, page);
- 	}
- 	spin_unlock(&hugetlb_lock);
+diff -puN fs/proc/meminfo.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo
++++ a/fs/proc/meminfo.c
+@@ -46,7 +46,7 @@ static int meminfo_proc_show(struct seq_
+ 		cached = 0;
+ 
+ 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
+-		pages[lru] = global_page_state(NR_LRU_BASE + lru);
++		pages[lru] = global_node_page_state(NR_LRU_BASE + lru);
+ 
+ 	available = si_mem_available();
+ 
+diff -puN mm/page_alloc.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo mm/page_alloc.c
+--- a/mm/page_alloc.c~proc-meminfo-use-correct-helpers-for-calculating-lru-sizes-in-meminfo
++++ a/mm/page_alloc.c
+@@ -4060,7 +4060,7 @@ long si_mem_available(void)
+ 	int lru;
+ 
+ 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
+-		pages[lru] = global_page_state(NR_LRU_BASE + lru);
++		pages[lru] = global_node_page_state(NR_LRU_BASE + lru);
+ 
+ 	for_each_zone(zone)
+ 		wmark_low += zone->watermark[WMARK_LOW];
 _
 
-Patches currently in -mm which might be from zhongjiang@huawei.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-page_owner-align-with-pageblock_nr-pages.patch
-mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
 
