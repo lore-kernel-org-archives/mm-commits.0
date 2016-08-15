@@ -1,16 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-fix-excess-fenceh-kernel-doc-notation.patch added to -mm tree
-Date: Mon, 15 Aug 2016 16:16:05 -0700
-Message-ID: <57b24d35.BFHzsACmrn6pve06%akpm@linux-foundation.org>
+Subject: [merged]
+ include-linux-fix-excess-fenceh-kernel-doc-notation.patch removed from -mm
+ tree
+Date: Mon, 15 Aug 2016 16:34:05 -0700
+Message-ID: <57b2516d.sIFqL9k/fujJUJTU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39810 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40138 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932201AbcHOXQG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 19:16:06 -0400
+	with ESMTP id S1750796AbcHOXeG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 19:34:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rdunlap@infradead.org, daniel.vetter@ffwll.ch, gregkh@linuxfoundation.org, gustavo.padovan@collabora.co.uk, luisbg@osg.samsung.com, sumit.semwal@linaro.org, mm-commits@vger.kernel.org
@@ -18,24 +20,10 @@ To: rdunlap@infradead.org, daniel.vetter@ffwll.ch, gregkh@linuxfoundation.org, g
 
 The patch titled
      Subject: include/linux: fix excess fence.h kernel-doc notation
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      include-linux-fix-excess-fenceh-kernel-doc-notation.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-fix-excess-fenceh-kernel-doc-notation.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-fix-excess-fenceh-kernel-doc-notation.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
@@ -79,5 +67,4 @@ _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
 
-include-linux-fix-excess-fenceh-kernel-doc-notation.patch
 
