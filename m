@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init.patch added
- to -mm tree
-Date: Mon, 15 Aug 2016 14:34:26 -0700
-Message-ID: <57b23562.ZhQJ38y/gNHoeMyN%akpm@linux-foundation.org>
+Subject: + radix-tree-tests-add-iteration-test.patch added to -mm tree
+Date: Mon, 15 Aug 2016 14:51:29 -0700
+Message-ID: <57b23961.8G6Zh/pX+t/Pvj/i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36900 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37448 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752316AbcHOVe1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 17:34:27 -0400
+	with ESMTP id S1753087AbcHOVva (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 17:51:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, aryabinin@virtuozzo.com, dvyukov@google.com, koct9i@gmail.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix set pageblock migratetype in deferred struct page init
+     Subject: radix-tree tests: add iteration test
 has been added to the -mm tree.  Its filename is
-     mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init.patch
+     radix-tree-tests-add-iteration-test.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-tests-add-iteration-test.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-tests-add-iteration-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,92 +38,298 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mm: fix set pageblock migratetype in deferred struct page init
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: radix-tree tests: add iteration test
 
-MAX_ORDER_NR_PAGES is usually 4M, and a pageblock is usually 2M, so we only
-set one pageblock's migratetype in deferred_free_range() if pfn is aligned
-to MAX_ORDER_NR_PAGES.
+There are four cases I can see where we could end up with a NULL 'slot' in
+radix_tree_next_slot().  This unit test exercises all four of them, making
+sure that if in the future we have an unsafe path through
+radix_tree_next_slot(), we'll catch it.
 
-Also we missed freeing the last block in deferred_init_memmap().
+Here are details on the four cases:
 
-Link: http://lkml.kernel.org/r/57A3260F.4050709@huawei.com
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+1) radix_tree_iter_retry() via a non-tagged iteration like
+radix_tree_for_each_slot().  In this case we currently aren't seeing a bug
+because radix_tree_iter_retry() sets
+
+    iter->next_index = iter->index;
+
+which means that in in the else case in radix_tree_next_slot(), 'count' is
+zero, so we skip over the while() loop and effectively just return NULL
+without ever dereferencing 'slot'.
+
+2) radix_tree_iter_retry() via tagged iteration like
+radix_tree_for_each_tagged().  This case was giving us NULL pointer
+dereferences in testing, and was fixed with this commit:
+
+commit 3cb9185c6730 ("radix-tree: fix radix_tree_iter_retry() for tagged
+iterators.")
+
+This fix doesn't explicitly check for 'slot' being NULL, though, it works
+around the NULL pointer dereference by instead zeroing iter->tags in
+radix_tree_iter_retry(), which makes us bail out of the if() case in
+radix_tree_next_slot() before we dereference 'slot'.
+
+3) radix_tree_iter_next() via via a non-tagged iteration like
+radix_tree_for_each_slot().  This currently happens in shmem_tag_pins()
+and shmem_partial_swap_usage().
+
+As with non-tagged iteration, 'count' in the else case of
+radix_tree_next_slot() is zero, so we skip over the while() loop and
+effectively just return NULL without ever dereferencing 'slot'.
+
+4) radix_tree_iter_next() via tagged iteration like
+radix_tree_for_each_tagged().  This happens in shmem_wait_for_pins().
+
+radix_tree_iter_next() zeros out iter->tags, so we end up exiting
+radix_tree_next_slot() here:
+
+    if (flags & RADIX_TREE_ITER_TAGGED) {
+	    void *canon = slot;
+
+	    iter->tags >>= 1;
+	    if (unlikely(!iter->tags))
+		    return NULL;
+
+Link: http://lkml.kernel.org/r/20160815194237.25967-3-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ tools/testing/radix-tree/Makefile          |    3 
+ tools/testing/radix-tree/iteration_check.c |  180 +++++++++++++++++++
+ tools/testing/radix-tree/main.c            |    1 
+ tools/testing/radix-tree/test.h            |    1 
+ 4 files changed, 184 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init
-+++ a/mm/page_alloc.c
-@@ -1393,15 +1393,18 @@ static void __init deferred_free_range(s
- 		return;
+diff -puN tools/testing/radix-tree/Makefile~radix-tree-tests-add-iteration-test tools/testing/radix-tree/Makefile
+--- a/tools/testing/radix-tree/Makefile~radix-tree-tests-add-iteration-test
++++ a/tools/testing/radix-tree/Makefile
+@@ -3,7 +3,8 @@ CFLAGS += -I. -g -Wall -D_LGPL_SOURCE
+ LDFLAGS += -lpthread -lurcu
+ TARGETS = main
+ OFILES = main.o radix-tree.o linux.o test.o tag_check.o find_next_bit.o \
+-	 regression1.o regression2.o regression3.o multiorder.o
++	 regression1.o regression2.o regression3.o multiorder.o \
++	 iteration_check.o
  
- 	/* Free a large naturally-aligned chunk if possible */
--	if (nr_pages == MAX_ORDER_NR_PAGES &&
--	    (pfn & (MAX_ORDER_NR_PAGES-1)) == 0) {
-+	if (nr_pages == pageblock_nr_pages &&
-+	    (pfn & (pageblock_nr_pages - 1)) == 0) {
- 		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--		__free_pages_boot_core(page, MAX_ORDER-1);
-+		__free_pages_boot_core(page, pageblock_order);
- 		return;
- 	}
+ targets: $(TARGETS)
  
--	for (i = 0; i < nr_pages; i++, page++)
-+	for (i = 0; i < nr_pages; i++, page++, pfn++) {
-+		if ((pfn & (pageblock_nr_pages - 1)) == 0)
-+			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
- 		__free_pages_boot_core(page, 0);
+diff -puN /dev/null tools/testing/radix-tree/iteration_check.c
+--- /dev/null
++++ a/tools/testing/radix-tree/iteration_check.c
+@@ -0,0 +1,180 @@
++/*
++ * iteration_check.c: test races having to do with radix tree iteration
++ * Copyright (c) 2016 Intel Corporation
++ * Author: Ross Zwisler <ross.zwisler@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++#include <linux/radix-tree.h>
++#include <pthread.h>
++#include "test.h"
++
++#define NUM_THREADS 4
++#define TAG 0
++static pthread_mutex_t tree_lock = PTHREAD_MUTEX_INITIALIZER;
++static pthread_t threads[NUM_THREADS];
++RADIX_TREE(tree, GFP_KERNEL);
++bool test_complete;
++
++/* relentlessly fill the tree with tagged entries */
++static void *add_entries_fn(void *arg)
++{
++	int pgoff;
++
++	while (!test_complete) {
++		for (pgoff = 0; pgoff < 100; pgoff++) {
++			pthread_mutex_lock(&tree_lock);
++			if (item_insert(&tree, pgoff) == 0)
++				item_tag_set(&tree, pgoff, TAG);
++			pthread_mutex_unlock(&tree_lock);
++		}
 +	}
- }
++
++	return NULL;
++}
++
++/*
++ * Iterate over the tagged entries, doing a radix_tree_iter_retry() as we find
++ * things that have been removed and randomly resetting our iteration to the
++ * next chunk with radix_tree_iter_next().  Both radix_tree_iter_retry() and
++ * radix_tree_iter_next() cause radix_tree_next_slot() to be called with a
++ * NULL 'slot' variable.
++ */
++static void *tagged_iteration_fn(void *arg)
++{
++	struct radix_tree_iter iter;
++	void **slot;
++
++	while (!test_complete) {
++		rcu_read_lock();
++		radix_tree_for_each_tagged(slot, &tree, &iter, 0, TAG) {
++			void *entry;
++			int i;
++
++			/* busy wait to let removals happen */
++			for (i = 0; i < 1000000; i++)
++				;
++
++			entry = radix_tree_deref_slot(slot);
++			if (unlikely(!entry))
++				continue;
++
++			if (radix_tree_deref_retry(entry)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
++
++			if (rand() % 50 == 0)
++				slot = radix_tree_iter_next(&iter);
++		}
++		rcu_read_unlock();
++	}
++
++	return NULL;
++}
++
++/*
++ * Iterate over the entries, doing a radix_tree_iter_retry() as we find things
++ * that have been removed and randomly resetting our iteration to the next
++ * chunk with radix_tree_iter_next().  Both radix_tree_iter_retry() and
++ * radix_tree_iter_next() cause radix_tree_next_slot() to be called with a
++ * NULL 'slot' variable.
++ */
++static void *untagged_iteration_fn(void *arg)
++{
++	struct radix_tree_iter iter;
++	void **slot;
++
++	while (!test_complete) {
++		rcu_read_lock();
++		radix_tree_for_each_slot(slot, &tree, &iter, 0) {
++			void *entry;
++			int i;
++
++			/* busy wait to let removals happen */
++			for (i = 0; i < 1000000; i++)
++				;
++
++			entry = radix_tree_deref_slot(slot);
++			if (unlikely(!entry))
++				continue;
++
++			if (radix_tree_deref_retry(entry)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
++
++			if (rand() % 50 == 0)
++				slot = radix_tree_iter_next(&iter);
++		}
++		rcu_read_unlock();
++	}
++
++	return NULL;
++}
++
++/*
++ * Randomly remove entries to help induce radix_tree_iter_retry() calls in the
++ * two iteration functions.
++ */
++static void *remove_entries_fn(void *arg)
++{
++	while (!test_complete) {
++		int pgoff;
++
++		pgoff = rand() % 100;
++
++		pthread_mutex_lock(&tree_lock);
++		item_delete(&tree, pgoff);
++		pthread_mutex_unlock(&tree_lock);
++	}
++
++	return NULL;
++}
++
++/* This is a unit test for a bug found by the syzkaller tester */
++void iteration_test(void)
++{
++	int i;
++
++	printf("Running iteration tests for 10 seconds\n");
++
++	srand(time(0));
++	test_complete = false;
++
++	if (pthread_create(&threads[0], NULL, tagged_iteration_fn, NULL)) {
++		perror("pthread_create");
++		exit(1);
++	}
++	if (pthread_create(&threads[1], NULL, untagged_iteration_fn, NULL)) {
++		perror("pthread_create");
++		exit(1);
++	}
++	if (pthread_create(&threads[2], NULL, add_entries_fn, NULL)) {
++		perror("pthread_create");
++		exit(1);
++	}
++	if (pthread_create(&threads[3], NULL, remove_entries_fn, NULL)) {
++		perror("pthread_create");
++		exit(1);
++	}
++
++	sleep(10);
++	test_complete = true;
++
++	for (i = 0; i < NUM_THREADS; i++) {
++		if (pthread_join(threads[i], NULL)) {
++			perror("pthread_join");
++			exit(1);
++		}
++	}
++
++	item_kill_tree(&tree);
++}
+diff -puN tools/testing/radix-tree/main.c~radix-tree-tests-add-iteration-test tools/testing/radix-tree/main.c
+--- a/tools/testing/radix-tree/main.c~radix-tree-tests-add-iteration-test
++++ a/tools/testing/radix-tree/main.c
+@@ -332,6 +332,7 @@ int main(int argc, char **argv)
+ 	regression1_test();
+ 	regression2_test();
+ 	regression3_test();
++	iteration_test();
+ 	single_thread_tests(long_run);
  
- /* Completion tracking for deferred_init_memmap() threads */
-@@ -1469,9 +1472,9 @@ static int __init deferred_init_memmap(v
+ 	sleep(1);
+diff -puN tools/testing/radix-tree/test.h~radix-tree-tests-add-iteration-test tools/testing/radix-tree/test.h
+--- a/tools/testing/radix-tree/test.h~radix-tree-tests-add-iteration-test
++++ a/tools/testing/radix-tree/test.h
+@@ -27,6 +27,7 @@ void item_kill_tree(struct radix_tree_ro
  
- 			/*
- 			 * Ensure pfn_valid is checked every
--			 * MAX_ORDER_NR_PAGES for memory holes
-+			 * pageblock_nr_pages for memory holes
- 			 */
--			if ((pfn & (MAX_ORDER_NR_PAGES - 1)) == 0) {
-+			if ((pfn & (pageblock_nr_pages - 1)) == 0) {
- 				if (!pfn_valid(pfn)) {
- 					page = NULL;
- 					goto free_range;
-@@ -1484,7 +1487,7 @@ static int __init deferred_init_memmap(v
- 			}
+ void tag_check(void);
+ void multiorder_checks(void);
++void iteration_test(void);
  
- 			/* Minimise pfn page lookups and scheduler checks */
--			if (page && (pfn & (MAX_ORDER_NR_PAGES - 1)) != 0) {
-+			if (page && (pfn & (pageblock_nr_pages - 1)) != 0) {
- 				page++;
- 			} else {
- 				nr_pages += nr_to_free;
-@@ -1520,6 +1523,9 @@ free_range:
- 			free_base_page = NULL;
- 			free_base_pfn = nr_to_free = 0;
- 		}
-+		/* Free the last block of pages to allocator */
-+		nr_pages += nr_to_free;
-+		deferred_free_range(free_base_page, free_base_pfn, nr_to_free);
- 
- 		first_init_pfn = max(end_pfn, first_init_pfn);
- 	}
+ struct item *
+ item_tag_set(struct radix_tree_root *root, unsigned long index, int tag);
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node.patch
-mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init.patch
+radix-tree-slot-can-be-null-in-radix_tree_next_slot.patch
+radix-tree-tests-add-iteration-test.patch
+radix-tree-tests-properly-initialize-mutex.patch
 
