@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + mm-vmscan-get-rid-of-throttle_vm_writeout.patch added to -mm
  tree
-Date: Mon, 15 Aug 2016 14:53:50 -0700
-Message-ID: <57b239ee.HuhAcMTmE2K4K7ay%akpm@linux-foundation.org>
+Date: Mon, 15 Aug 2016 14:54:00 -0700
+Message-ID: <57b239f8.rI/9rx8RNyQLJHqk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37459 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37462 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753080AbcHOVxv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 17:53:51 -0400
+	with ESMTP id S1753136AbcHOVyC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 17:54:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, mpatocka@redhat.com, mtosatti@redhat.com, neilb@suse.com, okozina@redhat.com, mm-commits@vger.kernel.org
@@ -137,7 +137,7 @@ Signed-off-by: Michal Hocko <mhocko@suse.com>
 Reported-by: Mikulas Patocka <mpatocka@redhat.com>
 Cc: Marcelo Tosatti <mtosatti@redhat.com>
 Cc: NeilBrown <neilb@suse.com>
-Cc: Ondrej Kozina <okozina@redhat.com
+Cc: Ondrej Kozina <okozina@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
