@@ -1,148 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup.patch
- removed from -mm tree
-Date: Mon, 15 Aug 2016 13:40:28 -0700
-Message-ID: <57b228bc.OMSFnYRcGX7btdxW%akpm__11436.682547401$1471293654$gmane$org@linux-foundation.org>
+ mm-initialize-per_cpu_nodestats-for-hotadded-pgdats.patch removed from -mm
+ tree
+Date: Mon, 15 Aug 2016 13:40:38 -0700
+Message-ID: <57b228c6.SHru1Ms+W+nfmqvP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36433 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36453 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932393AbcHOUk3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 16:40:29 -0400
+	with ESMTP id S932411AbcHOUkj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Aug 2016 16:40:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: arbab@linux.vnet.ibm.com, mgorman@techsingularity.net, paulus@ozlabs.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fix swap counter leak on swapout from offline cgroup
+     Subject: mm/memory_hotplug.c: initialize per_cpu_nodestats for hotadded pgdats
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup.patch
+     mm-initialize-per_cpu_nodestats-for-hotadded-pgdats.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: memcontrol: fix swap counter leak on swapout from offline cgroup
+From: Reza Arbab <arbab@linux.vnet.ibm.com>
+Subject: mm/memory_hotplug.c: initialize per_cpu_nodestats for hotadded pgdats
 
-An offline memory cgroup might have anonymous memory or shmem left charged
-to it and no swap.  Since only swap entries pin the id of an offline
-cgroup, such a cgroup will have no id and so an attempt to swapout its
-anon/shmem will not store memory cgroup info in the swap cgroup map.  As a
-result, memcg->swap or memcg->memsw will never get uncharged from it and
-any of its ascendants.
+The following oops occurs after a pgdat is hotadded:
 
-Fix this by always charging swapout to the first ancestor cgroup that
-hasn't released its id yet.
+[   86.839956] Unable to handle kernel paging request for data at address 0x00c30001
+[   86.840132] Faulting instruction address: 0xc00000000022f8f4
+[   86.840328] Oops: Kernel access of bad area, sig: 11 [#1]
+[   86.840468] SMP NR_CPUS=2048 NUMA pSeries
+[   86.840612] Modules linked in: ip6t_rpfilter ip6t_REJECT nf_reject_ipv6 ipt_REJECT nf_reject_ipv4 xt_conntrack ebtable_nat ebtable_broute bridge stp llc ebtable_filter ebtables ip6table_nat nf_conntrack_ipv6 nf_defrag_ipv6 nf_nat_ipv6 ip6table_mangle ip6table_security ip6table_raw ip6table_filter ip6_tables iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack iptable_mangle iptable_security iptable_raw iptable_filter nls_utf8 isofs sg virtio_balloon uio_pdrv_genirq uio ip_tables xfs libcrc32c sr_mod cdrom sd_mod virtio_net ibmvscsi scsi_transport_srp virtio_pci virtio_ring virtio dm_mirror dm_region_hash dm_log dm_mod
+[   86.842955] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G        W 4.8.0-rc1-device #110
+[   86.843140] task: c000000000ef3080 task.stack: c000000000f6c000
+[   86.843323] NIP: c00000000022f8f4 LR: c00000000022f948 CTR: 0000000000000000
+[   86.843595] REGS: c000000000f6fa50 TRAP: 0300   Tainted: G        W (4.8.0-rc1-device)
+[   86.843889] MSR: 800000010280b033 <SF,VEC,VSX,EE,FP,ME,IR,DR,RI,LE,TM[E]>  CR: 84002028  XER: 20000000
+[   86.844624] CFAR: d000000001d2013c DAR: 0000000000c30001 DSISR: 40000000 SOFTE: 0
+GPR00: c00000000022f948 c000000000f6fcd0 c000000000f71400 0000000000000001
+GPR04: 0000000000000100 0000000000000000 0000000000000000 0000000000c30000
+GPR08: ffffffffffffffff 0000000000000001 0000000000c30000 00000000ffffffff
+GPR12: 0000000000002200 c000000001300000 c000000000faefb4 c000000000faefa8
+GPR16: c000000000f6c000 c000000000f6c080 c000000000bf15b0 c000000000f6c080
+GPR20: c000000000bf4928 0000000000000000 0000000000000003 c000000000bf4968
+GPR24: c0000000ffed0000 0000000000000000 0000000000000000 c000000000f6fd58
+GPR28: 0000000000000001 0000000000000001 c000000000f6fcf0 c0000000ffed9c08
+[   86.847747] NIP [c00000000022f8f4] refresh_cpu_vm_stats+0x1a4/0x2f0
+[   86.847897] LR [c00000000022f948] refresh_cpu_vm_stats+0x1f8/0x2f0
+[   86.848060] Call Trace:
+[   86.848183] [c000000000f6fcd0] [c00000000022f948] refresh_cpu_vm_stats+0x1f8/0x2f0 (unreliable)
 
-[hannes@cmpxchg.org: add comment to mem_cgroup_swapout]
-[vdavydov@virtuozzo.com: use WARN_ON_ONCE() in mem_cgroup_id_get_online()]
-  Link: http://lkml.kernel.org/r/20160803123445.GJ13263@esperanza
-Fixes: 73f576c04b941 ("mm: memcontrol: fix cgroup creation failure after many small jobs")
-Link: http://lkml.kernel.org/r/5336daa5c9a32e776067773d9da655d2dc126491.1470219853.git.vdavydov@virtuozzo.com
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>	[3.19+]
+Add per_cpu_nodestats initialization to the hotplug codepath.
+
+Link: http://lkml.kernel.org/r/1470931473-7090-1-git-send-email-arbab@linux.vnet.ibm.com
+Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Paul Mackerras <paulus@ozlabs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   44 ++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 38 insertions(+), 6 deletions(-)
+ mm/memory_hotplug.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fix-swap-counter-leak-on-swapout-from-offline-cgroup
-+++ a/mm/memcontrol.c
-@@ -4082,6 +4082,24 @@ static void mem_cgroup_id_get(struct mem
- 	atomic_inc(&memcg->id.ref);
- }
+diff -puN mm/memory_hotplug.c~mm-initialize-per_cpu_nodestats-for-hotadded-pgdats mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-initialize-per_cpu_nodestats-for-hotadded-pgdats
++++ a/mm/memory_hotplug.c
+@@ -1219,6 +1219,7 @@ static pg_data_t __ref *hotadd_new_pgdat
  
-+static struct mem_cgroup *mem_cgroup_id_get_online(struct mem_cgroup *memcg)
-+{
-+	while (!atomic_inc_not_zero(&memcg->id.ref)) {
-+		/*
-+		 * The root cgroup cannot be destroyed, so it's refcount must
-+		 * always be >= 1.
-+		 */
-+		if (WARN_ON_ONCE(memcg == root_mem_cgroup)) {
-+			VM_BUG_ON(1);
-+			break;
-+		}
-+		memcg = parent_mem_cgroup(memcg);
-+		if (!memcg)
-+			memcg = root_mem_cgroup;
-+	}
-+	return memcg;
-+}
-+
- static void mem_cgroup_id_put(struct mem_cgroup *memcg)
- {
- 	if (atomic_dec_and_test(&memcg->id.ref)) {
-@@ -5800,7 +5818,7 @@ subsys_initcall(mem_cgroup_init);
-  */
- void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
- {
--	struct mem_cgroup *memcg;
-+	struct mem_cgroup *memcg, *swap_memcg;
- 	unsigned short oldid;
+ 	/* init node's zones as empty zones, we don't have any present pages.*/
+ 	free_area_init_node(nid, zones_size, start_pfn, zholes_size);
++	pgdat->per_cpu_nodestats = alloc_percpu(struct per_cpu_nodestat);
  
- 	VM_BUG_ON_PAGE(PageLRU(page), page);
-@@ -5815,16 +5833,27 @@ void mem_cgroup_swapout(struct page *pag
- 	if (!memcg)
- 		return;
- 
--	mem_cgroup_id_get(memcg);
--	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
-+	/*
-+	 * In case the memcg owning these pages has been offlined and doesn't
-+	 * have an ID allocated to it anymore, charge the closest online
-+	 * ancestor for the swap instead and transfer the memory+swap charge.
-+	 */
-+	swap_memcg = mem_cgroup_id_get_online(memcg);
-+	oldid = swap_cgroup_record(entry, mem_cgroup_id(swap_memcg));
- 	VM_BUG_ON_PAGE(oldid, page);
--	mem_cgroup_swap_statistics(memcg, true);
-+	mem_cgroup_swap_statistics(swap_memcg, true);
- 
- 	page->mem_cgroup = NULL;
- 
- 	if (!mem_cgroup_is_root(memcg))
- 		page_counter_uncharge(&memcg->memory, 1);
- 
-+	if (memcg != swap_memcg) {
-+		if (!mem_cgroup_is_root(swap_memcg))
-+			page_counter_charge(&swap_memcg->memsw, 1);
-+		page_counter_uncharge(&memcg->memsw, 1);
-+	}
-+
  	/*
- 	 * Interrupts should be disabled here because the caller holds the
- 	 * mapping->tree_lock lock which is taken with interrupts-off. It is
-@@ -5863,11 +5892,14 @@ int mem_cgroup_try_charge_swap(struct pa
- 	if (!memcg)
- 		return 0;
- 
-+	memcg = mem_cgroup_id_get_online(memcg);
-+
- 	if (!mem_cgroup_is_root(memcg) &&
--	    !page_counter_try_charge(&memcg->swap, 1, &counter))
-+	    !page_counter_try_charge(&memcg->swap, 1, &counter)) {
-+		mem_cgroup_id_put(memcg);
- 		return -ENOMEM;
-+	}
- 
--	mem_cgroup_id_get(memcg);
- 	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
- 	VM_BUG_ON_PAGE(oldid, page);
- 	mem_cgroup_swap_statistics(memcg, true);
+ 	 * The node we allocated has no zone fallback lists. For avoiding
+@@ -1249,6 +1250,7 @@ static pg_data_t __ref *hotadd_new_pgdat
+ static void rollback_node_hotadd(int nid, pg_data_t *pgdat)
+ {
+ 	arch_refresh_nodedata(nid, NULL);
++	free_percpu(pgdat->per_cpu_nodestats);
+ 	arch_free_nodedata(pgdat);
+ 	return;
+ }
 _
 
-Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
 
-mm-oom-deduplicate-victim-selection-code-for-memcg-and-global-oom.patch
-mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
 
