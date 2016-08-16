@@ -1,137 +1,262 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 16 Aug 2016 10:46:37 -0700
-Message-ID: <57b3517d.oxfMIyUJDKC0YGSy%akpm@linux-foundation.org>
+Subject: + pipe-check-limits-only-when-increasing-pipe-capacity.patch
+ added to -mm tree
+Date: Tue, 16 Aug 2016 13:14:05 -0700
+Message-ID: <57b3740d.4WSUGZO209JmZvNK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37500 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751292AbcHPRr3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Aug 2016 13:47:29 -0400
+	with ESMTP id S1752287AbcHPUOH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Aug 2016 16:14:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mtk.manpages@gmail.com, axboe@fb.com, penguin-kernel@I-love.SAKURA.ne.jp, socketpair@gmail.com, stable@vger.kernel.org, vegard.nossum@oracle.com, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: pipe: check limits only when increasing pipe capacity
+has been added to the -mm tree.  Its filename is
+     pipe-check-limits-only-when-increasing-pipe-capacity.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/pipe-check-limits-only-when-increasing-pipe-capacity.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/pipe-check-limits-only-when-increasing-pipe-capacity.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
+Subject: pipe: check limits only when increasing pipe capacity
 
+When changing a pipe's capacity with fcntl(F_SETPIPE_SZ), various limits
+defined by /proc/sys/fs/pipe-* files are checked to see if unprivileged
+users are exceeding limits on memory consumption.
+
+While documenting and testing the operation of these limits I noticed
+that, as currently implemented, these checks can lead to cases where a
+user can increase a pipe's capacity and is then unable to decrease the
+capacity.  The origin of the problem is two-fold:
+
+(1) When increasing the pipe capacity, the checks against the limits
+    in /proc/sys/fs/pipe-user-pages-{soft,hard} are made against
+    existing consumption, and exclude the memory required for the
+    increased pipe capacity. The new increase in pipe capacity
+    can then push the total memory used by the user for pipes
+    (possibly far) over a limit.
+
+(2) The limit checks are performed even when the new pipe capacity
+    is less than the existing pipe capacity. This can lead to
+    problems if a user sets a large pipe capacity, and then the
+    limits are lowered, with the result that the user will no
+    longer be able to decrease the pipe capacity.
+
+The simple solution given by this patch is to perform the checks only when
+the pipe capacity is being increased.  The patch does not address the
+broken check in (1), which allows a user to (one-time) set a pipe capacity
+that pushes the user's consumption over the user pipe limits.  A change to
+fix that check is proposed in a subsequent patch.  I've separated the two
+fixes because the second fix is a little more complex, and could possibly
+(though unlikely) break existing user-space.  The current patch implements
+the simple fix that carries little risk and seems obviously correct:
+allowing an unprivileged user always to decrease a pipe's capacity.
+
+The program below can be used to demonstrate the problem, and the effect
+of the fix.  The program takes one or more command-line arguments.  The
+first argument specifies the number of pipes that the program should
+create.  The remaining arguments are, alternately, pipe capacities that
+should be set using fcntl(F_SETPIPE_SZ), and sleep intervals (in seconds)
+between the fcntl() operations.  (The sleep intervals allow the
+possibility to change the limits between fcntl() operations.)
+
+Running this program on an unpatched kernel, we first set some limits:
+
+    # getconf PAGESIZE
+    4096
+    # echo 0 > /proc/sys/fs/pipe-user-pages-soft
+    # echo 1000000000 > /proc/sys/fs/pipe-max-size
+    # echo 10000 > /proc/sys/fs/pipe-user-pages-hard    # 40.96 MB
+
+Now perform two fcntl(F_SETPIPE_SZ) operations on a single pipe, first
+setting a pipe capacity (10MB), sleeping for a few seconds, during which
+time the hard limit is lowered, and then set pipe capacity to a smaller
+amount (5MB):
+
+    # sudo -u mtk ./test_F_SETPIPE_SZ 1 10000000 15 5000000 &
+    [1] 748
+    #     Loop 1: set pipe capacity to 10000000 bytes
+            F_SETPIPE_SZ returned 16777216
+            Sleeping 15 seconds
+
+    # echo 1000 > /proc/sys/fs/pipe-user-pages-hard      # 4.096 MB
+
+    #     Loop 2: set pipe capacity to 5000000 bytes
+            Loop 2, pipe 0: F_SETPIPE_SZ failed: fcntl: Operation not permitted
+
+In this case, the user should be able to lower the limit.
+
+With a kernel that has the patch below, the second fcntl()
+succeeds:
+
+    # echo 0 > /proc/sys/fs/pipe-user-pages-soft
+    # echo 1000000000 > /proc/sys/fs/pipe-max-size
+    # echo 10000 > /proc/sys/fs/pipe-user-pages-hard
+    # sudo -u mtk ./test_F_SETPIPE_SZ 1 10000000 15 5000000 &
+    [1] 3215
+    #     Loop 1: set pipe capacity to 10000000 bytes
+            F_SETPIPE_SZ returned 16777216
+            Sleeping 15 seconds
+
+    # echo 1000 > /proc/sys/fs/pipe-user-pages-hard
+
+    #     Loop 2: set pipe capacity to 5000000 bytes
+            F_SETPIPE_SZ returned 8388608
+
+8x---8x---8x---8x---8x---8x---8x---8x---8x---8x---8x---8x---8x---8x---
+
+/* test_F_SETPIPE_SZ.c
+
+   (C) 2016, Michael Kerrisk; licensed under GNU GPL version 2 or later
+
+   Test operation of fcntl(F_SETPIPE_SZ) for setting pipe capacity
+   and interactions with limits defined by /proc/sys/fs/pipe-* files.
+*/
+
+int
+main(int argc, char *argv[])
+{
+    int (*pfd)[2];
+    int npipes;
+    int pcap, rcap;
+    int j, p, s, stime, loop;
+
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s num-pipes "
+                "[pipe-capacity sleep-time]...\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    npipes = atoi(argv[1]);
+
+    pfd = calloc(npipes, sizeof (int [2]));
+    if (pfd == NULL) {
+        perror("calloc");
+        exit(EXIT_FAILURE);
+    }
+
+    for (j = 0; j < npipes; j++) {
+        if (pipe(pfd[j]) == -1) {
+            fprintf(stderr, "Loop %d: pipe() failed: ", j);
+            perror("pipe");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    for (j = 2; j < argc; j += 2 ) {
+        loop = j / 2;
+        pcap = atoi(argv[j]);
+        printf("    Loop %d: set pipe capacity to %d bytes\n", loop, pcap);
+
+        for (p = 0; p < npipes; p++) {
+            s = fcntl(pfd[p][0], F_SETPIPE_SZ, pcap);
+            if (s == -1) {
+                fprintf(stderr, "        Loop %d, pipe %d: F_SETPIPE_SZ "
+                        "failed: ", loop, p);
+                perror("fcntl");
+                exit(EXIT_FAILURE);
+            }
+
+            if (p == 0) {
+                printf("        F_SETPIPE_SZ returned %d\n", s);
+                rcap = s;
+            } else {
+                if (s != rcap) {
+                    fprintf(stderr, "        Loop %d, pipe %d: F_SETPIPE_SZ "
+                            "unexpected return: %d\n", loop, p, s);
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            stime = (j + 1 < argc) ? atoi(argv[j + 1]) : 0;
+            if (stime > 0) {
+                printf("        Sleeping %d seconds\n", stime);
+                sleep(stime);
+            }
+        }
+    }
+
+    exit(EXIT_SUCCESS);
+}
+
+8x---8x---8x---8x---8x---8x---8x---8x---8x---8x---8x---8x---8x---8x---
+
+Link: http://lkml.kernel.org/r/86c85cff-7fee-cded-386a-e1d518573dda@gmail.com
+Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: Vegard Nossum <vegard.nossum@oracle.com>
+Cc: <socketpair@gmail.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/thermal_core.c |   69 -------------------------------
- 1 file changed, 69 deletions(-)
+ fs/pipe.c |   25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN drivers/thermal/thermal_core.c~linux-next-git-rejects drivers/thermal/thermal_core.c
---- a/drivers/thermal/thermal_core.c~linux-next-git-rejects
-+++ a/drivers/thermal/thermal_core.c
-@@ -1122,80 +1122,11 @@ static void bind_tz(struct thermal_zone_
- 	struct thermal_cooling_device *pos = NULL;
- 	const struct thermal_zone_params *tzp = tz->tzp;
+diff -puN fs/pipe.c~pipe-check-limits-only-when-increasing-pipe-capacity fs/pipe.c
+--- a/fs/pipe.c~pipe-check-limits-only-when-increasing-pipe-capacity
++++ a/fs/pipe.c
+@@ -1122,14 +1122,23 @@ long pipe_fcntl(struct file *file, unsig
+ 		if (!nr_pages)
+ 			goto out;
  
--<<<<<<< HEAD
--	mutex_lock(&cdev->lock);
--	/* cooling device is updated*/
--	if (cdev->updated) {
--		mutex_unlock(&cdev->lock);
--=======
- 	if (!tzp && !tz->ops->bind)
-->>>>>>> linux-next/akpm-base
- 		return;
- 	}
- 
--<<<<<<< HEAD
--	/* Make sure cdev enters the deepest cooling state */
--	list_for_each_entry(instance, &cdev->thermal_instances, cdev_node) {
--		dev_dbg(&cdev->device, "zone%d->target=%lu\n",
--				instance->tz->id, instance->target);
--		if (instance->target == THERMAL_NO_TARGET)
--			continue;
--		if (instance->target > target)
--			target = instance->target;
--	}
--	cdev->ops->set_cur_state(cdev, target);
--	cdev->updated = true;
--	mutex_unlock(&cdev->lock);
--	trace_cdev_update(cdev, target);
--	dev_dbg(&cdev->device, "set to state %lu\n", target);
--}
--EXPORT_SYMBOL(thermal_cdev_update);
--
--/**
-- * thermal_notify_framework - Sensor drivers use this API to notify framework
-- * @tz:		thermal zone device
-- * @trip:	indicates which trip point has been crossed
-- *
-- * This function handles the trip events from sensor drivers. It starts
-- * throttling the cooling devices according to the policy configured.
-- * For CRITICAL and HOT trip points, this notifies the respective drivers,
-- * and does actual throttling for other trip points i.e ACTIVE and PASSIVE.
-- * The throttling policy is based on the configured platform data; if no
-- * platform data is provided, this uses the step_wise throttling policy.
-- */
--void thermal_notify_framework(struct thermal_zone_device *tz, int trip)
--{
--	handle_thermal_trip(tz, trip);
--}
--EXPORT_SYMBOL_GPL(thermal_notify_framework);
--
--/**
-- * create_trip_attrs() - create attributes for trip points
-- * @tz:		the thermal zone device
-- * @mask:	Writeable trip point bitmap.
-- *
-- * helper function to instantiate sysfs entries for every trip
-- * point and its properties of a struct thermal_zone_device.
-- *
-- * Return: 0 on success, the proper error value otherwise.
-- */
--static int create_trip_attrs(struct thermal_zone_device *tz, int mask)
--{
--	int indx;
--	int size = sizeof(struct thermal_attr) * tz->trips;
--
--	tz->trip_type_attrs = kzalloc(size, GFP_KERNEL);
--	if (!tz->trip_type_attrs)
--		return -ENOMEM;
--
--	tz->trip_temp_attrs = kzalloc(size, GFP_KERNEL);
--	if (!tz->trip_temp_attrs) {
--		kfree(tz->trip_type_attrs);
--		return -ENOMEM;
--	}
--=======
- 	mutex_lock(&thermal_list_lock);
-->>>>>>> linux-next/akpm-base
- 
- 	/* If there is ops->bind, try to use ops->bind */
- 	if (tz->ops->bind) {
+-		if (!capable(CAP_SYS_RESOURCE) && size > pipe_max_size) {
+-			ret = -EPERM;
+-			goto out;
+-		} else if ((too_many_pipe_buffers_hard(pipe->user) ||
+-			    too_many_pipe_buffers_soft(pipe->user)) &&
+-		           !capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN)) {
+-			ret = -EPERM;
+-			goto out;
++		/*
++		 * If trying to increase the pipe capacity, check that an
++		 * unprivileged user is not trying to exceed various limits.
++		 * (Decreasing the pipe capacity is always permitted, even
++		 * if the user is currently over a limit.)
++		 */
++		if (nr_pages > pipe->buffers) {
++			if (!capable(CAP_SYS_RESOURCE) && size > pipe_max_size) {
++				ret = -EPERM;
++				goto out;
++			} else if ((too_many_pipe_buffers_hard(pipe->user) ||
++				too_many_pipe_buffers_soft(pipe->user)) &&
++				!capable(CAP_SYS_RESOURCE) &&
++				!capable(CAP_SYS_ADMIN)) {
++				ret = -EPERM;
++				goto out;
++			}
+ 		}
+ 		ret = pipe_set_size(pipe, nr_pages);
+ 		break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mtk.manpages@gmail.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-vmalloc-fix-align-value-calculation-error-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
-ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+pipe-check-limits-only-when-increasing-pipe-capacity.patch
+pipe-make-pipe-user-buffer-limit-checks-more-precise.patch
 
