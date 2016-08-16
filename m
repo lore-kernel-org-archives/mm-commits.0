@@ -1,17 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_owner-move-page_owner-specific-function-to-page_ownerc.patch added
- to -mm tree
-Date: Tue, 16 Aug 2016 13:41:38 -0700
-Message-ID: <57b37a82.uKUl4TgBva6OC1m8%akpm@linux-foundation.org>
+Subject: + mm-debug_pagealloc-clean-up-guard-page-handling-code.patch
+ added to -mm tree
+Date: Tue, 16 Aug 2016 13:41:34 -0700
+Message-ID: <57b37a7e.Cbeh+xmF0SEUbVND%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37905 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37904 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753478AbcHPUvz (ORCPT
+	with ESMTP id S1753517AbcHPUvz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Aug 2016 16:51:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -19,14 +18,14 @@ To: iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozh
 
 
 The patch titled
-     Subject: mm/page_owner: move page_owner specific function to page_owner.c
+     Subject: mm/debug_pagealloc.c: clean-up guard page handling code
 has been added to the -mm tree.  Its filename is
-     mm-page_owner-move-page_owner-specific-function-to-page_ownerc.patch
+     mm-debug_pagealloc-clean-up-guard-page-handling-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-move-page_owner-specific-function-to-page_ownerc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug_pagealloc-clean-up-guard-page-handling-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-move-page_owner-specific-function-to-page_ownerc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_pagealloc-clean-up-guard-page-handling-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,129 +40,130 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_owner: move page_owner specific function to page_owner.c
+Subject: mm/debug_pagealloc.c: clean-up guard page handling code
 
-There is no reason that page_owner specific function resides on vmstat.c.
+Patch series "Reduce memory waste by page extension user".
 
-Link: http://lkml.kernel.org/r/1471315879-32294-4-git-send-email-iamjoonsoo.kim@lge.com
+
+This patchset tries to reduce memory waste by page extension user.
+
+First case is architecture supported debug_pagealloc.  It doesn't requires
+additional memory if guard page isn't used.  8 bytes per page will be
+saved in this case.
+
+Second case is related to page owner feature.  Until now, if page_ext
+users want to use it's own fields on page_ext, fields should be defined in
+struct page_ext by hard-coding.  It has a following problem.
+
+struct page_ext {
+ #ifdef CONFIG_A
+	int a;
+ #endif
+ #ifdef CONFIG_B
+	int b;
+ #endif
+};
+
+Assume that kernel is built with both CONFIG_A and CONFIG_B.  Even if we
+enable feature A and doesn't enable feature B at runtime, each entry of
+struct page_ext takes two int rather than one int.  It's undesirable waste
+so this patch tries to reduce it.  By this patchset, we can save 20 bytes
+per page dedicated for page owner feature in some configurations.  
+
+
+
+This patch (of 6):
+
+We can make code clean by moving decision condition for set_page_guard()
+into set_page_guard() itself.  It will help code readability.  There is no
+functional change.
+
+Link: http://lkml.kernel.org/r/1471315879-32294-2-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_owner.h |    2 
- mm/page_owner.c            |   77 +++++++++++++++++++++++++++++++++++
- 2 files changed, 79 insertions(+)
+ mm/page_alloc.c |   34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/page_owner.h~mm-page_owner-move-page_owner-specific-function-to-page_ownerc include/linux/page_owner.h
---- a/include/linux/page_owner.h~mm-page_owner-move-page_owner-specific-function-to-page_ownerc
-+++ a/include/linux/page_owner.h
-@@ -14,6 +14,8 @@ extern void __split_page_owner(struct pa
- extern void __copy_page_owner(struct page *oldpage, struct page *newpage);
- extern void __set_page_owner_migrate_reason(struct page *page, int reason);
- extern void __dump_page_owner(struct page *page);
-+extern void pagetypeinfo_showmixedcount_print(struct seq_file *m,
-+					pg_data_t *pgdat, struct zone *zone);
+diff -puN mm/page_alloc.c~mm-debug_pagealloc-clean-up-guard-page-handling-code mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-debug_pagealloc-clean-up-guard-page-handling-code
++++ a/mm/page_alloc.c
+@@ -637,17 +637,20 @@ static int __init debug_guardpage_minord
+ }
+ __setup("debug_guardpage_minorder=", debug_guardpage_minorder_setup);
  
- static inline void reset_page_owner(struct page *page, unsigned int order)
+-static inline void set_page_guard(struct zone *zone, struct page *page,
++static inline bool set_page_guard(struct zone *zone, struct page *page,
+ 				unsigned int order, int migratetype)
  {
-diff -puN mm/page_owner.c~mm-page_owner-move-page_owner-specific-function-to-page_ownerc mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-move-page_owner-specific-function-to-page_ownerc
-+++ a/mm/page_owner.c
-@@ -8,6 +8,7 @@
- #include <linux/jump_label.h>
- #include <linux/migrate.h>
- #include <linux/stackdepot.h>
-+#include <linux/seq_file.h>
+ 	struct page_ext *page_ext;
  
- #include "internal.h"
+ 	if (!debug_guardpage_enabled())
+-		return;
++		return false;
++
++	if (order >= debug_guardpage_minorder())
++		return false;
  
-@@ -214,6 +215,82 @@ void __copy_page_owner(struct page *oldp
- 	__set_bit(PAGE_EXT_OWNER, &new_ext->flags);
+ 	page_ext = lookup_page_ext(page);
+ 	if (unlikely(!page_ext))
+-		return;
++		return false;
+ 
+ 	__set_bit(PAGE_EXT_DEBUG_GUARD, &page_ext->flags);
+ 
+@@ -655,6 +658,8 @@ static inline void set_page_guard(struct
+ 	set_page_private(page, order);
+ 	/* Guard pages are not available for any usage */
+ 	__mod_zone_freepage_state(zone, -(1 << order), migratetype);
++
++	return true;
  }
  
-+static void pagetypeinfo_showmixedcount_print(struct seq_file *m,
-+							pg_data_t *pgdat,
-+							struct zone *zone)
-+{
-+	struct page *page;
-+	struct page_ext *page_ext;
-+	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
-+	unsigned long end_pfn = pfn + zone->spanned_pages;
-+	unsigned long count[MIGRATE_TYPES] = { 0, };
-+	int pageblock_mt, page_mt;
-+	int i;
+ static inline void clear_page_guard(struct zone *zone, struct page *page,
+@@ -677,8 +682,8 @@ static inline void clear_page_guard(stru
+ }
+ #else
+ struct page_ext_operations debug_guardpage_ops = { NULL, };
+-static inline void set_page_guard(struct zone *zone, struct page *page,
+-				unsigned int order, int migratetype) {}
++static inline bool set_page_guard(struct zone *zone, struct page *page,
++			unsigned int order, int migratetype) { return false; }
+ static inline void clear_page_guard(struct zone *zone, struct page *page,
+ 				unsigned int order, int migratetype) {}
+ #endif
+@@ -1622,18 +1627,15 @@ static inline void expand(struct zone *z
+ 		size >>= 1;
+ 		VM_BUG_ON_PAGE(bad_range(zone, &page[size]), &page[size]);
+ 
+-		if (IS_ENABLED(CONFIG_DEBUG_PAGEALLOC) &&
+-			debug_guardpage_enabled() &&
+-			high < debug_guardpage_minorder()) {
+-			/*
+-			 * Mark as guard pages (or page), that will allow to
+-			 * merge back to allocator when buddy will be freed.
+-			 * Corresponding page table entries will not be touched,
+-			 * pages will stay not present in virtual address space
+-			 */
+-			set_page_guard(zone, &page[size], high, migratetype);
++		/*
++		 * Mark as guard pages (or page), that will allow to
++		 * merge back to allocator when buddy will be freed.
++		 * Corresponding page table entries will not be touched,
++		 * pages will stay not present in virtual address space
++		 */
++		if (set_page_guard(zone, &page[size], high, migratetype))
+ 			continue;
+-		}
 +
-+	/* Scan block by block. First and last block may be incomplete */
-+	pfn = zone->zone_start_pfn;
-+
-+	/*
-+	 * Walk the zone in pageblock_nr_pages steps. If a page block spans
-+	 * a zone boundary, it will be double counted between zones. This does
-+	 * not matter as the mixed block count will still be correct
-+	 */
-+	for (; pfn < end_pfn; ) {
-+		if (!pfn_valid(pfn)) {
-+			pfn = ALIGN(pfn + 1, MAX_ORDER_NR_PAGES);
-+			continue;
-+		}
-+
-+		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
-+		block_end_pfn = min(block_end_pfn, end_pfn);
-+
-+		page = pfn_to_page(pfn);
-+		pageblock_mt = get_pageblock_migratetype(page);
-+
-+		for (; pfn < block_end_pfn; pfn++) {
-+			if (!pfn_valid_within(pfn))
-+				continue;
-+
-+			page = pfn_to_page(pfn);
-+
-+			if (page_zone(page) != zone)
-+				continue;
-+
-+			if (PageBuddy(page)) {
-+				pfn += (1UL << page_order(page)) - 1;
-+				continue;
-+			}
-+
-+			if (PageReserved(page))
-+				continue;
-+
-+			page_ext = lookup_page_ext(page);
-+			if (unlikely(!page_ext))
-+				continue;
-+
-+			if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags))
-+				continue;
-+
-+			page_mt = gfpflags_to_migratetype(page_ext->gfp_mask);
-+			if (pageblock_mt != page_mt) {
-+				if (is_migrate_cma(pageblock_mt))
-+					count[MIGRATE_MOVABLE]++;
-+				else
-+					count[pageblock_mt]++;
-+
-+				pfn = block_end_pfn;
-+				break;
-+			}
-+			pfn += (1UL << page_ext->order) - 1;
-+		}
-+	}
-+
-+	/* Print counts */
-+	seq_printf(m, "Node %d, zone %8s ", pgdat->node_id, zone->name);
-+	for (i = 0; i < MIGRATE_TYPES; i++)
-+		seq_printf(m, "%12lu ", count[i]);
-+	seq_putc(m, '\n');
-+}
- static ssize_t
- print_page_owner(char __user *buf, size_t count, unsigned long pfn,
- 		struct page *page, struct page_ext *page_ext,
+ 		list_add(&page[size].lru, &area->free_list[migratetype]);
+ 		area->nr_free++;
+ 		set_page_order(&page[size], high);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
