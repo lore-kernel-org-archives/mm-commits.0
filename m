@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_ext-support-extra-space-allocation-by-page_ext-user.patch added to
- -mm tree
-Date: Tue, 16 Aug 2016 13:40:05 -0700
-Message-ID: <57b37a25.QDfG1H8Ca+/Lwxtl%akpm@linux-foundation.org>
+ mm-page_owner-dont-define-fields-on-struct-page_ext-by-hard-coding.patch
+ added to -mm tree
+Date: Tue, 16 Aug 2016 13:40:07 -0700
+Message-ID: <57b37a27.nUgKQSOhaABuaBxd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37769 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37775 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753460AbcHPUkG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Aug 2016 16:40:06 -0400
+	with ESMTP id S1753460AbcHPUkI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Aug 2016 16:40:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_ext: support extra space allocation by page_ext user
+     Subject: mm/page_owner: don't define fields on struct page_ext by hard-coding
 has been added to the -mm tree.  Its filename is
-     mm-page_ext-support-extra-space-allocation-by-page_ext-user.patch
+     mm-page_owner-dont-define-fields-on-struct-page_ext-by-hard-coding.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_ext-support-extra-space-allocation-by-page_ext-user.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-dont-define-fields-on-struct-page_ext-by-hard-coding.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_ext-support-extra-space-allocation-by-page_ext-user.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-dont-define-fields-on-struct-page_ext-by-hard-coding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,37 +41,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_ext: support extra space allocation by page_ext user
+Subject: mm/page_owner: don't define fields on struct page_ext by hard-coding
 
-Until now, if some page_ext users want to use it's own field on page_ext,
-it should be defined in struct page_ext by hard-coding.  It has a problem
-that wastes memory in following situation.
+There is a memory waste problem if we define field on struct page_ext by
+hard-coding.  Entry size of struct page_ext includes the size of those
+fields even if it is disabled at runtime.  Now, extra memory request at
+runtime is possible so page_owner don't need to define it's own fields by
+hard-coding.
 
-struct page_ext {
- #ifdef CONFIG_A
-	int a;
- #endif
- #ifdef CONFIG_B
-	int b;
- #endif
-};
+This patch removes hard-coded define and uses extra memory for storing
+page_owner information in page_owner.  Most of code are just mechanical
+changes.
 
-Assume that kernel is built with both CONFIG_A and CONFIG_B.  Even if we
-enable feature A and doesn't enable feature B at runtime, each entry of
-struct page_ext takes two int rather than one int.  It's undesirable
-result so this patch tries to fix it.
-
-To solve above problem, this patch implements to support extra space
-allocation at runtime.  When need() callback returns true, it's extra
-memory requirement is summed to entry size of page_ext.  Also, offset for
-each user's extra memory space is returned.  With this offset, user can
-use this extra space and there is no need to define needed field on
-page_ext by hard-coding.
-
-This patch only implements an infrastructure.  Following patch will use it
-for page_owner which is only user having it's own fields on page_ext.
-
-Link: http://lkml.kernel.org/r/1471315879-32294-6-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1471315879-32294-7-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -80,158 +62,278 @@ Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ext.h |    2 +
- mm/page_alloc.c          |    2 -
- mm/page_ext.c            |   41 +++++++++++++++++++++++++++----------
- 3 files changed, 34 insertions(+), 11 deletions(-)
+ include/linux/page_ext.h |    6 --
+ mm/page_owner.c          |   83 +++++++++++++++++++++++++------------
+ 2 files changed, 58 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/page_ext.h~mm-page_ext-support-extra-space-allocation-by-page_ext-user include/linux/page_ext.h
---- a/include/linux/page_ext.h~mm-page_ext-support-extra-space-allocation-by-page_ext-user
+diff -puN include/linux/page_ext.h~mm-page_owner-dont-define-fields-on-struct-page_ext-by-hard-coding include/linux/page_ext.h
+--- a/include/linux/page_ext.h~mm-page_owner-dont-define-fields-on-struct-page_ext-by-hard-coding
 +++ a/include/linux/page_ext.h
-@@ -7,6 +7,8 @@
- 
- struct pglist_data;
- struct page_ext_operations {
-+	size_t offset;
-+	size_t size;
- 	bool (*need)(void);
- 	void (*init)(void);
+@@ -44,12 +44,6 @@ enum page_ext_flags {
+  */
+ struct page_ext {
+ 	unsigned long flags;
+-#ifdef CONFIG_PAGE_OWNER
+-	unsigned int order;
+-	gfp_t gfp_mask;
+-	int last_migrate_reason;
+-	depot_stack_handle_t handle;
+-#endif
  };
-diff -puN mm/page_alloc.c~mm-page_ext-support-extra-space-allocation-by-page_ext-user mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_ext-support-extra-space-allocation-by-page_ext-user
-+++ a/mm/page_alloc.c
-@@ -687,7 +687,7 @@ static inline void clear_page_guard(stru
- 		__mod_zone_freepage_state(zone, (1 << order), migratetype);
+ 
+ extern void pgdat_page_ext_init(struct pglist_data *pgdat);
+diff -puN mm/page_owner.c~mm-page_owner-dont-define-fields-on-struct-page_ext-by-hard-coding mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-dont-define-fields-on-struct-page_ext-by-hard-coding
++++ a/mm/page_owner.c
+@@ -18,6 +18,13 @@
+  */
+ #define PAGE_OWNER_STACK_DEPTH (16)
+ 
++struct page_owner {
++	unsigned int order;
++	gfp_t gfp_mask;
++	int last_migrate_reason;
++	depot_stack_handle_t handle;
++};
++
+ static bool page_owner_disabled = true;
+ DEFINE_STATIC_KEY_FALSE(page_owner_inited);
+ 
+@@ -86,10 +93,16 @@ static void init_page_owner(void)
  }
- #else
--struct page_ext_operations debug_guardpage_ops = { NULL, };
-+struct page_ext_operations debug_guardpage_ops;
- static inline bool set_page_guard(struct zone *zone, struct page *page,
- 			unsigned int order, int migratetype) { return false; }
- static inline void clear_page_guard(struct zone *zone, struct page *page,
-diff -puN mm/page_ext.c~mm-page_ext-support-extra-space-allocation-by-page_ext-user mm/page_ext.c
---- a/mm/page_ext.c~mm-page_ext-support-extra-space-allocation-by-page_ext-user
-+++ a/mm/page_ext.c
-@@ -42,6 +42,11 @@
-  * and page extension core can skip to allocate memory. As result,
-  * none of memory is wasted.
-  *
-+ * When need callback returns true, page_ext checks if there is a request for
-+ * extra memory through size in struct page_ext_operations. If it is non-zero,
-+ * extra space is allocated for each page_ext entry and offset is returned to
-+ * user through offset in struct page_ext_operations.
-+ *
-  * The init callback is used to do proper initialization after page extension
-  * is completely initialized. In sparse memory system, extra memory is
-  * allocated some time later than memmap is allocated. In other words, lifetime
-@@ -66,18 +71,24 @@ static struct page_ext_operations *page_
+ 
+ struct page_ext_operations page_owner_ops = {
++	.size = sizeof(struct page_owner),
+ 	.need = need_page_owner,
+ 	.init = init_page_owner,
  };
  
- static unsigned long total_usage;
-+static unsigned long extra_mem;
- 
- static bool __init invoke_need_callbacks(void)
++static inline struct page_owner *get_page_owner(struct page_ext *page_ext)
++{
++	return (void *)page_ext + page_owner_ops.offset;
++}
++
+ void __reset_page_owner(struct page *page, unsigned int order)
  {
  	int i;
- 	int entries = ARRAY_SIZE(page_ext_ops);
-+	bool need = false;
+@@ -156,14 +169,16 @@ noinline void __set_page_owner(struct pa
+ 					gfp_t gfp_mask)
+ {
+ 	struct page_ext *page_ext = lookup_page_ext(page);
++	struct page_owner *page_owner;
  
- 	for (i = 0; i < entries; i++) {
--		if (page_ext_ops[i]->need && page_ext_ops[i]->need())
--			return true;
-+		if (page_ext_ops[i]->need && page_ext_ops[i]->need()) {
-+			page_ext_ops[i]->offset = sizeof(struct page_ext) +
-+						extra_mem;
-+			extra_mem += page_ext_ops[i]->size;
-+			need = true;
-+		}
- 	}
+ 	if (unlikely(!page_ext))
+ 		return;
  
--	return false;
-+	return need;
+-	page_ext->handle = save_stack(gfp_mask);
+-	page_ext->order = order;
+-	page_ext->gfp_mask = gfp_mask;
+-	page_ext->last_migrate_reason = -1;
++	page_owner = get_page_owner(page_ext);
++	page_owner->handle = save_stack(gfp_mask);
++	page_owner->order = order;
++	page_owner->gfp_mask = gfp_mask;
++	page_owner->last_migrate_reason = -1;
+ 
+ 	__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
  }
- 
- static void __init invoke_init_callbacks(void)
-@@ -91,6 +102,16 @@ static void __init invoke_init_callbacks
- 	}
- }
- 
-+static unsigned long get_entry_size(void)
-+{
-+	return sizeof(struct page_ext) + extra_mem;
-+}
+@@ -171,21 +186,26 @@ noinline void __set_page_owner(struct pa
+ void __set_page_owner_migrate_reason(struct page *page, int reason)
+ {
+ 	struct page_ext *page_ext = lookup_page_ext(page);
++	struct page_owner *page_owner;
 +
-+static inline struct page_ext *get_entry(void *base, unsigned long index)
-+{
-+	return base + get_entry_size() * index;
-+}
-+
- #if !defined(CONFIG_SPARSEMEM)
+ 	if (unlikely(!page_ext))
+ 		return;
  
- 
-@@ -121,7 +142,7 @@ struct page_ext *lookup_page_ext(struct
- #endif
- 	index = pfn - round_down(node_start_pfn(page_to_nid(page)),
- 					MAX_ORDER_NR_PAGES);
--	return base + index;
-+	return get_entry(base, index);
+-	page_ext->last_migrate_reason = reason;
++	page_owner = get_page_owner(page_ext);
++	page_owner->last_migrate_reason = reason;
  }
  
- static int __init alloc_node_page_ext(int nid)
-@@ -143,7 +164,7 @@ static int __init alloc_node_page_ext(in
- 		!IS_ALIGNED(node_end_pfn(nid), MAX_ORDER_NR_PAGES))
- 		nr_pages += MAX_ORDER_NR_PAGES;
+ void __split_page_owner(struct page *page, unsigned int order)
+ {
+ 	int i;
+ 	struct page_ext *page_ext = lookup_page_ext(page);
++	struct page_owner *page_owner;
  
--	table_size = sizeof(struct page_ext) * nr_pages;
-+	table_size = get_entry_size() * nr_pages;
+ 	if (unlikely(!page_ext))
+ 		return;
  
- 	base = memblock_virt_alloc_try_nid_nopanic(
- 			table_size, PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
-@@ -196,7 +217,7 @@ struct page_ext *lookup_page_ext(struct
- 	if (!section->page_ext)
- 		return NULL;
- #endif
--	return section->page_ext + pfn;
-+	return get_entry(section->page_ext, pfn);
+-	page_ext->order = 0;
++	page_owner = get_page_owner(page_ext);
++	page_owner->order = 0;
+ 	for (i = 1; i < (1 << order); i++)
+ 		__copy_page_owner(page, page + i);
  }
+@@ -194,14 +214,18 @@ void __copy_page_owner(struct page *oldp
+ {
+ 	struct page_ext *old_ext = lookup_page_ext(oldpage);
+ 	struct page_ext *new_ext = lookup_page_ext(newpage);
++	struct page_owner *old_page_owner, *new_page_owner;
  
- static void *__meminit alloc_page_ext(size_t size, int nid)
-@@ -229,7 +250,7 @@ static int __meminit init_section_page_e
- 	if (section->page_ext)
- 		return 0;
+ 	if (unlikely(!old_ext || !new_ext))
+ 		return;
  
--	table_size = sizeof(struct page_ext) * PAGES_PER_SECTION;
-+	table_size = get_entry_size() * PAGES_PER_SECTION;
- 	base = alloc_page_ext(table_size, nid);
+-	new_ext->order = old_ext->order;
+-	new_ext->gfp_mask = old_ext->gfp_mask;
+-	new_ext->last_migrate_reason = old_ext->last_migrate_reason;
+-	new_ext->handle = old_ext->handle;
++	old_page_owner = get_page_owner(old_ext);
++	new_page_owner = get_page_owner(new_ext);
++	new_page_owner->order = old_page_owner->order;
++	new_page_owner->gfp_mask = old_page_owner->gfp_mask;
++	new_page_owner->last_migrate_reason =
++		old_page_owner->last_migrate_reason;
++	new_page_owner->handle = old_page_owner->handle;
  
  	/*
-@@ -249,7 +270,7 @@ static int __meminit init_section_page_e
- 	 * we need to apply a mask.
- 	 */
- 	pfn &= PAGE_SECTION_MASK;
--	section->page_ext = base - pfn;
-+	section->page_ext = (void *)base - get_entry_size() * pfn;
- 	total_usage += table_size;
- 	return 0;
+ 	 * We don't clear the bit on the oldpage as it's going to be freed
+@@ -221,6 +245,7 @@ static void pagetypeinfo_showmixedcount_
+ {
+ 	struct page *page;
+ 	struct page_ext *page_ext;
++	struct page_owner *page_owner;
+ 	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
+ 	unsigned long end_pfn = pfn + zone->spanned_pages;
+ 	unsigned long count[MIGRATE_TYPES] = { 0, };
+@@ -271,7 +296,9 @@ static void pagetypeinfo_showmixedcount_
+ 			if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags))
+ 				continue;
+ 
+-			page_mt = gfpflags_to_migratetype(page_ext->gfp_mask);
++			page_owner = get_page_owner(page_ext);
++			page_mt = gfpflags_to_migratetype(
++					page_owner->gfp_mask);
+ 			if (pageblock_mt != page_mt) {
+ 				if (is_migrate_cma(pageblock_mt))
+ 					count[MIGRATE_MOVABLE]++;
+@@ -281,7 +308,7 @@ static void pagetypeinfo_showmixedcount_
+ 				pfn = block_end_pfn;
+ 				break;
+ 			}
+-			pfn += (1UL << page_ext->order) - 1;
++			pfn += (1UL << page_owner->order) - 1;
+ 		}
+ 	}
+ 
+@@ -293,7 +320,7 @@ static void pagetypeinfo_showmixedcount_
  }
-@@ -262,7 +283,7 @@ static void free_page_ext(void *addr)
- 		struct page *page = virt_to_page(addr);
- 		size_t table_size;
+ static ssize_t
+ print_page_owner(char __user *buf, size_t count, unsigned long pfn,
+-		struct page *page, struct page_ext *page_ext,
++		struct page *page, struct page_owner *page_owner,
+ 		depot_stack_handle_t handle)
+ {
+ 	int ret;
+@@ -313,15 +340,15 @@ print_page_owner(char __user *buf, size_
  
--		table_size = sizeof(struct page_ext) * PAGES_PER_SECTION;
-+		table_size = get_entry_size() * PAGES_PER_SECTION;
+ 	ret = snprintf(kbuf, count,
+ 			"Page allocated via order %u, mask %#x(%pGg)\n",
+-			page_ext->order, page_ext->gfp_mask,
+-			&page_ext->gfp_mask);
++			page_owner->order, page_owner->gfp_mask,
++			&page_owner->gfp_mask);
  
- 		BUG_ON(PageReserved(page));
- 		free_pages_exact(addr, table_size);
-@@ -277,7 +298,7 @@ static void __free_page_ext(unsigned lon
- 	ms = __pfn_to_section(pfn);
- 	if (!ms || !ms->page_ext)
+ 	if (ret >= count)
+ 		goto err;
+ 
+ 	/* Print information relevant to grouping pages by mobility */
+ 	pageblock_mt = get_pageblock_migratetype(page);
+-	page_mt  = gfpflags_to_migratetype(page_ext->gfp_mask);
++	page_mt  = gfpflags_to_migratetype(page_owner->gfp_mask);
+ 	ret += snprintf(kbuf + ret, count - ret,
+ 			"PFN %lu type %s Block %lu type %s Flags %#lx(%pGp)\n",
+ 			pfn,
+@@ -338,10 +365,10 @@ print_page_owner(char __user *buf, size_
+ 	if (ret >= count)
+ 		goto err;
+ 
+-	if (page_ext->last_migrate_reason != -1) {
++	if (page_owner->last_migrate_reason != -1) {
+ 		ret += snprintf(kbuf + ret, count - ret,
+ 			"Page has been migrated, last migrate reason: %s\n",
+-			migrate_reason_names[page_ext->last_migrate_reason]);
++			migrate_reason_names[page_owner->last_migrate_reason]);
+ 		if (ret >= count)
+ 			goto err;
+ 	}
+@@ -364,6 +391,7 @@ err:
+ void __dump_page_owner(struct page *page)
+ {
+ 	struct page_ext *page_ext = lookup_page_ext(page);
++	struct page_owner *page_owner;
+ 	unsigned long entries[PAGE_OWNER_STACK_DEPTH];
+ 	struct stack_trace trace = {
+ 		.nr_entries = 0,
+@@ -379,7 +407,9 @@ void __dump_page_owner(struct page *page
+ 		pr_alert("There is not page extension available.\n");
  		return;
--	base = ms->page_ext + pfn;
-+	base = get_entry(ms->page_ext, pfn);
- 	free_page_ext(base);
- 	ms->page_ext = NULL;
+ 	}
+-	gfp_mask = page_ext->gfp_mask;
++
++	page_owner = get_page_owner(page_ext);
++	gfp_mask = page_owner->gfp_mask;
+ 	mt = gfpflags_to_migratetype(gfp_mask);
+ 
+ 	if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags)) {
+@@ -387,7 +417,7 @@ void __dump_page_owner(struct page *page
+ 		return;
+ 	}
+ 
+-	handle = READ_ONCE(page_ext->handle);
++	handle = READ_ONCE(page_owner->handle);
+ 	if (!handle) {
+ 		pr_alert("page_owner info is not active (free page?)\n");
+ 		return;
+@@ -395,12 +425,12 @@ void __dump_page_owner(struct page *page
+ 
+ 	depot_fetch_stack(handle, &trace);
+ 	pr_alert("page allocated via order %u, migratetype %s, gfp_mask %#x(%pGg)\n",
+-		 page_ext->order, migratetype_names[mt], gfp_mask, &gfp_mask);
++		 page_owner->order, migratetype_names[mt], gfp_mask, &gfp_mask);
+ 	print_stack_trace(&trace, 0);
+ 
+-	if (page_ext->last_migrate_reason != -1)
++	if (page_owner->last_migrate_reason != -1)
+ 		pr_alert("page has been migrated, last migrate reason: %s\n",
+-			migrate_reason_names[page_ext->last_migrate_reason]);
++			migrate_reason_names[page_owner->last_migrate_reason]);
  }
+ 
+ static ssize_t
+@@ -409,6 +439,7 @@ read_page_owner(struct file *file, char
+ 	unsigned long pfn;
+ 	struct page *page;
+ 	struct page_ext *page_ext;
++	struct page_owner *page_owner;
+ 	depot_stack_handle_t handle;
+ 
+ 	if (!static_branch_unlikely(&page_owner_inited))
+@@ -458,11 +489,13 @@ read_page_owner(struct file *file, char
+ 		if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags))
+ 			continue;
+ 
++		page_owner = get_page_owner(page_ext);
++
+ 		/*
+ 		 * Access to page_ext->handle isn't synchronous so we should
+ 		 * be careful to access it.
+ 		 */
+-		handle = READ_ONCE(page_ext->handle);
++		handle = READ_ONCE(page_owner->handle);
+ 		if (!handle)
+ 			continue;
+ 
+@@ -470,7 +503,7 @@ read_page_owner(struct file *file, char
+ 		*ppos = (pfn - min_low_pfn) + 1;
+ 
+ 		return print_page_owner(buf, count, pfn, page,
+-				page_ext, handle);
++				page_owner, handle);
+ 	}
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
