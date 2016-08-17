@@ -1,215 +1,473 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2016-08-16-14-54 uploaded
-Date: Tue, 16 Aug 2016 14:55:10 -0700
-Message-ID: <57b38bbe.yx6nIEYbjilhNzkB%akpm__120.162839493965$1471384542$gmane$org@linux-foundation.org>
+Subject: + cred-simpler-1d-supplementary-groups.patch added to -mm tree
+Date: Wed, 17 Aug 2016 14:06:07 -0700
+Message-ID: <57b4d1bf.cRyBhBGgrai1yQHr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38412 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44799 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752325AbcHPVzM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Aug 2016 17:55:12 -0400
+	with ESMTP id S1752353AbcHQVGI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Aug 2016 17:06:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
-
-The mm-of-the-moment snapshot 2016-08-16-14-54 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: adobriyan@gmail.com, segoon@openwall.com, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: cred: simpler, 1D supplementary groups
+has been added to the -mm tree.  Its filename is
+     cred-simpler-1d-supplementary-groups.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/cred-simpler-1d-supplementary-groups.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/cred-simpler-1d-supplementary-groups.patch
 
-To develop on top of mmotm git:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-To rebase a branch with older patches to a new mmotm release:
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+------------------------------------------------------
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: cred: simpler, 1D supplementary groups
 
+Current supplementary groups code can massively overallocate memory and is
+implemented in a way so that access to individual gid is done via 2D
+array.
 
+If number of gids is <= 32, memory allocation is more or less tolerable
+(140/148 bytes).  But if it is not, code allocates full page (!)
+regardless and, what's even more fun, doesn't reuse small 32-entry array.
 
+2D array means dependent shifts, loads and LEAs without possibility to
+optimize them (gid is never known at compile time).
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+All of the above is unnecessary.  Switch to the usual
+trailing-zero-len-array scheme.  Memory is allocated with
+kmalloc/vmalloc() and only as much as needed.  Accesses become simpler
+(LEA 8(gi,idx,4) or even without displacement).
 
-A git copy of this tree is available at
+Maximum number of gids is 65536 which translates to 256KB+8 bytes.  I
+think kernel can handle such allocation.
 
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+On my usual desktop system with whole 9 (nine) aux groups,
+struct group_info shrinks from 148 bytes to 44 bytes, yay!
 
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+Nice side effects:
+* "gi->gid[i]" is shorter than "GROUP_AT(gi, i)", less typing,
 
+* fix little mess in net/ipv4/ping.c
+  should have been using GROUP_AT macro but this point becomes moot,
 
-This mmotm tree contains the following patches against 4.8-rc2:
-(patches marked "*" will be included in linux-next)
+* aux group allocation is persistent and should be accounted as such.
 
-  origin.patch
-  arch-alpha-kernel-systblss-remove-debug-check.patch
-  i-need-old-gcc.patch
-* byteswap-dont-use-__builtin_bswap-with-sparse.patch
-* get_maintainer-quiet-noisy-implicit-f-vcs_file_exists-checking.patch
-* mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve.patch
-* fadump-register-the-memory-reserved-by-fadump.patch
-* mm-slab-improve-performance-of-gathering-slabinfo-stats.patch
-* kthread-rename-probe_kthread_data-to-kthread_probe_data.patch
-* kthread-kthread-worker-api-cleanup.patch
-* kthread-smpboot-do-not-park-in-kthread_create_on_cpu.patch
-* kthread-allow-to-call-__kthread_create_on_node-with-va_list-args.patch
-* kthread-add-kthread_create_worker.patch
-* kthread-add-kthread_destroy_worker.patch
-* kthread-detect-when-a-kthread-work-is-used-by-more-workers.patch
-* kthread-initial-support-for-delayed-kthread-work.patch
-* kthread-allow-to-cancel-kthread-work.patch
-* kthread-allow-to-modify-delayed-kthread-work.patch
-* kthread-better-support-freezable-kthread-workers.patch
-* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-* kbuild-simpler-generation-of-assembly-constants.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
-  mm.patch
-* mm-oom-deduplicate-victim-selection-code-for-memcg-and-global-oom.patch
-* mm-zsmalloc-add-trace-events-for-zs_compact.patch
-* mm-zsmalloc-add-per-class-compact-trace-event.patch
-* mm-vmalloc-fix-align-value-calculation-error.patch
-* mm-vmalloc-fix-align-value-calculation-error-fix.patch
-* mm-vmalloc-fix-align-value-calculation-error-v2.patch
-* mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
-* mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
-* mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix-fix.patch
-* mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
-* mm-oom_killc-fix-task_will_free_mem-comment.patch
-* mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
-* mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
-* mm-compaction-cleanup-unused-functions.patch
-* mm-compaction-rename-compact_partial-to-compact_success.patch
-* mm-compaction-dont-recheck-watermarks-after-compact_success.patch
-* mm-compaction-add-the-ultimate-direct-compaction-priority.patch
-* mm-compaction-more-reliably-increase-direct-compaction-priority.patch
-* mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
-* mm-compaction-create-compact_gap-wrapper.patch
-* mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
-* mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
-* mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
-* mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node.patch
-* mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init.patch
-* mm-vmscan-get-rid-of-throttle_vm_writeout.patch
-* mm-debug_pagealloc-clean-up-guard-page-handling-code.patch
-* mm-debug_pagealloc-dont-allocate-page_ext-if-we-dont-use-guard-page.patch
-* mm-page_owner-move-page_owner-specific-function-to-page_ownerc.patch
-* mm-page_ext-rename-offset-to-index.patch
-* mm-page_ext-support-extra-space-allocation-by-page_ext-user.patch
-* mm-page_owner-dont-define-fields-on-struct-page_ext-by-hard-coding.patch
-* mm-page_owner-align-with-pageblock_nr-pages.patch
-* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
-* proc-much-faster-proc-vmstat.patch
-* proc-faster-proc-status.patch
-* seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
-* seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
-* meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
-* proc-relax-proc-tid-timerslack_ns-capability-requirements.patch
-* proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns.patch
-* console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
-* radix-tree-slot-can-be-null-in-radix_tree_next_slot.patch
-* radix-tree-tests-add-iteration-test.patch
-* radix-tree-tests-properly-initialize-mutex.patch
-* lib-add-crc64-ecma-module.patch
-* compat-remove-compat_printk.patch
-* autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
-* autofs-drop-unnecessary-extern-in-autofs_ih.patch
-* autofs-test-autofs-versions-first-on-sb-initialization.patch
-* autofs-fix-autofs4_fill_super-error-exit-handling.patch
-* autofs-add-warn_on1-for-non-dir-link-inode-case.patch
-* autofs-remove-ino-free-in-autofs4_dir_symlink.patch
-* autofs-use-autofs4_free_ino-to-kfree-dentry-data.patch
-* autofs-remove-obsolete-sb-fields.patch
-* autofs-dont-fail-to-free_dev_ioctlparam.patch
-* autofs-remove-autofs_devid_len.patch
-* autofs-fix-documentation-regarding-devid-on-ioctl.patch
-* autofs-update-struct-autofs_dev_ioctl-in-documentation.patch
-* autofs-fix-pr_debug-message.patch
-* autofs-fix-dev-ioctl-number-range-check.patch
-* autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd.patch
-* autofs-fix-print-format-for-ioctl-warning-message.patch
-* autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
-* autofs4-move-linux-auto_dev-ioctlh-to-uapi-linux.patch
-* pipe-check-limits-only-when-increasing-pipe-capacity.patch
-* pipe-make-pipe-user-buffer-limit-checks-more-precise.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code.patch
-* random-simplify-api-for-random-address-requests.patch
-* x86-use-simpler-api-for-random-address-requests.patch
-* arm-use-simpler-api-for-random-address-requests.patch
-* arm64-use-simpler-api-for-random-address-requests.patch
-* tile-use-simpler-api-for-random-address-requests.patch
-* unicore32-use-simpler-api-for-random-address-requests.patch
-* random-remove-unused-randomize_range.patch
-* dma-mapping-introduce-the-dma_attr_no_warn-attribute.patch
-* powerpc-implement-the-dma_attr_no_warn-attribute.patch
-* nvme-use-the-dma_attr_no_warn-attribute.patch
-* x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path.patch
-* mips-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path.patch
-* relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers.patch
-* config-android-remove-config_ipv6_privacy.patch
-* ipc-semc-fix-complex_count-vs-simple-op-race.patch
-* ipc-msg-implement-lockless-pipelined-wakeups.patch
-* ipc-msg-batch-queue-sender-wakeups.patch
-* ipc-msg-make-ss_wakeup-kill-arg-boolean.patch
-* ipc-msg-lockless-security-checks-for-msgsnd.patch
-* ipc-msg-avoid-waking-sender-upon-full-queue.patch
-* ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
-  linux-next.patch
-* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-* include-linux-mlx5-deviceh-kill-build_bug_ons.patch
-  mm-add-strictlimit-knob-v2.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
+Link: http://lkml.kernel.org/r/20160817201927.GA2096@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Vasily Kulikov <segoon@openwall.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/s390/kernel/compat_linux.c            |    4 -
+ drivers/staging/lustre/lustre/ptlrpc/sec.c |    2 
+ fs/nfsd/auth.c                             |    6 -
+ fs/nfsd/nfs4state.c                        |    2 
+ fs/proc/array.c                            |    2 
+ include/linux/cred.h                       |   11 ---
+ kernel/groups.c                            |   65 +++++--------------
+ kernel/uid16.c                             |    4 -
+ net/ipv4/ping.c                            |   15 +---
+ net/sunrpc/auth_generic.c                  |    4 -
+ net/sunrpc/auth_gss/gss_rpc_xdr.c          |    2 
+ net/sunrpc/auth_gss/svcauth_gss.c          |    2 
+ net/sunrpc/auth_unix.c                     |    4 -
+ net/sunrpc/svcauth_unix.c                  |    6 -
+ 14 files changed, 45 insertions(+), 84 deletions(-)
+
+diff -puN arch/s390/kernel/compat_linux.c~cred-simpler-1d-supplementary-groups arch/s390/kernel/compat_linux.c
+--- a/arch/s390/kernel/compat_linux.c~cred-simpler-1d-supplementary-groups
++++ a/arch/s390/kernel/compat_linux.c
+@@ -189,7 +189,7 @@ static int groups16_to_user(u16 __user *
+ 	kgid_t kgid;
+ 
+ 	for (i = 0; i < group_info->ngroups; i++) {
+-		kgid = GROUP_AT(group_info, i);
++		kgid = group_info->gid[i];
+ 		group = (u16)from_kgid_munged(user_ns, kgid);
+ 		if (put_user(group, grouplist+i))
+ 			return -EFAULT;
+@@ -213,7 +213,7 @@ static int groups16_from_user(struct gro
+ 		if (!gid_valid(kgid))
+ 			return -EINVAL;
+ 
+-		GROUP_AT(group_info, i) = kgid;
++		group_info->gid[i] = kgid;
+ 	}
+ 
+ 	return 0;
+diff -puN drivers/staging/lustre/lustre/ptlrpc/sec.c~cred-simpler-1d-supplementary-groups drivers/staging/lustre/lustre/ptlrpc/sec.c
+--- a/drivers/staging/lustre/lustre/ptlrpc/sec.c~cred-simpler-1d-supplementary-groups
++++ a/drivers/staging/lustre/lustre/ptlrpc/sec.c
+@@ -2204,7 +2204,7 @@ int sptlrpc_pack_user_desc(struct lustre
+ 	task_lock(current);
+ 	if (pud->pud_ngroups > current_ngroups)
+ 		pud->pud_ngroups = current_ngroups;
+-	memcpy(pud->pud_groups, current_cred()->group_info->blocks[0],
++	memcpy(pud->pud_groups, current_cred()->group_info->gid,
+ 	       pud->pud_ngroups * sizeof(__u32));
+ 	task_unlock(current);
+ 
+diff -puN fs/nfsd/auth.c~cred-simpler-1d-supplementary-groups fs/nfsd/auth.c
+--- a/fs/nfsd/auth.c~cred-simpler-1d-supplementary-groups
++++ a/fs/nfsd/auth.c
+@@ -55,10 +55,10 @@ int nfsd_setuser(struct svc_rqst *rqstp,
+ 			goto oom;
+ 
+ 		for (i = 0; i < rqgi->ngroups; i++) {
+-			if (gid_eq(GLOBAL_ROOT_GID, GROUP_AT(rqgi, i)))
+-				GROUP_AT(gi, i) = exp->ex_anon_gid;
++			if (gid_eq(GLOBAL_ROOT_GID, rqgi->gid[i]))
++				gi->gid[i] = exp->ex_anon_gid;
+ 			else
+-				GROUP_AT(gi, i) = GROUP_AT(rqgi, i);
++				gi->gid[i] = rqgi->gid[i];
+ 		}
+ 	} else {
+ 		gi = get_group_info(rqgi);
+diff -puN fs/nfsd/nfs4state.c~cred-simpler-1d-supplementary-groups fs/nfsd/nfs4state.c
+--- a/fs/nfsd/nfs4state.c~cred-simpler-1d-supplementary-groups
++++ a/fs/nfsd/nfs4state.c
+@@ -1903,7 +1903,7 @@ static bool groups_equal(struct group_in
+ 	if (g1->ngroups != g2->ngroups)
+ 		return false;
+ 	for (i=0; i<g1->ngroups; i++)
+-		if (!gid_eq(GROUP_AT(g1, i), GROUP_AT(g2, i)))
++		if (!gid_eq(g1->gid[i], g2->gid[i]))
+ 			return false;
+ 	return true;
+ }
+diff -puN fs/proc/array.c~cred-simpler-1d-supplementary-groups fs/proc/array.c
+--- a/fs/proc/array.c~cred-simpler-1d-supplementary-groups
++++ a/fs/proc/array.c
+@@ -207,7 +207,7 @@ static inline void task_state(struct seq
+ 	group_info = cred->group_info;
+ 	for (g = 0; g < group_info->ngroups; g++)
+ 		seq_put_decimal_ull(m, g ? " " : "",
+-				    from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
++				from_kgid_munged(user_ns, group_info->gid[g]));
+ 	put_cred(cred);
+ 	/* Trailing space shouldn't have been added in the first place. */
+ 	seq_putc(m, ' ');
+diff -puN include/linux/cred.h~cred-simpler-1d-supplementary-groups include/linux/cred.h
+--- a/include/linux/cred.h~cred-simpler-1d-supplementary-groups
++++ a/include/linux/cred.h
+@@ -26,15 +26,10 @@ struct inode;
+ /*
+  * COW Supplementary groups list
+  */
+-#define NGROUPS_SMALL		32
+-#define NGROUPS_PER_BLOCK	((unsigned int)(PAGE_SIZE / sizeof(kgid_t)))
+-
+ struct group_info {
+ 	atomic_t	usage;
+ 	int		ngroups;
+-	int		nblocks;
+-	kgid_t		small_block[NGROUPS_SMALL];
+-	kgid_t		*blocks[0];
++	kgid_t		gid[0];
+ };
+ 
+ /**
+@@ -88,10 +83,6 @@ extern void set_groups(struct cred *, st
+ extern int groups_search(const struct group_info *, kgid_t);
+ extern bool may_setgroups(void);
+ 
+-/* access the groups "array" with this macro */
+-#define GROUP_AT(gi, i) \
+-	((gi)->blocks[(i) / NGROUPS_PER_BLOCK][(i) % NGROUPS_PER_BLOCK])
+-
+ /*
+  * The security context of a task
+  *
+diff -puN kernel/groups.c~cred-simpler-1d-supplementary-groups kernel/groups.c
+--- a/kernel/groups.c~cred-simpler-1d-supplementary-groups
++++ a/kernel/groups.c
+@@ -7,55 +7,31 @@
+ #include <linux/security.h>
+ #include <linux/syscalls.h>
+ #include <linux/user_namespace.h>
++#include <linux/vmalloc.h>
+ #include <asm/uaccess.h>
+ 
+ struct group_info *groups_alloc(int gidsetsize)
+ {
+-	struct group_info *group_info;
+-	int nblocks;
+-	int i;
++	struct group_info *gi;
++	unsigned int len;
+ 
+-	nblocks = (gidsetsize + NGROUPS_PER_BLOCK - 1) / NGROUPS_PER_BLOCK;
+-	/* Make sure we always allocate at least one indirect block pointer */
+-	nblocks = nblocks ? : 1;
+-	group_info = kmalloc(sizeof(*group_info) + nblocks*sizeof(gid_t *), GFP_USER);
+-	if (!group_info)
++	len = sizeof(struct group_info) + sizeof(kgid_t) * gidsetsize;
++	gi = kmalloc(len, GFP_KERNEL_ACCOUNT|__GFP_NOWARN|__GFP_NORETRY);
++	if (!gi)
++		gi = __vmalloc(len, GFP_KERNEL_ACCOUNT|__GFP_HIGHMEM, PAGE_KERNEL);
++	if (!gi)
+ 		return NULL;
+-	group_info->ngroups = gidsetsize;
+-	group_info->nblocks = nblocks;
+-	atomic_set(&group_info->usage, 1);
+-
+-	if (gidsetsize <= NGROUPS_SMALL)
+-		group_info->blocks[0] = group_info->small_block;
+-	else {
+-		for (i = 0; i < nblocks; i++) {
+-			kgid_t *b;
+-			b = (void *)__get_free_page(GFP_USER);
+-			if (!b)
+-				goto out_undo_partial_alloc;
+-			group_info->blocks[i] = b;
+-		}
+-	}
+-	return group_info;
+ 
+-out_undo_partial_alloc:
+-	while (--i >= 0) {
+-		free_page((unsigned long)group_info->blocks[i]);
+-	}
+-	kfree(group_info);
+-	return NULL;
++	atomic_set(&gi->usage, 1);
++	gi->ngroups = gidsetsize;
++	return gi;
+ }
+ 
+ EXPORT_SYMBOL(groups_alloc);
+ 
+ void groups_free(struct group_info *group_info)
+ {
+-	if (group_info->blocks[0] != group_info->small_block) {
+-		int i;
+-		for (i = 0; i < group_info->nblocks; i++)
+-			free_page((unsigned long)group_info->blocks[i]);
+-	}
+-	kfree(group_info);
++	kvfree(group_info);
+ }
+ 
+ EXPORT_SYMBOL(groups_free);
+@@ -70,7 +46,7 @@ static int groups_to_user(gid_t __user *
+ 
+ 	for (i = 0; i < count; i++) {
+ 		gid_t gid;
+-		gid = from_kgid_munged(user_ns, GROUP_AT(group_info, i));
++		gid = from_kgid_munged(user_ns, group_info->gid[i]);
+ 		if (put_user(gid, grouplist+i))
+ 			return -EFAULT;
+ 	}
+@@ -95,7 +71,7 @@ static int groups_from_user(struct group
+ 		if (!gid_valid(kgid))
+ 			return -EINVAL;
+ 
+-		GROUP_AT(group_info, i) = kgid;
++		group_info->gid[i] = kgid;
+ 	}
+ 	return 0;
+ }
+@@ -115,15 +91,14 @@ static void groups_sort(struct group_inf
+ 		for (base = 0; base < max; base++) {
+ 			int left = base;
+ 			int right = left + stride;
+-			kgid_t tmp = GROUP_AT(group_info, right);
++			kgid_t tmp = group_info->gid[right];
+ 
+-			while (left >= 0 && gid_gt(GROUP_AT(group_info, left), tmp)) {
+-				GROUP_AT(group_info, right) =
+-				    GROUP_AT(group_info, left);
++			while (left >= 0 && gid_gt(group_info->gid[left], tmp)) {
++				group_info->gid[right] = group_info->gid[left];
+ 				right = left;
+ 				left -= stride;
+ 			}
+-			GROUP_AT(group_info, right) = tmp;
++			group_info->gid[right] = tmp;
+ 		}
+ 		stride /= 3;
+ 	}
+@@ -141,9 +116,9 @@ int groups_search(const struct group_inf
+ 	right = group_info->ngroups;
+ 	while (left < right) {
+ 		unsigned int mid = (left+right)/2;
+-		if (gid_gt(grp, GROUP_AT(group_info, mid)))
++		if (gid_gt(grp, group_info->gid[mid]))
+ 			left = mid + 1;
+-		else if (gid_lt(grp, GROUP_AT(group_info, mid)))
++		else if (gid_lt(grp, group_info->gid[mid]))
+ 			right = mid;
+ 		else
+ 			return 1;
+diff -puN kernel/uid16.c~cred-simpler-1d-supplementary-groups kernel/uid16.c
+--- a/kernel/uid16.c~cred-simpler-1d-supplementary-groups
++++ a/kernel/uid16.c
+@@ -117,7 +117,7 @@ static int groups16_to_user(old_gid_t __
+ 	kgid_t kgid;
+ 
+ 	for (i = 0; i < group_info->ngroups; i++) {
+-		kgid = GROUP_AT(group_info, i);
++		kgid = group_info->gid[i];
+ 		group = high2lowgid(from_kgid_munged(user_ns, kgid));
+ 		if (put_user(group, grouplist+i))
+ 			return -EFAULT;
+@@ -142,7 +142,7 @@ static int groups16_from_user(struct gro
+ 		if (!gid_valid(kgid))
+ 			return -EINVAL;
+ 
+-		GROUP_AT(group_info, i) = kgid;
++		group_info->gid[i] = kgid;
+ 	}
+ 
+ 	return 0;
+diff -puN net/ipv4/ping.c~cred-simpler-1d-supplementary-groups net/ipv4/ping.c
+--- a/net/ipv4/ping.c~cred-simpler-1d-supplementary-groups
++++ a/net/ipv4/ping.c
+@@ -258,7 +258,7 @@ int ping_init_sock(struct sock *sk)
+ 	struct net *net = sock_net(sk);
+ 	kgid_t group = current_egid();
+ 	struct group_info *group_info;
+-	int i, j, count;
++	int i;
+ 	kgid_t low, high;
+ 	int ret = 0;
+ 
+@@ -270,16 +270,11 @@ int ping_init_sock(struct sock *sk)
+ 		return 0;
+ 
+ 	group_info = get_current_groups();
+-	count = group_info->ngroups;
+-	for (i = 0; i < group_info->nblocks; i++) {
+-		int cp_count = min_t(int, NGROUPS_PER_BLOCK, count);
+-		for (j = 0; j < cp_count; j++) {
+-			kgid_t gid = group_info->blocks[i][j];
+-			if (gid_lte(low, gid) && gid_lte(gid, high))
+-				goto out_release_group;
+-		}
++	for (i = 0; i < group_info->ngroups; i++) {
++		kgid_t gid = group_info->gid[i];
+ 
+-		count -= cp_count;
++		if (gid_lte(low, gid) && gid_lte(gid, high))
++			goto out_release_group;
+ 	}
+ 
+ 	ret = -EACCES;
+diff -puN net/sunrpc/auth_generic.c~cred-simpler-1d-supplementary-groups net/sunrpc/auth_generic.c
+--- a/net/sunrpc/auth_generic.c~cred-simpler-1d-supplementary-groups
++++ a/net/sunrpc/auth_generic.c
+@@ -176,8 +176,8 @@ generic_match(struct auth_cred *acred, s
+ 	if (gcred->acred.group_info->ngroups != acred->group_info->ngroups)
+ 		goto out_nomatch;
+ 	for (i = 0; i < gcred->acred.group_info->ngroups; i++) {
+-		if (!gid_eq(GROUP_AT(gcred->acred.group_info, i),
+-				GROUP_AT(acred->group_info, i)))
++		if (!gid_eq(gcred->acred.group_info->gid[i],
++				acred->group_info->gid[i]))
+ 			goto out_nomatch;
+ 	}
+ out_match:
+diff -puN net/sunrpc/auth_gss/gss_rpc_xdr.c~cred-simpler-1d-supplementary-groups net/sunrpc/auth_gss/gss_rpc_xdr.c
+--- a/net/sunrpc/auth_gss/gss_rpc_xdr.c~cred-simpler-1d-supplementary-groups
++++ a/net/sunrpc/auth_gss/gss_rpc_xdr.c
+@@ -229,7 +229,7 @@ static int gssx_dec_linux_creds(struct x
+ 		kgid = make_kgid(&init_user_ns, tmp);
+ 		if (!gid_valid(kgid))
+ 			goto out_free_groups;
+-		GROUP_AT(creds->cr_group_info, i) = kgid;
++		creds->cr_group_info->gid[i] = kgid;
+ 	}
+ 
+ 	return 0;
+diff -puN net/sunrpc/auth_gss/svcauth_gss.c~cred-simpler-1d-supplementary-groups net/sunrpc/auth_gss/svcauth_gss.c
+--- a/net/sunrpc/auth_gss/svcauth_gss.c~cred-simpler-1d-supplementary-groups
++++ a/net/sunrpc/auth_gss/svcauth_gss.c
+@@ -479,7 +479,7 @@ static int rsc_parse(struct cache_detail
+ 			kgid = make_kgid(&init_user_ns, id);
+ 			if (!gid_valid(kgid))
+ 				goto out;
+-			GROUP_AT(rsci.cred.cr_group_info, i) = kgid;
++			rsci.cred.cr_group_info->gid[i] = kgid;
+ 		}
+ 
+ 		/* mech name */
+diff -puN net/sunrpc/auth_unix.c~cred-simpler-1d-supplementary-groups net/sunrpc/auth_unix.c
+--- a/net/sunrpc/auth_unix.c~cred-simpler-1d-supplementary-groups
++++ a/net/sunrpc/auth_unix.c
+@@ -79,7 +79,7 @@ unx_create_cred(struct rpc_auth *auth, s
+ 
+ 	cred->uc_gid = acred->gid;
+ 	for (i = 0; i < groups; i++)
+-		cred->uc_gids[i] = GROUP_AT(acred->group_info, i);
++		cred->uc_gids[i] = acred->group_info->gid[i];
+ 	if (i < NFS_NGROUPS)
+ 		cred->uc_gids[i] = INVALID_GID;
+ 
+@@ -127,7 +127,7 @@ unx_match(struct auth_cred *acred, struc
+ 	if (groups > NFS_NGROUPS)
+ 		groups = NFS_NGROUPS;
+ 	for (i = 0; i < groups ; i++)
+-		if (!gid_eq(cred->uc_gids[i], GROUP_AT(acred->group_info, i)))
++		if (!gid_eq(cred->uc_gids[i], acred->group_info->gid[i]))
+ 			return 0;
+ 	if (groups < NFS_NGROUPS && gid_valid(cred->uc_gids[groups]))
+ 		return 0;
+diff -puN net/sunrpc/svcauth_unix.c~cred-simpler-1d-supplementary-groups net/sunrpc/svcauth_unix.c
+--- a/net/sunrpc/svcauth_unix.c~cred-simpler-1d-supplementary-groups
++++ a/net/sunrpc/svcauth_unix.c
+@@ -517,7 +517,7 @@ static int unix_gid_parse(struct cache_d
+ 		kgid = make_kgid(&init_user_ns, gid);
+ 		if (!gid_valid(kgid))
+ 			goto out;
+-		GROUP_AT(ug.gi, i) = kgid;
++		ug.gi->gid[i] = kgid;
+ 	}
+ 
+ 	ugp = unix_gid_lookup(cd, uid);
+@@ -564,7 +564,7 @@ static int unix_gid_show(struct seq_file
+ 
+ 	seq_printf(m, "%u %d:", from_kuid_munged(user_ns, ug->uid), glen);
+ 	for (i = 0; i < glen; i++)
+-		seq_printf(m, " %d", from_kgid_munged(user_ns, GROUP_AT(ug->gi, i)));
++		seq_printf(m, " %d", from_kgid_munged(user_ns, ug->gi->gid[i]));
+ 	seq_printf(m, "\n");
+ 	return 0;
+ }
+@@ -817,7 +817,7 @@ svcauth_unix_accept(struct svc_rqst *rqs
+ 		return SVC_CLOSE;
+ 	for (i = 0; i < slen; i++) {
+ 		kgid_t kgid = make_kgid(&init_user_ns, svc_getnl(argv));
+-		GROUP_AT(cred->cr_group_info, i) = kgid;
++		cred->cr_group_info->gid[i] = kgid;
+ 	}
+ 	if (svc_getu32(argv) != htonl(RPC_AUTH_NULL) || svc_getu32(argv) != 0) {
+ 		*authp = rpc_autherr_badverf;
+_
+
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+kbuild-simpler-generation-of-assembly-constants.patch
+proc-much-faster-proc-vmstat.patch
+proc-faster-proc-status.patch
+cred-simpler-1d-supplementary-groups.patch
+
