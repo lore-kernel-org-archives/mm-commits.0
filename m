@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-create-compact_gap-wrapper-fix.patch added to -mm tree
-Date: Thu, 18 Aug 2016 14:53:51 -0700
-Message-ID: <57b62e6f.gjSm92+vkAb8vxUA%akpm@linux-foundation.org>
+Subject: + min-max-remove-sparse-warnings-when-theyre-nested.patch added
+ to -mm tree
+Date: Thu, 18 Aug 2016 14:55:47 -0700
+Message-ID: <57b62ee3.PKyGbnssgPSSQpyl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51608 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51606 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754792AbcHSCly (ORCPT
+        with ESMTP id S1754726AbcHSCly (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Aug 2016 22:41:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: johannes.berg@intel.com, axboe@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-create-compact_gap-wrapper-fix
+     Subject: min/max: remove sparse warnings when they're nested
 has been added to the -mm tree.  Its filename is
-     mm-compaction-create-compact_gap-wrapper-fix.patch
+     min-max-remove-sparse-warnings-when-theyre-nested.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-create-compact_gap-wrapper-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/min-max-remove-sparse-warnings-when-theyre-nested.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-create-compact_gap-wrapper-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/min-max-remove-sparse-warnings-when-theyre-nested.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,62 +39,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-compaction-create-compact_gap-wrapper-fix
+From: Johannes Berg <johannes.berg@intel.com>
+Subject: min/max: remove sparse warnings when they're nested
 
-Clarify the comment of compact_gap() wrt COMPACT_CLUSTER_MAX, per Joonsoo.
+Currently, when min/max are nested within themselves, sparse will warn:
 
-Link: http://lkml.kernel.org/r/7b6aed1f-fdf8-2063-9ff4-bbe4de712d37@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+    warning: symbol '_min1' shadows an earlier one
+    originally declared here
+    warning: symbol '_min1' shadows an earlier one
+    originally declared here
+    warning: symbol '_min2' shadows an earlier one
+    originally declared here
+
+This also immediately happens when min3() or max3() are used.
+
+Since sparse implements __COUNTER__, we can use __UNIQUE_ID() to generate
+unique variable names, avoiding this.
+
+Link: http://lkml.kernel.org/r/1471519773-29882-1-git-send-email-johannes@sipsolutions.net
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ include/linux/kernel.h |   48 ++++++++++++++++++++++-----------------
+ 1 file changed, 28 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-create-compact_gap-wrapper-fix include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-create-compact_gap-wrapper-fix
-+++ a/include/linux/compaction.h
-@@ -67,9 +67,16 @@ static inline unsigned long compact_gap(
- {
- 	/*
- 	 * Although all the isolations for migration are temporary, compaction
--	 * may have up to 1 << order pages on its list and then try to split
--	 * an (order - 1) free page. At that point, a gap of 1 << order might
--	 * not be enough, so it's safer to require twice that amount.
-+	 * free scanner may have up to 1 << order pages on its list and then
-+	 * try to split an (order - 1) free page. At that point, a gap of
-+	 * 1 << order might not be enough, so it's safer to require twice that
-+	 * amount. Note that the number of pages on the list is also
-+	 * effectively limited by COMPACT_CLUSTER_MAX, as that's the maximum
-+	 * that the migrate scanner can have isolated on migrate list, and free
-+	 * scanner is only invoked when the number of isolated free pages is
-+	 * lower than that. But it's not worth to complicate the formula here
-+	 * as a bigger gap for higher orders than strictly necessary can also
-+	 * improve chances of compaction success.
- 	 */
- 	return 2UL << order;
- }
-_
-
-Patches currently in -mm which might be from vbabka@suse.cz are
-
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
-mm-compaction-cleanup-unused-functions.patch
-mm-compaction-rename-compact_partial-to-compact_success.patch
-mm-compaction-dont-recheck-watermarks-after-compact_success.patch
-mm-compaction-add-the-ultimate-direct-compaction-priority.patch
-mm-compaction-more-reliably-increase-direct-compaction-priority.patch
-mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
-mm-compaction-create-compact_gap-wrapper.patch
-mm-compaction-create-compact_gap-wrapper-fix.patch
-mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
-mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
-mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
-mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
-
+diff -puN include/linux/kernel.h~min-max-remove-sparse-warnings-when-theyre-nested include/linux/kernel.h
+--- a/include/linux/kernel.h~min-max-remove-sparse-warnings-when-theyre-nested
++++ a/include/linux/kernel.h
+@@ -736,17 +736,25 @@ static inline void ftrace_dump(enum ftra
+  * strict type-checking.. See the
+  * "unnecessary" pointer comparison.
+  */
+-#define min(x, y) ({				\
+-	typeof(x) _min1 = (x);			\
+-	typeof(y) _min2 = (y);			\
+-	(void) (&_min1 == &_min2);		\
+-	_min1 < _min2 ? _min1 : _min2; })
+-
+-#define max(x, y) ({				\
+-	typeof(x) _max1 = (x);			\
+-	typeof(y) _max2 = (y);			\
+-	(void) (&_max1 == &_max2);		\
+-	_max1 > _max2 ? _max1 : _max2; })
++#define __min(t1, t2, min1, min2, x, y) ({		\
++	t1 min1 = (x);					\
++	t2 min2 = (y);					\
++	(void) (&min1 == &min2);			\
++	min1 < min2 ? min1 : min2; })
++#define min(x, y)					\
++	__min(typeof(x), typeof(y),			\
++	      __UNIQUE_ID(min1_), __UNIQUE_ID(min2_),	\
++	      x, y)
++
++#define __max(t1, t2, max1, max2, x, y) ({		\
++	t1 max1 = (x);					\
++	t2 max2 = (y);					\
++	(void) (&max1 == &max2);			\
++	max1 > max2 ? max1 : max2; })
++#define max(x, y)					\
++	__max(typeof(x), typeof(y),			\
++	      __UNIQUE_ID(max1_), __UNIQUE_ID(max2_),	\
++	      x, y)
+ 
+ #define min3(x, y, z) min((typeof(x))min(x, y), z)
+ #define max3(x, y, z) max((typeof(x))max(x, y), z)
+@@ -778,15 +786,15 @@ static inline void ftrace_dump(enum ftra
+  *
+  * Or not use min/max/clamp at all, of course.
+  */
+-#define min_t(type, x, y) ({			\
+-	type __min1 = (x);			\
+-	type __min2 = (y);			\
+-	__min1 < __min2 ? __min1: __min2; })
