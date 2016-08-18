@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- sysctl-handle-error-writing-uint_max-to-u32-fields-checkpatch-fixes.patch
- added to -mm tree
-Date: Thu, 18 Aug 2016 15:02:56 -0700
-Message-ID: <57b63090.37UP1jFBnnhgQXiv%akpm@linux-foundation.org>
+Subject: + kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch added to -mm tree
+Date: Thu, 18 Aug 2016 14:49:25 -0700
+Message-ID: <57b62d65.4UYicdko0mWG2wsq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51324 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51594 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754556AbcHSB5F (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Aug 2016 21:57:05 -0400
+        with ESMTP id S1754943AbcHSChA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 18 Aug 2016 22:37:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, subashab@codeaurora.org, mm-commits@vger.kernel.org
+To: thgarnie@google.com, d.hatayama@jp.fujitsu.com, ebiederm@xmission.com, hpa@zytor.com, keescook@chromium.org, mingo@redhat.com, surovegin@google.com, tglx@linutronix.de, xlpang@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl-handle-error-writing-uint_max-to-u32-fields-checkpatch-fixes
+     Subject: kdump, vmcoreinfo: report memory sections virtual addresses
 has been added to the -mm tree.  Its filename is
-     sysctl-handle-error-writing-uint_max-to-u32-fields-checkpatch-fixes.patch
+     kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-handle-error-writing-uint_max-to-u32-fields-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-handle-error-writing-uint_max-to-u32-fields-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,96 +38,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sysctl-handle-error-writing-uint_max-to-u32-fields-checkpatch-fixes
+From: Thomas Garnier <thgarnie@google.com>
+Subject: kdump, vmcoreinfo: report memory sections virtual addresses
 
-WARNING: please, no spaces at the start of a line
-#101: FILE: kernel/sysctl.c:2297:
-+    return do_proc_dointvec(table,write,buffer,lenp,ppos,$
+KASLR memory randomization can randomize the base of the physical memory
+mapping (PAGE_OFFSET), vmalloc (VMALLOC_START) and vmemmap
+(VMEMMAP_START).  Adding these variables on VMCOREINFO so tools can easily
+identify the base of each memory section.
 
-ERROR: space required after that ',' (ctx:VxV)
-#101: FILE: kernel/sysctl.c:2297:
-+    return do_proc_dointvec(table,write,buffer,lenp,ppos,
-                                  ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#101: FILE: kernel/sysctl.c:2297:
-+    return do_proc_dointvec(table,write,buffer,lenp,ppos,
-                                        ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#101: FILE: kernel/sysctl.c:2297:
-+    return do_proc_dointvec(table,write,buffer,lenp,ppos,
-                                               ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#101: FILE: kernel/sysctl.c:2297:
-+    return do_proc_dointvec(table,write,buffer,lenp,ppos,
-                                                    ^
-
-WARNING: ENOSYS means 'invalid syscall nr' and nothing else
-#115: FILE: kernel/sysctl.c:2899:
-+	return -ENOSYS;
-
-total: 4 errors, 2 warnings, 74 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/sysctl-handle-error-writing-uint_max-to-u32-fields.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Link: http://lkml.kernel.org/r/1471531632-23003-1-git-send-email-thgarnie@google.com
+Signed-off-by: Thomas Garnier <thgarnie@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H . Peter Anvin" <hpa@zytor.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Xunlei Pang <xlpang@redhat.com>
+Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Eugene Surovegin <surovegin@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/x86/kernel/machine_kexec_64.c |    3 +++
+ include/linux/kexec.h              |    6 ++++++
+ 2 files changed, 9 insertions(+)
 
-diff -puN kernel/sysctl.c~sysctl-handle-error-writing-uint_max-to-u32-fields-checkpatch-fixes kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-handle-error-writing-uint_max-to-u32-fields-checkpatch-fixes
-+++ a/kernel/sysctl.c
-@@ -2274,8 +2274,7 @@ static int do_proc_dointvec(struct ctl_t
- int proc_dointvec(struct ctl_table *table, int write,
- 		     void __user *buffer, size_t *lenp, loff_t *ppos)
- {
--    return do_proc_dointvec(table,write,buffer,lenp,ppos,
--		    	    NULL,NULL);
-+    return do_proc_dointvec(table, write, buffer, lenp, ppos, NULL, NULL);
+diff -puN arch/x86/kernel/machine_kexec_64.c~kdump-vmcoreinfo-report-memory-sections-virtual-addresses arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~kdump-vmcoreinfo-report-memory-sections-virtual-addresses
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -338,6 +338,9 @@ void arch_crash_save_vmcoreinfo(void)
+ 	vmcoreinfo_append_str("KERNELOFFSET=%lx\n",
+ 			      kaslr_offset());
+ 	VMCOREINFO_PHYS_BASE(phys_base);
++	VMCOREINFO_PAGE_OFFSET(PAGE_OFFSET);
++	VMCOREINFO_VMALLOC_START(VMALLOC_START);
++	VMCOREINFO_VMEMMAP_START(VMEMMAP_START);
  }
  
- /**
-@@ -2294,7 +2293,7 @@ int proc_dointvec(struct ctl_table *tabl
- int proc_douintvec(struct ctl_table *table, int write,
- 		     void __user *buffer, size_t *lenp, loff_t *ppos)
- {
--    return do_proc_dointvec(table,write,buffer,lenp,ppos,
-+    return do_proc_dointvec(table, write, buffer, lenp, ppos,
- 			    do_proc_douintvec_conv, NULL);
- }
+ /* arch-dependent functionality related to kexec file-based syscall */
+diff -puN include/linux/kexec.h~kdump-vmcoreinfo-report-memory-sections-virtual-addresses include/linux/kexec.h
+--- a/include/linux/kexec.h~kdump-vmcoreinfo-report-memory-sections-virtual-addresses
++++ a/include/linux/kexec.h
+@@ -261,6 +261,12 @@ phys_addr_t paddr_vmcoreinfo_note(void);
+ 	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
+ #define VMCOREINFO_PHYS_BASE(value) \
+ 	vmcoreinfo_append_str("PHYS_BASE=%lx\n", (unsigned long)value)
++#define VMCOREINFO_PAGE_OFFSET(value) \
++	vmcoreinfo_append_str("PAGE_OFFSET=%lx\n", (unsigned long)value)
++#define VMCOREINFO_VMALLOC_START(value) \
++	vmcoreinfo_append_str("VMALLOC_START=%lx\n", (unsigned long)value)
++#define VMCOREINFO_VMEMMAP_START(value) \
++	vmcoreinfo_append_str("VMEMMAP_START=%lx\n", (unsigned long)value)
  
+ extern struct kimage *kexec_image;
+ extern struct kimage *kexec_crash_image;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from thgarnie@google.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-sysctl-handle-error-writing-uint_max-to-u32-fields-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-vmalloc-fix-align-value-calculation-error-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
-ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-mlx5-deviceh-kill-build_bug_ons.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
 
