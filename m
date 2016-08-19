@@ -1,136 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: + soft_dirty-fix-soft_dirty-during-thp-split.patch added to -mm
- tree
-Date: Fri, 19 Aug 2016 14:20:06 -0700
-Message-ID: <57b77806.Qk5/XaaQ9VMq0lg5%akpm@linux-foundation.org>
+Subject: mmotm 2016-08-19-15-39 uploaded
+Date: Fri, 19 Aug 2016 15:40:30 -0700
+Message-ID: <57b78ade.uh9bbdvXIBPH6KA2%akpm__25777.6369377554$1471646440$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42302 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42801 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754171AbcHSVVa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Aug 2016 17:21:30 -0400
+        with ESMTP id S1752435AbcHSWkc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 19 Aug 2016 18:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, kirill@shutemov.name, stable@vger.kernel.org, xemul@virtuozzo.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
+
+The mm-of-the-moment snapshot 2016-08-19-15-39 has been uploaded to
+
+   http://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+http://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
+
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
 
 
-The patch titled
-     Subject: soft_dirty: fix soft_dirty during THP split
-has been added to the -mm tree.  Its filename is
-     soft_dirty-fix-soft_dirty-during-thp-split.patch
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/soft_dirty-fix-soft_dirty-during-thp-split.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/soft_dirty-fix-soft_dirty-during-thp-split.patch
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+To develop on top of mmotm git:
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+To rebase a branch with older patches to a new mmotm release:
 
-------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: soft_dirty: fix soft_dirty during THP split
-
-While adding proper userfaultfd_wp support with bits in pagetable and swap
-entry to avoid false positives WP userfaults through swap/fork/KSM/etc.. 
-I've been adding a framework that mostly mirrors soft dirty.
-
-So I noticed in one place I had to add uffd_wp support to the pagetables
-that wasn't covered by soft_dirty and I think it should have.
-
-Example: in the THP migration code migrate_misplaced_transhuge_page()
-pmd_mkdirty is called unconditionally after mk_huge_pmd.
-
-	entry = mk_huge_pmd(new_page, vma->vm_page_prot);
-	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
-
-That sets soft dirty too (it's a false positive for soft dirty, the soft
-dirty bit could be more finegrained and transfer the bit like uffd_wp will
-do..  pmd/pte_uffd_wp() enforces the invariant that when it's set
-pmd/pte_write is not set).
-
-However in the THP split there's no unconditional pmd_mkdirty after
-mk_huge_pmd and pte_swp_mksoft_dirty isn't called after the migration
-entry is created.  The code sets the dirty bit in the struct page instead
-of setting it in the pagetable (which is fully equivalent as far as the
-real dirty bit is concerned, as the whole point of pagetable bits is to be
-eventually flushed out of to the page, but that is not equivalent for the
-soft-dirty bit that gets lost in translation).
-
-This was found by code review only and totally untested as I'm working to
-actually replace soft dirty and I don't have time to test potential soft
-dirty bugfixes as well :).
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
 
 
-Transfer the soft_dirty from pmd to pte during THP splits.
 
-This fix avoids losing the soft_dirty bit and avoids userland memory
-corruption in the checkpoint.
 
-Fixes: eef1b3ba053aa6 ("thp: implement split_huge_pmd()")
-Link: http://lkml.kernel.org/r/1471610515-30229-2-git-send-email-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Pavel Emelyanov <xemul@virtuozzo.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
- mm/huge_memory.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+A git copy of this tree is available at
 
-diff -puN mm/huge_memory.c~soft_dirty-fix-soft_dirty-during-thp-split mm/huge_memory.c
---- a/mm/huge_memory.c~soft_dirty-fix-soft_dirty-during-thp-split
-+++ a/mm/huge_memory.c
-@@ -1512,7 +1512,7 @@ static void __split_huge_pmd_locked(stru
- 	struct page *page;
- 	pgtable_t pgtable;
- 	pmd_t _pmd;
--	bool young, write, dirty;
-+	bool young, write, dirty, soft_dirty;
- 	unsigned long addr;
- 	int i;
- 
-@@ -1546,6 +1546,7 @@ static void __split_huge_pmd_locked(stru
- 	write = pmd_write(*pmd);
- 	young = pmd_young(*pmd);
- 	dirty = pmd_dirty(*pmd);
-+	soft_dirty = pmd_soft_dirty(*pmd);
- 
- 	pmdp_huge_split_prepare(vma, haddr, pmd);
- 	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
-@@ -1562,6 +1563,8 @@ static void __split_huge_pmd_locked(stru
- 			swp_entry_t swp_entry;
- 			swp_entry = make_migration_entry(page + i, write);
- 			entry = swp_entry_to_pte(swp_entry);
-+			if (soft_dirty)
-+				entry = pte_swp_mksoft_dirty(entry);
- 		} else {
- 			entry = mk_pte(page + i, vma->vm_page_prot);
- 			entry = maybe_mkwrite(entry, vma);
-@@ -1569,6 +1572,8 @@ static void __split_huge_pmd_locked(stru
- 				entry = pte_wrprotect(entry);
- 			if (!young)
- 				entry = pte_mkold(entry);
-+			if (soft_dirty)
-+				entry = pte_mksoft_dirty(entry);
- 		}
- 		if (dirty)
- 			SetPageDirty(page + i);
-_
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
 
-soft_dirty-fix-soft_dirty-during-thp-split.patch
 
+This mmotm tree contains the following patches against 4.8-rc2:
+(patches marked "*" will be included in linux-next)
+
+  origin.patch
+  arch-alpha-kernel-systblss-remove-debug-check.patch
+  i-need-old-gcc.patch
+* byteswap-dont-use-__builtin_bswap-with-sparse.patch
+* get_maintainer-quiet-noisy-implicit-f-vcs_file_exists-checking.patch
+* sysctl-handle-error-writing-uint_max-to-u32-fields.patch
+* sysctl-handle-error-writing-uint_max-to-u32-fields-checkpatch-fixes.patch
+* sysctl-handle-error-writing-uint_max-to-u32-fields-checkpatch-fixes-checkpatch-fixes.patch
+* stackdepot-fix-mempolicy-use-after-free.patch
+* soft_dirty-fix-soft_dirty-during-thp-split.patch
+* mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve.patch
+* fadump-register-the-memory-reserved-by-fadump.patch
+* mm-slab-improve-performance-of-gathering-slabinfo-stats.patch
+* kthread-rename-probe_kthread_data-to-kthread_probe_data.patch
+* kthread-kthread-worker-api-cleanup.patch
+* kthread-smpboot-do-not-park-in-kthread_create_on_cpu.patch
+* kthread-allow-to-call-__kthread_create_on_node-with-va_list-args.patch
+* kthread-add-kthread_create_worker.patch
+* kthread-add-kthread_destroy_worker.patch
+* kthread-detect-when-a-kthread-work-is-used-by-more-workers.patch
+* kthread-initial-support-for-delayed-kthread-work.patch
+* kthread-allow-to-cancel-kthread-work.patch
+* kthread-allow-to-modify-delayed-kthread-work.patch
+* kthread-better-support-freezable-kthread-workers.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* kbuild-simpler-generation-of-assembly-constants.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+* kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
+  mm.patch
+* mm-oom-deduplicate-victim-selection-code-for-memcg-and-global-oom.patch
+* mm-zsmalloc-add-trace-events-for-zs_compact.patch
+* mm-zsmalloc-add-per-class-compact-trace-event.patch
+* mm-vmalloc-fix-align-value-calculation-error.patch
+* mm-vmalloc-fix-align-value-calculation-error-fix.patch
+* mm-vmalloc-fix-align-value-calculation-error-v2.patch
+* mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
+* mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+* mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix-fix.patch
+* mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
+* mm-oom_killc-fix-task_will_free_mem-comment.patch
+* mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
+* mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+* mm-compaction-cleanup-unused-functions.patch
+* mm-compaction-rename-compact_partial-to-compact_success.patch
+* mm-compaction-dont-recheck-watermarks-after-compact_success.patch
+* mm-compaction-add-the-ultimate-direct-compaction-priority.patch
+* mm-compaction-add-the-ultimate-direct-compaction-priority-fix.patch
+* mm-compaction-more-reliably-increase-direct-compaction-priority.patch
+* mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
+* mm-compaction-create-compact_gap-wrapper.patch
+* mm-compaction-create-compact_gap-wrapper-fix.patch
+* mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
+* mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
+* mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
+* mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
+* mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node.patch
+* mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init.patch
+* mm-vmscan-get-rid-of-throttle_vm_writeout.patch
+* mm-debug_pagealloc-clean-up-guard-page-handling-code.patch
+* mm-debug_pagealloc-dont-allocate-page_ext-if-we-dont-use-guard-page.patch
+* mm-page_owner-move-page_owner-specific-function-to-page_ownerc.patch
+* mm-page_ext-rename-offset-to-index.patch
+* mm-page_ext-support-extra-space-allocation-by-page_ext-user.patch
+* mm-page_owner-dont-define-fields-on-struct-page_ext-by-hard-coding.patch
+* do_generic_file_read-fail-immediately-if-killed.patch
+* mm-kmemleak-avoid-using-__va-on-addresses-that-dont-have-a-lowmem-mapping.patch
+* mm-pagewalk-fix-the-comment-for-test_walk.patch
+* mm-page_owner-align-with-pageblock_nr-pages.patch
+* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+* proc-much-faster-proc-vmstat.patch
+* proc-faster-proc-status.patch
+* seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
+* seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+* meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
+* proc-relax-proc-tid-timerslack_ns-capability-requirements.patch
+* proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns.patch
+* min-max-remove-sparse-warnings-when-theyre-nested.patch
+* cred-simpler-1d-supplementary-groups.patch
+* console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
+* radix-tree-slot-can-be-null-in-radix_tree_next_slot.patch
+* radix-tree-tests-add-iteration-test.patch
+* radix-tree-tests-properly-initialize-mutex.patch
+* lib-add-crc64-ecma-module.patch
+* compat-remove-compat_printk.patch
+* autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
+* autofs-drop-unnecessary-extern-in-autofs_ih.patch
+* autofs-test-autofs-versions-first-on-sb-initialization.patch
+* autofs-fix-autofs4_fill_super-error-exit-handling.patch
+* autofs-add-warn_on1-for-non-dir-link-inode-case.patch
+* autofs-remove-ino-free-in-autofs4_dir_symlink.patch
+* autofs-use-autofs4_free_ino-to-kfree-dentry-data.patch
+* autofs-remove-obsolete-sb-fields.patch
+* autofs-dont-fail-to-free_dev_ioctlparam.patch
+* autofs-remove-autofs_devid_len.patch
+* autofs-fix-documentation-regarding-devid-on-ioctl.patch
+* autofs-update-struct-autofs_dev_ioctl-in-documentation.patch
+* autofs-fix-pr_debug-message.patch
+* autofs-fix-dev-ioctl-number-range-check.patch
+* autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd.patch
+* autofs-fix-print-format-for-ioctl-warning-message.patch
+* autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+* autofs4-move-linux-auto_dev-ioctlh-to-uapi-linux.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code.patch
+* random-simplify-api-for-random-address-requests.patch
+* x86-use-simpler-api-for-random-address-requests.patch
+* arm-use-simpler-api-for-random-address-requests.patch
+* arm64-use-simpler-api-for-random-address-requests.patch
+* tile-use-simpler-api-for-random-address-requests.patch
+* unicore32-use-simpler-api-for-random-address-requests.patch
+* random-remove-unused-randomize_range.patch
+* dma-mapping-introduce-the-dma_attr_no_warn-attribute.patch
+* powerpc-implement-the-dma_attr_no_warn-attribute.patch
+* nvme-use-the-dma_attr_no_warn-attribute.patch
+* x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path.patch
+* mips-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path.patch
+* relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers.patch
+* config-android-remove-config_ipv6_privacy.patch
+* ipc-semc-fix-complex_count-vs-simple-op-race.patch
+* ipc-msg-implement-lockless-pipelined-wakeups.patch
+* ipc-msg-batch-queue-sender-wakeups.patch
+* ipc-msg-make-ss_wakeup-kill-arg-boolean.patch
+* ipc-msg-lockless-security-checks-for-msgsnd.patch
+* ipc-msg-avoid-waking-sender-upon-full-queue.patch
+* ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+  linux-next.patch
+  linux-next-git-rejects.patch
+* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+* include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+* kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  make-frame_pointer-default=y.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  add-debugging-aid-for-memory-initialisation-problems.patch
+  workaround-for-a-pci-restoring-bug.patch
