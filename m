@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
- added to -mm tree
-Date: Mon, 22 Aug 2016 15:27:52 -0700
-Message-ID: <57bb7c68.0PoPscLhazO37+hM%akpm@linux-foundation.org>
+Subject: + mm-unrig-vma-cache-hit-ratio.patch added to -mm tree
+Date: Mon, 22 Aug 2016 16:06:05 -0700
+Message-ID: <57bb855d.viL/LVZuC1iy+tLO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56379 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756227AbcHVW22 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2016 18:28:28 -0400
+        with ESMTP id S1754721AbcHVXGG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2016 19:06:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: see if modified files are marked obsolete in MAINTAINERS
+     Subject: mm: unrig VMA cache hit ratio
 has been added to the -mm tree.  Its filename is
-     checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+     mm-unrig-vma-cache-hit-ratio.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-unrig-vma-cache-hit-ratio.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-unrig-vma-cache-hit-ratio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,58 +38,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: see if modified files are marked obsolete in MAINTAINERS
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: mm: unrig VMA cache hit ratio
 
-Use get_maintainer to check the status of individual files.  If
-"obsolete", suggest leaving the files alone.
+Current code doesn't count first FIND operation after VMA cache flush
+(which happen surprisingly often) artificially increasing cache hit ratio.
 
-Link: http://lkml.kernel.org/r/7ceaa510dc9d2df05ec4b456baed7bb1415550b3.1471889575.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
- SF Markus Elfring <elfring@users.sourceforge.net>
+On my regular setup the difference is:
+
+		Before				After
+	==========================================================
+
+	* boot, login into KDE
+
+	vmacache_find_calls 446216	vmacache_find_calls 492741
+	vmacache_find_hits 277596	vmacache_find_hits 276096
+
+		~62.2%				~56.0%
+
+	* rebuild kernel (no changes to code, usual config)
+
+	vmacache_find_calls 1943007	vmacache_find_calls 2083718
+	vmacache_find_hits 1246123	vmacache_find_hits 1244146
+
+		~64.1%				~59.7%
+
+	* rebuild kernel (full rebuild, usual config)
+
+	vmacache_find_calls 32163155	vmacache_find_calls 33677183
+	vmacache_find_hits 27889956	vmacache_find_hits 27877591
+
+		~88.2%				~84.3%
+
+Total: ~4% cache hit ratio.
+
+If someone is counting _relative_ cache _miss_ ratio, misreporting is much
+higher.
+
+Link: http://lkml.kernel.org/r/20160822225009.GA3934@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/vmacache.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers
-+++ a/scripts/checkpatch.pl
-@@ -704,6 +704,16 @@ sub seed_camelcase_file {
- 	}
- }
+diff -puN mm/vmacache.c~mm-unrig-vma-cache-hit-ratio mm/vmacache.c
+--- a/mm/vmacache.c~mm-unrig-vma-cache-hit-ratio
++++ a/mm/vmacache.c
+@@ -87,11 +87,11 @@ struct vm_area_struct *vmacache_find(str
+ {
+ 	int i;
  
-+sub is_maintained_obsolete {
-+	my ($filename) = @_;
++	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
 +
-+	return 0 if (!(-e "$root/scripts/get_maintainer.pl"));
-+
-+	my $status = `perl $root/scripts/get_maintainer.pl --status --nom --nol --nogit --nogit-fallback $filename 2>&1`;
-+
-+	return $status =~ /obsolete/i;
-+}
-+
- my $camelcase_seeded = 0;
- sub seed_camelcase_includes {
- 	return if ($camelcase_seeded);
-@@ -2289,6 +2299,10 @@ sub process {
- 		}
+ 	if (!vmacache_valid(mm))
+ 		return NULL;
  
- 		if ($found_file) {
-+			if (is_maintained_obsolete($realfile)) {
-+				WARN("OBSOLETE",
-+				     "$realfile is marked as 'obsolete' in the MAINTAINERS hierarchy.  No unnecessary modifications please.\n");
-+			}
- 			if ($realfile =~ m@^(?:drivers/net/|net/|drivers/staging/)@) {
- 				$check = 1;
- 			} else {
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-get_maintainer-quiet-noisy-implicit-f-vcs_file_exists-checking.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
-meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
-checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
-
+-	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
+-
+ 	for (i = 0; i < VMACACHE_SIZE; i++) {
+ 		struct vm_area_struct *vma = current->vmacache[i];
+ 
+@@ -115,11 +115,11 @@ struct vm_area_struct *vmacache_find_exa
+ {
+ 	int i;
+ 
++	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
++
+ 	if (!vmacache_valid(mm))
+ 		return NULL;
+ 
+-	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
