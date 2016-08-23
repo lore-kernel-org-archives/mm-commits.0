@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
- added to -mm tree
-Date: Mon, 22 Aug 2016 16:23:37 -0700
-Message-ID: <57bb8979.Jz0lG03tU9utqrna%akpm@linux-foundation.org>
+Subject: + fixdep-faster-config_-search.patch added to -mm tree
+Date: Tue, 23 Aug 2016 13:38:10 -0700
+Message-ID: <57bcb432.8vZo+Eag/CLE3bNN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56464 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51360 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753552AbcHVXXi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 22 Aug 2016 19:23:38 -0400
+        with ESMTP id S1754535AbcHWUiL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 Aug 2016 16:38:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: look for symbolic permissions and suggest octal instead
+     Subject: fixdep: faster CONFIG_ search
 has been added to the -mm tree.  Its filename is
-     checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
+     fixdep-faster-config_-search.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fixdep-faster-config_-search.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fixdep-faster-config_-search.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,116 +38,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: look for symbolic permissions and suggest octal instead
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: fixdep: faster CONFIG_ search
 
-S_<FOO> uses should be avoided where octal is more intelligible.
+Do you think kernel build is 100% dominated by gcc?  You are wrong!  One
+small utility called "fixdep" consistently manages to sneak into profile's
+first page (unless you have small monitor of course).
 
-Linus didst say:
+The choke point is this clever code:
 
-: It's *much* easier to parse and understand the octal numbers, while the
-: symbolic macro names are just random line noise and hard as hell to
-: understand.  You really have to think about it.
-: 
-: So we should rather go the other way: convert existing bad symbolic
-: permission bit macro use to just use the octal numbers.
-: 
-: The symbolic names are good for the *other* bits (ie sticky bit, and the
-: inode mode _type_ numbers etc), but for the permission bits, the symbolic
-: names are just insane crap.  Nobody sane should ever use them.  Not in the
-: kernel, not in user space.
-(http://lkml.kernel.org/r/CA+55aFw5v23T-zvDZp-MmD_EYxF8WbafwwB59934FV7g21uMGQ@mail.gmail.com)
+	for (; m < end; m++) {
+		if (*m == INT_CONF) { p = (char *) m  ; goto conf; }
+		if (*m == INT_ONFI) { p = (char *) m-1; goto conf; }
+		if (*m == INT_NFIG) { p = (char *) m-2; goto conf; }
+		if (*m == INT_FIG_) { p = (char *) m-3; goto conf; }
 
-Link: http://lkml.kernel.org/r/7232ef011d05a92f4caa86a5e9830d87966a2eaf.1470180926.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+4 branches per 4 characters is not fast.
+
+Use strstr(3), so that SSE2 etc can be used.
+
+With this patch, fixdep is so deep at the bottom, it is hard to find it.
+
+Link: http://lkml.kernel.org/r/20160823184724.GA11707@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   49 +++++++++++++++++++++++++++++++++++-----
- 1 file changed, 43 insertions(+), 6 deletions(-)
+ scripts/basic/fixdep.c |   67 ++++++++++++++++-----------------------
+ 1 file changed, 28 insertions(+), 39 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead
-+++ a/scripts/checkpatch.pl
-@@ -541,6 +541,32 @@ our $mode_perms_world_writable = qr{
- 	0[0-7][0-7][2367]
- }x;
+diff -puN scripts/basic/fixdep.c~fixdep-faster-config_-search scripts/basic/fixdep.c
+--- a/scripts/basic/fixdep.c~fixdep-faster-config_-search
++++ a/scripts/basic/fixdep.c
+@@ -82,8 +82,7 @@
+  * to date before even starting the recursive build, so it's too late
+  * at this point anyway.
+  *
+- * The algorithm to grep for "CONFIG_..." is bit unusual, but should
+- * be fast ;-) We don't even try to really parse the header files, but
++ * We don't even try to really parse the header files, but
+  * merely grep, i.e. if CONFIG_FOO is mentioned in a comment, it will
+  * be picked up as well. It's not a problem with respect to
+  * correctness, since that can only give too many dependencies, thus
+@@ -241,37 +240,22 @@ static void use_config(const char *m, in
+ 	print_config(m, slen);
+ }
  
-+our %mode_permission_string_types = (
-+	"S_IRWXU" => 0700,
-+	"S_IRUSR" => 0400,
-+	"S_IWUSR" => 0200,
-+	"S_IXUSR" => 0100,
-+	"S_IRWXG" => 0070,
-+	"S_IRGRP" => 0040,
-+	"S_IWGRP" => 0020,
-+	"S_IXGRP" => 0010,
-+	"S_IRWXO" => 0007,
-+	"S_IROTH" => 0004,
-+	"S_IWOTH" => 0002,
-+	"S_IXOTH" => 0001,
-+	"S_IRWXUGO" => 0777,
-+	"S_IRUGO" => 0444,
-+	"S_IWUGO" => 0222,
-+	"S_IXUGO" => 0111,
-+);
-+
-+#Create a search pattern for all these strings to speed up a loop below
-+our $mode_perms_string_search = "";
-+foreach my $entry (keys %mode_permission_string_types) {
-+	$mode_perms_string_search .= '|' if ($mode_perms_string_search ne "");
-+	$mode_perms_string_search .= $entry;
-+}
-+
- our $allowed_asm_includes = qr{(?x:
- 	irq|
- 	memory|
-@@ -6012,20 +6038,31 @@ sub process {
- 					$arg_pos--;
- 					$skip_args = "(?:\\s*$FuncArg\\s*,\\s*){$arg_pos,$arg_pos}";
- 				}
--				my $test = "\\b$func\\s*\\(${skip_args}([\\d]+)\\s*[,\\)]";
-+				my $test = "\\b$func\\s*\\(${skip_args}($FuncArg(?:\\|\\s*$FuncArg)*)\\s*[,\\)]";
- 				if ($line =~ /$test/) {
- 					my $val = $1;
- 					$val = $6 if ($skip_args ne "");
+-static void parse_config_file(const char *map, size_t len)
++static void parse_config_file(const char *p)
+ {
+-	const int *end = (const int *) (map + len);
+-	/* start at +1, so that p can never be < map */
+-	const int *m   = (const int *) map + 1;
+-	const char *p, *q;
 -
--					if ($val !~ /^0$/ &&
--					    (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
--					     length($val) ne 4)) {
-+					if (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
-+					    ($val =~ /^$Octal$/ && length($val) ne 4)) {
- 						ERROR("NON_OCTAL_PERMISSIONS",
- 						      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
--					} elsif ($val =~ /^$Octal$/ && (oct($val) & 02)) {
-+					}
-+					if ($val =~ /^$Octal$/ && (oct($val) & 02)) {
- 						ERROR("EXPORTED_WORLD_WRITABLE",
- 						      "Exporting writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
- 					}
-+					if ($val =~ /\b$mode_perms_string_search\b/) {
-+						my $to = 0;
-+						while ($val =~ /\b($mode_perms_string_search)\b(?:\s*\|\s*)?\s*/g) {
-+							$to |=  $mode_permission_string_types{$1};
-+						}
-+						my $new = sprintf("%04o", $to);
-+						if (WARN("SYMBOLIC_PERMS",
-+							 "Symbolic permissions are not preferred. Consider using octal permissions $new.\n" . $herecurr) &&
-+						    $fix) {
-+							$fixed[$fixlinenr] =~ s/\Q$val\E/$new/;
-+						}
-+					}
- 				}
- 			}
- 		}
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-get_maintainer-quiet-noisy-implicit-f-vcs_file_exists-checking.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
-meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
-checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
-checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
-
+-	for (; m < end; m++) {
+-		if (*m == INT_CONF) { p = (char *) m  ; goto conf; }
+-		if (*m == INT_ONFI) { p = (char *) m-1; goto conf; }
+-		if (*m == INT_NFIG) { p = (char *) m-2; goto conf; }
+-		if (*m == INT_FIG_) { p = (char *) m-3; goto conf; }
+-		continue;
+-	conf:
+-		if (p > map + len - 7)
+-			continue;
+-		if (memcmp(p, "CONFIG_", 7))
+-			continue;
+-		p += 7;
+-		for (q = p; q < map + len; q++) {
+-			if (!(isalnum(*q) || *q == '_'))
+-				goto found;
+-		}
+-		continue;
++	const char *q, *r;
+ 
+-	found:
+-		if (!memcmp(q - 7, "_MODULE", 7))
+-			q -= 7;
+-		if (q - p < 0)
+-			continue;
+-		use_config(p, q - p);
++	while ((p = strstr(p, "CONFIG_"))) {
++		p += 7;
++		q = p;
++		while (*q && (isalnum(*q) || *q == '_'))
++			q++;
++		if (memcmp(q - 7, "_MODULE", 7) == 0)
++			r = q - 7;
++		else
++			r = q;
++		if (r > p)
++			use_config(p, r - p);
++		p = q;
+ 	}
+ }
+ 
+@@ -291,7 +275,7 @@ static void do_config_file(const char *f
+ {
+ 	struct stat st;
+ 	int fd;
+-	void *map;
++	char *map;
+ 
+ 	fd = open(filename, O_RDONLY);
+ 	if (fd < 0) {
+@@ -308,18 +292,23 @@ static void do_config_file(const char *f
+ 		close(fd);
+ 		return;
+ 	}
+-	map = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+-	if ((long) map == -1) {
+-		perror("fixdep: mmap");
++	map = malloc(st.st_size + 1);
++	if (!map) {
++		perror("fixdep: malloc");
+ 		close(fd);
+ 		return;
+ 	}
++	if (read(fd, map, st.st_size) != st.st_size) {
++		perror("fixdep: read");
++		close(fd);
++		return;
++	}
++	map[st.st_size] = '\0';
++	close(fd);
+ 
+-	parse_config_file(map, st.st_size);
