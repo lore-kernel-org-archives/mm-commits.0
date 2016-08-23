@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + memremap-fix-null-pointer-bug-in-get_zone_device_page.patch
- added to -mm tree
-Date: Tue, 23 Aug 2016 13:41:36 -0700
-Message-ID: <57bcb500.Kvzcs4ybdUH/vTTs%akpm@linux-foundation.org>
+Subject: + printk-fix-parsing-of-brl=-option.patch added to -mm tree
+Date: Tue, 23 Aug 2016 13:43:47 -0700
+Message-ID: <57bcb583.VJATpVgeXJUwr4tf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51367 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51382 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753140AbcHWUl7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 Aug 2016 16:41:59 -0400
+        with ESMTP id S1752758AbcHWUns (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 Aug 2016 16:43:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: toshi.kani@hpe.com, ard.biesheuvel@linaro.org, brian.starkey@arm.com, dan.j.williams@intel.com, m.abhilash-kumar@hpe.com, mm-commits@vger.kernel.org
+To: nicolas.iooss_linux@m4x.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memremap: fix NULL pointer BUG in get_zone_device_page()
+     Subject: printk: fix parsing of "brl=" option
 has been added to the -mm tree.  Its filename is
-     memremap-fix-null-pointer-bug-in-get_zone_device_page.patch
+     printk-fix-parsing-of-brl=-option.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memremap-fix-null-pointer-bug-in-get_zone_device_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-fix-parsing-of-brl%3D-option.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memremap-fix-null-pointer-bug-in-get_zone_device_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-fix-parsing-of-brl%3D-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +38,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: memremap: fix NULL pointer BUG in get_zone_device_page()
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Subject: printk: fix parsing of "brl=" option
 
-The following BUG was observed while starting up KVM with nvdimm
-device as memory-backend-file to /dev/dax.
+Commit bbeddf52adc1 ("printk: move braille console support into separate
+braille.[ch] files") moved the parsing of braille-related options into
+_braille_console_setup(), changing the type of variable str from char* to
+char**.  In this commit, memcmp(str, "brl,", 4) was correctly updated to
+memcmp(*str, "brl,", 4) but not memcmp(str, "brl=", 4).
 
- BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
- IP: [<ffffffff811ac851>] get_zone_device_page+0x11/0x30
- Call Trace:
-   follow_devmap_pmd+0x298/0x2c0
-   follow_page_mask+0x275/0x530
-   __get_user_pages+0xe3/0x750
-   __gfn_to_pfn_memslot+0x1b2/0x450 [kvm]
-   ? hrtimer_try_to_cancel+0x2c/0x120
-   ? kvm_read_l1_tsc+0x55/0x60 [kvm]
-   try_async_pf+0x66/0x230 [kvm]
-   ? kvm_host_page_size+0x90/0xa0 [kvm]
-   tdp_page_fault+0x130/0x280 [kvm]
-   kvm_mmu_page_fault+0x5f/0xf0 [kvm]
-   handle_ept_violation+0x94/0x180 [kvm_intel]
-   vmx_handle_exit+0x1d3/0x1440 [kvm_intel]
-   ? atomic_switch_perf_msrs+0x6f/0xa0 [kvm_intel]
-   ? vmx_vcpu_run+0x2d1/0x490 [kvm_intel]
-   kvm_arch_vcpu_ioctl_run+0x81d/0x16a0 [kvm]
-   ? wake_up_q+0x44/0x80
-   kvm_vcpu_ioctl+0x33c/0x620 [kvm]
-   ? __vfs_write+0x37/0x160
-   do_vfs_ioctl+0xa2/0x5d0
-   SyS_ioctl+0x79/0x90
-   entry_SYSCALL_64_fastpath+0x1a/0xa4
+Update the code to make "brl=" option work again and replace memcmp() with
+strncmp() to make the compiler able to detect such an issue.
 
-devm_memremap_pages() calls for_each_device_pfn() to walk through
-all pfns in page_map.  pfn_first(), however, returns a wrong pfn
-that leaves page->pgmap uninitialized.
-
-Since arch_add_memory() has set up direct mappings to the NVDIMM
-range with altmap, pfn_first() should not modify the start pfn.
-Change pfn_first() to simply return pfn of res->start.
-
-Link: http://lkml.kernel.org/r/1471977800-12688-1-git-send-email-toshi.kani@hpe.com
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Reported-by: Abhilash Kumar Mulumudi <m.abhilash-kumar@hpe.com>
-Tested-by: Abhilash Kumar Mulumudi <m.abhilash-kumar@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Brian Starkey <brian.starkey@arm.com>
+Fixes: bbeddf52adc1 ("printk: move braille console support into separate braille.[ch] files")
+Link: http://lkml.kernel.org/r/20160823165700.28952-1-nicolas.iooss_linux@m4x.org
+Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/memremap.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ kernel/printk/braille.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/memremap.c~memremap-fix-null-pointer-bug-in-get_zone_device_page kernel/memremap.c
---- a/kernel/memremap.c~memremap-fix-null-pointer-bug-in-get_zone_device_page
-+++ a/kernel/memremap.c
-@@ -210,15 +210,9 @@ static void pgmap_radix_release(struct r
+diff -puN kernel/printk/braille.c~printk-fix-parsing-of-brl=-option kernel/printk/braille.c
+--- a/kernel/printk/braille.c~printk-fix-parsing-of-brl=-option
++++ a/kernel/printk/braille.c
+@@ -9,10 +9,10 @@
  
- static unsigned long pfn_first(struct page_map *page_map)
+ char *_braille_console_setup(char **str, char **brl_options)
  {
--	struct dev_pagemap *pgmap = &page_map->pgmap;
- 	const struct resource *res = &page_map->res;
--	struct vmem_altmap *altmap = pgmap->altmap;
--	unsigned long pfn;
- 
--	pfn = res->start >> PAGE_SHIFT;
--	if (altmap)
--		pfn += vmem_altmap_offset(altmap);
--	return pfn;
-+	return res->start >> PAGE_SHIFT;
- }
- 
- static unsigned long pfn_end(struct page_map *page_map)
+-	if (!memcmp(*str, "brl,", 4)) {
++	if (!strncmp(*str, "brl,", 4)) {
+ 		*brl_options = "";
+ 		*str += 4;
+-	} else if (!memcmp(str, "brl=", 4)) {
++	} else if (!strncmp(*str, "brl=", 4)) {
+ 		*brl_options = *str + 4;
+ 		*str = strchr(*brl_options, ',');
+ 		if (!*str)
 _
 
-Patches currently in -mm which might be from toshi.kani@hpe.com are
+Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
 
-memremap-fix-null-pointer-bug-in-get_zone_device_page.patch
+printk-fix-parsing-of-brl=-option.patch
 
