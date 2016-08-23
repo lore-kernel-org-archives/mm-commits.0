@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fixdep-faster-config_-search.patch added to -mm tree
-Date: Tue, 23 Aug 2016 13:38:10 -0700
-Message-ID: <57bcb432.8vZo+Eag/CLE3bNN%akpm@linux-foundation.org>
+Subject: + memremap-fix-null-pointer-bug-in-get_zone_device_page.patch
+ added to -mm tree
+Date: Tue, 23 Aug 2016 13:41:36 -0700
+Message-ID: <57bcb500.Kvzcs4ybdUH/vTTs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51360 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51367 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754535AbcHWUiL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 Aug 2016 16:38:11 -0400
+        with ESMTP id S1753140AbcHWUl7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 Aug 2016 16:41:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: toshi.kani@hpe.com, ard.biesheuvel@linaro.org, brian.starkey@arm.com, dan.j.williams@intel.com, m.abhilash-kumar@hpe.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fixdep: faster CONFIG_ search
+     Subject: memremap: fix NULL pointer BUG in get_zone_device_page()
 has been added to the -mm tree.  Its filename is
-     fixdep-faster-config_-search.patch
+     memremap-fix-null-pointer-bug-in-get_zone_device_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fixdep-faster-config_-search.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memremap-fix-null-pointer-bug-in-get_zone_device_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fixdep-faster-config_-search.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memremap-fix-null-pointer-bug-in-get_zone_device_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,129 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: fixdep: faster CONFIG_ search
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: memremap: fix NULL pointer BUG in get_zone_device_page()
 
-Do you think kernel build is 100% dominated by gcc?  You are wrong!  One
-small utility called "fixdep" consistently manages to sneak into profile's
-first page (unless you have small monitor of course).
+The following BUG was observed while starting up KVM with nvdimm
+device as memory-backend-file to /dev/dax.
 
-The choke point is this clever code:
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+ IP: [<ffffffff811ac851>] get_zone_device_page+0x11/0x30
+ Call Trace:
+   follow_devmap_pmd+0x298/0x2c0
+   follow_page_mask+0x275/0x530
+   __get_user_pages+0xe3/0x750
+   __gfn_to_pfn_memslot+0x1b2/0x450 [kvm]
+   ? hrtimer_try_to_cancel+0x2c/0x120
+   ? kvm_read_l1_tsc+0x55/0x60 [kvm]
+   try_async_pf+0x66/0x230 [kvm]
+   ? kvm_host_page_size+0x90/0xa0 [kvm]
+   tdp_page_fault+0x130/0x280 [kvm]
+   kvm_mmu_page_fault+0x5f/0xf0 [kvm]
+   handle_ept_violation+0x94/0x180 [kvm_intel]
+   vmx_handle_exit+0x1d3/0x1440 [kvm_intel]
+   ? atomic_switch_perf_msrs+0x6f/0xa0 [kvm_intel]
+   ? vmx_vcpu_run+0x2d1/0x490 [kvm_intel]
+   kvm_arch_vcpu_ioctl_run+0x81d/0x16a0 [kvm]
+   ? wake_up_q+0x44/0x80
+   kvm_vcpu_ioctl+0x33c/0x620 [kvm]
+   ? __vfs_write+0x37/0x160
+   do_vfs_ioctl+0xa2/0x5d0
+   SyS_ioctl+0x79/0x90
+   entry_SYSCALL_64_fastpath+0x1a/0xa4
 
-	for (; m < end; m++) {
-		if (*m == INT_CONF) { p = (char *) m  ; goto conf; }
-		if (*m == INT_ONFI) { p = (char *) m-1; goto conf; }
-		if (*m == INT_NFIG) { p = (char *) m-2; goto conf; }
-		if (*m == INT_FIG_) { p = (char *) m-3; goto conf; }
+devm_memremap_pages() calls for_each_device_pfn() to walk through
+all pfns in page_map.  pfn_first(), however, returns a wrong pfn
+that leaves page->pgmap uninitialized.
 
-4 branches per 4 characters is not fast.
+Since arch_add_memory() has set up direct mappings to the NVDIMM
+range with altmap, pfn_first() should not modify the start pfn.
+Change pfn_first() to simply return pfn of res->start.
 
-Use strstr(3), so that SSE2 etc can be used.
-
-With this patch, fixdep is so deep at the bottom, it is hard to find it.
-
-Link: http://lkml.kernel.org/r/20160823184724.GA11707@p183.telecom.by
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Michal Marek <mmarek@suse.cz>
+Link: http://lkml.kernel.org/r/1471977800-12688-1-git-send-email-toshi.kani@hpe.com
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Reported-by: Abhilash Kumar Mulumudi <m.abhilash-kumar@hpe.com>
+Tested-by: Abhilash Kumar Mulumudi <m.abhilash-kumar@hpe.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Brian Starkey <brian.starkey@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/basic/fixdep.c |   67 ++++++++++++++++-----------------------
- 1 file changed, 28 insertions(+), 39 deletions(-)
+ kernel/memremap.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN scripts/basic/fixdep.c~fixdep-faster-config_-search scripts/basic/fixdep.c
---- a/scripts/basic/fixdep.c~fixdep-faster-config_-search
-+++ a/scripts/basic/fixdep.c
-@@ -82,8 +82,7 @@
-  * to date before even starting the recursive build, so it's too late
-  * at this point anyway.
-  *
-- * The algorithm to grep for "CONFIG_..." is bit unusual, but should
-- * be fast ;-) We don't even try to really parse the header files, but
-+ * We don't even try to really parse the header files, but
-  * merely grep, i.e. if CONFIG_FOO is mentioned in a comment, it will
-  * be picked up as well. It's not a problem with respect to
-  * correctness, since that can only give too many dependencies, thus
-@@ -241,37 +240,22 @@ static void use_config(const char *m, in
- 	print_config(m, slen);
+diff -puN kernel/memremap.c~memremap-fix-null-pointer-bug-in-get_zone_device_page kernel/memremap.c
+--- a/kernel/memremap.c~memremap-fix-null-pointer-bug-in-get_zone_device_page
++++ a/kernel/memremap.c
+@@ -210,15 +210,9 @@ static void pgmap_radix_release(struct r
+ 
+ static unsigned long pfn_first(struct page_map *page_map)
+ {
+-	struct dev_pagemap *pgmap = &page_map->pgmap;
+ 	const struct resource *res = &page_map->res;
+-	struct vmem_altmap *altmap = pgmap->altmap;
+-	unsigned long pfn;
+ 
+-	pfn = res->start >> PAGE_SHIFT;
+-	if (altmap)
+-		pfn += vmem_altmap_offset(altmap);
+-	return pfn;
++	return res->start >> PAGE_SHIFT;
  }
  
--static void parse_config_file(const char *map, size_t len)
-+static void parse_config_file(const char *p)
- {
--	const int *end = (const int *) (map + len);
--	/* start at +1, so that p can never be < map */
--	const int *m   = (const int *) map + 1;
--	const char *p, *q;
--
--	for (; m < end; m++) {
--		if (*m == INT_CONF) { p = (char *) m  ; goto conf; }
--		if (*m == INT_ONFI) { p = (char *) m-1; goto conf; }
--		if (*m == INT_NFIG) { p = (char *) m-2; goto conf; }
--		if (*m == INT_FIG_) { p = (char *) m-3; goto conf; }
--		continue;
--	conf:
--		if (p > map + len - 7)
--			continue;
--		if (memcmp(p, "CONFIG_", 7))
--			continue;
--		p += 7;
--		for (q = p; q < map + len; q++) {
--			if (!(isalnum(*q) || *q == '_'))
--				goto found;
--		}
--		continue;
-+	const char *q, *r;
- 
--	found:
--		if (!memcmp(q - 7, "_MODULE", 7))
--			q -= 7;
--		if (q - p < 0)
--			continue;
--		use_config(p, q - p);
-+	while ((p = strstr(p, "CONFIG_"))) {
-+		p += 7;
-+		q = p;
-+		while (*q && (isalnum(*q) || *q == '_'))
-+			q++;
-+		if (memcmp(q - 7, "_MODULE", 7) == 0)
-+			r = q - 7;
-+		else
-+			r = q;
-+		if (r > p)
-+			use_config(p, r - p);
-+		p = q;
- 	}
- }
- 
-@@ -291,7 +275,7 @@ static void do_config_file(const char *f
- {
- 	struct stat st;
- 	int fd;
--	void *map;
-+	char *map;
- 
- 	fd = open(filename, O_RDONLY);
- 	if (fd < 0) {
-@@ -308,18 +292,23 @@ static void do_config_file(const char *f
- 		close(fd);
- 		return;
- 	}
--	map = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
--	if ((long) map == -1) {
--		perror("fixdep: mmap");
-+	map = malloc(st.st_size + 1);
-+	if (!map) {
-+		perror("fixdep: malloc");
- 		close(fd);
- 		return;
- 	}
-+	if (read(fd, map, st.st_size) != st.st_size) {
-+		perror("fixdep: read");
-+		close(fd);
-+		return;
-+	}
-+	map[st.st_size] = '\0';
-+	close(fd);
- 
--	parse_config_file(map, st.st_size);
+ static unsigned long pfn_end(struct page_map *page_map)
+_
+
+Patches currently in -mm which might be from toshi.kani@hpe.com are
+
+memremap-fix-null-pointer-bug-in-get_zone_device_page.patch
+
