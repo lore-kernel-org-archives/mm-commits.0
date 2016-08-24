@@ -1,106 +1,294 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- memremap-fix-null-pointer-bug-in-get_zone_device_page.patch removed from
- -mm tree
-Date: Wed, 24 Aug 2016 14:15:10 -0700
-Message-ID: <57be0e5e.tFuAR1+SE3MBRNzd%akpm@linux-foundation.org>
+Subject: + mm-swap-add-swap_cluster_list.patch added to -mm tree
+Date: Wed, 24 Aug 2016 14:19:24 -0700
+Message-ID: <57be0f5c.jVo9enYNB9d4mdH+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58289 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58382 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755452AbcHXVPq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2016 17:15:46 -0400
+        with ESMTP id S1753101AbcHXVTZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2016 17:19:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: toshi.kani@hpe.com, ard.biesheuvel@linaro.org, brian.starkey@arm.com, dan.j.williams@intel.com, m.abhilash-kumar@hpe.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, hughd@google.com, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tim.c.chen@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memremap: fix NULL pointer BUG in get_zone_device_page()
-has been removed from the -mm tree.  Its filename was
-     memremap-fix-null-pointer-bug-in-get_zone_device_page.patch
+     Subject: mm, swap: add swap_cluster_list
+has been added to the -mm tree.  Its filename is
+     mm-swap-add-swap_cluster_list.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-swap-add-swap_cluster_list.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-swap-add-swap_cluster_list.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: memremap: fix NULL pointer BUG in get_zone_device_page()
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, swap: add swap_cluster_list
 
-The following BUG was observed while starting up KVM with nvdimm
-device as memory-backend-file to /dev/dax.
+This is a code clean up patch without functionality changes.  The
+swap_cluster_list data structure and its operations are introduced to
+provide some better encapsulation for the free cluster and discard cluster
+list operations.  This avoid some code duplication, improved the code
+readability, and reduced the total line number.
 
- BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
- IP: [<ffffffff811ac851>] get_zone_device_page+0x11/0x30
- Call Trace:
-   follow_devmap_pmd+0x298/0x2c0
-   follow_page_mask+0x275/0x530
-   __get_user_pages+0xe3/0x750
-   __gfn_to_pfn_memslot+0x1b2/0x450 [kvm]
-   ? hrtimer_try_to_cancel+0x2c/0x120
-   ? kvm_read_l1_tsc+0x55/0x60 [kvm]
-   try_async_pf+0x66/0x230 [kvm]
-   ? kvm_host_page_size+0x90/0xa0 [kvm]
-   tdp_page_fault+0x130/0x280 [kvm]
-   kvm_mmu_page_fault+0x5f/0xf0 [kvm]
-   handle_ept_violation+0x94/0x180 [kvm_intel]
-   vmx_handle_exit+0x1d3/0x1440 [kvm_intel]
-   ? atomic_switch_perf_msrs+0x6f/0xa0 [kvm_intel]
-   ? vmx_vcpu_run+0x2d1/0x490 [kvm_intel]
-   kvm_arch_vcpu_ioctl_run+0x81d/0x16a0 [kvm]
-   ? wake_up_q+0x44/0x80
-   kvm_vcpu_ioctl+0x33c/0x620 [kvm]
-   ? __vfs_write+0x37/0x160
-   do_vfs_ioctl+0xa2/0x5d0
-   SyS_ioctl+0x79/0x90
-   entry_SYSCALL_64_fastpath+0x1a/0xa4
-
-devm_memremap_pages() calls for_each_device_pfn() to walk through
-all pfns in page_map.  pfn_first(), however, returns a wrong pfn
-that leaves page->pgmap uninitialized.
-
-Since arch_add_memory() has set up direct mappings to the NVDIMM
-range with altmap, pfn_first() should not modify the start pfn.
-Change pfn_first() to simply return pfn of res->start.
-
-Link: http://lkml.kernel.org/r/1471977800-12688-1-git-send-email-toshi.kani@hpe.com
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Reported-by: Abhilash Kumar Mulumudi <m.abhilash-kumar@hpe.com>
-Tested-by: Abhilash Kumar Mulumudi <m.abhilash-kumar@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Brian Starkey <brian.starkey@arm.com>
-Cc: <stable@vger.kernel.org>	[4.5+]
+Link: http://lkml.kernel.org/r/1472067356-16004-1-git-send-email-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Tim Chen <tim.c.chen@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shaohua Li <shli@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/memremap.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ include/linux/swap.h |   11 ++-
+ mm/swapfile.c        |  131 +++++++++++++++++++----------------------
+ 2 files changed, 68 insertions(+), 74 deletions(-)
 
-diff -puN kernel/memremap.c~memremap-fix-null-pointer-bug-in-get_zone_device_page kernel/memremap.c
---- a/kernel/memremap.c~memremap-fix-null-pointer-bug-in-get_zone_device_page
-+++ a/kernel/memremap.c
-@@ -210,15 +210,9 @@ static void pgmap_radix_release(struct r
+diff -puN include/linux/swap.h~mm-swap-add-swap_cluster_list include/linux/swap.h
+--- a/include/linux/swap.h~mm-swap-add-swap_cluster_list
++++ a/include/linux/swap.h
+@@ -191,6 +191,11 @@ struct percpu_cluster {
+ 	unsigned int next; /* Likely next allocation offset */
+ };
  
- static unsigned long pfn_first(struct page_map *page_map)
- {
--	struct dev_pagemap *pgmap = &page_map->pgmap;
- 	const struct resource *res = &page_map->res;
--	struct vmem_altmap *altmap = pgmap->altmap;
--	unsigned long pfn;
++struct swap_cluster_list {
++	struct swap_cluster_info head;
++	struct swap_cluster_info tail;
++};
++
+ /*
+  * The in-memory structure used to track swap areas.
+  */
+@@ -203,8 +208,7 @@ struct swap_info_struct {
+ 	unsigned int	max;		/* extent of the swap_map */
+ 	unsigned char *swap_map;	/* vmalloc'ed array of usage counts */
+ 	struct swap_cluster_info *cluster_info; /* cluster info. Only for SSD */
+-	struct swap_cluster_info free_cluster_head; /* free cluster list head */
+-	struct swap_cluster_info free_cluster_tail; /* free cluster list tail */
++	struct swap_cluster_list free_clusters; /* free clusters list */
+ 	unsigned int lowest_bit;	/* index of first free in swap_map */
+ 	unsigned int highest_bit;	/* index of last free in swap_map */
+ 	unsigned int pages;		/* total of usable pages of swap */
+@@ -235,8 +239,7 @@ struct swap_info_struct {
+ 					 * first.
+ 					 */
+ 	struct work_struct discard_work; /* discard worker */
+-	struct swap_cluster_info discard_cluster_head; /* list head of discard clusters */
+-	struct swap_cluster_info discard_cluster_tail; /* list tail of discard clusters */
++	struct swap_cluster_list discard_clusters; /* discard clusters list */
+ };
  
--	pfn = res->start >> PAGE_SHIFT;
--	if (altmap)
--		pfn += vmem_altmap_offset(altmap);
--	return pfn;
-+	return res->start >> PAGE_SHIFT;
+ /* linux/mm/workingset.c */
+diff -puN mm/swapfile.c~mm-swap-add-swap_cluster_list mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-add-swap_cluster_list
++++ a/mm/swapfile.c
+@@ -257,6 +257,52 @@ static inline void cluster_set_null(stru
+ 	info->data = 0;
  }
  
- static unsigned long pfn_end(struct page_map *page_map)
-_
-
-Patches currently in -mm which might be from toshi.kani@hpe.com are
-
-
++static inline bool cluster_list_empty(struct swap_cluster_list *list)
++{
++	return cluster_is_null(&list->head);
++}
++
++static inline unsigned int cluster_list_first(struct swap_cluster_list *list)
++{
++	return cluster_next(&list->head);
++}
++
++static void cluster_list_init(struct swap_cluster_list *list)
++{
++	cluster_set_null(&list->head);
++	cluster_set_null(&list->tail);
++}
++
++static void cluster_list_add_tail(struct swap_cluster_list *list,
++				  struct swap_cluster_info *ci,
++				  unsigned int idx)
++{
++	if (cluster_list_empty(list)) {
++		cluster_set_next_flag(&list->head, idx, 0);
++		cluster_set_next_flag(&list->tail, idx, 0);
++	} else {
++		unsigned int tail = cluster_next(&list->tail);
++		cluster_set_next(&ci[tail], idx);
++		cluster_set_next_flag(&list->tail, idx, 0);
++	}
++}
++
++static unsigned int cluster_list_del_first(struct swap_cluster_list *list,
++					   struct swap_cluster_info *ci)
++{
++	unsigned int idx;
++
++	idx = cluster_next(&list->head);
++	if (cluster_next(&list->tail) == idx) {
++		cluster_set_null(&list->head);
++		cluster_set_null(&list->tail);
++	} else
++		cluster_set_next_flag(&list->head,
++				      cluster_next(&ci[idx]), 0);
++
++	return idx;
++}
++
+ /* Add a cluster to discard list and schedule it to do discard */
+ static void swap_cluster_schedule_discard(struct swap_info_struct *si,
+ 		unsigned int idx)
+@@ -270,17 +316,7 @@ static void swap_cluster_schedule_discar
+ 	memset(si->swap_map + idx * SWAPFILE_CLUSTER,
+ 			SWAP_MAP_BAD, SWAPFILE_CLUSTER);
+ 
+-	if (cluster_is_null(&si->discard_cluster_head)) {
+-		cluster_set_next_flag(&si->discard_cluster_head,
+-						idx, 0);
+-		cluster_set_next_flag(&si->discard_cluster_tail,
+-						idx, 0);
+-	} else {
+-		unsigned int tail = cluster_next(&si->discard_cluster_tail);
+-		cluster_set_next(&si->cluster_info[tail], idx);
+-		cluster_set_next_flag(&si->discard_cluster_tail,
+-						idx, 0);
+-	}
++	cluster_list_add_tail(&si->discard_clusters, si->cluster_info, idx);
+ 
+ 	schedule_work(&si->discard_work);
+ }
+@@ -296,15 +332,8 @@ static void swap_do_scheduled_discard(st
+ 
+ 	info = si->cluster_info;
+ 
+-	while (!cluster_is_null(&si->discard_cluster_head)) {
+-		idx = cluster_next(&si->discard_cluster_head);
+-
+-		cluster_set_next_flag(&si->discard_cluster_head,
+-						cluster_next(&info[idx]), 0);
+-		if (cluster_next(&si->discard_cluster_tail) == idx) {
+-			cluster_set_null(&si->discard_cluster_head);
+-			cluster_set_null(&si->discard_cluster_tail);
+-		}
++	while (!cluster_list_empty(&si->discard_clusters)) {
++		idx = cluster_list_del_first(&si->discard_clusters, info);
+ 		spin_unlock(&si->lock);
+ 
+ 		discard_swap_cluster(si, idx * SWAPFILE_CLUSTER,
+@@ -312,19 +341,7 @@ static void swap_do_scheduled_discard(st
+ 
+ 		spin_lock(&si->lock);
+ 		cluster_set_flag(&info[idx], CLUSTER_FLAG_FREE);
+-		if (cluster_is_null(&si->free_cluster_head)) {
+-			cluster_set_next_flag(&si->free_cluster_head,
+-						idx, 0);
+-			cluster_set_next_flag(&si->free_cluster_tail,
+-						idx, 0);
+-		} else {
+-			unsigned int tail;
+-
+-			tail = cluster_next(&si->free_cluster_tail);
+-			cluster_set_next(&info[tail], idx);
+-			cluster_set_next_flag(&si->free_cluster_tail,
+-						idx, 0);
+-		}
++		cluster_list_add_tail(&si->free_clusters, info, idx);
+ 		memset(si->swap_map + idx * SWAPFILE_CLUSTER,
+ 				0, SWAPFILE_CLUSTER);
+ 	}
+@@ -353,13 +370,8 @@ static void inc_cluster_info_page(struct
+ 	if (!cluster_info)
+ 		return;
+ 	if (cluster_is_free(&cluster_info[idx])) {
+-		VM_BUG_ON(cluster_next(&p->free_cluster_head) != idx);
+-		cluster_set_next_flag(&p->free_cluster_head,
+-			cluster_next(&cluster_info[idx]), 0);
+-		if (cluster_next(&p->free_cluster_tail) == idx) {
+-			cluster_set_null(&p->free_cluster_tail);
+-			cluster_set_null(&p->free_cluster_head);
+-		}
++		VM_BUG_ON(cluster_list_first(&p->free_clusters) != idx);
++		cluster_list_del_first(&p->free_clusters, cluster_info);
+ 		cluster_set_count_flag(&cluster_info[idx], 0, 0);
+ 	}
+ 
+@@ -398,14 +410,7 @@ static void dec_cluster_info_page(struct
+ 		}
+ 
+ 		cluster_set_flag(&cluster_info[idx], CLUSTER_FLAG_FREE);
+-		if (cluster_is_null(&p->free_cluster_head)) {
+-			cluster_set_next_flag(&p->free_cluster_head, idx, 0);
+-			cluster_set_next_flag(&p->free_cluster_tail, idx, 0);
+-		} else {
+-			unsigned int tail = cluster_next(&p->free_cluster_tail);
+-			cluster_set_next(&cluster_info[tail], idx);
+-			cluster_set_next_flag(&p->free_cluster_tail, idx, 0);
+-		}
++		cluster_list_add_tail(&p->free_clusters, cluster_info, idx);
+ 	}
+ }
+ 
+@@ -421,8 +426,8 @@ scan_swap_map_ssd_cluster_conflict(struc
+ 	bool conflict;
+ 
+ 	offset /= SWAPFILE_CLUSTER;
+-	conflict = !cluster_is_null(&si->free_cluster_head) &&
+-		offset != cluster_next(&si->free_cluster_head) &&
++	conflict = !cluster_list_empty(&si->free_clusters) &&
++		offset != cluster_list_first(&si->free_clusters) &&
+ 		cluster_is_free(&si->cluster_info[offset]);
+ 
+ 	if (!conflict)
+@@ -447,11 +452,11 @@ static void scan_swap_map_try_ssd_cluste
+ new_cluster:
+ 	cluster = this_cpu_ptr(si->percpu_cluster);
+ 	if (cluster_is_null(&cluster->index)) {
+-		if (!cluster_is_null(&si->free_cluster_head)) {
+-			cluster->index = si->free_cluster_head;
++		if (!cluster_list_empty(&si->free_clusters)) {
++			cluster->index = si->free_clusters.head;
+ 			cluster->next = cluster_next(&cluster->index) *
+ 					SWAPFILE_CLUSTER;
+-		} else if (!cluster_is_null(&si->discard_cluster_head)) {
++		} else if (!cluster_list_empty(&si->discard_clusters)) {
+ 			/*
+ 			 * we don't have free cluster but have some clusters in
+ 			 * discarding, do discard now and reclaim them
+@@ -2292,10 +2297,8 @@ static int setup_swap_map_and_extents(st
+ 
+ 	nr_good_pages = maxpages - 1;	/* omit header page */
+ 
+-	cluster_set_null(&p->free_cluster_head);
+-	cluster_set_null(&p->free_cluster_tail);
+-	cluster_set_null(&p->discard_cluster_head);
+-	cluster_set_null(&p->discard_cluster_tail);
++	cluster_list_init(&p->free_clusters);
++	cluster_list_init(&p->discard_clusters);
+ 
+ 	for (i = 0; i < swap_header->info.nr_badpages; i++) {
+ 		unsigned int page_nr = swap_header->info.badpages[i];
+@@ -2341,19 +2344,7 @@ static int setup_swap_map_and_extents(st
+ 	for (i = 0; i < nr_clusters; i++) {
+ 		if (!cluster_count(&cluster_info[idx])) {
+ 			cluster_set_flag(&cluster_info[idx], CLUSTER_FLAG_FREE);
+-			if (cluster_is_null(&p->free_cluster_head)) {
+-				cluster_set_next_flag(&p->free_cluster_head,
+-								idx, 0);
+-				cluster_set_next_flag(&p->free_cluster_tail,
+-								idx, 0);
+-			} else {
+-				unsigned int tail;
