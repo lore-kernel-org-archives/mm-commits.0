@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-seq_file-fix-out-of-bounds-read.patch added to -mm tree
-Date: Wed, 24 Aug 2016 14:26:59 -0700
-Message-ID: <57be1123.KyKRpAbP4WHCwtwJ%akpm__39084.9656229422$1472074035$gmane$org@linux-foundation.org>
+Subject: + dax-fix-device-dax-region-base.patch added to -mm tree
+Date: Wed, 24 Aug 2016 14:43:10 -0700
+Message-ID: <57be14ee.XaPfA9VJmzNLuPIy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59200 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757084AbcHXV1A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2016 17:27:00 -0400
+        with ESMTP id S1755948AbcHXVnN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2016 17:43:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vegard.nossum@oracle.com, davej@codemonkey.org.uk, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, m.abhilash-kumar@hpe.com, stable@vger.kernel.org, toshi.kani@hpe.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/seq_file: fix out-of-bounds read
+     Subject: dax: fix device-dax region base
 has been added to the -mm tree.  Its filename is
-     fs-seq_file-fix-out-of-bounds-read.patch
+     dax-fix-device-dax-region-base.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-seq_file-fix-out-of-bounds-read.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-fix-device-dax-region-base.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-seq_file-fix-out-of-bounds-read.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-device-dax-region-base.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,140 +38,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vegard Nossum <vegard.nossum@oracle.com>
-Subject: fs/seq_file: fix out-of-bounds read
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: dax: fix device-dax region base
 
-seq_read() is a nasty piece of work, not to mention buggy.
+The data offset for a dax region needs to account for a reservation in the
+resource range.  Otherwise, device-dax is allowing mappings directly into
+the memmap or device-info-block area with crash signatures like the
+following:
 
-It has (I think) an old bug which allows unprivileged userspace to read
-beyond the end of m->buf.
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+ IP: [<ffffffff811ac851>] get_zone_device_page+0x11/0x30
+ Call Trace:
+   follow_devmap_pmd+0x298/0x2c0
+   follow_page_mask+0x275/0x530
+   __get_user_pages+0xe3/0x750
+   __gfn_to_pfn_memslot+0x1b2/0x450 [kvm]
+   ? hrtimer_try_to_cancel+0x2c/0x120
+   ? kvm_read_l1_tsc+0x55/0x60 [kvm]
+   try_async_pf+0x66/0x230 [kvm]
+   ? kvm_host_page_size+0x90/0xa0 [kvm]
+   tdp_page_fault+0x130/0x280 [kvm]
+   kvm_mmu_page_fault+0x5f/0xf0 [kvm]
+   handle_ept_violation+0x94/0x180 [kvm_intel]
+   vmx_handle_exit+0x1d3/0x1440 [kvm_intel]
+   ? atomic_switch_perf_msrs+0x6f/0xa0 [kvm_intel]
+   ? vmx_vcpu_run+0x2d1/0x490 [kvm_intel]
+   kvm_arch_vcpu_ioctl_run+0x81d/0x16a0 [kvm]
+   ? wake_up_q+0x44/0x80
+   kvm_vcpu_ioctl+0x33c/0x620 [kvm]
+   ? __vfs_write+0x37/0x160
+   do_vfs_ioctl+0xa2/0x5d0
+   SyS_ioctl+0x79/0x90
+   entry_SYSCALL_64_fastpath+0x1a/0xa4
 
-I was getting these:
-
-    BUG: KASAN: slab-out-of-bounds in seq_read+0xcd2/0x1480 at addr ffff880116889880
-    Read of size 2713 by task trinity-c2/1329
-    CPU: 2 PID: 1329 Comm: trinity-c2 Not tainted 4.8.0-rc1+ #96
-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.9.3-0-ge2fc41e-prebuilt.qemu-project.org 04/01/2014
-     0000000000000000 ffff880110ebf8c0 ffffffff82344770 0000000041b58ab3
-     ffffffff84f97be8 ffffffff823446c4 0000000000000001 ffffffff00000028
-     ffff880110ebf8f8 ffff880110ebf8a8 ffff880110ebf998 0000000025843ea1
-    Call Trace:
-     [<ffffffff82344770>] dump_stack+0xac/0xfc
-     [<ffffffff823446c4>] ? _atomic_dec_and_lock+0xc4/0xc4
-     [<ffffffff817964dc>] kasan_object_err+0x1c/0x80
-     [<ffffffff8179687b>] kasan_report_error+0x2cb/0x7e0
-     [<ffffffff81796e3e>] kasan_report+0x4e/0x80
-     [<ffffffff81410e00>] ? down_trylock+0x40/0x90
-     [<ffffffff81886522>] ? seq_read+0xcd2/0x1480
-     [<ffffffff817952be>] check_memory_region+0x13e/0x1a0
-     [<ffffffff817954e1>] kasan_check_read+0x11/0x20
-     [<ffffffff81886522>] seq_read+0xcd2/0x1480
-     [<ffffffff81410e15>] ? down_trylock+0x55/0x90
-     [<ffffffff81435f51>] ? vprintk_emit+0x151/0x740
-     [<ffffffff81435fd4>] ? vprintk_emit+0x1d4/0x740
-     [<ffffffff81435172>] ? console_trylock+0x12/0x100
-     [<ffffffff845f7d4c>] ? _raw_spin_unlock+0x2c/0x50
-     [<ffffffff81885850>] ? seq_open+0x220/0x220
-     [<ffffffff8199ccc0>] ? proc_reg_write+0x260/0x260
-     [<ffffffff814368fa>] ? vprintk_default+0x1a/0x20
-     [<ffffffff81631e8d>] ? printk+0x94/0xb0
-     [<ffffffff81631df9>] ? cpumask_weight.constprop.26+0x34/0x34
-     [<ffffffff8199cdcb>] proc_reg_read+0x10b/0x260
-     [<ffffffff8199ccc0>] ? proc_reg_write+0x260/0x260
-     [<ffffffff817fca00>] do_loop_readv_writev.part.5+0x140/0x2c0
-     [<ffffffff817ffac9>] do_readv_writev+0x589/0x860
-     [<ffffffff817ff540>] ? rw_verify_area+0x370/0x370
-     [<ffffffff845eebef>] ? mutex_lock_nested+0x49f/0x8e0
-     [<ffffffff81871624>] ? __fdget_pos+0x94/0xe0
-     [<ffffffff845ee750>] ? ww_mutex_unlock+0x390/0x390
-     [<ffffffff8180480b>] vfs_readv+0x7b/0xd0
-     [<ffffffff81871624>] ? __fdget_pos+0x94/0xe0
-     [<ffffffff81804938>] do_readv+0xd8/0x2c0
-     [<ffffffff81804860>] ? vfs_readv+0xd0/0xd0
-     [<ffffffff823c7143>] ? __this_cpu_preempt_check+0x13/0x20
-     [<ffffffff81805220>] ? do_pwritev+0x1b0/0x1b0
-     [<ffffffff8180522b>] SyS_readv+0xb/0x10
-     [<ffffffff81007bd3>] do_syscall_64+0x1b3/0x4b0
-     [<ffffffff845f85aa>] entry_SYSCALL64_slow_path+0x25/0x25
-    Object at ffff880116889100, in cache kmalloc-4096 size: 4096
-    Allocated:
-    PID = 1329
-     [<ffffffff81235f26>] save_stack_trace+0x26/0x80
-     [<ffffffff81795366>] save_stack+0x46/0xd0
-     [<ffffffff81795b1d>] kasan_kmalloc+0xad/0xe0
-     [<ffffffff8179094a>] __kmalloc+0x1aa/0x4a0
-     [<ffffffff81884bc5>] seq_buf_alloc+0x35/0x40
-     [<ffffffff81886028>] seq_read+0x7d8/0x1480
-     [<ffffffff8199cdcb>] proc_reg_read+0x10b/0x260
-     [<ffffffff817fca00>] do_loop_readv_writev.part.5+0x140/0x2c0
-     [<ffffffff817ffac9>] do_readv_writev+0x589/0x860
-     [<ffffffff8180480b>] vfs_readv+0x7b/0xd0
-     [<ffffffff81804938>] do_readv+0xd8/0x2c0
-     [<ffffffff8180522b>] SyS_readv+0xb/0x10
-     [<ffffffff81007bd3>] do_syscall_64+0x1b3/0x4b0
-     [<ffffffff845f85aa>] return_from_SYSCALL_64+0x0/0x6a
-    Freed:
-    PID = 0
-    (stack is not available)
-    Memory state around the buggy address:
-     ffff88011688a000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-     ffff88011688a080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-    >ffff88011688a100: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-		       ^
-     ffff88011688a180: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-     ffff88011688a200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-    ==================================================================
-    Disabling lock debugging due to kernel taint
-
-This seems to be the same thing that Dave Jones was seeing here:
-
-  https://lkml.org/lkml/2016/8/12/334
-
-There are multiple issues here:
-
-  1) If we enter the function with a non-empty buffer, there is an attempt
-     to flush it. But it was not clearing m->from after doing so, which
-     means that if we try to do this flush twice in a row without any call
-     to traverse() in between, we are going to be reading from the wrong
-     place -- the splat above, fixed by this patch.
-
-  2) If there's a short write to userspace because of page faults, the
-     buffer may already contain multiple lines (i.e. pos has advanced by
-     more than 1), but we don't save the progress that was made so the
-     next call will output what we've already returned previously. Since
-     that is a much less serious issue (and I have a headache after
-     staring at seq_read() for the past 8 hours), I'll leave that for now.
-
-Link: http://lkml.kernel.org/r/1471447270-32093-1-git-send-email-vegard.nossum@oracle.com
-Signed-off-by: Vegard Nossum <vegard.nossum@oracle.com>
-Reported-by: Dave Jones <davej@codemonkey.org.uk>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Fixes: ab68f2622136 ("/dev/dax, pmem: direct access to persistent memory")
+Link: http://lkml.kernel.org/r/147205536732.1606.8994275381938837346.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Abhilash Kumar Mulumudi <m.abhilash-kumar@hpe.com>
+Reported-by: Toshi Kani <toshi.kani@hpe.com>
+Tested-by: Toshi Kani <toshi.kani@hpe.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/dax/pmem.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/seq_file.c~fs-seq_file-fix-out-of-bounds-read fs/seq_file.c
---- a/fs/seq_file.c~fs-seq_file-fix-out-of-bounds-read
-+++ a/fs/seq_file.c
-@@ -223,8 +223,10 @@ ssize_t seq_read(struct file *file, char
- 		size -= n;
- 		buf += n;
- 		copied += n;
--		if (!m->count)
-+		if (!m->count) {
-+			m->from = 0;
- 			m->index++;
-+		}
- 		if (!size)
- 			goto Done;
- 	}
+diff -puN drivers/dax/pmem.c~dax-fix-device-dax-region-base drivers/dax/pmem.c
+--- a/drivers/dax/pmem.c~dax-fix-device-dax-region-base
++++ a/drivers/dax/pmem.c
+@@ -116,6 +116,9 @@ static int dax_pmem_probe(struct device
+ 	if (rc)
+ 		return rc;
+ 
++	/* adjust the dax_region resource to the start of data */
++	res.start += le64_to_cpu(pfn_sb->dataoff);
++
+ 	nd_region = to_nd_region(dev->parent);
+ 	dax_region = alloc_dax_region(dev, nd_region->id, &res,
+ 			le32_to_cpu(pfn_sb->align), addr, PFN_DEV|PFN_MAP);
 _
 
-Patches currently in -mm which might be from vegard.nossum@oracle.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-stackdepot-fix-mempolicy-use-after-free.patch
-fs-seq_file-fix-out-of-bounds-read.patch
+dax-fix-device-dax-region-base.patch
 
