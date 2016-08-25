@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
- added to -mm tree
-Date: Thu, 25 Aug 2016 14:42:05 -0700
-Message-ID: <57bf662d.b/86hvSHcfooROZf%akpm@linux-foundation.org>
+Subject: + oom-keep-mm-of-the-killed-task-available.patch added to -mm
+ tree
+Date: Thu, 25 Aug 2016 14:42:03 -0700
+Message-ID: <57bf662b.9S7C+xQT1aGFZkvm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58852 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58844 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754722AbcHYVmf (ORCPT
+        with ESMTP id S1754552AbcHYVmf (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 17:42:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +18,14 @@ To: mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientj
 
 
 The patch titled
-     Subject: kernel, oom: fix potential pgd_lock deadlock from __mmdrop
+     Subject: oom: keep mm of the killed task available
 has been added to the -mm tree.  Its filename is
-     kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
+     oom-keep-mm-of-the-killed-task-available.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom-keep-mm-of-the-killed-task-available.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom-keep-mm-of-the-killed-task-available.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,96 +40,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: kernel, oom: fix potential pgd_lock deadlock from __mmdrop
+Subject: oom: keep mm of the killed task available
 
-Lockdep complains that __mmdrop is not safe from the softirq context:
+oom_reap_task has to call exit_oom_victim in order to make sure that the
+oom vicim will not block the oom killer for ever.  This is, however,
+opening new problems (e.g oom_killer_disable exclusion - see 74070542099c
+("oom, suspend: fix oom_reaper vs.  oom_killer_disable race")). 
+exit_oom_victim should be only called from the victim's context ideally.
 
-[   63.860469] =================================
-[   63.861326] [ INFO: inconsistent lock state ]
-[   63.862677] 4.6.0-oomfortification2-00011-geeb3eadeab96-dirty #949 Tainted: G        W
-[   63.864072] ---------------------------------
-[   63.864072] inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage.
-[   63.864072] swapper/1/0 [HC0[0]:SC1[1]:HE1:SE0] takes:
-[   63.864072]  (pgd_lock){+.?...}, at: [<ffffffff81048762>] pgd_free+0x19/0x6b
-[   63.864072] {SOFTIRQ-ON-W} state was registered at:
-[   63.864072]   [<ffffffff81097da2>] __lock_acquire+0xa06/0x196e
-[   63.864072]   [<ffffffff810994d8>] lock_acquire+0x139/0x1e1
-[   63.864072]   [<ffffffff81625cd2>] _raw_spin_lock+0x32/0x41
-[   63.864072]   [<ffffffff8104594d>] __change_page_attr_set_clr+0x2a5/0xacd
-[   63.864072]   [<ffffffff810462e4>] change_page_attr_set_clr+0x16f/0x32c
-[   63.864072]   [<ffffffff81046544>] set_memory_nx+0x37/0x3a
-[   63.864072]   [<ffffffff81041b2c>] free_init_pages+0x9e/0xc7
-[   63.864072]   [<ffffffff81d49105>] alternative_instructions+0xa2/0xb3
-[   63.864072]   [<ffffffff81d4a763>] check_bugs+0xe/0x2d
-[   63.864072]   [<ffffffff81d3eed0>] start_kernel+0x3ce/0x3ea
-[   63.864072]   [<ffffffff81d3e2f1>] x86_64_start_reservations+0x2a/0x2c
-[   63.864072]   [<ffffffff81d3e46d>] x86_64_start_kernel+0x17a/0x18d
-[   63.864072] irq event stamp: 105916
-[   63.864072] hardirqs last  enabled at (105916): [<ffffffff8112f5ba>] free_hot_cold_page+0x37e/0x390
-[   63.864072] hardirqs last disabled at (105915): [<ffffffff8112f4fd>] free_hot_cold_page+0x2c1/0x390
-[   63.864072] softirqs last  enabled at (105878): [<ffffffff81055724>] _local_bh_enable+0x42/0x44
-[   63.864072] softirqs last disabled at (105879): [<ffffffff81055a6d>] irq_exit+0x6f/0xd1
-[   63.864072]
-[   63.864072] other info that might help us debug this:
-[   63.864072]  Possible unsafe locking scenario:
-[   63.864072]
-[   63.864072]        CPU0
-[   63.864072]        ----
-[   63.864072]   lock(pgd_lock);
-[   63.864072]   <Interrupt>
-[   63.864072]     lock(pgd_lock);
-[   63.864072]
-[   63.864072]  *** DEADLOCK ***
-[   63.864072]
-[   63.864072] 1 lock held by swapper/1/0:
-[   63.864072]  #0:  (rcu_callback){......}, at: [<ffffffff810b44f2>] rcu_process_callbacks+0x390/0x800
-[   63.864072]
-[   63.864072] stack backtrace:
-[   63.864072] CPU: 1 PID: 0 Comm: swapper/1 Tainted: G        W       4.6.0-oomfortification2-00011-geeb3eadeab96-dirty #949
-[   63.864072] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Debian-1.8.2-1 04/01/2014
-[   63.864072]  0000000000000000 ffff88000fb03c38 ffffffff81312df8 ffffffff8257a0d0
-[   63.864072]  ffff8800069f8000 ffff88000fb03c70 ffffffff81125bc5 0000000000000004
-[   63.864072]  ffff8800069f8888 ffff8800069f8000 ffffffff8109603a 0000000000000004
-[   63.864072] Call Trace:
-[   63.864072]  <IRQ>  [<ffffffff81312df8>] dump_stack+0x67/0x90
-[   63.864072]  [<ffffffff81125bc5>] print_usage_bug.part.25+0x259/0x268
-[   63.864072]  [<ffffffff8109603a>] ? print_shortest_lock_dependencies+0x180/0x180
-[   63.864072]  [<ffffffff81096d33>] mark_lock+0x381/0x567
-[   63.864072]  [<ffffffff81097d2f>] __lock_acquire+0x993/0x196e
-[   63.864072]  [<ffffffff81048762>] ? pgd_free+0x19/0x6b
-[   63.864072]  [<ffffffff8117b8ae>] ? discard_slab+0x42/0x44
-[   63.864072]  [<ffffffff8117e00d>] ? __slab_free+0x3e6/0x429
-[   63.864072]  [<ffffffff810994d8>] lock_acquire+0x139/0x1e1
-[   63.864072]  [<ffffffff810994d8>] ? lock_acquire+0x139/0x1e1
-[   63.864072]  [<ffffffff81048762>] ? pgd_free+0x19/0x6b
-[   63.864072]  [<ffffffff81625cd2>] _raw_spin_lock+0x32/0x41
-[   63.864072]  [<ffffffff81048762>] ? pgd_free+0x19/0x6b
-[   63.864072]  [<ffffffff81048762>] pgd_free+0x19/0x6b
-[   63.864072]  [<ffffffff8104d018>] __mmdrop+0x25/0xb9
-[   63.864072]  [<ffffffff8104d29d>] __put_task_struct+0x103/0x11e
-[   63.864072]  [<ffffffff810526a0>] delayed_put_task_struct+0x157/0x15e
-[   63.864072]  [<ffffffff810b47c2>] rcu_process_callbacks+0x660/0x800
-[   63.864072]  [<ffffffff81052549>] ? will_become_orphaned_pgrp+0xae/0xae
-[   63.864072]  [<ffffffff8162921c>] __do_softirq+0x1ec/0x4d5
-[   63.864072]  [<ffffffff81055a6d>] irq_exit+0x6f/0xd1
-[   63.864072]  [<ffffffff81628d7b>] smp_apic_timer_interrupt+0x42/0x4d
-[   63.864072]  [<ffffffff8162732e>] apic_timer_interrupt+0x8e/0xa0
-[   63.864072]  <EOI>  [<ffffffff81021657>] ? default_idle+0x6b/0x16e
-[   63.864072]  [<ffffffff81021ed2>] arch_cpu_idle+0xf/0x11
-[   63.864072]  [<ffffffff8108e59b>] default_idle_call+0x32/0x34
-[   63.864072]  [<ffffffff8108e7a9>] cpu_startup_entry+0x20c/0x399
-[   63.864072]  [<ffffffff81034600>] start_secondary+0xfe/0x101
+One way to achieve this would be to rely on per mm_struct flags. We
+already have MMF_OOM_REAPED to hide a task from the oom killer since
+"mm, oom: hide mm which is shared with kthread or global init". The
+problem is that the exit path:
+do_exit
+  exit_mm
+    tsk->mm = NULL;
+    mmput
+      __mmput
+    exit_oom_victim
 
-More over a79e53d85683 ("x86/mm: Fix pgd_lock deadlock") was explicit
-about pgd_lock not to be called from the irq context. This means that
-__mmdrop called from free_signal_struct has to be postponed to a user
-context. We already have a similar mechanism for mmput_async so we
-can use it here as well. This is safe because mm_count is pinned by
-mm_users.
+doesn't guarantee that exit_oom_victim will get called in a bounded amount
+of time.  At least exit_aio depends on IO which might get blocked due to
+lack of memory and who knows what else is lurking there.
 
-This fixes bug introduced by "oom: keep mm of the killed task available"
+This patch takes a different approach.  We remember tsk->mm into the
+signal_struct and bind it to the signal struct life time for all oom
+victims.  __oom_reap_task_mm as well as oom_scan_process_thread do not
+have to rely on find_lock_task_mm anymore and they will have a reliable
+reference to the mm struct.  As a result all the oom specific
+communication inside the OOM killer can be done via tsk->signal->oom_mm.
 
-Link: http://lkml.kernel.org/r/1472119394-11342-5-git-send-email-mhocko@kernel.org
+Increasing the signal_struct for something as unlikely as the oom killer
+is far from ideal but this approach will make the code much more
+reasonable and long term we even might want to move task->mm into the
+signal_struct anyway.  In the next step we might want to make the oom
+killer exclusion and access to memory reserves completely independent
+which would be also nice.
+
+Link: http://lkml.kernel.org/r/1472119394-11342-4-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Oleg Nesterov <oleg@redhat.com>
@@ -138,65 +86,141 @@ Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    2 --
- include/linux/sched.h    |   14 ++++++++++++++
- kernel/fork.c            |    6 +++++-
- 3 files changed, 19 insertions(+), 3 deletions(-)
+ include/linux/sched.h |    2 +
+ kernel/fork.c         |    2 +
+ mm/oom_kill.c         |   51 ++++++++++++++--------------------------
+ 3 files changed, 23 insertions(+), 32 deletions(-)
 
-diff -puN include/linux/mm_types.h~kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop include/linux/mm_types.h
---- a/include/linux/mm_types.h~kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop
-+++ a/include/linux/mm_types.h
-@@ -515,9 +515,7 @@ struct mm_struct {
- #ifdef CONFIG_HUGETLB_PAGE
- 	atomic_long_t hugetlb_usage;
- #endif
--#ifdef CONFIG_MMU
- 	struct work_struct async_put_work;
--#endif
- };
- 
- static inline void mm_init_cpumask(struct mm_struct *mm)
-diff -puN include/linux/sched.h~kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop include/linux/sched.h
---- a/include/linux/sched.h~kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop
+diff -puN include/linux/sched.h~oom-keep-mm-of-the-killed-task-available include/linux/sched.h
+--- a/include/linux/sched.h~oom-keep-mm-of-the-killed-task-available
 +++ a/include/linux/sched.h
-@@ -2833,6 +2833,20 @@ static inline void mmdrop(struct mm_stru
- 		__mmdrop(mm);
- }
+@@ -803,6 +803,8 @@ struct signal_struct {
+ 	short oom_score_adj;		/* OOM kill score adjustment */
+ 	short oom_score_adj_min;	/* OOM kill score adjustment min value.
+ 					 * Only settable by CAP_SYS_RESOURCE. */
++	struct mm_struct *oom_mm;	/* recorded mm when the thread group got
++					 * killed by the oom killer */
  
-+static inline void mmdrop_async_fn(struct work_struct *work)
-+{
-+	struct mm_struct *mm = container_of(work, struct mm_struct, async_put_work);
-+	__mmdrop(mm);
-+}
-+
-+static inline void mmdrop_async(struct mm_struct *mm)
-+{
-+	if (unlikely(atomic_dec_and_test(&mm->mm_count))) {
-+		INIT_WORK(&mm->async_put_work, mmdrop_async_fn);
-+		schedule_work(&mm->async_put_work);
-+	}
-+}
-+
- static inline bool mmget_not_zero(struct mm_struct *mm)
- {
- 	return atomic_inc_not_zero(&mm->mm_users);
-diff -puN kernel/fork.c~kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop kernel/fork.c
---- a/kernel/fork.c~kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop
+ 	struct mutex cred_guard_mutex;	/* guard against foreign influences on
+ 					 * credential calculations
+diff -puN kernel/fork.c~oom-keep-mm-of-the-killed-task-available kernel/fork.c
+--- a/kernel/fork.c~oom-keep-mm-of-the-killed-task-available
 +++ a/kernel/fork.c
-@@ -243,8 +243,12 @@ static inline void free_signal_struct(st
+@@ -243,6 +243,8 @@ static inline void free_signal_struct(st
  {
  	taskstats_tgid_free(sig);
  	sched_autogroup_exit(sig);
-+	/*
-+	 * __mmdrop is not safe to call from softirq context on x86 due to
-+	 * pgd_dtor so postpone it to the async context
-+	 */
- 	if (sig->oom_mm)
--		mmdrop(sig->oom_mm);
-+		mmdrop_async(sig->oom_mm);
++	if (sig->oom_mm)
++		mmdrop(sig->oom_mm);
  	kmem_cache_free(signal_cachep, sig);
  }
  
+diff -puN mm/oom_kill.c~oom-keep-mm-of-the-killed-task-available mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-keep-mm-of-the-killed-task-available
++++ a/mm/oom_kill.c
+@@ -300,14 +300,7 @@ static int oom_evaluate_task(struct task
+ 	 * any memory is quite low.
+ 	 */
+ 	if (!is_sysrq_oom(oc) && atomic_read(&task->signal->oom_victims)) {
+-		struct task_struct *p = find_lock_task_mm(task);
+-		bool reaped = false;
+-
+-		if (p) {
+-			reaped = test_bit(MMF_OOM_REAPED, &p->mm->flags);
+-			task_unlock(p);
+-		}
+-		if (reaped)
++		if (test_bit(MMF_OOM_REAPED, &task->signal->oom_mm->flags))
+ 			goto next;
+ 		goto abort;
+ 	}
+@@ -537,11 +530,6 @@ static bool __oom_reap_task_mm(struct ta
+ 	up_read(&mm->mmap_sem);
+ 
+ 	/*
+-	 * This task can be safely ignored because we cannot do much more
+-	 * to release its memory.
+-	 */
+-	set_bit(MMF_OOM_REAPED, &mm->flags);
+-	/*
+ 	 * Drop our reference but make sure the mmput slow path is called from a
+ 	 * different context because we shouldn't risk we get stuck there and
+ 	 * put the oom_reaper out of the way.
+@@ -556,20 +544,7 @@ unlock_oom:
+ static void oom_reap_task(struct task_struct *tsk)
+ {
+ 	int attempts = 0;
+-	struct mm_struct *mm = NULL;
+-	struct task_struct *p = find_lock_task_mm(tsk);
+-
+-	/*
+-	 * Make sure we find the associated mm_struct even when the particular
+-	 * thread has already terminated and cleared its mm.
+-	 * We might have race with exit path so consider our work done if there
+-	 * is no mm.
+-	 */
+-	if (!p)
+-		goto done;
+-	mm = p->mm;
+-	atomic_inc(&mm->mm_count);
+-	task_unlock(p);
++	struct mm_struct *mm = tsk->signal->oom_mm;
+ 
+ 	/* Retry the down_read_trylock(mmap_sem) a few times */
+ 	while (attempts++ < MAX_OOM_REAP_RETRIES && !__oom_reap_task_mm(tsk, mm))
+@@ -578,8 +553,6 @@ static void oom_reap_task(struct task_st
+ 	if (attempts <= MAX_OOM_REAP_RETRIES)
+ 		goto done;
+ 
+-	/* Ignore this mm because somebody can't call up_write(mmap_sem). */
+-	set_bit(MMF_OOM_REAPED, &mm->flags);
+ 
+ 	pr_info("oom_reaper: unable to reap pid:%d (%s)\n",
+ 		task_pid_nr(tsk), tsk->comm);
+@@ -595,11 +568,14 @@ done:
+ 	tsk->oom_reaper_list = NULL;
+ 	exit_oom_victim(tsk);
+ 
++	/*
++	 * Hide this mm from OOM killer because it has been either reaped or
++	 * somebody can't call up_write(mmap_sem).
++	 */
++	set_bit(MMF_OOM_REAPED, &mm->flags);
++
+ 	/* Drop a reference taken by wake_oom_reaper */
+ 	put_task_struct(tsk);
+-	/* Drop a reference taken above. */
+-	if (mm)
+-		mmdrop(mm);
+ }
+ 
+ static int oom_reaper(void *unused)
+@@ -665,14 +641,25 @@ static inline void wake_oom_reaper(struc
+  *
+  * Has to be called with oom_lock held and never after
+  * oom has been disabled already.
++ *
++ * tsk->mm has to be non NULL and caller has to guarantee it is stable (either
++ * under task_lock or operate on the current).
+  */
+ static void mark_oom_victim(struct task_struct *tsk)
+ {
++	struct mm_struct *mm = tsk->mm;
++
+ 	WARN_ON(oom_killer_disabled);
+ 	/* OOM killer might race with memcg OOM */
+ 	if (test_and_set_tsk_thread_flag(tsk, TIF_MEMDIE))
+ 		return;
++
+ 	atomic_inc(&tsk->signal->oom_victims);
++
++	/* oom_mm is bound to the signal struct life time. */
++	if (!cmpxchg(&tsk->signal->oom_mm, NULL, mm))
++		atomic_inc(&tsk->signal->oom_mm->mm_count);
++
+ 	/*
+ 	 * Make sure that the task is woken up from uninterruptible sleep
+ 	 * if it is frozen because OOM killer wouldn't be able to free
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
