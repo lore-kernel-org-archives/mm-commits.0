@@ -1,70 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [patch 01/12] byteswap: don't use __builtin_bswap*() with sparse
-Date: Thu, 25 Aug 2016 15:16:45 -0700
-Message-ID: <57bf6e4d.EWxTMR0sFebhSFUJ%akpm@linux-foundation.org>
+Subject: [patch 02/12] get_maintainer: quiet noisy implicit -f
+ vcs_file_exists checking
+Date: Thu, 25 Aug 2016 15:16:48 -0700
+Message-ID: <57bf6e50.YMTRr8GFWqBYMtYF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59004 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757755AbcHYWQq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 18:16:46 -0400
+        with ESMTP id S1757769AbcHYWQt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 18:16:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, johannes.berg@intel.com, arnd@arndb.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com, wsa@the-dreams.de
 
-From: Johannes Berg <johannes.berg@intel.com>
-Subject: byteswap: don't use __builtin_bswap*() with sparse
+From: Joe Perches <joe@perches.com>
+Subject: get_maintainer: quiet noisy implicit -f vcs_file_exists checking
 
-Although sparse declares __builtin_bswap*(), it can't actually do constant
-folding inside them (yet).  As such, things like
+Checking command line filenames that are outside the git tree can emit a
+noisy and confusing message.
 
-  switch (protocol) {
-  case htons(ETH_P_IP):
-          break;
-  }
+Quiet that message by redirecting stderr.
+Verify that the command was executed successfully.
 
-which we do all over the place cause sparse to warn that it expects a
-constant instead of a function call.
-
-Disable __HAVE_BUILTIN_BSWAP*__ if __CHECKER__ is defined to
-avoid this.
-
-Fixes: 7322dd755e7d ("byteswap: try to avoid __builtin_constant_p gcc bug")
-Link: http://lkml.kernel.org/r/1470914102-26389-1-git-send-email-johannes@sipsolutions.net
-Signed-off-by: Johannes Berg <johannes.berg@intel.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 4cad35a7ca69 ("get_maintainer.pl: reduce need for command-line option -f")
+Link: http://lkml.kernel.org/r/1970a1d2fecb258e384e2e4fdaacdc9ccf3e30a4.1470955439.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Wolfram Sang <wsa@the-dreams.de>
+Tested-by: Wolfram Sang <wsa@the-dreams.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ scripts/get_maintainer.pl |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/compiler-gcc.h~byteswap-dont-use-__builtin_bswap-with-sparse include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~byteswap-dont-use-__builtin_bswap-with-sparse
-+++ a/include/linux/compiler-gcc.h
-@@ -242,7 +242,11 @@
-  */
- #define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
+diff -puN scripts/get_maintainer.pl~get_maintainer-quiet-noisy-implicit-f-vcs_file_exists-checking scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-quiet-noisy-implicit-f-vcs_file_exists-checking
++++ a/scripts/get_maintainer.pl
+@@ -2136,9 +2136,11 @@ sub vcs_file_exists {
  
--#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
-+/*
-+ * sparse (__CHECKER__) pretends to be gcc, but can't do constant
-+ * folding in __builtin_bswap*() (yet), so don't set these for it.
-+ */
-+#if defined(CONFIG_ARCH_USE_BUILTIN_BSWAP) && !defined(__CHECKER__)
- #if GCC_VERSION >= 40400
- #define __HAVE_BUILTIN_BSWAP32__
- #define __HAVE_BUILTIN_BSWAP64__
-@@ -250,7 +254,7 @@
- #if GCC_VERSION >= 40800
- #define __HAVE_BUILTIN_BSWAP16__
- #endif
--#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
-+#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP && !__CHECKER__ */
- 
- #if GCC_VERSION >= 50000
- #define KASAN_ABI_VERSION 4
-_
+     my $cmd = $VCS_cmds{"file_exists_cmd"};
+     $cmd =~ s/(\$\w+)/$1/eeg;		# interpolate $cmd
