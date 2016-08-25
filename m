@@ -1,105 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: + mm-silently-skip-readahead-for-dax-inodes.patch added to -mm
- tree
-Date: Wed, 24 Aug 2016 15:49:02 -0700
-Message-ID: <57be245e.IBe4TcIQR4NEWjLt%akpm__17397.4803103649$1472078978$gmane$org@linux-foundation.org>
+Subject: [merged] fixdep-faster-config_-search.patch removed from -mm tree
+Date: Thu, 25 Aug 2016 13:31:10 -0700
+Message-ID: <57bf558e.zxehsD9MknCmZtz8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60980 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58060 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757043AbcHXWtR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Aug 2016 18:49:17 -0400
+        with ESMTP id S933073AbcHYUbL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 16:31:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, jack@suse.com, jmoyer@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: silently skip readahead for DAX inodes
-has been added to the -mm tree.  Its filename is
-     mm-silently-skip-readahead-for-dax-inodes.patch
+     Subject: fixdep: faster CONFIG_ search
+has been removed from the -mm tree.  Its filename was
+     fixdep-faster-config_-search.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-silently-skip-readahead-for-dax-inodes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-silently-skip-readahead-for-dax-inodes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: mm: silently skip readahead for DAX inodes
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: fixdep: faster CONFIG_ search
 
-For DAX inodes we need to be careful to never have page cache pages in the
-mapping->page_tree.  This radix tree should be composed only of DAX
-exceptional entries and zero pages.
+Do you think kernel build is 100% dominated by gcc?  You are wrong!  One
+small utility called "fixdep" consistently manages to sneak into profile's
+first page (unless you have small monitor of course).
 
-ltp's readahead02 test was triggering a warning because we were trying to
-insert a DAX exceptional entry but found that a page cache page had
-already been inserted into the tree.  This page was being inserted into
-the radix tree in response to a readahead(2) call.
+The choke point is this clever code:
 
-Readahead doesn't make sense for DAX inodes, but we don't want it to report
-a failure either.  Instead, we just return success and don't do any work.
+	for (; m < end; m++) {
+		if (*m == INT_CONF) { p = (char *) m  ; goto conf; }
+		if (*m == INT_ONFI) { p = (char *) m-1; goto conf; }
+		if (*m == INT_NFIG) { p = (char *) m-2; goto conf; }
+		if (*m == INT_FIG_) { p = (char *) m-3; goto conf; }
 
-Link: http://lkml.kernel.org/r/20160824221429.21158-1-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: <stable@vger.kernel.org>	[4.5+]
+4 branches per 4 characters is not fast.
+
+Use strstr(3), so that SSE2 etc can be used.
+
+With this patch, fixdep is so deep at the bottom, it is hard to find it.
+
+Link: http://lkml.kernel.org/r/20160823184724.GA11707@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ scripts/basic/fixdep.c |   67 ++++++++++++++++-----------------------
+ 1 file changed, 28 insertions(+), 39 deletions(-)
 
-diff -puN mm/readahead.c~mm-silently-skip-readahead-for-dax-inodes mm/readahead.c
---- a/mm/readahead.c~mm-silently-skip-readahead-for-dax-inodes
-+++ a/mm/readahead.c
-@@ -8,6 +8,7 @@
-  */
- 
- #include <linux/kernel.h>
-+#include <linux/dax.h>
- #include <linux/gfp.h>
- #include <linux/export.h>
- #include <linux/blkdev.h>
-@@ -544,6 +545,14 @@ do_readahead(struct address_space *mappi
- 	if (!mapping || !mapping->a_ops)
- 		return -EINVAL;
- 
-+	/*
-+	 * Readahead doesn't make sense for DAX inodes, but we don't want it
-+	 * to report a failure either.  Instead, we just return success and
-+	 * don't do any work.
-+	 */
-+	if (dax_mapping(mapping))
-+		return 0;
-+
- 	return force_page_cache_readahead(mapping, filp, index, nr);
+diff -puN scripts/basic/fixdep.c~fixdep-faster-config_-search scripts/basic/fixdep.c
+--- a/scripts/basic/fixdep.c~fixdep-faster-config_-search
++++ a/scripts/basic/fixdep.c
+@@ -82,8 +82,7 @@
+  * to date before even starting the recursive build, so it's too late
+  * at this point anyway.
+  *
+- * The algorithm to grep for "CONFIG_..." is bit unusual, but should
+- * be fast ;-) We don't even try to really parse the header files, but
++ * We don't even try to really parse the header files, but
+  * merely grep, i.e. if CONFIG_FOO is mentioned in a comment, it will
+  * be picked up as well. It's not a problem with respect to
+  * correctness, since that can only give too many dependencies, thus
+@@ -241,37 +240,22 @@ static void use_config(const char *m, in
+ 	print_config(m, slen);
  }
  
-_
-
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
-
-mm-silently-skip-readahead-for-dax-inodes.patch
-radix-tree-slot-can-be-null-in-radix_tree_next_slot.patch
-radix-tree-tests-add-iteration-test.patch
-radix-tree-tests-properly-initialize-mutex.patch
-
+-static void parse_config_file(const char *map, size_t len)
++static void parse_config_file(const char *p)
+ {
+-	const int *end = (const int *) (map + len);
+-	/* start at +1, so that p can never be < map */
+-	const int *m   = (const int *) map + 1;
+-	const char *p, *q;
+-
+-	for (; m < end; m++) {
+-		if (*m == INT_CONF) { p = (char *) m  ; goto conf; }
+-		if (*m == INT_ONFI) { p = (char *) m-1; goto conf; }
+-		if (*m == INT_NFIG) { p = (char *) m-2; goto conf; }
+-		if (*m == INT_FIG_) { p = (char *) m-3; goto conf; }
+-		continue;
+-	conf:
+-		if (p > map + len - 7)
+-			continue;
+-		if (memcmp(p, "CONFIG_", 7))
+-			continue;
+-		p += 7;
+-		for (q = p; q < map + len; q++) {
+-			if (!(isalnum(*q) || *q == '_'))
+-				goto found;
+-		}
+-		continue;
++	const char *q, *r;
+ 
+-	found:
+-		if (!memcmp(q - 7, "_MODULE", 7))
+-			q -= 7;
+-		if (q - p < 0)
+-			continue;
+-		use_config(p, q - p);
++	while ((p = strstr(p, "CONFIG_"))) {
++		p += 7;
++		q = p;
++		while (*q && (isalnum(*q) || *q == '_'))
++			q++;
++		if (memcmp(q - 7, "_MODULE", 7) == 0)
++			r = q - 7;
++		else
++			r = q;
++		if (r > p)
++			use_config(p, r - p);
++		p = q;
+ 	}
+ }
+ 
+@@ -291,7 +275,7 @@ static void do_config_file(const char *f
+ {
+ 	struct stat st;
+ 	int fd;
+-	void *map;
++	char *map;
+ 
+ 	fd = open(filename, O_RDONLY);
+ 	if (fd < 0) {
+@@ -308,18 +292,23 @@ static void do_config_file(const char *f
+ 		close(fd);
+ 		return;
+ 	}
+-	map = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+-	if ((long) map == -1) {
+-		perror("fixdep: mmap");
++	map = malloc(st.st_size + 1);
++	if (!map) {
++		perror("fixdep: malloc");
+ 		close(fd);
+ 		return;
+ 	}
++	if (read(fd, map, st.st_size) != st.st_size) {
++		perror("fixdep: read");
++		close(fd);
++		return;
++	}
++	map[st.st_size] = '\0';
++	close(fd);
+ 
+-	parse_config_file(map, st.st_size);
