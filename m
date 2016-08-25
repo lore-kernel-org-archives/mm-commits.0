@@ -1,150 +1,267 @@
 From: akpm@linux-foundation.org
-Subject: [patch 03/12] sysctl: handle error writing UINT_MAX to u32 fields
-Date: Thu, 25 Aug 2016 15:16:51 -0700
-Message-ID: <57bf6e53.POzoiQFFosIGYM8g%akpm@linux-foundation.org>
+Subject: mmotm 2016-08-25-15-19 uploaded
+Date: Thu, 25 Aug 2016 15:20:17 -0700
+Message-ID: <57bf6f21.kSVdKFfGcyX5HYxj%akpm__42621.8597371646$1472163630$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59110 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757783AbcHYWRp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 18:17:45 -0400
+        with ESMTP id S1755019AbcHYWUT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 18:20:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, subashab@codeaurora.org, davem@davemloft.net, keescook@chromium.org, mingo@redhat.com, xypron.glpk@gmx.de
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
 
-From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: sysctl: handle error writing UINT_MAX to u32 fields
+The mm-of-the-moment snapshot 2016-08-25-15-19 has been uploaded to
 
-We have scripts which write to certain fields on 3.18 kernels but this
-seems to be failing on 4.4 kernels.  An entry which we write to here is
-xfrm_aevent_rseqth which is u32.
+   http://www.ozlabs.org/~akpm/mmotm/
 
-echo 4294967295  > /proc/sys/net/core/xfrm_aevent_rseqth
+mmotm-readme.txt says
 
-Commit 230633d109e3 ("kernel/sysctl.c: detect overflows when converting to
-int") prevented writing to sysctl entries when integer overflow occurs. 
-However, this does not apply to unsigned integers.
+README for mm-of-the-moment:
 
-Heinrich suggested that we introduce a new option to handle 64 bit limits
-and set min as 0 and max as UINT_MAX.  This might not work as it leads to
-issues similar to __do_proc_doulongvec_minmax.  Alternatively, we would
-need to change the datatype of the entry to 64 bit.
+http://www.ozlabs.org/~akpm/mmotm/
 
-static int __do_proc_doulongvec_minmax(void *data, struct ctl_table
-{
-    i = (unsigned long *) data;   //This cast is causing to
-read beyond the size of data (u32)
-    vleft = table->maxlen / sizeof(unsigned long); //vleft is 0
-because maxlen is sizeof(u32) which is lesser than sizeof(unsigned
-long) on x86_64.
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
 
-Introduce a new proc handler proc_douintvec.  Individual proc entries will
-need to be updated to use the new handler.
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
 
-[akpm@linux-foundation.org: coding-style fixes]
-Fixes: 230633d109e3 ("kernel/sysctl.c:detect overflows when converting to int")
-Link: http://lkml.kernel.org/r/1471479806-5252-1-git-send-email-subashab@codeaurora.org
-Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ingo Molnar <mingo@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
 
- include/linux/sysctl.h |    2 +
- kernel/sysctl.c        |   45 +++++++++++++++++++++++++++++++++++++--
- 2 files changed, 45 insertions(+), 2 deletions(-)
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
 
-diff -puN include/linux/sysctl.h~sysctl-handle-error-writing-uint_max-to-u32-fields include/linux/sysctl.h
---- a/include/linux/sysctl.h~sysctl-handle-error-writing-uint_max-to-u32-fields
-+++ a/include/linux/sysctl.h
-@@ -42,6 +42,8 @@ extern int proc_dostring(struct ctl_tabl
- 			 void __user *, size_t *, loff_t *);
- extern int proc_dointvec(struct ctl_table *, int,
- 			 void __user *, size_t *, loff_t *);
-+extern int proc_douintvec(struct ctl_table *, int,
-+			 void __user *, size_t *, loff_t *);
- extern int proc_dointvec_minmax(struct ctl_table *, int,
- 				void __user *, size_t *, loff_t *);
- extern int proc_dointvec_jiffies(struct ctl_table *, int,
-diff -puN kernel/sysctl.c~sysctl-handle-error-writing-uint_max-to-u32-fields kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-handle-error-writing-uint_max-to-u32-fields
-+++ a/kernel/sysctl.c
-@@ -2140,6 +2140,21 @@ static int do_proc_dointvec_conv(bool *n
- 	return 0;
- }
- 
-+static int do_proc_douintvec_conv(bool *negp, unsigned long *lvalp,
-+				 int *valp,
-+				 int write, void *data)
-+{
-+	if (write) {
-+		if (*negp)
-+			return -EINVAL;
-+		*valp = *lvalp;
-+	} else {
-+		unsigned int val = *valp;
-+		*lvalp = (unsigned long)val;
-+	}
-+	return 0;
-+}
-+
- static const char proc_wspace_sep[] = { ' ', '\t', '\n' };
- 
- static int __do_proc_dointvec(void *tbl_data, struct ctl_table *table,
-@@ -2259,8 +2274,27 @@ static int do_proc_dointvec(struct ctl_t
- int proc_dointvec(struct ctl_table *table, int write,
- 		     void __user *buffer, size_t *lenp, loff_t *ppos)
- {
--    return do_proc_dointvec(table,write,buffer,lenp,ppos,
--		    	    NULL,NULL);
-+	return do_proc_dointvec(table, write, buffer, lenp, ppos, NULL, NULL);
-+}
-+
-+/**
-+ * proc_douintvec - read a vector of unsigned integers
-+ * @table: the sysctl table
-+ * @write: %TRUE if this is a write to the sysctl file
-+ * @buffer: the user buffer
-+ * @lenp: the size of the user buffer
-+ * @ppos: file position
-+ *
-+ * Reads/writes up to table->maxlen/sizeof(unsigned int) unsigned integer
-+ * values from/to the user buffer, treated as an ASCII string.
-+ *
-+ * Returns 0 on success.
-+ */
-+int proc_douintvec(struct ctl_table *table, int write,
-+		     void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	return do_proc_dointvec(table, write, buffer, lenp, ppos,
-+				do_proc_douintvec_conv, NULL);
- }
- 
- /*
-@@ -2858,6 +2892,12 @@ int proc_dointvec(struct ctl_table *tabl
- 	return -ENOSYS;
- }
- 
-+int proc_douintvec(struct ctl_table *table, int write,
-+		  void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	return -ENOSYS;
-+}
-+
- int proc_dointvec_minmax(struct ctl_table *table, int write,
- 		    void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -2903,6 +2943,7 @@ int proc_doulongvec_ms_jiffies_minmax(st
-  * exception granted :-)
-  */
- EXPORT_SYMBOL(proc_dointvec);
-+EXPORT_SYMBOL(proc_douintvec);
- EXPORT_SYMBOL(proc_dointvec_jiffies);
- EXPORT_SYMBOL(proc_dointvec_minmax);
- EXPORT_SYMBOL(proc_dointvec_userhz_jiffies);
-_
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
+
+
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
+
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+
+To develop on top of mmotm git:
+
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
+
+To rebase a branch with older patches to a new mmotm release:
+
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
+
+
+
+
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
+
+A git copy of this tree is available at
+
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+
+
+This mmotm tree contains the following patches against 4.8-rc3:
+(patches marked "*" will be included in linux-next)
+
+  origin.patch
+* byteswap-dont-use-__builtin_bswap-with-sparse.patch
+* get_maintainer-quiet-noisy-implicit-f-vcs_file_exists-checking.patch
+* sysctl-handle-error-writing-uint_max-to-u32-fields.patch
+* stackdepot-fix-mempolicy-use-after-free.patch
+* soft_dirty-fix-soft_dirty-during-thp-split.patch
+* printk-fix-parsing-of-brl=-option.patch
+* treewide-replace-config_enabled-with-is_enabled-2nd-round.patch
+* mm-clarify-compaction-kconfig-text.patch
+* mm-memcontrol-avoid-unused-function-warning.patch
+* fs-seq_file-fix-out-of-bounds-read.patch
+* dax-fix-device-dax-region-base.patch
+* mm-silently-skip-readahead-for-dax-inodes.patch
+  arch-alpha-kernel-systblss-remove-debug-check.patch
+  i-need-old-gcc.patch
+* mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request.patch
+* mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve.patch
+* fadump-register-the-memory-reserved-by-fadump.patch
+* mm-slab-improve-performance-of-gathering-slabinfo-stats.patch
+* kthread-rename-probe_kthread_data-to-kthread_probe_data.patch
+* kthread-kthread-worker-api-cleanup.patch
+* kthread-smpboot-do-not-park-in-kthread_create_on_cpu.patch
+* kthread-allow-to-call-__kthread_create_on_node-with-va_list-args.patch
+* kthread-add-kthread_create_worker.patch
+* kthread-add-kthread_destroy_worker.patch
+* kthread-detect-when-a-kthread-work-is-used-by-more-workers.patch
+* kthread-initial-support-for-delayed-kthread-work.patch
+* kthread-allow-to-cancel-kthread-work.patch
+* kthread-allow-to-modify-delayed-kthread-work.patch
+* kthread-better-support-freezable-kthread-workers.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* kbuild-simpler-generation-of-assembly-constants.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+* kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
+  mm.patch
+* mm-oom-deduplicate-victim-selection-code-for-memcg-and-global-oom.patch
+* mm-zsmalloc-add-trace-events-for-zs_compact.patch
+* mm-zsmalloc-add-per-class-compact-trace-event.patch
+* mm-vmalloc-fix-align-value-calculation-error.patch
+* mm-vmalloc-fix-align-value-calculation-error-fix.patch
+* mm-vmalloc-fix-align-value-calculation-error-v2.patch
+* mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
+* mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+* mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix-fix.patch
+* mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
+* mm-oom_killc-fix-task_will_free_mem-comment.patch
+* mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
+* mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+* mm-compaction-cleanup-unused-functions.patch
+* mm-compaction-rename-compact_partial-to-compact_success.patch
+* mm-compaction-dont-recheck-watermarks-after-compact_success.patch
+* mm-compaction-add-the-ultimate-direct-compaction-priority.patch
+* mm-compaction-add-the-ultimate-direct-compaction-priority-fix.patch
+* mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
+* mm-compaction-create-compact_gap-wrapper.patch
+* mm-compaction-create-compact_gap-wrapper-fix.patch
+* mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
+* mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
+* mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
+* mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
+* mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node.patch
+* mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init.patch
+* mm-vmscan-get-rid-of-throttle_vm_writeout.patch
+* mm-debug_pagealloc-clean-up-guard-page-handling-code.patch
+* mm-debug_pagealloc-dont-allocate-page_ext-if-we-dont-use-guard-page.patch
+* mm-page_owner-move-page_owner-specific-function-to-page_ownerc.patch
+* mm-page_ext-rename-offset-to-index.patch
+* mm-page_ext-support-extra-space-allocation-by-page_ext-user.patch
+* mm-page_owner-dont-define-fields-on-struct-page_ext-by-hard-coding.patch
+* do_generic_file_read-fail-immediately-if-killed.patch
+* mm-pagewalk-fix-the-comment-for-test_walk.patch
+* mm-unrig-vma-cache-hit-ratio.patch
+* mm-swap-add-swap_cluster_list.patch
+* mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
+* mmoom_reaper-reduce-find_lock_task_mm-usage.patch
+* mmoom_reaper-do-not-attempt-to-reap-a-task-twice.patch
+* oom-keep-mm-of-the-killed-task-available.patch
+* kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
+* mm-oom-get-rid-of-signal_struct-oom_victims.patch
+* oom-suspend-fix-oom_killer_disable-vs-pm-suspend-properly.patch
+* mm-oom-enforce-exit_oom_victim-on-current-task.patch
+* mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch
+* oom-oom_reaper-allow-to-reap-mm-shared-by-the-kthreads.patch
+* mm-page_owner-align-with-pageblock_nr-pages.patch
+* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+* proc-much-faster-proc-vmstat.patch
+* proc-faster-proc-status.patch
+* seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
+* seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+* meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
+* proc-relax-proc-tid-timerslack_ns-capability-requirements.patch
+* proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns.patch
+* min-max-remove-sparse-warnings-when-theyre-nested.patch
+* cred-simpler-1d-supplementary-groups.patch
+* console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
+* radix-tree-slot-can-be-null-in-radix_tree_next_slot.patch
+* radix-tree-tests-add-iteration-test.patch
+* radix-tree-tests-properly-initialize-mutex.patch
+* lib-add-crc64-ecma-module.patch
+* compat-remove-compat_printk.patch
+* checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+* checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
+* autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
+* autofs-drop-unnecessary-extern-in-autofs_ih.patch
+* autofs-test-autofs-versions-first-on-sb-initialization.patch
+* autofs-fix-autofs4_fill_super-error-exit-handling.patch
+* autofs-add-warn_on1-for-non-dir-link-inode-case.patch
+* autofs-remove-ino-free-in-autofs4_dir_symlink.patch
+* autofs-use-autofs4_free_ino-to-kfree-dentry-data.patch
+* autofs-remove-obsolete-sb-fields.patch
+* autofs-dont-fail-to-free_dev_ioctlparam.patch
+* autofs-remove-autofs_devid_len.patch
+* autofs-fix-documentation-regarding-devid-on-ioctl.patch
+* autofs-update-struct-autofs_dev_ioctl-in-documentation.patch
+* autofs-fix-pr_debug-message.patch
+* autofs-fix-dev-ioctl-number-range-check.patch
+* autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd.patch
+* autofs-fix-print-format-for-ioctl-warning-message.patch
+* autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+* autofs4-move-linux-auto_dev-ioctlh-to-uapi-linux.patch
+* kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+* kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
+* kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
+* powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c.patch
+* powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c-checkpatch-fixes.patch
+* powerpc-generalize-elf64_apply_relocate_add.patch
+* powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
+* powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load-checkpatch-fixes.patch
+* powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
+* powerpc-implement-kexec_file_load.patch
+* powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
+* powerpc-add-code-to-work-with-device-trees-in-kexec_file_load-checkpatch-fixes.patch
+* powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
+* powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+* powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
+* kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
+* powerpc-kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
+* kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
+* kexec_file-add-mechanism-to-update-kexec-segments.patch
+* ima-demonstration-code-for-kexec-buffer-passing.patch
+* ima-demonstration-code-for-kexec-buffer-passing-checkpatch-fixes.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code.patch
+* random-simplify-api-for-random-address-requests.patch
+* x86-use-simpler-api-for-random-address-requests.patch
+* arm-use-simpler-api-for-random-address-requests.patch
+* arm64-use-simpler-api-for-random-address-requests.patch
+* tile-use-simpler-api-for-random-address-requests.patch
+* unicore32-use-simpler-api-for-random-address-requests.patch
+* random-remove-unused-randomize_range.patch
+* dma-mapping-introduce-the-dma_attr_no_warn-attribute.patch
+* powerpc-implement-the-dma_attr_no_warn-attribute.patch
+* nvme-use-the-dma_attr_no_warn-attribute.patch
+* x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path.patch
+* mips-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path.patch
+* relay-use-per-cpu-constructs-for-the-relay-channel-buffer-pointers.patch
+* config-android-remove-config_ipv6_privacy.patch
+* ipc-semc-fix-complex_count-vs-simple-op-race.patch
+* ipc-msg-implement-lockless-pipelined-wakeups.patch
+* ipc-msg-batch-queue-sender-wakeups.patch
+* ipc-msg-make-ss_wakeup-kill-arg-boolean.patch
+* ipc-msg-lockless-security-checks-for-msgsnd.patch
+* ipc-msg-avoid-waking-sender-upon-full-queue.patch
+* ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+  linux-next.patch
+* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+* include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+* kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
+* mm-kmemleak-avoid-using-__va-on-addresses-that-dont-have-a-lowmem-mapping.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  make-frame_pointer-default=y.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  add-debugging-aid-for-memory-initialisation-problems.patch
+  workaround-for-a-pci-restoring-bug.patch
