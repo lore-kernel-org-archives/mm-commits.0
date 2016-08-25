@@ -1,73 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [patch 12/12] mm: silently skip readahead for DAX inodes
-Date: Thu, 25 Aug 2016 15:17:17 -0700
-Message-ID: <57bf6e6d.Jyo7sYbsniktjVhs%akpm__41809.4619214118$1472164943$gmane$org@linux-foundation.org>
+Subject: [patch 06/12] printk: fix parsing of "brl=" option
+Date: Thu, 25 Aug 2016 15:17:00 -0700
+Message-ID: <57bf6e5c.1s7ivkc99ZNm1yNr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59250 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59251 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932747AbcHYWmQ (ORCPT
+        with ESMTP id S932724AbcHYWmQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 18:42:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, jack@suse.com, jmoyer@redhat.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, nicolas.iooss_linux@m4x.org, joe@perches.com
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: mm: silently skip readahead for DAX inodes
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Subject: printk: fix parsing of "brl=" option
 
-For DAX inodes we need to be careful to never have page cache pages in the
-mapping->page_tree.  This radix tree should be composed only of DAX
-exceptional entries and zero pages.
+Commit bbeddf52adc1 ("printk: move braille console support into separate
+braille.[ch] files") moved the parsing of braille-related options into
+_braille_console_setup(), changing the type of variable str from char* to
+char**.  In this commit, memcmp(str, "brl,", 4) was correctly updated to
+memcmp(*str, "brl,", 4) but not memcmp(str, "brl=", 4).
 
-ltp's readahead02 test was triggering a warning because we were trying to
-insert a DAX exceptional entry but found that a page cache page had
-already been inserted into the tree.  This page was being inserted into
-the radix tree in response to a readahead(2) call.
+Update the code to make "brl=" option work again and replace memcmp() with
+strncmp() to make the compiler able to detect such an issue.
 
-Readahead doesn't make sense for DAX inodes, but we don't want it to report
-a failure either.  Instead, we just return success and don't do any work.
-
-Link: http://lkml.kernel.org/r/20160824221429.21158-1-ross.zwisler@linux.intel.com
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: <stable@vger.kernel.org>	[4.5+]
+Fixes: bbeddf52adc1 ("printk: move braille console support into separate braille.[ch] files")
+Link: http://lkml.kernel.org/r/20160823165700.28952-1-nicolas.iooss_linux@m4x.org
+Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/readahead.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ kernel/printk/braille.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/readahead.c~mm-silently-skip-readahead-for-dax-inodes mm/readahead.c
---- a/mm/readahead.c~mm-silently-skip-readahead-for-dax-inodes
-+++ a/mm/readahead.c
-@@ -8,6 +8,7 @@
-  */
+diff -puN kernel/printk/braille.c~printk-fix-parsing-of-brl=-option kernel/printk/braille.c
+--- a/kernel/printk/braille.c~printk-fix-parsing-of-brl=-option
++++ a/kernel/printk/braille.c
+@@ -9,10 +9,10 @@
  
- #include <linux/kernel.h>
-+#include <linux/dax.h>
- #include <linux/gfp.h>
- #include <linux/export.h>
- #include <linux/blkdev.h>
-@@ -544,6 +545,14 @@ do_readahead(struct address_space *mappi
- 	if (!mapping || !mapping->a_ops)
- 		return -EINVAL;
- 
-+	/*
-+	 * Readahead doesn't make sense for DAX inodes, but we don't want it
-+	 * to report a failure either.  Instead, we just return success and
-+	 * don't do any work.
-+	 */
-+	if (dax_mapping(mapping))
-+		return 0;
-+
- 	return force_page_cache_readahead(mapping, filp, index, nr);
- }
- 
+ char *_braille_console_setup(char **str, char **brl_options)
+ {
+-	if (!memcmp(*str, "brl,", 4)) {
++	if (!strncmp(*str, "brl,", 4)) {
+ 		*brl_options = "";
+ 		*str += 4;
+-	} else if (!memcmp(str, "brl=", 4)) {
++	} else if (!strncmp(*str, "brl=", 4)) {
+ 		*brl_options = *str + 4;
+ 		*str = strchr(*brl_options, ',');
+ 		if (!*str)
 _
