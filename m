@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-enforce-exit_oom_victim-on-current-task.patch added to
- -mm tree
-Date: Thu, 25 Aug 2016 14:42:11 -0700
-Message-ID: <57bf6633.PY7aHrRQJ52v/3zZ%akpm@linux-foundation.org>
+Subject: + kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
+ added to -mm tree
+Date: Thu, 25 Aug 2016 14:42:05 -0700
+Message-ID: <57bf662d.b/86hvSHcfooROZf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58881 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58852 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756412AbcHYVmh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 17:42:37 -0400
+        with ESMTP id S1754722AbcHYVmf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 17:42:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, mhocko@suse.com, oleg@redhat.com, rientjes@google.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: enforce exit_oom_victim on current task
+     Subject: kernel, oom: fix potential pgd_lock deadlock from __mmdrop
 has been added to the -mm tree.  Its filename is
-     mm-oom-enforce-exit_oom_victim-on-current-task.patch
+     kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-enforce-exit_oom_victim-on-current-task.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-enforce-exit_oom_victim-on-current-task.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,71 +39,175 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm, oom: enforce exit_oom_victim on current task
+From: Michal Hocko <mhocko@suse.com>
+Subject: kernel, oom: fix potential pgd_lock deadlock from __mmdrop
 
-There are no users of exit_oom_victim on !current task anymore so enforce
-the API to always work on the current.
+Lockdep complains that __mmdrop is not safe from the softirq context:
 
-Link: http://lkml.kernel.org/r/1472119394-11342-8-git-send-email-mhocko@kernel.org
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+[   63.860469] =================================
+[   63.861326] [ INFO: inconsistent lock state ]
+[   63.862677] 4.6.0-oomfortification2-00011-geeb3eadeab96-dirty #949 Tainted: G        W
+[   63.864072] ---------------------------------
+[   63.864072] inconsistent {SOFTIRQ-ON-W} -> {IN-SOFTIRQ-W} usage.
+[   63.864072] swapper/1/0 [HC0[0]:SC1[1]:HE1:SE0] takes:
+[   63.864072]  (pgd_lock){+.?...}, at: [<ffffffff81048762>] pgd_free+0x19/0x6b
+[   63.864072] {SOFTIRQ-ON-W} state was registered at:
+[   63.864072]   [<ffffffff81097da2>] __lock_acquire+0xa06/0x196e
+[   63.864072]   [<ffffffff810994d8>] lock_acquire+0x139/0x1e1
+[   63.864072]   [<ffffffff81625cd2>] _raw_spin_lock+0x32/0x41
+[   63.864072]   [<ffffffff8104594d>] __change_page_attr_set_clr+0x2a5/0xacd
+[   63.864072]   [<ffffffff810462e4>] change_page_attr_set_clr+0x16f/0x32c
+[   63.864072]   [<ffffffff81046544>] set_memory_nx+0x37/0x3a
+[   63.864072]   [<ffffffff81041b2c>] free_init_pages+0x9e/0xc7
+[   63.864072]   [<ffffffff81d49105>] alternative_instructions+0xa2/0xb3
+[   63.864072]   [<ffffffff81d4a763>] check_bugs+0xe/0x2d
+[   63.864072]   [<ffffffff81d3eed0>] start_kernel+0x3ce/0x3ea
+[   63.864072]   [<ffffffff81d3e2f1>] x86_64_start_reservations+0x2a/0x2c
+[   63.864072]   [<ffffffff81d3e46d>] x86_64_start_kernel+0x17a/0x18d
+[   63.864072] irq event stamp: 105916
+[   63.864072] hardirqs last  enabled at (105916): [<ffffffff8112f5ba>] free_hot_cold_page+0x37e/0x390
+[   63.864072] hardirqs last disabled at (105915): [<ffffffff8112f4fd>] free_hot_cold_page+0x2c1/0x390
+[   63.864072] softirqs last  enabled at (105878): [<ffffffff81055724>] _local_bh_enable+0x42/0x44
+[   63.864072] softirqs last disabled at (105879): [<ffffffff81055a6d>] irq_exit+0x6f/0xd1
+[   63.864072]
+[   63.864072] other info that might help us debug this:
+[   63.864072]  Possible unsafe locking scenario:
+[   63.864072]
+[   63.864072]        CPU0
+[   63.864072]        ----
+[   63.864072]   lock(pgd_lock);
+[   63.864072]   <Interrupt>
+[   63.864072]     lock(pgd_lock);
+[   63.864072]
+[   63.864072]  *** DEADLOCK ***
+[   63.864072]
+[   63.864072] 1 lock held by swapper/1/0:
+[   63.864072]  #0:  (rcu_callback){......}, at: [<ffffffff810b44f2>] rcu_process_callbacks+0x390/0x800
+[   63.864072]
+[   63.864072] stack backtrace:
+[   63.864072] CPU: 1 PID: 0 Comm: swapper/1 Tainted: G        W       4.6.0-oomfortification2-00011-geeb3eadeab96-dirty #949
+[   63.864072] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Debian-1.8.2-1 04/01/2014
+[   63.864072]  0000000000000000 ffff88000fb03c38 ffffffff81312df8 ffffffff8257a0d0
+[   63.864072]  ffff8800069f8000 ffff88000fb03c70 ffffffff81125bc5 0000000000000004
+[   63.864072]  ffff8800069f8888 ffff8800069f8000 ffffffff8109603a 0000000000000004
+[   63.864072] Call Trace:
+[   63.864072]  <IRQ>  [<ffffffff81312df8>] dump_stack+0x67/0x90
+[   63.864072]  [<ffffffff81125bc5>] print_usage_bug.part.25+0x259/0x268
+[   63.864072]  [<ffffffff8109603a>] ? print_shortest_lock_dependencies+0x180/0x180
+[   63.864072]  [<ffffffff81096d33>] mark_lock+0x381/0x567
+[   63.864072]  [<ffffffff81097d2f>] __lock_acquire+0x993/0x196e
+[   63.864072]  [<ffffffff81048762>] ? pgd_free+0x19/0x6b
+[   63.864072]  [<ffffffff8117b8ae>] ? discard_slab+0x42/0x44
+[   63.864072]  [<ffffffff8117e00d>] ? __slab_free+0x3e6/0x429
+[   63.864072]  [<ffffffff810994d8>] lock_acquire+0x139/0x1e1
+[   63.864072]  [<ffffffff810994d8>] ? lock_acquire+0x139/0x1e1
+[   63.864072]  [<ffffffff81048762>] ? pgd_free+0x19/0x6b
+[   63.864072]  [<ffffffff81625cd2>] _raw_spin_lock+0x32/0x41
+[   63.864072]  [<ffffffff81048762>] ? pgd_free+0x19/0x6b
+[   63.864072]  [<ffffffff81048762>] pgd_free+0x19/0x6b
+[   63.864072]  [<ffffffff8104d018>] __mmdrop+0x25/0xb9
+[   63.864072]  [<ffffffff8104d29d>] __put_task_struct+0x103/0x11e
+[   63.864072]  [<ffffffff810526a0>] delayed_put_task_struct+0x157/0x15e
+[   63.864072]  [<ffffffff810b47c2>] rcu_process_callbacks+0x660/0x800
+[   63.864072]  [<ffffffff81052549>] ? will_become_orphaned_pgrp+0xae/0xae
+[   63.864072]  [<ffffffff8162921c>] __do_softirq+0x1ec/0x4d5
+[   63.864072]  [<ffffffff81055a6d>] irq_exit+0x6f/0xd1
+[   63.864072]  [<ffffffff81628d7b>] smp_apic_timer_interrupt+0x42/0x4d
+[   63.864072]  [<ffffffff8162732e>] apic_timer_interrupt+0x8e/0xa0
+[   63.864072]  <EOI>  [<ffffffff81021657>] ? default_idle+0x6b/0x16e
+[   63.864072]  [<ffffffff81021ed2>] arch_cpu_idle+0xf/0x11
+[   63.864072]  [<ffffffff8108e59b>] default_idle_call+0x32/0x34
+[   63.864072]  [<ffffffff8108e7a9>] cpu_startup_entry+0x20c/0x399
+[   63.864072]  [<ffffffff81034600>] start_secondary+0xfe/0x101
+
+More over a79e53d85683 ("x86/mm: Fix pgd_lock deadlock") was explicit
+about pgd_lock not to be called from the irq context. This means that
+__mmdrop called from free_signal_struct has to be postponed to a user
+context. We already have a similar mechanism for mmput_async so we
+can use it here as well. This is safe because mm_count is pinned by
+mm_users.
+
+This fixes bug introduced by "oom: keep mm of the killed task available"
+
+Link: http://lkml.kernel.org/r/1472119394-11342-5-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    2 +-
- kernel/exit.c       |    2 +-
- mm/oom_kill.c       |    5 ++---
- 3 files changed, 4 insertions(+), 5 deletions(-)
+ include/linux/mm_types.h |    2 --
+ include/linux/sched.h    |   14 ++++++++++++++
+ kernel/fork.c            |    6 +++++-
+ 3 files changed, 19 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/oom.h~mm-oom-enforce-exit_oom_victim-on-current-task include/linux/oom.h
---- a/include/linux/oom.h~mm-oom-enforce-exit_oom_victim-on-current-task
-+++ a/include/linux/oom.h
-@@ -69,7 +69,7 @@ extern unsigned long oom_badness(struct
+diff -puN include/linux/mm_types.h~kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop include/linux/mm_types.h
+--- a/include/linux/mm_types.h~kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop
++++ a/include/linux/mm_types.h
+@@ -515,9 +515,7 @@ struct mm_struct {
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	atomic_long_t hugetlb_usage;
+ #endif
+-#ifdef CONFIG_MMU
+ 	struct work_struct async_put_work;
+-#endif
+ };
  
- extern bool out_of_memory(struct oom_control *oc);
- 
--extern void exit_oom_victim(struct task_struct *tsk);
-+extern void exit_oom_victim(void);
- 
- extern int register_oom_notifier(struct notifier_block *nb);
- extern int unregister_oom_notifier(struct notifier_block *nb);
-diff -puN kernel/exit.c~mm-oom-enforce-exit_oom_victim-on-current-task kernel/exit.c
---- a/kernel/exit.c~mm-oom-enforce-exit_oom_victim-on-current-task
-+++ a/kernel/exit.c
-@@ -511,7 +511,7 @@ static void exit_mm(struct task_struct *
- 	mm_update_next_owner(mm);
- 	mmput(mm);
- 	if (test_thread_flag(TIF_MEMDIE))
--		exit_oom_victim(tsk);
-+		exit_oom_victim();
+ static inline void mm_init_cpumask(struct mm_struct *mm)
+diff -puN include/linux/sched.h~kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop include/linux/sched.h
+--- a/include/linux/sched.h~kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop
++++ a/include/linux/sched.h
+@@ -2833,6 +2833,20 @@ static inline void mmdrop(struct mm_stru
+ 		__mmdrop(mm);
  }
  
- static struct task_struct *find_alive_thread(struct task_struct *p)
-diff -puN mm/oom_kill.c~mm-oom-enforce-exit_oom_victim-on-current-task mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-enforce-exit_oom_victim-on-current-task
-+++ a/mm/oom_kill.c
-@@ -662,10 +662,9 @@ static void mark_oom_victim(struct task_
- /**
-  * exit_oom_victim - note the exit of an OOM victim
-  */
--void exit_oom_victim(struct task_struct *tsk)
-+void exit_oom_victim(void)
++static inline void mmdrop_async_fn(struct work_struct *work)
++{
++	struct mm_struct *mm = container_of(work, struct mm_struct, async_put_work);
++	__mmdrop(mm);
++}
++
++static inline void mmdrop_async(struct mm_struct *mm)
++{
++	if (unlikely(atomic_dec_and_test(&mm->mm_count))) {
++		INIT_WORK(&mm->async_put_work, mmdrop_async_fn);
++		schedule_work(&mm->async_put_work);
++	}
++}
++
+ static inline bool mmget_not_zero(struct mm_struct *mm)
  {
--	if (!test_and_clear_tsk_thread_flag(tsk, TIF_MEMDIE))
--		return;
-+	clear_thread_flag(TIF_MEMDIE);
+ 	return atomic_inc_not_zero(&mm->mm_users);
+diff -puN kernel/fork.c~kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop kernel/fork.c
+--- a/kernel/fork.c~kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop
++++ a/kernel/fork.c
+@@ -243,8 +243,12 @@ static inline void free_signal_struct(st
+ {
+ 	taskstats_tgid_free(sig);
+ 	sched_autogroup_exit(sig);
++	/*
++	 * __mmdrop is not safe to call from softirq context on x86 due to
++	 * pgd_dtor so postpone it to the async context
++	 */
+ 	if (sig->oom_mm)
+-		mmdrop(sig->oom_mm);
++		mmdrop_async(sig->oom_mm);
+ 	kmem_cache_free(signal_cachep, sig);
+ }
  
- 	if (!atomic_dec_return(&oom_victims))
- 		wake_up_all(&oom_victims_wait);
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mmoom_reaper-reduce-find_lock_task_mm-usage.patch
-mmoom_reaper-do-not-attempt-to-reap-a-task-twice.patch
-mm-oom-enforce-exit_oom_victim-on-current-task.patch
+mm-clarify-compaction-kconfig-text.patch
+mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request.patch
+mm-vmscan-get-rid-of-throttle_vm_writeout.patch
+oom-keep-mm-of-the-killed-task-available.patch
+kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
+mm-oom-get-rid-of-signal_struct-oom_victims.patch
+oom-suspend-fix-oom_killer_disable-vs-pm-suspend-properly.patch
+mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch
+oom-oom_reaper-allow-to-reap-mm-shared-by-the-kthreads.patch
 
