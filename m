@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mmoom_reaper-reduce-find_lock_task_mm-usage.patch added to -mm
- tree
-Date: Thu, 25 Aug 2016 14:41:59 -0700
-Message-ID: <57bf6627.GaUlIOUKuZHE350p%akpm@linux-foundation.org>
+Subject: +
+ mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch added
+ to -mm tree
+Date: Thu, 25 Aug 2016 14:42:13 -0700
+Message-ID: <57bf6635.RddTet7N0/6t/6rM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58834 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58883 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754022AbcHYVmf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 17:42:35 -0400
+        with ESMTP id S1757613AbcHYVmh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 17:42:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, mhocko@suse.com, oleg@redhat.com, rientjes@google.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, mst@redhat.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,oom_reaper: reduce find_lock_task_mm() usage
+     Subject: mm: make sure that kthreads will not refault oom reaped memory
 has been added to the -mm tree.  Its filename is
-     mmoom_reaper-reduce-find_lock_task_mm-usage.patch
+     mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmoom_reaper-reduce-find_lock_task_mm-usage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmoom_reaper-reduce-find_lock_task_mm-usage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,185 +40,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm,oom_reaper: reduce find_lock_task_mm() usage
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: make sure that kthreads will not refault oom reaped memory
 
-Patch series "fortify oom killer even more", v2.
+There are only few use_mm() users in the kernel right now.  Most of them
+write to the target memory but vhost driver relies on
+copy_from_user/get_user from a kernel thread context.  This makes it
+impossible to reap the memory of an oom victim which shares the mm with
+the vhost kernel thread because it could see a zero page unexpectedly and
+theoretically make an incorrect decision visible outside of the killed
+task context.
 
-This patch (of 9):
+To quote Michael S. Tsirkin:
+: Getting an error from __get_user and friends is handled gracefully.
+: Getting zero instead of a real value will cause userspace
+: memory corruption.
 
-__oom_reap_task() can be simplified a bit if it receives a valid mm from
-oom_reap_task() which also uses that mm when __oom_reap_task() failed.  We
-can drop one find_lock_task_mm() call and also make the __oom_reap_task()
-code flow easier to follow.  Moreover, this will make later patch in the
-series easier to review.  Pinning mm's mm_count for longer time is not
-really harmful because this will not pin much memory.
+The vhost kernel thread is bound to an open fd of the vhost device which
+is not tight to the mm owner life cycle in general.  The device fd can be
+inherited or passed over to another process which means that we really
+have to be careful about unexpected memory corruption because unlike for
+normal oom victims the result will be visible outside of the oom victim
+context.
 
-This patch doesn't introduce any functional change.
+Make sure that no kthread context (users of use_mm) can ever see corrupted
+data because of the oom reaper and hook into the page fault path by
+checking MMF_UNSTABLE mm flag.  __oom_reap_task_mm will set the flag
+before it starts unmapping the address space while the flag is checked
+after the page fault has been handled.  If the flag is set then SIGBUS is
+triggered so any g-u-p user will get a error code.
 
-Link: http://lkml.kernel.org/r/1472119394-11342-2-git-send-email-mhocko@kernel.org
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Regular tasks do not need this protection because all which share the mm
+are killed when the mm is reaped and so the corruption will not outlive
+them.
+
+This patch shouldn't have any visible effect at this moment because the
+OOM killer doesn't invoke oom reaper for tasks with mm shared with
+kthreads yet.
+
+Link: http://lkml.kernel.org/r/1472119394-11342-9-git-send-email-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   81 ++++++++++++++++++++++--------------------------
- 1 file changed, 38 insertions(+), 43 deletions(-)
+ include/linux/sched.h |    1 +
+ mm/memory.c           |   13 +++++++++++++
+ mm/oom_kill.c         |    8 ++++++++
+ 3 files changed, 22 insertions(+)
 
-diff -puN mm/oom_kill.c~mmoom_reaper-reduce-find_lock_task_mm-usage mm/oom_kill.c
---- a/mm/oom_kill.c~mmoom_reaper-reduce-find_lock_task_mm-usage
-+++ a/mm/oom_kill.c
-@@ -463,12 +463,10 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_reape
- static struct task_struct *oom_reaper_list;
- static DEFINE_SPINLOCK(oom_reaper_lock);
+diff -puN include/linux/sched.h~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory include/linux/sched.h
+--- a/include/linux/sched.h~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory
++++ a/include/linux/sched.h
+@@ -523,6 +523,7 @@ static inline int get_dumpable(struct mm
+ #define MMF_HAS_UPROBES		19	/* has uprobes */
+ #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
+ #define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
++#define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
  
--static bool __oom_reap_task(struct task_struct *tsk)
-+static bool __oom_reap_task_mm(struct task_struct *tsk, struct mm_struct *mm)
- {
- 	struct mmu_gather tlb;
- 	struct vm_area_struct *vma;
--	struct mm_struct *mm = NULL;
--	struct task_struct *p;
- 	struct zap_details details = {.check_swap_entries = true,
- 				      .ignore_dirty = true};
- 	bool ret = true;
-@@ -476,7 +474,7 @@ static bool __oom_reap_task(struct task_
- 	/*
- 	 * We have to make sure to not race with the victim exit path
- 	 * and cause premature new oom victim selection:
--	 * __oom_reap_task		exit_mm
-+	 * __oom_reap_task_mm		exit_mm
- 	 *   mmget_not_zero
- 	 *				  mmput
- 	 *				    atomic_dec_and_test
-@@ -489,22 +487,9 @@ static bool __oom_reap_task(struct task_
- 	 */
- 	mutex_lock(&oom_lock);
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
  
--	/*
--	 * Make sure we find the associated mm_struct even when the particular
--	 * thread has already terminated and cleared its mm.
--	 * We might have race with exit path so consider our work done if there
--	 * is no mm.
--	 */
--	p = find_lock_task_mm(tsk);
--	if (!p)
--		goto unlock_oom;
--	mm = p->mm;
--	atomic_inc(&mm->mm_count);
--	task_unlock(p);
--
- 	if (!down_read_trylock(&mm->mmap_sem)) {
- 		ret = false;
--		goto mm_drop;
-+		goto unlock_oom;
+diff -puN mm/memory.c~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory mm/memory.c
+--- a/mm/memory.c~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory
++++ a/mm/memory.c
+@@ -3656,6 +3656,19 @@ int handle_mm_fault(struct vm_area_struc
+                         mem_cgroup_oom_synchronize(false);
  	}
  
- 	/*
-@@ -514,7 +499,7 @@ static bool __oom_reap_task(struct task_
- 	 */
- 	if (!mmget_not_zero(mm)) {
- 		up_read(&mm->mmap_sem);
--		goto mm_drop;
-+		goto unlock_oom;
- 	}
- 
- 	tlb_gather_mmu(&tlb, mm, 0, -1);
-@@ -562,8 +547,6 @@ static bool __oom_reap_task(struct task_
- 	 * put the oom_reaper out of the way.
- 	 */
- 	mmput_async(mm);
--mm_drop:
--	mmdrop(mm);
- unlock_oom:
- 	mutex_unlock(&oom_lock);
- 	return ret;
-@@ -573,36 +556,45 @@ unlock_oom:
- static void oom_reap_task(struct task_struct *tsk)
- {
- 	int attempts = 0;
-+	struct mm_struct *mm = NULL;
-+	struct task_struct *p = find_lock_task_mm(tsk);
++	/*
++	 * This mm has been already reaped by the oom reaper and so the
++	 * refault cannot be trusted in general. Anonymous refaults would
++	 * lose data and give a zero page instead e.g. This is especially
++	 * problem for use_mm() because regular tasks will just die and
++	 * the corrupted data will not be visible anywhere while kthread
++	 * will outlive the oom victim and potentially propagate the date
++	 * further.
++	 */
++	if (unlikely((current->flags & PF_KTHREAD) && !(ret & VM_FAULT_ERROR)
++				&& test_bit(MMF_UNSTABLE, &vma->vm_mm->flags)))
++		ret = VM_FAULT_SIGBUS;
 +
-+	/*
-+	 * Make sure we find the associated mm_struct even when the particular
-+	 * thread has already terminated and cleared its mm.
-+	 * We might have race with exit path so consider our work done if there
-+	 * is no mm.
-+	 */
-+	if (!p)
-+		goto done;
-+	mm = p->mm;
-+	atomic_inc(&mm->mm_count);
-+	task_unlock(p);
- 
- 	/* Retry the down_read_trylock(mmap_sem) a few times */
--	while (attempts++ < MAX_OOM_REAP_RETRIES && !__oom_reap_task(tsk))
-+	while (attempts++ < MAX_OOM_REAP_RETRIES && !__oom_reap_task_mm(tsk, mm))
- 		schedule_timeout_idle(HZ/10);
- 
--	if (attempts > MAX_OOM_REAP_RETRIES) {
--		struct task_struct *p;
-+	if (attempts <= MAX_OOM_REAP_RETRIES)
-+		goto done;
- 
--		pr_info("oom_reaper: unable to reap pid:%d (%s)\n",
--				task_pid_nr(tsk), tsk->comm);
-+	pr_info("oom_reaper: unable to reap pid:%d (%s)\n",
-+		task_pid_nr(tsk), tsk->comm);
- 
--		/*
--		 * If we've already tried to reap this task in the past and
--		 * failed it probably doesn't make much sense to try yet again
--		 * so hide the mm from the oom killer so that it can move on
--		 * to another task with a different mm struct.
--		 */
--		p = find_lock_task_mm(tsk);
--		if (p) {
--			if (test_and_set_bit(MMF_OOM_NOT_REAPABLE, &p->mm->flags)) {
--				pr_info("oom_reaper: giving up pid:%d (%s)\n",
--						task_pid_nr(tsk), tsk->comm);
--				set_bit(MMF_OOM_REAPED, &p->mm->flags);
--			}
--			task_unlock(p);
--		}
--
--		debug_show_all_locks();
-+	/*
-+	 * If we've already tried to reap this task in the past and
-+	 * failed it probably doesn't make much sense to try yet again
-+	 * so hide the mm from the oom killer so that it can move on
-+	 * to another task with a different mm struct.
-+	 */
-+	if (test_and_set_bit(MMF_OOM_NOT_REAPABLE, &mm->flags)) {
-+		pr_info("oom_reaper: giving up pid:%d (%s)\n",
-+			task_pid_nr(tsk), tsk->comm);
-+		set_bit(MMF_OOM_REAPED, &mm->flags);
- 	}
-+	debug_show_all_locks();
- 
-+done:
- 	/*
- 	 * Clear TIF_MEMDIE because the task shouldn't be sitting on a
- 	 * reasonably reclaimable memory anymore or it is not a good candidate
-@@ -614,6 +606,9 @@ static void oom_reap_task(struct task_st
- 
- 	/* Drop a reference taken by wake_oom_reaper */
- 	put_task_struct(tsk);
-+	/* Drop a reference taken above. */
-+	if (mm)
-+		mmdrop(mm);
+ 	return ret;
  }
+ EXPORT_SYMBOL_GPL(handle_mm_fault);
+diff -puN mm/oom_kill.c~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory
++++ a/mm/oom_kill.c
+@@ -495,6 +495,14 @@ static bool __oom_reap_task_mm(struct ta
+ 		goto unlock_oom;
+ 	}
  
- static int oom_reaper(void *unused)
++	/*
++	 * Tell all users of get_user/copy_from_user etc... that the content
++	 * is no longer stable. No barriers really needed because unmapping
++	 * should imply barriers already and the reader would hit a page fault
++	 * if it stumbled over a reaped memory.
++	 */
++	set_bit(MMF_UNSTABLE, &mm->flags);
++
+ 	tlb_gather_mmu(&tlb, mm, 0, -1);
+ 	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
+ 		if (is_vm_hugetlb_page(vma))
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mmoom_reaper-reduce-find_lock_task_mm-usage.patch
-mmoom_reaper-do-not-attempt-to-reap-a-task-twice.patch
-mm-oom-enforce-exit_oom_victim-on-current-task.patch
+mm-clarify-compaction-kconfig-text.patch
+mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request.patch
+mm-vmscan-get-rid-of-throttle_vm_writeout.patch
+oom-keep-mm-of-the-killed-task-available.patch
+kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
+mm-oom-get-rid-of-signal_struct-oom_victims.patch
+oom-suspend-fix-oom_killer_disable-vs-pm-suspend-properly.patch
+mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch
+oom-oom_reaper-allow-to-reap-mm-shared-by-the-kthreads.patch
 
