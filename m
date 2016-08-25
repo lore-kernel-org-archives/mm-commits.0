@@ -1,16 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: +
- powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 25 Aug 2016 14:28:55 -0700
-Message-ID: <57bf6317.EFY5poRfNqUSKXJu%akpm@linux-foundation.org>
+ ima-demonstration-code-for-kexec-buffer-passing-checkpatch-fixes.patch
+ added to -mm tree
+Date: Thu, 25 Aug 2016 14:29:03 -0700
+Message-ID: <57bf631f.5vog3i3tK4LGG5Ae%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58815 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58811 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752148AbcHYVhv (ORCPT
+        with ESMTP id S1753423AbcHYVhv (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 17:37:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,14 +19,14 @@ To: akpm@linux-foundation.org, bauerman@linux.vnet.ibm.com, mm-commits@vger.kern
 
 
 The patch titled
-     Subject: powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load-checkpatch-fixes
+     Subject: ima-demonstration-code-for-kexec-buffer-passing-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load-checkpatch-fixes.patch
+     ima-demonstration-code-for-kexec-buffer-passing-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ima-demonstration-code-for-kexec-buffer-passing-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ima-demonstration-code-for-kexec-buffer-passing-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +41,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load-checkpatch-fixes
+Subject: ima-demonstration-code-for-kexec-buffer-passing-checkpatch-fixes
 
-WARNING: line over 80 characters
-#111: FILE: arch/powerpc/kernel/elf_util_64.c:141:
-+				pr_err("Symbol '%s' in common section.\n", name);
+ERROR: do not initialise globals to NULL
+#168: FILE: security/integrity/ima/ima_template.c:188:
++void *kexec_buffer = NULL;
 
-WARNING: else is not generally useful after a break or return
-#121: FILE: arch/powerpc/kernel/elf_util_64.c:151:
-+				return -ENOEXEC;
-+			} else {
+ERROR: do not initialise globals to 0
+#169: FILE: security/integrity/ima/ima_template.c:189:
++size_t kexec_buffer_size = 0;
 
-WARNING: line over 80 characters
-#143: FILE: arch/powerpc/kernel/elf_util_64.c:174:
-+			*(uint32_t *)location = value - (uint32_t)(uint64_t)location;
+ERROR: do not initialise globals to 0
+#172: FILE: security/integrity/ima/ima_template.c:192:
++unsigned long kexec_buffer_load_addr = 0;
 
-WARNING: line over 80 characters
-#172: FILE: arch/powerpc/kernel/elf_util_64.c:249:
-+				pr_err("%s: REL14 %li out of range!\n", obj_name,
-
-total: 0 errors, 4 warnings, 196 lines checked
+total: 3 errors, 0 warnings, 196 lines checked
 
 NOTE: For some of the reported defects, checkpatch may be able to
       mechanically convert to the typical style using --fix or --fix-inplace.
 
-./patches/powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch has style problems, please review.
+./patches/ima-demonstration-code-for-kexec-buffer-passing.patch has style problems, please review.
 
 NOTE: If any of the errors are false positives, please report
       them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -75,43 +71,27 @@ Cc: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/elf_util_64.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ security/integrity/ima/ima_template.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/kernel/elf_util_64.c~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load-checkpatch-fixes arch/powerpc/kernel/elf_util_64.c
---- a/arch/powerpc/kernel/elf_util_64.c~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load-checkpatch-fixes
-+++ a/arch/powerpc/kernel/elf_util_64.c
-@@ -138,7 +138,8 @@ int elf64_apply_relocate_add(const struc
- 				pr_err("Undefined symbol: %s\n", name);
- 				return -ENOEXEC;
- 			} else if (sym->st_shndx == SHN_COMMON) {
--				pr_err("Symbol '%s' in common section.\n", name);
-+				pr_err("Symbol '%s' in common section.\n",
-+				       name);
- 				return -ENOEXEC;
- 			}
- 		}
-@@ -171,7 +172,8 @@ int elf64_apply_relocate_add(const struc
- 			break;
+diff -puN security/integrity/ima/ima_template.c~ima-demonstration-code-for-kexec-buffer-passing-checkpatch-fixes security/integrity/ima/ima_template.c
+--- a/security/integrity/ima/ima_template.c~ima-demonstration-code-for-kexec-buffer-passing-checkpatch-fixes
++++ a/security/integrity/ima/ima_template.c
+@@ -185,11 +185,11 @@ static int template_desc_init_fields(con
+ }
  
- 		case R_PPC64_REL32:
--			*(uint32_t *)location = value - (uint32_t)(uint64_t)location;
-+			*(uint32_t *)location =
-+				value - (uint32_t)(uint64_t)location;
- 			break;
+ #ifdef CONFIG_KEXEC_FILE
+-void *kexec_buffer = NULL;
+-size_t kexec_buffer_size = 0;
++void *kexec_buffer;
++size_t kexec_buffer_size;
  
- 		case R_PPC64_TOC:
-@@ -246,8 +248,8 @@ int elf64_apply_relocate_add(const struc
- 			/* Convert value to relative */
- 			value -= address;
- 			if (value + 0x8000 > 0xffff || (value & 3) != 0) {
--				pr_err("%s: REL14 %li out of range!\n", obj_name,
--				       (long int)value);
-+				pr_err("%s: REL14 %li out of range!\n",
-+				       obj_name, (long int)value);
- 				return -ENOEXEC;
- 			}
+ /* Physical address of the measurement buffer in the next kernel. */
+-unsigned long kexec_buffer_load_addr = 0;
++unsigned long kexec_buffer_load_addr;
  
+ /*
+  * Called during reboot. IMA can add here new events that were generated after
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
