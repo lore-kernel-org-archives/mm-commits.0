@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch added
- to -mm tree
-Date: Thu, 25 Aug 2016 14:13:28 -0700
-Message-ID: <57bf5f78.JzmEkHzOobRA9yhQ%akpm@linux-foundation.org>
+ powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch added to
+ -mm tree
+Date: Thu, 25 Aug 2016 14:13:18 -0700
+Message-ID: <57bf5f6e.tRuYnokBAO+Ljge3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58418 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58388 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754631AbcHYVN6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 17:13:58 -0400
+        with ESMTP id S1755570AbcHYVN5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 17:13:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sam@mendozajonas.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: add code to work with device trees in kexec_file_load
+     Subject: powerpc: adapt elf64_apply_relocate_add for kexec_file_load
 has been added to the -mm tree.  Its filename is
-     powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
+     powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,13 +41,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: add code to work with device trees in kexec_file_load
+Subject: powerpc: adapt elf64_apply_relocate_add for kexec_file_load
 
-kexec_file_load needs to set up the device tree that will be used
-by the next kernel and check whether it provides a console
-that can be used by the purgatory.
+Extend elf64_apply_relocate_add to support relative symbols. This is
+necessary because there is a difference between how the module loading
+mechanism and the kexec purgatory loading code use Elf64_Sym.st_value
+at relocation time: the former changes st_value to point to the absolute
+memory address before relocating the module, while the latter does that
+adjustment during relocation of the purgatory.
 
-Link: http://lkml.kernel.org/r/1471652242-14436-10-git-send-email-bauerman@linux.vnet.ibm.com
+Also, add a check_symbols argument so that the kexec code can be stricter
+about undefined symbols.
+
+Finally, add relocation types used by the purgatory.
+
+Link: http://lkml.kernel.org/r/1471652242-14436-7-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
@@ -66,251 +74,229 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/kexec.h       |    3 
- arch/powerpc/kernel/machine_kexec_64.c |  220 +++++++++++++++++++++++
- 2 files changed, 223 insertions(+)
+ arch/powerpc/include/asm/elf_util.h |    2 
+ arch/powerpc/kernel/elf_util_64.c   |  100 +++++++++++++++++++++++---
+ arch/powerpc/kernel/module_64.c     |    6 +
+ 3 files changed, 99 insertions(+), 9 deletions(-)
 
-diff -puN arch/powerpc/include/asm/kexec.h~powerpc-add-code-to-work-with-device-trees-in-kexec_file_load arch/powerpc/include/asm/kexec.h
---- a/arch/powerpc/include/asm/kexec.h~powerpc-add-code-to-work-with-device-trees-in-kexec_file_load
-+++ a/arch/powerpc/include/asm/kexec.h
-@@ -96,6 +96,9 @@ int setup_purgatory(struct kimage *image
- 		    const void *fdt, unsigned long kernel_load_addr,
- 		    unsigned long fdt_load_addr, unsigned long stack_top,
- 		    int debug);
-+int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
-+		  unsigned long initrd_len, const char *cmdline);
-+bool find_debug_console(const void *fdt);
- #endif /* CONFIG_KEXEC_FILE */
+diff -puN arch/powerpc/include/asm/elf_util.h~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load arch/powerpc/include/asm/elf_util.h
+--- a/arch/powerpc/include/asm/elf_util.h~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load
++++ a/arch/powerpc/include/asm/elf_util.h
+@@ -20,6 +20,7 @@
+ #include <linux/elf.h>
  
- #else /* !CONFIG_KEXEC */
-diff -puN arch/powerpc/kernel/machine_kexec_64.c~powerpc-add-code-to-work-with-device-trees-in-kexec_file_load arch/powerpc/kernel/machine_kexec_64.c
---- a/arch/powerpc/kernel/machine_kexec_64.c~powerpc-add-code-to-work-with-device-trees-in-kexec_file_load
-+++ a/arch/powerpc/kernel/machine_kexec_64.c
-@@ -683,4 +683,224 @@ int setup_purgatory(struct kimage *image
+ struct elf_info {
++	const struct elfhdr *ehdr;
+ 	struct elf_shdr *sechdrs;
+ 
+ 	/* Index of stubs section. */
+@@ -67,6 +68,7 @@ int elf64_apply_relocate_add(const struc
+ 			     const char *strtab, const Elf64_Rela *rela,
+ 			     unsigned int num_rela, void *syms_base,
+ 			     void *loc_base, Elf64_Addr addr_base,
++			     bool relative_symbols, bool check_symbols,
+ 			     const char *obj_name);
+ 
+ #endif /* _ASM_POWERPC_ELF_UTIL_H */
+diff -puN arch/powerpc/kernel/elf_util_64.c~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load arch/powerpc/kernel/elf_util_64.c
+--- a/arch/powerpc/kernel/elf_util_64.c~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load
++++ a/arch/powerpc/kernel/elf_util_64.c
+@@ -74,6 +74,8 @@ static void squash_toc_save_inst(const c
+  * @syms_base:		Contents of the associated symbol table.
+  * @loc_base:		Contents of the section to which relocations apply.
+  * @addr_base:		The address where the section will be loaded in memory.
++ * @relative_symbols:	Are the symbols' st_value members relative?
++ * @check_symbols:	Fail if an unexpected symbol is found?
+  * @obj_name:		The name of the ELF binary, for information messages.
+  *
+  * Applies RELA relocations to an ELF file already at its final location
+@@ -84,12 +86,15 @@ int elf64_apply_relocate_add(const struc
+ 			     const char *strtab, const Elf64_Rela *rela,
+ 			     unsigned int num_rela, void *syms_base,
+ 			     void *loc_base, Elf64_Addr addr_base,
++			     bool relative_symbols, bool check_symbols,
+ 			     const char *obj_name)
+ {
+ 	unsigned int i;
+ 	unsigned long *location;
+ 	unsigned long address;
++	unsigned long sec_base;
+ 	unsigned long value;
++	int reloc_type;
+ 	const char *name;
+ 	Elf64_Sym *sym;
+ 
+@@ -116,15 +121,45 @@ int elf64_apply_relocate_add(const struc
+ 		else
+ 			name = "<unnamed symbol>";
+ 
+-		pr_debug("RELOC at %p: %li-type as %s (0x%lx) + %li\n",
+-		       location, (long)ELF64_R_TYPE(rela[i].r_info),
+-		       name, (unsigned long)sym->st_value,
++		reloc_type = ELF64_R_TYPE(rela[i].r_info);
++
++		pr_debug("RELOC at %p: %i-type as %s (0x%lx) + %li\n",
++		       location, reloc_type, name, (unsigned long)sym->st_value,
+ 		       (long)rela[i].r_addend);
+ 
++		if (check_symbols) {
++			/*
++			 * TOC symbols appear as undefined but should be
++			 * resolved as well, so allow them to be processed.
++			 */
++			if (sym->st_shndx == SHN_UNDEF &&
++					strcmp(name, ".TOC.") != 0 &&
++					reloc_type != R_PPC64_TOC) {
++				pr_err("Undefined symbol: %s\n", name);
++				return -ENOEXEC;
++			} else if (sym->st_shndx == SHN_COMMON) {
++				pr_err("Symbol '%s' in common section.\n", name);
++				return -ENOEXEC;
++			}
++		}
++
++		if (relative_symbols && sym->st_shndx != SHN_ABS) {
++			if (sym->st_shndx >= elf_info->ehdr->e_shnum) {
++				pr_err("Invalid section %d for symbol %s\n",
++				       sym->st_shndx, name);
++				return -ENOEXEC;
++			} else {
++				struct elf_shdr *sechdrs = elf_info->sechdrs;
++
++				sec_base = sechdrs[sym->st_shndx].sh_addr;
++			}
++		} else
++			sec_base = 0;
++
+ 		/* `Everything is relative'. */
+-		value = sym->st_value + rela[i].r_addend;
++		value = sym->st_value + sec_base + rela[i].r_addend;
+ 
+-		switch (ELF64_R_TYPE(rela[i].r_info)) {
++		switch (reloc_type) {
+ 		case R_PPC64_ADDR32:
+ 			/* Simply set it */
+ 			*(u32 *)location = value;
+@@ -135,6 +170,10 @@ int elf64_apply_relocate_add(const struc
+ 			*(unsigned long *)location = value;
+ 			break;
+ 
++		case R_PPC64_REL32:
++			*(uint32_t *)location = value - (uint32_t)(uint64_t)location;
++			break;
++
+ 		case R_PPC64_TOC:
+ 			*(unsigned long *)location = my_r2(elf_info);
+ 			break;
+@@ -186,6 +225,14 @@ int elf64_apply_relocate_add(const struc
+ 				| (value & 0xfffc);
+ 			break;
+ 
++		case R_PPC64_TOC16_HI:
++			/* Subtract TOC pointer */
++			value -= my_r2(elf_info);
++			value = value >> 16;
++			*((uint16_t *) location)
++				= (*((uint16_t *) location) & ~0xffff)
++				| (value & 0xffff);
++
+ 		case R_PPC64_TOC16_HA:
+ 			/* Subtract TOC pointer */
+ 			value -= my_r2(elf_info);
+@@ -195,6 +242,21 @@ int elf64_apply_relocate_add(const struc
+ 				| (value & 0xffff);
+ 			break;
+ 
++		case R_PPC64_REL14:
++			/* Convert value to relative */
++			value -= address;
++			if (value + 0x8000 > 0xffff || (value & 3) != 0) {
++				pr_err("%s: REL14 %li out of range!\n", obj_name,
++				       (long int)value);
++				return -ENOEXEC;
++			}
++
++			/* Only replace bits 2 through 16 */
++			*(uint32_t *)location
++				= (*(uint32_t *)location & ~0xfffc)
++				| (value & 0xfffc);
++			break;
++
+ 		case R_PPC_REL24:
+ 			/* FIXME: Handle weak symbols here --RR */
+ 			if (sym->st_shndx == SHN_UNDEF) {
+@@ -263,6 +325,29 @@ int elf64_apply_relocate_add(const struc
+ 			((uint32_t *)location)[1] = 0x38420000 + PPC_LO(value);
+ 			break;
+ 
++		case R_PPC64_ADDR16_LO:
++			*(uint16_t *)location = value & 0xffff;
++			break;
++
++		case R_PPC64_ADDR16_HI:
++			*(uint16_t *)location = (value >> 16) & 0xffff;
++			break;
++
++		case R_PPC64_ADDR16_HA:
++			*(uint16_t *)location = (((value + 0x8000) >> 16) &
++							0xffff);
++			break;
++
++		case R_PPC64_ADDR16_HIGHER:
++			*(uint16_t *)location = (((uint64_t)value >> 32) &
++							0xffff);
++			break;
++
++		case R_PPC64_ADDR16_HIGHEST:
++			*(uint16_t *)location = (((uint64_t)value >> 48) &
++							0xffff);
++			break;
++
+ 		case R_PPC64_REL16_HA:
+ 			/* Subtract location pointer */
+ 			value -= address;
+@@ -281,9 +366,8 @@ int elf64_apply_relocate_add(const struc
+ 			break;
+ 
+ 		default:
+-			pr_err("%s: Unknown ADD relocation: %lu\n",
+-			       obj_name,
+-			       (unsigned long)ELF64_R_TYPE(rela[i].r_info));
++			pr_err("%s: Unknown ADD relocation: %d\n", obj_name,
++			       reloc_type);
+ 			return -ENOEXEC;
+ 		}
+ 	}
+diff -puN arch/powerpc/kernel/module_64.c~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load arch/powerpc/kernel/module_64.c
+--- a/arch/powerpc/kernel/module_64.c~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load
++++ a/arch/powerpc/kernel/module_64.c
+@@ -341,6 +341,7 @@ int module_frob_arch_sections(Elf64_Ehdr
+ 	sechdrs[me->arch.elf_info.stubs_section].sh_size = get_stubs_size(hdr, sechdrs);
+ 
+ 	/* For the elf_util functions. */
++	me->arch.elf_info.ehdr = hdr;
+ 	me->arch.elf_info.sechdrs = sechdrs;
+ 
  	return 0;
+@@ -443,6 +444,9 @@ int restore_r2(u32 *instruction, const c
+  * When this function is called, the module is already at its final location in
+  * memory, so Elf64_Shdr.sh_addr can be used for accessing the section
+  * contents as well as the base address for relocations.
++ *
++ * Also, simplify_symbols already changed all symbols' st_value members
++ * to absolute addresses.
+  */
+ int apply_relocate_add(Elf64_Shdr *sechdrs,
+ 		       const char *strtab,
+@@ -472,7 +476,7 @@ int apply_relocate_add(Elf64_Shdr *sechd
+ 
+ 	return elf64_apply_relocate_add(&me->arch.elf_info, strtab, rela,
+ 					num_rela, syms_base, (void *) addr_base,
+-					addr_base, me->name);
++					addr_base, false, false, me->name);
  }
  
-+/*
-+ * setup_new_fdt() - modify /chosen and memory reservation for the next kernel
-+ * @fdt:
-+ * @initrd_load_addr:	Address where the next initrd will be loaded.
-+ * @initrd_len:		Size of the next initrd, or 0 if there will be none.
-+ * @cmdline:		Command line for the next kernel, or NULL if there will
-+ * 			be none.
-+ *
-+ * Return: 0 on success, or negative errno on error.
-+ */
-+int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
-+		  unsigned long initrd_len, const char *cmdline)
-+{
-+	uint64_t oldfdt_addr;
-+	int i, ret, chosen_node;
-+	const void *prop;
-+
-+	/* Remove memory reservation for the current device tree. */
-+	oldfdt_addr = __pa(initial_boot_params);
-+	for (i = 0; i < fdt_num_mem_rsv(fdt); i++) {
-+		uint64_t rsv_start, rsv_size;
-+
-+		ret = fdt_get_mem_rsv(fdt, i, &rsv_start, &rsv_size);
-+		if (ret) {
-+			pr_err("Malformed device tree.\n");
-+			return -EINVAL;
-+		}
-+
-+		if (rsv_start == oldfdt_addr &&
-+		    rsv_size == fdt_totalsize(initial_boot_params)) {
-+			ret = fdt_del_mem_rsv(fdt, i);
-+			if (ret) {
-+				pr_err("Error deleting fdt reservation.\n");
-+				return -EINVAL;
-+			}
-+
-+			pr_debug("Removed old device tree reservation.\n");
-+			break;
-+		}
-+	}
-+
-+	chosen_node = fdt_path_offset(fdt, "/chosen");
-+	if (chosen_node == -FDT_ERR_NOTFOUND) {
-+		chosen_node = fdt_add_subnode(fdt, fdt_path_offset(fdt, "/"),
-+					      "chosen");
-+		if (chosen_node < 0) {
-+			pr_err("Error creating /chosen.\n");
-+			return -EINVAL;
-+		}
-+	} else if (chosen_node < 0) {
-+		pr_err("Malformed device tree: error reading /chosen.\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Did we boot using an initrd? */
-+	prop = fdt_getprop(fdt, chosen_node, "linux,initrd-start", NULL);
-+	if (prop) {
-+		uint64_t tmp_start, tmp_end, tmp_size, tmp_sizepg;
-+
-+		tmp_start = fdt64_to_cpu(*((const fdt64_t *) prop));
-+
-+		prop = fdt_getprop(fdt, chosen_node, "linux,initrd-end", NULL);
-+		if (!prop) {
-+			pr_err("Malformed device tree.\n");
-+			return -EINVAL;
-+		}
-+		tmp_end = fdt64_to_cpu(*((const fdt64_t *) prop));
-+
-+		/*
-+		 * kexec reserves exact initrd size, while firmware may
-+		 * reserve a multiple of PAGE_SIZE, so check for both.
-+		 */
-+		tmp_size = tmp_end - tmp_start;
-+		tmp_sizepg = round_up(tmp_size, PAGE_SIZE);
-+
-+		/* Remove memory reservation for the current initrd. */
-+		for (i = 0; i < fdt_num_mem_rsv(fdt); i++) {
-+			uint64_t rsv_start, rsv_size;
-+
-+			ret = fdt_get_mem_rsv(fdt, i, &rsv_start, &rsv_size);
-+			if (ret) {
-+				pr_err("Malformed device tree.\n");
-+				return -EINVAL;
-+			}
-+
-+			if (rsv_start == tmp_start &&
-+			    (rsv_size == tmp_size || rsv_size == tmp_sizepg)) {
-+				ret = fdt_del_mem_rsv(fdt, i);
-+				if (ret) {
-+					pr_err("Error deleting fdt reservation.\n");
-+					return -EINVAL;
-+				}
-+				pr_debug("Removed old initrd reservation.\n");
-+
-+				break;
-+			}
-+		}
-+
-+		/* If there's no new initrd, delete the old initrd's info. */
-+		if (initrd_len == 0) {
-+			ret = fdt_delprop(fdt, chosen_node, "linux,initrd-start");
-+			if (ret) {
-+				pr_err("Error deleting linux,initrd-start.\n");
-+				return -EINVAL;
-+			}
-+
-+			ret = fdt_delprop(fdt, chosen_node, "linux,initrd-end");
-+			if (ret) {
-+				pr_err("Error deleting linux,initrd-end.\n");
-+				return -EINVAL;
-+			}
-+		}
-+	}
-+
-+	if (initrd_len) {
-+		ret = fdt_setprop_u64(fdt, chosen_node,
-+				      "linux,initrd-start",
-+				      initrd_load_addr);
-+		if (ret < 0) {
-+			pr_err("Error setting up the new device tree.\n");
-+			return -EINVAL;
-+		}
-+
-+		/* initrd-end is the first address after the initrd image. */
-+		ret = fdt_setprop_u64(fdt, chosen_node, "linux,initrd-end",
-+				      initrd_load_addr + initrd_len);
-+		if (ret < 0) {
-+			pr_err("Error setting up the new device tree.\n");
-+			return -EINVAL;
-+		}
-+
-+		ret = fdt_add_mem_rsv(fdt, initrd_load_addr, initrd_len);
-+		if (ret) {
-+			pr_err("Error reserving initrd memory: %s\n",
-+			       fdt_strerror(ret));
-+			return -EINVAL;
-+		}
-+	}
-+
-+	if (cmdline != NULL) {
-+		ret = fdt_setprop_string(fdt, chosen_node, "bootargs", cmdline);
-+		if (ret < 0) {
-+			pr_err("Error setting up the new device tree.\n");
-+			return -EINVAL;
-+		}
-+	} else {
-+		ret = fdt_delprop(fdt, chosen_node, "bootargs");
-+		if (ret && ret != -FDT_ERR_NOTFOUND) {
-+			pr_err("Error deleting bootargs.\n");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	ret = fdt_setprop(fdt, chosen_node, "linux,booted-from-kexec", NULL, 0);
-+	if (ret) {
-+		pr_err("Error setting up the new device tree.\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * find_debug_console() - find out whether there is a console for the purgatory
-+ * @fdt:		Flattened device tree to search.
-+ */
-+bool find_debug_console(const void *fdt)
-+{
-+	int len;
-+	int console_node, chosen_node;
-+	const void *prop, *colon;
-+
-+	chosen_node = fdt_path_offset(fdt, "/chosen");
-+	if (chosen_node < 0) {
-+		pr_err("Malformed device tree: /chosen not found.\n");
-+		return false;
-+	}
-+
-+	prop = fdt_getprop(fdt, chosen_node, "stdout-path", &len);
-+	if (prop == NULL) {
-+		if (len == -FDT_ERR_NOTFOUND) {
-+			prop = fdt_getprop(fdt, chosen_node, "linux,stdout-path",
-+					   &len);
-+			if (prop == NULL) {
-+				pr_debug("Unable to find [linux,]stdout-path.\n");
-+				return false;
-+			}
-+		} else {
-+			pr_debug("Error finding console: %s\n",
-+				 fdt_strerror(len));
-+			return false;
-+		}
-+	}
-+
-+	/*
-+	 * stdout-path can have a ':' separating the path from device-specific
-+	 * information, so we should only consider what's before it.
-+	 */
-+	colon = strchr(prop, ':');
-+	if (colon != NULL)
-+		len = colon - prop;
-+	else
-+		len -= 1;	/* Ignore the terminating NUL. */
-+
-+	console_node = fdt_path_offset_namelen(fdt, prop, len);
-+	if (console_node < 0) {
-+		pr_debug("Error finding console: %s\n",
-+			 fdt_strerror(console_node));
-+		return false;
-+	}
-+
-+	if (fdt_node_check_compatible(fdt, console_node, "hvterm1") == 0)
-+		return true;
-+	else if (fdt_node_check_compatible(fdt, console_node,
-+					   "hvterm-protocol") == 0)
-+		return true;
-+
-+	return false;
-+}
-+
- #endif /* CONFIG_KEXEC_FILE */
+ #ifdef CONFIG_DYNAMIC_FTRACE
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
