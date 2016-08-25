@@ -1,64 +1,70 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Thu, 25 Aug 2016 15:16:30 -0700
-Message-ID: <20160825151630.adc0e3bfa39b5679178cbd42@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [patch 01/12] byteswap: don't use __builtin_bswap*() with sparse
+Date: Thu, 25 Aug 2016 15:16:45 -0700
+Message-ID: <57bf6e4d.EWxTMR0sFebhSFUJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__25_Aug_2016_15_16_30_-0700_Iy9NPL_qT/VwO3sm"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58997 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59000 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757415AbcHYWQh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 18:16:37 -0400
+        with ESMTP id S1757755AbcHYWQq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 18:16:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, johannes.berg@intel.com, arnd@arndb.de
 
---Signature=_Thu__25_Aug_2016_15_16_30_-0700_Iy9NPL_qT/VwO3sm
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-12 fixes, based on 61c04572de404e52a655a36752e696bbcb483cf5:
-
+From: Johannes Berg <johannes.berg@intel.com>
 Subject: byteswap: don't use __builtin_bswap*() with sparse
-Subject: get_maintainer: quiet noisy implicit -f vcs_file_exists checking
-Subject: sysctl: handle error writing UINT_MAX to u32 fields
-Subject: stackdepot: fix mempolicy use-after-free
-Subject: soft_dirty: fix soft_dirty during THP split
-Subject: printk: fix parsing of "brl=3D" option
-Subject: treewide: replace config_enabled() with IS_ENABLED() (2nd round)
-Subject: mm: clarify COMPACTION Kconfig text
-Subject: mm: memcontrol: avoid unused function warning
-Subject: fs/seq_file: fix out-of-bounds read
-Subject: dax: fix device-dax region base
-Subject: mm: silently skip readahead for DAX inodes
 
+Although sparse declares __builtin_bswap*(), it can't actually do constant
+folding inside them (yet).  As such, things like
 
+  switch (protocol) {
+  case htons(ETH_P_IP):
+          break;
+  }
 
+which we do all over the place cause sparse to warn that it expects a
+constant instead of a function call.
 
---Signature=_Thu__25_Aug_2016_15_16_30_-0700_Iy9NPL_qT/VwO3sm
-Content-Type: application/pgp-signature
+Disable __HAVE_BUILTIN_BSWAP*__ if __CHECKER__ is defined to
+avoid this.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+Fixes: 7322dd755e7d ("byteswap: try to avoid __builtin_constant_p gcc bug")
+Link: http://lkml.kernel.org/r/1470914102-26389-1-git-send-email-johannes@sipsolutions.net
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-iQIcBAEBAgAGBQJXv25EAAoJEJxZ78cCqAIHeLAP/3c4UmyE52pdBZEO/yYXiWoK
-125PBEfNNN9VfEnlJ6S29QdSx7jrlHx6907NVTEF/LwJAlEQVSPcEpTd9W4Pm0tV
-7HKFmIV/hVveV1GRc1sq58z3rznlAx46Z4CJQhpUykBJK6LB4/X4tmAqG+yZAKQY
-dhv5GL5gXLvSk++QoMnDdMa9tZvL7LR3rq5YGfksw0egGIfBK7pzUJJJjB1Zbr8a
-9HQYPXoiXfm47VIoINFVuXQkdDBTgtay1UOePR9Na9zlihsZHkVQ83W/Q5WIo4bY
-CecuNKAj0Svnj68f805FJv2IVNRmdnPQttHPjRPm+bYMI60chuq1rqYDlN52M4ZQ
-DRA2lBTWADWIcSc3HNh+cLCif5TqQnXaBK84IMevH3kteCu0Bn4IwQGIaIc+YkV7
-hUeWRWnlYbigsW1Nphxo6iuV1nosb84pZ/OHb9GFWdHA4b3Jx1QyiWzH3AnjSvdr
-YnwIPqkFQCmNeTSpLT7q33NKIrtCtZH+Gh+v7sPQVqOB0EJFMTDoKRP9MBQ9B5I9
-bgWV29K+Q7xO22IqqHeBRuciQP3mGL537XqTAOpTVMaDliLP7akkF3TF3SWlGt83
-Ej0riJC3Ql+5FPZTQ9WloRuiBGljuc0r8U8zi3M2EwncyNKtP+bD0O+bziUKdbwo
-sRDzP8cm1l9Su+gPq/aX
-=SxJr
------END PGP SIGNATURE-----
+ include/linux/compiler-gcc.h |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---Signature=_Thu__25_Aug_2016_15_16_30_-0700_Iy9NPL_qT/VwO3sm--
+diff -puN include/linux/compiler-gcc.h~byteswap-dont-use-__builtin_bswap-with-sparse include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~byteswap-dont-use-__builtin_bswap-with-sparse
++++ a/include/linux/compiler-gcc.h
+@@ -242,7 +242,11 @@
+  */
+ #define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
+ 
+-#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
++/*
++ * sparse (__CHECKER__) pretends to be gcc, but can't do constant
++ * folding in __builtin_bswap*() (yet), so don't set these for it.
++ */
++#if defined(CONFIG_ARCH_USE_BUILTIN_BSWAP) && !defined(__CHECKER__)
+ #if GCC_VERSION >= 40400
+ #define __HAVE_BUILTIN_BSWAP32__
+ #define __HAVE_BUILTIN_BSWAP64__
+@@ -250,7 +254,7 @@
+ #if GCC_VERSION >= 40800
+ #define __HAVE_BUILTIN_BSWAP16__
+ #endif
+-#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
++#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP && !__CHECKER__ */
+ 
+ #if GCC_VERSION >= 50000
+ #define KASAN_ABI_VERSION 4
+_
