@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
- added to -mm tree
-Date: Thu, 25 Aug 2016 14:13:48 -0700
-Message-ID: <57bf5f8c.j8q06XPiC2xfojpf%akpm@linux-foundation.org>
+ kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch added to
+ -mm tree
+Date: Thu, 25 Aug 2016 14:13:42 -0700
+Message-ID: <57bf5f86.32zMdt3oIQjNl/fv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58423 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58421 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756968AbcHYVOA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 17:14:00 -0400
+        with ESMTP id S1756306AbcHYVN7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 25 Aug 2016 17:13:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec_file: allow skipping checksum calculation for some segments
+     Subject: kexec_file: add buffer hand-over support for the next kernel
 has been added to the -mm tree.  Its filename is
-     kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
+     kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,25 +41,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: kexec_file: allow skipping checksum calculation for some segments
+Subject: kexec_file: add buffer hand-over support for the next kernel
 
-Add skip_checksum member to struct kexec_buf to specify whether the
-corresponding segment should be part of the checksum calculation.
+Patch series "kexec_file: Add buffer hand-over for the next kernel", v3.
 
-The next patch will add a way to update segments after a kimage is loaded.
-Segments that will be updated in this way should not be checksummed,
-otherwise they will cause the purgatory checksum verification to fail
-when the machine is rebooted.
+This patch series implements a mechanism which allows the kernel to pass
+on a buffer to the kernel that will be kexec'd.  This buffer is passed as
+a segment which is added to the kimage when it is being prepared by
+kexec_file_load.
 
-As a bonus, we don't need to special-case the purgatory segment anymore
-to avoid checksumming it.
+How the second kernel is informed of this buffer is architecture-specific.
+On powerpc, this is done via the device tree, by checking the properties
+/chosen/linux,kexec-handover-buffer-start and
+/chosen/linux,kexec-handover-buffer-end, which is analogous to how the
+kernel finds the initrd.
 
-Places using struct kexec_buf get false as the default value for
-skip_checksum since they all use designated initializers.  Therefore,
-there is no behavior change with this patch and all segments except the
-purgatory are checksummed.
+This is needed because the Integrity Measurement Architecture subsystem
+needs to preserve its measurement list accross the kexec reboot.  The
+following patch series for the IMA subsystem uses this feature for that
+purpose:
 
-Link: http://lkml.kernel.org/r/1472149111-30598-4-git-send-email-bauerman@linux.vnet.ibm.com
+https://lists.infradead.org/pipermail/kexec/2016-August/016745.html
+
+This is so that IMA can implement trusted boot support on the OpenPower
+platform, because on such systems an intermediary Linux instance running
+as part of the firmware is used to boot the target operating system via
+kexec.  Using this mechanism, IMA on this intermediary instance can hand
+over to the target OS the measurements of the components that were used to
+boot it.
+
+Because there could be additional measurement events between the
+kexec_file_load call and the actual reboot, IMA needs a way to update the
+buffer with those additional events before rebooting.  One can minimize
+the interval between the kexec_file_load and the reboot syscalls, but as
+small as it can be, there is always the possibility that the measurement
+list will be out of date at the time of reboot.
+
+To address this issue, this patch series also introduces
+kexec_update_segment, which allows a reboot notifier to change the
+contents of the image segment during the reboot process.
+
+The last patch is not intended to be merged, it just demonstrates how this
+feature can be used.
+
+
+This patch (of 5):
+
+The buffer hand-over mechanism allows the currently running kernel to pass
+data to kernel that will be kexec'd via a kexec segment. The second kernel
+can check whether the previous kernel sent data and retrieve it.
+
+This is the architecture-independent part of the feature.
+
+Link: http://lkml.kernel.org/r/1472149111-30598-2-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -74,110 +108,129 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |   23 ++++++++++++++---------
- kernel/kexec_file.c   |   15 +++++++--------
- 2 files changed, 21 insertions(+), 17 deletions(-)
+ include/linux/kexec.h |   31 ++++++++++++++++++
+ kernel/kexec_file.c   |   68 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 99 insertions(+)
 
-diff -puN include/linux/kexec.h~kexec_file-allow-skipping-checksum-calculation-for-some-segments include/linux/kexec.h
---- a/include/linux/kexec.h~kexec_file-allow-skipping-checksum-calculation-for-some-segments
+diff -puN include/linux/kexec.h~kexec_file-add-buffer-hand-over-support-for-the-next-kernel include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec_file-add-buffer-hand-over-support-for-the-next-kernel
 +++ a/include/linux/kexec.h
-@@ -100,6 +100,9 @@ struct kexec_segment {
- 	size_t bufsz;
- 	unsigned long mem;
- 	size_t memsz;
-+
-+	/* Whether this segment is ignored in the checksum calculation. */
-+	bool skip_checksum;
- };
- 
- #ifdef CONFIG_COMPAT
-@@ -151,15 +154,16 @@ struct kexec_file_ops {
- 
- /**
-  * struct kexec_buf - parameters for finding a place for a buffer in memory
-- * @image:	kexec image in which memory to search.
-- * @buffer:	Contents which will be copied to the allocated memory.
-- * @bufsz:	Size of @buffer.
-- * @mem:	On return will have address of the buffer in memory.
-- * @memsz:	Size for the buffer in memory.
-- * @buf_align:	Minimum alignment needed.
-- * @buf_min:	The buffer can't be placed below this address.
-- * @buf_max:	The buffer can't be placed above this address.
-- * @top_down:	Allocate from top of memory.
-+ * @image:		kexec image in which memory to search.
-+ * @buffer:		Contents which will be copied to the allocated memory.
-+ * @bufsz:		Size of @buffer.
-+ * @mem:		On return will have address of the buffer in memory.
-+ * @memsz:		Size for the buffer in memory.
-+ * @buf_align:		Minimum alignment needed.
-+ * @buf_min:		The buffer can't be placed below this address.
-+ * @buf_max:		The buffer can't be placed above this address.
-+ * @top_down:		Allocate from top of memory.
-+ * @skip_checksum:	Don't verify checksum for this buffer in purgatory.
-  */
- struct kexec_buf {
- 	struct kimage *image;
-@@ -171,6 +175,7 @@ struct kexec_buf {
- 	unsigned long buf_min;
- 	unsigned long buf_max;
- 	bool top_down;
-+	bool skip_checksum;
- };
- 
- int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
-diff -puN kernel/kexec_file.c~kexec_file-allow-skipping-checksum-calculation-for-some-segments kernel/kexec_file.c
---- a/kernel/kexec_file.c~kexec_file-allow-skipping-checksum-calculation-for-some-segments
-+++ a/kernel/kexec_file.c
-@@ -584,6 +584,7 @@ int kexec_add_buffer(struct kexec_buf *k
- 	ksegment->bufsz = kbuf->bufsz;
- 	ksegment->mem = kbuf->mem;
- 	ksegment->memsz = kbuf->memsz;
-+	ksegment->skip_checksum = kbuf->skip_checksum;
- 	kbuf->image->nr_segments++;
- 	return 0;
+@@ -383,6 +383,37 @@ static inline void *boot_phys_to_virt(un
+ 	return phys_to_virt(boot_phys_to_phys(entry));
  }
-@@ -598,7 +599,6 @@ static int kexec_calculate_store_digests
- 	char *digest;
- 	void *zero_buf;
- 	struct kexec_sha_region *sha_regions;
--	struct purgatory_info *pi = &image->purgatory_info;
  
- 	zero_buf = __va(page_to_pfn(ZERO_PAGE(0)) << PAGE_SHIFT);
- 	zero_buf_sz = PAGE_SIZE;
-@@ -638,11 +638,7 @@ static int kexec_calculate_store_digests
- 		struct kexec_segment *ksegment;
++#ifdef CONFIG_KEXEC_FILE
++bool __weak kexec_can_hand_over_buffer(void);
++int __weak arch_kexec_add_handover_buffer(struct kimage *image,
++					  unsigned long load_addr,
++					  unsigned long size);
++int kexec_add_handover_buffer(struct kexec_buf *kbuf);
++int __weak kexec_get_handover_buffer(void **addr, unsigned long *size);
++int __weak kexec_free_handover_buffer(void);
++#else
++struct kexec_buf;
++
++static inline bool kexec_can_hand_over_buffer(void)
++{
++	return false;
++}
++
++static inline int kexec_add_handover_buffer(struct kexec_buf *kbuf)
++{
++	return -ENOTSUPP;
++}
++
++static inline int kexec_get_handover_buffer(void **addr, unsigned long *size)
++{
++	return -ENOTSUPP;
++}
++
++static inline int kexec_free_handover_buffer(void)
++{
++	return -ENOTSUPP;
++}
++#endif /* CONFIG_KEXEC_FILE */
+ #else /* !CONFIG_KEXEC_CORE */
+ struct pt_regs;
+ struct task_struct;
+diff -puN kernel/kexec_file.c~kexec_file-add-buffer-hand-over-support-for-the-next-kernel kernel/kexec_file.c
+--- a/kernel/kexec_file.c~kexec_file-add-buffer-hand-over-support-for-the-next-kernel
++++ a/kernel/kexec_file.c
+@@ -113,6 +113,74 @@ void kimage_file_post_load_cleanup(struc
+ 	image->image_loader_data = NULL;
+ }
  
- 		ksegment = &image->segment[i];
--		/*
--		 * Skip purgatory as it will be modified once we put digest
--		 * info in purgatory.
--		 */
--		if (ksegment->kbuf == pi->purgatory_buf)
-+		if (ksegment->skip_checksum)
- 			continue;
- 
- 		ret = crypto_shash_update(desc, ksegment->kbuf,
-@@ -714,7 +710,7 @@ static int __kexec_load_purgatory(struct
- 	Elf_Shdr *sechdrs = NULL;
- 	struct kexec_buf kbuf = { .image = image, .bufsz = 0, .buf_align = 1,
- 				  .buf_min = min, .buf_max = max,
--				  .top_down = top_down };
-+				  .top_down = top_down, .skip_checksum = true };
- 
- 	/*
- 	 * sechdrs_c points to section headers in purgatory and are read
-@@ -819,7 +815,10 @@ static int __kexec_load_purgatory(struct
- 	if (kbuf.buf_align < bss_align)
- 		kbuf.buf_align = bss_align;
- 
--	/* Add buffer to segment list */
-+	/*
-+	 * Add buffer to segment list. Don't checksum the segment as
-+	 * it will be modified once we put digest info in purgatory.
-+	 */
- 	ret = kexec_add_buffer(&kbuf);
- 	if (ret)
- 		goto out;
++/**
++ * kexec_can_hand_over_buffer - can we pass data to the kexec'd kernel?
++ */
++bool __weak kexec_can_hand_over_buffer(void)
++{
++	return false;
++}
++
++/**
++ * arch_kexec_add_handover_buffer - do arch-specific steps to handover buffer
++ *
++ * Architectures should use this function to pass on the handover buffer
++ * information to the next kernel.
++ *
++ * Return: 0 on success, negative errno on error.
++ */
++int __weak arch_kexec_add_handover_buffer(struct kimage *image,
++					  unsigned long load_addr,
++					  unsigned long size)
++{
++	return -ENOTSUPP;
++}
++
++/**
++ * kexec_add_handover_buffer - add buffer to be used by the next kernel
++ * @kbuf:	Buffer contents and memory parameters.
++ *
++ * This function assumes that kexec_mutex is held.
++ * On successful return, @kbuf->mem will have the physical address of
++ * the buffer in the next kernel.
++ *
++ * Return: 0 on success, negative errno on error.
++ */
++int kexec_add_handover_buffer(struct kexec_buf *kbuf)
++{
++	int ret;
++
++	if (!kexec_can_hand_over_buffer())
++		return -ENOTSUPP;
++
++	ret = kexec_add_buffer(kbuf);
++	if (ret)
++		return ret;
++
++	return arch_kexec_add_handover_buffer(kbuf->image, kbuf->mem,
++					      kbuf->memsz);
++}
++
++/**
++ * kexec_get_handover_buffer - get the handover buffer from the previous kernel
++ * @addr:	On successful return, set to point to the buffer contents.
++ * @size:	On successful return, set to the buffer size.
++ *
++ * Return: 0 on success, negative errno on error.
++ */
++int __weak kexec_get_handover_buffer(void **addr, unsigned long *size)
++{
++	return -ENOTSUPP;
++}
++
++/**
++ * kexec_free_handover_buffer - free memory used by the handover buffer
++ */
++int __weak kexec_free_handover_buffer(void)
++{
++	return -ENOTSUPP;
++}
++
+ /*
+  * In file mode list of segments is prepared by kernel. Copy relevant
+  * data from user space, do error checking, prepare segment list
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
