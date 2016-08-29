@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + test-hash-fix-warning-in-preprocessor-symbol-evaluation.patch
+Subject: +
+ kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings.patch
  added to -mm tree
-Date: Mon, 29 Aug 2016 16:45:09 -0700
-Message-ID: <57c4c905.XtgkufcXcaF3UYrD%akpm@linux-foundation.org>
+Date: Mon, 29 Aug 2016 16:45:05 -0700
+Message-ID: <57c4c901.u1Pt/3xSfn0pMy2E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40575 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40567 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756493AbcH2Xpg (ORCPT
+        with ESMTP id S1754185AbcH2Xpg (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 19:45:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, arnd@arndb.de, linux@sciencehorizons.net, mm-commits@vger.kernel.org
+To: arnd@arndb.de, josh@joshtriplett.org, mingo@kernel.org, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_hash.c: fix warning in preprocessor symbol evaluation
+     Subject: kconfig: tinyconfig: provide whole choice blocks to avoid warnings
 has been added to the -mm tree.  Its filename is
-     test-hash-fix-warning-in-preprocessor-symbol-evaluation.patch
+     kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/test-hash-fix-warning-in-preprocessor-symbol-evaluation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/test-hash-fix-warning-in-preprocessor-symbol-evaluation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +40,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: lib/test_hash.c: fix warning in preprocessor symbol evaluation
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kconfig: tinyconfig: provide whole choice blocks to avoid warnings
 
-Some versions of gcc don't like tests for the value of an undefined
-preprocessor symbol, even in the #else branch of an #ifndef:
+Using "make tinyconfig" produces a couple of annoying warnings that show up
+for build test machines all the time:
 
-    lib/test_hash.c:224:7: warning: "HAVE_ARCH__HASH_32" is not defined [-Wundef]
-     #elif HAVE_ARCH__HASH_32 != 1
-	   ^
-    lib/test_hash.c:229:7: warning: "HAVE_ARCH_HASH_32" is not defined [-Wundef]
-     #elif HAVE_ARCH_HASH_32 != 1
-	   ^
-    lib/test_hash.c:234:7: warning: "HAVE_ARCH_HASH_64" is not defined [-Wundef]
-     #elif HAVE_ARCH_HASH_64 != 1
-	   ^
+    .config:966:warning: override: NOHIGHMEM changes choice state
+    .config:965:warning: override: SLOB changes choice state
+    .config:963:warning: override: KERNEL_XZ changes choice state
+    .config:962:warning: override: CC_OPTIMIZE_FOR_SIZE changes choice state
+    .config:933:warning: override: SLOB changes choice state
+    .config:930:warning: override: CC_OPTIMIZE_FOR_SIZE changes choice state
+    .config:870:warning: override: SLOB changes choice state
+    .config:868:warning: override: KERNEL_XZ changes choice state
+    .config:867:warning: override: CC_OPTIMIZE_FOR_SIZE changes choice state
 
-Seen with gcc 4.9, not seen with 4.1.2.
+I've made a previous attempt at fixing them and we discussed a number of
+alternatives.
 
-Change the logic to only check the value inside an #ifdef to fix this.
+I tried changing the Makefile to use "merge_config.sh -n $(fragment-list)"
+but couldn't get that to work properly.
 
-Fixes: 468a9428521e7d00 ("<linux/hash.h>: Add support for architecture-specific functions")
-Link: http://lkml.kernel.org/r/20160829214952.1334674-4-arnd@arndb.de
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+This is yet another approach, based on the observation that we do want
+to see a warning for conflicting 'choice' options, and that we can simply
+make them non-conflicting by listing all other options as disabled.
+This is a trivial patch that we can apply independent of plans for other
+changes.
+
+Link: http://lkml.kernel.org/r/20160829214952.1334674-2-arnd@arndb.de
+Link: https://storage.kernelci.org/mainline/v4.7-rc6/x86-tinyconfig/build.log
+https://patchwork.kernel.org/patch/9212749/
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: George Spelvin <linux@sciencehorizons.net>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Reviewed-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hash.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ arch/x86/configs/tiny.config |    2 ++
+ kernel/configs/tiny.config   |    8 ++++++++
+ 2 files changed, 10 insertions(+)
 
-diff -puN lib/test_hash.c~test-hash-fix-warning-in-preprocessor-symbol-evaluation lib/test_hash.c
---- a/lib/test_hash.c~test-hash-fix-warning-in-preprocessor-symbol-evaluation
-+++ a/lib/test_hash.c
-@@ -219,21 +219,27 @@ test_hash_init(void)
- 	}
- 
- 	/* Issue notices about skipped tests. */
--#ifndef HAVE_ARCH__HASH_32
--	pr_info("__hash_32() has no arch implementation to test.");
--#elif HAVE_ARCH__HASH_32 != 1
-+#ifdef HAVE_ARCH__HASH_32
-+#if HAVE_ARCH__HASH_32 != 1
- 	pr_info("__hash_32() is arch-specific; not compared to generic.");
- #endif
--#ifndef HAVE_ARCH_HASH_32
--	pr_info("hash_32() has no arch implementation to test.");
--#elif HAVE_ARCH_HASH_32 != 1
-+#else
-+	pr_info("__hash_32() has no arch implementation to test.");
-+#endif
-+#ifdef HAVE_ARCH_HASH_32
-+#if HAVE_ARCH_HASH_32 != 1
- 	pr_info("hash_32() is arch-specific; not compared to generic.");
- #endif
--#ifndef HAVE_ARCH_HASH_64
--	pr_info("hash_64() has no arch implementation to test.");
--#elif HAVE_ARCH_HASH_64 != 1
-+#else
-+	pr_info("hash_32() has no arch implementation to test.");
-+#endif
-+#ifdef HAVE_ARCH_HASH_64
-+#if HAVE_ARCH_HASH_64 != 1
- 	pr_info("hash_64() is arch-specific; not compared to generic.");
- #endif
-+#else
-+	pr_info("hash_64() has no arch implementation to test.");
-+#endif
- 
- 	pr_notice("%u tests passed.", tests);
- 
+diff -puN arch/x86/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings arch/x86/configs/tiny.config
+--- a/arch/x86/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings
++++ a/arch/x86/configs/tiny.config
+@@ -1 +1,3 @@
+ CONFIG_NOHIGHMEM=y
++# CONFIG_HIGHMEM4G is not set
++# CONFIG_HIGHMEM64G is not set
+diff -puN kernel/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings kernel/configs/tiny.config
+--- a/kernel/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings
++++ a/kernel/configs/tiny.config
+@@ -1,4 +1,12 @@
++# CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE is not set
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++# CONFIG_KERNEL_GZIP is not set
++# CONFIG_KERNEL_BZIP2 is not set
++# CONFIG_KERNEL_LZMA is not set
+ CONFIG_KERNEL_XZ=y
++# CONFIG_KERNEL_LZO is not set
++# CONFIG_KERNEL_LZ4 is not set
+ CONFIG_OPTIMIZE_INLINING=y
++# CONFIG_SLAB is not set
++# CONFIG_SLUB is not set
+ CONFIG_SLOB=y
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-test-hash-fix-warning-in-two-dimensional-array-init.patch
-test-hash-fix-warning-in-preprocessor-symbol-evaluation.patch
+kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings.patch
+compat-remove-compat_printk.patch
 
