@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + pipe-simplify-logic-in-alloc_pipe_info.patch added to -mm tree
-Date: Mon, 29 Aug 2016 15:13:22 -0700
-Message-ID: <57c4b382.HmYJx7U8mpOFVNxT%akpm@linux-foundation.org>
+Subject: + thp-reduce-usage-of-huge-zero-pages-atomic-counter.patch added
+ to -mm tree
+Date: Mon, 29 Aug 2016 15:51:12 -0700
+Message-ID: <57c4bc60.Juda9sW8rhVpQ2+i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38545 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39147 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756322AbcH2WNa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 18:13:30 -0400
+        with ESMTP id S1753429AbcH2Wvd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 18:51:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mtk.manpages@gmail.com, axboe@fb.com, penguin-kernel@I-love.SAKURA.ne.jp, socketpair@gmail.com, vegard.nossum@oracle.com, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
+To: aaron.lu@intel.com, aarcange@redhat.com, dave.hansen@intel.com, ebru.akagunduz@gmail.com, jmarchan@redhat.com, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, tim.c.chen@linux.intel.com, vbabka@suse.cz, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pipe: simplify logic in alloc_pipe_info()
+     Subject: thp: reduce usage of huge zero page's atomic counter
 has been added to the -mm tree.  Its filename is
-     pipe-simplify-logic-in-alloc_pipe_info.patch
+     thp-reduce-usage-of-huge-zero-pages-atomic-counter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pipe-simplify-logic-in-alloc_pipe_info.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-reduce-usage-of-huge-zero-pages-atomic-counter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pipe-simplify-logic-in-alloc_pipe_info.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-reduce-usage-of-huge-zero-pages-atomic-counter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,96 +39,261 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Subject: pipe: simplify logic in alloc_pipe_info()
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: thp: reduce usage of huge zero page's atomic counter
 
-Replace an 'if' block that covers most of the code in this function
-with a 'goto'. This makes the code a little simpler to read, and also
-simplifies the next patch (fix limit checking in alloc_pipe_info())
+The global zero page is used to satisfy an anonymous read fault.  If
+THP(Transparent HugePage) is enabled then the global huge zero page is
+used.  The global huge zero page uses an atomic counter for reference
+counting and is allocated/freed dynamically according to its counter
+value.
 
-Link: http://lkml.kernel.org/r/aef030c1-0257-98a9-4988-186efa48530c@gmail.com
-Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Willy Tarreau <w@1wt.eu>
-Cc: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: <socketpair@gmail.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+CPU time spent on that counter will greatly increase if there are a lot of
+processes doing anonymous read faults.  This patch proposes a way to
+reduce the access to the global counter so that the CPU load can be
+reduced accordingly.
+
+To do this, a new flag of the mm_struct is introduced: MMF_USED_HUGE_ZERO_PAGE.
+With this flag, the process only need to touch the global counter in
+two cases:
+1 The first time it uses the global huge zero page;
+2 The time when mm_user of its mm_struct reaches zero.
+
+Note that right now, the huge zero page is eligible to be freed as soon as
+its last use goes away.  With this patch, the page will not be eligible to
+be freed until the exit of the last process from which it was ever used.
+
+And with the use of mm_user, the kthread is not eligible to use huge zero
+page either.  Since no kthread is using huge zero page today, there is no
+difference after applying this patch.  But if that is not desired, I can
+change it to when mm_count reaches zero.
+
+Case used for test on Haswell EP:
+usemem -n 72 --readonly -j 0x200000 100G
+Which spawns 72 processes and each will mmap 100G anonymous space and
+then do read only access to that space sequentially with a step of 2MB.
+
+perf report for base commit:
+    54.03%  usemem   [kernel.kallsyms]   [k] get_huge_zero_page
+perf report for this commit:
+     0.11%  usemem   [kernel.kallsyms]   [k] mm_get_huge_zero_page
+
+Link: http://lkml.kernel.org/r/b7e47f2c-8aac-156a-f627-a50db31220f8@intel.com
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   43 ++++++++++++++++++++++---------------------
- 1 file changed, 22 insertions(+), 21 deletions(-)
+ fs/dax.c                |    2 +-
+ include/linux/huge_mm.h |    6 +++---
+ include/linux/sched.h   |    1 +
+ kernel/fork.c           |    1 +
+ mm/huge_memory.c        |   36 +++++++++++++++++++++++++-----------
+ mm/swap.c               |    4 +---
+ mm/swap_state.c         |    4 +---
+ 7 files changed, 33 insertions(+), 21 deletions(-)
 
-diff -puN fs/pipe.c~pipe-simplify-logic-in-alloc_pipe_info fs/pipe.c
---- a/fs/pipe.c~pipe-simplify-logic-in-alloc_pipe_info
-+++ a/fs/pipe.c
-@@ -625,33 +625,34 @@ static bool too_many_pipe_buffers_hard(s
- struct pipe_inode_info *alloc_pipe_info(void)
+diff -puN fs/dax.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter fs/dax.c
+--- a/fs/dax.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/fs/dax.c
+@@ -1034,7 +1034,7 @@ int dax_pmd_fault(struct vm_area_struct
+ 	if (!write && !buffer_mapped(&bh)) {
+ 		spinlock_t *ptl;
+ 		pmd_t entry;
+-		struct page *zero_page = get_huge_zero_page();
++		struct page *zero_page = mm_get_huge_zero_page(vma->vm_mm);
+ 
+ 		if (unlikely(!zero_page)) {
+ 			dax_pmd_dbg(&bh, address, "no zero page");
+diff -puN include/linux/huge_mm.h~thp-reduce-usage-of-huge-zero-pages-atomic-counter include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/include/linux/huge_mm.h
+@@ -152,8 +152,8 @@ static inline bool is_huge_zero_pmd(pmd_
+ 	return is_huge_zero_page(pmd_page(pmd));
+ }
+ 
+-struct page *get_huge_zero_page(void);
+-void put_huge_zero_page(void);
++struct page *mm_get_huge_zero_page(struct mm_struct *mm);
++void mm_put_huge_zero_page(struct mm_struct *mm);
+ 
+ #define mk_huge_pmd(page, prot) pmd_mkhuge(mk_pmd(page, prot))
+ 
+@@ -213,7 +213,7 @@ static inline bool is_huge_zero_page(str
+ 	return false;
+ }
+ 
+-static inline void put_huge_zero_page(void)
++static inline void mm_put_huge_zero_page(struct mm_struct *mm)
  {
- 	struct pipe_inode_info *pipe;
-+	unsigned long pipe_bufs = PIPE_DEF_BUFFERS;
-+	struct user_struct *user = get_current_user();
+ 	BUILD_BUG();
+ }
+diff -puN include/linux/sched.h~thp-reduce-usage-of-huge-zero-pages-atomic-counter include/linux/sched.h
+--- a/include/linux/sched.h~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/include/linux/sched.h
+@@ -524,6 +524,7 @@ static inline int get_dumpable(struct mm
+ #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
+ #define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
+ #define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
++#define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
  
- 	pipe = kzalloc(sizeof(struct pipe_inode_info), GFP_KERNEL_ACCOUNT);
--	if (pipe) {
--		unsigned long pipe_bufs = PIPE_DEF_BUFFERS;
--		struct user_struct *user = get_current_user();
-+	if (pipe == NULL)
-+		goto out_free_uid;
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
  
--		if (!too_many_pipe_buffers_hard(user)) {
--			if (too_many_pipe_buffers_soft(user))
--				pipe_bufs = 1;
--			pipe->bufs = kcalloc(pipe_bufs,
--					     sizeof(struct pipe_buffer),
--					     GFP_KERNEL_ACCOUNT);
+diff -puN kernel/fork.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter kernel/fork.c
+--- a/kernel/fork.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/kernel/fork.c
+@@ -717,6 +717,7 @@ static inline void __mmput(struct mm_str
+ 	ksm_exit(mm);
+ 	khugepaged_exit(mm); /* must run before exit_mmap */
+ 	exit_mmap(mm);
++	mm_put_huge_zero_page(mm);
+ 	set_mm_exe_file(mm, NULL);
+ 	if (!list_empty(&mm->mmlist)) {
+ 		spin_lock(&mmlist_lock);
+diff -puN mm/huge_memory.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/mm/huge_memory.c
+@@ -59,7 +59,7 @@ static struct shrinker deferred_split_sh
+ static atomic_t huge_zero_refcount;
+ struct page *huge_zero_page __read_mostly;
+ 
+-struct page *get_huge_zero_page(void)
++static struct page *get_huge_zero_page(void)
+ {
+ 	struct page *zero_page;
+ retry:
+@@ -86,7 +86,7 @@ retry:
+ 	return READ_ONCE(huge_zero_page);
+ }
+ 
+-void put_huge_zero_page(void)
++static void put_huge_zero_page(void)
+ {
+ 	/*
+ 	 * Counter should never go to zero here. Only shrinker can put
+@@ -95,6 +95,26 @@ void put_huge_zero_page(void)
+ 	BUG_ON(atomic_dec_and_test(&huge_zero_refcount));
+ }
+ 
++struct page *mm_get_huge_zero_page(struct mm_struct *mm)
++{
++	if (test_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
++		return READ_ONCE(huge_zero_page);
++
++	if (!get_huge_zero_page())
++		return NULL;
++
++	if (test_and_set_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
++		put_huge_zero_page();
++
++	return READ_ONCE(huge_zero_page);
++}
++
++void mm_put_huge_zero_page(struct mm_struct *mm)
++{
++	if (test_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
++		put_huge_zero_page();
++}
++
+ static unsigned long shrink_huge_zero_page_count(struct shrinker *shrink,
+ 					struct shrink_control *sc)
+ {
+@@ -601,7 +621,7 @@ int do_huge_pmd_anonymous_page(struct fa
+ 		pgtable = pte_alloc_one(vma->vm_mm, haddr);
+ 		if (unlikely(!pgtable))
+ 			return VM_FAULT_OOM;
+-		zero_page = get_huge_zero_page();
++		zero_page = mm_get_huge_zero_page(vma->vm_mm);
+ 		if (unlikely(!zero_page)) {
+ 			pte_free(vma->vm_mm, pgtable);
+ 			count_vm_event(THP_FAULT_FALLBACK);
+@@ -623,10 +643,8 @@ int do_huge_pmd_anonymous_page(struct fa
+ 			}
+ 		} else
+ 			spin_unlock(fe->ptl);
+-		if (!set) {
++		if (!set)
+ 			pte_free(vma->vm_mm, pgtable);
+-			put_huge_zero_page();
 -		}
-+	if (!too_many_pipe_buffers_hard(user)) {
-+		if (too_many_pipe_buffers_soft(user))
-+			pipe_bufs = 1;
-+		pipe->bufs = kcalloc(pipe_bufs,
-+				     sizeof(struct pipe_buffer),
-+				     GFP_KERNEL_ACCOUNT);
-+	}
- 
--		if (pipe->bufs) {
--			init_waitqueue_head(&pipe->wait);
--			pipe->r_counter = pipe->w_counter = 1;
--			pipe->buffers = pipe_bufs;
--			pipe->user = user;
--			account_pipe_buffers(user, 0, pipe_bufs);
--			mutex_init(&pipe->mutex);
--			return pipe;
--		}
--		free_uid(user);
--		kfree(pipe);
-+	if (pipe->bufs) {
-+		init_waitqueue_head(&pipe->wait);
-+		pipe->r_counter = pipe->w_counter = 1;
-+		pipe->buffers = pipe_bufs;
-+		pipe->user = user;
-+		account_pipe_buffers(user, 0, pipe_bufs);
-+		mutex_init(&pipe->mutex);
-+		return pipe;
+ 		return ret;
  	}
+ 	gfp = alloc_hugepage_direct_gfpmask(vma);
+@@ -780,7 +798,7 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		 * since we already have a zero page to copy. It just takes a
+ 		 * reference.
+ 		 */
+-		zero_page = get_huge_zero_page();
++		zero_page = mm_get_huge_zero_page(dst_mm);
+ 		set_huge_zero_page(pgtable, dst_mm, vma, addr, dst_pmd,
+ 				zero_page);
+ 		ret = 0;
+@@ -1038,7 +1056,6 @@ alloc:
+ 		update_mmu_cache_pmd(vma, fe->address, fe->pmd);
+ 		if (!page) {
+ 			add_mm_counter(vma->vm_mm, MM_ANONPAGES, HPAGE_PMD_NR);
+-			put_huge_zero_page();
+ 		} else {
+ 			VM_BUG_ON_PAGE(!PageHead(page), page);
+ 			page_remove_rmap(page, true);
+@@ -1502,7 +1519,6 @@ static void __split_huge_zero_page_pmd(s
+ 	}
+ 	smp_wmb(); /* make pte visible before pmd */
+ 	pmd_populate(mm, pmd, pgtable);
+-	put_huge_zero_page();
+ }
  
-+	kfree(pipe);
-+out_free_uid:
-+	free_uid(user);
- 	return NULL;
+ static void __split_huge_pmd_locked(struct vm_area_struct *vma, pmd_t *pmd,
+@@ -1525,8 +1541,6 @@ static void __split_huge_pmd_locked(stru
+ 
+ 	if (!vma_is_anonymous(vma)) {
+ 		_pmd = pmdp_huge_clear_flush_notify(vma, haddr, pmd);
+-		if (is_huge_zero_pmd(_pmd))
+-			put_huge_zero_page();
+ 		if (vma_is_dax(vma))
+ 			return;
+ 		page = pmd_page(_pmd);
+diff -puN mm/swap.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter mm/swap.c
+--- a/mm/swap.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/mm/swap.c
+@@ -748,10 +748,8 @@ void release_pages(struct page **pages,
+ 			locked_pgdat = NULL;
+ 		}
+ 
+-		if (is_huge_zero_page(page)) {
+-			put_huge_zero_page();
++		if (is_huge_zero_page(page))
+ 			continue;
+-		}
+ 
+ 		page = compound_head(page);
+ 		if (!put_page_testzero(page))
+diff -puN mm/swap_state.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter mm/swap_state.c
+--- a/mm/swap_state.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/mm/swap_state.c
+@@ -252,9 +252,7 @@ static inline void free_swap_cache(struc
+ void free_page_and_swap_cache(struct page *page)
+ {
+ 	free_swap_cache(page);
+-	if (is_huge_zero_page(page))
+-		put_huge_zero_page();
+-	else
++	if (!is_huge_zero_page(page))
+ 		put_page(page);
  }
  
 _
 
-Patches currently in -mm which might be from mtk.manpages@gmail.com are
+Patches currently in -mm which might be from aaron.lu@intel.com are
 
-pipe-relocate-round_pipe_size-above-pipe_set_size.patch
-pipe-move-limit-checking-logic-into-pipe_set_size.patch
-pipe-refactor-argument-for-account_pipe_buffers.patch
-pipe-fix-limit-checking-in-pipe_set_size.patch
-pipe-simplify-logic-in-alloc_pipe_info.patch
-pipe-fix-limit-checking-in-alloc_pipe_info.patch
-pipe-make-account_pipe_buffers-return-a-value-and-use-it.patch
-pipe-cap-initial-pipe-capacity-according-to-pipe-max-size-limit.patch
+thp-reduce-usage-of-huge-zero-pages-atomic-counter.patch
 
