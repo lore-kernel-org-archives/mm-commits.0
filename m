@@ -1,98 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] fadump-register-the-memory-reserved-by-fadump.patch
- removed from -mm tree
-Date: Mon, 29 Aug 2016 16:10:29 -0700
-Message-ID: <57c4c0e5.J+ELS1t/29aIIPH+%akpm@linux-foundation.org>
+Subject: + mm-bootmemc-replace-kzalloc-by-kzalloc_node.patch added to -mm
+ tree
+Date: Mon, 29 Aug 2016 16:28:04 -0700
+Message-ID: <57c4c504.ZsUPzSaR1TIrc/GP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39677 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40173 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753857AbcH2XKp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 19:10:45 -0400
+        with ESMTP id S1754081AbcH2X2G (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 19:28:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srikar@linux.vnet.ibm.com, bsingharora@gmail.com, dave.hansen@intel.com, hbathini@linux.vnet.ibm.com, mahesh@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@kernel.org, mpe@ellerman.id.au, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: zijun_hu@htc.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/powerpc/kernel/fadump.c: register the memory reserved by fadump
-has been removed from the -mm tree.  Its filename was
-     fadump-register-the-memory-reserved-by-fadump.patch
+     Subject: mm/bootmem.c: replace kzalloc() by kzalloc_node()
+has been added to the -mm tree.  Its filename is
+     mm-bootmemc-replace-kzalloc-by-kzalloc_node.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-bootmemc-replace-kzalloc-by-kzalloc_node.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-bootmemc-replace-kzalloc-by-kzalloc_node.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Subject: arch/powerpc/kernel/fadump.c: register the memory reserved by fadump
+From: zijun_hu <zijun_hu@htc.com>
+Subject: mm/bootmem.c: replace kzalloc() by kzalloc_node()
 
-Fadump kernel reserves large chunks of memory even before the pages are
-initialized.  This could mean memory that corresponds to several nodes
-might fall in memblock reserved regions.
+In ___alloc_bootmem_node_nopanic(), replace kzalloc() by kzalloc_node() in
+order to allocate memory within given node preferentially when slab is
+available
 
-Kernels compiled with CONFIG_DEFERRED_STRUCT_PAGE_INIT will initialize
-only certain size memory per node.  The certain size takes into account
-the dentry and inode cache sizes.  Currently the cache sizes are
-calculated based on the total system memory including the reserved memory.
-However such a kernel when booting the same kernel as fadump kernel will
-not be able to allocate the required amount of memory to suffice for the
-dentry and inode caches.  This results in crashes like the below on large
-systems such as 32 TB systems.
-
-Dentry cache hash table entries: 536870912 (order: 16, 4294967296 bytes)
-vmalloc: allocation failure, allocated 4097114112 of 17179934720 bytes
-swapper/0: page allocation failure: order:0, mode:0x2080020(GFP_ATOMIC)
-CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.6-master+ #3
-Call Trace:
-[c00000000108fb10] [c0000000007fac88] dump_stack+0xb0/0xf0 (unreliable)
-[c00000000108fb50] [c000000000235264] warn_alloc_failed+0x114/0x160
-[c00000000108fbf0] [c000000000281484] __vmalloc_node_range+0x304/0x340
-[c00000000108fca0] [c00000000028152c] __vmalloc+0x6c/0x90
-[c00000000108fd40] [c000000000aecfb0]
-alloc_large_system_hash+0x1b8/0x2c0
-[c00000000108fe00] [c000000000af7240] inode_init+0x94/0xe4
-[c00000000108fe80] [c000000000af6fec] vfs_caches_init+0x8c/0x13c
-[c00000000108ff00] [c000000000ac4014] start_kernel+0x50c/0x578
-[c00000000108ff90] [c000000000008c6c] start_here_common+0x20/0xa8
-
-Register the memory reserved by fadump, so that the cache sizes are
-calculated based on the free memory (i.e Total memory - reserved memory).
-
-Link: http://lkml.kernel.org/r/1470330729-6273-2-git-send-email-srikar@linux.vnet.ibm.com
-Signed-off-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Suggested-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
-Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
+Link: http://lkml.kernel.org/r/1f487f12-6af4-5e4f-a28c-1de2361cdcd8@zoho.com
+Signed-off-by: zijun_hu <zijun_hu@htc.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/fadump.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/bootmem.c |   14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
-diff -puN arch/powerpc/kernel/fadump.c~fadump-register-the-memory-reserved-by-fadump arch/powerpc/kernel/fadump.c
---- a/arch/powerpc/kernel/fadump.c~fadump-register-the-memory-reserved-by-fadump
-+++ a/arch/powerpc/kernel/fadump.c
-@@ -330,6 +330,7 @@ int __init fadump_reserve_mem(void)
- 	}
- 	fw_dump.reserve_dump_area_start = base;
- 	fw_dump.reserve_dump_area_size = size;
-+	set_memory_reserve(size/PAGE_SIZE, true);
- 	return 1;
+diff -puN mm/bootmem.c~mm-bootmemc-replace-kzalloc-by-kzalloc_node mm/bootmem.c
+--- a/mm/bootmem.c~mm-bootmemc-replace-kzalloc-by-kzalloc_node
++++ a/mm/bootmem.c
+@@ -11,15 +11,12 @@
+ #include <linux/init.h>
+ #include <linux/pfn.h>
+ #include <linux/slab.h>
+-#include <linux/bootmem.h>
+ #include <linux/export.h>
+ #include <linux/kmemleak.h>
+ #include <linux/range.h>
+-#include <linux/memblock.h>
+ #include <linux/bug.h>
+ #include <linux/io.h>
+-
+-#include <asm/processor.h>
++#include <linux/bootmem.h>
+ 
+ #include "internal.h"
+ 
+@@ -712,7 +709,7 @@ void * __init ___alloc_bootmem_node_nopa
+ 	void *ptr;
+ 
+ 	if (WARN_ON_ONCE(slab_is_available()))
+-		return kzalloc(size, GFP_NOWAIT);
++		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
+ again:
+ 
+ 	/* do not panic in alloc_bootmem_bdata() */
+@@ -738,9 +735,6 @@ again:
+ void * __init __alloc_bootmem_node_nopanic(pg_data_t *pgdat, unsigned long size,
+ 				   unsigned long align, unsigned long goal)
+ {
+-	if (WARN_ON_ONCE(slab_is_available()))
+-		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
+-
+ 	return ___alloc_bootmem_node_nopanic(pgdat, size, align, goal, 0);
  }
  
-_
-
-Patches currently in -mm which might be from srikar@linux.vnet.ibm.com are
-
-mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve.patch
-mm-introduce-arch_reserved_kernel_pages.patch
-mm-memblock-expose-total-reserved-memory.patch
-powerpc-implement-arch_reserved_kernel_pages.patch
-
+@@ -812,10 +806,6 @@ void * __init __alloc_bootmem_node_high(
+ 
+ }
+ 
+-#ifndef ARCH_LOW_ADDRESS_LIMIT
+-#define ARCH_LOW_ADDRESS_LIMIT	0xffffffffUL
+-#endif
