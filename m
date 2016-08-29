@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memblock-expose-total-reserved-memory.patch added to -mm
- tree
-Date: Mon, 29 Aug 2016 16:07:49 -0700
-Message-ID: <57c4c045.mlVYFnNyJl7gVLIH%akpm@linux-foundation.org>
+Subject: +
+ mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements.patch added to -mm tree
+Date: Mon, 29 Aug 2016 16:09:40 -0700
+Message-ID: <57c4c0b4.mE7IDp43x3tMp4a8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39666 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751223AbcH2XH5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 19:07:57 -0400
+        with ESMTP id S1754167AbcH2XJu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 19:09:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srikar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dave.hansen@intel.com, hbathini@linux.vnet.ibm.com, mahesh@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@kernel.org, mpe@ellerman.id.au, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: zijun_hu@htc.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock.c: expose total reserved memory
+     Subject: mm/nobootmem.c: remove duplicate macro ARCH_LOW_ADDRESS_LIMIT statements
 has been added to the -mm tree.  Its filename is
-     mm-memblock-expose-total-reserved-memory.patch
+     mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-expose-total-reserved-memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-expose-total-reserved-memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,64 +39,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Subject: mm/memblock.c: expose total reserved memory
+From: zijun_hu <zijun_hu@htc.com>
+Subject: mm/nobootmem.c: remove duplicate macro ARCH_LOW_ADDRESS_LIMIT statements
 
-The total reserved memory in a system is accounted but not available for
-use use outside mm/memblock.c.  By exposing the total reserved memory,
-systems can better calculate the size of large hashes.
+Fix the following bugs:
 
-Link: http://lkml.kernel.org/r/1472476010-4709-3-git-send-email-srikar@linux.vnet.ibm.com
-Signed-off-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Suggested-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
-Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+ - the same ARCH_LOW_ADDRESS_LIMIT statements are duplicated between
+   header and relevant source
+
+ - don't ensure ARCH_LOW_ADDRESS_LIMIT perhaps defined by ARCH in
+   asm/processor.h is preferred over default in linux/bootmem.h
+   completely since the former header isn't included by the latter
+
+Link: http://lkml.kernel.org/r/e046aeaa-e160-6d9e-dc1b-e084c2fd999f@zoho.com
+Signed-off-by: zijun_hu <zijun_hu@htc.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    1 +
- mm/memblock.c            |    5 +++++
- 2 files changed, 6 insertions(+)
+ include/linux/bootmem.h |    9 +++++----
+ mm/nobootmem.c          |   10 +++++-----
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/memblock.h~mm-memblock-expose-total-reserved-memory include/linux/memblock.h
---- a/include/linux/memblock.h~mm-memblock-expose-total-reserved-memory
-+++ a/include/linux/memblock.h
-@@ -328,6 +328,7 @@ phys_addr_t memblock_alloc_base(phys_add
- phys_addr_t __memblock_alloc_base(phys_addr_t size, phys_addr_t align,
- 				  phys_addr_t max_addr);
- phys_addr_t memblock_phys_mem_size(void);
-+phys_addr_t memblock_reserved_size(void);
- phys_addr_t memblock_mem_size(unsigned long limit_pfn);
- phys_addr_t memblock_start_of_DRAM(void);
- phys_addr_t memblock_end_of_DRAM(void);
-diff -puN mm/memblock.c~mm-memblock-expose-total-reserved-memory mm/memblock.c
---- a/mm/memblock.c~mm-memblock-expose-total-reserved-memory
-+++ a/mm/memblock.c
-@@ -1438,6 +1438,11 @@ phys_addr_t __init_memblock memblock_phy
- 	return memblock.memory.total_size;
+diff -puN include/linux/bootmem.h~mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements
++++ a/include/linux/bootmem.h
+@@ -7,6 +7,7 @@
+ #include <linux/mmzone.h>
+ #include <linux/mm_types.h>
+ #include <asm/dma.h>
++#include <asm/processor.h>
+ 
+ /*
+  *  simple boot-time physical memory area allocator.
+@@ -119,6 +120,10 @@ extern void *__alloc_bootmem_low_node(pg
+ #define BOOTMEM_LOW_LIMIT __pa(MAX_DMA_ADDRESS)
+ #endif
+ 
++#ifndef ARCH_LOW_ADDRESS_LIMIT
++#define ARCH_LOW_ADDRESS_LIMIT  0xffffffffUL
++#endif
++
+ #define alloc_bootmem(x) \
+ 	__alloc_bootmem(x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
+ #define alloc_bootmem_align(x, align) \
+@@ -180,10 +185,6 @@ static inline void * __init memblock_vir
+ 						    NUMA_NO_NODE);
  }
  
-+phys_addr_t __init_memblock memblock_reserved_size(void)
-+{
-+	return memblock.reserved.total_size;
-+}
-+
- phys_addr_t __init memblock_mem_size(unsigned long limit_pfn)
+-#ifndef ARCH_LOW_ADDRESS_LIMIT
+-#define ARCH_LOW_ADDRESS_LIMIT  0xffffffffUL
+-#endif
+-
+ static inline void * __init memblock_virt_alloc_low(
+ 					phys_addr_t size, phys_addr_t align)
  {
- 	unsigned long pages = 0;
+diff -puN mm/nobootmem.c~mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements
++++ a/mm/nobootmem.c
+@@ -11,18 +11,21 @@
+ #include <linux/init.h>
+ #include <linux/pfn.h>
+ #include <linux/slab.h>
+-#include <linux/bootmem.h>
+ #include <linux/export.h>
+ #include <linux/kmemleak.h>
+ #include <linux/range.h>
+ #include <linux/memblock.h>
++#include <linux/bootmem.h>
+ 
+ #include <asm/bug.h>
+ #include <asm/io.h>
+-#include <asm/processor.h>
+ 
+ #include "internal.h"
+ 
++#ifndef CONFIG_HAVE_MEMBLOCK
++#error CONFIG_HAVE_MEMBLOCK not defined
++#endif
++
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ struct pglist_data __refdata contig_page_data;
+ EXPORT_SYMBOL(contig_page_data);
+@@ -395,9 +398,6 @@ void * __init __alloc_bootmem_node_high(
+ 	return __alloc_bootmem_node(pgdat, size, align, goal);
+ }
+ 
+-#ifndef ARCH_LOW_ADDRESS_LIMIT
+-#define ARCH_LOW_ADDRESS_LIMIT	0xffffffffUL
+-#endif
+ 
+ /**
+  * __alloc_bootmem_low - allocate low boot memory
 _
 
-Patches currently in -mm which might be from srikar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from zijun_hu@htc.com are
 
-mm-page_alloc-replace-set_dma_reserve-to-set_memory_reserve.patch
-fadump-register-the-memory-reserved-by-fadump.patch
-mm-introduce-arch_reserved_kernel_pages.patch
-mm-memblock-expose-total-reserved-memory.patch
-powerpc-implement-arch_reserved_kernel_pages.patch
+mm-vmalloc-fix-align-value-calculation-error.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix-fix.patch
+mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements.patch
 
