@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + nmi_backtrace-add-more-trigger__cpu_backtrace-methods.patch
+Subject: + nmi_backtrace-generate-one-line-reports-for-idle-cpus.patch
  added to -mm tree
-Date: Mon, 29 Aug 2016 16:35:11 -0700
-Message-ID: <57c4c6af.Zu2m38s37/cUWjG6%akpm@linux-foundation.org>
+Date: Mon, 29 Aug 2016 16:35:18 -0700
+Message-ID: <57c4c6b6.mb46r30Iwsg9rPro%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40255 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40290 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755915AbcH2XfT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 19:35:19 -0400
+        with ESMTP id S1756201AbcH2XfV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 19:35:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cmetcalf@mellanox.com, atomlin@redhat.com, daniel.thompson@linaro.org, davem@davemloft.net, linux@arm.linux.org.uk, mingo@elte.hu, pmladek@suse.com, ralf@linux-mips.org, rjw@rjwysocki.net, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: cmetcalf@mellanox.com, atomlin@redhat.com, daniel.thompson@linaro.org, linux@arm.linux.org.uk, mingo@elte.hu, peterz@infradead.org, pmladek@suse.com, rjw@rjwysocki.net, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nmi_backtrace: add more trigger_*_cpu_backtrace() methods
+     Subject: nmi_backtrace: generate one-line reports for idle cpus
 has been added to the -mm tree.  Its filename is
-     nmi_backtrace-add-more-trigger__cpu_backtrace-methods.patch
+     nmi_backtrace-generate-one-line-reports-for-idle-cpus.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nmi_backtrace-add-more-trigger__cpu_backtrace-methods.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nmi_backtrace-generate-one-line-reports-for-idle-cpus.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nmi_backtrace-add-more-trigger__cpu_backtrace-methods.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nmi_backtrace-generate-one-line-reports-for-idle-cpus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,360 +40,771 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Chris Metcalf <cmetcalf@mellanox.com>
-Subject: nmi_backtrace: add more trigger_*_cpu_backtrace() methods
+Subject: nmi_backtrace: generate one-line reports for idle cpus
 
-Patch series "improvements to the nmi_backtrace code" v9.
+When doing an nmi backtrace of many cores, most of which are idle,
+the output is a little overwhelming and very uninformative.  Suppress
+messages for cpus that are idling when they are interrupted and just
+emit one line, "NMI backtrace for N skipped: idling at pc 0xNNN".
 
-This patch series modifies the trigger_xxx_backtrace() NMI-based remote
-backtracing code to make it more flexible, and makes a few small
-improvements along the way.
+We do this by grouping all the cpuidle code together into a new
+.cpuidle.text section, and then checking the address of the
+interrupted PC to see if it lies within that section.
 
-The motivation comes from the task isolation code, where there are
-scenarios where we want to be able to diagnose a case where some cpu is
-about to interrupt a task-isolated cpu.  It can be helpful to see both
-where the interrupting cpu is, and also an approximation of where the cpu
-that is being interrupted is.  The nmi_backtrace framework allows us to
-discover the stack of the interrupted cpu.
+This commit suitably tags x86 and tile idle routines, and only
+adds in the minimal framework for other architectures.
 
-I've tested that the change works as desired on tile, and build-tested
-x86, arm, mips, and sparc64.  For x86 I confirmed that the generic
-cpuidle stuff as well as the architecture-specific routines are in the
-new cpuidle section.  For arm, mips, and sparc I just build-tested it
-and made sure the generic cpuidle routines were in the new cpuidle
-section, but I didn't attempt to figure out which the
-platform-specific idle routines might be.  That might be more usefully
-done by someone with platform experience in follow-up patches.
-
-
-
-This patch (of 4):
-
-Currently you can only request a backtrace of either all cpus, or all cpus
-but yourself.  It can also be helpful to request a remote backtrace of a
-single cpu, and since we want that, the logical extension is to support a
-cpumask as the underlying primitive.
-
-This change modifies the existing lib/nmi_backtrace.c code to take a
-cpumask as its basic primitive, and modifies the linux/nmi.h code to use
-the new "cpumask" method instead.
-
-The existing clients of nmi_backtrace (arm and x86) are converted
-to using the new cpumask approach in this change.
-
-The other users of the backtracing API (sparc64 and mips) are converted to
-use the cpumask approach rather than the all/allbutself approach.  The
-mips code ignored the "include_self" boolean but with this change it will
-now also dump a local backtrace if requested.
-
-Link: http://lkml.kernel.org/r/1472487169-14923-2-git-send-email-cmetcalf@mellanox.com
+Link: http://lkml.kernel.org/r/1472487169-14923-5-git-send-email-cmetcalf@mellanox.com
 Signed-off-by: Chris Metcalf <cmetcalf@mellanox.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Tested-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Tested-by: Daniel Thompson <daniel.thompson@linaro.org> [arm]
-Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Russell King <linux@arm.linux.org.uk>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/irq.h      |    5 ++--
- arch/arm/kernel/smp.c           |    4 +--
- arch/mips/include/asm/irq.h     |    5 ++--
- arch/mips/kernel/process.c      |   11 ++++++++--
- arch/sparc/include/asm/irq_64.h |    5 ++--
- arch/sparc/kernel/process_64.c  |   10 ++++-----
- arch/x86/include/asm/irq.h      |    5 ++--
- arch/x86/kernel/apic/hw_nmi.c   |   18 ++++++++---------
- include/linux/nmi.h             |   31 +++++++++++++++++++++++++-----
- lib/nmi_backtrace.c             |   17 ++++++++--------
- 10 files changed, 72 insertions(+), 39 deletions(-)
+ arch/alpha/kernel/vmlinux.lds.S      |    1 +
+ arch/arc/kernel/vmlinux.lds.S        |    1 +
+ arch/arm/kernel/vmlinux-xip.lds.S    |    1 +
+ arch/arm/kernel/vmlinux.lds.S        |    1 +
+ arch/arm64/kernel/vmlinux.lds.S      |    1 +
+ arch/avr32/kernel/vmlinux.lds.S      |    1 +
+ arch/blackfin/kernel/vmlinux.lds.S   |    1 +
+ arch/c6x/kernel/vmlinux.lds.S        |    1 +
+ arch/cris/kernel/vmlinux.lds.S       |    1 +
+ arch/frv/kernel/vmlinux.lds.S        |    1 +
+ arch/h8300/kernel/vmlinux.lds.S      |    1 +
+ arch/hexagon/kernel/vmlinux.lds.S    |    1 +
+ arch/ia64/kernel/vmlinux.lds.S       |    1 +
+ arch/m32r/kernel/vmlinux.lds.S       |    1 +
+ arch/m68k/kernel/vmlinux-nommu.lds   |    1 +
+ arch/m68k/kernel/vmlinux-std.lds     |    1 +
+ arch/m68k/kernel/vmlinux-sun3.lds    |    1 +
+ arch/metag/kernel/vmlinux.lds.S      |    1 +
+ arch/microblaze/kernel/vmlinux.lds.S |    1 +
+ arch/mips/kernel/vmlinux.lds.S       |    1 +
+ arch/mn10300/kernel/vmlinux.lds.S    |    1 +
+ arch/nios2/kernel/vmlinux.lds.S      |    1 +
+ arch/openrisc/kernel/vmlinux.lds.S   |    1 +
+ arch/parisc/kernel/vmlinux.lds.S     |    1 +
+ arch/powerpc/kernel/vmlinux.lds.S    |    1 +
+ arch/s390/kernel/vmlinux.lds.S       |    1 +
+ arch/score/kernel/vmlinux.lds.S      |    1 +
+ arch/sh/kernel/vmlinux.lds.S         |    1 +
+ arch/sparc/kernel/vmlinux.lds.S      |    1 +
+ arch/tile/kernel/entry.S             |    2 +-
+ arch/tile/kernel/vmlinux.lds.S       |    1 +
+ arch/um/kernel/dyn.lds.S             |    1 +
+ arch/um/kernel/uml.lds.S             |    1 +
+ arch/unicore32/kernel/vmlinux.lds.S  |    1 +
+ arch/x86/include/asm/irqflags.h      |   12 ++++++++----
+ arch/x86/kernel/acpi/cstate.c        |    2 +-
+ arch/x86/kernel/process.c            |    4 ++--
+ arch/x86/kernel/vmlinux.lds.S        |    1 +
+ arch/xtensa/kernel/vmlinux.lds.S     |    3 +++
+ drivers/acpi/processor_idle.c        |    5 +++--
+ drivers/cpuidle/driver.c             |    5 +++--
+ drivers/idle/intel_idle.c            |    4 ++--
+ include/asm-generic/vmlinux.lds.h    |    6 ++++++
+ include/linux/cpu.h                  |    5 +++++
+ kernel/sched/idle.c                  |   13 +++++++++++--
+ lib/nmi_backtrace.c                  |   16 +++++++++++-----
+ scripts/mod/modpost.c                |    2 +-
+ scripts/recordmcount.c               |    1 +
+ scripts/recordmcount.pl              |    1 +
+ 49 files changed, 93 insertions(+), 22 deletions(-)
 
-diff -puN arch/arm/include/asm/irq.h~nmi_backtrace-add-more-trigger__cpu_backtrace-methods arch/arm/include/asm/irq.h
---- a/arch/arm/include/asm/irq.h~nmi_backtrace-add-more-trigger__cpu_backtrace-methods
-+++ a/arch/arm/include/asm/irq.h
-@@ -36,8 +36,9 @@ extern void set_handle_irq(void (*handle
+diff -puN arch/alpha/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/alpha/kernel/vmlinux.lds.S
+--- a/arch/alpha/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/alpha/kernel/vmlinux.lds.S
+@@ -22,6 +22,7 @@ SECTIONS
+ 		HEAD_TEXT
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		*(.fixup)
+ 		*(.gnu.warning)
+diff -puN arch/arc/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/arc/kernel/vmlinux.lds.S
+--- a/arch/arc/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/arc/kernel/vmlinux.lds.S
+@@ -97,6 +97,7 @@ SECTIONS
+ 		_text = .;
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		KPROBES_TEXT
+ 		*(.fixup)
+diff -puN arch/arm/kernel/vmlinux-xip.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/arm/kernel/vmlinux-xip.lds.S
+--- a/arch/arm/kernel/vmlinux-xip.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/arm/kernel/vmlinux-xip.lds.S
+@@ -98,6 +98,7 @@ SECTIONS
+ 			IRQENTRY_TEXT
+ 			TEXT_TEXT
+ 			SCHED_TEXT
++			CPUIDLE_TEXT
+ 			LOCK_TEXT
+ 			KPROBES_TEXT
+ 			*(.gnu.warning)
+diff -puN arch/arm/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/arm/kernel/vmlinux.lds.S
+--- a/arch/arm/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/arm/kernel/vmlinux.lds.S
+@@ -111,6 +111,7 @@ SECTIONS
+ 			SOFTIRQENTRY_TEXT
+ 			TEXT_TEXT
+ 			SCHED_TEXT
++			CPUIDLE_TEXT
+ 			LOCK_TEXT
+ 			HYPERVISOR_TEXT
+ 			KPROBES_TEXT
+diff -puN arch/arm64/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/arm64/kernel/vmlinux.lds.S
+--- a/arch/arm64/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/arm64/kernel/vmlinux.lds.S
+@@ -122,6 +122,7 @@ SECTIONS
+ 			ENTRY_TEXT
+ 			TEXT_TEXT
+ 			SCHED_TEXT
++			CPUIDLE_TEXT
+ 			LOCK_TEXT
+ 			KPROBES_TEXT
+ 			HYPERVISOR_TEXT
+diff -puN arch/avr32/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/avr32/kernel/vmlinux.lds.S
+--- a/arch/avr32/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/avr32/kernel/vmlinux.lds.S
+@@ -52,6 +52,7 @@ SECTIONS
+ 		KPROBES_TEXT
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		*(.fixup)
+ 		*(.gnu.warning)
+diff -puN arch/blackfin/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/blackfin/kernel/vmlinux.lds.S
+--- a/arch/blackfin/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/blackfin/kernel/vmlinux.lds.S
+@@ -33,6 +33,7 @@ SECTIONS
+ #ifndef CONFIG_SCHEDULE_L1
+ 		SCHED_TEXT
  #endif
- 
- #ifdef CONFIG_SMP
--extern void arch_trigger_all_cpu_backtrace(bool);
--#define arch_trigger_all_cpu_backtrace(x) arch_trigger_all_cpu_backtrace(x)
-+extern void arch_trigger_cpumask_backtrace(const cpumask_t *mask,
-+					   bool exclude_self);
-+#define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
- #endif
- 
- static inline int nr_legacy_irqs(void)
-diff -puN arch/arm/kernel/smp.c~nmi_backtrace-add-more-trigger__cpu_backtrace-methods arch/arm/kernel/smp.c
---- a/arch/arm/kernel/smp.c~nmi_backtrace-add-more-trigger__cpu_backtrace-methods
-+++ a/arch/arm/kernel/smp.c
-@@ -760,7 +760,7 @@ static void raise_nmi(cpumask_t *mask)
- 	smp_cross_call(mask, IPI_CPU_BACKTRACE);
- }
- 
--void arch_trigger_all_cpu_backtrace(bool include_self)
-+void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
- {
--	nmi_trigger_all_cpu_backtrace(include_self, raise_nmi);
-+	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_nmi);
- }
-diff -puN arch/mips/include/asm/irq.h~nmi_backtrace-add-more-trigger__cpu_backtrace-methods arch/mips/include/asm/irq.h
---- a/arch/mips/include/asm/irq.h~nmi_backtrace-add-more-trigger__cpu_backtrace-methods
-+++ a/arch/mips/include/asm/irq.h
-@@ -51,7 +51,8 @@ extern int cp0_fdc_irq;
- 
- extern int get_c0_fdc_int(void);
- 
--void arch_trigger_all_cpu_backtrace(bool);
--#define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
-+void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
-+				    bool exclude_self);
-+#define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
- 
- #endif /* _ASM_IRQ_H */
-diff -puN arch/mips/kernel/process.c~nmi_backtrace-add-more-trigger__cpu_backtrace-methods arch/mips/kernel/process.c
---- a/arch/mips/kernel/process.c~nmi_backtrace-add-more-trigger__cpu_backtrace-methods
-+++ a/arch/mips/kernel/process.c
-@@ -569,9 +569,16 @@ static void arch_dump_stack(void *info)
- 	dump_stack();
- }
- 
--void arch_trigger_all_cpu_backtrace(bool include_self)
-+void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
- {
--	smp_call_function(arch_dump_stack, NULL, 1);
-+	long this_cpu = get_cpu();
-+
-+	if (cpumask_test_cpu(this_cpu, mask) && !exclude_self)
-+		dump_stack();
-+
-+	smp_call_function_many(mask, arch_dump_stack, NULL, 1);
-+
-+	put_cpu();
- }
- 
- int mips_get_process_fp_mode(struct task_struct *task)
-diff -puN arch/sparc/include/asm/irq_64.h~nmi_backtrace-add-more-trigger__cpu_backtrace-methods arch/sparc/include/asm/irq_64.h
---- a/arch/sparc/include/asm/irq_64.h~nmi_backtrace-add-more-trigger__cpu_backtrace-methods
-+++ a/arch/sparc/include/asm/irq_64.h
-@@ -86,8 +86,9 @@ static inline unsigned long get_softint(
- 	return retval;
- }
- 
--void arch_trigger_all_cpu_backtrace(bool);
--#define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
-+void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
-+				    bool exclude_self);
-+#define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
- 
- extern void *hardirq_stack[NR_CPUS];
- extern void *softirq_stack[NR_CPUS];
-diff -puN arch/sparc/kernel/process_64.c~nmi_backtrace-add-more-trigger__cpu_backtrace-methods arch/sparc/kernel/process_64.c
---- a/arch/sparc/kernel/process_64.c~nmi_backtrace-add-more-trigger__cpu_backtrace-methods
-+++ a/arch/sparc/kernel/process_64.c
-@@ -239,7 +239,7 @@ static void __global_reg_poll(struct glo
- 	}
- }
- 
--void arch_trigger_all_cpu_backtrace(bool include_self)
-+void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
- {
- 	struct thread_info *tp = current_thread_info();
- 	struct pt_regs *regs = get_irq_regs();
-@@ -255,15 +255,15 @@ void arch_trigger_all_cpu_backtrace(bool
- 
- 	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
- 
--	if (include_self)
-+	if (cpumask_test_cpu(this_cpu, mask) && !exclude_self)
- 		__global_reg_self(tp, regs, this_cpu);
- 
- 	smp_fetch_global_regs();
- 
--	for_each_online_cpu(cpu) {
-+	for_each_cpu(cpu, mask) {
- 		struct global_reg_snapshot *gp;
- 
--		if (!include_self && cpu == this_cpu)
-+		if (exclude_self && cpu == this_cpu)
- 			continue;
- 
- 		gp = &global_cpu_snapshot[cpu].reg;
-@@ -300,7 +300,7 @@ void arch_trigger_all_cpu_backtrace(bool
- 
- static void sysrq_handle_globreg(int key)
- {
--	arch_trigger_all_cpu_backtrace(true);
-+	trigger_all_cpu_backtrace();
- }
- 
- static struct sysrq_key_op sparc_globalreg_op = {
-diff -puN arch/x86/include/asm/irq.h~nmi_backtrace-add-more-trigger__cpu_backtrace-methods arch/x86/include/asm/irq.h
---- a/arch/x86/include/asm/irq.h~nmi_backtrace-add-more-trigger__cpu_backtrace-methods
-+++ a/arch/x86/include/asm/irq.h
-@@ -50,8 +50,9 @@ extern int vector_used_by_percpu_irq(uns
- extern void init_ISA_irqs(void);
- 
- #ifdef CONFIG_X86_LOCAL_APIC
--void arch_trigger_all_cpu_backtrace(bool);
--#define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
-+void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
-+				    bool exclude_self);
-+#define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
- #endif
- 
- #endif /* _ASM_X86_IRQ_H */
-diff -puN arch/x86/kernel/apic/hw_nmi.c~nmi_backtrace-add-more-trigger__cpu_backtrace-methods arch/x86/kernel/apic/hw_nmi.c
---- a/arch/x86/kernel/apic/hw_nmi.c~nmi_backtrace-add-more-trigger__cpu_backtrace-methods
-+++ a/arch/x86/kernel/apic/hw_nmi.c
-@@ -26,32 +26,32 @@ u64 hw_nmi_get_sample_period(int watchdo
- }
- #endif
- 
--#ifdef arch_trigger_all_cpu_backtrace
-+#ifdef arch_trigger_cpumask_backtrace
- static void nmi_raise_cpu_backtrace(cpumask_t *mask)
- {
- 	apic->send_IPI_mask(mask, NMI_VECTOR);
- }
- 
--void arch_trigger_all_cpu_backtrace(bool include_self)
-+void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
- {
--	nmi_trigger_all_cpu_backtrace(include_self, nmi_raise_cpu_backtrace);
-+	nmi_trigger_cpumask_backtrace(mask, exclude_self,
-+				      nmi_raise_cpu_backtrace);
- }
- 
--static int
--arch_trigger_all_cpu_backtrace_handler(unsigned int cmd, struct pt_regs *regs)
-+static int nmi_cpu_backtrace_handler(unsigned int cmd, struct pt_regs *regs)
- {
- 	if (nmi_cpu_backtrace(regs))
- 		return NMI_HANDLED;
- 
- 	return NMI_DONE;
- }
--NOKPROBE_SYMBOL(arch_trigger_all_cpu_backtrace_handler);
-+NOKPROBE_SYMBOL(nmi_cpu_backtrace_handler);
- 
--static int __init register_trigger_all_cpu_backtrace(void)
-+static int __init register_nmi_cpu_backtrace_handler(void)
- {
--	register_nmi_handler(NMI_LOCAL, arch_trigger_all_cpu_backtrace_handler,
-+	register_nmi_handler(NMI_LOCAL, nmi_cpu_backtrace_handler,
- 				0, "arch_bt");
- 	return 0;
- }
--early_initcall(register_trigger_all_cpu_backtrace);
-+early_initcall(register_nmi_cpu_backtrace_handler);
- #endif
-diff -puN include/linux/nmi.h~nmi_backtrace-add-more-trigger__cpu_backtrace-methods include/linux/nmi.h
---- a/include/linux/nmi.h~nmi_backtrace-add-more-trigger__cpu_backtrace-methods
-+++ a/include/linux/nmi.h
-@@ -35,21 +35,34 @@ static inline void hardlockup_detector_d
-  * base function. Return whether such support was available,
-  * to allow calling code to fall back to some other mechanism:
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+diff -puN arch/c6x/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/c6x/kernel/vmlinux.lds.S
+--- a/arch/c6x/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/c6x/kernel/vmlinux.lds.S
+@@ -70,6 +70,7 @@ SECTIONS
+ 		_stext = .;
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+diff -puN arch/cris/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/cris/kernel/vmlinux.lds.S
+--- a/arch/cris/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/cris/kernel/vmlinux.lds.S
+@@ -43,6 +43,7 @@ SECTIONS
+ 		HEAD_TEXT
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		*(.fixup)
+ 		*(.text.__*)
+diff -puN arch/frv/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/frv/kernel/vmlinux.lds.S
+--- a/arch/frv/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/frv/kernel/vmlinux.lds.S
+@@ -63,6 +63,7 @@ SECTIONS
+ 	*(.text..tlbmiss)
+ 	TEXT_TEXT
+ 	SCHED_TEXT
++	CPUIDLE_TEXT
+ 	LOCK_TEXT
+ #ifdef CONFIG_DEBUG_INFO
+ 	INIT_TEXT
+diff -puN arch/h8300/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/h8300/kernel/vmlinux.lds.S
+--- a/arch/h8300/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/h8300/kernel/vmlinux.lds.S
+@@ -29,6 +29,7 @@ SECTIONS
+ 	_stext = . ;
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ #if defined(CONFIG_ROMKERNEL)
+ 		*(.int_redirect)
+diff -puN arch/hexagon/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/hexagon/kernel/vmlinux.lds.S
+--- a/arch/hexagon/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/hexagon/kernel/vmlinux.lds.S
+@@ -50,6 +50,7 @@ SECTIONS
+ 		_text = .;
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		KPROBES_TEXT
+ 		*(.fixup)
+diff -puN arch/ia64/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/ia64/kernel/vmlinux.lds.S
+--- a/arch/ia64/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/ia64/kernel/vmlinux.lds.S
+@@ -46,6 +46,7 @@ SECTIONS {
+ 		__end_ivt_text = .;
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		KPROBES_TEXT
+ 		*(.gnu.linkonce.t*)
+diff -puN arch/m32r/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/m32r/kernel/vmlinux.lds.S
+--- a/arch/m32r/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/m32r/kernel/vmlinux.lds.S
+@@ -31,6 +31,7 @@ SECTIONS
+ 	HEAD_TEXT
+ 	TEXT_TEXT
+ 	SCHED_TEXT
++	CPUIDLE_TEXT
+ 	LOCK_TEXT
+ 	*(.fixup)
+ 	*(.gnu.warning)
+diff -puN arch/m68k/kernel/vmlinux-nommu.lds~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/m68k/kernel/vmlinux-nommu.lds
+--- a/arch/m68k/kernel/vmlinux-nommu.lds~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/m68k/kernel/vmlinux-nommu.lds
+@@ -45,6 +45,7 @@ SECTIONS {
+ 		HEAD_TEXT
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		*(.fixup)
+ 		. = ALIGN(16);
+diff -puN arch/m68k/kernel/vmlinux-std.lds~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/m68k/kernel/vmlinux-std.lds
+--- a/arch/m68k/kernel/vmlinux-std.lds~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/m68k/kernel/vmlinux-std.lds
+@@ -16,6 +16,7 @@ SECTIONS
+ 	HEAD_TEXT
+ 	TEXT_TEXT
+ 	SCHED_TEXT
++	CPUIDLE_TEXT
+ 	LOCK_TEXT
+ 	*(.fixup)
+ 	*(.gnu.warning)
+diff -puN arch/m68k/kernel/vmlinux-sun3.lds~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/m68k/kernel/vmlinux-sun3.lds
+--- a/arch/m68k/kernel/vmlinux-sun3.lds~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/m68k/kernel/vmlinux-sun3.lds
+@@ -16,6 +16,7 @@ SECTIONS
+ 	HEAD_TEXT
+ 	TEXT_TEXT
+ 	SCHED_TEXT
++	CPUIDLE_TEXT
+ 	LOCK_TEXT
+ 	*(.fixup)
+ 	*(.gnu.warning)
+diff -puN arch/metag/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/metag/kernel/vmlinux.lds.S
+--- a/arch/metag/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/metag/kernel/vmlinux.lds.S
+@@ -21,6 +21,7 @@ SECTIONS
+   .text : {
+ 	TEXT_TEXT
+ 	SCHED_TEXT
++	CPUIDLE_TEXT
+ 	LOCK_TEXT
+ 	KPROBES_TEXT
+ 	IRQENTRY_TEXT
+diff -puN arch/microblaze/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/microblaze/kernel/vmlinux.lds.S
+--- a/arch/microblaze/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/microblaze/kernel/vmlinux.lds.S
+@@ -33,6 +33,7 @@ SECTIONS {
+ 		EXIT_TEXT
+ 		EXIT_CALL
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+diff -puN arch/mips/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/mips/kernel/vmlinux.lds.S
+--- a/arch/mips/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/mips/kernel/vmlinux.lds.S
+@@ -55,6 +55,7 @@ SECTIONS
+ 	.text : {
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+diff -puN arch/mn10300/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/mn10300/kernel/vmlinux.lds.S
+--- a/arch/mn10300/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/mn10300/kernel/vmlinux.lds.S
+@@ -30,6 +30,7 @@ SECTIONS
+ 	HEAD_TEXT
+ 	TEXT_TEXT
+ 	SCHED_TEXT
++	CPUIDLE_TEXT
+ 	LOCK_TEXT
+ 	KPROBES_TEXT
+ 	*(.fixup)
+diff -puN arch/nios2/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/nios2/kernel/vmlinux.lds.S
+--- a/arch/nios2/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/nios2/kernel/vmlinux.lds.S
+@@ -37,6 +37,7 @@ SECTIONS
+ 	.text : {
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+diff -puN arch/openrisc/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/openrisc/kernel/vmlinux.lds.S
+--- a/arch/openrisc/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/openrisc/kernel/vmlinux.lds.S
+@@ -47,6 +47,7 @@ SECTIONS
+           _stext = .;
+ 	  TEXT_TEXT
+ 	  SCHED_TEXT
++	  CPUIDLE_TEXT
+ 	  LOCK_TEXT
+ 	  KPROBES_TEXT
+ 	  IRQENTRY_TEXT
+diff -puN arch/parisc/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/parisc/kernel/vmlinux.lds.S
+--- a/arch/parisc/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/parisc/kernel/vmlinux.lds.S
+@@ -69,6 +69,7 @@ SECTIONS
+ 	.text ALIGN(PAGE_SIZE) : {
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+diff -puN arch/powerpc/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/powerpc/kernel/vmlinux.lds.S
+--- a/arch/powerpc/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/powerpc/kernel/vmlinux.lds.S
+@@ -52,6 +52,7 @@ SECTIONS
+ 		/* careful! __ftr_alt_* sections need to be close to .text */
+ 		*(.text .fixup __ftr_alt_* .ref.text)
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+diff -puN arch/s390/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/s390/kernel/vmlinux.lds.S
+--- a/arch/s390/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/s390/kernel/vmlinux.lds.S
+@@ -35,6 +35,7 @@ SECTIONS
+ 		HEAD_TEXT
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+diff -puN arch/score/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/score/kernel/vmlinux.lds.S
+--- a/arch/score/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/score/kernel/vmlinux.lds.S
+@@ -40,6 +40,7 @@ SECTIONS
+ 		_text = .;	/* Text and read-only data */
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		KPROBES_TEXT
+ 		*(.text.*)
+diff -puN arch/sh/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/sh/kernel/vmlinux.lds.S
+--- a/arch/sh/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/sh/kernel/vmlinux.lds.S
+@@ -36,6 +36,7 @@ SECTIONS
+ 		TEXT_TEXT
+ 		EXTRA_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+diff -puN arch/sparc/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/sparc/kernel/vmlinux.lds.S
+--- a/arch/sparc/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/sparc/kernel/vmlinux.lds.S
+@@ -49,6 +49,7 @@ SECTIONS
+ 		HEAD_TEXT
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+diff -puN arch/tile/kernel/entry.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/tile/kernel/entry.S
+--- a/arch/tile/kernel/entry.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/tile/kernel/entry.S
+@@ -50,7 +50,7 @@ STD_ENTRY(smp_nap)
+  * When interrupted at _cpu_idle_nap, we bump the PC forward 8, and
+  * as a result return to the function that called _cpu_idle().
   */
--#ifdef arch_trigger_all_cpu_backtrace
-+#ifdef arch_trigger_cpumask_backtrace
- static inline bool trigger_all_cpu_backtrace(void)
- {
--	arch_trigger_all_cpu_backtrace(true);
--
-+	arch_trigger_cpumask_backtrace(cpu_online_mask, false);
- 	return true;
- }
+-STD_ENTRY(_cpu_idle)
++STD_ENTRY_SECTION(_cpu_idle, .cpuidle.text)
+ 	movei r1, 1
+ 	IRQ_ENABLE_LOAD(r2, r3)
+ 	mtspr INTERRUPT_CRITICAL_SECTION, r1
+diff -puN arch/tile/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/tile/kernel/vmlinux.lds.S
+--- a/arch/tile/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/tile/kernel/vmlinux.lds.S
+@@ -42,6 +42,7 @@ SECTIONS
+   .text : AT (ADDR(.text) - LOAD_OFFSET) {
+     HEAD_TEXT
+     SCHED_TEXT
++    CPUIDLE_TEXT
+     LOCK_TEXT
+     KPROBES_TEXT
+     IRQENTRY_TEXT
+diff -puN arch/um/kernel/dyn.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/um/kernel/dyn.lds.S
+--- a/arch/um/kernel/dyn.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/um/kernel/dyn.lds.S
+@@ -68,6 +68,7 @@ SECTIONS
+     _stext = .;
+     TEXT_TEXT
+     SCHED_TEXT
++    CPUIDLE_TEXT
+     LOCK_TEXT
+     *(.fixup)
+     *(.stub .text.* .gnu.linkonce.t.*)
+diff -puN arch/um/kernel/uml.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/um/kernel/uml.lds.S
+--- a/arch/um/kernel/uml.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/um/kernel/uml.lds.S
+@@ -28,6 +28,7 @@ SECTIONS
+     _stext = .;
+     TEXT_TEXT
+     SCHED_TEXT
++    CPUIDLE_TEXT
+     LOCK_TEXT
+     *(.fixup)
+     /* .gnu.warning sections are handled specially by elf32.em.  */
+diff -puN arch/unicore32/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/unicore32/kernel/vmlinux.lds.S
+--- a/arch/unicore32/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/unicore32/kernel/vmlinux.lds.S
+@@ -37,6 +37,7 @@ SECTIONS
+ 	.text : {		/* Real text segment */
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 
+ 		*(.fixup)
+diff -puN arch/x86/include/asm/irqflags.h~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/x86/include/asm/irqflags.h
+--- a/arch/x86/include/asm/irqflags.h~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/x86/include/asm/irqflags.h
+@@ -4,6 +4,10 @@
+ #include <asm/processor-flags.h>
+ 
+ #ifndef __ASSEMBLY__
 +
- static inline bool trigger_allbutself_cpu_backtrace(void)
- {
--	arch_trigger_all_cpu_backtrace(false);
-+	arch_trigger_cpumask_backtrace(cpu_online_mask, true);
-+	return true;
-+}
++/* Provide __cpuidle; we can't safely include <linux/cpu.h> */
++#define __cpuidle __attribute__((__section__(".cpuidle.text")))
 +
-+static inline bool trigger_cpumask_backtrace(struct cpumask *mask)
-+{
-+	arch_trigger_cpumask_backtrace(mask, false);
-+	return true;
-+}
-+
-+static inline bool trigger_single_cpu_backtrace(int cpu)
-+{
-+	arch_trigger_cpumask_backtrace(cpumask_of(cpu), false);
- 	return true;
+ /*
+  * Interrupt control:
+  */
+@@ -44,12 +48,12 @@ static inline void native_irq_enable(voi
+ 	asm volatile("sti": : :"memory");
  }
  
- /* generic implementation */
--void nmi_trigger_all_cpu_backtrace(bool include_self,
-+void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
-+				   bool exclude_self,
- 				   void (*raise)(cpumask_t *mask));
- bool nmi_cpu_backtrace(struct pt_regs *regs);
- 
-@@ -62,6 +75,14 @@ static inline bool trigger_allbutself_cp
+-static inline void native_safe_halt(void)
++static inline __cpuidle void native_safe_halt(void)
  {
- 	return false;
+ 	asm volatile("sti; hlt": : :"memory");
  }
-+static inline bool trigger_cpumask_backtrace(struct cpumask *mask)
-+{
-+	return false;
-+}
-+static inline bool trigger_single_cpu_backtrace(int cpu)
-+{
-+	return false;
-+}
- #endif
  
- #ifdef CONFIG_LOCKUP_DETECTOR
-diff -puN lib/nmi_backtrace.c~nmi_backtrace-add-more-trigger__cpu_backtrace-methods lib/nmi_backtrace.c
---- a/lib/nmi_backtrace.c~nmi_backtrace-add-more-trigger__cpu_backtrace-methods
-+++ a/lib/nmi_backtrace.c
-@@ -17,20 +17,21 @@
- #include <linux/kprobes.h>
- #include <linux/nmi.h>
+-static inline void native_halt(void)
++static inline __cpuidle void native_halt(void)
+ {
+ 	asm volatile("hlt": : :"memory");
+ }
+@@ -86,7 +90,7 @@ static inline notrace void arch_local_ir
+  * Used in the idle loop; sti takes one instruction cycle
+  * to complete:
+  */
+-static inline void arch_safe_halt(void)
++static inline __cpuidle void arch_safe_halt(void)
+ {
+ 	native_safe_halt();
+ }
+@@ -95,7 +99,7 @@ static inline void arch_safe_halt(void)
+  * Used when interrupts are already enabled or to
+  * shutdown the processor:
+  */
+-static inline void halt(void)
++static inline __cpuidle void halt(void)
+ {
+ 	native_halt();
+ }
+diff -puN arch/x86/kernel/acpi/cstate.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/x86/kernel/acpi/cstate.c
+--- a/arch/x86/kernel/acpi/cstate.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/x86/kernel/acpi/cstate.c
+@@ -152,7 +152,7 @@ int acpi_processor_ffh_cstate_probe(unsi
+ }
+ EXPORT_SYMBOL_GPL(acpi_processor_ffh_cstate_probe);
  
--#ifdef arch_trigger_all_cpu_backtrace
-+#ifdef arch_trigger_cpumask_backtrace
- /* For reliability, we're prepared to waste bits here. */
- static DECLARE_BITMAP(backtrace_mask, NR_CPUS) __read_mostly;
- 
--/* "in progress" flag of arch_trigger_all_cpu_backtrace */
-+/* "in progress" flag of arch_trigger_cpumask_backtrace */
- static unsigned long backtrace_flag;
+-void acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cx)
++void __cpuidle acpi_processor_ffh_cstate_enter(struct acpi_processor_cx *cx)
+ {
+ 	unsigned int cpu = smp_processor_id();
+ 	struct cstate_entry *percpu_entry;
+diff -puN arch/x86/kernel/process.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/x86/kernel/process.c
+--- a/arch/x86/kernel/process.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/x86/kernel/process.c
+@@ -301,7 +301,7 @@ void arch_cpu_idle(void)
+ /*
+  * We use this if we don't have any better idle routine..
+  */
+-void default_idle(void)
++void __cpuidle default_idle(void)
+ {
+ 	trace_cpu_idle_rcuidle(1, smp_processor_id());
+ 	safe_halt();
+@@ -416,7 +416,7 @@ static int prefer_mwait_c1_over_halt(con
+  * with interrupts enabled and no flags, which is backwards compatible with the
+  * original MWAIT implementation.
+  */
+-static void mwait_idle(void)
++static __cpuidle void mwait_idle(void)
+ {
+ 	if (!current_set_polling_and_test()) {
+ 		trace_cpu_idle_rcuidle(1, smp_processor_id());
+diff -puN arch/x86/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/x86/kernel/vmlinux.lds.S
+--- a/arch/x86/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/x86/kernel/vmlinux.lds.S
+@@ -97,6 +97,7 @@ SECTIONS
+ 		_stext = .;
+ 		TEXT_TEXT
+ 		SCHED_TEXT
++		CPUIDLE_TEXT
+ 		LOCK_TEXT
+ 		KPROBES_TEXT
+ 		ENTRY_TEXT
+diff -puN arch/xtensa/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus arch/xtensa/kernel/vmlinux.lds.S
+--- a/arch/xtensa/kernel/vmlinux.lds.S~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/arch/xtensa/kernel/vmlinux.lds.S
+@@ -93,6 +93,9 @@ SECTIONS
+     VMLINUX_SYMBOL(__sched_text_start) = .;
+     *(.sched.literal .sched.text)
+     VMLINUX_SYMBOL(__sched_text_end) = .;
++    VMLINUX_SYMBOL(__cpuidle_text_start) = .;
++    *(.cpuidle.literal .cpuidle.text)
++    VMLINUX_SYMBOL(__cpuidle_text_end) = .;
+     VMLINUX_SYMBOL(__lock_text_start) = .;
+     *(.spinlock.literal .spinlock.text)
+     VMLINUX_SYMBOL(__lock_text_end) = .;
+diff -puN drivers/acpi/processor_idle.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/drivers/acpi/processor_idle.c
+@@ -31,6 +31,7 @@
+ #include <linux/sched.h>       /* need_resched() */
+ #include <linux/tick.h>
+ #include <linux/cpuidle.h>
++#include <linux/cpu.h>
+ #include <acpi/processor.h>
  
  /*
-- * When raise() is called it will be is passed a pointer to the
-+ * When raise() is called it will be passed a pointer to the
-  * backtrace_mask. Architectures that call nmi_cpu_backtrace()
-  * directly from their raise() functions may rely on the mask
-  * they are passed being updated as a side effect of this call.
+@@ -115,7 +116,7 @@ static const struct dmi_system_id proces
+  * Callers should disable interrupts before the call and enable
+  * interrupts after return.
   */
--void nmi_trigger_all_cpu_backtrace(bool include_self,
-+void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
-+				   bool exclude_self,
- 				   void (*raise)(cpumask_t *mask))
+-static void acpi_safe_halt(void)
++static void __cpuidle acpi_safe_halt(void)
  {
- 	int i, this_cpu = get_cpu();
-@@ -44,13 +45,13 @@ void nmi_trigger_all_cpu_backtrace(bool
- 		return;
- 	}
+ 	if (!tif_need_resched()) {
+ 		safe_halt();
+@@ -645,7 +646,7 @@ static int acpi_idle_bm_check(void)
+  *
+  * Caller disables interrupt before call and enables interrupt after return.
+  */
+-static void acpi_idle_do_entry(struct acpi_processor_cx *cx)
++static void __cpuidle acpi_idle_do_entry(struct acpi_processor_cx *cx)
+ {
+ 	if (cx->entry_method == ACPI_CSTATE_FFH) {
+ 		/* Call into architectural FFH based C-state */
+diff -puN drivers/cpuidle/driver.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus drivers/cpuidle/driver.c
+--- a/drivers/cpuidle/driver.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/drivers/cpuidle/driver.c
+@@ -14,6 +14,7 @@
+ #include <linux/cpuidle.h>
+ #include <linux/cpumask.h>
+ #include <linux/tick.h>
++#include <linux/cpu.h>
  
--	cpumask_copy(to_cpumask(backtrace_mask), cpu_online_mask);
--	if (!include_self)
-+	cpumask_copy(to_cpumask(backtrace_mask), mask);
-+	if (exclude_self)
- 		cpumask_clear_cpu(this_cpu, to_cpumask(backtrace_mask));
+ #include "cpuidle.h"
  
- 	if (!cpumask_empty(to_cpumask(backtrace_mask))) {
--		pr_info("Sending NMI to %s CPUs:\n",
--			(include_self ? "all" : "other"));
-+		pr_info("Sending NMI from CPU %d to CPUs %*pbl:\n",
-+			this_cpu, nr_cpumask_bits, to_cpumask(backtrace_mask));
- 		raise(to_cpumask(backtrace_mask));
+@@ -178,8 +179,8 @@ static void __cpuidle_driver_init(struct
+ }
+ 
+ #ifdef CONFIG_ARCH_HAS_CPU_RELAX
+-static int poll_idle(struct cpuidle_device *dev,
+-		struct cpuidle_driver *drv, int index)
++static int __cpuidle poll_idle(struct cpuidle_device *dev,
++			       struct cpuidle_driver *drv, int index)
+ {
+ 	local_irq_enable();
+ 	if (!current_set_polling_and_test()) {
+diff -puN drivers/idle/intel_idle.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus drivers/idle/intel_idle.c
+--- a/drivers/idle/intel_idle.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/drivers/idle/intel_idle.c
+@@ -863,8 +863,8 @@ static struct cpuidle_state dnv_cstates[
+  *
+  * Must be called under local_irq_disable().
+  */
+-static int intel_idle(struct cpuidle_device *dev,
+-		struct cpuidle_driver *drv, int index)
++static __cpuidle int intel_idle(struct cpuidle_device *dev,
++				struct cpuidle_driver *drv, int index)
+ {
+ 	unsigned long ecx = 1; /* break on interrupt flag */
+ 	struct cpuidle_state *state = &drv->states[index];
+diff -puN include/asm-generic/vmlinux.lds.h~nmi_backtrace-generate-one-line-reports-for-idle-cpus include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -454,6 +454,12 @@
+ 		*(.spinlock.text)					\
+ 		VMLINUX_SYMBOL(__lock_text_end) = .;
+ 
++#define CPUIDLE_TEXT							\
++		ALIGN_FUNCTION();					\
++		VMLINUX_SYMBOL(__cpuidle_text_start) = .;		\
++		*(.cpuidle.text)					\
++		VMLINUX_SYMBOL(__cpuidle_text_end) = .;
++
+ #define KPROBES_TEXT							\
+ 		ALIGN_FUNCTION();					\
+ 		VMLINUX_SYMBOL(__kprobes_text_start) = .;		\
+diff -puN include/linux/cpu.h~nmi_backtrace-generate-one-line-reports-for-idle-cpus include/linux/cpu.h
+--- a/include/linux/cpu.h~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/include/linux/cpu.h
+@@ -239,6 +239,11 @@ void cpu_startup_entry(enum cpuhp_state
+ 
+ void cpu_idle_poll_ctrl(bool enable);
+ 
++/* Attach to any functions which should be considered cpuidle. */
++#define __cpuidle	__attribute__((__section__(".cpuidle.text")))
++
++bool cpu_in_idle(unsigned long pc);
++
+ void arch_cpu_idle(void);
+ void arch_cpu_idle_prepare(void);
+ void arch_cpu_idle_enter(void);
+diff -puN kernel/sched/idle.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus kernel/sched/idle.c
+--- a/kernel/sched/idle.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/kernel/sched/idle.c
+@@ -16,6 +16,9 @@
+ 
+ #include "sched.h"
+ 
++/* Linker adds these: start and end of __cpuidle functions */
++extern char __cpuidle_text_start[], __cpuidle_text_end[];
++
+ /**
+  * sched_idle_set_state - Record idle state for the current CPU.
+  * @idle_state: State to record.
+@@ -53,7 +56,7 @@ static int __init cpu_idle_nopoll_setup(
+ __setup("hlt", cpu_idle_nopoll_setup);
+ #endif
+ 
+-static inline int cpu_idle_poll(void)
++static noinline int __cpuidle cpu_idle_poll(void)
+ {
+ 	rcu_idle_enter();
+ 	trace_cpu_idle_rcuidle(0, smp_processor_id());
+@@ -84,7 +87,7 @@ void __weak arch_cpu_idle(void)
+  *
+  * To use when the cpuidle framework cannot be used.
+  */
+-void default_idle_call(void)
++void __cpuidle default_idle_call(void)
+ {
+ 	if (current_clr_polling_and_test()) {
+ 		local_irq_enable();
+@@ -271,6 +274,12 @@ static void cpu_idle_loop(void)
  	}
+ }
+ 
++bool cpu_in_idle(unsigned long pc)
++{
++	return pc >= (unsigned long)__cpuidle_text_start &&
++		pc < (unsigned long)__cpuidle_text_end;
++}
++
+ void cpu_startup_entry(enum cpuhp_state state)
+ {
+ 	/*
+diff -puN lib/nmi_backtrace.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus lib/nmi_backtrace.c
+--- a/lib/nmi_backtrace.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/lib/nmi_backtrace.c
+@@ -16,6 +16,7 @@
+ #include <linux/delay.h>
+ #include <linux/kprobes.h>
+ #include <linux/nmi.h>
++#include <linux/cpu.h>
+ 
+ #ifdef arch_trigger_cpumask_backtrace
+ /* For reliability, we're prepared to waste bits here. */
+@@ -87,11 +88,16 @@ bool nmi_cpu_backtrace(struct pt_regs *r
+ 	int cpu = smp_processor_id();
+ 
+ 	if (cpumask_test_cpu(cpu, to_cpumask(backtrace_mask))) {
+-		pr_warn("NMI backtrace for cpu %d\n", cpu);
+-		if (regs)
+-			show_regs(regs);
+-		else
+-			dump_stack();
++		if (regs && cpu_in_idle(instruction_pointer(regs))) {
++			pr_warn("NMI backtrace for cpu %d skipped: idling at pc %#lx\n",
++				cpu, instruction_pointer(regs));
++		} else {
++			pr_warn("NMI backtrace for cpu %d\n", cpu);
++			if (regs)
++				show_regs(regs);
++			else
++				dump_stack();
++		}
+ 		cpumask_clear_cpu(cpu, to_cpumask(backtrace_mask));
+ 		return true;
+ 	}
+diff -puN scripts/mod/modpost.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/scripts/mod/modpost.c
+@@ -888,7 +888,7 @@ static void check_section(const char *mo
+ 
+ #define DATA_SECTIONS ".data", ".data.rel"
+ #define TEXT_SECTIONS ".text", ".text.unlikely", ".sched.text", \
+-		".kprobes.text"
++		".kprobes.text", ".cpuidle.text"
+ #define OTHER_TEXT_SECTIONS ".ref.text", ".head.text", ".spinlock.text", \
+ 		".fixup", ".entry.text", ".exception.text", ".text.*", \
+ 		".coldtext"
+diff -puN scripts/recordmcount.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus scripts/recordmcount.c
+--- a/scripts/recordmcount.c~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/scripts/recordmcount.c
+@@ -364,6 +364,7 @@ is_mcounted_section_name(char const *con
+ 		strcmp(".spinlock.text", txtname) == 0 ||
+ 		strcmp(".irqentry.text", txtname) == 0 ||
+ 		strcmp(".kprobes.text", txtname) == 0 ||
++		strcmp(".cpuidle.text", txtname) == 0 ||
+ 		strcmp(".text.unlikely", txtname) == 0;
+ }
+ 
+diff -puN scripts/recordmcount.pl~nmi_backtrace-generate-one-line-reports-for-idle-cpus scripts/recordmcount.pl
+--- a/scripts/recordmcount.pl~nmi_backtrace-generate-one-line-reports-for-idle-cpus
++++ a/scripts/recordmcount.pl
+@@ -135,6 +135,7 @@ my %text_sections = (
+      ".spinlock.text" => 1,
+      ".irqentry.text" => 1,
+      ".kprobes.text" => 1,
++     ".cpuidle.text" => 1,
+      ".text.unlikely" => 1,
+ );
  
 _
 
