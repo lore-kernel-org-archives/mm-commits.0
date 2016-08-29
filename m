@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-implement-arch_reserved_kernel_pages.patch added to -mm tree
-Date: Mon, 29 Aug 2016 16:07:51 -0700
-Message-ID: <57c4c047.TuZjjCC/qMkJgDJN%akpm@linux-foundation.org>
+Subject: + mm-memblock-expose-total-reserved-memory.patch added to -mm
+ tree
+Date: Mon, 29 Aug 2016 16:07:49 -0700
+Message-ID: <57c4c045.mlVYFnNyJl7gVLIH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39479 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39470 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751223AbcH2XHy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 19:07:54 -0400
+        with ESMTP id S1751223AbcH2XH5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 19:07:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: srikar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dave.hansen@intel.com, hbathini@linux.vnet.ibm.com, mahesh@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@kernel.org, mpe@ellerman.id.au, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: implement arch_reserved_kernel_pages
+     Subject: mm/memblock.c: expose total reserved memory
 has been added to the -mm tree.  Its filename is
-     powerpc-implement-arch_reserved_kernel_pages.patch
+     mm-memblock-expose-total-reserved-memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-implement-arch_reserved_kernel_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-expose-total-reserved-memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-implement-arch_reserved_kernel_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-expose-total-reserved-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Subject: powerpc: implement arch_reserved_kernel_pages
+Subject: mm/memblock.c: expose total reserved memory
 
-Currently significant amount of memory is reserved only in kernel booted
-to capture kernel dump using the fa_dump method.
+The total reserved memory in a system is accounted but not available for
+use use outside mm/memblock.c.  By exposing the total reserved memory,
+systems can better calculate the size of large hashes.
 
-Kernels compiled with CONFIG_DEFERRED_STRUCT_PAGE_INIT will initialize
-only certain size memory per node.  The certain size takes into account
-the dentry and inode cache sizes.  Currently the cache sizes are
-calculated based on the total system memory including the reserved memory.
-However such a kernel when booting the same kernel as fadump kernel will
-not be able to allocate the required amount of memory to suffice for the
-dentry and inode caches.  This results in crashes like
-
-Hence only implement arch_reserved_kernel_pages() for CONFIG_FA_DUMP
-configurations.  The amount reserved will be reduced while calculating the
-large caches and will avoid crashes like the below on large systems such
-as 32 TB systems.
-
-Dentry cache hash table entries: 536870912 (order: 16, 4294967296 bytes)
-vmalloc: allocation failure, allocated 4097114112 of 17179934720 bytes
-swapper/0: page allocation failure: order:0, mode:0x2080020(GFP_ATOMIC)
-CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.6-master+ #3
-Call Trace:
-[c00000000108fb10] [c0000000007fac88] dump_stack+0xb0/0xf0 (unreliable)
-[c00000000108fb50] [c000000000235264] warn_alloc_failed+0x114/0x160
-[c00000000108fbf0] [c000000000281484] __vmalloc_node_range+0x304/0x340
-[c00000000108fca0] [c00000000028152c] __vmalloc+0x6c/0x90
-[c00000000108fd40] [c000000000aecfb0]
-alloc_large_system_hash+0x1b8/0x2c0
-[c00000000108fe00] [c000000000af7240] inode_init+0x94/0xe4
-[c00000000108fe80] [c000000000af6fec] vfs_caches_init+0x8c/0x13c
-[c00000000108ff00] [c000000000ac4014] start_kernel+0x50c/0x578
-[c00000000108ff90] [c000000000008c6c] start_here_common+0x20/0xa8
-
-Link: http://lkml.kernel.org/r/1472476010-4709-4-git-send-email-srikar@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1472476010-4709-3-git-send-email-srikar@linux.vnet.ibm.com
 Signed-off-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Suggested-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -87,38 +60,36 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/mmzone.h |    3 +++
- arch/powerpc/kernel/fadump.c      |    5 +++++
- 2 files changed, 8 insertions(+)
+ include/linux/memblock.h |    1 +
+ mm/memblock.c            |    5 +++++
+ 2 files changed, 6 insertions(+)
 
-diff -puN arch/powerpc/include/asm/mmzone.h~powerpc-implement-arch_reserved_kernel_pages arch/powerpc/include/asm/mmzone.h
---- a/arch/powerpc/include/asm/mmzone.h~powerpc-implement-arch_reserved_kernel_pages
-+++ a/arch/powerpc/include/asm/mmzone.h
-@@ -41,6 +41,9 @@ u64 memory_hotplug_max(void);
- #else
- #define memory_hotplug_max() memblock_end_of_DRAM()
- #endif /* CONFIG_NEED_MULTIPLE_NODES */
-+#ifdef CONFIG_FA_DUMP
-+#define __HAVE_ARCH_RESERVED_KERNEL_PAGES
-+#endif
- 
- #endif /* __KERNEL__ */
- #endif /* _ASM_MMZONE_H_ */
-diff -puN arch/powerpc/kernel/fadump.c~powerpc-implement-arch_reserved_kernel_pages arch/powerpc/kernel/fadump.c
---- a/arch/powerpc/kernel/fadump.c~powerpc-implement-arch_reserved_kernel_pages
-+++ a/arch/powerpc/kernel/fadump.c
-@@ -334,6 +334,11 @@ int __init fadump_reserve_mem(void)
- 	return 1;
+diff -puN include/linux/memblock.h~mm-memblock-expose-total-reserved-memory include/linux/memblock.h
+--- a/include/linux/memblock.h~mm-memblock-expose-total-reserved-memory
++++ a/include/linux/memblock.h
+@@ -328,6 +328,7 @@ phys_addr_t memblock_alloc_base(phys_add
+ phys_addr_t __memblock_alloc_base(phys_addr_t size, phys_addr_t align,
+ 				  phys_addr_t max_addr);
+ phys_addr_t memblock_phys_mem_size(void);
++phys_addr_t memblock_reserved_size(void);
+ phys_addr_t memblock_mem_size(unsigned long limit_pfn);
+ phys_addr_t memblock_start_of_DRAM(void);
+ phys_addr_t memblock_end_of_DRAM(void);
+diff -puN mm/memblock.c~mm-memblock-expose-total-reserved-memory mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-expose-total-reserved-memory
++++ a/mm/memblock.c
+@@ -1438,6 +1438,11 @@ phys_addr_t __init_memblock memblock_phy
+ 	return memblock.memory.total_size;
  }
  
-+unsigned long __init arch_reserved_kernel_pages(void)
++phys_addr_t __init_memblock memblock_reserved_size(void)
 +{
-+	return memblock_reserved_size() / PAGE_SIZE;
++	return memblock.reserved.total_size;
 +}
 +
- /* Look for fadump= cmdline option. */
- static int __init early_fadump_param(char *p)
+ phys_addr_t __init memblock_mem_size(unsigned long limit_pfn)
  {
+ 	unsigned long pages = 0;
 _
 
 Patches currently in -mm which might be from srikar@linux.vnet.ibm.com are
