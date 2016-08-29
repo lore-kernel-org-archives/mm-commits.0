@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- pipe-cap-initial-pipe-capacity-according-to-pipe-max-size-limit.patch added to -mm tree
-Date: Mon, 29 Aug 2016 15:13:28 -0700
-Message-ID: <57c4b388.TagrTT20PQy04VMs%akpm@linux-foundation.org>
+Subject: + pipe-refactor-argument-for-account_pipe_buffers.patch added to
+ -mm tree
+Date: Mon, 29 Aug 2016 15:13:17 -0700
+Message-ID: <57c4b37d.RbrrqXqelHP19rnE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38529 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756440AbcH2WNa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 18:13:30 -0400
+        with ESMTP id S1756141AbcH2WN0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Aug 2016 18:13:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mtk.manpages@gmail.com, axboe@fb.com, penguin-kernel@I-love.SAKURA.ne.jp, socketpair@gmail.com, vegard.nossum@oracle.com, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pipe: cap initial pipe capacity according to pipe-max-size limit
+     Subject: pipe: refactor argument for account_pipe_buffers()
 has been added to the -mm tree.  Its filename is
-     pipe-cap-initial-pipe-capacity-according-to-pipe-max-size-limit.patch
+     pipe-refactor-argument-for-account_pipe_buffers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pipe-cap-initial-pipe-capacity-according-to-pipe-max-size-limit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pipe-refactor-argument-for-account_pipe_buffers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pipe-cap-initial-pipe-capacity-according-to-pipe-max-size-limit.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pipe-refactor-argument-for-account_pipe_buffers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,44 +40,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Subject: pipe: cap initial pipe capacity according to pipe-max-size limit
+Subject: pipe: refactor argument for account_pipe_buffers()
 
-This is a patch that provides behavior that is more consistent, and
-probably less surprising to users. I consider the change optional, and
-welcome opinions about whether it should be applied.
+This is a preparatory patch for following work. account_pipe_buffers()
+performs accounting in the 'user_struct'. There is no need to pass a
+pointer to a 'pipe_inode_info' struct (which is then dereferenced to
+obtain a pointer to the 'user' field). Instead, pass a pointer directly
+to the 'user_struct'. This change is needed in preparation for a
+subsequent patch that the fixes the limit checking in alloc_pipe_info()
+(and the resulting code is a little more logical).
 
-By default, pipes are created with a capacity of 64 kiB.  However,
-/proc/sys/fs/pipe-max-size may be set smaller than this value.  In this
-scenario, an unprivileged user could thus create a pipe whose initial
-capacity exceeds the limit. Therefore, it seems logical to cap the
-initial pipe capacity according to the value of pipe-max-size.
-
-The test program shown earlier in this patch series can be used to
-demonstrate the effect of the change brought about with this patch:
-
-    # cat /proc/sys/fs/pipe-max-size
-    1048576
-    # sudo -u mtk ./test_F_SETPIPE_SZ 1
-    Initial pipe capacity: 65536
-    # echo 10000 > /proc/sys/fs/pipe-max-size
-    # cat /proc/sys/fs/pipe-max-size
-    16384
-    # sudo -u mtk ./test_F_SETPIPE_SZ 1
-    Initial pipe capacity: 16384
-    # ./test_F_SETPIPE_SZ 1
-    Initial pipe capacity: 65536
-
-The last two executions of 'test_F_SETPIPE_SZ' show that pipe-max-size
-caps the initial allocation for a new pipe for unprivileged users, but
-not for privileged users.
-
-Patch history:
-
-v2
-   * Switch order of tests in an 'if' statement to avoid a function
-     call (to capability()) in normal path. [Thanks to Willy Tarreau]
-
-Link: http://lkml.kernel.org/r/31dc7064-2a17-9c5b-1df1-4e3012ee992c@gmail.com
+Link: http://lkml.kernel.org/r/7277bf8c-a6fc-4a7d-659c-f5b145c981ab@gmail.com
 Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
 Cc: Willy Tarreau <w@1wt.eu>
 Cc: Vegard Nossum <vegard.nossum@oracle.com>
@@ -88,22 +61,52 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/pipe.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/pipe.c~pipe-cap-initial-pipe-capacity-according-to-pipe-max-size-limit fs/pipe.c
---- a/fs/pipe.c~pipe-cap-initial-pipe-capacity-according-to-pipe-max-size-limit
+diff -puN fs/pipe.c~pipe-refactor-argument-for-account_pipe_buffers fs/pipe.c
+--- a/fs/pipe.c~pipe-refactor-argument-for-account_pipe_buffers
 +++ a/fs/pipe.c
-@@ -631,6 +631,9 @@ struct pipe_inode_info *alloc_pipe_info(
- 	if (pipe == NULL)
- 		goto out_free_uid;
+@@ -604,10 +604,10 @@ pipe_fasync(int fd, struct file *filp, i
+ 	return retval;
+ }
  
-+	if (pipe_bufs * PAGE_SIZE > pipe_max_size && !capable(CAP_SYS_RESOURCE))
-+		pipe_bufs = pipe_max_size >> PAGE_SHIFT;
-+
- 	user_bufs = account_pipe_buffers(user, 0, pipe_bufs);
+-static void account_pipe_buffers(struct pipe_inode_info *pipe,
++static void account_pipe_buffers(struct user_struct *user,
+                                  unsigned long old, unsigned long new)
+ {
+-	atomic_long_add(new - old, &pipe->user->pipe_bufs);
++	atomic_long_add(new - old, &user->pipe_bufs);
+ }
  
- 	if (too_many_pipe_buffers_soft(user_bufs)) {
+ static bool too_many_pipe_buffers_soft(struct user_struct *user)
+@@ -644,7 +644,7 @@ struct pipe_inode_info *alloc_pipe_info(
+ 			pipe->r_counter = pipe->w_counter = 1;
+ 			pipe->buffers = pipe_bufs;
+ 			pipe->user = user;
+-			account_pipe_buffers(pipe, 0, pipe_bufs);
++			account_pipe_buffers(user, 0, pipe_bufs);
+ 			mutex_init(&pipe->mutex);
+ 			return pipe;
+ 		}
+@@ -659,7 +659,7 @@ void free_pipe_info(struct pipe_inode_in
+ {
+ 	int i;
+ 
+-	account_pipe_buffers(pipe, pipe->buffers, 0);
++	account_pipe_buffers(pipe->user, pipe->buffers, 0);
+ 	free_uid(pipe->user);
+ 	for (i = 0; i < pipe->buffers; i++) {
+ 		struct pipe_buffer *buf = pipe->bufs + i;
+@@ -1080,7 +1080,7 @@ static long pipe_set_size(struct pipe_in
+ 			memcpy(bufs + head, pipe->bufs, tail * sizeof(struct pipe_buffer));
+ 	}
+ 
+-	account_pipe_buffers(pipe, pipe->buffers, nr_pages);
++	account_pipe_buffers(pipe->user, pipe->buffers, nr_pages);
+ 	pipe->curbuf = 0;
+ 	kfree(pipe->bufs);
+ 	pipe->bufs = bufs;
 _
 
 Patches currently in -mm which might be from mtk.manpages@gmail.com are
