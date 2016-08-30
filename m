@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled.patch
- added to -mm tree
-Date: Tue, 30 Aug 2016 15:05:27 -0700
-Message-ID: <57c60327.RyFcbAJjapGVAnw8%akpm@linux-foundation.org>
+Subject: + mm-mlock-check-against-vma-for-actual-mlock-size.patch added to -mm tree
+Date: Tue, 30 Aug 2016 15:09:44 -0700
+Message-ID: <57c60428.6LGNGHnIlyTGEa0x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45632 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45713 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751136AbcH3WF2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:05:28 -0400
+        with ESMTP id S1750798AbcH3WJq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:09:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: wei.guo.simon@gmail.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom: warn if we go OOM for higher order and compaction is disabled
+     Subject: mm: mlock: check against vma for actual mlock() size
 has been added to the -mm tree.  Its filename is
-     oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled.patch
+     mm-mlock-check-against-vma-for-actual-mlock-size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-check-against-vma-for-actual-mlock-size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-check-against-vma-for-actual-mlock-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,59 +38,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom: warn if we go OOM for higher order and compaction is disabled
+From: Simon Guo <wei.guo.simon@gmail.com>
+Subject: mm: mlock: check against vma for actual mlock() size
 
-Since the lumpy reclaim is gone there is no source of higher order pages
-if CONFIG_COMPACTION=n except for the order-0 pages reclaim which is
-unreliable for that purpose to say the least.  Hitting an OOM for !costly
-higher order requests is therefore all not that hard to imagine.  We are
-trying hard to not invoke OOM killer as much as possible but there is
-simply no reliable way to detect whether more reclaim retries make sense.
+In do_mlock(), the check against locked memory limitation has a hole which
+will fail following cases at step 3):
 
-Disabling COMPACTION is not widespread but it seems that some users might
-have disable the feature without realizing full consequences (mostly along
-with disabling THP because compaction used to be THP mainly thing).  This
-patch just adds a note if the OOM killer was triggered by higher order
-request with compaction disabled.  This will help us identifying possible
-misconfiguration right from the oom report which is easier than to always
-keep in mind that somebody might have disabled COMPACTION without a good
-reason.
+1) User has a memory chunk from addressA with 50k, and user
+mem lock rlimit is 64k.
+2) mlock(addressA, 30k)
+3) mlock(addressA, 40k)
 
-Link: http://lkml.kernel.org/r/20160830111632.GD23963@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+The 3rd step should have been allowed since the 40k request is intersected
+with the previous 30k at step 2), and the 3rd step is actually for mlock
+on the extra 10k memory.
+
+This patch checks vma to caculate the actual "new" mlock size, if
+necessary, and ajust the logic to fix this issue.
+
+Link: http://lkml.kernel.org/r/1472554781-9835-2-git-send-email-wei.guo.simon@gmail.com
+Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
+Cc: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Eric B Munson <emunson@akamai.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Simon Guo <wei.guo.simon@gmail.com>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/mlock.c |   49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff -puN mm/oom_kill.c~oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled mm/oom_kill.c
---- a/mm/oom_kill.c~oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled
-+++ a/mm/oom_kill.c
-@@ -406,6 +406,8 @@ static void dump_header(struct oom_contr
- 	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%hd\n",
- 		current->comm, oc->gfp_mask, &oc->gfp_mask, oc->order,
- 		current->signal->oom_score_adj);
-+	if (!IS_ENABLED(CONFIG_COMPACTION) && oc->order)
-+		pr_warn("COMPACTION is disabled!!!\n");
+diff -puN mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size
++++ a/mm/mlock.c
+@@ -617,6 +617,43 @@ static int apply_vma_lock_flags(unsigned
+ 	return error;
+ }
  
- 	cpuset_print_current_mems_allowed();
- 	dump_stack();
++/*
++ * Go through vma areas and sum size of mlocked
++ * vma pages, as return value.
++ * Note deferred memory locking case(mlock2(,,MLOCK_ONFAULT)
++ * is also counted.
++ * Return value: previously mlocked page counts
++ */
++static int count_mm_mlocked_page_nr(struct mm_struct *mm,
++		unsigned long start, size_t len)
++{
++	struct vm_area_struct *vma;
++	int count = 0;
++
++	if (mm == NULL)
++		mm = current->mm;
++
++	vma = find_vma(mm, start);
++	if (vma == NULL)
++		vma = mm->mmap;
++
++	for (; vma ; vma = vma->vm_next) {
++		if (start + len <=  vma->vm_start)
++			break;
++		if (vma->vm_flags && VM_LOCKED) {
++			if (start > vma->vm_start)
++				count -= (start - vma->vm_start);
++			if (start + len < vma->vm_end) {
++				count += start + len - vma->vm_start;
++				break;
++			}
++			count += vma->vm_end - vma->vm_start;
++		}
++	}
++
++	return (PAGE_ALIGN(count) >> PAGE_SHIFT);
++}
++
+ static __must_check int do_mlock(unsigned long start, size_t len, vm_flags_t flags)
+ {
+ 	unsigned long locked;
+@@ -639,6 +676,18 @@ static __must_check int do_mlock(unsigne
+ 		return -EINTR;
+ 
+ 	locked += current->mm->locked_vm;
++	if ((locked > lock_limit) && (!capable(CAP_IPC_LOCK))) {
++		/*
++		 * It is possible that the regions requested
++		 * intersect with previously mlocked areas,
++		 * that part area in "mm->locked_vm" should
++		 * not be counted to new mlock increment
++		 * count. So check and adjust locked count
++		 * if necessary.
++		 */
++		locked -= count_mm_mlocked_page_nr(current->mm,
++				start, len);
++	}
+ 
+ 	/* check against resource limits */
+ 	if ((locked <= lock_limit) || capable(CAP_IPC_LOCK))
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from wei.guo.simon@gmail.com are
 
-mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request.patch
-mm-vmscan-get-rid-of-throttle_vm_writeout.patch
-oom-keep-mm-of-the-killed-task-available.patch
-kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
-mm-oom-get-rid-of-signal_struct-oom_victims.patch
-oom-suspend-fix-oom_killer_disable-vs-pm-suspend-properly.patch
-mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch
-oom-oom_reaper-allow-to-reap-mm-shared-by-the-kthreads.patch
-oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled.patch
+mm-mlock-check-against-vma-for-actual-mlock-size.patch
+mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch
+selftest-split-mlock2_-funcs-into-separate-mlock2h.patch
+selftests-vm-add-test-for-mlock-when-areas-are-intersected.patch
 
