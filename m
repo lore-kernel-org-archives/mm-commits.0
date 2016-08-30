@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-fix-node-state-for-whether-it-contains-cpu.patch added to
- -mm tree
-Date: Tue, 30 Aug 2016 15:21:46 -0700
-Message-ID: <57c606fa.RMJQWMMn24hUaWTF%akpm@linux-foundation.org>
+Subject: +
+ proc-fix-timerslack_ns-cap_sys_nice-check-when-adjusting-self.patch added
+ to -mm tree
+Date: Tue, 30 Aug 2016 16:05:55 -0700
+Message-ID: <57c61153.UXNp8zm9PN3yXukX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46314 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753405AbcH3WVr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:21:47 -0400
+        with ESMTP id S1758001AbcH3XF5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 19:05:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tim.c.chen@linux.intel.com, Huang@linux.intel.com, andi@firstfloor.org, dan.j.williams@intel.com, dave.hansen@intel.com, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, rjw@rjwysocki.net, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: john.stultz@linaro.org, arjan@linux.intel.com, ccross@android.com, dimitrysh@google.com, enh@google.com, kandoiruchi@google.com, keescook@chromium.org, kernel-team@android.com, nnk@google.com, orenl@cellrox.com, romlem@android.com, serge@hallyn.com, tglx@linutronix.de, tkjos@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpu: fix node state for whether it contains CPU
+     Subject: proc: fix timerslack_ns CAP_SYS_NICE check when adjusting self
 has been added to the -mm tree.  Its filename is
-     cpu-fix-node-state-for-whether-it-contains-cpu.patch
+     proc-fix-timerslack_ns-cap_sys_nice-check-when-adjusting-self.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cpu-fix-node-state-for-whether-it-contains-cpu.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-fix-timerslack_ns-cap_sys_nice-check-when-adjusting-self.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cpu-fix-node-state-for-whether-it-contains-cpu.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-fix-timerslack_ns-cap_sys_nice-check-when-adjusting-self.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,97 +40,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: cpu: fix node state for whether it contains CPU
+From: John Stultz <john.stultz@linaro.org>
+Subject: proc: fix timerslack_ns CAP_SYS_NICE check when adjusting self
 
-In current kernel code, we only call node_set_state(cpu_to_node(cpu),
-N_CPU) when a cpu is hot plugged.  But we do not set the node state for
-N_CPU when the cpus are brought online during boot.
+In changing from checking ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)
+to capable(CAP_SYS_NICE), I missed that ptrace_my_access succeeds when p
+== current, but the CAP_SYS_NICE doesn't.
 
-So this could lead to failure when we check to see if a node contains cpu
-with node_state(node_id, N_CPU).
+Thus while the previous commit was intended to loosen the needed
+privileges to modify a processes timerslack, it needlessly restricted a
+task modifying its own timerslack via the proc/<tid>/timerslack_ns (which
+is permitted also via the PR_SET_TIMERSLACK method).
 
-One use case is in the node_reclaime function:
+This patch corrects this by checking if p == current before checking
+the CAP_SYS_NICE value.
 
-        /*
-         * Only run node reclaim on the local node or on nodes that do
-         * not
-         * have associated processors. This will favor the local
-         * processor
-         * over remote processors and spread off node memory allocations
-         * as wide as possible.
-         */
-        if (node_state(pgdat->node_id, N_CPU) && pgdat->node_id !=
-                numa_node_id())
-                return NODE_RECLAIM_NOSCAN;
+This patch applies on top of my two previous patches currently in -mm
 
-I instrumented the kernel to call this function after boot and it always
-returns 0 on a x86 desktop machine until I apply the attached patch.
-
-int num_cpu_node(void)
-{
-       int i, nr_cpu_nodes = 0;
-
-       for_each_node(i) {
-               if (node_state(i, N_CPU))
-                       ++ nr_cpu_nodes;
-       }
-
-       return nr_cpu_nodes;
-}
-
-Fix this by checking each node for online CPU when we initialize
-vmstat that's responsible for maintaining node state.
-
-Link: http://lkml.kernel.org/r/20160829175922.GA21775@linux.intel.com
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: <Huang@linux.intel.com>
-Cc: Ying <ying.huang@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Link: http://lkml.kernel.org/r/1471906870-28624-1-git-send-email-john.stultz@linaro.org
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Oren Laadan <orenl@cellrox.com>
+Cc: Ruchi Kandoi <kandoiruchi@google.com>
+Cc: Rom Lemarchand <romlem@android.com>
+Cc: Todd Kjos <tkjos@google.com>
+Cc: Colin Cross <ccross@android.com>
+Cc: Nick Kralevich <nnk@google.com>
+Cc: Dmitry Shmidt <dimitrysh@google.com>
+Cc: Elliott Hughes <enh@google.com>
+Cc: Android Kernel Team <kernel-team@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ fs/proc/base.c |   36 ++++++++++++++++++++----------------
+ 1 file changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN mm/vmstat.c~cpu-fix-node-state-for-whether-it-contains-cpu mm/vmstat.c
---- a/mm/vmstat.c~cpu-fix-node-state-for-whether-it-contains-cpu
-+++ a/mm/vmstat.c
-@@ -1715,6 +1715,16 @@ static void __init start_shepherd_timer(
- 		round_jiffies_relative(sysctl_stat_interval));
- }
+diff -puN fs/proc/base.c~proc-fix-timerslack_ns-cap_sys_nice-check-when-adjusting-self fs/proc/base.c
+--- a/fs/proc/base.c~proc-fix-timerslack_ns-cap_sys_nice-check-when-adjusting-self
++++ a/fs/proc/base.c
+@@ -2285,15 +2285,17 @@ static ssize_t timerslack_ns_write(struc
+ 	if (!p)
+ 		return -ESRCH;
  
-+static void __init init_cpu_node_state(void)
-+{
-+	int cpu;
+-	if (!capable(CAP_SYS_NICE)) {
+-		count = -EPERM;
+-		goto out;
+-	}
+-
+-	err = security_task_setscheduler(p);
+-	if (err) {
+-		count = err;
+-		goto out;
++	if (p != current) {
++		if (!capable(CAP_SYS_NICE)) {
++			count = -EPERM;
++			goto out;
++		}
 +
-+	get_online_cpus();
-+	for_each_online_cpu(cpu)
-+		node_set_state(cpu_to_node(cpu), N_CPU);
-+	put_online_cpus();
-+}
-+
- static void vmstat_cpu_dead(int node)
- {
- 	int cpu;
-@@ -1772,6 +1782,7 @@ static int __init setup_vmstat(void)
- #ifdef CONFIG_SMP
- 	cpu_notifier_register_begin();
- 	__register_cpu_notifier(&vmstat_notifier);
-+	init_cpu_node_state();
++		err = security_task_setscheduler(p);
++		if (err) {
++			count = err;
++			goto out;
++		}
+ 	}
  
- 	start_shepherd_timer();
- 	cpu_notifier_register_done();
+ 	task_lock(p);
+@@ -2319,14 +2321,16 @@ static int timerslack_ns_show(struct seq
+ 	if (!p)
+ 		return -ESRCH;
+ 
+-	if (!capable(CAP_SYS_NICE)) {
+-		err = -EPERM;
+-		goto out;
+-	}
++	if (p != current) {
+ 
+-	err = security_task_getscheduler(p);
+-	if (err)
+-		goto out;
++		if (!capable(CAP_SYS_NICE)) {
++			err = -EPERM;
++			goto out;
++		}
++		err = security_task_getscheduler(p);
++		if (err)
++			goto out;
++	}
+ 
+ 	task_lock(p);
+ 	seq_printf(m, "%llu\n", p->timer_slack_ns);
 _
 
-Patches currently in -mm which might be from tim.c.chen@linux.intel.com are
+Patches currently in -mm which might be from john.stultz@linaro.org are
 
-cpu-fix-node-state-for-whether-it-contains-cpu.patch
+proc-relax-proc-tid-timerslack_ns-capability-requirements.patch
+proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns.patch
+proc-fix-timerslack_ns-cap_sys_nice-check-when-adjusting-self.patch
 
