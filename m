@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch added to -mm tree
-Date: Tue, 30 Aug 2016 15:09:48 -0700
-Message-ID: <57c6042c.6cEGn11nWrG7rFyY%akpm@linux-foundation.org>
+Subject: + selftest-split-mlock2_-funcs-into-separate-mlock2h.patch added
+ to -mm tree
+Date: Tue, 30 Aug 2016 15:09:50 -0700
+Message-ID: <57c6042e.3MXOhPoQuRc38tln%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45730 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45740 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752388AbcH3WJu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:09:50 -0400
+        with ESMTP id S1752388AbcH3WJw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:09:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wei.guo.simon@gmail.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mlock: avoid increase mm->locked_vm on mlock() when already mlock2(,MLOCK_ONFAULT)
+     Subject: selftest: split mlock2_ funcs into separate mlock2.h
 has been added to the -mm tree.  Its filename is
-     mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch
+     selftest-split-mlock2_-funcs-into-separate-mlock2h.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftest-split-mlock2_-funcs-into-separate-mlock2h.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftest-split-mlock2_-funcs-into-separate-mlock2h.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +40,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Simon Guo <wei.guo.simon@gmail.com>
-Subject: mm: mlock: avoid increase mm->locked_vm on mlock() when already mlock2(,MLOCK_ONFAULT)
+Subject: selftest: split mlock2_ funcs into separate mlock2.h
 
-When one vma was with flag VM_LOCKED|VM_LOCKONFAULT (by invoking
-mlock2(,MLOCK_ONFAULT)), it can again be populated with mlock() with
-VM_LOCKED flag only.
+To prepare mlock2.h whose functionality will be reused.
 
-There is a hole in mlock_fixup() which increase mm->locked_vm twice even
-the two operations are on the same vma and both with VM_LOCKED flags.
-
-The issue can be reproduced by following code:
-mlock2(p, 1024 * 64, MLOCK_ONFAULT); //VM_LOCKED|VM_LOCKONFAULT
-mlock(p, 1024 * 64);  //VM_LOCKED
-Then check the increase VmLck field in /proc/pid/status(to 128k).
-
-When vma is set with different vm_flags, and the new vm_flags is with
-VM_LOCKED, it is not necessarily be a "new locked" vma.  This patch
-corrects this bug by prevent mm->locked_vm from increment when old
-vm_flags is already VM_LOCKED.
-
-Link: http://lkml.kernel.org/r/1472554781-9835-3-git-send-email-wei.guo.simon@gmail.com
+Link: http://lkml.kernel.org/r/1472554781-9835-4-git-send-email-wei.guo.simon@gmail.com
 Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Alexey Klimov <klimov.linux@gmail.com>
 Cc: Eric B Munson <emunson@akamai.com>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Shuah Khan <shuah@kernel.org>
@@ -74,29 +59,66 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/selftests/vm/mlock2-tests.c |   21 --------------------
+ tools/testing/selftests/vm/mlock2.h       |   20 +++++++++++++++++++
+ 2 files changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault mm/mlock.c
---- a/mm/mlock.c~mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault
-+++ a/mm/mlock.c
-@@ -516,6 +516,7 @@ static int mlock_fixup(struct vm_area_st
- 	int nr_pages;
- 	int ret = 0;
- 	int lock = !!(newflags & VM_LOCKED);
-+	vm_flags_t old_flags = vma->vm_flags;
+diff -puN tools/testing/selftests/vm/mlock2-tests.c~selftest-split-mlock2_-funcs-into-separate-mlock2h tools/testing/selftests/vm/mlock2-tests.c
+--- a/tools/testing/selftests/vm/mlock2-tests.c~selftest-split-mlock2_-funcs-into-separate-mlock2h
++++ a/tools/testing/selftests/vm/mlock2-tests.c
+@@ -7,27 +7,8 @@
+ #include <string.h>
+ #include <sys/time.h>
+ #include <sys/resource.h>
+-#include <syscall.h>
+-#include <errno.h>
+ #include <stdbool.h>
+-
+-#ifndef MLOCK_ONFAULT
+-#define MLOCK_ONFAULT 1
+-#endif
+-
+-#ifndef MCL_ONFAULT
+-#define MCL_ONFAULT (MCL_FUTURE << 1)
+-#endif
+-
+-static int mlock2_(void *start, size_t len, int flags)
+-{
+-#ifdef __NR_mlock2
+-	return syscall(__NR_mlock2, start, len, flags);
+-#else
+-	errno = ENOSYS;
+-	return -1;
+-#endif
+-}
++#include "mlock2.h"
  
- 	if (newflags == vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
- 	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm))
-@@ -550,6 +551,8 @@ success:
- 	nr_pages = (end - start) >> PAGE_SHIFT;
- 	if (!lock)
- 		nr_pages = -nr_pages;
-+	else if (old_flags & VM_LOCKED)
-+		nr_pages = 0;
- 	mm->locked_vm += nr_pages;
- 
- 	/*
+ struct vm_boundaries {
+ 	unsigned long start;
+diff -puN /dev/null tools/testing/selftests/vm/mlock2.h
+--- /dev/null
++++ a/tools/testing/selftests/vm/mlock2.h
+@@ -0,0 +1,20 @@
++#include <syscall.h>
++#include <errno.h>
++
++#ifndef MLOCK_ONFAULT
++#define MLOCK_ONFAULT 1
++#endif
++
++#ifndef MCL_ONFAULT
++#define MCL_ONFAULT (MCL_FUTURE << 1)
++#endif
++
++static int mlock2_(void *start, size_t len, int flags)
++{
++#ifdef __NR_mlock2
++	return syscall(__NR_mlock2, start, len, flags);
++#else
++	errno = ENOSYS;
++	return -1;
++#endif
++}
 _
 
 Patches currently in -mm which might be from wei.guo.simon@gmail.com are
