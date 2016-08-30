@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ima-demonstration-code-for-kexec-buffer-passing.patch added to
- -mm tree
-Date: Tue, 30 Aug 2016 14:57:54 -0700
-Message-ID: <57c60162.yJQ9L6MtFFIMoypY%akpm@linux-foundation.org>
+Subject: +
+ mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch added
+ to -mm tree
+Date: Tue, 30 Aug 2016 15:01:05 -0700
+Message-ID: <57c60221.30wkUsnpufplEcaG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45592 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45603 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751749AbcH3V54 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 17:57:56 -0400
+        with ESMTP id S1750859AbcH3WBG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:01:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bauerman@linux.vnet.ibm.com, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, dave.hansen@intel.com, fengguang.wu@intel.com, hughd@google.com, mgorman@techsingularity.net, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: IMA: demonstration code for kexec buffer passing
+     Subject: mm: Don't use radix tree writeback tags for pages in swap cache
 has been added to the -mm tree.  Its filename is
-     ima-demonstration-code-for-kexec-buffer-passing.patch
+     mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ima-demonstration-code-for-kexec-buffer-passing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ima-demonstration-code-for-kexec-buffer-passing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,279 +40,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: IMA: demonstration code for kexec buffer passing
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm: Don't use radix tree writeback tags for pages in swap cache
 
-This shows how kernel code can use the kexec buffer passing mechanism
-to pass information to the next kernel.
+File pages use a set of radix tree tags (DIRTY, TOWRITE, WRITEBACK, etc.)
+to accelerate finding the pages with a specific tag in the radix tree
+during inode writeback.  But for anonymous pages in the swap cache, there
+is no inode writeback.  So there is no need to find the pages with some
+writeback tags in the radix tree.  It is not necessary to touch radix tree
+writeback tags for pages in the swap cache.
 
-This patch is not intended to be committed.
+Per Rik van Riel's suggestion, a new flag AS_NO_WRITEBACK_TAGS is
+introduced for address spaces which don't need to update the writeback
+tags.  The flag is set for swap caches.  It may be used for DAX file
+systems, etc.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/1472579105-26296-6-git-send-email-bauerman@linux.vnet.ibm.com
-Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Eric Richter <erichte@linux.vnet.ibm.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
+With this patch, the swap out bandwidth improved 22.3% (from ~1.2GB/s to ~
+1.48GBps) in the vm-scalability swap-w-seq test case with 8 processes. 
+The test is done on a Xeon E5 v3 system.  The swap device used is a RAM
+simulated PMEM (persistent memory) device.  The improvement comes from the
+reduced contention on the swap cache radix tree lock.  To test sequential
+swapping out, the test case uses 8 processes, which sequentially allocate
+and write to the anonymous pages until RAM and part of the swap device is
+used up.
+
+Details of comparison is as follow,
+
+base             base+patch
+---------------- --------------------------
+         %stddev     %change         %stddev
+             \          |                \
+   2506952 ±  2%     +28.1%    3212076 ±  7%  vm-scalability.throughput
+   1207402 ±  7%     +22.3%    1476578 ±  6%  vmstat.swap.so
+     10.86 ± 12%     -23.4%       8.31 ± 16%  perf-profile.cycles-pp._raw_spin_lock_irq.__add_to_swap_cache.add_to_swap_cache.add_to_swap.shrink_page_list
+     10.82 ± 13%     -33.1%       7.24 ± 14%  perf-profile.cycles-pp._raw_spin_lock_irqsave.__remove_mapping.shrink_page_list.shrink_inactive_list.shrink_zone_memcg
+     10.36 ± 11%    -100.0%       0.00 ± -1%  perf-profile.cycles-pp._raw_spin_lock_irqsave.__test_set_page_writeback.bdev_write_page.__swap_writepage.swap_writepage
+     10.52 ± 12%    -100.0%       0.00 ± -1%  perf-profile.cycles-pp._raw_spin_lock_irqsave.test_clear_page_writeback.end_page_writeback.page_endio.pmem_rw_page
+
+Link: http://lkml.kernel.org/r/1472578089-5560-1-git-send-email-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ima.h                   |   11 +++
- kernel/kexec_file.c                   |    4 +
- security/integrity/ima/ima.h          |    5 +
- security/integrity/ima/ima_init.c     |   26 +++++++
- security/integrity/ima/ima_template.c |   85 ++++++++++++++++++++++++
- 5 files changed, 131 insertions(+)
+ include/linux/pagemap.h |   12 ++++++++++++
+ mm/page-writeback.c     |    4 ++--
+ mm/swap_state.c         |    2 ++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/ima.h~ima-demonstration-code-for-kexec-buffer-passing include/linux/ima.h
---- a/include/linux/ima.h~ima-demonstration-code-for-kexec-buffer-passing
-+++ a/include/linux/ima.h
-@@ -11,6 +11,7 @@
- #define _LINUX_IMA_H
- 
- #include <linux/fs.h>
-+#include <linux/kexec.h>
- struct linux_binprm;
- 
- #ifdef CONFIG_IMA
-@@ -23,6 +24,10 @@ extern int ima_post_read_file(struct fil
- 			      enum kernel_read_file_id id);
- extern void ima_post_path_mknod(struct dentry *dentry);
- 
-+#ifdef CONFIG_KEXEC_FILE
-+extern void ima_add_kexec_buffer(struct kimage *image);
-+#endif
-+
- #else
- static inline int ima_bprm_check(struct linux_binprm *bprm)
- {
-@@ -60,6 +65,12 @@ static inline void ima_post_path_mknod(s
- 	return;
- }
- 
-+#ifdef CONFIG_KEXEC_FILE
-+static inline void ima_add_kexec_buffer(struct kimage *image)
-+{
-+}
-+#endif
-+
- #endif /* CONFIG_IMA */
- 
- #ifdef CONFIG_IMA_APPRAISE
-diff -puN kernel/kexec_file.c~ima-demonstration-code-for-kexec-buffer-passing kernel/kexec_file.c
---- a/kernel/kexec_file.c~ima-demonstration-code-for-kexec-buffer-passing
-+++ a/kernel/kexec_file.c
-@@ -19,6 +19,7 @@
- #include <linux/mutex.h>
- #include <linux/list.h>
- #include <linux/fs.h>
-+#include <linux/ima.h>
- #include <crypto/hash.h>
- #include <crypto/sha.h>
- #include <linux/syscalls.h>
-@@ -248,6 +249,9 @@ kimage_file_prepare_segments(struct kima
- 		}
- 	}
- 
-+	/* IMA needs to pass the measurement list to the next kernel. */
-+	ima_add_kexec_buffer(image);
-+
- 	/* Call arch image load handlers */
- 	ldata = arch_kexec_kernel_image_load(image);
- 
-diff -puN security/integrity/ima/ima.h~ima-demonstration-code-for-kexec-buffer-passing security/integrity/ima/ima.h
---- a/security/integrity/ima/ima.h~ima-demonstration-code-for-kexec-buffer-passing
-+++ a/security/integrity/ima/ima.h
-@@ -102,6 +102,11 @@ struct ima_queue_entry {
+diff -puN include/linux/pagemap.h~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache
++++ a/include/linux/pagemap.h
+@@ -25,6 +25,8 @@ enum mapping_flags {
+ 	AS_MM_ALL_LOCKS	= __GFP_BITS_SHIFT + 2,	/* under mm_take_all_locks() */
+ 	AS_UNEVICTABLE	= __GFP_BITS_SHIFT + 3,	/* e.g., ramdisk, SHM_LOCK */
+ 	AS_EXITING	= __GFP_BITS_SHIFT + 4, /* final truncate in progress */
++	/* writeback related tags are not used */
++	AS_NO_WRITEBACK_TAGS = __GFP_BITS_SHIFT + 5,
  };
- extern struct list_head ima_measurements;	/* list of all measurements */
  
-+#ifdef CONFIG_KEXEC_FILE
-+extern void *kexec_buffer;
-+extern size_t kexec_buffer_size;
-+#endif
-+
- /* Internal IMA function definitions */
- int ima_init(void);
- int ima_fs_init(void);
-diff -puN security/integrity/ima/ima_init.c~ima-demonstration-code-for-kexec-buffer-passing security/integrity/ima/ima_init.c
---- a/security/integrity/ima/ima_init.c~ima-demonstration-code-for-kexec-buffer-passing
-+++ a/security/integrity/ima/ima_init.c
-@@ -21,6 +21,7 @@
- #include <linux/scatterlist.h>
- #include <linux/slab.h>
- #include <linux/err.h>
-+#include <linux/kexec.h>
- 
- #include "ima.h"
- 
-@@ -104,6 +105,29 @@ void __init ima_load_x509(void)
+ static inline void mapping_set_error(struct address_space *mapping, int error)
+@@ -64,6 +66,16 @@ static inline int mapping_exiting(struct
+ 	return test_bit(AS_EXITING, &mapping->flags);
  }
- #endif
  
-+#ifdef CONFIG_KEXEC_FILE
-+static void ima_load_kexec_buffer(void)
++static inline void mapping_set_no_writeback_tags(struct address_space *mapping)
 +{
-+	int rc;
-+
-+	/* Fetch the buffer from the previous kernel, if any. */
-+	rc = kexec_get_handover_buffer(&kexec_buffer, &kexec_buffer_size);
-+	if (rc == 0) {
-+		/* Demonstrate that buffer handover works. */
-+		pr_err("kexec buffer contents: %s\n", (char *) kexec_buffer);
-+		pr_err("kexec buffer contents after update: %s\n",
-+		       (char *) kexec_buffer + 4 * PAGE_SIZE + 10);
-+
-+		kexec_free_handover_buffer();
-+	} else if (rc == -ENOENT)
-+		pr_debug("No kexec buffer from the previous kernel.\n");
-+	else
-+		pr_debug("Error restoring kexec buffer: %d\n", rc);
++	set_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
 +}
-+#else
-+static void ima_load_kexec_buffer(void) { }
-+#endif
 +
- int __init ima_init(void)
++static inline int mapping_use_writeback_tags(struct address_space *mapping)
++{
++	return !test_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
++}
++
+ static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
  {
- 	u8 pcr_i[TPM_DIGEST_SIZE];
-@@ -134,5 +158,7 @@ int __init ima_init(void)
+ 	return (__force gfp_t)mapping->flags & __GFP_BITS_MASK;
+diff -puN mm/page-writeback.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache
++++ a/mm/page-writeback.c
+@@ -2728,7 +2728,7 @@ int test_clear_page_writeback(struct pag
+ 	int ret;
  
- 	ima_init_policy();
+ 	lock_page_memcg(page);
+-	if (mapping) {
++	if (mapping && mapping_use_writeback_tags(mapping)) {
+ 		struct inode *inode = mapping->host;
+ 		struct backing_dev_info *bdi = inode_to_bdi(inode);
+ 		unsigned long flags;
+@@ -2771,7 +2771,7 @@ int __test_set_page_writeback(struct pag
+ 	int ret;
  
-+	ima_load_kexec_buffer();
-+
- 	return ima_fs_init();
- }
-diff -puN security/integrity/ima/ima_template.c~ima-demonstration-code-for-kexec-buffer-passing security/integrity/ima/ima_template.c
---- a/security/integrity/ima/ima_template.c~ima-demonstration-code-for-kexec-buffer-passing
-+++ a/security/integrity/ima/ima_template.c
-@@ -15,6 +15,8 @@
+ 	lock_page_memcg(page);
+-	if (mapping) {
++	if (mapping && mapping_use_writeback_tags(mapping)) {
+ 		struct inode *inode = mapping->host;
+ 		struct backing_dev_info *bdi = inode_to_bdi(inode);
+ 		unsigned long flags;
+diff -puN mm/swap_state.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache mm/swap_state.c
+--- a/mm/swap_state.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache
++++ a/mm/swap_state.c
+@@ -37,6 +37,8 @@ struct address_space swapper_spaces[MAX_
+ 		.page_tree	= RADIX_TREE_INIT(GFP_ATOMIC|__GFP_NOWARN),
+ 		.i_mmap_writable = ATOMIC_INIT(0),
+ 		.a_ops		= &swap_aops,
++		/* swap cache doesn't use writeback related tags */
++		.flags		= 1 << AS_NO_WRITEBACK_TAGS,
+ 	}
+ };
  
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
-+#include <linux/kexec.h>
-+#include <linux/reboot.h>
- #include "ima.h"
- #include "ima_template_lib.h"
- 
-@@ -182,6 +184,89 @@ static int template_desc_init_fields(con
- 	return 0;
- }
- 
-+#ifdef CONFIG_KEXEC_FILE
-+void *kexec_buffer;
-+size_t kexec_buffer_size;
-+
-+/* Physical address of the measurement buffer in the next kernel. */
-+unsigned long kexec_buffer_load_addr;
-+
-+/*
-+ * Called during reboot. IMA can add here new events that were generated after
-+ * the kexec image was loaded.
-+ */
-+static int ima_update_kexec_buffer(struct notifier_block *self,
-+				   unsigned long action, void *data)
-+{
-+	int ret;
-+
-+	if (!kexec_in_progress)
-+		return NOTIFY_OK;
-+
-+	/*
-+	 * Add content deep in the buffer to show that we can update
-+	 * all of it.
-+	 */
-+	strcpy(kexec_buffer + 4 * PAGE_SIZE + 10,
-+	       "Updated kexec buffer contents.");
-+
-+	ret = kexec_update_segment(kexec_buffer, kexec_buffer_size,
-+				   kexec_buffer_load_addr, kexec_buffer_size);
-+	if (ret)
-+		pr_err("Error updating kexec buffer: %d\n", ret);
-+
-+	return NOTIFY_OK;
-+}
-+
-+struct notifier_block update_buffer_nb = {
-+	.notifier_call = ima_update_kexec_buffer,
-+};
-+
-+/*
-+ * Called during kexec_file_load so that IMA can add a segment to the kexec
-+ * image with the measurement event log for the next kernel.
-+ */
-+void ima_add_kexec_buffer(struct kimage *image)
-+{
-+	/* Ask not to checksum the segment, we may have to update it later. */
-+	struct kexec_buf kbuf = { .image = image, .buf_align = PAGE_SIZE,
-+				  .buf_min = 0, .buf_max = ULONG_MAX,
-+				  .top_down = true, .skip_checksum = true };
-+	bool first_kexec_load = kexec_buffer_load_addr == 0;
-+	int ret;
-+
-+	if (!kexec_can_hand_over_buffer())
-+		return;
-+
-+	if (!first_kexec_load)
-+		kfree(kexec_buffer);
-+
-+	/* Create a relatively big buffer, for testing. */
-+	kexec_buffer_size = kbuf.bufsz = kbuf.memsz = 5 * PAGE_SIZE;
-+	kexec_buffer = kbuf.buffer = kzalloc(kexec_buffer_size, GFP_KERNEL);
-+	if (!kexec_buffer) {
-+		pr_err("Not enough memory for the kexec measurement buffer.\n");
-+		return;
-+	}
-+
-+	/* Add some content for demonstration purposes. */
-+	strcpy(kexec_buffer, "Buffer contents at kexec load time.");
-+
-+	ret = kexec_add_handover_buffer(&kbuf);
-+	if (ret) {
-+		pr_err("Error passing over kexec measurement buffer.\n");
-+		return;
-+	}
-+	kexec_buffer_load_addr = kbuf.mem;
-+
-+	if (first_kexec_load)
-+		register_reboot_notifier(&update_buffer_nb);
-+
-+	pr_debug("kexec measurement buffer for the loaded kernel at 0x%lx.\n",
-+		 kexec_buffer_load_addr);
-+}
-+#endif /* CONFIG_KEXEC_FILE */
-+
- struct ima_template_desc *ima_template_desc_current(void)
- {
- 	if (!ima_template)
 _
 
-Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-kexec-fix-double-free-when-failing-to-relocate-the-purgatory.patch
-kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
-kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
-kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
-powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
-powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c.patch
-powerpc-generalize-elf64_apply_relocate_add.patch
-powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
-powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
-powerpc-implement-kexec_file_load.patch
-powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
-powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
-powerpc-add-purgatory-for-kexec_file_load-implementation.patch
-powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
-kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
-powerpc-kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
-kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
-kexec_file-add-mechanism-to-update-kexec-segments.patch
-ima-demonstration-code-for-kexec-buffer-passing.patch
+mm-swap-add-swap_cluster_list.patch
+mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch
 
