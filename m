@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + kexec_file-add-mechanism-to-update-kexec-segments.patch added
- to -mm tree
-Date: Tue, 30 Aug 2016 14:57:53 -0700
-Message-ID: <57c60161./n1oyCSlookYSHQu%akpm@linux-foundation.org>
+Subject: +
+ kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
+ added to -mm tree
+Date: Tue, 30 Aug 2016 14:57:52 -0700
+Message-ID: <57c60160.w8B0kOjgpf8Tqmvi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45588 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45582 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752187AbcH3V5z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 17:57:55 -0400
+        with ESMTP id S1751749AbcH3V5y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 17:57:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec_file: add mechanism to update kexec segments
+     Subject: kexec_file: allow skipping checksum calculation for some segments
 has been added to the -mm tree.  Its filename is
-     kexec_file-add-mechanism-to-update-kexec-segments.patch
+     kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec_file-add-mechanism-to-update-kexec-segments.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec_file-add-mechanism-to-update-kexec-segments.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +41,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: kexec_file: add mechanism to update kexec segments
+Subject: kexec_file: allow skipping checksum calculation for some segments
 
-kexec_update_segment allows a given segment in kexec_image to have
-its contents updated. This is useful if the current kernel wants to
-send information to the next kernel that is up-to-date at the time of
-reboot.
+Add skip_checksum member to struct kexec_buf to specify whether the
+corresponding segment should be part of the checksum calculation.
 
-Link: http://lkml.kernel.org/r/1472579105-26296-5-git-send-email-bauerman@linux.vnet.ibm.com
+The next patch will add a way to update segments after a kimage is loaded.
+Segments that will be updated in this way should not be checksummed,
+otherwise they will cause the purgatory checksum verification to fail
+when the machine is rebooted.
+
+As a bonus, we don't need to special-case the purgatory segment anymore
+to avoid checksumming it.
+
+Places using struct kexec_buf get false as the default value for
+skip_checksum since they all use designated initializers.  Therefore,
+there is no behavior change with this patch and all segments except the
+purgatory are checksummed.
+
+Link: http://lkml.kernel.org/r/1472579105-26296-4-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
@@ -61,130 +73,110 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    2 
- kernel/kexec_core.c   |   98 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 100 insertions(+)
+ include/linux/kexec.h |   23 ++++++++++++++---------
+ kernel/kexec_file.c   |   15 +++++++--------
+ 2 files changed, 21 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/kexec.h~kexec_file-add-mechanism-to-update-kexec-segments include/linux/kexec.h
---- a/include/linux/kexec.h~kexec_file-add-mechanism-to-update-kexec-segments
+diff -puN include/linux/kexec.h~kexec_file-allow-skipping-checksum-calculation-for-some-segments include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec_file-allow-skipping-checksum-calculation-for-some-segments
 +++ a/include/linux/kexec.h
-@@ -256,6 +256,8 @@ extern int kexec_purgatory_get_set_symbo
- 					  unsigned int size, bool get_value);
- extern void *kexec_purgatory_get_symbol_addr(struct kimage *image,
- 					     const char *name);
-+int kexec_update_segment(const char *buffer, size_t bufsz,
-+			 unsigned long load_addr, size_t memsz);
- extern void __crash_kexec(struct pt_regs *);
- extern void crash_kexec(struct pt_regs *);
- int kexec_should_crash(struct task_struct *);
-diff -puN kernel/kexec_core.c~kexec_file-add-mechanism-to-update-kexec-segments kernel/kexec_core.c
---- a/kernel/kexec_core.c~kexec_file-add-mechanism-to-update-kexec-segments
-+++ a/kernel/kexec_core.c
-@@ -721,6 +721,104 @@ static struct page *kimage_alloc_page(st
- 	return page;
- }
+@@ -100,6 +100,9 @@ struct kexec_segment {
+ 	size_t bufsz;
+ 	unsigned long mem;
+ 	size_t memsz;
++
++	/* Whether this segment is ignored in the checksum calculation. */
++	bool skip_checksum;
+ };
  
-+/**
-+ * kexec_update_segment - update the contents of a kimage segment
-+ * @buffer:	New contents of the segment.
-+ * @bufsz:	@buffer size.
-+ * @load_addr:	Segment's physical address in the next kernel.
-+ * @memsz:	Segment size.
-+ *
-+ * This function assumes kexec_mutex is held.
-+ *
-+ * Return: 0 on success, negative errno on error.
-+ */
-+int kexec_update_segment(const char *buffer, size_t bufsz,
-+			 unsigned long load_addr, size_t memsz)
-+{
-+	int i;
-+	unsigned long entry;
-+	unsigned long *ptr = NULL;
-+	void *dest = NULL;
-+
-+	if (kexec_image == NULL) {
-+		pr_err("Can't update segment: no kexec image loaded.\n");
-+		return -EINVAL;
-+	}
-+
+ #ifdef CONFIG_COMPAT
+@@ -151,15 +154,16 @@ struct kexec_file_ops {
+ 
+ /**
+  * struct kexec_buf - parameters for finding a place for a buffer in memory
+- * @image:	kexec image in which memory to search.
+- * @buffer:	Contents which will be copied to the allocated memory.
+- * @bufsz:	Size of @buffer.
+- * @mem:	On return will have address of the buffer in memory.
+- * @memsz:	Size for the buffer in memory.
+- * @buf_align:	Minimum alignment needed.
+- * @buf_min:	The buffer can't be placed below this address.
+- * @buf_max:	The buffer can't be placed above this address.
+- * @top_down:	Allocate from top of memory.
++ * @image:		kexec image in which memory to search.
++ * @buffer:		Contents which will be copied to the allocated memory.
++ * @bufsz:		Size of @buffer.
++ * @mem:		On return will have address of the buffer in memory.
++ * @memsz:		Size for the buffer in memory.
++ * @buf_align:		Minimum alignment needed.
++ * @buf_min:		The buffer can't be placed below this address.
++ * @buf_max:		The buffer can't be placed above this address.
++ * @top_down:		Allocate from top of memory.
++ * @skip_checksum:	Don't verify checksum for this buffer in purgatory.
+  */
+ struct kexec_buf {
+ 	struct kimage *image;
+@@ -171,6 +175,7 @@ struct kexec_buf {
+ 	unsigned long buf_min;
+ 	unsigned long buf_max;
+ 	bool top_down;
++	bool skip_checksum;
+ };
+ 
+ int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
+diff -puN kernel/kexec_file.c~kexec_file-allow-skipping-checksum-calculation-for-some-segments kernel/kexec_file.c
+--- a/kernel/kexec_file.c~kexec_file-allow-skipping-checksum-calculation-for-some-segments
++++ a/kernel/kexec_file.c
+@@ -584,6 +584,7 @@ int kexec_add_buffer(struct kexec_buf *k
+ 	ksegment->bufsz = kbuf->bufsz;
+ 	ksegment->mem = kbuf->mem;
+ 	ksegment->memsz = kbuf->memsz;
++	ksegment->skip_checksum = kbuf->skip_checksum;
+ 	kbuf->image->nr_segments++;
+ 	return 0;
+ }
+@@ -598,7 +599,6 @@ static int kexec_calculate_store_digests
+ 	char *digest;
+ 	void *zero_buf;
+ 	struct kexec_sha_region *sha_regions;
+-	struct purgatory_info *pi = &image->purgatory_info;
+ 
+ 	zero_buf = __va(page_to_pfn(ZERO_PAGE(0)) << PAGE_SHIFT);
+ 	zero_buf_sz = PAGE_SIZE;
+@@ -638,11 +638,7 @@ static int kexec_calculate_store_digests
+ 		struct kexec_segment *ksegment;
+ 
+ 		ksegment = &image->segment[i];
+-		/*
+-		 * Skip purgatory as it will be modified once we put digest
+-		 * info in purgatory.
+-		 */
+-		if (ksegment->kbuf == pi->purgatory_buf)
++		if (ksegment->skip_checksum)
+ 			continue;
+ 
+ 		ret = crypto_shash_update(desc, ksegment->kbuf,
+@@ -714,7 +710,7 @@ static int __kexec_load_purgatory(struct
+ 	Elf_Shdr *sechdrs = NULL;
+ 	struct kexec_buf kbuf = { .image = image, .bufsz = 0, .buf_align = 1,
+ 				  .buf_min = min, .buf_max = max,
+-				  .top_down = top_down };
++				  .top_down = top_down, .skip_checksum = true };
+ 
+ 	/*
+ 	 * sechdrs_c points to section headers in purgatory and are read
+@@ -819,7 +815,10 @@ static int __kexec_load_purgatory(struct
+ 	if (kbuf.buf_align < bss_align)
+ 		kbuf.buf_align = bss_align;
+ 
+-	/* Add buffer to segment list */
 +	/*
-+	 * kexec_add_buffer rounds up segment sizes to PAGE_SIZE, so
-+	 * we have to do it here as well.
++	 * Add buffer to segment list. Don't checksum the segment as
++	 * it will be modified once we put digest info in purgatory.
 +	 */
-+	memsz = ALIGN(memsz, PAGE_SIZE);
-+
-+	for (i = 0; i < kexec_image->nr_segments; i++)
-+		/* We only support updating whole segments. */
-+		if (load_addr == kexec_image->segment[i].mem &&
-+		    memsz == kexec_image->segment[i].memsz) {
-+			if (!kexec_image->segment[i].skip_checksum) {
-+				pr_err("Trying to update non-modifiable segment.\n");
-+				return -EINVAL;
-+			}
-+
-+			break;
-+		}
-+	if (i == kexec_image->nr_segments) {
-+		pr_err("Couldn't find segment to update: 0x%lx, size 0x%zx\n",
-+		       load_addr, memsz);
-+		return -EINVAL;
-+	}
-+
-+	for (entry = kexec_image->head; !(entry & IND_DONE) && memsz;
-+	     entry = *ptr++) {
-+		void *addr = (void *) (entry & PAGE_MASK);
-+
-+		switch (entry & IND_FLAGS) {
-+		case IND_DESTINATION:
-+			dest = addr;
-+			break;
-+		case IND_INDIRECTION:
-+			ptr = __va(entry & PAGE_MASK);
-+			break;
-+		case IND_SOURCE:
-+			/* Shouldn't happen, but verify just to be safe. */
-+			if (dest == NULL) {
-+				pr_err("Invalid kexec entries list.");
-+				return -EINVAL;
-+			}
-+
-+			if (dest == (void *) load_addr) {
-+				void *page_addr;
-+				unsigned long offset;
-+				size_t uchunk, mchunk;
-+
-+				page_addr = kmap_atomic(kmap_to_page(addr));
-+
-+				offset = load_addr & ~PAGE_MASK;
-+				mchunk = min_t(size_t, memsz,
-+					       PAGE_SIZE - offset);
-+				uchunk = min(bufsz, mchunk);
-+				memcpy(page_addr + offset, buffer, uchunk);
-+
-+				kunmap_atomic(page_addr);
-+
-+				bufsz -= uchunk;
-+				load_addr += mchunk;
-+				buffer += mchunk;
-+				memsz -= mchunk;
-+			}
-+			dest += PAGE_SIZE;
-+		}
-+
-+		/* Shouldn't happen, but verify just to be safe. */
-+		if (ptr == NULL) {
-+			pr_err("Invalid kexec entries list.");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- static int kimage_load_normal_segment(struct kimage *image,
- 					 struct kexec_segment *segment)
- {
+ 	ret = kexec_add_buffer(&kbuf);
+ 	if (ret)
+ 		goto out;
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
