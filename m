@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-4-xfs-call-thp_get_unmapped_area-for-pmd-mappings.patch
- added to -mm tree
-Date: Tue, 30 Aug 2016 15:20:01 -0700
-Message-ID: <57c60691.mR7Iw0wGZC7D8EhZ%akpm@linux-foundation.org>
+Subject: + thp-dax-add-thp_get_unmapped_area-for-pmd-mappings.patch added
+ to -mm tree
+Date: Tue, 30 Aug 2016 15:19:59 -0700
+Message-ID: <57c6068f.kJNzo8BEMHRp62TZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46075 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751154AbcH3WUC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:20:02 -0400
+        with ESMTP id S1751154AbcH3WUB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:20:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: toshi.kani@hpe.com, adilger.kernel@dilger.ca, dan.j.williams@intel.com, david@fromorbit.com, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, kirill@shutemov.name, mawilcox@microsoft.com, mike.kravetz@oracle.com, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext2/4, xfs: call thp_get_unmapped_area() for pmd mappings
+     Subject: thp, dax: add thp_get_unmapped_area for pmd mappings
 has been added to the -mm tree.  Its filename is
-     ext2-4-xfs-call-thp_get_unmapped_area-for-pmd-mappings.patch
+     thp-dax-add-thp_get_unmapped_area-for-pmd-mappings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ext2-4-xfs-call-thp_get_unmapped_area-for-pmd-mappings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-dax-add-thp_get_unmapped_area-for-pmd-mappings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ext2-4-xfs-call-thp_get_unmapped_area-for-pmd-mappings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-dax-add-thp_get_unmapped_area-for-pmd-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,18 +40,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: ext2/4, xfs: call thp_get_unmapped_area() for pmd mappings
+Subject: thp, dax: add thp_get_unmapped_area for pmd mappings
 
-To support DAX pmd mappings with unmodified applications,
-filesystems need to align an mmap address by the pmd size.
+When CONFIG_FS_DAX_PMD is set, DAX supports mmap() using pmd page size. 
+This feature relies on both mmap virtual address and FS block (i.e. 
+physical address) to be aligned by the pmd page size.  Users can use mkfs
+options to specify FS to align block allocations.  However, aligning mmap
+address requires code changes to existing applications for providing a
+pmd-aligned address to mmap().
 
-Call thp_get_unmapped_area() from f_op->get_unmapped_area.
+For instance, fio with "ioengine=mmap" performs I/Os with mmap() [1].  It
+calls mmap() with a NULL address, which needs to be changed to provide a
+pmd-aligned address for testing with DAX pmd mappings.  Changing all
+applications that call mmap() with NULL is undesirable.
 
-Note, there is no change in behavior for a non-DAX file.
+Add thp_get_unmapped_area(), which can be called by filesystem's
+get_unmapped_area to align an mmap address by the pmd size for a DAX file.
+It calls the default handler, mm->get_unmapped_area(), to find a range
+and then aligns it for a DAX file.
 
-Link: http://lkml.kernel.org/r/1472497881-9323-3-git-send-email-toshi.kani@hpe.com
+The patch is based on Matthew Wilcox's change that allows adding support
+of the pud page size easily.
+
+[1]: https://github.com/axboe/fio/blob/master/engines/mmap.c
+Link: http://lkml.kernel.org/r/1472497881-9323-2-git-send-email-toshi.kani@hpe.com
 Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Matthew Wilcox <mawilcox@microsoft.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
@@ -65,44 +79,87 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/file.c    |    1 +
- fs/ext4/file.c    |    1 +
- fs/xfs/xfs_file.c |    1 +
- 3 files changed, 3 insertions(+)
+ include/linux/huge_mm.h |    7 ++++++
+ mm/huge_memory.c        |   43 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 50 insertions(+)
 
-diff -puN fs/ext2/file.c~ext2-4-xfs-call-thp_get_unmapped_area-for-pmd-mappings fs/ext2/file.c
---- a/fs/ext2/file.c~ext2-4-xfs-call-thp_get_unmapped_area-for-pmd-mappings
-+++ a/fs/ext2/file.c
-@@ -172,6 +172,7 @@ const struct file_operations ext2_file_o
- 	.open		= dquot_file_open,
- 	.release	= ext2_release_file,
- 	.fsync		= ext2_fsync,
-+	.get_unmapped_area = thp_get_unmapped_area,
- 	.splice_read	= generic_file_splice_read,
- 	.splice_write	= iter_file_splice_write,
- };
-diff -puN fs/ext4/file.c~ext2-4-xfs-call-thp_get_unmapped_area-for-pmd-mappings fs/ext4/file.c
---- a/fs/ext4/file.c~ext2-4-xfs-call-thp_get_unmapped_area-for-pmd-mappings
-+++ a/fs/ext4/file.c
-@@ -703,6 +703,7 @@ const struct file_operations ext4_file_o
- 	.open		= ext4_file_open,
- 	.release	= ext4_release_file,
- 	.fsync		= ext4_sync_file,
-+	.get_unmapped_area = thp_get_unmapped_area,
- 	.splice_read	= generic_file_splice_read,
- 	.splice_write	= iter_file_splice_write,
- 	.fallocate	= ext4_fallocate,
-diff -puN fs/xfs/xfs_file.c~ext2-4-xfs-call-thp_get_unmapped_area-for-pmd-mappings fs/xfs/xfs_file.c
---- a/fs/xfs/xfs_file.c~ext2-4-xfs-call-thp_get_unmapped_area-for-pmd-mappings
-+++ a/fs/xfs/xfs_file.c
-@@ -1662,6 +1662,7 @@ const struct file_operations xfs_file_op
- 	.open		= xfs_file_open,
- 	.release	= xfs_file_release,
- 	.fsync		= xfs_file_fsync,
-+	.get_unmapped_area = thp_get_unmapped_area,
- 	.fallocate	= xfs_file_fallocate,
- };
+diff -puN include/linux/huge_mm.h~thp-dax-add-thp_get_unmapped_area-for-pmd-mappings include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~thp-dax-add-thp_get_unmapped_area-for-pmd-mappings
++++ a/include/linux/huge_mm.h
+@@ -87,6 +87,10 @@ extern bool is_vma_temporary_stack(struc
  
+ extern unsigned long transparent_hugepage_flags;
+ 
++extern unsigned long thp_get_unmapped_area(struct file *filp,
++		unsigned long addr, unsigned long len, unsigned long pgoff,
++		unsigned long flags);
++
+ extern void prep_transhuge_page(struct page *page);
+ extern void free_transhuge_page(struct page *page);
+ 
+@@ -169,6 +173,9 @@ void put_huge_zero_page(void);
+ static inline void prep_transhuge_page(struct page *page) {}
+ 
+ #define transparent_hugepage_flags 0UL
++
++#define thp_get_unmapped_area	NULL
++
+ static inline int
+ split_huge_page_to_list(struct page *page, struct list_head *list)
+ {
+diff -puN mm/huge_memory.c~thp-dax-add-thp_get_unmapped_area-for-pmd-mappings mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-dax-add-thp_get_unmapped_area-for-pmd-mappings
++++ a/mm/huge_memory.c
+@@ -469,6 +469,49 @@ void prep_transhuge_page(struct page *pa
+ 	set_compound_page_dtor(page, TRANSHUGE_PAGE_DTOR);
+ }
+ 
++unsigned long __thp_get_unmapped_area(struct file *filp, unsigned long len,
++		loff_t off, unsigned long flags, unsigned long size)
++{
++	unsigned long addr;
++	loff_t off_end = off + len;
++	loff_t off_align = round_up(off, size);
++	unsigned long len_pad;
++
++	if (off_end <= off_align || (off_end - off_align) < size)
++		return 0;
++
++	len_pad = len + size;
++	if (len_pad < len || (off + len_pad) < off)
++		return 0;
++
++	addr = current->mm->get_unmapped_area(filp, 0, len_pad,
++					      off >> PAGE_SHIFT, flags);
++	if (IS_ERR_VALUE(addr))
++		return 0;
++
++	addr += (off - addr) & (size - 1);
++	return addr;
++}
++
++unsigned long thp_get_unmapped_area(struct file *filp, unsigned long addr,
++		unsigned long len, unsigned long pgoff, unsigned long flags)
++{
++	loff_t off = (loff_t)pgoff << PAGE_SHIFT;
++
++	if (addr)
++		goto out;
++	if (!IS_DAX(filp->f_mapping->host) || !IS_ENABLED(CONFIG_FS_DAX_PMD))
++		goto out;
++
++	addr = __thp_get_unmapped_area(filp, len, off, flags, PMD_SIZE);
++	if (addr)
++		return addr;
++
++ out:
++	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
++}
++EXPORT_SYMBOL_GPL(thp_get_unmapped_area);
++
+ static int __do_huge_pmd_anonymous_page(struct fault_env *fe, struct page *page,
+ 		gfp_t gfp)
+ {
 _
 
 Patches currently in -mm which might be from toshi.kani@hpe.com are
