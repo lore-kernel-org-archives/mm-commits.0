@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mlock-check-against-vma-for-actual-mlock-size.patch added to -mm tree
-Date: Tue, 30 Aug 2016 15:09:44 -0700
-Message-ID: <57c60428.6LGNGHnIlyTGEa0x%akpm@linux-foundation.org>
+Subject: + mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+ added to -mm tree
+Date: Tue, 30 Aug 2016 15:09:46 -0700
+Message-ID: <57c6042a.zITbxYsLAUYcLWd5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45713 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45719 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750798AbcH3WJq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:09:46 -0400
+        with ESMTP id S1750798AbcH3WJr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:09:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wei.guo.simon@gmail.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, wei.guo.simon@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mlock: check against vma for actual mlock() size
+     Subject: mm-mlock-check-against-vma-for-actual-mlock-size-fix
 has been added to the -mm tree.  Its filename is
-     mm-mlock-check-against-vma-for-actual-mlock-size.patch
+     mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-check-against-vma-for-actual-mlock-size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-check-against-vma-for-actual-mlock-size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,114 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Simon Guo <wei.guo.simon@gmail.com>
-Subject: mm: mlock: check against vma for actual mlock() size
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mlock-check-against-vma-for-actual-mlock-size-fix
 
-In do_mlock(), the check against locked memory limitation has a hole which
-will fail following cases at step 3):
+clean up comment layout
 
-1) User has a memory chunk from addressA with 50k, and user
-mem lock rlimit is 64k.
-2) mlock(addressA, 30k)
-3) mlock(addressA, 40k)
-
-The 3rd step should have been allowed since the 40k request is intersected
-with the previous 30k at step 2), and the 3rd step is actually for mlock
-on the extra 10k memory.
-
-This patch checks vma to caculate the actual "new" mlock size, if
-necessary, and ajust the logic to fix this issue.
-
-Link: http://lkml.kernel.org/r/1472554781-9835-2-git-send-email-wei.guo.simon@gmail.com
-Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
-Cc: Alexey Klimov <klimov.linux@gmail.com>
-Cc: Eric B Munson <emunson@akamai.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
 Cc: Simon Guo <wei.guo.simon@gmail.com>
-Cc: Thierry Reding <treding@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   49 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ mm/mlock.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size mm/mlock.c
---- a/mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size
+diff -puN mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size-fix mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size-fix
 +++ a/mm/mlock.c
-@@ -617,6 +617,43 @@ static int apply_vma_lock_flags(unsigned
- 	return error;
- }
- 
-+/*
-+ * Go through vma areas and sum size of mlocked
-+ * vma pages, as return value.
-+ * Note deferred memory locking case(mlock2(,,MLOCK_ONFAULT)
-+ * is also counted.
-+ * Return value: previously mlocked page counts
-+ */
-+static int count_mm_mlocked_page_nr(struct mm_struct *mm,
-+		unsigned long start, size_t len)
-+{
-+	struct vm_area_struct *vma;
-+	int count = 0;
-+
-+	if (mm == NULL)
-+		mm = current->mm;
-+
-+	vma = find_vma(mm, start);
-+	if (vma == NULL)
-+		vma = mm->mmap;
-+
-+	for (; vma ; vma = vma->vm_next) {
-+		if (start + len <=  vma->vm_start)
-+			break;
-+		if (vma->vm_flags && VM_LOCKED) {
-+			if (start > vma->vm_start)
-+				count -= (start - vma->vm_start);
-+			if (start + len < vma->vm_end) {
-+				count += start + len - vma->vm_start;
-+				break;
-+			}
-+			count += vma->vm_end - vma->vm_start;
-+		}
-+	}
-+
-+	return (PAGE_ALIGN(count) >> PAGE_SHIFT);
-+}
-+
- static __must_check int do_mlock(unsigned long start, size_t len, vm_flags_t flags)
- {
- 	unsigned long locked;
-@@ -639,6 +676,18 @@ static __must_check int do_mlock(unsigne
- 		return -EINTR;
- 
+@@ -678,12 +678,10 @@ static __must_check int do_mlock(unsigne
  	locked += current->mm->locked_vm;
-+	if ((locked > lock_limit) && (!capable(CAP_IPC_LOCK))) {
-+		/*
-+		 * It is possible that the regions requested
-+		 * intersect with previously mlocked areas,
-+		 * that part area in "mm->locked_vm" should
-+		 * not be counted to new mlock increment
-+		 * count. So check and adjust locked count
-+		 * if necessary.
-+		 */
-+		locked -= count_mm_mlocked_page_nr(current->mm,
-+				start, len);
-+	}
- 
- 	/* check against resource limits */
- 	if ((locked <= lock_limit) || capable(CAP_IPC_LOCK))
+ 	if ((locked > lock_limit) && (!capable(CAP_IPC_LOCK))) {
+ 		/*
+-		 * It is possible that the regions requested
+-		 * intersect with previously mlocked areas,
+-		 * that part area in "mm->locked_vm" should
+-		 * not be counted to new mlock increment
+-		 * count. So check and adjust locked count
+-		 * if necessary.
++		 * It is possible that the regions requested intersect with
++		 * previously mlocked areas, that part area in "mm->locked_vm"
++		 * should not be counted to new mlock increment count. So check
++		 * and adjust locked count if necessary.
+ 		 */
+ 		locked -= count_mm_mlocked_page_nr(current->mm,
+ 				start, len);
 _
 
-Patches currently in -mm which might be from wei.guo.simon@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mlock-check-against-vma-for-actual-mlock-size.patch
-mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch
-selftest-split-mlock2_-funcs-into-separate-mlock2h.patch
-selftests-vm-add-test-for-mlock-when-areas-are-intersected.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-vmalloc-fix-align-value-calculation-error-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
+mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
