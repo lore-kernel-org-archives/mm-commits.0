@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch added
- to -mm tree
-Date: Tue, 30 Aug 2016 15:01:05 -0700
-Message-ID: <57c60221.30wkUsnpufplEcaG%akpm@linux-foundation.org>
+Subject: + printk-nmi-avoid-direct-printk-s-from-__printk_nmi_flush.patch
+ added to -mm tree
+Date: Tue, 30 Aug 2016 15:02:49 -0700
+Message-ID: <57c60289.VTc3NQUnplr7oLqG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45603 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45609 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750859AbcH3WBG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:01:06 -0400
+        with ESMTP id S1750800AbcH3WCu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:02:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, dave.hansen@intel.com, fengguang.wu@intel.com, hughd@google.com, mgorman@techsingularity.net, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, jack@suse.cz, pmladek@suse.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: Don't use radix tree writeback tags for pages in swap cache
+     Subject: printk/nmi: avoid direct printk()-s from __printk_nmi_flush()
 has been added to the -mm tree.  Its filename is
-     mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch
+     printk-nmi-avoid-direct-printk-s-from-__printk_nmi_flush.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-nmi-avoid-direct-printk-s-from-__printk_nmi_flush.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-nmi-avoid-direct-printk-s-from-__printk_nmi_flush.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,127 +39,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm: Don't use radix tree writeback tags for pages in swap cache
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: printk/nmi: avoid direct printk()-s from __printk_nmi_flush()
 
-File pages use a set of radix tree tags (DIRTY, TOWRITE, WRITEBACK, etc.)
-to accelerate finding the pages with a specific tag in the radix tree
-during inode writeback.  But for anonymous pages in the swap cache, there
-is no inode writeback.  So there is no need to find the pages with some
-writeback tags in the radix tree.  It is not necessary to touch radix tree
-writeback tags for pages in the swap cache.
+__printk_nmi_flush() can be called from nmi_panic(), therefore it has to
+test whether it's executed in NMI context and thus must route the messages
+through deferred printk() or via direct printk(). Except for two places
+where __printk_nmi_flush() does unconditional direct printk() calls:
+ - pr_err("printk_nmi_flush: internal error ...")
+ - pr_cont("\n")
 
-Per Rik van Riel's suggestion, a new flag AS_NO_WRITEBACK_TAGS is
-introduced for address spaces which don't need to update the writeback
-tags.  The flag is set for swap caches.  It may be used for DAX file
-systems, etc.
+Factor out print_nmi_seq_line() parts into a new printk_nmi_flush_line()
+function, which takes care of in_nmi(), and use it in __printk_nmi_flush()
+for printing and error-reporting.
 
-With this patch, the swap out bandwidth improved 22.3% (from ~1.2GB/s to ~
-1.48GBps) in the vm-scalability swap-w-seq test case with 8 processes. 
-The test is done on a Xeon E5 v3 system.  The swap device used is a RAM
-simulated PMEM (persistent memory) device.  The improvement comes from the
-reduced contention on the swap cache radix tree lock.  To test sequential
-swapping out, the test case uses 8 processes, which sequentially allocate
-and write to the anonymous pages until RAM and part of the swap device is
-used up.
-
-Details of comparison is as follow,
-
-base             base+patch
----------------- --------------------------
-         %stddev     %change         %stddev
-             \          |                \
-   2506952 ±  2%     +28.1%    3212076 ±  7%  vm-scalability.throughput
-   1207402 ±  7%     +22.3%    1476578 ±  6%  vmstat.swap.so
-     10.86 ± 12%     -23.4%       8.31 ± 16%  perf-profile.cycles-pp._raw_spin_lock_irq.__add_to_swap_cache.add_to_swap_cache.add_to_swap.shrink_page_list
-     10.82 ± 13%     -33.1%       7.24 ± 14%  perf-profile.cycles-pp._raw_spin_lock_irqsave.__remove_mapping.shrink_page_list.shrink_inactive_list.shrink_zone_memcg
-     10.36 ± 11%    -100.0%       0.00 ± -1%  perf-profile.cycles-pp._raw_spin_lock_irqsave.__test_set_page_writeback.bdev_write_page.__swap_writepage.swap_writepage
-     10.52 ± 12%    -100.0%       0.00 ± -1%  perf-profile.cycles-pp._raw_spin_lock_irqsave.test_clear_page_writeback.end_page_writeback.page_endio.pmem_rw_page
-
-Link: http://lkml.kernel.org/r/1472578089-5560-1-git-send-email-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Link: http://lkml.kernel.org/r/20160830161354.581-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   12 ++++++++++++
- mm/page-writeback.c     |    4 ++--
- mm/swap_state.c         |    2 ++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+ kernel/printk/nmi.c |   38 +++++++++++++++++++++++---------------
+ 1 file changed, 23 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/pagemap.h~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache
-+++ a/include/linux/pagemap.h
-@@ -25,6 +25,8 @@ enum mapping_flags {
- 	AS_MM_ALL_LOCKS	= __GFP_BITS_SHIFT + 2,	/* under mm_take_all_locks() */
- 	AS_UNEVICTABLE	= __GFP_BITS_SHIFT + 3,	/* e.g., ramdisk, SHM_LOCK */
- 	AS_EXITING	= __GFP_BITS_SHIFT + 4, /* final truncate in progress */
-+	/* writeback related tags are not used */
-+	AS_NO_WRITEBACK_TAGS = __GFP_BITS_SHIFT + 5,
- };
- 
- static inline void mapping_set_error(struct address_space *mapping, int error)
-@@ -64,6 +66,16 @@ static inline int mapping_exiting(struct
- 	return test_bit(AS_EXITING, &mapping->flags);
+diff -puN kernel/printk/nmi.c~printk-nmi-avoid-direct-printk-s-from-__printk_nmi_flush kernel/printk/nmi.c
+--- a/kernel/printk/nmi.c~printk-nmi-avoid-direct-printk-s-from-__printk_nmi_flush
++++ a/kernel/printk/nmi.c
+@@ -99,27 +99,33 @@ again:
+ 	return add;
  }
  
-+static inline void mapping_set_no_writeback_tags(struct address_space *mapping)
-+{
-+	set_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
-+}
-+
-+static inline int mapping_use_writeback_tags(struct address_space *mapping)
-+{
-+	return !test_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
-+}
-+
- static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
+-/*
+- * printk one line from the temporary buffer from @start index until
+- * and including the @end index.
+- */
+-static void print_nmi_seq_line(struct nmi_seq_buf *s, int start, int end)
++static void printk_nmi_flush_line(const char *text, int len)
  {
- 	return (__force gfp_t)mapping->flags & __GFP_BITS_MASK;
-diff -puN mm/page-writeback.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache mm/page-writeback.c
---- a/mm/page-writeback.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache
-+++ a/mm/page-writeback.c
-@@ -2728,7 +2728,7 @@ int test_clear_page_writeback(struct pag
- 	int ret;
+-	const char *buf = s->buffer + start;
+-
+ 	/*
+ 	 * The buffers are flushed in NMI only on panic.  The messages must
+ 	 * go only into the ring buffer at this stage.  Consoles will get
+ 	 * explicitly called later when a crashdump is not generated.
+ 	 */
+ 	if (in_nmi())
+-		printk_deferred("%.*s", (end - start) + 1, buf);
++		printk_deferred("%.*s", len, text);
+ 	else
+-		printk("%.*s", (end - start) + 1, buf);
++		printk("%.*s", len, text);
  
- 	lock_page_memcg(page);
--	if (mapping) {
-+	if (mapping && mapping_use_writeback_tags(mapping)) {
- 		struct inode *inode = mapping->host;
- 		struct backing_dev_info *bdi = inode_to_bdi(inode);
- 		unsigned long flags;
-@@ -2771,7 +2771,7 @@ int __test_set_page_writeback(struct pag
- 	int ret;
+ }
  
- 	lock_page_memcg(page);
--	if (mapping) {
-+	if (mapping && mapping_use_writeback_tags(mapping)) {
- 		struct inode *inode = mapping->host;
- 		struct backing_dev_info *bdi = inode_to_bdi(inode);
- 		unsigned long flags;
-diff -puN mm/swap_state.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache mm/swap_state.c
---- a/mm/swap_state.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache
-+++ a/mm/swap_state.c
-@@ -37,6 +37,8 @@ struct address_space swapper_spaces[MAX_
- 		.page_tree	= RADIX_TREE_INIT(GFP_ATOMIC|__GFP_NOWARN),
- 		.i_mmap_writable = ATOMIC_INIT(0),
- 		.a_ops		= &swap_aops,
-+		/* swap cache doesn't use writeback related tags */
-+		.flags		= 1 << AS_NO_WRITEBACK_TAGS,
+ /*
++ * printk one line from the temporary buffer from @start index until
++ * and including the @end index.
++ */
++static void printk_nmi_flush_seq_line(struct nmi_seq_buf *s,
++					int start, int end)
++{
++	const char *buf = s->buffer + start;
++
++	printk_nmi_flush_line(buf, (end - start) + 1);
++}
++
++/*
+  * Flush data from the associated per_CPU buffer. The function
+  * can be called either via IRQ work or independently.
+  */
+@@ -150,9 +156,11 @@ more:
+ 	 * the buffer an unexpected way. If we printed something then
+ 	 * @len must only increase.
+ 	 */
+-	if (i && i >= len)
+-		pr_err("printk_nmi_flush: internal error: i=%d >= len=%zu\n",
+-		       i, len);
++	if (i && i >= len) {
++		const char *msg = "printk_nmi_flush: internal error\n";
++
++		printk_nmi_flush_line(msg, strlen(msg));
++	}
+ 
+ 	if (!len)
+ 		goto out; /* Someone else has already flushed the buffer. */
+@@ -166,14 +174,14 @@ more:
+ 	/* Print line by line. */
+ 	for (; i < size; i++) {
+ 		if (s->buffer[i] == '\n') {
+-			print_nmi_seq_line(s, last_i, i);
++			printk_nmi_flush_seq_line(s, last_i, i);
+ 			last_i = i + 1;
+ 		}
  	}
- };
+ 	/* Check if there was a partial line. */
+ 	if (last_i < size) {
+-		print_nmi_seq_line(s, last_i, size - 1);
+-		pr_cont("\n");
++		printk_nmi_flush_seq_line(s, last_i, size - 1);
++		printk_nmi_flush_line("\n", strlen("\n"));
+ 	}
  
+ 	/*
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
-mm-swap-add-swap_cluster_list.patch
-mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch
+printk-nmi-avoid-direct-printk-s-from-__printk_nmi_flush.patch
 
