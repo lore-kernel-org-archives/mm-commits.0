@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + enable-code-completion-in-vim.patch added to -mm tree
-Date: Tue, 30 Aug 2016 13:36:26 -0700
-Message-ID: <57c5ee4a.9kyViY+Jl+7wOt0k%akpm@linux-foundation.org>
+Subject: +
+ fs-ocfs2-dlmfs-remove-deprecated-create_singlethread_workqueue.patch added
+ to -mm tree
+Date: Tue, 30 Aug 2016 14:02:51 -0700
+Message-ID: <57c5f47b.dLnGsHbnZIPMq0JY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44347 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44537 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751608AbcH3Ug1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 16:36:27 -0400
+        with ESMTP id S1750859AbcH3VCx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 17:02:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.maret@gmail.com, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: bhaktipriya96@gmail.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/tags.sh: enable code completion in VIM
+     Subject: fs/ocfs2/dlmfs: remove deprecated create_singlethread_workqueue()
 has been added to the -mm tree.  Its filename is
-     enable-code-completion-in-vim.patch
+     fs-ocfs2-dlmfs-remove-deprecated-create_singlethread_workqueue.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/enable-code-completion-in-vim.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ocfs2-dlmfs-remove-deprecated-create_singlethread_workqueue.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/enable-code-completion-in-vim.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ocfs2-dlmfs-remove-deprecated-create_singlethread_workqueue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,41 +40,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mathieu Maret <mathieu.maret@gmail.com>
-Subject: scripts/tags.sh: enable code completion in VIM
+From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Subject: fs/ocfs2/dlmfs: remove deprecated create_singlethread_workqueue()
 
-Vim, with the omnicppcomplete(#1) plugin, can do code completion using
-information build by ctags.  Add flags needed by omnicppcomplete(#2) to
-have completion on member of structure.
+The workqueue "user_dlm_worker" queues a single work item &lockres->l_work
+per user_lock_res instance and hence it doesn't require execution
+ordering.  Hence, alloc_workqueue has been used to replace the deprecated
+create_singlethread_workqueue instance.
 
-1: https://github.com/vim-scripts/omnicppcomplete
-2: https://github.com/vim-scripts/OmniCppComplete/blob/master/doc/omnicppcomplete.txt#L93
+The WQ_MEM_RECLAIM flag has been set to ensure forward progress under
+memory pressure.
 
-Link: http://lkml.kernel.org/r/20160830191546.4469-1-mathieu.maret@gmail.com
-Signed-off-by: Mathieu Maret <mathieu.maret@gmail.com>
-Cc: Michal Marek <mmarek@suse.cz>
+Since there are fixed number of work items, explicit concurrency
+limit is unnecessary here.
+
+Link: http://lkml.kernel.org/r/9748136d3a3b18138ad1d6ba708367aa1fe9f98c.1472590094.git.bhaktipriya96@gmail.com
+Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/tags.sh |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ocfs2/dlmfs/dlmfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/tags.sh~enable-code-completion-in-vim scripts/tags.sh
---- a/scripts/tags.sh~enable-code-completion-in-vim
-+++ a/scripts/tags.sh
-@@ -264,7 +264,8 @@ exuberant()
- 	-I EXPORT_SYMBOL,EXPORT_SYMBOL_GPL,ACPI_EXPORT_SYMBOL   \
- 	-I DEFINE_TRACE,EXPORT_TRACEPOINT_SYMBOL,EXPORT_TRACEPOINT_SYMBOL_GPL \
- 	-I static,const						\
--	--extra=+f --c-kinds=+px --langmap=c:+.h "${regex[@]}"
-+	--extra=+fq --c-kinds=+px --fields=+iaS --langmap=c:+.h \
-+	"${regex[@]}"
+diff -puN fs/ocfs2/dlmfs/dlmfs.c~fs-ocfs2-dlmfs-remove-deprecated-create_singlethread_workqueue fs/ocfs2/dlmfs/dlmfs.c
+--- a/fs/ocfs2/dlmfs/dlmfs.c~fs-ocfs2-dlmfs-remove-deprecated-create_singlethread_workqueue
++++ a/fs/ocfs2/dlmfs/dlmfs.c
+@@ -646,7 +646,7 @@ static int __init init_dlmfs_fs(void)
+ 	}
+ 	cleanup_inode = 1;
  
- 	setup_regex exuberant kconfig
- 	all_kconfigs | xargs $1 -a                              \
+-	user_dlm_worker = create_singlethread_workqueue("user_dlm");
++	user_dlm_worker = alloc_workqueue("user_dlm", WQ_MEM_RECLAIM, 0);
+ 	if (!user_dlm_worker) {
+ 		status = -ENOMEM;
+ 		goto bail;
 _
 
-Patches currently in -mm which might be from mathieu.maret@gmail.com are
+Patches currently in -mm which might be from bhaktipriya96@gmail.com are
 
-enable-code-completion-in-vim.patch
+fs-ocfs2-dlmfs-remove-deprecated-create_singlethread_workqueue.patch
+fs-ocfs2-cluster-remove-deprecated-create_singlethread_workqueue.patch
+fs-ocfs2-super-remove-deprecated-create_singlethread_workqueue.patch
+fs-ocfs2-dlm-remove-deprecated-create_singlethread_workqueue.patch
 
