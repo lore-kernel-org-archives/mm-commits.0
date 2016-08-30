@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
- added to -mm tree
-Date: Tue, 30 Aug 2016 15:09:46 -0700
-Message-ID: <57c6042a.zITbxYsLAUYcLWd5%akpm@linux-foundation.org>
+Subject: +
+ mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch added to -mm tree
+Date: Tue, 30 Aug 2016 15:09:48 -0700
+Message-ID: <57c6042c.6cEGn11nWrG7rFyY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45719 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45730 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750798AbcH3WJr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:09:47 -0400
+        with ESMTP id S1752388AbcH3WJu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:09:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, wei.guo.simon@gmail.com, mm-commits@vger.kernel.org
+To: wei.guo.simon@gmail.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mlock-check-against-vma-for-actual-mlock-size-fix
+     Subject: mm: mlock: avoid increase mm->locked_vm on mlock() when already mlock2(,MLOCK_ONFAULT)
 has been added to the -mm tree.  Its filename is
-     mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+     mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +39,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mlock-check-against-vma-for-actual-mlock-size-fix
+From: Simon Guo <wei.guo.simon@gmail.com>
+Subject: mm: mlock: avoid increase mm->locked_vm on mlock() when already mlock2(,MLOCK_ONFAULT)
 
-clean up comment layout
+When one vma was with flag VM_LOCKED|VM_LOCKONFAULT (by invoking
+mlock2(,MLOCK_ONFAULT)), it can again be populated with mlock() with
+VM_LOCKED flag only.
 
+There is a hole in mlock_fixup() which increase mm->locked_vm twice even
+the two operations are on the same vma and both with VM_LOCKED flags.
+
+The issue can be reproduced by following code:
+mlock2(p, 1024 * 64, MLOCK_ONFAULT); //VM_LOCKED|VM_LOCKONFAULT
+mlock(p, 1024 * 64);  //VM_LOCKED
+Then check the increase VmLck field in /proc/pid/status(to 128k).
+
+When vma is set with different vm_flags, and the new vm_flags is with
+VM_LOCKED, it is not necessarily be a "new locked" vma.  This patch
+corrects this bug by prevent mm->locked_vm from increment when old
+vm_flags is already VM_LOCKED.
+
+Link: http://lkml.kernel.org/r/1472554781-9835-3-git-send-email-wei.guo.simon@gmail.com
+Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Eric B Munson <emunson@akamai.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Cc: Simon Guo <wei.guo.simon@gmail.com>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/mlock.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size-fix mm/mlock.c
---- a/mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size-fix
+diff -puN mm/mlock.c~mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault
 +++ a/mm/mlock.c
-@@ -678,12 +678,10 @@ static __must_check int do_mlock(unsigne
- 	locked += current->mm->locked_vm;
- 	if ((locked > lock_limit) && (!capable(CAP_IPC_LOCK))) {
- 		/*
--		 * It is possible that the regions requested
--		 * intersect with previously mlocked areas,
--		 * that part area in "mm->locked_vm" should
--		 * not be counted to new mlock increment
--		 * count. So check and adjust locked count
--		 * if necessary.
-+		 * It is possible that the regions requested intersect with
-+		 * previously mlocked areas, that part area in "mm->locked_vm"
-+		 * should not be counted to new mlock increment count. So check
-+		 * and adjust locked count if necessary.
- 		 */
- 		locked -= count_mm_mlocked_page_nr(current->mm,
- 				start, len);
+@@ -516,6 +516,7 @@ static int mlock_fixup(struct vm_area_st
+ 	int nr_pages;
+ 	int ret = 0;
+ 	int lock = !!(newflags & VM_LOCKED);
++	vm_flags_t old_flags = vma->vm_flags;
+ 
+ 	if (newflags == vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
+ 	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm))
+@@ -550,6 +551,8 @@ success:
+ 	nr_pages = (end - start) >> PAGE_SHIFT;
+ 	if (!lock)
+ 		nr_pages = -nr_pages;
++	else if (old_flags & VM_LOCKED)
++		nr_pages = 0;
+ 	mm->locked_vm += nr_pages;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wei.guo.simon@gmail.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-vmalloc-fix-align-value-calculation-error-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
-mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
-mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
-ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-mlx5-deviceh-kill-build_bug_ons.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-mlock-check-against-vma-for-actual-mlock-size.patch
+mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch
+selftest-split-mlock2_-funcs-into-separate-mlock2h.patch
+selftests-vm-add-test-for-mlock-when-areas-are-intersected.patch
 
