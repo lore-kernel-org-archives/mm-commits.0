@@ -1,186 +1,243 @@
 From: akpm@linux-foundation.org
-Subject: +
- selftests-vm-add-test-for-mlock-when-areas-are-intersected.patch added to
+Subject: [to-be-updated]
+ mm-slab-improve-performance-of-gathering-slabinfo-stats.patch removed from
  -mm tree
-Date: Tue, 30 Aug 2016 15:09:52 -0700
-Message-ID: <57c60430.TjpUTl5oX2YY63zk%akpm@linux-foundation.org>
+Date: Tue, 30 Aug 2016 15:15:48 -0700
+Message-ID: <57c60594.38QBYGrUFlRd4vkC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45747 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46054 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752388AbcH3WJy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:09:54 -0400
+        with ESMTP id S1754146AbcH3WPt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Aug 2016 18:15:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wei.guo.simon@gmail.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: aruna.ramakrishna@oracle.com, cl@linux.com, iamjoonsoo.kim@lge.com, mike.kravetz@oracle.com, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm: add test for mlock() when areas are intersected
-has been added to the -mm tree.  Its filename is
-     selftests-vm-add-test-for-mlock-when-areas-are-intersected.patch
+     Subject: mm/slab: improve performance of gathering slabinfo stats
+has been removed from the -mm tree.  Its filename was
+     mm-slab-improve-performance-of-gathering-slabinfo-stats.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-add-test-for-mlock-when-areas-are-intersected.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-add-test-for-mlock-when-areas-are-intersected.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Simon Guo <wei.guo.simon@gmail.com>
-Subject: selftests/vm: add test for mlock() when areas are intersected
+From: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+Subject: mm/slab: improve performance of gathering slabinfo stats
 
-This patch adds mlock() test for multiple invocation on the same address
-area, and verify it doesn't mess the rlimit mlock limitation.
+On large systems, when some slab caches grow to millions of objects (and
+many gigabytes), running 'cat /proc/slabinfo' can take up to 1-2 seconds. 
+During this time, interrupts are disabled while walking the slab lists
+(slabs_full, slabs_partial, and slabs_free) for each node, and this
+sometimes causes timeouts in other drivers (for instance, Infiniband).
 
-Link: http://lkml.kernel.org/r/1472554781-9835-5-git-send-email-wei.guo.simon@gmail.com
-Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
-Cc: Alexey Klimov <klimov.linux@gmail.com>
-Cc: Eric B Munson <emunson@akamai.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Simon Guo <wei.guo.simon@gmail.com>
-Cc: Thierry Reding <treding@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This patch optimizes 'cat /proc/slabinfo' by maintaining a counter for
+total number of allocated slabs per node, per cache.  This counter is
+updated when a slab is created or destroyed.  This enables us to skip
+traversing the slabs_full list while gathering slabinfo statistics, and
+since slabs_full tends to be the biggest list when the cache is large, it
+results in a dramatic performance improvement.  Getting slabinfo
+statistics now only requires walking the slabs_free and slabs_partial
+lists, and those lists are usually much smaller than slabs_full.  We
+tested this after growing the dentry cache to 70GB, and the performance
+improved from 2s to 5ms.
+
+Link: http://lkml.kernel.org/r/1470337273-6700-1-git-send-email-aruna.ramakrishna@oracle.com
+Signed-off-by: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/.gitignore             |    1 
- tools/testing/selftests/vm/Makefile               |    4 
- tools/testing/selftests/vm/mlock-intersect-test.c |   76 ++++++++++++
- 3 files changed, 81 insertions(+)
+ mm/slab.c |   25 ++++++++++++++++---------
+ mm/slab.h |   15 ++++++++++++++-
+ mm/slub.c |   19 +------------------
+ 3 files changed, 31 insertions(+), 28 deletions(-)
 
-diff -puN tools/testing/selftests/vm/.gitignore~selftests-vm-add-test-for-mlock-when-areas-are-intersected tools/testing/selftests/vm/.gitignore
---- a/tools/testing/selftests/vm/.gitignore~selftests-vm-add-test-for-mlock-when-areas-are-intersected
-+++ a/tools/testing/selftests/vm/.gitignore
-@@ -7,3 +7,4 @@ mlock2-tests
- on-fault-limit
- transhuge-stress
- userfaultfd
-+mlock-intersect-test
-diff -puN tools/testing/selftests/vm/Makefile~selftests-vm-add-test-for-mlock-when-areas-are-intersected tools/testing/selftests/vm/Makefile
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-test-for-mlock-when-areas-are-intersected
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -10,6 +10,7 @@ BINARIES += on-fault-limit
- BINARIES += thuge-gen
- BINARIES += transhuge-stress
- BINARIES += userfaultfd
-+BINARIES += mlock-intersect-test
+diff -puN mm/slab.c~mm-slab-improve-performance-of-gathering-slabinfo-stats mm/slab.c
+--- a/mm/slab.c~mm-slab-improve-performance-of-gathering-slabinfo-stats
++++ a/mm/slab.c
+@@ -233,6 +233,7 @@ static void kmem_cache_node_init(struct
+ 	spin_lock_init(&parent->list_lock);
+ 	parent->free_objects = 0;
+ 	parent->free_touched = 0;
++	atomic_long_set(&parent->nr_slabs, 0);
+ }
  
- all: $(BINARIES)
- %: %.c
-@@ -17,6 +18,9 @@ all: $(BINARIES)
- userfaultfd: userfaultfd.c ../../../../usr/include/linux/kernel.h
- 	$(CC) $(CFLAGS) -O2 -o $@ $< -lpthread
+ #define MAKE_LIST(cachep, listp, slab, nodeid)				\
+@@ -2333,6 +2334,7 @@ static int drain_freelist(struct kmem_ca
+ 		n->free_objects -= cache->num;
+ 		spin_unlock_irq(&n->list_lock);
+ 		slab_destroy(cache, page);
++		atomic_long_dec(&n->nr_slabs);
+ 		nr_freed++;
+ 	}
+ out:
+@@ -2736,6 +2738,8 @@ static struct page *cache_grow_begin(str
+ 	if (gfpflags_allow_blocking(local_flags))
+ 		local_irq_disable();
  
-+mlock-intersect-test: mlock-intersect-test.c
-+	$(CC) $(CFLAGS) -o $@ $< -lcap
++	atomic_long_inc(&n->nr_slabs);
 +
- ../../../../usr/include/linux/kernel.h:
- 	make -C ../../../.. headers_install
+ 	return page;
  
-diff -puN /dev/null tools/testing/selftests/vm/mlock-intersect-test.c
---- /dev/null
-+++ a/tools/testing/selftests/vm/mlock-intersect-test.c
-@@ -0,0 +1,76 @@
-+/*
-+ * It tests the duplicate mlock result:
-+ * - the ulimit of lock page is 64k
-+ * - allocate address area 64k starting from p
-+ * - mlock   [p -- p + 30k]
-+ * - Then mlock address  [ p -- p + 40k ]
-+ *
-+ * It should succeed since totally we locked
-+ * 40k < 64k limitation.
-+ *
-+ * It should not be run with CAP_IPC_LOCK.
-+ */
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <unistd.h>
-+#include <sys/resource.h>
-+#include <sys/capability.h>
-+#include <sys/mman.h>
-+#include "mlock2.h"
+ opps1:
+@@ -3455,6 +3459,7 @@ static void free_block(struct kmem_cache
+ 
+ 		page = list_last_entry(&n->slabs_free, struct page, lru);
+ 		list_move(&page->lru, list);
++		atomic_long_dec(&n->nr_slabs);
+ 	}
+ }
+ 
+@@ -4111,6 +4116,8 @@ void get_slabinfo(struct kmem_cache *cac
+ 	unsigned long num_objs;
+ 	unsigned long active_slabs = 0;
+ 	unsigned long num_slabs, free_objects = 0, shared_avail = 0;
++	unsigned long num_slabs_partial = 0, num_slabs_free = 0;
++	unsigned long num_slabs_full = 0;
+ 	const char *name;
+ 	char *error = NULL;
+ 	int node;
+@@ -4120,36 +4127,36 @@ void get_slabinfo(struct kmem_cache *cac
+ 	num_slabs = 0;
+ 	for_each_kmem_cache_node(cachep, node, n) {
+ 
++		num_slabs += node_nr_slabs(n);
+ 		check_irq_on();
+ 		spin_lock_irq(&n->list_lock);
+ 
+-		list_for_each_entry(page, &n->slabs_full, lru) {
+-			if (page->active != cachep->num && !error)
+-				error = "slabs_full accounting error";
+-			active_objs += cachep->num;
+-			active_slabs++;
+-		}
+ 		list_for_each_entry(page, &n->slabs_partial, lru) {
+ 			if (page->active == cachep->num && !error)
+ 				error = "slabs_partial accounting error";
+ 			if (!page->active && !error)
+ 				error = "slabs_partial accounting error";
+ 			active_objs += page->active;
+-			active_slabs++;
++			num_slabs_partial++;
+ 		}
 +
-+int main(int argc, char **argv)
+ 		list_for_each_entry(page, &n->slabs_free, lru) {
+ 			if (page->active && !error)
+ 				error = "slabs_free accounting error";
+-			num_slabs++;
++			num_slabs_free++;
+ 		}
++
+ 		free_objects += n->free_objects;
+ 		if (n->shared)
+ 			shared_avail += n->shared->avail;
+ 
+ 		spin_unlock_irq(&n->list_lock);
+ 	}
+-	num_slabs += active_slabs;
+ 	num_objs = num_slabs * cachep->num;
++	active_slabs = num_slabs - num_slabs_free;
++	num_slabs_full = num_slabs - (num_slabs_partial + num_slabs_free);
++	active_objs += (num_slabs_full * cachep->num);
++
+ 	if (num_objs - active_objs != free_objects && !error)
+ 		error = "free_objects accounting error";
+ 
+diff -puN mm/slab.h~mm-slab-improve-performance-of-gathering-slabinfo-stats mm/slab.h
+--- a/mm/slab.h~mm-slab-improve-performance-of-gathering-slabinfo-stats
++++ a/mm/slab.h
+@@ -427,6 +427,7 @@ static inline void slab_post_alloc_hook(
+  */
+ struct kmem_cache_node {
+ 	spinlock_t list_lock;
++	atomic_long_t nr_slabs;
+ 
+ #ifdef CONFIG_SLAB
+ 	struct list_head slabs_partial;	/* partial list first, better asm code */
+@@ -445,7 +446,6 @@ struct kmem_cache_node {
+ 	unsigned long nr_partial;
+ 	struct list_head partial;
+ #ifdef CONFIG_SLUB_DEBUG
+-	atomic_long_t nr_slabs;
+ 	atomic_long_t total_objects;
+ 	struct list_head full;
+ #endif
+@@ -458,6 +458,19 @@ static inline struct kmem_cache_node *ge
+ 	return s->node[node];
+ }
+ 
++/* Tracking of the number of slabs for /proc/slabinfo and debugging purposes */
++static inline unsigned long slabs_node(struct kmem_cache *s, int node)
 +{
-+	struct rlimit new;
-+	char *p = NULL;
-+	cap_t cap = cap_init();
-+	int i;
++	struct kmem_cache_node *n = get_node(s, node);
 +
-+	/* drop capabilities including CAP_IPC_LOCK */
-+	if (cap_set_proc(cap))
-+		return -1;
-+
-+	/* set mlock limits to 64k */
-+	new.rlim_cur = 65536;
-+	new.rlim_max = 65536;
-+	setrlimit(RLIMIT_MEMLOCK, &new);
-+
-+	/* test VM_LOCK */
-+	p = malloc(1024 * 64);
-+	if (mlock(p, 1024 * 30)) {
-+		printf("mlock() 30k return failure.\n");
-+		return -1;
-+	}
-+	for (i = 0; i < 10; i++) {
-+		if (mlock(p, 1024 * 40)) {
-+			printf("mlock() #%d 40k returns failure.\n", i);
-+			return -1;
-+		}
-+	}
-+	for (i = 0; i < 10; i++) {
-+		if (mlock2_(p, 1024 * 40, MLOCK_ONFAULT)) {
-+			printf("mlock2_() #%d 40k returns failure.\n", i);
-+			return -1;
-+		}
-+	}
-+	free(p);
-+
-+	/* Test VM_LOCKONFAULT */
-+	p = malloc(1024 * 64);
-+	if (mlock2_(p, 1024 * 30, MLOCK_ONFAULT)) {
-+		printf("mlock2_() 30k return failure.\n");
-+		return -1;
-+	}
-+	for (i = 0; i < 10; i++) {
-+		if (mlock2_(p, 1024 * 40, MLOCK_ONFAULT)) {
-+			printf("mlock2_() #%d 40k returns failure.\n", i);
-+			return -1;
-+		}
-+	}
-+	for (i = 0; i < 10; i++) {
-+		if (mlock(p, 1024 * 40)) {
-+			printf("mlock() #%d 40k returns failure.\n", i);
-+			return -1;
-+		}
-+	}
-+	return 0;
++	return atomic_long_read(&n->nr_slabs);
 +}
++
++static inline unsigned long node_nr_slabs(struct kmem_cache_node *n)
++{
++	return atomic_long_read(&n->nr_slabs);
++}
++
+ /*
+  * Iterator over all nodes. The body will be executed for each node that has
+  * a kmem_cache_node structure allocated (which is true for all online nodes)
+diff -puN mm/slub.c~mm-slab-improve-performance-of-gathering-slabinfo-stats mm/slub.c
+--- a/mm/slub.c~mm-slab-improve-performance-of-gathering-slabinfo-stats
++++ a/mm/slub.c
+@@ -1006,19 +1006,6 @@ static void remove_full(struct kmem_cach
+ 	list_del(&page->lru);
+ }
+ 
+-/* Tracking of the number of slabs for debugging purposes */
+-static inline unsigned long slabs_node(struct kmem_cache *s, int node)
+-{
+-	struct kmem_cache_node *n = get_node(s, node);
+-
+-	return atomic_long_read(&n->nr_slabs);
+-}
+-
+-static inline unsigned long node_nr_slabs(struct kmem_cache_node *n)
+-{
+-	return atomic_long_read(&n->nr_slabs);
+-}
+-
+ static inline void inc_slabs_node(struct kmem_cache *s, int node, int objects)
+ {
+ 	struct kmem_cache_node *n = get_node(s, node);
+@@ -1297,10 +1284,6 @@ unsigned long kmem_cache_flags(unsigned
+ 
+ #define disable_higher_order_debug 0
+ 
+-static inline unsigned long slabs_node(struct kmem_cache *s, int node)
+-							{ return 0; }
+-static inline unsigned long node_nr_slabs(struct kmem_cache_node *n)
+-							{ return 0; }
+ static inline void inc_slabs_node(struct kmem_cache *s, int node,
+ 							int objects) {}
+ static inline void dec_slabs_node(struct kmem_cache *s, int node,
+@@ -3258,8 +3241,8 @@ init_kmem_cache_node(struct kmem_cache_n
+ 	n->nr_partial = 0;
+ 	spin_lock_init(&n->list_lock);
+ 	INIT_LIST_HEAD(&n->partial);
+-#ifdef CONFIG_SLUB_DEBUG
+ 	atomic_long_set(&n->nr_slabs, 0);
++#ifdef CONFIG_SLUB_DEBUG
+ 	atomic_long_set(&n->total_objects, 0);
+ 	INIT_LIST_HEAD(&n->full);
+ #endif
 _
 
-Patches currently in -mm which might be from wei.guo.simon@gmail.com are
+Patches currently in -mm which might be from aruna.ramakrishna@oracle.com are
 
-mm-mlock-check-against-vma-for-actual-mlock-size.patch
-mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch
-selftest-split-mlock2_-funcs-into-separate-mlock2h.patch
-selftests-vm-add-test-for-mlock-when-areas-are-intersected.patch
 
