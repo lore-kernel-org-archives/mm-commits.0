@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ima-store-the-builtin-custom-template-definitions-in-a-list.patch added to
- -mm tree
-Date: Wed, 31 Aug 2016 13:51:05 -0700
-Message-ID: <57c74339.NY556Q8vU+jlKqvx%akpm@linux-foundation.org>
+Subject: + ima-on-soft-reboot-save-the-measurement-list.patch added to -mm tree
+Date: Wed, 31 Aug 2016 13:51:03 -0700
+Message-ID: <57c74337.P6w6mUojZQ9HRQzD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50934 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50928 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760110AbcHaUvG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 16:51:06 -0400
+        with ESMTP id S1760638AbcHaUvE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 16:51:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zohar@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bauerman@linux.vnet.ibm.com, dyoung@redhat.com, mm-commits@vger.kernel.org
+To: bauerman@linux.vnet.ibm.com, andreas.steffen@strongswan.org, dyoung@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: store the builtin/custom template definitions in a list
+     Subject: ima: on soft reboot, save the measurement list
 has been added to the -mm tree.  Its filename is
-     ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+     ima-on-soft-reboot-save-the-measurement-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ima-on-soft-reboot-save-the-measurement-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ima-on-soft-reboot-save-the-measurement-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,161 +38,208 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima: store the builtin/custom template definitions in a list
+From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Subject: ima: on soft reboot, save the measurement list
 
-The builtin and single custom templates are currently stored in an
-array.  In preparation for being able to restore a measurement list
-containing multiple builtin/custom templates, this patch stores the
-builtin and custom templates as a linked list.  This will permit
-defining more than one custom template per boot.
+This patch uses the kexec buffer passing mechanism to pass the
+serialized IMA binary_runtime_measurements to the next kernel.
 
-Changelog v2:
-- fix lookup_template_desc() preemption imbalance (kernel test robot)
-
-Link: http://lkml.kernel.org/r/1472596811-9596-7-git-send-email-zohar@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1472596811-9596-6-git-send-email-zohar@linux.vnet.ibm.com
+Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: Andreas Steffen <andreas.steffen@strongswan.org>
 Cc: Dave Young <dyoung@redhat.com>
-Cc: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/ima.h          |    2 +
- security/integrity/ima/ima_main.c     |    1 
- security/integrity/ima/ima_template.c |   43 ++++++++++++++++++------
- 3 files changed, 36 insertions(+), 10 deletions(-)
+ include/linux/ima.h                |   12 +++
+ kernel/kexec_file.c                |    4 +
+ security/integrity/ima/ima_kexec.c |   88 +++++++++++++++++++++++++++
+ 3 files changed, 104 insertions(+)
 
-diff -puN security/integrity/ima/ima.h~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima.h
---- a/security/integrity/ima/ima.h~ima-store-the-builtin-custom-template-definitions-in-a-list
-+++ a/security/integrity/ima/ima.h
-@@ -81,6 +81,7 @@ struct ima_template_field {
+diff -puN include/linux/ima.h~ima-on-soft-reboot-save-the-measurement-list include/linux/ima.h
+--- a/include/linux/ima.h~ima-on-soft-reboot-save-the-measurement-list
++++ a/include/linux/ima.h
+@@ -11,6 +11,7 @@
+ #define _LINUX_IMA_H
  
- /* IMA template descriptor definition */
- struct ima_template_desc {
-+	struct list_head list;
- 	char *name;
- 	char *fmt;
- 	int num_fields;
-@@ -136,6 +137,7 @@ int ima_restore_measurement_list(loff_t
- int ima_measurements_show(struct seq_file *m, void *v);
- unsigned long ima_get_binary_runtime_size(void);
- int ima_init_template(void);
-+void ima_init_template_list(void);
+ #include <linux/fs.h>
++#include <linux/kexec.h>
+ struct linux_binprm;
  
- #ifdef CONFIG_KEXEC_FILE
- void ima_load_kexec_buffer(void);
-diff -puN security/integrity/ima/ima_main.c~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima_main.c
---- a/security/integrity/ima/ima_main.c~ima-store-the-builtin-custom-template-definitions-in-a-list
-+++ a/security/integrity/ima/ima_main.c
-@@ -418,6 +418,7 @@ static int __init init_ima(void)
+ #ifdef CONFIG_IMA
+@@ -23,6 +24,10 @@ extern int ima_post_read_file(struct fil
+ 			      enum kernel_read_file_id id);
+ extern void ima_post_path_mknod(struct dentry *dentry);
+ 
++#ifdef CONFIG_IMA_KEXEC
++extern void ima_add_kexec_buffer(struct kimage *image);
++#endif
++
+ #else
+ static inline int ima_bprm_check(struct linux_binprm *bprm)
  {
- 	int error;
+@@ -62,6 +67,13 @@ static inline void ima_post_path_mknod(s
  
-+	ima_init_template_list();
- 	hash_setup(CONFIG_IMA_DEFAULT_HASH);
- 	error = ima_init();
- 	if (!error) {
-diff -puN security/integrity/ima/ima_template.c~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima_template.c
---- a/security/integrity/ima/ima_template.c~ima-store-the-builtin-custom-template-definitions-in-a-list
-+++ a/security/integrity/ima/ima_template.c
-@@ -15,16 +15,20 @@
+ #endif /* CONFIG_IMA */
  
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#ifndef CONFIG_IMA_KEXEC
++struct kimage;
++
++static inline void ima_add_kexec_buffer(struct kimage *image)
++{}
++#endif
++
+ #ifdef CONFIG_IMA_APPRAISE
+ extern void ima_inode_post_setattr(struct dentry *dentry);
+ extern int ima_inode_setxattr(struct dentry *dentry, const char *xattr_name,
+diff -puN kernel/kexec_file.c~ima-on-soft-reboot-save-the-measurement-list kernel/kexec_file.c
+--- a/kernel/kexec_file.c~ima-on-soft-reboot-save-the-measurement-list
++++ a/kernel/kexec_file.c
+@@ -19,6 +19,7 @@
+ #include <linux/mutex.h>
+ #include <linux/list.h>
+ #include <linux/fs.h>
++#include <linux/ima.h>
+ #include <crypto/hash.h>
+ #include <crypto/sha.h>
+ #include <linux/syscalls.h>
+@@ -200,6 +201,9 @@ kimage_file_prepare_segments(struct kima
+ 		return ret;
+ 	image->kernel_buf_len = size;
  
-+#include <linux/rculist.h>
++	/* IMA needs to pass the measurement list to the next kernel. */
++	ima_add_kexec_buffer(image);
++
+ 	/* Call arch image probe handlers */
+ 	ret = arch_kexec_kernel_image_probe(image, image->kernel_buf,
+ 					    image->kernel_buf_len);
+diff -puN security/integrity/ima/ima_kexec.c~ima-on-soft-reboot-save-the-measurement-list security/integrity/ima/ima_kexec.c
+--- a/security/integrity/ima/ima_kexec.c~ima-on-soft-reboot-save-the-measurement-list
++++ a/security/integrity/ima/ima_kexec.c
+@@ -23,6 +23,11 @@
+ 
  #include "ima.h"
- #include "ima_template_lib.h"
  
--static struct ima_template_desc defined_templates[] = {
-+static struct ima_template_desc builtin_templates[] = {
- 	{.name = IMA_TEMPLATE_IMA_NAME, .fmt = IMA_TEMPLATE_IMA_FMT},
- 	{.name = "ima-ng", .fmt = "d-ng|n-ng"},
- 	{.name = "ima-sig", .fmt = "d-ng|n-ng|sig"},
- 	{.name = "", .fmt = ""},	/* placeholder for a custom format */
- };
- 
-+static LIST_HEAD(defined_templates);
-+spinlock_t template_list;
++#ifdef CONFIG_IMA_KEXEC
++/* Physical address of the measurement buffer in the next kernel. */
++static unsigned long kexec_buffer_load_addr;
++static size_t kexec_segment_size;
 +
- static struct ima_template_field supported_fields[] = {
- 	{.field_id = "d", .field_init = ima_eventdigest_init,
- 	 .field_show = ima_show_template_digest},
-@@ -81,7 +85,7 @@ __setup("ima_template=", ima_template_se
- 
- static int __init ima_template_fmt_setup(char *str)
+ static int ima_dump_measurement_list(unsigned long *buffer_size, void **buffer,
+ 				     unsigned long segment_size)
  {
--	int num_templates = ARRAY_SIZE(defined_templates);
-+	int num_templates = ARRAY_SIZE(builtin_templates);
- 
- 	if (ima_template)
- 		return 1;
-@@ -92,22 +96,28 @@ static int __init ima_template_fmt_setup
- 		return 1;
- 	}
- 
--	defined_templates[num_templates - 1].fmt = str;
--	ima_template = defined_templates + num_templates - 1;
-+	builtin_templates[num_templates - 1].fmt = str;
-+	ima_template = builtin_templates + num_templates - 1;
-+
- 	return 1;
- }
- __setup("ima_template_fmt=", ima_template_fmt_setup);
- 
- static struct ima_template_desc *lookup_template_desc(const char *name)
- {
--	int i;
-+	struct ima_template_desc *template_desc;
-+	int found = 0;
- 
--	for (i = 0; i < ARRAY_SIZE(defined_templates); i++) {
--		if (strcmp(defined_templates[i].name, name) == 0)
--			return defined_templates + i;
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(template_desc, &defined_templates, list) {
-+		if ((strcmp(template_desc->name, name) == 0) ||
-+		    (strcmp(template_desc->fmt, name) == 0)) {
-+			found = 1;
-+			break;
-+		}
- 	}
--
--	return NULL;
-+	rcu_read_unlock();
-+	return found ? template_desc : NULL;
+@@ -75,6 +80,89 @@ out:
  }
  
- static struct ima_template_field *lookup_template_field(const char *field_id)
-@@ -191,6 +201,19 @@ struct ima_template_desc *ima_template_d
- 	return ima_template;
- }
- 
-+void __init ima_init_template_list(void)
+ /*
++ * Called during kexec execute so that IMA can save the measurement list.
++ */
++static int ima_update_kexec_buffer(struct notifier_block *self,
++				   unsigned long action, void *data)
 +{
-+	int i;
++	void *kexec_buffer = NULL;
++	size_t kexec_buffer_size;
++	int ret;
 +
-+	spin_lock(&template_list);
-+	for (i = 0; i < ARRAY_SIZE(builtin_templates); i++) {
-+		list_add_tail_rcu(&builtin_templates[i].list,
-+				  &defined_templates);
++	if (!kexec_in_progress)
++		return NOTIFY_OK;
++
++	kexec_buffer_size = ima_get_binary_runtime_size();
++	if (kexec_buffer_size >
++	    (kexec_segment_size - sizeof(struct ima_kexec_hdr))) {
++		pr_err("Binary measurement list grew too large.\n");
++		goto out;
 +	}
-+	spin_unlock(&template_list);
-+	synchronize_rcu();
++
++	ima_dump_measurement_list(&kexec_buffer_size, &kexec_buffer,
++				  kexec_segment_size);
++	if (!kexec_buffer) {
++		pr_err("Not enough memory for the kexec measurement buffer.\n");
++		goto out;
++	}
++	ret = kexec_update_segment(kexec_buffer, kexec_buffer_size,
++				   kexec_buffer_load_addr, kexec_segment_size);
++	if (ret)
++		pr_err("Error updating kexec buffer: %d\n", ret);
++out:
++	return NOTIFY_OK;
 +}
 +
- int __init ima_init_template(void)
- {
- 	struct ima_template_desc *template = ima_template_desc_current();
++struct notifier_block update_buffer_nb = {
++	.notifier_call = ima_update_kexec_buffer,
++};
++
++/*
++ * Called during kexec_file_load so that IMA can add a segment to the kexec
++ * image for the measurement list for the next kernel.
++ */
++void ima_add_kexec_buffer(struct kimage *image)
++{
++	static int registered = 0;
++	struct kexec_buf kbuf = { .image = image, .buf_align = PAGE_SIZE,
++				  .buf_min = 0, .buf_max = ULONG_MAX,
++				  .top_down = true, .skip_checksum = true };
++	int ret;
++
++	if (!kexec_can_hand_over_buffer())
++		return;
++
++	kexec_segment_size = ALIGN(ima_get_binary_runtime_size() + PAGE_SIZE,
++				   PAGE_SIZE);
++
++	if (kexec_segment_size >= (ULONG_MAX - sizeof(long))) {
++		pr_err("Binary measurement list too large.\n");
++		return;
++	}
++
++	/* Ask not to checksum the segment, we will update it later. */
++	kbuf.buffer = NULL;
++	kbuf.bufsz = 0;
++	kbuf.memsz = kexec_segment_size;
++	ret = kexec_add_handover_buffer(&kbuf);
++	if (ret) {
++		pr_err("Error passing over kexec measurement buffer.\n");
++		return;
++	}
++	kexec_buffer_load_addr = kbuf.mem;
++
++	pr_debug("kexec measurement buffer for the loaded kernel at 0x%lx.\n",
++		 kexec_buffer_load_addr);
++
++	if (registered)
++		return;
++
++	register_reboot_notifier(&update_buffer_nb);
++	registered = 1;
++}
++#endif /* IMA_KEXEC */
++
++/*
+  * Restore the measurement list from the previous kernel.
+  */
+ void ima_load_kexec_buffer(void)
 _
 
-Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
 
-ima-on-soft-reboot-restore-the-measurement-list.patch
-ima-permit-duplicate-measurement-list-entries.patch
-ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
-ima-serialize-the-binary_runtime_measurements.patch
-ima-store-the-builtin-custom-template-definitions-in-a-list.patch
-ima-support-restoring-multiple-template-formats.patch
-ima-define-a-canonical-binary_runtime_measurements-list-format.patch
+kexec-fix-double-free-when-failing-to-relocate-the-purgatory.patch
+kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
+kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
+powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
+powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c.patch
+powerpc-generalize-elf64_apply_relocate_add.patch
+powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
+powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
+powerpc-implement-kexec_file_load.patch
+powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
+powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
+powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
+kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
+powerpc-kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
+kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
+kexec_file-add-mechanism-to-update-kexec-segments.patch
+ima-on-soft-reboot-save-the-measurement-list.patch
 
