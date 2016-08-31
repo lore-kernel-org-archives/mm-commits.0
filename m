@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- treewide-remove-references-to-the-now-unnecessary-define_pci_device_table.patch added to -mm tree
-Date: Wed, 31 Aug 2016 13:11:41 -0700
-Message-ID: <57c739fd.Ntw1lZnnrE12kVFE%akpm@linux-foundation.org>
+ mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference.patch added to -mm tree
+Date: Wed, 31 Aug 2016 13:19:21 -0700
+Message-ID: <57c73bc9.yoSHoxLyBZ7EwZca%akpm__3915.09280675582$1472674780$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48741 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48770 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932200AbcHaULo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 16:11:44 -0400
+        with ESMTP id S1759548AbcHaUTX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 16:19:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, bhelgaas@google.com, corbet@lwn.net, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, stable@vger.kernel.org, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: treewide: remove references to the now unnecessary DEFINE_PCI_DEVICE_TABLE
+     Subject: mm, mempolicy: task->mempolicy must be NULL before dropping final reference
 has been added to the -mm tree.  Its filename is
-     treewide-remove-references-to-the-now-unnecessary-define_pci_device_table.patch
+     mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/treewide-remove-references-to-the-now-unnecessary-define_pci_device_table.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/treewide-remove-references-to-the-now-unnecessary-define_pci_device_table.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,97 +39,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: treewide: remove references to the now unnecessary DEFINE_PCI_DEVICE_TABLE
+From: David Rientjes <rientjes@google.com>
+Subject: mm, mempolicy: task->mempolicy must be NULL before dropping final reference
 
-It's been eliminated from the sources, remove it from everywhere else.
+KASAN allocates memory from the page allocator as part of
+kmem_cache_free(), and that can reference current->mempolicy through any
+number of allocation functions.  It needs to be NULL'd out before the
+final reference is dropped to prevent a use-after-free bug:
 
-Link: http://lkml.kernel.org/r/076eff466fd7edb550c25c8b25d76924ca0eba62.1472660229.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+	BUG: KASAN: use-after-free in alloc_pages_current+0x363/0x370 at addr ffff88010b48102c
+	CPU: 0 PID: 15425 Comm: trinity-c2 Not tainted 4.8.0-rc2+ #140
+	...
+	Call Trace:
+		dump_stack
+		kasan_object_err
+		kasan_report_error
+		__asan_report_load2_noabort
+		alloc_pages_current	<-- use after free
+		depot_save_stack
+		save_stack
+		kasan_slab_free
+		kmem_cache_free
+		__mpol_put		<-- free
+		do_exit
+
+This patch sets current->mempolicy to NULL before dropping the final
+reference.
+
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1608301442180.63329@chino.kir.corp.google.com
+Fixes: cd11016e5f52 ("mm, kasan: stackdepot implementation. Enable stackdepot for SLAB")
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Vegard Nossum <vegard.nossum@oracle.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: <stable@vger.kernel.org>	[4.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/PCI/pci.txt |    1 -
- include/linux/pci.h       |    9 ---------
- scripts/checkpatch.pl     |    9 ---------
- scripts/tags.sh           |    1 -
- 4 files changed, 20 deletions(-)
+ include/linux/mempolicy.h |    4 ++++
+ kernel/exit.c             |    7 +------
+ mm/mempolicy.c            |   17 +++++++++++++++++
+ 3 files changed, 22 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/PCI/pci.txt~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table Documentation/PCI/pci.txt
---- a/Documentation/PCI/pci.txt~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table
-+++ a/Documentation/PCI/pci.txt
-@@ -124,7 +124,6 @@ initialization with a pointer to a struc
+diff -puN include/linux/mempolicy.h~mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference
++++ a/include/linux/mempolicy.h
+@@ -195,6 +195,7 @@ static inline bool vma_migratable(struct
+ }
  
- The ID table is an array of struct pci_device_id entries ending with an
- all-zero entry.  Definitions with static const are generally preferred.
--Use of the deprecated macro DEFINE_PCI_DEVICE_TABLE should be avoided.
+ extern int mpol_misplaced(struct page *, struct vm_area_struct *, unsigned long);
++extern void mpol_put_task_policy(struct task_struct *);
  
- Each entry consists of:
+ #else
  
-diff -puN include/linux/pci.h~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table include/linux/pci.h
---- a/include/linux/pci.h~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table
-+++ a/include/linux/pci.h
-@@ -683,15 +683,6 @@ struct pci_driver {
- #define	to_pci_driver(drv) container_of(drv, struct pci_driver, driver)
+@@ -297,5 +298,8 @@ static inline int mpol_misplaced(struct
+ 	return -1; /* no node preference */
+ }
  
- /**
-- * DEFINE_PCI_DEVICE_TABLE - macro used to describe a pci device table
-- * @_table: device table name
-- *
-- * This macro is deprecated and should not be used in new code.
-- */
--#define DEFINE_PCI_DEVICE_TABLE(_table) \
--	const struct pci_device_id _table[]
--
--/**
-  * PCI_DEVICE - macro used to describe a specific pci device
-  * @vend: the 16 bit PCI Vendor ID
-  * @dev: the 16 bit PCI Device ID
-diff -puN scripts/checkpatch.pl~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table
-+++ a/scripts/checkpatch.pl
-@@ -3570,15 +3570,6 @@ sub process {
- 			}
- 		}
++static inline void mpol_put_task_policy(struct task_struct *task)
++{
++}
+ #endif /* CONFIG_NUMA */
+ #endif
+diff -puN kernel/exit.c~mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference kernel/exit.c
+--- a/kernel/exit.c~mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference
++++ a/kernel/exit.c
+@@ -848,12 +848,7 @@ void do_exit(long code)
+ 	TASKS_RCU(preempt_enable());
+ 	exit_notify(tsk, group_dead);
+ 	proc_exit_connector(tsk);
+-#ifdef CONFIG_NUMA
+-	task_lock(tsk);
+-	mpol_put(tsk->mempolicy);
+-	tsk->mempolicy = NULL;
+-	task_unlock(tsk);
+-#endif
++	mpol_put_task_policy(tsk);
+ #ifdef CONFIG_FUTEX
+ 	if (unlikely(current->pi_state_cache))
+ 		kfree(current->pi_state_cache);
+diff -puN mm/mempolicy.c~mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference
++++ a/mm/mempolicy.c
+@@ -2336,6 +2336,23 @@ out:
+ 	return ret;
+ }
  
--# check for uses of DEFINE_PCI_DEVICE_TABLE
--		if ($line =~ /\bDEFINE_PCI_DEVICE_TABLE\s*\(\s*(\w+)\s*\)\s*=/) {
--			if (WARN("DEFINE_PCI_DEVICE_TABLE",
--				 "Prefer struct pci_device_id over deprecated DEFINE_PCI_DEVICE_TABLE\n" . $herecurr) &&
--			    $fix) {
--				$fixed[$fixlinenr] =~ s/\b(?:static\s+|)DEFINE_PCI_DEVICE_TABLE\s*\(\s*(\w+)\s*\)\s*=\s*/static const struct pci_device_id $1\[\] = /;
--			}
--		}
--
- # check for new typedefs, only function parameters and sparse annotations
- # make sense.
- 		if ($line =~ /\btypedef\s/ &&
-diff -puN scripts/tags.sh~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table scripts/tags.sh
---- a/scripts/tags.sh~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table
-+++ a/scripts/tags.sh
-@@ -206,7 +206,6 @@ regex_c=(
- 	'/\<DEFINE_PER_CPU_SHARED_ALIGNED([^,]*, *\([[:alnum:]_]*\)/\1/v/'
- 	'/\<DECLARE_WAIT_QUEUE_HEAD(\([[:alnum:]_]*\)/\1/v/'
- 	'/\<DECLARE_\(TASKLET\|WORK\|DELAYED_WORK\)(\([[:alnum:]_]*\)/\2/v/'
--	'/\<DEFINE_PCI_DEVICE_TABLE(\([[:alnum:]_]*\)/\1/v/'
- 	'/\(^\s\)OFFSET(\([[:alnum:]_]*\)/\2/v/'
- 	'/\(^\s\)DEFINE(\([[:alnum:]_]*\)/\2/v/'
- 	'/\<DEFINE_HASHTABLE(\([[:alnum:]_]*\)/\1/v/'
++/*
++ * Drop the (possibly final) reference to task->mempolicy.  It needs to be
++ * dropped after task->mempolicy is set to NULL so that any allocation done as
++ * part of its kmem_cache_free(), such as by KASAN, doesn't reference a freed
++ * policy.
++ */
++void mpol_put_task_policy(struct task_struct *task)
++{
++	struct mempolicy *pol;
++
++	task_lock(task);
++	pol = task->mempolicy;
++	task->mempolicy = NULL;
++	task_unlock(task);
++	mpol_put(pol);
++}
++
+ static void sp_delete(struct shared_policy *sp, struct sp_node *n)
+ {
+ 	pr_debug("deleting %lx-l%lx\n", n->start, n->end);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-wd719x-remove-last-declaration-using-define_pci_device_table.patch
-treewide-remove-references-to-the-now-unnecessary-define_pci_device_table.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
-meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
-spellingtxt-modeled-is-spelt-correctly.patch
-checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
-checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
-checkpatch-test-multiple-line-block-comment-alignment.patch
+mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference.patch
 
