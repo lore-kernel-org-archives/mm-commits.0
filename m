@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ima-on-soft-reboot-restore-the-measurement-list.patch added to
- -mm tree
-Date: Wed, 31 Aug 2016 13:50:54 -0700
-Message-ID: <57c7432e.TYMJTy/8c76QEjKD%akpm@linux-foundation.org>
+Subject: + thp-reduce-usage-of-huge-zero-pages-atomic-counter.patch added
+ to -mm tree
+Date: Wed, 31 Aug 2016 14:04:28 -0700
+Message-ID: <57c7465c.qyseHbySJEaqehiF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51100 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760392AbcHaUu4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 16:50:56 -0400
+        with ESMTP id S1751139AbcHaVE3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 17:04:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zohar@linux.vnet.ibm.com, andreas.steffen@strongswan.org, dyoung@redhat.com, mm-commits@vger.kernel.org
+To: aaron.lu@intel.com, aarcange@redhat.com, dave.hansen@intel.com, ebru.akagunduz@gmail.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, sergey.senozhatsky@gmail.com, tim.c.chen@linux.intel.com, vbabka@suse.cz, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: on soft reboot, restore the measurement list
+     Subject: thp: reduce usage of huge zero page's atomic counter
 has been added to the -mm tree.  Its filename is
-     ima-on-soft-reboot-restore-the-measurement-list.patch
+     thp-reduce-usage-of-huge-zero-pages-atomic-counter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ima-on-soft-reboot-restore-the-measurement-list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-reduce-usage-of-huge-zero-pages-atomic-counter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ima-on-soft-reboot-restore-the-measurement-list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-reduce-usage-of-huge-zero-pages-atomic-counter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,356 +39,273 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima: on soft reboot, restore the measurement list
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: thp: reduce usage of huge zero page's atomic counter
 
-The TPM PCRs are only reset on a hard reboot.  In order to validate a
-TPM's quote after a soft reboot (eg.  kexec -e), the IMA measurement list
-of the running kernel must be saved and restored on boot.  This patch
-restores the measurement list.
+The global zero page is used to satisfy an anonymous read fault.  If
+THP(Transparent HugePage) is enabled then the global huge zero page is
+used.  The global huge zero page uses an atomic counter for reference
+counting and is allocated/freed dynamically according to its counter
+value.
 
-Link: http://lkml.kernel.org/r/1472596811-9596-2-git-send-email-zohar@linux.vnet.ibm.com
-Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Andreas Steffen <andreas.steffen@strongswan.org>
-Cc: Dave Young <dyoung@redhat.com>
+CPU time spent on that counter will greatly increase if there are a lot of
+processes doing anonymous read faults.  This patch proposes a way to
+reduce the access to the global counter so that the CPU load can be
+reduced accordingly.
+
+To do this, a new flag of the mm_struct is introduced:
+MMF_USED_HUGE_ZERO_PAGE.  With this flag, the process only need to touch
+the global counter in two cases:
+
+1 The first time it uses the global huge zero page;
+2 The time when mm_user of its mm_struct reaches zero.
+
+Note that right now, the huge zero page is eligible to be freed as soon as
+its last use goes away.  With this patch, the page will not be eligible to
+be freed until the exit of the last process from which it was ever used.
+
+And with the use of mm_user, the kthread is not eligible to use huge zero
+page either.  Since no kthread is using huge zero page today, there is no
+difference after applying this patch.  But if that is not desired, I can
+change it to when mm_count reaches zero.
+
+Case used for test on Haswell EP:
+usemem -n 72 --readonly -j 0x200000 100G
+Which spawns 72 processes and each will mmap 100G anonymous space and
+then do read only access to that space sequentially with a step of 2MB.
+
+CPU cycles from perf report for base commit:
+    54.03%  usemem   [kernel.kallsyms]   [k] get_huge_zero_page
+CPU cycles from perf report for this commit:
+     0.11%  usemem   [kernel.kallsyms]   [k] mm_get_huge_zero_page
+
+Performance(throughput) of the workload for base commit: 1784430792
+Performance(throughput) of the workload for this commit: 4726928591
+164% increase.
+
+Runtime of the workload for base commit: 707592 us
+Runtime of the workload for this commit: 303970 us
+50% drop.
+
+Link: http://lkml.kernel.org/r/fe51a88f-446a-4622-1363-ad1282d71385@intel.com
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/Makefile       |    1 
- security/integrity/ima/ima.h          |   18 ++
- security/integrity/ima/ima_init.c     |    2 
- security/integrity/ima/ima_kexec.c    |   55 +++++++
- security/integrity/ima/ima_queue.c    |   10 +
- security/integrity/ima/ima_template.c |  170 ++++++++++++++++++++++++
- 6 files changed, 256 insertions(+)
+ fs/dax.c                |    2 +-
+ include/linux/huge_mm.h |    8 ++++----
+ include/linux/sched.h   |    1 +
+ kernel/fork.c           |    1 +
+ mm/huge_memory.c        |   36 +++++++++++++++++++++++++-----------
+ mm/swap.c               |    4 +---
+ mm/swap_state.c         |    4 +---
+ 7 files changed, 34 insertions(+), 22 deletions(-)
 
-diff -puN security/integrity/ima/Makefile~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/Makefile
---- a/security/integrity/ima/Makefile~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/Makefile
-@@ -8,4 +8,5 @@ obj-$(CONFIG_IMA) += ima.o
- ima-y := ima_fs.o ima_queue.o ima_init.o ima_main.o ima_crypto.o ima_api.o \
- 	 ima_policy.o ima_template.o ima_template_lib.o
- ima-$(CONFIG_IMA_APPRAISE) += ima_appraise.o
-+ima-$(CONFIG_KEXEC_FILE) += ima_kexec.o
- obj-$(CONFIG_IMA_BLACKLIST_KEYRING) += ima_mok.o
-diff -puN security/integrity/ima/ima.h~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima.h
---- a/security/integrity/ima/ima.h~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/ima.h
-@@ -102,6 +102,15 @@ struct ima_queue_entry {
- };
- extern struct list_head ima_measurements;	/* list of all measurements */
+diff -puN fs/dax.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter fs/dax.c
+--- a/fs/dax.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/fs/dax.c
+@@ -1034,7 +1034,7 @@ int dax_pmd_fault(struct vm_area_struct
+ 	if (!write && !buffer_mapped(&bh)) {
+ 		spinlock_t *ptl;
+ 		pmd_t entry;
+-		struct page *zero_page = get_huge_zero_page();
++		struct page *zero_page = mm_get_huge_zero_page(vma->vm_mm);
  
-+/* Some details preceding the binary serialized measurement list */
-+struct ima_kexec_hdr {
-+	u16 version;
-+	u16 _reserved0;
-+	u32 _reserved1;
-+	u64 buffer_size;
-+	u64 count;
-+};
-+
- /* Internal IMA function definitions */
- int ima_init(void);
- int ima_fs_init(void);
-@@ -122,8 +131,17 @@ int ima_init_crypto(void);
- void ima_putc(struct seq_file *m, void *data, int datalen);
- void ima_print_digest(struct seq_file *m, u8 *digest, u32 size);
- struct ima_template_desc *ima_template_desc_current(void);
-+int ima_restore_measurement_entry(struct ima_template_entry *entry);
-+int ima_restore_measurement_list(loff_t bufsize, void *buf);
- int ima_init_template(void);
- 
-+#ifdef CONFIG_KEXEC_FILE
-+void ima_load_kexec_buffer(void);
-+#else
-+static inline void ima_load_kexec_buffer(void)
-+{}
-+#endif
-+
- /*
-  * used to protect h_table and sha_table
-  */
-diff -puN security/integrity/ima/ima_init.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_init.c
---- a/security/integrity/ima/ima_init.c~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/ima_init.c
-@@ -128,6 +128,8 @@ int __init ima_init(void)
- 	if (rc != 0)
- 		return rc;
- 
-+	ima_load_kexec_buffer();
-+
- 	rc = ima_add_boot_aggregate();	/* boot aggregate must be first entry */
- 	if (rc != 0)
- 		return rc;
-diff -puN /dev/null security/integrity/ima/ima_kexec.c
---- /dev/null
-+++ a/security/integrity/ima/ima_kexec.c
-@@ -0,0 +1,55 @@
-+/*
-+ * Copyright (C) 2016 IBM Corporation
-+ *
-+ * Authors:
-+ * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-+ * Mimi Zohar <zohar@linux.vnet.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#include <linux/fcntl.h>
-+#include <linux/slab.h>
-+#include <linux/module.h>
-+#include <linux/seq_file.h>
-+#include <linux/rculist.h>
-+#include <linux/rcupdate.h>
-+#include <linux/parser.h>
-+#include <linux/vmalloc.h>
-+#include <linux/kexec.h>
-+#include <linux/reboot.h>
-+
-+#include "ima.h"
-+
-+/*
-+ * Restore the measurement list from the previous kernel.
-+ */
-+void ima_load_kexec_buffer(void)
-+{
-+	void *kexec_buffer = NULL;
-+	size_t kexec_buffer_size = 0;
-+	int rc;
-+
-+	rc = kexec_get_handover_buffer(&kexec_buffer, &kexec_buffer_size);
-+	switch (rc) {
-+	case 0:
-+		rc = ima_restore_measurement_list(kexec_buffer_size,
-+						  kexec_buffer);
-+		if (rc != 0)
-+			pr_err("Failed to restore the measurement list: %d\n",
-+				rc);
-+
-+		kexec_free_handover_buffer();
-+		break;
-+	case -ENOTSUPP:
-+		pr_debug("Restoring the measurement list not supported\n");
-+		break;
-+	case -ENOENT:
-+		pr_debug("No measurement list to restore\n");
-+		break;
-+	default:
-+		pr_debug("Error restoring the measurement list: %d\n", rc);
-+	}
-+}
-diff -puN security/integrity/ima/ima_queue.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_queue.c
---- a/security/integrity/ima/ima_queue.c~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/ima_queue.c
-@@ -149,3 +149,13 @@ out:
- 			    op, audit_cause, result, audit_info);
- 	return result;
+ 		if (unlikely(!zero_page)) {
+ 			dax_pmd_dbg(&bh, address, "no zero page");
+diff -puN include/linux/huge_mm.h~thp-reduce-usage-of-huge-zero-pages-atomic-counter include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/include/linux/huge_mm.h
+@@ -156,8 +156,8 @@ static inline bool is_huge_zero_pmd(pmd_
+ 	return is_huge_zero_page(pmd_page(pmd));
  }
-+
-+int ima_restore_measurement_entry(struct ima_template_entry *entry)
-+{
-+	int result = 0;
-+
-+	mutex_lock(&ima_extend_list_mutex);
-+	result = ima_add_digest_entry(entry);
-+	mutex_unlock(&ima_extend_list_mutex);
-+	return result;
-+}
-diff -puN security/integrity/ima/ima_template.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_template.c
---- a/security/integrity/ima/ima_template.c~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/ima_template.c
-@@ -37,6 +37,7 @@ static struct ima_template_field support
- 	{.field_id = "sig", .field_init = ima_eventsig_init,
- 	 .field_show = ima_show_template_sig},
- };
-+#define MAX_TEMPLATE_NAME_LEN 15
  
- static struct ima_template_desc *ima_template;
- static struct ima_template_desc *lookup_template_desc(const char *name);
-@@ -205,3 +206,172 @@ int __init ima_init_template(void)
+-struct page *get_huge_zero_page(void);
+-void put_huge_zero_page(void);
++struct page *mm_get_huge_zero_page(struct mm_struct *mm);
++void mm_put_huge_zero_page(struct mm_struct *mm);
  
- 	return result;
+ #define mk_huge_pmd(page, prot) pmd_mkhuge(mk_pmd(page, prot))
+ 
+@@ -220,9 +220,9 @@ static inline bool is_huge_zero_page(str
+ 	return false;
  }
-+
-+static int ima_restore_template_data(struct ima_template_desc *template_desc,
-+				     void *template_data,
-+				     int template_data_size,
-+				     struct ima_template_entry **entry)
+ 
+-static inline void put_huge_zero_page(void)
++static inline void mm_put_huge_zero_page(struct mm_struct *mm)
+ {
+-	BUILD_BUG();
++	return;
+ }
+ 
+ static inline struct page *follow_devmap_pmd(struct vm_area_struct *vma,
+diff -puN include/linux/sched.h~thp-reduce-usage-of-huge-zero-pages-atomic-counter include/linux/sched.h
+--- a/include/linux/sched.h~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/include/linux/sched.h
+@@ -524,6 +524,7 @@ static inline int get_dumpable(struct mm
+ #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
+ #define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
+ #define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
++#define MMF_HUGE_ZERO_PAGE	23      /* mm has ever used the global huge zero page */
+ 
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
+ 
+diff -puN kernel/fork.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter kernel/fork.c
+--- a/kernel/fork.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/kernel/fork.c
+@@ -717,6 +717,7 @@ static inline void __mmput(struct mm_str
+ 	ksm_exit(mm);
+ 	khugepaged_exit(mm); /* must run before exit_mmap */
+ 	exit_mmap(mm);
++	mm_put_huge_zero_page(mm);
+ 	set_mm_exe_file(mm, NULL);
+ 	if (!list_empty(&mm->mmlist)) {
+ 		spin_lock(&mmlist_lock);
+diff -puN mm/huge_memory.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/mm/huge_memory.c
+@@ -59,7 +59,7 @@ static struct shrinker deferred_split_sh
+ static atomic_t huge_zero_refcount;
+ struct page *huge_zero_page __read_mostly;
+ 
+-struct page *get_huge_zero_page(void)
++static struct page *get_huge_zero_page(void)
+ {
+ 	struct page *zero_page;
+ retry:
+@@ -86,7 +86,7 @@ retry:
+ 	return READ_ONCE(huge_zero_page);
+ }
+ 
+-void put_huge_zero_page(void)
++static void put_huge_zero_page(void)
+ {
+ 	/*
+ 	 * Counter should never go to zero here. Only shrinker can put
+@@ -95,6 +95,26 @@ void put_huge_zero_page(void)
+ 	BUG_ON(atomic_dec_and_test(&huge_zero_refcount));
+ }
+ 
++struct page *mm_get_huge_zero_page(struct mm_struct *mm)
 +{
-+	struct binary_field_data {
-+		u32 len;
-+		u8 data[0];
-+	} __packed;
++	if (test_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
++		return READ_ONCE(huge_zero_page);
 +
-+	struct binary_field_data *field_data;
-+	int offset = 0;
-+	int ret = 0;
-+	int i;
++	if (!get_huge_zero_page())
++		return NULL;
 +
-+	*entry = kzalloc(sizeof(**entry) +
-+		    template_desc->num_fields * sizeof(struct ima_field_data),
-+		    GFP_NOFS);
-+	if (!*entry)
-+		return -ENOMEM;
++	if (test_and_set_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
++		put_huge_zero_page();
 +
-+	(*entry)->template_desc = template_desc;
-+	for (i = 0; i < template_desc->num_fields; i++) {
-+		field_data = template_data + offset;
-+
-+		/* Each field of the template data is prefixed with a length. */
-+		if (offset > (template_data_size - sizeof(field_data->len))) {
-+			pr_err("Restoring the template field failed\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		offset += sizeof(field_data->len);
-+
-+		if (offset > (template_data_size - field_data->len)) {
-+			pr_err("Restoring the template field data failed\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		offset += field_data->len;
-+
-+		(*entry)->template_data[i].len = field_data->len;
-+		(*entry)->template_data_len += sizeof(field_data->len);
-+
-+		(*entry)->template_data[i].data =
-+			kzalloc(field_data->len + 1, GFP_KERNEL);
-+		if (!(*entry)->template_data[i].data) {
-+			ret = -ENOMEM;
-+			break;
-+		}
-+		memcpy((*entry)->template_data[i].data, field_data->data,
-+			field_data->len);
-+		(*entry)->template_data_len += field_data->len;
-+	}
-+
-+	if (ret < 0) {
-+		ima_free_template_entry(*entry);
-+		*entry = NULL;
-+	}
-+
-+	return ret;
++	return READ_ONCE(huge_zero_page);
 +}
 +
-+/* Restore the serialized binary measurement list without extending PCRs. */
-+int ima_restore_measurement_list(loff_t size, void *buf)
++void mm_put_huge_zero_page(struct mm_struct *mm)
 +{
-+	struct binary_hdr_v1 {
-+		u32 pcr;
-+		u8 digest[TPM_DIGEST_SIZE];
-+		u32 template_name_len;
-+		char template_name[0];
-+	} __packed;
-+	char template_name[MAX_TEMPLATE_NAME_LEN];
-+
-+	struct binary_data_v1 {
-+		u32 template_data_size;
-+		char template_data[0];
-+	} __packed;
-+
-+	struct ima_kexec_hdr *khdr = buf;
-+	struct binary_hdr_v1 *hdr_v1;
-+	struct binary_data_v1 *data_v1;
-+
-+	void *bufp = buf + sizeof(*khdr);
-+	void *bufendp = buf + khdr->buffer_size;
-+	struct ima_template_entry *entry;
-+	struct ima_template_desc *template_desc;
-+	unsigned long count = 0;
-+	int ret = 0;
-+
-+	if (!buf || size < sizeof(*khdr))
-+		return 0;
-+
-+	if (khdr->version != 1) {
-+		pr_err("attempting to restore a incompatible measurement list");
-+		return 0;
-+	}
-+
-+	/*
-+	 * ima kexec buffer prefix: version, buffer size, count
-+	 * v1 format: pcr, digest, template-name-len, template-name,
-+	 *	      template-data-size, template-data
-+	 */
-+	while ((bufp < bufendp) && (count++ < khdr->count)) {
-+		if (count > ULONG_MAX - 1) {
-+			pr_err("attempting to restore too many measurements");
-+			ret = -EINVAL;
-+		}
-+
-+		hdr_v1 = bufp;
-+		if ((hdr_v1->template_name_len > MAX_TEMPLATE_NAME_LEN) ||
-+		    ((bufp + hdr_v1->template_name_len) > bufendp)) {
-+			pr_err("attempting to restore a template name \
-+				that is too long\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		bufp += sizeof(*hdr_v1);
-+
-+		/* template name is not null terminated */
-+		memcpy(template_name, bufp, hdr_v1->template_name_len);
-+		template_name[hdr_v1->template_name_len] = 0;
-+
-+		if (strcmp(template_name, "ima") == 0) {
-+			pr_err("attempting to restore an unsupported \
-+				template \"%s\" failed\n", template_name);
-+			ret = -EINVAL;
-+			break;
-+		}
-+		data_v1 = bufp += (u_int8_t)hdr_v1->template_name_len;
-+
-+		/* get template format */
-+		template_desc = lookup_template_desc(template_name);
-+		if (!template_desc) {
-+			pr_err("template \"%s\" not found\n", template_name);
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		if (bufp > (bufendp - sizeof(data_v1->template_data_size))) {
-+			pr_err("restoring the template data size failed\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		bufp += (u_int8_t) sizeof(data_v1->template_data_size);
-+
-+		if (bufp > (bufendp - data_v1->template_data_size)) {
-+			pr_err("restoring the template data failed\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		ret = ima_restore_template_data(template_desc,
-+						data_v1->template_data,
-+						data_v1->template_data_size,
-+						&entry);
-+		if (ret < 0)
-+			break;
-+
-+		memcpy(entry->digest, hdr_v1->digest, TPM_DIGEST_SIZE);
-+		entry->pcr = hdr_v1->pcr;
-+		ret = ima_restore_measurement_entry(entry);
-+		if (ret < 0)
-+			break;
-+
-+		bufp += data_v1->template_data_size;
-+	}
-+	return ret;
++	if (test_bit(MMF_HUGE_ZERO_PAGE, &mm->flags))
++		put_huge_zero_page();
 +}
++
+ static unsigned long shrink_huge_zero_page_count(struct shrinker *shrink,
+ 					struct shrink_control *sc)
+ {
+@@ -644,7 +664,7 @@ int do_huge_pmd_anonymous_page(struct fa
+ 		pgtable = pte_alloc_one(vma->vm_mm, haddr);
+ 		if (unlikely(!pgtable))
+ 			return VM_FAULT_OOM;
+-		zero_page = get_huge_zero_page();
++		zero_page = mm_get_huge_zero_page(vma->vm_mm);
+ 		if (unlikely(!zero_page)) {
+ 			pte_free(vma->vm_mm, pgtable);
+ 			count_vm_event(THP_FAULT_FALLBACK);
+@@ -666,10 +686,8 @@ int do_huge_pmd_anonymous_page(struct fa
+ 			}
+ 		} else
+ 			spin_unlock(fe->ptl);
+-		if (!set) {
++		if (!set)
+ 			pte_free(vma->vm_mm, pgtable);
+-			put_huge_zero_page();
+-		}
+ 		return ret;
+ 	}
+ 	gfp = alloc_hugepage_direct_gfpmask(vma);
+@@ -823,7 +841,7 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		 * since we already have a zero page to copy. It just takes a
+ 		 * reference.
+ 		 */
+-		zero_page = get_huge_zero_page();
++		zero_page = mm_get_huge_zero_page(dst_mm);
+ 		set_huge_zero_page(pgtable, dst_mm, vma, addr, dst_pmd,
+ 				zero_page);
+ 		ret = 0;
+@@ -1081,7 +1099,6 @@ alloc:
+ 		update_mmu_cache_pmd(vma, fe->address, fe->pmd);
+ 		if (!page) {
+ 			add_mm_counter(vma->vm_mm, MM_ANONPAGES, HPAGE_PMD_NR);
+-			put_huge_zero_page();
+ 		} else {
+ 			VM_BUG_ON_PAGE(!PageHead(page), page);
+ 			page_remove_rmap(page, true);
+@@ -1545,7 +1562,6 @@ static void __split_huge_zero_page_pmd(s
+ 	}
+ 	smp_wmb(); /* make pte visible before pmd */
+ 	pmd_populate(mm, pmd, pgtable);
+-	put_huge_zero_page();
+ }
+ 
+ static void __split_huge_pmd_locked(struct vm_area_struct *vma, pmd_t *pmd,
+@@ -1568,8 +1584,6 @@ static void __split_huge_pmd_locked(stru
+ 
+ 	if (!vma_is_anonymous(vma)) {
+ 		_pmd = pmdp_huge_clear_flush_notify(vma, haddr, pmd);
+-		if (is_huge_zero_pmd(_pmd))
+-			put_huge_zero_page();
+ 		if (vma_is_dax(vma))
+ 			return;
+ 		page = pmd_page(_pmd);
+diff -puN mm/swap.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter mm/swap.c
+--- a/mm/swap.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/mm/swap.c
+@@ -748,10 +748,8 @@ void release_pages(struct page **pages,
+ 			locked_pgdat = NULL;
+ 		}
+ 
+-		if (is_huge_zero_page(page)) {
+-			put_huge_zero_page();
++		if (is_huge_zero_page(page))
+ 			continue;
+-		}
+ 
+ 		page = compound_head(page);
+ 		if (!put_page_testzero(page))
+diff -puN mm/swap_state.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter mm/swap_state.c
+--- a/mm/swap_state.c~thp-reduce-usage-of-huge-zero-pages-atomic-counter
++++ a/mm/swap_state.c
+@@ -254,9 +254,7 @@ static inline void free_swap_cache(struc
+ void free_page_and_swap_cache(struct page *page)
+ {
+ 	free_swap_cache(page);
+-	if (is_huge_zero_page(page))
+-		put_huge_zero_page();
+-	else
++	if (!is_huge_zero_page(page))
+ 		put_page(page);
+ }
+ 
 _
 
-Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from aaron.lu@intel.com are
 
-ima-on-soft-reboot-restore-the-measurement-list.patch
-ima-permit-duplicate-measurement-list-entries.patch
-ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
-ima-serialize-the-binary_runtime_measurements.patch
-ima-store-the-builtin-custom-template-definitions-in-a-list.patch
-ima-support-restoring-multiple-template-formats.patch
-ima-define-a-canonical-binary_runtime_measurements-list-format.patch
+thp-reduce-usage-of-huge-zero-pages-atomic-counter.patch
 
