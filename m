@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
- added to -mm tree
-Date: Wed, 31 Aug 2016 13:22:20 -0700
-Message-ID: <57c73c7c./rxKsUjx1SeV5h2K%akpm@linux-foundation.org>
+Subject: + memory-hotplug-fix-store_mem_state-return-value.patch added to
+ -mm tree
+Date: Wed, 31 Aug 2016 13:26:38 -0700
+Message-ID: <57c73d7e.lTp37rmI0zmmzcn5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48791 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48980 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753126AbcHaUWi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 16:22:38 -0400
+        with ESMTP id S933154AbcHaU0o (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 16:26:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, julia.lawall@lip6.fr, keescook@chromium.org, mm-commits@vger.kernel.org
+To: arbab@linux.vnet.ibm.com, abanman@sgi.com, baiyaowei@cmss.chinamobile.com, dan.j.williams@intel.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, qiuxishi@huawei.com, rientjes@google.com, slaoub@gmail.com, vbabka@suse.cz, vkuznets@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: const_structs.checkpatch: add frequently used from Julia Lawall's list
+     Subject: memory-hotplug: fix store_mem_state() return value
 has been added to the -mm tree.  Its filename is
-     const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
+     memory-hotplug-fix-store_mem_state-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-fix-store_mem_state-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-fix-store_mem_state-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,110 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: const_structs.checkpatch: add frequently used from Julia Lawall's list
+From: Reza Arbab <arbab@linux.vnet.ibm.com>
+Subject: memory-hotplug: fix store_mem_state() return value
 
-Using const is generally a good idea.
+Attempting to online memory which is already online will cause this:
 
-Julia Lawall has created a list of always const and almost always const
-structs in the kernel sources.
+1. store_mem_state() called with buf="online"
+2. device_online() returns 1 because device is already online
+3. store_mem_state() returns 1
+4. calling code interprets this as 1-byte buffer read
+5. store_mem_state() called again with buf="nline"
+6. store_mem_state() returns -EINVAL
 
-Link: https://lkml.org/lkml/2016/8/28/95
+Example:
 
-Add the most frequently used (> 50 cases) that are almost always or
-always const.
+$ cat /sys/devices/system/memory/memory0/state
+online
+$ echo online > /sys/devices/system/memory/memory0/state
+-bash: echo: write error: Invalid argument
 
-Link: http://lkml.kernel.org/r/1e16020f8027654db0095bbfbcc11da51025365c.1472664220.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Andy Whitcroft <apw@canonical.com>
+Fix the return value of store_mem_state() so this doesn't happen.
+
+Link: http://lkml.kernel.org/r/1472658241-32748-1-git-send-email-arbab@linux.vnet.ibm.com
+Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: Chen Yucong <slaoub@gmail.com>
+Cc: Andrew Banman <abanman@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/const_structs.checkpatch |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ drivers/base/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/const_structs.checkpatch~const_structscheckpatch-add-frequently-used-from-julia-lawalls-list scripts/const_structs.checkpatch
---- a/scripts/const_structs.checkpatch~const_structscheckpatch-add-frequently-used-from-julia-lawalls-list
-+++ a/scripts/const_structs.checkpatch
-@@ -2,38 +2,63 @@ acpi_dock_ops
- address_space_operations
- backlight_ops
- block_device_operations
-+clk_ops
-+comedi_lrange
-+component_ops
- dentry_operations
- dev_pm_ops
- dma_map_ops
-+driver_info
-+drm_connector_funcs
-+drm_encoder_funcs
-+drm_encoder_helper_funcs
-+ethtool_ops
- extent_io_ops
- file_lock_operations
- file_operations
- hv_ops
- ide_dma_ops
-+ide_port_ops
-+inode_operations
- intel_dvo_dev_ops
-+irq_domain_ops
- item_operations
-+iwl_cfg
- iwl_ops
- kgdb_arch
- kgdb_io
- kset_uevent_ops
- lock_manager_operations
-+machine_desc
- microcode_ops
-+mlxsw_reg_info
- mtrr_ops
- neigh_ops
-+net_device_ops
- nlmsvc_binding
-+nvkm_device_chip
- of_device_id
- pci_raw_ops
- pipe_buf_operations
- platform_hibernation_ops
- platform_suspend_ops
- proto_ops
-+regmap_access_table
- rpc_pipe_ops
-+rtc_class_ops
-+sd_desc
- seq_operations
-+sirfsoc_padmux
- snd_ac97_build_ops
-+snd_soc_component_driver
- soc_pcmcia_socket_ops
- stacktrace_ops
- sysfs_ops
- tty_operations
- uart_ops
- usb_mon_operations
-+v4l2_ctrl_ops
-+v4l2_ioctl_ops
-+vm_operations_struct
-+wacom_features
- wd_ops
+diff -puN drivers/base/memory.c~memory-hotplug-fix-store_mem_state-return-value drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-fix-store_mem_state-return-value
++++ a/drivers/base/memory.c
+@@ -361,7 +361,7 @@ store_mem_state(struct device *dev,
+ err:
+ 	unlock_device_hotplug();
+ 
+-	if (ret)
++	if (ret < 0)
+ 		return ret;
+ 	return count;
+ }
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
 
-wd719x-remove-last-declaration-using-define_pci_device_table.patch
-treewide-remove-references-to-the-now-unnecessary-define_pci_device_table.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
-meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
-spellingtxt-modeled-is-spelt-correctly.patch
-checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
-checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
-checkpatch-test-multiple-line-block-comment-alignment.patch
-checkpatch-dont-test-for-prefer-ether_addr_foo.patch
-checkpatch-externalize-the-structs-that-should-be-const.patch
-const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
+memory-hotplug-fix-store_mem_state-return-value.patch
 
