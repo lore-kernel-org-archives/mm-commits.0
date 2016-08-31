@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-fix-store_mem_state-return-value.patch added to
- -mm tree
-Date: Wed, 31 Aug 2016 13:26:38 -0700
-Message-ID: <57c73d7e.lTp37rmI0zmmzcn5%akpm@linux-foundation.org>
+Subject: +
+ mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious.patch added to -mm tree
+Date: Wed, 31 Aug 2016 13:28:11 -0700
+Message-ID: <57c73ddb.ZfoBfL09ZNxrOfFX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48980 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48989 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933154AbcHaU0o (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 16:26:44 -0400
+        with ESMTP id S932140AbcHaU2M (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 16:28:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arbab@linux.vnet.ibm.com, abanman@sgi.com, baiyaowei@cmss.chinamobile.com, dan.j.williams@intel.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, qiuxishi@huawei.com, rientjes@google.com, slaoub@gmail.com, vbabka@suse.cz, vkuznets@redhat.com, mm-commits@vger.kernel.org
+To: james.morse@arm.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: fix store_mem_state() return value
+     Subject: fs/proc/task_mmu.c: make the task_mmu walk_page_range() limit in clear_refs_write() obvious
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-store_mem_state-return-value.patch
+     mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-fix-store_mem_state-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-fix-store_mem_state-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,61 +39,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Reza Arbab <arbab@linux.vnet.ibm.com>
-Subject: memory-hotplug: fix store_mem_state() return value
+From: James Morse <james.morse@arm.com>
+Subject: fs/proc/task_mmu.c: make the task_mmu walk_page_range() limit in clear_refs_write() obvious
 
-Attempting to online memory which is already online will cause this:
+Trying to walk all of virtual memory requires architecture specific
+knowledge.  On x86_64, addresses must be sign extended from bit 48,
+whereas on arm64 the top VA_BITS of address space have their own set of
+page tables.
 
-1. store_mem_state() called with buf="online"
-2. device_online() returns 1 because device is already online
-3. store_mem_state() returns 1
-4. calling code interprets this as 1-byte buffer read
-5. store_mem_state() called again with buf="nline"
-6. store_mem_state() returns -EINVAL
+clear_refs_write() calls walk_page_range() on the range 0 to ~0UL, it
+provides a test_walk() callback that only expects to be walking over VMAs.
+Currently walk_pmd_range() will skip memory regions that don't have a
+VMA, reporting them as a hole.
 
-Example:
+As this call only expects to walk user address space, make it walk 0 to
+'highest_vm_end'.
 
-$ cat /sys/devices/system/memory/memory0/state
-online
-$ echo online > /sys/devices/system/memory/memory0/state
--bash: echo: write error: Invalid argument
-
-Fix the return value of store_mem_state() so this doesn't happen.
-
-Link: http://lkml.kernel.org/r/1472658241-32748-1-git-send-email-arbab@linux.vnet.ibm.com
-Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
-Cc: Chen Yucong <slaoub@gmail.com>
-Cc: Andrew Banman <abanman@sgi.com>
+Link: http://lkml.kernel.org/r/1472655792-22439-1-git-send-email-james.morse@arm.com
+Signed-off-by: James Morse <james.morse@arm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    2 +-
+ fs/proc/task_mmu.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/memory.c~memory-hotplug-fix-store_mem_state-return-value drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-fix-store_mem_state-return-value
-+++ a/drivers/base/memory.c
-@@ -361,7 +361,7 @@ store_mem_state(struct device *dev,
- err:
- 	unlock_device_hotplug();
- 
--	if (ret)
-+	if (ret < 0)
- 		return ret;
- 	return count;
- }
+diff -puN fs/proc/task_mmu.c~mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious
++++ a/fs/proc/task_mmu.c
+@@ -1068,7 +1068,7 @@ static ssize_t clear_refs_write(struct f
+ 			}
+ 			mmu_notifier_invalidate_range_start(mm, 0, -1);
+ 		}
+-		walk_page_range(0, ~0UL, &clear_refs_walk);
++		walk_page_range(0, mm->highest_vm_end, &clear_refs_walk);
+ 		if (type == CLEAR_REFS_SOFT_DIRTY)
+ 			mmu_notifier_invalidate_range_end(mm, 0, -1);
+ 		flush_tlb_mm(mm);
 _
 
-Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
+Patches currently in -mm which might be from james.morse@arm.com are
 
-memory-hotplug-fix-store_mem_state-return-value.patch
+mm-pagewalk-fix-the-comment-for-test_walk.patch
+mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious.patch
 
