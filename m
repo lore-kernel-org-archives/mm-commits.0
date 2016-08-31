@@ -1,138 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl.patch added to -mm tree
-Date: Wed, 31 Aug 2016 14:14:54 -0700
-Message-ID: <57c748ce.Hb9+Eao2ZEc/iCuc%akpm@linux-foundation.org>
+Subject: + kernel-fork-fix-clone_child_cleartid-regression-in-nscd.patch
+ added to -mm tree
+Date: Wed, 31 Aug 2016 14:17:55 -0700
+Message-ID: <57c74983.VhJuC/CrOdvFBW2j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51354 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51364 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753292AbcHaVOz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 17:14:55 -0400
+        with ESMTP id S1759519AbcHaVR4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 17:17:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kusumi.tomohiro@gmail.com, raven@themaw.net, mm-commits@vger.kernel.org
+To: mhocko@suse.com, oleg@redhat.com, roland@hack.frob.com, schwab@suse.com, wpreston@suse.com, mm-commits@vger.kernel.org
 
-
-The patch titled
-     Subject: autofs: refactor ioctl fn vector in iookup_dev_ioctl()
-has been added to the -mm tree.  Its filename is
-     autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl.patch
-
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: refactor ioctl fn vector in iookup_dev_ioctl()
-
-cmd part of this struct is the same as an index of itself within
-_ioctls[]. In fact this cmd is unused, so we can drop this part.
-
-Link: http://lkml.kernel.org/r/20160831033414.9910.66697.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/autofs4/dev-ioctl.c |   49 ++++++++++++---------------------------
- 1 file changed, 16 insertions(+), 33 deletions(-)
-
-diff -puN fs/autofs4/dev-ioctl.c~autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -597,42 +597,25 @@ out:
- 
- static ioctl_fn lookup_dev_ioctl(unsigned int cmd)
- {
--	static struct {
--		int cmd;
--		ioctl_fn fn;
--	} _ioctls[] = {
--		{cmd_idx(AUTOFS_DEV_IOCTL_VERSION_CMD),
--			 autofs_dev_ioctl_version},
--		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOVER_CMD),
--			 autofs_dev_ioctl_protover},
--		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD),
--			 autofs_dev_ioctl_protosubver},
--		{cmd_idx(AUTOFS_DEV_IOCTL_OPENMOUNT_CMD),
--			 autofs_dev_ioctl_openmount},
--		{cmd_idx(AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD),
--			 autofs_dev_ioctl_closemount},
--		{cmd_idx(AUTOFS_DEV_IOCTL_READY_CMD),
--			 autofs_dev_ioctl_ready},
--		{cmd_idx(AUTOFS_DEV_IOCTL_FAIL_CMD),
--			 autofs_dev_ioctl_fail},
--		{cmd_idx(AUTOFS_DEV_IOCTL_SETPIPEFD_CMD),
--			 autofs_dev_ioctl_setpipefd},
--		{cmd_idx(AUTOFS_DEV_IOCTL_CATATONIC_CMD),
--			 autofs_dev_ioctl_catatonic},
--		{cmd_idx(AUTOFS_DEV_IOCTL_TIMEOUT_CMD),
--			 autofs_dev_ioctl_timeout},
--		{cmd_idx(AUTOFS_DEV_IOCTL_REQUESTER_CMD),
--			 autofs_dev_ioctl_requester},
--		{cmd_idx(AUTOFS_DEV_IOCTL_EXPIRE_CMD),
--			 autofs_dev_ioctl_expire},
--		{cmd_idx(AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD),
--			 autofs_dev_ioctl_askumount},
--		{cmd_idx(AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD),
--			 autofs_dev_ioctl_ismountpoint}
-+	static ioctl_fn _ioctls[] = {
-+		autofs_dev_ioctl_version,
-+		autofs_dev_ioctl_protover,
-+		autofs_dev_ioctl_protosubver,
-+		autofs_dev_ioctl_openmount,
-+		autofs_dev_ioctl_closemount,
-+		autofs_dev_ioctl_ready,
-+		autofs_dev_ioctl_fail,
-+		autofs_dev_ioctl_setpipefd,
-+		autofs_dev_ioctl_catatonic,
-+		autofs_dev_ioctl_timeout,
-+		autofs_dev_ioctl_requester,
-+		autofs_dev_ioctl_expire,
-+		autofs_dev_ioctl_askumount,
-+		autofs_dev_ioctl_ismountpoint,
- 	};
- 	unsigned int idx = cmd_idx(cmd);
- 
--	return (idx >= ARRAY_SIZE(_ioctls)) ? NULL : _ioctls[idx].fn;
-+	return (idx >= ARRAY_SIZE(_ioctls)) ? NULL : _ioctls[idx];
- }
- 
- /* ioctl dispatcher */
-_
-
-Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
-
-autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
-autofs-drop-unnecessary-extern-in-autofs_ih.patch
-autofs-test-autofs-versions-first-on-sb-initialization.patch
-autofs-add-warn_on1-for-non-dir-link-inode-case.patch
-autofs-use-autofs4_free_ino-to-kfree-dentry-data.patch
-autofs-remove-obsolete-sb-fields.patch
-autofs-dont-fail-to-free_dev_ioctlparam.patch
-autofs-remove-autofs_devid_len.patch
-autofs-fix-documentation-regarding-devid-on-ioctl.patch
-autofs-update-struct-autofs_dev_ioctl-in-documentation.patch
-autofs-fix-pr_debug-message.patch
-autofs-fix-dev-ioctl-number-range-check-fix.patch
-autofs-fix-print-format-for-ioctl-warning-message.patch
-autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
-autofs-remove-possibly-misleading-define-debug.patch
-autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl.patch
-
+ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBrZXJuZWwvZm9yazogZml4IENMT05F
+X0NISUxEX0NMRUFSVElEIHJlZ3Jlc3Npb24gaW4gbnNjZApoYXMgYmVlbiBhZGRlZCB0byB0
+aGUgLW1tIHRyZWUuICBJdHMgZmlsZW5hbWUgaXMKICAgICBrZXJuZWwtZm9yay1maXgtY2xv
+bmVfY2hpbGRfY2xlYXJ0aWQtcmVncmVzc2lvbi1pbi1uc2NkLnBhdGNoCgpUaGlzIHBhdGNo
+IHNob3VsZCBzb29uIGFwcGVhciBhdAogICAgaHR0cDovL296bGFicy5vcmcvfmFrcG0vbW1v
+dHMvYnJva2VuLW91dC9rZXJuZWwtZm9yay1maXgtY2xvbmVfY2hpbGRfY2xlYXJ0aWQtcmVn
+cmVzc2lvbi1pbi1uc2NkLnBhdGNoCmFuZCBsYXRlciBhdAogICAgaHR0cDovL296bGFicy5v
+cmcvfmFrcG0vbW1vdG0vYnJva2VuLW91dC9rZXJuZWwtZm9yay1maXgtY2xvbmVfY2hpbGRf
+Y2xlYXJ0aWQtcmVncmVzc2lvbi1pbi1uc2NkLnBhdGNoCgpCZWZvcmUgeW91IGp1c3QgZ28g
+YW5kIGhpdCAicmVwbHkiLCBwbGVhc2U6CiAgIGEpIENvbnNpZGVyIHdobyBlbHNlIHNob3Vs
+ZCBiZSBjYydlZAogICBiKSBQcmVmZXIgdG8gY2MgYSBzdWl0YWJsZSBtYWlsaW5nIGxpc3Qg
+YXMgd2VsbAogICBjKSBJZGVhbGx5OiBmaW5kIHRoZSBvcmlnaW5hbCBwYXRjaCBvbiB0aGUg
+bWFpbGluZyBsaXN0IGFuZCBkbyBhCiAgICAgIHJlcGx5LXRvLWFsbCB0byB0aGF0LCBhZGRp
+bmcgc3VpdGFibGUgYWRkaXRpb25hbCBjYydzCgoqKiogUmVtZW1iZXIgdG8gdXNlIERvY3Vt
+ZW50YXRpb24vU3VibWl0Q2hlY2tsaXN0IHdoZW4gdGVzdGluZyB5b3VyIGNvZGUgKioqCgpU
+aGUgLW1tIHRyZWUgaXMgaW5jbHVkZWQgaW50byBsaW51eC1uZXh0IGFuZCBpcyB1cGRhdGVk
+CnRoZXJlIGV2ZXJ5IDMtNCB3b3JraW5nIGRheXMKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpGcm9tOiBNaWNoYWwgSG9ja28gPG1o
+b2Nrb0BzdXNlLmNvbT4KU3ViamVjdDoga2VybmVsL2Zvcms6IGZpeCBDTE9ORV9DSElMRF9D
+TEVBUlRJRCByZWdyZXNzaW9uIGluIG5zY2QKCmZlYzFkMDExNTI0MCAoIltQQVRDSF0gRGlz
+YWJsZSBDTE9ORV9DSElMRF9DTEVBUlRJRCBmb3IgYWJub3JtYWwgZXhpdCIpCmhhcyBjYXVz
+ZWQgYSBzdWJ0bGUgcmVncmVzc2lvbiBpbiBuc2NkIHdoaWNoIHVzZXMgQ0xPTkVfQ0hJTERf
+Q0xFQVJUSUQgdG8KY2xlYXIgdGhlIG5zY2RfY2VydGFpbmx5X3J1bm5pbmcgZmxhZyBpbiB0
+aGUgc2hhcmVkIGRhdGFiYXNlcywgc28gdGhhdCB0aGUKY2xpZW50cyBhcmUgbm90aWZpZWQg
+d2hlbiBuc2NkIGlzIHJlc3RhcnRlZC4gIE5vdywgd2hlbiBuc2NkIHVzZXMgYQpub24tcGVy
+c2lzdGVudCBkYXRhYmFzZSwgY2xpZW50cyB0aGF0IGhhdmUgaXQgbWFwcGVkIGtlZXAgdGhp
+bmtpbmcgdGhlCmRhdGFiYXNlIGlzIGJlaW5nIHVwZGF0ZWQgYnkgbnNjZCwgd2hlbiBpbiBm
+YWN0IG5zY2QgaGFzIGNyZWF0ZWQgYSBuZXcKKGFub255bW91cykgb25lIChmb3Igbm9uLXBl
+cnNpc3RlbnQgZGF0YWJhc2VzIGl0IHVzZXMgYW4gdW5saW5rZWQgZmlsZSBhcwpiYWNrZW5k
+KS4KClRoZSBvcmlnaW5hbCBwcm9wb3NhbCBmb3IgdGhlIENMT05FX0NISUxEX0NMRUFSVElE
+IGNoYW5nZSBjbGFpbWVkCihodHRwczovL2xrbWwub3JnL2xrbWwvMjAwNi8xMC8yNS8yMzMp
+OgoKOiBUaGUgTlBUTCBsaWJyYXJ5IHVzZXMgdGhlIENMT05FX0NISUxEX0NMRUFSVElEIGZs
+YWcgb24gY2xvbmUoKSBzeXNjYWxscwo6IG9uIGJlaGFsZiBvZiBwdGhyZWFkX2NyZWF0ZSgp
+IGxpYnJhcnkgY2FsbHMuICBUaGlzIGZlYXR1cmUgaXMgdXNlZCB0bwo6IHJlcXVlc3QgdGhh
+dCB0aGUga2VybmVsIGNsZWFyIHRoZSB0aHJlYWQtaWQgaW4gdXNlciBzcGFjZSAoYXQgYW4g
+YWRkcmVzcwo6IHByb3ZpZGVkIGluIHRoZSBzeXNjYWxsKSB3aGVuIHRoZSB0aHJlYWQgZGlz
+YXNzb2NpYXRlcyBpdHNlbGYgZnJvbSB0aGUKOiBhZGRyZXNzIHNwYWNlLCB3aGljaCBpcyBk
+b25lIGluIG1tX3JlbGVhc2UoKS4KOiAKOiBVbmZvcnR1bmF0ZWx5LCB3aGVuIGEgbXVsdGkt
+dGhyZWFkZWQgcHJvY2VzcyBpbmN1cnMgYSBjb3JlIGR1bXAgKHN1Y2ggYXMKOiBmcm9tIGEg
+U0lHU0VHViksIHRoZSBjb3JlLWR1bXBpbmcgdGhyZWFkIHNlbmRzIFNJR0tJTEwgc2lnbmFs
+cyB0byBhbGwgb2YKOiB0aGUgb3RoZXIgdGhyZWFkcywgd2hpY2ggdGhlbiBwcm9jZWVkIHRv
+IGNsZWFyIHRoZWlyIHVzZXItc3BhY2UgdGlkcwo6IGJlZm9yZSBzeW5jaHJvbml6aW5nIGlu
+IGV4aXRfbW0oKSB3aXRoIHRoZSBzdGFydCBvZiBjb3JlIGR1bXBpbmcuICBUaGlzCjogbWlz
+cmVwcmVzZW50cyB0aGUgc3RhdGUgb2YgcHJvY2VzcydzIGFkZHJlc3Mgc3BhY2UgYXQgdGhl
+IHRpbWUgb2YgdGhlCjogU0lHU0VHViBhbmQgbWFrZXMgaXQgbW9yZSBkaWZmaWN1bHQgZm9y
+IHNvbWVvbmUgdG8gZGVidWcgTlBUTCBhbmQgZ2xpYmMKOiBwcm9ibGVtcyAobWlzbGVhZGlu
+ZyBoaW0vaGVyIHRvIGNvbmNsdWRlIHRoYXQgdGhlIHRocmVhZHMgaGFkIGdvbmUgYXdheQo6
+IGJlZm9yZSB0aGUgZmF1bHQpLgo6IAo6IFRoZSBmaXggYmVsb3cgaXMgdG8gc2ltcGx5IGF2
+b2lkIHRoZSBDTE9ORV9DSElMRF9DTEVBUlRJRCBhY3Rpb24gaWYgYQo6IGNvcmUgZHVtcCBo
+YXMgYmVlbiBpbml0aWF0ZWQuCgoQVGhlIHJlc3VsdGluZyBwYXRjaCBmcm9tIFJvbGFuZCAo
+aHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMDYvMTAvMjYvMjY5KQpzZWVtcyB0byBoYXZlIGEg
+bGFyZ2VyIHNjb3BlIHRoYW4gdGhlIG9yaWdpbmFsIHBhdGNoIGFza2VkIGZvci4gSXQgc2Vl
+bXMKdGhhdCBsaW1pdHRpbmcgdGhlIHNjb3BlIG9mIHRoZSBjaGVjayB0byBjb3JlIGR1bXBp
+bmcgc2hvdWxkIHdvcmsgZm9yClNJR1NFR1YgaXNzdWUgZGVzY3JpYmUgYWJvdmUuCgpbQ2hh
+bmdlbG9nIHBhcnRseSBiYXNlZCBvbiBBbmRyZWFzJyBkZXNjcmlwdGlvbl0KRml4ZXM6IGZl
+YzFkMDExNTI0MCAoIltQQVRDSF0gRGlzYWJsZSBDTE9ORV9DSElMRF9DTEVBUlRJRCBmb3Ig
+YWJub3JtYWwgZXhpdCIpCkxpbms6IGh0dHA6Ly9sa21sLmtlcm5lbC5vcmcvci8xNDcxOTY4
+NzQ5LTI2MTczLTEtZ2l0LXNlbmQtZW1haWwtbWhvY2tvQGtlcm5lbC5vcmcKU2lnbmVkLW9m
+Zi1ieTogTWljaGFsIEhvY2tvIDxtaG9ja29Ac3VzZS5jb20+ClRlc3RlZC1ieTogV2lsbGlh
+bSBQcmVzdG9uIDx3cHJlc3RvbkBzdXNlLmNvbT4KQWNrZWQtYnk6IE9sZWcgTmVzdGVyb3Yg
+PG9sZWdAcmVkaGF0LmNvbT4KQ2M6IFJvbGFuZCBNY0dyYXRoIDxyb2xhbmRAaGFjay5mcm9i
+LmNvbT4KQ2M6IEFuZHJlYXMgU2Nod2FiIDxzY2h3YWJAc3VzZS5jb20+ClNpZ25lZC1vZmYt
+Ynk6IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmc+Ci0tLQoKIGtl
+cm5lbC9mb3JrLmMgfCAgIDEwICsrKystLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCA0IGluc2Vy
+dGlvbnMoKyksIDYgZGVsZXRpb25zKC0pCgpkaWZmIC1wdU4ga2VybmVsL2ZvcmsuY35rZXJu
+ZWwtZm9yay1maXgtY2xvbmVfY2hpbGRfY2xlYXJ0aWQtcmVncmVzc2lvbi1pbi1uc2NkIGtl
+cm5lbC9mb3JrLmMKLS0tIGEva2VybmVsL2ZvcmsuY35rZXJuZWwtZm9yay1maXgtY2xvbmVf
+Y2hpbGRfY2xlYXJ0aWQtcmVncmVzc2lvbi1pbi1uc2NkCisrKyBhL2tlcm5lbC9mb3JrLmMK
+QEAgLTkxMywxNCArOTEzLDEyIEBAIHZvaWQgbW1fcmVsZWFzZShzdHJ1Y3QgdGFza19zdHJ1
+Y3QgKnRzaywKIAlkZWFjdGl2YXRlX21tKHRzaywgbW0pOwogCiAJLyoKLQkgKiBJZiB3ZSdy
+ZSBleGl0aW5nIG5vcm1hbGx5LCBjbGVhciBhIHVzZXItc3BhY2UgdGlkIGZpZWxkIGlmCi0J
+ICogcmVxdWVzdGVkLiAgV2UgbGVhdmUgdGhpcyBhbG9uZSB3aGVuIGR5aW5nIGJ5IHNpZ25h
+bCwgdG8gbGVhdmUKLQkgKiB0aGUgdmFsdWUgaW50YWN0IGluIGEgY29yZSBkdW1wLCBhbmQg
+dG8gc2F2ZSB0aGUgdW5uZWNlc3NhcnkKLQkgKiB0cm91YmxlLCBzYXksIGEga2lsbGVkIHZm
+b3JrIHBhcmVudCBzaG91bGRuJ3QgdG91Y2ggdGhpcyBtbS4KLQkgKiBVc2VybGFuZCBvbmx5
+IHdhbnRzIHRoaXMgZG9uZSBmb3IgYSBzeXNfZXhpdC4KKwkgKiBTaWduYWwgdXNlcnNwYWNl
+IGlmIHdlJ3JlIG5vdCBleGl0aW5nIHdpdGggYSBjb3JlIGR1bXAKKwkgKiBiZWNhdXNlIHdl
+IHdhbnQgdG8gbGVhdmUgdGhlIHZhbHVlIGludGFjdCBmb3IgZGVidWdnaW5nCisJICogcHVy
+cG9zZXMuCiAJICovCiAJaWYgKHRzay0+Y2xlYXJfY2hpbGRfdGlkKSB7Ci0JCWlmICghKHRz
+ay0+ZmxhZ3MgJiBQRl9TSUdOQUxFRCkgJiYKKwkJaWYgKCEodHNrLT5zaWduYWwtPmZsYWdz
+ICYgU0lHTkFMX0dST1VQX0NPUkVEVU1QKSAmJgogCQkgICAgYXRvbWljX3JlYWQoJm1tLT5t
+bV91c2VycykgPiAxKSB7CiAJCQkvKgogCQkJICogV2UgZG9uJ3QgY2hlY2sgdGhlIGVycm9y
+IGNvZGUgLSBpZiB1c2Vyc3BhY2UgaGFzCl8KClBhdGNoZXMgY3VycmVudGx5IGluIC1tbSB3
+aGljaCBtaWdodCBiZSBmcm9tIG1ob2Nrb0BzdXNlLmNvbSBhcmUKCm1tLW9vbS1wcmV2ZW50
+LXByZS1tYXR1cmUtb29tLWtpbGxlci1pbnZvY2F0aW9uLWZvci1oaWdoLW9yZGVyLXJlcXVl
+c3QucGF0Y2gKa2VybmVsLWZvcmstZml4LWNsb25lX2NoaWxkX2NsZWFydGlkLXJlZ3Jlc3Np
+b24taW4tbnNjZC5wYXRjaAptbS12bXNjYW4tZ2V0LXJpZC1vZi10aHJvdHRsZV92bV93cml0
+ZW91dC5wYXRjaApvb20ta2VlcC1tbS1vZi10aGUta2lsbGVkLXRhc2stYXZhaWxhYmxlLnBh
+dGNoCmtlcm5lbC1vb20tZml4LXBvdGVudGlhbC1wZ2RfbG9jay1kZWFkbG9jay1mcm9tLV9f
+bW1kcm9wLnBhdGNoCm1tLW9vbS1nZXQtcmlkLW9mLXNpZ25hbF9zdHJ1Y3Qtb29tX3ZpY3Rp
+bXMucGF0Y2gKb29tLXN1c3BlbmQtZml4LW9vbV9raWxsZXJfZGlzYWJsZS12cy1wbS1zdXNw
+ZW5kLXByb3Blcmx5LnBhdGNoCm1tLW1ha2Utc3VyZS10aGF0LWt0aHJlYWRzLXdpbGwtbm90
+LXJlZmF1bHQtb29tLXJlYXBlZC1tZW1vcnkucGF0Y2gKb29tLW9vbV9yZWFwZXItYWxsb3ct
+dG8tcmVhcC1tbS1zaGFyZWQtYnktdGhlLWt0aHJlYWRzLnBhdGNoCm9vbS13YXJuLWlmLXdl
+LWdvLW9vbS1mb3ItaGlnaGVyLW9yZGVyLWFuZC1jb21wYWN0aW9uLWlzLWRpc2FibGVkLnBh
+dGNoCgo=
