@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-dont-test-for-prefer-ether_addr_foo.patch added to
- -mm tree
-Date: Wed, 31 Aug 2016 13:21:07 -0700
-Message-ID: <57c73c33.hE2eMvLLuXdpH4FY%akpm@linux-foundation.org>
+Subject: + checkpatch-externalize-the-structs-that-should-be-const.patch
+ added to -mm tree
+Date: Wed, 31 Aug 2016 13:22:18 -0700
+Message-ID: <57c73c7a.LOSKOQyy6TIJYuuX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48779 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48784 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753202AbcHaUVY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 16:21:24 -0400
+        with ESMTP id S1753043AbcHaUWi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 31 Aug 2016 16:22:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dan.carpenter@oracle.com, gvrose8192@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, julia.lawall@lip6.fr, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: don't test for prefer ether_addr_<foo>
+     Subject: checkpatch: externalize the structs that should be const
 has been added to the -mm tree.  Its filename is
-     checkpatch-dont-test-for-prefer-ether_addr_foo.patch
+     checkpatch-externalize-the-structs-that-should-be-const.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-dont-test-for-prefer-ether_addr_foo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-externalize-the-structs-that-should-be-const.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-dont-test-for-prefer-ether_addr_foo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-externalize-the-structs-that-should-be-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,110 +40,153 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: don't test for prefer ether_addr_<foo>
+Subject: checkpatch: externalize the structs that should be const
 
-< sigh > Comment these tests out.
+Make it easier to add new structs that should be const.
 
-These are just too enticing to people that don't verify that
-both source and dest addresses really must be __aligned(2).
-
-It helps make Dan Carpenter happy too.
-
-Link: http://lkml.kernel.org/r/dc32ec66d24647f4cdf824c8dfbbc59aa7ce7b7d.1472665676.git.joe@perches.com
+Link: http://lkml.kernel.org/r/e5a8da43e7c11525bafbda1ca69a8323614dd942.1472664220.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Greg <gvrose8192@gmail.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   70 ++++++++++++++++++++--------------------
- 1 file changed, 35 insertions(+), 35 deletions(-)
+ scripts/checkpatch.pl            |   64 ++++++++++-------------------
+ scripts/const_structs.checkpatch |   39 +++++++++++++++++
+ 2 files changed, 63 insertions(+), 40 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-dont-test-for-prefer-ether_addr_foo scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-dont-test-for-prefer-ether_addr_foo
+diff -puN scripts/checkpatch.pl~checkpatch-externalize-the-structs-that-should-be-const scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-externalize-the-structs-that-should-be-const
 +++ a/scripts/checkpatch.pl
-@@ -5554,46 +5554,46 @@ sub process {
+@@ -54,6 +54,7 @@ my $min_conf_desc_length = 4;
+ my $spelling_file = "$D/spelling.txt";
+ my $codespell = 0;
+ my $codespellfile = "/usr/share/codespell/dictionary.txt";
++my $conststructsfile = "$D/const_structs.checkpatch";
+ my $color = 1;
+ my $allow_c99_comments = 1;
+ 
+@@ -624,6 +625,29 @@ if ($codespell) {
+ 
+ $misspellings = join("|", sort keys %spelling_fix) if keys %spelling_fix;
+ 
++my $const_structs = "";
++if (open(my $conststructs, '<', $conststructsfile)) {
++	while (<$conststructs>) {
++		my $line = $_;
++
++		$line =~ s/\s*\n?$//g;
++		$line =~ s/^\s*//g;
++
++		next if ($line =~ m/^\s*#/);
++		next if ($line =~ m/^\s*$/);
++		if ($line =~ /\s/) {
++			print("$conststructsfile: '$line' invalid - ignored\n");
++			next;
++		}
++
++		$const_structs .= '|' if ($const_structs ne "");
++		$const_structs .= $line;
++	}
++	close($conststructsfile);
++} else {
++	warn "No structs that should be const will be found - file '$conststructsfile': $!\n";
++}
++
+ sub build_types {
+ 	my $mods = "(?x:  \n" . join("|\n  ", (@modifierList, @modifierListFile)) . "\n)";
+ 	my $all = "(?x:  \n" . join("|\n  ", (@typeList, @typeListFile)) . "\n)";
+@@ -5912,46 +5936,6 @@ sub process {
  		}
  
- # Check for memcpy(foo, bar, ETH_ALEN) that could be ether_addr_copy(foo, bar)
--		if ($^V && $^V ge 5.10.0 &&
--		    defined $stat &&
--		    $stat =~ /^\+(?:.*?)\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
--			if (WARN("PREFER_ETHER_ADDR_COPY",
--				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . "$here\n$stat\n") &&
--			    $fix) {
--				$fixed[$fixlinenr] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
--			}
--		}
-+#		if ($^V && $^V ge 5.10.0 &&
-+#		    defined $stat &&
-+#		    $stat =~ /^\+(?:.*?)\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
-+#			if (WARN("PREFER_ETHER_ADDR_COPY",
-+#				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . "$here\n$stat\n") &&
-+#			    $fix) {
-+#				$fixed[$fixlinenr] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
-+#			}
-+#		}
- 
- # Check for memcmp(foo, bar, ETH_ALEN) that could be ether_addr_equal*(foo, bar)
--		if ($^V && $^V ge 5.10.0 &&
--		    defined $stat &&
--		    $stat =~ /^\+(?:.*?)\bmemcmp\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
--			WARN("PREFER_ETHER_ADDR_EQUAL",
--			     "Prefer ether_addr_equal() or ether_addr_equal_unaligned() over memcmp()\n" . "$here\n$stat\n")
--		}
-+#		if ($^V && $^V ge 5.10.0 &&
-+#		    defined $stat &&
-+#		    $stat =~ /^\+(?:.*?)\bmemcmp\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
-+#			WARN("PREFER_ETHER_ADDR_EQUAL",
-+#			     "Prefer ether_addr_equal() or ether_addr_equal_unaligned() over memcmp()\n" . "$here\n$stat\n")
-+#		}
- 
- # check for memset(foo, 0x0, ETH_ALEN) that could be eth_zero_addr
- # check for memset(foo, 0xFF, ETH_ALEN) that could be eth_broadcast_addr
--		if ($^V && $^V ge 5.10.0 &&
--		    defined $stat &&
--		    $stat =~ /^\+(?:.*?)\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
--
--			my $ms_val = $7;
--
--			if ($ms_val =~ /^(?:0x|)0+$/i) {
--				if (WARN("PREFER_ETH_ZERO_ADDR",
--					 "Prefer eth_zero_addr over memset()\n" . "$here\n$stat\n") &&
--				    $fix) {
--					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_zero_addr($2)/;
--				}
--			} elsif ($ms_val =~ /^(?:0xff|255)$/i) {
--				if (WARN("PREFER_ETH_BROADCAST_ADDR",
--					 "Prefer eth_broadcast_addr() over memset()\n" . "$here\n$stat\n") &&
--				    $fix) {
--					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_broadcast_addr($2)/;
--				}
--			}
--		}
-+#		if ($^V && $^V ge 5.10.0 &&
-+#		    defined $stat &&
-+#		    $stat =~ /^\+(?:.*?)\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
-+#
-+#			my $ms_val = $7;
-+#
-+#			if ($ms_val =~ /^(?:0x|)0+$/i) {
-+#				if (WARN("PREFER_ETH_ZERO_ADDR",
-+#					 "Prefer eth_zero_addr over memset()\n" . "$here\n$stat\n") &&
-+#				    $fix) {
-+#					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_zero_addr($2)/;
-+#				}
-+#			} elsif ($ms_val =~ /^(?:0xff|255)$/i) {
-+#				if (WARN("PREFER_ETH_BROADCAST_ADDR",
-+#					 "Prefer eth_broadcast_addr() over memset()\n" . "$here\n$stat\n") &&
-+#				    $fix) {
-+#					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_broadcast_addr($2)/;
-+#				}
-+#			}
-+#		}
- 
- # typecasts on min/max could be min_t/max_t
- 		if ($^V && $^V ge 5.10.0 &&
+ # check for various structs that are normally const (ops, kgdb, device_tree)
+-		my $const_structs = qr{
+-				acpi_dock_ops|
+-				address_space_operations|
+-				backlight_ops|
+-				block_device_operations|
+-				dentry_operations|
+-				dev_pm_ops|
+-				dma_map_ops|
+-				extent_io_ops|
+-				file_lock_operations|
+-				file_operations|
+-				hv_ops|
+-				ide_dma_ops|
+-				intel_dvo_dev_ops|
+-				item_operations|
+-				iwl_ops|
+-				kgdb_arch|
+-				kgdb_io|
+-				kset_uevent_ops|
+-				lock_manager_operations|
+-				microcode_ops|
+-				mtrr_ops|
+-				neigh_ops|
+-				nlmsvc_binding|
+-				of_device_id|
+-				pci_raw_ops|
+-				pipe_buf_operations|
+-				platform_hibernation_ops|
+-				platform_suspend_ops|
+-				proto_ops|
+-				rpc_pipe_ops|
+-				seq_operations|
+-				snd_ac97_build_ops|
+-				soc_pcmcia_socket_ops|
+-				stacktrace_ops|
+-				sysfs_ops|
+-				tty_operations|
+-				uart_ops|
+-				usb_mon_operations|
+-				wd_ops}x;
+ 		if ($line !~ /\bconst\b/ &&
+ 		    $line =~ /\bstruct\s+($const_structs)\b/) {
+ 			WARN("CONST_STRUCT",
+diff -puN /dev/null scripts/const_structs.checkpatch
+--- /dev/null
++++ a/scripts/const_structs.checkpatch
+@@ -0,0 +1,39 @@
++acpi_dock_ops
++address_space_operations
++backlight_ops
++block_device_operations
++dentry_operations
++dev_pm_ops
++dma_map_ops
++extent_io_ops
++file_lock_operations
++file_operations
++hv_ops
++ide_dma_ops
++intel_dvo_dev_ops
++item_operations
++iwl_ops
++kgdb_arch
++kgdb_io
++kset_uevent_ops
++lock_manager_operations
++microcode_ops
++mtrr_ops
++neigh_ops
++nlmsvc_binding
++of_device_id
++pci_raw_ops
++pipe_buf_operations
++platform_hibernation_ops
++platform_suspend_ops
++proto_ops
++rpc_pipe_ops
++seq_operations
++snd_ac97_build_ops
++soc_pcmcia_socket_ops
++stacktrace_ops
++sysfs_ops
++tty_operations
++uart_ops
++usb_mon_operations
++wd_ops
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -157,4 +200,6 @@ checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
 checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
 checkpatch-test-multiple-line-block-comment-alignment.patch
 checkpatch-dont-test-for-prefer-ether_addr_foo.patch
+checkpatch-externalize-the-structs-that-should-be-const.patch
+const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
 
