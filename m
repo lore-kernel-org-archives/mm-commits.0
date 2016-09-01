@@ -1,82 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [patch 12/14] kernel/fork: fix CLONE_CHILD_CLEARTID regression in nscd
-Date: Thu, 01 Sep 2016 16:15:13 -0700
-Message-ID: <57c8b681.1g9fWTJdzWLYKcyY%akpm@linux-foundation.org>
+Subject: [patch 14/14] rapidio/tsi721: fix incorrect detection of address
+ translation condition
+Date: Thu, 01 Sep 2016 16:15:18 -0700
+Message-ID: <57c8b686.TLPBhp53zZmepZ6f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: application/octet-stream
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59889 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59899 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751211AbcIAXPO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 19:15:14 -0400
+        with ESMTP id S1751211AbcIAXPU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 19:15:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, oleg@redhat.com, roland@hack.frob.com, schwab@suse.com, wpreston@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org, stable@vger.kernel.org
 
-RnJvbTogTWljaGFsIEhvY2tvIDxtaG9ja29Ac3VzZS5jb20+ClN1YmplY3Q6IGtlcm5lbC9m
-b3JrOiBmaXggQ0xPTkVfQ0hJTERfQ0xFQVJUSUQgcmVncmVzc2lvbiBpbiBuc2NkCgpmZWMx
-ZDAxMTUyNDAgKCJbUEFUQ0hdIERpc2FibGUgQ0xPTkVfQ0hJTERfQ0xFQVJUSUQgZm9yIGFi
-bm9ybWFsIGV4aXQiKQpoYXMgY2F1c2VkIGEgc3VidGxlIHJlZ3Jlc3Npb24gaW4gbnNjZCB3
-aGljaCB1c2VzIENMT05FX0NISUxEX0NMRUFSVElEIHRvCmNsZWFyIHRoZSBuc2NkX2NlcnRh
-aW5seV9ydW5uaW5nIGZsYWcgaW4gdGhlIHNoYXJlZCBkYXRhYmFzZXMsIHNvIHRoYXQgdGhl
-CmNsaWVudHMgYXJlIG5vdGlmaWVkIHdoZW4gbnNjZCBpcyByZXN0YXJ0ZWQuICBOb3csIHdo
-ZW4gbnNjZCB1c2VzIGEKbm9uLXBlcnNpc3RlbnQgZGF0YWJhc2UsIGNsaWVudHMgdGhhdCBo
-YXZlIGl0IG1hcHBlZCBrZWVwIHRoaW5raW5nIHRoZQpkYXRhYmFzZSBpcyBiZWluZyB1cGRh
-dGVkIGJ5IG5zY2QsIHdoZW4gaW4gZmFjdCBuc2NkIGhhcyBjcmVhdGVkIGEgbmV3Cihhbm9u
-eW1vdXMpIG9uZSAoZm9yIG5vbi1wZXJzaXN0ZW50IGRhdGFiYXNlcyBpdCB1c2VzIGFuIHVu
-bGlua2VkIGZpbGUgYXMKYmFja2VuZCkuCgpUaGUgb3JpZ2luYWwgcHJvcG9zYWwgZm9yIHRo
-ZSBDTE9ORV9DSElMRF9DTEVBUlRJRCBjaGFuZ2UgY2xhaW1lZAooaHR0cHM6Ly9sa21sLm9y
-Zy9sa21sLzIwMDYvMTAvMjUvMjMzKToKCjogVGhlIE5QVEwgbGlicmFyeSB1c2VzIHRoZSBD
-TE9ORV9DSElMRF9DTEVBUlRJRCBmbGFnIG9uIGNsb25lKCkgc3lzY2FsbHMKOiBvbiBiZWhh
-bGYgb2YgcHRocmVhZF9jcmVhdGUoKSBsaWJyYXJ5IGNhbGxzLiAgVGhpcyBmZWF0dXJlIGlz
-IHVzZWQgdG8KOiByZXF1ZXN0IHRoYXQgdGhlIGtlcm5lbCBjbGVhciB0aGUgdGhyZWFkLWlk
-IGluIHVzZXIgc3BhY2UgKGF0IGFuIGFkZHJlc3MKOiBwcm92aWRlZCBpbiB0aGUgc3lzY2Fs
-bCkgd2hlbiB0aGUgdGhyZWFkIGRpc2Fzc29jaWF0ZXMgaXRzZWxmIGZyb20gdGhlCjogYWRk
-cmVzcyBzcGFjZSwgd2hpY2ggaXMgZG9uZSBpbiBtbV9yZWxlYXNlKCkuCjogCjogVW5mb3J0
-dW5hdGVseSwgd2hlbiBhIG11bHRpLXRocmVhZGVkIHByb2Nlc3MgaW5jdXJzIGEgY29yZSBk
-dW1wIChzdWNoIGFzCjogZnJvbSBhIFNJR1NFR1YpLCB0aGUgY29yZS1kdW1waW5nIHRocmVh
-ZCBzZW5kcyBTSUdLSUxMIHNpZ25hbHMgdG8gYWxsIG9mCjogdGhlIG90aGVyIHRocmVhZHMs
-IHdoaWNoIHRoZW4gcHJvY2VlZCB0byBjbGVhciB0aGVpciB1c2VyLXNwYWNlIHRpZHMKOiBi
-ZWZvcmUgc3luY2hyb25pemluZyBpbiBleGl0X21tKCkgd2l0aCB0aGUgc3RhcnQgb2YgY29y
-ZSBkdW1waW5nLiAgVGhpcwo6IG1pc3JlcHJlc2VudHMgdGhlIHN0YXRlIG9mIHByb2Nlc3Mn
-cyBhZGRyZXNzIHNwYWNlIGF0IHRoZSB0aW1lIG9mIHRoZQo6IFNJR1NFR1YgYW5kIG1ha2Vz
-IGl0IG1vcmUgZGlmZmljdWx0IGZvciBzb21lb25lIHRvIGRlYnVnIE5QVEwgYW5kIGdsaWJj
-CjogcHJvYmxlbXMgKG1pc2xlYWRpbmcgaGltL2hlciB0byBjb25jbHVkZSB0aGF0IHRoZSB0
-aHJlYWRzIGhhZCBnb25lIGF3YXkKOiBiZWZvcmUgdGhlIGZhdWx0KS4KOiAKOiBUaGUgZml4
-IGJlbG93IGlzIHRvIHNpbXBseSBhdm9pZCB0aGUgQ0xPTkVfQ0hJTERfQ0xFQVJUSUQgYWN0
-aW9uIGlmIGEKOiBjb3JlIGR1bXAgaGFzIGJlZW4gaW5pdGlhdGVkLgoKEFRoZSByZXN1bHRp
-bmcgcGF0Y2ggZnJvbSBSb2xhbmQgKGh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDA2LzEwLzI2
-LzI2OSkKc2VlbXMgdG8gaGF2ZSBhIGxhcmdlciBzY29wZSB0aGFuIHRoZSBvcmlnaW5hbCBw
-YXRjaCBhc2tlZCBmb3IuIEl0IHNlZW1zCnRoYXQgbGltaXR0aW5nIHRoZSBzY29wZSBvZiB0
-aGUgY2hlY2sgdG8gY29yZSBkdW1waW5nIHNob3VsZCB3b3JrIGZvcgpTSUdTRUdWIGlzc3Vl
-IGRlc2NyaWJlIGFib3ZlLgoKW0NoYW5nZWxvZyBwYXJ0bHkgYmFzZWQgb24gQW5kcmVhcycg
-ZGVzY3JpcHRpb25dCkZpeGVzOiBmZWMxZDAxMTUyNDAgKCJbUEFUQ0hdIERpc2FibGUgQ0xP
-TkVfQ0hJTERfQ0xFQVJUSUQgZm9yIGFibm9ybWFsIGV4aXQiKQpMaW5rOiBodHRwOi8vbGtt
-bC5rZXJuZWwub3JnL3IvMTQ3MTk2ODc0OS0yNjE3My0xLWdpdC1zZW5kLWVtYWlsLW1ob2Nr
-b0BrZXJuZWwub3JnClNpZ25lZC1vZmYtYnk6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQHN1c2Uu
-Y29tPgpUZXN0ZWQtYnk6IFdpbGxpYW0gUHJlc3RvbiA8d3ByZXN0b25Ac3VzZS5jb20+CkFj
-a2VkLWJ5OiBPbGVnIE5lc3Rlcm92IDxvbGVnQHJlZGhhdC5jb20+CkNjOiBSb2xhbmQgTWNH
-cmF0aCA8cm9sYW5kQGhhY2suZnJvYi5jb20+CkNjOiBBbmRyZWFzIFNjaHdhYiA8c2Nod2Fi
-QHN1c2UuY29tPgpTaWduZWQtb2ZmLWJ5OiBBbmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZv
-dW5kYXRpb24ub3JnPgotLS0KCiBrZXJuZWwvZm9yay5jIHwgICAxMCArKysrLS0tLS0tCiAx
-IGZpbGUgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCA2IGRlbGV0aW9ucygtKQoKZGlmZiAt
-cHVOIGtlcm5lbC9mb3JrLmN+a2VybmVsLWZvcmstZml4LWNsb25lX2NoaWxkX2NsZWFydGlk
-LXJlZ3Jlc3Npb24taW4tbnNjZCBrZXJuZWwvZm9yay5jCi0tLSBhL2tlcm5lbC9mb3JrLmN+
-a2VybmVsLWZvcmstZml4LWNsb25lX2NoaWxkX2NsZWFydGlkLXJlZ3Jlc3Npb24taW4tbnNj
-ZAorKysgYS9rZXJuZWwvZm9yay5jCkBAIC05MTMsMTQgKzkxMywxMiBAQCB2b2lkIG1tX3Jl
-bGVhc2Uoc3RydWN0IHRhc2tfc3RydWN0ICp0c2ssCiAJZGVhY3RpdmF0ZV9tbSh0c2ssIG1t
-KTsKIAogCS8qCi0JICogSWYgd2UncmUgZXhpdGluZyBub3JtYWxseSwgY2xlYXIgYSB1c2Vy
-LXNwYWNlIHRpZCBmaWVsZCBpZgotCSAqIHJlcXVlc3RlZC4gIFdlIGxlYXZlIHRoaXMgYWxv
-bmUgd2hlbiBkeWluZyBieSBzaWduYWwsIHRvIGxlYXZlCi0JICogdGhlIHZhbHVlIGludGFj
-dCBpbiBhIGNvcmUgZHVtcCwgYW5kIHRvIHNhdmUgdGhlIHVubmVjZXNzYXJ5Ci0JICogdHJv
-dWJsZSwgc2F5LCBhIGtpbGxlZCB2Zm9yayBwYXJlbnQgc2hvdWxkbid0IHRvdWNoIHRoaXMg
-bW0uCi0JICogVXNlcmxhbmQgb25seSB3YW50cyB0aGlzIGRvbmUgZm9yIGEgc3lzX2V4aXQu
-CisJICogU2lnbmFsIHVzZXJzcGFjZSBpZiB3ZSdyZSBub3QgZXhpdGluZyB3aXRoIGEgY29y
-ZSBkdW1wCisJICogYmVjYXVzZSB3ZSB3YW50IHRvIGxlYXZlIHRoZSB2YWx1ZSBpbnRhY3Qg
-Zm9yIGRlYnVnZ2luZworCSAqIHB1cnBvc2VzLgogCSAqLwogCWlmICh0c2stPmNsZWFyX2No
-aWxkX3RpZCkgewotCQlpZiAoISh0c2stPmZsYWdzICYgUEZfU0lHTkFMRUQpICYmCisJCWlm
-ICghKHRzay0+c2lnbmFsLT5mbGFncyAmIFNJR05BTF9HUk9VUF9DT1JFRFVNUCkgJiYKIAkJ
-ICAgIGF0b21pY19yZWFkKCZtbS0+bW1fdXNlcnMpID4gMSkgewogCQkJLyoKIAkJCSAqIFdl
-IGRvbid0IGNoZWNrIHRoZSBlcnJvciBjb2RlIC0gaWYgdXNlcnNwYWNlIGhhcwpfCg==
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/tsi721: fix incorrect detection of address translation condition
+
+Fix incorrect condition to identify involvment of a address translation
+mechanism.
+
+This bug results in NULL pointer kernel crash dump in cases when mapping
+of inbound RapidIO address range is requested within existing aprture.
+
+Link: http://lkml.kernel.org/r/20160901173144.2983-1-alexandre.bounine@idt.com
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
+Cc: Barry Wood <barry.wood@idt.com>
+Cc: <stable@vger.kernel.org>	[4.6+]
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/rapidio/devices/tsi721.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-incorrect-detection-of-address-translation-condition drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-incorrect-detection-of-address-translation-condition
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -1161,7 +1161,7 @@ static int tsi721_rio_map_inb_mem(struct
+ 		} else if (ibw_start < (ib_win->rstart + ib_win->size) &&
+ 			   (ibw_start + ibw_size) > ib_win->rstart) {
+ 			/* Return error if address translation involved */
+-			if (direct && ib_win->xlat) {
++			if (!direct || ib_win->xlat) {
+ 				ret = -EFAULT;
+ 				break;
+ 			}
+_
