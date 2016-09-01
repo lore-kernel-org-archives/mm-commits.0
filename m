@@ -1,72 +1,112 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Thu, 1 Sep 2016 16:14:24 -0700
-Message-ID: <20160901161424.c884d27002a86d179b346aa1@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [patch 01/14] mm, oom: prevent premature OOM killer invocation
+ for high order request
+Date: Thu, 01 Sep 2016 16:14:41 -0700
+Message-ID: <57c8b661.tThn4AeHKkWNadVM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__1_Sep_2016_16_14_24_-0700_l10Qniujq+vz9pKP"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59819 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59825 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750698AbcIAXOc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 19:14:32 -0400
+        with ESMTP id S1750698AbcIAXOm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 19:14:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, Ralf-Peter.Rohbeck@quantum.com, a.miskiewicz@gmail.com, js1304@gmail.com, jslaby@suse.com, markus@trippelsdorf.de, olaf@aepfle.de, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz
 
---Signature=_Thu__1_Sep_2016_16_14_24_-0700_l10Qniujq+vz9pKP
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, oom: prevent premature OOM killer invocation for high order request
 
-14 fixes, based on 071e31e254e0e0c438eecba3dba1d6e2d0da36c2:
+There have been several reports about pre-mature OOM killer invocation in
+4.7 kernel when order-2 allocation request (for the kernel stack) invoked
+OOM killer even during basic workloads (light IO or even kernel compile on
+some filesystems).  In all reported cases the memory is fragmented and
+there are no order-2+ pages available.  There is usually a large amount of
+slab memory (usually dentries/inodes) and further debugging has shown that
+there are way too many unmovable blocks which are skipped during the
+compaction.  Multiple reporters have confirmed that the current linux-next
+which includes [1] and [2] helped and OOMs are not reproducible anymore.
 
-Subject: mm, oom: prevent premature OOM killer invocation for high order re=
-quest
-Subject: kexec: fix double-free when failing to relocate the purgatory
-Subject: kconfig: tinyconfig: provide whole choice blocks to avoid warnings
-Subject: lib/test_hash.c: fix warning in two-dimensional array init
-Subject: lib/test_hash.c: fix warning in preprocessor symbol evaluation
-Subject: mm, vmscan: only allocate and reclaim from zones with pages manage=
-d by the buddy allocator
-Subject: drivers/scsi/wd719x.c: remove last declaration using DEFINE_PCI_DE=
-VICE_TABLE
-Subject: treewide: remove references to the now unnecessary DEFINE_PCI_DEVI=
-CE_TABLE
-Subject: printk/nmi: avoid direct printk()-s from __printk_nmi_flush()
-Subject: mm, mempolicy: task->mempolicy must be NULL before dropping final =
-reference
-Subject: MAINTAINERS: Vladimir has moved
-Subject: kernel/fork: fix CLONE_CHILD_CLEARTID regression in nscd
-Subject: rapidio/documentation/mport_cdev: add missing parameter description
-Subject: rapidio/tsi721: fix incorrect detection of address translation con=
-dition
+A simpler fix for the late rc and stable is to simply ignore the
+compaction feedback and retry as long as there is a reclaim progress and
+we are not getting OOM for order-0 pages.  We already do that for
+CONFING_COMPACTION=n so let's reuse the same code when compaction is
+enabled as well.
 
+[1] http://lkml.kernel.org/r/20160810091226.6709-1-vbabka@suse.cz
+[2] http://lkml.kernel.org/r/f7a9ea9d-bb88-bfd6-e340-3a933559305a@suse.cz
 
+Fixes: 0a0337e0d1d1 ("mm, oom: rework oom detection")
+Link: http://lkml.kernel.org/r/20160823074339.GB23577@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Tested-by: Olaf Hering <olaf@aepfle.de>
+Tested-by: Ralf-Peter Rohbeck <Ralf-Peter.Rohbeck@quantum.com>
+Cc: Markus Trippelsdorf <markus@trippelsdorf.de>
+Cc: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
+Cc: Ralf-Peter Rohbeck <Ralf-Peter.Rohbeck@quantum.com>
+Cc: Jiri Slaby <jslaby@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>	[4.7.x]
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ mm/page_alloc.c |   51 +---------------------------------------------
+ 1 file changed, 2 insertions(+), 49 deletions(-)
 
---Signature=_Thu__1_Sep_2016_16_14_24_-0700_l10Qniujq+vz9pKP
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBAgAGBQJXyLZWAAoJEJxZ78cCqAIHPFwP/j7hk+OQ7wzALfQg5D9SoCRa
-VgmUSVuW0iH8pOjxvSx7L3pYbgseri0kcr+aIqc3T0OzMRGxYh8SIXxanSyR0/GS
-mrwFHQUefqUgA/zf46euWlBuByOAWtTpVGPnMnpIVDDyDeBzWZM3Xl69I8eb1NDZ
-FNOCGQmYLWOGDxtFASoS/XMrhcakpvFn2fbfvhpEcbpXMBArBsnwjbiHjoVeiV6l
-m80iCDEbsyOIJAnzR1KJoGHKS1LoIgZw6xRSjLpa21x5+Gyxec8cnhvkqKTdaBrc
-qMb8TnAMO7fMiZe3oE9LX1g8x1Mliqv6ubs7gZML9xGezACpK0mHeSi2L0rlPoV4
-n/DnvUTTiXpNm1z6FLGwPoIbVrz/4ezUyr6k0opK9VbdtxXKUTjJHi/8t1Vwvmjf
-Ql15GHHXV7qQ1vyNliVDrQBocT9Hk8rFLQln/6c/Y/NEjErfVcYZxiC51sol3/DR
-Nbejpca4otERpKO61rN7VoB7b/LZvhHEPY7JIIy24aBnMmc6ymLHQqVWSkJ6l+5S
-Qqa1F6LmRjasB/GRqStiu98WLViI3ZGE/68f3fTBWmI4aLTTRx1vckEI1Tn3687Z
-gfKzt72GYfPCgZF1oJGVuQPkfn5Mj/6pn93hfnHzgoniyK1CsjTjKcyDGVdlYpMi
-9ZJYgy1rMLJ3RnmsS3NQ
-=WRcu
------END PGP SIGNATURE-----
-
---Signature=_Thu__1_Sep_2016_16_14_24_-0700_l10Qniujq+vz9pKP--
+diff -puN mm/page_alloc.c~mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request
++++ a/mm/page_alloc.c
+@@ -3137,54 +3137,6 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 	return NULL;
+ }
+ 
+-static inline bool
+-should_compact_retry(struct alloc_context *ac, int order, int alloc_flags,
+-		     enum compact_result compact_result,
+-		     enum compact_priority *compact_priority,
+-		     int compaction_retries)
+-{
+-	int max_retries = MAX_COMPACT_RETRIES;
+-
+-	if (!order)
+-		return false;
+-
+-	/*
+-	 * compaction considers all the zone as desperately out of memory
+-	 * so it doesn't really make much sense to retry except when the
+-	 * failure could be caused by insufficient priority
+-	 */
+-	if (compaction_failed(compact_result)) {
+-		if (*compact_priority > MIN_COMPACT_PRIORITY) {
+-			(*compact_priority)--;
+-			return true;
+-		}
+-		return false;
+-	}
+-
+-	/*
+-	 * make sure the compaction wasn't deferred or didn't bail out early
+-	 * due to locks contention before we declare that we should give up.
+-	 * But do not retry if the given zonelist is not suitable for
+-	 * compaction.
+-	 */
+-	if (compaction_withdrawn(compact_result))
+-		return compaction_zonelist_suitable(ac, order, alloc_flags);
+-
+-	/*
+-	 * !costly requests are much more important than __GFP_REPEAT
+-	 * costly ones because they are de facto nofail and invoke OOM
+-	 * killer to move on while costly can fail and users are ready
+-	 * to cope with that. 1/4 retries is rather arbitrary but we
+-	 * would need much more detailed feedback from compaction to
+-	 * make a better decision.
+-	 */
+-	if (order > PAGE_ALLOC_COSTLY_ORDER)
+-		max_retries /= 4;
+-	if (compaction_retries <= max_retries)
+-		return true;
