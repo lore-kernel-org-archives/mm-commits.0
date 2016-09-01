@@ -1,99 +1,72 @@
-From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-make-the-walk_page_range-limit-obvious.patch
- added to -mm tree
-Date: Thu, 01 Sep 2016 15:05:55 -0700
-Message-ID: <57c8a643.i5xzUCEl9+YFJ8F8%akpm@linux-foundation.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: incoming
+Date: Thu, 1 Sep 2016 16:14:24 -0700
+Message-ID: <20160901161424.c884d27002a86d179b346aa1@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Thu__1_Sep_2016_16_14_24_-0700_l10Qniujq+vz9pKP"
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59502 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59819 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752043AbcIAWF4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 18:05:56 -0400
+        with ESMTP id S1750698AbcIAXOc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 19:14:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: james.morse@arm.com, hannes@cmpxchg.org, mhocko@kernel.org, n-horiguchi@ah.jp.nec.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: mm-commits@vger.kernel.org
+
+--Signature=_Thu__1_Sep_2016_16_14_24_-0700_l10Qniujq+vz9pKP
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+14 fixes, based on 071e31e254e0e0c438eecba3dba1d6e2d0da36c2:
+
+Subject: mm, oom: prevent premature OOM killer invocation for high order re=
+quest
+Subject: kexec: fix double-free when failing to relocate the purgatory
+Subject: kconfig: tinyconfig: provide whole choice blocks to avoid warnings
+Subject: lib/test_hash.c: fix warning in two-dimensional array init
+Subject: lib/test_hash.c: fix warning in preprocessor symbol evaluation
+Subject: mm, vmscan: only allocate and reclaim from zones with pages manage=
+d by the buddy allocator
+Subject: drivers/scsi/wd719x.c: remove last declaration using DEFINE_PCI_DE=
+VICE_TABLE
+Subject: treewide: remove references to the now unnecessary DEFINE_PCI_DEVI=
+CE_TABLE
+Subject: printk/nmi: avoid direct printk()-s from __printk_nmi_flush()
+Subject: mm, mempolicy: task->mempolicy must be NULL before dropping final =
+reference
+Subject: MAINTAINERS: Vladimir has moved
+Subject: kernel/fork: fix CLONE_CHILD_CLEARTID regression in nscd
+Subject: rapidio/documentation/mport_cdev: add missing parameter description
+Subject: rapidio/tsi721: fix incorrect detection of address translation con=
+dition
 
 
-The patch titled
-     Subject: mm/memcontrol.c: make the walk_page_range() limit obvious
-has been added to the -mm tree.  Its filename is
-     mm-memcontrol-make-the-walk_page_range-limit-obvious.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-make-the-walk_page_range-limit-obvious.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-make-the-walk_page_range-limit-obvious.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+--Signature=_Thu__1_Sep_2016_16_14_24_-0700_l10Qniujq+vz9pKP
+Content-Type: application/pgp-signature
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+iQIcBAEBAgAGBQJXyLZWAAoJEJxZ78cCqAIHPFwP/j7hk+OQ7wzALfQg5D9SoCRa
+VgmUSVuW0iH8pOjxvSx7L3pYbgseri0kcr+aIqc3T0OzMRGxYh8SIXxanSyR0/GS
+mrwFHQUefqUgA/zf46euWlBuByOAWtTpVGPnMnpIVDDyDeBzWZM3Xl69I8eb1NDZ
+FNOCGQmYLWOGDxtFASoS/XMrhcakpvFn2fbfvhpEcbpXMBArBsnwjbiHjoVeiV6l
+m80iCDEbsyOIJAnzR1KJoGHKS1LoIgZw6xRSjLpa21x5+Gyxec8cnhvkqKTdaBrc
+qMb8TnAMO7fMiZe3oE9LX1g8x1Mliqv6ubs7gZML9xGezACpK0mHeSi2L0rlPoV4
+n/DnvUTTiXpNm1z6FLGwPoIbVrz/4ezUyr6k0opK9VbdtxXKUTjJHi/8t1Vwvmjf
+Ql15GHHXV7qQ1vyNliVDrQBocT9Hk8rFLQln/6c/Y/NEjErfVcYZxiC51sol3/DR
+Nbejpca4otERpKO61rN7VoB7b/LZvhHEPY7JIIy24aBnMmc6ymLHQqVWSkJ6l+5S
+Qqa1F6LmRjasB/GRqStiu98WLViI3ZGE/68f3fTBWmI4aLTTRx1vckEI1Tn3687Z
+gfKzt72GYfPCgZF1oJGVuQPkfn5Mj/6pn93hfnHzgoniyK1CsjTjKcyDGVdlYpMi
+9ZJYgy1rMLJ3RnmsS3NQ
+=WRcu
+-----END PGP SIGNATURE-----
 
-------------------------------------------------------
-From: James Morse <james.morse@arm.com>
-Subject: mm/memcontrol.c: make the walk_page_range() limit obvious
-
-Trying to walk all of virtual memory requires architecture specific
-knowledge.  On x86_64, addresses must be sign extended from bit 48,
-whereas on arm64 the top VA_BITS of address space have their own set of
-page tables.
-
-mem_cgroup_count_precharge() and mem_cgroup_move_charge() both call
-walk_page_range() on the range 0 to ~0UL, neither provide a pte_hole
-callback, which causes the current implementation to skip non-vma regions.
-
-As this call only expects to walk user address space, make it walk
-0 to  'highest_vm_end'.
-
-Link: http://lkml.kernel.org/r/1472655897-22532-1-git-send-email-james.morse@arm.com
-Signed-off-by: James Morse <james.morse@arm.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memcontrol.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff -puN mm/memcontrol.c~mm-memcontrol-make-the-walk_page_range-limit-obvious mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-make-the-walk_page_range-limit-obvious
-+++ a/mm/memcontrol.c
-@@ -4668,7 +4668,8 @@ static unsigned long mem_cgroup_count_pr
- 		.mm = mm,
- 	};
- 	down_read(&mm->mmap_sem);
--	walk_page_range(0, ~0UL, &mem_cgroup_count_precharge_walk);
-+	walk_page_range(0, mm->highest_vm_end,
-+			&mem_cgroup_count_precharge_walk);
- 	up_read(&mm->mmap_sem);
- 
- 	precharge = mc.precharge;
-@@ -4956,7 +4957,8 @@ retry:
- 	 * When we have consumed all precharges and failed in doing
- 	 * additional charge, the page walk just aborts.
- 	 */
--	walk_page_range(0, ~0UL, &mem_cgroup_move_charge_walk);
-+	walk_page_range(0, mc.mm->highest_vm_end, &mem_cgroup_move_charge_walk);
-+
- 	up_read(&mc.mm->mmap_sem);
- 	atomic_dec(&mc.from->moving_account);
- }
-_
-
-Patches currently in -mm which might be from james.morse@arm.com are
-
-mm-pagewalk-fix-the-comment-for-test_walk.patch
-mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious.patch
-mm-memcontrol-make-the-walk_page_range-limit-obvious.patch
-
+--Signature=_Thu__1_Sep_2016_16_14_24_-0700_l10Qniujq+vz9pKP--
