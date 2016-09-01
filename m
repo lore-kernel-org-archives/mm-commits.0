@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-clear-tif_syscall_trace-on-ptrace-detach.patch added to
- -mm tree
-Date: Thu, 01 Sep 2016 15:02:53 -0700
-Message-ID: <57c8a58d.2KKB2IPfLIn4FSAR%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch added to -mm tree
+Date: Thu, 01 Sep 2016 15:04:41 -0700
+Message-ID: <57c8a5f9.EBPU/j9TqozPJPFM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59496 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59497 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752353AbcIAWCy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 18:02:54 -0400
+        with ESMTP id S1753409AbcIAWEm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 18:04:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alnovak@suse.cz, jkosina@suse.cz, oleg@redhat.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ptrace: clear TIF_SYSCALL_TRACE on ptrace detach
+     Subject: checkpatch: speed up checking for filenames in sections marked obsolete
 has been added to the -mm tree.  Its filename is
-     ptrace-clear-tif_syscall_trace-on-ptrace-detach.patch
+     checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ptrace-clear-tif_syscall_trace-on-ptrace-detach.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ptrace-clear-tif_syscall_trace-on-ptrace-detach.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,55 +39,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ales Novak <alnovak@suse.cz>
-Subject: ptrace: clear TIF_SYSCALL_TRACE on ptrace detach
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: speed up checking for filenames in sections marked obsolete
 
-On __ptrace_detach(), called from do_exit()->exit_notify()->
-forget_original_parent()->exit_ptrace(), the TIF_SYSCALL_TRACE in
-thread->flags of the tracee is not cleared up.  This results in the
-tracehook_report_syscall_* being called (though there's no longer a tracer
-listening to that) upon its further syscalls.
+Adding -f to the get_maintainer.pl invocation means git isn't invoked
+by get_maintainer.pl for known filenames.
 
-Example scenario - attach "strace" to a running process and kill it (the
-strace) with SIGKILL.  You'll see that the syscall trace hooks are still
-being called.
+This reduces the overall time to run checkpatch.
 
-The clearing of this flag should be moved from ptrace_detach() to
-__ptrace_detach().
-
-Link: http://lkml.kernel.org/r/1472759493-20554-1-git-send-email-alnovak@suse.cz
-Signed-off-by: Ales Novak <alnovak@suse.cz>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Link: http://lkml.kernel.org/r/22991e3a295aeb399b43af0478b6e5809106ccee.1472684066.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/ptrace.c~ptrace-clear-tif_syscall_trace-on-ptrace-detach kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-clear-tif_syscall_trace-on-ptrace-detach
-+++ a/kernel/ptrace.c
-@@ -73,6 +73,8 @@ void __ptrace_unlink(struct task_struct
- {
- 	BUG_ON(!child->ptrace);
+diff -puN scripts/checkpatch.pl~checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete
++++ a/scripts/checkpatch.pl
+@@ -759,7 +759,7 @@ sub is_maintained_obsolete {
  
-+	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
-+
- 	child->parent = child->real_parent;
- 	list_del_init(&child->ptrace_entry);
+ 	return 0 if (!(-e "$root/scripts/get_maintainer.pl"));
  
-@@ -489,7 +491,6 @@ static int ptrace_detach(struct task_str
+-	my $status = `perl $root/scripts/get_maintainer.pl --status --nom --nol --nogit --nogit-fallback $filename 2>&1`;
++	my $status = `perl $root/scripts/get_maintainer.pl --status --nom --nol --nogit --nogit-fallback -f $filename 2>&1`;
  
- 	/* Architecture-specific hardware disable .. */
- 	ptrace_disable(child);
--	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
- 
- 	write_lock_irq(&tasklist_lock);
- 	/*
+ 	return $status =~ /obsolete/i;
+ }
 _
 
-Patches currently in -mm which might be from alnovak@suse.cz are
+Patches currently in -mm which might be from joe@perches.com are
 
-ptrace-clear-tif_syscall_trace-on-ptrace-detach.patch
+wd719x-remove-last-declaration-using-define_pci_device_table.patch
+treewide-remove-references-to-the-now-unnecessary-define_pci_device_table.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
+meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
+spellingtxt-modeled-is-spelt-correctly.patch
+checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
+checkpatch-test-multiple-line-block-comment-alignment.patch
+checkpatch-dont-test-for-prefer-ether_addr_foo.patch
+checkpatch-externalize-the-structs-that-should-be-const.patch
+const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
+checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
 
