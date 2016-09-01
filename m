@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + proc-unsigned-file-descriptors.patch added to -mm tree
-Date: Thu, 01 Sep 2016 15:01:55 -0700
-Message-ID: <57c8a553.T9jlbOf7HLKzUEW6%akpm@linux-foundation.org>
+Subject: + ptrace-clear-tif_syscall_trace-on-ptrace-detach.patch added to
+ -mm tree
+Date: Thu, 01 Sep 2016 15:02:53 -0700
+Message-ID: <57c8a58d.2KKB2IPfLIn4FSAR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59496 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752656AbcIAWB4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 18:01:56 -0400
+        with ESMTP id S1752353AbcIAWCy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 18:02:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: alnovak@suse.cz, jkosina@suse.cz, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: unsigned file descriptors
+     Subject: ptrace: clear TIF_SYSCALL_TRACE on ptrace detach
 has been added to the -mm tree.  Its filename is
-     proc-unsigned-file-descriptors.patch
+     ptrace-clear-tif_syscall_trace-on-ptrace-detach.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-unsigned-file-descriptors.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ptrace-clear-tif_syscall_trace-on-ptrace-detach.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-unsigned-file-descriptors.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ptrace-clear-tif_syscall_trace-on-ptrace-detach.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,97 +39,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: unsigned file descriptors
+From: Ales Novak <alnovak@suse.cz>
+Subject: ptrace: clear TIF_SYSCALL_TRACE on ptrace detach
 
-Make struct proc_inode::fd unsigned.
+On __ptrace_detach(), called from do_exit()->exit_notify()->
+forget_original_parent()->exit_ptrace(), the TIF_SYSCALL_TRACE in
+thread->flags of the tracee is not cleared up.  This results in the
+tracehook_report_syscall_* being called (though there's no longer a tracer
+listening to that) upon its further syscalls.
 
-This allows better code generation on x86_64 (less sign extensions).
+Example scenario - attach "strace" to a running process and kill it (the
+strace) with SIGKILL.  You'll see that the syscall trace hooks are still
+being called.
 
-Link: http://lkml.kernel.org/r/20160901214202.GB7453@p183.telecom.by
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+The clearing of this flag should be moved from ptrace_detach() to
+__ptrace_detach().
+
+Link: http://lkml.kernel.org/r/1472759493-20554-1-git-send-email-alnovak@suse.cz
+Signed-off-by: Ales Novak <alnovak@suse.cz>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/fd.c       |    8 ++++----
- fs/proc/fd.h       |    2 +-
- fs/proc/internal.h |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ kernel/ptrace.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/fd.c~proc-unsigned-file-descriptors fs/proc/fd.c
---- a/fs/proc/fd.c~proc-unsigned-file-descriptors
-+++ a/fs/proc/fd.c
-@@ -31,7 +31,7 @@ static int seq_show(struct seq_file *m,
- 	put_task_struct(task);
- 
- 	if (files) {
--		int fd = proc_fd(m->private);
-+		unsigned int fd = proc_fd(m->private);
- 
- 		spin_lock(&files->file_lock);
- 		file = fcheck_files(files, fd);
-@@ -86,7 +86,7 @@ static int tid_fd_revalidate(struct dent
- 	struct task_struct *task;
- 	const struct cred *cred;
- 	struct inode *inode;
--	int fd;
-+	unsigned int fd;
- 
- 	if (flags & LOOKUP_RCU)
- 		return -ECHILD;
-@@ -158,7 +158,7 @@ static int proc_fd_link(struct dentry *d
- 	}
- 
- 	if (files) {
--		int fd = proc_fd(d_inode(dentry));
-+		unsigned int fd = proc_fd(d_inode(dentry));
- 		struct file *fd_file;
- 
- 		spin_lock(&files->file_lock);
-@@ -253,7 +253,7 @@ static int proc_readfd_common(struct fil
- 			continue;
- 		rcu_read_unlock();
- 
--		len = snprintf(name, sizeof(name), "%d", fd);
-+		len = snprintf(name, sizeof(name), "%u", fd);
- 		if (!proc_fill_cache(file, ctx,
- 				     name, len, instantiate, p,
- 				     (void *)(unsigned long)fd))
-diff -puN fs/proc/fd.h~proc-unsigned-file-descriptors fs/proc/fd.h
---- a/fs/proc/fd.h~proc-unsigned-file-descriptors
-+++ a/fs/proc/fd.h
-@@ -11,7 +11,7 @@ extern const struct inode_operations pro
- 
- extern int proc_fd_permission(struct inode *inode, int mask);
- 
--static inline int proc_fd(struct inode *inode)
-+static inline unsigned int proc_fd(struct inode *inode)
+diff -puN kernel/ptrace.c~ptrace-clear-tif_syscall_trace-on-ptrace-detach kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-clear-tif_syscall_trace-on-ptrace-detach
++++ a/kernel/ptrace.c
+@@ -73,6 +73,8 @@ void __ptrace_unlink(struct task_struct
  {
- 	return PROC_I(inode)->fd;
- }
-diff -puN fs/proc/internal.h~proc-unsigned-file-descriptors fs/proc/internal.h
---- a/fs/proc/internal.h~proc-unsigned-file-descriptors
-+++ a/fs/proc/internal.h
-@@ -60,7 +60,7 @@ union proc_op {
+ 	BUG_ON(!child->ptrace);
  
- struct proc_inode {
- 	struct pid *pid;
--	int fd;
-+	unsigned int fd;
- 	union proc_op op;
- 	struct proc_dir_entry *pde;
- 	struct ctl_table_header *sysctl;
++	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
++
+ 	child->parent = child->real_parent;
+ 	list_del_init(&child->ptrace_entry);
+ 
+@@ -489,7 +491,6 @@ static int ptrace_detach(struct task_str
+ 
+ 	/* Architecture-specific hardware disable .. */
+ 	ptrace_disable(child);
+-	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+ 
+ 	write_lock_irq(&tasklist_lock);
+ 	/*
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from alnovak@suse.cz are
 
-kbuild-simpler-generation-of-assembly-constants.patch
-mm-unrig-vma-cache-hit-ratio.patch
-proc-much-faster-proc-vmstat.patch
-proc-faster-proc-status.patch
-proc-unsigned-file-descriptors.patch
-cred-simpler-1d-supplementary-groups.patch
-make-isdigit-table-lookupless.patch
-kstrtox-smaller-_parse_integer.patch
+ptrace-clear-tif_syscall_trace-on-ptrace-detach.patch
 
