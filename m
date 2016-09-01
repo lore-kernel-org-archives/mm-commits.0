@@ -1,83 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [patch 03/14] kconfig: tinyconfig: provide whole choice blocks to avoid warnings
-Date: Thu, 01 Sep 2016 16:14:47 -0700
-Message-ID: <57c8b667.sslA9LcAT15+/1Ld%akpm@linux-foundation.org>
+Subject: [patch 04/14] lib/test_hash.c: fix warning in two-dimensional
+ array init
+Date: Thu, 01 Sep 2016 16:14:50 -0700
+Message-ID: <57c8b66a.zLScM59CoVQJkhuz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59835 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59844 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751040AbcIAXOs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 19:14:48 -0400
+        with ESMTP id S1751040AbcIAXOv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 19:14:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arnd@arndb.de, josh@joshtriplett.org, mingo@kernel.org, yamada.masahiro@socionext.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, geert@linux-m68k.org, arnd@arndb.de, linux@sciencehorizons.net
 
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kconfig: tinyconfig: provide whole choice blocks to avoid warnings
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: lib/test_hash.c: fix warning in two-dimensional array init
 
-Using "make tinyconfig" produces a couple of annoying warnings that show up
-for build test machines all the time:
+lib/test_hash.c: In function 'test_hash_init':
+lib/test_hash.c:146:2: warning: missing braces around initializer [-Wmissing-braces]
 
-    .config:966:warning: override: NOHIGHMEM changes choice state
-    .config:965:warning: override: SLOB changes choice state
-    .config:963:warning: override: KERNEL_XZ changes choice state
-    .config:962:warning: override: CC_OPTIMIZE_FOR_SIZE changes choice state
-    .config:933:warning: override: SLOB changes choice state
-    .config:930:warning: override: CC_OPTIMIZE_FOR_SIZE changes choice state
-    .config:870:warning: override: SLOB changes choice state
-    .config:868:warning: override: KERNEL_XZ changes choice state
-    .config:867:warning: override: CC_OPTIMIZE_FOR_SIZE changes choice state
-
-I've made a previous attempt at fixing them and we discussed a number of
-alternatives.
-
-I tried changing the Makefile to use "merge_config.sh -n $(fragment-list)"
-but couldn't get that to work properly.
-
-This is yet another approach, based on the observation that we do want
-to see a warning for conflicting 'choice' options, and that we can simply
-make them non-conflicting by listing all other options as disabled.
-This is a trivial patch that we can apply independent of plans for other
-changes.
-
-Link: http://lkml.kernel.org/r/20160829214952.1334674-2-arnd@arndb.de
-Link: https://storage.kernelci.org/mainline/v4.7-rc6/x86-tinyconfig/build.log
-https://patchwork.kernel.org/patch/9212749/
+Fixes: 468a9428521e7d00 ("<linux/hash.h>: Add support for architecture-specific functions")
+Link: http://lkml.kernel.org/r/20160829214952.1334674-3-arnd@arndb.de
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-Reviewed-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
+Acked-by: George Spelvin <linux@sciencehorizons.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/configs/tiny.config |    2 ++
- kernel/configs/tiny.config   |    8 ++++++++
- 2 files changed, 10 insertions(+)
+ lib/test_hash.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings arch/x86/configs/tiny.config
---- a/arch/x86/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings
-+++ a/arch/x86/configs/tiny.config
-@@ -1 +1,3 @@
- CONFIG_NOHIGHMEM=y
-+# CONFIG_HIGHMEM4G is not set
-+# CONFIG_HIGHMEM64G is not set
-diff -puN kernel/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings kernel/configs/tiny.config
---- a/kernel/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings
-+++ a/kernel/configs/tiny.config
-@@ -1,4 +1,12 @@
-+# CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE is not set
- CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-+# CONFIG_KERNEL_GZIP is not set
-+# CONFIG_KERNEL_BZIP2 is not set
-+# CONFIG_KERNEL_LZMA is not set
- CONFIG_KERNEL_XZ=y
-+# CONFIG_KERNEL_LZO is not set
-+# CONFIG_KERNEL_LZ4 is not set
- CONFIG_OPTIMIZE_INLINING=y
-+# CONFIG_SLAB is not set
-+# CONFIG_SLUB is not set
- CONFIG_SLOB=y
+diff -puN lib/test_hash.c~test-hash-fix-warning-in-two-dimensional-array-init lib/test_hash.c
+--- a/lib/test_hash.c~test-hash-fix-warning-in-two-dimensional-array-init
++++ a/lib/test_hash.c
+@@ -143,7 +143,7 @@ static int __init
+ test_hash_init(void)
+ {
+ 	char buf[SIZE+1];
+-	u32 string_or = 0, hash_or[2][33] = { 0 };
++	u32 string_or = 0, hash_or[2][33] = { { 0, } };
+ 	unsigned tests = 0;
+ 	unsigned long long h64 = 0;
+ 	int i, j;
 _
