@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-fix-store_mem_state-return-value.patch added to
- -mm tree
-Date: Thu, 01 Sep 2016 13:37:39 -0700
-Message-ID: <57c89193.zlD5RrH8HSZmp+Qe%akpm@linux-foundation.org>
+Subject: +
+ rapidio-documentation-mport_cdev-add-missing-parameter-description.patch
+ added to -mm tree
+Date: Thu, 01 Sep 2016 13:16:43 -0700
+Message-ID: <57c88cab.QfASTxQckJZtKDIk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58862 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58900 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752214AbcIAU5E (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 16:57:04 -0400
+        with ESMTP id S1753125AbcIAVME (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 1 Sep 2016 17:12:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arbab@linux.vnet.ibm.com, abanman@sgi.com, baiyaowei@cmss.chinamobile.com, dan.j.williams@intel.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, qiuxishi@huawei.com, rientjes@google.com, sjenning@redhat.com, slaoub@gmail.com, vbabka@suse.cz, vkuznets@redhat.com, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: fix store_mem_state() return value
+     Subject: rapidio/documentation/mport_cdev: add missing parameter description
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-store_mem_state-return-value.patch
+     rapidio-documentation-mport_cdev-add-missing-parameter-description.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-fix-store_mem_state-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-documentation-mport_cdev-add-missing-parameter-description.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-fix-store_mem_state-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-documentation-mport_cdev-add-missing-parameter-description.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,56 +40,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Reza Arbab <arbab@linux.vnet.ibm.com>
-Subject: memory-hotplug: fix store_mem_state() return value
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/documentation/mport_cdev: add missing parameter description
 
-If store_mem_state() is called to online memory which is already online,
-it will return 1, the value it got from device_online().
+Add missing description for rio_mport_cdev driver parameter 'dma_timeout'.
 
-This is wrong because store_mem_state() is a device_attribute .store
-function. Thus a non-negative return value represents input bytes read.
+This patch is applicable to kernel versions starting from v4.6.
 
-Set the return value to -EINVAL in this case.
-
-Link: http://lkml.kernel.org/r/1472743777-24266-1-git-send-email-arbab@linux.vnet.ibm.com
-Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
-Cc: Chen Yucong <slaoub@gmail.com>
-Cc: Andrew Banman <abanman@sgi.com>
-Cc: Seth Jennings <sjenning@redhat.com>
+Link: http://lkml.kernel.org/r/20160901173104.2928-1-alexandre.bounine@idt.com
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
+Cc: Barry Wood <barry.wood@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ Documentation/rapidio/mport_cdev.txt |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/base/memory.c~memory-hotplug-fix-store_mem_state-return-value drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-fix-store_mem_state-return-value
-+++ a/drivers/base/memory.c
-@@ -361,8 +361,11 @@ store_mem_state(struct device *dev,
- err:
- 	unlock_device_hotplug();
+diff -puN Documentation/rapidio/mport_cdev.txt~rapidio-documentation-mport_cdev-add-missing-parameter-description Documentation/rapidio/mport_cdev.txt
+--- a/Documentation/rapidio/mport_cdev.txt~rapidio-documentation-mport_cdev-add-missing-parameter-description
++++ a/Documentation/rapidio/mport_cdev.txt
+@@ -80,6 +80,10 @@ functionality of their platform when pla
  
--	if (ret)
-+	if (ret < 0)
- 		return ret;
-+	if (ret)
-+		return -EINVAL;
+ III. Module parameters
+ 
++- 'dma_timeout' - DMA transfer completion timeout (in msec, default value 3000).
++        This parameter set a maximum completion wait time for SYNC mode DMA
++        transfer requests and for RIO_WAIT_FOR_ASYNC ioctl requests.
 +
- 	return count;
- }
- 
+ - 'dbg_level' - This parameter allows to control amount of debug information
+         generated by this device driver. This parameter is formed by set of
+         bit masks that correspond to the specific functional blocks.
 _
 
-Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
-memory-hotplug-fix-store_mem_state-return-value.patch
+rapidio-documentation-mport_cdev-add-missing-parameter-description.patch
+rapidio-tsi721-fix-incorrect-detection-of-address-translation-condition.patch
+rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code.patch
 
