@@ -1,157 +1,99 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request.patch removed from -mm tree
-Date: Fri, 02 Sep 2016 12:00:45 -0700
-Message-ID: <57c9cc5d.c2D9i9a28a5788QL%akpm@linux-foundation.org>
+ kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings.patch
+ removed from -mm tree
+Date: Fri, 02 Sep 2016 12:00:52 -0700
+Message-ID: <57c9cc64.ke2IysPvLOa8JBVA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32964 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32975 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753953AbcIBTAr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2016 15:00:47 -0400
+        with ESMTP id S1753900AbcIBTAx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2016 15:00:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, Ralf-Peter.Rohbeck@quantum.com, a.miskiewicz@gmail.com, js1304@gmail.com, jslaby@suse.com, markus@trippelsdorf.de, olaf@aepfle.de, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: arnd@arndb.de, josh@joshtriplett.org, mingo@kernel.org, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: prevent premature OOM killer invocation for high order request
+     Subject: kconfig: tinyconfig: provide whole choice blocks to avoid warnings
 has been removed from the -mm tree.  Its filename was
-     mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request.patch
+     kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom: prevent premature OOM killer invocation for high order request
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kconfig: tinyconfig: provide whole choice blocks to avoid warnings
 
-There have been several reports about pre-mature OOM killer invocation in
-4.7 kernel when order-2 allocation request (for the kernel stack) invoked
-OOM killer even during basic workloads (light IO or even kernel compile on
-some filesystems).  In all reported cases the memory is fragmented and
-there are no order-2+ pages available.  There is usually a large amount of
-slab memory (usually dentries/inodes) and further debugging has shown that
-there are way too many unmovable blocks which are skipped during the
-compaction.  Multiple reporters have confirmed that the current linux-next
-which includes [1] and [2] helped and OOMs are not reproducible anymore.
+Using "make tinyconfig" produces a couple of annoying warnings that show up
+for build test machines all the time:
 
-A simpler fix for the late rc and stable is to simply ignore the
-compaction feedback and retry as long as there is a reclaim progress and
-we are not getting OOM for order-0 pages.  We already do that for
-CONFING_COMPACTION=n so let's reuse the same code when compaction is
-enabled as well.
+    .config:966:warning: override: NOHIGHMEM changes choice state
+    .config:965:warning: override: SLOB changes choice state
+    .config:963:warning: override: KERNEL_XZ changes choice state
+    .config:962:warning: override: CC_OPTIMIZE_FOR_SIZE changes choice state
+    .config:933:warning: override: SLOB changes choice state
+    .config:930:warning: override: CC_OPTIMIZE_FOR_SIZE changes choice state
+    .config:870:warning: override: SLOB changes choice state
+    .config:868:warning: override: KERNEL_XZ changes choice state
+    .config:867:warning: override: CC_OPTIMIZE_FOR_SIZE changes choice state
 
-[1] http://lkml.kernel.org/r/20160810091226.6709-1-vbabka@suse.cz
-[2] http://lkml.kernel.org/r/f7a9ea9d-bb88-bfd6-e340-3a933559305a@suse.cz
+I've made a previous attempt at fixing them and we discussed a number of
+alternatives.
 
-Fixes: 0a0337e0d1d1 ("mm, oom: rework oom detection")
-Link: http://lkml.kernel.org/r/20160823074339.GB23577@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Tested-by: Olaf Hering <olaf@aepfle.de>
-Tested-by: Ralf-Peter Rohbeck <Ralf-Peter.Rohbeck@quantum.com>
-Cc: Markus Trippelsdorf <markus@trippelsdorf.de>
-Cc: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
-Cc: Ralf-Peter Rohbeck <Ralf-Peter.Rohbeck@quantum.com>
-Cc: Jiri Slaby <jslaby@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[4.7.x]
+I tried changing the Makefile to use "merge_config.sh -n $(fragment-list)"
+but couldn't get that to work properly.
+
+This is yet another approach, based on the observation that we do want
+to see a warning for conflicting 'choice' options, and that we can simply
+make them non-conflicting by listing all other options as disabled.
+This is a trivial patch that we can apply independent of plans for other
+changes.
+
+Link: http://lkml.kernel.org/r/20160829214952.1334674-2-arnd@arndb.de
+Link: https://storage.kernelci.org/mainline/v4.7-rc6/x86-tinyconfig/build.log
+https://patchwork.kernel.org/patch/9212749/
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Reviewed-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   51 +---------------------------------------------
- 1 file changed, 2 insertions(+), 49 deletions(-)
+ arch/x86/configs/tiny.config |    2 ++
+ kernel/configs/tiny.config   |    8 ++++++++
+ 2 files changed, 10 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request mm/page_alloc.c
---- a/mm/page_alloc.c~mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request
-+++ a/mm/page_alloc.c
-@@ -3137,54 +3137,6 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	return NULL;
- }
- 
--static inline bool
--should_compact_retry(struct alloc_context *ac, int order, int alloc_flags,
--		     enum compact_result compact_result,
--		     enum compact_priority *compact_priority,
--		     int compaction_retries)
--{
--	int max_retries = MAX_COMPACT_RETRIES;
--
--	if (!order)
--		return false;
--
--	/*
--	 * compaction considers all the zone as desperately out of memory
--	 * so it doesn't really make much sense to retry except when the
--	 * failure could be caused by insufficient priority
--	 */
--	if (compaction_failed(compact_result)) {
--		if (*compact_priority > MIN_COMPACT_PRIORITY) {
--			(*compact_priority)--;
--			return true;
--		}
--		return false;
--	}
--
--	/*
--	 * make sure the compaction wasn't deferred or didn't bail out early
--	 * due to locks contention before we declare that we should give up.
--	 * But do not retry if the given zonelist is not suitable for
--	 * compaction.
--	 */
--	if (compaction_withdrawn(compact_result))
--		return compaction_zonelist_suitable(ac, order, alloc_flags);
--
--	/*
--	 * !costly requests are much more important than __GFP_REPEAT
--	 * costly ones because they are de facto nofail and invoke OOM
--	 * killer to move on while costly can fail and users are ready
--	 * to cope with that. 1/4 retries is rather arbitrary but we
--	 * would need much more detailed feedback from compaction to
--	 * make a better decision.
--	 */
--	if (order > PAGE_ALLOC_COSTLY_ORDER)
--		max_retries /= 4;
--	if (compaction_retries <= max_retries)
--		return true;
--
--	return false;
--}
- #else
- static inline struct page *
- __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
-@@ -3195,6 +3147,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	return NULL;
- }
- 
-+#endif /* CONFIG_COMPACTION */
-+
- static inline bool
- should_compact_retry(struct alloc_context *ac, unsigned int order, int alloc_flags,
- 		     enum compact_result compact_result,
-@@ -3221,7 +3175,6 @@ should_compact_retry(struct alloc_contex
- 	}
- 	return false;
- }
--#endif /* CONFIG_COMPACTION */
- 
- /* Perform direct synchronous page reclaim */
- static int
+diff -puN arch/x86/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings arch/x86/configs/tiny.config
+--- a/arch/x86/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings
++++ a/arch/x86/configs/tiny.config
+@@ -1 +1,3 @@
+ CONFIG_NOHIGHMEM=y
++# CONFIG_HIGHMEM4G is not set
++# CONFIG_HIGHMEM64G is not set
+diff -puN kernel/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings kernel/configs/tiny.config
+--- a/kernel/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings
++++ a/kernel/configs/tiny.config
+@@ -1,4 +1,12 @@
++# CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE is not set
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++# CONFIG_KERNEL_GZIP is not set
++# CONFIG_KERNEL_BZIP2 is not set
++# CONFIG_KERNEL_LZMA is not set
+ CONFIG_KERNEL_XZ=y
++# CONFIG_KERNEL_LZO is not set
++# CONFIG_KERNEL_LZ4 is not set
+ CONFIG_OPTIMIZE_INLINING=y
++# CONFIG_SLAB is not set
++# CONFIG_SLUB is not set
+ CONFIG_SLOB=y
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-vmscan-get-rid-of-throttle_vm_writeout.patch
-oom-keep-mm-of-the-killed-task-available.patch
-kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
-mm-oom-get-rid-of-signal_struct-oom_victims.patch
-oom-suspend-fix-oom_killer_disable-vs-pm-suspend-properly.patch
-mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch
-oom-oom_reaper-allow-to-reap-mm-shared-by-the-kthreads.patch
-oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled.patch
+compat-remove-compat_printk.patch
 
