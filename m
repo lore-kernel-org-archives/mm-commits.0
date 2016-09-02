@@ -1,214 +1,139 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-only-allocate-and-reclaim-from-zones-with-pages-managed-by-the-buddy-allocator.patch removed from -mm tree
-Date: Fri, 02 Sep 2016 12:00:59 -0700
-Message-ID: <57c9cc6b.VA0cswmK6prz4VvD%akpm@linux-foundation.org>
+ mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference.patch removed from -mm tree
+Date: Fri, 02 Sep 2016 12:01:11 -0700
+Message-ID: <57c9cc77.HhMD7drV75IX754d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32987 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33013 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754109AbcIBTBA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2016 15:01:00 -0400
+        with ESMTP id S1755119AbcIBTBM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2016 15:01:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, mhocko@suse.com, srikar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, stable@vger.kernel.org, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: only allocate and reclaim from zones with pages managed by the buddy allocator
+     Subject: mm, mempolicy: task->mempolicy must be NULL before dropping final reference
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-only-allocate-and-reclaim-from-zones-with-pages-managed-by-the-buddy-allocator.patch
+     mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, vmscan: only allocate and reclaim from zones with pages managed by the buddy allocator
+From: David Rientjes <rientjes@google.com>
+Subject: mm, mempolicy: task->mempolicy must be NULL before dropping final reference
 
-Firmware Assisted Dump (FA_DUMP) on ppc64 reserves substantial amounts of
-memory when booting a secondary kernel.  Srikar Dronamraju reported that
-multiple nodes may have no memory managed by the buddy allocator but still
-return true for populated_zone().
+KASAN allocates memory from the page allocator as part of
+kmem_cache_free(), and that can reference current->mempolicy through any
+number of allocation functions.  It needs to be NULL'd out before the
+final reference is dropped to prevent a use-after-free bug:
 
-Commit 1d82de618ddd ("mm, vmscan: make kswapd reclaim in terms of nodes")
-was reported to cause kswapd to spin at 100% CPU usage when fadump was
-enabled.  The old code happened to deal with the situation of a populated
-node with zero free pages by co-incidence but the current code tries to
-reclaim populated zones without realising that is impossible.
+	BUG: KASAN: use-after-free in alloc_pages_current+0x363/0x370 at addr ffff88010b48102c
+	CPU: 0 PID: 15425 Comm: trinity-c2 Not tainted 4.8.0-rc2+ #140
+	...
+	Call Trace:
+		dump_stack
+		kasan_object_err
+		kasan_report_error
+		__asan_report_load2_noabort
+		alloc_pages_current	<-- use after free
+		depot_save_stack
+		save_stack
+		kasan_slab_free
+		kmem_cache_free
+		__mpol_put		<-- free
+		do_exit
 
-We cannot just convert populated_zone() as many existing users really need
-to check for present_pages.  This patch introduces a managed_zone() helper
-and uses it in the few cases where it is critical that the check is made
-for managed pages -- zonelist construction and page reclaim.
+This patch sets current->mempolicy to NULL before dropping the final
+reference.
 
-Link: http://lkml.kernel.org/r/20160831195104.GB8119@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Tested-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/alpine.DEB.2.10.1608301442180.63329@chino.kir.corp.google.com
+Fixes: cd11016e5f52 ("mm, kasan: stackdepot implementation. Enable stackdepot for SLAB")
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Vegard Nossum <vegard.nossum@oracle.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: <stable@vger.kernel.org>	[4.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   16 ++++++++++++++--
- mm/page_alloc.c        |    4 ++--
- mm/vmscan.c            |   22 +++++++++++-----------
- 3 files changed, 27 insertions(+), 15 deletions(-)
+ include/linux/mempolicy.h |    4 ++++
+ kernel/exit.c             |    7 +------
+ mm/mempolicy.c            |   17 +++++++++++++++++
+ 3 files changed, 22 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-vmscan-only-allocate-and-reclaim-from-zones-with-pages-managed-by-the-buddy-allocator include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-vmscan-only-allocate-and-reclaim-from-zones-with-pages-managed-by-the-buddy-allocator
-+++ a/include/linux/mmzone.h
-@@ -828,9 +828,21 @@ unsigned long __init node_memmap_size_by
-  */
- #define zone_idx(zone)		((zone) - (zone)->zone_pgdat->node_zones)
- 
--static inline int populated_zone(struct zone *zone)
-+/*
-+ * Returns true if a zone has pages managed by the buddy allocator.
-+ * All the reclaim decisions have to use this function rather than
-+ * populated_zone(). If the whole zone is reserved then we can easily
-+ * end up with populated_zone() && !managed_zone().
-+ */
-+static inline bool managed_zone(struct zone *zone)
-+{
-+	return zone->managed_pages;
-+}
-+
-+/* Returns true if a zone has memory */
-+static inline bool populated_zone(struct zone *zone)
- {
--	return (!!zone->present_pages);
-+	return zone->present_pages;
+diff -puN include/linux/mempolicy.h~mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference
++++ a/include/linux/mempolicy.h
+@@ -195,6 +195,7 @@ static inline bool vma_migratable(struct
  }
  
- extern int movable_zone;
-diff -puN mm/page_alloc.c~mm-vmscan-only-allocate-and-reclaim-from-zones-with-pages-managed-by-the-buddy-allocator mm/page_alloc.c
---- a/mm/page_alloc.c~mm-vmscan-only-allocate-and-reclaim-from-zones-with-pages-managed-by-the-buddy-allocator
-+++ a/mm/page_alloc.c
-@@ -4360,7 +4360,7 @@ static int build_zonelists_node(pg_data_
- 	do {
- 		zone_type--;
- 		zone = pgdat->node_zones + zone_type;
--		if (populated_zone(zone)) {
-+		if (managed_zone(zone)) {
- 			zoneref_set_zone(zone,
- 				&zonelist->_zonerefs[nr_zones++]);
- 			check_highest_zone(zone_type);
-@@ -4598,7 +4598,7 @@ static void build_zonelists_in_zone_orde
- 		for (j = 0; j < nr_nodes; j++) {
- 			node = node_order[j];
- 			z = &NODE_DATA(node)->node_zones[zone_type];
--			if (populated_zone(z)) {
-+			if (managed_zone(z)) {
- 				zoneref_set_zone(z,
- 					&zonelist->_zonerefs[pos++]);
- 				check_highest_zone(zone_type);
-diff -puN mm/vmscan.c~mm-vmscan-only-allocate-and-reclaim-from-zones-with-pages-managed-by-the-buddy-allocator mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-only-allocate-and-reclaim-from-zones-with-pages-managed-by-the-buddy-allocator
-+++ a/mm/vmscan.c
-@@ -1665,7 +1665,7 @@ static bool inactive_reclaimable_pages(s
+ extern int mpol_misplaced(struct page *, struct vm_area_struct *, unsigned long);
++extern void mpol_put_task_policy(struct task_struct *);
  
- 	for (zid = sc->reclaim_idx; zid >= 0; zid--) {
- 		zone = &pgdat->node_zones[zid];
--		if (!populated_zone(zone))
-+		if (!managed_zone(zone))
- 			continue;
+ #else
  
- 		if (zone_page_state_snapshot(zone, NR_ZONE_LRU_BASE +
-@@ -2036,7 +2036,7 @@ static bool inactive_list_is_low(struct
- 		struct zone *zone = &pgdat->node_zones[zid];
- 		unsigned long inactive_zone, active_zone;
+@@ -297,5 +298,8 @@ static inline int mpol_misplaced(struct
+ 	return -1; /* no node preference */
+ }
  
--		if (!populated_zone(zone))
-+		if (!managed_zone(zone))
- 			continue;
++static inline void mpol_put_task_policy(struct task_struct *task)
++{
++}
+ #endif /* CONFIG_NUMA */
+ #endif
+diff -puN kernel/exit.c~mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference kernel/exit.c
+--- a/kernel/exit.c~mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference
++++ a/kernel/exit.c
+@@ -848,12 +848,7 @@ void do_exit(long code)
+ 	TASKS_RCU(preempt_enable());
+ 	exit_notify(tsk, group_dead);
+ 	proc_exit_connector(tsk);
+-#ifdef CONFIG_NUMA
+-	task_lock(tsk);
+-	mpol_put(tsk->mempolicy);
+-	tsk->mempolicy = NULL;
+-	task_unlock(tsk);
+-#endif
++	mpol_put_task_policy(tsk);
+ #ifdef CONFIG_FUTEX
+ 	if (unlikely(current->pi_state_cache))
+ 		kfree(current->pi_state_cache);
+diff -puN mm/mempolicy.c~mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-task-mempolicy-must-be-null-before-dropping-final-reference
++++ a/mm/mempolicy.c
+@@ -2336,6 +2336,23 @@ out:
+ 	return ret;
+ }
  
- 		inactive_zone = zone_page_state(zone,
-@@ -2171,7 +2171,7 @@ static void get_scan_count(struct lruvec
- 
- 		for (z = 0; z < MAX_NR_ZONES; z++) {
- 			struct zone *zone = &pgdat->node_zones[z];
--			if (!populated_zone(zone))
-+			if (!managed_zone(zone))
- 				continue;
- 
- 			total_high_wmark += high_wmark_pages(zone);
-@@ -2510,7 +2510,7 @@ static inline bool should_continue_recla
- 	/* If compaction would go ahead or the allocation would succeed, stop */
- 	for (z = 0; z <= sc->reclaim_idx; z++) {
- 		struct zone *zone = &pgdat->node_zones[z];
--		if (!populated_zone(zone))
-+		if (!managed_zone(zone))
- 			continue;
- 
- 		switch (compaction_suitable(zone, sc->order, 0, sc->reclaim_idx)) {
-@@ -2840,7 +2840,7 @@ static bool pfmemalloc_watermark_ok(pg_d
- 
- 	for (i = 0; i <= ZONE_NORMAL; i++) {
- 		zone = &pgdat->node_zones[i];
--		if (!populated_zone(zone) ||
-+		if (!managed_zone(zone) ||
- 		    pgdat_reclaimable_pages(pgdat) == 0)
- 			continue;
- 
-@@ -3141,7 +3141,7 @@ static bool prepare_kswapd_sleep(pg_data
- 	for (i = 0; i <= classzone_idx; i++) {
- 		struct zone *zone = pgdat->node_zones + i;
- 
--		if (!populated_zone(zone))
-+		if (!managed_zone(zone))
- 			continue;
- 
- 		if (!zone_balanced(zone, order, classzone_idx))
-@@ -3169,7 +3169,7 @@ static bool kswapd_shrink_node(pg_data_t
- 	sc->nr_to_reclaim = 0;
- 	for (z = 0; z <= sc->reclaim_idx; z++) {
- 		zone = pgdat->node_zones + z;
--		if (!populated_zone(zone))
-+		if (!managed_zone(zone))
- 			continue;
- 
- 		sc->nr_to_reclaim += max(high_wmark_pages(zone), SWAP_CLUSTER_MAX);
-@@ -3242,7 +3242,7 @@ static int balance_pgdat(pg_data_t *pgda
- 		if (buffer_heads_over_limit) {
- 			for (i = MAX_NR_ZONES - 1; i >= 0; i--) {
- 				zone = pgdat->node_zones + i;
--				if (!populated_zone(zone))
-+				if (!managed_zone(zone))
- 					continue;
- 
- 				sc.reclaim_idx = i;
-@@ -3262,7 +3262,7 @@ static int balance_pgdat(pg_data_t *pgda
- 		 */
- 		for (i = classzone_idx; i >= 0; i--) {
- 			zone = pgdat->node_zones + i;
--			if (!populated_zone(zone))
-+			if (!managed_zone(zone))
- 				continue;
- 
- 			if (zone_balanced(zone, sc.order, classzone_idx))
-@@ -3508,7 +3508,7 @@ void wakeup_kswapd(struct zone *zone, in
- 	pg_data_t *pgdat;
- 	int z;
- 
--	if (!populated_zone(zone))
-+	if (!managed_zone(zone))
- 		return;
- 
- 	if (!cpuset_zone_allowed(zone, GFP_KERNEL | __GFP_HARDWALL))
-@@ -3522,7 +3522,7 @@ void wakeup_kswapd(struct zone *zone, in
- 	/* Only wake kswapd if all zones are unbalanced */
- 	for (z = 0; z <= classzone_idx; z++) {
- 		zone = pgdat->node_zones + z;
--		if (!populated_zone(zone))
-+		if (!managed_zone(zone))
- 			continue;
- 
- 		if (zone_balanced(zone, order, classzone_idx))
++/*
++ * Drop the (possibly final) reference to task->mempolicy.  It needs to be
++ * dropped after task->mempolicy is set to NULL so that any allocation done as
++ * part of its kmem_cache_free(), such as by KASAN, doesn't reference a freed
++ * policy.
++ */
++void mpol_put_task_policy(struct task_struct *task)
++{
++	struct mempolicy *pol;
++
++	task_lock(task);
++	pol = task->mempolicy;
++	task->mempolicy = NULL;
++	task_unlock(task);
++	mpol_put(pol);
++}
++
+ static void sp_delete(struct shared_policy *sp, struct sp_node *n)
+ {
+ 	pr_debug("deleting %lx-l%lx\n", n->start, n->end);
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from rientjes@google.com are
 
 
