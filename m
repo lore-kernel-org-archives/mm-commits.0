@@ -1,117 +1,157 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kexec-fix-double-free-when-failing-to-relocate-the-purgatory.patch removed
- from -mm tree
-Date: Fri, 02 Sep 2016 12:00:49 -0700
-Message-ID: <57c9cc61.oBFSQHW5d6iM7918%akpm@linux-foundation.org>
+ mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request.patch removed from -mm tree
+Date: Fri, 02 Sep 2016 12:00:45 -0700
+Message-ID: <57c9cc5d.c2D9i9a28a5788QL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32969 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32964 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753900AbcIBTAu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2016 15:00:50 -0400
+        with ESMTP id S1753953AbcIBTAr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2016 15:00:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bauerman@linux.vnet.ibm.com, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, stable@vger.kernel.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, Ralf-Peter.Rohbeck@quantum.com, a.miskiewicz@gmail.com, js1304@gmail.com, jslaby@suse.com, markus@trippelsdorf.de, olaf@aepfle.de, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: fix double-free when failing to relocate the purgatory
+     Subject: mm, oom: prevent premature OOM killer invocation for high order request
 has been removed from the -mm tree.  Its filename was
-     kexec-fix-double-free-when-failing-to-relocate-the-purgatory.patch
+     mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: kexec: fix double-free when failing to relocate the purgatory
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, oom: prevent premature OOM killer invocation for high order request
 
-If kexec_apply_relocations fails, kexec_load_purgatory frees pi->sechdrs
-and pi->purgatory_buf.  This is redundant, because in case of error
-kimage_file_prepare_segments calls kimage_file_post_load_cleanup, which
-will also free those buffers.
+There have been several reports about pre-mature OOM killer invocation in
+4.7 kernel when order-2 allocation request (for the kernel stack) invoked
+OOM killer even during basic workloads (light IO or even kernel compile on
+some filesystems).  In all reported cases the memory is fragmented and
+there are no order-2+ pages available.  There is usually a large amount of
+slab memory (usually dentries/inodes) and further debugging has shown that
+there are way too many unmovable blocks which are skipped during the
+compaction.  Multiple reporters have confirmed that the current linux-next
+which includes [1] and [2] helped and OOMs are not reproducible anymore.
 
-This causes two warnings like the following, one for pi->sechdrs and the
-other for pi->purgatory_buf:
+A simpler fix for the late rc and stable is to simply ignore the
+compaction feedback and retry as long as there is a reclaim progress and
+we are not getting OOM for order-0 pages.  We already do that for
+CONFING_COMPACTION=n so let's reuse the same code when compaction is
+enabled as well.
 
-[   18.112843] kexec-bzImage64: Loading purgatory failed
-[   18.113257] ------------[ cut here ]------------
-[   18.113263] WARNING: CPU: 1 PID: 2119 at mm/vmalloc.c:1490 __vunmap+0xc1/0xd0
-[   18.113264] Trying to vfree() nonexistent vm area (ffffc90000e91000)
-[   18.113367] Modules linked in:
-[   18.113371] CPU: 1 PID: 2119 Comm: kexec Not tainted 4.8.0-rc3+ #5
-[   18.113372] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-[   18.113373]  0000000000000000 ffff88003bbb7dc8 ffffffff8132eca8 ffff88003bbb7e18
-[   18.113376]  0000000000000000 ffff88003bbb7e08 ffffffff8105f1bb 000005d281175bf8
-[   18.113377]  ffffc90000e91000 0000000000000000 0000000000000001 ffff88003e5f8c00
-[   18.113379] Call Trace:
-[   18.113384]  [<ffffffff8132eca8>] dump_stack+0x4d/0x65
-[   18.113386]  [<ffffffff8105f1bb>] __warn+0xcb/0xf0
-[   18.113388]  [<ffffffff8105f22f>] warn_slowpath_fmt+0x4f/0x60
-[   18.113390]  [<ffffffff81176469>] ? find_vmap_area+0x19/0x70
-[   18.113393]  [<ffffffff810dbb57>] ? kimage_file_post_load_cleanup+0x47/0xb0
-[   18.113394]  [<ffffffff81177451>] __vunmap+0xc1/0xd0
-[   18.113396]  [<ffffffff811774ce>] vfree+0x2e/0x70
-[   18.113397]  [<ffffffff810dbb6e>] kimage_file_post_load_cleanup+0x5e/0xb0
-[   18.113398]  [<ffffffff810dc718>] SyS_kexec_file_load+0x448/0x680
-[   18.113401]  [<ffffffff811a6834>] ? putname+0x54/0x60
-[   18.113403]  [<ffffffff81195d70>] ? do_sys_open+0x190/0x1f0
-[   18.113407]  [<ffffffff81824e5b>] entry_SYSCALL_64_fastpath+0x13/0x8f
-[   18.113408] ---[ end trace 158bb74f5950ca2b ]---
+[1] http://lkml.kernel.org/r/20160810091226.6709-1-vbabka@suse.cz
+[2] http://lkml.kernel.org/r/f7a9ea9d-bb88-bfd6-e340-3a933559305a@suse.cz
 
-Fix by setting pi->sechdrs an pi->purgatory_buf to NULL, since vfree
-won't try to free a NULL pointer.
-
-Link: http://lkml.kernel.org/r/1472083546-23683-1-git-send-email-bauerman@linux.vnet.ibm.com
-Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: <stable@vger.kernel.org>
+Fixes: 0a0337e0d1d1 ("mm, oom: rework oom detection")
+Link: http://lkml.kernel.org/r/20160823074339.GB23577@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Tested-by: Olaf Hering <olaf@aepfle.de>
+Tested-by: Ralf-Peter Rohbeck <Ralf-Peter.Rohbeck@quantum.com>
+Cc: Markus Trippelsdorf <markus@trippelsdorf.de>
+Cc: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
+Cc: Ralf-Peter Rohbeck <Ralf-Peter.Rohbeck@quantum.com>
+Cc: Jiri Slaby <jslaby@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>	[4.7.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_file.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page_alloc.c |   51 +---------------------------------------------
+ 1 file changed, 2 insertions(+), 49 deletions(-)
 
-diff -puN kernel/kexec_file.c~kexec-fix-double-free-when-failing-to-relocate-the-purgatory kernel/kexec_file.c
---- a/kernel/kexec_file.c~kexec-fix-double-free-when-failing-to-relocate-the-purgatory
-+++ a/kernel/kexec_file.c
-@@ -887,7 +887,10 @@ int kexec_load_purgatory(struct kimage *
- 	return 0;
- out:
- 	vfree(pi->sechdrs);
-+	pi->sechdrs = NULL;
-+
- 	vfree(pi->purgatory_buf);
-+	pi->purgatory_buf = NULL;
- 	return ret;
+diff -puN mm/page_alloc.c~mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-oom-prevent-pre-mature-oom-killer-invocation-for-high-order-request
++++ a/mm/page_alloc.c
+@@ -3137,54 +3137,6 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 	return NULL;
  }
  
+-static inline bool
+-should_compact_retry(struct alloc_context *ac, int order, int alloc_flags,
+-		     enum compact_result compact_result,
+-		     enum compact_priority *compact_priority,
+-		     int compaction_retries)
+-{
+-	int max_retries = MAX_COMPACT_RETRIES;
+-
+-	if (!order)
+-		return false;
+-
+-	/*
+-	 * compaction considers all the zone as desperately out of memory
+-	 * so it doesn't really make much sense to retry except when the
+-	 * failure could be caused by insufficient priority
+-	 */
+-	if (compaction_failed(compact_result)) {
+-		if (*compact_priority > MIN_COMPACT_PRIORITY) {
+-			(*compact_priority)--;
+-			return true;
+-		}
+-		return false;
+-	}
+-
+-	/*
+-	 * make sure the compaction wasn't deferred or didn't bail out early
+-	 * due to locks contention before we declare that we should give up.
+-	 * But do not retry if the given zonelist is not suitable for
+-	 * compaction.
+-	 */
+-	if (compaction_withdrawn(compact_result))
+-		return compaction_zonelist_suitable(ac, order, alloc_flags);
+-
+-	/*
+-	 * !costly requests are much more important than __GFP_REPEAT
+-	 * costly ones because they are de facto nofail and invoke OOM
+-	 * killer to move on while costly can fail and users are ready
+-	 * to cope with that. 1/4 retries is rather arbitrary but we
+-	 * would need much more detailed feedback from compaction to
+-	 * make a better decision.
+-	 */
+-	if (order > PAGE_ALLOC_COSTLY_ORDER)
+-		max_retries /= 4;
+-	if (compaction_retries <= max_retries)
+-		return true;
+-
+-	return false;
+-}
+ #else
+ static inline struct page *
+ __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
+@@ -3195,6 +3147,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 	return NULL;
+ }
+ 
++#endif /* CONFIG_COMPACTION */
++
+ static inline bool
+ should_compact_retry(struct alloc_context *ac, unsigned int order, int alloc_flags,
+ 		     enum compact_result compact_result,
+@@ -3221,7 +3175,6 @@ should_compact_retry(struct alloc_contex
+ 	}
+ 	return false;
+ }
+-#endif /* CONFIG_COMPACTION */
+ 
+ /* Perform direct synchronous page reclaim */
+ static int
 _
 
-Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
-kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
-kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
-powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
-powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c.patch
-powerpc-generalize-elf64_apply_relocate_add.patch
-powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
-powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
-powerpc-implement-kexec_file_load.patch
-powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
-powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
-powerpc-add-purgatory-for-kexec_file_load-implementation.patch
-powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
-kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
-powerpc-kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
-kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
-kexec_file-add-mechanism-to-update-kexec-segments.patch
-ima-on-soft-reboot-save-the-measurement-list.patch
+mm-vmscan-get-rid-of-throttle_vm_writeout.patch
+oom-keep-mm-of-the-killed-task-available.patch
+kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
+mm-oom-get-rid-of-signal_struct-oom_victims.patch
+oom-suspend-fix-oom_killer_disable-vs-pm-suspend-properly.patch
+mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch
+oom-oom_reaper-allow-to-reap-mm-shared-by-the-kthreads.patch
+oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled.patch
 
