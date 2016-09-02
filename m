@@ -1,99 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings.patch
- removed from -mm tree
-Date: Fri, 02 Sep 2016 12:00:52 -0700
-Message-ID: <57c9cc64.ke2IysPvLOa8JBVA%akpm@linux-foundation.org>
+ wd719x-remove-last-declaration-using-define_pci_device_table.patch removed
+ from -mm tree
+Date: Fri, 02 Sep 2016 12:01:02 -0700
+Message-ID: <57c9cc6e.SB2XDaLXGdlP3heC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32975 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32996 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753900AbcIBTAx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2016 15:00:53 -0400
+        with ESMTP id S1754109AbcIBTBD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2016 15:01:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, josh@joshtriplett.org, mingo@kernel.org, yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: joe@perches.com, bart.vanassche@sandisk.com, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kconfig: tinyconfig: provide whole choice blocks to avoid warnings
+     Subject: drivers/scsi/wd719x.c: remove last declaration using DEFINE_PCI_DEVICE_TABLE
 has been removed from the -mm tree.  Its filename was
-     kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings.patch
+     wd719x-remove-last-declaration-using-define_pci_device_table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: kconfig: tinyconfig: provide whole choice blocks to avoid warnings
+From: Joe Perches <joe@perches.com>
+Subject: drivers/scsi/wd719x.c: remove last declaration using DEFINE_PCI_DEVICE_TABLE
 
-Using "make tinyconfig" produces a couple of annoying warnings that show up
-for build test machines all the time:
+Convert it to the preferred const struct pci_device_id instead.
 
-    .config:966:warning: override: NOHIGHMEM changes choice state
-    .config:965:warning: override: SLOB changes choice state
-    .config:963:warning: override: KERNEL_XZ changes choice state
-    .config:962:warning: override: CC_OPTIMIZE_FOR_SIZE changes choice state
-    .config:933:warning: override: SLOB changes choice state
-    .config:930:warning: override: CC_OPTIMIZE_FOR_SIZE changes choice state
-    .config:870:warning: override: SLOB changes choice state
-    .config:868:warning: override: KERNEL_XZ changes choice state
-    .config:867:warning: override: CC_OPTIMIZE_FOR_SIZE changes choice state
-
-I've made a previous attempt at fixing them and we discussed a number of
-alternatives.
-
-I tried changing the Makefile to use "merge_config.sh -n $(fragment-list)"
-but couldn't get that to work properly.
-
-This is yet another approach, based on the observation that we do want
-to see a warning for conflicting 'choice' options, and that we can simply
-make them non-conflicting by listing all other options as disabled.
-This is a trivial patch that we can apply independent of plans for other
-changes.
-
-Link: http://lkml.kernel.org/r/20160829214952.1334674-2-arnd@arndb.de
-Link: https://storage.kernelci.org/mainline/v4.7-rc6/x86-tinyconfig/build.log
-https://patchwork.kernel.org/patch/9212749/
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-Reviewed-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
+Link: http://lkml.kernel.org/r/95c5e4100c3cd4eda643624f5b70e8d7abceb86c.1472660229.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reviewed-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Cc: "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/configs/tiny.config |    2 ++
- kernel/configs/tiny.config   |    8 ++++++++
- 2 files changed, 10 insertions(+)
+ drivers/scsi/wd719x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings arch/x86/configs/tiny.config
---- a/arch/x86/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings
-+++ a/arch/x86/configs/tiny.config
-@@ -1 +1,3 @@
- CONFIG_NOHIGHMEM=y
-+# CONFIG_HIGHMEM4G is not set
-+# CONFIG_HIGHMEM64G is not set
-diff -puN kernel/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings kernel/configs/tiny.config
---- a/kernel/configs/tiny.config~kconfig-tinyconfig-provide-whole-choice-blocks-to-avoid-warnings
-+++ a/kernel/configs/tiny.config
-@@ -1,4 +1,12 @@
-+# CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE is not set
- CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-+# CONFIG_KERNEL_GZIP is not set
-+# CONFIG_KERNEL_BZIP2 is not set
-+# CONFIG_KERNEL_LZMA is not set
- CONFIG_KERNEL_XZ=y
-+# CONFIG_KERNEL_LZO is not set
-+# CONFIG_KERNEL_LZ4 is not set
- CONFIG_OPTIMIZE_INLINING=y
-+# CONFIG_SLAB is not set
-+# CONFIG_SLUB is not set
- CONFIG_SLOB=y
+diff -puN drivers/scsi/wd719x.c~wd719x-remove-last-declaration-using-define_pci_device_table drivers/scsi/wd719x.c
+--- a/drivers/scsi/wd719x.c~wd719x-remove-last-declaration-using-define_pci_device_table
++++ a/drivers/scsi/wd719x.c
+@@ -962,7 +962,7 @@ static void wd719x_pci_remove(struct pci
+ 	scsi_host_put(sh);
+ }
+ 
+-static DEFINE_PCI_DEVICE_TABLE(wd719x_pci_table) = {
++static const struct pci_device_id wd719x_pci_table[] = {
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_WD, 0x3296) },
+ 	{}
+ };
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from joe@perches.com are
 
-compat-remove-compat_printk.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
+meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
+spellingtxt-modeled-is-spelt-correctly.patch
+checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
+checkpatch-test-multiple-line-block-comment-alignment.patch
+checkpatch-dont-test-for-prefer-ether_addr_foo.patch
+checkpatch-externalize-the-structs-that-should-be-const.patch
+const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
+checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
 
