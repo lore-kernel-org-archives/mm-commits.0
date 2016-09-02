@@ -1,123 +1,140 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- treewide-remove-references-to-the-now-unnecessary-define_pci_device_table.patch removed from -mm tree
-Date: Fri, 02 Sep 2016 12:01:05 -0700
-Message-ID: <57c9cc71.QxRKnUY2AAfvAfV/%akpm@linux-foundation.org>
+ printk-nmi-avoid-direct-printk-s-from-__printk_nmi_flush.patch removed from -mm tree
+Date: Fri, 02 Sep 2016 12:01:08 -0700
+Message-ID: <57c9cc74.BmJvV38rke/w0LZk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33005 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33009 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754109AbcIBTBG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2016 15:01:06 -0400
+        with ESMTP id S1754109AbcIBTBJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 2 Sep 2016 15:01:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, bhelgaas@google.com, corbet@lwn.net, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, jack@suse.cz, pmladek@suse.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: treewide: remove references to the now unnecessary DEFINE_PCI_DEVICE_TABLE
+     Subject: printk/nmi: avoid direct printk()-s from __printk_nmi_flush()
 has been removed from the -mm tree.  Its filename was
-     treewide-remove-references-to-the-now-unnecessary-define_pci_device_table.patch
+     printk-nmi-avoid-direct-printk-s-from-__printk_nmi_flush.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: treewide: remove references to the now unnecessary DEFINE_PCI_DEVICE_TABLE
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: printk/nmi: avoid direct printk()-s from __printk_nmi_flush()
 
-It's been eliminated from the sources, remove it from everywhere else.
+__printk_nmi_flush() can be called from nmi_panic(), therefore it has to
+test whether it's executed in NMI context and thus must route the messages
+through deferred printk() or via direct printk().  This is to avoid
+potential deadlocks, as described in cf9b1106c81c45cde ("printk/nmi: flush
+NMI messages on the system panic").
 
-Link: http://lkml.kernel.org/r/076eff466fd7edb550c25c8b25d76924ca0eba62.1472660229.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+However there remain two places where __printk_nmi_flush() does
+unconditional direct printk() calls:
+
+ - pr_err("printk_nmi_flush: internal error ...")
+ - pr_cont("\n")
+
+Factor out print_nmi_seq_line() parts into a new printk_nmi_flush_line()
+function, which takes care of in_nmi(), and use it in __printk_nmi_flush()
+for printing and error-reporting.
+
+Link: http://lkml.kernel.org/r/20160830161354.581-1-sergey.senozhatsky@gmail.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/PCI/pci.txt |    1 -
- include/linux/pci.h       |    9 ---------
- scripts/checkpatch.pl     |    9 ---------
- scripts/tags.sh           |    1 -
- 4 files changed, 20 deletions(-)
+ kernel/printk/nmi.c |   38 +++++++++++++++++++++++---------------
+ 1 file changed, 23 insertions(+), 15 deletions(-)
 
-diff -puN Documentation/PCI/pci.txt~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table Documentation/PCI/pci.txt
---- a/Documentation/PCI/pci.txt~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table
-+++ a/Documentation/PCI/pci.txt
-@@ -124,7 +124,6 @@ initialization with a pointer to a struc
+diff -puN kernel/printk/nmi.c~printk-nmi-avoid-direct-printk-s-from-__printk_nmi_flush kernel/printk/nmi.c
+--- a/kernel/printk/nmi.c~printk-nmi-avoid-direct-printk-s-from-__printk_nmi_flush
++++ a/kernel/printk/nmi.c
+@@ -99,27 +99,33 @@ again:
+ 	return add;
+ }
  
- The ID table is an array of struct pci_device_id entries ending with an
- all-zero entry.  Definitions with static const are generally preferred.
--Use of the deprecated macro DEFINE_PCI_DEVICE_TABLE should be avoided.
- 
- Each entry consists of:
- 
-diff -puN include/linux/pci.h~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table include/linux/pci.h
---- a/include/linux/pci.h~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table
-+++ a/include/linux/pci.h
-@@ -683,15 +683,6 @@ struct pci_driver {
- #define	to_pci_driver(drv) container_of(drv, struct pci_driver, driver)
- 
- /**
-- * DEFINE_PCI_DEVICE_TABLE - macro used to describe a pci device table
-- * @_table: device table name
-- *
-- * This macro is deprecated and should not be used in new code.
+-/*
+- * printk one line from the temporary buffer from @start index until
+- * and including the @end index.
 - */
--#define DEFINE_PCI_DEVICE_TABLE(_table) \
--	const struct pci_device_id _table[]
+-static void print_nmi_seq_line(struct nmi_seq_buf *s, int start, int end)
++static void printk_nmi_flush_line(const char *text, int len)
+ {
+-	const char *buf = s->buffer + start;
 -
--/**
-  * PCI_DEVICE - macro used to describe a specific pci device
-  * @vend: the 16 bit PCI Vendor ID
-  * @dev: the 16 bit PCI Device ID
-diff -puN scripts/checkpatch.pl~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table
-+++ a/scripts/checkpatch.pl
-@@ -3570,15 +3570,6 @@ sub process {
- 			}
- 		}
+ 	/*
+ 	 * The buffers are flushed in NMI only on panic.  The messages must
+ 	 * go only into the ring buffer at this stage.  Consoles will get
+ 	 * explicitly called later when a crashdump is not generated.
+ 	 */
+ 	if (in_nmi())
+-		printk_deferred("%.*s", (end - start) + 1, buf);
++		printk_deferred("%.*s", len, text);
+ 	else
+-		printk("%.*s", (end - start) + 1, buf);
++		printk("%.*s", len, text);
  
--# check for uses of DEFINE_PCI_DEVICE_TABLE
--		if ($line =~ /\bDEFINE_PCI_DEVICE_TABLE\s*\(\s*(\w+)\s*\)\s*=/) {
--			if (WARN("DEFINE_PCI_DEVICE_TABLE",
--				 "Prefer struct pci_device_id over deprecated DEFINE_PCI_DEVICE_TABLE\n" . $herecurr) &&
--			    $fix) {
--				$fixed[$fixlinenr] =~ s/\b(?:static\s+|)DEFINE_PCI_DEVICE_TABLE\s*\(\s*(\w+)\s*\)\s*=\s*/static const struct pci_device_id $1\[\] = /;
--			}
--		}
--
- # check for new typedefs, only function parameters and sparse annotations
- # make sense.
- 		if ($line =~ /\btypedef\s/ &&
-diff -puN scripts/tags.sh~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table scripts/tags.sh
---- a/scripts/tags.sh~treewide-remove-references-to-the-now-unnecessary-define_pci_device_table
-+++ a/scripts/tags.sh
-@@ -206,7 +206,6 @@ regex_c=(
- 	'/\<DEFINE_PER_CPU_SHARED_ALIGNED([^,]*, *\([[:alnum:]_]*\)/\1/v/'
- 	'/\<DECLARE_WAIT_QUEUE_HEAD(\([[:alnum:]_]*\)/\1/v/'
- 	'/\<DECLARE_\(TASKLET\|WORK\|DELAYED_WORK\)(\([[:alnum:]_]*\)/\2/v/'
--	'/\<DEFINE_PCI_DEVICE_TABLE(\([[:alnum:]_]*\)/\1/v/'
- 	'/\(^\s\)OFFSET(\([[:alnum:]_]*\)/\2/v/'
- 	'/\(^\s\)DEFINE(\([[:alnum:]_]*\)/\2/v/'
- 	'/\<DEFINE_HASHTABLE(\([[:alnum:]_]*\)/\1/v/'
+ }
+ 
+ /*
++ * printk one line from the temporary buffer from @start index until
++ * and including the @end index.
++ */
++static void printk_nmi_flush_seq_line(struct nmi_seq_buf *s,
++					int start, int end)
++{
++	const char *buf = s->buffer + start;
++
++	printk_nmi_flush_line(buf, (end - start) + 1);
++}
++
++/*
+  * Flush data from the associated per_CPU buffer. The function
+  * can be called either via IRQ work or independently.
+  */
+@@ -150,9 +156,11 @@ more:
+ 	 * the buffer an unexpected way. If we printed something then
+ 	 * @len must only increase.
+ 	 */
+-	if (i && i >= len)
+-		pr_err("printk_nmi_flush: internal error: i=%d >= len=%zu\n",
+-		       i, len);
++	if (i && i >= len) {
++		const char *msg = "printk_nmi_flush: internal error\n";
++
++		printk_nmi_flush_line(msg, strlen(msg));
++	}
+ 
+ 	if (!len)
+ 		goto out; /* Someone else has already flushed the buffer. */
+@@ -166,14 +174,14 @@ more:
+ 	/* Print line by line. */
+ 	for (; i < size; i++) {
+ 		if (s->buffer[i] == '\n') {
+-			print_nmi_seq_line(s, last_i, i);
++			printk_nmi_flush_seq_line(s, last_i, i);
+ 			last_i = i + 1;
+ 		}
+ 	}
+ 	/* Check if there was a partial line. */
+ 	if (last_i < size) {
+-		print_nmi_seq_line(s, last_i, size - 1);
+-		pr_cont("\n");
++		printk_nmi_flush_seq_line(s, last_i, size - 1);
++		printk_nmi_flush_line("\n", strlen("\n"));
+ 	}
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
-meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
-spellingtxt-modeled-is-spelt-correctly.patch
-checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
-checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
-checkpatch-test-multiple-line-block-comment-alignment.patch
-checkpatch-dont-test-for-prefer-ether_addr_foo.patch
-checkpatch-externalize-the-structs-that-should-be-const.patch
-const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
-checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
 
