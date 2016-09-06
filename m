@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mem-hotplug-dont-clear-the-only-node-in-new_node_page.patch
- added to -mm tree
-Date: Tue, 06 Sep 2016 13:38:02 -0700
-Message-ID: <57cf292a.zBot/pgYKZBA0Fh3%akpm__17705.9956281029$1473194292$gmane$org@linux-foundation.org>
+Subject: + ocfs2-dlm-fix-race-between-convert-and-migration.patch added to -mm tree
+Date: Tue, 06 Sep 2016 13:39:38 -0700
+Message-ID: <57cf298a.YbmDlCt1jXr23kF9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59725 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59729 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933688AbcIFUiD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2016 16:38:03 -0400
+        with ESMTP id S933628AbcIFUjj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2016 16:39:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhong@linux.vnet.ibm.com, jallen@linux.vnet.ibm.com, qiuxishi@huawei.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, piaojun@huawei.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug: Don't clear the only node in new_node_page()
+     Subject: ocfs2/dlm: fix race between convert and migration
 has been added to the -mm tree.  Its filename is
-     mem-hotplug-dont-clear-the-only-node-in-new_node_page.patch
+     ocfs2-dlm-fix-race-between-convert-and-migration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-dont-clear-the-only-node-in-new_node_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-fix-race-between-convert-and-migration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-dont-clear-the-only-node-in-new_node_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-fix-race-between-convert-and-migration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +38,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Li Zhong <zhong@linux.vnet.ibm.com>
-Subject: mem-hotplug: Don't clear the only node in new_node_page()
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2/dlm: fix race between convert and migration
 
-394e31d2c ("mem-hotplug: alloc new page from a nearest neighbor node when
-mem-offline") introduced new_node_page() for memory hotplug.
+Commit ac7cf246dfdb ("ocfs2/dlm: fix race between convert and recovery")
+checks if lockres master has changed to identify whether new master has
+finished recovery or not.  This will introduce a race that right after old
+master does umount ( means master will change), a new convert request
+comes.
 
-In new_node_page(), the nid is cleared before calling
-__alloc_pages_nodemask().  But if it is the only node of the system, and
-the first round allocation fails, it will not be able to get memory from
-an empty nodemask, and will trigger oom.
+In this case, it will reset lockres state to DLM_RECOVERING and then retry
+convert, and then fail with lockres->l_action being set to
+OCFS2_AST_INVALID, which will cause inconsistent lock level between ocfs2
+and dlm, and then finally BUG.
 
-The patch checks whether it is the last node on the system, and if it is, then
-don't clear the nid in the nodemask.
+Since dlm recovery will clear lock->convert_pending in
+dlm_move_lockres_to_recovery_list, we can use it to correctly identify the
+race case between convert and recovery.  So fix it.
 
-Fixes: 394e31d2ceb4 ("mem-hotplug: alloc new page from a nearest neighbor node when mem-offline")
-Link: http://lkml.kernel.org/r/1473044391.4250.19.camel@TP420
-Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
-Reported-by: John Allen <jallen@linux.vnet.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: <stable@vger.kernel.org>	[4.7.x]
+Fixes: ac7cf246dfdb ("ocfs2/dlm: fix race between convert and recovery")
+Link: http://lkml.kernel.org/r/57CE1569.8010704@huawei.com
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmconvert.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mem-hotplug-dont-clear-the-only-node-in-new_node_page mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mem-hotplug-dont-clear-the-only-node-in-new_node_page
-+++ a/mm/memory_hotplug.c
-@@ -1567,7 +1567,9 @@ static struct page *new_node_page(struct
- 		return alloc_huge_page_node(page_hstate(compound_head(page)),
- 					next_node_in(nid, nmask));
+diff -puN fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-fix-race-between-convert-and-migration fs/ocfs2/dlm/dlmconvert.c
+--- a/fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-fix-race-between-convert-and-migration
++++ a/fs/ocfs2/dlm/dlmconvert.c
+@@ -268,7 +268,6 @@ enum dlm_status dlmconvert_remote(struct
+ 				  struct dlm_lock *lock, int flags, int type)
+ {
+ 	enum dlm_status status;
+-	u8 old_owner = res->owner;
  
--	node_clear(nid, nmask);
-+	if (nid != next_node_in(nid, nmask))
-+		node_clear(nid, nmask);
+ 	mlog(0, "type=%d, convert_type=%d, busy=%d\n", lock->ml.type,
+ 	     lock->ml.convert_type, res->state & DLM_LOCK_RES_IN_PROGRESS);
+@@ -335,7 +334,6 @@ enum dlm_status dlmconvert_remote(struct
+ 
+ 	spin_lock(&res->spinlock);
+ 	res->state &= ~DLM_LOCK_RES_IN_PROGRESS;
+-	lock->convert_pending = 0;
+ 	/* if it failed, move it back to granted queue.
+ 	 * if master returns DLM_NORMAL and then down before sending ast,
+ 	 * it may have already been moved to granted queue, reset to
+@@ -344,12 +342,14 @@ enum dlm_status dlmconvert_remote(struct
+ 		if (status != DLM_NOTQUEUED)
+ 			dlm_error(status);
+ 		dlm_revert_pending_convert(res, lock);
+-	} else if ((res->state & DLM_LOCK_RES_RECOVERING) ||
+-			(old_owner != res->owner)) {
+-		mlog(0, "res %.*s is in recovering or has been recovered.\n",
+-				res->lockname.len, res->lockname.name);
++	} else if (!lock->convert_pending) {
++		mlog(0, "%s: res %.*s, owner died and lock has been moved back "
++				"to granted list, retry convert.\n",
++				dlm->name, res->lockname.len, res->lockname.name);
+ 		status = DLM_RECOVERING;
+ 	}
 +
- 	if (PageHighMem(page)
- 	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
- 		gfp_mask |= __GFP_HIGHMEM;
++	lock->convert_pending = 0;
+ bail:
+ 	spin_unlock(&res->spinlock);
+ 
 _
 
-Patches currently in -mm which might be from zhong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-mem-hotplug-dont-clear-the-only-node-in-new_node_page.patch
+ocfs2-dlm-fix-race-between-convert-and-migration.patch
 
