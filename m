@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ima-define-a-canonical-binary_runtime_measurements-list-format-v3.patch
+Subject: + mem-hotplug-dont-clear-the-only-node-in-new_node_page.patch
  added to -mm tree
-Date: Tue, 06 Sep 2016 13:30:05 -0700
-Message-ID: <57cf274d.jUg78evU/TaV2DOh%akpm@linux-foundation.org>
+Date: Tue, 06 Sep 2016 13:38:02 -0700
+Message-ID: <57cf292a.zBot/pgYKZBA0Fh3%akpm__17705.9956281029$1473194292$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59665 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59725 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933647AbcIFUaG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2016 16:30:06 -0400
+        with ESMTP id S933688AbcIFUiD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2016 16:38:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: zhong@linux.vnet.ibm.com, jallen@linux.vnet.ibm.com, qiuxishi@huawei.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima-define-a-canonical-binary_runtime_measurements-list-format-v3
+     Subject: mem-hotplug: Don't clear the only node in new_node_page()
 has been added to the -mm tree.  Its filename is
-     ima-define-a-canonical-binary_runtime_measurements-list-format-v3.patch
+     mem-hotplug-dont-clear-the-only-node-in-new_node_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ima-define-a-canonical-binary_runtime_measurements-list-format-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-dont-clear-the-only-node-in-new_node_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ima-define-a-canonical-binary_runtime_measurements-list-format-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-dont-clear-the-only-node-in-new_node_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,59 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima-define-a-canonical-binary_runtime_measurements-list-format-v3
+From: Li Zhong <zhong@linux.vnet.ibm.com>
+Subject: mem-hotplug: Don't clear the only node in new_node_page()
 
-Changelog v3:
-- restore PCR value properly
+394e31d2c ("mem-hotplug: alloc new page from a nearest neighbor node when
+mem-offline") introduced new_node_page() for memory hotplug.
 
-Link: http://lkml.kernel.org/r/1473170584-15094-9-git-send-email-zohar@linux.vnet.ibm.com
-Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
+In new_node_page(), the nid is cleared before calling
+__alloc_pages_nodemask().  But if it is the only node of the system, and
+the first round allocation fails, it will not be able to get memory from
+an empty nodemask, and will trigger oom.
+
+The patch checks whether it is the last node on the system, and if it is, then
+don't clear the nid in the nodemask.
+
+Fixes: 394e31d2ceb4 ("mem-hotplug: alloc new page from a nearest neighbor node when mem-offline")
+Link: http://lkml.kernel.org/r/1473044391.4250.19.camel@TP420
+Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
+Reported-by: John Allen <jallen@linux.vnet.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: <stable@vger.kernel.org>	[4.7.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/ima_template.c     |    4 ++--
- security/integrity/ima/ima_template_lib.c |    1 +
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN security/integrity/ima/ima_template.c~ima-define-a-canonical-binary_runtime_measurements-list-format-v3 security/integrity/ima/ima_template.c
---- a/security/integrity/ima/ima_template.c~ima-define-a-canonical-binary_runtime_measurements-list-format-v3
-+++ a/security/integrity/ima/ima_template.c
-@@ -462,8 +462,8 @@ int ima_restore_measurement_list(loff_t
- 			break;
+diff -puN mm/memory_hotplug.c~mem-hotplug-dont-clear-the-only-node-in-new_node_page mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mem-hotplug-dont-clear-the-only-node-in-new_node_page
++++ a/mm/memory_hotplug.c
+@@ -1567,7 +1567,9 @@ static struct page *new_node_page(struct
+ 		return alloc_huge_page_node(page_hstate(compound_head(page)),
+ 					next_node_in(nid, nmask));
  
- 		memcpy(entry->digest, hdr_v1->digest, TPM_DIGEST_SIZE);
--		if (ima_canonical_fmt)
--			entry->pcr = le32_to_cpu(hdr_v1->pcr);
-+		entry->pcr =
-+		    !ima_canonical_fmt ? hdr_v1->pcr : le32_to_cpu(hdr_v1->pcr);
- 		ret = ima_restore_measurement_entry(entry);
- 		if (ret < 0)
- 			break;
-diff -puN security/integrity/ima/ima_template_lib.c~ima-define-a-canonical-binary_runtime_measurements-list-format-v3 security/integrity/ima/ima_template_lib.c
---- a/security/integrity/ima/ima_template_lib.c~ima-define-a-canonical-binary_runtime_measurements-list-format-v3
-+++ a/security/integrity/ima/ima_template_lib.c
-@@ -105,6 +105,7 @@ static void ima_show_template_data_binar
- 
- 	if (show != IMA_SHOW_BINARY_NO_FIELD_LEN) {
- 		u32 field_len = !ima_canonical_fmt ? len : cpu_to_le32(len);
+-	node_clear(nid, nmask);
++	if (nid != next_node_in(nid, nmask))
++		node_clear(nid, nmask);
 +
- 		ima_putc(m, &field_len, sizeof(field_len));
- 	}
- 
+ 	if (PageHighMem(page)
+ 	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
+ 		gfp_mask |= __GFP_HIGHMEM;
 _
 
-Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from zhong@linux.vnet.ibm.com are
 
-ima-on-soft-reboot-restore-the-measurement-list.patch
-ima-permit-duplicate-measurement-list-entries.patch
-ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
-ima-maintain-memory-size-needed-for-serializing-the-measurement-list-v3.patch
-ima-serialize-the-binary_runtime_measurements.patch
-ima-store-the-builtin-custom-template-definitions-in-a-list.patch
-ima-store-the-builtin-custom-template-definitions-in-a-list-v3.patch
-ima-support-restoring-multiple-template-formats.patch
-ima-support-restoring-multiple-template-formats-v3.patch
-ima-define-a-canonical-binary_runtime_measurements-list-format.patch
-ima-define-a-canonical-binary_runtime_measurements-list-format-v3.patch
+mem-hotplug-dont-clear-the-only-node-in-new_node_page.patch
 
