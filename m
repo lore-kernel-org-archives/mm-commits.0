@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- powerpc-add-purgatory-for-kexec_file_load-implementation-fix.patch added to -mm tree
-Date: Tue, 06 Sep 2016 12:17:09 -0700
-Message-ID: <57cf1635.x7x1nHHs5jsf4Su7%akpm@linux-foundation.org>
+Subject: + arch-s390-include-asm-bitopsh-needs-linux-typesh.patch added to -mm tree
+Date: Tue, 06 Sep 2016 12:27:37 -0700
+Message-ID: <57cf18a9.nOybJJjMvVpC2/Gd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57919 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58057 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933347AbcIFTRK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2016 15:17:10 -0400
+        with ESMTP id S941038AbcIFT1i (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2016 15:27:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bauerman@linux.vnet.ibm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chengang@emindsoft.com.cn, heiko.carstens@de.ibm.com, lkp@intel.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc-add-purgatory-for-kexec_file_load-implementation-fix
+     Subject: arch/s390/include/asm/bitops.h needs linux/types.h
 has been added to the -mm tree.  Its filename is
-     powerpc-add-purgatory-for-kexec_file_load-implementation-fix.patch
+     arch-s390-include-asm-bitopsh-needs-linux-typesh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-purgatory-for-kexec_file_load-implementation-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-s390-include-asm-bitopsh-needs-linux-typesh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-purgatory-for-kexec_file_load-implementation-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-s390-include-asm-bitopsh-needs-linux-typesh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +38,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc-add-purgatory-for-kexec_file_load-implementation-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/s390/include/asm/bitops.h needs linux/types.h
 
-The change below to arch/powerpc/purgatory/Makefile fixes the cross build
-from ppc64 BE to ppc64 LE.
+   In file included from include/linux/bitops.h:36:0,
+                    from fs/btrfs/extent_io.c:1:
+   arch/s390/include/asm/bitops.h:176:15: error: unknown type name 'bool'
+    static inline bool
+                  ^
+   arch/s390/include/asm/bitops.h:187:15: error: unknown type name 'bool'
+    static inline bool
 
-I also noticed that building the purgatory during archprepare is not necessary,
-so I also made the change below to arch/powerpc/Makefile.
-
-I'm preparing a v8 of the kexec_file_load implementation for powerpc series
-with those changes and will send it shortly.
-
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Chen Gang <chengang@emindsoft.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Makefile           |    3 ---
- arch/powerpc/purgatory/Makefile |    8 +++++---
- 2 files changed, 5 insertions(+), 6 deletions(-)
+ arch/s390/include/asm/bitops.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/Makefile~powerpc-add-purgatory-for-kexec_file_load-implementation-fix arch/powerpc/Makefile
---- a/arch/powerpc/Makefile~powerpc-add-purgatory-for-kexec_file_load-implementation-fix
-+++ a/arch/powerpc/Makefile
-@@ -378,9 +378,6 @@ archclean:
- 	$(Q)$(MAKE) $(clean)=$(boot)
+diff -puN arch/s390/include/asm/bitops.h~arch-s390-include-asm-bitopsh-needs-linux-typesh arch/s390/include/asm/bitops.h
+--- a/arch/s390/include/asm/bitops.h~arch-s390-include-asm-bitopsh-needs-linux-typesh
++++ a/arch/s390/include/asm/bitops.h
+@@ -40,6 +40,7 @@
+ #error only <linux/bitops.h> can be included directly
+ #endif
  
- archprepare: checkbin
--ifeq ($(CONFIG_KEXEC_FILE),y)
--	$(Q)$(MAKE) $(build)=arch/powerpc/purgatory arch/powerpc/purgatory/kexec-purgatory.c
--endif
- 
- # Use the file '.tmp_gas_check' for binutils tests, as gas won't output
- # to stdout and these checks are run even on install targets.
-diff -puN arch/powerpc/purgatory/Makefile~powerpc-add-purgatory-for-kexec_file_load-implementation-fix arch/powerpc/purgatory/Makefile
---- a/arch/powerpc/purgatory/Makefile~powerpc-add-purgatory-for-kexec_file_load-implementation-fix
-+++ a/arch/powerpc/purgatory/Makefile
-@@ -23,10 +23,12 @@ KBUILD_AFLAGS := -fno-exceptions -msoft-
- 		-D__ASSEMBLY__
- 
- ifeq ($(CONFIG_CPU_LITTLE_ENDIAN),y)
--KBUILD_CFLAGS += $(call cc-option,-mabi=elfv2,$(call cc-option,-mcall-aixdesc))
--KBUILD_AFLAGS += $(call cc-option,-mabi=elfv2)
-+KBUILD_CFLAGS += $(call cc-option,-mabi=elfv2,$(call cc-option,-mcall-aixdesc)) \
-+		-mlittle-endian
-+KBUILD_AFLAGS += $(call cc-option,-mabi=elfv2) -mlittle-endian
- else
--KBUILD_CFLAGS += $(call cc-option,-mcall-aixdesc)
-+KBUILD_CFLAGS += $(call cc-option,-mcall-aixdesc) -mbig-endian
-+KBUILD_AFLAGS += -mbig-endian
- endif
- 
- $(obj)/purgatory.ro: $(PURGATORY_OBJS) FORCE
++#include <linux/types.h>
+ #include <linux/typecheck.h>
+ #include <linux/compiler.h>
+ #include <asm/barrier.h>
 _
 
-Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
-kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
-kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
-powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
-powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c.patch
-powerpc-generalize-elf64_apply_relocate_add.patch
-powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
-powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
-powerpc-implement-kexec_file_load.patch
-powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
-powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
-powerpc-add-purgatory-for-kexec_file_load-implementation.patch
-powerpc-add-purgatory-for-kexec_file_load-implementation-fix.patch
-powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
-kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
-powerpc-kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
-kexec_file-allow-skipping-checksum-calculation-for-some-segments.patch
-kexec_file-add-mechanism-to-update-kexec-segments.patch
-ima-on-soft-reboot-save-the-measurement-list.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+arch-s390-include-asm-bitopsh-needs-linux-typesh.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-vmalloc-fix-align-value-calculation-error-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
+mm-check-that-we-havent-used-more-than-32-bits-in-address_spaceflags.patch
+mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
