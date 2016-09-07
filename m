@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-modify-maintainers-email-of-intelfb.patch added to
- -mm tree
-Date: Tue, 06 Sep 2016 13:46:35 -0700
-Message-ID: <57cf2b2b.hXB0PE7adhnc9Cr3%akpm@linux-foundation.org>
+Subject: + khugepaged-fix-use-after-free-in-collapse_huge_page.patch added to -mm tree
+Date: Wed, 07 Sep 2016 12:50:06 -0700
+Message-ID: <57d06f6e.sEpY1lz9EU+sy6bq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59753 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39830 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934175AbcIFUqg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 6 Sep 2016 16:46:36 -0400
+        with ESMTP id S1752040AbcIGTuI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Sep 2016 15:50:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, mbroemme@libmpq.org, sudip.mukherjee@codethink.co.uk, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, dvyukov@google.com, ebru.akagunduz@gmail.com, glider@google.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, kcc@google.com, koct9i@gmail.com, levinsasha928@gmail.com, mgorman@techsingularity.net, rientjes@google.com, ryabinin.a.a@gmail.com, suleiman@google.com, syzkaller@googlegroups.com, vbabka@suse.cz, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: Maik has moved
+     Subject: khugepaged: fix use-after-free in collapse_huge_page()
 has been added to the -mm tree.  Its filename is
-     maintainers-modify-maintainers-email-of-intelfb.patch
+     khugepaged-fix-use-after-free-in-collapse_huge_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-modify-maintainers-email-of-intelfb.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/khugepaged-fix-use-after-free-in-collapse_huge_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-modify-maintainers-email-of-intelfb.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-fix-use-after-free-in-collapse_huge_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +38,123 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: MAINTAINERS: Maik has moved
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: khugepaged: fix use-after-free in collapse_huge_page()
 
-Maik is no longer using the plusserver.de email, update with his
-current email.
+hugepage_vma_revalidate() tries to re-check if we still should try to
+collapse small pages into huge one after the re-acquiring mmap_sem.
 
-Link: http://lkml.kernel.org/r/1473007794-27960-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
-Cc: Maik Broemme <mbroemme@libmpq.org>
+The problem Dmitry Vyukov reported[1] is that the vma found by
+hugepage_vma_revalidate() can be suitable for huge pages, but not the same
+vma we had before dropping mmap_sem.  And dereferencing original vma can
+lead to fun results..
+
+Let's use vma hugepage_vma_revalidate() found instead of assuming it's the
+same as what we had before the lock was dropped.  [1]
+http://lkml.kernel.org/r/CACT4Y+Z3gigBvhca9kRJFcjX0G70V_nRhbwKBU+yGoESBDKi9Q@mail.gmail.com
+
+Link: http://lkml.kernel.org/r/20160907122559.GA6542@black.fi.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vegard Nossum <vegard.nossum@oracle.com>
+Cc: Sasha Levin <levinsasha928@gmail.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: syzkaller <syzkaller@googlegroups.com>
+Cc: Kostya Serebryany <kcc@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-modify-maintainers-email-of-intelfb MAINTAINERS
---- a/MAINTAINERS~maintainers-modify-maintainers-email-of-intelfb
-+++ a/MAINTAINERS
-@@ -6102,7 +6102,7 @@ S:	Supported
- F:	drivers/cpufreq/intel_pstate.c
+diff -puN mm/khugepaged.c~khugepaged-fix-use-after-free-in-collapse_huge_page mm/khugepaged.c
+--- a/mm/khugepaged.c~khugepaged-fix-use-after-free-in-collapse_huge_page
++++ a/mm/khugepaged.c
+@@ -838,7 +838,8 @@ static bool hugepage_vma_check(struct vm
+  * value (scan code).
+  */
  
- INTEL FRAMEBUFFER DRIVER (excluding 810 and 815)
--M:	Maik Broemme <mbroemme@plusserver.de>
-+M:	Maik Broemme <mbroemme@libmpq.org>
- L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	Documentation/fb/intelfb.txt
+-static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address)
++static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address,
++		struct vm_area_struct **vmap)
+ {
+ 	struct vm_area_struct *vma;
+ 	unsigned long hstart, hend;
+@@ -846,7 +847,7 @@ static int hugepage_vma_revalidate(struc
+ 	if (unlikely(khugepaged_test_exit(mm)))
+ 		return SCAN_ANY_PROCESS;
+ 
+-	vma = find_vma(mm, address);
++	*vmap = vma = find_vma(mm, address);
+ 	if (!vma)
+ 		return SCAN_VMA_NULL;
+ 
+@@ -898,7 +899,7 @@ static bool __collapse_huge_page_swapin(
+ 		/* do_swap_page returns VM_FAULT_RETRY with released mmap_sem */
+ 		if (ret & VM_FAULT_RETRY) {
+ 			down_read(&mm->mmap_sem);
+-			if (hugepage_vma_revalidate(mm, address)) {
++			if (hugepage_vma_revalidate(mm, address, &fe.vma)) {
+ 				/* vma is no longer available, don't continue to swapin */
+ 				trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
+ 				return false;
+@@ -923,7 +924,6 @@ static bool __collapse_huge_page_swapin(
+ static void collapse_huge_page(struct mm_struct *mm,
+ 				   unsigned long address,
+ 				   struct page **hpage,
+-				   struct vm_area_struct *vma,
+ 				   int node, int referenced)
+ {
+ 	pmd_t *pmd, _pmd;
+@@ -933,6 +933,7 @@ static void collapse_huge_page(struct mm
+ 	spinlock_t *pmd_ptl, *pte_ptl;
+ 	int isolated = 0, result = 0;
+ 	struct mem_cgroup *memcg;
++	struct vm_area_struct *vma;
+ 	unsigned long mmun_start;	/* For mmu_notifiers */
+ 	unsigned long mmun_end;		/* For mmu_notifiers */
+ 	gfp_t gfp;
+@@ -961,7 +962,7 @@ static void collapse_huge_page(struct mm
+ 	}
+ 
+ 	down_read(&mm->mmap_sem);
+-	result = hugepage_vma_revalidate(mm, address);
++	result = hugepage_vma_revalidate(mm, address, &vma);
+ 	if (result) {
+ 		mem_cgroup_cancel_charge(new_page, memcg, true);
+ 		up_read(&mm->mmap_sem);
+@@ -994,7 +995,7 @@ static void collapse_huge_page(struct mm
+ 	 * handled by the anon_vma lock + PG_lock.
+ 	 */
+ 	down_write(&mm->mmap_sem);
+-	result = hugepage_vma_revalidate(mm, address);
++	result = hugepage_vma_revalidate(mm, address, &vma);
+ 	if (result)
+ 		goto out;
+ 	/* check if the pmd is still valid */
+@@ -1202,7 +1203,7 @@ out_unmap:
+ 	if (ret) {
+ 		node = khugepaged_find_target_node();
+ 		/* collapse_huge_page will return with the mmap_sem released */
+-		collapse_huge_page(mm, address, hpage, vma, node, referenced);
++		collapse_huge_page(mm, address, hpage, node, referenced);
+ 	}
+ out:
+ 	trace_mm_khugepaged_scan_pmd(mm, page, writable, referenced,
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-maintainers-modify-maintainers-email-of-intelfb.patch
+khugepaged-fix-use-after-free-in-collapse_huge_page.patch
 
