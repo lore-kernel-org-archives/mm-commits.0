@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + khugepaged-fix-use-after-free-in-collapse_huge_page.patch added to -mm tree
-Date: Wed, 07 Sep 2016 12:50:06 -0700
-Message-ID: <57d06f6e.sEpY1lz9EU+sy6bq%akpm@linux-foundation.org>
+Subject: + checkpatch-improve-the-block-comment-alignment-test.patch added to -mm tree
+Date: Thu, 08 Sep 2016 15:04:11 -0700
+Message-ID: <57d1e05b.M7UTjg4gwYiP3gHZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39830 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45609 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752040AbcIGTuI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Sep 2016 15:50:08 -0400
+        with ESMTP id S932233AbcIHWEM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2016 18:04:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, dvyukov@google.com, ebru.akagunduz@gmail.com, glider@google.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, kcc@google.com, koct9i@gmail.com, levinsasha928@gmail.com, mgorman@techsingularity.net, rientjes@google.com, ryabinin.a.a@gmail.com, suleiman@google.com, syzkaller@googlegroups.com, vbabka@suse.cz, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
+To: joe@perches.com, charlemagnelasse@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: fix use-after-free in collapse_huge_page()
+     Subject: checkpatch: improve the block comment * alignment test
 has been added to the -mm tree.  Its filename is
-     khugepaged-fix-use-after-free-in-collapse_huge_page.patch
+     checkpatch-improve-the-block-comment-alignment-test.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/khugepaged-fix-use-after-free-in-collapse_huge_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-the-block-comment-alignment-test.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/khugepaged-fix-use-after-free-in-collapse_huge_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-the-block-comment-alignment-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,123 +38,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: khugepaged: fix use-after-free in collapse_huge_page()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve the block comment * alignment test
 
-hugepage_vma_revalidate() tries to re-check if we still should try to
-collapse small pages into huge one after the re-acquiring mmap_sem.
+An "uninitialized value" is emitted when a block comment starts on
+the same line as a statement.
 
-The problem Dmitry Vyukov reported[1] is that the vma found by
-hugepage_vma_revalidate() can be suitable for huge pages, but not the same
-vma we had before dropping mmap_sem.  And dereferencing original vma can
-lead to fun results..
+Fix this and make the test use a little fewer cpu cycles too.
 
-Let's use vma hugepage_vma_revalidate() found instead of assuming it's the
-same as what we had before the lock was dropped.  [1]
-http://lkml.kernel.org/r/CACT4Y+Z3gigBvhca9kRJFcjX0G70V_nRhbwKBU+yGoESBDKi9Q@mail.gmail.com
-
-Link: http://lkml.kernel.org/r/20160907122559.GA6542@black.fi.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Sasha Levin <levinsasha928@gmail.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: syzkaller <syzkaller@googlegroups.com>
-Cc: Kostya Serebryany <kcc@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/3c9993320c2182d37f53ac540878cfef59c3f62d.1473365956.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Charlemagne Lasse <charlemagnelasse@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ scripts/checkpatch.pl |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN mm/khugepaged.c~khugepaged-fix-use-after-free-in-collapse_huge_page mm/khugepaged.c
---- a/mm/khugepaged.c~khugepaged-fix-use-after-free-in-collapse_huge_page
-+++ a/mm/khugepaged.c
-@@ -838,7 +838,8 @@ static bool hugepage_vma_check(struct vm
-  * value (scan code).
-  */
+diff -puN scripts/checkpatch.pl~checkpatch-improve-the-block-comment-alignment-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-the-block-comment-alignment-test
++++ a/scripts/checkpatch.pl
+@@ -3005,18 +3005,23 @@ sub process {
  
--static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address)
-+static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address,
-+		struct vm_area_struct **vmap)
- {
- 	struct vm_area_struct *vma;
- 	unsigned long hstart, hend;
-@@ -846,7 +847,7 @@ static int hugepage_vma_revalidate(struc
- 	if (unlikely(khugepaged_test_exit(mm)))
- 		return SCAN_ANY_PROCESS;
- 
--	vma = find_vma(mm, address);
-+	*vmap = vma = find_vma(mm, address);
- 	if (!vma)
- 		return SCAN_VMA_NULL;
- 
-@@ -898,7 +899,7 @@ static bool __collapse_huge_page_swapin(
- 		/* do_swap_page returns VM_FAULT_RETRY with released mmap_sem */
- 		if (ret & VM_FAULT_RETRY) {
- 			down_read(&mm->mmap_sem);
--			if (hugepage_vma_revalidate(mm, address)) {
-+			if (hugepage_vma_revalidate(mm, address, &fe.vma)) {
- 				/* vma is no longer available, don't continue to swapin */
- 				trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
- 				return false;
-@@ -923,7 +924,6 @@ static bool __collapse_huge_page_swapin(
- static void collapse_huge_page(struct mm_struct *mm,
- 				   unsigned long address,
- 				   struct page **hpage,
--				   struct vm_area_struct *vma,
- 				   int node, int referenced)
- {
- 	pmd_t *pmd, _pmd;
-@@ -933,6 +933,7 @@ static void collapse_huge_page(struct mm
- 	spinlock_t *pmd_ptl, *pte_ptl;
- 	int isolated = 0, result = 0;
- 	struct mem_cgroup *memcg;
-+	struct vm_area_struct *vma;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
- 	unsigned long mmun_end;		/* For mmu_notifiers */
- 	gfp_t gfp;
-@@ -961,7 +962,7 @@ static void collapse_huge_page(struct mm
- 	}
- 
- 	down_read(&mm->mmap_sem);
--	result = hugepage_vma_revalidate(mm, address);
-+	result = hugepage_vma_revalidate(mm, address, &vma);
- 	if (result) {
- 		mem_cgroup_cancel_charge(new_page, memcg, true);
- 		up_read(&mm->mmap_sem);
-@@ -994,7 +995,7 @@ static void collapse_huge_page(struct mm
- 	 * handled by the anon_vma lock + PG_lock.
- 	 */
- 	down_write(&mm->mmap_sem);
--	result = hugepage_vma_revalidate(mm, address);
-+	result = hugepage_vma_revalidate(mm, address, &vma);
- 	if (result)
- 		goto out;
- 	/* check if the pmd is still valid */
-@@ -1202,7 +1203,7 @@ out_unmap:
- 	if (ret) {
- 		node = khugepaged_find_target_node();
- 		/* collapse_huge_page will return with the mmap_sem released */
--		collapse_huge_page(mm, address, hpage, vma, node, referenced);
-+		collapse_huge_page(mm, address, hpage, node, referenced);
- 	}
- out:
- 	trace_mm_khugepaged_scan_pmd(mm, page, writable, referenced,
+ # Block comment * alignment
+ 		if ($prevline =~ /$;[ \t]*$/ &&			#ends in comment
+-		    (($prevrawline =~ /^\+.*?\/\*/ &&		#starting /*
++		    $line =~ /^\+[ \t]*$;/ &&			#leading comment
++		    $rawline =~ /^\+[ \t]*\*/ &&		#leading *
++		    (($prevrawline =~ /^\+.*?\/\*/ &&		#leading /*
+ 		      $prevrawline !~ /\*\/[ \t]*$/) ||		#no trailing */
+-		     $prevrawline =~ /^\+[ \t]*\*/) &&		#starting *
+-		    $rawline =~ /^\+[ \t]*\*/) {		#rawline *
++		     $prevrawline =~ /^\+[ \t]*\*/)) {		#leading *
++			my $oldindent;
+ 			$prevrawline =~ m@^\+([ \t]*/?)\*@;
+-			my $oldindent = expand_tabs($1);
++			if (defined($1)) {
++				$oldindent = expand_tabs($1);
++			} else {
++				$prevrawline =~ m@^\+(.*/?)\*@;
++				$oldindent = expand_tabs($1);
++			}
+ 			$rawline =~ m@^\+([ \t]*)\*@;
+ 			my $newindent = $1;
+-			my $test_comment = '^\\+' . "$;" x (length($newindent) + 1);
+ 			$newindent = expand_tabs($newindent);
+-			if ($line =~ /$test_comment/ &&
+-			    length($oldindent) ne length($newindent)) {
++			if (length($oldindent) ne length($newindent)) {
+ 				WARN("BLOCK_COMMENT_STYLE",
+ 				     "Block comments should align the * on each line\n" . $hereprev);
+ 			}
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-khugepaged-fix-use-after-free-in-collapse_huge_page.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
+meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
+spellingtxt-modeled-is-spelt-correctly.patch
+checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
+checkpatch-test-multiple-line-block-comment-alignment.patch
+checkpatch-dont-test-for-prefer-ether_addr_foo.patch
+checkpatch-externalize-the-structs-that-should-be-const.patch
+const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
+checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
+checkpatch-improve-the-block-comment-alignment-test.patch
 
