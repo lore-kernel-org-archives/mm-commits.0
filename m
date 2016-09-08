@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-avoid-endless-recursion-in-dump_page.patch added to -mm tree
-Date: Thu, 08 Sep 2016 15:38:52 -0700
-Message-ID: <57d1e87c.TRIXD3PFM8f7osZY%akpm@linux-foundation.org>
+Subject: + mm-fix-cache-mode-tracking-in-vm_insert_mixed.patch added to
+ -mm tree
+Date: Thu, 08 Sep 2016 15:49:59 -0700
+Message-ID: <57d1eb17.9kJU6AflFjthZEDY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46022 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46684 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751143AbcIHWix (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2016 18:38:53 -0400
+        with ESMTP id S1754559AbcIHWuF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2016 18:50:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, airlied@linux.ie, mawilcox@microsoft.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: avoid endless recursion in dump_page()
+     Subject: mm: fix cache mode tracking in vm_insert_mixed()
 has been added to the -mm tree.  Its filename is
-     mm-avoid-endless-recursion-in-dump_page.patch
+     mm-fix-cache-mode-tracking-in-vm_insert_mixed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-avoid-endless-recursion-in-dump_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-cache-mode-tracking-in-vm_insert_mixed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-avoid-endless-recursion-in-dump_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-cache-mode-tracking-in-vm_insert_mixed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,50 +39,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: avoid endless recursion in dump_page()
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: fix cache mode tracking in vm_insert_mixed()
 
-dump_page() uses page_mapcount() to get mapcount of the page.
-page_mapcount() has VM_BUG_ON_PAGE(PageSlab(page)) as mapcount doesn't
-make sense for slab pages and the field in struct page used for other
-information.
+vm_insert_mixed() unlike vm_insert_pfn_prot() and vmf_insert_pfn_pmd(),
+fails to check the pgprot_t it uses for the mapping against the one
+recorded in the memtype tracking tree.  Add the missing call to
+track_pfn_insert() to preclude cases where incompatible aliased mappings
+are established for a given physical address range.
 
-It leads to recursion if dump_page() called for slub page and DEBUG_VM
-is enabled:
-
-dump_page() -> page_mapcount() -> VM_BUG_ON_PAGE() -> dump_page -> ...
-
-Let's avoid calling page_mapcount() for slab pages in dump_page().
-
-Link: http://lkml.kernel.org/r/20160908082137.131076-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/147328717909.35069.14256589123570653697.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/memory.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/debug.c~mm-avoid-endless-recursion-in-dump_page mm/debug.c
---- a/mm/debug.c~mm-avoid-endless-recursion-in-dump_page
-+++ a/mm/debug.c
-@@ -42,9 +42,11 @@ const struct trace_print_flags vmaflag_n
- 
- void __dump_page(struct page *page, const char *reason)
+diff -puN mm/memory.c~mm-fix-cache-mode-tracking-in-vm_insert_mixed mm/memory.c
+--- a/mm/memory.c~mm-fix-cache-mode-tracking-in-vm_insert_mixed
++++ a/mm/memory.c
+@@ -1649,10 +1649,14 @@ EXPORT_SYMBOL(vm_insert_pfn_prot);
+ int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
+ 			pfn_t pfn)
  {
-+	int mapcount = PageSlab(page) ? 0 : page_mapcount(page);
++	pgprot_t pgprot = vma->vm_page_prot;
 +
- 	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx",
--		  page, page_ref_count(page), page_mapcount(page),
--		  page->mapping, page->index);
-+		  page, page_ref_count(page), mapcount,
-+		  page->mapping, page_to_pgoff(page));
- 	if (PageCompound(page))
- 		pr_cont(" compound_mapcount: %d", compound_mapcount(page));
- 	pr_cont("\n");
+ 	BUG_ON(!(vma->vm_flags & VM_MIXEDMAP));
+ 
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return -EFAULT;
++	if (track_pfn_insert(vma, &pgprot, pfn))
++		return -EINVAL;
+ 
+ 	/*
+ 	 * If we don't have pte special, then we have to use the pfn_valid()
+@@ -1670,9 +1674,9 @@ int vm_insert_mixed(struct vm_area_struc
+ 		 * result in pfn_t_has_page() == false.
+ 		 */
+ 		page = pfn_to_page(pfn_t_to_pfn(pfn));
+-		return insert_page(vma, addr, page, vma->vm_page_prot);
++		return insert_page(vma, addr, page, pgprot);
+ 	}
+-	return insert_pfn(vma, addr, pfn, vma->vm_page_prot);
++	return insert_pfn(vma, addr, pfn, pgprot);
+ }
+ EXPORT_SYMBOL(vm_insert_mixed);
+ 
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-khugepaged-fix-use-after-free-in-collapse_huge_page.patch
-mm-avoid-endless-recursion-in-dump_page.patch
+mm-fix-cache-mode-tracking-in-vm_insert_mixed.patch
 
