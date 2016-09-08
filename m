@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mlock-check-against-vma-for-actual-mlock-size-fix-2.patch
+Subject: + selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc.patch
  added to -mm tree
-Date: Thu, 08 Sep 2016 15:37:05 -0700
-Message-ID: <57d1e811.hNP7YbLis7TEfVY5%akpm@linux-foundation.org>
+Date: Thu, 08 Sep 2016 15:38:16 -0700
+Message-ID: <57d1e858.Rg5ujnwlxYuhdJ0B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45765 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45777 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751455AbcIHWhG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2016 18:37:06 -0400
+        with ESMTP id S1751143AbcIHWiS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2016 18:38:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wei.guo.simon@gmail.com, kirill@shutemov.name, mm-commits@vger.kernel.org
+To: wei.guo.simon@gmail.com, aarcange@redhat.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, mike.kravetz@oracle.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mlock: correct a typo in count_mm_mlocked_page_nr() for caculate VMLOCKED pages
+     Subject: selftest: move seek_to_smaps_entry() out of mlock2-tests.c
 has been added to the -mm tree.  Its filename is
-     mm-mlock-check-against-vma-for-actual-mlock-size-fix-2.patch
+     selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-check-against-vma-for-actual-mlock-size-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-check-against-vma-for-actual-mlock-size-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,48 +40,147 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Simon Guo <wei.guo.simon@gmail.com>
-Subject: mm: mlock: correct a typo in count_mm_mlocked_page_nr() for caculate VMLOCKED pages
+Subject: selftest: move seek_to_smaps_entry() out of mlock2-tests.c
 
-There is a typo/bug in count_mm_mlocked_page_nr() for "&" which is
-mistakenly used with "&&".
+Function seek_to_smaps_entry() can be useful for other selftest
+functionalities, so move it out to header file.
 
-Also add more checks and some minor change based on Kirill's previous
-comment.
-
-Link: http://lkml.kernel.org/r/1473325970-11393-2-git-send-email-wei.guo.simon@gmail.com
+Link: http://lkml.kernel.org/r/1473325970-11393-3-git-send-email-wei.guo.simon@gmail.com
 Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
-Suggested-by: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Eric B Munson <emunson@akamai.com>
+Cc: Simon Guo <wei.guo.simon@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ tools/testing/selftests/vm/mlock2-tests.c |   42 -------------------
+ tools/testing/selftests/vm/mlock2.h       |   43 ++++++++++++++++++++
+ 2 files changed, 43 insertions(+), 42 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size-fix-2 mm/mlock.c
---- a/mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size-fix-2
-+++ a/mm/mlock.c
-@@ -638,9 +638,11 @@ static int count_mm_mlocked_page_nr(stru
- 		vma = mm->mmap;
- 
- 	for (; vma ; vma = vma->vm_next) {
-+		if (start >= vma->vm_end)
-+			continue;
- 		if (start + len <=  vma->vm_start)
- 			break;
--		if (vma->vm_flags && VM_LOCKED) {
-+		if (vma->vm_flags & VM_LOCKED) {
- 			if (start > vma->vm_start)
- 				count -= (start - vma->vm_start);
- 			if (start + len < vma->vm_end) {
-@@ -651,7 +653,7 @@ static int count_mm_mlocked_page_nr(stru
- 		}
- 	}
- 
--	return (PAGE_ALIGN(count) >> PAGE_SHIFT);
-+	return count >> PAGE_SHIFT;
+diff -puN tools/testing/selftests/vm/mlock2-tests.c~selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc tools/testing/selftests/vm/mlock2-tests.c
+--- a/tools/testing/selftests/vm/mlock2-tests.c~selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc
++++ a/tools/testing/selftests/vm/mlock2-tests.c
+@@ -1,8 +1,6 @@
+ #define _GNU_SOURCE
+ #include <sys/mman.h>
+ #include <stdint.h>
+-#include <stdio.h>
+-#include <stdlib.h>
+ #include <unistd.h>
+ #include <string.h>
+ #include <sys/time.h>
+@@ -119,46 +117,6 @@ static uint64_t get_kpageflags(unsigned
+ 	return flags;
  }
  
- static __must_check int do_mlock(unsigned long start, size_t len, vm_flags_t flags)
+-static FILE *seek_to_smaps_entry(unsigned long addr)
+-{
+-	FILE *file;
+-	char *line = NULL;
+-	size_t size = 0;
+-	unsigned long start, end;
+-	char perms[5];
+-	unsigned long offset;
+-	char dev[32];
+-	unsigned long inode;
+-	char path[BUFSIZ];
+-
+-	file = fopen("/proc/self/smaps", "r");
+-	if (!file) {
+-		perror("fopen smaps");
+-		_exit(1);
+-	}
+-
+-	while (getline(&line, &size, file) > 0) {
+-		if (sscanf(line, "%lx-%lx %s %lx %s %lu %s\n",
+-			   &start, &end, perms, &offset, dev, &inode, path) < 6)
+-			goto next;
+-
+-		if (start <= addr && addr < end)
+-			goto out;
+-
+-next:
+-		free(line);
+-		line = NULL;
+-		size = 0;
+-	}
+-
+-	fclose(file);
+-	file = NULL;
+-
+-out:
+-	free(line);
+-	return file;
+-}
+-
+ #define VMFLAGS "VmFlags:"
+ 
+ static bool is_vmflag_set(unsigned long addr, const char *vmflag)
+diff -puN tools/testing/selftests/vm/mlock2.h~selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc tools/testing/selftests/vm/mlock2.h
+--- a/tools/testing/selftests/vm/mlock2.h~selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc
++++ a/tools/testing/selftests/vm/mlock2.h
+@@ -1,5 +1,7 @@
+ #include <syscall.h>
+ #include <errno.h>
++#include <stdio.h>
++#include <stdlib.h>
+ 
+ #ifndef MLOCK_ONFAULT
+ #define MLOCK_ONFAULT 1
+@@ -18,3 +20,44 @@ static int mlock2_(void *start, size_t l
+ 	return -1;
+ #endif
+ }
++
++static FILE *seek_to_smaps_entry(unsigned long addr)
++{
++	FILE *file;
++	char *line = NULL;
++	size_t size = 0;
++	unsigned long start, end;
++	char perms[5];
++	unsigned long offset;
++	char dev[32];
++	unsigned long inode;
++	char path[BUFSIZ];
++
++	file = fopen("/proc/self/smaps", "r");
++	if (!file) {
++		perror("fopen smaps");
++		_exit(1);
++	}
++
++	while (getline(&line, &size, file) > 0) {
++		if (sscanf(line, "%lx-%lx %s %lx %s %lu %s\n",
++			   &start, &end, perms, &offset, dev, &inode, path) < 6)
++			goto next;
++
++		if (start <= addr && addr < end)
++			goto out;
++
++next:
++		free(line);
++		line = NULL;
++		size = 0;
++	}
++
++	fclose(file);
++	file = NULL;
++
++out:
++	free(line);
++	return file;
++}
++
 _
 
 Patches currently in -mm which might be from wei.guo.simon@gmail.com are
@@ -91,4 +190,6 @@ mm-mlock-check-against-vma-for-actual-mlock-size-fix-2.patch
 mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch
 selftest-split-mlock2_-funcs-into-separate-mlock2h.patch
 selftests-vm-add-test-for-mlock-when-areas-are-intersected.patch
+selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc.patch
+selftests-expanding-more-mlock-selftest.patch
 
