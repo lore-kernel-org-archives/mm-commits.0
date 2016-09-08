@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-improve-the-block-comment-alignment-test.patch added to -mm tree
-Date: Thu, 08 Sep 2016 15:04:11 -0700
-Message-ID: <57d1e05b.M7UTjg4gwYiP3gHZ%akpm@linux-foundation.org>
+Subject: + config-android-move-device-mapper-options-to-recommended.patch
+ added to -mm tree
+Date: Thu, 08 Sep 2016 15:05:06 -0700
+Message-ID: <57d1e092.WXV+Scs3ggX5fNI1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45609 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45616 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932233AbcIHWEM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2016 18:04:12 -0400
+        with ESMTP id S932233AbcIHWFH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2016 18:05:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, charlemagnelasse@gmail.com, mm-commits@vger.kernel.org
+To: robh@kernel.org, amit.pundir@linaro.org, dimitrysh@google.com, john.stultz@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve the block comment * alignment test
+     Subject: config: android: move device mapper options to recommended
 has been added to the -mm tree.  Its filename is
-     checkpatch-improve-the-block-comment-alignment-test.patch
+     config-android-move-device-mapper-options-to-recommended.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-the-block-comment-alignment-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/config-android-move-device-mapper-options-to-recommended.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-the-block-comment-alignment-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/config-android-move-device-mapper-options-to-recommended.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,70 +39,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve the block comment * alignment test
+From: Rob Herring <robh@kernel.org>
+Subject: config: android: move device mapper options to recommended
 
-An "uninitialized value" is emitted when a block comment starts on
-the same line as a statement.
+CONFIG_MD is in recommended, but other dependent options like DM_CRYPT and
+DM_VERITY options are in base.  The result is the options in base don't
+get enabled when applying both base and recommended fragments.  Move all
+the options to recommended.
 
-Fix this and make the test use a little fewer cpu cycles too.
-
-Link: http://lkml.kernel.org/r/3c9993320c2182d37f53ac540878cfef59c3f62d.1473365956.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Charlemagne Lasse <charlemagnelasse@gmail.com>
+Link: http://lkml.kernel.org/r/20160908185934.18098-1-robh@kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
+Acked-by: John Stultz <john.stultz@linaro.org>
+Cc: Amit Pundir <amit.pundir@linaro.org>
+Cc: Dmitry Shmidt <dimitrysh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ kernel/configs/android-base.config        |    4 ----
+ kernel/configs/android-recommended.config |    4 ++++
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-the-block-comment-alignment-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-the-block-comment-alignment-test
-+++ a/scripts/checkpatch.pl
-@@ -3005,18 +3005,23 @@ sub process {
- 
- # Block comment * alignment
- 		if ($prevline =~ /$;[ \t]*$/ &&			#ends in comment
--		    (($prevrawline =~ /^\+.*?\/\*/ &&		#starting /*
-+		    $line =~ /^\+[ \t]*$;/ &&			#leading comment
-+		    $rawline =~ /^\+[ \t]*\*/ &&		#leading *
-+		    (($prevrawline =~ /^\+.*?\/\*/ &&		#leading /*
- 		      $prevrawline !~ /\*\/[ \t]*$/) ||		#no trailing */
--		     $prevrawline =~ /^\+[ \t]*\*/) &&		#starting *
--		    $rawline =~ /^\+[ \t]*\*/) {		#rawline *
-+		     $prevrawline =~ /^\+[ \t]*\*/)) {		#leading *
-+			my $oldindent;
- 			$prevrawline =~ m@^\+([ \t]*/?)\*@;
--			my $oldindent = expand_tabs($1);
-+			if (defined($1)) {
-+				$oldindent = expand_tabs($1);
-+			} else {
-+				$prevrawline =~ m@^\+(.*/?)\*@;
-+				$oldindent = expand_tabs($1);
-+			}
- 			$rawline =~ m@^\+([ \t]*)\*@;
- 			my $newindent = $1;
--			my $test_comment = '^\\+' . "$;" x (length($newindent) + 1);
- 			$newindent = expand_tabs($newindent);
--			if ($line =~ /$test_comment/ &&
--			    length($oldindent) ne length($newindent)) {
-+			if (length($oldindent) ne length($newindent)) {
- 				WARN("BLOCK_COMMENT_STYLE",
- 				     "Block comments should align the * on each line\n" . $hereprev);
- 			}
+diff -puN kernel/configs/android-base.config~config-android-move-device-mapper-options-to-recommended kernel/configs/android-base.config
+--- a/kernel/configs/android-base.config~config-android-move-device-mapper-options-to-recommended
++++ a/kernel/configs/android-base.config
+@@ -11,7 +11,6 @@ CONFIG_ANDROID_LOW_MEMORY_KILLER=y
+ CONFIG_ARMV8_DEPRECATED=y
+ CONFIG_ASHMEM=y
+ CONFIG_AUDIT=y
+-CONFIG_BLK_DEV_DM=y
+ CONFIG_BLK_DEV_INITRD=y
+ CONFIG_CGROUPS=y
+ CONFIG_CGROUP_CPUACCT=y
+@@ -19,9 +18,6 @@ CONFIG_CGROUP_DEBUG=y
+ CONFIG_CGROUP_FREEZER=y
+ CONFIG_CGROUP_SCHED=y
+ CONFIG_CP15_BARRIER_EMULATION=y
+-CONFIG_DM_CRYPT=y
+-CONFIG_DM_VERITY=y
+-CONFIG_DM_VERITY_FEC=y
+ CONFIG_EMBEDDED=y
+ CONFIG_FB=y
+ CONFIG_HIGH_RES_TIMERS=y
+diff -puN kernel/configs/android-recommended.config~config-android-move-device-mapper-options-to-recommended kernel/configs/android-recommended.config
+--- a/kernel/configs/android-recommended.config~config-android-move-device-mapper-options-to-recommended
++++ a/kernel/configs/android-recommended.config
+@@ -6,12 +6,16 @@
+ # CONFIG_PM_WAKELOCKS_GC is not set
+ # CONFIG_VT is not set
+ CONFIG_BACKLIGHT_LCD_SUPPORT=y
++CONFIG_BLK_DEV_DM=y
+ CONFIG_BLK_DEV_LOOP=y
+ CONFIG_BLK_DEV_RAM=y
+ CONFIG_BLK_DEV_RAM_SIZE=8192
+ CONFIG_COMPACTION=y
+ CONFIG_DEBUG_RODATA=y
++CONFIG_DM_CRYPT=y
+ CONFIG_DM_UEVENT=y
++CONFIG_DM_VERITY=y
++CONFIG_DM_VERITY_FEC=y
+ CONFIG_DRAGONRISE_FF=y
+ CONFIG_ENABLE_DEFAULT_TRACERS=y
+ CONFIG_EXT4_FS=y
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from robh@kernel.org are
 
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
-meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
-spellingtxt-modeled-is-spelt-correctly.patch
-checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
-checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
-checkpatch-test-multiple-line-block-comment-alignment.patch
-checkpatch-dont-test-for-prefer-ether_addr_foo.patch
-checkpatch-externalize-the-structs-that-should-be-const.patch
-const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
-checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
-checkpatch-improve-the-block-comment-alignment-test.patch
+config-android-move-device-mapper-options-to-recommended.patch
+config-android-set-selinux-as-default-security-mode.patch
+config-android-enable-config_seccomp.patch
 
