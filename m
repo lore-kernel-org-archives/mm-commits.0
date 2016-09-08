@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kthread-kthread-worker-api-cleanup-fix.patch added to -mm tree
-Date: Thu, 08 Sep 2016 15:30:48 -0700
-Message-ID: <57d1e698.t3R52QlWNrZEcPFJ%akpm@linux-foundation.org>
+Subject: + uprobes-remove-function-declarations-from-arch-mipss390.patch
+ added to -mm tree
+Date: Thu, 08 Sep 2016 15:32:52 -0700
+Message-ID: <57d1e714.Fdzie8W2vZ9TTKD3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45672 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45685 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752591AbcIHWat (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2016 18:30:49 -0400
+        with ESMTP id S1751895AbcIHWcx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2016 18:32:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, pmladek@suse.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: marcin.nowakowski@imgtec.com, heiko.carstens@de.ibm.com, ralf@linux-mips.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: crypto: engine: fix linux-next merge conflict
+     Subject: uprobes: remove function declarations from arch/{mips,s390}
 has been added to the -mm tree.  Its filename is
-     kthread-kthread-worker-api-cleanup-fix.patch
+     uprobes-remove-function-declarations-from-arch-mipss390.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kthread-kthread-worker-api-cleanup-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/uprobes-remove-function-declarations-from-arch-mipss390.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kthread-kthread-worker-api-cleanup-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/uprobes-remove-function-declarations-from-arch-mipss390.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,54 +39,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: crypto: engine: fix linux-next merge conflict
+From: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
+Subject: uprobes: remove function declarations from arch/{mips,s390}
 
-A merge conflict between the akpm-current tree and the crypto tree
-caused a build failure in ARM allmodconfig today:
+The declarations of arch-specific functions have been moved to a common
+header in commit 3820b4d2789f ('uprobes: Move function declarations out of
+arch'), but MIPS and S390 has added them to their own trees later.
+Remove the unnecessary duplicates.
 
-crypto/crypto_engine.c: In function 'crypto_transfer_hash_request':
-crypto/crypto_engine.c:234:3: error: implicit declaration of function 'queue_kthread_work' [-Werror=implicit-function-declaration]
-
-This adapts the crypto code to the API change.
-
-Fixes: 4cba7cf025f3 ("crypto: engine - permit to enqueue ashash_request")
-Fixes: 8ca76638a2d0 ("kthread: kthread worker API cleanup")
-Link: http://lkml.kernel.org/r/20160908135724.1311726-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: http://lkml.kernel.org/r/1472804384-17830-1-git-send-email-marcin.nowakowski@imgtec.com
+Signed-off-by: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
+Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- crypto/crypto_engine.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/include/asm/uprobes.h |   12 ------------
+ arch/s390/include/asm/uprobes.h |   10 ----------
+ 2 files changed, 22 deletions(-)
 
-diff -puN crypto/crypto_engine.c~kthread-kthread-worker-api-cleanup-fix crypto/crypto_engine.c
---- a/crypto/crypto_engine.c~kthread-kthread-worker-api-cleanup-fix
-+++ a/crypto/crypto_engine.c
-@@ -231,7 +231,7 @@ int crypto_transfer_hash_request(struct
- 	ret = ahash_enqueue_request(&engine->queue, req);
+diff -puN arch/mips/include/asm/uprobes.h~uprobes-remove-function-declarations-from-arch-mipss390 arch/mips/include/asm/uprobes.h
+--- a/arch/mips/include/asm/uprobes.h~uprobes-remove-function-declarations-from-arch-mipss390
++++ a/arch/mips/include/asm/uprobes.h
+@@ -43,16 +43,4 @@ struct arch_uprobe_task {
+ 	unsigned long saved_trap_nr;
+ };
  
- 	if (!engine->busy && need_pump)
--		queue_kthread_work(&engine->kworker, &engine->pump_requests);
-+		kthread_queue_work(&engine->kworker, &engine->pump_requests);
+-extern int arch_uprobe_analyze_insn(struct arch_uprobe *aup,
+-	struct mm_struct *mm, unsigned long addr);
+-extern int arch_uprobe_pre_xol(struct arch_uprobe *aup, struct pt_regs *regs);
+-extern int arch_uprobe_post_xol(struct arch_uprobe *aup, struct pt_regs *regs);
+-extern bool arch_uprobe_xol_was_trapped(struct task_struct *tsk);
+-extern int arch_uprobe_exception_notify(struct notifier_block *self,
+-	unsigned long val, void *data);
+-extern void arch_uprobe_abort_xol(struct arch_uprobe *aup,
+-	struct pt_regs *regs);
+-extern unsigned long arch_uretprobe_hijack_return_addr(
+-	unsigned long trampoline_vaddr, struct pt_regs *regs);
+-
+ #endif /* __ASM_UPROBES_H */
+diff -puN arch/s390/include/asm/uprobes.h~uprobes-remove-function-declarations-from-arch-mipss390 arch/s390/include/asm/uprobes.h
+--- a/arch/s390/include/asm/uprobes.h~uprobes-remove-function-declarations-from-arch-mipss390
++++ a/arch/s390/include/asm/uprobes.h
+@@ -29,14 +29,4 @@ struct arch_uprobe {
+ struct arch_uprobe_task {
+ };
  
- 	spin_unlock_irqrestore(&engine->queue_lock, flags);
- 	return ret;
-@@ -321,7 +321,7 @@ void crypto_finalize_hash_request(struct
- 
- 	req->base.complete(&req->base, err);
- 
--	queue_kthread_work(&engine->kworker, &engine->pump_requests);
-+	kthread_queue_work(&engine->kworker, &engine->pump_requests);
- }
- EXPORT_SYMBOL_GPL(crypto_finalize_hash_request);
- 
+-int arch_uprobe_analyze_insn(struct arch_uprobe *aup, struct mm_struct *mm,
+-			     unsigned long addr);
+-int arch_uprobe_pre_xol(struct arch_uprobe *aup, struct pt_regs *regs);
+-int arch_uprobe_post_xol(struct arch_uprobe *aup, struct pt_regs *regs);
+-bool arch_uprobe_xol_was_trapped(struct task_struct *tsk);
+-int arch_uprobe_exception_notify(struct notifier_block *self, unsigned long val,
+-				 void *data);
+-void arch_uprobe_abort_xol(struct arch_uprobe *ap, struct pt_regs *regs);
+-unsigned long arch_uretprobe_hijack_return_addr(unsigned long trampoline,
+-						struct pt_regs *regs);
+ #endif	/* _ASM_UPROBES_H */
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from marcin.nowakowski@imgtec.com are
 
-compat-remove-compat_printk.patch
-kthread-kthread-worker-api-cleanup-fix.patch
+uprobes-remove-function-declarations-from-arch-mipss390.patch
 
