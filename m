@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 08 Sep 2016 16:46:20 -0700
-Message-ID: <57d1f84c./IZqUodx7zbzvy04%akpm@linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Fri, 09 Sep 2016 11:31:36 -0700
+Message-ID: <57d30008.q8JfjTrCnwVOCUVy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47557 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47065 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751000AbcIHXqV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 8 Sep 2016 19:46:21 -0400
+        with ESMTP id S1752015AbcIISbh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2016 14:31:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, akash.goel@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes
+     Subject: linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
+     linux-next-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,53 +39,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes
+Subject: linux-next-rejects
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#12: 
-	commit 7c9cb38302e78d24e37f7d8a2ea7eed4ae5f2fa7
-
-WARNING: line over 80 characters
-#87: FILE: kernel/relay.c:337:
-+	struct rchan_buf *buf = container_of(work, struct rchan_buf, wakeup_work);
-
-WARNING: waitqueue_active without comment
-#119: FILE: kernel/relay.c:772:
-+		if (waitqueue_active(&buf->read_wait)) {
-
-total: 1 errors, 2 warnings, 70 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Akash Goel <akash.goel@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/relay.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/relay.c~relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes kernel/relay.c
---- a/kernel/relay.c~relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes
-+++ a/kernel/relay.c
-@@ -334,7 +334,9 @@ static struct rchan_callbacks default_ch
-  */
- static void wakeup_readers(struct irq_work *work)
- {
--	struct rchan_buf *buf = container_of(work, struct rchan_buf, wakeup_work);
-+	struct rchan_buf *buf;
-+
-+	buf = container_of(work, struct rchan_buf, wakeup_work);
- 	wake_up_interruptible(&buf->read_wait);
- }
+diff -puN include/linux/relay.h~linux-next-rejects include/linux/relay.h
+--- a/include/linux/relay.h~linux-next-rejects
++++ a/include/linux/relay.h
+@@ -20,6 +20,7 @@
+ #include <linux/poll.h>
+ #include <linux/kref.h>
+ #include <linux/irq_work.h>
++#include <linux/percpu.h>
  
+ /*
+  * Tracks changes to rchan/rchan_buf structs
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,6 +76,7 @@ mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
 seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
 relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
 ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+linux-next-rejects.patch
 drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
 include-linux-mlx5-deviceh-kill-build_bug_ons.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
