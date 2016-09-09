@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
- added to -mm tree
-Date: Fri, 09 Sep 2016 13:14:04 -0700
-Message-ID: <57d3180c.Kz8mJIuSNbYvWSet%akpm@linux-foundation.org>
+Subject: + mm-dont-emit-warning-from-pagefault_out_of_memory.patch added
+ to -mm tree
+Date: Fri, 09 Sep 2016 13:48:54 -0700
+Message-ID: <57d32036.gN0JShWWwvX1tb7Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50038 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50775 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753520AbcIIUOF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2016 16:14:05 -0400
+        with ESMTP id S1754606AbcIIUsz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Sep 2016 16:48:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jsiddle@redhat.com, penguin-kernel@i-love.sakura.ne.jp, mm-commits@vger.kernel.org
+To: penguin-kernel@I-love.SAKURA.ne.jp, hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix
+     Subject: mm: don't emit warning from pagefault_out_of_memory()
 has been added to the -mm tree.  Its filename is
-     hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
+     mm-dont-emit-warning-from-pagefault_out_of_memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-emit-warning-from-pagefault_out_of_memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-emit-warning-from-pagefault_out_of_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,60 +39,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm: don't emit warning from pagefault_out_of_memory()
 
-fix off-by-one
+Commit c32b3cbe0d067a9c ("oom, PM: make OOM detection in the freezer path
+raceless") inserted a WARN_ON() into pagefault_out_of_memory() in order to
+warn when we raced with disabling the OOM killer.  But emitting same
+backtrace forever after the OOM killer/reaper are disabled is pointless
+because the system is already OOM livelocked.
 
-Cc: John Siddle <jsiddle@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Now, patch "oom, suspend: fix oom_killer_disable vs.  pm suspend properly"
+introduced a timeout for oom_killer_disable().  Even if we raced with
+disabling the OOM killer and the system is OOM livelocked, the OOM killer
+will be enabled eventually (in 20 seconds by default) and the OOM livelock
+will be solved.  Therefore, we no longer need to warn when we raced with
+disabling the OOM killer.
+
+Link: http://lkml.kernel.org/r/1473442120-7246-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/oom_kill.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN kernel/hung_task.c~hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix kernel/hung_task.c
---- a/kernel/hung_task.c~hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix
-+++ a/kernel/hung_task.c
-@@ -101,14 +101,12 @@ static void check_hung_task(struct task_
- 	if (!sysctl_hung_task_warnings && !sysctl_hung_task_panic)
- 		return;
+diff -puN mm/oom_kill.c~mm-dont-emit-warning-from-pagefault_out_of_memory mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-dont-emit-warning-from-pagefault_out_of_memory
++++ a/mm/oom_kill.c
+@@ -1069,16 +1069,6 @@ void pagefault_out_of_memory(void)
  
--	if (sysctl_hung_task_warnings > 0)
--		sysctl_hung_task_warnings--;
+ 	if (!mutex_trylock(&oom_lock))
+ 		return;
 -
- 	/*
- 	 * Ok, the task did not get scheduled for more than 2 minutes,
- 	 * complain:
- 	 */
- 	if (sysctl_hung_task_warnings) {
-+		sysctl_hung_task_warnings--;
- 		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
- 			t->comm, t->pid, timeout);
- 		pr_err("      %s %s %.*s\n",
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-vmalloc-fix-align-value-calculation-error-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
-mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
-mm-check-that-we-havent-used-more-than-32-bits-in-address_spaceflags.patch
-mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
-hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
-relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
-ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-mlx5-deviceh-kill-build_bug_ons.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
+-	if (!out_of_memory(&oc)) {
+-		/*
+-		 * There shouldn't be any user tasks runnable while the
+-		 * OOM killer is disabled, so the current task has to
+-		 * be a racing OOM victim for which oom_killer_disable()
+-		 * is waiting for.
+-		 */
+-		WARN_ON(test_thread_flag(TIF_MEMDIE));
+-	}
