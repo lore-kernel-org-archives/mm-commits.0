@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-split-gfp_mask-and-mapping-flags-into-separate-fields.patch
- added to -mm tree
-Date: Mon, 12 Sep 2016 15:18:41 -0700
-Message-ID: <57d729c1.d6iljIOkxtYELnIT%akpm@linux-foundation.org>
+Subject: + fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch added to -mm tree
+Date: Mon, 12 Sep 2016 15:18:39 -0700
+Message-ID: <57d729bf.sJH9WWPOXiMTnzgG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51225 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51223 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756044AbcILWSm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2016 18:18:42 -0400
+        with ESMTP id S1756044AbcILWSp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2016 18:18:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: split gfp_mask and mapping flags into separate fields
+     Subject: fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix
 has been added to the -mm tree.  Its filename is
-     mm-split-gfp_mask-and-mapping-flags-into-separate-fields.patch
+     fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-split-gfp_mask-and-mapping-flags-into-separate-fields.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-split-gfp_mask-and-mapping-flags-into-separate-fields.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,128 +38,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: split gfp_mask and mapping flags into separate fields
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix
 
-mapping->flags currently encodes two different things into a single flag. 
-It contains sticky gfp_mask for page cache allocations and AS_ codes used
-to report errors/enospace and other states which are mapping specific. 
-Condensing the two semantically unrelated things saves few bytes but it
-also complicates other things.  For one thing the gfp flags space is
-reduced and in fact we are already running out of available bits.  It can
-be assumed that more gfp flags will be necessary later on.
+Be honest about afs_write_back_from_locked_page()'s conversion from -ENXIO
+to -EIO.
 
-To not introduce the address_space grow (at least on x86_64) we can stick
-it right after private_lock because we have a hole there.
-
-struct address_space {
-        struct inode *             host;                 /*     0     8 */
-        struct radix_tree_root     page_tree;            /*     8    16 */
-        spinlock_t                 tree_lock;            /*    24     4 */
-        atomic_t                   i_mmap_writable;      /*    28     4 */
-        struct rb_root             i_mmap;               /*    32     8 */
-        struct rw_semaphore        i_mmap_rwsem;         /*    40    40 */
-        /* --- cacheline 1 boundary (64 bytes) was 16 bytes ago --- */
-        long unsigned int          nrpages;              /*    80     8 */
-        long unsigned int          nrexceptional;        /*    88     8 */
-        long unsigned int          writeback_index;      /*    96     8 */
-        const struct address_space_operations  * a_ops;  /*   104     8 */
-        long unsigned int          flags;                /*   112     8 */
-        spinlock_t                 private_lock;         /*   120     4 */
-
-        /* XXX 4 bytes hole, try to pack */
-
-        /* --- cacheline 2 boundary (128 bytes) --- */
-        struct list_head           private_list;         /*   128    16 */
-        void *                     private_data;         /*   144     8 */
-
-        /* size: 152, cachelines: 3, members: 14 */
-        /* sum members: 148, holes: 1, sum holes: 4 */
-        /* last cacheline: 24 bytes */
-};
-
-Link: http://lkml.kernel.org/r/20160912114852.GI14524@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h      |    3 ++-
- include/linux/pagemap.h |   20 +++++++++-----------
- 2 files changed, 11 insertions(+), 12 deletions(-)
+ fs/afs/write.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/fs.h~mm-split-gfp_mask-and-mapping-flags-into-separate-fields include/linux/fs.h
---- a/include/linux/fs.h~mm-split-gfp_mask-and-mapping-flags-into-separate-fields
-+++ a/include/linux/fs.h
-@@ -439,8 +439,9 @@ struct address_space {
- 	unsigned long		nrexceptional;
- 	pgoff_t			writeback_index;/* writeback starts here */
- 	const struct address_space_operations *a_ops;	/* methods */
--	unsigned long		flags;		/* error bits/gfp mask */
-+	unsigned long		flags;		/* error bits */
- 	spinlock_t		private_lock;	/* for use by the address_space */
-+	gfp_t			gfp_mask;	/* implicit gfp mask for allocations */
- 	struct list_head	private_list;	/* ditto */
- 	void			*private_data;	/* ditto */
- } __attribute__((aligned(sizeof(long))));
-diff -puN include/linux/pagemap.h~mm-split-gfp_mask-and-mapping-flags-into-separate-fields include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-split-gfp_mask-and-mapping-flags-into-separate-fields
-+++ a/include/linux/pagemap.h
-@@ -16,17 +16,16 @@
- #include <linux/hugetlb_inline.h>
- 
- /*
-- * Bits in mapping->flags.  The lower __GFP_BITS_SHIFT bits are the page
-- * allocation mode flags.
-+ * Bits in mapping->flags.
-  */
- enum mapping_flags {
--	AS_EIO		= __GFP_BITS_SHIFT + 0,	/* IO error on async write */
--	AS_ENOSPC	= __GFP_BITS_SHIFT + 1,	/* ENOSPC on async write */
--	AS_MM_ALL_LOCKS	= __GFP_BITS_SHIFT + 2,	/* under mm_take_all_locks() */
--	AS_UNEVICTABLE	= __GFP_BITS_SHIFT + 3,	/* e.g., ramdisk, SHM_LOCK */
--	AS_EXITING	= __GFP_BITS_SHIFT + 4, /* final truncate in progress */
-+	AS_EIO		= 0,	/* IO error on async write */
-+	AS_ENOSPC	= 1,	/* ENOSPC on async write */
-+	AS_MM_ALL_LOCKS	= 2,	/* under mm_take_all_locks() */
-+	AS_UNEVICTABLE	= 3,	/* e.g., ramdisk, SHM_LOCK */
-+	AS_EXITING	= 4, 	/* final truncate in progress */
- 	/* writeback related tags are not used */
--	AS_NO_WRITEBACK_TAGS = __GFP_BITS_SHIFT + 5,
-+	AS_NO_WRITEBACK_TAGS = 5,
- };
- 
- static inline void mapping_set_error(struct address_space *mapping, int error)
-@@ -78,7 +77,7 @@ static inline int mapping_use_writeback_
- 
- static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
- {
--	return (__force gfp_t)mapping->flags & __GFP_BITS_MASK;
-+	return mapping->gfp_mask;
- }
- 
- /* Restricts the given gfp_mask to what the mapping allows. */
-@@ -94,8 +93,7 @@ static inline gfp_t mapping_gfp_constrai
-  */
- static inline void mapping_set_gfp_mask(struct address_space *m, gfp_t mask)
- {
--	m->flags = (m->flags & ~(__force unsigned long)__GFP_BITS_MASK) |
--				(__force unsigned long)mask;
-+	m->gfp_mask = mask;
- }
- 
- void release_pages(struct page **pages, int nr, bool cold);
+diff -puN fs/afs/write.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix fs/afs/write.c
+--- a/fs/afs/write.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix
++++ a/fs/afs/write.c
+@@ -408,7 +408,7 @@ no_more:
+ 		case -ENOMEDIUM:
+ 		case -ENXIO:
+ 			afs_kill_pages(wb->vnode, true, first, last);
+-			mapping_set_error(wb->vnode->vfs_inode.i_mapping, -ENXIO);
++			mapping_set_error(wb->vnode->vfs_inode.i_mapping, -EIO);
+ 			break;
+ 		case -EACCES:
+ 		case -EPERM:
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmscan-get-rid-of-throttle_vm_writeout.patch
-oom-keep-mm-of-the-killed-task-available.patch
-kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
-mm-oom-get-rid-of-signal_struct-oom_victims.patch
-oom-suspend-fix-oom_killer_disable-vs-pm-suspend-properly.patch
-mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch
-oom-oom_reaper-allow-to-reap-mm-shared-by-the-kthreads.patch
-oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled.patch
-fs-use-mapping_set_error-instead-of-opencoded-set_bit.patch
-mm-split-gfp_mask-and-mapping-flags-into-separate-fields.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+drivers-rapidio-rio_cmc-avoid-gfp_kernel-in-atomic-context.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-vmalloc-fix-align-value-calculation-error-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
+mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
+fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
+mm-check-that-we-havent-used-more-than-32-bits-in-address_spaceflags.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
+ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
