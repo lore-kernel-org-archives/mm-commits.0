@@ -1,108 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- mm-check-that-we-havent-used-more-than-32-bits-in-address_spaceflags.patch
- removed from -mm tree
-Date: Mon, 12 Sep 2016 15:19:12 -0700
-Message-ID: <57d729e0.ZrC/RtgwVxGmNQa5%akpm@linux-foundation.org>
+Subject: + ipc-shm-fix-crash-if-config_shmem-is-not-set.patch added to -mm tree
+Date: Mon, 12 Sep 2016 15:21:53 -0700
+Message-ID: <57d72a81.h+AePpJk4qwonhds%akpm__8863.85827693648$1473718933$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51227 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51275 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754928AbcILWTN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2016 18:19:13 -0400
+        with ESMTP id S1756079AbcILWV7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2016 18:21:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mgorman@techsingularity.net, mhocko@kernel.org, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, hughd@google.com, stable@vger.kernel.org, tonyb@cybernetics.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: check that we haven't used more than 32 bits in address_space.flags
-has been removed from the -mm tree.  Its filename was
-     mm-check-that-we-havent-used-more-than-32-bits-in-address_spaceflags.patch
+     Subject: ipc/shm: fix crash if CONFIG_SHMEM is not set
+has been added to the -mm tree.  Its filename is
+     ipc-shm-fix-crash-if-config_shmem-is-not-set.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-fix-crash-if-config_shmem-is-not-set.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-fix-crash-if-config_shmem-is-not-set.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm: check that we haven't used more than 32 bits in address_space.flags
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: ipc/shm: fix crash if CONFIG_SHMEM is not set
 
-After "mm: don't use radix tree writeback tags for pages in swap cache",
-all the flags are now used up on 32-bit builds.
+c01d5b300774 ("shmem: get_unmapped_area align huge page") makes use of
+shm_get_unmapped_area() in shm_file_operations() unconditional to
+CONFIG_MMU.
 
-Add a build-time assertion to prevent 64-bit developers from accidentally
-breaking things.
+As Tony Battersby pointed this can lead NULL-pointer dereference on
+machine with CONFIG_MMU=y and CONFIG_SHMEM=n.  In this case ipc/shm is
+backed by ramfs which doesn't provide f_op->get_unmapped_area for
+configurations with MMU.
 
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+The solution is to provide dummy f_op->get_unmapped_area for ramfs when
+CONFIG_MMU=y, which just call current->mm->get_unmapped_area().
+
+Fixes: c01d5b300774 ("shmem: get_unmapped_area align huge page")
+Link: http://lkml.kernel.org/r/20160912102704.140442-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Tony Battersby <tonyb@cybernetics.com>
+Tested-by: Tony Battersby <tonyb@cybernetics.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>	[4.7.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    2 ++
- init/main.c             |    4 ++++
- 2 files changed, 6 insertions(+)
+ fs/ramfs/file-mmu.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN include/linux/pagemap.h~mm-check-that-we-havent-used-more-than-32-bits-in-address_spaceflags include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-check-that-we-havent-used-more-than-32-bits-in-address_spaceflags
-+++ a/include/linux/pagemap.h
-@@ -27,6 +27,8 @@ enum mapping_flags {
- 	AS_EXITING	= __GFP_BITS_SHIFT + 4, /* final truncate in progress */
- 	/* writeback related tags are not used */
- 	AS_NO_WRITEBACK_TAGS = __GFP_BITS_SHIFT + 5,
+diff -puN fs/ramfs/file-mmu.c~ipc-shm-fix-crash-if-config_shmem-is-not-set fs/ramfs/file-mmu.c
+--- a/fs/ramfs/file-mmu.c~ipc-shm-fix-crash-if-config_shmem-is-not-set
++++ a/fs/ramfs/file-mmu.c
+@@ -27,9 +27,17 @@
+ #include <linux/fs.h>
+ #include <linux/mm.h>
+ #include <linux/ramfs.h>
++#include <linux/sched.h>
+ 
+ #include "internal.h"
+ 
++static unsigned long ramfs_mmu_get_unmapped_area(struct file *file,
++		unsigned long addr, unsigned long len, unsigned long pgoff,
++		unsigned long flags)
++{
++	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
++}
 +
-+	AS_LAST_FLAG,
+ const struct file_operations ramfs_file_operations = {
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+@@ -38,6 +46,7 @@ const struct file_operations ramfs_file_
+ 	.splice_read	= generic_file_splice_read,
+ 	.splice_write	= iter_file_splice_write,
+ 	.llseek		= generic_file_llseek,
++	.get_unmapped_area	= ramfs_mmu_get_unmapped_area,
  };
  
- static inline void mapping_set_error(struct address_space *mapping, int error)
-diff -puN init/main.c~mm-check-that-we-havent-used-more-than-32-bits-in-address_spaceflags init/main.c
---- a/init/main.c~mm-check-that-we-havent-used-more-than-32-bits-in-address_spaceflags
-+++ a/init/main.c
-@@ -59,6 +59,7 @@
- #include <linux/pid_namespace.h>
- #include <linux/device.h>
- #include <linux/kthread.h>
-+#include <linux/pagemap.h>
- #include <linux/sched.h>
- #include <linux/signal.h>
- #include <linux/idr.h>
-@@ -463,6 +464,9 @@ void __init __weak thread_stack_cache_in
-  */
- static void __init mm_init(void)
- {
-+	/* Does address_space.flags still fit into a 32-bit ulong? */
-+	BUILD_BUG_ON(AS_LAST_FLAG > 32);
-+
- 	/*
- 	 * page_ext requires contiguous pages,
- 	 * bigger than MAX_ORDER unless SPARSEMEM.
+ const struct inode_operations ramfs_file_inode_operations = {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-drivers-rapidio-rio_cmc-avoid-gfp_kernel-in-atomic-context.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-vmalloc-fix-align-value-calculation-error-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
-mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
-mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
-mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
-fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
-relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
-ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-mlx5-deviceh-kill-build_bug_ons.patch
-hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+khugepaged-fix-use-after-free-in-collapse_huge_page.patch
+mm-avoid-endless-recursion-in-dump_page.patch
+ipc-shm-fix-crash-if-config_shmem-is-not-set.patch
 
