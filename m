@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-shm-fix-crash-if-config_shmem-is-not-set.patch added to -mm tree
-Date: Mon, 12 Sep 2016 15:21:53 -0700
-Message-ID: <57d72a81.h+AePpJk4qwonhds%akpm__8863.85827693648$1473718933$gmane$org@linux-foundation.org>
+Subject: + ocfs2-fix-trans-extend-while-flush-truncate-log.patch added to
+ -mm tree
+Date: Mon, 12 Sep 2016 16:21:34 -0700
+Message-ID: <57d7387e.DmRchHbkP1nHfOXQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51275 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52160 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756079AbcILWV7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2016 18:21:59 -0400
+        with ESMTP id S1750940AbcILXVg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2016 19:21:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, hughd@google.com, stable@vger.kernel.org, tonyb@cybernetics.com, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/shm: fix crash if CONFIG_SHMEM is not set
+     Subject: ocfs2: fix trans extend while flush truncate log
 has been added to the -mm tree.  Its filename is
-     ipc-shm-fix-crash-if-config_shmem-is-not-set.patch
+     ocfs2-fix-trans-extend-while-flush-truncate-log.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-fix-crash-if-config_shmem-is-not-set.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-trans-extend-while-flush-truncate-log.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-fix-crash-if-config_shmem-is-not-set.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-trans-extend-while-flush-truncate-log.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,68 +39,147 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: ipc/shm: fix crash if CONFIG_SHMEM is not set
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: fix trans extend while flush truncate log
 
-c01d5b300774 ("shmem: get_unmapped_area align huge page") makes use of
-shm_get_unmapped_area() in shm_file_operations() unconditional to
-CONFIG_MMU.
+Every time, ocfs2_extend_trans() included a credit for truncate log inode,
+but as that inode had been managed by jbd2 running transaction first time,
+it will not consume that credit until jbd2_journal_restart().  Since total
+credits to extend always included the un-consumed ones, there will be more
+and more un-consumed credit, at last jbd2_journal_restart() will fail due
+to credit number over the half of max transction credit.
 
-As Tony Battersby pointed this can lead NULL-pointer dereference on
-machine with CONFIG_MMU=y and CONFIG_SHMEM=n.  In this case ipc/shm is
-backed by ramfs which doesn't provide f_op->get_unmapped_area for
-configurations with MMU.
+The following error was caught when unlink a large file with many extents.
 
-The solution is to provide dummy f_op->get_unmapped_area for ramfs when
-CONFIG_MMU=y, which just call current->mm->get_unmapped_area().
+[233096.013936] ------------[ cut here ]------------
+[233096.018586] WARNING: CPU: 0 PID: 13626 at fs/jbd2/transaction.c:269 start_this_handle+0x4c3/0x510 [jbd2]()
+[233096.028335] Modules linked in: ocfs2 nfsd lockd grace nfs_acl auth_rpcgss sunrpc autofs4 ocfs2_dlmfs ocfs2_stack_o2cb ocfs2_dlm ocfs2_nodemanager ocfs2_stackglue configfs sd_mod sg ip6t_REJECT nf_reject_ipv6 nf_conntrack_ipv6 nf_defrag_ipv6 xt_state nf_conntrack ip6table_filter ip6_tables be2iscsi iscsi_boot_sysfs bnx2i cnic uio cxgb4i cxgb4 cxgb3i libcxgbi cxgb3 mdio ib_iser rdma_cm ib_cm iw_cm ib_sa ib_mad ib_core ib_addr ipv6 iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi ppdev xen_kbdfront xen_netfront fb_sys_fops sysimgblt sysfillrect syscopyarea parport_pc parport pcspkr i2c_piix4 i2c_core acpi_cpufreq ext4 jbd2 mbcache xen_blkfront floppy pata_acpi ata_generic ata_piix dm_mirror dm_region_hash dm_log dm_mod
+[233096.081751] CPU: 0 PID: 13626 Comm: unlink Tainted: G        W       4.1.12-37.6.3.el6uek.x86_64 #2
+[233096.088556] Hardware name: Xen HVM domU, BIOS 4.4.4OVM 02/11/2016
+[233096.093125]  000000000000010d ffff88000018b768 ffffffff816bc5bc 000000000000010d
+[233096.099082]  0000000000000000 ffff88000018b7a8 ffffffff81081475 ffff88000018b788
+[233096.105038]  ffff88007a99a000 ffff88007b573390 00000000000000fb 0000000000000050
+[233096.110540] Call Trace:
+[233096.111893]  [<ffffffff816bc5bc>] dump_stack+0x48/0x5c
+[233096.114637]  [<ffffffff81081475>] warn_slowpath_common+0x95/0xe0
+[233096.117797]  [<ffffffff810814da>] warn_slowpath_null+0x1a/0x20
+[233096.120984]  [<ffffffffa0080993>] start_this_handle+0x4c3/0x510 [jbd2]
+[233096.124505]  [<ffffffffa0088f95>] ? __jbd2_log_start_commit+0xe5/0xf0 [jbd2]
+[233096.128115]  [<ffffffff810c4eb3>] ? __wake_up+0x53/0x70
+[233096.130924]  [<ffffffffa0080b41>] jbd2__journal_restart+0x161/0x1b0 [jbd2]
+[233096.134523]  [<ffffffffa0080ba3>] jbd2_journal_restart+0x13/0x20 [jbd2]
+[233096.137986]  [<ffffffffa06d1d94>] ocfs2_extend_trans+0x74/0x220 [ocfs2]
+[233096.141407]  [<ffffffffa06d156a>] ? ocfs2_journal_dirty+0x3a/0x90 [ocfs2]
+[233096.144921]  [<ffffffffa0692943>] ocfs2_replay_truncate_records+0x93/0x360 [ocfs2]
+[233096.148819]  [<ffffffffa0697ace>] __ocfs2_flush_truncate_log+0x13e/0x3a0 [ocfs2]
+[233096.152644]  [<ffffffffa0697304>] ? ocfs2_reserve_blocks_for_rec_trunc.clone.0+0x44/0x1f0 [ocfs2]
+[233096.157310]  [<ffffffffa069f768>] ocfs2_remove_btree_range+0x458/0x7f0 [ocfs2]
+[233096.161099]  [<ffffffffa0696777>] ? __ocfs2_find_path+0x187/0x2d0 [ocfs2]
+[233096.164612]  [<ffffffffa06a2673>] ocfs2_commit_truncate+0x1b3/0x6f0 [ocfs2]
+[233096.168204]  [<ffffffffa0744ac0>] ? ocfs2_xattr_tree_et_ops+0x60/0xfffffffffffe8c20 [ocfs2]
+[233096.172539]  [<ffffffffa06d1a00>] ? ocfs2_journal_access_eb+0x20/0x20 [ocfs2]
+[233096.176285]  [<ffffffff81202303>] ? __sb_end_write+0x33/0x70
+[233096.179226]  [<ffffffffa06ca61d>] ocfs2_truncate_for_delete+0xbd/0x380 [ocfs2]
+[233096.183009]  [<ffffffffa06ca294>] ? ocfs2_query_inode_wipe+0xf4/0x320 [ocfs2]
+[233096.186738]  [<ffffffffa06caf76>] ocfs2_wipe_inode+0x136/0x6a0 [ocfs2]
+[233096.190165]  [<ffffffffa06ca294>] ? ocfs2_query_inode_wipe+0xf4/0x320 [ocfs2]
+[233096.193846]  [<ffffffffa06cb782>] ocfs2_delete_inode+0x2a2/0x3e0 [ocfs2]
+[233096.197274]  [<ffffffff812298c9>] ? __inode_wait_for_writeback+0x69/0xc0
+[233096.200736]  [<ffffffffa0732180>] ? __PRETTY_FUNCTION__.112282+0x20/0xffffffffffffb520 [ocfs2]
+[233096.205146]  [<ffffffffa06cc298>] ocfs2_evict_inode+0x28/0x60 [ocfs2]
+[233096.208462]  [<ffffffff8121b81b>] evict+0xab/0x1a0
+[233096.211020]  [<ffffffffa0732180>] ? __PRETTY_FUNCTION__.112282+0x20/0xffffffffffffb520 [ocfs2]
+[233096.215396]  [<ffffffff8121ba06>] iput_final+0xf6/0x190
+[233096.218169]  [<ffffffff8121bb68>] iput+0xc8/0xe0
+[233096.220586]  [<ffffffff8120f9b7>] do_unlinkat+0x1b7/0x310
+[233096.223487]  [<ffffffff8106ae5b>] ? __do_page_fault+0x18b/0x480
+[233096.226655]  [<ffffffff81126dbc>] ? __audit_syscall_entry+0xac/0x110
+[233096.230009]  [<ffffffff810236cc>] ? do_audit_syscall_entry+0x6c/0x70
+[233096.233346]  [<ffffffff81023823>] ? syscall_trace_enter_phase1+0x153/0x180
+[233096.237103]  [<ffffffff8120fb26>] SyS_unlink+0x16/0x20
+[233096.239800]  [<ffffffff816c122e>] system_call_fastpath+0x12/0x71
+[233096.244346] ---[ end trace 28aa7410e69369cf ]---
+[233096.247798] JBD2: unlink wants too many credits (251 > 128)
 
-Fixes: c01d5b300774 ("shmem: get_unmapped_area align huge page")
-Link: http://lkml.kernel.org/r/20160912102704.140442-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Tony Battersby <tonyb@cybernetics.com>
-Tested-by: Tony Battersby <tonyb@cybernetics.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>	[4.7.x]
+Link: http://lkml.kernel.org/r/1473674623-11810-1-git-send-email-junxiao.bi@oracle.com
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-mmu.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ fs/ocfs2/alloc.c |   29 ++++++++++-------------------
+ 1 file changed, 10 insertions(+), 19 deletions(-)
 
-diff -puN fs/ramfs/file-mmu.c~ipc-shm-fix-crash-if-config_shmem-is-not-set fs/ramfs/file-mmu.c
---- a/fs/ramfs/file-mmu.c~ipc-shm-fix-crash-if-config_shmem-is-not-set
-+++ a/fs/ramfs/file-mmu.c
-@@ -27,9 +27,17 @@
- #include <linux/fs.h>
- #include <linux/mm.h>
- #include <linux/ramfs.h>
-+#include <linux/sched.h>
+diff -puN fs/ocfs2/alloc.c~ocfs2-fix-trans-extend-while-flush-truncate-log fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-fix-trans-extend-while-flush-truncate-log
++++ a/fs/ocfs2/alloc.c
+@@ -5922,7 +5922,6 @@ bail:
+ }
  
- #include "internal.h"
+ static int ocfs2_replay_truncate_records(struct ocfs2_super *osb,
+-					 handle_t *handle,
+ 					 struct inode *data_alloc_inode,
+ 					 struct buffer_head *data_alloc_bh)
+ {
+@@ -5935,11 +5934,19 @@ static int ocfs2_replay_truncate_records
+ 	struct ocfs2_truncate_log *tl;
+ 	struct inode *tl_inode = osb->osb_tl_inode;
+ 	struct buffer_head *tl_bh = osb->osb_tl_bh;
++	handle_t *handle;
  
-+static unsigned long ramfs_mmu_get_unmapped_area(struct file *file,
-+		unsigned long addr, unsigned long len, unsigned long pgoff,
-+		unsigned long flags)
-+{
-+	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
-+}
+ 	di = (struct ocfs2_dinode *) tl_bh->b_data;
+ 	tl = &di->id2.i_dealloc;
+ 	i = le16_to_cpu(tl->tl_used) - 1;
+ 	while (i >= 0) {
++		handle = ocfs2_start_trans(osb, OCFS2_TRUNCATE_LOG_FLUSH_ONE_REC);
++		if (IS_ERR(handle)) {
++			status = PTR_ERR(handle);
++			mlog_errno(status);
++			goto bail;
++		}
 +
- const struct file_operations ramfs_file_operations = {
- 	.read_iter	= generic_file_read_iter,
- 	.write_iter	= generic_file_write_iter,
-@@ -38,6 +46,7 @@ const struct file_operations ramfs_file_
- 	.splice_read	= generic_file_splice_read,
- 	.splice_write	= iter_file_splice_write,
- 	.llseek		= generic_file_llseek,
-+	.get_unmapped_area	= ramfs_mmu_get_unmapped_area,
- };
+ 		/* Caller has given us at least enough credits to
+ 		 * update the truncate log dinode */
+ 		status = ocfs2_journal_access_di(handle, INODE_CACHE(tl_inode), tl_bh,
+@@ -5974,12 +5981,7 @@ static int ocfs2_replay_truncate_records
+ 			}
+ 		}
  
- const struct inode_operations ramfs_file_inode_operations = {
-_
-
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
-
-khugepaged-fix-use-after-free-in-collapse_huge_page.patch
-mm-avoid-endless-recursion-in-dump_page.patch
-ipc-shm-fix-crash-if-config_shmem-is-not-set.patch
-
+-		status = ocfs2_extend_trans(handle,
+-				OCFS2_TRUNCATE_LOG_FLUSH_ONE_REC);
+-		if (status < 0) {
+-			mlog_errno(status);
+-			goto bail;
+-		}
++		ocfs2_commit_trans(osb, handle);
+ 		i--;
+ 	}
+ 
+@@ -5994,7 +5996,6 @@ int __ocfs2_flush_truncate_log(struct oc
+ {
+ 	int status;
+ 	unsigned int num_to_flush;
+-	handle_t *handle;
+ 	struct inode *tl_inode = osb->osb_tl_inode;
+ 	struct inode *data_alloc_inode = NULL;
+ 	struct buffer_head *tl_bh = osb->osb_tl_bh;
+@@ -6038,21 +6039,11 @@ int __ocfs2_flush_truncate_log(struct oc
+ 		goto out_mutex;
+ 	}
+ 
+-	handle = ocfs2_start_trans(osb, OCFS2_TRUNCATE_LOG_FLUSH_ONE_REC);
+-	if (IS_ERR(handle)) {
+-		status = PTR_ERR(handle);
+-		mlog_errno(status);
+-		goto out_unlock;
+-	}
+-
+-	status = ocfs2_replay_truncate_records(osb, handle, data_alloc_inode,
++	status = ocfs2_replay_truncate_records(osb, data_alloc_inode,
+ 					       data_alloc_bh);
+ 	if (status < 0)
+ 		mlog_errno(status);
+ 
+-	ocfs2_commit_trans(osb, handle);
