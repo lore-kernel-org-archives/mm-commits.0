@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-free-the-mle-while-the-res-had-one-to-avoid-mle-memory-leak.patch
- added to -mm tree
-Date: Tue, 13 Sep 2016 14:20:19 -0700
-Message-ID: <57d86d93.ILWyVsLud2RE+PMI%akpm@linux-foundation.org>
+ mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh.patch added to -mm tree
+Date: Tue, 13 Sep 2016 14:21:16 -0700
+Message-ID: <57d86dcc./VhRPiiNwatl7Dko%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34963 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34968 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751488AbcIMVUU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2016 17:20:20 -0400
+        with ESMTP id S1751488AbcIMVVR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2016 17:21:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guozhonghua@h3c.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, zren@suse.com, mm-commits@vger.kernel.org
+To: baoyou.xie@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix memory leak in dlm_migrate_request_handler()
+     Subject: mm: move phys_mem_access_prot_allowed() declaration to pgtable.h
 has been added to the -mm tree.  Its filename is
-     ocfs2-free-the-mle-while-the-res-had-one-to-avoid-mle-memory-leak.patch
+     mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-free-the-mle-while-the-res-had-one-to-avoid-mle-memory-leak.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-free-the-mle-while-the-res-had-one-to-avoid-mle-memory-leak.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,41 +39,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guozhonghua <guozhonghua@h3c.com>
-Subject: ocfs2: fix memory leak in dlm_migrate_request_handler()
+From: Baoyou Xie <baoyou.xie@linaro.org>
+Subject: mm: move phys_mem_access_prot_allowed() declaration to pgtable.h
 
-In the dlm_migrate_request_handler(), when `ret' is --EEXIST, the mle
-should be freed, otherwise the memory will be leaked.
+We get 1 warning when building kernel with W=1:
+drivers/char/mem.c:220:12: warning: no previous prototype for 'phys_mem_access_prot_allowed' [-Wmissing-prototypes]
+ int __weak phys_mem_access_prot_allowed(struct file *file,
 
-Link: http://lkml.kernel.org/r/71604351584F6A4EBAE558C676F37CA4A3D3522A@H3CMLB12-EX.srv.huawei-3com.com
-Signed-off-by: Guozhonghua <guozhonghua@h3c.com>
-Cc: Eric Ren <zren@suse.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+In fact, its declaration is spreading to several header files in different
+architecture, but need to be declare in common header file.
+
+So this patch moves phys_mem_access_prot_allowed() to pgtable.h.
+
+Link: http://lkml.kernel.org/r/1473751597-12139-1-git-send-email-baoyou.xie@linaro.org
+Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/mips/include/asm/pgtable.h      |    2 --
+ arch/x86/include/asm/pgtable_types.h |    2 --
+ include/asm-generic/pgtable.h        |    3 +++
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-free-the-mle-while-the-res-had-one-to-avoid-mle-memory-leak fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-free-the-mle-while-the-res-had-one-to-avoid-mle-memory-leak
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -3188,6 +3188,9 @@ int dlm_migrate_request_handler(struct o
- 				    migrate->new_master,
- 				    migrate->master);
+diff -puN arch/mips/include/asm/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh arch/mips/include/asm/pgtable.h
+--- a/arch/mips/include/asm/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh
++++ a/arch/mips/include/asm/pgtable.h
+@@ -673,8 +673,6 @@ static inline pmd_t pmdp_huge_get_and_cl
+ struct file;
+ pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
+ 		unsigned long size, pgprot_t vma_prot);
+-int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
+-		unsigned long size, pgprot_t *vma_prot);
+ #endif
  
-+	if (ret < 0)
-+		kmem_cache_free(dlm_mle_cache, mle);
-+
- 	spin_unlock(&dlm->master_lock);
- unlock:
- 	spin_unlock(&dlm->spinlock);
+ /*
+diff -puN arch/x86/include/asm/pgtable_types.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh arch/x86/include/asm/pgtable_types.h
+--- a/arch/x86/include/asm/pgtable_types.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -439,8 +439,6 @@ extern pgprot_t pgprot_writethrough(pgpr
+ struct file;
+ pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
+                               unsigned long size, pgprot_t vma_prot);
+-int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
+-                              unsigned long size, pgprot_t *vma_prot);
+ 
+ /* Install a pte for a particular vaddr in kernel space. */
+ void set_pte_vaddr(unsigned long vaddr, pte_t pte);
+diff -puN include/asm-generic/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh
++++ a/include/asm-generic/pgtable.h
+@@ -800,6 +800,9 @@ static inline int pmd_clear_huge(pmd_t *
+ #endif
+ #endif
+ 
++struct file;
++int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
++			unsigned long size, pgprot_t *vma_prot);
+ #endif /* !__ASSEMBLY__ */
+ 
+ #ifndef io_remap_pfn_range
 _
 
-Patches currently in -mm which might be from guozhonghua@h3c.com are
+Patches currently in -mm which might be from baoyou.xie@linaro.org are
 
-ocfs2-free-the-mle-while-the-res-had-one-to-avoid-mle-memory-leak.patch
+mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh.patch
 
