@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-bitmapc-enhance-bitmap-syntax-fix.patch added to -mm tree
-Date: Tue, 13 Sep 2016 15:55:42 -0700
-Message-ID: <57d883ee.t3jpztpLmhV/IKkz%akpm@linux-foundation.org>
+Subject: + lib-bitmapc-enhance-bitmap-syntax.patch added to -mm tree
+Date: Tue, 13 Sep 2016 15:55:40 -0700
+Message-ID: <57d883ec.mRFV1YmfSRJtdH2R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36342 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36333 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755632AbcIMWzn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2016 18:55:43 -0400
+        with ESMTP id S1755632AbcIMWzl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2016 18:55:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ben@decadent.org.uk, davem@davemloft.net, decot@googlers.com, noamca@mellanox.com, xinhui@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: noamca@mellanox.com, ben@decadent.org.uk, davem@davemloft.net, decot@googlers.com, xinhui@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-bitmapc-enhance-bitmap-syntax-fix
+     Subject: lib/bitmap.c: enhance bitmap syntax
 has been added to the -mm tree.  Its filename is
-     lib-bitmapc-enhance-bitmap-syntax-fix.patch
+     lib-bitmapc-enhance-bitmap-syntax.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmapc-enhance-bitmap-syntax-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmapc-enhance-bitmap-syntax.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmapc-enhance-bitmap-syntax-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmapc-enhance-bitmap-syntax.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,12 +38,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-bitmapc-enhance-bitmap-syntax-fix
+From: Noam Camus <noamca@mellanox.com>
+Subject: lib/bitmap.c: enhance bitmap syntax
 
-rework documentation
+Today there are platforms with many CPUs (up to 4K).  Trying to boot only
+part of the CPUs may result in too long string.
 
-Cc: Noam Camus <noamca@mellanox.com>
+For example lets take NPS platform that is part of arch/arc.  This
+platform have SMP system with 256 cores each with 16 HW threads (SMT
+machine) where HW thread appears as CPU to the kernel.  In this example
+there is total of 4K CPUs.  When one tries to boot only part of the HW
+threads from each core the string representing the map may be long...  For
+example if for sake of performance we decided to boot only first half of
+HW threads of each core the map will look like:
+0-7,16-23,32-39,...,4080-4087
+
+This patch introduce new syntax to accommodate with such use case.  I
+added an optional postfix to a range of CPUs which will choose according
+to given modulo the desired range of reminders i.e.:
+
+    <cpus range>:sed_size/group_size
+
+For example, above map can be described in new syntax like this:
+0-4095:8/16
+
+Note that this patch is backward compatible with current syntax.
+
+Link: http://lkml.kernel.org/r/1473579629-4283-1-git-send-email-noamca@mellanox.com
+Signed-off-by: Noam Camus <noamca@mellanox.com>
 Cc: David Decotigny <decot@googlers.com>
 Cc: Ben Hutchings <ben@decadent.org.uk>
 Cc: David S. Miller <davem@davemloft.net>
@@ -51,132 +73,134 @@ Cc: Pan Xinhui <xinhui@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   57 ++++++++++++++------------
- 1 file changed, 32 insertions(+), 25 deletions(-)
+ Documentation/kernel-parameters.txt |   15 +++++++
+ lib/bitmap.c                        |   50 +++++++++++++++++++++++---
+ 2 files changed, 61 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~lib-bitmapc-enhance-bitmap-syntax-fix Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~lib-bitmapc-enhance-bitmap-syntax-fix
+diff -puN Documentation/kernel-parameters.txt~lib-bitmapc-enhance-bitmap-syntax Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~lib-bitmapc-enhance-bitmap-syntax
 +++ a/Documentation/kernel-parameters.txt
-@@ -33,20 +33,36 @@ can also be entered as
+@@ -33,6 +33,21 @@ can also be entered as
  Double-quotes can be used to protect spaces in values, e.g.:
  	param="spaces in here"
  
--Some of the kernel parameters takes list of CPUs as value e.g.:
--isolcpus, task_isolation, nohz_full, irqaffinity, rcu_nocbs.
--The format of this list is:
--<cpu number>,...,<cpu number>
-+cpu lists:
-+----------
++Some of the kernel parameters takes list of CPUs as value e.g.:
++isolcpus, task_isolation, nohz_full, irqaffinity, rcu_nocbs.
++The format of this list is:
++<cpu number>,...,<cpu number>
++or
++<cpu number>-<cpu number>
++(must be a positive range in ascending order)
++or a mixture
++<cpu number>,...,<cpu number>-<cpu number>
++Note that for special case of range one can split range into equal size of groups
++and for each group to use some amount form the begin of that group.
++<cpu number>-cpu number>:<used size>/<group size>
++For example one can add to its command line following parameter:
++isolcpus=1,2,10-20,100-2000:2/25
 +
-+Some kernel parameters take a list of CPUs as a value, e.g.  isolcpus,
-+nohz_full, irqaffinity, rcu_nocbs.  The format of this list is:
-+
-+	<cpu number>,...,<cpu number>
-+
- or
--<cpu number>-<cpu number>
--(must be a positive range in ascending order)
-+
-+	<cpu number>-<cpu number>
-+	(must be a positive range in ascending order)
-+
- or a mixture
-+
- <cpu number>,...,<cpu number>-<cpu number>
--Note that for special case of range one can split range into equal size of groups
--and for each group to use some amount form the begin of that group.
--<cpu number>-cpu number>:<used size>/<group size>
--For example one can add to its command line following parameter:
--isolcpus=1,2,10-20,100-2000:2/25
-+
-+Note that for the special case of a range one can split the range into equal
-+sized groups and for each group use some amount from the beginning of that
-+group:
-+
-+	<cpu number>-cpu number>:<used size>/<group size>
-+
-+For example one can add to the command line following parameter:
-+
-+	isolcpus=1,2,10-20,100-2000:2/25
-+
-+where the final item represents CPUs 100,101,125,126,150,151,...
-+
-+
- 
  This document may not be entirely up to date and comprehensive. The command
  "modinfo -p ${modulename}" shows a current list of all parameters of a loadable
-@@ -1776,13 +1792,7 @@ bytes respectively. Such letter suffixes
- 			See Documentation/filesystems/nfs/nfsroot.txt.
+ module. Loadable modules, after being loaded into the running kernel, also
+diff -puN lib/bitmap.c~lib-bitmapc-enhance-bitmap-syntax lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmapc-enhance-bitmap-syntax
++++ a/lib/bitmap.c
+@@ -496,6 +496,11 @@ EXPORT_SYMBOL(bitmap_print_to_pagebuf);
+  * ranges.  Consecutively set bits are shown as two hyphen-separated
+  * decimal numbers, the smallest and largest bit numbers set in
+  * the range.
++ * Optionally each range can be postfixed to denote that only parts of it
++ * should be set. The range will divided to groups of specific size.
++ * From each group will be used only defined amount of bits.
++ * Syntax: range:used_size/group_size
++ * Example: 0-1023:2/256 ==> 0,1,256,257,512,513,768,769
+  *
+  * Returns 0 on success, -errno on invalid input strings.
+  * Error values:
+@@ -507,16 +512,20 @@ static int __bitmap_parselist(const char
+ 		int is_user, unsigned long *maskp,
+ 		int nmaskbits)
+ {
+-	unsigned a, b;
++	unsigned int a, b, old_a, old_b;
++	unsigned int group_size, used_size;
+ 	int c, old_c, totaldigits, ndigits;
+ 	const char __user __force *ubuf = (const char __user __force *)buf;
+-	int at_start, in_range;
++	int at_start, in_range, in_partial_range;
  
- 	irqaffinity=	[SMP] Set the default irq affinity mask
--			Format:
--			<cpu number>,...,<cpu number>
--			or
--			<cpu number>-<cpu number>
--			(must be a positive range in ascending order)
--			or a mixture
--			<cpu number>,...,<cpu number>-<cpu number>
-+			The argument is a cpu list, as described above.
+ 	totaldigits = c = 0;
++	old_a = old_b = 0;
++	group_size = used_size = 0;
+ 	bitmap_zero(maskp, nmaskbits);
+ 	do {
+ 		at_start = 1;
+ 		in_range = 0;
++		in_partial_range = 0;
+ 		a = b = 0;
+ 		ndigits = totaldigits;
  
- 	irqfixup	[HW]
- 			When an interrupt is not handled search all handlers
-@@ -1799,13 +1809,7 @@ bytes respectively. Such letter suffixes
- 			Format: <RDP>,<reset>,<pci_scan>,<verbosity>
+@@ -547,6 +556,24 @@ static int __bitmap_parselist(const char
+ 			if ((totaldigits != ndigits) && isspace(old_c))
+ 				return -EINVAL;
  
- 	isolcpus=	[KNL,SMP] Isolate CPUs from the general scheduler.
--			Format:
--			<cpu number>,...,<cpu number>
--			or
--			<cpu number>-<cpu number>
--			(must be a positive range in ascending order)
--			or a mixture
--			<cpu number>,...,<cpu number>-<cpu number>
-+			The argument is a cpu list, as described above.
- 
- 			This option can be used to specify one or more CPUs
- 			to isolate from the general SMP balancing and scheduling
-@@ -2666,6 +2670,7 @@ bytes respectively. Such letter suffixes
- 			Default: on
- 
- 	nohz_full=	[KNL,BOOT]
-+			The argument is a cpu list, as described above.
- 			In kernels built with CONFIG_NO_HZ_FULL=y, set
- 			the specified list of CPUs whose tick will be stopped
- 			whenever possible. The boot CPU will be forced outside
-@@ -3268,6 +3273,8 @@ bytes respectively. Such letter suffixes
- 			See Documentation/blockdev/ramdisk.txt.
- 
- 	rcu_nocbs=	[KNL]
-+			The argument is a cpu list, as described above.
++			if (c == '/') {
++				used_size = a;
++				at_start = 1;
++				in_range = 0;
++				a = b = 0;
++				continue;
++			}
 +
- 			In kernels built with CONFIG_RCU_NOCB_CPU=y, set
- 			the specified list of CPUs to be no-callback CPUs.
- 			Invocation of these CPUs' RCU callbacks will
++			if (c == ':') {
++				old_a = a;
++				old_b = b;
++				at_start = 1;
++				in_range = 0;
++				in_partial_range = 1;
++				a = b = 0;
++				continue;
++			}
++
+ 			if (c == '-') {
+ 				if (at_start || in_range)
+ 					return -EINVAL;
+@@ -567,15 +594,30 @@ static int __bitmap_parselist(const char
+ 		}
+ 		if (ndigits == totaldigits)
+ 			continue;
++		if (in_partial_range) {
++			group_size = a;
++			a = old_a;
++			b = old_b;
++			old_a = old_b = 0;
++		}
+ 		/* if no digit is after '-', it's wrong*/
+ 		if (at_start && in_range)
+ 			return -EINVAL;
+-		if (!(a <= b))
++		if (!(a <= b) || !(used_size <= group_size))
+ 			return -EINVAL;
+ 		if (b >= nmaskbits)
+ 			return -ERANGE;
+ 		while (a <= b) {
+-			set_bit(a, maskp);
++			if (in_partial_range) {
++				static int pos_in_group = 1;
++
++				if (pos_in_group <= used_size)
++					set_bit(a, maskp);
++
++				if (a == b || ++pos_in_group > group_size)
++					pos_in_group = 1;
++			} else
++				set_bit(a, maskp);
+ 			a++;
+ 		}
+ 	} while (buflen && c == ',');
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from noamca@mellanox.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-drivers-rapidio-rio_cmc-avoid-gfp_kernel-in-atomic-context.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-vmalloc-fix-align-value-calculation-error-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
-mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
-mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
-mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
-fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
-lib-bitmapc-enhance-bitmap-syntax-fix.patch
-relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
-ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-mlx5-deviceh-kill-build_bug_ons.patch
-hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+lib-bitmapc-enhance-bitmap-syntax.patch
 
