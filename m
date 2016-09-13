@@ -1,158 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-trans-extend-while-free-cached-blocks.patch added to
- -mm tree
-Date: Mon, 12 Sep 2016 16:21:36 -0700
-Message-ID: <57d73880.+tfSKVvZMNpX7nBf%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 13 Sep 2016 13:33:58 -0700
+Message-ID: <57d862b6.YPCX8Ub32kZiAkoy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52167 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33859 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750953AbcILXVh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Sep 2016 19:21:37 -0400
+        with ESMTP id S1755810AbcIMUd7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2016 16:33:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix trans extend while free cached blocks
-has been added to the -mm tree.  Its filename is
-     ocfs2-fix-trans-extend-while-free-cached-blocks.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-trans-extend-while-free-cached-blocks.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-trans-extend-while-free-cached-blocks.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: fix trans extend while free cached blocks
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Root cause of this issue is the same with the one fixed by last patch, but
-this time credits for allocator inode and group descriptor may not be
-consumed before trans extend.
-
-The following error was caught.
-
-[  685.240276] WARNING: CPU: 0 PID: 2037 at fs/jbd2/transaction.c:269 start_this_handle+0x4c3/0x510 [jbd2]()
-[  685.240294] Modules linked in: ocfs2 nfsd lockd grace nfs_acl auth_rpcgss sunrpc autofs4 ocfs2_dlmfs ocfs2_stack_o2cb ocfs2_dlm ocfs2_nodemanager ocfs2_stackglue configfs sd_mod sg ip6t_REJECT nf_reject_ipv6 nf_conntrack_ipv6 nf_defrag_ipv6 xt_state nf_conntrack ip6table_filter ip6_tables be2iscsi iscsi_boot_sysfs bnx2i cnic uio cxgb4i cxgb4 cxgb3i libcxgbi cxgb3 mdio ib_iser rdma_cm ib_cm iw_cm ib_sa ib_mad ib_core ib_addr ipv6 iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi ppdev xen_kbdfront fb_sys_fops sysimgblt sysfillrect syscopyarea xen_netfront parport_pc parport pcspkr i2c_piix4 i2c_core acpi_cpufreq ext4 jbd2 mbcache xen_blkfront floppy pata_acpi ata_generic ata_piix dm_mirror dm_region_hash dm_log dm_mod
-[  685.240296] CPU: 0 PID: 2037 Comm: rm Tainted: G        W       4.1.12-37.6.3.el6uek.bug24573128v2.x86_64 #2
-[  685.240296] Hardware name: Xen HVM domU, BIOS 4.4.4OVM 02/11/2016
-[  685.240298]  000000000000010d ffff88007ac3f808 ffffffff816bc5bc 000000000000010d
-[  685.240300]  0000000000000000 ffff88007ac3f848 ffffffff81081475 ffff88007ac3f828
-[  685.240301]  ffff880037bbf000 ffff880037688210 0000000000000095 0000000000000050
-[  685.240301] Call Trace:
-[  685.240305]  [<ffffffff816bc5bc>] dump_stack+0x48/0x5c
-[  685.240308]  [<ffffffff81081475>] warn_slowpath_common+0x95/0xe0
-[  685.240310]  [<ffffffff810814da>] warn_slowpath_null+0x1a/0x20
-[  685.240313]  [<ffffffffa0080993>] start_this_handle+0x4c3/0x510 [jbd2]
-[  685.240317]  [<ffffffffa0088f95>] ? __jbd2_log_start_commit+0xe5/0xf0 [jbd2]
-[  685.240319]  [<ffffffff810c4eb3>] ? __wake_up+0x53/0x70
-[  685.240322]  [<ffffffffa0080b41>] jbd2__journal_restart+0x161/0x1b0 [jbd2]
-[  685.240325]  [<ffffffffa0080ba3>] jbd2_journal_restart+0x13/0x20 [jbd2]
-[  685.240340]  [<ffffffffa06d1cf4>] ocfs2_extend_trans+0x74/0x220 [ocfs2]
-[  685.240347]  [<ffffffffa069762b>] ocfs2_free_cached_blocks+0x16b/0x4e0 [ocfs2]
-[  685.240349]  [<ffffffff810e9131>] ? internal_add_timer+0x91/0xc0
-[  685.240356]  [<ffffffffa06981b0>] ocfs2_run_deallocs+0x70/0x270 [ocfs2]
-[  685.240363]  [<ffffffffa06a2894>] ocfs2_commit_truncate+0x474/0x6f0 [ocfs2]
-[  685.240374]  [<ffffffffa0744a40>] ? ocfs2_xattr_tree_et_ops+0x60/0xfffffffffffe8c00 [ocfs2]
-[  685.240384]  [<ffffffffa06d1960>] ? ocfs2_journal_access_eb+0x20/0x20 [ocfs2]
-[  685.240385]  [<ffffffff81202303>] ? __sb_end_write+0x33/0x70
-[  685.240394]  [<ffffffffa06ca57d>] ocfs2_truncate_for_delete+0xbd/0x380 [ocfs2]
-[  685.240402]  [<ffffffffa06ca1f4>] ? ocfs2_query_inode_wipe+0xf4/0x320 [ocfs2]
-[  685.240409]  [<ffffffffa06caed6>] ocfs2_wipe_inode+0x136/0x6a0 [ocfs2]
-[  685.240415]  [<ffffffffa06ca1f4>] ? ocfs2_query_inode_wipe+0xf4/0x320 [ocfs2]
-[  685.240422]  [<ffffffffa06cb6e2>] ocfs2_delete_inode+0x2a2/0x3e0 [ocfs2]
-[  685.240424]  [<ffffffff812298c9>] ? __inode_wait_for_writeback+0x69/0xc0
-[  685.240437]  [<ffffffffa0732100>] ? __PRETTY_FUNCTION__.112282+0x20/0xffffffffffffb500 [ocfs2]
-[  685.240444]  [<ffffffffa06cc1f8>] ocfs2_evict_inode+0x28/0x60 [ocfs2]
-[  685.240445]  [<ffffffff8121b81b>] evict+0xab/0x1a0
-[  685.240456]  [<ffffffffa0732100>] ? __PRETTY_FUNCTION__.112282+0x20/0xffffffffffffb500 [ocfs2]
-[  685.240457]  [<ffffffff8121ba06>] iput_final+0xf6/0x190
-[  685.240458]  [<ffffffff8121bb68>] iput+0xc8/0xe0
-[  685.240460]  [<ffffffff8120f9b7>] do_unlinkat+0x1b7/0x310
-[  685.240462]  [<ffffffff81126dbc>] ? __audit_syscall_entry+0xac/0x110
-[  685.240464]  [<ffffffff810236cc>] ? do_audit_syscall_entry+0x6c/0x70
-[  685.240465]  [<ffffffff81023823>] ? syscall_trace_enter_phase1+0x153/0x180
-[  685.240467]  [<ffffffff8120fd52>] SyS_unlinkat+0x22/0x40
-[  685.240468]  [<ffffffff816c122e>] system_call_fastpath+0x12/0x71
-[  685.240469] ---[ end trace a62437cb060baa71 ]---
-[  685.240470] JBD2: rm wants too many credits (149 > 128)
-
-Link: http://lkml.kernel.org/r/1473674623-11810-2-git-send-email-junxiao.bi@oracle.com
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   27 +++++++++------------------
- 1 file changed, 9 insertions(+), 18 deletions(-)
+ drivers/net/ethernet/cavium/thunder/nic_main.c           |    3 -
+ drivers/net/ethernet/mediatek/mtk_eth_soc.c              |   19 ----------
+ drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c |    3 -
+ drivers/net/ethernet/qlogic/qed/qed_dcbx.c               |   10 -----
+ drivers/net/phy/Kconfig                                  |    9 ----
+ 5 files changed, 44 deletions(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-fix-trans-extend-while-free-cached-blocks fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-fix-trans-extend-while-free-cached-blocks
-+++ a/fs/ocfs2/alloc.c
-@@ -6404,43 +6404,34 @@ static int ocfs2_free_cached_blocks(stru
- 		goto out_mutex;
+diff -puN drivers/net/ethernet/cavium/thunder/nic_main.c~linux-next-git-rejects drivers/net/ethernet/cavium/thunder/nic_main.c
+--- a/drivers/net/ethernet/cavium/thunder/nic_main.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/cavium/thunder/nic_main.c
+@@ -290,8 +290,6 @@ static void nic_set_tx_pkt_pad(struct ni
+ 	 */
+ 	if (size > 52)
+ 		size = 52;
+-<<<<<<< HEAD
+-=======
+ 
+ 	pci_read_config_word(nic->pdev, PCI_SUBSYSTEM_ID, &sdevid);
+ 	/* 81xx's RGX has only one LMAC */
+@@ -299,7 +297,6 @@ static void nic_set_tx_pkt_pad(struct ni
+ 		max_lmac = ((nic->hw->bgx_cnt - 1) * MAX_LMAC_PER_BGX) + 1;
+ 	else
+ 		max_lmac = nic->hw->bgx_cnt * MAX_LMAC_PER_BGX;
+->>>>>>> linux-next/akpm-base
+ 
+ 	for (lmac = 0; lmac < max_lmac; lmac++) {
+ 		lmac_cfg = nic_reg_read(nic, NIC_PF_LMAC_0_7_CFG | (lmac << 3));
+diff -puN drivers/net/ethernet/mediatek/mtk_eth_soc.c~linux-next-git-rejects drivers/net/ethernet/mediatek/mtk_eth_soc.c
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+@@ -1512,12 +1512,8 @@ static void mtk_uninit(struct net_device
+ 	struct mtk_eth *eth = mac->hw;
+ 
+ 	phy_disconnect(mac->phy_dev);
+-<<<<<<< HEAD
+-	mtk_irq_disable(eth, ~0);
+-=======
+ 	mtk_irq_disable(eth, MTK_QDMA_INT_MASK, ~0);
+ 	mtk_irq_disable(eth, MTK_PDMA_INT_MASK, ~0);
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static int mtk_do_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
+@@ -1913,7 +1909,6 @@ static int mtk_remove(struct platform_de
+ {
+ 	struct mtk_eth *eth = platform_get_drvdata(pdev);
+ 	int i;
+-<<<<<<< HEAD
+ 
+ 	/* stop all devices to make sure that dma is properly shut down */
+ 	for (i = 0; i < MTK_MAC_COUNT; i++) {
+@@ -1922,16 +1917,6 @@ static int mtk_remove(struct platform_de
+ 		mtk_stop(eth->netdev[i]);
  	}
  
--	handle = ocfs2_start_trans(osb, OCFS2_SUBALLOC_FREE);
--	if (IS_ERR(handle)) {
--		ret = PTR_ERR(handle);
--		mlog_errno(ret);
--		goto out_unlock;
+-=======
+-
+-	/* stop all devices to make sure that dma is properly shut down */
+-	for (i = 0; i < MTK_MAC_COUNT; i++) {
+-		if (!eth->netdev[i])
+-			continue;
+-		mtk_stop(eth->netdev[i]);
 -	}
 -
- 	while (head) {
- 		if (head->free_bg)
- 			bg_blkno = head->free_bg;
- 		else
- 			bg_blkno = ocfs2_which_suballoc_group(head->free_blk,
- 							      head->free_bit);
-+		handle = ocfs2_start_trans(osb, OCFS2_SUBALLOC_FREE);
-+		if (IS_ERR(handle)) {
-+			ret = PTR_ERR(handle);
-+			mlog_errno(ret);
-+			goto out_unlock;
-+		}
-+
- 		trace_ocfs2_free_cached_blocks(
- 		     (unsigned long long)head->free_blk, head->free_bit);
+->>>>>>> linux-next/akpm-base
+ 	clk_disable_unprepare(eth->clks[MTK_CLK_ETHIF]);
+ 	clk_disable_unprepare(eth->clks[MTK_CLK_ESW]);
+ 	clk_disable_unprepare(eth->clks[MTK_CLK_GP1]);
+@@ -1941,10 +1926,6 @@ static int mtk_remove(struct platform_de
+ 	netif_napi_del(&eth->rx_napi);
+ 	mtk_cleanup(eth);
+ 	mtk_mdio_cleanup(eth);
+-<<<<<<< HEAD
+-	platform_set_drvdata(pdev, NULL);
+-=======
+->>>>>>> linux-next/akpm-base
  
- 		ret = ocfs2_free_suballoc_bits(handle, inode, di_bh,
- 					       head->free_bit, bg_blkno, 1);
--		if (ret) {
-+		if (ret)
- 			mlog_errno(ret);
--			goto out_journal;
--		}
+ 	return 0;
+ }
+diff -puN drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c~linux-next-git-rejects drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c
+--- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c
+@@ -252,8 +252,6 @@ int mlxsw_sp_vport_flood_set(struct mlxs
+ 	 */
+ 	vfid = mlxsw_sp_fid_to_vfid(fid);
+ 	return __mlxsw_sp_port_flood_set(mlxsw_sp_vport, vfid, vfid, set, set);
+-<<<<<<< HEAD
+-=======
+ }
  
--		ret = ocfs2_extend_trans(handle, OCFS2_SUBALLOC_FREE);
--		if (ret) {
--			mlog_errno(ret);
--			goto out_journal;
--		}
-+		ocfs2_commit_trans(osb, handle);
+ static int mlxsw_sp_port_learning_set(struct mlxsw_sp_port *mlxsw_sp_port,
+@@ -282,7 +280,6 @@ err_port_vid_learning_set:
+ 	for_each_set_bit(vid, mlxsw_sp_port->active_vlans, VLAN_N_VID)
+ 		__mlxsw_sp_port_vid_learning_set(mlxsw_sp_port, vid, vid, !set);
+ 	return err;
+->>>>>>> linux-next/akpm-base
+ }
  
- 		tmp = head;
- 		head = head->free_next;
- 		kfree(tmp);
+ static int mlxsw_sp_port_attr_br_flags_set(struct mlxsw_sp_port *mlxsw_sp_port,
+diff -puN drivers/net/ethernet/qlogic/qed/qed_dcbx.c~linux-next-git-rejects drivers/net/ethernet/qlogic/qed/qed_dcbx.c
+--- a/drivers/net/ethernet/qlogic/qed/qed_dcbx.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/qlogic/qed/qed_dcbx.c
+@@ -1187,12 +1187,7 @@ int qed_dcbx_get_config_params(struct qe
  	}
  
--out_journal:
--	ocfs2_commit_trans(osb, handle);
+ 	dcbx_info = kzalloc(sizeof(*dcbx_info), GFP_KERNEL);
+-<<<<<<< HEAD
+-	if (!dcbx_info) {
+-		DP_ERR(p_hwfn, "Failed to allocate struct qed_dcbx_info\n");
+-=======
+ 	if (!dcbx_info)
+->>>>>>> linux-next/akpm-base
+ 		return -ENOMEM;
+ 
+ 	rc = qed_dcbx_query_params(p_hwfn, dcbx_info, QED_DCBX_OPERATIONAL_MIB);
+@@ -1227,12 +1222,7 @@ static struct qed_dcbx_get *qed_dcbnl_ge
+ 	struct qed_dcbx_get *dcbx_info;
+ 
+ 	dcbx_info = kzalloc(sizeof(*dcbx_info), GFP_KERNEL);
+-<<<<<<< HEAD
+-	if (!dcbx_info) {
+-		DP_ERR(hwfn->cdev, "Failed to allocate memory for dcbx_info\n");
+-=======
+ 	if (!dcbx_info)
+->>>>>>> linux-next/akpm-base
+ 		return NULL;
+ 
+ 	if (qed_dcbx_query_params(hwfn, dcbx_info, type)) {
+diff -puN drivers/net/phy/Kconfig~linux-next-git-rejects drivers/net/phy/Kconfig
+--- a/drivers/net/phy/Kconfig~linux-next-git-rejects
++++ a/drivers/net/phy/Kconfig
+@@ -309,14 +309,6 @@ config TERANETICS_PHY
+         ---help---
+           Currently supports the Teranetics TN2020
+ 
+-<<<<<<< HEAD
+-config MDIO_XGENE
+-	tristate "APM X-Gene SoC MDIO bus controller"
+-	depends on ARCH_XGENE || COMPILE_TEST
+-	help
+-	  This module provides a driver for the MDIO busses found in the
+-	  APM X-Gene SoC's.
+-=======
+ config VITESSE_PHY
+         tristate "Vitesse PHYs"
+         ---help---
+@@ -328,7 +320,6 @@ config XILINX_GMII2RGMII
+          This driver support xilinx GMII to RGMII IP core it provides
+          the Reduced Gigabit Media Independent Interface(RGMII) between
+          Ethernet physical media devices and the Gigabit Ethernet controller.
+->>>>>>> linux-next/akpm-base
+ 
+ endif # PHYLIB
+ 
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+drivers-rapidio-rio_cmc-avoid-gfp_kernel-in-atomic-context.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-vmalloc-fix-align-value-calculation-error-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
+mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
+fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
+ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
