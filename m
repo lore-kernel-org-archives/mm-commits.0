@@ -1,213 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 13 Sep 2016 13:33:58 -0700
-Message-ID: <57d862b6.YPCX8Ub32kZiAkoy%akpm@linux-foundation.org>
+Subject: + fanotify-fix-list-corruption-in-fanotify_get_response.patch
+ added to -mm tree
+Date: Tue, 13 Sep 2016 13:59:52 -0700
+Message-ID: <57d868c8.Cfg9O/3F4uyE3XSa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33859 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34482 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755810AbcIMUd7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2016 16:33:59 -0400
+        with ESMTP id S1755344AbcIMU7y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2016 16:59:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, mszeredi@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: fanotify: fix list corruption in fanotify_get_response()
+has been added to the -mm tree.  Its filename is
+     fanotify-fix-list-corruption-in-fanotify_get_response.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/fanotify-fix-list-corruption-in-fanotify_get_response.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/fanotify-fix-list-corruption-in-fanotify_get_response.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Jan Kara <jack@suse.cz>
+Subject: fanotify: fix list corruption in fanotify_get_response()
 
+fanotify_get_response() calls fsnotify_remove_event() when it finds that
+group is being released from fanotify_release() (bypass_perm is set). 
+However the event it removes need not be only in the group's notification
+queue but it can have already moved to access_list (userspace read the
+event before closing the fanotify instance fd) which is protected by a
+different lock.  Thus when fsnotify_remove_event() races with
+fanotify_release() operating on access_list, the list can get corrupted.
+
+Fix the problem by moving all the logic removing permission events from
+the lists to one place - fanotify_release().
+
+Fixes: 5838d4442bd5971687b72221736222637e03140d
+Link: http://lkml.kernel.org/r/1473797711-14111-3-git-send-email-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Miklos Szeredi <mszeredi@redhat.com>
+Tested-by: Miklos Szeredi <mszeredi@redhat.com>
+Reviewed-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/cavium/thunder/nic_main.c           |    3 -
- drivers/net/ethernet/mediatek/mtk_eth_soc.c              |   19 ----------
- drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c |    3 -
- drivers/net/ethernet/qlogic/qed/qed_dcbx.c               |   10 -----
- drivers/net/phy/Kconfig                                  |    9 ----
- 5 files changed, 44 deletions(-)
+ fs/notify/fanotify/fanotify.c      |   13 ---------
+ fs/notify/fanotify/fanotify_user.c |   36 ++++++++++++++++++---------
+ fs/notify/notification.c           |   15 -----------
+ include/linux/fsnotify_backend.h   |    3 --
+ 4 files changed, 25 insertions(+), 42 deletions(-)
 
-diff -puN drivers/net/ethernet/cavium/thunder/nic_main.c~linux-next-git-rejects drivers/net/ethernet/cavium/thunder/nic_main.c
---- a/drivers/net/ethernet/cavium/thunder/nic_main.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/cavium/thunder/nic_main.c
-@@ -290,8 +290,6 @@ static void nic_set_tx_pkt_pad(struct ni
- 	 */
- 	if (size > 52)
- 		size = 52;
--<<<<<<< HEAD
--=======
+diff -puN fs/notify/fanotify/fanotify.c~fanotify-fix-list-corruption-in-fanotify_get_response fs/notify/fanotify/fanotify.c
+--- a/fs/notify/fanotify/fanotify.c~fanotify-fix-list-corruption-in-fanotify_get_response
++++ a/fs/notify/fanotify/fanotify.c
+@@ -67,18 +67,7 @@ static int fanotify_get_response(struct
  
- 	pci_read_config_word(nic->pdev, PCI_SUBSYSTEM_ID, &sdevid);
- 	/* 81xx's RGX has only one LMAC */
-@@ -299,7 +297,6 @@ static void nic_set_tx_pkt_pad(struct ni
- 		max_lmac = ((nic->hw->bgx_cnt - 1) * MAX_LMAC_PER_BGX) + 1;
- 	else
- 		max_lmac = nic->hw->bgx_cnt * MAX_LMAC_PER_BGX;
-->>>>>>> linux-next/akpm-base
+ 	pr_debug("%s: group=%p event=%p\n", __func__, group, event);
  
- 	for (lmac = 0; lmac < max_lmac; lmac++) {
- 		lmac_cfg = nic_reg_read(nic, NIC_PF_LMAC_0_7_CFG | (lmac << 3));
-diff -puN drivers/net/ethernet/mediatek/mtk_eth_soc.c~linux-next-git-rejects drivers/net/ethernet/mediatek/mtk_eth_soc.c
---- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
-@@ -1512,12 +1512,8 @@ static void mtk_uninit(struct net_device
- 	struct mtk_eth *eth = mac->hw;
- 
- 	phy_disconnect(mac->phy_dev);
--<<<<<<< HEAD
--	mtk_irq_disable(eth, ~0);
--=======
- 	mtk_irq_disable(eth, MTK_QDMA_INT_MASK, ~0);
- 	mtk_irq_disable(eth, MTK_PDMA_INT_MASK, ~0);
-->>>>>>> linux-next/akpm-base
- }
- 
- static int mtk_do_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
-@@ -1913,7 +1909,6 @@ static int mtk_remove(struct platform_de
- {
- 	struct mtk_eth *eth = platform_get_drvdata(pdev);
- 	int i;
--<<<<<<< HEAD
- 
- 	/* stop all devices to make sure that dma is properly shut down */
- 	for (i = 0; i < MTK_MAC_COUNT; i++) {
-@@ -1922,16 +1917,6 @@ static int mtk_remove(struct platform_de
- 		mtk_stop(eth->netdev[i]);
- 	}
- 
--=======
+-	wait_event(group->fanotify_data.access_waitq, event->response ||
+-				atomic_read(&group->fanotify_data.bypass_perm));
 -
--	/* stop all devices to make sure that dma is properly shut down */
--	for (i = 0; i < MTK_MAC_COUNT; i++) {
--		if (!eth->netdev[i])
--			continue;
--		mtk_stop(eth->netdev[i]);
+-	if (!event->response) {	/* bypass_perm set */
+-		/*
+-		 * Event was canceled because group is being destroyed. Remove
+-		 * it from group's event list because we are responsible for
+-		 * freeing the permission event.
+-		 */
+-		fsnotify_remove_event(group, &event->fae.fse);
+-		return 0;
 -	}
--
-->>>>>>> linux-next/akpm-base
- 	clk_disable_unprepare(eth->clks[MTK_CLK_ETHIF]);
- 	clk_disable_unprepare(eth->clks[MTK_CLK_ESW]);
- 	clk_disable_unprepare(eth->clks[MTK_CLK_GP1]);
-@@ -1941,10 +1926,6 @@ static int mtk_remove(struct platform_de
- 	netif_napi_del(&eth->rx_napi);
- 	mtk_cleanup(eth);
- 	mtk_mdio_cleanup(eth);
--<<<<<<< HEAD
--	platform_set_drvdata(pdev, NULL);
--=======
-->>>>>>> linux-next/akpm-base
++	wait_event(group->fanotify_data.access_waitq, event->response);
  
- 	return 0;
- }
-diff -puN drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c~linux-next-git-rejects drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c
---- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c
-@@ -252,8 +252,6 @@ int mlxsw_sp_vport_flood_set(struct mlxs
+ 	/* userspace responded, convert to something usable */
+ 	switch (event->response) {
+diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-fix-list-corruption-in-fanotify_get_response fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fanotify-fix-list-corruption-in-fanotify_get_response
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -358,16 +358,20 @@ static int fanotify_release(struct inode
+ 
+ #ifdef CONFIG_FANOTIFY_ACCESS_PERMISSIONS
+ 	struct fanotify_perm_event_info *event, *next;
++	struct fsnotify_event *fsn_event;
+ 
+ 	/*
+-	 * There may be still new events arriving in the notification queue
+-	 * but since userspace cannot use fanotify fd anymore, no event can
+-	 * enter or leave access_list by now.
++	 * Stop new events from arriving in the notification queue. since
++	 * userspace cannot use fanotify fd anymore, no event can enter or
++	 * leave access_list by now either.
  	 */
- 	vfid = mlxsw_sp_fid_to_vfid(fid);
- 	return __mlxsw_sp_port_flood_set(mlxsw_sp_vport, vfid, vfid, set, set);
--<<<<<<< HEAD
--=======
+-	spin_lock(&group->fanotify_data.access_lock);
+-
+-	atomic_inc(&group->fanotify_data.bypass_perm);
++	fsnotify_group_stop_queueing(group);
+ 
++	/*
++	 * Process all permission events on access_list and notification queue
++	 * and simulate reply from userspace.
++	 */
++	spin_lock(&group->fanotify_data.access_lock);
+ 	list_for_each_entry_safe(event, next, &group->fanotify_data.access_list,
+ 				 fae.fse.list) {
+ 		pr_debug("%s: found group=%p event=%p\n", __func__, group,
+@@ -379,12 +383,21 @@ static int fanotify_release(struct inode
+ 	spin_unlock(&group->fanotify_data.access_lock);
+ 
+ 	/*
+-	 * Since bypass_perm is set, newly queued events will not wait for
+-	 * access response. Wake up the already sleeping ones now.
+-	 * synchronize_srcu() in fsnotify_destroy_group() will wait for all
+-	 * processes sleeping in fanotify_handle_event() waiting for access
+-	 * response and thus also for all permission events to be freed.
++	 * Destroy all non-permission events. For permission events just
++	 * dequeue them and set the response. They will be freed once the
++	 * response is consumed and fanotify_get_response() returns.
+ 	 */
++	mutex_lock(&group->notification_mutex);
++	while (!fsnotify_notify_queue_is_empty(group)) {
++		fsn_event = fsnotify_remove_first_event(group);
++		if (!(fsn_event->mask & FAN_ALL_PERM_EVENTS))
++			fsnotify_destroy_event(group, fsn_event);
++		else
++			FANOTIFY_PE(fsn_event)->response = FAN_ALLOW;
++	}
++	mutex_unlock(&group->notification_mutex);
++
++	/* Response for all permission events it set, wakeup waiters */
+ 	wake_up(&group->fanotify_data.access_waitq);
+ #endif
+ 
+@@ -755,7 +768,6 @@ SYSCALL_DEFINE2(fanotify_init, unsigned
+ 	spin_lock_init(&group->fanotify_data.access_lock);
+ 	init_waitqueue_head(&group->fanotify_data.access_waitq);
+ 	INIT_LIST_HEAD(&group->fanotify_data.access_list);
+-	atomic_set(&group->fanotify_data.bypass_perm, 0);
+ #endif
+ 	switch (flags & FAN_ALL_CLASS_BITS) {
+ 	case FAN_CLASS_NOTIF:
+diff -puN fs/notify/notification.c~fanotify-fix-list-corruption-in-fanotify_get_response fs/notify/notification.c
+--- a/fs/notify/notification.c~fanotify-fix-list-corruption-in-fanotify_get_response
++++ a/fs/notify/notification.c
+@@ -132,21 +132,6 @@ queue:
  }
  
- static int mlxsw_sp_port_learning_set(struct mlxsw_sp_port *mlxsw_sp_port,
-@@ -282,7 +280,6 @@ err_port_vid_learning_set:
- 	for_each_set_bit(vid, mlxsw_sp_port->active_vlans, VLAN_N_VID)
- 		__mlxsw_sp_port_vid_learning_set(mlxsw_sp_port, vid, vid, !set);
- 	return err;
-->>>>>>> linux-next/akpm-base
- }
- 
- static int mlxsw_sp_port_attr_br_flags_set(struct mlxsw_sp_port *mlxsw_sp_port,
-diff -puN drivers/net/ethernet/qlogic/qed/qed_dcbx.c~linux-next-git-rejects drivers/net/ethernet/qlogic/qed/qed_dcbx.c
---- a/drivers/net/ethernet/qlogic/qed/qed_dcbx.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/qlogic/qed/qed_dcbx.c
-@@ -1187,12 +1187,7 @@ int qed_dcbx_get_config_params(struct qe
- 	}
- 
- 	dcbx_info = kzalloc(sizeof(*dcbx_info), GFP_KERNEL);
--<<<<<<< HEAD
--	if (!dcbx_info) {
--		DP_ERR(p_hwfn, "Failed to allocate struct qed_dcbx_info\n");
--=======
- 	if (!dcbx_info)
-->>>>>>> linux-next/akpm-base
- 		return -ENOMEM;
- 
- 	rc = qed_dcbx_query_params(p_hwfn, dcbx_info, QED_DCBX_OPERATIONAL_MIB);
-@@ -1227,12 +1222,7 @@ static struct qed_dcbx_get *qed_dcbnl_ge
- 	struct qed_dcbx_get *dcbx_info;
- 
- 	dcbx_info = kzalloc(sizeof(*dcbx_info), GFP_KERNEL);
--<<<<<<< HEAD
--	if (!dcbx_info) {
--		DP_ERR(hwfn->cdev, "Failed to allocate memory for dcbx_info\n");
--=======
- 	if (!dcbx_info)
-->>>>>>> linux-next/akpm-base
- 		return NULL;
- 
- 	if (qed_dcbx_query_params(hwfn, dcbx_info, type)) {
-diff -puN drivers/net/phy/Kconfig~linux-next-git-rejects drivers/net/phy/Kconfig
---- a/drivers/net/phy/Kconfig~linux-next-git-rejects
-+++ a/drivers/net/phy/Kconfig
-@@ -309,14 +309,6 @@ config TERANETICS_PHY
-         ---help---
-           Currently supports the Teranetics TN2020
- 
--<<<<<<< HEAD
--config MDIO_XGENE
--	tristate "APM X-Gene SoC MDIO bus controller"
--	depends on ARCH_XGENE || COMPILE_TEST
--	help
--	  This module provides a driver for the MDIO busses found in the
--	  APM X-Gene SoC's.
--=======
- config VITESSE_PHY
-         tristate "Vitesse PHYs"
-         ---help---
-@@ -328,7 +320,6 @@ config XILINX_GMII2RGMII
-          This driver support xilinx GMII to RGMII IP core it provides
-          the Reduced Gigabit Media Independent Interface(RGMII) between
-          Ethernet physical media devices and the Gigabit Ethernet controller.
-->>>>>>> linux-next/akpm-base
- 
- endif # PHYLIB
- 
+ /*
+- * Remove @event from group's notification queue. It is the responsibility of
+- * the caller to destroy the event.
+- */
+-void fsnotify_remove_event(struct fsnotify_group *group,
+-			   struct fsnotify_event *event)
+-{
+-	mutex_lock(&group->notification_mutex);
+-	if (!list_empty(&event->list)) {
+-		list_del_init(&event->list);
+-		group->q_len--;
+-	}
+-	mutex_unlock(&group->notification_mutex);
+-}
+-
+-/*
+  * Remove and return the first event from the notification list.  It is the
+  * responsibility of the caller to destroy the obtained event
+  */
+diff -puN include/linux/fsnotify_backend.h~fanotify-fix-list-corruption-in-fanotify_get_response include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~fanotify-fix-list-corruption-in-fanotify_get_response
++++ a/include/linux/fsnotify_backend.h
+@@ -180,7 +180,6 @@ struct fsnotify_group {
+ 			spinlock_t access_lock;
+ 			struct list_head access_list;
+ 			wait_queue_head_t access_waitq;
+-			atomic_t bypass_perm;
+ #endif /* CONFIG_FANOTIFY_ACCESS_PERMISSIONS */
+ 			int f_flags;
+ 			unsigned int max_marks;
+@@ -307,8 +306,6 @@ extern int fsnotify_add_event(struct fsn
+ 			      struct fsnotify_event *event,
+ 			      int (*merge)(struct list_head *,
+ 					   struct fsnotify_event *));
+-/* Remove passed event from groups notification queue */
+-extern void fsnotify_remove_event(struct fsnotify_group *group, struct fsnotify_event *event);
+ /* true if the group notification queue is empty */
+ extern bool fsnotify_notify_queue_is_empty(struct fsnotify_group *group);
+ /* return, but do not dequeue the first event on the notification queue */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-drivers-rapidio-rio_cmc-avoid-gfp_kernel-in-atomic-context.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-vmalloc-fix-align-value-calculation-error-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
-mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
-mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
-mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
-fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
-relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
-ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-mlx5-deviceh-kill-build_bug_ons.patch
-hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown.patch
+fanotify-fix-list-corruption-in-fanotify_get_response.patch
 
