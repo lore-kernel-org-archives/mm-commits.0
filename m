@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh.patch added to -mm tree
-Date: Tue, 13 Sep 2016 14:21:16 -0700
-Message-ID: <57d86dcc./VhRPiiNwatl7Dko%akpm@linux-foundation.org>
+Subject: + checkpatch-add-strict-test-for-macro-argument-reuse.patch added to -mm tree
+Date: Tue, 13 Sep 2016 14:52:41 -0700
+Message-ID: <57d87529.EimjPbHWlPtkVrdx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35178 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751488AbcIMVVR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2016 17:21:17 -0400
+        with ESMTP id S1754521AbcIMVw4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 13 Sep 2016 17:52:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: baoyou.xie@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, dan.carpenter@oracle.com, julia.lawall@lip6.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move phys_mem_access_prot_allowed() declaration to pgtable.h
+     Subject: checkpatch: add --strict test for macro argument reuse
 has been added to the -mm tree.  Its filename is
-     mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh.patch
+     checkpatch-add-strict-test-for-macro-argument-reuse.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-strict-test-for-macro-argument-reuse.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-strict-test-for-macro-argument-reuse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +38,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Baoyou Xie <baoyou.xie@linaro.org>
-Subject: mm: move phys_mem_access_prot_allowed() declaration to pgtable.h
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add --strict test for macro argument reuse
 
-We get 1 warning when building kernel with W=1:
-drivers/char/mem.c:220:12: warning: no previous prototype for 'phys_mem_access_prot_allowed' [-Wmissing-prototypes]
- int __weak phys_mem_access_prot_allowed(struct file *file,
+If a macro argument is used multiple times in the macro definition, the
+macro argument may have an unexpected side-effect.
 
-In fact, its declaration is spreading to several header files in different
-architecture, but need to be declare in common header file.
+Add a test (MACRO_ARG_REUSE) for that condition which is only
+emitted with command-line option --strict.
 
-So this patch moves phys_mem_access_prot_allowed() to pgtable.h.
-
-Link: http://lkml.kernel.org/r/1473751597-12139-1-git-send-email-baoyou.xie@linaro.org
-Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Link: http://lkml.kernel.org/r/b6d67a87cafcafd15499e91780dc63b15dec0aa0.1473744906.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgtable.h      |    2 --
- arch/x86/include/asm/pgtable_types.h |    2 --
- include/asm-generic/pgtable.h        |    3 +++
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |   43 ++++++++++++++++++++++++++++++++--------
+ 1 file changed, 35 insertions(+), 8 deletions(-)
 
-diff -puN arch/mips/include/asm/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh arch/mips/include/asm/pgtable.h
---- a/arch/mips/include/asm/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -673,8 +673,6 @@ static inline pmd_t pmdp_huge_get_and_cl
- struct file;
- pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
- 		unsigned long size, pgprot_t vma_prot);
--int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
--		unsigned long size, pgprot_t *vma_prot);
- #endif
+diff -puN scripts/checkpatch.pl~checkpatch-add-strict-test-for-macro-argument-reuse scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-strict-test-for-macro-argument-reuse
++++ a/scripts/checkpatch.pl
+@@ -4753,7 +4753,17 @@ sub process {
+ 			$has_flow_statement = 1 if ($ctx =~ /\b(goto|return)\b/);
+ 			$has_arg_concat = 1 if ($ctx =~ /\#\#/ && $ctx !~ /\#\#\s*(?:__VA_ARGS__|args)\b/);
  
- /*
-diff -puN arch/x86/include/asm/pgtable_types.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh arch/x86/include/asm/pgtable_types.h
---- a/arch/x86/include/asm/pgtable_types.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -439,8 +439,6 @@ extern pgprot_t pgprot_writethrough(pgpr
- struct file;
- pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
-                               unsigned long size, pgprot_t vma_prot);
--int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
--                              unsigned long size, pgprot_t *vma_prot);
+-			$dstat =~ s/^.\s*\#\s*define\s+$Ident(?:\([^\)]*\))?\s*//;
++			$dstat =~ s/^.\s*\#\s*define\s+$Ident(\([^\)]*\))?\s*//;
++			my $define_args = $1;
++			my $define_stmt = $dstat;
++			my @def_args = ();
++
++			if (defined $define_args && $define_args ne "") {
++				$define_args = substr($define_args, 1, length($define_args) - 2);
++				$define_args =~ s/\s*//g;
++				@def_args = split(",", $define_args);
++			}
++
+ 			$dstat =~ s/$;//g;
+ 			$dstat =~ s/\\\n.//g;
+ 			$dstat =~ s/^\s*//s;
+@@ -4789,6 +4799,15 @@ sub process {
+ 				^\[
+ 			}x;
+ 			#print "REST<$rest> dstat<$dstat> ctx<$ctx>\n";
++
++			$ctx =~ s/\n*$//;
++			my $herectx = $here . "\n";
++			my $stmt_cnt = statement_rawlines($ctx);
++
++			for (my $n = 0; $n < $stmt_cnt; $n++) {
++				$herectx .= raw_line($linenr, $n) . "\n";
++			}
++
+ 			if ($dstat ne '' &&
+ 			    $dstat !~ /^(?:$Ident|-?$Constant),$/ &&			# 10, // foo(),
+ 			    $dstat !~ /^(?:$Ident|-?$Constant);$/ &&			# foo();
+@@ -4804,13 +4823,6 @@ sub process {
+ 			    $dstat !~ /^\(\{/ &&						# ({...
+ 			    $ctx !~ /^.\s*#\s*define\s+TRACE_(?:SYSTEM|INCLUDE_FILE|INCLUDE_PATH)\b/)
+ 			{
+-				$ctx =~ s/\n*$//;
+-				my $herectx = $here . "\n";
+-				my $cnt = statement_rawlines($ctx);
+-
+-				for (my $n = 0; $n < $cnt; $n++) {
+-					$herectx .= raw_line($linenr, $n) . "\n";
+-				}
  
- /* Install a pte for a particular vaddr in kernel space. */
- void set_pte_vaddr(unsigned long vaddr, pte_t pte);
-diff -puN include/asm-generic/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh
-+++ a/include/asm-generic/pgtable.h
-@@ -800,6 +800,9 @@ static inline int pmd_clear_huge(pmd_t *
- #endif
- #endif
+ 				if ($dstat =~ /;/) {
+ 					ERROR("MULTISTATEMENT_MACRO_USE_DO_WHILE",
+@@ -4819,6 +4831,21 @@ sub process {
+ 					ERROR("COMPLEX_MACRO",
+ 					      "Macros with complex values should be enclosed in parentheses\n" . "$herectx");
+ 				}
++
++			}
++# check if any macro arguments are reused (ignore '...' and 'type')
++			foreach my $arg (@def_args) {
++			        next if ($arg =~ /\.\.\./);
++			        next if ($arg =~ /^type$/);
++				my $tmp = $define_stmt;
++				$tmp =~ s/\b(typeof|__typeof__|__builtin\w+|typecheck\s*\(\s*$Type\s*,|\#+)\s*\(*\s*$arg\s*\)*\b//g;
++				$tmp =~ s/\#\s*$arg\b//g;
++				$tmp =~ s/\b$arg\s*\#\#//g;
++				my $use_cnt = $tmp =~ s/\b$arg\b//g;
++				if ($use_cnt > 1) {
++					CHK("MACRO_ARG_REUSE",
++					    "Macro argument reuse '$arg' - possible side-effects?\n" . "$herectx");
++				}
+ 			}
  
-+struct file;
-+int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
-+			unsigned long size, pgprot_t *vma_prot);
- #endif /* !__ASSEMBLY__ */
- 
- #ifndef io_remap_pfn_range
+ # check for macros with flow control, but without ## concatenation
 _
 
-Patches currently in -mm which might be from baoyou.xie@linaro.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
+meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
+spellingtxt-modeled-is-spelt-correctly.patch
+checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
+checkpatch-test-multiple-line-block-comment-alignment.patch
+checkpatch-dont-test-for-prefer-ether_addr_foo.patch
+checkpatch-externalize-the-structs-that-should-be-const.patch
+const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
+checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
+checkpatch-improve-the-block-comment-alignment-test.patch
+checkpatch-add-strict-test-for-macro-argument-reuse.patch
+checkpatch-add-strict-test-for-precedence-challenged-macro-arguments.patch
 
