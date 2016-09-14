@@ -1,135 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- drivers-rapidio-rio_cmc-avoid-gfp_kernel-in-atomic-context.patch removed
- from -mm tree
-Date: Wed, 14 Sep 2016 13:03:37 -0700
-Message-ID: <57d9ad19.MvtWDagyyeWM2Ryo%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log.patch added
+ to -mm tree
+Date: Wed, 14 Sep 2016 13:36:24 -0700
+Message-ID: <57d9b4c8.Em1mornjAsjZ5EXl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40591 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40998 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933195AbcINUDn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2016 16:03:43 -0400
+        with ESMTP id S1764941AbcINUgZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2016 16:36:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alexandre.bounine@idt.com, khoroshilov@ispras.ru, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rapidio/rio_cm.c: avoid GFP_KERNEL in atomic context
-has been removed from the -mm tree.  Its filename was
-     drivers-rapidio-rio_cmc-avoid-gfp_kernel-in-atomic-context.patch
+     Subject: ocfs2: fix double unlock in case retry after free truncate log
+has been added to the -mm tree.  Its filename is
+     ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/rapidio/rio_cm.c: avoid GFP_KERNEL in atomic context
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix double unlock in case retry after free truncate log
 
-riocm_send_close() is called from rio_cm_shutdown() under
-spin_lock_bh(idr_lock), but riocm_send_close() uses a GFP_KERNEL
-allocation.
+If ocfs2_reserve_cluster_bitmap_bits fails with ENOSPC, it will try to
+free truncate log and then retry.  Since ocfs2_try_to_free_truncate_log
+will lock/unlock global bitmap inode, we have to unlock it before calling
+this function.  But when retry reserve and it fails with no global bitmap
+inode lock taken, it will unlock again in error handling branch and BUG.
 
-Fix this by making local `hdr' a local variable rather than obtaining it
-via kmalloc().
+This issue also exists if no need retry and then ocfs2_inode_lock fails.
+So fix it.
 
-Found by Linux Driver Verification project (linuxtesting.org).
-
-Link: http://lkml.kernel.org/r/1473453815-15914-1-git-send-email-khoroshilov@ispras.ru
-Reported-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+Fixes: 2070ad1aebff ("ocfs2: retry on ENOSPC if sufficient space in
+truncate log"
+Link: http://lkml.kernel.org/r/57D91939.6030809@huawei.com
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio_cm.c |   38 ++++++++++++++++---------------------
- 1 file changed, 17 insertions(+), 21 deletions(-)
+ fs/ocfs2/suballoc.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rapidio/rio_cm.c~drivers-rapidio-rio_cmc-avoid-gfp_kernel-in-atomic-context drivers/rapidio/rio_cm.c
---- a/drivers/rapidio/rio_cm.c~drivers-rapidio-rio_cmc-avoid-gfp_kernel-in-atomic-context
-+++ a/drivers/rapidio/rio_cm.c
-@@ -1395,38 +1395,34 @@ static void riocm_ch_free(struct kref *r
- 	complete(&ch->comp_close);
- }
+diff -puN fs/ocfs2/suballoc.c~ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log
++++ a/fs/ocfs2/suballoc.c
+@@ -1199,14 +1199,24 @@ retry:
+ 			inode_unlock((*ac)->ac_inode);
  
-+/*
-+ * Send CH_CLOSE notification to the remote RapidIO device
-+ */
- static int riocm_send_close(struct rio_channel *ch)
- {
--	struct rio_ch_chan_hdr *hdr;
- 	int ret;
--
--	/*
--	 * Send CH_CLOSE notification to the remote RapidIO device
--	 */
--
--	hdr = kzalloc(sizeof(*hdr), GFP_KERNEL);
--	if (hdr == NULL)
--		return -ENOMEM;
--
--	hdr->bhdr.src_id = htonl(ch->loc_destid);
--	hdr->bhdr.dst_id = htonl(ch->rem_destid);
--	hdr->bhdr.src_mbox = cmbox;
--	hdr->bhdr.dst_mbox = cmbox;
--	hdr->bhdr.type = RIO_CM_CHAN;
--	hdr->ch_op = CM_CONN_CLOSE;
--	hdr->dst_ch = htons(ch->rem_channel);
--	hdr->src_ch = htons(ch->id);
-+	struct rio_ch_chan_hdr hdr = {
-+		.bhdr = {
-+			.src_id = htonl(ch->loc_destid),
-+			.dst_id = htonl(ch->rem_destid),
-+			.src_mbox = cmbox,
-+			.dst_mbox = cmbox,
-+			.type = RIO_CM_CHAN,
-+		},
-+		.ch_op = CM_CONN_CLOSE,
-+		.dst_ch = htons(ch->rem_channel),
-+		.src_ch = htons(ch->id),
-+	};
+ 			ret = ocfs2_try_to_free_truncate_log(osb, bits_wanted);
+-			if (ret == 1)
++			if (ret == 1) {
++				iput((*ac)->ac_inode);
++				(*ac)->ac_inode = NULL;
+ 				goto retry;
++			}
  
- 	/* ATTN: the function call below relies on the fact that underlying
- 	 * add_outb_message() routine copies TX data into its internal transfer
- 	 * buffer. Needs to be reviewed if switched to direct buffer mode.
- 	 */
--	ret = riocm_post_send(ch->cmdev, ch->rdev, hdr, sizeof(*hdr));
-+	ret = riocm_post_send(ch->cmdev, ch->rdev, &hdr, sizeof(hdr));
+ 			if (ret < 0)
+ 				mlog_errno(ret);
  
- 	if (ret == -EBUSY && !riocm_queue_req(ch->cmdev, ch->rdev,
--					      hdr, sizeof(*hdr)))
-+					      &hdr, sizeof(hdr)))
- 		return 0;
--	kfree(hdr);
- 
- 	if (ret)
- 		riocm_error("ch(%d) send CLOSE failed (ret=%d)", ch->id, ret);
+ 			inode_lock((*ac)->ac_inode);
+-			ocfs2_inode_lock((*ac)->ac_inode, NULL, 1);
++			ret = ocfs2_inode_lock((*ac)->ac_inode, NULL, 1);
++			if (ret < 0) {
++				mlog_errno(ret);
++				inode_unlock((*ac)->ac_inode);
++				iput((*ac)->ac_inode);
++				(*ac)->ac_inode = NULL;
++				goto bail;
++			}
+ 		}
+ 		if (status < 0) {
+ 			if (status != -ENOSPC)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-vmalloc-fix-align-value-calculation-error-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
-mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
-mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
-mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
-fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
-lib-bitmapc-enhance-bitmap-syntax-fix.patch
-relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
-ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-mlx5-deviceh-kill-build_bug_ons.patch
-hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+ocfs2-dlm-fix-race-between-convert-and-migration.patch
+ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log.patch
 
