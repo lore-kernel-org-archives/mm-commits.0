@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes.patch
+Subject: + mm-memcontrol-consolidate-cgroup-socket-tracking-fix.patch
  added to -mm tree
-Date: Wed, 14 Sep 2016 13:42:58 -0700
-Message-ID: <57d9b652.8I1eteXdVxTM516k%akpm@linux-foundation.org>
+Date: Wed, 14 Sep 2016 15:17:58 -0700
+Message-ID: <57d9cc96.mxcnXXh2KOgsUIzv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42912 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756664AbcINUm7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2016 16:42:59 -0400
+        with ESMTP id S1762184AbcINWSA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 14 Sep 2016 18:18:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, hannes@cmpxchg.org, lkp@intel.com, mhocko@suse.cz, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes
+     Subject: mm-memcontrol-consolidate-cgroup-socket-tracking-fix
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes.patch
+     mm-memcontrol-consolidate-cgroup-socket-tracking-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-consolidate-cgroup-socket-tracking-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-consolidate-cgroup-socket-tracking-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,47 +40,69 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes
+Subject: mm-memcontrol-consolidate-cgroup-socket-tracking-fix
 
-WARNING: line over 80 characters
-#49: FILE: mm/memcontrol.c:2942:
-+		 * function is the last one to run. See mem_cgroup_sk_alloc() for
+fix CONFIG_MEMCG=n build
 
-total: 0 errors, 1 warnings, 0 checks, 105 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-memcontrol-consolidate-cgroup-socket-tracking.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    3 ---
+ net/core/sock.c |    9 ++++++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes
+diff -puN mm/memcontrol.c~mm-memcontrol-consolidate-cgroup-socket-tracking-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-consolidate-cgroup-socket-tracking-fix
 +++ a/mm/memcontrol.c
-@@ -2939,9 +2939,9 @@ static int memcg_update_tcp_limit(struct
+@@ -5655,9 +5655,6 @@ void mem_cgroup_sk_alloc(struct sock *sk
+ {
+ 	struct mem_cgroup *memcg;
+ 
+-	if (!mem_cgroup_sockets_enabled)
+-		return;
+-
+ 	/*
+ 	 * Socket cloning can throw us here with sk_memcg already
+ 	 * filled. It won't however, necessarily happen from
+diff -puN net/core/sock.c~mm-memcontrol-consolidate-cgroup-socket-tracking-fix net/core/sock.c
+--- a/net/core/sock.c~mm-memcontrol-consolidate-cgroup-socket-tracking-fix
++++ a/net/core/sock.c
+@@ -1385,7 +1385,8 @@ static void sk_prot_free(struct proto *p
+ 	slab = prot->slab;
+ 
+ 	cgroup_sk_free(&sk->sk_cgrp_data);
+-	mem_cgroup_sk_free(sk);
++	if (mem_cgroup_sockets_enabled)
++		mem_cgroup_sk_free(sk);
+ 	security_sk_free(sk);
+ 	if (slab != NULL)
+ 		kmem_cache_free(slab, sk);
+@@ -1422,7 +1423,8 @@ struct sock *sk_alloc(struct net *net, i
+ 		sock_net_set(sk, net);
+ 		atomic_set(&sk->sk_wmem_alloc, 1);
+ 
+-		mem_cgroup_sk_alloc(sk);
++		if (mem_cgroup_sockets_enabled)
++			mem_cgroup_sk_alloc(sk);
+ 		cgroup_sk_alloc(&sk->sk_cgrp_data);
+ 		sock_update_classid(&sk->sk_cgrp_data);
+ 		sock_update_netprioidx(&sk->sk_cgrp_data);
+@@ -1569,7 +1571,8 @@ struct sock *sk_clone_lock(const struct
+ 		newsk->sk_incoming_cpu = raw_smp_processor_id();
+ 		atomic64_set(&newsk->sk_cookie, 0);
+ 
+-		mem_cgroup_sk_alloc(newsk);
++		if (mem_cgroup_sockets_enabled)
++			mem_cgroup_sk_alloc(newsk);
+ 		cgroup_sk_alloc(&newsk->sk_cgrp_data);
+ 
  		/*
- 		 * The active flag needs to be written after the static_key
- 		 * update. This is what guarantees that the socket activation
--		 * function is the last one to run. See mem_cgroup_sk_alloc() for
--		 * details, and note that we don't mark any socket as belonging
--		 * to this memcg until that flag is up.
-+		 * function is the last one to run. See mem_cgroup_sk_alloc()
-+		 * for details, and note that we don't mark any socket as
-+		 * belonging to this memcg until that flag is up.
- 		 *
- 		 * We need to do this, because static_keys will span multiple
- 		 * sites, but we can't control their order. If we mark a socket
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +119,7 @@ mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
 mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
 mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
 fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
+mm-memcontrol-consolidate-cgroup-socket-tracking-fix.patch
 mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes.patch
 seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
 lib-bitmapc-enhance-bitmap-syntax-fix.patch
