@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fsnotify-convert-notification_mutex-to-a-spinlock-fix.patch
+Subject: + rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix.patch
  added to -mm tree
-Date: Fri, 16 Sep 2016 15:04:05 -0700
-Message-ID: <57dc6c55.3KZnChIyTw6kj8+I%akpm@linux-foundation.org>
+Date: Fri, 16 Sep 2016 15:08:09 -0700
+Message-ID: <57dc6d49.TIlh8iQcii3bW/7T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58592 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750945AbcIPWEH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2016 18:04:07 -0400
+        with ESMTP id S1756794AbcIPWIL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2016 18:08:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, LinoSanfilippo@gmx.de, linux@roeck-us.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alexandre.bounine@idt.com, khoroshilov@ispras.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify-convert-notification_mutex-to-a-spinlock-fix
+     Subject: rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix
 has been added to the -mm tree.  Its filename is
-     fsnotify-convert-notification_mutex-to-a-spinlock-fix.patch
+     rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-convert-notification_mutex-to-a-spinlock-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-convert-notification_mutex-to-a-spinlock-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,78 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: fsnotify-convert-notification_mutex-to-a-spinlock-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix
 
-This is a fixed version of the patch that fixes the BUG_ON hitting on UP
-kernels.
+remove unneeded `if (!list_empty())'
 
-Link: http://lkml.kernel.org/r/1474031567-1831-1-git-send-email-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Lino Sanfilippo <LinoSanfilippo@gmx.de>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify_user.c |    3 ++-
- fs/notify/notification.c           |    9 ++++++---
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ drivers/rapidio/rio_cm.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/notify/fanotify/fanotify_user.c~fsnotify-convert-notification_mutex-to-a-spinlock-fix fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fsnotify-convert-notification_mutex-to-a-spinlock-fix
-+++ a/fs/notify/fanotify/fanotify_user.c
-@@ -54,7 +54,8 @@ struct kmem_cache *fanotify_perm_event_c
- static struct fsnotify_event *get_one_event(struct fsnotify_group *group,
- 					    size_t count)
- {
--	BUG_ON(!spin_is_locked(&group->notification_lock));
-+	BUG_ON(IS_ENABLED(CONFIG_SMP) &&
-+	       !spin_is_locked(&group->notification_lock));
+diff -puN drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix drivers/rapidio/rio_cm.c
+--- a/drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix
++++ a/drivers/rapidio/rio_cm.c
+@@ -2268,9 +2268,8 @@ static int rio_cm_shutdown(struct notifi
+ 	}
+ 	spin_unlock_bh(&idr_lock);
  
- 	pr_debug("%s: group=%p count=%zd\n", __func__, group, count);
+-	if (!list_empty(&list))
+-		list_for_each_entry(ch, &list, ch_node)
+-			riocm_send_close(ch);
++	list_for_each_entry(ch, &list, ch_node)
++		riocm_send_close(ch);
  
-diff -puN fs/notify/notification.c~fsnotify-convert-notification_mutex-to-a-spinlock-fix fs/notify/notification.c
---- a/fs/notify/notification.c~fsnotify-convert-notification_mutex-to-a-spinlock-fix
-+++ a/fs/notify/notification.c
-@@ -63,7 +63,8 @@ EXPORT_SYMBOL_GPL(fsnotify_get_cookie);
- /* return true if the notify queue is empty, false otherwise */
- bool fsnotify_notify_queue_is_empty(struct fsnotify_group *group)
- {
--	BUG_ON(!spin_is_locked(&group->notification_lock));
-+	BUG_ON(IS_ENABLED(CONFIG_SMP) &&
-+	       !spin_is_locked(&group->notification_lock));
- 	return list_empty(&group->notification_list) ? true : false;
+ 	return NOTIFY_DONE;
  }
- 
-@@ -139,7 +140,8 @@ struct fsnotify_event *fsnotify_remove_f
- {
- 	struct fsnotify_event *event;
- 
--	BUG_ON(!spin_is_locked(&group->notification_lock));
-+	BUG_ON(IS_ENABLED(CONFIG_SMP) &&
-+	       !spin_is_locked(&group->notification_lock));
- 
- 	pr_debug("%s: group=%p\n", __func__, group);
- 
-@@ -161,7 +163,8 @@ struct fsnotify_event *fsnotify_remove_f
-  */
- struct fsnotify_event *fsnotify_peek_first_event(struct fsnotify_group *group)
- {
--	BUG_ON(!spin_is_locked(&group->notification_lock));
-+	BUG_ON(IS_ENABLED(CONFIG_SMP) &&
-+	       !spin_is_locked(&group->notification_lock));
- 
- 	return list_first_entry(&group->notification_list,
- 				struct fsnotify_event, list);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown.patch
-fanotify-fix-list-corruption-in-fanotify_get_response.patch
-fsnotify-drop-notification_mutex-before-destroying-event.patch
-fsnotify-convert-notification_mutex-to-a-spinlock.patch
-fsnotify-convert-notification_mutex-to-a-spinlock-fix.patch
-fanotify-use-notification_lock-instead-of-access_lock.patch
-fanotify-fix-possible-false-warning-when-freeing-events.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-vmalloc-fix-align-value-calculation-error-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
+mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
+fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
+mm-memcontrol-consolidate-cgroup-socket-tracking-fix.patch
+mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+lib-bitmapc-enhance-bitmap-syntax-fix.patch
+relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
+ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
