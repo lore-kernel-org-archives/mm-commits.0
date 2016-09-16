@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ima-serialize-the-binary_runtime_measurements.patch added to
+Subject: +
+ ima-store-the-builtin-custom-template-definitions-in-a-list.patch added to
  -mm tree
-Date: Fri, 16 Sep 2016 16:22:31 -0700
-Message-ID: <57dc7eb7.IX64Q7JSN47odWvC%akpm@linux-foundation.org>
+Date: Fri, 16 Sep 2016 16:22:37 -0700
+Message-ID: <57dc7ebd.Zez+z4eXst8eVWkN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59151 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754490AbcIPXWd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2016 19:22:33 -0400
+        with ESMTP id S1754490AbcIPXWj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2016 19:22:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zohar@linux.vnet.ibm.com, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: serialize the binary_runtime_measurements
+     Subject: ima: store the builtin/custom template definitions in a list
 has been added to the -mm tree.  Its filename is
-     ima-serialize-the-binary_runtime_measurements.patch
+     ima-store-the-builtin-custom-template-definitions-in-a-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ima-serialize-the-binary_runtime_measurements.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ima-store-the-builtin-custom-template-definitions-in-a-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ima-serialize-the-binary_runtime_measurements.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ima-store-the-builtin-custom-template-definitions-in-a-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,15 +41,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima: serialize the binary_runtime_measurements
+Subject: ima: store the builtin/custom template definitions in a list
 
-The TPM PCRs are only reset on a hard reboot.  In order to validate a
-TPM's quote after a soft reboot (eg.  kexec -e), the IMA measurement list
-of the running kernel must be saved and restored on boot.  This patch
-serializes the IMA measurement list in the binary_runtime_measurements
-format.
+The builtin and single custom templates are currently stored in an array. 
+In preparation for being able to restore a measurement list containing
+multiple builtin/custom templates, this patch stores the builtin and
+custom templates as a linked list.  This will permit defining more than
+one custom template per boot.
 
-Link: http://lkml.kernel.org/r/1473938771-2782-5-git-send-email-zohar@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1473938771-2782-7-git-send-email-zohar@linux.vnet.ibm.com
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
@@ -62,95 +63,152 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/ima.h       |    1 
- security/integrity/ima/ima_fs.c    |    2 -
- security/integrity/ima/ima_kexec.c |   51 +++++++++++++++++++++++++++
- 3 files changed, 53 insertions(+), 1 deletion(-)
+ security/integrity/ima/ima.h          |    2 
+ security/integrity/ima/ima_main.c     |    1 
+ security/integrity/ima/ima_template.c |   52 ++++++++++++++++++------
+ 3 files changed, 44 insertions(+), 11 deletions(-)
 
-diff -puN security/integrity/ima/ima.h~ima-serialize-the-binary_runtime_measurements security/integrity/ima/ima.h
---- a/security/integrity/ima/ima.h~ima-serialize-the-binary_runtime_measurements
+diff -puN security/integrity/ima/ima.h~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima.h
+--- a/security/integrity/ima/ima.h~ima-store-the-builtin-custom-template-definitions-in-a-list
 +++ a/security/integrity/ima/ima.h
-@@ -133,6 +133,7 @@ void ima_print_digest(struct seq_file *m
- struct ima_template_desc *ima_template_desc_current(void);
- int ima_restore_measurement_entry(struct ima_template_entry *entry);
- int ima_restore_measurement_list(loff_t bufsize, void *buf);
-+int ima_measurements_show(struct seq_file *m, void *v);
+@@ -81,6 +81,7 @@ struct ima_template_field {
+ 
+ /* IMA template descriptor definition */
+ struct ima_template_desc {
++	struct list_head list;
+ 	char *name;
+ 	char *fmt;
+ 	int num_fields;
+@@ -136,6 +137,7 @@ int ima_restore_measurement_list(loff_t
+ int ima_measurements_show(struct seq_file *m, void *v);
  unsigned long ima_get_binary_runtime_size(void);
  int ima_init_template(void);
++void ima_init_template_list(void);
  
-diff -puN security/integrity/ima/ima_fs.c~ima-serialize-the-binary_runtime_measurements security/integrity/ima/ima_fs.c
---- a/security/integrity/ima/ima_fs.c~ima-serialize-the-binary_runtime_measurements
-+++ a/security/integrity/ima/ima_fs.c
-@@ -116,7 +116,7 @@ void ima_putc(struct seq_file *m, void *
-  *       [eventdata length]
-  *       eventdata[n]=template specific data
-  */
--static int ima_measurements_show(struct seq_file *m, void *v)
-+int ima_measurements_show(struct seq_file *m, void *v)
+ #ifdef CONFIG_KEXEC_FILE
+ void ima_load_kexec_buffer(void);
+diff -puN security/integrity/ima/ima_main.c~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima_main.c
+--- a/security/integrity/ima/ima_main.c~ima-store-the-builtin-custom-template-definitions-in-a-list
++++ a/security/integrity/ima/ima_main.c
+@@ -418,6 +418,7 @@ static int __init init_ima(void)
  {
- 	/* the list never shrinks, so we don't need a lock here */
- 	struct ima_queue_entry *qe = v;
-diff -puN security/integrity/ima/ima_kexec.c~ima-serialize-the-binary_runtime_measurements security/integrity/ima/ima_kexec.c
---- a/security/integrity/ima/ima_kexec.c~ima-serialize-the-binary_runtime_measurements
-+++ a/security/integrity/ima/ima_kexec.c
-@@ -23,6 +23,57 @@
+ 	int error;
  
++	ima_init_template_list();
+ 	hash_setup(CONFIG_IMA_DEFAULT_HASH);
+ 	error = ima_init();
+ 	if (!error) {
+diff -puN security/integrity/ima/ima_template.c~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima_template.c
+--- a/security/integrity/ima/ima_template.c~ima-store-the-builtin-custom-template-definitions-in-a-list
++++ a/security/integrity/ima/ima_template.c
+@@ -15,16 +15,20 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
++#include <linux/rculist.h>
  #include "ima.h"
+ #include "ima_template_lib.h"
  
-+static int ima_dump_measurement_list(unsigned long *buffer_size, void **buffer,
-+				     unsigned long segment_size)
-+{
-+	struct ima_queue_entry *qe;
-+	struct seq_file file;
-+	struct ima_kexec_hdr khdr = {
-+		.version = 1, .buffer_size = 0, .count = 0};
-+	int ret = 0;
+-static struct ima_template_desc defined_templates[] = {
++static struct ima_template_desc builtin_templates[] = {
+ 	{.name = IMA_TEMPLATE_IMA_NAME, .fmt = IMA_TEMPLATE_IMA_FMT},
+ 	{.name = "ima-ng", .fmt = "d-ng|n-ng"},
+ 	{.name = "ima-sig", .fmt = "d-ng|n-ng|sig"},
+ 	{.name = "", .fmt = ""},	/* placeholder for a custom format */
+ };
+ 
++static LIST_HEAD(defined_templates);
++static DEFINE_SPINLOCK(template_list);
 +
-+	/* segment size can't change between kexec load and execute */
-+	file.buf = vmalloc(segment_size);
-+	if (!file.buf) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
+ static struct ima_template_field supported_fields[] = {
+ 	{.field_id = "d", .field_init = ima_eventdigest_init,
+ 	 .field_show = ima_show_template_digest},
+@@ -53,6 +57,8 @@ static int __init ima_template_setup(cha
+ 	if (ima_template)
+ 		return 1;
+ 
++	ima_init_template_list();
 +
-+	file.size = segment_size;
-+	file.read_pos = 0;
-+	file.count = sizeof(khdr);	/* reserved space */
+ 	/*
+ 	 * Verify that a template with the supplied name exists.
+ 	 * If not, use CONFIG_IMA_DEFAULT_TEMPLATE.
+@@ -81,7 +87,7 @@ __setup("ima_template=", ima_template_se
+ 
+ static int __init ima_template_fmt_setup(char *str)
+ {
+-	int num_templates = ARRAY_SIZE(defined_templates);
++	int num_templates = ARRAY_SIZE(builtin_templates);
+ 
+ 	if (ima_template)
+ 		return 1;
+@@ -92,22 +98,28 @@ static int __init ima_template_fmt_setup
+ 		return 1;
+ 	}
+ 
+-	defined_templates[num_templates - 1].fmt = str;
+-	ima_template = defined_templates + num_templates - 1;
++	builtin_templates[num_templates - 1].fmt = str;
++	ima_template = builtin_templates + num_templates - 1;
 +
-+	list_for_each_entry_rcu(qe, &ima_measurements, later) {
-+		if (file.count < file.size) {
-+			khdr.count++;
-+			ima_measurements_show(&file, qe);
-+		} else {
-+			ret = -EINVAL;
+ 	return 1;
+ }
+ __setup("ima_template_fmt=", ima_template_fmt_setup);
+ 
+ static struct ima_template_desc *lookup_template_desc(const char *name)
+ {
+-	int i;
++	struct ima_template_desc *template_desc;
++	int found = 0;
+ 
+-	for (i = 0; i < ARRAY_SIZE(defined_templates); i++) {
+-		if (strcmp(defined_templates[i].name, name) == 0)
+-			return defined_templates + i;
++	rcu_read_lock();
++	list_for_each_entry_rcu(template_desc, &defined_templates, list) {
++		if ((strcmp(template_desc->name, name) == 0) ||
++		    (strcmp(template_desc->fmt, name) == 0)) {
++			found = 1;
 +			break;
 +		}
+ 	}
+-
+-	return NULL;
++	rcu_read_unlock();
++	return found ? template_desc : NULL;
+ }
+ 
+ static struct ima_template_field *lookup_template_field(const char *field_id)
+@@ -183,11 +195,29 @@ static int template_desc_init_fields(con
+ 	return 0;
+ }
+ 
++void ima_init_template_list(void)
++{
++	int i;
++
++	if (!list_empty(&defined_templates))
++		return;
++
++	spin_lock(&template_list);
++	for (i = 0; i < ARRAY_SIZE(builtin_templates); i++) {
++		list_add_tail_rcu(&builtin_templates[i].list,
++				  &defined_templates);
 +	}
-+
-+	if (ret < 0)
-+		goto out;
-+
-+	/*
-+	 * fill in reserved space with some buffer details
-+	 * (eg. version, buffer size, number of measurements)
-+	 */
-+	khdr.buffer_size = file.count;
-+	memcpy(file.buf, &khdr, sizeof(khdr));
-+	print_hex_dump(KERN_DEBUG, "ima dump: ", DUMP_PREFIX_NONE,
-+			16, 1, file.buf,
-+			file.count < 100 ? file.count : 100, true);
-+
-+	*buffer_size = file.count;
-+	*buffer = file.buf;
-+out:
-+	if (ret == -EINVAL)
-+		vfree(file.buf);
-+	return ret;
++	spin_unlock(&template_list);
++	synchronize_rcu();
 +}
 +
- /*
-  * Restore the measurement list from the previous kernel.
-  */
+ struct ima_template_desc *ima_template_desc_current(void)
+ {
+-	if (!ima_template)
++	if (!ima_template) {
++		ima_init_template_list();
+ 		ima_template =
+ 		    lookup_template_desc(CONFIG_IMA_DEFAULT_TEMPLATE);
++	}
+ 	return ima_template;
+ }
+ 
 _
 
 Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
