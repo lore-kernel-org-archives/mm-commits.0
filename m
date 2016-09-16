@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch added
+ powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch added
  to -mm tree
-Date: Fri, 16 Sep 2016 16:35:10 -0700
-Message-ID: <57dc81ae.7zNSINxdtbMmGMaH%akpm@linux-foundation.org>
+Date: Fri, 16 Sep 2016 16:34:55 -0700
+Message-ID: <57dc819f.nabfoxAMWCehuYJl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59851 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59813 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756389AbcIPXfL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2016 19:35:11 -0400
+        with ESMTP id S932599AbcIPXe5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2016 19:34:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sam@mendozajonas.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: enable CONFIG_KEXEC_FILE in powerpc server defconfigs
+     Subject: powerpc: add code to work with device trees in kexec_file_load
 has been added to the -mm tree.  Its filename is
-     powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
+     powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,14 +41,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: enable CONFIG_KEXEC_FILE in powerpc server defconfigs
+Subject: powerpc: add code to work with device trees in kexec_file_load
 
-Enable CONFIG_KEXEC_FILE in powernv_defconfig, ppc64_defconfig and
-pseries_defconfig.
+kexec_file_load needs to set up the device tree that will be used
+by the next kernel and check whether it provides a console
+that can be used by the purgatory.
 
-It depends on CONFIG_CRYPTO_SHA256=y, so add that as well.
-
-Link: http://lkml.kernel.org/r/1472579041-26033-14-git-send-email-bauerman@linux.vnet.ibm.com
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/1472579041-26033-11-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
@@ -67,68 +67,252 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/configs/powernv_defconfig |    2 ++
- arch/powerpc/configs/ppc64_defconfig   |    2 ++
- arch/powerpc/configs/pseries_defconfig |    2 ++
- 3 files changed, 6 insertions(+)
+ arch/powerpc/include/asm/kexec.h       |    3 
+ arch/powerpc/kernel/machine_kexec_64.c |  221 +++++++++++++++++++++++
+ 2 files changed, 224 insertions(+)
 
-diff -puN arch/powerpc/configs/powernv_defconfig~powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs arch/powerpc/configs/powernv_defconfig
---- a/arch/powerpc/configs/powernv_defconfig~powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs
-+++ a/arch/powerpc/configs/powernv_defconfig
-@@ -47,6 +47,7 @@ CONFIG_BINFMT_MISC=m
- CONFIG_PPC_TRANSACTIONAL_MEM=y
- CONFIG_HOTPLUG_CPU=y
- CONFIG_KEXEC=y
-+CONFIG_KEXEC_FILE=y
- CONFIG_IRQ_ALL_CPUS=y
- CONFIG_NUMA=y
- CONFIG_MEMORY_HOTPLUG=y
-@@ -298,6 +299,7 @@ CONFIG_CRYPTO_CCM=m
- CONFIG_CRYPTO_PCBC=m
- CONFIG_CRYPTO_HMAC=y
- CONFIG_CRYPTO_MICHAEL_MIC=m
-+CONFIG_CRYPTO_SHA256=y
- CONFIG_CRYPTO_TGR192=m
- CONFIG_CRYPTO_WP512=m
- CONFIG_CRYPTO_ANUBIS=m
-diff -puN arch/powerpc/configs/ppc64_defconfig~powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs arch/powerpc/configs/ppc64_defconfig
---- a/arch/powerpc/configs/ppc64_defconfig~powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs
-+++ a/arch/powerpc/configs/ppc64_defconfig
-@@ -44,6 +44,7 @@ CONFIG_HZ_100=y
- CONFIG_BINFMT_MISC=m
- CONFIG_PPC_TRANSACTIONAL_MEM=y
- CONFIG_KEXEC=y
-+CONFIG_KEXEC_FILE=y
- CONFIG_CRASH_DUMP=y
- CONFIG_IRQ_ALL_CPUS=y
- CONFIG_MEMORY_HOTREMOVE=y
-@@ -333,6 +334,7 @@ CONFIG_CRYPTO_TEST=m
- CONFIG_CRYPTO_PCBC=m
- CONFIG_CRYPTO_HMAC=y
- CONFIG_CRYPTO_MICHAEL_MIC=m
-+CONFIG_CRYPTO_SHA256=y
- CONFIG_CRYPTO_TGR192=m
- CONFIG_CRYPTO_WP512=m
- CONFIG_CRYPTO_ANUBIS=m
-diff -puN arch/powerpc/configs/pseries_defconfig~powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs arch/powerpc/configs/pseries_defconfig
---- a/arch/powerpc/configs/pseries_defconfig~powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs
-+++ a/arch/powerpc/configs/pseries_defconfig
-@@ -50,6 +50,7 @@ CONFIG_HZ_100=y
- CONFIG_BINFMT_MISC=m
- CONFIG_PPC_TRANSACTIONAL_MEM=y
- CONFIG_KEXEC=y
-+CONFIG_KEXEC_FILE=y
- CONFIG_IRQ_ALL_CPUS=y
- CONFIG_MEMORY_HOTPLUG=y
- CONFIG_MEMORY_HOTREMOVE=y
-@@ -300,6 +301,7 @@ CONFIG_CRYPTO_TEST=m
- CONFIG_CRYPTO_PCBC=m
- CONFIG_CRYPTO_HMAC=y
- CONFIG_CRYPTO_MICHAEL_MIC=m
-+CONFIG_CRYPTO_SHA256=y
- CONFIG_CRYPTO_TGR192=m
- CONFIG_CRYPTO_WP512=m
- CONFIG_CRYPTO_ANUBIS=m
+diff -puN arch/powerpc/include/asm/kexec.h~powerpc-add-code-to-work-with-device-trees-in-kexec_file_load arch/powerpc/include/asm/kexec.h
+--- a/arch/powerpc/include/asm/kexec.h~powerpc-add-code-to-work-with-device-trees-in-kexec_file_load
++++ a/arch/powerpc/include/asm/kexec.h
+@@ -96,6 +96,9 @@ int setup_purgatory(struct kimage *image
+ 		    const void *fdt, unsigned long kernel_load_addr,
+ 		    unsigned long fdt_load_addr, unsigned long stack_top,
+ 		    int debug);
++int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
++		  unsigned long initrd_len, const char *cmdline);
++bool find_debug_console(const void *fdt);
+ #endif /* CONFIG_KEXEC_FILE */
+ 
+ #else /* !CONFIG_KEXEC_CORE */
+diff -puN arch/powerpc/kernel/machine_kexec_64.c~powerpc-add-code-to-work-with-device-trees-in-kexec_file_load arch/powerpc/kernel/machine_kexec_64.c
+--- a/arch/powerpc/kernel/machine_kexec_64.c~powerpc-add-code-to-work-with-device-trees-in-kexec_file_load
++++ a/arch/powerpc/kernel/machine_kexec_64.c
+@@ -683,4 +683,225 @@ int setup_purgatory(struct kimage *image
+ 	return 0;
+ }
+ 
++/*
++ * setup_new_fdt() - modify /chosen and memory reservation for the next kernel
++ * @fdt:
++ * @initrd_load_addr:	Address where the next initrd will be loaded.
++ * @initrd_len:		Size of the next initrd, or 0 if there will be none.
++ * @cmdline:		Command line for the next kernel, or NULL if there will
++ *			be none.
++ *
++ * Return: 0 on success, or negative errno on error.
++ */
++int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
++		  unsigned long initrd_len, const char *cmdline)
++{
++	uint64_t oldfdt_addr;
++	int i, ret, chosen_node;
++	const void *prop;
++
++	/* Remove memory reservation for the current device tree. */
++	oldfdt_addr = __pa(initial_boot_params);
++	for (i = 0; i < fdt_num_mem_rsv(fdt); i++) {
++		uint64_t rsv_start, rsv_size;
++
++		ret = fdt_get_mem_rsv(fdt, i, &rsv_start, &rsv_size);
++		if (ret) {
++			pr_err("Malformed device tree.\n");
++			return -EINVAL;
++		}
++
++		if (rsv_start == oldfdt_addr &&
++		    rsv_size == fdt_totalsize(initial_boot_params)) {
++			ret = fdt_del_mem_rsv(fdt, i);
++			if (ret) {
++				pr_err("Error deleting fdt reservation.\n");
++				return -EINVAL;
++			}
++
++			pr_debug("Removed old device tree reservation.\n");
++			break;
++		}
++	}
++
++	chosen_node = fdt_path_offset(fdt, "/chosen");
++	if (chosen_node == -FDT_ERR_NOTFOUND) {
++		chosen_node = fdt_add_subnode(fdt, fdt_path_offset(fdt, "/"),
++					      "chosen");
++		if (chosen_node < 0) {
++			pr_err("Error creating /chosen.\n");
++			return -EINVAL;
++		}
++	} else if (chosen_node < 0) {
++		pr_err("Malformed device tree: error reading /chosen.\n");
++		return -EINVAL;
++	}
++
++	/* Did we boot using an initrd? */
++	prop = fdt_getprop(fdt, chosen_node, "linux,initrd-start", NULL);
++	if (prop) {
++		uint64_t tmp_start, tmp_end, tmp_size, tmp_sizepg;
++
++		tmp_start = fdt64_to_cpu(*((const fdt64_t *) prop));
++
++		prop = fdt_getprop(fdt, chosen_node, "linux,initrd-end", NULL);
++		if (!prop) {
++			pr_err("Malformed device tree.\n");
++			return -EINVAL;
++		}
++		tmp_end = fdt64_to_cpu(*((const fdt64_t *) prop));
++
++		/*
++		 * kexec reserves exact initrd size, while firmware may
++		 * reserve a multiple of PAGE_SIZE, so check for both.
++		 */
++		tmp_size = tmp_end - tmp_start;
++		tmp_sizepg = round_up(tmp_size, PAGE_SIZE);
++
++		/* Remove memory reservation for the current initrd. */
++		for (i = 0; i < fdt_num_mem_rsv(fdt); i++) {
++			uint64_t rsv_start, rsv_size;
++
++			ret = fdt_get_mem_rsv(fdt, i, &rsv_start, &rsv_size);
++			if (ret) {
++				pr_err("Malformed device tree.\n");
++				return -EINVAL;
++			}
++
++			if (rsv_start == tmp_start &&
++			    (rsv_size == tmp_size || rsv_size == tmp_sizepg)) {
++				ret = fdt_del_mem_rsv(fdt, i);
++				if (ret) {
++					pr_err("Error deleting fdt reservation.\n");
++					return -EINVAL;
++				}
++				pr_debug("Removed old initrd reservation.\n");
++
++				break;
++			}
++		}
++
++		/* If there's no new initrd, delete the old initrd's info. */
++		if (initrd_len == 0) {
++			ret = fdt_delprop(fdt, chosen_node,
++					  "linux,initrd-start");
++			if (ret) {
++				pr_err("Error deleting linux,initrd-start.\n");
++				return -EINVAL;
++			}
++
++			ret = fdt_delprop(fdt, chosen_node, "linux,initrd-end");
++			if (ret) {
++				pr_err("Error deleting linux,initrd-end.\n");
++				return -EINVAL;
++			}
++		}
++	}
++
++	if (initrd_len) {
++		ret = fdt_setprop_u64(fdt, chosen_node,
++				      "linux,initrd-start",
++				      initrd_load_addr);
++		if (ret < 0) {
++			pr_err("Error setting up the new device tree.\n");
++			return -EINVAL;
++		}
++
++		/* initrd-end is the first address after the initrd image. */
++		ret = fdt_setprop_u64(fdt, chosen_node, "linux,initrd-end",
++				      initrd_load_addr + initrd_len);
++		if (ret < 0) {
++			pr_err("Error setting up the new device tree.\n");
++			return -EINVAL;
++		}
++
++		ret = fdt_add_mem_rsv(fdt, initrd_load_addr, initrd_len);
++		if (ret) {
++			pr_err("Error reserving initrd memory: %s\n",
++			       fdt_strerror(ret));
++			return -EINVAL;
++		}
++	}
++
++	if (cmdline != NULL) {
++		ret = fdt_setprop_string(fdt, chosen_node, "bootargs", cmdline);
++		if (ret < 0) {
++			pr_err("Error setting up the new device tree.\n");
++			return -EINVAL;
++		}
++	} else {
++		ret = fdt_delprop(fdt, chosen_node, "bootargs");
++		if (ret && ret != -FDT_ERR_NOTFOUND) {
++			pr_err("Error deleting bootargs.\n");
++			return -EINVAL;
++		}
++	}
++
++	ret = fdt_setprop(fdt, chosen_node, "linux,booted-from-kexec", NULL, 0);
++	if (ret) {
++		pr_err("Error setting up the new device tree.\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++/**
++ * find_debug_console() - find out whether there is a console for the purgatory
++ * @fdt:		Flattened device tree to search.
++ */
++bool find_debug_console(const void *fdt)
++{
++	int len;
++	int console_node, chosen_node;
++	const void *prop, *colon;
++
++	chosen_node = fdt_path_offset(fdt, "/chosen");
++	if (chosen_node < 0) {
++		pr_err("Malformed device tree: /chosen not found.\n");
++		return false;
++	}
++
++	prop = fdt_getprop(fdt, chosen_node, "stdout-path", &len);
++	if (prop == NULL) {
++		if (len == -FDT_ERR_NOTFOUND) {
++			prop = fdt_getprop(fdt, chosen_node,
++					   "linux,stdout-path", &len);
++			if (prop == NULL) {
++				pr_debug("Unable to find [linux,]stdout-path.\n");
++				return false;
++			}
++		} else {
++			pr_debug("Error finding console: %s\n",
++				 fdt_strerror(len));
++			return false;
++		}
++	}
++
++	/*
++	 * stdout-path can have a ':' separating the path from device-specific
++	 * information, so we should only consider what's before it.
++	 */
++	colon = strchr(prop, ':');
++	if (colon != NULL)
++		len = colon - prop;
++	else
++		len -= 1;	/* Ignore the terminating NUL. */
++
++	console_node = fdt_path_offset_namelen(fdt, prop, len);
++	if (console_node < 0) {
++		pr_debug("Error finding console: %s\n",
++			 fdt_strerror(console_node));
++		return false;
++	}
++
++	if (fdt_node_check_compatible(fdt, console_node, "hvterm1") == 0)
++		return true;
++	else if (fdt_node_check_compatible(fdt, console_node,
++					   "hvterm-protocol") == 0)
++		return true;
++
++	return false;
++}
++
+ #endif /* CONFIG_KEXEC_FILE */
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
