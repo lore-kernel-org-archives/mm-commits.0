@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch added to
- -mm tree
-Date: Fri, 16 Sep 2016 16:34:44 -0700
-Message-ID: <57dc8194.Y4T+rkEU4PbYXh4b%akpm@linux-foundation.org>
+Subject: + powerpc-add-functions-to-read-elf-files-of-any-endianness.patch added to -mm tree
+Date: Fri, 16 Sep 2016 16:34:47 -0700
+Message-ID: <57dc8197.ZGyevOQeGFhtiaM9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59782 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59789 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933409AbcIPXeq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2016 19:34:46 -0400
+        with ESMTP id S932599AbcIPXet (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2016 19:34:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sam@mendozajonas.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: adapt elf64_apply_relocate_add for kexec_file_load
+     Subject: powerpc: add functions to read ELF files of any endianness
 has been added to the -mm tree.  Its filename is
-     powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
+     powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,22 +39,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: adapt elf64_apply_relocate_add for kexec_file_load
+Subject: powerpc: add functions to read ELF files of any endianness
 
-Extend elf64_apply_relocate_add to support relative symbols. This is
-necessary because there is a difference between how the module loading
-mechanism and the kexec purgatory loading code use Elf64_Sym.st_value
-at relocation time: the former changes st_value to point to the absolute
-memory address before relocating the module, while the latter does that
-adjustment during relocation of the purgatory.
+A little endian kernel might need to kexec a big endian kernel (the
+opposite is less likely but could happen as well), so we can't just cast
+the buffer with the binary to ELF structs and use them as is done
+elsewhere.
 
-Also, add a check_symbols argument so that the kexec code can be stricter
-about undefined symbols.
+This patch adds functions which do byte-swapping as necessary when
+populating the ELF structs. These functions will be used in the next
+patch in the series.
 
-Finally, add relocation types used by the purgatory.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/1472579041-26033-8-git-send-email-bauerman@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1472579041-26033-9-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Balbir Singh <bsingharora@gmail.com>
@@ -75,229 +69,539 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/elf_util.h |    2 
- arch/powerpc/kernel/elf_util_64.c   |  100 +++++++++++++++++++++++---
- arch/powerpc/kernel/module_64.c     |    6 +
- 3 files changed, 99 insertions(+), 9 deletions(-)
+ arch/powerpc/include/asm/elf_util.h |   18 
+ arch/powerpc/kernel/Makefile        |    2 
+ arch/powerpc/kernel/elf_util.c      |  476 ++++++++++++++++++++++++++
+ 3 files changed, 495 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/include/asm/elf_util.h~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load arch/powerpc/include/asm/elf_util.h
---- a/arch/powerpc/include/asm/elf_util.h~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load
+diff -puN arch/powerpc/include/asm/elf_util.h~powerpc-add-functions-to-read-elf-files-of-any-endianness arch/powerpc/include/asm/elf_util.h
+--- a/arch/powerpc/include/asm/elf_util.h~powerpc-add-functions-to-read-elf-files-of-any-endianness
 +++ a/arch/powerpc/include/asm/elf_util.h
-@@ -20,6 +20,7 @@
+@@ -20,7 +20,14 @@
  #include <linux/elf.h>
  
  struct elf_info {
-+	const struct elfhdr *ehdr;
++	/*
++	 * Where the ELF binary contents are kept.
++	 * Memory managed by the user of the struct.
++	 */
++	const char *buffer;
++
+ 	const struct elfhdr *ehdr;
++	const struct elf_phdr *proghdrs;
  	struct elf_shdr *sechdrs;
  
  	/* Index of stubs section. */
-@@ -67,6 +68,7 @@ int elf64_apply_relocate_add(const struc
- 			     const char *strtab, const Elf64_Rela *rela,
- 			     unsigned int num_rela, void *syms_base,
- 			     void *loc_base, Elf64_Addr addr_base,
-+			     bool relative_symbols, bool check_symbols,
- 			     const char *obj_name);
- 
- #endif /* _ASM_POWERPC_ELF_UTIL_H */
-diff -puN arch/powerpc/kernel/elf_util_64.c~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load arch/powerpc/kernel/elf_util_64.c
---- a/arch/powerpc/kernel/elf_util_64.c~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load
-+++ a/arch/powerpc/kernel/elf_util_64.c
-@@ -74,6 +74,8 @@ static void squash_toc_save_inst(const c
-  * @syms_base:		Contents of the associated symbol table.
-  * @loc_base:		Contents of the section to which relocations apply.
-  * @addr_base:		The address where the section will be loaded in memory.
-+ * @relative_symbols:	Are the symbols' st_value members relative?
-+ * @check_symbols:	Fail if an unexpected symbol is found?
-  * @obj_name:		The name of the ELF binary, for information messages.
-  *
-  * Applies RELA relocations to an ELF file already at its final location
-@@ -84,12 +86,15 @@ int elf64_apply_relocate_add(const struc
- 			     const char *strtab, const Elf64_Rela *rela,
- 			     unsigned int num_rela, void *syms_base,
- 			     void *loc_base, Elf64_Addr addr_base,
-+			     bool relative_symbols, bool check_symbols,
- 			     const char *obj_name)
- {
- 	unsigned int i;
- 	unsigned long *location;
- 	unsigned long address;
-+	unsigned long sec_base;
- 	unsigned long value;
-+	int reloc_type;
- 	const char *name;
- 	Elf64_Sym *sym;
- 
-@@ -116,15 +121,44 @@ int elf64_apply_relocate_add(const struc
- 		else
- 			name = "<unnamed symbol>";
- 
--		pr_debug("RELOC at %p: %li-type as %s (0x%lx) + %li\n",
--		       location, (long)ELF64_R_TYPE(rela[i].r_info),
--		       name, (unsigned long)sym->st_value,
-+		reloc_type = ELF64_R_TYPE(rela[i].r_info);
-+
-+		pr_debug("RELOC at %p: %i-type as %s (0x%lx) + %li\n",
-+		       location, reloc_type, name, (unsigned long)sym->st_value,
- 		       (long)rela[i].r_addend);
- 
-+		if (check_symbols) {
-+			/*
-+			 * TOC symbols appear as undefined but should be
-+			 * resolved as well, so allow them to be processed.
-+			 */
-+			if (sym->st_shndx == SHN_UNDEF &&
-+					strcmp(name, ".TOC.") != 0 &&
-+					reloc_type != R_PPC64_TOC) {
-+				pr_err("Undefined symbol: %s\n", name);
-+				return -ENOEXEC;
-+			} else if (sym->st_shndx == SHN_COMMON) {
-+				pr_err("Symbol '%s' in common section.\n",
-+				       name);
-+				return -ENOEXEC;
-+			}
-+		}
-+
-+		if (relative_symbols && sym->st_shndx != SHN_ABS) {
-+			if (sym->st_shndx >= elf_info->ehdr->e_shnum) {
-+				pr_err("Invalid section %d for symbol %s\n",
-+				       sym->st_shndx, name);
-+				return -ENOEXEC;
-+			}
-+
-+			sec_base = elf_info->sechdrs[sym->st_shndx].sh_addr;
-+		} else
-+			sec_base = 0;
-+
- 		/* `Everything is relative'. */
--		value = sym->st_value + rela[i].r_addend;
-+		value = sym->st_value + sec_base + rela[i].r_addend;
- 
--		switch (ELF64_R_TYPE(rela[i].r_info)) {
-+		switch (reloc_type) {
- 		case R_PPC64_ADDR32:
- 			/* Simply set it */
- 			*(u32 *)location = value;
-@@ -135,6 +169,11 @@ int elf64_apply_relocate_add(const struc
- 			*(unsigned long *)location = value;
- 			break;
- 
-+		case R_PPC64_REL32:
-+			*(uint32_t *) location =
-+				value - (uint32_t)(uint64_t) location;
-+			break;
-+
- 		case R_PPC64_TOC:
- 			*(unsigned long *)location = my_r2(elf_info);
- 			break;
-@@ -186,6 +225,14 @@ int elf64_apply_relocate_add(const struc
- 				| (value & 0xfffc);
- 			break;
- 
-+		case R_PPC64_TOC16_HI:
-+			/* Subtract TOC pointer */
-+			value -= my_r2(elf_info);
-+			value = value >> 16;
-+			*((uint16_t *) location)
-+				= (*((uint16_t *) location) & ~0xffff)
-+				| (value & 0xffff);
-+
- 		case R_PPC64_TOC16_HA:
- 			/* Subtract TOC pointer */
- 			value -= my_r2(elf_info);
-@@ -195,6 +242,21 @@ int elf64_apply_relocate_add(const struc
- 				| (value & 0xffff);
- 			break;
- 
-+		case R_PPC64_REL14:
-+			/* Convert value to relative */
-+			value -= address;
-+			if (value + 0x8000 > 0xffff || (value & 3) != 0) {
-+				pr_err("%s: REL14 %li out of range!\n",
-+				       obj_name, (long int) value);
-+				return -ENOEXEC;
-+			}
-+
-+			/* Only replace bits 2 through 16 */
-+			*(uint32_t *)location
-+				= (*(uint32_t *)location & ~0xfffc)
-+				| (value & 0xfffc);
-+			break;
-+
- 		case R_PPC_REL24:
- 			/* FIXME: Handle weak symbols here --RR */
- 			if (sym->st_shndx == SHN_UNDEF) {
-@@ -263,6 +325,29 @@ int elf64_apply_relocate_add(const struc
- 			((uint32_t *)location)[1] = 0x38420000 + PPC_LO(value);
- 			break;
- 
-+		case R_PPC64_ADDR16_LO:
-+			*(uint16_t *)location = value & 0xffff;
-+			break;
-+
-+		case R_PPC64_ADDR16_HI:
-+			*(uint16_t *)location = (value >> 16) & 0xffff;
-+			break;
-+
-+		case R_PPC64_ADDR16_HA:
-+			*(uint16_t *)location = (((value + 0x8000) >> 16) &
-+							0xffff);
-+			break;
-+
-+		case R_PPC64_ADDR16_HIGHER:
-+			*(uint16_t *)location = (((uint64_t)value >> 32) &
-+							0xffff);
-+			break;
-+
-+		case R_PPC64_ADDR16_HIGHEST:
-+			*(uint16_t *)location = (((uint64_t)value >> 48) &
-+							0xffff);
-+			break;
-+
- 		case R_PPC64_REL16_HA:
- 			/* Subtract location pointer */
- 			value -= address;
-@@ -281,9 +366,8 @@ int elf64_apply_relocate_add(const struc
- 			break;
- 
- 		default:
--			pr_err("%s: Unknown ADD relocation: %lu\n",
--			       obj_name,
--			       (unsigned long)ELF64_R_TYPE(rela[i].r_info));
-+			pr_err("%s: Unknown ADD relocation: %d\n", obj_name,
-+			       reloc_type);
- 			return -ENOEXEC;
- 		}
- 	}
-diff -puN arch/powerpc/kernel/module_64.c~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load arch/powerpc/kernel/module_64.c
---- a/arch/powerpc/kernel/module_64.c~powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load
-+++ a/arch/powerpc/kernel/module_64.c
-@@ -341,6 +341,7 @@ int module_frob_arch_sections(Elf64_Ehdr
- 	sechdrs[me->arch.elf_info.stubs_section].sh_size = get_stubs_size(hdr, sechdrs);
- 
- 	/* For the elf_util functions. */
-+	me->arch.elf_info.ehdr = hdr;
- 	me->arch.elf_info.sechdrs = sechdrs;
- 
- 	return 0;
-@@ -443,6 +444,9 @@ int restore_r2(u32 *instruction, const c
-  * When this function is called, the module is already at its final location in
-  * memory, so Elf64_Shdr.sh_addr can be used for accessing the section
-  * contents as well as the base address for relocations.
-+ *
-+ * Also, simplify_symbols already changed all symbols' st_value members
-+ * to absolute addresses.
-  */
- int apply_relocate_add(Elf64_Shdr *sechdrs,
- 		       const char *strtab,
-@@ -472,7 +476,7 @@ int apply_relocate_add(Elf64_Shdr *sechd
- 
- 	return elf64_apply_relocate_add(&me->arch.elf_info, strtab, rela,
- 					num_rela, syms_base, (void *) addr_base,
--					addr_base, me->name);
-+					addr_base, false, false, me->name);
+@@ -64,6 +71,17 @@ static inline unsigned long my_r2(const
+ 	return elf_info->sechdrs[elf_info->toc_section].sh_addr + 0x8000;
  }
  
- #ifdef CONFIG_DYNAMIC_FTRACE
++static inline bool elf_is_elf_file(const struct elfhdr *ehdr)
++{
++	return memcmp(ehdr->e_ident, ELFMAG, SELFMAG) == 0;
++}
++
++int elf_read_from_buffer(const char *buf, size_t len, struct elfhdr *ehdr,
++			 struct elf_info *elf_info);
++void elf_init_elf_info(const struct elfhdr *ehdr, struct elf_shdr *sechdrs,
++		       struct elf_info *elf_info);
++void elf_free_info(struct elf_info *elf_info);
++
+ int elf64_apply_relocate_add(const struct elf_info *elf_info,
+ 			     const char *strtab, const Elf64_Rela *rela,
+ 			     unsigned int num_rela, void *syms_base,
+diff -puN arch/powerpc/kernel/Makefile~powerpc-add-functions-to-read-elf-files-of-any-endianness arch/powerpc/kernel/Makefile
+--- a/arch/powerpc/kernel/Makefile~powerpc-add-functions-to-read-elf-files-of-any-endianness
++++ a/arch/powerpc/kernel/Makefile
+@@ -124,7 +124,7 @@ obj-y				+= iomap.o
+ endif
+ 
+ ifeq ($(CONFIG_MODULES)$(CONFIG_WORD_SIZE),y64)
+-obj-y				+= elf_util_64.o
++obj-y				+= elf_util.o elf_util_64.o
+ endif
+ 
+ obj64-$(CONFIG_PPC_TRANSACTIONAL_MEM)	+= tm.o
+diff -puN /dev/null arch/powerpc/kernel/elf_util.c
+--- /dev/null
++++ a/arch/powerpc/kernel/elf_util.c
+@@ -0,0 +1,476 @@
++/*
++ * Utility functions to work with ELF files.
++ *
++ * Copyright (C) 2016, IBM Corporation
++ *
++ * Based on kexec-tools' kexec-elf.c. Heavily modified for the
++ * kernel by Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation (version 2 of the License).
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/slab.h>
++#include <asm/elf_util.h>
++#include <asm-generic/module.h>
++
++#if ELF_CLASS == ELFCLASS32
++#define elf_addr_to_cpu	elf32_to_cpu
++
++#ifndef Elf_Rel
++#define Elf_Rel		Elf32_Rel
++#endif /* Elf_Rel */
++#else /* ELF_CLASS == ELFCLASS32 */
++#define elf_addr_to_cpu	elf64_to_cpu
++
++#ifndef Elf_Rel
++#define Elf_Rel		Elf64_Rel
++#endif /* Elf_Rel */
++
++static uint64_t elf64_to_cpu(const struct elfhdr *ehdr, uint64_t value)
++{
++	if (ehdr->e_ident[EI_DATA] == ELFDATA2LSB)
++		value = le64_to_cpu(value);
++	else if (ehdr->e_ident[EI_DATA] == ELFDATA2MSB)
++		value = be64_to_cpu(value);
++
++	return value;
++}
++#endif /* ELF_CLASS == ELFCLASS32 */
++
++static uint16_t elf16_to_cpu(const struct elfhdr *ehdr, uint16_t value)
++{
++	if (ehdr->e_ident[EI_DATA] == ELFDATA2LSB)
++		value = le16_to_cpu(value);
++	else if (ehdr->e_ident[EI_DATA] == ELFDATA2MSB)
++		value = be16_to_cpu(value);
++
++	return value;
++}
++
++static uint32_t elf32_to_cpu(const struct elfhdr *ehdr, uint32_t value)
++{
++	if (ehdr->e_ident[EI_DATA] == ELFDATA2LSB)
++		value = le32_to_cpu(value);
++	else if (ehdr->e_ident[EI_DATA] == ELFDATA2MSB)
++		value = be32_to_cpu(value);
++
++	return value;
++}
++
++/**
++ * elf_is_ehdr_sane - check that it is safe to use the ELF header
++ * @buf_len:	size of the buffer in which the ELF file is loaded.
++ */
++static bool elf_is_ehdr_sane(const struct elfhdr *ehdr, size_t buf_len)
++{
++	if (ehdr->e_phnum > 0 && ehdr->e_phentsize != sizeof(struct elf_phdr)) {
++		pr_debug("Bad program header size.\n");
++		return false;
++	} else if (ehdr->e_shnum > 0 &&
++		   ehdr->e_shentsize != sizeof(struct elf_shdr)) {
++		pr_debug("Bad section header size.\n");
++		return false;
++	} else if (ehdr->e_ident[EI_VERSION] != EV_CURRENT ||
++		   ehdr->e_version != EV_CURRENT) {
++		pr_debug("Unknown ELF version.\n");
++		return false;
++	}
++
++	if (ehdr->e_phoff > 0 && ehdr->e_phnum > 0) {
++		size_t phdr_size;
++
++		/*
++		 * e_phnum is at most 65535 so calculating the size of the
++		 * program header cannot overflow.
++		 */
++		phdr_size = sizeof(struct elf_phdr) * ehdr->e_phnum;
++
++		/* Sanity check the program header table location. */
++		if (ehdr->e_phoff + phdr_size < ehdr->e_phoff) {
++			pr_debug("Program headers at invalid location.\n");
++			return false;
++		} else if (ehdr->e_phoff + phdr_size > buf_len) {
++			pr_debug("Program headers truncated.\n");
++			return false;
++		}
++	}
++
++	if (ehdr->e_shoff > 0 && ehdr->e_shnum > 0) {
++		size_t shdr_size;
++
++		/*
++		 * e_shnum is at most 65536 so calculating
++		 * the size of the section header cannot overflow.
++		 */
++		shdr_size = sizeof(struct elf_shdr) * ehdr->e_shnum;
++
++		/* Sanity check the section header table location. */
++		if (ehdr->e_shoff + shdr_size < ehdr->e_shoff) {
++			pr_debug("Section headers at invalid location.\n");
++			return false;
++		} else if (ehdr->e_shoff + shdr_size > buf_len) {
++			pr_debug("Section headers truncated.\n");
++			return false;
++		}
++	}
++
++	return true;
++}
++
++static int elf_read_ehdr(const char *buf, size_t len, struct elfhdr *ehdr)
++{
++	struct elfhdr *buf_ehdr;
++
++	if (len < sizeof(*buf_ehdr)) {
++		pr_debug("Buffer is too small to hold ELF header.\n");
++		return -ENOEXEC;
++	}
++
++	memset(ehdr, 0, sizeof(*ehdr));
++	memcpy(ehdr->e_ident, buf, sizeof(ehdr->e_ident));
++	if (!elf_is_elf_file(ehdr)) {
++		pr_debug("No ELF header magic.\n");
++		return -ENOEXEC;
++	}
++
++	if (ehdr->e_ident[EI_CLASS] != ELF_CLASS) {
++		pr_debug("Not a supported ELF class.\n");
++		return -1;
++	} else  if (ehdr->e_ident[EI_DATA] != ELFDATA2LSB &&
++		ehdr->e_ident[EI_DATA] != ELFDATA2MSB) {
++		pr_debug("Not a supported ELF data format.\n");
++		return -ENOEXEC;
++	}
++
++	buf_ehdr = (struct elfhdr *) buf;
++	if (elf16_to_cpu(ehdr, buf_ehdr->e_ehsize) != sizeof(*buf_ehdr)) {
++		pr_debug("Bad ELF header size.\n");
++		return -ENOEXEC;
++	}
++
++	ehdr->e_type      = elf16_to_cpu(ehdr, buf_ehdr->e_type);
++	ehdr->e_machine   = elf16_to_cpu(ehdr, buf_ehdr->e_machine);
++	ehdr->e_version   = elf32_to_cpu(ehdr, buf_ehdr->e_version);
++	ehdr->e_entry     = elf_addr_to_cpu(ehdr, buf_ehdr->e_entry);
++	ehdr->e_phoff     = elf_addr_to_cpu(ehdr, buf_ehdr->e_phoff);
++	ehdr->e_shoff     = elf_addr_to_cpu(ehdr, buf_ehdr->e_shoff);
++	ehdr->e_flags     = elf32_to_cpu(ehdr, buf_ehdr->e_flags);
++	ehdr->e_phentsize = elf16_to_cpu(ehdr, buf_ehdr->e_phentsize);
++	ehdr->e_phnum     = elf16_to_cpu(ehdr, buf_ehdr->e_phnum);
++	ehdr->e_shentsize = elf16_to_cpu(ehdr, buf_ehdr->e_shentsize);
++	ehdr->e_shnum     = elf16_to_cpu(ehdr, buf_ehdr->e_shnum);
++	ehdr->e_shstrndx  = elf16_to_cpu(ehdr, buf_ehdr->e_shstrndx);
++
++	return elf_is_ehdr_sane(ehdr, len) ? 0 : -ENOEXEC;
++}
++
++/**
++ * elf_is_phdr_sane - check that it is safe to use the program header
++ * @buf_len:	size of the buffer in which the ELF file is loaded.
++ */
++static bool elf_is_phdr_sane(const struct elf_phdr *phdr, size_t buf_len)
++{
++
++	if (phdr->p_offset + phdr->p_filesz < phdr->p_offset) {
++		pr_debug("ELF segment location wraps around.\n");
++		return false;
++	} else if (phdr->p_offset + phdr->p_filesz > buf_len) {
++		pr_debug("ELF segment not in file.\n");
++		return false;
++	} else if (phdr->p_paddr + phdr->p_memsz < phdr->p_paddr) {
++		pr_debug("ELF segment address wraps around.\n");
++		return false;
++	}
++
++	return true;
++}
++
++static int elf_read_phdr(const char *buf, size_t len, struct elf_info *elf_info,
++			 int idx)
++{
++	/* Override the const in proghdrs, we are the ones doing the loading. */
++	struct elf_phdr *phdr = (struct elf_phdr *) &elf_info->proghdrs[idx];
++	const char *pbuf;
++	struct elf_phdr *buf_phdr;
++
++	pbuf = buf + elf_info->ehdr->e_phoff + (idx * sizeof(*buf_phdr));
++	buf_phdr = (struct elf_phdr *) pbuf;
++
++	phdr->p_type   = elf32_to_cpu(elf_info->ehdr, buf_phdr->p_type);
++	phdr->p_offset = elf_addr_to_cpu(elf_info->ehdr, buf_phdr->p_offset);
++	phdr->p_paddr  = elf_addr_to_cpu(elf_info->ehdr, buf_phdr->p_paddr);
++	phdr->p_vaddr  = elf_addr_to_cpu(elf_info->ehdr, buf_phdr->p_vaddr);
++	phdr->p_flags  = elf32_to_cpu(elf_info->ehdr, buf_phdr->p_flags);
++
++	/*
++	 * The following fields have a type equivalent to Elf_Addr
++	 * both in 32 bit and 64 bit ELF.
++	 */
++	phdr->p_filesz = elf_addr_to_cpu(elf_info->ehdr, buf_phdr->p_filesz);
++	phdr->p_memsz  = elf_addr_to_cpu(elf_info->ehdr, buf_phdr->p_memsz);
++	phdr->p_align  = elf_addr_to_cpu(elf_info->ehdr, buf_phdr->p_align);
++
++	return elf_is_phdr_sane(phdr, len) ? 0 : -ENOEXEC;
++}
++
++/**
++ * elf_read_phdrs - read the program headers from the buffer
++ *
++ * This function assumes that the program header table was checked for sanity.
++ * Use elf_is_ehdr_sane() if it wasn't.
++ */
++static int elf_read_phdrs(const char *buf, size_t len,
++			  struct elf_info *elf_info)
++{
++	size_t phdr_size, i;
++	const struct elfhdr *ehdr = elf_info->ehdr;
++
++	/*
++	 * e_phnum is at most 65535 so calculating the size of the
++	 * program header cannot overflow.
++	 */
++	phdr_size = sizeof(struct elf_phdr) * ehdr->e_phnum;
++
++	elf_info->proghdrs = kzalloc(phdr_size, GFP_KERNEL);
++	if (!elf_info->proghdrs)
++		return -ENOMEM;
++
++	for (i = 0; i < ehdr->e_phnum; i++) {
++		int ret;
++
++		ret = elf_read_phdr(buf, len, elf_info, i);
++		if (ret) {
++			kfree(elf_info->proghdrs);
++			elf_info->proghdrs = NULL;
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++/**
++ * elf_is_shdr_sane - check that it is safe to use the section header
++ * @buf_len:	size of the buffer in which the ELF file is loaded.
++ */
++static bool elf_is_shdr_sane(const struct elf_shdr *shdr, size_t buf_len)
++{
++	bool size_ok;
++
++	/* SHT_NULL headers have undefined values, so we can't check them. */
++	if (shdr->sh_type == SHT_NULL)
++		return true;
++
++	/* Now verify sh_entsize */
++	switch (shdr->sh_type) {
++	case SHT_SYMTAB:
++		size_ok = shdr->sh_entsize == sizeof(Elf_Sym);
++		break;
++	case SHT_RELA:
++		size_ok = shdr->sh_entsize == sizeof(Elf_Rela);
++		break;
++	case SHT_DYNAMIC:
++		size_ok = shdr->sh_entsize == sizeof(Elf_Dyn);
++		break;
++	case SHT_REL:
++		size_ok = shdr->sh_entsize == sizeof(Elf_Rel);
++		break;
++	case SHT_NOTE:
++	case SHT_PROGBITS:
++	case SHT_HASH:
++	case SHT_NOBITS:
++	default:
++		/*
++		 * This is a section whose entsize requirements
++		 * I don't care about.  If I don't know about
++		 * the section I can't care about it's entsize
++		 * requirements.
++		 */
++		size_ok = true;
++		break;
++	}
++
++	if (!size_ok) {
++		pr_debug("ELF section with wrong entry size.\n");
++		return false;
++	} else if (shdr->sh_addr + shdr->sh_size < shdr->sh_addr) {
++		pr_debug("ELF section address wraps around.\n");
++		return false;
++	}
++
++	if (shdr->sh_type != SHT_NOBITS) {
++		if (shdr->sh_offset + shdr->sh_size < shdr->sh_offset) {
++			pr_debug("ELF section location wraps around.\n");
++			return false;
++		} else if (shdr->sh_offset + shdr->sh_size > buf_len) {
++			pr_debug("ELF section not in file.\n");
++			return false;
++		}
++	}
++
++	return true;
++}
++
++static int elf_read_shdr(const char *buf, size_t len, struct elf_info *elf_info,
++			 int idx)
++{
++	struct elf_shdr *shdr = &elf_info->sechdrs[idx];
++	const struct elfhdr *ehdr = elf_info->ehdr;
++	const char *sbuf;
++	struct elf_shdr *buf_shdr;
++
++	sbuf = buf + ehdr->e_shoff + idx * sizeof(*buf_shdr);
++	buf_shdr = (struct elf_shdr *) sbuf;
++
++	shdr->sh_name      = elf32_to_cpu(ehdr, buf_shdr->sh_name);
++	shdr->sh_type      = elf32_to_cpu(ehdr, buf_shdr->sh_type);
++	shdr->sh_addr      = elf_addr_to_cpu(ehdr, buf_shdr->sh_addr);
++	shdr->sh_offset    = elf_addr_to_cpu(ehdr, buf_shdr->sh_offset);
++	shdr->sh_link      = elf32_to_cpu(ehdr, buf_shdr->sh_link);
++	shdr->sh_info      = elf32_to_cpu(ehdr, buf_shdr->sh_info);
++
++	/*
++	 * The following fields have a type equivalent to Elf_Addr
++	 * both in 32 bit and 64 bit ELF.
++	 */
++	shdr->sh_flags     = elf_addr_to_cpu(ehdr, buf_shdr->sh_flags);
++	shdr->sh_size      = elf_addr_to_cpu(ehdr, buf_shdr->sh_size);
++	shdr->sh_addralign = elf_addr_to_cpu(ehdr, buf_shdr->sh_addralign);
++	shdr->sh_entsize   = elf_addr_to_cpu(ehdr, buf_shdr->sh_entsize);
++
++	return elf_is_shdr_sane(shdr, len) ? 0 : -ENOEXEC;
++}
++
++/**
++ * elf_read_shdrs - read the section headers from the buffer
++ *
++ * This function assumes that the section header table was checked for sanity.
++ * Use elf_is_ehdr_sane() if it wasn't.
++ */
++static int elf_read_shdrs(const char *buf, size_t len,
++			  struct elf_info *elf_info)
++{
++	size_t shdr_size, i;
++
++	/*
++	 * e_shnum is at most 65536 so calculating
++	 * the size of the section header cannot overflow.
++	 */
++	shdr_size = sizeof(struct elf_shdr) * elf_info->ehdr->e_shnum;
++
++	elf_info->sechdrs = kzalloc(shdr_size, GFP_KERNEL);
++	if (!elf_info->sechdrs)
++		return -ENOMEM;
++
++	for (i = 0; i < elf_info->ehdr->e_shnum; i++) {
++		int ret;
++
++		ret = elf_read_shdr(buf, len, elf_info, i);
++		if (ret) {
++			kfree(elf_info->sechdrs);
++			elf_info->sechdrs = NULL;
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++/**
++ * elf_read_from_buffer - read ELF file and sets up ELF header and ELF info
++ * @buf:	Buffer to read ELF file from.
++ * @len:	Size of @buf.
++ * @ehdr:	Pointer to existing struct which will be populated.
++ * @elf_info:	Pointer to existing struct which will be populated.
++ *
++ * This function allows reading ELF files with different byte order than
++ * the kernel, byte-swapping the fields as needed.
++ *
++ * Return:
++ * On success returns 0, and the caller should call elf_free_info(elf_info) to
++ * free the memory allocated for the section and program headers.
++ */
++int elf_read_from_buffer(const char *buf, size_t len, struct elfhdr *ehdr,
++			 struct elf_info *elf_info)
++{
++	int ret;
++
++	ret = elf_read_ehdr(buf, len, ehdr);
++	if (ret)
++		return ret;
++
++	elf_info->buffer = buf;
++	elf_info->ehdr = ehdr;
++	if (ehdr->e_phoff > 0 && ehdr->e_phnum > 0) {
++		ret = elf_read_phdrs(buf, len, elf_info);
++		if (ret)
++			return ret;
++	}
++	if (ehdr->e_shoff > 0 && ehdr->e_shnum > 0) {
++		ret = elf_read_shdrs(buf, len, elf_info);
++		if (ret) {
++			kfree(elf_info->proghdrs);
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++/**
++ * elf_init_elf_info - initialize elf_info from existing information
++ * @ehdr:	Pointer to already loaded ELF header.
++ * @sechdrs:	Pointer to already loaded section headers contents.
++ * @elf_info:	Pointer to existing struct which will be populated.
++ *
++ * If the ELF binary was not loaded using elf_read_from_buffer, this function
++ * can be used to obtain a struct elf_info for use with other ELF utility
++ * functions.
++ *
++ * The caller is responsible for managing @sechdrs memory, users of this
++ * function don't need to call elf_free_info() if they free this memory
++ * separately.
++ */
++void elf_init_elf_info(const struct elfhdr *ehdr, struct elf_shdr *sechdrs,
++		       struct elf_info *elf_info)
++{
++	int i;
++	const char *shstrtab;
++
++	memset(elf_info, 0, sizeof(*elf_info));
++
++	/* Section header string table. */
++	shstrtab = (const char *) sechdrs[ehdr->e_shstrndx].sh_offset;
++
++	for (i = 0; i < ehdr->e_shnum; i++) {
++		if (sechdrs[i].sh_size == 0)
++			continue;
++
++		if (!strcmp(&shstrtab[sechdrs[i].sh_name], ".stubs"))
++			elf_info->stubs_section = i;
++		else if (!strcmp(&shstrtab[sechdrs[i].sh_name], ".toc"))
++			elf_info->toc_section = i;
++	}
++
++	elf_info->ehdr = ehdr;
++	elf_info->sechdrs = sechdrs;
++}
++
++/**
++ * elf_free_info - free memory allocated by elf_read_from_buffer
++ */
++void elf_free_info(struct elf_info *elf_info)
++{
++	kfree(elf_info->proghdrs);
++	kfree(elf_info->sechdrs);
++	memset(elf_info, 0, sizeof(*elf_info));
++}
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
