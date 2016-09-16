@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch added to
+Subject: + ima-on-soft-reboot-restore-the-measurement-list.patch added to
  -mm tree
-Date: Fri, 16 Sep 2016 16:19:15 -0700
-Message-ID: <57dc7df3.lniY7lk0D5ZhlA2q%akpm@linux-foundation.org>
+Date: Fri, 16 Sep 2016 16:22:22 -0700
+Message-ID: <57dc7eae.LBseC8FJlnAQyJgw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59081 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59122 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752567AbcIPXTR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2016 19:19:17 -0400
+        with ESMTP id S1754570AbcIPXWY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2016 19:22:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bauerman@linux.vnet.ibm.com, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: zohar@linux.vnet.ibm.com, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec_file: add buffer hand-over support for the next kernel
+     Subject: ima: on soft reboot, restore the measurement list
 has been added to the -mm tree.  Its filename is
-     kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
+     ima-on-soft-reboot-restore-the-measurement-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ima-on-soft-reboot-restore-the-measurement-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ima-on-soft-reboot-restore-the-measurement-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,17 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: kexec_file: add buffer hand-over support for the next kernel
+From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Subject: ima: on soft reboot, restore the measurement list
 
-The buffer hand-over mechanism allows the currently running kernel to pass
-data to kernel that will be kexec'd via a kexec segment.  The second
-kernel can check whether the previous kernel sent data and retrieve it.
+Patch series "ima: carry the measurement list across kexec", v4.
 
-This is the architecture-independent part of the feature.
+The TPM PCRs are only reset on a hard reboot.  In order to validate a
+TPM's quote after a soft reboot (eg.  kexec -e), the IMA measurement list
+of the running kernel must be saved and then restored on the subsequent
+boot, possibly of a different architecture.
 
-Link: http://lkml.kernel.org/r/1473900890-1476-3-git-send-email-bauerman@linux.vnet.ibm.com
-Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+The existing securityfs binary_runtime_measurements file conveniently
+provides a serialized format of the IMA measurement list.  This patch set
+serializes the measurement list in this format and restores it.
+
+Up to now, the binary_runtime_measurements was defined as architecture
+native format.  The assumption being that userspace could and would handle
+any architecture conversions.  With the ability of carrying the
+measurement list across kexec, possibly from one architecture to a
+different one, the per boot architecture information is lost and with it
+the ability of recalculating the template digest hash.  To resolve this
+problem, without breaking the existing ABI, this patch set introduces the
+boot command line option "ima_canonical_fmt", which is arbitrarily defined
+as little endian.
+
+The need for this boot command line option will be limited to the existing
+version 1 format of the binary_runtime_measurements.  Subsequent formats
+will be defined as canonical format (eg.  TPM 2.0 support for larger
+digests).
+
+
+This patch (of 9):
+
+The TPM PCRs are only reset on a hard reboot.  In order to validate a
+TPM's quote after a soft reboot (eg.  kexec -e), the IMA measurement list
+of the running kernel must be saved and restored on boot.  This patch
+restores the measurement list.
+
+Link: http://lkml.kernel.org/r/1473938771-2782-2-git-send-email-zohar@linux.vnet.ibm.com
+Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
@@ -63,150 +90,341 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |   31 ++++++++++++++++++
- kernel/kexec_file.c   |   68 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 99 insertions(+)
+ security/integrity/ima/Makefile       |    1 
+ security/integrity/ima/ima.h          |   18 ++
+ security/integrity/ima/ima_init.c     |    2 
+ security/integrity/ima/ima_kexec.c    |   55 +++++++
+ security/integrity/ima/ima_queue.c    |   10 +
+ security/integrity/ima/ima_template.c |  170 ++++++++++++++++++++++++
+ 6 files changed, 256 insertions(+)
 
-diff -puN include/linux/kexec.h~kexec_file-add-buffer-hand-over-support-for-the-next-kernel include/linux/kexec.h
---- a/include/linux/kexec.h~kexec_file-add-buffer-hand-over-support-for-the-next-kernel
-+++ a/include/linux/kexec.h
-@@ -389,6 +389,37 @@ static inline void *boot_phys_to_virt(un
- 	return phys_to_virt(boot_phys_to_phys(entry));
- }
+diff -puN security/integrity/ima/Makefile~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/Makefile
+--- a/security/integrity/ima/Makefile~ima-on-soft-reboot-restore-the-measurement-list
++++ a/security/integrity/ima/Makefile
+@@ -8,4 +8,5 @@ obj-$(CONFIG_IMA) += ima.o
+ ima-y := ima_fs.o ima_queue.o ima_init.o ima_main.o ima_crypto.o ima_api.o \
+ 	 ima_policy.o ima_template.o ima_template_lib.o
+ ima-$(CONFIG_IMA_APPRAISE) += ima_appraise.o
++ima-$(CONFIG_KEXEC_FILE) += ima_kexec.o
+ obj-$(CONFIG_IMA_BLACKLIST_KEYRING) += ima_mok.o
+diff -puN security/integrity/ima/ima.h~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima.h
+--- a/security/integrity/ima/ima.h~ima-on-soft-reboot-restore-the-measurement-list
++++ a/security/integrity/ima/ima.h
+@@ -102,6 +102,15 @@ struct ima_queue_entry {
+ };
+ extern struct list_head ima_measurements;	/* list of all measurements */
+ 
++/* Some details preceding the binary serialized measurement list */
++struct ima_kexec_hdr {
++	u16 version;
++	u16 _reserved0;
++	u32 _reserved1;
++	u64 buffer_size;
++	u64 count;
++};
++
+ /* Internal IMA function definitions */
+ int ima_init(void);
+ int ima_fs_init(void);
+@@ -122,8 +131,17 @@ int ima_init_crypto(void);
+ void ima_putc(struct seq_file *m, void *data, int datalen);
+ void ima_print_digest(struct seq_file *m, u8 *digest, u32 size);
+ struct ima_template_desc *ima_template_desc_current(void);
++int ima_restore_measurement_entry(struct ima_template_entry *entry);
++int ima_restore_measurement_list(loff_t bufsize, void *buf);
+ int ima_init_template(void);
  
 +#ifdef CONFIG_KEXEC_FILE
-+bool __weak kexec_can_hand_over_buffer(void);
-+int __weak arch_kexec_add_handover_buffer(struct kimage *image,
-+					  unsigned long load_addr,
-+					  unsigned long size);
-+int kexec_add_handover_buffer(struct kexec_buf *kbuf);
-+int __weak kexec_get_handover_buffer(void **addr, unsigned long *size);
-+int __weak kexec_free_handover_buffer(void);
++void ima_load_kexec_buffer(void);
 +#else
-+struct kexec_buf;
-+
-+static inline bool kexec_can_hand_over_buffer(void)
-+{
-+	return false;
-+}
-+
-+static inline int kexec_add_handover_buffer(struct kexec_buf *kbuf)
-+{
-+	return -ENOTSUPP;
-+}
-+
-+static inline int kexec_get_handover_buffer(void **addr, unsigned long *size)
-+{
-+	return -ENOTSUPP;
-+}
-+
-+static inline int kexec_free_handover_buffer(void)
-+{
-+	return -ENOTSUPP;
-+}
-+#endif /* CONFIG_KEXEC_FILE */
- #else /* !CONFIG_KEXEC_CORE */
- struct pt_regs;
- struct task_struct;
-diff -puN kernel/kexec_file.c~kexec_file-add-buffer-hand-over-support-for-the-next-kernel kernel/kexec_file.c
---- a/kernel/kexec_file.c~kexec_file-add-buffer-hand-over-support-for-the-next-kernel
-+++ a/kernel/kexec_file.c
-@@ -116,6 +116,74 @@ void kimage_file_post_load_cleanup(struc
- 	image->image_loader_data = NULL;
- }
- 
-+/**
-+ * kexec_can_hand_over_buffer() - can we pass data to the kexec'd kernel?
-+ */
-+bool __weak kexec_can_hand_over_buffer(void)
-+{
-+	return false;
-+}
-+
-+/**
-+ * arch_kexec_add_handover_buffer() - do arch-specific steps to handover buffer
-+ *
-+ * Architectures should use this function to pass on the handover buffer
-+ * information to the next kernel.
-+ *
-+ * Return: 0 on success, negative errno on error.
-+ */
-+int __weak arch_kexec_add_handover_buffer(struct kimage *image,
-+					  unsigned long load_addr,
-+					  unsigned long size)
-+{
-+	return -ENOTSUPP;
-+}
-+
-+/**
-+ * kexec_add_handover_buffer() - add buffer to be used by the next kernel
-+ * @kbuf:	Buffer contents and memory parameters.
-+ *
-+ * This function assumes that kexec_mutex is held.
-+ * On successful return, @kbuf->mem will have the physical address of
-+ * the buffer in the next kernel.
-+ *
-+ * Return: 0 on success, negative errno on error.
-+ */
-+int kexec_add_handover_buffer(struct kexec_buf *kbuf)
-+{
-+	int ret;
-+
-+	if (!kexec_can_hand_over_buffer())
-+		return -ENOTSUPP;
-+
-+	ret = kexec_add_buffer(kbuf);
-+	if (ret)
-+		return ret;
-+
-+	return arch_kexec_add_handover_buffer(kbuf->image, kbuf->mem,
-+					      kbuf->memsz);
-+}
-+
-+/**
-+ * kexec_get_handover_buffer() - get handover buffer from the previous kernel
-+ * @addr:	On successful return, set to point to the buffer contents.
-+ * @size:	On successful return, set to the buffer size.
-+ *
-+ * Return: 0 on success, negative errno on error.
-+ */
-+int __weak kexec_get_handover_buffer(void **addr, unsigned long *size)
-+{
-+	return -ENOTSUPP;
-+}
-+
-+/**
-+ * kexec_free_handover_buffer() - free memory used by the handover buffer
-+ */
-+int __weak kexec_free_handover_buffer(void)
-+{
-+	return -ENOTSUPP;
-+}
++static inline void ima_load_kexec_buffer(void)
++{}
++#endif
 +
  /*
-  * In file mode list of segments is prepared by kernel. Copy relevant
-  * data from user space, do error checking, prepare segment list
+  * used to protect h_table and sha_table
+  */
+diff -puN security/integrity/ima/ima_init.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_init.c
+--- a/security/integrity/ima/ima_init.c~ima-on-soft-reboot-restore-the-measurement-list
++++ a/security/integrity/ima/ima_init.c
+@@ -128,6 +128,8 @@ int __init ima_init(void)
+ 	if (rc != 0)
+ 		return rc;
+ 
++	ima_load_kexec_buffer();
++
+ 	rc = ima_add_boot_aggregate();	/* boot aggregate must be first entry */
+ 	if (rc != 0)
+ 		return rc;
+diff -puN /dev/null security/integrity/ima/ima_kexec.c
+--- /dev/null
++++ a/security/integrity/ima/ima_kexec.c
+@@ -0,0 +1,55 @@
++/*
++ * Copyright (C) 2016 IBM Corporation
++ *
++ * Authors:
++ * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
++ * Mimi Zohar <zohar@linux.vnet.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#include <linux/fcntl.h>
++#include <linux/slab.h>
++#include <linux/module.h>
++#include <linux/seq_file.h>
++#include <linux/rculist.h>
++#include <linux/rcupdate.h>
++#include <linux/parser.h>
++#include <linux/vmalloc.h>
++#include <linux/kexec.h>
++#include <linux/reboot.h>
++
++#include "ima.h"
++
++/*
++ * Restore the measurement list from the previous kernel.
++ */
++void ima_load_kexec_buffer(void)
++{
++	void *kexec_buffer = NULL;
++	size_t kexec_buffer_size = 0;
++	int rc;
++
++	rc = kexec_get_handover_buffer(&kexec_buffer, &kexec_buffer_size);
++	switch (rc) {
++	case 0:
++		rc = ima_restore_measurement_list(kexec_buffer_size,
++						  kexec_buffer);
++		if (rc != 0)
++			pr_err("Failed to restore the measurement list: %d\n",
++				rc);
++
++		kexec_free_handover_buffer();
++		break;
++	case -ENOTSUPP:
++		pr_debug("Restoring the measurement list not supported\n");
++		break;
++	case -ENOENT:
++		pr_debug("No measurement list to restore\n");
++		break;
++	default:
++		pr_debug("Error restoring the measurement list: %d\n", rc);
++	}
++}
+diff -puN security/integrity/ima/ima_queue.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_queue.c
+--- a/security/integrity/ima/ima_queue.c~ima-on-soft-reboot-restore-the-measurement-list
++++ a/security/integrity/ima/ima_queue.c
+@@ -149,3 +149,13 @@ out:
+ 			    op, audit_cause, result, audit_info);
+ 	return result;
+ }
++
++int ima_restore_measurement_entry(struct ima_template_entry *entry)
++{
++	int result = 0;
++
++	mutex_lock(&ima_extend_list_mutex);
++	result = ima_add_digest_entry(entry);
++	mutex_unlock(&ima_extend_list_mutex);
++	return result;
++}
+diff -puN security/integrity/ima/ima_template.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_template.c
+--- a/security/integrity/ima/ima_template.c~ima-on-soft-reboot-restore-the-measurement-list
++++ a/security/integrity/ima/ima_template.c
+@@ -37,6 +37,7 @@ static struct ima_template_field support
+ 	{.field_id = "sig", .field_init = ima_eventsig_init,
+ 	 .field_show = ima_show_template_sig},
+ };
++#define MAX_TEMPLATE_NAME_LEN 15
+ 
+ static struct ima_template_desc *ima_template;
+ static struct ima_template_desc *lookup_template_desc(const char *name);
+@@ -205,3 +206,172 @@ int __init ima_init_template(void)
+ 
+ 	return result;
+ }
++
++static int ima_restore_template_data(struct ima_template_desc *template_desc,
++				     void *template_data,
++				     int template_data_size,
++				     struct ima_template_entry **entry)
++{
++	struct binary_field_data {
++		u32 len;
++		u8 data[0];
++	} __packed;
++
++	struct binary_field_data *field_data;
++	int offset = 0;
++	int ret = 0;
++	int i;
++
++	*entry = kzalloc(sizeof(**entry) +
++		    template_desc->num_fields * sizeof(struct ima_field_data),
++		    GFP_NOFS);
++	if (!*entry)
++		return -ENOMEM;
++
++	(*entry)->template_desc = template_desc;
++	for (i = 0; i < template_desc->num_fields; i++) {
++		field_data = template_data + offset;
++
++		/* Each field of the template data is prefixed with a length. */
++		if (offset > (template_data_size - sizeof(field_data->len))) {
++			pr_err("Restoring the template field failed\n");
++			ret = -EINVAL;
++			break;
++		}
++		offset += sizeof(field_data->len);
++
++		if (offset > (template_data_size - field_data->len)) {
++			pr_err("Restoring the template field data failed\n");
++			ret = -EINVAL;
++			break;
++		}
++		offset += field_data->len;
++
++		(*entry)->template_data[i].len = field_data->len;
++		(*entry)->template_data_len += sizeof(field_data->len);
++
++		(*entry)->template_data[i].data =
++			kzalloc(field_data->len + 1, GFP_KERNEL);
++		if (!(*entry)->template_data[i].data) {
++			ret = -ENOMEM;
++			break;
++		}
++		memcpy((*entry)->template_data[i].data, field_data->data,
++			field_data->len);
++		(*entry)->template_data_len += field_data->len;
++	}
++
++	if (ret < 0) {
++		ima_free_template_entry(*entry);
++		*entry = NULL;
++	}
++
++	return ret;
++}
++
++/* Restore the serialized binary measurement list without extending PCRs. */
++int ima_restore_measurement_list(loff_t size, void *buf)
++{
++	struct binary_hdr_v1 {
++		u32 pcr;
++		u8 digest[TPM_DIGEST_SIZE];
++		u32 template_name_len;
++		char template_name[0];
++	} __packed;
++	char template_name[MAX_TEMPLATE_NAME_LEN];
++
++	struct binary_data_v1 {
++		u32 template_data_size;
++		char template_data[0];
++	} __packed;
++
++	struct ima_kexec_hdr *khdr = buf;
++	struct binary_hdr_v1 *hdr_v1;
++	struct binary_data_v1 *data_v1;
++
++	void *bufp = buf + sizeof(*khdr);
++	void *bufendp = buf + khdr->buffer_size;
++	struct ima_template_entry *entry;
++	struct ima_template_desc *template_desc;
++	unsigned long count = 0;
++	int ret = 0;
++
++	if (!buf || size < sizeof(*khdr))
++		return 0;
++
++	if (khdr->version != 1) {
++		pr_err("attempting to restore a incompatible measurement list");
++		return 0;
++	}
++
++	/*
++	 * ima kexec buffer prefix: version, buffer size, count
++	 * v1 format: pcr, digest, template-name-len, template-name,
++	 *	      template-data-size, template-data
++	 */
++	while ((bufp < bufendp) && (count++ < khdr->count)) {
++		if (count > ULONG_MAX - 1) {
++			pr_err("attempting to restore too many measurements");
++			ret = -EINVAL;
++		}
++
++		hdr_v1 = bufp;
++		if ((hdr_v1->template_name_len > MAX_TEMPLATE_NAME_LEN) ||
++		    ((bufp + hdr_v1->template_name_len) > bufendp)) {
++			pr_err("attempting to restore a template name \
++				that is too long\n");
++			ret = -EINVAL;
++			break;
++		}
++		bufp += sizeof(*hdr_v1);
++
++		/* template name is not null terminated */
++		memcpy(template_name, bufp, hdr_v1->template_name_len);
++		template_name[hdr_v1->template_name_len] = 0;
++
++		if (strcmp(template_name, "ima") == 0) {
++			pr_err("attempting to restore an unsupported \
++				template \"%s\" failed\n", template_name);
++			ret = -EINVAL;
++			break;
++		}
++		data_v1 = bufp += (u_int8_t)hdr_v1->template_name_len;
++
++		/* get template format */
++		template_desc = lookup_template_desc(template_name);
++		if (!template_desc) {
++			pr_err("template \"%s\" not found\n", template_name);
++			ret = -EINVAL;
++			break;
++		}
++
++		if (bufp > (bufendp - sizeof(data_v1->template_data_size))) {
++			pr_err("restoring the template data size failed\n");
++			ret = -EINVAL;
++			break;
++		}
++		bufp += (u_int8_t) sizeof(data_v1->template_data_size);
++
++		if (bufp > (bufendp - data_v1->template_data_size)) {
++			pr_err("restoring the template data failed\n");
++			ret = -EINVAL;
++			break;
++		}
++
++		ret = ima_restore_template_data(template_desc,
++						data_v1->template_data,
++						data_v1->template_data_size,
++						&entry);
++		if (ret < 0)
++			break;
++
++		memcpy(entry->digest, hdr_v1->digest, TPM_DIGEST_SIZE);
++		entry->pcr = hdr_v1->pcr;
++		ret = ima_restore_measurement_entry(entry);
++		if (ret < 0)
++			break;
++
++		bufp += data_v1->template_data_size;
++	}
++	return ret;
++}
 _
 
-Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
+Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
-kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
-kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
-kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
-powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
-powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c.patch
-powerpc-generalize-elf64_apply_relocate_add.patch
-powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
-powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
-powerpc-implement-kexec_file_load.patch
-powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
-powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
-powerpc-add-purgatory-for-kexec_file_load-implementation.patch
-powerpc-add-purgatory-for-kexec_file_load-implementation-fix.patch
-powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
-kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum.patch
-kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
-powerpc-kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
-kexec_file-add-mechanism-to-update-kexec-segments.patch
-ima-on-soft-reboot-save-the-measurement-list.patch
+ima-on-soft-reboot-restore-the-measurement-list.patch
+ima-permit-duplicate-measurement-list-entries.patch
+ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+ima-serialize-the-binary_runtime_measurements.patch
+ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+ima-support-restoring-multiple-template-formats.patch
+ima-define-a-canonical-binary_runtime_measurements-list-format.patch
 
