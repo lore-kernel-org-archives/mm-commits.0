@@ -1,133 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/20] khugepaged: fix use-after-free in
- collapse_huge_page()
-Date: Mon, 19 Sep 2016 14:44:01 -0700
-Message-ID: <57e05c21.mq3n7brQNQrfZ0oI%akpm@linux-foundation.org>
+Subject: [patch 01/20] mem-hotplug: don't clear the only node in
+ new_node_page()
+Date: Mon, 19 Sep 2016 14:43:52 -0700
+Message-ID: <57e05c18.ws10JDxbNC9guuiS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52801 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52781 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932199AbcISVoC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 17:44:02 -0400
+        with ESMTP id S932199AbcISVnx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 17:43:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, aarcange@redhat.com, dvyukov@google.com, ebru.akagunduz@gmail.com, glider@google.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, kcc@google.com, koct9i@gmail.com, levinsasha928@gmail.com, mgorman@techsingularity.net, rientjes@google.com, ryabinin.a.a@gmail.com, suleiman@google.com, syzkaller@googlegroups.com, vbabka@suse.cz, vegard.nossum@oracle.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zhong@linux.vnet.ibm.com, jallen@linux.vnet.ibm.com, qiuxishi@huawei.com, vbabka@suse.cz
 
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: khugepaged: fix use-after-free in collapse_huge_page()
+From: Li Zhong <zhong@linux.vnet.ibm.com>
+Subject: mem-hotplug: don't clear the only node in new_node_page()
 
-hugepage_vma_revalidate() tries to re-check if we still should try to
-collapse small pages into huge one after the re-acquiring mmap_sem.
+394e31d2c ("mem-hotplug: alloc new page from a nearest neighbor node when
+mem-offline") introduced new_node_page() for memory hotplug.
 
-The problem Dmitry Vyukov reported[1] is that the vma found by
-hugepage_vma_revalidate() can be suitable for huge pages, but not the same
-vma we had before dropping mmap_sem.  And dereferencing original vma can
-lead to fun results..
+In new_node_page(), the nid is cleared before calling
+__alloc_pages_nodemask().  But if it is the only node of the system, and
+the first round allocation fails, it will not be able to get memory from
+an empty nodemask, and will trigger oom.
 
-Let's use vma hugepage_vma_revalidate() found instead of assuming it's the
-same as what we had before the lock was dropped.  [1]
-http://lkml.kernel.org/r/CACT4Y+Z3gigBvhca9kRJFcjX0G70V_nRhbwKBU+yGoESBDKi9Q@mail.gmail.com
+The patch checks whether it is the last node on the system, and if it is, then
+don't clear the nid in the nodemask.
 
-Link: http://lkml.kernel.org/r/20160907122559.GA6542@black.fi.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Sasha Levin <levinsasha928@gmail.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: syzkaller <syzkaller@googlegroups.com>
-Cc: Kostya Serebryany <kcc@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Fixes: 394e31d2ceb4 ("mem-hotplug: alloc new page from a nearest neighbor node when mem-offline")
+Link: http://lkml.kernel.org/r/1473044391.4250.19.camel@TP420
+Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
+Reported-by: John Allen <jallen@linux.vnet.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ mm/memory_hotplug.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/khugepaged.c~khugepaged-fix-use-after-free-in-collapse_huge_page mm/khugepaged.c
---- a/mm/khugepaged.c~khugepaged-fix-use-after-free-in-collapse_huge_page
-+++ a/mm/khugepaged.c
-@@ -838,7 +838,8 @@ static bool hugepage_vma_check(struct vm
-  * value (scan code).
-  */
+diff -puN mm/memory_hotplug.c~mem-hotplug-dont-clear-the-only-node-in-new_node_page mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mem-hotplug-dont-clear-the-only-node-in-new_node_page
++++ a/mm/memory_hotplug.c
+@@ -1567,7 +1567,9 @@ static struct page *new_node_page(struct
+ 		return alloc_huge_page_node(page_hstate(compound_head(page)),
+ 					next_node_in(nid, nmask));
  
--static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address)
-+static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address,
-+		struct vm_area_struct **vmap)
- {
- 	struct vm_area_struct *vma;
- 	unsigned long hstart, hend;
-@@ -846,7 +847,7 @@ static int hugepage_vma_revalidate(struc
- 	if (unlikely(khugepaged_test_exit(mm)))
- 		return SCAN_ANY_PROCESS;
- 
--	vma = find_vma(mm, address);
-+	*vmap = vma = find_vma(mm, address);
- 	if (!vma)
- 		return SCAN_VMA_NULL;
- 
-@@ -898,7 +899,7 @@ static bool __collapse_huge_page_swapin(
- 		/* do_swap_page returns VM_FAULT_RETRY with released mmap_sem */
- 		if (ret & VM_FAULT_RETRY) {
- 			down_read(&mm->mmap_sem);
--			if (hugepage_vma_revalidate(mm, address)) {
-+			if (hugepage_vma_revalidate(mm, address, &fe.vma)) {
- 				/* vma is no longer available, don't continue to swapin */
- 				trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
- 				return false;
-@@ -923,7 +924,6 @@ static bool __collapse_huge_page_swapin(
- static void collapse_huge_page(struct mm_struct *mm,
- 				   unsigned long address,
- 				   struct page **hpage,
--				   struct vm_area_struct *vma,
- 				   int node, int referenced)
- {
- 	pmd_t *pmd, _pmd;
-@@ -933,6 +933,7 @@ static void collapse_huge_page(struct mm
- 	spinlock_t *pmd_ptl, *pte_ptl;
- 	int isolated = 0, result = 0;
- 	struct mem_cgroup *memcg;
-+	struct vm_area_struct *vma;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
- 	unsigned long mmun_end;		/* For mmu_notifiers */
- 	gfp_t gfp;
-@@ -961,7 +962,7 @@ static void collapse_huge_page(struct mm
- 	}
- 
- 	down_read(&mm->mmap_sem);
--	result = hugepage_vma_revalidate(mm, address);
-+	result = hugepage_vma_revalidate(mm, address, &vma);
- 	if (result) {
- 		mem_cgroup_cancel_charge(new_page, memcg, true);
- 		up_read(&mm->mmap_sem);
-@@ -994,7 +995,7 @@ static void collapse_huge_page(struct mm
- 	 * handled by the anon_vma lock + PG_lock.
- 	 */
- 	down_write(&mm->mmap_sem);
--	result = hugepage_vma_revalidate(mm, address);
-+	result = hugepage_vma_revalidate(mm, address, &vma);
- 	if (result)
- 		goto out;
- 	/* check if the pmd is still valid */
-@@ -1202,7 +1203,7 @@ out_unmap:
- 	if (ret) {
- 		node = khugepaged_find_target_node();
- 		/* collapse_huge_page will return with the mmap_sem released */
--		collapse_huge_page(mm, address, hpage, vma, node, referenced);
-+		collapse_huge_page(mm, address, hpage, node, referenced);
- 	}
- out:
- 	trace_mm_khugepaged_scan_pmd(mm, page, writable, referenced,
+-	node_clear(nid, nmask);
++	if (nid != next_node_in(nid, nmask))
++		node_clear(nid, nmask);
++
+ 	if (PageHighMem(page)
+ 	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
+ 		gfp_mask |= __GFP_HIGHMEM;
 _
