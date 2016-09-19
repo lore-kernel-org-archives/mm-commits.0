@@ -1,85 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: [patch 17/20] cgroup: duplicate cgroup reference when cloning
- sockets
-Date: Mon, 19 Sep 2016 15:12:46 -0700
-Message-ID: <57e062de.fYe1xBrtO5jS/Gdb%akpm@linux-foundation.org>
+Subject: [patch 14/20] fanotify: fix list corruption in
+ fanotify_get_response()
+Date: Mon, 19 Sep 2016 15:12:38 -0700
+Message-ID: <57e062d6.meKRWLd7t+Lr0Xmn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53495 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53473 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932806AbcISWMs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:48 -0400
+        with ESMTP id S932806AbcISWMj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jweiner@fb.com, hannes@cmpxchg.org, mhocko@suse.cz, stable@vger.kernel.org, tj@kernel.org, vdavydov@virtuozzo.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jack@suse.cz, mszeredi@redhat.com, stable@vger.kernel.org
 
-From: Johannes Weiner <jweiner@fb.com>
-Subject: cgroup: duplicate cgroup reference when cloning sockets
+From: Jan Kara <jack@suse.cz>
+Subject: fanotify: fix list corruption in fanotify_get_response()
 
-When a socket is cloned, the associated sock_cgroup_data is duplicated
-but not its reference on the cgroup. As a result, the cgroup reference
-count will underflow when both sockets are destroyed later on.
+fanotify_get_response() calls fsnotify_remove_event() when it finds that
+group is being released from fanotify_release() (bypass_perm is set). 
+However the event it removes need not be only in the group's notification
+queue but it can have already moved to access_list (userspace read the
+event before closing the fanotify instance fd) which is protected by a
+different lock.  Thus when fsnotify_remove_event() races with
+fanotify_release() operating on access_list, the list can get corrupted.
 
-Fixes: bd1060a1d671 ("sock, cgroup: add sock->sk_cgroup")
-Link: http://lkml.kernel.org/r/20160914194846.11153-2-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: <stable@vger.kernel.org>	[4.5+]
+Fix the problem by moving all the logic removing permission events from
+the lists to one place - fanotify_release().
+
+Fixes: 5838d4442bd5971687b72221736222637e03140d
+Link: http://lkml.kernel.org/r/1473797711-14111-3-git-send-email-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Miklos Szeredi <mszeredi@redhat.com>
+Tested-by: Miklos Szeredi <mszeredi@redhat.com>
+Reviewed-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    6 ++++++
- net/core/sock.c |    5 ++++-
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ fs/notify/fanotify/fanotify.c      |   13 ---------
+ fs/notify/fanotify/fanotify_user.c |   36 ++++++++++++++++++---------
+ fs/notify/notification.c           |   15 -----------
+ include/linux/fsnotify_backend.h   |    3 --
+ 4 files changed, 25 insertions(+), 42 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets
-+++ a/kernel/cgroup.c
-@@ -6270,6 +6270,12 @@ void cgroup_sk_alloc(struct sock_cgroup_
- 	if (cgroup_sk_alloc_disabled)
- 		return;
+diff -puN fs/notify/fanotify/fanotify.c~fanotify-fix-list-corruption-in-fanotify_get_response fs/notify/fanotify/fanotify.c
+--- a/fs/notify/fanotify/fanotify.c~fanotify-fix-list-corruption-in-fanotify_get_response
++++ a/fs/notify/fanotify/fanotify.c
+@@ -67,18 +67,7 @@ static int fanotify_get_response(struct
  
-+	/* Socket clone path */
-+	if (skcd->val) {
-+		cgroup_get(sock_cgroup_ptr(skcd));
-+		return;
+ 	pr_debug("%s: group=%p event=%p\n", __func__, group, event);
+ 
+-	wait_event(group->fanotify_data.access_waitq, event->response ||
+-				atomic_read(&group->fanotify_data.bypass_perm));
+-
+-	if (!event->response) {	/* bypass_perm set */
+-		/*
+-		 * Event was canceled because group is being destroyed. Remove
+-		 * it from group's event list because we are responsible for
+-		 * freeing the permission event.
+-		 */
+-		fsnotify_remove_event(group, &event->fae.fse);
+-		return 0;
+-	}
++	wait_event(group->fanotify_data.access_waitq, event->response);
+ 
+ 	/* userspace responded, convert to something usable */
+ 	switch (event->response) {
+diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-fix-list-corruption-in-fanotify_get_response fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fanotify-fix-list-corruption-in-fanotify_get_response
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -358,16 +358,20 @@ static int fanotify_release(struct inode
+ 
+ #ifdef CONFIG_FANOTIFY_ACCESS_PERMISSIONS
+ 	struct fanotify_perm_event_info *event, *next;
++	struct fsnotify_event *fsn_event;
+ 
+ 	/*
+-	 * There may be still new events arriving in the notification queue
+-	 * but since userspace cannot use fanotify fd anymore, no event can
+-	 * enter or leave access_list by now.
++	 * Stop new events from arriving in the notification queue. since
++	 * userspace cannot use fanotify fd anymore, no event can enter or
++	 * leave access_list by now either.
+ 	 */
+-	spin_lock(&group->fanotify_data.access_lock);
+-
+-	atomic_inc(&group->fanotify_data.bypass_perm);
++	fsnotify_group_stop_queueing(group);
+ 
++	/*
++	 * Process all permission events on access_list and notification queue
++	 * and simulate reply from userspace.
++	 */
++	spin_lock(&group->fanotify_data.access_lock);
+ 	list_for_each_entry_safe(event, next, &group->fanotify_data.access_list,
+ 				 fae.fse.list) {
+ 		pr_debug("%s: found group=%p event=%p\n", __func__, group,
+@@ -379,12 +383,21 @@ static int fanotify_release(struct inode
+ 	spin_unlock(&group->fanotify_data.access_lock);
+ 
+ 	/*
+-	 * Since bypass_perm is set, newly queued events will not wait for
+-	 * access response. Wake up the already sleeping ones now.
+-	 * synchronize_srcu() in fsnotify_destroy_group() will wait for all
+-	 * processes sleeping in fanotify_handle_event() waiting for access
+-	 * response and thus also for all permission events to be freed.
++	 * Destroy all non-permission events. For permission events just
++	 * dequeue them and set the response. They will be freed once the
++	 * response is consumed and fanotify_get_response() returns.
+ 	 */
++	mutex_lock(&group->notification_mutex);
++	while (!fsnotify_notify_queue_is_empty(group)) {
++		fsn_event = fsnotify_remove_first_event(group);
++		if (!(fsn_event->mask & FAN_ALL_PERM_EVENTS))
++			fsnotify_destroy_event(group, fsn_event);
++		else
++			FANOTIFY_PE(fsn_event)->response = FAN_ALLOW;
 +	}
++	mutex_unlock(&group->notification_mutex);
 +
- 	rcu_read_lock();
++	/* Response for all permission events it set, wakeup waiters */
+ 	wake_up(&group->fanotify_data.access_waitq);
+ #endif
  
- 	while (true) {
-diff -puN net/core/sock.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets net/core/sock.c
---- a/net/core/sock.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets
-+++ a/net/core/sock.c
-@@ -1362,7 +1362,6 @@ static struct sock *sk_prot_alloc(struct
- 		if (!try_module_get(prot->owner))
- 			goto out_free_sec;
- 		sk_tx_queue_clear(sk);
--		cgroup_sk_alloc(&sk->sk_cgrp_data);
- 	}
+@@ -755,7 +768,6 @@ SYSCALL_DEFINE2(fanotify_init, unsigned
+ 	spin_lock_init(&group->fanotify_data.access_lock);
+ 	init_waitqueue_head(&group->fanotify_data.access_waitq);
+ 	INIT_LIST_HEAD(&group->fanotify_data.access_list);
+-	atomic_set(&group->fanotify_data.bypass_perm, 0);
+ #endif
+ 	switch (flags & FAN_ALL_CLASS_BITS) {
+ 	case FAN_CLASS_NOTIF:
+diff -puN fs/notify/notification.c~fanotify-fix-list-corruption-in-fanotify_get_response fs/notify/notification.c
+--- a/fs/notify/notification.c~fanotify-fix-list-corruption-in-fanotify_get_response
++++ a/fs/notify/notification.c
+@@ -132,21 +132,6 @@ queue:
+ }
  
- 	return sk;
-@@ -1422,6 +1421,7 @@ struct sock *sk_alloc(struct net *net, i
- 		sock_net_set(sk, net);
- 		atomic_set(&sk->sk_wmem_alloc, 1);
- 
-+		cgroup_sk_alloc(&sk->sk_cgrp_data);
- 		sock_update_classid(&sk->sk_cgrp_data);
- 		sock_update_netprioidx(&sk->sk_cgrp_data);
- 	}
-@@ -1566,6 +1566,9 @@ struct sock *sk_clone_lock(const struct
- 		newsk->sk_priority = 0;
- 		newsk->sk_incoming_cpu = raw_smp_processor_id();
- 		atomic64_set(&newsk->sk_cookie, 0);
-+
-+		cgroup_sk_alloc(&newsk->sk_cgrp_data);
-+
- 		/*
- 		 * Before updating sk_refcnt, we must commit prior changes to memory
- 		 * (Documentation/RCU/rculist_nulls.txt for details)
+ /*
+- * Remove @event from group's notification queue. It is the responsibility of
+- * the caller to destroy the event.
+- */
+-void fsnotify_remove_event(struct fsnotify_group *group,
+-			   struct fsnotify_event *event)
+-{
+-	mutex_lock(&group->notification_mutex);
+-	if (!list_empty(&event->list)) {
+-		list_del_init(&event->list);
+-		group->q_len--;
+-	}
+-	mutex_unlock(&group->notification_mutex);
+-}
+-
+-/*
+  * Remove and return the first event from the notification list.  It is the
+  * responsibility of the caller to destroy the obtained event
+  */
+diff -puN include/linux/fsnotify_backend.h~fanotify-fix-list-corruption-in-fanotify_get_response include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~fanotify-fix-list-corruption-in-fanotify_get_response
++++ a/include/linux/fsnotify_backend.h
+@@ -180,7 +180,6 @@ struct fsnotify_group {
+ 			spinlock_t access_lock;
+ 			struct list_head access_list;
+ 			wait_queue_head_t access_waitq;
+-			atomic_t bypass_perm;
+ #endif /* CONFIG_FANOTIFY_ACCESS_PERMISSIONS */
+ 			int f_flags;
+ 			unsigned int max_marks;
+@@ -307,8 +306,6 @@ extern int fsnotify_add_event(struct fsn
+ 			      struct fsnotify_event *event,
+ 			      int (*merge)(struct list_head *,
+ 					   struct fsnotify_event *));
+-/* Remove passed event from groups notification queue */
+-extern void fsnotify_remove_event(struct fsnotify_group *group, struct fsnotify_event *event);
+ /* true if the group notification queue is empty */
+ extern bool fsnotify_notify_queue_is_empty(struct fsnotify_group *group);
+ /* return, but do not dequeue the first event on the notification queue */
 _
