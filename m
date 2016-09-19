@@ -1,99 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [patch 09/20] mm: fix the page_swap_info() BUG_ON check
-Date: Mon, 19 Sep 2016 14:44:15 -0700
-Message-ID: <57e05c2f.QuC42coxYHjexgjP%akpm__46034.2182232582$1474321480$gmane$org@linux-foundation.org>
+Subject: [patch 10/20] ipc/shm: fix crash if CONFIG_SHMEM is not set
+Date: Mon, 19 Sep 2016 14:44:18 -0700
+Message-ID: <57e05c32.aTf4rD24qksZh5ZE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52839 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932283AbcISVoR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 17:44:17 -0400
+        with ESMTP id S932283AbcISVoT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 17:44:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, santosh.shilimkar@oracle.com, a.p.zijlstra@chello.nl, axboe@fb.com, davem@davemloft.net, hughd@google.com, joe@perches.com, mgorman@suse.de, mhocko@suse.com, riel@redhat.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, hughd@google.com, stable@vger.kernel.org, tonyb@cybernetics.com
 
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: mm: fix the page_swap_info() BUG_ON check
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: ipc/shm: fix crash if CONFIG_SHMEM is not set
 
-62c230bc1790 ("mm: add support for a filesystem to activate swap files and
-use direct_IO for writing swap pages") replaced swap_aops dirty hook from
-__set_page_dirty_no_writeback() to swap_set_page_dirty().  As such for
-normal cases without these special SWP flags code path falls back to
-__set_page_dirty_no_writeback() so behaviour is expected to be same as
-before.
+c01d5b300774 ("shmem: get_unmapped_area align huge page") makes use of
+shm_get_unmapped_area() in shm_file_operations() unconditional to
+CONFIG_MMU.
 
-But swap_set_page_dirty() makes use of helper page_swap_info() to get
-sis(swap_info_struct) to check for the flags like SWP_FILE, SWP_BLKDEV etc
-as desired for those features.  This helper has
-BUG_ON(!PageSwapCache(page)) which is racy and safe only for
-set_page_dirty_lock() path.  For set_page_dirty() path which is often
-needed for cases to be called from irq context, kswapd() can togele the
-flag behind the back while the call is getting executed when system is low
-on memory and heavy swapping is ongoing.
+As Tony Battersby pointed this can lead NULL-pointer dereference on
+machine with CONFIG_MMU=y and CONFIG_SHMEM=n.  In this case ipc/shm is
+backed by ramfs which doesn't provide f_op->get_unmapped_area for
+configurations with MMU.
 
-This ends up with undesired kernel panic.  Patch just moves the check
-outside the helper to its users appropriately to fix kernel panic for the
-described path.  Couple of users of helpers already take care of SwapCache
-condition so I skipped them.
+The solution is to provide dummy f_op->get_unmapped_area for ramfs when
+CONFIG_MMU=y, which just call current->mm->get_unmapped_area().
 
-Link: http://lkml.kernel.org/r/1473460718-31013-1-git-send-email-santosh.shilimkar@oracle.com
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Joe Perches <joe@perches.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Fixes: c01d5b300774 ("shmem: get_unmapped_area align huge page")
+Link: http://lkml.kernel.org/r/20160912102704.140442-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Tony Battersby <tonyb@cybernetics.com>
+Tested-by: Tony Battersby <tonyb@cybernetics.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: <stable@vger.kernel.org>	[4.7.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c  |    3 +++
- mm/swapfile.c |    1 -
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ fs/ramfs/file-mmu.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN mm/page_io.c~mm-fix-the-page_swap_info-bug_on-check mm/page_io.c
---- a/mm/page_io.c~mm-fix-the-page_swap_info-bug_on-check
-+++ a/mm/page_io.c
-@@ -264,6 +264,7 @@ int __swap_writepage(struct page *page,
- 	int ret;
- 	struct swap_info_struct *sis = page_swap_info(page);
+diff -puN fs/ramfs/file-mmu.c~ipc-shm-fix-crash-if-config_shmem-is-not-set fs/ramfs/file-mmu.c
+--- a/fs/ramfs/file-mmu.c~ipc-shm-fix-crash-if-config_shmem-is-not-set
++++ a/fs/ramfs/file-mmu.c
+@@ -27,9 +27,17 @@
+ #include <linux/fs.h>
+ #include <linux/mm.h>
+ #include <linux/ramfs.h>
++#include <linux/sched.h>
  
-+	BUG_ON(!PageSwapCache(page));
- 	if (sis->flags & SWP_FILE) {
- 		struct kiocb kiocb;
- 		struct file *swap_file = sis->swap_file;
-@@ -337,6 +338,7 @@ int swap_readpage(struct page *page)
- 	int ret = 0;
- 	struct swap_info_struct *sis = page_swap_info(page);
+ #include "internal.h"
  
-+	BUG_ON(!PageSwapCache(page));
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(PageUptodate(page), page);
- 	if (frontswap_load(page) == 0) {
-@@ -386,6 +388,7 @@ int swap_set_page_dirty(struct page *pag
++static unsigned long ramfs_mmu_get_unmapped_area(struct file *file,
++		unsigned long addr, unsigned long len, unsigned long pgoff,
++		unsigned long flags)
++{
++	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
++}
++
+ const struct file_operations ramfs_file_operations = {
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+@@ -38,6 +46,7 @@ const struct file_operations ramfs_file_
+ 	.splice_read	= generic_file_splice_read,
+ 	.splice_write	= iter_file_splice_write,
+ 	.llseek		= generic_file_llseek,
++	.get_unmapped_area	= ramfs_mmu_get_unmapped_area,
+ };
  
- 	if (sis->flags & SWP_FILE) {
- 		struct address_space *mapping = sis->swap_file->f_mapping;
-+		BUG_ON(!PageSwapCache(page));
- 		return mapping->a_ops->set_page_dirty(page);
- 	} else {
- 		return __set_page_dirty_no_writeback(page);
-diff -puN mm/swapfile.c~mm-fix-the-page_swap_info-bug_on-check mm/swapfile.c
---- a/mm/swapfile.c~mm-fix-the-page_swap_info-bug_on-check
-+++ a/mm/swapfile.c
-@@ -2724,7 +2724,6 @@ int swapcache_prepare(swp_entry_t entry)
- struct swap_info_struct *page_swap_info(struct page *page)
- {
- 	swp_entry_t swap = { .val = page_private(page) };
--	BUG_ON(!PageSwapCache(page));
- 	return swap_info[swp_type(swap)];
- }
- 
+ const struct inode_operations ramfs_file_inode_operations = {
 _
