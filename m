@@ -1,182 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [patch 14/20] fanotify: fix list corruption in
- fanotify_get_response()
-Date: Mon, 19 Sep 2016 15:12:38 -0700
-Message-ID: <57e062d6.meKRWLd7t+Lr0Xmn%akpm@linux-foundation.org>
+Subject: [patch 18/20] ocfs2: fix start offset to
+ ocfs2_zero_range_for_truncate()
+Date: Mon, 19 Sep 2016 15:12:49 -0700
+Message-ID: <57e062e1.t4jc4viabev5B2un%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53473 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53507 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932806AbcISWMj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:39 -0400
+        with ESMTP id S932275AbcISWMv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jack@suse.cz, mszeredi@redhat.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ashish.samant@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, saar.maoz@oracle.com, srinivas.eeda@oracle.com, stable@vger.kernel.org, zren@suse.com
 
-From: Jan Kara <jack@suse.cz>
-Subject: fanotify: fix list corruption in fanotify_get_response()
+From: Ashish Samant <ashish.samant@oracle.com>
+Subject: ocfs2: fix start offset to ocfs2_zero_range_for_truncate()
 
-fanotify_get_response() calls fsnotify_remove_event() when it finds that
-group is being released from fanotify_release() (bypass_perm is set). 
-However the event it removes need not be only in the group's notification
-queue but it can have already moved to access_list (userspace read the
-event before closing the fanotify instance fd) which is protected by a
-different lock.  Thus when fsnotify_remove_event() races with
-fanotify_release() operating on access_list, the list can get corrupted.
+If we punch a hole on a reflink such that following conditions are met:
 
-Fix the problem by moving all the logic removing permission events from
-the lists to one place - fanotify_release().
+1. start offset is on a cluster boundary
+2. end offset is not on a cluster boundary
+3. (end offset is somewhere in another extent) or
+   (hole range > MAX_CONTIG_BYTES(1MB)),
 
-Fixes: 5838d4442bd5971687b72221736222637e03140d
-Link: http://lkml.kernel.org/r/1473797711-14111-3-git-send-email-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Miklos Szeredi <mszeredi@redhat.com>
-Tested-by: Miklos Szeredi <mszeredi@redhat.com>
-Reviewed-by: Miklos Szeredi <mszeredi@redhat.com>
+we dont COW the first cluster starting at the start offset.  But in
+this case, we were wrongly passing this cluster to
+ocfs2_zero_range_for_truncate() to zero out.  This will modify the
+cluster in place and zero it in the source too.
+
+Fix this by skipping this cluster in such a scenario.
+
+To reproduce:
+
+1. Create a random file of say 10 MB
+     xfs_io -c 'pwrite -b 4k 0 10M' -f 10MBfile
+2. Reflink  it
+     reflink -f 10MBfile reflnktest
+3. Punch a hole at starting at cluster boundary  with range greater that 
+1MB. You can also use a range that will put the end offset in another 
+extent.
+     fallocate -p -o 0 -l 1048615 reflnktest
+4. sync
+5. Check the  first cluster in the source file. (It will be zeroed out).
+    dd if=10MBfile iflag=direct bs=<cluster size> count=1 | hexdump -C
+
+Link: http://lkml.kernel.org/r/1470957147-14185-1-git-send-email-ashish.samant@oracle.com
+Signed-off-by: Ashish Samant <ashish.samant@oracle.com>
+Reported-by: Saar Maoz <saar.maoz@oracle.com>
+Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Eric Ren <zren@suse.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify.c      |   13 ---------
- fs/notify/fanotify/fanotify_user.c |   36 ++++++++++++++++++---------
- fs/notify/notification.c           |   15 -----------
- include/linux/fsnotify_backend.h   |    3 --
- 4 files changed, 25 insertions(+), 42 deletions(-)
+ fs/ocfs2/file.c |   38 ++++++++++++++++++++++++++------------
+ 1 file changed, 26 insertions(+), 12 deletions(-)
 
-diff -puN fs/notify/fanotify/fanotify.c~fanotify-fix-list-corruption-in-fanotify_get_response fs/notify/fanotify/fanotify.c
---- a/fs/notify/fanotify/fanotify.c~fanotify-fix-list-corruption-in-fanotify_get_response
-+++ a/fs/notify/fanotify/fanotify.c
-@@ -67,18 +67,7 @@ static int fanotify_get_response(struct
- 
- 	pr_debug("%s: group=%p event=%p\n", __func__, group, event);
- 
--	wait_event(group->fanotify_data.access_waitq, event->response ||
--				atomic_read(&group->fanotify_data.bypass_perm));
--
--	if (!event->response) {	/* bypass_perm set */
--		/*
--		 * Event was canceled because group is being destroyed. Remove
--		 * it from group's event list because we are responsible for
--		 * freeing the permission event.
--		 */
--		fsnotify_remove_event(group, &event->fae.fse);
--		return 0;
--	}
-+	wait_event(group->fanotify_data.access_waitq, event->response);
- 
- 	/* userspace responded, convert to something usable */
- 	switch (event->response) {
-diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-fix-list-corruption-in-fanotify_get_response fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fanotify-fix-list-corruption-in-fanotify_get_response
-+++ a/fs/notify/fanotify/fanotify_user.c
-@@ -358,16 +358,20 @@ static int fanotify_release(struct inode
- 
- #ifdef CONFIG_FANOTIFY_ACCESS_PERMISSIONS
- 	struct fanotify_perm_event_info *event, *next;
-+	struct fsnotify_event *fsn_event;
+diff -puN fs/ocfs2/file.c~ocfs2-fix-start-offset-to-ocfs2_zero_range_for_truncate fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-fix-start-offset-to-ocfs2_zero_range_for_truncate
++++ a/fs/ocfs2/file.c
+@@ -1506,7 +1506,8 @@ static int ocfs2_zero_partial_clusters(s
+ 				       u64 start, u64 len)
+ {
+ 	int ret = 0;
+-	u64 tmpend, end = start + len;
++	u64 tmpend = 0;
++	u64 end = start + len;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	unsigned int csize = osb->s_clustersize;
+ 	handle_t *handle;
+@@ -1538,18 +1539,31 @@ static int ocfs2_zero_partial_clusters(s
+ 	}
  
  	/*
--	 * There may be still new events arriving in the notification queue
--	 * but since userspace cannot use fanotify fd anymore, no event can
--	 * enter or leave access_list by now.
-+	 * Stop new events from arriving in the notification queue. since
-+	 * userspace cannot use fanotify fd anymore, no event can enter or
-+	 * leave access_list by now either.
+-	 * We want to get the byte offset of the end of the 1st cluster.
++	 * If start is on a cluster boundary and end is somewhere in another
++	 * cluster, we have not COWed the cluster starting at start, unless
++	 * end is also within the same cluster. So, in this case, we skip this
++	 * first call to ocfs2_zero_range_for_truncate() truncate and move on
++	 * to the next one.
  	 */
--	spin_lock(&group->fanotify_data.access_lock);
+-	tmpend = (u64)osb->s_clustersize + (start & ~(osb->s_clustersize - 1));
+-	if (tmpend > end)
+-		tmpend = end;
 -
--	atomic_inc(&group->fanotify_data.bypass_perm);
-+	fsnotify_group_stop_queueing(group);
- 
-+	/*
-+	 * Process all permission events on access_list and notification queue
-+	 * and simulate reply from userspace.
-+	 */
-+	spin_lock(&group->fanotify_data.access_lock);
- 	list_for_each_entry_safe(event, next, &group->fanotify_data.access_list,
- 				 fae.fse.list) {
- 		pr_debug("%s: found group=%p event=%p\n", __func__, group,
-@@ -379,12 +383,21 @@ static int fanotify_release(struct inode
- 	spin_unlock(&group->fanotify_data.access_lock);
- 
- 	/*
--	 * Since bypass_perm is set, newly queued events will not wait for
--	 * access response. Wake up the already sleeping ones now.
--	 * synchronize_srcu() in fsnotify_destroy_group() will wait for all
--	 * processes sleeping in fanotify_handle_event() waiting for access
--	 * response and thus also for all permission events to be freed.
-+	 * Destroy all non-permission events. For permission events just
-+	 * dequeue them and set the response. They will be freed once the
-+	 * response is consumed and fanotify_get_response() returns.
- 	 */
-+	mutex_lock(&group->notification_mutex);
-+	while (!fsnotify_notify_queue_is_empty(group)) {
-+		fsn_event = fsnotify_remove_first_event(group);
-+		if (!(fsn_event->mask & FAN_ALL_PERM_EVENTS))
-+			fsnotify_destroy_event(group, fsn_event);
-+		else
-+			FANOTIFY_PE(fsn_event)->response = FAN_ALLOW;
-+	}
-+	mutex_unlock(&group->notification_mutex);
+-	trace_ocfs2_zero_partial_clusters_range1((unsigned long long)start,
+-						 (unsigned long long)tmpend);
+-
+-	ret = ocfs2_zero_range_for_truncate(inode, handle, start, tmpend);
+-	if (ret)
+-		mlog_errno(ret);
++	if ((start & (csize - 1)) != 0) {
++		/*
++		 * We want to get the byte offset of the end of the 1st
++		 * cluster.
++		 */
++		tmpend = (u64)osb->s_clustersize +
++			(start & ~(osb->s_clustersize - 1));
++		if (tmpend > end)
++			tmpend = end;
 +
-+	/* Response for all permission events it set, wakeup waiters */
- 	wake_up(&group->fanotify_data.access_waitq);
- #endif
++		trace_ocfs2_zero_partial_clusters_range1(
++			(unsigned long long)start,
++			(unsigned long long)tmpend);
++
++		ret = ocfs2_zero_range_for_truncate(inode, handle, start,
++						    tmpend);
++		if (ret)
++			mlog_errno(ret);
++	}
  
-@@ -755,7 +768,6 @@ SYSCALL_DEFINE2(fanotify_init, unsigned
- 	spin_lock_init(&group->fanotify_data.access_lock);
- 	init_waitqueue_head(&group->fanotify_data.access_waitq);
- 	INIT_LIST_HEAD(&group->fanotify_data.access_list);
--	atomic_set(&group->fanotify_data.bypass_perm, 0);
- #endif
- 	switch (flags & FAN_ALL_CLASS_BITS) {
- 	case FAN_CLASS_NOTIF:
-diff -puN fs/notify/notification.c~fanotify-fix-list-corruption-in-fanotify_get_response fs/notify/notification.c
---- a/fs/notify/notification.c~fanotify-fix-list-corruption-in-fanotify_get_response
-+++ a/fs/notify/notification.c
-@@ -132,21 +132,6 @@ queue:
- }
- 
- /*
-- * Remove @event from group's notification queue. It is the responsibility of
-- * the caller to destroy the event.
-- */
--void fsnotify_remove_event(struct fsnotify_group *group,
--			   struct fsnotify_event *event)
--{
--	mutex_lock(&group->notification_mutex);
--	if (!list_empty(&event->list)) {
--		list_del_init(&event->list);
--		group->q_len--;
--	}
--	mutex_unlock(&group->notification_mutex);
--}
--
--/*
-  * Remove and return the first event from the notification list.  It is the
-  * responsibility of the caller to destroy the obtained event
-  */
-diff -puN include/linux/fsnotify_backend.h~fanotify-fix-list-corruption-in-fanotify_get_response include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fanotify-fix-list-corruption-in-fanotify_get_response
-+++ a/include/linux/fsnotify_backend.h
-@@ -180,7 +180,6 @@ struct fsnotify_group {
- 			spinlock_t access_lock;
- 			struct list_head access_list;
- 			wait_queue_head_t access_waitq;
--			atomic_t bypass_perm;
- #endif /* CONFIG_FANOTIFY_ACCESS_PERMISSIONS */
- 			int f_flags;
- 			unsigned int max_marks;
-@@ -307,8 +306,6 @@ extern int fsnotify_add_event(struct fsn
- 			      struct fsnotify_event *event,
- 			      int (*merge)(struct list_head *,
- 					   struct fsnotify_event *));
--/* Remove passed event from groups notification queue */
--extern void fsnotify_remove_event(struct fsnotify_group *group, struct fsnotify_event *event);
- /* true if the group notification queue is empty */
- extern bool fsnotify_notify_queue_is_empty(struct fsnotify_group *group);
- /* return, but do not dequeue the first event on the notification queue */
+ 	if (tmpend < end) {
+ 		/*
 _
