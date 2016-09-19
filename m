@@ -1,119 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [patch 13/20] fsnotify: add a way to stop queueing events on
- group shutdown
-Date: Mon, 19 Sep 2016 15:12:35 -0700
-Message-ID: <57e062d3.IXaQ6I2vPf+6oONg%akpm__48285.109390463$1474323185$gmane$org@linux-foundation.org>
+Subject: [patch 16/20] mm: memcontrol: make per-cpu charge cache IRQ-safe
+ for socket accounting
+Date: Mon, 19 Sep 2016 15:12:43 -0700
+Message-ID: <57e062db.hm4BF1iaO2qcvg+q%akpm__17443.3783082806$1474323190$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53488 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932806AbcISWMg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:36 -0400
+        with ESMTP id S932806AbcISWMp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jack@suse.cz, mszeredi@redhat.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jweiner@fb.com, davem@davemloft.net, hannes@cmpxchg.org, mhocko@suse.cz, stable@vger.kernel.org, tj@kernel.org, vdavydov@virtuozzo.com
 
-From: Jan Kara <jack@suse.cz>
-Subject: fsnotify: add a way to stop queueing events on group shutdown
+From: Johannes Weiner <jweiner@fb.com>
+Subject: mm: memcontrol: make per-cpu charge cache IRQ-safe for socket accounting
 
-Implement a function that can be called when a group is being shutdown to
-stop queueing new events to the group.  Fanotify will use this.
+During cgroup2 rollout into production, we started encountering css
+refcount underflows and css access crashes in the memory controller. 
+Splitting the heavily shared css reference counter into logical users
+narrowed the imbalance down to the cgroup2 socket memory accounting.
 
-Fixes: 5838d4442bd5971687b72221736222637e03140d
-Link: http://lkml.kernel.org/r/1473797711-14111-2-git-send-email-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Miklos Szeredi <mszeredi@redhat.com>
-Cc: <stable@vger.kernel.org>
+The problem turns out to be the per-cpu charge cache.  Cgroup1 had a
+separate socket counter, but the new cgroup2 socket accounting goes
+through the common charge path that uses a shared per-cpu cache for all
+memory that is being tracked.  Those caches are safe against scheduling
+preemption, but not against interrupts - such as the newly added packet
+receive path.  When cache draining is interrupted by network RX taking
+pages out of the cache, the resuming drain operation will put references
+of in-use pages, thus causing the imbalance.
+
+Disable IRQs during all per-cpu charge cache operations.
+
+Fixes: f7e1cb6ec51b ("mm: memcontrol: account socket memory in unified hierarchy memory controller")
+Link: http://lkml.kernel.org/r/20160914194846.11153-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: <stable@vger.kernel.org>	[4.5+]
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/group.c                |   19 +++++++++++++++++++
- fs/notify/notification.c         |    8 +++++++-
- include/linux/fsnotify_backend.h |    3 +++
- 3 files changed, 29 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   31 ++++++++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 9 deletions(-)
 
-diff -puN fs/notify/group.c~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown fs/notify/group.c
---- a/fs/notify/group.c~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown
-+++ a/fs/notify/group.c
-@@ -40,6 +40,17 @@ static void fsnotify_final_destroy_group
+diff -puN mm/memcontrol.c~mm-memcontrol-make-per-cpu-charge-cache-irq-safe-for-socket-accounting mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-make-per-cpu-charge-cache-irq-safe-for-socket-accounting
++++ a/mm/memcontrol.c
+@@ -1740,17 +1740,22 @@ static DEFINE_MUTEX(percpu_charge_mutex)
+ static bool consume_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
+ {
+ 	struct memcg_stock_pcp *stock;
++	unsigned long flags;
+ 	bool ret = false;
+ 
+ 	if (nr_pages > CHARGE_BATCH)
+ 		return ret;
+ 
+-	stock = &get_cpu_var(memcg_stock);
++	local_irq_save(flags);
++
++	stock = this_cpu_ptr(&memcg_stock);
+ 	if (memcg == stock->cached && stock->nr_pages >= nr_pages) {
+ 		stock->nr_pages -= nr_pages;
+ 		ret = true;
+ 	}
+-	put_cpu_var(memcg_stock);
++
++	local_irq_restore(flags);
++
+ 	return ret;
+ }
+ 
+@@ -1771,15 +1776,18 @@ static void drain_stock(struct memcg_sto
+ 	stock->cached = NULL;
+ }
+ 
+-/*
+- * This must be called under preempt disabled or must be called by
+- * a thread which is pinned to local cpu.
+- */
+ static void drain_local_stock(struct work_struct *dummy)
+ {
+-	struct memcg_stock_pcp *stock = this_cpu_ptr(&memcg_stock);
++	struct memcg_stock_pcp *stock;
++	unsigned long flags;
++
++	local_irq_save(flags);
++
++	stock = this_cpu_ptr(&memcg_stock);
+ 	drain_stock(stock);
+ 	clear_bit(FLUSHING_CACHED_CHARGE, &stock->flags);
++
++	local_irq_restore(flags);
  }
  
  /*
-+ * Stop queueing new events for this group. Once this function returns
-+ * fsnotify_add_event() will not add any new events to the group's queue.
-+ */
-+void fsnotify_group_stop_queueing(struct fsnotify_group *group)
-+{
-+	mutex_lock(&group->notification_mutex);
-+	group->shutdown = true;
-+	mutex_unlock(&group->notification_mutex);
-+}
-+
-+/*
-  * Trying to get rid of a group. Remove all marks, flush all events and release
-  * the group reference.
-  * Note that another thread calling fsnotify_clear_marks_by_group() may still
-@@ -47,6 +58,14 @@ static void fsnotify_final_destroy_group
+@@ -1788,14 +1796,19 @@ static void drain_local_stock(struct wor
   */
- void fsnotify_destroy_group(struct fsnotify_group *group)
+ static void refill_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
  {
-+	/*
-+	 * Stop queueing new events. The code below is careful enough to not
-+	 * require this but fanotify needs to stop queuing events even before
-+	 * fsnotify_destroy_group() is called and this makes the other callers
-+	 * of fsnotify_destroy_group() to see the same behavior.
-+	 */
-+	fsnotify_group_stop_queueing(group);
+-	struct memcg_stock_pcp *stock = &get_cpu_var(memcg_stock);
++	struct memcg_stock_pcp *stock;
++	unsigned long flags;
 +
- 	/* clear all inode marks for this group, attach them to destroy_list */
- 	fsnotify_detach_group_marks(group);
++	local_irq_save(flags);
  
-diff -puN fs/notify/notification.c~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown fs/notify/notification.c
---- a/fs/notify/notification.c~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown
-+++ a/fs/notify/notification.c
-@@ -82,7 +82,8 @@ void fsnotify_destroy_event(struct fsnot
-  * Add an event to the group notification queue.  The group can later pull this
-  * event off the queue to deal with.  The function returns 0 if the event was
-  * added to the queue, 1 if the event was merged with some other queued event,
-- * 2 if the queue of events has overflown.
-+ * 2 if the event was not queued - either the queue of events has overflown
-+ * or the group is shutting down.
-  */
- int fsnotify_add_event(struct fsnotify_group *group,
- 		       struct fsnotify_event *event,
-@@ -96,6 +97,11 @@ int fsnotify_add_event(struct fsnotify_g
- 
- 	mutex_lock(&group->notification_mutex);
- 
-+	if (group->shutdown) {
-+		mutex_unlock(&group->notification_mutex);
-+		return 2;
-+	}
++	stock = this_cpu_ptr(&memcg_stock);
+ 	if (stock->cached != memcg) { /* reset if necessary */
+ 		drain_stock(stock);
+ 		stock->cached = memcg;
+ 	}
+ 	stock->nr_pages += nr_pages;
+-	put_cpu_var(memcg_stock);
 +
- 	if (group->q_len >= group->max_events) {
- 		ret = 2;
- 		/* Queue overflow event only if it isn't already queued */
-diff -puN include/linux/fsnotify_backend.h~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown
-+++ a/include/linux/fsnotify_backend.h
-@@ -148,6 +148,7 @@ struct fsnotify_group {
- 	#define FS_PRIO_1	1 /* fanotify content based access control */
- 	#define FS_PRIO_2	2 /* fanotify pre-content access */
- 	unsigned int priority;
-+	bool shutdown;		/* group is being shut down, don't queue more events */
++	local_irq_restore(flags);
+ }
  
- 	/* stores all fastpath marks assoc with this group so they can be cleaned on unregister */
- 	struct mutex mark_mutex;	/* protect marks_list */
-@@ -292,6 +293,8 @@ extern struct fsnotify_group *fsnotify_a
- extern void fsnotify_get_group(struct fsnotify_group *group);
- /* drop reference on a group from fsnotify_alloc_group */
- extern void fsnotify_put_group(struct fsnotify_group *group);
-+/* group destruction begins, stop queuing new events */
-+extern void fsnotify_group_stop_queueing(struct fsnotify_group *group);
- /* destroy group */
- extern void fsnotify_destroy_group(struct fsnotify_group *group);
- /* fasync handler function */
+ /*
 _
