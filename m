@@ -1,122 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [patch 18/20] ocfs2: fix start offset to
- ocfs2_zero_range_for_truncate()
-Date: Mon, 19 Sep 2016 15:12:49 -0700
-Message-ID: <57e062e1.t4jc4viabev5B2un%akpm@linux-foundation.org>
+Subject: [patch 20/20] rapidio/rio_cm: avoid GFP_KERNEL in atomic context
+Date: Mon, 19 Sep 2016 15:12:55 -0700
+Message-ID: <57e062e7.UQTfMtm/AhZaTTMR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53507 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53514 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932275AbcISWMv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:51 -0400
+        with ESMTP id S932978AbcISWM4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ashish.samant@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, saar.maoz@oracle.com, srinivas.eeda@oracle.com, stable@vger.kernel.org, zren@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexandre.bounine@idt.com, khoroshilov@ispras.ru
 
-From: Ashish Samant <ashish.samant@oracle.com>
-Subject: ocfs2: fix start offset to ocfs2_zero_range_for_truncate()
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/rio_cm: avoid GFP_KERNEL in atomic context
 
-If we punch a hole on a reflink such that following conditions are met:
+As reported by Alexey Khoroshilov (https://lkml.org/lkml/2016/9/9/737):
+riocm_send_close() is called from rio_cm_shutdown() under
+spin_lock_bh(idr_lock), but riocm_send_close() uses a GFP_KERNEL
+allocation.
 
-1. start offset is on a cluster boundary
-2. end offset is not on a cluster boundary
-3. (end offset is somewhere in another extent) or
-   (hole range > MAX_CONTIG_BYTES(1MB)),
+Fix by taking riocm_send_close() outside of spinlock protected code.
 
-we dont COW the first cluster starting at the start offset.  But in
-this case, we were wrongly passing this cluster to
-ocfs2_zero_range_for_truncate() to zero out.  This will modify the
-cluster in place and zero it in the source too.
-
-Fix this by skipping this cluster in such a scenario.
-
-To reproduce:
-
-1. Create a random file of say 10 MB
-     xfs_io -c 'pwrite -b 4k 0 10M' -f 10MBfile
-2. Reflink  it
-     reflink -f 10MBfile reflnktest
-3. Punch a hole at starting at cluster boundary  with range greater that 
-1MB. You can also use a range that will put the end offset in another 
-extent.
-     fallocate -p -o 0 -l 1048615 reflnktest
-4. sync
-5. Check the  first cluster in the source file. (It will be zeroed out).
-    dd if=10MBfile iflag=direct bs=<cluster size> count=1 | hexdump -C
-
-Link: http://lkml.kernel.org/r/1470957147-14185-1-git-send-email-ashish.samant@oracle.com
-Signed-off-by: Ashish Samant <ashish.samant@oracle.com>
-Reported-by: Saar Maoz <saar.maoz@oracle.com>
-Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Eric Ren <zren@suse.com>
-Cc: <stable@vger.kernel.org>
+[akpm@linux-foundation.org: remove unneeded `if (!list_empty())']
+Link: http://lkml.kernel.org/r/20160915175402.10122-1-alexandre.bounine@idt.com
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Reported-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |   38 ++++++++++++++++++++++++++------------
- 1 file changed, 26 insertions(+), 12 deletions(-)
+ drivers/rapidio/rio_cm.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-fix-start-offset-to-ocfs2_zero_range_for_truncate fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-fix-start-offset-to-ocfs2_zero_range_for_truncate
-+++ a/fs/ocfs2/file.c
-@@ -1506,7 +1506,8 @@ static int ocfs2_zero_partial_clusters(s
- 				       u64 start, u64 len)
+diff -puN drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context drivers/rapidio/rio_cm.c
+--- a/drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context
++++ a/drivers/rapidio/rio_cm.c
+@@ -2247,17 +2247,30 @@ static int rio_cm_shutdown(struct notifi
  {
- 	int ret = 0;
--	u64 tmpend, end = start + len;
-+	u64 tmpend = 0;
-+	u64 end = start + len;
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
- 	unsigned int csize = osb->s_clustersize;
- 	handle_t *handle;
-@@ -1538,18 +1539,31 @@ static int ocfs2_zero_partial_clusters(s
+ 	struct rio_channel *ch;
+ 	unsigned int i;
++	LIST_HEAD(list);
+ 
+ 	riocm_debug(EXIT, ".");
+ 
++	/*
++	 * If there are any channels left in connected state send
++	 * close notification to the connection partner.
++	 * First build a list of channels that require a closing
++	 * notification because function riocm_send_close() should
++	 * be called outside of spinlock protected code.
++	 */
+ 	spin_lock_bh(&idr_lock);
+ 	idr_for_each_entry(&ch_idr, ch, i) {
+-		riocm_debug(EXIT, "close ch %d", ch->id);
+-		if (ch->state == RIO_CM_CONNECTED)
+-			riocm_send_close(ch);
++		if (ch->state == RIO_CM_CONNECTED) {
++			riocm_debug(EXIT, "close ch %d", ch->id);
++			idr_remove(&ch_idr, ch->id);
++			list_add(&ch->ch_node, &list);
++		}
  	}
+ 	spin_unlock_bh(&idr_lock);
  
- 	/*
--	 * We want to get the byte offset of the end of the 1st cluster.
-+	 * If start is on a cluster boundary and end is somewhere in another
-+	 * cluster, we have not COWed the cluster starting at start, unless
-+	 * end is also within the same cluster. So, in this case, we skip this
-+	 * first call to ocfs2_zero_range_for_truncate() truncate and move on
-+	 * to the next one.
- 	 */
--	tmpend = (u64)osb->s_clustersize + (start & ~(osb->s_clustersize - 1));
--	if (tmpend > end)
--		tmpend = end;
--
--	trace_ocfs2_zero_partial_clusters_range1((unsigned long long)start,
--						 (unsigned long long)tmpend);
--
--	ret = ocfs2_zero_range_for_truncate(inode, handle, start, tmpend);
--	if (ret)
--		mlog_errno(ret);
-+	if ((start & (csize - 1)) != 0) {
-+		/*
-+		 * We want to get the byte offset of the end of the 1st
-+		 * cluster.
-+		 */
-+		tmpend = (u64)osb->s_clustersize +
-+			(start & ~(osb->s_clustersize - 1));
-+		if (tmpend > end)
-+			tmpend = end;
++	list_for_each_entry(ch, &list, ch_node)
++		riocm_send_close(ch);
 +
-+		trace_ocfs2_zero_partial_clusters_range1(
-+			(unsigned long long)start,
-+			(unsigned long long)tmpend);
-+
-+		ret = ocfs2_zero_range_for_truncate(inode, handle, start,
-+						    tmpend);
-+		if (ret)
-+			mlog_errno(ret);
-+	}
+ 	return NOTIFY_DONE;
+ }
  
- 	if (tmpend < end) {
- 		/*
 _
