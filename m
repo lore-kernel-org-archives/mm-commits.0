@@ -1,75 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [patch 20/20] rapidio/rio_cm: avoid GFP_KERNEL in atomic context
-Date: Mon, 19 Sep 2016 15:12:55 -0700
-Message-ID: <57e062e7.UQTfMtm/AhZaTTMR%akpm@linux-foundation.org>
+Subject: [patch 13/20] fsnotify: add a way to stop queueing events on
+ group shutdown
+Date: Mon, 19 Sep 2016 15:12:35 -0700
+Message-ID: <57e062d3.IXaQ6I2vPf+6oONg%akpm__48285.109390463$1474323185$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53470 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932978AbcISWM4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:56 -0400
+        with ESMTP id S932806AbcISWMg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexandre.bounine@idt.com, khoroshilov@ispras.ru
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jack@suse.cz, mszeredi@redhat.com, stable@vger.kernel.org
 
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/rio_cm: avoid GFP_KERNEL in atomic context
+From: Jan Kara <jack@suse.cz>
+Subject: fsnotify: add a way to stop queueing events on group shutdown
 
-As reported by Alexey Khoroshilov (https://lkml.org/lkml/2016/9/9/737):
-riocm_send_close() is called from rio_cm_shutdown() under
-spin_lock_bh(idr_lock), but riocm_send_close() uses a GFP_KERNEL
-allocation.
+Implement a function that can be called when a group is being shutdown to
+stop queueing new events to the group.  Fanotify will use this.
 
-Fix by taking riocm_send_close() outside of spinlock protected code.
-
-[akpm@linux-foundation.org: remove unneeded `if (!list_empty())']
-Link: http://lkml.kernel.org/r/20160915175402.10122-1-alexandre.bounine@idt.com
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Reported-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Fixes: 5838d4442bd5971687b72221736222637e03140d
+Link: http://lkml.kernel.org/r/1473797711-14111-2-git-send-email-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio_cm.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ fs/notify/group.c                |   19 +++++++++++++++++++
+ fs/notify/notification.c         |    8 +++++++-
+ include/linux/fsnotify_backend.h |    3 +++
+ 3 files changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context drivers/rapidio/rio_cm.c
---- a/drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context
-+++ a/drivers/rapidio/rio_cm.c
-@@ -2247,17 +2247,30 @@ static int rio_cm_shutdown(struct notifi
- {
- 	struct rio_channel *ch;
- 	unsigned int i;
-+	LIST_HEAD(list);
- 
- 	riocm_debug(EXIT, ".");
- 
-+	/*
-+	 * If there are any channels left in connected state send
-+	 * close notification to the connection partner.
-+	 * First build a list of channels that require a closing
-+	 * notification because function riocm_send_close() should
-+	 * be called outside of spinlock protected code.
-+	 */
- 	spin_lock_bh(&idr_lock);
- 	idr_for_each_entry(&ch_idr, ch, i) {
--		riocm_debug(EXIT, "close ch %d", ch->id);
--		if (ch->state == RIO_CM_CONNECTED)
--			riocm_send_close(ch);
-+		if (ch->state == RIO_CM_CONNECTED) {
-+			riocm_debug(EXIT, "close ch %d", ch->id);
-+			idr_remove(&ch_idr, ch->id);
-+			list_add(&ch->ch_node, &list);
-+		}
- 	}
- 	spin_unlock_bh(&idr_lock);
- 
-+	list_for_each_entry(ch, &list, ch_node)
-+		riocm_send_close(ch);
-+
- 	return NOTIFY_DONE;
+diff -puN fs/notify/group.c~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown fs/notify/group.c
+--- a/fs/notify/group.c~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown
++++ a/fs/notify/group.c
+@@ -40,6 +40,17 @@ static void fsnotify_final_destroy_group
  }
  
+ /*
++ * Stop queueing new events for this group. Once this function returns
++ * fsnotify_add_event() will not add any new events to the group's queue.
++ */
++void fsnotify_group_stop_queueing(struct fsnotify_group *group)
++{
++	mutex_lock(&group->notification_mutex);
++	group->shutdown = true;
++	mutex_unlock(&group->notification_mutex);
++}
++
++/*
+  * Trying to get rid of a group. Remove all marks, flush all events and release
+  * the group reference.
+  * Note that another thread calling fsnotify_clear_marks_by_group() may still
+@@ -47,6 +58,14 @@ static void fsnotify_final_destroy_group
+  */
+ void fsnotify_destroy_group(struct fsnotify_group *group)
+ {
++	/*
++	 * Stop queueing new events. The code below is careful enough to not
++	 * require this but fanotify needs to stop queuing events even before
++	 * fsnotify_destroy_group() is called and this makes the other callers
++	 * of fsnotify_destroy_group() to see the same behavior.
++	 */
++	fsnotify_group_stop_queueing(group);
++
+ 	/* clear all inode marks for this group, attach them to destroy_list */
+ 	fsnotify_detach_group_marks(group);
+ 
+diff -puN fs/notify/notification.c~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown fs/notify/notification.c
+--- a/fs/notify/notification.c~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown
++++ a/fs/notify/notification.c
+@@ -82,7 +82,8 @@ void fsnotify_destroy_event(struct fsnot
+  * Add an event to the group notification queue.  The group can later pull this
+  * event off the queue to deal with.  The function returns 0 if the event was
+  * added to the queue, 1 if the event was merged with some other queued event,
+- * 2 if the queue of events has overflown.
++ * 2 if the event was not queued - either the queue of events has overflown
++ * or the group is shutting down.
+  */
+ int fsnotify_add_event(struct fsnotify_group *group,
+ 		       struct fsnotify_event *event,
+@@ -96,6 +97,11 @@ int fsnotify_add_event(struct fsnotify_g
+ 
+ 	mutex_lock(&group->notification_mutex);
+ 
++	if (group->shutdown) {
++		mutex_unlock(&group->notification_mutex);
++		return 2;
++	}
++
+ 	if (group->q_len >= group->max_events) {
+ 		ret = 2;
+ 		/* Queue overflow event only if it isn't already queued */
+diff -puN include/linux/fsnotify_backend.h~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown
++++ a/include/linux/fsnotify_backend.h
+@@ -148,6 +148,7 @@ struct fsnotify_group {
+ 	#define FS_PRIO_1	1 /* fanotify content based access control */
+ 	#define FS_PRIO_2	2 /* fanotify pre-content access */
+ 	unsigned int priority;
++	bool shutdown;		/* group is being shut down, don't queue more events */
+ 
+ 	/* stores all fastpath marks assoc with this group so they can be cleaned on unregister */
+ 	struct mutex mark_mutex;	/* protect marks_list */
+@@ -292,6 +293,8 @@ extern struct fsnotify_group *fsnotify_a
+ extern void fsnotify_get_group(struct fsnotify_group *group);
+ /* drop reference on a group from fsnotify_alloc_group */
+ extern void fsnotify_put_group(struct fsnotify_group *group);
++/* group destruction begins, stop queuing new events */
++extern void fsnotify_group_stop_queueing(struct fsnotify_group *group);
+ /* destroy group */
+ extern void fsnotify_destroy_group(struct fsnotify_group *group);
+ /* fasync handler function */
 _
