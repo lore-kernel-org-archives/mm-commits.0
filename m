@@ -1,99 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [patch 09/20] mm: fix the page_swap_info() BUG_ON check
-Date: Mon, 19 Sep 2016 15:12:23 -0700
-Message-ID: <57e062c7.IDXXzliSLybD7o7t%akpm@linux-foundation.org>
+Subject: [patch 08/20] autofs: use dentry flags to block walks during
+ expire
+Date: Mon, 19 Sep 2016 15:12:20 -0700
+Message-ID: <57e062c4.WtV+exUiD99/b2p/%akpm__32205.4926692092$1474323167$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53445 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53436 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932650AbcISWMZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:25 -0400
+        with ESMTP id S1752378AbcISWMV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, santosh.shilimkar@oracle.com, a.p.zijlstra@chello.nl, axboe@fb.com, davem@davemloft.net, hughd@google.com, joe@perches.com, mgorman@suse.de, mhocko@suse.com, riel@redhat.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, raven@themaw.net, neilb@suse.com, stable@vger.kernel.org, tiwai@suse.de, viro@zeniv.linux.org.uk
 
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: mm: fix the page_swap_info() BUG_ON check
+From: Ian Kent <raven@themaw.net>
+Subject: autofs: use dentry flags to block walks during expire
 
-62c230bc1790 ("mm: add support for a filesystem to activate swap files and
-use direct_IO for writing swap pages") replaced swap_aops dirty hook from
-__set_page_dirty_no_writeback() to swap_set_page_dirty().  As such for
-normal cases without these special SWP flags code path falls back to
-__set_page_dirty_no_writeback() so behaviour is expected to be same as
-before.
+Somewhere along the way the autofs expire operation has changed to hold a
+spin lock over expired dentry selection.  The autofs indirect mount
+expired dentry selection is complicated and quite lengthy so it isn't
+appropriate to hold a spin lock over the operation.
 
-But swap_set_page_dirty() makes use of helper page_swap_info() to get
-sis(swap_info_struct) to check for the flags like SWP_FILE, SWP_BLKDEV etc
-as desired for those features.  This helper has
-BUG_ON(!PageSwapCache(page)) which is racy and safe only for
-set_page_dirty_lock() path.  For set_page_dirty() path which is often
-needed for cases to be called from irq context, kswapd() can togele the
-flag behind the back while the call is getting executed when system is low
-on memory and heavy swapping is ongoing.
+Commit 47be6184 ("fs/dcache.c: avoid soft-lockup in dput()") added a
+might_sleep() to dput() causing a WARN_ONCE() about this usage to be
+issued.
 
-This ends up with undesired kernel panic.  Patch just moves the check
-outside the helper to its users appropriately to fix kernel panic for the
-described path.  Couple of users of helpers already take care of SwapCache
-condition so I skipped them.
+But the spin lock doesn't need to be held over this check, the autofs
+dentry info.  flags are enough to block walks into dentrys during the
+expire.
 
-Link: http://lkml.kernel.org/r/1473460718-31013-1-git-send-email-santosh.shilimkar@oracle.com
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Joe Perches <joe@perches.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
+I've left the direct mount expire as it is (for now) because it is much
+simpler and quicker than the indirect mount expire and adding spin lock
+release and re-aquires would do nothing more than add overhead.
+
+Fixes: 47be61845c77 ("fs/dcache.c: avoid soft-lockup in dput()")
+Link: http://lkml.kernel.org/r/20160912014017.1773.73060.stgit@pluto.themaw.net
+Signed-off-by: Ian Kent <raven@themaw.net>
+Reported-by: Takashi Iwai <tiwai@suse.de>
+Tested-by: Takashi Iwai <tiwai@suse.de>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: NeilBrown <neilb@suse.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>	[4.7.x]
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c  |    3 +++
- mm/swapfile.c |    1 -
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ fs/autofs4/expire.c |   55 ++++++++++++++++++++++++++++++++----------
+ 1 file changed, 42 insertions(+), 13 deletions(-)
 
-diff -puN mm/page_io.c~mm-fix-the-page_swap_info-bug_on-check mm/page_io.c
---- a/mm/page_io.c~mm-fix-the-page_swap_info-bug_on-check
-+++ a/mm/page_io.c
-@@ -264,6 +264,7 @@ int __swap_writepage(struct page *page,
- 	int ret;
- 	struct swap_info_struct *sis = page_swap_info(page);
- 
-+	BUG_ON(!PageSwapCache(page));
- 	if (sis->flags & SWP_FILE) {
- 		struct kiocb kiocb;
- 		struct file *swap_file = sis->swap_file;
-@@ -337,6 +338,7 @@ int swap_readpage(struct page *page)
- 	int ret = 0;
- 	struct swap_info_struct *sis = page_swap_info(page);
- 
-+	BUG_ON(!PageSwapCache(page));
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(PageUptodate(page), page);
- 	if (frontswap_load(page) == 0) {
-@@ -386,6 +388,7 @@ int swap_set_page_dirty(struct page *pag
- 
- 	if (sis->flags & SWP_FILE) {
- 		struct address_space *mapping = sis->swap_file->f_mapping;
-+		BUG_ON(!PageSwapCache(page));
- 		return mapping->a_ops->set_page_dirty(page);
- 	} else {
- 		return __set_page_dirty_no_writeback(page);
-diff -puN mm/swapfile.c~mm-fix-the-page_swap_info-bug_on-check mm/swapfile.c
---- a/mm/swapfile.c~mm-fix-the-page_swap_info-bug_on-check
-+++ a/mm/swapfile.c
-@@ -2724,7 +2724,6 @@ int swapcache_prepare(swp_entry_t entry)
- struct swap_info_struct *page_swap_info(struct page *page)
- {
- 	swp_entry_t swap = { .val = page_private(page) };
--	BUG_ON(!PageSwapCache(page));
- 	return swap_info[swp_type(swap)];
+diff -puN fs/autofs4/expire.c~autofs-use-dentry-flags-to-block-walks-during-expire fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs-use-dentry-flags-to-block-walks-during-expire
++++ a/fs/autofs4/expire.c
+@@ -417,6 +417,7 @@ static struct dentry *should_expire(stru
+ 	}
+ 	return NULL;
  }
++
+ /*
+  * Find an eligible tree to time-out
+  * A tree is eligible if :-
+@@ -432,6 +433,7 @@ struct dentry *autofs4_expire_indirect(s
+ 	struct dentry *root = sb->s_root;
+ 	struct dentry *dentry;
+ 	struct dentry *expired;
++	struct dentry *found;
+ 	struct autofs_info *ino;
  
+ 	if (!root)
+@@ -442,31 +444,46 @@ struct dentry *autofs4_expire_indirect(s
+ 
+ 	dentry = NULL;
+ 	while ((dentry = get_next_positive_subdir(dentry, root))) {
++		int flags = how;
++
+ 		spin_lock(&sbi->fs_lock);
+ 		ino = autofs4_dentry_ino(dentry);
+-		if (ino->flags & AUTOFS_INF_WANT_EXPIRE)
+-			expired = NULL;
+-		else
+-			expired = should_expire(dentry, mnt, timeout, how);
+-		if (!expired) {
++		if (ino->flags & AUTOFS_INF_WANT_EXPIRE) {
+ 			spin_unlock(&sbi->fs_lock);
+ 			continue;
+ 		}
++		spin_unlock(&sbi->fs_lock);
++
++		expired = should_expire(dentry, mnt, timeout, flags);
++		if (!expired)
++			continue;
++
++		spin_lock(&sbi->fs_lock);
+ 		ino = autofs4_dentry_ino(expired);
+ 		ino->flags |= AUTOFS_INF_WANT_EXPIRE;
+ 		spin_unlock(&sbi->fs_lock);
+ 		synchronize_rcu();
+-		spin_lock(&sbi->fs_lock);
+-		if (should_expire(expired, mnt, timeout, how)) {
+-			if (expired != dentry)
+-				dput(dentry);
+-			goto found;
+-		}
+ 
++		/* Make sure a reference is not taken on found if
++		 * things have changed.
++		 */
++		flags &= ~AUTOFS_EXP_LEAVES;
++		found = should_expire(expired, mnt, timeout, how);
++		if (!found || found != expired)
++			/* Something has changed, continue */
++			goto next;
++
++		if (expired != dentry)
++			dput(dentry);
++
++		spin_lock(&sbi->fs_lock);
++		goto found;
++next:
++		spin_lock(&sbi->fs_lock);
+ 		ino->flags &= ~AUTOFS_INF_WANT_EXPIRE;
++		spin_unlock(&sbi->fs_lock);
+ 		if (expired != dentry)
+ 			dput(expired);
+-		spin_unlock(&sbi->fs_lock);
+ 	}
+ 	return NULL;
+ 
+@@ -483,6 +500,7 @@ int autofs4_expire_wait(struct dentry *d
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
+ 	int status;
++	int state;
+ 
+ 	/* Block on any pending expire */
+ 	if (!(ino->flags & AUTOFS_INF_WANT_EXPIRE))
+@@ -490,8 +508,19 @@ int autofs4_expire_wait(struct dentry *d
+ 	if (rcu_walk)
+ 		return -ECHILD;
+ 
++retry:
+ 	spin_lock(&sbi->fs_lock);
+-	if (ino->flags & AUTOFS_INF_EXPIRING) {
++	state = ino->flags & (AUTOFS_INF_WANT_EXPIRE | AUTOFS_INF_EXPIRING);
++	if (state == AUTOFS_INF_WANT_EXPIRE) {
++		spin_unlock(&sbi->fs_lock);
++		/*
++		 * Possibly being selected for expire, wait until
++		 * it's selected or not.
++		 */
++		schedule_timeout_uninterruptible(HZ/10);
++		goto retry;
++	}
++	if (state & AUTOFS_INF_EXPIRING) {
+ 		spin_unlock(&sbi->fs_lock);
+ 
+ 		pr_debug("waiting for expire %p name=%pd\n", dentry, dentry);
 _
