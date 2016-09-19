@@ -1,105 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context.patch added
- to -mm tree
-Date: Fri, 16 Sep 2016 16:39:14 -0700
-Message-ID: <57dc82a2.Qc24tDjT/wZHfKe9%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix.patch removed from
+ -mm tree
+Date: Mon, 19 Sep 2016 14:41:10 -0700
+Message-ID: <57e05b76.9c0UOZQt7ZnErysb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52769 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751968AbcIPXjP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 16 Sep 2016 19:39:15 -0400
+        with ESMTP id S932964AbcISVlL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 17:41:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, khoroshilov@ispras.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alexandre.bounine@idt.com, khoroshilov@ispras.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/rio_cm: avoid GFP_KERNEL in atomic context
-has been added to the -mm tree.  Its filename is
-     rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context.patch
+     Subject: rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix
+has been removed from the -mm tree.  Its filename was
+     rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context.patch
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/rio_cm: avoid GFP_KERNEL in atomic context
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix
 
-As reported by Alexey Khoroshilov (https://lkml.org/lkml/2016/9/9/737):
-riocm_send_close() is called from rio_cm_shutdown() under
-spin_lock_bh(idr_lock), but riocm_send_close() uses a GFP_KERNEL
-allocation.
+remove unneeded `if (!list_empty())'
 
-Fix by taking riocm_send_close() outside of spinlock protected code.
-
-Link: http://lkml.kernel.org/r/20160915175402.10122-1-alexandre.bounine@idt.com
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Reported-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio_cm.c |   20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ drivers/rapidio/rio_cm.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context drivers/rapidio/rio_cm.c
---- a/drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context
+diff -puN drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix drivers/rapidio/rio_cm.c
+--- a/drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context-fix
 +++ a/drivers/rapidio/rio_cm.c
-@@ -2247,17 +2247,31 @@ static int rio_cm_shutdown(struct notifi
- {
- 	struct rio_channel *ch;
- 	unsigned int i;
-+	LIST_HEAD(list);
- 
- 	riocm_debug(EXIT, ".");
- 
-+	/*
-+	 * If there are any channels left in connected state send
-+	 * close notification to the connection partner.
-+	 * First build a list of channels that require a closing
-+	 * notification because function riocm_send_close() should
-+	 * be called outside of spinlock protected code.
-+	 */
- 	spin_lock_bh(&idr_lock);
- 	idr_for_each_entry(&ch_idr, ch, i) {
--		riocm_debug(EXIT, "close ch %d", ch->id);
--		if (ch->state == RIO_CM_CONNECTED)
--			riocm_send_close(ch);
-+		if (ch->state == RIO_CM_CONNECTED) {
-+			riocm_debug(EXIT, "close ch %d", ch->id);
-+			idr_remove(&ch_idr, ch->id);
-+			list_add(&ch->ch_node, &list);
-+		}
+@@ -2268,9 +2268,8 @@ static int rio_cm_shutdown(struct notifi
  	}
  	spin_unlock_bh(&idr_lock);
  
-+	if (!list_empty(&list))
-+		list_for_each_entry(ch, &list, ch_node)
-+			riocm_send_close(ch);
-+
+-	if (!list_empty(&list))
+-		list_for_each_entry(ch, &list, ch_node)
+-			riocm_send_close(ch);
++	list_for_each_entry(ch, &list, ch_node)
++		riocm_send_close(ch);
+ 
  	return NOTIFY_DONE;
  }
- 
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
 rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context.patch
-rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-vmalloc-fix-align-value-calculation-error-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
+mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
+fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
+mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+lib-bitmapc-enhance-bitmap-syntax-fix.patch
+relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
+ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
