@@ -1,75 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [patch 10/20] ipc/shm: fix crash if CONFIG_SHMEM is not set
-Date: Mon, 19 Sep 2016 15:12:26 -0700
-Message-ID: <57e062ca.4PK2A6uGsrcl8rli%akpm__9642.31052571467$1474323174$gmane$org@linux-foundation.org>
+Subject: [patch 17/20] cgroup: duplicate cgroup reference when cloning
+ sockets
+Date: Mon, 19 Sep 2016 15:12:46 -0700
+Message-ID: <57e062de.fYe1xBrtO5jS/Gdb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53452 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53495 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753301AbcISWM1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:27 -0400
+        with ESMTP id S932806AbcISWMs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, hughd@google.com, stable@vger.kernel.org, tonyb@cybernetics.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jweiner@fb.com, hannes@cmpxchg.org, mhocko@suse.cz, stable@vger.kernel.org, tj@kernel.org, vdavydov@virtuozzo.com
 
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: ipc/shm: fix crash if CONFIG_SHMEM is not set
+From: Johannes Weiner <jweiner@fb.com>
+Subject: cgroup: duplicate cgroup reference when cloning sockets
 
-c01d5b300774 ("shmem: get_unmapped_area align huge page") makes use of
-shm_get_unmapped_area() in shm_file_operations() unconditional to
-CONFIG_MMU.
+When a socket is cloned, the associated sock_cgroup_data is duplicated
+but not its reference on the cgroup. As a result, the cgroup reference
+count will underflow when both sockets are destroyed later on.
 
-As Tony Battersby pointed this can lead NULL-pointer dereference on
-machine with CONFIG_MMU=y and CONFIG_SHMEM=n.  In this case ipc/shm is
-backed by ramfs which doesn't provide f_op->get_unmapped_area for
-configurations with MMU.
-
-The solution is to provide dummy f_op->get_unmapped_area for ramfs when
-CONFIG_MMU=y, which just call current->mm->get_unmapped_area().
-
-Fixes: c01d5b300774 ("shmem: get_unmapped_area align huge page")
-Link: http://lkml.kernel.org/r/20160912102704.140442-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Tony Battersby <tonyb@cybernetics.com>
-Tested-by: Tony Battersby <tonyb@cybernetics.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>	[4.7.x]
+Fixes: bd1060a1d671 ("sock, cgroup: add sock->sk_cgroup")
+Link: http://lkml.kernel.org/r/20160914194846.11153-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: <stable@vger.kernel.org>	[4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-mmu.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ kernel/cgroup.c |    6 ++++++
+ net/core/sock.c |    5 ++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN fs/ramfs/file-mmu.c~ipc-shm-fix-crash-if-config_shmem-is-not-set fs/ramfs/file-mmu.c
---- a/fs/ramfs/file-mmu.c~ipc-shm-fix-crash-if-config_shmem-is-not-set
-+++ a/fs/ramfs/file-mmu.c
-@@ -27,9 +27,17 @@
- #include <linux/fs.h>
- #include <linux/mm.h>
- #include <linux/ramfs.h>
-+#include <linux/sched.h>
+diff -puN kernel/cgroup.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets
++++ a/kernel/cgroup.c
+@@ -6270,6 +6270,12 @@ void cgroup_sk_alloc(struct sock_cgroup_
+ 	if (cgroup_sk_alloc_disabled)
+ 		return;
  
- #include "internal.h"
- 
-+static unsigned long ramfs_mmu_get_unmapped_area(struct file *file,
-+		unsigned long addr, unsigned long len, unsigned long pgoff,
-+		unsigned long flags)
-+{
-+	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
-+}
++	/* Socket clone path */
++	if (skcd->val) {
++		cgroup_get(sock_cgroup_ptr(skcd));
++		return;
++	}
 +
- const struct file_operations ramfs_file_operations = {
- 	.read_iter	= generic_file_read_iter,
- 	.write_iter	= generic_file_write_iter,
-@@ -38,6 +46,7 @@ const struct file_operations ramfs_file_
- 	.splice_read	= generic_file_splice_read,
- 	.splice_write	= iter_file_splice_write,
- 	.llseek		= generic_file_llseek,
-+	.get_unmapped_area	= ramfs_mmu_get_unmapped_area,
- };
+ 	rcu_read_lock();
  
- const struct inode_operations ramfs_file_inode_operations = {
+ 	while (true) {
+diff -puN net/core/sock.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets net/core/sock.c
+--- a/net/core/sock.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets
++++ a/net/core/sock.c
+@@ -1362,7 +1362,6 @@ static struct sock *sk_prot_alloc(struct
+ 		if (!try_module_get(prot->owner))
+ 			goto out_free_sec;
+ 		sk_tx_queue_clear(sk);
+-		cgroup_sk_alloc(&sk->sk_cgrp_data);
+ 	}
+ 
+ 	return sk;
+@@ -1422,6 +1421,7 @@ struct sock *sk_alloc(struct net *net, i
+ 		sock_net_set(sk, net);
+ 		atomic_set(&sk->sk_wmem_alloc, 1);
+ 
++		cgroup_sk_alloc(&sk->sk_cgrp_data);
+ 		sock_update_classid(&sk->sk_cgrp_data);
+ 		sock_update_netprioidx(&sk->sk_cgrp_data);
+ 	}
+@@ -1566,6 +1566,9 @@ struct sock *sk_clone_lock(const struct
+ 		newsk->sk_priority = 0;
+ 		newsk->sk_incoming_cpu = raw_smp_processor_id();
+ 		atomic64_set(&newsk->sk_cookie, 0);
++
++		cgroup_sk_alloc(&newsk->sk_cgrp_data);
++
+ 		/*
+ 		 * Before updating sk_refcnt, we must commit prior changes to memory
+ 		 * (Documentation/RCU/rculist_nulls.txt for details)
 _
