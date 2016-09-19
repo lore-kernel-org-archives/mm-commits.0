@@ -1,59 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 01/20] mem-hotplug: don't clear the only node in
- new_node_page()
-Date: Mon, 19 Sep 2016 15:12:00 -0700
-Message-ID: <57e062b0.fAQODV9/AQBHghPw%akpm@linux-foundation.org>
+Subject: [patch 06/20] mm: avoid endless recursion in dump_page()
+Date: Mon, 19 Sep 2016 15:12:15 -0700
+Message-ID: <57e062bf.PMiqzLOtb2MtbK51%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53393 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53427 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752151AbcISWMB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:01 -0400
+        with ESMTP id S1751032AbcISWMQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 18:12:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zhong@linux.vnet.ibm.com, jallen@linux.vnet.ibm.com, qiuxishi@huawei.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com
 
-From: Li Zhong <zhong@linux.vnet.ibm.com>
-Subject: mem-hotplug: don't clear the only node in new_node_page()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: avoid endless recursion in dump_page()
 
-394e31d2c ("mem-hotplug: alloc new page from a nearest neighbor node when
-mem-offline") introduced new_node_page() for memory hotplug.
+dump_page() uses page_mapcount() to get mapcount of the page.
+page_mapcount() has VM_BUG_ON_PAGE(PageSlab(page)) as mapcount doesn't
+make sense for slab pages and the field in struct page used for other
+information.
 
-In new_node_page(), the nid is cleared before calling
-__alloc_pages_nodemask().  But if it is the only node of the system, and
-the first round allocation fails, it will not be able to get memory from
-an empty nodemask, and will trigger oom.
+It leads to recursion if dump_page() called for slub page and DEBUG_VM
+is enabled:
 
-The patch checks whether it is the last node on the system, and if it is, then
-don't clear the nid in the nodemask.
+dump_page() -> page_mapcount() -> VM_BUG_ON_PAGE() -> dump_page -> ...
 
-Fixes: 394e31d2ceb4 ("mem-hotplug: alloc new page from a nearest neighbor node when mem-offline")
-Link: http://lkml.kernel.org/r/1473044391.4250.19.camel@TP420
-Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
-Reported-by: John Allen <jallen@linux.vnet.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Let's avoid calling page_mapcount() for slab pages in dump_page().
+
+Link: http://lkml.kernel.org/r/20160908082137.131076-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/debug.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mem-hotplug-dont-clear-the-only-node-in-new_node_page mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mem-hotplug-dont-clear-the-only-node-in-new_node_page
-+++ a/mm/memory_hotplug.c
-@@ -1567,7 +1567,9 @@ static struct page *new_node_page(struct
- 		return alloc_huge_page_node(page_hstate(compound_head(page)),
- 					next_node_in(nid, nmask));
+diff -puN mm/debug.c~mm-avoid-endless-recursion-in-dump_page mm/debug.c
+--- a/mm/debug.c~mm-avoid-endless-recursion-in-dump_page
++++ a/mm/debug.c
+@@ -42,9 +42,11 @@ const struct trace_print_flags vmaflag_n
  
--	node_clear(nid, nmask);
-+	if (nid != next_node_in(nid, nmask))
-+		node_clear(nid, nmask);
+ void __dump_page(struct page *page, const char *reason)
+ {
++	int mapcount = PageSlab(page) ? 0 : page_mapcount(page);
 +
- 	if (PageHighMem(page)
- 	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
- 		gfp_mask |= __GFP_HIGHMEM;
+ 	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx",
+-		  page, page_ref_count(page), page_mapcount(page),
+-		  page->mapping, page->index);
++		  page, page_ref_count(page), mapcount,
++		  page->mapping, page_to_pgoff(page));
+ 	if (PageCompound(page))
+ 		pr_cont(" compound_mapcount: %d", compound_mapcount(page));
+ 	pr_cont("\n");
 _
