@@ -1,75 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [patch 20/20] rapidio/rio_cm: avoid GFP_KERNEL in atomic context
-Date: Mon, 19 Sep 2016 14:44:47 -0700
-Message-ID: <57e05c4f.YhTFbWQ0e3eeskqu%akpm@linux-foundation.org>
+Subject: [patch 17/20] cgroup: duplicate cgroup reference when cloning
+ sockets
+Date: Mon, 19 Sep 2016 14:44:38 -0700
+Message-ID: <57e05c46.VUCpQo9izbfoJL5F%akpm__31789.2664032572$1474321508$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52899 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52880 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932283AbcISVos (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 17:44:48 -0400
+        with ESMTP id S932283AbcISVok (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 19 Sep 2016 17:44:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alexandre.bounine@idt.com, khoroshilov@ispras.ru
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jweiner@fb.com, hannes@cmpxchg.org, mhocko@suse.cz, stable@vger.kernel.org, tj@kernel.org, vdavydov@virtuozzo.com
 
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/rio_cm: avoid GFP_KERNEL in atomic context
+From: Johannes Weiner <jweiner@fb.com>
+Subject: cgroup: duplicate cgroup reference when cloning sockets
 
-As reported by Alexey Khoroshilov (https://lkml.org/lkml/2016/9/9/737):
-riocm_send_close() is called from rio_cm_shutdown() under
-spin_lock_bh(idr_lock), but riocm_send_close() uses a GFP_KERNEL
-allocation.
+When a socket is cloned, the associated sock_cgroup_data is duplicated
+but not its reference on the cgroup. As a result, the cgroup reference
+count will underflow when both sockets are destroyed later on.
 
-Fix by taking riocm_send_close() outside of spinlock protected code.
-
-[akpm@linux-foundation.org: remove unneeded `if (!list_empty())']
-Link: http://lkml.kernel.org/r/20160915175402.10122-1-alexandre.bounine@idt.com
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Reported-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Fixes: bd1060a1d671 ("sock, cgroup: add sock->sk_cgroup")
+Link: http://lkml.kernel.org/r/20160914194846.11153-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: <stable@vger.kernel.org>	[4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio_cm.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ kernel/cgroup.c |    6 ++++++
+ net/core/sock.c |    5 ++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context drivers/rapidio/rio_cm.c
---- a/drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context
-+++ a/drivers/rapidio/rio_cm.c
-@@ -2247,17 +2247,30 @@ static int rio_cm_shutdown(struct notifi
- {
- 	struct rio_channel *ch;
- 	unsigned int i;
-+	LIST_HEAD(list);
+diff -puN kernel/cgroup.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets
++++ a/kernel/cgroup.c
+@@ -6270,6 +6270,12 @@ void cgroup_sk_alloc(struct sock_cgroup_
+ 	if (cgroup_sk_alloc_disabled)
+ 		return;
  
- 	riocm_debug(EXIT, ".");
- 
-+	/*
-+	 * If there are any channels left in connected state send
-+	 * close notification to the connection partner.
-+	 * First build a list of channels that require a closing
-+	 * notification because function riocm_send_close() should
-+	 * be called outside of spinlock protected code.
-+	 */
- 	spin_lock_bh(&idr_lock);
- 	idr_for_each_entry(&ch_idr, ch, i) {
--		riocm_debug(EXIT, "close ch %d", ch->id);
--		if (ch->state == RIO_CM_CONNECTED)
--			riocm_send_close(ch);
-+		if (ch->state == RIO_CM_CONNECTED) {
-+			riocm_debug(EXIT, "close ch %d", ch->id);
-+			idr_remove(&ch_idr, ch->id);
-+			list_add(&ch->ch_node, &list);
-+		}
- 	}
- 	spin_unlock_bh(&idr_lock);
- 
-+	list_for_each_entry(ch, &list, ch_node)
-+		riocm_send_close(ch);
++	/* Socket clone path */
++	if (skcd->val) {
++		cgroup_get(sock_cgroup_ptr(skcd));
++		return;
++	}
 +
- 	return NOTIFY_DONE;
- }
+ 	rcu_read_lock();
  
+ 	while (true) {
+diff -puN net/core/sock.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets net/core/sock.c
+--- a/net/core/sock.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets
++++ a/net/core/sock.c
+@@ -1362,7 +1362,6 @@ static struct sock *sk_prot_alloc(struct
+ 		if (!try_module_get(prot->owner))
+ 			goto out_free_sec;
+ 		sk_tx_queue_clear(sk);
+-		cgroup_sk_alloc(&sk->sk_cgrp_data);
+ 	}
+ 
+ 	return sk;
+@@ -1422,6 +1421,7 @@ struct sock *sk_alloc(struct net *net, i
+ 		sock_net_set(sk, net);
+ 		atomic_set(&sk->sk_wmem_alloc, 1);
+ 
++		cgroup_sk_alloc(&sk->sk_cgrp_data);
+ 		sock_update_classid(&sk->sk_cgrp_data);
+ 		sock_update_netprioidx(&sk->sk_cgrp_data);
+ 	}
+@@ -1566,6 +1566,9 @@ struct sock *sk_clone_lock(const struct
+ 		newsk->sk_priority = 0;
+ 		newsk->sk_incoming_cpu = raw_smp_processor_id();
+ 		atomic64_set(&newsk->sk_cookie, 0);
++
++		cgroup_sk_alloc(&newsk->sk_cgrp_data);
++
+ 		/*
+ 		 * Before updating sk_refcnt, we must commit prior changes to memory
+ 		 * (Documentation/RCU/rculist_nulls.txt for details)
 _
