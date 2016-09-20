@@ -1,90 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context.patch
- removed from -mm tree
-Date: Tue, 20 Sep 2016 12:31:06 -0700
-Message-ID: <57e18e7a.EUQwS7Jy9/Y0Eehh%akpm@linux-foundation.org>
+Subject: +
+ mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch added
+ to -mm tree
+Date: Tue, 20 Sep 2016 13:09:52 -0700
+Message-ID: <57e19790.As/+R+IcGBeTZq8X%akpm__22864.8524884649$1474402221$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48733 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48969 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753714AbcITTbH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:31:07 -0400
+        with ESMTP id S1753123AbcITUJx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 16:09:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, khoroshilov@ispras.ru, mm-commits@vger.kernel.org
+To: zhongjiang@huawei.com, hughd@google.com, mhocko@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/rio_cm: avoid GFP_KERNEL in atomic context
-has been removed from the -mm tree.  Its filename was
-     rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context.patch
+     Subject: mm,ksm: fix endless looping in allocating memory when ksm enable
+has been added to the -mm tree.  Its filename is
+     mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/rio_cm: avoid GFP_KERNEL in atomic context
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: mm,ksm: fix endless looping in allocating memory when ksm enable
 
-As reported by Alexey Khoroshilov (https://lkml.org/lkml/2016/9/9/737):
-riocm_send_close() is called from rio_cm_shutdown() under
-spin_lock_bh(idr_lock), but riocm_send_close() uses a GFP_KERNEL
-allocation.
+I hit the following hung task when runing a OOM LTP test case with 4.1
+kernel.
 
-Fix by taking riocm_send_close() outside of spinlock protected code.
+Call trace:
+[<ffffffc000086a88>] __switch_to+0x74/0x8c
+[<ffffffc000a1bae0>] __schedule+0x23c/0x7bc
+[<ffffffc000a1c09c>] schedule+0x3c/0x94
+[<ffffffc000a1eb84>] rwsem_down_write_failed+0x214/0x350
+[<ffffffc000a1e32c>] down_write+0x64/0x80
+[<ffffffc00021f794>] __ksm_exit+0x90/0x19c
+[<ffffffc0000be650>] mmput+0x118/0x11c
+[<ffffffc0000c3ec4>] do_exit+0x2dc/0xa74
+[<ffffffc0000c46f8>] do_group_exit+0x4c/0xe4
+[<ffffffc0000d0f34>] get_signal+0x444/0x5e0
+[<ffffffc000089fcc>] do_signal+0x1d8/0x450
+[<ffffffc00008a35c>] do_notify_resume+0x70/0x78
 
-[akpm@linux-foundation.org: remove unneeded `if (!list_empty())']
-Link: http://lkml.kernel.org/r/20160915175402.10122-1-alexandre.bounine@idt.com
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Reported-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+The oom victim cannot terminate because it needs to take mmap_sem for
+write while the lock is held by ksmd for read which loops in the page
+allocator
+
+ksm_do_scan
+	scan_get_next_rmap_item
+		down_read
+		get_next_rmap_item
+			alloc_rmap_item   #ksmd will loop permanently.
+
+There is no way forward because the oom victim cannot release any memory
+in 4.1 based kernel.  Since 4.6 we have the oom reaper which would solve
+this problem because it would release the memory asynchronously. 
+Nevertheless we can relax alloc_rmap_item requirements and use
+__GFP_NORETRY because the allocation failure is acceptable as ksm_do_scan
+would just retry later after the lock got dropped.
+
+Such a patch would be also easy to backport to older stable kernels which
+do not have oom_reaper.
+
+While we are at it add GFP_NOWARN so the admin doesn't have to be alarmed
+by the allocation failure.
+
+Link: http://lkml.kernel.org/r/1474165570-44398-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Suggested-by: Hugh Dickins <hughd@google.com>
+Suggested-by: Michal Hocko <mhocko@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio_cm.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ mm/ksm.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context drivers/rapidio/rio_cm.c
---- a/drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context
-+++ a/drivers/rapidio/rio_cm.c
-@@ -2247,17 +2247,30 @@ static int rio_cm_shutdown(struct notifi
+diff -puN mm/ksm.c~mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable mm/ksm.c
+--- a/mm/ksm.c~mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable
++++ a/mm/ksm.c
+@@ -283,7 +283,8 @@ static inline struct rmap_item *alloc_rm
  {
- 	struct rio_channel *ch;
- 	unsigned int i;
-+	LIST_HEAD(list);
+ 	struct rmap_item *rmap_item;
  
- 	riocm_debug(EXIT, ".");
- 
-+	/*
-+	 * If there are any channels left in connected state send
-+	 * close notification to the connection partner.
-+	 * First build a list of channels that require a closing
-+	 * notification because function riocm_send_close() should
-+	 * be called outside of spinlock protected code.
-+	 */
- 	spin_lock_bh(&idr_lock);
- 	idr_for_each_entry(&ch_idr, ch, i) {
--		riocm_debug(EXIT, "close ch %d", ch->id);
--		if (ch->state == RIO_CM_CONNECTED)
--			riocm_send_close(ch);
-+		if (ch->state == RIO_CM_CONNECTED) {
-+			riocm_debug(EXIT, "close ch %d", ch->id);
-+			idr_remove(&ch_idr, ch->id);
-+			list_add(&ch->ch_node, &list);
-+		}
- 	}
- 	spin_unlock_bh(&idr_lock);
- 
-+	list_for_each_entry(ch, &list, ch_node)
-+		riocm_send_close(ch);
-+
- 	return NOTIFY_DONE;
- }
- 
+-	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL);
++	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL |
++						__GFP_NORETRY | __GFP_NOWARN);
+ 	if (rmap_item)
+ 		ksm_rmap_items++;
+ 	return rmap_item;
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from zhongjiang@huawei.com are
 
-rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code.patch
+mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
+mm-page_owner-align-with-pageblock_nr-pages.patch
+mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
 
