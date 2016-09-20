@@ -1,201 +1,88 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fanotify-fix-list-corruption-in-fanotify_get_response.patch removed from
- -mm tree
-Date: Tue, 20 Sep 2016 12:30:49 -0700
-Message-ID: <57e18e69.48lBuUaOdLT3ALOw%akpm__11955.0641895787$1474399867$gmane$org@linux-foundation.org>
+ ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log.patch removed from -mm tree
+Date: Tue, 20 Sep 2016 12:30:51 -0700
+Message-ID: <57e18e6b.RxfcQcdSqI3zAkkM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48701 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48704 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752814AbcITTau (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:50 -0400
+        with ESMTP id S1752814AbcITTaw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mszeredi@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fanotify: fix list corruption in fanotify_get_response()
+     Subject: ocfs2: fix double unlock in case retry after free truncate log
 has been removed from the -mm tree.  Its filename was
-     fanotify-fix-list-corruption-in-fanotify_get_response.patch
+     ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: fanotify: fix list corruption in fanotify_get_response()
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix double unlock in case retry after free truncate log
 
-fanotify_get_response() calls fsnotify_remove_event() when it finds that
-group is being released from fanotify_release() (bypass_perm is set). 
-However the event it removes need not be only in the group's notification
-queue but it can have already moved to access_list (userspace read the
-event before closing the fanotify instance fd) which is protected by a
-different lock.  Thus when fsnotify_remove_event() races with
-fanotify_release() operating on access_list, the list can get corrupted.
+If ocfs2_reserve_cluster_bitmap_bits fails with ENOSPC, it will try to
+free truncate log and then retry.  Since ocfs2_try_to_free_truncate_log
+will lock/unlock global bitmap inode, we have to unlock it before calling
+this function.  But when retry reserve and it fails with no global bitmap
+inode lock taken, it will unlock again in error handling branch and BUG.
 
-Fix the problem by moving all the logic removing permission events from
-the lists to one place - fanotify_release().
+This issue also exists if no need retry and then ocfs2_inode_lock fails.
+So fix it.
 
-Fixes: 5838d4442bd5971687b72221736222637e03140d
-Link: http://lkml.kernel.org/r/1473797711-14111-3-git-send-email-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Miklos Szeredi <mszeredi@redhat.com>
-Tested-by: Miklos Szeredi <mszeredi@redhat.com>
-Reviewed-by: Miklos Szeredi <mszeredi@redhat.com>
-Cc: <stable@vger.kernel.org>
+Fixes: 2070ad1aebff ("ocfs2: retry on ENOSPC if sufficient space in
+truncate log"
+Link: http://lkml.kernel.org/r/57D91939.6030809@huawei.com
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify.c      |   13 ---------
- fs/notify/fanotify/fanotify_user.c |   36 ++++++++++++++++++---------
- fs/notify/notification.c           |   15 -----------
- include/linux/fsnotify_backend.h   |    3 --
- 4 files changed, 25 insertions(+), 42 deletions(-)
+ fs/ocfs2/suballoc.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN fs/notify/fanotify/fanotify.c~fanotify-fix-list-corruption-in-fanotify_get_response fs/notify/fanotify/fanotify.c
---- a/fs/notify/fanotify/fanotify.c~fanotify-fix-list-corruption-in-fanotify_get_response
-+++ a/fs/notify/fanotify/fanotify.c
-@@ -67,18 +67,7 @@ static int fanotify_get_response(struct
+diff -puN fs/ocfs2/suballoc.c~ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log
++++ a/fs/ocfs2/suballoc.c
+@@ -1199,14 +1199,24 @@ retry:
+ 			inode_unlock((*ac)->ac_inode);
  
- 	pr_debug("%s: group=%p event=%p\n", __func__, group, event);
+ 			ret = ocfs2_try_to_free_truncate_log(osb, bits_wanted);
+-			if (ret == 1)
++			if (ret == 1) {
++				iput((*ac)->ac_inode);
++				(*ac)->ac_inode = NULL;
+ 				goto retry;
++			}
  
--	wait_event(group->fanotify_data.access_waitq, event->response ||
--				atomic_read(&group->fanotify_data.bypass_perm));
--
--	if (!event->response) {	/* bypass_perm set */
--		/*
--		 * Event was canceled because group is being destroyed. Remove
--		 * it from group's event list because we are responsible for
--		 * freeing the permission event.
--		 */
--		fsnotify_remove_event(group, &event->fae.fse);
--		return 0;
--	}
-+	wait_event(group->fanotify_data.access_waitq, event->response);
+ 			if (ret < 0)
+ 				mlog_errno(ret);
  
- 	/* userspace responded, convert to something usable */
- 	switch (event->response) {
-diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-fix-list-corruption-in-fanotify_get_response fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fanotify-fix-list-corruption-in-fanotify_get_response
-+++ a/fs/notify/fanotify/fanotify_user.c
-@@ -358,16 +358,20 @@ static int fanotify_release(struct inode
- 
- #ifdef CONFIG_FANOTIFY_ACCESS_PERMISSIONS
- 	struct fanotify_perm_event_info *event, *next;
-+	struct fsnotify_event *fsn_event;
- 
- 	/*
--	 * There may be still new events arriving in the notification queue
--	 * but since userspace cannot use fanotify fd anymore, no event can
--	 * enter or leave access_list by now.
-+	 * Stop new events from arriving in the notification queue. since
-+	 * userspace cannot use fanotify fd anymore, no event can enter or
-+	 * leave access_list by now either.
- 	 */
--	spin_lock(&group->fanotify_data.access_lock);
--
--	atomic_inc(&group->fanotify_data.bypass_perm);
-+	fsnotify_group_stop_queueing(group);
- 
-+	/*
-+	 * Process all permission events on access_list and notification queue
-+	 * and simulate reply from userspace.
-+	 */
-+	spin_lock(&group->fanotify_data.access_lock);
- 	list_for_each_entry_safe(event, next, &group->fanotify_data.access_list,
- 				 fae.fse.list) {
- 		pr_debug("%s: found group=%p event=%p\n", __func__, group,
-@@ -379,12 +383,21 @@ static int fanotify_release(struct inode
- 	spin_unlock(&group->fanotify_data.access_lock);
- 
- 	/*
--	 * Since bypass_perm is set, newly queued events will not wait for
--	 * access response. Wake up the already sleeping ones now.
--	 * synchronize_srcu() in fsnotify_destroy_group() will wait for all
--	 * processes sleeping in fanotify_handle_event() waiting for access
--	 * response and thus also for all permission events to be freed.
-+	 * Destroy all non-permission events. For permission events just
-+	 * dequeue them and set the response. They will be freed once the
-+	 * response is consumed and fanotify_get_response() returns.
- 	 */
-+	mutex_lock(&group->notification_mutex);
-+	while (!fsnotify_notify_queue_is_empty(group)) {
-+		fsn_event = fsnotify_remove_first_event(group);
-+		if (!(fsn_event->mask & FAN_ALL_PERM_EVENTS))
-+			fsnotify_destroy_event(group, fsn_event);
-+		else
-+			FANOTIFY_PE(fsn_event)->response = FAN_ALLOW;
-+	}
-+	mutex_unlock(&group->notification_mutex);
-+
-+	/* Response for all permission events it set, wakeup waiters */
- 	wake_up(&group->fanotify_data.access_waitq);
- #endif
- 
-@@ -755,7 +768,6 @@ SYSCALL_DEFINE2(fanotify_init, unsigned
- 	spin_lock_init(&group->fanotify_data.access_lock);
- 	init_waitqueue_head(&group->fanotify_data.access_waitq);
- 	INIT_LIST_HEAD(&group->fanotify_data.access_list);
--	atomic_set(&group->fanotify_data.bypass_perm, 0);
- #endif
- 	switch (flags & FAN_ALL_CLASS_BITS) {
- 	case FAN_CLASS_NOTIF:
-diff -puN fs/notify/notification.c~fanotify-fix-list-corruption-in-fanotify_get_response fs/notify/notification.c
---- a/fs/notify/notification.c~fanotify-fix-list-corruption-in-fanotify_get_response
-+++ a/fs/notify/notification.c
-@@ -132,21 +132,6 @@ queue:
- }
- 
- /*
-- * Remove @event from group's notification queue. It is the responsibility of
-- * the caller to destroy the event.
-- */
--void fsnotify_remove_event(struct fsnotify_group *group,
--			   struct fsnotify_event *event)
--{
--	mutex_lock(&group->notification_mutex);
--	if (!list_empty(&event->list)) {
--		list_del_init(&event->list);
--		group->q_len--;
--	}
--	mutex_unlock(&group->notification_mutex);
--}
--
--/*
-  * Remove and return the first event from the notification list.  It is the
-  * responsibility of the caller to destroy the obtained event
-  */
-diff -puN include/linux/fsnotify_backend.h~fanotify-fix-list-corruption-in-fanotify_get_response include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fanotify-fix-list-corruption-in-fanotify_get_response
-+++ a/include/linux/fsnotify_backend.h
-@@ -180,7 +180,6 @@ struct fsnotify_group {
- 			spinlock_t access_lock;
- 			struct list_head access_list;
- 			wait_queue_head_t access_waitq;
--			atomic_t bypass_perm;
- #endif /* CONFIG_FANOTIFY_ACCESS_PERMISSIONS */
- 			int f_flags;
- 			unsigned int max_marks;
-@@ -307,8 +306,6 @@ extern int fsnotify_add_event(struct fsn
- 			      struct fsnotify_event *event,
- 			      int (*merge)(struct list_head *,
- 					   struct fsnotify_event *));
--/* Remove passed event from groups notification queue */
--extern void fsnotify_remove_event(struct fsnotify_group *group, struct fsnotify_event *event);
- /* true if the group notification queue is empty */
- extern bool fsnotify_notify_queue_is_empty(struct fsnotify_group *group);
- /* return, but do not dequeue the first event on the notification queue */
+ 			inode_lock((*ac)->ac_inode);
+-			ocfs2_inode_lock((*ac)->ac_inode, NULL, 1);
++			ret = ocfs2_inode_lock((*ac)->ac_inode, NULL, 1);
++			if (ret < 0) {
++				mlog_errno(ret);
++				inode_unlock((*ac)->ac_inode);
++				iput((*ac)->ac_inode);
++				(*ac)->ac_inode = NULL;
++				goto bail;
++			}
+ 		}
+ 		if (status < 0) {
+ 			if (status != -ENOSPC)
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-fsnotify-drop-notification_mutex-before-destroying-event.patch
-fsnotify-convert-notification_mutex-to-a-spinlock.patch
-fsnotify-convert-notification_mutex-to-a-spinlock-fix.patch
-fanotify-use-notification_lock-instead-of-access_lock.patch
-fanotify-fix-possible-false-warning-when-freeing-events.patch
 
