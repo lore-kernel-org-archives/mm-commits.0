@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-warn-about-empty-nodemask.patch added to -mm tree
-Date: Tue, 20 Sep 2016 13:58:14 -0700
-Message-ID: <57e1a2e6.KVkZYZqR+rVthzHz%akpm@linux-foundation.org>
+Subject: +
+ mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node.patch added to
+ -mm tree
+Date: Tue, 20 Sep 2016 14:06:52 -0700
+Message-ID: <57e1a4ec.Zw+F9iedmW+jZVDl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49575 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50016 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751124AbcITU6P (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 16:58:15 -0400
+        with ESMTP id S1751124AbcITVGx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 17:06:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhong@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com, jallen@linux.vnet.ibm.com, mhocko@suse.cz, penguin-kernel@I-love.SAKURA.ne.jp, qiuxishi@huawei.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: zhongjiang@huawei.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: warn about empty nodemask
+     Subject: mm,ksm: add __GFP_HIGH to the allocation in alloc_stable_node()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-warn-about-empty-nodemask.patch
+     mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-warn-about-empty-nodemask.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-warn-about-empty-nodemask.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,48 +40,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Li Zhong <zhong@linux.vnet.ibm.com>
-Subject: mm, page_alloc: warn about empty nodemask
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: mm,ksm: add __GFP_HIGH to the allocation in alloc_stable_node()
 
-Warn about allocating with an empty nodemask, it would be easier to
-understand than oom messages.  The check is added in the slow path.
+According to Hugh's suggestion, alloc_stable_node() with GFP_KERNEL can in
+rare cases cause a hung task warning.
 
-Link: http://lkml.kernel.org/r/1473208886.12692.2.camel@TP420
-Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
-Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: John Allen <jallen@linux.vnet.ibm.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: n-horiguchi@ah.jp.nec.com said:
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+At present, if alloc_stable_node() allocation fails, two break_cows may
+want to allocate a couple of pages, and the issue will come up when free
+memory is under pressure.
+
+We fix it by adding __GFP_HIGH to GFP, to grant access to memory reserves,
+increasing the likelihood of allocation success.
+
+Suggested-by: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/1474354484-58233-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/ksm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-warn-about-empty-nodemask mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-warn-about-empty-nodemask
-+++ a/mm/page_alloc.c
-@@ -3521,6 +3521,12 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	if (page)
- 		goto got_pg;
+diff -puN mm/ksm.c~mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node mm/ksm.c
+--- a/mm/ksm.c~mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node
++++ a/mm/ksm.c
+@@ -299,7 +299,7 @@ static inline void free_rmap_item(struct
  
-+	if (ac->nodemask && nodes_empty(*ac->nodemask)) {
-+		pr_warn("nodemask is empty\n");
-+		gfp_mask &= ~__GFP_NOWARN;
-+		goto nopage;
-+	}
-+
- 	/*
- 	 * For costly allocations, try direct compaction first, as it's likely
- 	 * that we have enough base pages and don't need to reclaim. Don't try
+ static inline struct stable_node *alloc_stable_node(void)
+ {
+-	return kmem_cache_alloc(stable_node_cache, GFP_KERNEL);
++	return kmem_cache_alloc(stable_node_cache, GFP_KERNEL | __GFP_HIGH);
+ }
+ 
+ static inline void free_stable_node(struct stable_node *stable_node)
 _
 
-Patches currently in -mm which might be from zhong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from zhongjiang@huawei.com are
 
-mm-page_alloc-warn-about-empty-nodemask.patch
+mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
+mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node.patch
+mm-page_owner-align-with-pageblock_nr-pages.patch
+mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
 
