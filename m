@@ -1,87 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-shm-fix-crash-if-config_shmem-is-not-set.patch
- removed from -mm tree
-Date: Tue, 20 Sep 2016 12:30:38 -0700
-Message-ID: <57e18e5e.VGx9lf/AndhpmgVY%akpm__1877.10087416253$1474399852$gmane$org@linux-foundation.org>
+Subject: [merged] mm-avoid-endless-recursion-in-dump_page.patch removed
+ from -mm tree
+Date: Tue, 20 Sep 2016 12:30:29 -0700
+Message-ID: <57e18e55.EhekRVkiDIJ3yT1L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48683 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48662 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753080AbcITTaj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:39 -0400
+        with ESMTP id S1752603AbcITTaa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, hughd@google.com, stable@vger.kernel.org, tonyb@cybernetics.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/shm: fix crash if CONFIG_SHMEM is not set
+     Subject: mm: avoid endless recursion in dump_page()
 has been removed from the -mm tree.  Its filename was
-     ipc-shm-fix-crash-if-config_shmem-is-not-set.patch
+     mm-avoid-endless-recursion-in-dump_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: ipc/shm: fix crash if CONFIG_SHMEM is not set
+Subject: mm: avoid endless recursion in dump_page()
 
-c01d5b300774 ("shmem: get_unmapped_area align huge page") makes use of
-shm_get_unmapped_area() in shm_file_operations() unconditional to
-CONFIG_MMU.
+dump_page() uses page_mapcount() to get mapcount of the page.
+page_mapcount() has VM_BUG_ON_PAGE(PageSlab(page)) as mapcount doesn't
+make sense for slab pages and the field in struct page used for other
+information.
 
-As Tony Battersby pointed this can lead NULL-pointer dereference on
-machine with CONFIG_MMU=y and CONFIG_SHMEM=n.  In this case ipc/shm is
-backed by ramfs which doesn't provide f_op->get_unmapped_area for
-configurations with MMU.
+It leads to recursion if dump_page() called for slub page and DEBUG_VM
+is enabled:
 
-The solution is to provide dummy f_op->get_unmapped_area for ramfs when
-CONFIG_MMU=y, which just call current->mm->get_unmapped_area().
+dump_page() -> page_mapcount() -> VM_BUG_ON_PAGE() -> dump_page -> ...
 
-Fixes: c01d5b300774 ("shmem: get_unmapped_area align huge page")
-Link: http://lkml.kernel.org/r/20160912102704.140442-1-kirill.shutemov@linux.intel.com
+Let's avoid calling page_mapcount() for slab pages in dump_page().
+
+Link: http://lkml.kernel.org/r/20160908082137.131076-1-kirill.shutemov@linux.intel.com
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Tony Battersby <tonyb@cybernetics.com>
-Tested-by: Tony Battersby <tonyb@cybernetics.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>	[4.7.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-mmu.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/debug.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/ramfs/file-mmu.c~ipc-shm-fix-crash-if-config_shmem-is-not-set fs/ramfs/file-mmu.c
---- a/fs/ramfs/file-mmu.c~ipc-shm-fix-crash-if-config_shmem-is-not-set
-+++ a/fs/ramfs/file-mmu.c
-@@ -27,9 +27,17 @@
- #include <linux/fs.h>
- #include <linux/mm.h>
- #include <linux/ramfs.h>
-+#include <linux/sched.h>
+diff -puN mm/debug.c~mm-avoid-endless-recursion-in-dump_page mm/debug.c
+--- a/mm/debug.c~mm-avoid-endless-recursion-in-dump_page
++++ a/mm/debug.c
+@@ -42,9 +42,11 @@ const struct trace_print_flags vmaflag_n
  
- #include "internal.h"
- 
-+static unsigned long ramfs_mmu_get_unmapped_area(struct file *file,
-+		unsigned long addr, unsigned long len, unsigned long pgoff,
-+		unsigned long flags)
-+{
-+	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
-+}
+ void __dump_page(struct page *page, const char *reason)
+ {
++	int mapcount = PageSlab(page) ? 0 : page_mapcount(page);
 +
- const struct file_operations ramfs_file_operations = {
- 	.read_iter	= generic_file_read_iter,
- 	.write_iter	= generic_file_write_iter,
-@@ -38,6 +46,7 @@ const struct file_operations ramfs_file_
- 	.splice_read	= generic_file_splice_read,
- 	.splice_write	= iter_file_splice_write,
- 	.llseek		= generic_file_llseek,
-+	.get_unmapped_area	= ramfs_mmu_get_unmapped_area,
- };
- 
- const struct inode_operations ramfs_file_inode_operations = {
+ 	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx",
+-		  page, page_ref_count(page), page_mapcount(page),
+-		  page->mapping, page->index);
++		  page, page_ref_count(page), mapcount,
++		  page->mapping, page_to_pgoff(page));
+ 	if (PageCompound(page))
+ 		pr_cont(" compound_mapcount: %d", compound_mapcount(page));
+ 	pr_cont("\n");
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
