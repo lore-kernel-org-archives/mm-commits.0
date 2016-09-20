@@ -1,144 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-fix-trans-extend-while-free-cached-blocks.patch
+Subject: [merged] ipc-shm-fix-crash-if-config_shmem-is-not-set.patch
  removed from -mm tree
-Date: Tue, 20 Sep 2016 12:30:44 -0700
-Message-ID: <57e18e64.JXrtMvznu86ztgLM%akpm@linux-foundation.org>
+Date: Tue, 20 Sep 2016 12:30:38 -0700
+Message-ID: <57e18e5e.VGx9lf/AndhpmgVY%akpm__1877.10087416253$1474399852$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48693 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48683 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753156AbcITTap (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:45 -0400
+        with ESMTP id S1753080AbcITTaj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, hughd@google.com, stable@vger.kernel.org, tonyb@cybernetics.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix trans extend while free cached blocks
+     Subject: ipc/shm: fix crash if CONFIG_SHMEM is not set
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-trans-extend-while-free-cached-blocks.patch
+     ipc-shm-fix-crash-if-config_shmem-is-not-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: fix trans extend while free cached blocks
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: ipc/shm: fix crash if CONFIG_SHMEM is not set
 
-Root cause of this issue is the same with the one fixed by last patch, but
-this time credits for allocator inode and group descriptor may not be
-consumed before trans extend.
+c01d5b300774 ("shmem: get_unmapped_area align huge page") makes use of
+shm_get_unmapped_area() in shm_file_operations() unconditional to
+CONFIG_MMU.
 
-The following error was caught.
+As Tony Battersby pointed this can lead NULL-pointer dereference on
+machine with CONFIG_MMU=y and CONFIG_SHMEM=n.  In this case ipc/shm is
+backed by ramfs which doesn't provide f_op->get_unmapped_area for
+configurations with MMU.
 
-[  685.240276] WARNING: CPU: 0 PID: 2037 at fs/jbd2/transaction.c:269 start_this_handle+0x4c3/0x510 [jbd2]()
-[  685.240294] Modules linked in: ocfs2 nfsd lockd grace nfs_acl auth_rpcgss sunrpc autofs4 ocfs2_dlmfs ocfs2_stack_o2cb ocfs2_dlm ocfs2_nodemanager ocfs2_stackglue configfs sd_mod sg ip6t_REJECT nf_reject_ipv6 nf_conntrack_ipv6 nf_defrag_ipv6 xt_state nf_conntrack ip6table_filter ip6_tables be2iscsi iscsi_boot_sysfs bnx2i cnic uio cxgb4i cxgb4 cxgb3i libcxgbi cxgb3 mdio ib_iser rdma_cm ib_cm iw_cm ib_sa ib_mad ib_core ib_addr ipv6 iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi ppdev xen_kbdfront fb_sys_fops sysimgblt sysfillrect syscopyarea xen_netfront parport_pc parport pcspkr i2c_piix4 i2c_core acpi_cpufreq ext4 jbd2 mbcache xen_blkfront floppy pata_acpi ata_generic ata_piix dm_mirror dm_region_hash dm_log dm_mod
-[  685.240296] CPU: 0 PID: 2037 Comm: rm Tainted: G        W       4.1.12-37.6.3.el6uek.bug24573128v2.x86_64 #2
-[  685.240296] Hardware name: Xen HVM domU, BIOS 4.4.4OVM 02/11/2016
-[  685.240298]  000000000000010d ffff88007ac3f808 ffffffff816bc5bc 000000000000010d
-[  685.240300]  0000000000000000 ffff88007ac3f848 ffffffff81081475 ffff88007ac3f828
-[  685.240301]  ffff880037bbf000 ffff880037688210 0000000000000095 0000000000000050
-[  685.240301] Call Trace:
-[  685.240305]  [<ffffffff816bc5bc>] dump_stack+0x48/0x5c
-[  685.240308]  [<ffffffff81081475>] warn_slowpath_common+0x95/0xe0
-[  685.240310]  [<ffffffff810814da>] warn_slowpath_null+0x1a/0x20
-[  685.240313]  [<ffffffffa0080993>] start_this_handle+0x4c3/0x510 [jbd2]
-[  685.240317]  [<ffffffffa0088f95>] ? __jbd2_log_start_commit+0xe5/0xf0 [jbd2]
-[  685.240319]  [<ffffffff810c4eb3>] ? __wake_up+0x53/0x70
-[  685.240322]  [<ffffffffa0080b41>] jbd2__journal_restart+0x161/0x1b0 [jbd2]
-[  685.240325]  [<ffffffffa0080ba3>] jbd2_journal_restart+0x13/0x20 [jbd2]
-[  685.240340]  [<ffffffffa06d1cf4>] ocfs2_extend_trans+0x74/0x220 [ocfs2]
-[  685.240347]  [<ffffffffa069762b>] ocfs2_free_cached_blocks+0x16b/0x4e0 [ocfs2]
-[  685.240349]  [<ffffffff810e9131>] ? internal_add_timer+0x91/0xc0
-[  685.240356]  [<ffffffffa06981b0>] ocfs2_run_deallocs+0x70/0x270 [ocfs2]
-[  685.240363]  [<ffffffffa06a2894>] ocfs2_commit_truncate+0x474/0x6f0 [ocfs2]
-[  685.240374]  [<ffffffffa0744a40>] ? ocfs2_xattr_tree_et_ops+0x60/0xfffffffffffe8c00 [ocfs2]
-[  685.240384]  [<ffffffffa06d1960>] ? ocfs2_journal_access_eb+0x20/0x20 [ocfs2]
-[  685.240385]  [<ffffffff81202303>] ? __sb_end_write+0x33/0x70
-[  685.240394]  [<ffffffffa06ca57d>] ocfs2_truncate_for_delete+0xbd/0x380 [ocfs2]
-[  685.240402]  [<ffffffffa06ca1f4>] ? ocfs2_query_inode_wipe+0xf4/0x320 [ocfs2]
-[  685.240409]  [<ffffffffa06caed6>] ocfs2_wipe_inode+0x136/0x6a0 [ocfs2]
-[  685.240415]  [<ffffffffa06ca1f4>] ? ocfs2_query_inode_wipe+0xf4/0x320 [ocfs2]
-[  685.240422]  [<ffffffffa06cb6e2>] ocfs2_delete_inode+0x2a2/0x3e0 [ocfs2]
-[  685.240424]  [<ffffffff812298c9>] ? __inode_wait_for_writeback+0x69/0xc0
-[  685.240437]  [<ffffffffa0732100>] ? __PRETTY_FUNCTION__.112282+0x20/0xffffffffffffb500 [ocfs2]
-[  685.240444]  [<ffffffffa06cc1f8>] ocfs2_evict_inode+0x28/0x60 [ocfs2]
-[  685.240445]  [<ffffffff8121b81b>] evict+0xab/0x1a0
-[  685.240456]  [<ffffffffa0732100>] ? __PRETTY_FUNCTION__.112282+0x20/0xffffffffffffb500 [ocfs2]
-[  685.240457]  [<ffffffff8121ba06>] iput_final+0xf6/0x190
-[  685.240458]  [<ffffffff8121bb68>] iput+0xc8/0xe0
-[  685.240460]  [<ffffffff8120f9b7>] do_unlinkat+0x1b7/0x310
-[  685.240462]  [<ffffffff81126dbc>] ? __audit_syscall_entry+0xac/0x110
-[  685.240464]  [<ffffffff810236cc>] ? do_audit_syscall_entry+0x6c/0x70
-[  685.240465]  [<ffffffff81023823>] ? syscall_trace_enter_phase1+0x153/0x180
-[  685.240467]  [<ffffffff8120fd52>] SyS_unlinkat+0x22/0x40
-[  685.240468]  [<ffffffff816c122e>] system_call_fastpath+0x12/0x71
-[  685.240469] ---[ end trace a62437cb060baa71 ]---
-[  685.240470] JBD2: rm wants too many credits (149 > 128)
+The solution is to provide dummy f_op->get_unmapped_area for ramfs when
+CONFIG_MMU=y, which just call current->mm->get_unmapped_area().
 
-Link: http://lkml.kernel.org/r/1473674623-11810-2-git-send-email-junxiao.bi@oracle.com
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+Fixes: c01d5b300774 ("shmem: get_unmapped_area align huge page")
+Link: http://lkml.kernel.org/r/20160912102704.140442-1-kirill.shutemov@linux.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Tony Battersby <tonyb@cybernetics.com>
+Tested-by: Tony Battersby <tonyb@cybernetics.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>	[4.7.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   27 +++++++++------------------
- 1 file changed, 9 insertions(+), 18 deletions(-)
+ fs/ramfs/file-mmu.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-fix-trans-extend-while-free-cached-blocks fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-fix-trans-extend-while-free-cached-blocks
-+++ a/fs/ocfs2/alloc.c
-@@ -6404,43 +6404,34 @@ static int ocfs2_free_cached_blocks(stru
- 		goto out_mutex;
- 	}
+diff -puN fs/ramfs/file-mmu.c~ipc-shm-fix-crash-if-config_shmem-is-not-set fs/ramfs/file-mmu.c
+--- a/fs/ramfs/file-mmu.c~ipc-shm-fix-crash-if-config_shmem-is-not-set
++++ a/fs/ramfs/file-mmu.c
+@@ -27,9 +27,17 @@
+ #include <linux/fs.h>
+ #include <linux/mm.h>
+ #include <linux/ramfs.h>
++#include <linux/sched.h>
  
--	handle = ocfs2_start_trans(osb, OCFS2_SUBALLOC_FREE);
--	if (IS_ERR(handle)) {
--		ret = PTR_ERR(handle);
--		mlog_errno(ret);
--		goto out_unlock;
--	}
--
- 	while (head) {
- 		if (head->free_bg)
- 			bg_blkno = head->free_bg;
- 		else
- 			bg_blkno = ocfs2_which_suballoc_group(head->free_blk,
- 							      head->free_bit);
-+		handle = ocfs2_start_trans(osb, OCFS2_SUBALLOC_FREE);
-+		if (IS_ERR(handle)) {
-+			ret = PTR_ERR(handle);
-+			mlog_errno(ret);
-+			goto out_unlock;
-+		}
+ #include "internal.h"
+ 
++static unsigned long ramfs_mmu_get_unmapped_area(struct file *file,
++		unsigned long addr, unsigned long len, unsigned long pgoff,
++		unsigned long flags)
++{
++	return current->mm->get_unmapped_area(file, addr, len, pgoff, flags);
++}
 +
- 		trace_ocfs2_free_cached_blocks(
- 		     (unsigned long long)head->free_blk, head->free_bit);
+ const struct file_operations ramfs_file_operations = {
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+@@ -38,6 +46,7 @@ const struct file_operations ramfs_file_
+ 	.splice_read	= generic_file_splice_read,
+ 	.splice_write	= iter_file_splice_write,
+ 	.llseek		= generic_file_llseek,
++	.get_unmapped_area	= ramfs_mmu_get_unmapped_area,
+ };
  
- 		ret = ocfs2_free_suballoc_bits(handle, inode, di_bh,
- 					       head->free_bit, bg_blkno, 1);
--		if (ret) {
-+		if (ret)
- 			mlog_errno(ret);
--			goto out_journal;
--		}
- 
--		ret = ocfs2_extend_trans(handle, OCFS2_SUBALLOC_FREE);
--		if (ret) {
--			mlog_errno(ret);
--			goto out_journal;
--		}
-+		ocfs2_commit_trans(osb, handle);
- 
- 		tmp = head;
- 		head = head->free_next;
- 		kfree(tmp);
- 	}
- 
--out_journal:
--	ocfs2_commit_trans(osb, handle);
+ const struct inode_operations ramfs_file_inode_operations = {
+_
+
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+
+
