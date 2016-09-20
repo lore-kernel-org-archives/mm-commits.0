@@ -1,140 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memcontrol-make-per-cpu-charge-cache-irq-safe-for-socket-accounting.patch removed from -mm tree
-Date: Tue, 20 Sep 2016 12:30:54 -0700
-Message-ID: <57e18e6e.8ORjhsWVMRQ81KZq%akpm__36036.0174476684$1474399888$gmane$org@linux-foundation.org>
+Subject: [merged] rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context.patch
+ removed from -mm tree
+Date: Tue, 20 Sep 2016 12:31:06 -0700
+Message-ID: <57e18e7a.EUQwS7Jy9/Y0Eehh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48710 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48733 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752814AbcITTaz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:55 -0400
+        with ESMTP id S1753714AbcITTbH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:31:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jweiner@fb.com, davem@davemloft.net, hannes@cmpxchg.org, mhocko@suse.cz, stable@vger.kernel.org, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, khoroshilov@ispras.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: make per-cpu charge cache IRQ-safe for socket accounting
+     Subject: rapidio/rio_cm: avoid GFP_KERNEL in atomic context
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-make-per-cpu-charge-cache-irq-safe-for-socket-accounting.patch
+     rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <jweiner@fb.com>
-Subject: mm: memcontrol: make per-cpu charge cache IRQ-safe for socket accounting
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/rio_cm: avoid GFP_KERNEL in atomic context
 
-During cgroup2 rollout into production, we started encountering css
-refcount underflows and css access crashes in the memory controller. 
-Splitting the heavily shared css reference counter into logical users
-narrowed the imbalance down to the cgroup2 socket memory accounting.
+As reported by Alexey Khoroshilov (https://lkml.org/lkml/2016/9/9/737):
+riocm_send_close() is called from rio_cm_shutdown() under
+spin_lock_bh(idr_lock), but riocm_send_close() uses a GFP_KERNEL
+allocation.
 
-The problem turns out to be the per-cpu charge cache.  Cgroup1 had a
-separate socket counter, but the new cgroup2 socket accounting goes
-through the common charge path that uses a shared per-cpu cache for all
-memory that is being tracked.  Those caches are safe against scheduling
-preemption, but not against interrupts - such as the newly added packet
-receive path.  When cache draining is interrupted by network RX taking
-pages out of the cache, the resuming drain operation will put references
-of in-use pages, thus causing the imbalance.
+Fix by taking riocm_send_close() outside of spinlock protected code.
 
-Disable IRQs during all per-cpu charge cache operations.
-
-Fixes: f7e1cb6ec51b ("mm: memcontrol: account socket memory in unified hierarchy memory controller")
-Link: http://lkml.kernel.org/r/20160914194846.11153-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: <stable@vger.kernel.org>	[4.5+]
-
+[akpm@linux-foundation.org: remove unneeded `if (!list_empty())']
+Link: http://lkml.kernel.org/r/20160915175402.10122-1-alexandre.bounine@idt.com
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Reported-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   31 ++++++++++++++++++++++---------
- 1 file changed, 22 insertions(+), 9 deletions(-)
+ drivers/rapidio/rio_cm.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-make-per-cpu-charge-cache-irq-safe-for-socket-accounting mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-make-per-cpu-charge-cache-irq-safe-for-socket-accounting
-+++ a/mm/memcontrol.c
-@@ -1740,17 +1740,22 @@ static DEFINE_MUTEX(percpu_charge_mutex)
- static bool consume_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
+diff -puN drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context drivers/rapidio/rio_cm.c
+--- a/drivers/rapidio/rio_cm.c~rapidio-rio_cm-avoid-gfp_kernel-in-atomic-context
++++ a/drivers/rapidio/rio_cm.c
+@@ -2247,17 +2247,30 @@ static int rio_cm_shutdown(struct notifi
  {
- 	struct memcg_stock_pcp *stock;
-+	unsigned long flags;
- 	bool ret = false;
+ 	struct rio_channel *ch;
+ 	unsigned int i;
++	LIST_HEAD(list);
  
- 	if (nr_pages > CHARGE_BATCH)
- 		return ret;
+ 	riocm_debug(EXIT, ".");
  
--	stock = &get_cpu_var(memcg_stock);
-+	local_irq_save(flags);
-+
-+	stock = this_cpu_ptr(&memcg_stock);
- 	if (memcg == stock->cached && stock->nr_pages >= nr_pages) {
- 		stock->nr_pages -= nr_pages;
- 		ret = true;
++	/*
++	 * If there are any channels left in connected state send
++	 * close notification to the connection partner.
++	 * First build a list of channels that require a closing
++	 * notification because function riocm_send_close() should
++	 * be called outside of spinlock protected code.
++	 */
+ 	spin_lock_bh(&idr_lock);
+ 	idr_for_each_entry(&ch_idr, ch, i) {
+-		riocm_debug(EXIT, "close ch %d", ch->id);
+-		if (ch->state == RIO_CM_CONNECTED)
+-			riocm_send_close(ch);
++		if (ch->state == RIO_CM_CONNECTED) {
++			riocm_debug(EXIT, "close ch %d", ch->id);
++			idr_remove(&ch_idr, ch->id);
++			list_add(&ch->ch_node, &list);
++		}
  	}
--	put_cpu_var(memcg_stock);
+ 	spin_unlock_bh(&idr_lock);
+ 
++	list_for_each_entry(ch, &list, ch_node)
++		riocm_send_close(ch);
 +
-+	local_irq_restore(flags);
-+
- 	return ret;
+ 	return NOTIFY_DONE;
  }
  
-@@ -1771,15 +1776,18 @@ static void drain_stock(struct memcg_sto
- 	stock->cached = NULL;
- }
- 
--/*
-- * This must be called under preempt disabled or must be called by
-- * a thread which is pinned to local cpu.
-- */
- static void drain_local_stock(struct work_struct *dummy)
- {
--	struct memcg_stock_pcp *stock = this_cpu_ptr(&memcg_stock);
-+	struct memcg_stock_pcp *stock;
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+
-+	stock = this_cpu_ptr(&memcg_stock);
- 	drain_stock(stock);
- 	clear_bit(FLUSHING_CACHED_CHARGE, &stock->flags);
-+
-+	local_irq_restore(flags);
- }
- 
- /*
-@@ -1788,14 +1796,19 @@ static void drain_local_stock(struct wor
-  */
- static void refill_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
- {
--	struct memcg_stock_pcp *stock = &get_cpu_var(memcg_stock);
-+	struct memcg_stock_pcp *stock;
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
- 
-+	stock = this_cpu_ptr(&memcg_stock);
- 	if (stock->cached != memcg) { /* reset if necessary */
- 		drain_stock(stock);
- 		stock->cached = memcg;
- 	}
- 	stock->nr_pages += nr_pages;
--	put_cpu_var(memcg_stock);
-+
-+	local_irq_restore(flags);
- }
- 
- /*
 _
 
-Patches currently in -mm which might be from jweiner@fb.com are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
+rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code.patch
 
