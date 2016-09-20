@@ -1,88 +1,99 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log.patch removed from -mm tree
-Date: Tue, 20 Sep 2016 12:30:51 -0700
-Message-ID: <57e18e6b.RxfcQcdSqI3zAkkM%akpm@linux-foundation.org>
+ cgroup-duplicate-cgroup-reference-when-cloning-sockets.patch removed from
+ -mm tree
+Date: Tue, 20 Sep 2016 12:30:57 -0700
+Message-ID: <57e18e71.alZTSZhshPuNww8R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48704 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48718 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752814AbcITTaw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:52 -0400
+        with ESMTP id S1753596AbcITTa6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: jweiner@fb.com, hannes@cmpxchg.org, mhocko@suse.cz, stable@vger.kernel.org, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix double unlock in case retry after free truncate log
+     Subject: cgroup: duplicate cgroup reference when cloning sockets
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log.patch
+     cgroup-duplicate-cgroup-reference-when-cloning-sockets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix double unlock in case retry after free truncate log
+From: Johannes Weiner <jweiner@fb.com>
+Subject: cgroup: duplicate cgroup reference when cloning sockets
 
-If ocfs2_reserve_cluster_bitmap_bits fails with ENOSPC, it will try to
-free truncate log and then retry.  Since ocfs2_try_to_free_truncate_log
-will lock/unlock global bitmap inode, we have to unlock it before calling
-this function.  But when retry reserve and it fails with no global bitmap
-inode lock taken, it will unlock again in error handling branch and BUG.
+When a socket is cloned, the associated sock_cgroup_data is duplicated
+but not its reference on the cgroup. As a result, the cgroup reference
+count will underflow when both sockets are destroyed later on.
 
-This issue also exists if no need retry and then ocfs2_inode_lock fails.
-So fix it.
-
-Fixes: 2070ad1aebff ("ocfs2: retry on ENOSPC if sufficient space in
-truncate log"
-Link: http://lkml.kernel.org/r/57D91939.6030809@huawei.com
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Fixes: bd1060a1d671 ("sock, cgroup: add sock->sk_cgroup")
+Link: http://lkml.kernel.org/r/20160914194846.11153-2-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: <stable@vger.kernel.org>	[4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ kernel/cgroup.c |    6 ++++++
+ net/core/sock.c |    5 ++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/suballoc.c~ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-fix-double-unlock-in-case-retry-after-free-truncate-log
-+++ a/fs/ocfs2/suballoc.c
-@@ -1199,14 +1199,24 @@ retry:
- 			inode_unlock((*ac)->ac_inode);
+diff -puN kernel/cgroup.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets
++++ a/kernel/cgroup.c
+@@ -6270,6 +6270,12 @@ void cgroup_sk_alloc(struct sock_cgroup_
+ 	if (cgroup_sk_alloc_disabled)
+ 		return;
  
- 			ret = ocfs2_try_to_free_truncate_log(osb, bits_wanted);
--			if (ret == 1)
-+			if (ret == 1) {
-+				iput((*ac)->ac_inode);
-+				(*ac)->ac_inode = NULL;
- 				goto retry;
-+			}
++	/* Socket clone path */
++	if (skcd->val) {
++		cgroup_get(sock_cgroup_ptr(skcd));
++		return;
++	}
++
+ 	rcu_read_lock();
  
- 			if (ret < 0)
- 				mlog_errno(ret);
+ 	while (true) {
+diff -puN net/core/sock.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets net/core/sock.c
+--- a/net/core/sock.c~cgroup-duplicate-cgroup-reference-when-cloning-sockets
++++ a/net/core/sock.c
+@@ -1362,7 +1362,6 @@ static struct sock *sk_prot_alloc(struct
+ 		if (!try_module_get(prot->owner))
+ 			goto out_free_sec;
+ 		sk_tx_queue_clear(sk);
+-		cgroup_sk_alloc(&sk->sk_cgrp_data);
+ 	}
  
- 			inode_lock((*ac)->ac_inode);
--			ocfs2_inode_lock((*ac)->ac_inode, NULL, 1);
-+			ret = ocfs2_inode_lock((*ac)->ac_inode, NULL, 1);
-+			if (ret < 0) {
-+				mlog_errno(ret);
-+				inode_unlock((*ac)->ac_inode);
-+				iput((*ac)->ac_inode);
-+				(*ac)->ac_inode = NULL;
-+				goto bail;
-+			}
- 		}
- 		if (status < 0) {
- 			if (status != -ENOSPC)
+ 	return sk;
+@@ -1422,6 +1421,7 @@ struct sock *sk_alloc(struct net *net, i
+ 		sock_net_set(sk, net);
+ 		atomic_set(&sk->sk_wmem_alloc, 1);
+ 
++		cgroup_sk_alloc(&sk->sk_cgrp_data);
+ 		sock_update_classid(&sk->sk_cgrp_data);
+ 		sock_update_netprioidx(&sk->sk_cgrp_data);
+ 	}
+@@ -1566,6 +1566,9 @@ struct sock *sk_clone_lock(const struct
+ 		newsk->sk_priority = 0;
+ 		newsk->sk_incoming_cpu = raw_smp_processor_id();
+ 		atomic64_set(&newsk->sk_cookie, 0);
++
++		cgroup_sk_alloc(&newsk->sk_cgrp_data);
++
+ 		/*
+ 		 * Before updating sk_refcnt, we must commit prior changes to memory
+ 		 * (Documentation/RCU/rculist_nulls.txt for details)
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from jweiner@fb.com are
 
 
