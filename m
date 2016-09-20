@@ -1,59 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-modify-maintainers-email-of-intelfb.patch
- removed from -mm tree
-Date: Tue, 20 Sep 2016 12:30:21 -0700
-Message-ID: <57e18e4d.fLSmzM/ef8Hc4dvX%akpm@linux-foundation.org>
+Subject: [merged]
+ mem-hotplug-dont-clear-the-only-node-in-new_node_page.patch removed from
+ -mm tree
+Date: Tue, 20 Sep 2016 12:30:15 -0700
+Message-ID: <57e18e47.bYW/JmN6pPwEUEJR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48640 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48634 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752320AbcITTaW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:22 -0400
+        with ESMTP id S1752320AbcITTaQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, mbroemme@libmpq.org, sudip.mukherjee@codethink.co.uk, mm-commits@vger.kernel.org
+To: zhong@linux.vnet.ibm.com, jallen@linux.vnet.ibm.com, qiuxishi@huawei.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: Maik has moved
+     Subject: mem-hotplug: don't clear the only node in new_node_page()
 has been removed from the -mm tree.  Its filename was
-     maintainers-modify-maintainers-email-of-intelfb.patch
+     mem-hotplug-dont-clear-the-only-node-in-new_node_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: MAINTAINERS: Maik has moved
+From: Li Zhong <zhong@linux.vnet.ibm.com>
+Subject: mem-hotplug: don't clear the only node in new_node_page()
 
-Maik is no longer using the plusserver.de email, update with his
-current email.
+394e31d2c ("mem-hotplug: alloc new page from a nearest neighbor node when
+mem-offline") introduced new_node_page() for memory hotplug.
 
-Link: http://lkml.kernel.org/r/1473007794-27960-1-git-send-email-sudipm.mukherjee@gmail.com
-Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
-Cc: Maik Broemme <mbroemme@libmpq.org>
+In new_node_page(), the nid is cleared before calling
+__alloc_pages_nodemask().  But if it is the only node of the system, and
+the first round allocation fails, it will not be able to get memory from
+an empty nodemask, and will trigger oom.
+
+The patch checks whether it is the last node on the system, and if it is, then
+don't clear the nid in the nodemask.
+
+Fixes: 394e31d2ceb4 ("mem-hotplug: alloc new page from a nearest neighbor node when mem-offline")
+Link: http://lkml.kernel.org/r/1473044391.4250.19.camel@TP420
+Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
+Reported-by: John Allen <jallen@linux.vnet.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-modify-maintainers-email-of-intelfb MAINTAINERS
---- a/MAINTAINERS~maintainers-modify-maintainers-email-of-intelfb
-+++ a/MAINTAINERS
-@@ -6103,7 +6103,7 @@ S:	Supported
- F:	drivers/cpufreq/intel_pstate.c
+diff -puN mm/memory_hotplug.c~mem-hotplug-dont-clear-the-only-node-in-new_node_page mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mem-hotplug-dont-clear-the-only-node-in-new_node_page
++++ a/mm/memory_hotplug.c
+@@ -1567,7 +1567,9 @@ static struct page *new_node_page(struct
+ 		return alloc_huge_page_node(page_hstate(compound_head(page)),
+ 					next_node_in(nid, nmask));
  
- INTEL FRAMEBUFFER DRIVER (excluding 810 and 815)
--M:	Maik Broemme <mbroemme@plusserver.de>
-+M:	Maik Broemme <mbroemme@libmpq.org>
- L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	Documentation/fb/intelfb.txt
+-	node_clear(nid, nmask);
++	if (nid != next_node_in(nid, nmask))
++		node_clear(nid, nmask);
++
+ 	if (PageHighMem(page)
+ 	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
+ 		gfp_mask |= __GFP_HIGHMEM;
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from zhong@linux.vnet.ibm.com are
 
 
