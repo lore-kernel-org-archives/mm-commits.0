@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mappingh-preserve-unmap-info-for-config_dma_api_debug.patch added to -mm tree
-Date: Tue, 20 Sep 2016 13:39:55 -0700
-Message-ID: <57e19e9b.qfioTl8wR0PDHM7N%akpm@linux-foundation.org>
+Subject: + mm-dont-emit-warning-from-pagefault_out_of_memory.patch added
+ to -mm tree
+Date: Tue, 20 Sep 2016 13:41:40 -0700
+Message-ID: <57e19f04.iF/abhLWefQXqvcX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49529 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49541 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751729AbcITUj4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 16:39:56 -0400
+        with ESMTP id S1751783AbcITUll (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 16:41:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andrew.smirnov@gmail.com, Robin.Murphy@arm.com, borntraeger@de.ibm.com, geliangtang@163.com, jroedel@suse.de, mcgrof@suse.com, thunder.leizhen@huawei.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: penguin-kernel@I-love.SAKURA.ne.jp, hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-mapping.h: preserve unmap info for CONFIG_DMA_API_DEBUG
+     Subject: mm: don't emit warning from pagefault_out_of_memory()
 has been added to the -mm tree.  Its filename is
-     dma-mappingh-preserve-unmap-info-for-config_dma_api_debug.patch
+     mm-dont-emit-warning-from-pagefault_out_of_memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-mappingh-preserve-unmap-info-for-config_dma_api_debug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-emit-warning-from-pagefault_out_of_memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dma-mappingh-preserve-unmap-info-for-config_dma_api_debug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-emit-warning-from-pagefault_out_of_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,45 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-Subject: dma-mapping.h: preserve unmap info for CONFIG_DMA_API_DEBUG
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm: don't emit warning from pagefault_out_of_memory()
 
-When CONFIG_DMA_API_DEBUG is enabled we need to preserve unmapping address
-even if "unmap" is a no-op for our architecutre because we need
-debug_dma_unmap_page() to correctly cleanup all of the debug bookkeeping. 
-Failing to do so results in a false positive warnings about previously
-mapped areas never being unmapped.
+Commit c32b3cbe0d067a9c ("oom, PM: make OOM detection in the freezer path
+raceless") inserted a WARN_ON() into pagefault_out_of_memory() in order to
+warn when we raced with disabling the OOM killer.
 
-Link: http://lkml.kernel.org/r/1474387125-3713-1-git-send-email-andrew.smirnov@gmail.com
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
-Cc: Robin Murphy <Robin.Murphy@arm.com>
-Cc: Joerg Roedel <jroedel@suse.de>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: "Luis R. Rodriguez" <mcgrof@suse.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Geliang Tang <geliangtang@163.com>
+Now, patch "oom, suspend: fix oom_killer_disable vs.  pm suspend properly"
+introduced a timeout for oom_killer_disable().  Even if we raced with
+disabling the OOM killer and the system is OOM livelocked, the OOM killer
+will be enabled eventually (in 20 seconds by default) and the OOM livelock
+will be solved.  Therefore, we no longer need to warn when we raced with
+disabling the OOM killer.
+
+Link: http://lkml.kernel.org/r/1473442120-7246-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-mapping.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/oom_kill.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN include/linux/dma-mapping.h~dma-mappingh-preserve-unmap-info-for-config_dma_api_debug include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~dma-mappingh-preserve-unmap-info-for-config_dma_api_debug
-+++ a/include/linux/dma-mapping.h
-@@ -718,7 +718,7 @@ static inline int dma_mmap_wc(struct dev
- #define dma_mmap_writecombine dma_mmap_wc
- #endif
+diff -puN mm/oom_kill.c~mm-dont-emit-warning-from-pagefault_out_of_memory mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-dont-emit-warning-from-pagefault_out_of_memory
++++ a/mm/oom_kill.c
+@@ -1069,16 +1069,6 @@ void pagefault_out_of_memory(void)
  
--#ifdef CONFIG_NEED_DMA_MAP_STATE
-+#if defined(CONFIG_NEED_DMA_MAP_STATE) || defined(CONFIG_DMA_API_DEBUG)
- #define DEFINE_DMA_UNMAP_ADDR(ADDR_NAME)        dma_addr_t ADDR_NAME
- #define DEFINE_DMA_UNMAP_LEN(LEN_NAME)          __u32 LEN_NAME
- #define dma_unmap_addr(PTR, ADDR_NAME)           ((PTR)->ADDR_NAME)
-_
-
-Patches currently in -mm which might be from andrew.smirnov@gmail.com are
-
-dma-mappingh-preserve-unmap-info-for-config_dma_api_debug.patch
-
+ 	if (!mutex_trylock(&oom_lock))
+ 		return;
+-
+-	if (!out_of_memory(&oc)) {
+-		/*
+-		 * There shouldn't be any user tasks runnable while the
+-		 * OOM killer is disabled, so the current task has to
+-		 * be a racing OOM victim for which oom_killer_disable()
+-		 * is waiting for.
+-		 */
+-		WARN_ON(test_thread_flag(TIF_MEMDIE));
+-	}
