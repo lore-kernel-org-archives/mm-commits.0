@@ -1,147 +1,138 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- khugepaged-fix-use-after-free-in-collapse_huge_page.patch removed from -mm
- tree
-Date: Tue, 20 Sep 2016 12:30:23 -0700
-Message-ID: <57e18e4f.ODPp5J15U8hio3BE%akpm@linux-foundation.org>
+ fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown.patch removed
+ from -mm tree
+Date: Tue, 20 Sep 2016 12:30:47 -0700
+Message-ID: <57e18e67.Wesg2aq7OwXaJtWR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48651 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48698 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752320AbcITTaY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:24 -0400
+        with ESMTP id S1753359AbcITTas (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, dvyukov@google.com, ebru.akagunduz@gmail.com, glider@google.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, kcc@google.com, koct9i@gmail.com, levinsasha928@gmail.com, mgorman@techsingularity.net, rientjes@google.com, ryabinin.a.a@gmail.com, suleiman@google.com, syzkaller@googlegroups.com, vbabka@suse.cz, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, mszeredi@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: fix use-after-free in collapse_huge_page()
+     Subject: fsnotify: add a way to stop queueing events on group shutdown
 has been removed from the -mm tree.  Its filename was
-     khugepaged-fix-use-after-free-in-collapse_huge_page.patch
+     fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: khugepaged: fix use-after-free in collapse_huge_page()
+From: Jan Kara <jack@suse.cz>
+Subject: fsnotify: add a way to stop queueing events on group shutdown
 
-hugepage_vma_revalidate() tries to re-check if we still should try to
-collapse small pages into huge one after the re-acquiring mmap_sem.
+Implement a function that can be called when a group is being shutdown to
+stop queueing new events to the group.  Fanotify will use this.
 
-The problem Dmitry Vyukov reported[1] is that the vma found by
-hugepage_vma_revalidate() can be suitable for huge pages, but not the same
-vma we had before dropping mmap_sem.  And dereferencing original vma can
-lead to fun results..
-
-Let's use vma hugepage_vma_revalidate() found instead of assuming it's the
-same as what we had before the lock was dropped.  [1]
-http://lkml.kernel.org/r/CACT4Y+Z3gigBvhca9kRJFcjX0G70V_nRhbwKBU+yGoESBDKi9Q@mail.gmail.com
-
-Link: http://lkml.kernel.org/r/20160907122559.GA6542@black.fi.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Sasha Levin <levinsasha928@gmail.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: syzkaller <syzkaller@googlegroups.com>
-Cc: Kostya Serebryany <kcc@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Fixes: 5838d4442bd5971687b72221736222637e03140d
+Link: http://lkml.kernel.org/r/1473797711-14111-2-git-send-email-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Miklos Szeredi <mszeredi@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ fs/notify/group.c                |   19 +++++++++++++++++++
+ fs/notify/notification.c         |    8 +++++++-
+ include/linux/fsnotify_backend.h |    3 +++
+ 3 files changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN mm/khugepaged.c~khugepaged-fix-use-after-free-in-collapse_huge_page mm/khugepaged.c
---- a/mm/khugepaged.c~khugepaged-fix-use-after-free-in-collapse_huge_page
-+++ a/mm/khugepaged.c
-@@ -838,7 +838,8 @@ static bool hugepage_vma_check(struct vm
-  * value (scan code).
+diff -puN fs/notify/group.c~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown fs/notify/group.c
+--- a/fs/notify/group.c~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown
++++ a/fs/notify/group.c
+@@ -40,6 +40,17 @@ static void fsnotify_final_destroy_group
+ }
+ 
+ /*
++ * Stop queueing new events for this group. Once this function returns
++ * fsnotify_add_event() will not add any new events to the group's queue.
++ */
++void fsnotify_group_stop_queueing(struct fsnotify_group *group)
++{
++	mutex_lock(&group->notification_mutex);
++	group->shutdown = true;
++	mutex_unlock(&group->notification_mutex);
++}
++
++/*
+  * Trying to get rid of a group. Remove all marks, flush all events and release
+  * the group reference.
+  * Note that another thread calling fsnotify_clear_marks_by_group() may still
+@@ -47,6 +58,14 @@ static void fsnotify_final_destroy_group
   */
- 
--static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address)
-+static int hugepage_vma_revalidate(struct mm_struct *mm, unsigned long address,
-+		struct vm_area_struct **vmap)
+ void fsnotify_destroy_group(struct fsnotify_group *group)
  {
- 	struct vm_area_struct *vma;
- 	unsigned long hstart, hend;
-@@ -846,7 +847,7 @@ static int hugepage_vma_revalidate(struc
- 	if (unlikely(khugepaged_test_exit(mm)))
- 		return SCAN_ANY_PROCESS;
++	/*
++	 * Stop queueing new events. The code below is careful enough to not
++	 * require this but fanotify needs to stop queuing events even before
++	 * fsnotify_destroy_group() is called and this makes the other callers
++	 * of fsnotify_destroy_group() to see the same behavior.
++	 */
++	fsnotify_group_stop_queueing(group);
++
+ 	/* clear all inode marks for this group, attach them to destroy_list */
+ 	fsnotify_detach_group_marks(group);
  
--	vma = find_vma(mm, address);
-+	*vmap = vma = find_vma(mm, address);
- 	if (!vma)
- 		return SCAN_VMA_NULL;
+diff -puN fs/notify/notification.c~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown fs/notify/notification.c
+--- a/fs/notify/notification.c~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown
++++ a/fs/notify/notification.c
+@@ -82,7 +82,8 @@ void fsnotify_destroy_event(struct fsnot
+  * Add an event to the group notification queue.  The group can later pull this
+  * event off the queue to deal with.  The function returns 0 if the event was
+  * added to the queue, 1 if the event was merged with some other queued event,
+- * 2 if the queue of events has overflown.
++ * 2 if the event was not queued - either the queue of events has overflown
++ * or the group is shutting down.
+  */
+ int fsnotify_add_event(struct fsnotify_group *group,
+ 		       struct fsnotify_event *event,
+@@ -96,6 +97,11 @@ int fsnotify_add_event(struct fsnotify_g
  
-@@ -898,7 +899,7 @@ static bool __collapse_huge_page_swapin(
- 		/* do_swap_page returns VM_FAULT_RETRY with released mmap_sem */
- 		if (ret & VM_FAULT_RETRY) {
- 			down_read(&mm->mmap_sem);
--			if (hugepage_vma_revalidate(mm, address)) {
-+			if (hugepage_vma_revalidate(mm, address, &fe.vma)) {
- 				/* vma is no longer available, don't continue to swapin */
- 				trace_mm_collapse_huge_page_swapin(mm, swapped_in, referenced, 0);
- 				return false;
-@@ -923,7 +924,6 @@ static bool __collapse_huge_page_swapin(
- static void collapse_huge_page(struct mm_struct *mm,
- 				   unsigned long address,
- 				   struct page **hpage,
--				   struct vm_area_struct *vma,
- 				   int node, int referenced)
- {
- 	pmd_t *pmd, _pmd;
-@@ -933,6 +933,7 @@ static void collapse_huge_page(struct mm
- 	spinlock_t *pmd_ptl, *pte_ptl;
- 	int isolated = 0, result = 0;
- 	struct mem_cgroup *memcg;
-+	struct vm_area_struct *vma;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
- 	unsigned long mmun_end;		/* For mmu_notifiers */
- 	gfp_t gfp;
-@@ -961,7 +962,7 @@ static void collapse_huge_page(struct mm
- 	}
+ 	mutex_lock(&group->notification_mutex);
  
- 	down_read(&mm->mmap_sem);
--	result = hugepage_vma_revalidate(mm, address);
-+	result = hugepage_vma_revalidate(mm, address, &vma);
- 	if (result) {
- 		mem_cgroup_cancel_charge(new_page, memcg, true);
- 		up_read(&mm->mmap_sem);
-@@ -994,7 +995,7 @@ static void collapse_huge_page(struct mm
- 	 * handled by the anon_vma lock + PG_lock.
- 	 */
- 	down_write(&mm->mmap_sem);
--	result = hugepage_vma_revalidate(mm, address);
-+	result = hugepage_vma_revalidate(mm, address, &vma);
- 	if (result)
- 		goto out;
- 	/* check if the pmd is still valid */
-@@ -1202,7 +1203,7 @@ out_unmap:
- 	if (ret) {
- 		node = khugepaged_find_target_node();
- 		/* collapse_huge_page will return with the mmap_sem released */
--		collapse_huge_page(mm, address, hpage, vma, node, referenced);
-+		collapse_huge_page(mm, address, hpage, node, referenced);
- 	}
- out:
- 	trace_mm_khugepaged_scan_pmd(mm, page, writable, referenced,
++	if (group->shutdown) {
++		mutex_unlock(&group->notification_mutex);
++		return 2;
++	}
++
+ 	if (group->q_len >= group->max_events) {
+ 		ret = 2;
+ 		/* Queue overflow event only if it isn't already queued */
+diff -puN include/linux/fsnotify_backend.h~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~fsnotify-add-a-way-to-stop-queueing-events-on-group-shutdown
++++ a/include/linux/fsnotify_backend.h
+@@ -148,6 +148,7 @@ struct fsnotify_group {
+ 	#define FS_PRIO_1	1 /* fanotify content based access control */
+ 	#define FS_PRIO_2	2 /* fanotify pre-content access */
+ 	unsigned int priority;
++	bool shutdown;		/* group is being shut down, don't queue more events */
+ 
+ 	/* stores all fastpath marks assoc with this group so they can be cleaned on unregister */
+ 	struct mutex mark_mutex;	/* protect marks_list */
+@@ -292,6 +293,8 @@ extern struct fsnotify_group *fsnotify_a
+ extern void fsnotify_get_group(struct fsnotify_group *group);
+ /* drop reference on a group from fsnotify_alloc_group */
+ extern void fsnotify_put_group(struct fsnotify_group *group);
++/* group destruction begins, stop queuing new events */
++extern void fsnotify_group_stop_queueing(struct fsnotify_group *group);
+ /* destroy group */
+ extern void fsnotify_destroy_group(struct fsnotify_group *group);
+ /* fasync handler function */
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
+fsnotify-drop-notification_mutex-before-destroying-event.patch
+fsnotify-convert-notification_mutex-to-a-spinlock.patch
+fsnotify-convert-notification_mutex-to-a-spinlock-fix.patch
+fanotify-use-notification_lock-instead-of-access_lock.patch
+fanotify-fix-possible-false-warning-when-freeing-events.patch
 
