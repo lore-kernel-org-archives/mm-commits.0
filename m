@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vma_merge-fix-vm_page_prot-smp-race-condition-against-rmap_walk.patch
- added to -mm tree
-Date: Tue, 20 Sep 2016 14:16:43 -0700
-Message-ID: <57e1a73b.IlSkedZqcwwiaP0S%akpm@linux-foundation.org>
+ mm-workingset-fix-crash-in-shadow-node-shrinker-caused-by-replace_page_cache_page.patch added to -mm tree
+Date: Tue, 20 Sep 2016 14:23:56 -0700
+Message-ID: <57e1a8ec.4a/l2dN7L4yAIXIq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50225 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50243 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752931AbcITVQo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 17:16:44 -0400
+        with ESMTP id S1753204AbcITVX5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 17:23:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, adityam@microsoft.com, hughd@google.com, janvorli@microsoft.com, mgorman@techsingularity.net, riel@redhat.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, miklos@szeredi.hu, stable@vger.kernel.org, trapexit@spawn.link, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vma_merge: fix vm_page_prot SMP race condition against rmap_walk
+     Subject: mm: workingset: fix crash in shadow node shrinker caused by replace_page_cache_page()
 has been added to the -mm tree.  Its filename is
-     mm-vma_merge-fix-vm_page_prot-smp-race-condition-against-rmap_walk.patch
+     mm-workingset-fix-crash-in-shadow-node-shrinker-caused-by-replace_page_cache_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vma_merge-fix-vm_page_prot-smp-race-condition-against-rmap_walk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-fix-crash-in-shadow-node-shrinker-caused-by-replace_page_cache_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vma_merge-fix-vm_page_prot-smp-race-condition-against-rmap_walk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-fix-crash-in-shadow-node-shrinker-caused-by-replace_page_cache_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,388 +39,279 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: vma_merge: fix vm_page_prot SMP race condition against rmap_walk
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: workingset: fix crash in shadow node shrinker caused by replace_page_cache_page()
 
-The rmap_walk can access vm_page_prot (and potentially vm_flags in the
-pte/pmd manipulations).  So it's not safe to wait the caller to update the
-vm_page_prot/vm_flags after vma_merge returned potentially removing the
-"next" vma and extending the "current" vma over the next->vm_start,vm_end
-range, but still with the "current" vma vm_page_prot, after releasing the
-rmap locks.
+Antonio reports the following crash when using fuse under memory pressure:
 
-The vm_page_prot/vm_flags must be transferred from the "next" vma to the
-current vma while vma_merge still holds the rmap locks.
+[25192.515454] kernel BUG at /build/linux-a2WvEb/linux-4.4.0/mm/workingset.c:346!
+[25192.517521] invalid opcode: 0000 [#1] SMP
+[25192.519602] Modules linked in: all of them
+[25192.540910] CPU: 2 PID: 63 Comm: kswapd0 Not tainted 4.4.0-36-generic #55-Ubuntu
+[25192.543411] Hardware name: System manufacturer System Product Name/P8H67-M PRO, BIOS 3904 04/27/2013
+[25192.545840] task: ffff88040cae6040 ti: ffff880407488000 task.ti: ffff880407488000
+[25192.548277] RIP: 0010:[<ffffffff811ba501>]  [<ffffffff811ba501>] shadow_lru_isolate+0x181/0x190
+[25192.550706] RSP: 0018:ffff88040748bbe0  EFLAGS: 00010002
+[25192.553127] RAX: 0000000000001c81 RBX: ffff8802f91ee928 RCX: ffff8802f91eeb38
+[25192.555544] RDX: ffff8802f91ee938 RSI: ffff8802f91ee928 RDI: ffff8804099ba2c0
+[25192.557914] RBP: ffff88040748bc08 R08: 000000000001a7b6 R09: 000000000000003f
+[25192.560237] R10: 000000000001a750 R11: 0000000000000000 R12: ffff8804099ba2c0
+[25192.562512] R13: ffff8803157e9680 R14: ffff8803157e9668 R15: ffff8804099ba2c8
+[25192.564724] FS:  0000000000000000(0000) GS:ffff88041f280000(0000) knlGS:0000000000000000
+[25192.566990] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[25192.569201] CR2: 00007ffabb690000 CR3: 0000000001e0a000 CR4: 00000000000406e0
+[25192.571419] Stack:
+[25192.573550]  ffff8804099ba2c0 ffff88039e4f86f0 ffff8802f91ee928 ffff8804099ba2c8
+[25192.575695]  ffff88040748bd08 ffff88040748bc58 ffffffff811b99bf 0000000000000052
+[25192.577814]  0000000000000000 ffffffff811ba380 000000000000008a 0000000000000080
+[25192.579947] Call Trace:
+[25192.582022]  [<ffffffff811b99bf>] __list_lru_walk_one.isra.3+0x8f/0x130
+[25192.584137]  [<ffffffff811ba380>] ? memcg_drain_all_list_lrus+0x190/0x190
+[25192.586165]  [<ffffffff811b9a83>] list_lru_walk_one+0x23/0x30
+[25192.588145]  [<ffffffff811ba544>] scan_shadow_nodes+0x34/0x50
+[25192.590074]  [<ffffffff811a0e9d>] shrink_slab.part.40+0x1ed/0x3d0
+[25192.591985]  [<ffffffff811a53da>] shrink_zone+0x2ca/0x2e0
+[25192.593863]  [<ffffffff811a64ce>] kswapd+0x51e/0x990
+[25192.595737]  [<ffffffff811a5fb0>] ? mem_cgroup_shrink_node_zone+0x1c0/0x1c0
+[25192.597613]  [<ffffffff810a0808>] kthread+0xd8/0xf0
+[25192.599495]  [<ffffffff810a0730>] ? kthread_create_on_node+0x1e0/0x1e0
+[25192.601335]  [<ffffffff8182e34f>] ret_from_fork+0x3f/0x70
+[25192.603193]  [<ffffffff810a0730>] ? kthread_create_on_node+0x1e0/0x1e0
+[25192.605083] Code: Red
+[25192.609252] RIP  [<ffffffff811ba501>] shadow_lru_isolate+0x181/0x190
+[25192.611304]  RSP <ffff88040748bbe0>
 
-The side effect of this race condition is pte corruption during migrate as
-remove_migration_ptes when run on a address of the "next" vma that got
-removed, used the vm_page_prot of the current vma.
+which corresponds to the following sanity check in the shadow node
+tracking:
 
-migrate	     	      	        mprotect
-------------			-------------
-migrating in "next" vma
-				vma_merge() # removes "next" vma and
-			        	    # extends "current" vma
-					    # current vma is not with
-					    # vm_page_prot updated
-remove_migration_ptes
-read vm_page_prot of current "vma"
-establish pte with wrong permissions
-				vm_set_page_prot(vma) # too late!
-				change_protection in the old vma range
-				only, next range is not updated
+  BUG_ON(node->count & RADIX_TREE_COUNT_MASK);
 
-This caused segmentation faults and potentially memory corruption in heavy
-mprotect loads with some light page migration caused by compaction in the
-background.
+The workingset code tracks radix tree nodes that exclusively contain
+shadow entries of evicted pages in them, and this (somewhat obscure) line
+checks whether there are real pages left that would interfere with reclaim
+of the radix tree node under memory pressure.
 
-Hugh Dickins pointed out the comment about the Odd case 8 in vma_merge
-which confirms the case 8 is only buggy one where the race can trigger, in
-all other vma_merge cases the above cannot happen.
+While discussing ways how fuse might sneak pages into the radix tree past
+the workingset code, Miklos pointed to replace_page_cache_page(), and
+indeed there is a problem there: it properly accounts for the old page
+being removed - __delete_from_page_cache() does that - but then does a raw
+raw radix_tree_insert(), not accounting for the replacement page. 
+Eventually the page count bits in node->count underflow while leaving the
+node incorrectly linked to the shadow node LRU.
 
-This fix removes the oddness factor from case 8 and it converts it
-from:
+To address this, make sure replace_page_cache_page() uses the tracked page
+insertion code, page_cache_tree_insert().  This fixes the page accounting
+and makes sure page-containing nodes are properly unlinked from the shadow
+node LRU again.
 
-    AAAA
-PPPPNNNNXXXX -> PPPPNNNNNNNN
+Also, make the sanity checks a bit less obscure by using the helpers for
+checking the number of pages and shadows in a radix tree node.
 
-to:
-
-    AAAA
-PPPPNNNNXXXX -> PPPPXXXXXXXX
-
-XXXX has the right vma properties for the whole merged vma returned by
-vma_adjust, so it solves the problem fully.  It has the added benefits
-that the callers could stop updating vma properties when vma_merge
-succeeds however the callers are not updated by this patch (there are bits
-like VM_SOFTDIRTY that still need special care for the whole range, as the
-vma merging ignores them, but as long as they're not processed by rmap
-walks and instead they're accessed with the mmap_sem at least for reading,
-they are fine not to be updated within vma_adjust before releasing the
-rmap_locks).
-
-Link: http://lkml.kernel.org/r/1474309513-20313-1-git-send-email-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Aditya Mandaleeka <adityam@microsoft.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Jan Vorlicek <janvorli@microsoft.com>
+Fixes: 449dd6984d0e ("mm: keep page cache radix tree nodes in check")
+Link: http://lkml.kernel.org/r/20160919155822.29498-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Antonio SJ Musumeci <trapexit@spawn.link>
+Debugged-by: Miklos Szeredi <miklos@szeredi.hu>
+Cc: <stable@vger.kernel.org>	[3.15+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   10 ++
- mm/mmap.c          |  157 +++++++++++++++++++++++++++++++++++--------
- mm/mprotect.c      |    1 
- 3 files changed, 139 insertions(+), 29 deletions(-)
+ include/linux/swap.h |    2 
+ mm/filemap.c         |  114 ++++++++++++++++++++---------------------
+ mm/workingset.c      |   10 +--
+ 3 files changed, 63 insertions(+), 63 deletions(-)
 
-diff -puN include/linux/mm.h~mm-vma_merge-fix-vm_page_prot-smp-race-condition-against-rmap_walk include/linux/mm.h
---- a/include/linux/mm.h~mm-vma_merge-fix-vm_page_prot-smp-race-condition-against-rmap_walk
-+++ a/include/linux/mm.h
-@@ -1968,8 +1968,14 @@ void anon_vma_interval_tree_verify(struc
+diff -puN include/linux/swap.h~mm-workingset-fix-crash-in-shadow-node-shrinker-caused-by-replace_page_cache_page include/linux/swap.h
+--- a/include/linux/swap.h~mm-workingset-fix-crash-in-shadow-node-shrinker-caused-by-replace_page_cache_page
++++ a/include/linux/swap.h
+@@ -257,6 +257,7 @@ static inline void workingset_node_pages
  
- /* mmap.c */
- extern int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin);
--extern int vma_adjust(struct vm_area_struct *vma, unsigned long start,
--	unsigned long end, pgoff_t pgoff, struct vm_area_struct *insert);
-+extern int __vma_adjust(struct vm_area_struct *vma, unsigned long start,
-+	unsigned long end, pgoff_t pgoff, struct vm_area_struct *insert,
-+	struct vm_area_struct *expand);
-+static inline int vma_adjust(struct vm_area_struct *vma, unsigned long start,
-+	unsigned long end, pgoff_t pgoff, struct vm_area_struct *insert)
-+{
-+	return __vma_adjust(vma, start, end, pgoff, insert, NULL);
-+}
- extern struct vm_area_struct *vma_merge(struct mm_struct *,
- 	struct vm_area_struct *prev, unsigned long addr, unsigned long end,
- 	unsigned long vm_flags, struct anon_vma *, struct file *, pgoff_t,
-diff -puN mm/mmap.c~mm-vma_merge-fix-vm_page_prot-smp-race-condition-against-rmap_walk mm/mmap.c
---- a/mm/mmap.c~mm-vma_merge-fix-vm_page_prot-smp-race-condition-against-rmap_walk
-+++ a/mm/mmap.c
-@@ -594,14 +594,24 @@ static void __insert_vm_struct(struct mm
- 	mm->map_count++;
- }
- 
--static inline void
--__vma_unlink(struct mm_struct *mm, struct vm_area_struct *vma,
--		struct vm_area_struct *prev)
-+static __always_inline void __vma_unlink_common(struct mm_struct *mm,
-+						struct vm_area_struct *vma,
-+						struct vm_area_struct *prev,
-+						bool has_prev)
+ static inline void workingset_node_pages_dec(struct radix_tree_node *node)
  {
- 	struct vm_area_struct *next;
- 
- 	vma_rb_erase(vma, &mm->mm_rb);
--	prev->vm_next = next = vma->vm_next;
-+	next = vma->vm_next;
-+	if (has_prev)
-+		prev->vm_next = next;
-+	else {
-+		prev = vma->vm_prev;
-+		if (prev)
-+			prev->vm_next = next;
-+		else
-+			mm->mmap = next;
-+	}
- 	if (next)
- 		next->vm_prev = prev;
- 
-@@ -609,6 +619,19 @@ __vma_unlink(struct mm_struct *mm, struc
- 	vmacache_invalidate(mm);
++	VM_BUG_ON(!workingset_node_pages(node));
+ 	node->count--;
  }
  
-+static inline void __vma_unlink_prev(struct mm_struct *mm,
-+				     struct vm_area_struct *vma,
-+				     struct vm_area_struct *prev)
-+{
-+	__vma_unlink_common(mm, vma, prev, true);
-+}
-+
-+static inline void __vma_unlink(struct mm_struct *mm,
-+				struct vm_area_struct *vma)
-+{
-+	__vma_unlink_common(mm, vma, NULL, false);
-+}
-+
- /*
-  * We cannot adjust vm_start, vm_end, vm_pgoff fields of a vma that
-  * is already present in an i_mmap tree without adjusting the tree.
-@@ -616,11 +639,12 @@ __vma_unlink(struct mm_struct *mm, struc
-  * are necessary.  The "insert" vma (if any) is to be inserted
-  * before we drop the necessary locks.
+@@ -272,6 +273,7 @@ static inline void workingset_node_shado
+ 
+ static inline void workingset_node_shadows_dec(struct radix_tree_node *node)
+ {
++	VM_BUG_ON(!workingset_node_shadows(node));
+ 	node->count -= 1U << RADIX_TREE_COUNT_SHIFT;
+ }
+ 
+diff -puN mm/filemap.c~mm-workingset-fix-crash-in-shadow-node-shrinker-caused-by-replace_page_cache_page mm/filemap.c
+--- a/mm/filemap.c~mm-workingset-fix-crash-in-shadow-node-shrinker-caused-by-replace_page_cache_page
++++ a/mm/filemap.c
+@@ -110,6 +110,62 @@
+  *   ->tasklist_lock            (memory_failure, collect_procs_ao)
   */
--int vma_adjust(struct vm_area_struct *vma, unsigned long start,
--	unsigned long end, pgoff_t pgoff, struct vm_area_struct *insert)
-+int __vma_adjust(struct vm_area_struct *vma, unsigned long start,
-+	unsigned long end, pgoff_t pgoff, struct vm_area_struct *insert,
-+	struct vm_area_struct *expand)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	struct vm_area_struct *next = vma->vm_next;
-+	struct vm_area_struct *next = vma->vm_next, *orig_vma = vma;
- 	struct address_space *mapping = NULL;
- 	struct rb_root *root = NULL;
- 	struct anon_vma *anon_vma = NULL;
-@@ -636,9 +660,38 @@ int vma_adjust(struct vm_area_struct *vm
- 			/*
- 			 * vma expands, overlapping all the next, and
- 			 * perhaps the one after too (mprotect case 6).
-+			 * The only two other cases that gets here are
-+			 * case 1, case 7 and case 8.
- 			 */
--			remove_next = 1 + (end > next->vm_end);
--			end = next->vm_end;
-+			if (next == expand) {
-+				/*
-+				 * The only case where we don't expand "vma"
-+				 * and we expand "next" instead is case 8.
-+				 */
-+				VM_WARN_ON(end != next->vm_end);
-+				/*
-+				 * remove_next == 3 means we're
-+				 * removing "vma" and that to do so we
-+				 * swapped "vma" and "next".
-+				 */
-+				remove_next = 3;
-+				VM_WARN_ON(file != next->vm_file);
-+				swap(vma, next);
-+			} else {
-+				VM_WARN_ON(expand != vma);
-+				/*
-+				 * case 1, 6, 7, remove_next == 2 is case 6,
-+				 * remove_next == 1 is case 1 or 7.
-+				 */
-+				remove_next = 1 + (end > next->vm_end);
-+				VM_WARN_ON(remove_next == 2 &&
-+					   end != next->vm_next->vm_end);
-+				VM_WARN_ON(remove_next == 1 &&
-+					   end != next->vm_end);
-+				/* trim end to next, for case 6 first pass */
-+				end = next->vm_end;
-+			}
+ 
++static int page_cache_tree_insert(struct address_space *mapping,
++				  struct page *page, void **shadowp)
++{
++	struct radix_tree_node *node;
++	void **slot;
++	int error;
 +
- 			exporter = next;
- 			importer = vma;
- 
-@@ -657,6 +710,7 @@ int vma_adjust(struct vm_area_struct *vm
- 			adjust_next = (end - next->vm_start) >> PAGE_SHIFT;
- 			exporter = next;
- 			importer = vma;
-+			VM_WARN_ON(expand != importer);
- 		} else if (end < vma->vm_end) {
- 			/*
- 			 * vma shrinks, and !insert tells it's not
-@@ -666,6 +720,7 @@ int vma_adjust(struct vm_area_struct *vm
- 			adjust_next = -((vma->vm_end - end) >> PAGE_SHIFT);
- 			exporter = vma;
- 			importer = next;
-+			VM_WARN_ON(expand != importer);
- 		}
- 
- 		/*
-@@ -683,7 +738,7 @@ int vma_adjust(struct vm_area_struct *vm
- 		}
- 	}
- again:
--	vma_adjust_trans_huge(vma, start, end, adjust_next);
-+	vma_adjust_trans_huge(orig_vma, start, end, adjust_next);
- 
- 	if (file) {
- 		mapping = file->f_mapping;
-@@ -709,8 +764,8 @@ again:
- 	if (!anon_vma && adjust_next)
- 		anon_vma = next->anon_vma;
- 	if (anon_vma) {
--		VM_BUG_ON_VMA(adjust_next && next->anon_vma &&
--			  anon_vma != next->anon_vma, next);
-+		VM_WARN_ON(adjust_next && next->anon_vma &&
-+			   anon_vma != next->anon_vma);
- 		anon_vma_lock_write(anon_vma);
- 		anon_vma_interval_tree_pre_update_vma(vma);
- 		if (adjust_next)
-@@ -750,7 +805,11 @@ again:
- 		 * vma_merge has merged next into vma, and needs
- 		 * us to remove next before dropping the locks.
- 		 */
--		__vma_unlink(mm, next, vma);
-+		if (remove_next != 3)
-+			__vma_unlink_prev(mm, next, vma);
-+		else
-+			/* vma is not before next if they've been swapped */
-+			__vma_unlink(mm, next);
- 		if (file)
- 			__remove_shared_vm_struct(next, file, mapping);
- 	} else if (insert) {
-@@ -802,7 +861,27 @@ again:
- 		 * we must remove another next too. It would clutter
- 		 * up the code too much to do both in one go.
- 		 */
--		next = vma->vm_next;
-+		if (remove_next != 3) {
-+			/*
-+			 * If "next" was removed and vma->vm_end was
-+			 * expanded (up) over it, in turn
-+			 * "next->vm_prev->vm_end" changed and the
-+			 * "vma->vm_next" gap must be updated.
-+			 */
-+			next = vma->vm_next;
++	error = __radix_tree_create(&mapping->page_tree, page->index, 0,
++				    &node, &slot);
++	if (error)
++		return error;
++	if (*slot) {
++		void *p;
++
++		p = radix_tree_deref_slot_protected(slot, &mapping->tree_lock);
++		if (!radix_tree_exceptional_entry(p))
++			return -EEXIST;
++
++		mapping->nrexceptional--;
++		if (!dax_mapping(mapping)) {
++			if (shadowp)
++				*shadowp = p;
++			if (node)
++				workingset_node_shadows_dec(node);
 +		} else {
-+			/*
-+			 * For the scope of the comment "next" and
-+			 * "vma" considered pre-swap(): if "vma" was
-+			 * removed, next->vm_start was expanded (down)
-+			 * over it and the "next" gap must be updated.
-+			 * Because of the swap() the post-swap() "vma"
-+			 * actually points to pre-swap() "next"
-+			 * (post-swap() "next" as opposed is now a
-+			 * dangling pointer).
-+			 */
-+			next = vma;
++			/* DAX can replace empty locked entry with a hole */
++			WARN_ON_ONCE(p !=
++				(void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
++					 RADIX_DAX_ENTRY_LOCK));
++			/* DAX accounts exceptional entries as normal pages */
++			if (node)
++				workingset_node_pages_dec(node);
++			/* Wakeup waiters for exceptional entry lock */
++			dax_wake_mapping_entry_waiter(mapping, page->index,
++						      false);
 +		}
- 		if (remove_next == 2) {
- 			remove_next = 1;
- 			end = next->vm_end;
-@@ -931,13 +1010,24 @@ can_vma_merge_after(struct vm_area_struc
-  *    cannot merge    might become    might become    might become
-  *                    PPNNNNNNNNNN    PPPPPPPPPPNN    PPPPPPPPPPPP 6 or
-  *    mmap, brk or    case 4 below    case 5 below    PPPPPPPPXXXX 7 or
-- *    mremap move:                                    PPPPNNNNNNNN 8
-+ *    mremap move:                                    PPPPXXXXXXXX 8
-  *        AAAA
-  *    PPPP    NNNN    PPPPPPPPPPPP    PPPPPPPPNNNN    PPPPNNNNNNNN
-  *    might become    case 1 below    case 2 below    case 3 below
-  *
-- * Odd one out? Case 8, because it extends NNNN but needs flags of XXXX:
-- * mprotect_fixup updates vm_flags & vm_page_prot on successful return.
-+ * It is important for case 8 that the the vma NNNN overlapping the
-+ * region AAAA is never going to extended over XXXX. Instead XXXX must
-+ * be extended in region AAAA and NNNN must be removed. This way in
-+ * all cases where vma_merge succeeds, the moment vma_adjust drops the
-+ * rmap_locks, the properties of the merged vma will be already
-+ * correct for the whole merged range. Some of those properties like
-+ * vm_page_prot/vm_flags may be accessed by rmap_walks and they must
-+ * be correct for the whole merged range immediately after the
-+ * rmap_locks are released. Otherwise if XXXX would be removed and
-+ * NNNN would be extended over the XXXX range, remove_migration_ptes
-+ * or other rmap walkers (if working on addresses beyond the "end"
-+ * parameter) may establish ptes with the wrong permissions of NNNN
-+ * instead of the right permissions of XXXX.
-  */
- struct vm_area_struct *vma_merge(struct mm_struct *mm,
- 			struct vm_area_struct *prev, unsigned long addr,
-@@ -962,9 +1052,14 @@ struct vm_area_struct *vma_merge(struct
- 	else
- 		next = mm->mmap;
- 	area = next;
--	if (next && next->vm_end == end)		/* cases 6, 7, 8 */
-+	if (area && area->vm_end == end)		/* cases 6, 7, 8 */
- 		next = next->vm_next;
- 
-+	/* verify some invariant that must be enforced by the caller */
-+	VM_WARN_ON(prev && addr <= prev->vm_start);
-+	VM_WARN_ON(area && end > area->vm_end);
-+	VM_WARN_ON(addr >= end);
++	}
++	radix_tree_replace_slot(slot, page);
++	mapping->nrpages++;
++	if (node) {
++		workingset_node_pages_inc(node);
++		/*
++		 * Don't track node that contains actual pages.
++		 *
++		 * Avoid acquiring the list_lru lock if already
++		 * untracked.  The list_empty() test is safe as
++		 * node->private_list is protected by
++		 * mapping->tree_lock.
++		 */
++		if (!list_empty(&node->private_list))
++			list_lru_del(&workingset_shadow_nodes,
++				     &node->private_list);
++	}
++	return 0;
++}
 +
- 	/*
- 	 * Can it merge with the predecessor?
- 	 */
-@@ -985,11 +1080,12 @@ struct vm_area_struct *vma_merge(struct
- 				is_mergeable_anon_vma(prev->anon_vma,
- 						      next->anon_vma, NULL)) {
- 							/* cases 1, 6 */
--			err = vma_adjust(prev, prev->vm_start,
--				next->vm_end, prev->vm_pgoff, NULL);
-+			err = __vma_adjust(prev, prev->vm_start,
-+					 next->vm_end, prev->vm_pgoff, NULL,
-+					 prev);
- 		} else					/* cases 2, 5, 7 */
--			err = vma_adjust(prev, prev->vm_start,
--				end, prev->vm_pgoff, NULL);
-+			err = __vma_adjust(prev, prev->vm_start,
-+					 end, prev->vm_pgoff, NULL, prev);
- 		if (err)
- 			return NULL;
- 		khugepaged_enter_vma_merge(prev, vm_flags);
-@@ -1005,11 +1101,18 @@ struct vm_area_struct *vma_merge(struct
- 					     anon_vma, file, pgoff+pglen,
- 					     vm_userfaultfd_ctx)) {
- 		if (prev && addr < prev->vm_end)	/* case 4 */
--			err = vma_adjust(prev, prev->vm_start,
--				addr, prev->vm_pgoff, NULL);
--		else					/* cases 3, 8 */
--			err = vma_adjust(area, addr, next->vm_end,
--				next->vm_pgoff - pglen, NULL);
-+			err = __vma_adjust(prev, prev->vm_start,
-+					 addr, prev->vm_pgoff, NULL, next);
-+		else {					/* cases 3, 8 */
-+			err = __vma_adjust(area, addr, next->vm_end,
-+					 next->vm_pgoff - pglen, NULL, next);
-+			/*
-+			 * In case 3 area is already equal to next and
-+			 * this is a noop, but in case 8 "area" has
-+			 * been removed and next was expanded over it.
-+			 */
-+			area = next;
-+		}
- 		if (err)
- 			return NULL;
- 		khugepaged_enter_vma_merge(area, vm_flags);
-diff -puN mm/mprotect.c~mm-vma_merge-fix-vm_page_prot-smp-race-condition-against-rmap_walk mm/mprotect.c
---- a/mm/mprotect.c~mm-vma_merge-fix-vm_page_prot-smp-race-condition-against-rmap_walk
-+++ a/mm/mprotect.c
-@@ -304,6 +304,7 @@ mprotect_fixup(struct vm_area_struct *vm
- 			   vma->vm_userfaultfd_ctx);
- 	if (*pprev) {
- 		vma = *pprev;
-+		VM_WARN_ON((vma->vm_flags ^ newflags) & ~VM_SOFTDIRTY);
- 		goto success;
- 	}
+ static void page_cache_tree_delete(struct address_space *mapping,
+ 				   struct page *page, void *shadow)
+ {
+@@ -561,7 +617,7 @@ int replace_page_cache_page(struct page
  
+ 		spin_lock_irqsave(&mapping->tree_lock, flags);
+ 		__delete_from_page_cache(old, NULL);
+-		error = radix_tree_insert(&mapping->page_tree, offset, new);
++		error = page_cache_tree_insert(mapping, new, NULL);
+ 		BUG_ON(error);
+ 		mapping->nrpages++;
+ 
+@@ -584,62 +640,6 @@ int replace_page_cache_page(struct page
+ }
+ EXPORT_SYMBOL_GPL(replace_page_cache_page);
+ 
+-static int page_cache_tree_insert(struct address_space *mapping,
+-				  struct page *page, void **shadowp)
+-{
+-	struct radix_tree_node *node;
+-	void **slot;
+-	int error;
+-
+-	error = __radix_tree_create(&mapping->page_tree, page->index, 0,
+-				    &node, &slot);
+-	if (error)
+-		return error;
+-	if (*slot) {
+-		void *p;
+-
+-		p = radix_tree_deref_slot_protected(slot, &mapping->tree_lock);
+-		if (!radix_tree_exceptional_entry(p))
+-			return -EEXIST;
+-
+-		mapping->nrexceptional--;
+-		if (!dax_mapping(mapping)) {
+-			if (shadowp)
+-				*shadowp = p;
+-			if (node)
+-				workingset_node_shadows_dec(node);
+-		} else {
+-			/* DAX can replace empty locked entry with a hole */
+-			WARN_ON_ONCE(p !=
+-				(void *)(RADIX_TREE_EXCEPTIONAL_ENTRY |
+-					 RADIX_DAX_ENTRY_LOCK));
+-			/* DAX accounts exceptional entries as normal pages */
+-			if (node)
+-				workingset_node_pages_dec(node);
+-			/* Wakeup waiters for exceptional entry lock */
+-			dax_wake_mapping_entry_waiter(mapping, page->index,
+-						      false);
+-		}
+-	}
+-	radix_tree_replace_slot(slot, page);
+-	mapping->nrpages++;
+-	if (node) {
+-		workingset_node_pages_inc(node);
+-		/*
+-		 * Don't track node that contains actual pages.
+-		 *
+-		 * Avoid acquiring the list_lru lock if already
+-		 * untracked.  The list_empty() test is safe as
+-		 * node->private_list is protected by
+-		 * mapping->tree_lock.
+-		 */
+-		if (!list_empty(&node->private_list))
+-			list_lru_del(&workingset_shadow_nodes,
+-				     &node->private_list);
+-	}
+-	return 0;
+-}
+-
+ static int __add_to_page_cache_locked(struct page *page,
+ 				      struct address_space *mapping,
+ 				      pgoff_t offset, gfp_t gfp_mask,
+diff -puN mm/workingset.c~mm-workingset-fix-crash-in-shadow-node-shrinker-caused-by-replace_page_cache_page mm/workingset.c
+--- a/mm/workingset.c~mm-workingset-fix-crash-in-shadow-node-shrinker-caused-by-replace_page_cache_page
++++ a/mm/workingset.c
+@@ -418,21 +418,19 @@ static enum lru_status shadow_lru_isolat
+ 	 * no pages, so we expect to be able to remove them all and
+ 	 * delete and free the empty node afterwards.
+ 	 */
+-
+-	BUG_ON(!node->count);
+-	BUG_ON(node->count & RADIX_TREE_COUNT_MASK);
++	BUG_ON(!workingset_node_shadows(node));
++	BUG_ON(workingset_node_pages(node));
+ 
+ 	for (i = 0; i < RADIX_TREE_MAP_SIZE; i++) {
+ 		if (node->slots[i]) {
+ 			BUG_ON(!radix_tree_exceptional_entry(node->slots[i]));
+ 			node->slots[i] = NULL;
+-			BUG_ON(node->count < (1U << RADIX_TREE_COUNT_SHIFT));
+-			node->count -= 1U << RADIX_TREE_COUNT_SHIFT;
++			workingset_node_shadows_dec(node);
+ 			BUG_ON(!mapping->nrexceptional);
+ 			mapping->nrexceptional--;
+ 		}
+ 	}
+-	BUG_ON(node->count);
++	BUG_ON(workingset_node_shadows(node));
+ 	inc_node_state(page_pgdat(virt_to_page(node)), WORKINGSET_NODERECLAIM);
+ 	if (!__radix_tree_delete_node(&mapping->page_tree, node))
+ 		BUG();
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-vma_merge-fix-vm_page_prot-smp-race-condition-against-rmap_walk.patch
-mm-vma_adjust-remove-superfluous-check-for-next-not-null.patch
+mm-workingset-fix-crash-in-shadow-node-shrinker-caused-by-replace_page_cache_page.patch
+mm-memcontrol-consolidate-cgroup-socket-tracking.patch
+mm-memcontrol-consolidate-cgroup-socket-tracking-fix-2.patch
 
