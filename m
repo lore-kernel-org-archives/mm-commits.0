@@ -1,183 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- autofs-use-dentry-flags-to-block-walks-during-expire.patch removed from -mm tree
-Date: Tue, 20 Sep 2016 12:30:33 -0700
-Message-ID: <57e18e59.JsWEl3qpEMS+jJY7%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-fix-trans-extend-while-free-cached-blocks.patch
+ removed from -mm tree
+Date: Tue, 20 Sep 2016 12:30:44 -0700
+Message-ID: <57e18e64.JXrtMvznu86ztgLM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48667 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48693 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753080AbcITTae (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:34 -0400
+        with ESMTP id S1753156AbcITTap (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 15:30:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, neilb@suse.com, stable@vger.kernel.org, tiwai@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: use dentry flags to block walks during expire
+     Subject: ocfs2: fix trans extend while free cached blocks
 has been removed from the -mm tree.  Its filename was
-     autofs-use-dentry-flags-to-block-walks-during-expire.patch
+     ocfs2-fix-trans-extend-while-free-cached-blocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ian Kent <raven@themaw.net>
-Subject: autofs: use dentry flags to block walks during expire
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: fix trans extend while free cached blocks
 
-Somewhere along the way the autofs expire operation has changed to hold a
-spin lock over expired dentry selection.  The autofs indirect mount
-expired dentry selection is complicated and quite lengthy so it isn't
-appropriate to hold a spin lock over the operation.
+Root cause of this issue is the same with the one fixed by last patch, but
+this time credits for allocator inode and group descriptor may not be
+consumed before trans extend.
 
-Commit 47be6184 ("fs/dcache.c: avoid soft-lockup in dput()") added a
-might_sleep() to dput() causing a WARN_ONCE() about this usage to be
-issued.
+The following error was caught.
 
-But the spin lock doesn't need to be held over this check, the autofs
-dentry info.  flags are enough to block walks into dentrys during the
-expire.
+[  685.240276] WARNING: CPU: 0 PID: 2037 at fs/jbd2/transaction.c:269 start_this_handle+0x4c3/0x510 [jbd2]()
+[  685.240294] Modules linked in: ocfs2 nfsd lockd grace nfs_acl auth_rpcgss sunrpc autofs4 ocfs2_dlmfs ocfs2_stack_o2cb ocfs2_dlm ocfs2_nodemanager ocfs2_stackglue configfs sd_mod sg ip6t_REJECT nf_reject_ipv6 nf_conntrack_ipv6 nf_defrag_ipv6 xt_state nf_conntrack ip6table_filter ip6_tables be2iscsi iscsi_boot_sysfs bnx2i cnic uio cxgb4i cxgb4 cxgb3i libcxgbi cxgb3 mdio ib_iser rdma_cm ib_cm iw_cm ib_sa ib_mad ib_core ib_addr ipv6 iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi ppdev xen_kbdfront fb_sys_fops sysimgblt sysfillrect syscopyarea xen_netfront parport_pc parport pcspkr i2c_piix4 i2c_core acpi_cpufreq ext4 jbd2 mbcache xen_blkfront floppy pata_acpi ata_generic ata_piix dm_mirror dm_region_hash dm_log dm_mod
+[  685.240296] CPU: 0 PID: 2037 Comm: rm Tainted: G        W       4.1.12-37.6.3.el6uek.bug24573128v2.x86_64 #2
+[  685.240296] Hardware name: Xen HVM domU, BIOS 4.4.4OVM 02/11/2016
+[  685.240298]  000000000000010d ffff88007ac3f808 ffffffff816bc5bc 000000000000010d
+[  685.240300]  0000000000000000 ffff88007ac3f848 ffffffff81081475 ffff88007ac3f828
+[  685.240301]  ffff880037bbf000 ffff880037688210 0000000000000095 0000000000000050
+[  685.240301] Call Trace:
+[  685.240305]  [<ffffffff816bc5bc>] dump_stack+0x48/0x5c
+[  685.240308]  [<ffffffff81081475>] warn_slowpath_common+0x95/0xe0
+[  685.240310]  [<ffffffff810814da>] warn_slowpath_null+0x1a/0x20
+[  685.240313]  [<ffffffffa0080993>] start_this_handle+0x4c3/0x510 [jbd2]
+[  685.240317]  [<ffffffffa0088f95>] ? __jbd2_log_start_commit+0xe5/0xf0 [jbd2]
+[  685.240319]  [<ffffffff810c4eb3>] ? __wake_up+0x53/0x70
+[  685.240322]  [<ffffffffa0080b41>] jbd2__journal_restart+0x161/0x1b0 [jbd2]
+[  685.240325]  [<ffffffffa0080ba3>] jbd2_journal_restart+0x13/0x20 [jbd2]
+[  685.240340]  [<ffffffffa06d1cf4>] ocfs2_extend_trans+0x74/0x220 [ocfs2]
+[  685.240347]  [<ffffffffa069762b>] ocfs2_free_cached_blocks+0x16b/0x4e0 [ocfs2]
+[  685.240349]  [<ffffffff810e9131>] ? internal_add_timer+0x91/0xc0
+[  685.240356]  [<ffffffffa06981b0>] ocfs2_run_deallocs+0x70/0x270 [ocfs2]
+[  685.240363]  [<ffffffffa06a2894>] ocfs2_commit_truncate+0x474/0x6f0 [ocfs2]
+[  685.240374]  [<ffffffffa0744a40>] ? ocfs2_xattr_tree_et_ops+0x60/0xfffffffffffe8c00 [ocfs2]
+[  685.240384]  [<ffffffffa06d1960>] ? ocfs2_journal_access_eb+0x20/0x20 [ocfs2]
+[  685.240385]  [<ffffffff81202303>] ? __sb_end_write+0x33/0x70
+[  685.240394]  [<ffffffffa06ca57d>] ocfs2_truncate_for_delete+0xbd/0x380 [ocfs2]
+[  685.240402]  [<ffffffffa06ca1f4>] ? ocfs2_query_inode_wipe+0xf4/0x320 [ocfs2]
+[  685.240409]  [<ffffffffa06caed6>] ocfs2_wipe_inode+0x136/0x6a0 [ocfs2]
+[  685.240415]  [<ffffffffa06ca1f4>] ? ocfs2_query_inode_wipe+0xf4/0x320 [ocfs2]
+[  685.240422]  [<ffffffffa06cb6e2>] ocfs2_delete_inode+0x2a2/0x3e0 [ocfs2]
+[  685.240424]  [<ffffffff812298c9>] ? __inode_wait_for_writeback+0x69/0xc0
+[  685.240437]  [<ffffffffa0732100>] ? __PRETTY_FUNCTION__.112282+0x20/0xffffffffffffb500 [ocfs2]
+[  685.240444]  [<ffffffffa06cc1f8>] ocfs2_evict_inode+0x28/0x60 [ocfs2]
+[  685.240445]  [<ffffffff8121b81b>] evict+0xab/0x1a0
+[  685.240456]  [<ffffffffa0732100>] ? __PRETTY_FUNCTION__.112282+0x20/0xffffffffffffb500 [ocfs2]
+[  685.240457]  [<ffffffff8121ba06>] iput_final+0xf6/0x190
+[  685.240458]  [<ffffffff8121bb68>] iput+0xc8/0xe0
+[  685.240460]  [<ffffffff8120f9b7>] do_unlinkat+0x1b7/0x310
+[  685.240462]  [<ffffffff81126dbc>] ? __audit_syscall_entry+0xac/0x110
+[  685.240464]  [<ffffffff810236cc>] ? do_audit_syscall_entry+0x6c/0x70
+[  685.240465]  [<ffffffff81023823>] ? syscall_trace_enter_phase1+0x153/0x180
+[  685.240467]  [<ffffffff8120fd52>] SyS_unlinkat+0x22/0x40
+[  685.240468]  [<ffffffff816c122e>] system_call_fastpath+0x12/0x71
+[  685.240469] ---[ end trace a62437cb060baa71 ]---
+[  685.240470] JBD2: rm wants too many credits (149 > 128)
 
-I've left the direct mount expire as it is (for now) because it is much
-simpler and quicker than the indirect mount expire and adding spin lock
-release and re-aquires would do nothing more than add overhead.
-
-Fixes: 47be61845c77 ("fs/dcache.c: avoid soft-lockup in dput()")
-Link: http://lkml.kernel.org/r/20160912014017.1773.73060.stgit@pluto.themaw.net
-Signed-off-by: Ian Kent <raven@themaw.net>
-Reported-by: Takashi Iwai <tiwai@suse.de>
-Tested-by: Takashi Iwai <tiwai@suse.de>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: NeilBrown <neilb@suse.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1473674623-11810-2-git-send-email-junxiao.bi@oracle.com
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/expire.c |   55 ++++++++++++++++++++++++++++++++----------
- 1 file changed, 42 insertions(+), 13 deletions(-)
+ fs/ocfs2/alloc.c |   27 +++++++++------------------
+ 1 file changed, 9 insertions(+), 18 deletions(-)
 
-diff -puN fs/autofs4/expire.c~autofs-use-dentry-flags-to-block-walks-during-expire fs/autofs4/expire.c
---- a/fs/autofs4/expire.c~autofs-use-dentry-flags-to-block-walks-during-expire
-+++ a/fs/autofs4/expire.c
-@@ -417,6 +417,7 @@ static struct dentry *should_expire(stru
+diff -puN fs/ocfs2/alloc.c~ocfs2-fix-trans-extend-while-free-cached-blocks fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-fix-trans-extend-while-free-cached-blocks
++++ a/fs/ocfs2/alloc.c
+@@ -6404,43 +6404,34 @@ static int ocfs2_free_cached_blocks(stru
+ 		goto out_mutex;
  	}
- 	return NULL;
- }
-+
- /*
-  * Find an eligible tree to time-out
-  * A tree is eligible if :-
-@@ -432,6 +433,7 @@ struct dentry *autofs4_expire_indirect(s
- 	struct dentry *root = sb->s_root;
- 	struct dentry *dentry;
- 	struct dentry *expired;
-+	struct dentry *found;
- 	struct autofs_info *ino;
  
- 	if (!root)
-@@ -442,31 +444,46 @@ struct dentry *autofs4_expire_indirect(s
+-	handle = ocfs2_start_trans(osb, OCFS2_SUBALLOC_FREE);
+-	if (IS_ERR(handle)) {
+-		ret = PTR_ERR(handle);
+-		mlog_errno(ret);
+-		goto out_unlock;
+-	}
+-
+ 	while (head) {
+ 		if (head->free_bg)
+ 			bg_blkno = head->free_bg;
+ 		else
+ 			bg_blkno = ocfs2_which_suballoc_group(head->free_blk,
+ 							      head->free_bit);
++		handle = ocfs2_start_trans(osb, OCFS2_SUBALLOC_FREE);
++		if (IS_ERR(handle)) {
++			ret = PTR_ERR(handle);
++			mlog_errno(ret);
++			goto out_unlock;
++		}
++
+ 		trace_ocfs2_free_cached_blocks(
+ 		     (unsigned long long)head->free_blk, head->free_bit);
  
- 	dentry = NULL;
- 	while ((dentry = get_next_positive_subdir(dentry, root))) {
-+		int flags = how;
-+
- 		spin_lock(&sbi->fs_lock);
- 		ino = autofs4_dentry_ino(dentry);
--		if (ino->flags & AUTOFS_INF_WANT_EXPIRE)
--			expired = NULL;
--		else
--			expired = should_expire(dentry, mnt, timeout, how);
--		if (!expired) {
-+		if (ino->flags & AUTOFS_INF_WANT_EXPIRE) {
- 			spin_unlock(&sbi->fs_lock);
- 			continue;
- 		}
-+		spin_unlock(&sbi->fs_lock);
-+
-+		expired = should_expire(dentry, mnt, timeout, flags);
-+		if (!expired)
-+			continue;
-+
-+		spin_lock(&sbi->fs_lock);
- 		ino = autofs4_dentry_ino(expired);
- 		ino->flags |= AUTOFS_INF_WANT_EXPIRE;
- 		spin_unlock(&sbi->fs_lock);
- 		synchronize_rcu();
--		spin_lock(&sbi->fs_lock);
--		if (should_expire(expired, mnt, timeout, how)) {
--			if (expired != dentry)
--				dput(dentry);
--			goto found;
+ 		ret = ocfs2_free_suballoc_bits(handle, inode, di_bh,
+ 					       head->free_bit, bg_blkno, 1);
+-		if (ret) {
++		if (ret)
+ 			mlog_errno(ret);
+-			goto out_journal;
 -		}
  
-+		/* Make sure a reference is not taken on found if
-+		 * things have changed.
-+		 */
-+		flags &= ~AUTOFS_EXP_LEAVES;
-+		found = should_expire(expired, mnt, timeout, how);
-+		if (!found || found != expired)
-+			/* Something has changed, continue */
-+			goto next;
-+
-+		if (expired != dentry)
-+			dput(dentry);
-+
-+		spin_lock(&sbi->fs_lock);
-+		goto found;
-+next:
-+		spin_lock(&sbi->fs_lock);
- 		ino->flags &= ~AUTOFS_INF_WANT_EXPIRE;
-+		spin_unlock(&sbi->fs_lock);
- 		if (expired != dentry)
- 			dput(expired);
--		spin_unlock(&sbi->fs_lock);
+-		ret = ocfs2_extend_trans(handle, OCFS2_SUBALLOC_FREE);
+-		if (ret) {
+-			mlog_errno(ret);
+-			goto out_journal;
+-		}
++		ocfs2_commit_trans(osb, handle);
+ 
+ 		tmp = head;
+ 		head = head->free_next;
+ 		kfree(tmp);
  	}
- 	return NULL;
  
-@@ -483,6 +500,7 @@ int autofs4_expire_wait(struct dentry *d
- 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
- 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
- 	int status;
-+	int state;
- 
- 	/* Block on any pending expire */
- 	if (!(ino->flags & AUTOFS_INF_WANT_EXPIRE))
-@@ -490,8 +508,19 @@ int autofs4_expire_wait(struct dentry *d
- 	if (rcu_walk)
- 		return -ECHILD;
- 
-+retry:
- 	spin_lock(&sbi->fs_lock);
--	if (ino->flags & AUTOFS_INF_EXPIRING) {
-+	state = ino->flags & (AUTOFS_INF_WANT_EXPIRE | AUTOFS_INF_EXPIRING);
-+	if (state == AUTOFS_INF_WANT_EXPIRE) {
-+		spin_unlock(&sbi->fs_lock);
-+		/*
-+		 * Possibly being selected for expire, wait until
-+		 * it's selected or not.
-+		 */
-+		schedule_timeout_uninterruptible(HZ/10);
-+		goto retry;
-+	}
-+	if (state & AUTOFS_INF_EXPIRING) {
- 		spin_unlock(&sbi->fs_lock);
- 
- 		pr_debug("waiting for expire %p name=%pd\n", dentry, dentry);
-_
-
-Patches currently in -mm which might be from raven@themaw.net are
-
-autofs-fix-autofs4_fill_super-error-exit-handling.patch
-autofs-remove-ino-free-in-autofs4_dir_symlink.patch
-autofs-fix-dev-ioctl-number-range-check.patch
-autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd.patch
-autofs4-move-linux-auto_dev-ioctlh-to-uapi-linux.patch
-fs-make-is_local_mountpoint-usable-by-others.patch
-fs-add-have_local_submounts.patch
-autofs-make-mountpoint-checks-namespace-aware.patch
-fs-remove-unused-have_submounts-function.patch
-
+-out_journal:
+-	ocfs2_commit_trans(osb, handle);
