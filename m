@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch added
- to -mm tree
-Date: Tue, 20 Sep 2016 13:09:52 -0700
-Message-ID: <57e19790.As/+R+IcGBeTZq8X%akpm__22864.8524884649$1474402221$gmane$org@linux-foundation.org>
+Subject: + dma-mappingh-preserve-unmap-info-for-config_dma_api_debug.patch added to -mm tree
+Date: Tue, 20 Sep 2016 13:39:55 -0700
+Message-ID: <57e19e9b.qfioTl8wR0PDHM7N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48969 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49529 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753123AbcITUJx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 16:09:53 -0400
+        with ESMTP id S1751729AbcITUj4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 16:39:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhongjiang@huawei.com, hughd@google.com, mhocko@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: andrew.smirnov@gmail.com, Robin.Murphy@arm.com, borntraeger@de.ibm.com, geliangtang@163.com, jroedel@suse.de, mcgrof@suse.com, thunder.leizhen@huawei.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,ksm: fix endless looping in allocating memory when ksm enable
+     Subject: dma-mapping.h: preserve unmap info for CONFIG_DMA_API_DEBUG
 has been added to the -mm tree.  Its filename is
-     mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
+     dma-mappingh-preserve-unmap-info-for-config_dma_api_debug.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dma-mappingh-preserve-unmap-info-for-config_dma_api_debug.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dma-mappingh-preserve-unmap-info-for-config_dma_api_debug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,78 +38,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: zhong jiang <zhongjiang@huawei.com>
-Subject: mm,ksm: fix endless looping in allocating memory when ksm enable
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+Subject: dma-mapping.h: preserve unmap info for CONFIG_DMA_API_DEBUG
 
-I hit the following hung task when runing a OOM LTP test case with 4.1
-kernel.
+When CONFIG_DMA_API_DEBUG is enabled we need to preserve unmapping address
+even if "unmap" is a no-op for our architecutre because we need
+debug_dma_unmap_page() to correctly cleanup all of the debug bookkeeping. 
+Failing to do so results in a false positive warnings about previously
+mapped areas never being unmapped.
 
-Call trace:
-[<ffffffc000086a88>] __switch_to+0x74/0x8c
-[<ffffffc000a1bae0>] __schedule+0x23c/0x7bc
-[<ffffffc000a1c09c>] schedule+0x3c/0x94
-[<ffffffc000a1eb84>] rwsem_down_write_failed+0x214/0x350
-[<ffffffc000a1e32c>] down_write+0x64/0x80
-[<ffffffc00021f794>] __ksm_exit+0x90/0x19c
-[<ffffffc0000be650>] mmput+0x118/0x11c
-[<ffffffc0000c3ec4>] do_exit+0x2dc/0xa74
-[<ffffffc0000c46f8>] do_group_exit+0x4c/0xe4
-[<ffffffc0000d0f34>] get_signal+0x444/0x5e0
-[<ffffffc000089fcc>] do_signal+0x1d8/0x450
-[<ffffffc00008a35c>] do_notify_resume+0x70/0x78
-
-The oom victim cannot terminate because it needs to take mmap_sem for
-write while the lock is held by ksmd for read which loops in the page
-allocator
-
-ksm_do_scan
-	scan_get_next_rmap_item
-		down_read
-		get_next_rmap_item
-			alloc_rmap_item   #ksmd will loop permanently.
-
-There is no way forward because the oom victim cannot release any memory
-in 4.1 based kernel.  Since 4.6 we have the oom reaper which would solve
-this problem because it would release the memory asynchronously. 
-Nevertheless we can relax alloc_rmap_item requirements and use
-__GFP_NORETRY because the allocation failure is acceptable as ksm_do_scan
-would just retry later after the lock got dropped.
-
-Such a patch would be also easy to backport to older stable kernels which
-do not have oom_reaper.
-
-While we are at it add GFP_NOWARN so the admin doesn't have to be alarmed
-by the allocation failure.
-
-Link: http://lkml.kernel.org/r/1474165570-44398-1-git-send-email-zhongjiang@huawei.com
-Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Suggested-by: Michal Hocko <mhocko@suse.cz>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1474387125-3713-1-git-send-email-andrew.smirnov@gmail.com
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+Cc: Robin Murphy <Robin.Murphy@arm.com>
+Cc: Joerg Roedel <jroedel@suse.de>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: "Luis R. Rodriguez" <mcgrof@suse.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Geliang Tang <geliangtang@163.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/dma-mapping.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/ksm.c~mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable mm/ksm.c
---- a/mm/ksm.c~mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable
-+++ a/mm/ksm.c
-@@ -283,7 +283,8 @@ static inline struct rmap_item *alloc_rm
- {
- 	struct rmap_item *rmap_item;
+diff -puN include/linux/dma-mapping.h~dma-mappingh-preserve-unmap-info-for-config_dma_api_debug include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~dma-mappingh-preserve-unmap-info-for-config_dma_api_debug
++++ a/include/linux/dma-mapping.h
+@@ -718,7 +718,7 @@ static inline int dma_mmap_wc(struct dev
+ #define dma_mmap_writecombine dma_mmap_wc
+ #endif
  
--	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL);
-+	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL |
-+						__GFP_NORETRY | __GFP_NOWARN);
- 	if (rmap_item)
- 		ksm_rmap_items++;
- 	return rmap_item;
+-#ifdef CONFIG_NEED_DMA_MAP_STATE
++#if defined(CONFIG_NEED_DMA_MAP_STATE) || defined(CONFIG_DMA_API_DEBUG)
+ #define DEFINE_DMA_UNMAP_ADDR(ADDR_NAME)        dma_addr_t ADDR_NAME
+ #define DEFINE_DMA_UNMAP_LEN(LEN_NAME)          __u32 LEN_NAME
+ #define dma_unmap_addr(PTR, ADDR_NAME)           ((PTR)->ADDR_NAME)
 _
 
-Patches currently in -mm which might be from zhongjiang@huawei.com are
+Patches currently in -mm which might be from andrew.smirnov@gmail.com are
 
-mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
-mm-page_owner-align-with-pageblock_nr-pages.patch
-mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+dma-mappingh-preserve-unmap-info-for-config_dma_api_debug.patch
 
