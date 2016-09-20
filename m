@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-fix-deadlock-on-mmapped-page-in-ocfs2_write_begin_nolock.patch added
- to -mm tree
-Date: Tue, 20 Sep 2016 14:48:09 -0700
-Message-ID: <57e1ae99.qYayIxIjxRLVJkk/%akpm@linux-foundation.org>
+Subject: + softirq-fix-tasklet_kill-and-its-users.patch added to -mm tree
+Date: Tue, 20 Sep 2016 14:55:13 -0700
+Message-ID: <57e1b041.zRoBcsxStpPQoyeo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51367 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51390 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753319AbcITVsK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 17:48:10 -0400
+        with ESMTP id S1752126AbcITVzO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 17:55:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zren@suse.com, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: ssantosh@kernel.org, davem@davemloft.net, giovanni.cabiddu@intel.com, gregkh@linuxfoundation.org, herbert@gondor.apana.org.au, isdn@linux-pingi.de, mingo@elte.hu, pebolle@tiscali.nl, peterz@infradead.org, salvatore.benedetto@intel.com, tadeusz.struk@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix deadlock on mmapped page in ocfs2_write_begin_nolock()
+     Subject: softirq: fix tasklet_kill() and its users
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-deadlock-on-mmapped-page-in-ocfs2_write_begin_nolock.patch
+     softirq-fix-tasklet_kill-and-its-users.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-deadlock-on-mmapped-page-in-ocfs2_write_begin_nolock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/softirq-fix-tasklet_kill-and-its-users.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-deadlock-on-mmapped-page-in-ocfs2_write_begin_nolock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/softirq-fix-tasklet_kill-and-its-users.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,87 +38,150 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Ren <zren@suse.com>
-Subject: ocfs2: fix deadlock on mmapped page in ocfs2_write_begin_nolock()
+From: Santosh Shilimkar <ssantosh@kernel.org>
+Subject: softirq: fix tasklet_kill() and its users
 
-The testcase "mmaptruncate" of ocfs2-test deadlocks occasionally.
+Semantically the expectation from the tasklet init/kill API should be as
+below.
 
-In this testcase, we create a 2*CLUSTER_SIZE file and mmap() on it; there
-are 2 process repeatedly performing the following operations respectively:
-one is doing memset(mmaped_addr + 2*CLUSTER_SIZE - 1, 'a', 1), while the
-another is playing ftruncate(fd, 2*CLUSTER_SIZE) and then ftruncate(fd,
-CLUSTER_SIZE) again and again.
+tasklet_init() == Init and Enable scheduling
+tasklet_kill() == Disable scheduling and Destroy
 
-This is the backtrace when the deadlock happens:
-[<ffffffff817054f0>] __wait_on_bit_lock+0x50/0xa0
-[<ffffffff81199bd7>] __lock_page+0xb7/0xc0
-[<ffffffff810c4de0>] ? autoremove_wake_function+0x40/0x40
-[<ffffffffa0440f4f>] ocfs2_write_begin_nolock+0x163f/0x1790 [ocfs2]
-[<ffffffffa0462a50>] ? ocfs2_allocate_extend_trans+0x180/0x180 [ocfs2]
-[<ffffffffa0467b47>] ocfs2_page_mkwrite+0x1c7/0x2a0 [ocfs2]
-[<ffffffff811cf286>] do_page_mkwrite+0x66/0xc0
-[<ffffffff811d3635>] handle_mm_fault+0x685/0x1350
-[<ffffffff81039dc0>] ? __fpu__restore_sig+0x70/0x530
-[<ffffffff810694c8>] __do_page_fault+0x1d8/0x4d0
-[<ffffffff81069827>] trace_do_page_fault+0x37/0xf0
-[<ffffffff81061e69>] do_async_page_fault+0x19/0x70
-[<ffffffff8170ac98>] async_page_fault+0x28/0x30
+The tasklet_init() API exibits the above behavior but tasklet_kill() does
+not.  The tasklet handler can still get scheduled and run even after
+tasklet_kill().
 
-In ocfs2_write_begin_nolock(), we first grab the pages and then allocate
-disk space for this write; ocfs2_try_to_free_truncate_log() will be called
-if -ENOSPC is returned; if we're lucky to get enough clusters, which is
-usually the case, we start over again.  But in ocfs2_free_write_ctxt() the
-target page isn't unlocked, so we will deadlock when trying to grab the
-target page again.
+There are 2, 3 places where drivers are working around this issue by
+calling tasklet_disable() which will add a usecount and thereby preventing
+the handlers from being called.
 
-Also, -ENOMEM might be returned in ocfs2_grab_pages_for_write().  Another
-deadlock will happen in __do_page_mkwrite() if ocfs2_page_mkwrite()
-returns non-VM_FAULT_LOCKED, and along with a locked target page.
+tasklet_enable/tasklet_disable is a pair API and they are expected to be
+used together.  Usage of tasklet_disable() *just* to work around tasklet
+scheduling after a kill is probably not the correct and intended use of
+the API.  We also happen to see similar issues where in the shutdown path
+the tasklet_handler is getting called even after the tasklet_kill().
 
-These two errors fail on the same path, so fix them by unlocking the
-target page manually before ocfs2_free_write_ctxt().
+We fix this by ensuring that tasklet_kill() does the right thing and
+thereby ensures that the tasklet handler won't run after tasklet_kil()
+with a very simple change.  The patch fixes the tasklet code and also
+removes a few driver workarounds.
 
-Jan Kara helps me clear out the JBD2 part, and suggest the hint for root cause.
-
-Changes since v1:
-1. Also put ENOMEM error case into consideration.
-
-Link: http://lkml.kernel.org/r/1474173902-32075-1-git-send-email-zren@suse.com
-Signed-off-by: Eric Ren <zren@suse.com>
-Reviewed-by: He Gang <ghe@suse.com>
-Acked-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Link: http://lkml.kernel.org/r/1472089950-2724-1-git-send-email-ssantosh@kernel.org
+Signed-off-by: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tadeusz Struk <tadeusz.struk@intel.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Paul Bolle <pebolle@tiscali.nl>
+Cc: Giovanni Cabiddu <giovanni.cabiddu@intel.com>
+Cc: Salvatore Benedetto <salvatore.benedetto@intel.com>
+Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/crypto/qat/qat_common/adf_isr.c    |    1 -
+ drivers/crypto/qat/qat_common/adf_sriov.c  |    1 -
+ drivers/crypto/qat/qat_common/adf_vf_isr.c |    2 --
+ drivers/isdn/gigaset/interface.c           |    1 -
+ kernel/softirq.c                           |    7 ++++---
+ 5 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-fix-deadlock-on-mmapped-page-in-ocfs2_write_begin_nolock fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-fix-deadlock-on-mmapped-page-in-ocfs2_write_begin_nolock
-+++ a/fs/ocfs2/aops.c
-@@ -1842,6 +1842,16 @@ out_commit:
- 	ocfs2_commit_trans(osb, handle);
+diff -puN drivers/crypto/qat/qat_common/adf_isr.c~softirq-fix-tasklet_kill-and-its-users drivers/crypto/qat/qat_common/adf_isr.c
+--- a/drivers/crypto/qat/qat_common/adf_isr.c~softirq-fix-tasklet_kill-and-its-users
++++ a/drivers/crypto/qat/qat_common/adf_isr.c
+@@ -296,7 +296,6 @@ static void adf_cleanup_bh(struct adf_ac
+ 	int i;
  
- out:
-+	/*
-+	 * The mmapped page won't be unlocked in ocfs2_free_write_ctxt(),
-+	 * even in case of error here like ENOSPC and ENOMEM. So, we need
-+	 * to unlock the target page manually to prevent deadlocks when
-+	 * retrying again on ENOSPC, or when returning non-VM_FAULT_LOCKED
-+	 * to VM code.
-+	 */
-+	if (wc->w_target_locked)
-+		unlock_page(mmap_page);
-+
- 	ocfs2_free_write_ctxt(inode, wc);
+ 	for (i = 0; i < hw_data->num_banks; i++) {
+-		tasklet_disable(&priv_data->banks[i].resp_handler);
+ 		tasklet_kill(&priv_data->banks[i].resp_handler);
+ 	}
+ }
+diff -puN drivers/crypto/qat/qat_common/adf_sriov.c~softirq-fix-tasklet_kill-and-its-users drivers/crypto/qat/qat_common/adf_sriov.c
+--- a/drivers/crypto/qat/qat_common/adf_sriov.c~softirq-fix-tasklet_kill-and-its-users
++++ a/drivers/crypto/qat/qat_common/adf_sriov.c
+@@ -204,7 +204,6 @@ void adf_disable_sriov(struct adf_accel_
+ 	}
  
- 	if (data_ac) {
+ 	for (i = 0, vf = accel_dev->pf.vf_info; i < totalvfs; i++, vf++) {
+-		tasklet_disable(&vf->vf2pf_bh_tasklet);
+ 		tasklet_kill(&vf->vf2pf_bh_tasklet);
+ 		mutex_destroy(&vf->pf2vf_lock);
+ 	}
+diff -puN drivers/crypto/qat/qat_common/adf_vf_isr.c~softirq-fix-tasklet_kill-and-its-users drivers/crypto/qat/qat_common/adf_vf_isr.c
+--- a/drivers/crypto/qat/qat_common/adf_vf_isr.c~softirq-fix-tasklet_kill-and-its-users
++++ a/drivers/crypto/qat/qat_common/adf_vf_isr.c
+@@ -191,7 +191,6 @@ static int adf_setup_pf2vf_bh(struct adf
+ 
+ static void adf_cleanup_pf2vf_bh(struct adf_accel_dev *accel_dev)
+ {
+-	tasklet_disable(&accel_dev->vf.pf2vf_bh_tasklet);
+ 	tasklet_kill(&accel_dev->vf.pf2vf_bh_tasklet);
+ 	mutex_destroy(&accel_dev->vf.vf2pf_lock);
+ }
+@@ -268,7 +267,6 @@ static void adf_cleanup_bh(struct adf_ac
+ {
+ 	struct adf_etr_data *priv_data = accel_dev->transport;
+ 
+-	tasklet_disable(&priv_data->banks[0].resp_handler);
+ 	tasklet_kill(&priv_data->banks[0].resp_handler);
+ }
+ 
+diff -puN drivers/isdn/gigaset/interface.c~softirq-fix-tasklet_kill-and-its-users drivers/isdn/gigaset/interface.c
+--- a/drivers/isdn/gigaset/interface.c~softirq-fix-tasklet_kill-and-its-users
++++ a/drivers/isdn/gigaset/interface.c
+@@ -524,7 +524,6 @@ void gigaset_if_free(struct cardstate *c
+ 	if (!drv->have_tty)
+ 		return;
+ 
+-	tasklet_disable(&cs->if_wake_tasklet);
+ 	tasklet_kill(&cs->if_wake_tasklet);
+ 	cs->tty_dev = NULL;
+ 	tty_unregister_device(drv->tty, cs->minor_index);
+diff -puN kernel/softirq.c~softirq-fix-tasklet_kill-and-its-users kernel/softirq.c
+--- a/kernel/softirq.c~softirq-fix-tasklet_kill-and-its-users
++++ a/kernel/softirq.c
+@@ -498,7 +498,7 @@ static void tasklet_action(struct softir
+ 		list = list->next;
+ 
+ 		if (tasklet_trylock(t)) {
+-			if (!atomic_read(&t->count)) {
++			if (atomic_read(&t->count) == 1) {
+ 				if (!test_and_clear_bit(TASKLET_STATE_SCHED,
+ 							&t->state))
+ 					BUG();
+@@ -534,7 +534,7 @@ static void tasklet_hi_action(struct sof
+ 		list = list->next;
+ 
+ 		if (tasklet_trylock(t)) {
+-			if (!atomic_read(&t->count)) {
++			if (atomic_read(&t->count) == 1) {
+ 				if (!test_and_clear_bit(TASKLET_STATE_SCHED,
+ 							&t->state))
+ 					BUG();
+@@ -559,7 +559,7 @@ void tasklet_init(struct tasklet_struct
+ {
+ 	t->next = NULL;
+ 	t->state = 0;
+-	atomic_set(&t->count, 0);
++	atomic_set(&t->count, 1);
+ 	t->func = func;
+ 	t->data = data;
+ }
+@@ -576,6 +576,7 @@ void tasklet_kill(struct tasklet_struct
+ 		} while (test_bit(TASKLET_STATE_SCHED, &t->state));
+ 	}
+ 	tasklet_unlock_wait(t);
++	atomic_dec(&t->count);
+ 	clear_bit(TASKLET_STATE_SCHED, &t->state);
+ }
+ EXPORT_SYMBOL(tasklet_kill);
 _
 
-Patches currently in -mm which might be from zren@suse.com are
+Patches currently in -mm which might be from ssantosh@kernel.org are
 
-ocfs2-fix-deadlock-on-mmapped-page-in-ocfs2_write_begin_nolock.patch
+softirq-fix-tasklet_kill-and-its-users.patch
 
