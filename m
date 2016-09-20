@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-emit-warning-from-pagefault_out_of_memory.patch added
- to -mm tree
-Date: Tue, 20 Sep 2016 13:41:40 -0700
-Message-ID: <57e19f04.iF/abhLWefQXqvcX%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-warn-about-empty-nodemask.patch added to -mm tree
+Date: Tue, 20 Sep 2016 13:58:14 -0700
+Message-ID: <57e1a2e6.KVkZYZqR+rVthzHz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49541 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49575 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751783AbcITUll (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 16:41:41 -0400
+        with ESMTP id S1751124AbcITU6P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 20 Sep 2016 16:58:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: zhong@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com, jallen@linux.vnet.ibm.com, mhocko@suse.cz, penguin-kernel@I-love.SAKURA.ne.jp, qiuxishi@huawei.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't emit warning from pagefault_out_of_memory()
+     Subject: mm, page_alloc: warn about empty nodemask
 has been added to the -mm tree.  Its filename is
-     mm-dont-emit-warning-from-pagefault_out_of_memory.patch
+     mm-page_alloc-warn-about-empty-nodemask.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-emit-warning-from-pagefault_out_of_memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-warn-about-empty-nodemask.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-emit-warning-from-pagefault_out_of_memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-warn-about-empty-nodemask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,45 +38,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm: don't emit warning from pagefault_out_of_memory()
+From: Li Zhong <zhong@linux.vnet.ibm.com>
+Subject: mm, page_alloc: warn about empty nodemask
 
-Commit c32b3cbe0d067a9c ("oom, PM: make OOM detection in the freezer path
-raceless") inserted a WARN_ON() into pagefault_out_of_memory() in order to
-warn when we raced with disabling the OOM killer.
+Warn about allocating with an empty nodemask, it would be easier to
+understand than oom messages.  The check is added in the slow path.
 
-Now, patch "oom, suspend: fix oom_killer_disable vs.  pm suspend properly"
-introduced a timeout for oom_killer_disable().  Even if we raced with
-disabling the OOM killer and the system is OOM livelocked, the OOM killer
-will be enabled eventually (in 20 seconds by default) and the OOM livelock
-will be solved.  Therefore, we no longer need to warn when we raced with
-disabling the OOM killer.
-
-Link: http://lkml.kernel.org/r/1473442120-7246-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Link: http://lkml.kernel.org/r/1473208886.12692.2.camel@TP420
+Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: John Allen <jallen@linux.vnet.ibm.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: n-horiguchi@ah.jp.nec.com said:
 Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ mm/page_alloc.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/oom_kill.c~mm-dont-emit-warning-from-pagefault_out_of_memory mm/oom_kill.c
---- a/mm/oom_kill.c~mm-dont-emit-warning-from-pagefault_out_of_memory
-+++ a/mm/oom_kill.c
-@@ -1069,16 +1069,6 @@ void pagefault_out_of_memory(void)
+diff -puN mm/page_alloc.c~mm-page_alloc-warn-about-empty-nodemask mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-warn-about-empty-nodemask
++++ a/mm/page_alloc.c
+@@ -3521,6 +3521,12 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	if (page)
+ 		goto got_pg;
  
- 	if (!mutex_trylock(&oom_lock))
- 		return;
--
--	if (!out_of_memory(&oc)) {
--		/*
--		 * There shouldn't be any user tasks runnable while the
--		 * OOM killer is disabled, so the current task has to
--		 * be a racing OOM victim for which oom_killer_disable()
--		 * is waiting for.
--		 */
--		WARN_ON(test_thread_flag(TIF_MEMDIE));
--	}
++	if (ac->nodemask && nodes_empty(*ac->nodemask)) {
++		pr_warn("nodemask is empty\n");
++		gfp_mask &= ~__GFP_NOWARN;
++		goto nopage;
++	}
++
+ 	/*
+ 	 * For costly allocations, try direct compaction first, as it's likely
+ 	 * that we have enough base pages and don't need to reclaim. Don't try
+_
+
+Patches currently in -mm which might be from zhong@linux.vnet.ibm.com are
+
+mm-page_alloc-warn-about-empty-nodemask.patch
+
