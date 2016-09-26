@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable.patch
- added to -mm tree
-Date: Mon, 26 Sep 2016 16:09:04 -0700
-Message-ID: <57e9aa90.hQl5yip7ha3UbIq8%akpm@linux-foundation.org>
+Subject: + mm-compaction-restrict-fragindex-to-costly-orders.patch added
+ to -mm tree
+Date: Mon, 26 Sep 2016 16:09:06 -0700
+Message-ID: <57e9aa92.4B5AAHi70dhNpAND%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47139 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47146 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752810AbcIZXJG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2016 19:09:06 -0400
+        with ESMTP id S1753801AbcIZXJI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2016 19:09:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: ignore fragindex from compaction_zonelist_suitable()
+     Subject: mm, compaction: restrict fragindex to costly orders
 has been added to the -mm tree.  Its filename is
-     mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable.patch
+     mm-compaction-restrict-fragindex-to-costly-orders.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-restrict-fragindex-to-costly-orders.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-restrict-fragindex-to-costly-orders.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,23 +40,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: ignore fragindex from compaction_zonelist_suitable()
+Subject: mm, compaction: restrict fragindex to costly orders
 
-The compaction_zonelist_suitable() function tries to determine if
-compaction will be able to proceed after sufficient reclaim, i.e.  whether
-there are enough reclaimable pages to provide enough order-0 freepages for
-compaction.
+Fragmentation index and the vm.extfrag_threshold sysctl is meant as a
+heuristic to prevent excessive compaction for costly orders (i.e.  THP). 
+It's unlikely to make any difference for non-costly orders, especially
+with the default threshold.  But we cannot afford any uncertainty for the
+non-costly orders where the only alternative to successful
+reclaim/compaction is OOM.  After the recent patches we are guaranteed
+maximum effort without heuristics from compaction before deciding OOM, and
+fragindex is the last remaining heuristic.  Therefore skip fragindex
+altogether for non-costly orders.
 
-This addition of reclaimable pages to the free pages works well for the
-order-0 watermark check, but in the fragmentation index check we only
-consider truly free pages.  Thus we can get fragindex value close to 0
-which indicates failure do to lack of memory, and wrongly decide that
-compaction won't be suitable even after reclaim.
-
-Instead of trying to somehow adjust fragindex for reclaimable pages, let's
-just skip it from compaction_zonelist_suitable().
-
-Link: http://lkml.kernel.org/r/20160926162025.21555-4-vbabka@suse.cz
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20160926162025.21555-5-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
@@ -67,76 +63,29 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+ mm/compaction.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable mm/compaction.c
---- a/mm/compaction.c~mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable
+diff -puN mm/compaction.c~mm-compaction-restrict-fragindex-to-costly-orders mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-restrict-fragindex-to-costly-orders
 +++ a/mm/compaction.c
-@@ -1379,7 +1379,6 @@ static enum compact_result __compaction_
- 					int classzone_idx,
- 					unsigned long wmark_target)
- {
--	int fragindex;
- 	unsigned long watermark;
- 
- 	if (is_via_compact_memory(order))
-@@ -1415,6 +1414,18 @@ static enum compact_result __compaction_
- 						ALLOC_CMA, wmark_target))
- 		return COMPACT_SKIPPED;
- 
-+	return COMPACT_CONTINUE;
-+}
-+
-+enum compact_result compaction_suitable(struct zone *zone, int order,
-+					unsigned int alloc_flags,
-+					int classzone_idx)
-+{
-+	enum compact_result ret;
-+	int fragindex;
-+
-+	ret = __compaction_suitable(zone, order, alloc_flags, classzone_idx,
-+				    zone_page_state(zone, NR_FREE_PAGES));
- 	/*
- 	 * fragmentation index determines if allocation failures are due to
- 	 * low memory or external fragmentation
-@@ -1426,21 +1437,12 @@ static enum compact_result __compaction_
+@@ -1435,9 +1435,14 @@ enum compact_result compaction_suitable(
+ 	 * index towards 0 implies failure is due to lack of memory
+ 	 * index towards 1000 implies failure is due to fragmentation
  	 *
- 	 * Only compact if a failure would be due to fragmentation.
+-	 * Only compact if a failure would be due to fragmentation.
++	 * Only compact if a failure would be due to fragmentation. Also
++	 * ignore fragindex for non-costly orders where the alternative to
++	 * a successful reclaim/compaction is OOM. Fragindex and the
++	 * vm.extfrag_threshold sysctl is meant as a heuristic to prevent
++	 * excessive compaction for costly orders, but it should not be at the
++	 * expense of system stability.
  	 */
--	fragindex = fragmentation_index(zone, order);
--	if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
--		return COMPACT_NOT_SUITABLE_ZONE;
--
--	return COMPACT_CONTINUE;
--}
--
--enum compact_result compaction_suitable(struct zone *zone, int order,
--					unsigned int alloc_flags,
--					int classzone_idx)
--{
--	enum compact_result ret;
-+	if (ret == COMPACT_CONTINUE) {
-+		fragindex = fragmentation_index(zone, order);
-+		if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
-+			return COMPACT_NOT_SUITABLE_ZONE;
-+	}
- 
--	ret = __compaction_suitable(zone, order, alloc_flags, classzone_idx,
--				    zone_page_state(zone, NR_FREE_PAGES));
- 	trace_mm_compaction_suitable(zone, order, ret);
- 	if (ret == COMPACT_NOT_SUITABLE_ZONE)
- 		ret = COMPACT_SKIPPED;
-@@ -1473,8 +1475,7 @@ bool compaction_zonelist_suitable(struct
- 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
- 		compact_result = __compaction_suitable(zone, order, alloc_flags,
- 				ac_classzone_idx(ac), available);
--		if (compact_result != COMPACT_SKIPPED &&
--				compact_result != COMPACT_NOT_SUITABLE_ZONE)
-+		if (compact_result != COMPACT_SKIPPED)
- 			return true;
- 	}
- 
+-	if (ret == COMPACT_CONTINUE) {
++	if (ret == COMPACT_CONTINUE && (order > PAGE_ALLOC_COSTLY_ORDER)) {
+ 		fragindex = fragmentation_index(zone, order);
+ 		if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
+ 			return COMPACT_NOT_SUITABLE_ZONE;
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
