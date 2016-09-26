@@ -1,173 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] softirq-fix-tasklet_kill-and-its-users.patch removed
- from -mm tree
-Date: Thu, 22 Sep 2016 03:28:41 -0700
-Message-ID: <57e3b259.3IGEnsyw9X4Zx9az%akpm@linux-foundation.org>
+Subject: [obsolete] arch-alpha-kernel-systblss-remove-debug-check.patch
+ removed from -mm tree
+Date: Mon, 26 Sep 2016 13:42:06 -0700
+Message-ID: <57e9881e.sMUvaBQ9qg9rqaV8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44747 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752277AbcIVK24 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 22 Sep 2016 06:28:56 -0400
+        with ESMTP id S933587AbcIZUmH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2016 16:42:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ssantosh@kernel.org, davem@davemloft.net, giovanni.cabiddu@intel.com, gregkh@linuxfoundation.org, herbert@gondor.apana.org.au, isdn@linux-pingi.de, mingo@elte.hu, pebolle@tiscali.nl, peterz@infradead.org, salvatore.benedetto@intel.com, tadeusz.struk@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: softirq: fix tasklet_kill() and its users
+     Subject: arch/alpha/kernel/systbls.S: remove debug check
 has been removed from the -mm tree.  Its filename was
-     softirq-fix-tasklet_kill-and-its-users.patch
+     arch-alpha-kernel-systblss-remove-debug-check.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From:   Santosh Shilimkar <ssantosh@kernel.org>
-Subject: softirq: fix tasklet_kill() and its users
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/alpha/kernel/systbls.S: remove debug check
 
-Semantically the expectation from the tasklet init/kill API should be as
-below.
+-mm only patch, I guess.
 
-tasklet_init() == Init and Enable scheduling
-tasklet_kill() == Disable scheduling and Destroy
+My old gas-2.16.1 says
 
-The tasklet_init() API exibits the above behavior but tasklet_kill() does
-not.  The tasklet handler can still get scheduled and run even after
-tasklet_kill().
+arch/alpha/kernel/systbls.S: Assembler messages:
+arch/alpha/kernel/systbls.S:523: Error: non-constant expression in ".if" statement
+arch/alpha/kernel/systbls.S:524: Error: .err encountered
 
-There are 2, 3 places where drivers are working around this issue by
-calling tasklet_disable() which will add a usecount and thereby preventing
-the handlers from being called.
-
-tasklet_enable/tasklet_disable is a pair API and they are expected to be
-used together.  Usage of tasklet_disable() *just* to work around tasklet
-scheduling after a kill is probably not the correct and intended use of
-the API.  We also happen to see similar issues where in the shutdown path
-the tasklet_handler is getting called even after the tasklet_kill().
-
-We fix this by ensuring that tasklet_kill() does the right thing and
-thereby ensures that the tasklet handler won't run after tasklet_kil()
-with a very simple change.  The patch fixes the tasklet code and also
-removes a few driver workarounds.
-
-Link: http://lkml.kernel.org/r/1472089950-2724-1-git-send-email-ssantosh@kernel.org
-Signed-off-by: Santosh Shilimkar <ssantosh@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tadeusz Struk <tadeusz.struk@intel.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Paul Bolle <pebolle@tiscali.nl>
-Cc: Giovanni Cabiddu <giovanni.cabiddu@intel.com>
-Cc: Salvatore Benedetto <salvatore.benedetto@intel.com>
-Cc: Karsten Keil <isdn@linux-pingi.de>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/crypto/qat/qat_common/adf_isr.c    |    1 -
- drivers/crypto/qat/qat_common/adf_sriov.c  |    1 -
- drivers/crypto/qat/qat_common/adf_vf_isr.c |    2 --
- drivers/isdn/gigaset/interface.c           |    1 -
- kernel/softirq.c                           |    7 ++++---
- 5 files changed, 4 insertions(+), 8 deletions(-)
+ arch/alpha/kernel/systbls.S |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/crypto/qat/qat_common/adf_isr.c~softirq-fix-tasklet_kill-and-its-users drivers/crypto/qat/qat_common/adf_isr.c
---- a/drivers/crypto/qat/qat_common/adf_isr.c~softirq-fix-tasklet_kill-and-its-users
-+++ a/drivers/crypto/qat/qat_common/adf_isr.c
-@@ -296,7 +296,6 @@ static void adf_cleanup_bh(struct adf_ac
- 	int i;
+diff -puN arch/alpha/kernel/systbls.S~arch-alpha-kernel-systblss-remove-debug-check arch/alpha/kernel/systbls.S
+--- a/arch/alpha/kernel/systbls.S~arch-alpha-kernel-systblss-remove-debug-check
++++ a/arch/alpha/kernel/systbls.S
+@@ -536,7 +536,3 @@ sys_call_table:
+ 	.size sys_call_table, . - sys_call_table
+ 	.type sys_call_table, @object
  
- 	for (i = 0; i < hw_data->num_banks; i++) {
--		tasklet_disable(&priv_data->banks[i].resp_handler);
- 		tasklet_kill(&priv_data->banks[i].resp_handler);
- 	}
- }
-diff -puN drivers/crypto/qat/qat_common/adf_sriov.c~softirq-fix-tasklet_kill-and-its-users drivers/crypto/qat/qat_common/adf_sriov.c
---- a/drivers/crypto/qat/qat_common/adf_sriov.c~softirq-fix-tasklet_kill-and-its-users
-+++ a/drivers/crypto/qat/qat_common/adf_sriov.c
-@@ -204,7 +204,6 @@ void adf_disable_sriov(struct adf_accel_
- 	}
- 
- 	for (i = 0, vf = accel_dev->pf.vf_info; i < totalvfs; i++, vf++) {
--		tasklet_disable(&vf->vf2pf_bh_tasklet);
- 		tasklet_kill(&vf->vf2pf_bh_tasklet);
- 		mutex_destroy(&vf->pf2vf_lock);
- 	}
-diff -puN drivers/crypto/qat/qat_common/adf_vf_isr.c~softirq-fix-tasklet_kill-and-its-users drivers/crypto/qat/qat_common/adf_vf_isr.c
---- a/drivers/crypto/qat/qat_common/adf_vf_isr.c~softirq-fix-tasklet_kill-and-its-users
-+++ a/drivers/crypto/qat/qat_common/adf_vf_isr.c
-@@ -191,7 +191,6 @@ static int adf_setup_pf2vf_bh(struct adf
- 
- static void adf_cleanup_pf2vf_bh(struct adf_accel_dev *accel_dev)
- {
--	tasklet_disable(&accel_dev->vf.pf2vf_bh_tasklet);
- 	tasklet_kill(&accel_dev->vf.pf2vf_bh_tasklet);
- 	mutex_destroy(&accel_dev->vf.vf2pf_lock);
- }
-@@ -268,7 +267,6 @@ static void adf_cleanup_bh(struct adf_ac
- {
- 	struct adf_etr_data *priv_data = accel_dev->transport;
- 
--	tasklet_disable(&priv_data->banks[0].resp_handler);
- 	tasklet_kill(&priv_data->banks[0].resp_handler);
- }
- 
-diff -puN drivers/isdn/gigaset/interface.c~softirq-fix-tasklet_kill-and-its-users drivers/isdn/gigaset/interface.c
---- a/drivers/isdn/gigaset/interface.c~softirq-fix-tasklet_kill-and-its-users
-+++ a/drivers/isdn/gigaset/interface.c
-@@ -524,7 +524,6 @@ void gigaset_if_free(struct cardstate *c
- 	if (!drv->have_tty)
- 		return;
- 
--	tasklet_disable(&cs->if_wake_tasklet);
- 	tasklet_kill(&cs->if_wake_tasklet);
- 	cs->tty_dev = NULL;
- 	tty_unregister_device(drv->tty, cs->minor_index);
-diff -puN kernel/softirq.c~softirq-fix-tasklet_kill-and-its-users kernel/softirq.c
---- a/kernel/softirq.c~softirq-fix-tasklet_kill-and-its-users
-+++ a/kernel/softirq.c
-@@ -498,7 +498,7 @@ static void tasklet_action(struct softir
- 		list = list->next;
- 
- 		if (tasklet_trylock(t)) {
--			if (!atomic_read(&t->count)) {
-+			if (atomic_read(&t->count) == 1) {
- 				if (!test_and_clear_bit(TASKLET_STATE_SCHED,
- 							&t->state))
- 					BUG();
-@@ -534,7 +534,7 @@ static void tasklet_hi_action(struct sof
- 		list = list->next;
- 
- 		if (tasklet_trylock(t)) {
--			if (!atomic_read(&t->count)) {
-+			if (atomic_read(&t->count) == 1) {
- 				if (!test_and_clear_bit(TASKLET_STATE_SCHED,
- 							&t->state))
- 					BUG();
-@@ -559,7 +559,7 @@ void tasklet_init(struct tasklet_struct
- {
- 	t->next = NULL;
- 	t->state = 0;
--	atomic_set(&t->count, 0);
-+	atomic_set(&t->count, 1);
- 	t->func = func;
- 	t->data = data;
- }
-@@ -576,6 +576,7 @@ void tasklet_kill(struct tasklet_struct
- 		} while (test_bit(TASKLET_STATE_SCHED, &t->state));
- 	}
- 	tasklet_unlock_wait(t);
-+	atomic_dec(&t->count);
- 	clear_bit(TASKLET_STATE_SCHED, &t->state);
- }
- EXPORT_SYMBOL(tasklet_kill);
+-/* Remember to update everything, kids.  */
+-.ifne (. - sys_call_table) - (NR_SYSCALLS * 8)
+-.err
+-.endif
 _
 
-Patches currently in -mm which might be from ssantosh@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+mm-vmalloc-fix-align-value-calculation-error-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
+mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
+fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
+mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+lib-bitmapc-enhance-bitmap-syntax-fix.patch
+relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
+ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
