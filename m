@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-provide-a-safe-version-of-container_of.patch
- added to -mm tree
-Date: Mon, 26 Sep 2016 16:37:04 -0700
-Message-ID: <57e9b120.S5i8o8hG6vBjPy3K%akpm@linux-foundation.org>
+Subject: + llist-introduce-llist_entry_safe.patch added to -mm tree
+Date: Mon, 26 Sep 2016 16:37:06 -0700
+Message-ID: <57e9b122./mFIr2FqRnD1VIsK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47308 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47312 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932504AbcIZXhF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2016 19:37:05 -0400
+        with ESMTP id S932504AbcIZXhH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2016 19:37:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: glider@google.com, dvyukov@google.com, edumazet@google.com, kcc@google.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux: provide a safe version of container_of()
+     Subject: llist: introduce llist_entry_safe()
 has been added to the -mm tree.  Its filename is
-     include-linux-provide-a-safe-version-of-container_of.patch
+     llist-introduce-llist_entry_safe.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-provide-a-safe-version-of-container_of.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/llist-introduce-llist_entry_safe.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-provide-a-safe-version-of-container_of.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/llist-introduce-llist_entry_safe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +39,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: include/linux: provide a safe version of container_of()
+Subject: llist: introduce llist_entry_safe()
 
-Patch series "Clang: avoid undefined behavior in llist iterators":
+Currently llist_for_each_entry() and llist_for_each_entry_safe() iterate
+until &pos->member != NULL.  But when building the kernel with Clang, the
+compiler assumes &pos->member cannot be NULL if the member's offset is
+greater than 0.  Therefore the loop condition is always true, and the
+loops become infinite.
 
-This patchset fixes problems with pointer arithmetics overflow in llist
-iterators, llist_for_each_entry() and llist_for_each_entry_safe().  Clang
-turns those macros into infinite loops, because they're operating with
-"negative" pointers.
+To work around this, introduce llist_entry_safe(), which returns NULL for
+NULL pointers, and additionally check that pos is not NULL in the list
+iterators before dereferencing it.
 
-As a follow-up it may make sense to convert other uses of llist_entry() to
-llist_entry_safe(), or even replace uses of container_of() with
-container_of_safe().
-
-
-This patch (of 2):
-
-Some code relies on "negative" (i.e.  too big) pointer values being
-returned by container_of() when its first argument is NULL.  But doing so
-breaks the compiler's assumptions that pointer arithmetic never overflows.
-
-container_of_safe() checks its arguments and returns NULL in the case the
-member offset within the container is greater than the pointer to the
-member, otherwise it returns the result of container_of().
-
-Link: http://lkml.kernel.org/r/1474636978-41435-2-git-send-email-glider@google.com
+Link: http://lkml.kernel.org/r/1474636978-41435-3-git-send-email-glider@google.com
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Kostya Serebryany <kcc@google.com>
@@ -73,34 +60,59 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/linux/llist.h |   26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/kernel.h~include-linux-provide-a-safe-version-of-container_of include/linux/kernel.h
---- a/include/linux/kernel.h~include-linux-provide-a-safe-version-of-container_of
-+++ a/include/linux/kernel.h
-@@ -839,6 +839,21 @@ static inline void ftrace_dump(enum ftra
- 	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
- 	(type *)( (char *)__mptr - offsetof(type,member) );})
+diff -puN include/linux/llist.h~llist-introduce-llist_entry_safe include/linux/llist.h
+--- a/include/linux/llist.h~llist-introduce-llist_entry_safe
++++ a/include/linux/llist.h
+@@ -88,6 +88,16 @@ static inline void init_llist_head(struc
+ 	container_of(ptr, type, member)
  
-+/**
-+ * container_of_safe - safe version of container_of
-+ * @ptr:	the pointer to the member.
-+ * @type:	the type of the container struct this is embedded in.
-+ * @member:	the name of the member within the struct.
-+ *
-+ * In the case the value of @ptr is smaller than the offset of @member within
-+ * @type, return 0.
+ /**
++ * llist_entry_safe - get the struct of this entry without overflowing
++ * @ptr:	the &struct llist_node pointer.
++ * @type:	the type of the struct this is embedded in.
++ * @member:	the name of the llist_node within the struct.
 + */
-+#define container_of_safe(ptr, type, member) ({			\
-+	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
-+        (size_t)__mptr >= offsetof(type,member) ?		\
-+	(type *)( (char *)__mptr - offsetof(type,member) ) : (type *)0 ;})
++#define llist_entry_safe(ptr, type, member)		\
++	container_of_safe(ptr, type, member)
 +
 +
- /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
- # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
++/**
+  * llist_for_each - iterate over some deleted entries of a lock-less list
+  * @pos:	the &struct llist_node to use as a loop cursor
+  * @node:	the first entry of deleted list entries
+@@ -120,9 +130,10 @@ static inline void init_llist_head(struc
+  * reverse the order by yourself before traversing.
+  */
+ #define llist_for_each_entry(pos, node, member)				\
+-	for ((pos) = llist_entry((node), typeof(*(pos)), member);	\
+-	     &(pos)->member != NULL;					\
+-	     (pos) = llist_entry((pos)->member.next, typeof(*(pos)), member))
++	for ((pos) = llist_entry_safe((node), typeof(*(pos)), member);	\
++	     pos != NULL && &(pos)->member != NULL;			\
++	     (pos) = llist_entry_safe((pos)->member.next, \
++					typeof(*(pos)), member))
+ 
+ /**
+  * llist_for_each_entry_safe - iterate over some deleted entries of lock-less list of given type
+@@ -141,10 +152,11 @@ static inline void init_llist_head(struc
+  * you want to traverse from the oldest to the newest, you must
+  * reverse the order by yourself before traversing.
+  */
+-#define llist_for_each_entry_safe(pos, n, node, member)			       \
+-	for (pos = llist_entry((node), typeof(*pos), member);		       \
+-	     &pos->member != NULL &&					       \
+-	        (n = llist_entry(pos->member.next, typeof(*n), member), true); \
++#define llist_for_each_entry_safe(pos, n, node, member)			     \
++	for (pos = llist_entry_safe((node), typeof(*pos), member);	     \
++	     pos != NULL && &pos->member != NULL &&			     \
++		(n = llist_entry_safe(pos->member.next, typeof(*n), member), \
++		 true); \
+ 	     pos = n)
+ 
+ /**
 _
 
 Patches currently in -mm which might be from glider@google.com are
