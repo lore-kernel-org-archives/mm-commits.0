@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-percpuc-correct-max_distance-calculation-for-pcpu_embed_first_chunk.patch added to -mm tree
-Date: Mon, 26 Sep 2016 16:25:18 -0700
-Message-ID: <57e9ae5e.HyktHKOM0SoCPoM2%akpm@linux-foundation.org>
+Subject: + kcov-do-not-instrument-lib-stackdepotc.patch added to -mm tree
+Date: Mon, 26 Sep 2016 16:34:02 -0700
+Message-ID: <57e9b06a.eXI0LQIXr10qK5Fw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47264 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47296 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751152AbcIZXZT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2016 19:25:19 -0400
+        with ESMTP id S1753549AbcIZXeD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2016 19:34:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zijun_hu@htc.com, cl@linux.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: glider@google.com, andreyknvl@google.com, dvyukov@google.com, kcc@google.com, syzkaller@googlegroups.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/percpu.c: correct max_distance calculation for pcpu_embed_first_chunk()
+     Subject: kcov: do not instrument lib/stackdepot.c
 has been added to the -mm tree.  Its filename is
-     mm-percpuc-correct-max_distance-calculation-for-pcpu_embed_first_chunk.patch
+     kcov-do-not-instrument-lib-stackdepotc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-percpuc-correct-max_distance-calculation-for-pcpu_embed_first_chunk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kcov-do-not-instrument-lib-stackdepotc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-percpuc-correct-max_distance-calculation-for-pcpu_embed_first_chunk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kcov-do-not-instrument-lib-stackdepotc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,75 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: zijun_hu <zijun_hu@htc.com>
-Subject: mm/percpu.c: correct max_distance calculation for pcpu_embed_first_chunk()
+From: Alexander Potapenko <glider@google.com>
+Subject: kcov: do not instrument lib/stackdepot.c
 
-It is am error to represent the max range max_distance spanned by all the
-group areas as the offset of the highest group area plus unit size in
-pcpu_embed_first_chunk().  It should be equal to the offset plus the size
-of the highest group area.
+There's no point in collecting coverage from lib/stackdepot.c, as it is
+not a function of syscall inputs.  Disabling kcov instrumentation for that
+file will reduce the coverage noise level.
 
-In order to fix this issue, let us find the highest group area which has
-the biggest base address, then max_distance is formed by adding its offset
-and size values.
-
-The type of variable max_distance is changed from size_t to unsigned long
-to prevent potential overflows.
-
-Link: http://lkml.kernel.org/r/0310bf92-c8da-459f-58e3-40b8bfbb7223@zoho.com
-Signed-off-by: zijun_hu <zijun_hu@htc.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+Link: http://lkml.kernel.org/r/1474640972-104131-1-git-send-email-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Acked-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Kostya Serebryany <kcc@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: syzkaller <syzkaller@googlegroups.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ lib/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/percpu.c~mm-percpuc-correct-max_distance-calculation-for-pcpu_embed_first_chunk mm/percpu.c
---- a/mm/percpu.c~mm-percpuc-correct-max_distance-calculation-for-pcpu_embed_first_chunk
-+++ a/mm/percpu.c
-@@ -1961,7 +1961,8 @@ int __init pcpu_embed_first_chunk(size_t
- 	void *base = (void *)ULONG_MAX;
- 	void **areas = NULL;
- 	struct pcpu_alloc_info *ai;
--	size_t size_sum, areas_size, max_distance;
-+	size_t size_sum, areas_size;
-+	unsigned long max_distance;
- 	int group, i, rc;
+diff -puN lib/Makefile~kcov-do-not-instrument-lib-stackdepotc lib/Makefile
+--- a/lib/Makefile~kcov-do-not-instrument-lib-stackdepotc
++++ a/lib/Makefile
+@@ -181,6 +181,7 @@ obj-$(CONFIG_IRQ_POLL) += irq_poll.o
  
- 	ai = pcpu_build_alloc_info(reserved_size, dyn_size, atom_size,
-@@ -2023,17 +2024,18 @@ int __init pcpu_embed_first_chunk(size_t
- 	}
+ obj-$(CONFIG_STACKDEPOT) += stackdepot.o
+ KASAN_SANITIZE_stackdepot.o := n
++KCOV_INSTRUMENT_stackdepot.o := n
  
- 	/* base address is now known, determine group base offsets */
--	max_distance = 0;
-+	i = 0;
- 	for (group = 0; group < ai->nr_groups; group++) {
- 		ai->groups[group].base_offset = areas[group] - base;
--		max_distance = max_t(size_t, max_distance,
--				     ai->groups[group].base_offset);
-+		if (areas[group] > areas[i])
-+			i = group;
- 	}
--	max_distance += ai->unit_size;
-+	max_distance = ai->groups[i].base_offset +
-+		(unsigned long)ai->unit_size * ai->groups[i].nr_units;
- 
- 	/* warn if maximum distance is further than 75% of vmalloc space */
- 	if (max_distance > VMALLOC_TOTAL * 3 / 4) {
--		pr_warn("max_distance=0x%zx too large for vmalloc space 0x%lx\n",
-+		pr_warn("max_distance=0x%lx too large for vmalloc space 0x%lx\n",
- 			max_distance, VMALLOC_TOTAL);
- #ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
- 		/* and fail if we have fallback */
+ libfdt_files = fdt.o fdt_ro.o fdt_wip.o fdt_rw.o fdt_sw.o fdt_strerror.o \
+ 	       fdt_empty_tree.o
 _
 
-Patches currently in -mm which might be from zijun_hu@htc.com are
+Patches currently in -mm which might be from glider@google.com are
 
-mm-vmalloc-fix-align-value-calculation-error.patch
-mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix-fix.patch
-mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements.patch
-mm-bootmemc-replace-kzalloc-by-kzalloc_node.patch
-mm-percpuc-correct-max_distance-calculation-for-pcpu_embed_first_chunk.patch
+kcov-do-not-instrument-lib-stackdepotc.patch
 
