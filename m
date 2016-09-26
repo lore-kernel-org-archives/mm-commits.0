@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-improve-locking-in-dissolve_free_huge_pages.patch
+Subject: +
+ mm-compaction-more-reliably-increase-direct-compaction-priority-fix.patch
  added to -mm tree
-Date: Mon, 26 Sep 2016 15:42:04 -0700
-Message-ID: <57e9a43c.UYkRrIFzpo18u3TZ%akpm@linux-foundation.org>
+Date: Mon, 26 Sep 2016 16:08:58 -0700
+Message-ID: <57e9aa8a.Ma9GYhD4/wIyBTVN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46637 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47121 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757713AbcIZWmG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2016 18:42:06 -0400
+        with ESMTP id S1751124AbcIZXJA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Sep 2016 19:09:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerald.schaefer@de.ibm.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@linux.intel.com, heiko.carstens@de.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.cz, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, rui.teng@linux.vnet.ibm.com, schwidefsky@de.ibm.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: improve locking in dissolve_free_huge_pages()
+     Subject: mm, compaction: more reliably increase direct compaction priority-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-improve-locking-in-dissolve_free_huge_pages.patch
+     mm-compaction-more-reliably-increase-direct-compaction-priority-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-improve-locking-in-dissolve_free_huge_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-more-reliably-increase-direct-compaction-priority-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-improve-locking-in-dissolve_free_huge_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-more-reliably-increase-direct-compaction-priority-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,68 +40,121 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Subject: mm/hugetlb: improve locking in dissolve_free_huge_pages()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: more reliably increase direct compaction priority-fix
 
-For every pfn aligned to minimum_order, dissolve_free_huge_pages() will
-call dissolve_free_huge_page() which takes the hugetlb spinlock, even if
-the page is not huge at all or a hugepage that is in-use.
+When increasing the compaction priority, also reset retries.  Otherwise we
+can consume all retries on the lower priorities.  Also pull the retries
+increment into should_compact_retry() so it counts only the rounds where
+we actually rely on it.
 
-Improve this by doing the PageHuge() and page_count() checks already in
-dissolve_free_huge_pages() before calling dissolve_free_huge_page().  In
-dissolve_free_huge_page(), when holding the spinlock, those checks need to
-be revalidated.
-
-Link: http://lkml.kernel.org/r/20160926172811.94033-4-gerald.schaefer@de.ibm.com
-Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Rui Teng <rui.teng@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/20160926162025.21555-2-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-improve-locking-in-dissolve_free_huge_pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-improve-locking-in-dissolve_free_huge_pages
-+++ a/mm/hugetlb.c
-@@ -1476,14 +1476,20 @@ out:
- int dissolve_free_huge_pages(unsigned long start_pfn, unsigned long end_pfn)
+diff -puN mm/page_alloc.c~mm-compaction-more-reliably-increase-direct-compaction-priority-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-more-reliably-increase-direct-compaction-priority-fix
++++ a/mm/page_alloc.c
+@@ -3160,13 +3160,16 @@ static inline bool
+ should_compact_retry(struct alloc_context *ac, int order, int alloc_flags,
+ 		     enum compact_result compact_result,
+ 		     enum compact_priority *compact_priority,
+-		     int compaction_retries)
++		     int *compaction_retries)
  {
- 	unsigned long pfn;
-+	struct page *page;
- 	int rc = 0;
+ 	int max_retries = MAX_COMPACT_RETRIES;
  
- 	if (!hugepages_supported())
- 		return rc;
+ 	if (!order)
+ 		return false;
  
--	for (pfn = start_pfn; pfn < end_pfn; pfn += 1 << minimum_order)
--		if (rc = dissolve_free_huge_page(pfn_to_page(pfn)))
--			break;
-+	for (pfn = start_pfn; pfn < end_pfn; pfn += 1 << minimum_order) {
-+		page = pfn_to_page(pfn);
-+		if (PageHuge(page) && !page_count(page)) {
-+			rc = dissolve_free_huge_page(page);
-+			if (rc)
-+				break;
-+		}
-+	}
++	if (compaction_made_progress(compact_result))
++		(*compaction_retries)++;
++
+ 	/*
+ 	 * compaction considers all the zone as desperately out of memory
+ 	 * so it doesn't really make much sense to retry except when the
+@@ -3194,16 +3197,17 @@ should_compact_retry(struct alloc_contex
+ 	 */
+ 	if (order > PAGE_ALLOC_COSTLY_ORDER)
+ 		max_retries /= 4;
+-	if (compaction_retries <= max_retries)
++	if (*compaction_retries <= max_retries)
+ 		return true;
  
- 	return rc;
- }
+ 	/*
+-	 * Make sure there is at least one attempt at the highest priority
+-	 * if we exhausted all retries at the lower priorities
++	 * Make sure there are attempts at the highest priority if we exhausted
++	 * all retries or failed at the lower priorities.
+ 	 */
+ check_priority:
+ 	if (*compact_priority > MIN_COMPACT_PRIORITY) {
+ 		(*compact_priority)--;
++		*compaction_retries = 0;
+ 		return true;
+ 	}
+ 	return false;
+@@ -3222,7 +3226,7 @@ static inline bool
+ should_compact_retry(struct alloc_context *ac, unsigned int order, int alloc_flags,
+ 		     enum compact_result compact_result,
+ 		     enum compact_priority *compact_priority,
+-		     int compaction_retries)
++		     int *compaction_retries)
+ {
+ 	struct zone *zone;
+ 	struct zoneref *z;
+@@ -3624,9 +3628,6 @@ retry:
+ 	if (page)
+ 		goto got_pg;
+ 
+-	if (order && compaction_made_progress(compact_result))
+-		compaction_retries++;
+-
+ 	/* Do not loop if specifically requested */
+ 	if (gfp_mask & __GFP_NORETRY)
+ 		goto nopage;
+@@ -3661,7 +3662,7 @@ retry:
+ 	if (did_some_progress > 0 &&
+ 			should_compact_retry(ac, order, alloc_flags,
+ 				compact_result, &compact_priority,
+-				compaction_retries))
++				&compaction_retries))
+ 		goto retry;
+ 
+ 	/* Reclaim has failed us, start killing things */
 _
 
-Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-hugetlb-fix-memory-offline-with-hugepage-size-memory-block-size.patch
-mm-hugetlb-check-for-reserved-hugepages-during-memory-offline.patch
-mm-hugetlb-improve-locking-in-dissolve_free_huge_pages.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
+mm-compaction-cleanup-unused-functions.patch
+mm-compaction-rename-compact_partial-to-compact_success.patch
+mm-compaction-dont-recheck-watermarks-after-compact_success.patch
+mm-compaction-add-the-ultimate-direct-compaction-priority.patch
+mm-compaction-add-the-ultimate-direct-compaction-priority-fix.patch
+mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
+mm-compaction-create-compact_gap-wrapper.patch
+mm-compaction-create-compact_gap-wrapper-fix.patch
+mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
+mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
+mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
+mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
+revert-mm-oom-prevent-premature-oom-killer-invocation-for-high-order-request.patch
+mm-compaction-more-reliably-increase-direct-compaction-priority.patch
+mm-compaction-more-reliably-increase-direct-compaction-priority-fix.patch
+mm-compaction-restrict-full-priority-to-non-costly-orders.patch
+mm-compaction-make-full-priority-ignore-pageblock-suitability.patch
+mm-page_alloc-pull-no_progress_loops-update-to-should_reclaim_retry.patch
+mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable.patch
+mm-compaction-restrict-fragindex-to-costly-orders.patch
 
