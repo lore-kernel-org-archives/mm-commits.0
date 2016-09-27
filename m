@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-improve-octal-permission-test.patch added to -mm
+Subject: + fs-select-add-vmalloc-fallback-for-select2.patch added to -mm
  tree
-Date: Tue, 27 Sep 2016 14:04:21 -0700
-Message-ID: <57eaded5.i4dsfMU7aj3qlWbe%akpm@linux-foundation.org>
+Date: Tue, 27 Sep 2016 14:38:53 -0700
+Message-ID: <57eae6ed.tvf9FoFakzNHMLoE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46387 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46740 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934274AbcI0VEW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2016 17:04:22 -0400
+        with ESMTP id S1751496AbcI0Viy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2016 17:38:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, David.Laight@ACULAB.COM, eric.dumazet@gmail.com, hillf.zj@alibaba-inc.com, jbaron@akamai.com, mhocko@suse.com, npiggin@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve octal permission test
+     Subject: fs/select: add vmalloc fallback for select(2)
 has been added to the -mm tree.  Its filename is
-     checkpatch-improve-octal-permission-test.patch
+     fs-select-add-vmalloc-fallback-for-select2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-octal-permission-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-select-add-vmalloc-fallback-for-select2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-octal-permission-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-select-add-vmalloc-fallback-for-select2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,100 +39,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve octal permission test
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: fs/select: add vmalloc fallback for select(2)
 
-The function calls with octal permissions commonly span multiple lines. 
-The current test is line oriented and fails to find some matches.
+The select(2) syscall performs a kmalloc(size, GFP_KERNEL) where size grows
+with the number of fds passed. We had a customer report page allocation
+failures of order-4 for this allocation. This is a costly order, so it might
+easily fail, as the VM expects such allocation to have a lower-order fallback.
 
-Make the test use the $stat variable instead of the $line variable to
-span multiple lines.
+Such trivial fallback is vmalloc(), as the memory doesn't have to be physically
+contiguous and the allocation is temporary for the duration of the syscall
+only. There were some concerns, whether this would have negative impact on the
+system by exposing vmalloc() to userspace. Although an excessive use of vmalloc
+can cause some system wide performance issues - TLB flushes etc. - a large
+order allocation is not for free either and an excessive reclaim/compaction can
+have a similar effect. Also note that the size is effectively limited by
+RLIMIT_NOFILE which defaults to 1024 on the systems I checked. That means the
+bitmaps will fit well within single page and thus the vmalloc() fallback could
+be only excercised for processes where root allows a higher limit.
 
-Link: http://lkml.kernel.org/r/eb276b5a9de12256694ad31c806dbe8c7ee3ef8c.1474999653.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Note that the poll(2) syscall seems to use a linked list of order-0 pages, so
+it doesn't need this kind of fallback.
+
+[eric.dumazet@gmail.com: fix failure path logic]
+[akpm@linux-foundation.org: use proper type for size]
+Link: http://lkml.kernel.org/r/20160927084536.5923-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: David Laight <David.Laight@ACULAB.COM>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Jason Baron <jbaron@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   23 +++++++++++++++++------
- 1 file changed, 17 insertions(+), 6 deletions(-)
+ fs/select.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-octal-permission-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-octal-permission-test
-+++ a/scripts/checkpatch.pl
-@@ -6092,28 +6092,36 @@ sub process {
- # Mode permission misuses where it seems decimal should be octal
- # This uses a shortcut match to avoid unnecessary uses of a slow foreach loop
- 		if ($^V && $^V ge 5.10.0 &&
--		    $line =~ /$mode_perms_search/) {
-+		    defined $stat &&
-+		    $stat =~ /^.\s*$mode_perms_search/) {
- 			foreach my $entry (@mode_permission_funcs) {
- 				my $func = $entry->[0];
- 				my $arg_pos = $entry->[1];
+diff -puN fs/select.c~fs-select-add-vmalloc-fallback-for-select2 fs/select.c
+--- a/fs/select.c~fs-select-add-vmalloc-fallback-for-select2
++++ a/fs/select.c
+@@ -29,6 +29,7 @@
+ #include <linux/sched/rt.h>
+ #include <linux/freezer.h>
+ #include <net/busy_poll.h>
++#include <linux/vmalloc.h>
  
-+				my $lc = $stat =~ tr@\n@@;
-+				$lc = $lc + $linenr;
-+				my $stat_real = raw_line($linenr, 0);
-+				for (my $count = $linenr + 1; $count <= $lc; $count++) {
-+					$stat_real = $stat_real . "\n" . raw_line($count, 0);
-+				}
+ #include <asm/uaccess.h>
+ 
+@@ -554,7 +555,7 @@ int core_sys_select(int n, fd_set __user
+ 	fd_set_bits fds;
+ 	void *bits;
+ 	int ret, max_fds;
+-	unsigned int size;
++	size_t size, alloc_size;
+ 	struct fdtable *fdt;
+ 	/* Allocate small arguments on the stack to save memory and be faster */
+ 	long stack_fds[SELECT_STACK_ALLOC/sizeof(long)];
+@@ -581,7 +582,14 @@ int core_sys_select(int n, fd_set __user
+ 	if (size > sizeof(stack_fds) / 6) {
+ 		/* Not enough space in on-stack array; must use kmalloc */
+ 		ret = -ENOMEM;
+-		bits = kmalloc(6 * size, GFP_KERNEL);
++		if (size > (SIZE_MAX / 6))
++			goto out_nofds;
 +
- 				my $skip_args = "";
- 				if ($arg_pos > 1) {
- 					$arg_pos--;
- 					$skip_args = "(?:\\s*$FuncArg\\s*,\\s*){$arg_pos,$arg_pos}";
- 				}
- 				my $test = "\\b$func\\s*\\(${skip_args}($FuncArg(?:\\|\\s*$FuncArg)*)\\s*[,\\)]";
--				if ($line =~ /$test/) {
-+				if ($stat =~ /$test/) {
- 					my $val = $1;
- 					$val = $6 if ($skip_args ne "");
- 					if (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
- 					    ($val =~ /^$Octal$/ && length($val) ne 4)) {
- 						ERROR("NON_OCTAL_PERMISSIONS",
--						      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
-+						      "Use 4 digit octal (0777) not decimal permissions\n" . $stat_real);
- 					}
- 					if ($val =~ /^$Octal$/ && (oct($val) & 02)) {
- 						ERROR("EXPORTED_WORLD_WRITABLE",
--						      "Exporting writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
-+						      "Exporting writable files is usually an error. Consider more restrictive permissions.\n" . $stat_real);
- 					}
- 					if ($val =~ /\b$mode_perms_string_search\b/) {
- 						my $to = 0;
-@@ -6122,9 +6130,12 @@ sub process {
- 						}
- 						my $new = sprintf("%04o", $to);
- 						if (WARN("SYMBOLIC_PERMS",
--							 "Symbolic permissions are not preferred. Consider using octal permissions $new.\n" . $herecurr) &&
-+							 "Symbolic permissions are not preferred. Consider using octal permissions $new.\n" . $stat_real) &&
- 						    $fix) {
--							$fixed[$fixlinenr] =~ s/\Q$val\E/$new/;
-+							$lc = $stat =~ tr@\n@@;
-+							for (my $count = $fixlinenr; $count <= $fixlinenr + $lc; $count++) {
-+								$fixed[$count] =~ s/\Q$val\E/$new/;
-+							}
- 						}
- 					}
- 				}
++		alloc_size = 6 * size;
++		bits = kmalloc(alloc_size, GFP_KERNEL|__GFP_NOWARN);
++		if (!bits && alloc_size > PAGE_SIZE)
++			bits = vmalloc(alloc_size);
++
+ 		if (!bits)
+ 			goto out_nofds;
+ 	}
+@@ -618,7 +626,7 @@ int core_sys_select(int n, fd_set __user
+ 
+ out:
+ 	if (bits != stack_fds)
+-		kfree(bits);
++		kvfree(bits);
+ out_nofds:
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
-meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
-spellingtxt-modeled-is-spelt-correctly.patch
-checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
-checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
-checkpatch-test-multiple-line-block-comment-alignment.patch
-checkpatch-dont-test-for-prefer-ether_addr_foo.patch
-checkpatch-externalize-the-structs-that-should-be-const.patch
-const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
-checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
-checkpatch-improve-the-block-comment-alignment-test.patch
-checkpatch-add-strict-test-for-macro-argument-reuse.patch
-checkpatch-add-strict-test-for-precedence-challenged-macro-arguments.patch
-checkpatch-improve-macro_arg_precedence-test.patch
-checkpatch-add-warning-for-unnamed-function-definition-arguments.patch
-checkpatch-improve-octal-permission-test.patch
+fs-select-add-vmalloc-fallback-for-select2.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
+mm-compaction-cleanup-unused-functions.patch
+mm-compaction-rename-compact_partial-to-compact_success.patch
+mm-compaction-dont-recheck-watermarks-after-compact_success.patch
+mm-compaction-add-the-ultimate-direct-compaction-priority.patch
+mm-compaction-add-the-ultimate-direct-compaction-priority-fix.patch
+mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
+mm-compaction-create-compact_gap-wrapper.patch
+mm-compaction-create-compact_gap-wrapper-fix.patch
+mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
+mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
+mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
+mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
+revert-mm-oom-prevent-premature-oom-killer-invocation-for-high-order-request.patch
+mm-compaction-more-reliably-increase-direct-compaction-priority.patch
+mm-compaction-more-reliably-increase-direct-compaction-priority-fix.patch
+mm-compaction-restrict-full-priority-to-non-costly-orders.patch
+mm-compaction-make-full-priority-ignore-pageblock-suitability.patch
+mm-page_alloc-pull-no_progress_loops-update-to-should_reclaim_retry.patch
+mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable.patch
+mm-compaction-restrict-fragindex-to-costly-orders.patch
 
