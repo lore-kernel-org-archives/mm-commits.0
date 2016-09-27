@@ -1,108 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: +
- mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page.patch
- added to -mm tree
-Date: Tue, 27 Sep 2016 15:07:09 -0700
-Message-ID: <57eaed8d.jsvNqvcRh8NfPZzb%akpm@linux-foundation.org>
+Subject: [withdrawn] checkpatch-improve-octal-permission-test.patch
+ removed from -mm tree
+Date: Tue, 27 Sep 2016 15:45:53 -0700
+Message-ID: <57eaf6a1.fg++NF5uwgJUZ/SE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47299 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47794 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752586AbcI0WHK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2016 18:07:10 -0400
+        with ESMTP id S1751762AbcI0Wpy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2016 18:45:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhong@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com, jallen@linux.vnet.ibm.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, penguin-kernel@i-love.sakura.ne.jp, qiuxishi@huawei.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug: use nodes that contain memory as mask in new_node_page()
-has been added to the -mm tree.  Its filename is
-     mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page.patch
+     Subject: checkpatch: improve octal permission test
+has been removed from the -mm tree.  Its filename was
+     checkpatch-improve-octal-permission-test.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Li Zhong <zhong@linux.vnet.ibm.com>
-Subject: mem-hotplug: use nodes that contain memory as mask in new_node_page()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve octal permission test
 
-9bb627be47a5 ("mem-hotplug: don't clear the only node in new_node_page()")
-prevents allocating from an empty nodemask, but as David points out, it is
-still wrong.  As node_online_map may include memoryless nodes, only
-allocating from these nodes is meaningless.
+The function calls with octal permissions commonly span multiple lines. 
+The current test is line oriented and fails to find some matches.
 
-This patch uses node_states[N_MEMORY] mask to prevent the above case.
+Make the test use the $stat variable instead of the $line variable to
+span multiple lines.
 
-Fixes: 9bb627be47a5 ("mem-hotplug: don't clear the only node in new_node_page()")
-Fixes: 394e31d2ceb4 ("mem-hotplug: alloc new page from a nearest neighbor node when mem-offline")
-Link: http://lkml.kernel.org/r/1474447117.28370.6.camel@TP420
-Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
-Suggested-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: John Allen <jallen@linux.vnet.ibm.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Link: http://lkml.kernel.org/r/eb276b5a9de12256694ad31c806dbe8c7ee3ef8c.1474999653.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ scripts/checkpatch.pl |   23 +++++++++++++++++------
+ 1 file changed, 17 insertions(+), 6 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page
-+++ a/mm/memory_hotplug.c
-@@ -1555,8 +1555,8 @@ static struct page *new_node_page(struct
- {
- 	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
- 	int nid = page_to_nid(page);
--	nodemask_t nmask = node_online_map;
--	struct page *new_page;
-+	nodemask_t nmask = node_states[N_MEMORY];
-+	struct page *new_page = NULL;
+diff -puN scripts/checkpatch.pl~checkpatch-improve-octal-permission-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-octal-permission-test
++++ a/scripts/checkpatch.pl
+@@ -6092,28 +6092,36 @@ sub process {
+ # Mode permission misuses where it seems decimal should be octal
+ # This uses a shortcut match to avoid unnecessary uses of a slow foreach loop
+ 		if ($^V && $^V ge 5.10.0 &&
+-		    $line =~ /$mode_perms_search/) {
++		    defined $stat &&
++		    $stat =~ /^.\s*$mode_perms_search/) {
+ 			foreach my $entry (@mode_permission_funcs) {
+ 				my $func = $entry->[0];
+ 				my $arg_pos = $entry->[1];
  
- 	/*
- 	 * TODO: allocate a destination hugepage from a nearest neighbor node,
-@@ -1567,14 +1567,14 @@ static struct page *new_node_page(struct
- 		return alloc_huge_page_node(page_hstate(compound_head(page)),
- 					next_node_in(nid, nmask));
- 
--	if (nid != next_node_in(nid, nmask))
--		node_clear(nid, nmask);
-+	node_clear(nid, nmask);
- 
- 	if (PageHighMem(page)
- 	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
- 		gfp_mask |= __GFP_HIGHMEM;
- 
--	new_page = __alloc_pages_nodemask(gfp_mask, 0,
-+	if (!nodes_empty(nmask))
-+		new_page = __alloc_pages_nodemask(gfp_mask, 0,
- 					node_zonelist(nid, gfp_mask), &nmask);
- 	if (!new_page)
- 		new_page = __alloc_pages(gfp_mask, 0,
++				my $lc = $stat =~ tr@\n@@;
++				$lc = $lc + $linenr;
++				my $stat_real = raw_line($linenr, 0);
++				for (my $count = $linenr + 1; $count <= $lc; $count++) {
++					$stat_real = $stat_real . "\n" . raw_line($count, 0);
++				}
++
+ 				my $skip_args = "";
+ 				if ($arg_pos > 1) {
+ 					$arg_pos--;
+ 					$skip_args = "(?:\\s*$FuncArg\\s*,\\s*){$arg_pos,$arg_pos}";
+ 				}
+ 				my $test = "\\b$func\\s*\\(${skip_args}($FuncArg(?:\\|\\s*$FuncArg)*)\\s*[,\\)]";
+-				if ($line =~ /$test/) {
++				if ($stat =~ /$test/) {
+ 					my $val = $1;
+ 					$val = $6 if ($skip_args ne "");
+ 					if (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
+ 					    ($val =~ /^$Octal$/ && length($val) ne 4)) {
+ 						ERROR("NON_OCTAL_PERMISSIONS",
+-						      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
++						      "Use 4 digit octal (0777) not decimal permissions\n" . $stat_real);
+ 					}
+ 					if ($val =~ /^$Octal$/ && (oct($val) & 02)) {
+ 						ERROR("EXPORTED_WORLD_WRITABLE",
+-						      "Exporting writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
++						      "Exporting writable files is usually an error. Consider more restrictive permissions.\n" . $stat_real);
+ 					}
+ 					if ($val =~ /\b$mode_perms_string_search\b/) {
+ 						my $to = 0;
+@@ -6122,9 +6130,12 @@ sub process {
+ 						}
+ 						my $new = sprintf("%04o", $to);
+ 						if (WARN("SYMBOLIC_PERMS",
+-							 "Symbolic permissions are not preferred. Consider using octal permissions $new.\n" . $herecurr) &&
++							 "Symbolic permissions are not preferred. Consider using octal permissions $new.\n" . $stat_real) &&
+ 						    $fix) {
+-							$fixed[$fixlinenr] =~ s/\Q$val\E/$new/;
++							$lc = $stat =~ tr@\n@@;
++							for (my $count = $fixlinenr; $count <= $fixlinenr + $lc; $count++) {
++								$fixed[$count] =~ s/\Q$val\E/$new/;
++							}
+ 						}
+ 					}
+ 				}
 _
 
-Patches currently in -mm which might be from zhong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
+meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
+spellingtxt-modeled-is-spelt-correctly.patch
+checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
+checkpatch-test-multiple-line-block-comment-alignment.patch
+checkpatch-dont-test-for-prefer-ether_addr_foo.patch
+checkpatch-externalize-the-structs-that-should-be-const.patch
+const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
+checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
+checkpatch-improve-the-block-comment-alignment-test.patch
+checkpatch-add-strict-test-for-macro-argument-reuse.patch
+checkpatch-add-strict-test-for-precedence-challenged-macro-arguments.patch
+checkpatch-improve-macro_arg_precedence-test.patch
+checkpatch-add-warning-for-unnamed-function-definition-arguments.patch
 
