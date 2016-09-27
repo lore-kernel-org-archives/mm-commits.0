@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-undefined-struct-variable-in-inodeh.patch added to
- -mm tree
-Date: Tue, 27 Sep 2016 13:45:46 -0700
-Message-ID: <57eada7a.d80hQu8aZeeV34Os%akpm@linux-foundation.org>
+Subject: + checkpatch-improve-octal-permission-test.patch added to -mm
+ tree
+Date: Tue, 27 Sep 2016 14:04:21 -0700
+Message-ID: <57eaded5.i4dsfMU7aj3qlWbe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45557 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46387 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933955AbcI0Upr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2016 16:45:47 -0400
+        with ESMTP id S934274AbcI0VEW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2016 17:04:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, zren@suse.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix undefined struct variable in inode.h
+     Subject: checkpatch: improve octal permission test
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-undefined-struct-variable-in-inodeh.patch
+     checkpatch-improve-octal-permission-test.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-undefined-struct-variable-in-inodeh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-octal-permission-test.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-undefined-struct-variable-in-inodeh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-octal-permission-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +39,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix undefined struct variable in inode.h
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve octal permission test
 
-The extern struct variable ocfs2_inode_cache is not defined. It meant to
-use ocfs2_inode_cachep defined in super.c, I think. Fortunately it is
-not used anywhere now, so no impact actually. Clean it up to fix this
-mistake.
+The function calls with octal permissions commonly span multiple lines. 
+The current test is line oriented and fails to find some matches.
 
-Link: http://lkml.kernel.org/r/57E1E49D.8050503@huawei.com
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Eric Ren <zren@suse.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Make the test use the $stat variable instead of the $line variable to
+span multiple lines.
+
+Link: http://lkml.kernel.org/r/eb276b5a9de12256694ad31c806dbe8c7ee3ef8c.1474999653.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.h |    2 --
- 1 file changed, 2 deletions(-)
+ scripts/checkpatch.pl |   23 +++++++++++++++++------
+ 1 file changed, 17 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/inode.h~ocfs2-fix-undefined-struct-variable-in-inodeh fs/ocfs2/inode.h
---- a/fs/ocfs2/inode.h~ocfs2-fix-undefined-struct-variable-in-inodeh
-+++ a/fs/ocfs2/inode.h
-@@ -123,8 +123,6 @@ static inline struct ocfs2_inode_info *O
- #define INODE_JOURNAL(i) (OCFS2_I(i)->ip_flags & OCFS2_INODE_JOURNAL)
- #define SET_INODE_JOURNAL(i) (OCFS2_I(i)->ip_flags |= OCFS2_INODE_JOURNAL)
+diff -puN scripts/checkpatch.pl~checkpatch-improve-octal-permission-test scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-octal-permission-test
++++ a/scripts/checkpatch.pl
+@@ -6092,28 +6092,36 @@ sub process {
+ # Mode permission misuses where it seems decimal should be octal
+ # This uses a shortcut match to avoid unnecessary uses of a slow foreach loop
+ 		if ($^V && $^V ge 5.10.0 &&
+-		    $line =~ /$mode_perms_search/) {
++		    defined $stat &&
++		    $stat =~ /^.\s*$mode_perms_search/) {
+ 			foreach my $entry (@mode_permission_funcs) {
+ 				my $func = $entry->[0];
+ 				my $arg_pos = $entry->[1];
  
--extern struct kmem_cache *ocfs2_inode_cache;
++				my $lc = $stat =~ tr@\n@@;
++				$lc = $lc + $linenr;
++				my $stat_real = raw_line($linenr, 0);
++				for (my $count = $linenr + 1; $count <= $lc; $count++) {
++					$stat_real = $stat_real . "\n" . raw_line($count, 0);
++				}
++
+ 				my $skip_args = "";
+ 				if ($arg_pos > 1) {
+ 					$arg_pos--;
+ 					$skip_args = "(?:\\s*$FuncArg\\s*,\\s*){$arg_pos,$arg_pos}";
+ 				}
+ 				my $test = "\\b$func\\s*\\(${skip_args}($FuncArg(?:\\|\\s*$FuncArg)*)\\s*[,\\)]";
+-				if ($line =~ /$test/) {
++				if ($stat =~ /$test/) {
+ 					my $val = $1;
+ 					$val = $6 if ($skip_args ne "");
+ 					if (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
+ 					    ($val =~ /^$Octal$/ && length($val) ne 4)) {
+ 						ERROR("NON_OCTAL_PERMISSIONS",
+-						      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
++						      "Use 4 digit octal (0777) not decimal permissions\n" . $stat_real);
+ 					}
+ 					if ($val =~ /^$Octal$/ && (oct($val) & 02)) {
+ 						ERROR("EXPORTED_WORLD_WRITABLE",
+-						      "Exporting writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
++						      "Exporting writable files is usually an error. Consider more restrictive permissions.\n" . $stat_real);
+ 					}
+ 					if ($val =~ /\b$mode_perms_string_search\b/) {
+ 						my $to = 0;
+@@ -6122,9 +6130,12 @@ sub process {
+ 						}
+ 						my $new = sprintf("%04o", $to);
+ 						if (WARN("SYMBOLIC_PERMS",
+-							 "Symbolic permissions are not preferred. Consider using octal permissions $new.\n" . $herecurr) &&
++							 "Symbolic permissions are not preferred. Consider using octal permissions $new.\n" . $stat_real) &&
+ 						    $fix) {
+-							$fixed[$fixlinenr] =~ s/\Q$val\E/$new/;
++							$lc = $stat =~ tr@\n@@;
++							for (my $count = $fixlinenr; $count <= $fixlinenr + $lc; $count++) {
++								$fixed[$count] =~ s/\Q$val\E/$new/;
++							}
+ 						}
+ 					}
+ 				}
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
+meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
+spellingtxt-modeled-is-spelt-correctly.patch
+checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
+checkpatch-test-multiple-line-block-comment-alignment.patch
+checkpatch-dont-test-for-prefer-ether_addr_foo.patch
+checkpatch-externalize-the-structs-that-should-be-const.patch
+const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
+checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
+checkpatch-improve-the-block-comment-alignment-test.patch
+checkpatch-add-strict-test-for-macro-argument-reuse.patch
+checkpatch-add-strict-test-for-precedence-challenged-macro-arguments.patch
+checkpatch-improve-macro_arg_precedence-test.patch
+checkpatch-add-warning-for-unnamed-function-definition-arguments.patch
+checkpatch-improve-octal-permission-test.patch
+
