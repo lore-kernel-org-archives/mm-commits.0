@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vma_adjust-minor-comment-correction.patch added to -mm tree
-Date: Tue, 27 Sep 2016 13:00:39 -0700
-Message-ID: <57eacfe7.XiuIVnBKEQyNxouJ%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-undefined-struct-variable-in-inodeh.patch added to
+ -mm tree
+Date: Tue, 27 Sep 2016 13:45:46 -0700
+Message-ID: <57eada7a.d80hQu8aZeeV34Os%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45277 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45557 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934098AbcI0UAk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2016 16:00:40 -0400
+        with ESMTP id S933955AbcI0Upr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2016 16:45:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hughd@google.com, janvorli@microsoft.com, mgorman@techsingularity.net, riel@redhat.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, zren@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vma_adjust: minor comment correction
+     Subject: ocfs2: fix undefined struct variable in inode.h
 has been added to the -mm tree.  Its filename is
-     mm-vma_adjust-minor-comment-correction.patch
+     ocfs2-fix-undefined-struct-variable-in-inodeh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vma_adjust-minor-comment-correction.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-undefined-struct-variable-in-inodeh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vma_adjust-minor-comment-correction.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-undefined-struct-variable-in-inodeh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,43 +39,31 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: vma_adjust: minor comment correction
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix undefined struct variable in inode.h
 
-The cases are three not two.
+The extern struct variable ocfs2_inode_cache is not defined. It meant to
+use ocfs2_inode_cachep defined in super.c, I think. Fortunately it is
+not used anywhere now, so no impact actually. Clean it up to fix this
+mistake.
 
-Link: http://lkml.kernel.org/r/1474492522-2261-3-git-send-email-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Jan Vorlicek <janvorli@microsoft.com>
+Link: http://lkml.kernel.org/r/57E1E49D.8050503@huawei.com
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Eric Ren <zren@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/inode.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-vma_adjust-minor-comment-correction mm/mmap.c
---- a/mm/mmap.c~mm-vma_adjust-minor-comment-correction
-+++ a/mm/mmap.c
-@@ -662,7 +662,7 @@ int __vma_adjust(struct vm_area_struct *
- 			/*
- 			 * vma expands, overlapping all the next, and
- 			 * perhaps the one after too (mprotect case 6).
--			 * The only two other cases that gets here are
-+			 * The only other cases that gets here are
- 			 * case 1, case 7 and case 8.
- 			 */
- 			if (next == expand) {
-_
-
-Patches currently in -mm which might be from aarcange@redhat.com are
-
-mm-vm_page_prot-update-with-write_once-read_once.patch
-mm-vma_adjust-remove-superfluous-confusing-update-in-remove_next-==-1-case.patch
-mm-vma_merge-fix-vm_page_prot-smp-race-condition-against-rmap_walk.patch
-mm-vma_adjust-remove-superfluous-check-for-next-not-null.patch
-mm-vma_adjust-minor-comment-correction.patch
-mm-vma_merge-correct-false-positive-from-__vma_unlink-validate_mm_rb.patch
-
+diff -puN fs/ocfs2/inode.h~ocfs2-fix-undefined-struct-variable-in-inodeh fs/ocfs2/inode.h
+--- a/fs/ocfs2/inode.h~ocfs2-fix-undefined-struct-variable-in-inodeh
++++ a/fs/ocfs2/inode.h
+@@ -123,8 +123,6 @@ static inline struct ocfs2_inode_info *O
+ #define INODE_JOURNAL(i) (OCFS2_I(i)->ip_flags & OCFS2_INODE_JOURNAL)
+ #define SET_INODE_JOURNAL(i) (OCFS2_I(i)->ip_flags |= OCFS2_INODE_JOURNAL)
+ 
+-extern struct kmem_cache *ocfs2_inode_cache;
