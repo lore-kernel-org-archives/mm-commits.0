@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-select-add-vmalloc-fallback-for-select2.patch added to -mm
- tree
-Date: Tue, 27 Sep 2016 14:38:53 -0700
-Message-ID: <57eae6ed.tvf9FoFakzNHMLoE%akpm@linux-foundation.org>
+Subject: + fsnotify-cleanup-spinlock-assertions.patch added to -mm tree
+Date: Tue, 27 Sep 2016 14:51:42 -0700
+Message-ID: <57eae9ee.GZvry7/GhfQPmozp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46791 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751496AbcI0Viy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2016 17:38:54 -0400
+        with ESMTP id S1753219AbcI0Vvo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 27 Sep 2016 17:51:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, David.Laight@ACULAB.COM, eric.dumazet@gmail.com, hillf.zj@alibaba-inc.com, jbaron@akamai.com, mhocko@suse.com, npiggin@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: jack@suse.cz, hkallweit1@gmail.com, jlayton@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/select: add vmalloc fallback for select(2)
+     Subject: fsnotify: clean up spinlock assertions
 has been added to the -mm tree.  Its filename is
-     fs-select-add-vmalloc-fallback-for-select2.patch
+     fsnotify-cleanup-spinlock-assertions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-select-add-vmalloc-fallback-for-select2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-cleanup-spinlock-assertions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-select-add-vmalloc-fallback-for-select2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-cleanup-spinlock-assertions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,114 +38,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: fs/select: add vmalloc fallback for select(2)
+From: Jan Kara <jack@suse.cz>
+Subject: fsnotify: clean up spinlock assertions
 
-The select(2) syscall performs a kmalloc(size, GFP_KERNEL) where size grows
-with the number of fds passed. We had a customer report page allocation
-failures of order-4 for this allocation. This is a costly order, so it might
-easily fail, as the VM expects such allocation to have a lower-order fallback.
+Use assert_spin_locked() macro instead of hand-made BUG_ON statements.
 
-Such trivial fallback is vmalloc(), as the memory doesn't have to be physically
-contiguous and the allocation is temporary for the duration of the syscall
-only. There were some concerns, whether this would have negative impact on the
-system by exposing vmalloc() to userspace. Although an excessive use of vmalloc
-can cause some system wide performance issues - TLB flushes etc. - a large
-order allocation is not for free either and an excessive reclaim/compaction can
-have a similar effect. Also note that the size is effectively limited by
-RLIMIT_NOFILE which defaults to 1024 on the systems I checked. That means the
-bitmaps will fit well within single page and thus the vmalloc() fallback could
-be only excercised for processes where root allows a higher limit.
-
-Note that the poll(2) syscall seems to use a linked list of order-0 pages, so
-it doesn't need this kind of fallback.
-
-[eric.dumazet@gmail.com: fix failure path logic]
-[akpm@linux-foundation.org: use proper type for size]
-Link: http://lkml.kernel.org/r/20160927084536.5923-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Jason Baron <jbaron@akamai.com>
+Link: http://lkml.kernel.org/r/1474537439-18919-1-git-send-email-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Suggested-by: Heiner Kallweit <hkallweit1@gmail.com>
+Reviewed-by: Jeff Layton <jlayton@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ fs/notify/fanotify/fanotify_user.c |    3 +--
+ fs/notify/notification.c           |    9 +++------
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN fs/select.c~fs-select-add-vmalloc-fallback-for-select2 fs/select.c
---- a/fs/select.c~fs-select-add-vmalloc-fallback-for-select2
-+++ a/fs/select.c
-@@ -29,6 +29,7 @@
- #include <linux/sched/rt.h>
- #include <linux/freezer.h>
- #include <net/busy_poll.h>
-+#include <linux/vmalloc.h>
+diff -puN fs/notify/fanotify/fanotify_user.c~fsnotify-cleanup-spinlock-assertions fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fsnotify-cleanup-spinlock-assertions
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -54,8 +54,7 @@ struct kmem_cache *fanotify_perm_event_c
+ static struct fsnotify_event *get_one_event(struct fsnotify_group *group,
+ 					    size_t count)
+ {
+-	BUG_ON(IS_ENABLED(CONFIG_SMP) &&
+-	       !spin_is_locked(&group->notification_lock));
++	assert_spin_locked(&group->notification_lock);
  
- #include <asm/uaccess.h>
+ 	pr_debug("%s: group=%p count=%zd\n", __func__, group, count);
  
-@@ -554,7 +555,7 @@ int core_sys_select(int n, fd_set __user
- 	fd_set_bits fds;
- 	void *bits;
- 	int ret, max_fds;
--	unsigned int size;
-+	size_t size, alloc_size;
- 	struct fdtable *fdt;
- 	/* Allocate small arguments on the stack to save memory and be faster */
- 	long stack_fds[SELECT_STACK_ALLOC/sizeof(long)];
-@@ -581,7 +582,14 @@ int core_sys_select(int n, fd_set __user
- 	if (size > sizeof(stack_fds) / 6) {
- 		/* Not enough space in on-stack array; must use kmalloc */
- 		ret = -ENOMEM;
--		bits = kmalloc(6 * size, GFP_KERNEL);
-+		if (size > (SIZE_MAX / 6))
-+			goto out_nofds;
-+
-+		alloc_size = 6 * size;
-+		bits = kmalloc(alloc_size, GFP_KERNEL|__GFP_NOWARN);
-+		if (!bits && alloc_size > PAGE_SIZE)
-+			bits = vmalloc(alloc_size);
-+
- 		if (!bits)
- 			goto out_nofds;
- 	}
-@@ -618,7 +626,7 @@ int core_sys_select(int n, fd_set __user
- 
- out:
- 	if (bits != stack_fds)
--		kfree(bits);
-+		kvfree(bits);
- out_nofds:
- 	return ret;
+diff -puN fs/notify/notification.c~fsnotify-cleanup-spinlock-assertions fs/notify/notification.c
+--- a/fs/notify/notification.c~fsnotify-cleanup-spinlock-assertions
++++ a/fs/notify/notification.c
+@@ -63,8 +63,7 @@ EXPORT_SYMBOL_GPL(fsnotify_get_cookie);
+ /* return true if the notify queue is empty, false otherwise */
+ bool fsnotify_notify_queue_is_empty(struct fsnotify_group *group)
+ {
+-	BUG_ON(IS_ENABLED(CONFIG_SMP) &&
+-	       !spin_is_locked(&group->notification_lock));
++	assert_spin_locked(&group->notification_lock);
+ 	return list_empty(&group->notification_list) ? true : false;
  }
+ 
+@@ -149,8 +148,7 @@ struct fsnotify_event *fsnotify_remove_f
+ {
+ 	struct fsnotify_event *event;
+ 
+-	BUG_ON(IS_ENABLED(CONFIG_SMP) &&
+-	       !spin_is_locked(&group->notification_lock));
++	assert_spin_locked(&group->notification_lock);
+ 
+ 	pr_debug("%s: group=%p\n", __func__, group);
+ 
+@@ -172,8 +170,7 @@ struct fsnotify_event *fsnotify_remove_f
+  */
+ struct fsnotify_event *fsnotify_peek_first_event(struct fsnotify_group *group)
+ {
+-	BUG_ON(IS_ENABLED(CONFIG_SMP) &&
+-	       !spin_is_locked(&group->notification_lock));
++	assert_spin_locked(&group->notification_lock);
+ 
+ 	return list_first_entry(&group->notification_list,
+ 				struct fsnotify_event, list);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from jack@suse.cz are
 
-fs-select-add-vmalloc-fallback-for-select2.patch
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
-mm-compaction-cleanup-unused-functions.patch
-mm-compaction-rename-compact_partial-to-compact_success.patch
-mm-compaction-dont-recheck-watermarks-after-compact_success.patch
-mm-compaction-add-the-ultimate-direct-compaction-priority.patch
-mm-compaction-add-the-ultimate-direct-compaction-priority-fix.patch
-mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
-mm-compaction-create-compact_gap-wrapper.patch
-mm-compaction-create-compact_gap-wrapper-fix.patch
-mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
-mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
-mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
-mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
-revert-mm-oom-prevent-premature-oom-killer-invocation-for-high-order-request.patch
-mm-compaction-more-reliably-increase-direct-compaction-priority.patch
-mm-compaction-more-reliably-increase-direct-compaction-priority-fix.patch
-mm-compaction-restrict-full-priority-to-non-costly-orders.patch
-mm-compaction-make-full-priority-ignore-pageblock-suitability.patch
-mm-page_alloc-pull-no_progress_loops-update-to-should_reclaim_retry.patch
-mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable.patch
-mm-compaction-restrict-fragindex-to-costly-orders.patch
+fsnotify-drop-notification_mutex-before-destroying-event.patch
+fsnotify-convert-notification_mutex-to-a-spinlock.patch
+fsnotify-convert-notification_mutex-to-a-spinlock-fix.patch
+fanotify-use-notification_lock-instead-of-access_lock.patch
+fanotify-fix-possible-false-warning-when-freeing-events.patch
+fsnotify-cleanup-spinlock-assertions.patch
 
