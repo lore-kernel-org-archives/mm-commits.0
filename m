@@ -1,56 +1,87 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: incoming
-Date: Wed, 28 Sep 2016 15:22:16 -0700
-Message-ID: <20160928152216.e70b3f54873fc42b133f494b@linux-foundation.org>
+From: akpm@linux-foundation.org
+Subject: [patch 1/5] mm,ksm: fix endless looping in allocating memory when ksm enable
+Date: Wed, 28 Sep 2016 15:22:30 -0700
+Message-ID: <57ec42a6.H17H29WWQPcIsgfX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Wed__28_Sep_2016_15_22_16_-0700_qAEqSfQXsXbHtCQq"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45168 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45265 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933541AbcI1WWX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2016 18:22:23 -0400
+        with ESMTP id S933572AbcI1WWc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2016 18:22:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: mm-commits@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zhongjiang@huawei.com, hughd@google.com, mhocko@suse.com, mhocko@suse.cz, stable@vger.kernel.org
 
---Signature=_Wed__28_Sep_2016_15_22_16_-0700_qAEqSfQXsXbHtCQq
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-5 fixes, based on 8ab293e3a1376574e11f9059c09cc0db212546cb:
-
+From: zhong jiang <zhongjiang@huawei.com>
 Subject: mm,ksm: fix endless looping in allocating memory when ksm enable
-Subject: dma-mapping.h: preserve unmap info for CONFIG_DMA_API_DEBUG
-Subject: scripts/recordmcount.c: account for .softirqentry.text
-Subject: mem-hotplug: use nodes that contain memory as mask in new_node_pag=
-e()
-Subject: MAINTAINERS: Mark has moved
 
+I hit the following hung task when runing a OOM LTP test case with 4.1
+kernel.
 
---Signature=_Wed__28_Sep_2016_15_22_16_-0700_qAEqSfQXsXbHtCQq
-Content-Type: application/pgp-signature
+Call trace:
+[<ffffffc000086a88>] __switch_to+0x74/0x8c
+[<ffffffc000a1bae0>] __schedule+0x23c/0x7bc
+[<ffffffc000a1c09c>] schedule+0x3c/0x94
+[<ffffffc000a1eb84>] rwsem_down_write_failed+0x214/0x350
+[<ffffffc000a1e32c>] down_write+0x64/0x80
+[<ffffffc00021f794>] __ksm_exit+0x90/0x19c
+[<ffffffc0000be650>] mmput+0x118/0x11c
+[<ffffffc0000c3ec4>] do_exit+0x2dc/0xa74
+[<ffffffc0000c46f8>] do_group_exit+0x4c/0xe4
+[<ffffffc0000d0f34>] get_signal+0x444/0x5e0
+[<ffffffc000089fcc>] do_signal+0x1d8/0x450
+[<ffffffc00008a35c>] do_notify_resume+0x70/0x78
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
+The oom victim cannot terminate because it needs to take mmap_sem for
+write while the lock is held by ksmd for read which loops in the page
+allocator
 
-iQIcBAEBAgAGBQJX7EKeAAoJEJxZ78cCqAIHHQoP/2NlkL4AbwzwDblKbg6ntPpA
-yDZhnJU+203jMG8uguj2Nb/PcyLFPYdfJXTy5nM+L6rdVDP9py7upe6KgG1o2CJc
-SEgilrIVOj3H3zFshgElRr5hgg09tMnPawmV7GTNS1sWqj8wijbl0LEs5FnHuQWI
-oeppAk7TnnPZRfNT9xmGmQd/vJF6VdMes0hB683y1Ts8RK7XYz9u7xbXbfUa21/h
-7vrmnwpC89iyyiuC4W/R6RaNhraq9qn+5ynzHsrjDl4N6RxxtnKUl+Blcu7X9MVh
-vgvIK6Xbob3qu6dj/UmVI6Ds+1qhh5odBVk6csV35tL7cMc1/xLReWcrWpc6zYHB
-MDOyTEso+94SDmsBYQm9/8pb64oSPGa5+aSt20emqimTnnczIuwCF6cLoZarwKF2
-0BJ5HwFF3n9NwxZ07lCZrlKZ7xUPQpuNczJPsqSyMBLaq0t0iH+Fxu8UsVJYupfW
-o/7+feFrE4apqoWkBquGYEjAl3wpbghlArmybXgiVyMmzjm9GvLLfw1RDMMvWAeh
-tRWfKbyF4B66gDHNXvkrAL8BjadHEdkbwu74+2fK/sxzMZBlj7gQko9MneAM9kPE
-l22x8k6fFhhgjw5wf4CklPL7p6M3Do0Xzj50wczVubN3Al6rwlEfKixc1c7APl3i
-3/G8Ht4X8LXr0pfh77w8
-=XKp4
------END PGP SIGNATURE-----
+ksm_do_scan
+	scan_get_next_rmap_item
+		down_read
+		get_next_rmap_item
+			alloc_rmap_item   #ksmd will loop permanently.
 
---Signature=_Wed__28_Sep_2016_15_22_16_-0700_qAEqSfQXsXbHtCQq--
+There is no way forward because the oom victim cannot release any memory
+in 4.1 based kernel.  Since 4.6 we have the oom reaper which would solve
+this problem because it would release the memory asynchronously. 
+Nevertheless we can relax alloc_rmap_item requirements and use
+__GFP_NORETRY because the allocation failure is acceptable as ksm_do_scan
+would just retry later after the lock got dropped.
+
+Such a patch would be also easy to backport to older stable kernels which
+do not have oom_reaper.
+
+While we are at it add GFP_NOWARN so the admin doesn't have to be alarmed
+by the allocation failure.
+
+Link: http://lkml.kernel.org/r/1474165570-44398-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Suggested-by: Hugh Dickins <hughd@google.com>
+Suggested-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/ksm.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff -puN mm/ksm.c~mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable mm/ksm.c
+--- a/mm/ksm.c~mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable
++++ a/mm/ksm.c
+@@ -283,7 +283,8 @@ static inline struct rmap_item *alloc_rm
+ {
+ 	struct rmap_item *rmap_item;
+ 
+-	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL);
++	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL |
++						__GFP_NORETRY | __GFP_NOWARN);
+ 	if (rmap_item)
+ 		ksm_rmap_items++;
+ 	return rmap_item;
+_
