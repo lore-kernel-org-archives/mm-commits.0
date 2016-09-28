@@ -1,78 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [patch 4/5] mem-hotplug: use nodes that contain memory as mask in new_node_page()
-Date: Wed, 28 Sep 2016 15:22:38 -0700
-Message-ID: <57ec42ae.TIBCzg9OXfdKRjpo%akpm@linux-foundation.org>
+Subject: [patch 2/5] dma-mapping.h: preserve unmap info for
+ CONFIG_DMA_API_DEBUG
+Date: Wed, 28 Sep 2016 15:22:33 -0700
+Message-ID: <57ec42a9.kkO3QUzjf2P4Ri64%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45286 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45270 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933647AbcI1WWk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2016 18:22:40 -0400
+        with ESMTP id S933608AbcI1WWe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2016 18:22:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zhong@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com, jallen@linux.vnet.ibm.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, penguin-kernel@i-love.sakura.ne.jp, qiuxishi@huawei.com, rientjes@google.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, andrew.smirnov@gmail.com, borntraeger@de.ibm.com, geliangtang@163.com, jroedel@suse.de, mcgrof@suse.com, robin.murphy@arm.com, thunder.leizhen@huawei.com, will.deacon@arm.com
 
-From: Li Zhong <zhong@linux.vnet.ibm.com>
-Subject: mem-hotplug: use nodes that contain memory as mask in new_node_page()
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+Subject: dma-mapping.h: preserve unmap info for CONFIG_DMA_API_DEBUG
 
-9bb627be47a5 ("mem-hotplug: don't clear the only node in new_node_page()")
-prevents allocating from an empty nodemask, but as David points out, it is
-still wrong.  As node_online_map may include memoryless nodes, only
-allocating from these nodes is meaningless.
+When CONFIG_DMA_API_DEBUG is enabled we need to preserve unmapping address
+even if "unmap" is a no-op for our architecutre because we need
+debug_dma_unmap_page() to correctly cleanup all of the debug bookkeeping. 
+Failing to do so results in a false positive warnings about previously
+mapped areas never being unmapped.
 
-This patch uses node_states[N_MEMORY] mask to prevent the above case.
-
-Fixes: 9bb627be47a5 ("mem-hotplug: don't clear the only node in new_node_page()")
-Fixes: 394e31d2ceb4 ("mem-hotplug: alloc new page from a nearest neighbor node when mem-offline")
-Link: http://lkml.kernel.org/r/1474447117.28370.6.camel@TP420
-Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
-Suggested-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: John Allen <jallen@linux.vnet.ibm.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Link: http://lkml.kernel.org/r/1474387125-3713-1-git-send-email-andrew.smirnov@gmail.com
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+Cc: Joerg Roedel <jroedel@suse.de>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: "Luis R. Rodriguez" <mcgrof@suse.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Geliang Tang <geliangtang@163.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/dma-mapping.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page
-+++ a/mm/memory_hotplug.c
-@@ -1555,8 +1555,8 @@ static struct page *new_node_page(struct
- {
- 	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
- 	int nid = page_to_nid(page);
--	nodemask_t nmask = node_online_map;
--	struct page *new_page;
-+	nodemask_t nmask = node_states[N_MEMORY];
-+	struct page *new_page = NULL;
+diff -puN include/linux/dma-mapping.h~dma-mappingh-preserve-unmap-info-for-config_dma_api_debug include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~dma-mappingh-preserve-unmap-info-for-config_dma_api_debug
++++ a/include/linux/dma-mapping.h
+@@ -718,7 +718,7 @@ static inline int dma_mmap_wc(struct dev
+ #define dma_mmap_writecombine dma_mmap_wc
+ #endif
  
- 	/*
- 	 * TODO: allocate a destination hugepage from a nearest neighbor node,
-@@ -1567,14 +1567,14 @@ static struct page *new_node_page(struct
- 		return alloc_huge_page_node(page_hstate(compound_head(page)),
- 					next_node_in(nid, nmask));
- 
--	if (nid != next_node_in(nid, nmask))
--		node_clear(nid, nmask);
-+	node_clear(nid, nmask);
- 
- 	if (PageHighMem(page)
- 	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
- 		gfp_mask |= __GFP_HIGHMEM;
- 
--	new_page = __alloc_pages_nodemask(gfp_mask, 0,
-+	if (!nodes_empty(nmask))
-+		new_page = __alloc_pages_nodemask(gfp_mask, 0,
- 					node_zonelist(nid, gfp_mask), &nmask);
- 	if (!new_page)
- 		new_page = __alloc_pages(gfp_mask, 0,
+-#ifdef CONFIG_NEED_DMA_MAP_STATE
++#if defined(CONFIG_NEED_DMA_MAP_STATE) || defined(CONFIG_DMA_API_DEBUG)
+ #define DEFINE_DMA_UNMAP_ADDR(ADDR_NAME)        dma_addr_t ADDR_NAME
+ #define DEFINE_DMA_UNMAP_LEN(LEN_NAME)          __u32 LEN_NAME
+ #define dma_unmap_addr(PTR, ADDR_NAME)           ((PTR)->ADDR_NAME)
 _
