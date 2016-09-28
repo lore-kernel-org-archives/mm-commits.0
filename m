@@ -1,87 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [patch 1/5] mm,ksm: fix endless looping in allocating memory when ksm enable
-Date: Wed, 28 Sep 2016 15:22:30 -0700
-Message-ID: <57ec42a6.H17H29WWQPcIsgfX%akpm@linux-foundation.org>
+Subject: [patch 3/5] scripts/recordmcount.c: account for
+ .softirqentry.text
+Date: Wed, 28 Sep 2016 15:22:36 -0700
+Message-ID: <57ec42ac.H3arybR6bXUiNfxr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45265 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45278 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933572AbcI1WWc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2016 18:22:32 -0400
+        with ESMTP id S933633AbcI1WWh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2016 18:22:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zhongjiang@huawei.com, hughd@google.com, mhocko@suse.com, mhocko@suse.cz, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dvyukov@google.com, rostedt@goodmis.org, stable@vger.kernel.org
 
-From: zhong jiang <zhongjiang@huawei.com>
-Subject: mm,ksm: fix endless looping in allocating memory when ksm enable
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: scripts/recordmcount.c: account for .softirqentry.text
 
-I hit the following hung task when runing a OOM LTP test case with 4.1
-kernel.
+be7635e7287e ("arch, ftrace: for KASAN put hard/soft IRQ entries into
+separate sections") added .softirqentry.text section, but it was not added
+to recordmcount.  So functions in the section are untracable.  Add the
+section to scripts/recordmcount.c and scripts/recordmcount.pl.
 
-Call trace:
-[<ffffffc000086a88>] __switch_to+0x74/0x8c
-[<ffffffc000a1bae0>] __schedule+0x23c/0x7bc
-[<ffffffc000a1c09c>] schedule+0x3c/0x94
-[<ffffffc000a1eb84>] rwsem_down_write_failed+0x214/0x350
-[<ffffffc000a1e32c>] down_write+0x64/0x80
-[<ffffffc00021f794>] __ksm_exit+0x90/0x19c
-[<ffffffc0000be650>] mmput+0x118/0x11c
-[<ffffffc0000c3ec4>] do_exit+0x2dc/0xa74
-[<ffffffc0000c46f8>] do_group_exit+0x4c/0xe4
-[<ffffffc0000d0f34>] get_signal+0x444/0x5e0
-[<ffffffc000089fcc>] do_signal+0x1d8/0x450
-[<ffffffc00008a35c>] do_notify_resume+0x70/0x78
-
-The oom victim cannot terminate because it needs to take mmap_sem for
-write while the lock is held by ksmd for read which loops in the page
-allocator
-
-ksm_do_scan
-	scan_get_next_rmap_item
-		down_read
-		get_next_rmap_item
-			alloc_rmap_item   #ksmd will loop permanently.
-
-There is no way forward because the oom victim cannot release any memory
-in 4.1 based kernel.  Since 4.6 we have the oom reaper which would solve
-this problem because it would release the memory asynchronously. 
-Nevertheless we can relax alloc_rmap_item requirements and use
-__GFP_NORETRY because the allocation failure is acceptable as ksm_do_scan
-would just retry later after the lock got dropped.
-
-Such a patch would be also easy to backport to older stable kernels which
-do not have oom_reaper.
-
-While we are at it add GFP_NOWARN so the admin doesn't have to be alarmed
-by the allocation failure.
-
-Link: http://lkml.kernel.org/r/1474165570-44398-1-git-send-email-zhongjiang@huawei.com
-Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Suggested-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Fixes: be7635e7287e ("arch, ftrace: for KASAN put hard/soft IRQ entries into separate sections")
+Link: http://lkml.kernel.org/r/1474902626-73468-1-git-send-email-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Steve Rostedt <rostedt@goodmis.org>
+Cc: <stable@vger.kernel.org>	[4.6+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/recordmcount.c  |    1 +
+ scripts/recordmcount.pl |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN mm/ksm.c~mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable mm/ksm.c
---- a/mm/ksm.c~mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable
-+++ a/mm/ksm.c
-@@ -283,7 +283,8 @@ static inline struct rmap_item *alloc_rm
- {
- 	struct rmap_item *rmap_item;
- 
--	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL);
-+	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL |
-+						__GFP_NORETRY | __GFP_NOWARN);
- 	if (rmap_item)
- 		ksm_rmap_items++;
- 	return rmap_item;
+diff -puN scripts/recordmcount.c~scripts-recordmcountc-account-for-softirqentrytext scripts/recordmcount.c
+--- a/scripts/recordmcount.c~scripts-recordmcountc-account-for-softirqentrytext
++++ a/scripts/recordmcount.c
+@@ -363,6 +363,7 @@ is_mcounted_section_name(char const *con
+ 		strcmp(".sched.text",    txtname) == 0 ||
+ 		strcmp(".spinlock.text", txtname) == 0 ||
+ 		strcmp(".irqentry.text", txtname) == 0 ||
++		strcmp(".softirqentry.text", txtname) == 0 ||
+ 		strcmp(".kprobes.text", txtname) == 0 ||
+ 		strcmp(".text.unlikely", txtname) == 0;
+ }
+diff -puN scripts/recordmcount.pl~scripts-recordmcountc-account-for-softirqentrytext scripts/recordmcount.pl
+--- a/scripts/recordmcount.pl~scripts-recordmcountc-account-for-softirqentrytext
++++ a/scripts/recordmcount.pl
+@@ -134,6 +134,7 @@ my %text_sections = (
+      ".sched.text" => 1,
+      ".spinlock.text" => 1,
+      ".irqentry.text" => 1,
++     ".softirqentry.text" => 1,
+      ".kprobes.text" => 1,
+      ".text.unlikely" => 1,
+ );
 _
