@@ -1,61 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [patch 3/5] scripts/recordmcount.c: account for
- .softirqentry.text
-Date: Wed, 28 Sep 2016 15:22:36 -0700
-Message-ID: <57ec42ac.H3arybR6bXUiNfxr%akpm@linux-foundation.org>
+Subject: [patch 4/5] mem-hotplug: use nodes that contain memory as mask in new_node_page()
+Date: Wed, 28 Sep 2016 15:22:38 -0700
+Message-ID: <57ec42ae.TIBCzg9OXfdKRjpo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45278 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45286 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933633AbcI1WWh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2016 18:22:37 -0400
+        with ESMTP id S933647AbcI1WWk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2016 18:22:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dvyukov@google.com, rostedt@goodmis.org, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zhong@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com, jallen@linux.vnet.ibm.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, penguin-kernel@i-love.sakura.ne.jp, qiuxishi@huawei.com, rientjes@google.com, vbabka@suse.cz
 
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: scripts/recordmcount.c: account for .softirqentry.text
+From: Li Zhong <zhong@linux.vnet.ibm.com>
+Subject: mem-hotplug: use nodes that contain memory as mask in new_node_page()
 
-be7635e7287e ("arch, ftrace: for KASAN put hard/soft IRQ entries into
-separate sections") added .softirqentry.text section, but it was not added
-to recordmcount.  So functions in the section are untracable.  Add the
-section to scripts/recordmcount.c and scripts/recordmcount.pl.
+9bb627be47a5 ("mem-hotplug: don't clear the only node in new_node_page()")
+prevents allocating from an empty nodemask, but as David points out, it is
+still wrong.  As node_online_map may include memoryless nodes, only
+allocating from these nodes is meaningless.
 
-Fixes: be7635e7287e ("arch, ftrace: for KASAN put hard/soft IRQ entries into separate sections")
-Link: http://lkml.kernel.org/r/1474902626-73468-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Steve Rostedt <rostedt@goodmis.org>
-Cc: <stable@vger.kernel.org>	[4.6+]
+This patch uses node_states[N_MEMORY] mask to prevent the above case.
+
+Fixes: 9bb627be47a5 ("mem-hotplug: don't clear the only node in new_node_page()")
+Fixes: 394e31d2ceb4 ("mem-hotplug: alloc new page from a nearest neighbor node when mem-offline")
+Link: http://lkml.kernel.org/r/1474447117.28370.6.camel@TP420
+Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
+Suggested-by: David Rientjes <rientjes@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: John Allen <jallen@linux.vnet.ibm.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/recordmcount.c  |    1 +
- scripts/recordmcount.pl |    1 +
- 2 files changed, 2 insertions(+)
+ mm/memory_hotplug.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN scripts/recordmcount.c~scripts-recordmcountc-account-for-softirqentrytext scripts/recordmcount.c
---- a/scripts/recordmcount.c~scripts-recordmcountc-account-for-softirqentrytext
-+++ a/scripts/recordmcount.c
-@@ -363,6 +363,7 @@ is_mcounted_section_name(char const *con
- 		strcmp(".sched.text",    txtname) == 0 ||
- 		strcmp(".spinlock.text", txtname) == 0 ||
- 		strcmp(".irqentry.text", txtname) == 0 ||
-+		strcmp(".softirqentry.text", txtname) == 0 ||
- 		strcmp(".kprobes.text", txtname) == 0 ||
- 		strcmp(".text.unlikely", txtname) == 0;
- }
-diff -puN scripts/recordmcount.pl~scripts-recordmcountc-account-for-softirqentrytext scripts/recordmcount.pl
---- a/scripts/recordmcount.pl~scripts-recordmcountc-account-for-softirqentrytext
-+++ a/scripts/recordmcount.pl
-@@ -134,6 +134,7 @@ my %text_sections = (
-      ".sched.text" => 1,
-      ".spinlock.text" => 1,
-      ".irqentry.text" => 1,
-+     ".softirqentry.text" => 1,
-      ".kprobes.text" => 1,
-      ".text.unlikely" => 1,
- );
+diff -puN mm/memory_hotplug.c~mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page
++++ a/mm/memory_hotplug.c
+@@ -1555,8 +1555,8 @@ static struct page *new_node_page(struct
+ {
+ 	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
+ 	int nid = page_to_nid(page);
+-	nodemask_t nmask = node_online_map;
+-	struct page *new_page;
++	nodemask_t nmask = node_states[N_MEMORY];
++	struct page *new_page = NULL;
+ 
+ 	/*
+ 	 * TODO: allocate a destination hugepage from a nearest neighbor node,
+@@ -1567,14 +1567,14 @@ static struct page *new_node_page(struct
+ 		return alloc_huge_page_node(page_hstate(compound_head(page)),
+ 					next_node_in(nid, nmask));
+ 
+-	if (nid != next_node_in(nid, nmask))
+-		node_clear(nid, nmask);
++	node_clear(nid, nmask);
+ 
+ 	if (PageHighMem(page)
+ 	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
+ 		gfp_mask |= __GFP_HIGHMEM;
+ 
+-	new_page = __alloc_pages_nodemask(gfp_mask, 0,
++	if (!nodes_empty(nmask))
++		new_page = __alloc_pages_nodemask(gfp_mask, 0,
+ 					node_zonelist(nid, gfp_mask), &nmask);
+ 	if (!new_page)
+ 		new_page = __alloc_pages(gfp_mask, 0,
 _
