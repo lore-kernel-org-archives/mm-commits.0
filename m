@@ -1,47 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [patch 5/5] MAINTAINERS: Mark has moved
-Date: Wed, 28 Sep 2016 15:22:41 -0700
-Message-ID: <57ec42b1.+SK99WP2cvi17JRu%akpm@linux-foundation.org>
+Subject: [merged]
+ mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
+ removed from -mm tree
+Date: Thu, 29 Sep 2016 12:59:32 -0700
+Message-ID: <57ed72a4.BLidXpcOe8D4mOxS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44054 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933633AbcI1WWm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 28 Sep 2016 18:22:42 -0400
+        with ESMTP id S1755619AbcI2T7d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 15:59:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mfasheh@suse.de, mfasheh@versity.com
+To: zhongjiang@huawei.com, hughd@google.com, mhocko@suse.com, mhocko@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
-From: Mark Fasheh <mfasheh@suse.de>
-Subject: MAINTAINERS: Mark has moved
 
-I will be starting employment at Versity next week and would like to
-update my MAINTAINERS e-mail to reflect that change.  My versity e-mail is
-already activated so I shouldn't get any bounces on the new one.  My
-ability to help with Ocfs2 kernel maintenance won't change as a result of
-the new job.
+The patch titled
+     Subject: mm,ksm: fix endless looping in allocating memory when ksm enable
+has been removed from the -mm tree.  Its filename was
+     mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
 
-Link: http://lkml.kernel.org/r/20160928195104.GG24630@wotan.suse.de
-Signed-off-by: Mark Fasheh <mfasheh@versity.com>
+This patch was dropped because it was merged into mainline or a subsystem tree
+
+------------------------------------------------------
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: mm,ksm: fix endless looping in allocating memory when ksm enable
+
+I hit the following hung task when runing a OOM LTP test case with 4.1
+kernel.
+
+Call trace:
+[<ffffffc000086a88>] __switch_to+0x74/0x8c
+[<ffffffc000a1bae0>] __schedule+0x23c/0x7bc
+[<ffffffc000a1c09c>] schedule+0x3c/0x94
+[<ffffffc000a1eb84>] rwsem_down_write_failed+0x214/0x350
+[<ffffffc000a1e32c>] down_write+0x64/0x80
+[<ffffffc00021f794>] __ksm_exit+0x90/0x19c
+[<ffffffc0000be650>] mmput+0x118/0x11c
+[<ffffffc0000c3ec4>] do_exit+0x2dc/0xa74
+[<ffffffc0000c46f8>] do_group_exit+0x4c/0xe4
+[<ffffffc0000d0f34>] get_signal+0x444/0x5e0
+[<ffffffc000089fcc>] do_signal+0x1d8/0x450
+[<ffffffc00008a35c>] do_notify_resume+0x70/0x78
+
+The oom victim cannot terminate because it needs to take mmap_sem for
+write while the lock is held by ksmd for read which loops in the page
+allocator
+
+ksm_do_scan
+	scan_get_next_rmap_item
+		down_read
+		get_next_rmap_item
+			alloc_rmap_item   #ksmd will loop permanently.
+
+There is no way forward because the oom victim cannot release any memory
+in 4.1 based kernel.  Since 4.6 we have the oom reaper which would solve
+this problem because it would release the memory asynchronously. 
+Nevertheless we can relax alloc_rmap_item requirements and use
+__GFP_NORETRY because the allocation failure is acceptable as ksm_do_scan
+would just retry later after the lock got dropped.
+
+Such a patch would be also easy to backport to older stable kernels which
+do not have oom_reaper.
+
+While we are at it add GFP_NOWARN so the admin doesn't have to be alarmed
+by the allocation failure.
+
+Link: http://lkml.kernel.org/r/1474165570-44398-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Suggested-by: Hugh Dickins <hughd@google.com>
+Suggested-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/ksm.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-my-e-mail MAINTAINERS
---- a/MAINTAINERS~maintainers-update-my-e-mail
-+++ a/MAINTAINERS
-@@ -8745,7 +8745,7 @@ F:	drivers/oprofile/
- F:	include/linux/oprofile.h
+diff -puN mm/ksm.c~mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable mm/ksm.c
+--- a/mm/ksm.c~mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable
++++ a/mm/ksm.c
+@@ -283,7 +283,8 @@ static inline struct rmap_item *alloc_rm
+ {
+ 	struct rmap_item *rmap_item;
  
- ORACLE CLUSTER FILESYSTEM 2 (OCFS2)
--M:	Mark Fasheh <mfasheh@suse.com>
-+M:	Mark Fasheh <mfasheh@versity.com>
- M:	Joel Becker <jlbec@evilplan.org>
- L:	ocfs2-devel@oss.oracle.com (moderated for non-subscribers)
- W:	http://ocfs2.wiki.kernel.org
+-	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL);
++	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL |
++						__GFP_NORETRY | __GFP_NOWARN);
+ 	if (rmap_item)
+ 		ksm_rmap_items++;
+ 	return rmap_item;
 _
+
+Patches currently in -mm which might be from zhongjiang@huawei.com are
+
+mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node.patch
+mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node-v2.patch
+mm-page_owner-align-with-pageblock_nr-pages.patch
+mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+
