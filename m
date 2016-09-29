@@ -1,39 +1,42 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
- removed from -mm tree
-Date: Thu, 29 Sep 2016 14:36:03 -0700
-Message-ID: <57ed8943.vzYvfXAQyoVtNKIb%akpm@linux-foundation.org>
+ kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch removed
+ from -mm tree
+Date: Thu, 29 Sep 2016 14:35:53 -0700
+Message-ID: <57ed8939.0A0/L42FotWK1Puh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47300 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47272 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934401AbcI2VgF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 17:36:05 -0400
+        with ESMTP id S934418AbcI2Vfz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 17:35:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zohar@linux.vnet.ibm.com, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: bauerman@linux.vnet.ibm.com, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: maintain memory size needed for serializing the measurement list
+     Subject: kexec_file: add buffer hand-over support for the next kernel
 has been removed from the -mm tree.  Its filename was
-     ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+     kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima: maintain memory size needed for serializing the measurement list
+From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Subject: kexec_file: add buffer hand-over support for the next kernel
 
-In preparation for serializing the binary_runtime_measurements, this patch
-maintains the amount of memory required.
+The buffer hand-over mechanism allows the currently running kernel to pass
+data to kernel that will be kexec'd via a kexec segment.  The second
+kernel can check whether the previous kernel sent data and retrieve it.
 
-Link: http://lkml.kernel.org/r/1473938771-2782-4-git-send-email-zohar@linux.vnet.ibm.com
-Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
+This is the architecture-independent part of the feature.
+
+Link: http://lkml.kernel.org/r/1473900890-1476-3-git-send-email-bauerman@linux.vnet.ibm.com
+Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
@@ -46,137 +49,149 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/Kconfig     |   12 ++++++
- security/integrity/ima/ima.h       |    1 
- security/integrity/ima/ima_queue.c |   53 +++++++++++++++++++++++++--
- 3 files changed, 64 insertions(+), 2 deletions(-)
+ include/linux/kexec.h |   31 ++++++++++++++++++
+ kernel/kexec_file.c   |   68 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 99 insertions(+)
 
-diff -puN security/integrity/ima/Kconfig~ima-maintain-memory-size-needed-for-serializing-the-measurement-list security/integrity/ima/Kconfig
---- a/security/integrity/ima/Kconfig~ima-maintain-memory-size-needed-for-serializing-the-measurement-list
-+++ a/security/integrity/ima/Kconfig
-@@ -27,6 +27,18 @@ config IMA
- 	  to learn more about IMA.
- 	  If unsure, say N.
- 
-+config IMA_KEXEC
-+	bool "Enable carrying the IMA measurement list across a soft boot"
-+	depends on IMA && TCG_TPM && KEXEC_FILE
-+	default n
-+	help
-+	   TPM PCRs are only reset on a hard reboot.  In order to validate
-+	   a TPM's quote after a soft boot, the IMA measurement list of the
-+	   running kernel must be saved and restored on boot.
-+
-+	   Depending on the IMA policy, the measurement list can grow to
-+	   be very large.
-+
- config IMA_MEASURE_PCR_IDX
- 	int
- 	depends on IMA
-diff -puN security/integrity/ima/ima.h~ima-maintain-memory-size-needed-for-serializing-the-measurement-list security/integrity/ima/ima.h
---- a/security/integrity/ima/ima.h~ima-maintain-memory-size-needed-for-serializing-the-measurement-list
-+++ a/security/integrity/ima/ima.h
-@@ -133,6 +133,7 @@ void ima_print_digest(struct seq_file *m
- struct ima_template_desc *ima_template_desc_current(void);
- int ima_restore_measurement_entry(struct ima_template_entry *entry);
- int ima_restore_measurement_list(loff_t bufsize, void *buf);
-+unsigned long ima_get_binary_runtime_size(void);
- int ima_init_template(void);
- 
- #ifdef CONFIG_KEXEC_FILE
-diff -puN security/integrity/ima/ima_queue.c~ima-maintain-memory-size-needed-for-serializing-the-measurement-list security/integrity/ima/ima_queue.c
---- a/security/integrity/ima/ima_queue.c~ima-maintain-memory-size-needed-for-serializing-the-measurement-list
-+++ a/security/integrity/ima/ima_queue.c
-@@ -29,6 +29,11 @@
- #define AUDIT_CAUSE_LEN_MAX 32
- 
- LIST_HEAD(ima_measurements);	/* list of all measurements */
-+#ifdef CONFIG_IMA_KEXEC
-+static unsigned long binary_runtime_size;
-+#else
-+static unsigned long binary_runtime_size = ULONG_MAX;
-+#endif
- 
- /* key: inode (before secure-hashing a file) */
- struct ima_h_table ima_htable = {
-@@ -64,6 +69,24 @@ static struct ima_queue_entry *ima_looku
- 	return ret;
+diff -puN include/linux/kexec.h~kexec_file-add-buffer-hand-over-support-for-the-next-kernel include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec_file-add-buffer-hand-over-support-for-the-next-kernel
++++ a/include/linux/kexec.h
+@@ -389,6 +389,37 @@ static inline void *boot_phys_to_virt(un
+ 	return phys_to_virt(boot_phys_to_phys(entry));
  }
  
-+/*
-+ * Calculate the memory required for serializing a single
-+ * binary_runtime_measurement list entry, which contains a
-+ * couple of variable length fields (e.g template name and data).
-+ */
-+static int get_binary_runtime_size(struct ima_template_entry *entry)
-+{
-+	int size = 0;
++#ifdef CONFIG_KEXEC_FILE
++bool __weak kexec_can_hand_over_buffer(void);
++int __weak arch_kexec_add_handover_buffer(struct kimage *image,
++					  unsigned long load_addr,
++					  unsigned long size);
++int kexec_add_handover_buffer(struct kexec_buf *kbuf);
++int __weak kexec_get_handover_buffer(void **addr, unsigned long *size);
++int __weak kexec_free_handover_buffer(void);
++#else
++struct kexec_buf;
 +
-+	size += sizeof(u32);	/* pcr */
-+	size += sizeof(entry->digest);
-+	size += sizeof(int);	/* template name size field */
-+	size += strlen(entry->template_desc->name);
-+	size += sizeof(entry->template_data_len);
-+	size += entry->template_data_len;
-+	return size;
++static inline bool kexec_can_hand_over_buffer(void)
++{
++	return false;
 +}
 +
- /* ima_add_template_entry helper function:
-  * - Add template entry to the measurement list and hash table, for
-  *   all entries except those carried across kexec.
-@@ -90,9 +113,30 @@ static int ima_add_digest_entry(struct i
- 		key = ima_hash_key(entry->digest);
- 		hlist_add_head_rcu(&qe->hnext, &ima_htable.queue[key]);
- 	}
-+
-+	if (binary_runtime_size != ULONG_MAX) {
-+		int size;
-+
-+		size = get_binary_runtime_size(entry);
-+		binary_runtime_size = (binary_runtime_size < ULONG_MAX - size) ?
-+		     binary_runtime_size + size : ULONG_MAX;
-+	}
- 	return 0;
- }
- 
-+/*
-+ * Return the amount of memory required for serializing the
-+ * entire binary_runtime_measurement list, including the ima_kexec_hdr
-+ * structure.
-+ */
-+unsigned long ima_get_binary_runtime_size(void)
++static inline int kexec_add_handover_buffer(struct kexec_buf *kbuf)
 +{
-+	if (binary_runtime_size >= (ULONG_MAX - sizeof(struct ima_kexec_hdr)))
-+		return ULONG_MAX;
-+	else
-+		return binary_runtime_size + sizeof(struct ima_kexec_hdr);
-+};
++	return -ENOTSUPP;
++}
 +
- static int ima_pcr_extend(const u8 *hash, int pcr)
- {
- 	int result = 0;
-@@ -106,8 +150,13 @@ static int ima_pcr_extend(const u8 *hash
- 	return result;
++static inline int kexec_get_handover_buffer(void **addr, unsigned long *size)
++{
++	return -ENOTSUPP;
++}
++
++static inline int kexec_free_handover_buffer(void)
++{
++	return -ENOTSUPP;
++}
++#endif /* CONFIG_KEXEC_FILE */
+ #else /* !CONFIG_KEXEC_CORE */
+ struct pt_regs;
+ struct task_struct;
+diff -puN kernel/kexec_file.c~kexec_file-add-buffer-hand-over-support-for-the-next-kernel kernel/kexec_file.c
+--- a/kernel/kexec_file.c~kexec_file-add-buffer-hand-over-support-for-the-next-kernel
++++ a/kernel/kexec_file.c
+@@ -116,6 +116,74 @@ void kimage_file_post_load_cleanup(struc
+ 	image->image_loader_data = NULL;
  }
  
--/* Add template entry to the measurement list and hash table,
-- * and extend the pcr.
-+/*
-+ * Add template entry to the measurement list and hash table, and
-+ * extend the pcr.
++/**
++ * kexec_can_hand_over_buffer() - can we pass data to the kexec'd kernel?
++ */
++bool __weak kexec_can_hand_over_buffer(void)
++{
++	return false;
++}
++
++/**
++ * arch_kexec_add_handover_buffer() - do arch-specific steps to handover buffer
 + *
-+ * On systems which support carrying the IMA measurement list across
-+ * kexec, maintain the total memory size required for serializing the
-+ * binary_runtime_measurements.
-  */
- int ima_add_template_entry(struct ima_template_entry *entry, int violation,
- 			   const char *op, struct inode *inode,
++ * Architectures should use this function to pass on the handover buffer
++ * information to the next kernel.
++ *
++ * Return: 0 on success, negative errno on error.
++ */
++int __weak arch_kexec_add_handover_buffer(struct kimage *image,
++					  unsigned long load_addr,
++					  unsigned long size)
++{
++	return -ENOTSUPP;
++}
++
++/**
++ * kexec_add_handover_buffer() - add buffer to be used by the next kernel
++ * @kbuf:	Buffer contents and memory parameters.
++ *
++ * This function assumes that kexec_mutex is held.
++ * On successful return, @kbuf->mem will have the physical address of
++ * the buffer in the next kernel.
++ *
++ * Return: 0 on success, negative errno on error.
++ */
++int kexec_add_handover_buffer(struct kexec_buf *kbuf)
++{
++	int ret;
++
++	if (!kexec_can_hand_over_buffer())
++		return -ENOTSUPP;
++
++	ret = kexec_add_buffer(kbuf);
++	if (ret)
++		return ret;
++
++	return arch_kexec_add_handover_buffer(kbuf->image, kbuf->mem,
++					      kbuf->memsz);
++}
++
++/**
++ * kexec_get_handover_buffer() - get handover buffer from the previous kernel
++ * @addr:	On successful return, set to point to the buffer contents.
++ * @size:	On successful return, set to the buffer size.
++ *
++ * Return: 0 on success, negative errno on error.
++ */
++int __weak kexec_get_handover_buffer(void **addr, unsigned long *size)
++{
++	return -ENOTSUPP;
++}
++
++/**
++ * kexec_free_handover_buffer() - free memory used by the handover buffer
++ */
++int __weak kexec_free_handover_buffer(void)
++{
++	return -ENOTSUPP;
++}
++
+ /*
+  * In file mode list of segments is prepared by kernel. Copy relevant
+  * data from user space, do error checking, prepare segment list
 _
 
-Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
 
-ima-serialize-the-binary_runtime_measurements.patch
-ima-store-the-builtin-custom-template-definitions-in-a-list.patch
-ima-support-restoring-multiple-template-formats.patch
-ima-define-a-canonical-binary_runtime_measurements-list-format.patch
+kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
+kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
+powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
+powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c.patch
+powerpc-generalize-elf64_apply_relocate_add.patch
+powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
+powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
+powerpc-implement-kexec_file_load.patch
+powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
+powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
+powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load-fix.patch
+powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+powerpc-add-purgatory-for-kexec_file_load-implementation-fix.patch
+powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
+powerpc-kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
+kexec_file-add-mechanism-to-update-kexec-segments.patch
+ima-on-soft-reboot-save-the-measurement-list.patch
 
