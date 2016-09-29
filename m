@@ -1,113 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] compat-remove-compat_printk.patch removed from -mm tree
-Date: Thu, 29 Sep 2016 12:59:49 -0700
-Message-ID: <57ed72b5.Mrh7a3mSt021QFyH%akpm@linux-foundation.org>
+Subject: [merged]
+ dma-mappingh-preserve-unmap-info-for-config_dma_api_debug.patch removed
+ from -mm tree
+Date: Thu, 29 Sep 2016 12:59:35 -0700
+Message-ID: <57ed72a7.G8YO2D4B2qvrXIw+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44086 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44063 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755598AbcI2T7u (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 15:59:50 -0400
+        with ESMTP id S1755821AbcI2T7g (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 15:59:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, acme@redhat.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: andrew.smirnov@gmail.com, borntraeger@de.ibm.com, geliangtang@163.com, jroedel@suse.de, mcgrof@suse.com, robin.murphy@arm.com, thunder.leizhen@huawei.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compat: remove compat_printk()
+     Subject: dma-mapping.h: preserve unmap info for CONFIG_DMA_API_DEBUG
 has been removed from the -mm tree.  Its filename was
-     compat-remove-compat_printk.patch
+     dma-mappingh-preserve-unmap-info-for-config_dma_api_debug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: compat: remove compat_printk()
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+Subject: dma-mapping.h: preserve unmap info for CONFIG_DMA_API_DEBUG
 
-After 7e8e385aaf6e ("x86/compat: Remove sys32_vm86_warning"), this
-function has become unused, so we can remove it as well.
+When CONFIG_DMA_API_DEBUG is enabled we need to preserve unmapping address
+even if "unmap" is a no-op for our architecutre because we need
+debug_dma_unmap_page() to correctly cleanup all of the debug bookkeeping. 
+Failing to do so results in a false positive warnings about previously
+mapped areas never being unmapped.
 
-Link: http://lkml.kernel.org/r/20160617142903.3070388-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Arnaldo Carvalho de Melo <acme@redhat.com>
+Link: http://lkml.kernel.org/r/1474387125-3713-1-git-send-email-andrew.smirnov@gmail.com
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+Cc: Joerg Roedel <jroedel@suse.de>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: "Luis R. Rodriguez" <mcgrof@suse.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Geliang Tang <geliangtang@163.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c            |   14 --------------
- include/linux/compat.h |    1 -
- kernel/sysctl.c        |   10 ----------
- 3 files changed, 25 deletions(-)
+ include/linux/dma-mapping.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/compat.c~compat-remove-compat_printk fs/compat.c
---- a/fs/compat.c~compat-remove-compat_printk
-+++ a/fs/compat.c
-@@ -54,20 +54,6 @@
- #include <asm/ioctls.h>
- #include "internal.h"
- 
--int compat_log = 1;
--
--int compat_printk(const char *fmt, ...)
--{
--	va_list ap;
--	int ret;
--	if (!compat_log)
--		return 0;
--	va_start(ap, fmt);
--	ret = vprintk(fmt, ap);
--	va_end(ap);
--	return ret;
--}
--
- /*
-  * Not all architectures have sys_utime, so implement this in terms
-  * of sys_utimes.
-diff -puN include/linux/compat.h~compat-remove-compat_printk include/linux/compat.h
---- a/include/linux/compat.h~compat-remove-compat_printk
-+++ a/include/linux/compat.h
-@@ -432,7 +432,6 @@ asmlinkage long compat_sys_settimeofday(
- 
- asmlinkage long compat_sys_adjtimex(struct compat_timex __user *utp);
- 
--extern __printf(1, 2) int compat_printk(const char *fmt, ...);
- extern void sigset_from_compat(sigset_t *set, const compat_sigset_t *compat);
- extern void sigset_to_compat(compat_sigset_t *compat, const sigset_t *set);
- 
-diff -puN kernel/sysctl.c~compat-remove-compat_printk kernel/sysctl.c
---- a/kernel/sysctl.c~compat-remove-compat_printk
-+++ a/kernel/sysctl.c
-@@ -106,7 +106,6 @@ extern unsigned int core_pipe_limit;
- extern int pid_max;
- extern int pid_max_min, pid_max_max;
- extern int percpu_pagelist_fraction;
--extern int compat_log;
- extern int latencytop_enabled;
- extern int sysctl_nr_open_min, sysctl_nr_open_max;
- #ifndef CONFIG_MMU
-@@ -1084,15 +1083,6 @@ static struct ctl_table kern_table[] = {
- 		.extra1		= &neg_one,
- 	},
+diff -puN include/linux/dma-mapping.h~dma-mappingh-preserve-unmap-info-for-config_dma_api_debug include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~dma-mappingh-preserve-unmap-info-for-config_dma_api_debug
++++ a/include/linux/dma-mapping.h
+@@ -718,7 +718,7 @@ static inline int dma_mmap_wc(struct dev
+ #define dma_mmap_writecombine dma_mmap_wc
  #endif
--#ifdef CONFIG_COMPAT
--	{
--		.procname	= "compat-log",
--		.data		= &compat_log,
--		.maxlen		= sizeof (int),
--	 	.mode		= 0644,
--		.proc_handler	= proc_dointvec,
--	},
--#endif
- #ifdef CONFIG_RT_MUTEXES
- 	{
- 		.procname	= "max_lock_depth",
+ 
+-#ifdef CONFIG_NEED_DMA_MAP_STATE
++#if defined(CONFIG_NEED_DMA_MAP_STATE) || defined(CONFIG_DMA_API_DEBUG)
+ #define DEFINE_DMA_UNMAP_ADDR(ADDR_NAME)        dma_addr_t ADDR_NAME
+ #define DEFINE_DMA_UNMAP_LEN(LEN_NAME)          __u32 LEN_NAME
+ #define dma_unmap_addr(PTR, ADDR_NAME)           ((PTR)->ADDR_NAME)
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from andrew.smirnov@gmail.com are
 
-relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-fix.patch
 
