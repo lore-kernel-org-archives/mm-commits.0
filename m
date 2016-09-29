@@ -1,120 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-unsigned-file-descriptors.patch removed from -mm
- tree
-Date: Thu, 29 Sep 2016 12:59:45 -0700
-Message-ID: <57ed72b1.2KBjodg2LLrjXIGD%akpm@linux-foundation.org>
+Subject: [merged] fs-bufferc-make-__getblk_slow-static.patch removed from
+ -mm tree
+Date: Thu, 29 Sep 2016 12:59:47 -0700
+Message-ID: <57ed72b3.Wx78Wuc5+DuXamE0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44079 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44083 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755753AbcI2T7q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 15:59:46 -0400
+        with ESMTP id S1755753AbcI2T7s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 15:59:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: ebiggers@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: unsigned file descriptors
+     Subject: fs/buffer.c: make __getblk_slow() static
 has been removed from the -mm tree.  Its filename was
-     proc-unsigned-file-descriptors.patch
+     fs-bufferc-make-__getblk_slow-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: unsigned file descriptors
+From: Eric Biggers <ebiggers@google.com>
+Subject: fs/buffer.c: make __getblk_slow() static
 
-Make struct proc_inode::fd unsigned.
+__getblk_slow() was exported to modules in commit 3b5e6454aaf6
+("fs/buffer.c: support buffer cache allocations with gfp modifiers"). 
+This seems to have been a mistake, as no users were introduced nor was the
+function declared in a header.  Change it back to 'static'.
 
-This allows better code generation on x86_64 (less sign extensions).
-
-Link: http://lkml.kernel.org/r/20160901214202.GB7453@p183.telecom.by
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Link: http://lkml.kernel.org/r/1473712241-85003-1-git-send-email-ebiggers@google.com
+Signed-off-by: Eric Biggers <ebiggers@google.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/fd.c       |    8 ++++----
- fs/proc/fd.h       |    2 +-
- fs/proc/internal.h |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ fs/buffer.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/proc/fd.c~proc-unsigned-file-descriptors fs/proc/fd.c
---- a/fs/proc/fd.c~proc-unsigned-file-descriptors
-+++ a/fs/proc/fd.c
-@@ -31,7 +31,7 @@ static int seq_show(struct seq_file *m,
- 	put_task_struct(task);
- 
- 	if (files) {
--		int fd = proc_fd(m->private);
-+		unsigned int fd = proc_fd(m->private);
- 
- 		spin_lock(&files->file_lock);
- 		file = fcheck_files(files, fd);
-@@ -86,7 +86,7 @@ static int tid_fd_revalidate(struct dent
- 	struct task_struct *task;
- 	const struct cred *cred;
- 	struct inode *inode;
--	int fd;
-+	unsigned int fd;
- 
- 	if (flags & LOOKUP_RCU)
- 		return -ECHILD;
-@@ -158,7 +158,7 @@ static int proc_fd_link(struct dentry *d
- 	}
- 
- 	if (files) {
--		int fd = proc_fd(d_inode(dentry));
-+		unsigned int fd = proc_fd(d_inode(dentry));
- 		struct file *fd_file;
- 
- 		spin_lock(&files->file_lock);
-@@ -253,7 +253,7 @@ static int proc_readfd_common(struct fil
- 			continue;
- 		rcu_read_unlock();
- 
--		len = snprintf(name, sizeof(name), "%d", fd);
-+		len = snprintf(name, sizeof(name), "%u", fd);
- 		if (!proc_fill_cache(file, ctx,
- 				     name, len, instantiate, p,
- 				     (void *)(unsigned long)fd))
-diff -puN fs/proc/fd.h~proc-unsigned-file-descriptors fs/proc/fd.h
---- a/fs/proc/fd.h~proc-unsigned-file-descriptors
-+++ a/fs/proc/fd.h
-@@ -11,7 +11,7 @@ extern const struct inode_operations pro
- 
- extern int proc_fd_permission(struct inode *inode, int mask);
- 
--static inline int proc_fd(struct inode *inode)
-+static inline unsigned int proc_fd(struct inode *inode)
- {
- 	return PROC_I(inode)->fd;
+diff -puN fs/buffer.c~fs-bufferc-make-__getblk_slow-static fs/buffer.c
+--- a/fs/buffer.c~fs-bufferc-make-__getblk_slow-static
++++ a/fs/buffer.c
+@@ -1078,7 +1078,7 @@ grow_buffers(struct block_device *bdev,
+ 	return grow_dev_page(bdev, block, index, size, sizebits, gfp);
  }
-diff -puN fs/proc/internal.h~proc-unsigned-file-descriptors fs/proc/internal.h
---- a/fs/proc/internal.h~proc-unsigned-file-descriptors
-+++ a/fs/proc/internal.h
-@@ -60,7 +60,7 @@ union proc_op {
  
- struct proc_inode {
- 	struct pid *pid;
--	int fd;
-+	unsigned int fd;
- 	union proc_op op;
- 	struct proc_dir_entry *pde;
- 	struct ctl_table_header *sysctl;
+-struct buffer_head *
++static struct buffer_head *
+ __getblk_slow(struct block_device *bdev, sector_t block,
+ 	     unsigned size, gfp_t gfp)
+ {
+@@ -1109,7 +1109,6 @@ __getblk_slow(struct block_device *bdev,
+ 			free_more_memory();
+ 	}
+ }
+-EXPORT_SYMBOL(__getblk_slow);
+ 
+ /*
+  * The relationship between dirty buffers and dirty pages:
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from ebiggers@google.com are
 
-kbuild-simpler-generation-of-assembly-constants.patch
-mm-unrig-vma-cache-hit-ratio.patch
-proc-much-faster-proc-vmstat.patch
-proc-faster-proc-status.patch
-cred-simpler-1d-supplementary-groups.patch
-make-isdigit-table-lookupless.patch
-kstrtox-smaller-_parse_integer.patch
 
