@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch added
- to -mm tree
-Date: Thu, 29 Sep 2016 16:15:04 -0700
-Message-ID: <57eda078.LuREppYHQ7NTwiOJ%akpm@linux-foundation.org>
+Subject: + powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+ added to -mm tree
+Date: Thu, 29 Sep 2016 16:15:16 -0700
+Message-ID: <57eda084.88n7wn3kQOA+4jo4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50133 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50155 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935064AbcI2XPG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 19:15:06 -0400
+        with ESMTP id S935043AbcI2XPR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 19:15:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, dyoung@redhat.com, ebiederm@xmission.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: ima: get the kexec buffer passed by the previous kernel
+     Subject: powerpc: ima: send the kexec buffer to the next kernel
 has been added to the -mm tree.  Its filename is
-     powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
+     powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,56 +40,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: ima: get the kexec buffer passed by the previous kernel
-
-Patch series "ima: carry the measurement list across kexec", v5.
-
-The TPM PCRs are only reset on a hard reboot.  In order to validate a
-TPM's quote after a soft reboot (eg.  kexec -e), the IMA measurement list
-of the running kernel must be saved and then restored on the subsequent
-boot, possibly of a different architecture.
-
-The existing securityfs binary_runtime_measurements file conveniently
-provides a serialized format of the IMA measurement list.  This patch set
-serializes the measurement list in this format and restores it.
-
-Up to now, the binary_runtime_measurements was defined as architecture
-native format.  The assumption being that userspace could and would handle
-any architecture conversions.  With the ability of carrying the
-measurement list across kexec, possibly from one architecture to a
-different one, the per boot architecture information is lost and with it
-the ability of recalculating the template digest hash.  To resolve this
-problem, without breaking the existing ABI, this patch set introduces the
-boot command line option "ima_canonical_fmt", which is arbitrarily defined
-as little endian.
-
-The need for this boot command line option will be limited to the existing
-version 1 format of the binary_runtime_measurements.  Subsequent formats
-will be defined as canonical format (eg.  TPM 2.0 support for larger
-digests).
-
-A simplified method of Thiago Bauermann's "kexec buffer handover" patch
-series for carrying the IMA measurement list across kexec is included in
-this patch set.  The simplified method requires all file measurements be
-taken prior to executing the kexec load, as subsequent measurements will
-not be carried across the kexec and restored.
-
-
-This patch (of 10):
+Subject: powerpc: ima: send the kexec buffer to the next kernel
 
 The IMA kexec buffer allows the currently running kernel to pass the
-measurement list via a kexec segment to the kernel that will be kexec'd. 
-The second kernel can check whether the previous kernel sent the buffer
-and retrieve it.
+measurement list via a kexec segment to the kernel that will be kexec'd.
 
-This is the architecture-specific part which enables IMA to receive the
-measurement list passed by the previous kernel.  It will be used in the
-next patch.
+This is the architecture-specific part of setting up the IMA kexec buffer
+for the next kernel.  It will be used in the next patch.
 
-The change in machine_kexec_64.c is to factor out the logic of removing an
-FDT memory reservation so that it can be used by remove_ima_buffer.
-
-Link: http://lkml.kernel.org/r/1474911029-6372-2-git-send-email-zohar@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1474911029-6372-6-git-send-email-zohar@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -99,379 +57,219 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                           |    3 
- arch/powerpc/Kconfig                   |    1 
- arch/powerpc/include/asm/ima.h         |   13 ++
- arch/powerpc/include/asm/kexec.h       |    1 
- arch/powerpc/kernel/Makefile           |    5 
- arch/powerpc/kernel/ima_kexec.c        |  132 +++++++++++++++++++++++
- arch/powerpc/kernel/machine_kexec_64.c |  106 +++++++++---------
- 7 files changed, 209 insertions(+), 52 deletions(-)
+ arch/powerpc/include/asm/ima.h         |   16 ++++
+ arch/powerpc/include/asm/kexec.h       |   15 +++
+ arch/powerpc/kernel/ima_kexec.c        |   91 +++++++++++++++++++++++
+ arch/powerpc/kernel/kexec_elf_64.c     |    2 
+ arch/powerpc/kernel/machine_kexec_64.c |   12 ++-
+ 5 files changed, 130 insertions(+), 6 deletions(-)
 
-diff -puN arch/Kconfig~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/Kconfig
---- a/arch/Kconfig~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
-+++ a/arch/Kconfig
-@@ -5,6 +5,9 @@
- config KEXEC_CORE
- 	bool
- 
-+config HAVE_IMA_KEXEC
-+	bool
-+
- config OPROFILE
- 	tristate "OProfile system profiling"
- 	depends on PROFILING
-diff -puN arch/powerpc/Kconfig~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
-+++ a/arch/powerpc/Kconfig
-@@ -462,6 +462,7 @@ config KEXEC
- config KEXEC_FILE
- 	bool "kexec file based system call"
- 	select KEXEC_CORE
-+	select HAVE_IMA_KEXEC
- 	select BUILD_BIN2C
- 	depends on PPC64
- 	depends on CRYPTO=y
-diff -puN /dev/null arch/powerpc/include/asm/ima.h
---- /dev/null
+diff -puN arch/powerpc/include/asm/ima.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/include/asm/ima.h
+--- a/arch/powerpc/include/asm/ima.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
 +++ a/arch/powerpc/include/asm/ima.h
-@@ -0,0 +1,13 @@
-+#ifndef _ASM_POWERPC_IMA_H
-+#define _ASM_POWERPC_IMA_H
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_POWERPC_IMA_H
+ #define _ASM_POWERPC_IMA_H
+ 
++struct kimage;
 +
-+int ima_get_kexec_buffer(void **addr, size_t *size);
-+int ima_free_kexec_buffer(void);
+ int ima_get_kexec_buffer(void **addr, size_t *size);
+ int ima_free_kexec_buffer(void);
+ 
+@@ -10,4 +12,18 @@ void remove_ima_buffer(void *fdt, int ch
+ static inline void remove_ima_buffer(void *fdt, int chosen_node) {}
+ #endif
+ 
++#ifdef CONFIG_IMA_KEXEC
++int arch_ima_add_kexec_buffer(struct kimage *image, unsigned long load_addr,
++			      size_t size);
 +
-+#ifdef CONFIG_IMA
-+void remove_ima_buffer(void *fdt, int chosen_node);
++int setup_ima_buffer(const struct kimage *image, void *fdt, int chosen_node);
 +#else
-+static inline void remove_ima_buffer(void *fdt, int chosen_node) {}
++static inline int setup_ima_buffer(const struct kimage *image, void *fdt,
++				   int chosen_node)
++{
++	remove_ima_buffer(fdt, chosen_node);
++	return 0;
++}
++#endif /* CONFIG_IMA_KEXEC */
++
+ #endif /* _ASM_POWERPC_IMA_H */
+diff -puN arch/powerpc/include/asm/kexec.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/include/asm/kexec.h
+--- a/arch/powerpc/include/asm/kexec.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
++++ a/arch/powerpc/include/asm/kexec.h
+@@ -92,12 +92,23 @@ static inline bool kdump_in_progress(voi
+ }
+ 
+ #ifdef CONFIG_KEXEC_FILE
++
++#ifdef CONFIG_IMA_KEXEC
++#define ARCH_HAS_KIMAGE_ARCH
++
++struct kimage_arch {
++	phys_addr_t ima_buffer_addr;
++	size_t ima_buffer_size;
++};
 +#endif
 +
-+#endif /* _ASM_POWERPC_IMA_H */
-diff -puN arch/powerpc/include/asm/kexec.h~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/powerpc/include/asm/kexec.h
---- a/arch/powerpc/include/asm/kexec.h~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
-+++ a/arch/powerpc/include/asm/kexec.h
-@@ -99,6 +99,7 @@ int setup_purgatory(struct kimage *image
- int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
- 		  unsigned long initrd_len, const char *cmdline);
+ int setup_purgatory(struct kimage *image, const void *slave_code,
+ 		    const void *fdt, unsigned long kernel_load_addr,
+ 		    unsigned long fdt_load_addr, unsigned long stack_top,
+ 		    int debug);
+-int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
+-		  unsigned long initrd_len, const char *cmdline);
++int setup_new_fdt(const struct kimage *image, void *fdt,
++		  unsigned long initrd_load_addr, unsigned long initrd_len,
++		  const char *cmdline);
  bool find_debug_console(const void *fdt);
-+int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size);
+ int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size);
  #endif /* CONFIG_KEXEC_FILE */
- 
- #else /* !CONFIG_KEXEC_CORE */
-diff -puN arch/powerpc/kernel/Makefile~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/powerpc/kernel/Makefile
---- a/arch/powerpc/kernel/Makefile~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
-+++ a/arch/powerpc/kernel/Makefile
-@@ -110,6 +110,11 @@ obj-$(CONFIG_PCI_MSI)		+= msi.o
- obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o crash.o \
- 				   machine_kexec_$(CONFIG_WORD_SIZE).o
- obj-$(CONFIG_KEXEC_FILE)	+= kexec_elf_$(CONFIG_WORD_SIZE).o
-+
-+ifeq ($(CONFIG_HAVE_IMA_KEXEC)$(CONFIG_IMA),yy)
-+obj-y				+= ima_kexec.o
-+endif
-+
- obj-$(CONFIG_AUDIT)		+= audit.o
- obj64-$(CONFIG_AUDIT)		+= compat_audit.o
- 
-diff -puN /dev/null arch/powerpc/kernel/ima_kexec.c
---- /dev/null
+diff -puN arch/powerpc/kernel/ima_kexec.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/ima_kexec.c
+--- a/arch/powerpc/kernel/ima_kexec.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
 +++ a/arch/powerpc/kernel/ima_kexec.c
-@@ -0,0 +1,132 @@
-+/*
-+ * Copyright (C) 2016 IBM Corporation
+@@ -130,3 +130,94 @@ void remove_ima_buffer(void *fdt, int ch
+ 	if (!ret)
+ 		pr_debug("Removed old IMA buffer reservation.\n");
+ }
++
++#ifdef CONFIG_IMA_KEXEC
++/**
++ * arch_ima_add_kexec_buffer - do arch-specific steps to add the IMA buffer
 + *
-+ * Authors:
-+ * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
++ * Architectures should use this function to pass on the IMA buffer
++ * information to the next kernel.
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * Return: 0 on success, negative errno on error.
 + */
-+
-+#include <linux/slab.h>
-+#include <linux/kexec.h>
-+#include <linux/of.h>
-+#include <linux/memblock.h>
-+#include <linux/libfdt.h>
-+
-+static int get_addr_size_cells(int *addr_cells, int *size_cells)
++int arch_ima_add_kexec_buffer(struct kimage *image, unsigned long load_addr,
++			      size_t size)
 +{
-+	struct device_node *root;
-+
-+	root = of_find_node_by_path("/");
-+	if (!root)
-+		return -EINVAL;
-+
-+	*addr_cells = of_n_addr_cells(root);
-+	*size_cells = of_n_size_cells(root);
-+
-+	of_node_put(root);
++	image->arch.ima_buffer_addr = load_addr;
++	image->arch.ima_buffer_size = size;
 +
 +	return 0;
 +}
 +
-+static int do_get_kexec_buffer(const void *prop, int len, unsigned long *addr,
-+			       size_t *size)
++static int write_number(void *p, u64 value, int cells)
 +{
-+	int ret, addr_cells, size_cells;
++	if (cells == 1) {
++		u32 tmp;
++
++		if (value > U32_MAX)
++			return -EINVAL;
++
++		tmp = cpu_to_be32(value);
++		memcpy(p, &tmp, sizeof(tmp));
++	} else if (cells == 2) {
++		u64 tmp;
++
++		tmp = cpu_to_be64(value);
++		memcpy(p, &tmp, sizeof(tmp));
++	} else
++		return -EINVAL;
++
++	return 0;
++}
++
++/**
++ * setup_ima_buffer - add IMA buffer information to the fdt
++ * @image:		kexec image being loaded.
++ * @fdt:		Flattened device tree for the next kernel.
++ * @chosen_node:	Offset to the chosen node.
++ *
++ * Return: 0 on success, or negative errno on error.
++ */
++int setup_ima_buffer(const struct kimage *image, void *fdt, int chosen_node)
++{
++	int ret, addr_cells, size_cells, entry_size;
++	u8 value[16];
++
++	remove_ima_buffer(fdt, chosen_node);
++	if (!image->arch.ima_buffer_size)
++		return 0;
 +
 +	ret = get_addr_size_cells(&addr_cells, &size_cells);
 +	if (ret)
 +		return ret;
 +
-+	if (len < 4 * (addr_cells + size_cells))
-+		return -ENOENT;
++	entry_size = 4 * (addr_cells + size_cells);
 +
-+	*addr = of_read_number(prop, addr_cells);
-+	*size = of_read_number(prop + 4 * addr_cells, size_cells);
++	if (entry_size > sizeof(value))
++		return -EINVAL;
++
++	ret = write_number(value, image->arch.ima_buffer_addr, addr_cells);
++	if (ret)
++		return ret;
++
++	ret = write_number(value + 4 * addr_cells, image->arch.ima_buffer_size,
++			   size_cells);
++	if (ret)
++		return ret;
++
++	ret = fdt_setprop(fdt, chosen_node, "linux,ima-kexec-buffer", value,
++			  entry_size);
++	if (ret < 0)
++		return -EINVAL;
++
++	ret = fdt_add_mem_rsv(fdt, image->arch.ima_buffer_addr,
++			      image->arch.ima_buffer_size);
++	if (ret)
++		return -EINVAL;
++
++	pr_debug("IMA buffer at 0x%llx, size = 0x%zx\n",
++		 image->arch.ima_buffer_addr, image->arch.ima_buffer_size);
 +
 +	return 0;
 +}
-+
-+/**
-+ * ima_get_kexec_buffer - get IMA buffer from the previous kernel
-+ * @addr:	On successful return, set to point to the buffer contents.
-+ * @size:	On successful return, set to the buffer size.
-+ *
-+ * Return: 0 on success, negative errno on error.
-+ */
-+int ima_get_kexec_buffer(void **addr, size_t *size)
-+{
-+	int ret, len;
-+	unsigned long tmp_addr;
-+	size_t tmp_size;
-+	const void *prop;
-+
-+	prop = of_get_property(of_chosen, "linux,ima-kexec-buffer", &len);
-+	if (!prop)
-+		return -ENOENT;
-+
-+	ret = do_get_kexec_buffer(prop, len, &tmp_addr, &tmp_size);
-+	if (ret)
-+		return ret;
-+
-+	*addr = __va(tmp_addr);
-+	*size = tmp_size;
-+
-+	return 0;
-+}
-+
-+/**
-+ * ima_free_kexec_buffer - free memory used by the IMA buffer
-+ */
-+int ima_free_kexec_buffer(void)
-+{
-+	int ret;
-+	unsigned long addr;
-+	size_t size;
-+	struct property *prop;
-+
-+	prop = of_find_property(of_chosen, "linux,ima-kexec-buffer", NULL);
-+	if (!prop)
-+		return -ENOENT;
-+
-+	ret = do_get_kexec_buffer(prop->value, prop->length, &addr, &size);
-+	if (ret)
-+		return ret;
-+
-+	ret = of_remove_property(of_chosen, prop);
-+	if (ret)
-+		return ret;
-+
-+	return memblock_free(addr, size);
-+
-+}
-+
-+/**
-+ * remove_ima_buffer - remove the IMA buffer property and reservation from @fdt
-+ *
-+ * The IMA measurement buffer is of no use to a subsequent kernel, so we always
-+ * remove it from the device tree.
-+ */
-+void remove_ima_buffer(void *fdt, int chosen_node)
-+{
-+	int ret, len;
-+	unsigned long addr;
-+	size_t size;
-+	const void *prop;
-+
-+	prop = fdt_getprop(fdt, chosen_node, "linux,ima-kexec-buffer", &len);
-+	if (!prop)
-+		return;
-+
-+	ret = do_get_kexec_buffer(prop, len, &addr, &size);
-+	fdt_delprop(fdt, chosen_node, "linux,ima-kexec-buffer");
-+	if (ret)
-+		return;
-+
-+	ret = delete_fdt_mem_rsv(fdt, addr, size);
-+	if (!ret)
-+		pr_debug("Removed old IMA buffer reservation.\n");
-+}
-diff -puN arch/powerpc/kernel/machine_kexec_64.c~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel arch/powerpc/kernel/machine_kexec_64.c
---- a/arch/powerpc/kernel/machine_kexec_64.c~powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel
++#endif /* CONFIG_IMA_KEXEC */
+diff -puN arch/powerpc/kernel/kexec_elf_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/kexec_elf_64.c
+--- a/arch/powerpc/kernel/kexec_elf_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
++++ a/arch/powerpc/kernel/kexec_elf_64.c
+@@ -208,7 +208,7 @@ void *elf64_load(struct kimage *image, c
+ 		goto out;
+ 	}
+ 
+-	ret = setup_new_fdt(fdt, initrd_load_addr, initrd_len, cmdline);
++	ret = setup_new_fdt(image, fdt, initrd_load_addr, initrd_len, cmdline);
+ 	if (ret)
+ 		goto out;
+ 
+diff -puN arch/powerpc/kernel/machine_kexec_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/machine_kexec_64.c
+--- a/arch/powerpc/kernel/machine_kexec_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
 +++ a/arch/powerpc/kernel/machine_kexec_64.c
-@@ -33,6 +33,7 @@
- #include <asm/hw_breakpoint.h>
- #include <asm/asm-prototypes.h>
- #include <asm/kexec_elf_64.h>
-+#include <asm/ima.h>
+@@ -689,6 +689,7 @@ int setup_purgatory(struct kimage *image
  
- #define SLAVE_CODE_SIZE		256
- 
-@@ -686,9 +687,9 @@ int setup_purgatory(struct kimage *image
- 	return 0;
- }
- 
--/*
-- * setup_new_fdt() - modify /chosen and memory reservation for the next kernel
-- * @fdt:
-+/**
-+ * setup_new_fdt() - modify /chosen and memory reservations for the next kernel
-+ * @fdt:		Flattened device tree for the next kernel.
+ /**
+  * setup_new_fdt() - modify /chosen and memory reservations for the next kernel
++ * @image:		kexec image being loaded.
+  * @fdt:		Flattened device tree for the next kernel.
   * @initrd_load_addr:	Address where the next initrd will be loaded.
   * @initrd_len:		Size of the next initrd, or 0 if there will be none.
-  * @cmdline:		Command line for the next kernel, or NULL if there will
-@@ -699,33 +700,16 @@ int setup_purgatory(struct kimage *image
- int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
- 		  unsigned long initrd_len, const char *cmdline)
+@@ -697,8 +698,9 @@ int setup_purgatory(struct kimage *image
+  *
+  * Return: 0 on success, or negative errno on error.
+  */
+-int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
+-		  unsigned long initrd_len, const char *cmdline)
++int setup_new_fdt(const struct kimage *image, void *fdt,
++		  unsigned long initrd_load_addr, unsigned long initrd_len,
++		  const char *cmdline)
  {
--	uint64_t oldfdt_addr;
--	int i, ret, chosen_node;
-+	int ret, chosen_node;
+ 	int ret, chosen_node;
  	const void *prop;
- 
- 	/* Remove memory reservation for the current device tree. */
--	oldfdt_addr = __pa(initial_boot_params);
--	for (i = 0; i < fdt_num_mem_rsv(fdt); i++) {
--		uint64_t rsv_start, rsv_size;
--
--		ret = fdt_get_mem_rsv(fdt, i, &rsv_start, &rsv_size);
--		if (ret) {
--			pr_err("Malformed device tree.\n");
--			return -EINVAL;
--		}
--
--		if (rsv_start == oldfdt_addr &&
--		    rsv_size == fdt_totalsize(initial_boot_params)) {
--			ret = fdt_del_mem_rsv(fdt, i);
--			if (ret) {
--				pr_err("Error deleting fdt reservation.\n");
--				return -EINVAL;
--			}
--
--			pr_debug("Removed old device tree reservation.\n");
--			break;
--		}
--	}
-+	ret = delete_fdt_mem_rsv(fdt, __pa(initial_boot_params),
-+				 fdt_totalsize(initial_boot_params));
-+	if (ret == 0)
-+		pr_debug("Removed old device tree reservation.\n");
-+	else if (ret != -ENOENT)
-+		return ret;
- 
- 	chosen_node = fdt_path_offset(fdt, "/chosen");
- 	if (chosen_node == -FDT_ERR_NOTFOUND) {
-@@ -743,7 +727,7 @@ int setup_new_fdt(void *fdt, unsigned lo
- 	/* Did we boot using an initrd? */
- 	prop = fdt_getprop(fdt, chosen_node, "linux,initrd-start", NULL);
- 	if (prop) {
--		uint64_t tmp_start, tmp_end, tmp_size, tmp_sizepg;
-+		uint64_t tmp_start, tmp_end, tmp_size;
- 
- 		tmp_start = fdt64_to_cpu(*((const fdt64_t *) prop));
- 
-@@ -759,30 +743,14 @@ int setup_new_fdt(void *fdt, unsigned lo
- 		 * reserve a multiple of PAGE_SIZE, so check for both.
- 		 */
- 		tmp_size = tmp_end - tmp_start;
--		tmp_sizepg = round_up(tmp_size, PAGE_SIZE);
--
--		/* Remove memory reservation for the current initrd. */
--		for (i = 0; i < fdt_num_mem_rsv(fdt); i++) {
--			uint64_t rsv_start, rsv_size;
--
--			ret = fdt_get_mem_rsv(fdt, i, &rsv_start, &rsv_size);
--			if (ret) {
--				pr_err("Malformed device tree.\n");
--				return -EINVAL;
--			}
--
--			if (rsv_start == tmp_start &&
--			    (rsv_size == tmp_size || rsv_size == tmp_sizepg)) {
--				ret = fdt_del_mem_rsv(fdt, i);
--				if (ret) {
--					pr_err("Error deleting fdt reservation.\n");
--					return -EINVAL;
--				}
--				pr_debug("Removed old initrd reservation.\n");
--
--				break;
--			}
--		}
-+		ret = delete_fdt_mem_rsv(fdt, tmp_start, tmp_size);
-+		if (ret == -ENOENT)
-+			ret = delete_fdt_mem_rsv(fdt, tmp_start,
-+						 round_up(tmp_size, PAGE_SIZE));
-+		if (ret == 0)
-+			pr_debug("Removed old initrd reservation.\n");
-+		else if (ret != -ENOENT)
-+			return ret;
- 
- 		/* If there's no new initrd, delete the old initrd's info. */
- 		if (initrd_len == 0) {
-@@ -840,6 +808,8 @@ int setup_new_fdt(void *fdt, unsigned lo
+@@ -808,7 +810,11 @@ int setup_new_fdt(void *fdt, unsigned lo
  		}
  	}
  
-+	remove_ima_buffer(fdt, chosen_node);
-+
+-	remove_ima_buffer(fdt, chosen_node);
++	ret = setup_ima_buffer(image, fdt, chosen_node);
++	if (ret) {
++		pr_err("Error setting up the new device tree.\n");
++		return ret;
++	}
+ 
  	ret = fdt_setprop(fdt, chosen_node, "linux,booted-from-kexec", NULL, 0);
  	if (ret) {
- 		pr_err("Error setting up the new device tree.\n");
-@@ -850,6 +820,38 @@ int setup_new_fdt(void *fdt, unsigned lo
- }
- 
- /**
-+ * delete_fdt_mem_rsv - delete memory reservation with given address and size
-+ *
-+ * Return: 0 on success, or negative errno on error.
-+ */
-+int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size)
-+{
-+	int i, ret, num_rsvs = fdt_num_mem_rsv(fdt);
-+
-+	for (i = 0; i < num_rsvs; i++) {
-+		uint64_t rsv_start, rsv_size;
-+
-+		ret = fdt_get_mem_rsv(fdt, i, &rsv_start, &rsv_size);
-+		if (ret) {
-+			pr_err("Malformed device tree.\n");
-+			return -EINVAL;
-+		}
-+
-+		if (rsv_start == start && rsv_size == size) {
-+			ret = fdt_del_mem_rsv(fdt, i);
-+			if (ret) {
-+				pr_err("Error deleting device tree reservation.\n");
-+				return -EINVAL;
-+			}
-+
-+			return 0;
-+		}
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+/**
-  * find_debug_console() - find out whether there is a console for the purgatory
-  * @fdt:		Flattened device tree to search.
-  */
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
