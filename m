@@ -1,38 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] ima-platform-independent-hash-value.patch removed from -mm tree
-Date: Thu, 29 Sep 2016 14:36:15 -0700
-Message-ID: <57ed894f.RqqD91X9l3XEV3uK%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ ima-permit-duplicate-measurement-list-entries.patch removed from -mm tree
+Date: Thu, 29 Sep 2016 14:36:01 -0700
+Message-ID: <57ed8941.Y4k3RfLbYA04tB3c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47334 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47296 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934401AbcI2VgQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 17:36:16 -0400
+        with ESMTP id S934511AbcI2VgC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 17:36:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.steffen@strongswan.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: zohar@linux.vnet.ibm.com, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: platform-independent hash value
+     Subject: ima: permit duplicate measurement list entries
 has been removed from the -mm tree.  Its filename was
-     ima-platform-independent-hash-value.patch
+     ima-permit-duplicate-measurement-list-entries.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andreas Steffen <andreas.steffen@strongswan.org>
-Subject: ima: platform-independent hash value
+From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Subject: ima: permit duplicate measurement list entries
 
-For remote attestion it is important for the ima measurement values to be
-platform-independent.  Therefore integer fields to be hashed must be
-converted to canonical format.
+Measurements carried across kexec need to be added to the IMA measurement
+list, but should not prevent measurements of the newly booted kernel from
+being added to the measurement list.  This patch adds support for allowing
+duplicate measurements.
 
-Link: http://lkml.kernel.org/r/1473938771-2782-10-git-send-email-zohar@linux.vnet.ibm.com
-Signed-off-by: Andreas Steffen <andreas.steffen@strongswan.org>
+The "boot_aggregate" measurement entry is the delimiter between soft
+boots.
+
+Link: http://lkml.kernel.org/r/1473938771-2782-3-git-send-email-zohar@linux.vnet.ibm.com
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
@@ -46,30 +50,65 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/ima_crypto.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ security/integrity/ima/ima_queue.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN security/integrity/ima/ima_crypto.c~ima-platform-independent-hash-value security/integrity/ima/ima_crypto.c
---- a/security/integrity/ima/ima_crypto.c~ima-platform-independent-hash-value
-+++ a/security/integrity/ima/ima_crypto.c
-@@ -477,11 +477,13 @@ static int ima_calc_field_array_hash_tfm
- 		u8 buffer[IMA_EVENT_NAME_LEN_MAX + 1] = { 0 };
- 		u8 *data_to_hash = field_data[i].data;
- 		u32 datalen = field_data[i].len;
-+		u32 datalen_to_hash =
-+		    !ima_canonical_fmt ? datalen : cpu_to_le32(datalen);
+diff -puN security/integrity/ima/ima_queue.c~ima-permit-duplicate-measurement-list-entries security/integrity/ima/ima_queue.c
+--- a/security/integrity/ima/ima_queue.c~ima-permit-duplicate-measurement-list-entries
++++ a/security/integrity/ima/ima_queue.c
+@@ -65,11 +65,12 @@ static struct ima_queue_entry *ima_looku
+ }
  
- 		if (strcmp(td->name, IMA_TEMPLATE_IMA_NAME) != 0) {
- 			rc = crypto_shash_update(shash,
--						(const u8 *) &field_data[i].len,
--						sizeof(field_data[i].len));
-+						(const u8 *) &datalen_to_hash,
-+						sizeof(datalen_to_hash));
- 			if (rc)
- 				break;
- 		} else if (strcmp(td->fields[i]->field_id, "n") == 0) {
+ /* ima_add_template_entry helper function:
+- * - Add template entry to measurement list and hash table.
++ * - Add template entry to the measurement list and hash table, for
++ *   all entries except those carried across kexec.
+  *
+  * (Called with ima_extend_list_mutex held.)
+  */
+-static int ima_add_digest_entry(struct ima_template_entry *entry)
++static int ima_add_digest_entry(struct ima_template_entry *entry, int flags)
+ {
+ 	struct ima_queue_entry *qe;
+ 	unsigned int key;
+@@ -85,8 +86,10 @@ static int ima_add_digest_entry(struct i
+ 	list_add_tail_rcu(&qe->later, &ima_measurements);
+ 
+ 	atomic_long_inc(&ima_htable.len);
+-	key = ima_hash_key(entry->digest);
+-	hlist_add_head_rcu(&qe->hnext, &ima_htable.queue[key]);
++	if (flags) {
++		key = ima_hash_key(entry->digest);
++		hlist_add_head_rcu(&qe->hnext, &ima_htable.queue[key]);
++	}
+ 	return 0;
+ }
+ 
+@@ -126,7 +129,7 @@ int ima_add_template_entry(struct ima_te
+ 		}
+ 	}
+ 
+-	result = ima_add_digest_entry(entry);
++	result = ima_add_digest_entry(entry, 1);
+ 	if (result < 0) {
+ 		audit_cause = "ENOMEM";
+ 		audit_info = 0;
+@@ -155,7 +158,7 @@ int ima_restore_measurement_entry(struct
+ 	int result = 0;
+ 
+ 	mutex_lock(&ima_extend_list_mutex);
+-	result = ima_add_digest_entry(entry);
++	result = ima_add_digest_entry(entry, 0);
+ 	mutex_unlock(&ima_extend_list_mutex);
+ 	return result;
+ }
 _
 
-Patches currently in -mm which might be from andreas.steffen@strongswan.org are
+Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
+ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+ima-serialize-the-binary_runtime_measurements.patch
+ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+ima-support-restoring-multiple-template-formats.patch
+ima-define-a-canonical-binary_runtime_measurements-list-format.patch
 
