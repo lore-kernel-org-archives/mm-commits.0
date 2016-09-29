@@ -1,42 +1,94 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- ima-store-the-builtin-custom-template-definitions-in-a-list.patch removed
- from -mm tree
-Date: Thu, 29 Sep 2016 14:36:09 -0700
-Message-ID: <57ed8949.MnvpMEKWuXRXcFr/%akpm@linux-foundation.org>
+ kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum.patch
+ removed from -mm tree
+Date: Thu, 29 Sep 2016 14:35:50 -0700
+Message-ID: <57ed8936.3tpqd+BJDq3BhSrS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47317 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47264 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934401AbcI2VgK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 17:36:10 -0400
+        with ESMTP id S934418AbcI2Vfw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 17:35:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zohar@linux.vnet.ibm.com, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: bauerman@linux.vnet.ibm.com, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: store the builtin/custom template definitions in a list
+     Subject: kexec_file: include the purgatory segment in the kexec image checksum
 has been removed from the -mm tree.  Its filename was
-     ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+     kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima: store the builtin/custom template definitions in a list
+From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Subject: kexec_file: include the purgatory segment in the kexec image checksum
 
-The builtin and single custom templates are currently stored in an array. 
-In preparation for being able to restore a measurement list containing
-multiple builtin/custom templates, this patch stores the builtin and
-custom templates as a linked list.  This will permit defining more than
-one custom template per boot.
+Patch series "kexec_file: Add buffer hand-over for the next kernel", v5.
 
-Link: http://lkml.kernel.org/r/1473938771-2782-7-git-send-email-zohar@linux.vnet.ibm.com
-Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
+This patch series implements a mechanism which allows the kernel to pass
+on a buffer to the kernel that will be kexec'd.  This buffer is passed as
+a segment which is added to the kimage when it is being prepared by
+kexec_file_load.
+
+How the second kernel is informed of this buffer is architecture-specific.
+On powerpc, this is done via the device tree, by checking the properties
+/chosen/linux,kexec-handover-buffer-start and
+/chosen/linux,kexec-handover-buffer-end, which is analogous to how the
+kernel finds the initrd.
+
+This is needed because the Integrity Measurement Architecture subsystem
+needs to preserve its measurement list accross the kexec reboot.  The
+following patch series for the IMA subsystem uses this feature for that
+purpose:
+
+https://lists.infradead.org/pipermail/kexec/2016-August/016745.html
+
+This is so that IMA can implement trusted boot support on the OpenPower
+platform, because on such systems an intermediary Linux instance running
+as part of the firmware is used to boot the target operating system via
+kexec.  Using this mechanism, IMA on this intermediary instance can hand
+over to the target OS the measurements of the components that were used to
+boot it.
+
+Because there could be additional measurement events between the
+kexec_file_load call and the actual reboot, IMA needs a way to update the
+buffer with those additional events before rebooting.  One can minimize
+the interval between the kexec_file_load and the reboot syscalls, but as
+small as it can be, there is always the possibility that the measurement
+list will be out of date at the time of reboot.
+
+To address this issue, this patch series also introduces
+kexec_update_segment, which allows a reboot notifier to change the
+contents of the image segment during the reboot process.
+
+
+
+This patch (of 4):
+
+Currently, the purgatory segment is skipped from the kexec image checksum
+because it is modified to include the calculated digest.
+
+By putting the digest in a separate kexec segment, we can include the
+purgatory segment in the kexec image verification since it won't need to
+be modified anymore.
+
+With this change, the only part of the kexec image that is not covered by
+the checksum is the digest itself.
+
+Even with the digest stored separately, x86 needs to leave the purgatory
+segment out of the checksum calculation because it modifies the purgatory
+code in relocate_kernel.  We use CONFIG_ARCH_MODIFIES_KEXEC_PURGATORY to
+allow the powerpc purgatory to be protected by the checksum while still
+preserving x86 behavior.
+
+Link: http://lkml.kernel.org/r/3000835.2VCEnkym2S@hactar
+Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
@@ -49,156 +101,275 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/ima.h          |    2 
- security/integrity/ima/ima_main.c     |    1 
- security/integrity/ima/ima_template.c |   52 ++++++++++++++++++------
- 3 files changed, 44 insertions(+), 11 deletions(-)
+ arch/Kconfig                       |    8 ++
+ arch/powerpc/purgatory/purgatory.c |    4 -
+ arch/x86/Kconfig                   |    1 
+ arch/x86/purgatory/purgatory.c     |    2 
+ include/linux/kexec.h              |    6 +
+ kernel/kexec_file.c                |  100 ++++++++++++++++++---------
+ 6 files changed, 87 insertions(+), 34 deletions(-)
 
-diff -puN security/integrity/ima/ima.h~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima.h
---- a/security/integrity/ima/ima.h~ima-store-the-builtin-custom-template-definitions-in-a-list
-+++ a/security/integrity/ima/ima.h
-@@ -81,6 +81,7 @@ struct ima_template_field {
+diff -puN arch/Kconfig~kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum arch/Kconfig
+--- a/arch/Kconfig~kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum
++++ a/arch/Kconfig
+@@ -5,6 +5,14 @@
+ config KEXEC_CORE
+ 	bool
  
- /* IMA template descriptor definition */
- struct ima_template_desc {
-+	struct list_head list;
- 	char *name;
- 	char *fmt;
- 	int num_fields;
-@@ -136,6 +137,7 @@ int ima_restore_measurement_list(loff_t
- int ima_measurements_show(struct seq_file *m, void *v);
- unsigned long ima_get_binary_runtime_size(void);
- int ima_init_template(void);
-+void ima_init_template_list(void);
++#
++# Architectures that need to modify the purgatory segment after the
++# checksum is calculated need to select this option so that it won't
++# be part of the kexec image checksum.
++#
++config ARCH_MODIFIES_KEXEC_PURGATORY
++	bool
++
+ config OPROFILE
+ 	tristate "OProfile system profiling"
+ 	depends on PROFILING
+diff -puN arch/powerpc/purgatory/purgatory.c~kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum arch/powerpc/purgatory/purgatory.c
+--- a/arch/powerpc/purgatory/purgatory.c~kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum
++++ a/arch/powerpc/purgatory/purgatory.c
+@@ -17,7 +17,7 @@
+ #include "kexec-sha256.h"
  
- #ifdef CONFIG_KEXEC_FILE
- void ima_load_kexec_buffer(void);
-diff -puN security/integrity/ima/ima_main.c~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima_main.c
---- a/security/integrity/ima/ima_main.c~ima-store-the-builtin-custom-template-definitions-in-a-list
-+++ a/security/integrity/ima/ima_main.c
-@@ -418,6 +418,7 @@ static int __init init_ima(void)
+ struct kexec_sha_region sha_regions[SHA256_REGIONS] = {};
+-u8 sha256_digest[SHA256_DIGEST_SIZE] = { 0 };
++u8 *sha256_digest = NULL;
+ 
+ int verify_sha256_digest(void)
  {
- 	int error;
+@@ -40,7 +40,7 @@ int verify_sha256_digest(void)
+ 		printf("\n");
  
-+	ima_init_template_list();
- 	hash_setup(CONFIG_IMA_DEFAULT_HASH);
- 	error = ima_init();
- 	if (!error) {
-diff -puN security/integrity/ima/ima_template.c~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima_template.c
---- a/security/integrity/ima/ima_template.c~ima-store-the-builtin-custom-template-definitions-in-a-list
-+++ a/security/integrity/ima/ima_template.c
-@@ -15,16 +15,20 @@
+ 		printf("sha256_digest: ");
+-		for (i = 0; i < sizeof(sha256_digest); i++)
++		for (i = 0; i < SHA256_DIGEST_SIZE; i++)
+ 			printf("%hhx ", sha256_digest[i]);
  
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 		printf("\n");
+diff -puN arch/x86/Kconfig~kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum arch/x86/Kconfig
+--- a/arch/x86/Kconfig~kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum
++++ a/arch/x86/Kconfig
+@@ -1811,6 +1811,7 @@ config KEXEC
+ config KEXEC_FILE
+ 	bool "kexec file based system call"
+ 	select KEXEC_CORE
++	select ARCH_MODIFIES_KEXEC_PURGATORY
+ 	select BUILD_BIN2C
+ 	depends on X86_64
+ 	depends on CRYPTO=y
+diff -puN arch/x86/purgatory/purgatory.c~kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum arch/x86/purgatory/purgatory.c
+--- a/arch/x86/purgatory/purgatory.c~kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum
++++ a/arch/x86/purgatory/purgatory.c
+@@ -22,7 +22,7 @@ unsigned long backup_dest = 0;
+ unsigned long backup_src = 0;
+ unsigned long backup_sz = 0;
  
-+#include <linux/rculist.h>
- #include "ima.h"
- #include "ima_template_lib.h"
+-u8 sha256_digest[SHA256_DIGEST_SIZE] = { 0 };
++u8 *sha256_digest = NULL;
  
--static struct ima_template_desc defined_templates[] = {
-+static struct ima_template_desc builtin_templates[] = {
- 	{.name = IMA_TEMPLATE_IMA_NAME, .fmt = IMA_TEMPLATE_IMA_FMT},
- 	{.name = "ima-ng", .fmt = "d-ng|n-ng"},
- 	{.name = "ima-sig", .fmt = "d-ng|n-ng|sig"},
- 	{.name = "", .fmt = ""},	/* placeholder for a custom format */
+ struct sha_region sha_regions[16] = {};
+ 
+diff -puN include/linux/kexec.h~kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum
++++ a/include/linux/kexec.h
+@@ -124,8 +124,14 @@ struct purgatory_info {
+ 	 */
+ 	void *purgatory_buf;
+ 
++	/* Digest of the contents of segments. */
++	void *digest_buf;
++
+ 	/* Address where purgatory is finally loaded and is executed from */
+ 	unsigned long purgatory_load_addr;
++
++	/* Address where the digest is loaded. */
++	unsigned long digest_load_addr;
  };
  
-+static LIST_HEAD(defined_templates);
-+static DEFINE_SPINLOCK(template_list);
+ typedef int (kexec_probe_t)(const char *kernel_buf, unsigned long kernel_size);
+diff -puN kernel/kexec_file.c~kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum kernel/kexec_file.c
+--- a/kernel/kexec_file.c~kexec_file-include-the-purgatory-segment-in-the-kexec-image-checksum
++++ a/kernel/kexec_file.c
+@@ -98,6 +98,9 @@ void kimage_file_post_load_cleanup(struc
+ 	vfree(pi->purgatory_buf);
+ 	pi->purgatory_buf = NULL;
+ 
++	kfree(pi->digest_buf);
++	pi->digest_buf = NULL;
 +
- static struct ima_template_field supported_fields[] = {
- 	{.field_id = "d", .field_init = ima_eventdigest_init,
- 	 .field_show = ima_show_template_digest},
-@@ -53,6 +57,8 @@ static int __init ima_template_setup(cha
- 	if (ima_template)
- 		return 1;
+ 	vfree(pi->sechdrs);
+ 	pi->sechdrs = NULL;
  
-+	ima_init_template_list();
+@@ -527,7 +530,6 @@ static int kexec_calculate_store_digests
+ 	struct shash_desc *desc;
+ 	int ret = 0, i, j, zero_buf_sz, sha_region_sz;
+ 	size_t desc_size, nullsz;
+-	char *digest;
+ 	void *zero_buf;
+ 	struct kexec_sha_region *sha_regions;
+ 	struct purgatory_info *pi = &image->purgatory_info;
+@@ -553,6 +555,37 @@ static int kexec_calculate_store_digests
+ 	if (!sha_regions)
+ 		goto out_free_desc;
+ 
++	/*
++	 * Set sha_regions early so that we can write it to the purgatory
++	 * and include it in the checksum.
++	 */
++	for (j = i = 0; i < image->nr_segments; i++) {
++		struct kexec_segment *ksegment = &image->segment[i];
 +
- 	/*
- 	 * Verify that a template with the supplied name exists.
- 	 * If not, use CONFIG_IMA_DEFAULT_TEMPLATE.
-@@ -81,7 +87,7 @@ __setup("ima_template=", ima_template_se
- 
- static int __init ima_template_fmt_setup(char *str)
- {
--	int num_templates = ARRAY_SIZE(defined_templates);
-+	int num_templates = ARRAY_SIZE(builtin_templates);
- 
- 	if (ima_template)
- 		return 1;
-@@ -92,22 +98,28 @@ static int __init ima_template_fmt_setup
- 		return 1;
- 	}
- 
--	defined_templates[num_templates - 1].fmt = str;
--	ima_template = defined_templates + num_templates - 1;
-+	builtin_templates[num_templates - 1].fmt = str;
-+	ima_template = builtin_templates + num_templates - 1;
++		if (ksegment->kbuf == pi->digest_buf)
++			continue;
 +
- 	return 1;
- }
- __setup("ima_template_fmt=", ima_template_fmt_setup);
++		if (IS_ENABLED(CONFIG_ARCH_MODIFIES_KEXEC_PURGATORY) &&
++		    ksegment->kbuf == pi->purgatory_buf)
++			continue;
++
++		sha_regions[j].start = ksegment->mem;
++		sha_regions[j].len = ksegment->memsz;
++		j++;
++	}
++
++	ret = kexec_purgatory_get_set_symbol(image, "sha_regions", sha_regions,
++					     sha_region_sz, false);
++	if (ret)
++		goto out_free_sha_regions;
++
++	ret = kexec_purgatory_get_set_symbol(image, "sha256_digest",
++					     &pi->digest_load_addr,
++					     sizeof(pi->digest_load_addr),
++					     false);
++	if (ret)
++		goto out_free_sha_regions;
++
+ 	desc->tfm   = tfm;
+ 	desc->flags = 0;
  
- static struct ima_template_desc *lookup_template_desc(const char *name)
- {
--	int i;
-+	struct ima_template_desc *template_desc;
-+	int found = 0;
+@@ -560,21 +593,24 @@ static int kexec_calculate_store_digests
+ 	if (ret < 0)
+ 		goto out_free_sha_regions;
  
--	for (i = 0; i < ARRAY_SIZE(defined_templates); i++) {
--		if (strcmp(defined_templates[i].name, name) == 0)
--			return defined_templates + i;
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(template_desc, &defined_templates, list) {
-+		if ((strcmp(template_desc->name, name) == 0) ||
-+		    (strcmp(template_desc->fmt, name) == 0)) {
-+			found = 1;
-+			break;
-+		}
- 	}
+-	digest = kzalloc(SHA256_DIGEST_SIZE, GFP_KERNEL);
+-	if (!digest) {
+-		ret = -ENOMEM;
+-		goto out_free_sha_regions;
+-	}
 -
--	return NULL;
-+	rcu_read_unlock();
-+	return found ? template_desc : NULL;
- }
+-	for (j = i = 0; i < image->nr_segments; i++) {
++	for (i = 0; i < image->nr_segments; i++) {
+ 		struct kexec_segment *ksegment;
  
- static struct ima_template_field *lookup_template_field(const char *field_id)
-@@ -183,11 +195,29 @@ static int template_desc_init_fields(con
- 	return 0;
- }
+ 		ksegment = &image->segment[i];
+ 		/*
+-		 * Skip purgatory as it will be modified once we put digest
+-		 * info in purgatory.
++		 * Skip the digest segment as it will be modified with the
++		 * result of the checksum calculation.
+ 		 */
+-		if (ksegment->kbuf == pi->purgatory_buf)
++		if (ksegment->kbuf == pi->digest_buf)
++			continue;
++
++		/*
++		 * Some architectures need to modify the purgatory before
++		 * jumping into it, so in those cases we need to skip the
++		 * purgatory from the checksum calculation.
++		 */
++		if (IS_ENABLED(CONFIG_ARCH_MODIFIES_KEXEC_PURGATORY) &&
++		    ksegment->kbuf == pi->purgatory_buf)
+ 			continue;
  
-+void ima_init_template_list(void)
-+{
-+	int i;
-+
-+	if (!list_empty(&defined_templates))
-+		return;
-+
-+	spin_lock(&template_list);
-+	for (i = 0; i < ARRAY_SIZE(builtin_templates); i++) {
-+		list_add_tail_rcu(&builtin_templates[i].list,
-+				  &defined_templates);
-+	}
-+	spin_unlock(&template_list);
-+	synchronize_rcu();
-+}
-+
- struct ima_template_desc *ima_template_desc_current(void)
+ 		ret = crypto_shash_update(desc, ksegment->kbuf,
+@@ -600,29 +636,11 @@ static int kexec_calculate_store_digests
+ 
+ 		if (ret)
+ 			break;
+-
+-		sha_regions[j].start = ksegment->mem;
+-		sha_regions[j].len = ksegment->memsz;
+-		j++;
+ 	}
+ 
+-	if (!ret) {
+-		ret = crypto_shash_final(desc, digest);
+-		if (ret)
+-			goto out_free_digest;
+-		ret = kexec_purgatory_get_set_symbol(image, "sha_regions",
+-						sha_regions, sha_region_sz, 0);
+-		if (ret)
+-			goto out_free_digest;
+-
+-		ret = kexec_purgatory_get_set_symbol(image, "sha256_digest",
+-						digest, SHA256_DIGEST_SIZE, 0);
+-		if (ret)
+-			goto out_free_digest;
+-	}
++	if (!ret)
++		ret = crypto_shash_final(desc, pi->digest_buf);
+ 
+-out_free_digest:
+-	kfree(digest);
+ out_free_sha_regions:
+ 	vfree(sha_regions);
+ out_free_desc:
+@@ -875,6 +893,10 @@ int kexec_load_purgatory(struct kimage *
+ 			 unsigned long *load_addr)
  {
--	if (!ima_template)
-+	if (!ima_template) {
-+		ima_init_template_list();
- 		ima_template =
- 		    lookup_template_desc(CONFIG_IMA_DEFAULT_TEMPLATE);
-+	}
- 	return ima_template;
- }
+ 	struct purgatory_info *pi = &image->purgatory_info;
++	struct kexec_buf kbuf = { .image = image, .bufsz = SHA256_DIGEST_SIZE,
++				  .memsz = SHA256_DIGEST_SIZE, .buf_align = 1,
++				  .buf_min = min, .buf_max = max,
++				  .top_down = top_down };
+ 	int ret;
  
+ 	if (kexec_purgatory_size <= 0)
+@@ -900,6 +922,22 @@ int kexec_load_purgatory(struct kimage *
+ 	if (ret)
+ 		return ret;
+ 
++	pi->digest_buf = kzalloc(SHA256_DIGEST_SIZE, GFP_KERNEL);
++	if (!pi->digest_buf) {
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	/*
++	 * Add a separate segment for the digest so that we don't have to modify
++	 * the purgatory segment after we calculate the kexec image checksum.
++	 */
++	kbuf.buffer = pi->digest_buf;
++	ret = kexec_add_buffer(&kbuf);
++	if (ret)
++		goto out;
++	pi->digest_load_addr = kbuf.mem;
++
+ 	ret = kexec_apply_relocations(image);
+ 	if (ret)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
 
-ima-support-restoring-multiple-template-formats.patch
-ima-define-a-canonical-binary_runtime_measurements-list-format.patch
+kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
+kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
+powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
+powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c.patch
+powerpc-generalize-elf64_apply_relocate_add.patch
+powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
+powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
+powerpc-implement-kexec_file_load.patch
+powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
+powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
+powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load-fix.patch
+powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+powerpc-add-purgatory-for-kexec_file_load-implementation-fix.patch
+powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
+kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
+powerpc-kexec_file-add-buffer-hand-over-support-for-the-next-kernel.patch
+kexec_file-add-mechanism-to-update-kexec-segments.patch
+ima-on-soft-reboot-save-the-measurement-list.patch
 
