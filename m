@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
- added to -mm tree
-Date: Thu, 29 Sep 2016 16:15:16 -0700
-Message-ID: <57eda084.88n7wn3kQOA+4jo4%akpm@linux-foundation.org>
+Subject: +
+ ima-store-the-builtin-custom-template-definitions-in-a-list.patch added to
+ -mm tree
+Date: Thu, 29 Sep 2016 16:15:22 -0700
+Message-ID: <57eda08a.bBuizP8TRFfza9iN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50155 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50164 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935043AbcI2XPR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 19:15:17 -0400
+        with ESMTP id S935043AbcI2XPX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 19:15:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, dyoung@redhat.com, ebiederm@xmission.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: zohar@linux.vnet.ibm.com, bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, dyoung@redhat.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: ima: send the kexec buffer to the next kernel
+     Subject: ima: store the builtin/custom template definitions in a list
 has been added to the -mm tree.  Its filename is
-     powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+     ima-store-the-builtin-custom-template-definitions-in-a-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ima-store-the-builtin-custom-template-definitions-in-a-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ima-store-the-builtin-custom-template-definitions-in-a-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,256 +40,179 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: ima: send the kexec buffer to the next kernel
+From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Subject: ima: store the builtin/custom template definitions in a list
 
-The IMA kexec buffer allows the currently running kernel to pass the
-measurement list via a kexec segment to the kernel that will be kexec'd.
+The builtin and single custom templates are currently stored in an array. 
+In preparation for being able to restore a measurement list containing
+multiple builtin/custom templates, this patch stores the builtin and
+custom templates as a linked list.  This will permit defining more than
+one custom template per boot.
 
-This is the architecture-specific part of setting up the IMA kexec buffer
-for the next kernel.  It will be used in the next patch.
-
-Link: http://lkml.kernel.org/r/1474911029-6372-6-git-send-email-zohar@linux.vnet.ibm.com
-Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/1474911029-6372-8-git-send-email-zohar@linux.vnet.ibm.com
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
+Cc: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/ima.h         |   16 ++++
- arch/powerpc/include/asm/kexec.h       |   15 +++
- arch/powerpc/kernel/ima_kexec.c        |   91 +++++++++++++++++++++++
- arch/powerpc/kernel/kexec_elf_64.c     |    2 
- arch/powerpc/kernel/machine_kexec_64.c |   12 ++-
- 5 files changed, 130 insertions(+), 6 deletions(-)
+ security/integrity/ima/ima.h          |    2 
+ security/integrity/ima/ima_main.c     |    1 
+ security/integrity/ima/ima_template.c |   52 ++++++++++++++++++------
+ 3 files changed, 44 insertions(+), 11 deletions(-)
 
-diff -puN arch/powerpc/include/asm/ima.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/include/asm/ima.h
---- a/arch/powerpc/include/asm/ima.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
-+++ a/arch/powerpc/include/asm/ima.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_POWERPC_IMA_H
- #define _ASM_POWERPC_IMA_H
+diff -puN security/integrity/ima/ima.h~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima.h
+--- a/security/integrity/ima/ima.h~ima-store-the-builtin-custom-template-definitions-in-a-list
++++ a/security/integrity/ima/ima.h
+@@ -85,6 +85,7 @@ struct ima_template_field {
  
-+struct kimage;
-+
- int ima_get_kexec_buffer(void **addr, size_t *size);
- int ima_free_kexec_buffer(void);
+ /* IMA template descriptor definition */
+ struct ima_template_desc {
++	struct list_head list;
+ 	char *name;
+ 	char *fmt;
+ 	int num_fields;
+@@ -146,6 +147,7 @@ int ima_restore_measurement_list(loff_t
+ int ima_measurements_show(struct seq_file *m, void *v);
+ unsigned long ima_get_binary_runtime_size(void);
+ int ima_init_template(void);
++void ima_init_template_list(void);
  
-@@ -10,4 +12,18 @@ void remove_ima_buffer(void *fdt, int ch
- static inline void remove_ima_buffer(void *fdt, int chosen_node) {}
- #endif
- 
-+#ifdef CONFIG_IMA_KEXEC
-+int arch_ima_add_kexec_buffer(struct kimage *image, unsigned long load_addr,
-+			      size_t size);
-+
-+int setup_ima_buffer(const struct kimage *image, void *fdt, int chosen_node);
-+#else
-+static inline int setup_ima_buffer(const struct kimage *image, void *fdt,
-+				   int chosen_node)
-+{
-+	remove_ima_buffer(fdt, chosen_node);
-+	return 0;
-+}
-+#endif /* CONFIG_IMA_KEXEC */
-+
- #endif /* _ASM_POWERPC_IMA_H */
-diff -puN arch/powerpc/include/asm/kexec.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/include/asm/kexec.h
---- a/arch/powerpc/include/asm/kexec.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
-+++ a/arch/powerpc/include/asm/kexec.h
-@@ -92,12 +92,23 @@ static inline bool kdump_in_progress(voi
- }
- 
- #ifdef CONFIG_KEXEC_FILE
-+
-+#ifdef CONFIG_IMA_KEXEC
-+#define ARCH_HAS_KIMAGE_ARCH
-+
-+struct kimage_arch {
-+	phys_addr_t ima_buffer_addr;
-+	size_t ima_buffer_size;
-+};
-+#endif
-+
- int setup_purgatory(struct kimage *image, const void *slave_code,
- 		    const void *fdt, unsigned long kernel_load_addr,
- 		    unsigned long fdt_load_addr, unsigned long stack_top,
- 		    int debug);
--int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
--		  unsigned long initrd_len, const char *cmdline);
-+int setup_new_fdt(const struct kimage *image, void *fdt,
-+		  unsigned long initrd_load_addr, unsigned long initrd_len,
-+		  const char *cmdline);
- bool find_debug_console(const void *fdt);
- int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size);
- #endif /* CONFIG_KEXEC_FILE */
-diff -puN arch/powerpc/kernel/ima_kexec.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/ima_kexec.c
---- a/arch/powerpc/kernel/ima_kexec.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
-+++ a/arch/powerpc/kernel/ima_kexec.c
-@@ -130,3 +130,94 @@ void remove_ima_buffer(void *fdt, int ch
- 	if (!ret)
- 		pr_debug("Removed old IMA buffer reservation.\n");
- }
-+
-+#ifdef CONFIG_IMA_KEXEC
-+/**
-+ * arch_ima_add_kexec_buffer - do arch-specific steps to add the IMA buffer
-+ *
-+ * Architectures should use this function to pass on the IMA buffer
-+ * information to the next kernel.
-+ *
-+ * Return: 0 on success, negative errno on error.
-+ */
-+int arch_ima_add_kexec_buffer(struct kimage *image, unsigned long load_addr,
-+			      size_t size)
-+{
-+	image->arch.ima_buffer_addr = load_addr;
-+	image->arch.ima_buffer_size = size;
-+
-+	return 0;
-+}
-+
-+static int write_number(void *p, u64 value, int cells)
-+{
-+	if (cells == 1) {
-+		u32 tmp;
-+
-+		if (value > U32_MAX)
-+			return -EINVAL;
-+
-+		tmp = cpu_to_be32(value);
-+		memcpy(p, &tmp, sizeof(tmp));
-+	} else if (cells == 2) {
-+		u64 tmp;
-+
-+		tmp = cpu_to_be64(value);
-+		memcpy(p, &tmp, sizeof(tmp));
-+	} else
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+/**
-+ * setup_ima_buffer - add IMA buffer information to the fdt
-+ * @image:		kexec image being loaded.
-+ * @fdt:		Flattened device tree for the next kernel.
-+ * @chosen_node:	Offset to the chosen node.
-+ *
-+ * Return: 0 on success, or negative errno on error.
-+ */
-+int setup_ima_buffer(const struct kimage *image, void *fdt, int chosen_node)
-+{
-+	int ret, addr_cells, size_cells, entry_size;
-+	u8 value[16];
-+
-+	remove_ima_buffer(fdt, chosen_node);
-+	if (!image->arch.ima_buffer_size)
-+		return 0;
-+
-+	ret = get_addr_size_cells(&addr_cells, &size_cells);
-+	if (ret)
-+		return ret;
-+
-+	entry_size = 4 * (addr_cells + size_cells);
-+
-+	if (entry_size > sizeof(value))
-+		return -EINVAL;
-+
-+	ret = write_number(value, image->arch.ima_buffer_addr, addr_cells);
-+	if (ret)
-+		return ret;
-+
-+	ret = write_number(value + 4 * addr_cells, image->arch.ima_buffer_size,
-+			   size_cells);
-+	if (ret)
-+		return ret;
-+
-+	ret = fdt_setprop(fdt, chosen_node, "linux,ima-kexec-buffer", value,
-+			  entry_size);
-+	if (ret < 0)
-+		return -EINVAL;
-+
-+	ret = fdt_add_mem_rsv(fdt, image->arch.ima_buffer_addr,
-+			      image->arch.ima_buffer_size);
-+	if (ret)
-+		return -EINVAL;
-+
-+	pr_debug("IMA buffer at 0x%llx, size = 0x%zx\n",
-+		 image->arch.ima_buffer_addr, image->arch.ima_buffer_size);
-+
-+	return 0;
-+}
-+#endif /* CONFIG_IMA_KEXEC */
-diff -puN arch/powerpc/kernel/kexec_elf_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/kexec_elf_64.c
---- a/arch/powerpc/kernel/kexec_elf_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
-+++ a/arch/powerpc/kernel/kexec_elf_64.c
-@@ -208,7 +208,7 @@ void *elf64_load(struct kimage *image, c
- 		goto out;
- 	}
- 
--	ret = setup_new_fdt(fdt, initrd_load_addr, initrd_len, cmdline);
-+	ret = setup_new_fdt(image, fdt, initrd_load_addr, initrd_len, cmdline);
- 	if (ret)
- 		goto out;
- 
-diff -puN arch/powerpc/kernel/machine_kexec_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/machine_kexec_64.c
---- a/arch/powerpc/kernel/machine_kexec_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
-+++ a/arch/powerpc/kernel/machine_kexec_64.c
-@@ -689,6 +689,7 @@ int setup_purgatory(struct kimage *image
- 
- /**
-  * setup_new_fdt() - modify /chosen and memory reservations for the next kernel
-+ * @image:		kexec image being loaded.
-  * @fdt:		Flattened device tree for the next kernel.
-  * @initrd_load_addr:	Address where the next initrd will be loaded.
-  * @initrd_len:		Size of the next initrd, or 0 if there will be none.
-@@ -697,8 +698,9 @@ int setup_purgatory(struct kimage *image
-  *
-  * Return: 0 on success, or negative errno on error.
-  */
--int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
--		  unsigned long initrd_len, const char *cmdline)
-+int setup_new_fdt(const struct kimage *image, void *fdt,
-+		  unsigned long initrd_load_addr, unsigned long initrd_len,
-+		  const char *cmdline)
+ /*
+  * used to protect h_table and sha_table
+diff -puN security/integrity/ima/ima_main.c~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima_main.c
+--- a/security/integrity/ima/ima_main.c~ima-store-the-builtin-custom-template-definitions-in-a-list
++++ a/security/integrity/ima/ima_main.c
+@@ -418,6 +418,7 @@ static int __init init_ima(void)
  {
- 	int ret, chosen_node;
- 	const void *prop;
-@@ -808,7 +810,11 @@ int setup_new_fdt(void *fdt, unsigned lo
- 		}
+ 	int error;
+ 
++	ima_init_template_list();
+ 	hash_setup(CONFIG_IMA_DEFAULT_HASH);
+ 	error = ima_init();
+ 	if (!error) {
+diff -puN security/integrity/ima/ima_template.c~ima-store-the-builtin-custom-template-definitions-in-a-list security/integrity/ima/ima_template.c
+--- a/security/integrity/ima/ima_template.c~ima-store-the-builtin-custom-template-definitions-in-a-list
++++ a/security/integrity/ima/ima_template.c
+@@ -15,16 +15,20 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
++#include <linux/rculist.h>
+ #include "ima.h"
+ #include "ima_template_lib.h"
+ 
+-static struct ima_template_desc defined_templates[] = {
++static struct ima_template_desc builtin_templates[] = {
+ 	{.name = IMA_TEMPLATE_IMA_NAME, .fmt = IMA_TEMPLATE_IMA_FMT},
+ 	{.name = "ima-ng", .fmt = "d-ng|n-ng"},
+ 	{.name = "ima-sig", .fmt = "d-ng|n-ng|sig"},
+ 	{.name = "", .fmt = ""},	/* placeholder for a custom format */
+ };
+ 
++static LIST_HEAD(defined_templates);
++static DEFINE_SPINLOCK(template_list);
++
+ static struct ima_template_field supported_fields[] = {
+ 	{.field_id = "d", .field_init = ima_eventdigest_init,
+ 	 .field_show = ima_show_template_digest},
+@@ -53,6 +57,8 @@ static int __init ima_template_setup(cha
+ 	if (ima_template)
+ 		return 1;
+ 
++	ima_init_template_list();
++
+ 	/*
+ 	 * Verify that a template with the supplied name exists.
+ 	 * If not, use CONFIG_IMA_DEFAULT_TEMPLATE.
+@@ -81,7 +87,7 @@ __setup("ima_template=", ima_template_se
+ 
+ static int __init ima_template_fmt_setup(char *str)
+ {
+-	int num_templates = ARRAY_SIZE(defined_templates);
++	int num_templates = ARRAY_SIZE(builtin_templates);
+ 
+ 	if (ima_template)
+ 		return 1;
+@@ -92,22 +98,28 @@ static int __init ima_template_fmt_setup
+ 		return 1;
  	}
  
--	remove_ima_buffer(fdt, chosen_node);
-+	ret = setup_ima_buffer(image, fdt, chosen_node);
-+	if (ret) {
-+		pr_err("Error setting up the new device tree.\n");
-+		return ret;
-+	}
+-	defined_templates[num_templates - 1].fmt = str;
+-	ima_template = defined_templates + num_templates - 1;
++	builtin_templates[num_templates - 1].fmt = str;
++	ima_template = builtin_templates + num_templates - 1;
++
+ 	return 1;
+ }
+ __setup("ima_template_fmt=", ima_template_fmt_setup);
  
- 	ret = fdt_setprop(fdt, chosen_node, "linux,booted-from-kexec", NULL, 0);
- 	if (ret) {
+ static struct ima_template_desc *lookup_template_desc(const char *name)
+ {
+-	int i;
++	struct ima_template_desc *template_desc;
++	int found = 0;
+ 
+-	for (i = 0; i < ARRAY_SIZE(defined_templates); i++) {
+-		if (strcmp(defined_templates[i].name, name) == 0)
+-			return defined_templates + i;
++	rcu_read_lock();
++	list_for_each_entry_rcu(template_desc, &defined_templates, list) {
++		if ((strcmp(template_desc->name, name) == 0) ||
++		    (strcmp(template_desc->fmt, name) == 0)) {
++			found = 1;
++			break;
++		}
+ 	}
+-
+-	return NULL;
++	rcu_read_unlock();
++	return found ? template_desc : NULL;
+ }
+ 
+ static struct ima_template_field *lookup_template_field(const char *field_id)
+@@ -183,11 +195,29 @@ static int template_desc_init_fields(con
+ 	return 0;
+ }
+ 
++void ima_init_template_list(void)
++{
++	int i;
++
++	if (!list_empty(&defined_templates))
++		return;
++
++	spin_lock(&template_list);
++	for (i = 0; i < ARRAY_SIZE(builtin_templates); i++) {
++		list_add_tail_rcu(&builtin_templates[i].list,
++				  &defined_templates);
++	}
++	spin_unlock(&template_list);
++	synchronize_rcu();
++}
++
+ struct ima_template_desc *ima_template_desc_current(void)
+ {
+-	if (!ima_template)
++	if (!ima_template) {
++		ima_init_template_list();
+ 		ima_template =
+ 		    lookup_template_desc(CONFIG_IMA_DEFAULT_TEMPLATE);
++	}
+ 	return ima_template;
+ }
+ 
 _
 
-Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
+Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
-kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
-kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
-kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
-powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
-powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c.patch
-powerpc-generalize-elf64_apply_relocate_add.patch
-powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
-powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
-powerpc-implement-kexec_file_load.patch
-powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
-powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
-powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load-fix.patch
-powerpc-add-purgatory-for-kexec_file_load-implementation.patch
-powerpc-add-purgatory-for-kexec_file_load-implementation-fix.patch
-powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
-powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
-powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+ima-on-soft-reboot-restore-the-measurement-list.patch
+ima-permit-duplicate-measurement-list-entries.patch
+ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+ima-on-soft-reboot-save-the-measurement-list.patch
+ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+ima-support-restoring-multiple-template-formats.patch
+ima-define-a-canonical-binary_runtime_measurements-list-format.patch
 
