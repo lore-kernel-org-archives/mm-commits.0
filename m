@@ -1,68 +1,40 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- ima-on-soft-reboot-restore-the-measurement-list.patch removed from -mm tree
-Date: Thu, 29 Sep 2016 14:35:59 -0700
-Message-ID: <57ed893f.4OZCmDBfhOvFme+z%akpm@linux-foundation.org>
+ ima-serialize-the-binary_runtime_measurements.patch removed from -mm tree
+Date: Thu, 29 Sep 2016 14:36:05 -0700
+Message-ID: <57ed8945.i4WoTn/tvZvCX87J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47288 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47306 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934511AbcI2VgA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 17:36:00 -0400
+        with ESMTP id S934401AbcI2VgG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 17:36:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zohar@linux.vnet.ibm.com, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, erichte@linux.vnet.ibm.com, mpe@ellerman.id.au, stewart@linux.vnet.ibm.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: on soft reboot, restore the measurement list
+     Subject: ima: serialize the binary_runtime_measurements
 has been removed from the -mm tree.  Its filename was
-     ima-on-soft-reboot-restore-the-measurement-list.patch
+     ima-serialize-the-binary_runtime_measurements.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima: on soft reboot, restore the measurement list
-
-Patch series "ima: carry the measurement list across kexec", v4.
-
-The TPM PCRs are only reset on a hard reboot.  In order to validate a
-TPM's quote after a soft reboot (eg.  kexec -e), the IMA measurement list
-of the running kernel must be saved and then restored on the subsequent
-boot, possibly of a different architecture.
-
-The existing securityfs binary_runtime_measurements file conveniently
-provides a serialized format of the IMA measurement list.  This patch set
-serializes the measurement list in this format and restores it.
-
-Up to now, the binary_runtime_measurements was defined as architecture
-native format.  The assumption being that userspace could and would handle
-any architecture conversions.  With the ability of carrying the
-measurement list across kexec, possibly from one architecture to a
-different one, the per boot architecture information is lost and with it
-the ability of recalculating the template digest hash.  To resolve this
-problem, without breaking the existing ABI, this patch set introduces the
-boot command line option "ima_canonical_fmt", which is arbitrarily defined
-as little endian.
-
-The need for this boot command line option will be limited to the existing
-version 1 format of the binary_runtime_measurements.  Subsequent formats
-will be defined as canonical format (eg.  TPM 2.0 support for larger
-digests).
-
-
-This patch (of 9):
+Subject: ima: serialize the binary_runtime_measurements
 
 The TPM PCRs are only reset on a hard reboot.  In order to validate a
 TPM's quote after a soft reboot (eg.  kexec -e), the IMA measurement list
 of the running kernel must be saved and restored on boot.  This patch
-restores the measurement list.
+serializes the IMA measurement list in the binary_runtime_measurements
+format.
 
-Link: http://lkml.kernel.org/r/1473938771-2782-2-git-send-email-zohar@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1473938771-2782-5-git-send-email-zohar@linux.vnet.ibm.com
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
@@ -76,339 +48,99 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/Makefile       |    1 
- security/integrity/ima/ima.h          |   18 ++
- security/integrity/ima/ima_init.c     |    2 
- security/integrity/ima/ima_kexec.c    |   55 +++++++
- security/integrity/ima/ima_queue.c    |   10 +
- security/integrity/ima/ima_template.c |  170 ++++++++++++++++++++++++
- 6 files changed, 256 insertions(+)
+ security/integrity/ima/ima.h       |    1 
+ security/integrity/ima/ima_fs.c    |    2 -
+ security/integrity/ima/ima_kexec.c |   51 +++++++++++++++++++++++++++
+ 3 files changed, 53 insertions(+), 1 deletion(-)
 
-diff -puN security/integrity/ima/Makefile~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/Makefile
---- a/security/integrity/ima/Makefile~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/Makefile
-@@ -8,4 +8,5 @@ obj-$(CONFIG_IMA) += ima.o
- ima-y := ima_fs.o ima_queue.o ima_init.o ima_main.o ima_crypto.o ima_api.o \
- 	 ima_policy.o ima_template.o ima_template_lib.o
- ima-$(CONFIG_IMA_APPRAISE) += ima_appraise.o
-+ima-$(CONFIG_KEXEC_FILE) += ima_kexec.o
- obj-$(CONFIG_IMA_BLACKLIST_KEYRING) += ima_mok.o
-diff -puN security/integrity/ima/ima.h~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima.h
---- a/security/integrity/ima/ima.h~ima-on-soft-reboot-restore-the-measurement-list
+diff -puN security/integrity/ima/ima.h~ima-serialize-the-binary_runtime_measurements security/integrity/ima/ima.h
+--- a/security/integrity/ima/ima.h~ima-serialize-the-binary_runtime_measurements
 +++ a/security/integrity/ima/ima.h
-@@ -102,6 +102,15 @@ struct ima_queue_entry {
- };
- extern struct list_head ima_measurements;	/* list of all measurements */
- 
-+/* Some details preceding the binary serialized measurement list */
-+struct ima_kexec_hdr {
-+	u16 version;
-+	u16 _reserved0;
-+	u32 _reserved1;
-+	u64 buffer_size;
-+	u64 count;
-+};
-+
- /* Internal IMA function definitions */
- int ima_init(void);
- int ima_fs_init(void);
-@@ -122,8 +131,17 @@ int ima_init_crypto(void);
- void ima_putc(struct seq_file *m, void *data, int datalen);
- void ima_print_digest(struct seq_file *m, u8 *digest, u32 size);
+@@ -133,6 +133,7 @@ void ima_print_digest(struct seq_file *m
  struct ima_template_desc *ima_template_desc_current(void);
-+int ima_restore_measurement_entry(struct ima_template_entry *entry);
-+int ima_restore_measurement_list(loff_t bufsize, void *buf);
+ int ima_restore_measurement_entry(struct ima_template_entry *entry);
+ int ima_restore_measurement_list(loff_t bufsize, void *buf);
++int ima_measurements_show(struct seq_file *m, void *v);
+ unsigned long ima_get_binary_runtime_size(void);
  int ima_init_template(void);
  
-+#ifdef CONFIG_KEXEC_FILE
-+void ima_load_kexec_buffer(void);
-+#else
-+static inline void ima_load_kexec_buffer(void)
-+{}
-+#endif
-+
- /*
-  * used to protect h_table and sha_table
+diff -puN security/integrity/ima/ima_fs.c~ima-serialize-the-binary_runtime_measurements security/integrity/ima/ima_fs.c
+--- a/security/integrity/ima/ima_fs.c~ima-serialize-the-binary_runtime_measurements
++++ a/security/integrity/ima/ima_fs.c
+@@ -116,7 +116,7 @@ void ima_putc(struct seq_file *m, void *
+  *       [eventdata length]
+  *       eventdata[n]=template specific data
   */
-diff -puN security/integrity/ima/ima_init.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_init.c
---- a/security/integrity/ima/ima_init.c~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/ima_init.c
-@@ -128,6 +128,8 @@ int __init ima_init(void)
- 	if (rc != 0)
- 		return rc;
- 
-+	ima_load_kexec_buffer();
-+
- 	rc = ima_add_boot_aggregate();	/* boot aggregate must be first entry */
- 	if (rc != 0)
- 		return rc;
-diff -puN /dev/null security/integrity/ima/ima_kexec.c
---- /dev/null
+-static int ima_measurements_show(struct seq_file *m, void *v)
++int ima_measurements_show(struct seq_file *m, void *v)
+ {
+ 	/* the list never shrinks, so we don't need a lock here */
+ 	struct ima_queue_entry *qe = v;
+diff -puN security/integrity/ima/ima_kexec.c~ima-serialize-the-binary_runtime_measurements security/integrity/ima/ima_kexec.c
+--- a/security/integrity/ima/ima_kexec.c~ima-serialize-the-binary_runtime_measurements
 +++ a/security/integrity/ima/ima_kexec.c
-@@ -0,0 +1,55 @@
-+/*
-+ * Copyright (C) 2016 IBM Corporation
-+ *
-+ * Authors:
-+ * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-+ * Mimi Zohar <zohar@linux.vnet.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#include <linux/fcntl.h>
-+#include <linux/slab.h>
-+#include <linux/module.h>
-+#include <linux/seq_file.h>
-+#include <linux/rculist.h>
-+#include <linux/rcupdate.h>
-+#include <linux/parser.h>
-+#include <linux/vmalloc.h>
-+#include <linux/kexec.h>
-+#include <linux/reboot.h>
-+
-+#include "ima.h"
-+
-+/*
-+ * Restore the measurement list from the previous kernel.
-+ */
-+void ima_load_kexec_buffer(void)
-+{
-+	void *kexec_buffer = NULL;
-+	size_t kexec_buffer_size = 0;
-+	int rc;
-+
-+	rc = kexec_get_handover_buffer(&kexec_buffer, &kexec_buffer_size);
-+	switch (rc) {
-+	case 0:
-+		rc = ima_restore_measurement_list(kexec_buffer_size,
-+						  kexec_buffer);
-+		if (rc != 0)
-+			pr_err("Failed to restore the measurement list: %d\n",
-+				rc);
-+
-+		kexec_free_handover_buffer();
-+		break;
-+	case -ENOTSUPP:
-+		pr_debug("Restoring the measurement list not supported\n");
-+		break;
-+	case -ENOENT:
-+		pr_debug("No measurement list to restore\n");
-+		break;
-+	default:
-+		pr_debug("Error restoring the measurement list: %d\n", rc);
-+	}
-+}
-diff -puN security/integrity/ima/ima_queue.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_queue.c
---- a/security/integrity/ima/ima_queue.c~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/ima_queue.c
-@@ -149,3 +149,13 @@ out:
- 			    op, audit_cause, result, audit_info);
- 	return result;
- }
-+
-+int ima_restore_measurement_entry(struct ima_template_entry *entry)
-+{
-+	int result = 0;
-+
-+	mutex_lock(&ima_extend_list_mutex);
-+	result = ima_add_digest_entry(entry);
-+	mutex_unlock(&ima_extend_list_mutex);
-+	return result;
-+}
-diff -puN security/integrity/ima/ima_template.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_template.c
---- a/security/integrity/ima/ima_template.c~ima-on-soft-reboot-restore-the-measurement-list
-+++ a/security/integrity/ima/ima_template.c
-@@ -37,6 +37,7 @@ static struct ima_template_field support
- 	{.field_id = "sig", .field_init = ima_eventsig_init,
- 	 .field_show = ima_show_template_sig},
- };
-+#define MAX_TEMPLATE_NAME_LEN 15
+@@ -23,6 +23,57 @@
  
- static struct ima_template_desc *ima_template;
- static struct ima_template_desc *lookup_template_desc(const char *name);
-@@ -205,3 +206,172 @@ int __init ima_init_template(void)
+ #include "ima.h"
  
- 	return result;
- }
-+
-+static int ima_restore_template_data(struct ima_template_desc *template_desc,
-+				     void *template_data,
-+				     int template_data_size,
-+				     struct ima_template_entry **entry)
++static int ima_dump_measurement_list(unsigned long *buffer_size, void **buffer,
++				     unsigned long segment_size)
 +{
-+	struct binary_field_data {
-+		u32 len;
-+		u8 data[0];
-+	} __packed;
-+
-+	struct binary_field_data *field_data;
-+	int offset = 0;
++	struct ima_queue_entry *qe;
++	struct seq_file file;
++	struct ima_kexec_hdr khdr = {
++		.version = 1, .buffer_size = 0, .count = 0};
 +	int ret = 0;
-+	int i;
 +
-+	*entry = kzalloc(sizeof(**entry) +
-+		    template_desc->num_fields * sizeof(struct ima_field_data),
-+		    GFP_NOFS);
-+	if (!*entry)
-+		return -ENOMEM;
++	/* segment size can't change between kexec load and execute */
++	file.buf = vmalloc(segment_size);
++	if (!file.buf) {
++		ret = -ENOMEM;
++		goto out;
++	}
 +
-+	(*entry)->template_desc = template_desc;
-+	for (i = 0; i < template_desc->num_fields; i++) {
-+		field_data = template_data + offset;
++	file.size = segment_size;
++	file.read_pos = 0;
++	file.count = sizeof(khdr);	/* reserved space */
 +
-+		/* Each field of the template data is prefixed with a length. */
-+		if (offset > (template_data_size - sizeof(field_data->len))) {
-+			pr_err("Restoring the template field failed\n");
++	list_for_each_entry_rcu(qe, &ima_measurements, later) {
++		if (file.count < file.size) {
++			khdr.count++;
++			ima_measurements_show(&file, qe);
++		} else {
 +			ret = -EINVAL;
 +			break;
 +		}
-+		offset += sizeof(field_data->len);
-+
-+		if (offset > (template_data_size - field_data->len)) {
-+			pr_err("Restoring the template field data failed\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		offset += field_data->len;
-+
-+		(*entry)->template_data[i].len = field_data->len;
-+		(*entry)->template_data_len += sizeof(field_data->len);
-+
-+		(*entry)->template_data[i].data =
-+			kzalloc(field_data->len + 1, GFP_KERNEL);
-+		if (!(*entry)->template_data[i].data) {
-+			ret = -ENOMEM;
-+			break;
-+		}
-+		memcpy((*entry)->template_data[i].data, field_data->data,
-+			field_data->len);
-+		(*entry)->template_data_len += field_data->len;
 +	}
 +
-+	if (ret < 0) {
-+		ima_free_template_entry(*entry);
-+		*entry = NULL;
-+	}
-+
-+	return ret;
-+}
-+
-+/* Restore the serialized binary measurement list without extending PCRs. */
-+int ima_restore_measurement_list(loff_t size, void *buf)
-+{
-+	struct binary_hdr_v1 {
-+		u32 pcr;
-+		u8 digest[TPM_DIGEST_SIZE];
-+		u32 template_name_len;
-+		char template_name[0];
-+	} __packed;
-+	char template_name[MAX_TEMPLATE_NAME_LEN];
-+
-+	struct binary_data_v1 {
-+		u32 template_data_size;
-+		char template_data[0];
-+	} __packed;
-+
-+	struct ima_kexec_hdr *khdr = buf;
-+	struct binary_hdr_v1 *hdr_v1;
-+	struct binary_data_v1 *data_v1;
-+
-+	void *bufp = buf + sizeof(*khdr);
-+	void *bufendp = buf + khdr->buffer_size;
-+	struct ima_template_entry *entry;
-+	struct ima_template_desc *template_desc;
-+	unsigned long count = 0;
-+	int ret = 0;
-+
-+	if (!buf || size < sizeof(*khdr))
-+		return 0;
-+
-+	if (khdr->version != 1) {
-+		pr_err("attempting to restore a incompatible measurement list");
-+		return 0;
-+	}
++	if (ret < 0)
++		goto out;
 +
 +	/*
-+	 * ima kexec buffer prefix: version, buffer size, count
-+	 * v1 format: pcr, digest, template-name-len, template-name,
-+	 *	      template-data-size, template-data
++	 * fill in reserved space with some buffer details
++	 * (eg. version, buffer size, number of measurements)
 +	 */
-+	while ((bufp < bufendp) && (count++ < khdr->count)) {
-+		if (count > ULONG_MAX - 1) {
-+			pr_err("attempting to restore too many measurements");
-+			ret = -EINVAL;
-+		}
++	khdr.buffer_size = file.count;
++	memcpy(file.buf, &khdr, sizeof(khdr));
++	print_hex_dump(KERN_DEBUG, "ima dump: ", DUMP_PREFIX_NONE,
++			16, 1, file.buf,
++			file.count < 100 ? file.count : 100, true);
 +
-+		hdr_v1 = bufp;
-+		if ((hdr_v1->template_name_len > MAX_TEMPLATE_NAME_LEN) ||
-+		    ((bufp + hdr_v1->template_name_len) > bufendp)) {
-+			pr_err("attempting to restore a template name \
-+				that is too long\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		bufp += sizeof(*hdr_v1);
-+
-+		/* template name is not null terminated */
-+		memcpy(template_name, bufp, hdr_v1->template_name_len);
-+		template_name[hdr_v1->template_name_len] = 0;
-+
-+		if (strcmp(template_name, "ima") == 0) {
-+			pr_err("attempting to restore an unsupported \
-+				template \"%s\" failed\n", template_name);
-+			ret = -EINVAL;
-+			break;
-+		}
-+		data_v1 = bufp += (u_int8_t)hdr_v1->template_name_len;
-+
-+		/* get template format */
-+		template_desc = lookup_template_desc(template_name);
-+		if (!template_desc) {
-+			pr_err("template \"%s\" not found\n", template_name);
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		if (bufp > (bufendp - sizeof(data_v1->template_data_size))) {
-+			pr_err("restoring the template data size failed\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+		bufp += (u_int8_t) sizeof(data_v1->template_data_size);
-+
-+		if (bufp > (bufendp - data_v1->template_data_size)) {
-+			pr_err("restoring the template data failed\n");
-+			ret = -EINVAL;
-+			break;
-+		}
-+
-+		ret = ima_restore_template_data(template_desc,
-+						data_v1->template_data,
-+						data_v1->template_data_size,
-+						&entry);
-+		if (ret < 0)
-+			break;
-+
-+		memcpy(entry->digest, hdr_v1->digest, TPM_DIGEST_SIZE);
-+		entry->pcr = hdr_v1->pcr;
-+		ret = ima_restore_measurement_entry(entry);
-+		if (ret < 0)
-+			break;
-+
-+		bufp += data_v1->template_data_size;
-+	}
++	*buffer_size = file.count;
++	*buffer = file.buf;
++out:
++	if (ret == -EINVAL)
++		vfree(file.buf);
 +	return ret;
 +}
++
+ /*
+  * Restore the measurement list from the previous kernel.
+  */
 _
 
 Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
-ima-permit-duplicate-measurement-list-entries.patch
-ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
-ima-serialize-the-binary_runtime_measurements.patch
 ima-store-the-builtin-custom-template-definitions-in-a-list.patch
 ima-support-restoring-multiple-template-formats.patch
 ima-define-a-canonical-binary_runtime_measurements-list-format.patch
