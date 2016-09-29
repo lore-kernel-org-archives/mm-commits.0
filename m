@@ -1,106 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
+ mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page.patch
  removed from -mm tree
-Date: Thu, 29 Sep 2016 12:59:32 -0700
-Message-ID: <57ed72a4.BLidXpcOe8D4mOxS%akpm@linux-foundation.org>
+Date: Thu, 29 Sep 2016 12:59:40 -0700
+Message-ID: <57ed72ac.Ga30MAtV0uFuHl1o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44054 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44072 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755619AbcI2T7d (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 15:59:33 -0400
+        with ESMTP id S1755753AbcI2T7l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 15:59:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhongjiang@huawei.com, hughd@google.com, mhocko@suse.com, mhocko@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: zhong@linux.vnet.ibm.com, iamjoonsoo.kim@lge.com, jallen@linux.vnet.ibm.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, penguin-kernel@i-love.sakura.ne.jp, qiuxishi@huawei.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,ksm: fix endless looping in allocating memory when ksm enable
+     Subject: mem-hotplug: use nodes that contain memory as mask in new_node_page()
 has been removed from the -mm tree.  Its filename was
-     mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable.patch
+     mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: zhong jiang <zhongjiang@huawei.com>
-Subject: mm,ksm: fix endless looping in allocating memory when ksm enable
+From: Li Zhong <zhong@linux.vnet.ibm.com>
+Subject: mem-hotplug: use nodes that contain memory as mask in new_node_page()
 
-I hit the following hung task when runing a OOM LTP test case with 4.1
-kernel.
+9bb627be47a5 ("mem-hotplug: don't clear the only node in new_node_page()")
+prevents allocating from an empty nodemask, but as David points out, it is
+still wrong.  As node_online_map may include memoryless nodes, only
+allocating from these nodes is meaningless.
 
-Call trace:
-[<ffffffc000086a88>] __switch_to+0x74/0x8c
-[<ffffffc000a1bae0>] __schedule+0x23c/0x7bc
-[<ffffffc000a1c09c>] schedule+0x3c/0x94
-[<ffffffc000a1eb84>] rwsem_down_write_failed+0x214/0x350
-[<ffffffc000a1e32c>] down_write+0x64/0x80
-[<ffffffc00021f794>] __ksm_exit+0x90/0x19c
-[<ffffffc0000be650>] mmput+0x118/0x11c
-[<ffffffc0000c3ec4>] do_exit+0x2dc/0xa74
-[<ffffffc0000c46f8>] do_group_exit+0x4c/0xe4
-[<ffffffc0000d0f34>] get_signal+0x444/0x5e0
-[<ffffffc000089fcc>] do_signal+0x1d8/0x450
-[<ffffffc00008a35c>] do_notify_resume+0x70/0x78
+This patch uses node_states[N_MEMORY] mask to prevent the above case.
 
-The oom victim cannot terminate because it needs to take mmap_sem for
-write while the lock is held by ksmd for read which loops in the page
-allocator
-
-ksm_do_scan
-	scan_get_next_rmap_item
-		down_read
-		get_next_rmap_item
-			alloc_rmap_item   #ksmd will loop permanently.
-
-There is no way forward because the oom victim cannot release any memory
-in 4.1 based kernel.  Since 4.6 we have the oom reaper which would solve
-this problem because it would release the memory asynchronously. 
-Nevertheless we can relax alloc_rmap_item requirements and use
-__GFP_NORETRY because the allocation failure is acceptable as ksm_do_scan
-would just retry later after the lock got dropped.
-
-Such a patch would be also easy to backport to older stable kernels which
-do not have oom_reaper.
-
-While we are at it add GFP_NOWARN so the admin doesn't have to be alarmed
-by the allocation failure.
-
-Link: http://lkml.kernel.org/r/1474165570-44398-1-git-send-email-zhongjiang@huawei.com
-Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Suggested-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Fixes: 9bb627be47a5 ("mem-hotplug: don't clear the only node in new_node_page()")
+Fixes: 394e31d2ceb4 ("mem-hotplug: alloc new page from a nearest neighbor node when mem-offline")
+Link: http://lkml.kernel.org/r/1474447117.28370.6.camel@TP420
+Signed-off-by: Li Zhong <zhong@linux.vnet.ibm.com>
+Suggested-by: David Rientjes <rientjes@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: John Allen <jallen@linux.vnet.ibm.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory_hotplug.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/ksm.c~mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable mm/ksm.c
---- a/mm/ksm.c~mmksm-fix-endless-looping-in-allocating-memory-when-ksm-enable
-+++ a/mm/ksm.c
-@@ -283,7 +283,8 @@ static inline struct rmap_item *alloc_rm
+diff -puN mm/memory_hotplug.c~mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mem-hotplug-use-nodes-that-contain-memory-as-mask-in-new_node_page
++++ a/mm/memory_hotplug.c
+@@ -1555,8 +1555,8 @@ static struct page *new_node_page(struct
  {
- 	struct rmap_item *rmap_item;
+ 	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
+ 	int nid = page_to_nid(page);
+-	nodemask_t nmask = node_online_map;
+-	struct page *new_page;
++	nodemask_t nmask = node_states[N_MEMORY];
++	struct page *new_page = NULL;
  
--	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL);
-+	rmap_item = kmem_cache_zalloc(rmap_item_cache, GFP_KERNEL |
-+						__GFP_NORETRY | __GFP_NOWARN);
- 	if (rmap_item)
- 		ksm_rmap_items++;
- 	return rmap_item;
+ 	/*
+ 	 * TODO: allocate a destination hugepage from a nearest neighbor node,
+@@ -1567,14 +1567,14 @@ static struct page *new_node_page(struct
+ 		return alloc_huge_page_node(page_hstate(compound_head(page)),
+ 					next_node_in(nid, nmask));
+ 
+-	if (nid != next_node_in(nid, nmask))
+-		node_clear(nid, nmask);
++	node_clear(nid, nmask);
+ 
+ 	if (PageHighMem(page)
+ 	    || (zone_idx(page_zone(page)) == ZONE_MOVABLE))
+ 		gfp_mask |= __GFP_HIGHMEM;
+ 
+-	new_page = __alloc_pages_nodemask(gfp_mask, 0,
++	if (!nodes_empty(nmask))
++		new_page = __alloc_pages_nodemask(gfp_mask, 0,
+ 					node_zonelist(nid, gfp_mask), &nmask);
+ 	if (!new_page)
+ 		new_page = __alloc_pages(gfp_mask, 0,
 _
 
-Patches currently in -mm which might be from zhongjiang@huawei.com are
+Patches currently in -mm which might be from zhong@linux.vnet.ibm.com are
 
-mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node.patch
-mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node-v2.patch
-mm-page_owner-align-with-pageblock_nr-pages.patch
-mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
 
