@@ -1,312 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: +
- ima-define-a-canonical-binary_runtime_measurements-list-format.patch added
- to -mm tree
-Date: Thu, 29 Sep 2016 16:15:27 -0700
-Message-ID: <57eda08f.4PR9voK5hQ+RMc7u%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ fs-make-is_local_mountpoint-usable-by-others.patch removed from -mm tree
+Date: Fri, 30 Sep 2016 11:38:43 -0700
+Message-ID: <57eeb133.HaeC5gJL2wNvtpNM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50173 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41113 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935043AbcI2XP2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 29 Sep 2016 19:15:28 -0400
+        with ESMTP id S932348AbcI3Sio (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 30 Sep 2016 14:38:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zohar@linux.vnet.ibm.com, bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, dyoung@redhat.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: raven@themaw.net, ebiederm@xmission.com, osandov@osandov.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: define a canonical binary_runtime_measurements list format
-has been added to the -mm tree.  Its filename is
-     ima-define-a-canonical-binary_runtime_measurements-list-format.patch
+     Subject: vfs: make is_local_mountpoint() usable by others
+has been removed from the -mm tree.  Its filename was
+     fs-make-is_local_mountpoint-usable-by-others.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ima-define-a-canonical-binary_runtime_measurements-list-format.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ima-define-a-canonical-binary_runtime_measurements-list-format.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima: define a canonical binary_runtime_measurements list format
+From: Ian Kent <raven@themaw.net>
+Subject: vfs: make is_local_mountpoint() usable by others
 
-The IMA binary_runtime_measurements list is currently in platform native
-format.
+Patch series "fs - make is_local_mountpoint() usable by others":
 
-To allow restoring a measurement list carried across kexec with a
-different endianness than the targeted kernel, this patch defines
-little-endian as the canonical format.  For big endian systems wanting to
-save/restore the measurement list from a system with a different
-endianness, a new boot command line parameter named "ima_canonical_fmt" is
-defined.
+For quite a while now, and not that frequently but consistently, I've been
+getting reports of people using autofs getting ELOOP errors and not being
+able to mount automounts.
 
-Considerations: use of the "ima_canonical_fmt" boot command line option
-will break existing userspace applications on big endian systems expecting
-the binary_runtime_measurements list to be in platform native format.
+This has been due to the cloning of autofs file systems (that have active
+automounts at the time of the clone) by other systems.
 
-Link: http://lkml.kernel.org/r/1474911029-6372-10-git-send-email-zohar@linux.vnet.ibm.com
-Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+An unshare, as one example, can easily result in the cloning of an autofs
+file system that has active mounts which shows this problem.
+
+Once an active mount that has been cloned is expired in the namespace that
+performed the unshare it can't be (auto)mounted again in the the
+originating namespace because the mounted check in the autofs module will
+think it is already mounted.
+
+Omar said:
+
+: Yup, at Facebook we've been hitting this issue for years.  Our container
+: setup doesn't clean up the base system's mounts after the
+: unshare(CLONE_NEWNS) and before the chroot(), so we very frequently see
+: the base system's autofs mounts get broken with ELOOP.  The solution there
+: might be to fix our container setup, but I think it's still a kernel bug,
+: as it breaks the isolation between namespaces.
+
+
+This patch (of 4):
+
+is_local_mountpoint() will be needed for autofs to check if a dentry is a
+mountpoint in the current namespace.
+
+Link: http://lkml.kernel.org/r/20160914061434.24714.490.stgit@pluto.themaw.net
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Omar Sandoval <osandov@osandov.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt       |    4 ++
- security/integrity/ima/ima.h              |    6 ++++
- security/integrity/ima/ima_fs.c           |   28 +++++++++++++++-----
- security/integrity/ima/ima_kexec.c        |   11 ++++++-
- security/integrity/ima/ima_template.c     |   24 +++++++++++++++--
- security/integrity/ima/ima_template_lib.c |    7 +++--
- 6 files changed, 67 insertions(+), 13 deletions(-)
+ fs/mount.h            |    9 ---------
+ fs/namespace.c        |    1 +
+ include/linux/mount.h |    9 +++++++++
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~ima-define-a-canonical-binary_runtime_measurements-list-format Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~ima-define-a-canonical-binary_runtime_measurements-list-format
-+++ a/Documentation/kernel-parameters.txt
-@@ -1611,6 +1611,10 @@ bytes respectively. Such letter suffixes
- 			The builtin appraise policy appraises all files
- 			owned by uid=0.
+diff -puN fs/mount.h~fs-make-is_local_mountpoint-usable-by-others fs/mount.h
+--- a/fs/mount.h~fs-make-is_local_mountpoint-usable-by-others
++++ a/fs/mount.h
+@@ -127,12 +127,3 @@ struct proc_mounts {
+ };
  
-+	ima_canonical_fmt [IMA]
-+			Use the canonical format for the binary runtime
-+			measurements, instead of host native format.
-+
- 	ima_hash=	[IMA]
- 			Format: { md5 | sha1 | rmd160 | sha256 | sha384
- 				   | sha512 | ... }
-diff -puN security/integrity/ima/ima.h~ima-define-a-canonical-binary_runtime_measurements-list-format security/integrity/ima/ima.h
---- a/security/integrity/ima/ima.h~ima-define-a-canonical-binary_runtime_measurements-list-format
-+++ a/security/integrity/ima/ima.h
-@@ -122,6 +122,12 @@ void ima_load_kexec_buffer(void);
- static inline void ima_load_kexec_buffer(void) {}
- #endif /* CONFIG_HAVE_IMA_KEXEC */
+ extern const struct seq_operations mounts_op;
+-
+-extern bool __is_local_mountpoint(struct dentry *dentry);
+-static inline bool is_local_mountpoint(struct dentry *dentry)
+-{
+-	if (!d_mountpoint(dentry))
+-		return false;
+-
+-	return __is_local_mountpoint(dentry);
+-}
+diff -puN fs/namespace.c~fs-make-is_local_mountpoint-usable-by-others fs/namespace.c
+--- a/fs/namespace.c~fs-make-is_local_mountpoint-usable-by-others
++++ a/fs/namespace.c
+@@ -725,6 +725,7 @@ bool __is_local_mountpoint(struct dentry
+ out:
+ 	return is_covered;
+ }
++EXPORT_SYMBOL(__is_local_mountpoint);
  
-+/*
-+ * The default binary_runtime_measurements list format is defined as the
-+ * platform native format.  The canonical format is defined as little-endian.
-+ */
-+extern bool ima_canonical_fmt;
-+
- /* Internal IMA function definitions */
- int ima_init(void);
- int ima_fs_init(void);
-diff -puN security/integrity/ima/ima_fs.c~ima-define-a-canonical-binary_runtime_measurements-list-format security/integrity/ima/ima_fs.c
---- a/security/integrity/ima/ima_fs.c~ima-define-a-canonical-binary_runtime_measurements-list-format
-+++ a/security/integrity/ima/ima_fs.c
-@@ -28,6 +28,16 @@
- 
- static DEFINE_MUTEX(ima_write_mutex);
- 
-+bool ima_canonical_fmt;
-+static int __init default_canonical_fmt_setup(char *str)
-+{
-+#ifdef __BIG_ENDIAN
-+	ima_canonical_fmt = 1;
-+#endif
-+	return 1;
-+}
-+__setup("ima_canonical_fmt", default_canonical_fmt_setup);
-+
- static int valid_policy = 1;
- #define TMPBUFLEN 12
- static ssize_t ima_show_htable_value(char __user *buf, size_t count,
-@@ -122,7 +132,7 @@ int ima_measurements_show(struct seq_fil
- 	struct ima_queue_entry *qe = v;
- 	struct ima_template_entry *e;
- 	char *template_name;
--	int namelen;
-+	u32 pcr, namelen, template_data_len; /* temporary fields */
- 	bool is_ima_template = false;
- 	int i;
- 
-@@ -139,25 +149,29 @@ int ima_measurements_show(struct seq_fil
- 	 * PCR used defaults to the same (config option) in
- 	 * little-endian format, unless set in policy
- 	 */
--	ima_putc(m, &e->pcr, sizeof(e->pcr));
-+	pcr = !ima_canonical_fmt ? e->pcr : cpu_to_le32(e->pcr);
-+	ima_putc(m, &pcr, sizeof(e->pcr));
- 
- 	/* 2nd: template digest */
- 	ima_putc(m, e->digest, TPM_DIGEST_SIZE);
- 
- 	/* 3rd: template name size */
--	namelen = strlen(template_name);
-+	namelen = !ima_canonical_fmt ? strlen(template_name) :
-+		cpu_to_le32(strlen(template_name));
- 	ima_putc(m, &namelen, sizeof(namelen));
- 
- 	/* 4th:  template name */
--	ima_putc(m, template_name, namelen);
-+	ima_putc(m, template_name, strlen(template_name));
- 
- 	/* 5th:  template length (except for 'ima' template) */
- 	if (strcmp(template_name, IMA_TEMPLATE_IMA_NAME) == 0)
- 		is_ima_template = true;
- 
--	if (!is_ima_template)
--		ima_putc(m, &e->template_data_len,
--			 sizeof(e->template_data_len));
-+	if (!is_ima_template) {
-+		template_data_len = !ima_canonical_fmt ? e->template_data_len :
-+			cpu_to_le32(e->template_data_len);
-+		ima_putc(m, &template_data_len, sizeof(e->template_data_len));
-+	}
- 
- 	/* 6th:  template specific data */
- 	for (i = 0; i < e->template_desc->num_fields; i++) {
-diff -puN security/integrity/ima/ima_kexec.c~ima-define-a-canonical-binary_runtime_measurements-list-format security/integrity/ima/ima_kexec.c
---- a/security/integrity/ima/ima_kexec.c~ima-define-a-canonical-binary_runtime_measurements-list-format
-+++ a/security/integrity/ima/ima_kexec.c
-@@ -21,8 +21,7 @@ static int ima_dump_measurement_list(uns
+ static struct mountpoint *lookup_mountpoint(struct dentry *dentry)
  {
- 	struct ima_queue_entry *qe;
- 	struct seq_file file;
--	struct ima_kexec_hdr khdr = {
--		.version = 1, .buffer_size = 0, .count = 0};
-+	struct ima_kexec_hdr khdr;
- 	int ret = 0;
+diff -puN include/linux/mount.h~fs-make-is_local_mountpoint-usable-by-others include/linux/mount.h
+--- a/include/linux/mount.h~fs-make-is_local_mountpoint-usable-by-others
++++ a/include/linux/mount.h
+@@ -15,6 +15,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/seqlock.h>
+ #include <linux/atomic.h>
++#include <linux/dcache.h>
  
- 	/* segment size can't change between kexec load and execute */
-@@ -36,6 +35,8 @@ static int ima_dump_measurement_list(uns
- 	file.read_pos = 0;
- 	file.count = sizeof(khdr);	/* reserved space */
+ struct super_block;
+ struct vfsmount;
+@@ -96,4 +97,12 @@ extern void mark_mounts_for_expiry(struc
  
-+	memset(&khdr, 0, sizeof(khdr));
-+	khdr.version = 1;
- 	list_for_each_entry_rcu(qe, &ima_measurements, later) {
- 		if (file.count < file.size) {
- 			khdr.count++;
-@@ -54,7 +55,13 @@ static int ima_dump_measurement_list(uns
- 	 * (eg. version, buffer size, number of measurements)
- 	 */
- 	khdr.buffer_size = file.count;
-+	if (ima_canonical_fmt) {
-+		khdr.version = cpu_to_le16(khdr.version);
-+		khdr.count = cpu_to_le64(khdr.count);
-+		khdr.buffer_size = cpu_to_le64(khdr.buffer_size);
-+	}
- 	memcpy(file.buf, &khdr, sizeof(khdr));
+ extern dev_t name_to_dev_t(const char *name);
+ 
++extern bool __is_local_mountpoint(struct dentry *dentry);
++static inline bool is_local_mountpoint(struct dentry *dentry)
++{
++	if (!d_mountpoint(dentry))
++		return false;
 +
- 	print_hex_dump(KERN_DEBUG, "ima dump: ", DUMP_PREFIX_NONE,
- 			16, 1, file.buf,
- 			file.count < 100 ? file.count : 100, true);
-diff -puN security/integrity/ima/ima_template.c~ima-define-a-canonical-binary_runtime_measurements-list-format security/integrity/ima/ima_template.c
---- a/security/integrity/ima/ima_template.c~ima-define-a-canonical-binary_runtime_measurements-list-format
-+++ a/security/integrity/ima/ima_template.c
-@@ -304,6 +304,9 @@ static int ima_restore_template_data(str
- 		}
- 		offset += sizeof(field_data->len);
- 
-+		if (ima_canonical_fmt)
-+			field_data->len = le32_to_cpu(field_data->len);
-+
- 		if (offset > (template_data_size - field_data->len)) {
- 			pr_err("Restoring the template field data failed\n");
- 			ret = -EINVAL;
-@@ -354,7 +357,7 @@ int ima_restore_measurement_list(loff_t
- 	struct binary_data_v1 *data_v1;
- 
- 	void *bufp = buf + sizeof(*khdr);
--	void *bufendp = buf + khdr->buffer_size;
-+	void *bufendp;
- 	struct ima_template_entry *entry;
- 	struct ima_template_desc *template_desc;
- 	unsigned long count = 0;
-@@ -363,6 +366,12 @@ int ima_restore_measurement_list(loff_t
- 	if (!buf || size < sizeof(*khdr))
- 		return 0;
- 
-+	if (ima_canonical_fmt) {
-+		khdr->version = le16_to_cpu(khdr->version);
-+		khdr->count = le64_to_cpu(khdr->count);
-+		khdr->buffer_size = le64_to_cpu(khdr->buffer_size);
-+	}
-+
- 	if (khdr->version != 1) {
- 		pr_err("attempting to restore a incompatible measurement list");
- 		return 0;
-@@ -373,6 +382,7 @@ int ima_restore_measurement_list(loff_t
- 	 * v1 format: pcr, digest, template-name-len, template-name,
- 	 *	      template-data-size, template-data
- 	 */
-+	bufendp = buf + khdr->buffer_size;
- 	while ((bufp < bufendp) && (count++ < khdr->count)) {
- 		if (count > ULONG_MAX - 1) {
- 			pr_err("attempting to restore too many measurements");
-@@ -380,6 +390,11 @@ int ima_restore_measurement_list(loff_t
- 		}
- 
- 		hdr_v1 = bufp;
-+
-+		if (ima_canonical_fmt)
-+			hdr_v1->template_name_len =
-+			    le32_to_cpu(hdr_v1->template_name_len);
-+
- 		if ((hdr_v1->template_name_len >= MAX_TEMPLATE_NAME_LEN) ||
- 		    ((bufp + hdr_v1->template_name_len) > bufendp)) {
- 			pr_err("attempting to restore a template name \
-@@ -429,6 +444,10 @@ int ima_restore_measurement_list(loff_t
- 		}
- 		bufp += (u_int8_t) sizeof(data_v1->template_data_size);
- 
-+		if (ima_canonical_fmt)
-+			data_v1->template_data_size =
-+			    le32_to_cpu(data_v1->template_data_size);
-+
- 		if (bufp > (bufendp - data_v1->template_data_size)) {
- 			pr_err("restoring the template data failed\n");
- 			ret = -EINVAL;
-@@ -443,7 +462,8 @@ int ima_restore_measurement_list(loff_t
- 			break;
- 
- 		memcpy(entry->digest, hdr_v1->digest, TPM_DIGEST_SIZE);
--		entry->pcr = hdr_v1->pcr;
-+		entry->pcr =
-+		    !ima_canonical_fmt ? hdr_v1->pcr : le32_to_cpu(hdr_v1->pcr);
- 		ret = ima_restore_measurement_entry(entry);
- 		if (ret < 0)
- 			break;
-diff -puN security/integrity/ima/ima_template_lib.c~ima-define-a-canonical-binary_runtime_measurements-list-format security/integrity/ima/ima_template_lib.c
---- a/security/integrity/ima/ima_template_lib.c~ima-define-a-canonical-binary_runtime_measurements-list-format
-+++ a/security/integrity/ima/ima_template_lib.c
-@@ -103,8 +103,11 @@ static void ima_show_template_data_binar
- 	u32 len = (show == IMA_SHOW_BINARY_OLD_STRING_FMT) ?
- 	    strlen(field_data->data) : field_data->len;
- 
--	if (show != IMA_SHOW_BINARY_NO_FIELD_LEN)
--		ima_putc(m, &len, sizeof(len));
-+	if (show != IMA_SHOW_BINARY_NO_FIELD_LEN) {
-+		u32 field_len = !ima_canonical_fmt ? len : cpu_to_le32(len);
-+
-+		ima_putc(m, &field_len, sizeof(field_len));
-+	}
- 
- 	if (!len)
- 		return;
++	return __is_local_mountpoint(dentry);
++}
+ #endif /* _LINUX_MOUNT_H */
 _
 
-Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from raven@themaw.net are
 
-ima-on-soft-reboot-restore-the-measurement-list.patch
-ima-permit-duplicate-measurement-list-entries.patch
-ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
-ima-on-soft-reboot-save-the-measurement-list.patch
-ima-store-the-builtin-custom-template-definitions-in-a-list.patch
-ima-support-restoring-multiple-template-formats.patch
-ima-define-a-canonical-binary_runtime_measurements-list-format.patch
+autofs-fix-autofs4_fill_super-error-exit-handling.patch
+autofs-remove-ino-free-in-autofs4_dir_symlink.patch
+autofs-fix-dev-ioctl-number-range-check.patch
+autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd.patch
+autofs4-move-linux-auto_dev-ioctlh-to-uapi-linux.patch
+fs-add-have_local_submounts.patch
+autofs-make-mountpoint-checks-namespace-aware.patch
+fs-remove-unused-have_submounts-function.patch
 
