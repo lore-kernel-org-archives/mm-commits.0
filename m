@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- block-require-write_same-and-discard-requests-align-to-logical-block-size.patch added to -mm tree
-Date: Mon, 03 Oct 2016 14:23:17 -0700
-Message-ID: <57f2cc45.rVcQyy/DV6Dc2ZH/%akpm@linux-foundation.org>
+Subject: + ipc-semc-add-cond_resched-in-exit_sme.patch added to -mm tree
+Date: Mon, 03 Oct 2016 14:30:18 -0700
+Message-ID: <57f2cdea.2XnQ5fHlnMpH4Igl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36756 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36791 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753535AbcJCVXS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2016 17:23:18 -0400
+        with ESMTP id S1751621AbcJCVaT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2016 17:30:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darrick.wong@oracle.com, axboe@kernel.dk, bart.vanassche@sandisk.com, bfoster@redhat.com, hare@suse.com, hch@lst.de, martin.petersen@oracle.com, snitzer@redhat.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: kernel@kyup.com, dave@stgolabs.net, fabf@skynet.be, herton@redhat.com, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: require write_same and discard requests align to logical block size
+     Subject: ipc/sem.c: Add cond_resched in exit_sme
 has been added to the -mm tree.  Its filename is
-     block-require-write_same-and-discard-requests-align-to-logical-block-size.patch
+     ipc-semc-add-cond_resched-in-exit_sme.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/block-require-write_same-and-discard-requests-align-to-logical-block-size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-add-cond_resched-in-exit_sme.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/block-require-write_same-and-discard-requests-align-to-logical-block-size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-add-cond_resched-in-exit_sme.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,86 +38,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: block: require write_same and discard requests align to logical block size
+From: Nikolay Borisov <kernel@kyup.com>
+Subject: ipc/sem.c: Add cond_resched in exit_sme
 
-Make sure that the offset and length arguments that we're using to
-construct WRITE SAME and DISCARD requests are actually aligned to the
-logical block size.  Failure to do this causes other errors in other parts
-of the block layer or the SCSI layer because disks don't support partial
-logical block writes.
+In CONFIG_PREEMPT=n kernel a softlockup was observed while the for loop in
+exit_sem.  Apparently it's possible for the loop to take quite a long time
+and it doesn't have a scheduling point in it.  Since the codes is
+executing under an rcu read section this may also cause rcu stalls, which
+in turn block synchronize_rcu operations, which more or less de-stabilises
+the whole system.
 
-Link: http://lkml.kernel.org/r/147518379026.22791.4437508871355153928.stgit@birch.djwong.org
-Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Bart Van Assche <bart.vanassche@sandisk.com>
-Reviewed-by: Martin K. Petersen <martin.petersen@oracle.com>
-Reviewed-by: Hannes Reinecke <hare@suse.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Mike Snitzer <snitzer@redhat.com> # tweaked header
-Cc: Brian Foster <bfoster@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Fix this by introducing a cond_resched() at the beginning of the loop.
+
+So this patch fixes the following:
+
+NMI watchdog: BUG: soft lockup - CPU#10 stuck for 23s! [httpd:18119]
+CPU: 10 PID: 18119 Comm: httpd Tainted: G           O    4.4.20-clouder2 #6
+Hardware name: Supermicro X10DRi/X10DRi, BIOS 1.1 04/14/2015
+task: ffff88348d695280 ti: ffff881c95550000 task.ti: ffff881c95550000
+RIP: 0010:[<ffffffff81614bc7>]  [<ffffffff81614bc7>] _raw_spin_lock+0x17/0x30
+RSP: 0018:ffff881c95553e40  EFLAGS: 00000246
+RAX: 0000000000000000 RBX: ffff883161b1eea8 RCX: 000000000000000d
+RDX: 0000000000000001 RSI: 000000000000000e RDI: ffff883161b1eea4
+RBP: ffff881c95553ea0 R08: ffff881c95553e68 R09: ffff883fef376f88
+R10: ffff881fffb58c20 R11: ffffea0072556600 R12: ffff883161b1eea0
+R13: ffff88348d695280 R14: ffff883dec427000 R15: ffff8831621672a0
+FS:  0000000000000000(0000) GS:ffff881fffb40000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f3b3723e020 CR3: 0000000001c0a000 CR4: 00000000001406e0
+Stack:
+ ffffffff8129717c ffff88348d695280 ffff883161b1eea4 ffffea000f2359c0
+ 000480094089b340 ffff881c95553e68 ffff881c95553e68 ffff88348d695280
+ 0000000000000000 00007ffe01ca0170 ffff883217c74280 ffff883217c742e8
+Call Trace:
+ [<ffffffff8129717c>] ? exit_sem+0x7c/0x280
+ [<ffffffff81055548>] do_exit+0x338/0xb40
+ [<ffffffff81055dd3>] do_group_exit+0x43/0xd0
+ [<ffffffff81055e74>] SyS_exit_group+0x14/0x20
+ [<ffffffff81614f5b>] entry_SYSCALL_64_fastpath+0x16/0x6e
+
+Link: http://lkml.kernel.org/r/1475154992-6363-1-git-send-email-kernel@kyup.com
+Signed-off-by: Nikolay Borisov <kernel@kyup.com>
+Cc: Herton R. Krzesinski <herton@redhat.com>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-lib.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ ipc/sem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN block/blk-lib.c~block-require-write_same-and-discard-requests-align-to-logical-block-size block/blk-lib.c
---- a/block/blk-lib.c~block-require-write_same-and-discard-requests-align-to-logical-block-size
-+++ a/block/blk-lib.c
-@@ -31,6 +31,7 @@ int __blkdev_issue_discard(struct block_
- 	unsigned int granularity;
- 	enum req_op op;
- 	int alignment;
-+	sector_t bs_mask;
+diff -puN ipc/sem.c~ipc-semc-add-cond_resched-in-exit_sme ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-add-cond_resched-in-exit_sme
++++ a/ipc/sem.c
+@@ -2105,6 +2105,8 @@ void exit_sem(struct task_struct *tsk)
+ 		struct list_head tasks;
+ 		int semid, i;
  
- 	if (!q)
- 		return -ENXIO;
-@@ -50,6 +51,10 @@ int __blkdev_issue_discard(struct block_
- 		op = REQ_OP_DISCARD;
- 	}
- 
-+	bs_mask = (bdev_logical_block_size(bdev) >> 9) - 1;
-+	if ((sector | nr_sects) & bs_mask)
-+		return -EINVAL;
++		cond_resched();
 +
- 	/* Zero-sector (unknown) and one-sector granularities are the same.  */
- 	granularity = max(q->limits.discard_granularity >> 9, 1U);
- 	alignment = (bdev_discard_alignment(bdev) >> 9) % granularity;
-@@ -150,10 +155,15 @@ int blkdev_issue_write_same(struct block
- 	unsigned int max_write_same_sectors;
- 	struct bio *bio = NULL;
- 	int ret = 0;
-+	sector_t bs_mask;
- 
- 	if (!q)
- 		return -ENXIO;
- 
-+	bs_mask = (bdev_logical_block_size(bdev) >> 9) - 1;
-+	if ((sector | nr_sects) & bs_mask)
-+		return -EINVAL;
-+
- 	/* Ensure that max_write_same_sectors doesn't overflow bi_size */
- 	max_write_same_sectors = UINT_MAX >> 9;
- 
-@@ -202,6 +212,11 @@ static int __blkdev_issue_zeroout(struct
- 	int ret;
- 	struct bio *bio = NULL;
- 	unsigned int sz;
-+	sector_t bs_mask;
-+
-+	bs_mask = (bdev_logical_block_size(bdev) >> 9) - 1;
-+	if ((sector | nr_sects) & bs_mask)
-+		return -EINVAL;
- 
- 	while (nr_sects != 0) {
- 		bio = next_bio(bio, min(nr_sects, (sector_t)BIO_MAX_PAGES),
+ 		rcu_read_lock();
+ 		un = list_entry_rcu(ulp->list_proc.next,
+ 				    struct sem_undo, list_proc);
 _
 
-Patches currently in -mm which might be from darrick.wong@oracle.com are
+Patches currently in -mm which might be from kernel@kyup.com are
 
-block-invalidate-the-page-cache-when-issuing-blkzeroout.patch
-block-require-write_same-and-discard-requests-align-to-logical-block-size.patch
-block-implement-some-of-fallocate-for-block-devices.patch
+ipc-semc-add-cond_resched-in-exit_sme.patch
 
