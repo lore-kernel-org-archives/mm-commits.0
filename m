@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + vfsmm-fix-a-dead-loop-in-truncate_inode_pages_range.patch added to -mm tree
-Date: Mon, 03 Oct 2016 14:40:01 -0700
-Message-ID: <57f2d031.DzXwU8jIEcPnH0Zs%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable-fix.patch
+ added to -mm tree
+Date: Mon, 03 Oct 2016 14:44:58 -0700
+Message-ID: <57f2d15a.z+ElE8ijwdbEUnTr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36895 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36908 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751500AbcJCVkC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2016 17:40:02 -0400
+        with ESMTP id S1751500AbcJCVo7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2016 17:44:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fangwei1@huawei.com, david@fromorbit.com, hch@infradead.org, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vfs,mm: fix a dead loop in truncate_inode_pages_range()
+     Subject: mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable-fix
 has been added to the -mm tree.  Its filename is
-     vfsmm-fix-a-dead-loop-in-truncate_inode_pages_range.patch
+     mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vfsmm-fix-a-dead-loop-in-truncate_inode_pages_range.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vfsmm-fix-a-dead-loop-in-truncate_inode_pages_range.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,85 +40,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Fang <fangwei1@huawei.com>
-Subject: vfs,mm: fix a dead loop in truncate_inode_pages_range()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable-fix
 
-We triggered a deadloop in truncate_inode_pages_range() on 32 bits
-architecture with the test case bellow:
+COMPACT_NOT_SUITABLE_ZONE should not leak outside compaction_suitable() and
+we should not skip tracepoint.
 
-	...
-	fd = open();
-	write(fd, buf, 4096);
-	preadv64(fd, &iovec, 1, 0xffffffff000);
-	ftruncate(fd, 0);
-	...
-
-Then ftruncate() will not return forever.
-
-The filesystem used in this case is ubifs, but it can be triggered on many
-other filesystems.
-
-When preadv64() is called with offset=0xffffffff000, a page with
-index=0xffffffff will be added to the radix tree of ->mapping.  Then this
-page can be found in ->mapping with pagevec_lookup().  After that,
-truncate_inode_pages_range(), which is called in ftruncate(), will fall
-into an infinite loop:
-
-* find a page with index=0xffffffff, since index>=end, this page
-  won't be truncated
-
-* index++, and index become 0
-
-* the page with index=0xffffffff will be found again
-
-The data type of index is unsigned long, so index won't overflow to 0 on
-64 bits architecture in this case, and the dead loop won't happen.
-
-Since truncate_inode_pages_range() is executed with holding lock of
-inode->i_rwsem, any operation related with this lock will be blocked, and
-a hung task will happen, e.g.:
-
-INFO: task truncate_test:3364 blocked for more than 120 seconds.
-...
-[<c03c2c44>] call_rwsem_down_write_failed+0x17/0x30
-[<c00b93bc>] generic_file_write_iter+0x32/0x1c0
-[<c01b7078>] ubifs_write_iter+0xcc/0x170
-[<c00fae48>] __vfs_write+0xc4/0x120
-[<c00fb784>] vfs_write+0xb2/0x1b0
-[<c00fbbe4>] SyS_write+0x46/0xa0
-
-The page with index=0xffffffff added to ->mapping is useless.  Fix this by
-checking the read position before allocating pages.
-
-Link: http://lkml.kernel.org/r/1475151010-40166-1-git-send-email-fangwei1@huawei.com
-Signed-off-by: Wei Fang <fangwei1@huawei.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/cadadd38-6456-f58e-504f-cc18ddc47b3f@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~vfsmm-fix-a-dead-loop-in-truncate_inode_pages_range mm/filemap.c
---- a/mm/filemap.c~vfsmm-fix-a-dead-loop-in-truncate_inode_pages_range
-+++ a/mm/filemap.c
-@@ -1674,6 +1674,10 @@ static ssize_t do_generic_file_read(stru
- 	unsigned int prev_offset;
- 	int error = 0;
+diff -puN mm/compaction.c~mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable-fix
++++ a/mm/compaction.c
+@@ -1440,7 +1440,7 @@ enum compact_result compaction_suitable(
+ 	if (ret == COMPACT_CONTINUE) {
+ 		fragindex = fragmentation_index(zone, order);
+ 		if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
+-			return COMPACT_NOT_SUITABLE_ZONE;
++			ret = COMPACT_NOT_SUITABLE_ZONE;
+ 	}
  
-+	if (unlikely(*ppos >= inode->i_sb->s_maxbytes))
-+		return -EINVAL;
-+	iov_iter_truncate(iter, inode->i_sb->s_maxbytes);
-+
- 	index = *ppos >> PAGE_SHIFT;
- 	prev_index = ra->prev_pos >> PAGE_SHIFT;
- 	prev_offset = ra->prev_pos & (PAGE_SIZE-1);
+ 	trace_mm_compaction_suitable(zone, order, ret);
 _
 
-Patches currently in -mm which might be from fangwei1@huawei.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-vfsmm-fix-a-dead-loop-in-truncate_inode_pages_range.patch
+fs-select-add-vmalloc-fallback-for-select2.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
+mm-compaction-cleanup-unused-functions.patch
+mm-compaction-rename-compact_partial-to-compact_success.patch
+mm-compaction-dont-recheck-watermarks-after-compact_success.patch
+mm-compaction-add-the-ultimate-direct-compaction-priority.patch
+mm-compaction-add-the-ultimate-direct-compaction-priority-fix.patch
+mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
+mm-compaction-create-compact_gap-wrapper.patch
+mm-compaction-create-compact_gap-wrapper-fix.patch
+mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
+mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
+mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
+mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
+revert-mm-oom-prevent-premature-oom-killer-invocation-for-high-order-request.patch
+mm-compaction-more-reliably-increase-direct-compaction-priority.patch
+mm-compaction-more-reliably-increase-direct-compaction-priority-fix.patch
+mm-compaction-restrict-full-priority-to-non-costly-orders.patch
+mm-compaction-make-full-priority-ignore-pageblock-suitability.patch
+mm-page_alloc-pull-no_progress_loops-update-to-should_reclaim_retry.patch
+mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable.patch
+mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable-fix.patch
+mm-compaction-restrict-fragindex-to-costly-orders.patch
 
