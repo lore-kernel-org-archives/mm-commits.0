@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-proc-fix-region-lost-in-proc-self-smaps.patch added to -mm
- tree
-Date: Mon, 03 Oct 2016 13:50:02 -0700
-Message-ID: <57f2c47a.Xpgb3IxwCjVkqNQj%akpm@linux-foundation.org>
+Subject: + oom-print-nodemask-in-the-oom-report.patch added to -mm tree
+Date: Mon, 03 Oct 2016 13:52:00 -0700
+Message-ID: <57f2c4f0.oEZALpnrEVicfrbi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36540 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36577 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932255AbcJCUuE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2016 16:50:04 -0400
+        with ESMTP id S1752884AbcJCUwB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2016 16:52:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: robert.hu@intel.com, dan.j.williams@intel.com, dave.hansen@intel.com, gleb@kernel.org, guangrong.xiao@linux.intel.com, mhocko@suse.com, mtosatti@redhat.com, oleg@redhat.com, pbonzini@redhat.com, ross.zwisler@linux.intel.com, stefanha@redhat.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, abdelkader.sellami@sap.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, proc: fix region lost in /proc/self/smaps
+     Subject: oom: print nodemask in the oom report
 has been added to the -mm tree.  Its filename is
-     mm-proc-fix-region-lost-in-proc-self-smaps.patch
+     oom-print-nodemask-in-the-oom-report.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-proc-fix-region-lost-in-proc-self-smaps.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom-print-nodemask-in-the-oom-report.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-proc-fix-region-lost-in-proc-self-smaps.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom-print-nodemask-in-the-oom-report.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,237 +38,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Robert Ho <robert.hu@intel.com>
-Subject: mm, proc: fix region lost in /proc/self/smaps
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom: print nodemask in the oom report
 
-Recently, Redhat reported that nvml test suite failed on QEMU/KVM,
-more detailed info please refer to:
-   https://bugzilla.redhat.com/show_bug.cgi?id=1365721
+We have received a hard to explain oom report from a customer. The oom
+triggered regardless there is a lot of free memory:
 
-Actually, this bug is not only for NVDIMM/DAX but also for any other file
-systems. This simple test case abstracted from nvml can easily reproduce
-this bug in common environment:
+PoolThread invoked oom-killer: gfp_mask=0x280da, order=0, oom_adj=0, oom_score_adj=0
+PoolThread cpuset=/ mems_allowed=0-7
+Pid: 30055, comm: PoolThread Tainted: G           E X 3.0.101-80-default #1
+Call Trace:
+ [<ffffffff81004b95>] dump_trace+0x75/0x300
+ [<ffffffff81466ba3>] dump_stack+0x69/0x6f
+ [<ffffffff810fea8e>] dump_header+0x8e/0x110
+ [<ffffffff810fee36>] oom_kill_process+0xa6/0x350
+ [<ffffffff810ff397>] out_of_memory+0x2b7/0x310
+ [<ffffffff81104dfd>] __alloc_pages_slowpath+0x7dd/0x820
+ [<ffffffff81105029>] __alloc_pages_nodemask+0x1e9/0x200
+ [<ffffffff81141f21>] alloc_pages_vma+0xe1/0x290
+ [<ffffffff8112083e>] do_anonymous_page+0x13e/0x300
+ [<ffffffff8146d96d>] do_page_fault+0x1fd/0x4c0
+ [<ffffffff8146a445>] page_fault+0x25/0x30
+ [<00007f19a9e9194c>] 0x7f19a9e9194b
+[...]
+active_anon:1135959151 inactive_anon:1051962 isolated_anon:0
+ active_file:13093 inactive_file:222506 isolated_file:0
+ unevictable:262144 dirty:2 writeback:0 unstable:0
+ free:432672819 slab_reclaimable:7917 slab_unreclaimable:95308
+ mapped:261139 shmem:166297 pagetables:2228282 bounce:0
+[...]
+Node 0 DMA free:15896kB min:0kB low:0kB high:0kB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB isolated(anon):0kB isolated(file):0kB present:15672kB mlocked:0kB dirty:0kB writeback:0kB mapped:0kB shmem:0kB slab_reclaimable:0kB slab_unreclaimable:0kB kernel_stack:0kB pagetables:0kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? yes
+lowmem_reserve[]: 0 2892 775542 775542
+Node 0 DMA32 free:2783784kB min:28kB low:32kB high:40kB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB isolated(anon):0kB isolated(file):0kB present:2961572kB mlocked:0kB dirty:0kB writeback:0kB mapped:0kB shmem:0kB slab_reclaimable:0kB slab_unreclaimable:0kB kernel_stack:0kB pagetables:0kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? yes
+lowmem_reserve[]: 0 0 772650 772650
+Node 0 Normal free:8120kB min:8160kB low:10200kB high:12240kB active_anon:779334960kB inactive_anon:2198744kB active_file:0kB inactive_file:180kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:791193600kB mlocked:131072kB dirty:0kB writeback:0kB mapped:372940kB shmem:361480kB slab_reclaimable:4536kB slab_unreclaimable:68472kB kernel_stack:10104kB pagetables:1414820kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:2280 all_unreclaimable? yes
+lowmem_reserve[]: 0 0 0 0
+Node 1 Normal free:476718144kB min:8192kB low:10240kB high:12288kB active_anon:307623696kB inactive_anon:283620kB active_file:10392kB inactive_file:69908kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:4kB writeback:0kB mapped:257208kB shmem:189896kB slab_reclaimable:3868kB slab_unreclaimable:44756kB kernel_stack:1848kB pagetables:1369432kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0 0
+Node 2 Normal free:386002452kB min:8192kB low:10240kB high:12288kB active_anon:398563752kB inactive_anon:68184kB active_file:10292kB inactive_file:29936kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:0kB writeback:0kB mapped:32084kB shmem:776kB slab_reclaimable:6888kB slab_unreclaimable:60056kB kernel_stack:8208kB pagetables:1282880kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0 0
+Node 3 Normal free:196406760kB min:8192kB low:10240kB high:12288kB active_anon:587445640kB inactive_anon:164396kB active_file:5716kB inactive_file:709844kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:0kB writeback:0kB mapped:291776kB shmem:111416kB slab_reclaimable:5152kB slab_unreclaimable:44516kB kernel_stack:2168kB pagetables:1455956kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0 0
+Node 4 Normal free:425338880kB min:8192kB low:10240kB high:12288kB active_anon:359695204kB inactive_anon:43216kB active_file:5748kB inactive_file:14772kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:0kB writeback:0kB mapped:24708kB shmem:1120kB slab_reclaimable:1884kB slab_unreclaimable:41060kB kernel_stack:1856kB pagetables:1100208kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0 0
+Node 5 Normal free:11140kB min:8192kB low:10240kB high:12288kB active_anon:784240872kB inactive_anon:1217164kB active_file:28kB inactive_file:48kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:0kB writeback:0kB mapped:11408kB shmem:0kB slab_reclaimable:2008kB slab_unreclaimable:49220kB kernel_stack:1360kB pagetables:531600kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:1202 all_unreclaimable? yes
+lowmem_reserve[]: 0 0 0 0
+Node 6 Normal free:243395332kB min:8192kB low:10240kB high:12288kB active_anon:542015544kB inactive_anon:40208kB active_file:968kB inactive_file:8484kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:0kB writeback:0kB mapped:19992kB shmem:496kB slab_reclaimable:1672kB slab_unreclaimable:37052kB kernel_stack:2088kB pagetables:750264kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0 0
+Node 7 Normal free:10768kB min:8192kB low:10240kB high:12288kB active_anon:784916936kB inactive_anon:192316kB active_file:19228kB inactive_file:56852kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:4kB writeback:0kB mapped:34440kB shmem:4kB slab_reclaimable:5660kB slab_unreclaimable:36100kB kernel_stack:1328kB pagetables:1007968kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0 0
 
--------------------------- testcase.c -----------------------------
+So all nodes but Node 0 have a lot of free memory which should suggest
+that there is an available memory especially when mems_allowed=0-7. One
+could speculate that a massive process has managed to terminate and free
+up a lot of memory while racing with the above allocation request.
+Although this is highly unlikely it cannot be ruled out.
 
-int
-is_pmem_proc(const void *addr, size_t len)
-{
-        const char *caddr = addr;
+A further debugging, however shown that the faulting process had
+mempolicy (not cpuset) to bind to Node 0. We cannot see that information
+from the report though. mems_allowed turned out to be more confusing
+than really helpful.
 
-        FILE *fp;
-        if ((fp = fopen("/proc/self/smaps", "r")) == NULL) {
-                printf("!/proc/self/smaps");
-                return 0;
-        }
+Fix this by always priting the nodemask. It is either mempolicy mask
+(and non-null) or the one defined by the cpusets. The new output for
+the above oom report would be
 
-        int retval = 0;         /* assume false until proven otherwise */
-        char line[PROCMAXLEN];  /* for fgets() */
-        char *lo = NULL;        /* beginning of current range in smaps file */
-        char *hi = NULL;        /* end of current range in smaps file */
-        int needmm = 0;         /* looking for mm flag for current range */
-        while (fgets(line, PROCMAXLEN, fp) != NULL) {
-                static const char vmflags[] = "VmFlags:";
-                static const char mm[] = " wr";
+PoolThread invoked oom-killer: gfp_mask=0x280da(GFP_HIGHUSER_MOVABLE|__GFP_ZERO), nodemask=0, order=0, oom_adj=0, oom_score_adj=0
 
-                /* check for range line */
-                if (sscanf(line, "%p-%p", &lo, &hi) == 2) {
-                        if (needmm) {
-                                /* last range matched, but no mm flag found */
-                                printf("never found mm flag.\n");
-                                break;
-                        } else if (caddr < lo) {
-                                /* never found the range for caddr */
-                                printf("#######no match for addr %p.\n", caddr);
-                                break;
-                        } else if (caddr < hi) {
-                                /* start address is in this range */
-                                size_t rangelen = (size_t)(hi - caddr);
+This patch doesn't touch show_mem and the node filtering based on the
+cpuset node mask because mempolicy is always a subset of cpusets and
+seeing the full cpuset oom context might be helpful for tunning more
+specific mempolicies inside cpusets (e.g. when they turn out to be too
+restrictive). To prevent from ugly ifdefs the mask is printed even
+for !NUMA configurations but this should be OK (a single node will be
+printed).
 
-                                /* remember that matching has started */
-                                needmm = 1;
-
-                                /* calculate remaining range to search for */
-                                if (len > rangelen) {
-                                        len -= rangelen;
-                                        caddr += rangelen;
-                                        printf("matched %zu bytes in range "
-                                                "%p-%p, %zu left over.\n",
-                                                        rangelen, lo, hi, len);
-                                } else {
-                                        len = 0;
-                                        printf("matched all bytes in range "
-                                                        "%p-%p.\n", lo, hi);
-                                }
-                        }
-                } else if (needmm && strncmp(line, vmflags,
-                                        sizeof(vmflags) - 1) == 0) {
-                        if (strstr(&line[sizeof(vmflags) - 1], mm) != NULL) {
-                                printf("mm flag found.\n");
-                                if (len == 0) {
-                                        /* entire range matched */
-                                        retval = 1;
-                                        break;
-                                }
-                                needmm = 0;     /* saw what was needed */
-                        } else {
-                                /* mm flag not set for some or all of range */
-                                printf("range has no mm flag.\n");
-                                break;
-                        }
-                }
-        }
-
-        fclose(fp);
-
-        printf("returning %d.\n", retval);
-        return retval;
-}
-
-void *Addr;
-size_t Size;
-
-/*
- * worker -- the work each thread performs
- */
-static void *
-worker(void *arg)
-{
-        int *ret = (int *)arg;
-        *ret =  is_pmem_proc(Addr, Size);
-        return NULL;
-}
-
-int main(int argc, char *argv[])
-{
-        if (argc <  2 || argc > 3) {
-                printf("usage: %s file [env].\n", argv[0]);
-                return -1;
-        }
-
-        int fd = open(argv[1], O_RDWR);
-
-        struct stat stbuf;
-        fstat(fd, &stbuf);
-
-        Size = stbuf.st_size;
-        Addr = mmap(0, stbuf.st_size, PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0);
-
-        close(fd);
-
-        pthread_t threads[NTHREAD];
-        int ret[NTHREAD];
-
-        /* kick off NTHREAD threads */
-        for (int i = 0; i < NTHREAD; i++)
-                pthread_create(&threads[i], NULL, worker, &ret[i]);
-
-        /* wait for all the threads to complete */
-        for (int i = 0; i < NTHREAD; i++)
-                pthread_join(threads[i], NULL);
-
-        /* verify that all the threads return the same value */
-        for (int i = 1; i < NTHREAD; i++) {
-                if (ret[0] != ret[i]) {
-                        printf("Error i %d ret[0] = %d ret[i] = %d.\n", i,
-                                ret[0], ret[i]);
-                }
-        }
-
-        printf("%d", ret[0]);
-        return 0;
-}
-
-It failed as some threads can not find the memory region in
-"/proc/self/smaps" which is allocated in the main process
-
-It is caused by proc fs which uses 'file->version' to indicate the VMA that
-is the last one has already been handled by read() system call. When the
-next read() issues, it uses the 'version' to find the VMA, then the next
-VMA is what we want to handle, the related code is as follows:
-
-        if (last_addr) {
-                vma = find_vma(mm, last_addr);
-                if (vma && (vma = m_next_vma(priv, vma)))
-                        return vma;
-        }
-
-However, VMA will be lost if the last VMA is gone, e.g:
-
-The process VMA list is A->B->C->D
-
-CPU 0                                  CPU 1
-read() system call
-   handle VMA B
-   version = B
-return to userspace
-
-                                   unmap VMA B
-
-issue read() again to continue to get
-the region info
-   find_vma(version) will get VMA C
-   m_next_vma(C) will get VMA D
-   handle D
-   !!! VMA C is lost !!!
-
-In order to fix this bug, we make 'file->version' indicate the end address
-of the current VMA.  m_start will then look up a vma which with vma_start
-< last_vm_end and moves on to the next vma if we found the same or an
-overlapping vma.  This will guarantee that we will not miss an exclusive
-vma but we can still miss one if the previous vma was shrunk.  This is
-acceptable because guaranteeing "never miss a vma" is simply not feasible.
-User has to cope with some inconsistencies if the file is not read in one
-go.
-
-[mhocko@suse.com: changelog fixes]
-Link: http://lkml.kernel.org/r/1475296958-27652-1-git-send-email-robert.hu@intel.com
-Acked-by: Dave Hansen <dave.hansen@intel.com>
-Signed-off-by: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-Signed-off-by: Robert Hu <robert.hu@intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Gleb Natapov <gleb@kernel.org>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Stefan Hajnoczi <stefanha@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Link: http://lkml.kernel.org/r/20160930214146.28600-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Sellami Abdelkader <abdelkader.sellami@sap.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Sellami Abdelkader <abdelkader.sellami@sap.com>,
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/oom_kill.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-proc-fix-region-lost-in-proc-self-smaps fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-proc-fix-region-lost-in-proc-self-smaps
-+++ a/fs/proc/task_mmu.c
-@@ -147,7 +147,7 @@ m_next_vma(struct proc_maps_private *pri
- static void m_cache_vma(struct seq_file *m, struct vm_area_struct *vma)
+diff -puN mm/oom_kill.c~oom-print-nodemask-in-the-oom-report mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-print-nodemask-in-the-oom-report
++++ a/mm/oom_kill.c
+@@ -403,8 +403,11 @@ static void dump_tasks(struct mem_cgroup
+ 
+ static void dump_header(struct oom_control *oc, struct task_struct *p)
  {
- 	if (m->count < m->size)	/* vma is copied successfully */
--		m->version = m_next_vma(m->private, vma) ? vma->vm_start : -1UL;
-+		m->version = m_next_vma(m->private, vma) ? vma->vm_end : -1UL;
- }
- 
- static void *m_start(struct seq_file *m, loff_t *ppos)
-@@ -175,8 +175,10 @@ static void *m_start(struct seq_file *m,
- 	priv->tail_vma = get_gate_vma(mm);
- 
- 	if (last_addr) {
--		vma = find_vma(mm, last_addr);
--		if (vma && (vma = m_next_vma(priv, vma)))
-+		vma = find_vma(mm, last_addr - 1);
-+		if (vma && vma->vm_start <= last_addr)
-+			vma = m_next_vma(priv, vma);
-+		if (vma)
- 			return vma;
- 	}
- 
+-	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%hd\n",
+-		current->comm, oc->gfp_mask, &oc->gfp_mask, oc->order,
++	nodemask_t *nm = (oc->nodemask) ? oc->nodemask : &cpuset_current_mems_allowed;
++
++	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), nodemask=%*pbl, order=%d, oom_score_adj=%hd\n",
++		current->comm, oc->gfp_mask, &oc->gfp_mask,
++		nodemask_pr_args(nm), oc->order,
+ 		current->signal->oom_score_adj);
+ 	if (!IS_ENABLED(CONFIG_COMPACTION) && oc->order)
+ 		pr_warn("COMPACTION is disabled!!!\n");
 _
 
-Patches currently in -mm which might be from robert.hu@intel.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-proc-fix-region-lost-in-proc-self-smaps.patch
-dcumentation-filesystems-proctxt-add-more-description-for-maps-smaps.patch
+mm-vmscan-get-rid-of-throttle_vm_writeout.patch
+oom-keep-mm-of-the-killed-task-available.patch
+kernel-oom-fix-potential-pgd_lock-deadlock-from-__mmdrop.patch
+mm-oom-get-rid-of-signal_struct-oom_victims.patch
+oom-suspend-fix-oom_killer_disable-vs-pm-suspend-properly.patch
+mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch
+oom-oom_reaper-allow-to-reap-mm-shared-by-the-kthreads.patch
+oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled.patch
+oom-print-nodemask-in-the-oom-report.patch
+fs-use-mapping_set_error-instead-of-opencoded-set_bit.patch
+mm-split-gfp_mask-and-mapping-flags-into-separate-fields.patch
 
