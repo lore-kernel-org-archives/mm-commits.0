@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + jiffies-add-time-comparison-functions-for-64-bit-jiffies.patch
- added to -mm tree
-Date: Mon, 03 Oct 2016 14:54:49 -0700
-Message-ID: <57f2d3a9.Gyb+zWiLBi2CxYmF%akpm@linux-foundation.org>
+Subject: + mm-remove-unnecessary-condition-in-remove_inode_hugepages.patch added to -mm tree
+Date: Mon, 03 Oct 2016 14:55:49 -0700
+Message-ID: <57f2d3e5.MwpJo9XjAS07RYGN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37141 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752500AbcJCVyz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2016 17:54:55 -0400
+        with ESMTP id S1752500AbcJCVzu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 3 Oct 2016 17:55:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Jason@zx2c4.com, john.stultz@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: zhongjiang@huawei.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: jiffies: add time comparison functions for 64 bit jiffies
+     Subject: mm: remove unnecessary condition in remove_inode_hugepages
 has been added to the -mm tree.  Its filename is
-     jiffies-add-time-comparison-functions-for-64-bit-jiffies.patch
+     mm-remove-unnecessary-condition-in-remove_inode_hugepages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/jiffies-add-time-comparison-functions-for-64-bit-jiffies.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-unnecessary-condition-in-remove_inode_hugepages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/jiffies-add-time-comparison-functions-for-64-bit-jiffies.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-unnecessary-condition-in-remove_inode_hugepages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +38,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Jason A. Donenfeld" <Jason@zx2c4.com>
-Subject: jiffies: add time comparison functions for 64 bit jiffies
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: mm: remove unnecessary condition in remove_inode_hugepages
 
-Though the time_before and time_after family of functions were nicely
-extended to support jiffies64, so that the interface would be consistent,
-it was forgotten to also extend the before/after jiffies functions to
-support jiffies64.  This commit brings the interface to parity between
-jiffies and jiffies64, which is quite convenient.
+When the huge page is added to the page cahce (huge_add_to_page_cache),
+the page private flag will be cleared.  since this code
+(remove_inode_hugepages) will only be called for pages in the page cahce,
+PagePrivate(page) will always be false.
 
-Link: http://lkml.kernel.org/r/20160929033319.12188-1-Jason@zx2c4.com
-Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: John Stultz <john.stultz@linaro.org
+The patch remove the code without any functional change.
+
+Link: http://lkml.kernel.org/r/1475113323-29368-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Tested-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jiffies.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/hugetlbfs/inode.c    |   12 +++++-------
+ include/linux/hugetlb.h |    2 +-
+ mm/hugetlb.c            |    4 ++--
+ 3 files changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/jiffies.h~jiffies-add-time-comparison-functions-for-64-bit-jiffies include/linux/jiffies.h
---- a/include/linux/jiffies.h~jiffies-add-time-comparison-functions-for-64-bit-jiffies
-+++ a/include/linux/jiffies.h
-@@ -150,15 +150,19 @@ static inline u64 get_jiffies_64(void)
+diff -puN fs/hugetlbfs/inode.c~mm-remove-unnecessary-condition-in-remove_inode_hugepages fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-remove-unnecessary-condition-in-remove_inode_hugepages
++++ a/fs/hugetlbfs/inode.c
+@@ -416,7 +416,6 @@ static void remove_inode_hugepages(struc
  
- /* time_is_before_jiffies(a) return true if a is before jiffies */
- #define time_is_before_jiffies(a) time_after(jiffies, a)
-+#define time_is_before_jiffies64(a) time_after64(get_jiffies_64(), a)
+ 		for (i = 0; i < pagevec_count(&pvec); ++i) {
+ 			struct page *page = pvec.pages[i];
+-			bool rsv_on_error;
+ 			u32 hash;
  
- /* time_is_after_jiffies(a) return true if a is after jiffies */
- #define time_is_after_jiffies(a) time_before(jiffies, a)
-+#define time_is_after_jiffies64(a) time_before64(get_jiffies_64(), a)
+ 			/*
+@@ -458,18 +457,17 @@ static void remove_inode_hugepages(struc
+ 			 * cache (remove_huge_page) BEFORE removing the
+ 			 * region/reserve map (hugetlb_unreserve_pages).  In
+ 			 * rare out of memory conditions, removal of the
+-			 * region/reserve map could fail.  Before free'ing
+-			 * the page, note PagePrivate which is used in case
+-			 * of error.
++			 * region/reserve map could fail. Correspondingly,
++			 * the subpool and global reserve usage count can need
++			 * to be adjusted.
+ 			 */
+-			rsv_on_error = !PagePrivate(page);
++			VM_BUG_ON(PagePrivate(page));
+ 			remove_huge_page(page);
+ 			freed++;
+ 			if (!truncate_op) {
+ 				if (unlikely(hugetlb_unreserve_pages(inode,
+ 							next, next + 1, 1)))
+-					hugetlb_fix_reserve_counts(inode,
+-								rsv_on_error);
++					hugetlb_fix_reserve_counts(inode);
+ 			}
  
- /* time_is_before_eq_jiffies(a) return true if a is before or equal to jiffies*/
- #define time_is_before_eq_jiffies(a) time_after_eq(jiffies, a)
-+#define time_is_before_eq_jiffies64(a) time_after_eq64(get_jiffies_64(), a)
+ 			unlock_page(page);
+diff -puN include/linux/hugetlb.h~mm-remove-unnecessary-condition-in-remove_inode_hugepages include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-remove-unnecessary-condition-in-remove_inode_hugepages
++++ a/include/linux/hugetlb.h
+@@ -90,7 +90,7 @@ int dequeue_hwpoisoned_huge_page(struct
+ bool isolate_huge_page(struct page *page, struct list_head *list);
+ void putback_active_hugepage(struct page *page);
+ void free_huge_page(struct page *page);
+-void hugetlb_fix_reserve_counts(struct inode *inode, bool restore_reserve);
++void hugetlb_fix_reserve_counts(struct inode *inode);
+ extern struct mutex *hugetlb_fault_mutex_table;
+ u32 hugetlb_fault_mutex_hash(struct hstate *h, struct mm_struct *mm,
+ 				struct vm_area_struct *vma,
+diff -puN mm/hugetlb.c~mm-remove-unnecessary-condition-in-remove_inode_hugepages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-remove-unnecessary-condition-in-remove_inode_hugepages
++++ a/mm/hugetlb.c
+@@ -567,13 +567,13 @@ retry:
+  * appear as a "reserved" entry instead of simply dangling with incorrect
+  * counts.
+  */
+-void hugetlb_fix_reserve_counts(struct inode *inode, bool restore_reserve)
++void hugetlb_fix_reserve_counts(struct inode *inode)
+ {
+ 	struct hugepage_subpool *spool = subpool_inode(inode);
+ 	long rsv_adjust;
  
- /* time_is_after_eq_jiffies(a) return true if a is after or equal to jiffies*/
- #define time_is_after_eq_jiffies(a) time_before_eq(jiffies, a)
-+#define time_is_after_eq_jiffies64(a) time_before_eq64(get_jiffies_64(), a)
+ 	rsv_adjust = hugepage_subpool_get_pages(spool, 1);
+-	if (restore_reserve && rsv_adjust) {
++	if (rsv_adjust) {
+ 		struct hstate *h = hstate_inode(inode);
  
- /*
-  * Have the 32 bit jiffies value wrap 5 minutes after boot
+ 		hugetlb_acct_memory(h, 1);
 _
 
-Patches currently in -mm which might be from Jason@zx2c4.com are
+Patches currently in -mm which might be from zhongjiang@huawei.com are
 
-jiffies-add-time-comparison-functions-for-64-bit-jiffies.patch
+mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node.patch
+mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node-v2.patch
+mm-remove-unnecessary-condition-in-remove_inode_hugepages.patch
+mm-page_owner-align-with-pageblock_nr-pages.patch
+mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
 
