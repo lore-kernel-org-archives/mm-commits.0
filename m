@@ -1,100 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [patch 058/127] selftest: split mlock2_ funcs into separate
- mlock2.h
-Date: Fri, 07 Oct 2016 16:59:43 -0700
-Message-ID: <57f836ef.ac0JJyg+pBib3VwY%akpm@linux-foundation.org>
+Subject: [patch 055/127] oom: warn if we go OOM for higher order and
+ compaction is disabled
+Date: Fri, 07 Oct 2016 16:59:33 -0700
+Message-ID: <57f836e5.4HrLMJhFRye4xXLH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39197 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39182 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756512AbcJHAAP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:15 -0400
+        with ESMTP id S1751425AbcJHAAO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, wei.guo.simon@gmail.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com
 
-From: Simon Guo <wei.guo.simon@gmail.com>
-Subject: selftest: split mlock2_ funcs into separate mlock2.h
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom: warn if we go OOM for higher order and compaction is disabled
 
-To prepare mlock2.h whose functionality will be reused.
+Since the lumpy reclaim is gone there is no source of higher order pages
+if CONFIG_COMPACTION=n except for the order-0 pages reclaim which is
+unreliable for that purpose to say the least.  Hitting an OOM for !costly
+higher order requests is therefore all not that hard to imagine.  We are
+trying hard to not invoke OOM killer as much as possible but there is
+simply no reliable way to detect whether more reclaim retries make sense.
 
-Link: http://lkml.kernel.org/r/1472554781-9835-4-git-send-email-wei.guo.simon@gmail.com
-Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
-Cc: Alexey Klimov <klimov.linux@gmail.com>
-Cc: Eric B Munson <emunson@akamai.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Simon Guo <wei.guo.simon@gmail.com>
-Cc: Thierry Reding <treding@nvidia.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Disabling COMPACTION is not widespread but it seems that some users might
+have disable the feature without realizing full consequences (mostly along
+with disabling THP because compaction used to be THP mainly thing).  This
+patch just adds a note if the OOM killer was triggered by higher order
+request with compaction disabled.  This will help us identifying possible
+misconfiguration right from the oom report which is easier than to always
+keep in mind that somebody might have disabled COMPACTION without a good
+reason.
+
+Link: http://lkml.kernel.org/r/20160830111632.GD23963@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/mlock2-tests.c |   21 --------------------
- tools/testing/selftests/vm/mlock2.h       |   20 +++++++++++++++++++
- 2 files changed, 21 insertions(+), 20 deletions(-)
+ mm/oom_kill.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN tools/testing/selftests/vm/mlock2-tests.c~selftest-split-mlock2_-funcs-into-separate-mlock2h tools/testing/selftests/vm/mlock2-tests.c
---- a/tools/testing/selftests/vm/mlock2-tests.c~selftest-split-mlock2_-funcs-into-separate-mlock2h
-+++ a/tools/testing/selftests/vm/mlock2-tests.c
-@@ -7,27 +7,8 @@
- #include <string.h>
- #include <sys/time.h>
- #include <sys/resource.h>
--#include <syscall.h>
--#include <errno.h>
- #include <stdbool.h>
--
--#ifndef MLOCK_ONFAULT
--#define MLOCK_ONFAULT 1
--#endif
--
--#ifndef MCL_ONFAULT
--#define MCL_ONFAULT (MCL_FUTURE << 1)
--#endif
--
--static int mlock2_(void *start, size_t len, int flags)
--{
--#ifdef __NR_mlock2
--	return syscall(__NR_mlock2, start, len, flags);
--#else
--	errno = ENOSYS;
--	return -1;
--#endif
--}
-+#include "mlock2.h"
+diff -puN mm/oom_kill.c~oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled
++++ a/mm/oom_kill.c
+@@ -406,6 +406,8 @@ static void dump_header(struct oom_contr
+ 	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%hd\n",
+ 		current->comm, oc->gfp_mask, &oc->gfp_mask, oc->order,
+ 		current->signal->oom_score_adj);
++	if (!IS_ENABLED(CONFIG_COMPACTION) && oc->order)
++		pr_warn("COMPACTION is disabled!!!\n");
  
- struct vm_boundaries {
- 	unsigned long start;
-diff -puN /dev/null tools/testing/selftests/vm/mlock2.h
---- /dev/null
-+++ a/tools/testing/selftests/vm/mlock2.h
-@@ -0,0 +1,20 @@
-+#include <syscall.h>
-+#include <errno.h>
-+
-+#ifndef MLOCK_ONFAULT
-+#define MLOCK_ONFAULT 1
-+#endif
-+
-+#ifndef MCL_ONFAULT
-+#define MCL_ONFAULT (MCL_FUTURE << 1)
-+#endif
-+
-+static int mlock2_(void *start, size_t len, int flags)
-+{
-+#ifdef __NR_mlock2
-+	return syscall(__NR_mlock2, start, len, flags);
-+#else
-+	errno = ENOSYS;
-+	return -1;
-+#endif
-+}
+ 	cpuset_print_current_mems_allowed();
+ 	dump_stack();
 _
