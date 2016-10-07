@@ -1,125 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [patch 056/127] mm: mlock: check against vma for actual mlock()
- size
-Date: Fri, 07 Oct 2016 16:59:36 -0700
-Message-ID: <57f836e8.pbCTSznzKvi/u+cJ%akpm@linux-foundation.org>
+Subject: [patch 050/127] mm/memblock.c: expose total reserved memory
+Date: Fri, 07 Oct 2016 16:59:18 -0700
+Message-ID: <57f836d6.32hufFWESpvQfmI/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39169 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39211 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756002AbcJHAAO (ORCPT
+        with ESMTP id S1755218AbcJHAAO (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, wei.guo.simon@gmail.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, srikar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dave.hansen@intel.com, hbathini@linux.vnet.ibm.com, mahesh@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@kernel.org, mpe@ellerman.id.au, vbabka@suse.cz
 
-From: Simon Guo <wei.guo.simon@gmail.com>
-Subject: mm: mlock: check against vma for actual mlock() size
+From: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Subject: mm/memblock.c: expose total reserved memory
 
-In do_mlock(), the check against locked memory limitation has a hole which
-will fail following cases at step 3):
+The total reserved memory in a system is accounted but not available for
+use use outside mm/memblock.c.  By exposing the total reserved memory,
+systems can better calculate the size of large hashes.
 
-1) User has a memory chunk from addressA with 50k, and user
-mem lock rlimit is 64k.
-2) mlock(addressA, 30k)
-3) mlock(addressA, 40k)
-
-The 3rd step should have been allowed since the 40k request is intersected
-with the previous 30k at step 2), and the 3rd step is actually for mlock
-on the extra 10k memory.
-
-This patch checks vma to caculate the actual "new" mlock size, if
-necessary, and ajust the logic to fix this issue.
-
-[akpm@linux-foundation.org: clean up comment layout]
-[wei.guo.simon@gmail.com: correct a typo in count_mm_mlocked_page_nr()]
- Link: http://lkml.kernel.org/r/1473325970-11393-2-git-send-email-wei.guo.simon@gmail.com
-Link: http://lkml.kernel.org/r/1472554781-9835-2-git-send-email-wei.guo.simon@gmail.com
-Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
-Cc: Alexey Klimov <klimov.linux@gmail.com>
-Cc: Eric B Munson <emunson@akamai.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Simon Guo <wei.guo.simon@gmail.com>
-Cc: Thierry Reding <treding@nvidia.com>
+Link: http://lkml.kernel.org/r/1472476010-4709-3-git-send-email-srikar@linux.vnet.ibm.com
+Signed-off-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Suggested-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
+Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   49 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ include/linux/memblock.h |    1 +
+ mm/memblock.c            |    5 +++++
+ 2 files changed, 6 insertions(+)
 
-diff -puN mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size mm/mlock.c
---- a/mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size
-+++ a/mm/mlock.c
-@@ -617,6 +617,45 @@ static int apply_vma_lock_flags(unsigned
- 	return error;
+diff -puN include/linux/memblock.h~mm-memblock-expose-total-reserved-memory include/linux/memblock.h
+--- a/include/linux/memblock.h~mm-memblock-expose-total-reserved-memory
++++ a/include/linux/memblock.h
+@@ -328,6 +328,7 @@ phys_addr_t memblock_alloc_base(phys_add
+ phys_addr_t __memblock_alloc_base(phys_addr_t size, phys_addr_t align,
+ 				  phys_addr_t max_addr);
+ phys_addr_t memblock_phys_mem_size(void);
++phys_addr_t memblock_reserved_size(void);
+ phys_addr_t memblock_mem_size(unsigned long limit_pfn);
+ phys_addr_t memblock_start_of_DRAM(void);
+ phys_addr_t memblock_end_of_DRAM(void);
+diff -puN mm/memblock.c~mm-memblock-expose-total-reserved-memory mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-expose-total-reserved-memory
++++ a/mm/memblock.c
+@@ -1438,6 +1438,11 @@ phys_addr_t __init_memblock memblock_phy
+ 	return memblock.memory.total_size;
  }
  
-+/*
-+ * Go through vma areas and sum size of mlocked
-+ * vma pages, as return value.
-+ * Note deferred memory locking case(mlock2(,,MLOCK_ONFAULT)
-+ * is also counted.
-+ * Return value: previously mlocked page counts
-+ */
-+static int count_mm_mlocked_page_nr(struct mm_struct *mm,
-+		unsigned long start, size_t len)
++phys_addr_t __init_memblock memblock_reserved_size(void)
 +{
-+	struct vm_area_struct *vma;
-+	int count = 0;
-+
-+	if (mm == NULL)
-+		mm = current->mm;
-+
-+	vma = find_vma(mm, start);
-+	if (vma == NULL)
-+		vma = mm->mmap;
-+
-+	for (; vma ; vma = vma->vm_next) {
-+		if (start >= vma->vm_end)
-+			continue;
-+		if (start + len <=  vma->vm_start)
-+			break;
-+		if (vma->vm_flags & VM_LOCKED) {
-+			if (start > vma->vm_start)
-+				count -= (start - vma->vm_start);
-+			if (start + len < vma->vm_end) {
-+				count += start + len - vma->vm_start;
-+				break;
-+			}
-+			count += vma->vm_end - vma->vm_start;
-+		}
-+	}
-+
-+	return count >> PAGE_SHIFT;
++	return memblock.reserved.total_size;
 +}
 +
- static __must_check int do_mlock(unsigned long start, size_t len, vm_flags_t flags)
+ phys_addr_t __init memblock_mem_size(unsigned long limit_pfn)
  {
- 	unsigned long locked;
-@@ -639,6 +678,16 @@ static __must_check int do_mlock(unsigne
- 		return -EINTR;
- 
- 	locked += current->mm->locked_vm;
-+	if ((locked > lock_limit) && (!capable(CAP_IPC_LOCK))) {
-+		/*
-+		 * It is possible that the regions requested intersect with
-+		 * previously mlocked areas, that part area in "mm->locked_vm"
-+		 * should not be counted to new mlock increment count. So check
-+		 * and adjust locked count if necessary.
-+		 */
-+		locked -= count_mm_mlocked_page_nr(current->mm,
-+				start, len);
-+	}
- 
- 	/* check against resource limits */
- 	if ((locked <= lock_limit) || capable(CAP_IPC_LOCK))
+ 	unsigned long pages = 0;
 _
