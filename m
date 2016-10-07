@@ -1,61 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [patch 055/127] oom: warn if we go OOM for higher order and
- compaction is disabled
-Date: Fri, 07 Oct 2016 16:59:33 -0700
-Message-ID: <57f836e5.4HrLMJhFRye4xXLH%akpm@linux-foundation.org>
+Subject: [patch 052/127] mm/nobootmem.c: remove duplicate macro
+ ARCH_LOW_ADDRESS_LIMIT statements
+Date: Fri, 07 Oct 2016 16:59:24 -0700
+Message-ID: <57f836dc.Y230GcxH0rxzvQU8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39182 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39224 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751425AbcJHAAO (ORCPT
+        with ESMTP id S1755906AbcJHAAO (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, hannes@cmpxchg.org, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zijun_hu@htc.com, mingo@elte.hu
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom: warn if we go OOM for higher order and compaction is disabled
+From: zijun_hu <zijun_hu@htc.com>
+Subject: mm/nobootmem.c: remove duplicate macro ARCH_LOW_ADDRESS_LIMIT statements
 
-Since the lumpy reclaim is gone there is no source of higher order pages
-if CONFIG_COMPACTION=n except for the order-0 pages reclaim which is
-unreliable for that purpose to say the least.  Hitting an OOM for !costly
-higher order requests is therefore all not that hard to imagine.  We are
-trying hard to not invoke OOM killer as much as possible but there is
-simply no reliable way to detect whether more reclaim retries make sense.
+Fix the following bugs:
 
-Disabling COMPACTION is not widespread but it seems that some users might
-have disable the feature without realizing full consequences (mostly along
-with disabling THP because compaction used to be THP mainly thing).  This
-patch just adds a note if the OOM killer was triggered by higher order
-request with compaction disabled.  This will help us identifying possible
-misconfiguration right from the oom report which is easier than to always
-keep in mind that somebody might have disabled COMPACTION without a good
-reason.
+ - the same ARCH_LOW_ADDRESS_LIMIT statements are duplicated between
+   header and relevant source
 
-Link: http://lkml.kernel.org/r/20160830111632.GD23963@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+ - don't ensure ARCH_LOW_ADDRESS_LIMIT perhaps defined by ARCH in
+   asm/processor.h is preferred over default in linux/bootmem.h
+   completely since the former header isn't included by the latter
+
+Link: http://lkml.kernel.org/r/e046aeaa-e160-6d9e-dc1b-e084c2fd999f@zoho.com
+Signed-off-by: zijun_hu <zijun_hu@htc.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/bootmem.h |    9 +++++----
+ mm/nobootmem.c          |   10 +++++-----
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled mm/oom_kill.c
---- a/mm/oom_kill.c~oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled
-+++ a/mm/oom_kill.c
-@@ -406,6 +406,8 @@ static void dump_header(struct oom_contr
- 	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%hd\n",
- 		current->comm, oc->gfp_mask, &oc->gfp_mask, oc->order,
- 		current->signal->oom_score_adj);
-+	if (!IS_ENABLED(CONFIG_COMPACTION) && oc->order)
-+		pr_warn("COMPACTION is disabled!!!\n");
+diff -puN include/linux/bootmem.h~mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements
++++ a/include/linux/bootmem.h
+@@ -7,6 +7,7 @@
+ #include <linux/mmzone.h>
+ #include <linux/mm_types.h>
+ #include <asm/dma.h>
++#include <asm/processor.h>
  
- 	cpuset_print_current_mems_allowed();
- 	dump_stack();
+ /*
+  *  simple boot-time physical memory area allocator.
+@@ -119,6 +120,10 @@ extern void *__alloc_bootmem_low_node(pg
+ #define BOOTMEM_LOW_LIMIT __pa(MAX_DMA_ADDRESS)
+ #endif
+ 
++#ifndef ARCH_LOW_ADDRESS_LIMIT
++#define ARCH_LOW_ADDRESS_LIMIT  0xffffffffUL
++#endif
++
+ #define alloc_bootmem(x) \
+ 	__alloc_bootmem(x, SMP_CACHE_BYTES, BOOTMEM_LOW_LIMIT)
+ #define alloc_bootmem_align(x, align) \
+@@ -180,10 +185,6 @@ static inline void * __init memblock_vir
+ 						    NUMA_NO_NODE);
+ }
+ 
+-#ifndef ARCH_LOW_ADDRESS_LIMIT
+-#define ARCH_LOW_ADDRESS_LIMIT  0xffffffffUL
+-#endif
+-
+ static inline void * __init memblock_virt_alloc_low(
+ 					phys_addr_t size, phys_addr_t align)
+ {
+diff -puN mm/nobootmem.c~mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements
++++ a/mm/nobootmem.c
+@@ -11,18 +11,21 @@
+ #include <linux/init.h>
+ #include <linux/pfn.h>
+ #include <linux/slab.h>
+-#include <linux/bootmem.h>
+ #include <linux/export.h>
+ #include <linux/kmemleak.h>
+ #include <linux/range.h>
+ #include <linux/memblock.h>
++#include <linux/bootmem.h>
+ 
+ #include <asm/bug.h>
+ #include <asm/io.h>
+-#include <asm/processor.h>
+ 
+ #include "internal.h"
+ 
++#ifndef CONFIG_HAVE_MEMBLOCK
++#error CONFIG_HAVE_MEMBLOCK not defined
++#endif
++
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ struct pglist_data __refdata contig_page_data;
+ EXPORT_SYMBOL(contig_page_data);
+@@ -395,9 +398,6 @@ void * __init __alloc_bootmem_node_high(
+ 	return __alloc_bootmem_node(pgdat, size, align, goal);
+ }
+ 
+-#ifndef ARCH_LOW_ADDRESS_LIMIT
+-#define ARCH_LOW_ADDRESS_LIMIT	0xffffffffUL
+-#endif
+ 
+ /**
+  * __alloc_bootmem_low - allocate low boot memory
 _
