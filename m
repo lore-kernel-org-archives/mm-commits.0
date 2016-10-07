@@ -1,77 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [patch 074/127] mm, compaction: restrict full priority to
- non-costly orders
-Date: Fri, 07 Oct 2016 17:00:34 -0700
-Message-ID: <57f83722.K1bBsj6SiygHAKGh%akpm@linux-foundation.org>
+Subject: [patch 047/127] oom, oom_reaper: allow to reap mm shared by the
+ kthreads
+Date: Fri, 07 Oct 2016 16:59:09 -0700
+Message-ID: <57f836cd.B5QYsa4snTd9iWTK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39321 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39183 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932714AbcJHAAf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:35 -0400
+        with ESMTP id S1754816AbcJHAAN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, penguin-kernel@i-love.sakura.ne.jp, riel@redhat.com, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@parallels.com
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: restrict full priority to non-costly orders
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom, oom_reaper: allow to reap mm shared by the kthreads
 
-The new ultimate compaction priority disables some heuristics, which may
-result in excessive cost.  This is fine for non-costly orders where we
-want to try hard before resulting for OOM, but might be disruptive for
-costly orders which do not trigger OOM and should generally have some
-fallback.  Thus, we disable the full priority for costly orders.
+oom reaper was skipped for an mm which is shared with the kernel thread
+(aka use_mm()).  The primary concern was that such a kthread might want to
+read from the userspace memory and see zero page as a result of the oom
+reaper action.  This is no longer a problem after "mm: make sure that
+kthreads will not refault oom reaped memory" because any attempt to fault
+in when the MMF_UNSTABLE is set will result in SIGBUS and so the target
+user should see an error.  This means that we can finally allow oom reaper
+also to tasks which share their mm with kthreads.
 
-Suggested-by: Michal Hocko <mhocko@kernel.org>
-Link: http://lkml.kernel.org/r/20160906135258.18335-4-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/1472119394-11342-10-git-send-email-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    1 +
- mm/page_alloc.c            |    5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-restrict-full-priority-to-non-costly-orders include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-restrict-full-priority-to-non-costly-orders
-+++ a/include/linux/compaction.h
-@@ -9,6 +9,7 @@ enum compact_priority {
- 	COMPACT_PRIO_SYNC_FULL,
- 	MIN_COMPACT_PRIORITY = COMPACT_PRIO_SYNC_FULL,
- 	COMPACT_PRIO_SYNC_LIGHT,
-+	MIN_COMPACT_COSTLY_PRIORITY = COMPACT_PRIO_SYNC_LIGHT,
- 	DEF_COMPACT_PRIORITY = COMPACT_PRIO_SYNC_LIGHT,
- 	COMPACT_PRIO_ASYNC,
- 	INIT_COMPACT_PRIORITY = COMPACT_PRIO_ASYNC
-diff -puN mm/page_alloc.c~mm-compaction-restrict-full-priority-to-non-costly-orders mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-restrict-full-priority-to-non-costly-orders
-+++ a/mm/page_alloc.c
-@@ -3163,6 +3163,7 @@ should_compact_retry(struct alloc_contex
- 		     int *compaction_retries)
- {
- 	int max_retries = MAX_COMPACT_RETRIES;
-+	int min_priority;
- 
- 	if (!order)
- 		return false;
-@@ -3205,7 +3206,9 @@ should_compact_retry(struct alloc_contex
- 	 * all retries or failed at the lower priorities.
- 	 */
- check_priority:
--	if (*compact_priority > MIN_COMPACT_PRIORITY) {
-+	min_priority = (order > PAGE_ALLOC_COSTLY_ORDER) ?
-+			MIN_COMPACT_COSTLY_PRIORITY : MIN_COMPACT_PRIORITY;
-+	if (*compact_priority > min_priority) {
- 		(*compact_priority)--;
- 		*compaction_retries = 0;
- 		return true;
+diff -puN mm/oom_kill.c~oom-oom_reaper-allow-to-reap-mm-shared-by-the-kthreads mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-oom_reaper-allow-to-reap-mm-shared-by-the-kthreads
++++ a/mm/oom_kill.c
+@@ -902,13 +902,7 @@ static void oom_kill_process(struct oom_
+ 			continue;
+ 		if (same_thread_group(p, victim))
+ 			continue;
+-		if (unlikely(p->flags & PF_KTHREAD) || is_global_init(p)) {
+-			/*
+-			 * We cannot use oom_reaper for the mm shared by this
+-			 * process because it wouldn't get killed and so the
+-			 * memory might be still used. Hide the mm from the oom
+-			 * killer to guarantee OOM forward progress.
+-			 */
++		if (is_global_init(p)) {
+ 			can_oom_reap = false;
+ 			set_bit(MMF_OOM_SKIP, &mm->flags);
+ 			pr_info("oom killer %d (%s) has mm pinned by %d (%s)\n",
+@@ -916,6 +910,12 @@ static void oom_kill_process(struct oom_
+ 					task_pid_nr(p), p->comm);
+ 			continue;
+ 		}
++		/*
++		 * No use_mm() user needs to read from the userspace so we are
++		 * ok to reap it.
++		 */
++		if (unlikely(p->flags & PF_KTHREAD))
++			continue;
+ 		do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
+ 	}
+ 	rcu_read_unlock();
 _
