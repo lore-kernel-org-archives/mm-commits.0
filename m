@@ -1,101 +1,124 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- fsnotify-convert-notification_mutex-to-a-spinlock-fix.patch removed from
- -mm tree
-Date: Fri, 07 Oct 2016 16:26:06 -0700
-Message-ID: <57f82f0e.UoaIAToKTgoM6+nS%akpm@linux-foundation.org>
+ mm-vmalloc-fix-align-value-calculation-error-fix.patch removed from -mm
+ tree
+Date: Fri, 07 Oct 2016 16:27:01 -0700
+Message-ID: <57f82f45./HbJ+9FNn+KQMfRV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38242 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38247 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751968AbcJGX0H (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:26:07 -0400
+        with ESMTP id S1753920AbcJGX1C (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:27:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, LinoSanfilippo@gmx.de, linux@roeck-us.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, minchan@kernel.org, rientjes@google.com, tj@kernel.org, zijun_hu@htc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify-convert-notification_mutex-to-a-spinlock-fix
+     Subject: mm-vmalloc-fix-align-value-calculation-error-fix
 has been removed from the -mm tree.  Its filename was
-     fsnotify-convert-notification_mutex-to-a-spinlock-fix.patch
+     mm-vmalloc-fix-align-value-calculation-error-fix.patch
 
-This patch was dropped because it was folded into fsnotify-convert-notification_mutex-to-a-spinlock.patch
+This patch was dropped because it was folded into mm-vmalloc-fix-align-value-calculation-error.patch
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: fsnotify-convert-notification_mutex-to-a-spinlock-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmalloc-fix-align-value-calculation-error-fix
 
-This is a fixed version of the patch that fixes the BUG_ON hitting on UP
-kernels.
+s/get_order_long()/get_count_order_long()/ to match get_count_order()
 
-Link: http://lkml.kernel.org/r/1474031567-1831-1-git-send-email-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Lino Sanfilippo <LinoSanfilippo@gmx.de>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: zijun_hu <zijun_hu@htc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify_user.c |    3 ++-
- fs/notify/notification.c           |    9 ++++++---
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ include/linux/bitops.h |   34 +++++++++++++++++-----------------
+ mm/vmalloc.c           |    2 +-
+ 2 files changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN fs/notify/fanotify/fanotify_user.c~fsnotify-convert-notification_mutex-to-a-spinlock-fix fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fsnotify-convert-notification_mutex-to-a-spinlock-fix
-+++ a/fs/notify/fanotify/fanotify_user.c
-@@ -54,7 +54,8 @@ struct kmem_cache *fanotify_perm_event_c
- static struct fsnotify_event *get_one_event(struct fsnotify_group *group,
- 					    size_t count)
- {
--	BUG_ON(!spin_is_locked(&group->notification_lock));
-+	BUG_ON(IS_ENABLED(CONFIG_SMP) &&
-+	       !spin_is_locked(&group->notification_lock));
- 
- 	pr_debug("%s: group=%p count=%zd\n", __func__, group, count);
- 
-diff -puN fs/notify/notification.c~fsnotify-convert-notification_mutex-to-a-spinlock-fix fs/notify/notification.c
---- a/fs/notify/notification.c~fsnotify-convert-notification_mutex-to-a-spinlock-fix
-+++ a/fs/notify/notification.c
-@@ -63,7 +63,8 @@ EXPORT_SYMBOL_GPL(fsnotify_get_cookie);
- /* return true if the notify queue is empty, false otherwise */
- bool fsnotify_notify_queue_is_empty(struct fsnotify_group *group)
- {
--	BUG_ON(!spin_is_locked(&group->notification_lock));
-+	BUG_ON(IS_ENABLED(CONFIG_SMP) &&
-+	       !spin_is_locked(&group->notification_lock));
- 	return list_empty(&group->notification_list) ? true : false;
+diff -puN include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error-fix include/linux/bitops.h
+--- a/include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error-fix
++++ a/include/linux/bitops.h
+@@ -75,6 +75,23 @@ static inline int get_count_order(unsign
+ 	return order;
  }
  
-@@ -139,7 +140,8 @@ struct fsnotify_event *fsnotify_remove_f
++/**
++ * get_count_order_long - get order after rounding @l up to power of 2
++ * @l: parameter
++ *
++ * The same as get_count_order() but accepts a long type parameter
++ * or 0 is returned if @l == 0UL
++ */
++static inline int get_count_order_long(unsigned long l)
++{
++	if (l == 0UL)
++		return 0;
++	else if (l & (l - 1UL))
++		return fls_long(l);
++	else
++		return fls_long(l) - 1;
++}
++
+ static __always_inline unsigned long hweight_long(unsigned long w)
  {
- 	struct fsnotify_event *event;
+ 	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
+@@ -192,23 +209,6 @@ static inline unsigned fls_long(unsigned
+ }
  
--	BUG_ON(!spin_is_locked(&group->notification_lock));
-+	BUG_ON(IS_ENABLED(CONFIG_SMP) &&
-+	       !spin_is_locked(&group->notification_lock));
+ /**
+- * get_order_long - get order after rounding @l up to power of 2
+- * @l: parameter
+- *
+- * it is same as get_count_order() but long type parameter
+- * or 0 is returned if @l == 0UL
+- */
+-static inline int get_order_long(unsigned long l)
+-{
+-	if (l == 0UL)
+-		return 0;
+-	else if (l & (l - 1UL))
+-		return fls_long(l);
+-	else
+-		return fls_long(l) - 1;
+-}
+-
+-/**
+  * __ffs64 - find first set bit in a 64 bit word
+  * @word: The 64 bit word
+  *
+diff -puN mm/vmalloc.c~mm-vmalloc-fix-align-value-calculation-error-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-fix-align-value-calculation-error-fix
++++ a/mm/vmalloc.c
+@@ -1360,7 +1360,7 @@ static struct vm_struct *__get_vm_area_n
  
- 	pr_debug("%s: group=%p\n", __func__, group);
+ 	BUG_ON(in_interrupt());
+ 	if (flags & VM_IOREMAP)
+-		align = 1ul << clamp_t(int, get_order_long(size),
++		align = 1ul << clamp_t(int, get_count_order_long(size),
+ 				       PAGE_SHIFT, IOREMAP_MAX_ORDER);
  
-@@ -161,7 +163,8 @@ struct fsnotify_event *fsnotify_remove_f
-  */
- struct fsnotify_event *fsnotify_peek_first_event(struct fsnotify_group *group)
- {
--	BUG_ON(!spin_is_locked(&group->notification_lock));
-+	BUG_ON(IS_ENABLED(CONFIG_SMP) &&
-+	       !spin_is_locked(&group->notification_lock));
- 
- 	return list_first_entry(&group->notification_list,
- 				struct fsnotify_event, list);
+ 	size = PAGE_ALIGN(size);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fsnotify-drop-notification_mutex-before-destroying-event.patch
-fsnotify-convert-notification_mutex-to-a-spinlock.patch
-fanotify-use-notification_lock-instead-of-access_lock.patch
-fanotify-fix-possible-false-warning-when-freeing-events.patch
-fsnotify-cleanup-spinlock-assertions.patch
+mm-vmalloc-fix-align-value-calculation-error.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
+mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
+mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes.patch
+mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node-v2-fix.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+a.patch
 
