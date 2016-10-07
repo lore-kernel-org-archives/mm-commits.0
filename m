@@ -1,159 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [patch 026/127] mem-hotplug: fix node spanned pages when we have
- a movable node
-Date: Fri, 07 Oct 2016 16:58:06 -0700
-Message-ID: <57f8368e.Isg7iAmvXXNLsApl%akpm@linux-foundation.org>
+Subject: [patch 022/127] mm, compaction: create compact_gap wrapper
+Date: Fri, 07 Oct 2016 16:57:53 -0700
+Message-ID: <57f83681.TmWg7YUJkDnppxxB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38940 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38903 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751068AbcJGX6H (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:58:07 -0400
+        with ESMTP id S1751068AbcJGX5z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:57:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, qiuxishi@huawei.com, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com
 
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mem-hotplug: fix node spanned pages when we have a movable node
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: create compact_gap wrapper
 
-342332e6a925e9e ("mm/page_alloc.c: introduce kernelcore=mirror option")
-rewrote the calculation of node spanned pages.  But when we have a movable
-node, the size of node spanned pages is double added.  That's because we
-have an empty normal zone, the present pages is zero, but its spanned
-pages is not zero.
+Compaction uses a watermark gap of (2UL << order) pages at various places
+and it's not immediately obvious why.  Abstract it through a compact_gap()
+wrapper to create a single place with a thorough explanation.
 
-e.g.
-[    0.000000] Zone ranges:
-[    0.000000]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
-[    0.000000]   DMA32    [mem 0x0000000001000000-0x00000000ffffffff]
-[    0.000000]   Normal   [mem 0x0000000100000000-0x0000007c7fffffff]
-[    0.000000] Movable zone start for each node
-[    0.000000]   Node 1: 0x0000001080000000
-[    0.000000]   Node 2: 0x0000002080000000
-[    0.000000]   Node 3: 0x0000003080000000
-[    0.000000]   Node 4: 0x0000003c80000000
-[    0.000000]   Node 5: 0x0000004c80000000
-[    0.000000]   Node 6: 0x0000005c80000000
-[    0.000000] Early memory node ranges
-[    0.000000]   node   0: [mem 0x0000000000001000-0x000000000009ffff]
-[    0.000000]   node   0: [mem 0x0000000000100000-0x000000007552afff]
-[    0.000000]   node   0: [mem 0x000000007bd46000-0x000000007bd46fff]
-[    0.000000]   node   0: [mem 0x000000007bdcd000-0x000000007bffffff]
-[    0.000000]   node   0: [mem 0x0000000100000000-0x000000107fffffff]
-[    0.000000]   node   1: [mem 0x0000001080000000-0x000000207fffffff]
-[    0.000000]   node   2: [mem 0x0000002080000000-0x000000307fffffff]
-[    0.000000]   node   3: [mem 0x0000003080000000-0x0000003c7fffffff]
-[    0.000000]   node   4: [mem 0x0000003c80000000-0x0000004c7fffffff]
-[    0.000000]   node   5: [mem 0x0000004c80000000-0x0000005c7fffffff]
-[    0.000000]   node   6: [mem 0x0000005c80000000-0x0000006c7fffffff]
-[    0.000000]   node   7: [mem 0x0000006c80000000-0x0000007c7fffffff]
-
-node1:
-[  760.227767] Normal, start=0x1080000, present=0x0, spanned=0x1000000
-[  760.234024] Movable, start=0x1080000, present=0x1000000, spanned=0x1000000
-[  760.240883] pgdat, start=0x1080000, present=0x1000000, spanned=0x2000000
-
-After apply this patch, the problem is fixed.
-node1:
-[  289.770922] Normal, start=0x0, present=0x0, spanned=0x0
-[  289.776153] Movable, start=0x1080000, present=0x1000000, spanned=0x1000000
-[  289.783019] pgdat, start=0x1080000, present=0x1000000, spanned=0x1000000
-
-Link: http://lkml.kernel.org/r/57A325E8.6070100@huawei.com
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+[vbabka@suse.cz: clarify the comment of compact_gap()]
+ Link: http://lkml.kernel.org/r/7b6aed1f-fdf8-2063-9ff4-bbe4de712d37@suse.cz
+Link: http://lkml.kernel.org/r/20160810091226.6709-9-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   54 +++++++++++++++++++---------------------------
- 1 file changed, 23 insertions(+), 31 deletions(-)
+ include/linux/compaction.h |   23 +++++++++++++++++++++++
+ mm/compaction.c            |    7 +++----
+ mm/vmscan.c                |    6 +++---
+ 3 files changed, 29 insertions(+), 7 deletions(-)
 
-diff -puN mm/page_alloc.c~mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node mm/page_alloc.c
---- a/mm/page_alloc.c~mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node
-+++ a/mm/page_alloc.c
-@@ -5005,15 +5005,6 @@ void __meminit memmap_init_zone(unsigned
+diff -puN include/linux/compaction.h~mm-compaction-create-compact_gap-wrapper include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-create-compact_gap-wrapper
++++ a/include/linux/compaction.h
+@@ -58,6 +58,29 @@ enum compact_result {
  
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 		/*
--		 * If not mirrored_kernelcore and ZONE_MOVABLE exists, range
--		 * from zone_movable_pfn[nid] to end of each node should be
--		 * ZONE_MOVABLE not ZONE_NORMAL. skip it.
--		 */
--		if (!mirrored_kernelcore && zone_movable_pfn[nid])
--			if (zone == ZONE_NORMAL && pfn >= zone_movable_pfn[nid])
--				continue;
--
--		/*
- 		 * Check given memblock attribute by firmware which can affect
- 		 * kernel memory layout.  If zone==ZONE_MOVABLE but memory is
- 		 * mirrored, it's an overlapped memmap init. skip it.
-@@ -5456,6 +5447,12 @@ static void __meminit adjust_zone_range_
- 			*zone_end_pfn = min(node_end_pfn,
- 				arch_zone_highest_possible_pfn[movable_zone]);
+ struct alloc_context; /* in mm/internal.h */
  
-+		/* Adjust for ZONE_MOVABLE starting within this range */
-+		} else if (!mirrored_kernelcore &&
-+			*zone_start_pfn < zone_movable_pfn[nid] &&
-+			*zone_end_pfn > zone_movable_pfn[nid]) {
-+			*zone_end_pfn = zone_movable_pfn[nid];
++/*
++ * Number of free order-0 pages that should be available above given watermark
++ * to make sure compaction has reasonable chance of not running out of free
++ * pages that it needs to isolate as migration target during its work.
++ */
++static inline unsigned long compact_gap(unsigned int order)
++{
++	/*
++	 * Although all the isolations for migration are temporary, compaction
++	 * free scanner may have up to 1 << order pages on its list and then
++	 * try to split an (order - 1) free page. At that point, a gap of
++	 * 1 << order might not be enough, so it's safer to require twice that
++	 * amount. Note that the number of pages on the list is also
++	 * effectively limited by COMPACT_CLUSTER_MAX, as that's the maximum
++	 * that the migrate scanner can have isolated on migrate list, and free
++	 * scanner is only invoked when the number of isolated free pages is
++	 * lower than that. But it's not worth to complicate the formula here
++	 * as a bigger gap for higher orders than strictly necessary can also
++	 * improve chances of compaction success.
++	 */
++	return 2UL << order;
++}
 +
- 		/* Check if this whole range is within ZONE_MOVABLE */
- 		} else if (*zone_start_pfn >= zone_movable_pfn[nid])
- 			*zone_start_pfn = *zone_end_pfn;
-@@ -5559,28 +5556,23 @@ static unsigned long __meminit zone_abse
- 	 * Treat pages to be ZONE_MOVABLE in ZONE_NORMAL as absent pages
- 	 * and vice versa.
+ #ifdef CONFIG_COMPACTION
+ extern int sysctl_compact_memory;
+ extern int sysctl_compaction_handler(struct ctl_table *table, int write,
+diff -puN mm/compaction.c~mm-compaction-create-compact_gap-wrapper mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-create-compact_gap-wrapper
++++ a/mm/compaction.c
+@@ -1391,11 +1391,10 @@ static enum compact_result __compaction_
+ 		return COMPACT_SUCCESS;
+ 
+ 	/*
+-	 * Watermarks for order-0 must be met for compaction. Note the 2UL.
+-	 * This is because during migration, copies of pages need to be
+-	 * allocated and for a short time, the footprint is higher
++	 * Watermarks for order-0 must be met for compaction to be able to
++	 * isolate free pages for migration targets.
  	 */
--	if (zone_movable_pfn[nid]) {
--		if (mirrored_kernelcore) {
--			unsigned long start_pfn, end_pfn;
--			struct memblock_region *r;
--
--			for_each_memblock(memory, r) {
--				start_pfn = clamp(memblock_region_memory_base_pfn(r),
--						  zone_start_pfn, zone_end_pfn);
--				end_pfn = clamp(memblock_region_memory_end_pfn(r),
--						zone_start_pfn, zone_end_pfn);
--
--				if (zone_type == ZONE_MOVABLE &&
--				    memblock_is_mirror(r))
--					nr_absent += end_pfn - start_pfn;
--
--				if (zone_type == ZONE_NORMAL &&
--				    !memblock_is_mirror(r))
--					nr_absent += end_pfn - start_pfn;
--			}
--		} else {
--			if (zone_type == ZONE_NORMAL)
--				nr_absent += node_end_pfn - zone_movable_pfn[nid];
-+	if (mirrored_kernelcore && zone_movable_pfn[nid]) {
-+		unsigned long start_pfn, end_pfn;
-+		struct memblock_region *r;
-+
-+		for_each_memblock(memory, r) {
-+			start_pfn = clamp(memblock_region_memory_base_pfn(r),
-+					  zone_start_pfn, zone_end_pfn);
-+			end_pfn = clamp(memblock_region_memory_end_pfn(r),
-+					zone_start_pfn, zone_end_pfn);
-+
-+			if (zone_type == ZONE_MOVABLE &&
-+			    memblock_is_mirror(r))
-+				nr_absent += end_pfn - start_pfn;
-+
-+			if (zone_type == ZONE_NORMAL &&
-+			    !memblock_is_mirror(r))
-+				nr_absent += end_pfn - start_pfn;
- 		}
- 	}
+-	watermark = low_wmark_pages(zone) + (2UL << order);
++	watermark = low_wmark_pages(zone) + compact_gap(order);
+ 	if (!__zone_watermark_ok(zone, 0, watermark, classzone_idx,
+ 				 alloc_flags, wmark_target))
+ 		return COMPACT_SKIPPED;
+diff -puN mm/vmscan.c~mm-compaction-create-compact_gap-wrapper mm/vmscan.c
+--- a/mm/vmscan.c~mm-compaction-create-compact_gap-wrapper
++++ a/mm/vmscan.c
+@@ -2480,7 +2480,7 @@ static inline bool should_continue_recla
+ 	 * If we have not reclaimed enough pages for compaction and the
+ 	 * inactive lists are large enough, continue reclaiming
+ 	 */
+-	pages_for_compaction = (2UL << sc->order);
++	pages_for_compaction = compact_gap(sc->order);
+ 	inactive_lru_pages = node_page_state(pgdat, NR_INACTIVE_FILE);
+ 	if (get_nr_swap_pages() > 0)
+ 		inactive_lru_pages += node_page_state(pgdat, NR_INACTIVE_ANON);
+@@ -2612,7 +2612,7 @@ static inline bool compaction_ready(stru
+ 	 * there is a buffer of free pages available to give compaction
+ 	 * a reasonable chance of completing and allocating the page
+ 	 */
+-	watermark = high_wmark_pages(zone) + (2UL << sc->order);
++	watermark = high_wmark_pages(zone) + compact_gap(sc->order);
+ 	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, sc->reclaim_idx);
  
+ 	/*
+@@ -3169,7 +3169,7 @@ static bool kswapd_shrink_node(pg_data_t
+ 	 * excessive reclaim. Assume that a process requested a high-order
+ 	 * can direct reclaim/compact.
+ 	 */
+-	if (sc->order && sc->nr_reclaimed >= 2UL << sc->order)
++	if (sc->order && sc->nr_reclaimed >= compact_gap(sc->order))
+ 		sc->order = 0;
+ 
+ 	return sc->nr_scanned >= sc->nr_to_reclaim;
 _
