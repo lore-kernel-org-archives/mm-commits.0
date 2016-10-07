@@ -1,36 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-compaction-create-compact_gap-wrapper-fix.patch removed from -mm tree
-Date: Fri, 07 Oct 2016 16:33:48 -0700
-Message-ID: <57f830dc.Bs01RJJiFtyiQvmW%akpm@linux-foundation.org>
+ mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
+ removed from -mm tree
+Date: Fri, 07 Oct 2016 16:34:24 -0700
+Message-ID: <57f83100.oxkZ6v+Axe/jrrxN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38279 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38287 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751968AbcJGXdu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:33:50 -0400
+        with ESMTP id S1754345AbcJGXeZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:34:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@kernel.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-create-compact_gap-wrapper-fix
+     Subject: mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-create-compact_gap-wrapper-fix.patch
+     mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-create-compact_gap-wrapper.patch
+This patch was dropped because it was folded into mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-compaction-create-compact_gap-wrapper-fix
+Subject: mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix
+ orders-fix
 
-Clarify the comment of compact_gap() wrt COMPACT_CLUSTER_MAX, per Joonsoo.
+Clarify why __isolate_free_page() does a order-0 watermark check with
+apparent (1UL << order) gap, per Joonsoo.
 
-Link: http://lkml.kernel.org/r/7b6aed1f-fdf8-2063-9ff4-bbe4de712d37@suse.cz
+Link: http://lkml.kernel.org/r/7ae4baec-4eca-e70b-2a69-94bea4fb19fa@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -41,32 +44,26 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-create-compact_gap-wrapper-fix include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-create-compact_gap-wrapper-fix
-+++ a/include/linux/compaction.h
-@@ -67,9 +67,16 @@ static inline unsigned long compact_gap(
- {
- 	/*
- 	 * Although all the isolations for migration are temporary, compaction
--	 * may have up to 1 << order pages on its list and then try to split
--	 * an (order - 1) free page. At that point, a gap of 1 << order might
--	 * not be enough, so it's safer to require twice that amount.
-+	 * free scanner may have up to 1 << order pages on its list and then
-+	 * try to split an (order - 1) free page. At that point, a gap of
-+	 * 1 << order might not be enough, so it's safer to require twice that
-+	 * amount. Note that the number of pages on the list is also
-+	 * effectively limited by COMPACT_CLUSTER_MAX, as that's the maximum
-+	 * that the migrate scanner can have isolated on migrate list, and free
-+	 * scanner is only invoked when the number of isolated free pages is
-+	 * lower than that. But it's not worth to complicate the formula here
-+	 * as a bigger gap for higher orders than strictly necessary can also
-+	 * improve chances of compaction success.
- 	 */
- 	return 2UL << order;
- }
+diff -puN mm/page_alloc.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix
++++ a/mm/page_alloc.c
+@@ -2489,7 +2489,12 @@ int __isolate_free_page(struct page *pag
+ 	mt = get_pageblock_migratetype(page);
+ 
+ 	if (!is_migrate_isolate(mt)) {
+-		/* Obey watermarks as if the page was being allocated */
++		/*
++		 * Obey watermarks as if the page was being allocated. We can
++		 * emulate a high-order watermark check with a raised order-0
++		 * watermark, because we already know our high-order page
++		 * exists.
++		 */
+ 		watermark = min_wmark_pages(zone) + (1UL << order);
+ 		if (!zone_watermark_ok(zone, 0, watermark, 0, ALLOC_CMA))
+ 			return 0;
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
@@ -80,7 +77,6 @@ mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
 mm-compaction-create-compact_gap-wrapper.patch
 mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
 mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
-mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
 mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
 revert-mm-oom-prevent-premature-oom-killer-invocation-for-high-order-request.patch
 mm-compaction-more-reliably-increase-direct-compaction-priority.patch
