@@ -1,88 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-swap-add-swap_cluster_list-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 07 Oct 2016 16:37:07 -0700
-Message-ID: <57f831a3.KgMVDZ1Of1Qhj+1c%akpm@linux-foundation.org>
+ mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch removed from -mm tree
+Date: Fri, 07 Oct 2016 16:38:13 -0700
+Message-ID: <57f831e5.+5vCgbvpmEtJk3sX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38365 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38368 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753920AbcJGXhI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:37:08 -0400
+        with ESMTP id S932776AbcJGXiN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:38:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, wei.guo.simon@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-swap-add-swap_cluster_list-checkpatch-fixes
+     Subject: mm-mlock-check-against-vma-for-actual-mlock-size-fix
 has been removed from the -mm tree.  Its filename was
-     mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
+     mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
 
-This patch was dropped because it was folded into mm-swap-add-swap_cluster_list.patch
+This patch was dropped because it was folded into mm-mlock-check-against-vma-for-actual-mlock-size.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-swap-add-swap_cluster_list-checkpatch-fixes
+Subject: mm-mlock-check-against-vma-for-actual-mlock-size-fix
 
-WARNING: Missing a blank line after declarations
-#91: FILE: mm/swapfile.c:285:
-+		unsigned int tail = cluster_next(&list->tail);
-+		cluster_set_next(&ci[tail], idx);
+clean up comment layout
 
-WARNING: line over 80 characters
-#261: FILE: mm/swapfile.c:2347:
-+			cluster_list_add_tail(&p->free_clusters, cluster_info, idx);
-
-total: 0 errors, 2 warnings, 222 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-./patches/mm-swap-add-swap_cluster_list.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Huang Ying <ying.huang@intel.com>
+Cc: Simon Guo <wei.guo.simon@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/mlock.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN mm/swapfile.c~mm-swap-add-swap_cluster_list-checkpatch-fixes mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-add-swap_cluster_list-checkpatch-fixes
-+++ a/mm/swapfile.c
-@@ -282,6 +282,7 @@ static void cluster_list_add_tail(struct
- 		cluster_set_next_flag(&list->tail, idx, 0);
- 	} else {
- 		unsigned int tail = cluster_next(&list->tail);
-+
- 		cluster_set_next(&ci[tail], idx);
- 		cluster_set_next_flag(&list->tail, idx, 0);
- 	}
-@@ -2344,7 +2345,8 @@ static int setup_swap_map_and_extents(st
- 	for (i = 0; i < nr_clusters; i++) {
- 		if (!cluster_count(&cluster_info[idx])) {
- 			cluster_set_flag(&cluster_info[idx], CLUSTER_FLAG_FREE);
--			cluster_list_add_tail(&p->free_clusters, cluster_info, idx);
-+			cluster_list_add_tail(&p->free_clusters, cluster_info,
-+					      idx);
- 		}
- 		idx++;
- 		if (idx == nr_clusters)
+diff -puN mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size-fix mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size-fix
++++ a/mm/mlock.c
+@@ -678,12 +678,10 @@ static __must_check int do_mlock(unsigne
+ 	locked += current->mm->locked_vm;
+ 	if ((locked > lock_limit) && (!capable(CAP_IPC_LOCK))) {
+ 		/*
+-		 * It is possible that the regions requested
+-		 * intersect with previously mlocked areas,
+-		 * that part area in "mm->locked_vm" should
+-		 * not be counted to new mlock increment
+-		 * count. So check and adjust locked count
+-		 * if necessary.
++		 * It is possible that the regions requested intersect with
++		 * previously mlocked areas, that part area in "mm->locked_vm"
++		 * should not be counted to new mlock increment count. So check
++		 * and adjust locked count if necessary.
+ 		 */
+ 		locked -= count_mm_mlocked_page_nr(current->mm,
+ 				start, len);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-swap-add-swap_cluster_list.patch
-mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+mm-mlock-check-against-vma-for-actual-mlock-size.patch
 mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
 mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes.patch
 mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node-v2-fix.patch
