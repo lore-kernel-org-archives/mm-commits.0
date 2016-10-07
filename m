@@ -1,78 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [patch 057/127] mm: mlock: avoid increase mm->locked_vm on
- mlock() when already mlock2(,MLOCK_ONFAULT)
-Date: Fri, 07 Oct 2016 16:59:40 -0700
-Message-ID: <57f836ec.bd/h+pRu1H8EkH9Q%akpm@linux-foundation.org>
+Subject: [patch 049/127] mm: introduce arch_reserved_kernel_pages()
+Date: Fri, 07 Oct 2016 16:59:15 -0700
+Message-ID: <57f836d3.HM0o6g2A3XWHQGsR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39254 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39197 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754858AbcJHAAP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:15 -0400
+        with ESMTP id S1754882AbcJHAAN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, wei.guo.simon@gmail.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, srikar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dave.hansen@intel.com, hbathini@linux.vnet.ibm.com, mahesh@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@kernel.org, mpe@ellerman.id.au, vbabka@suse.cz
 
-From: Simon Guo <wei.guo.simon@gmail.com>
-Subject: mm: mlock: avoid increase mm->locked_vm on mlock() when already mlock2(,MLOCK_ONFAULT)
+From: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Subject: mm: introduce arch_reserved_kernel_pages()
 
-When one vma was with flag VM_LOCKED|VM_LOCKONFAULT (by invoking
-mlock2(,MLOCK_ONFAULT)), it can again be populated with mlock() with
-VM_LOCKED flag only.
+Currently arch specific code can reserve memory blocks but
+alloc_large_system_hash() may not take it into consideration when sizing
+the hashes.  This can lead to bigger hash than required and lead to no
+available memory for other purposes.  This is specifically true for
+systems with CONFIG_DEFERRED_STRUCT_PAGE_INIT enabled.
 
-There is a hole in mlock_fixup() which increase mm->locked_vm twice even
-the two operations are on the same vma and both with VM_LOCKED flags.
+One approach to solve this problem would be to walk through the memblock
+regions and calculate the available memory and base the size of hash
+system on the available memory.
 
-The issue can be reproduced by following code:
-mlock2(p, 1024 * 64, MLOCK_ONFAULT); //VM_LOCKED|VM_LOCKONFAULT
-mlock(p, 1024 * 64);  //VM_LOCKED
-Then check the increase VmLck field in /proc/pid/status(to 128k).
+The other approach would be to depend on the architecture to provide the
+number of pages that are reserved.  This change provides hooks to allow
+the architecture to provide the required info.
 
-When vma is set with different vm_flags, and the new vm_flags is with
-VM_LOCKED, it is not necessarily be a "new locked" vma.  This patch
-corrects this bug by prevent mm->locked_vm from increment when old
-vm_flags is already VM_LOCKED.
-
-Link: http://lkml.kernel.org/r/1472554781-9835-3-git-send-email-wei.guo.simon@gmail.com
-Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Alexey Klimov <klimov.linux@gmail.com>
-Cc: Eric B Munson <emunson@akamai.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Simon Guo <wei.guo.simon@gmail.com>
-Cc: Thierry Reding <treding@nvidia.com>
+Link: http://lkml.kernel.org/r/1472476010-4709-2-git-send-email-srikar@linux.vnet.ibm.com
+Signed-off-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Suggested-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
+Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/mm.h |    3 +++
+ mm/page_alloc.c    |   12 ++++++++++++
+ 2 files changed, 15 insertions(+)
 
-diff -puN mm/mlock.c~mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault mm/mlock.c
---- a/mm/mlock.c~mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault
-+++ a/mm/mlock.c
-@@ -516,6 +516,7 @@ static int mlock_fixup(struct vm_area_st
- 	int nr_pages;
- 	int ret = 0;
- 	int lock = !!(newflags & VM_LOCKED);
-+	vm_flags_t old_flags = vma->vm_flags;
+diff -puN include/linux/mm.h~mm-introduce-arch_reserved_kernel_pages include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-arch_reserved_kernel_pages
++++ a/include/linux/mm.h
+@@ -1924,6 +1924,9 @@ extern void show_mem(unsigned int flags)
+ extern long si_mem_available(void);
+ extern void si_meminfo(struct sysinfo * val);
+ extern void si_meminfo_node(struct sysinfo *val, int nid);
++#ifdef __HAVE_ARCH_RESERVED_KERNEL_PAGES
++extern unsigned long arch_reserved_kernel_pages(void);
++#endif
  
- 	if (newflags == vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
- 	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm))
-@@ -550,6 +551,8 @@ success:
- 	nr_pages = (end - start) >> PAGE_SHIFT;
- 	if (!lock)
- 		nr_pages = -nr_pages;
-+	else if (old_flags & VM_LOCKED)
-+		nr_pages = 0;
- 	mm->locked_vm += nr_pages;
+ extern __printf(3, 4)
+ void warn_alloc_failed(gfp_t gfp_mask, unsigned int order,
+diff -puN mm/page_alloc.c~mm-introduce-arch_reserved_kernel_pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-introduce-arch_reserved_kernel_pages
++++ a/mm/page_alloc.c
+@@ -6940,6 +6940,17 @@ static int __init set_hashdist(char *str
+ __setup("hashdist=", set_hashdist);
+ #endif
  
- 	/*
++#ifndef __HAVE_ARCH_RESERVED_KERNEL_PAGES
++/*
++ * Returns the number of pages that arch has reserved but
++ * is not known to alloc_large_system_hash().
++ */
++static unsigned long __init arch_reserved_kernel_pages(void)
++{
++	return 0;
++}
++#endif
++
+ /*
+  * allocate a large system hash table from bootmem
+  * - it is assumed that the hash table must contain an exact power-of-2
+@@ -6964,6 +6975,7 @@ void *__init alloc_large_system_hash(con
+ 	if (!numentries) {
+ 		/* round applicable memory size up to nearest megabyte */
+ 		numentries = nr_kernel_pages;
++		numentries -= arch_reserved_kernel_pages();
+ 
+ 		/* It isn't necessary when PAGE_SIZE >= 1MB */
+ 		if (PAGE_SHIFT < 20)
 _
