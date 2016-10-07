@@ -1,105 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: [patch 027/127] mm: fix set pageblock migratetype in deferred
- struct page init
-Date: Fri, 07 Oct 2016 16:58:09 -0700
-Message-ID: <57f83691.zgOxvgesKn+HXVem%akpm@linux-foundation.org>
+Subject: [patch 031/127] mm/page_owner: move page_owner specific function
+ to page_owner.c
+Date: Fri, 07 Oct 2016 16:58:21 -0700
+Message-ID: <57f8369d.S/MSGiIunZVTTsmy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38952 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38976 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932848AbcJGX6L (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:58:11 -0400
+        with ESMTP id S932775AbcJGX6Y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:58:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, qiuxishi@huawei.com, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz
 
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mm: fix set pageblock migratetype in deferred struct page init
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/page_owner: move page_owner specific function to page_owner.c
 
-On x86_64 MAX_ORDER_NR_PAGES is usually 4M, and a pageblock is usually 2M,
-so we only set one pageblock's migratetype in deferred_free_range() if pfn
-is aligned to MAX_ORDER_NR_PAGES.  That means it causes uninitialized
-migratetype blocks, you can see from "cat /proc/pagetypeinfo", almost half
-blocks are Unmovable.
+There is no reason that page_owner specific function resides on vmstat.c.
 
-Also we missed freeing the last block in deferred_init_memmap(), it causes
-memory leak.
-
-Fixes: ac5d2539b238 ("mm: meminit: reduce number of times pageblocks are set during struct page init")
-Link: http://lkml.kernel.org/r/57A3260F.4050709@huawei.com
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Link: http://lkml.kernel.org/r/1471315879-32294-4-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ include/linux/page_owner.h |    2 
+ mm/page_owner.c            |   77 ++++++++++++++++++++++++++++++++++
+ mm/vmstat.c                |   79 -----------------------------------
+ 3 files changed, 79 insertions(+), 79 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init
-+++ a/mm/page_alloc.c
-@@ -1393,15 +1393,18 @@ static void __init deferred_free_range(s
- 		return;
+diff -puN include/linux/page_owner.h~mm-page_owner-move-page_owner-specific-function-to-page_ownerc include/linux/page_owner.h
+--- a/include/linux/page_owner.h~mm-page_owner-move-page_owner-specific-function-to-page_ownerc
++++ a/include/linux/page_owner.h
+@@ -14,6 +14,8 @@ extern void __split_page_owner(struct pa
+ extern void __copy_page_owner(struct page *oldpage, struct page *newpage);
+ extern void __set_page_owner_migrate_reason(struct page *page, int reason);
+ extern void __dump_page_owner(struct page *page);
++extern void pagetypeinfo_showmixedcount_print(struct seq_file *m,
++					pg_data_t *pgdat, struct zone *zone);
  
- 	/* Free a large naturally-aligned chunk if possible */
--	if (nr_pages == MAX_ORDER_NR_PAGES &&
--	    (pfn & (MAX_ORDER_NR_PAGES-1)) == 0) {
-+	if (nr_pages == pageblock_nr_pages &&
-+	    (pfn & (pageblock_nr_pages - 1)) == 0) {
- 		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--		__free_pages_boot_core(page, MAX_ORDER-1);
-+		__free_pages_boot_core(page, pageblock_order);
- 		return;
- 	}
+ static inline void reset_page_owner(struct page *page, unsigned int order)
+ {
+diff -puN mm/page_owner.c~mm-page_owner-move-page_owner-specific-function-to-page_ownerc mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-move-page_owner-specific-function-to-page_ownerc
++++ a/mm/page_owner.c
+@@ -8,6 +8,7 @@
+ #include <linux/jump_label.h>
+ #include <linux/migrate.h>
+ #include <linux/stackdepot.h>
++#include <linux/seq_file.h>
  
--	for (i = 0; i < nr_pages; i++, page++)
-+	for (i = 0; i < nr_pages; i++, page++, pfn++) {
-+		if ((pfn & (pageblock_nr_pages - 1)) == 0)
-+			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
- 		__free_pages_boot_core(page, 0);
-+	}
+ #include "internal.h"
+ 
+@@ -214,6 +215,82 @@ void __copy_page_owner(struct page *oldp
+ 	__set_bit(PAGE_EXT_OWNER, &new_ext->flags);
  }
  
- /* Completion tracking for deferred_init_memmap() threads */
-@@ -1469,9 +1472,9 @@ static int __init deferred_init_memmap(v
++void pagetypeinfo_showmixedcount_print(struct seq_file *m,
++				       pg_data_t *pgdat, struct zone *zone)
++{
++	struct page *page;
++	struct page_ext *page_ext;
++	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
++	unsigned long end_pfn = pfn + zone->spanned_pages;
++	unsigned long count[MIGRATE_TYPES] = { 0, };
++	int pageblock_mt, page_mt;
++	int i;
++
++	/* Scan block by block. First and last block may be incomplete */
++	pfn = zone->zone_start_pfn;
++
++	/*
++	 * Walk the zone in pageblock_nr_pages steps. If a page block spans
++	 * a zone boundary, it will be double counted between zones. This does
++	 * not matter as the mixed block count will still be correct
++	 */
++	for (; pfn < end_pfn; ) {
++		if (!pfn_valid(pfn)) {
++			pfn = ALIGN(pfn + 1, MAX_ORDER_NR_PAGES);
++			continue;
++		}
++
++		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
++		block_end_pfn = min(block_end_pfn, end_pfn);
++
++		page = pfn_to_page(pfn);
++		pageblock_mt = get_pageblock_migratetype(page);
++
++		for (; pfn < block_end_pfn; pfn++) {
++			if (!pfn_valid_within(pfn))
++				continue;
++
++			page = pfn_to_page(pfn);
++
++			if (page_zone(page) != zone)
++				continue;
++
++			if (PageBuddy(page)) {
++				pfn += (1UL << page_order(page)) - 1;
++				continue;
++			}
++
++			if (PageReserved(page))
++				continue;
++
++			page_ext = lookup_page_ext(page);
++			if (unlikely(!page_ext))
++				continue;
++
++			if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags))
++				continue;
++
++			page_mt = gfpflags_to_migratetype(page_ext->gfp_mask);
++			if (pageblock_mt != page_mt) {
++				if (is_migrate_cma(pageblock_mt))
++					count[MIGRATE_MOVABLE]++;
++				else
++					count[pageblock_mt]++;
++
++				pfn = block_end_pfn;
++				break;
++			}
++			pfn += (1UL << page_ext->order) - 1;
++		}
++	}
++
++	/* Print counts */
++	seq_printf(m, "Node %d, zone %8s ", pgdat->node_id, zone->name);
++	for (i = 0; i < MIGRATE_TYPES; i++)
++		seq_printf(m, "%12lu ", count[i]);
++	seq_putc(m, '\n');
++}
++
+ static ssize_t
+ print_page_owner(char __user *buf, size_t count, unsigned long pfn,
+ 		struct page *page, struct page_ext *page_ext,
+diff -puN mm/vmstat.c~mm-page_owner-move-page_owner-specific-function-to-page_ownerc mm/vmstat.c
+--- a/mm/vmstat.c~mm-page_owner-move-page_owner-specific-function-to-page_ownerc
++++ a/mm/vmstat.c
+@@ -1254,85 +1254,6 @@ static int pagetypeinfo_showblockcount(s
+ 	return 0;
+ }
  
- 			/*
- 			 * Ensure pfn_valid is checked every
--			 * MAX_ORDER_NR_PAGES for memory holes
-+			 * pageblock_nr_pages for memory holes
- 			 */
--			if ((pfn & (MAX_ORDER_NR_PAGES - 1)) == 0) {
-+			if ((pfn & (pageblock_nr_pages - 1)) == 0) {
- 				if (!pfn_valid(pfn)) {
- 					page = NULL;
- 					goto free_range;
-@@ -1484,7 +1487,7 @@ static int __init deferred_init_memmap(v
- 			}
- 
- 			/* Minimise pfn page lookups and scheduler checks */
--			if (page && (pfn & (MAX_ORDER_NR_PAGES - 1)) != 0) {
-+			if (page && (pfn & (pageblock_nr_pages - 1)) != 0) {
- 				page++;
- 			} else {
- 				nr_pages += nr_to_free;
-@@ -1520,6 +1523,9 @@ free_range:
- 			free_base_page = NULL;
- 			free_base_pfn = nr_to_free = 0;
- 		}
-+		/* Free the last block of pages to allocator */
-+		nr_pages += nr_to_free;
-+		deferred_free_range(free_base_page, free_base_pfn, nr_to_free);
- 
- 		first_init_pfn = max(end_pfn, first_init_pfn);
- 	}
-_
+-#ifdef CONFIG_PAGE_OWNER
+-static void pagetypeinfo_showmixedcount_print(struct seq_file *m,
+-							pg_data_t *pgdat,
+-							struct zone *zone)
+-{
+-	struct page *page;
+-	struct page_ext *page_ext;
+-	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
+-	unsigned long end_pfn = pfn + zone->spanned_pages;
+-	unsigned long count[MIGRATE_TYPES] = { 0, };
+-	int pageblock_mt, page_mt;
+-	int i;
+-
+-	/* Scan block by block. First and last block may be incomplete */
+-	pfn = zone->zone_start_pfn;
+-
+-	/*
+-	 * Walk the zone in pageblock_nr_pages steps. If a page block spans
+-	 * a zone boundary, it will be double counted between zones. This does
+-	 * not matter as the mixed block count will still be correct
+-	 */
+-	for (; pfn < end_pfn; ) {
+-		if (!pfn_valid(pfn)) {
+-			pfn = ALIGN(pfn + 1, MAX_ORDER_NR_PAGES);
+-			continue;
+-		}
+-
+-		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
+-		block_end_pfn = min(block_end_pfn, end_pfn);
+-
+-		page = pfn_to_page(pfn);
+-		pageblock_mt = get_pageblock_migratetype(page);
+-
+-		for (; pfn < block_end_pfn; pfn++) {
+-			if (!pfn_valid_within(pfn))
+-				continue;
+-
+-			page = pfn_to_page(pfn);
+-
+-			if (page_zone(page) != zone)
+-				continue;
+-
+-			if (PageBuddy(page)) {
+-				pfn += (1UL << page_order(page)) - 1;
+-				continue;
+-			}
+-
+-			if (PageReserved(page))
+-				continue;
+-
+-			page_ext = lookup_page_ext(page);
+-			if (unlikely(!page_ext))
+-				continue;
+-
+-			if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags))
+-				continue;
+-
+-			page_mt = gfpflags_to_migratetype(page_ext->gfp_mask);
+-			if (pageblock_mt != page_mt) {
+-				if (is_migrate_cma(pageblock_mt))
+-					count[MIGRATE_MOVABLE]++;
+-				else
+-					count[pageblock_mt]++;
+-
+-				pfn = block_end_pfn;
+-				break;
+-			}
+-			pfn += (1UL << page_ext->order) - 1;
+-		}
+-	}
+-
+-	/* Print counts */
+-	seq_printf(m, "Node %d, zone %8s ", pgdat->node_id, zone->name);
+-	for (i = 0; i < MIGRATE_TYPES; i++)
+-		seq_printf(m, "%12lu ", count[i]);
+-	seq_putc(m, '\n');
+-}
+-#endif /* CONFIG_PAGE_OWNER */
