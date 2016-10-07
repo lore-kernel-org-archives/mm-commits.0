@@ -1,112 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [patch 013/127] mm/vmalloc.c: fix align value calculation error
-Date: Fri, 07 Oct 2016 16:57:26 -0700
-Message-ID: <57f83666.a6XxS2NTs3fwQKVc%akpm@linux-foundation.org>
+Subject: [patch 014/127] mm: memcontrol: add sanity checks for
+ memcg->id.ref on get/put
+Date: Fri, 07 Oct 2016 16:57:29 -0700
+Message-ID: <57f83669.1iHOGrFp56PV2t/k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38831 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38837 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751068AbcJGX51 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:57:27 -0400
+        with ESMTP id S1751068AbcJGX5a (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:57:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zijun_hu@htc.com, hannes@cmpxchg.org, minchan@kernel.org, rientjes@google.com, tj@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com
 
-From: zijun_hu <zijun_hu@htc.com>
-Subject: mm/vmalloc.c: fix align value calculation error
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: mm: memcontrol: add sanity checks for memcg->id.ref on get/put
 
-It causes double align requirement for __get_vm_area_node() if parameter
-size is power of 2 and VM_IOREMAP is set in parameter flags, for example
-size=0x10000 -> fls_long(0x10000)=17 -> align=0x20000
-
-get_count_order_long() is implemented and used instead of fls_long() for
-fixing the bug, for example
-size=0x10000 -> get_count_order_long(0x10000)=16 -> align=0x10000
-
-[akpm@linux-foundation.org: s/get_order_long()/get_count_order_long()/]
-[zijun_hu@zoho.com: fixes]
- Link: http://lkml.kernel.org/r/57AABC8B.1040409@zoho.com
-[akpm@linux-foundation.org: locate get_count_order_long() next to get_count_order()]
-[akpm@linux-foundation.org: move get_count_order[_long] definitions to pick up fls_long()]
-[zijun_hu@htc.com: move out get_count_order[_long]() from __KERNEL__ scope]
- Link: http://lkml.kernel.org/r/57B2C4CE.80303@zoho.com
-Link: http://lkml.kernel.org/r/fc045ecf-20fa-0722-b3ac-9a6140488fad@zoho.com
-Signed-off-by: zijun_hu <zijun_hu@htc.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Signed-off-by: zijun_hu <zijun_hu@htc.com>
+Link: http://lkml.kernel.org/r/1c5ddb1c171dbdfc3262252769d6138a29b35b70.1470219853.git.vdavydov@virtuozzo.com
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |   36 ++++++++++++++++++++++++++----------
- mm/vmalloc.c           |    8 ++++----
- 2 files changed, 30 insertions(+), 14 deletions(-)
+ mm/memcontrol.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error include/linux/bitops.h
---- a/include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error
-+++ a/include/linux/bitops.h
-@@ -65,16 +65,6 @@ static inline int get_bitmask_order(unsi
- 	return order;	/* We could be slightly more clever with -1 here... */
- }
+diff -puN mm/memcontrol.c~mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put
++++ a/mm/memcontrol.c
+@@ -4062,11 +4062,13 @@ static DEFINE_IDR(mem_cgroup_idr);
  
--static inline int get_count_order(unsigned int count)
--{
--	int order;
--
--	order = fls(count) - 1;
--	if (count & (count - 1))
--		order++;
--	return order;
--}
--
- static __always_inline unsigned long hweight_long(unsigned long w)
+ static void mem_cgroup_id_get_many(struct mem_cgroup *memcg, unsigned int n)
  {
- 	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
-@@ -191,6 +181,32 @@ static inline unsigned fls_long(unsigned
- 	return fls64(l);
++	VM_BUG_ON(atomic_read(&memcg->id.ref) <= 0);
+ 	atomic_add(n, &memcg->id.ref);
  }
  
-+static inline int get_count_order(unsigned int count)
-+{
-+	int order;
-+
-+	order = fls(count) - 1;
-+	if (count & (count - 1))
-+		order++;
-+	return order;
-+}
-+
-+/**
-+ * get_count_order_long - get order after rounding @l up to power of 2
-+ * @l: parameter
-+ *
-+ * it is same as get_count_order() but with long type parameter
-+ */
-+static inline int get_count_order_long(unsigned long l)
-+{
-+	if (l == 0UL)
-+		return -1;
-+	else if (l & (l - 1UL))
-+		return (int)fls_long(l);
-+	else
-+		return (int)fls_long(l) - 1;
-+}
-+
- /**
-  * __ffs64 - find first set bit in a 64 bit word
-  * @word: The 64 bit word
-diff -puN mm/vmalloc.c~mm-vmalloc-fix-align-value-calculation-error mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-fix-align-value-calculation-error
-+++ a/mm/vmalloc.c
-@@ -1359,14 +1359,14 @@ static struct vm_struct *__get_vm_area_n
- 	struct vm_struct *area;
+ static void mem_cgroup_id_put_many(struct mem_cgroup *memcg, unsigned int n)
+ {
++	VM_BUG_ON(atomic_read(&memcg->id.ref) < n);
+ 	if (atomic_sub_and_test(n, &memcg->id.ref)) {
+ 		idr_remove(&mem_cgroup_idr, memcg->id.id);
+ 		memcg->id.id = 0;
+@@ -4255,8 +4257,10 @@ fail:
  
- 	BUG_ON(in_interrupt());
--	if (flags & VM_IOREMAP)
--		align = 1ul << clamp_t(int, fls_long(size),
--				       PAGE_SHIFT, IOREMAP_MAX_ORDER);
+ static int mem_cgroup_css_online(struct cgroup_subsys_state *css)
+ {
++	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++
+ 	/* Online state pins memcg ID, memcg ID pins CSS */
+-	mem_cgroup_id_get(mem_cgroup_from_css(css));
++	atomic_set(&memcg->id.ref, 1);
+ 	css_get(css);
+ 	return 0;
+ }
+_
