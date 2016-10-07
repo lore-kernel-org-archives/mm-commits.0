@@ -1,118 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [patch 073/127] mm, compaction: more reliably increase direct
- compaction priority
-Date: Fri, 07 Oct 2016 17:00:31 -0700
-Message-ID: <57f8371f.pv+OeM6o9ZRQb2P7%akpm@linux-foundation.org>
+Subject: [patch 059/127] selftests/vm: add test for mlock() when areas are intersected
+Date: Fri, 07 Oct 2016 16:59:46 -0700
+Message-ID: <57f836f2.hGpqK1etE+yHYnAM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39255 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932714AbcJHAAc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:32 -0400
+        with ESMTP id S1754756AbcJHAAP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, penguin-kernel@i-love.sakura.ne.jp, riel@redhat.com, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, wei.guo.simon@gmail.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: more reliably increase direct compaction priority
+From: Simon Guo <wei.guo.simon@gmail.com>
+Subject: selftests/vm: add test for mlock() when areas are intersected
 
-During reclaim/compaction loop, compaction priority can be increased by
-the should_compact_retry() function, but the current code is not optimal. 
-Priority is only increased when compaction_failed() is true, which means
-that compaction has scanned the whole zone.  This may not happen even
-after multiple attempts with a lower priority due to parallel activity, so
-we might needlessly struggle on the lower priorities and possibly run out
-of compaction retry attempts in the process.
+This patch adds mlock() test for multiple invocation on the same address
+area, and verify it doesn't mess the rlimit mlock limitation.
 
-After this patch we are guaranteed at least one attempt at the highest
-compaction priority even if we exhaust all retries at the lower
-priorities.
-
-Link: http://lkml.kernel.org/r/20160906135258.18335-3-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
+Link: http://lkml.kernel.org/r/1472554781-9835-5-git-send-email-wei.guo.simon@gmail.com
+Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
+Cc: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Eric B Munson <emunson@akamai.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Simon Guo <wei.guo.simon@gmail.com>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   33 +++++++++++++++++++--------------
- 1 file changed, 19 insertions(+), 14 deletions(-)
+ tools/testing/selftests/vm/.gitignore             |    1 
+ tools/testing/selftests/vm/Makefile               |    4 
+ tools/testing/selftests/vm/mlock-intersect-test.c |   76 ++++++++++++
+ 3 files changed, 81 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-compaction-more-reliably-increase-direct-compaction-priority mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-more-reliably-increase-direct-compaction-priority
-+++ a/mm/page_alloc.c
-@@ -3160,25 +3160,23 @@ static inline bool
- should_compact_retry(struct alloc_context *ac, int order, int alloc_flags,
- 		     enum compact_result compact_result,
- 		     enum compact_priority *compact_priority,
--		     int compaction_retries)
-+		     int *compaction_retries)
- {
- 	int max_retries = MAX_COMPACT_RETRIES;
+diff -puN tools/testing/selftests/vm/.gitignore~selftests-vm-add-test-for-mlock-when-areas-are-intersected tools/testing/selftests/vm/.gitignore
+--- a/tools/testing/selftests/vm/.gitignore~selftests-vm-add-test-for-mlock-when-areas-are-intersected
++++ a/tools/testing/selftests/vm/.gitignore
+@@ -7,3 +7,4 @@ mlock2-tests
+ on-fault-limit
+ transhuge-stress
+ userfaultfd
++mlock-intersect-test
+diff -puN tools/testing/selftests/vm/Makefile~selftests-vm-add-test-for-mlock-when-areas-are-intersected tools/testing/selftests/vm/Makefile
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-test-for-mlock-when-areas-are-intersected
++++ a/tools/testing/selftests/vm/Makefile
+@@ -10,6 +10,7 @@ BINARIES += on-fault-limit
+ BINARIES += thuge-gen
+ BINARIES += transhuge-stress
+ BINARIES += userfaultfd
++BINARIES += mlock-intersect-test
  
- 	if (!order)
- 		return false;
+ all: $(BINARIES)
+ %: %.c
+@@ -17,6 +18,9 @@ all: $(BINARIES)
+ userfaultfd: userfaultfd.c ../../../../usr/include/linux/kernel.h
+ 	$(CC) $(CFLAGS) -O2 -o $@ $< -lpthread
  
-+	if (compaction_made_progress(compact_result))
-+		(*compaction_retries)++;
++mlock-intersect-test: mlock-intersect-test.c
++	$(CC) $(CFLAGS) -o $@ $< -lcap
 +
- 	/*
- 	 * compaction considers all the zone as desperately out of memory
- 	 * so it doesn't really make much sense to retry except when the
- 	 * failure could be caused by insufficient priority
- 	 */
--	if (compaction_failed(compact_result)) {
--		if (*compact_priority > MIN_COMPACT_PRIORITY) {
--			(*compact_priority)--;
--			return true;
--		}
--		return false;
--	}
-+	if (compaction_failed(compact_result))
-+		goto check_priority;
+ ../../../../usr/include/linux/kernel.h:
+ 	make -C ../../../.. headers_install
  
- 	/*
- 	 * make sure the compaction wasn't deferred or didn't bail out early
-@@ -3199,9 +3197,19 @@ should_compact_retry(struct alloc_contex
- 	 */
- 	if (order > PAGE_ALLOC_COSTLY_ORDER)
- 		max_retries /= 4;
--	if (compaction_retries <= max_retries)
-+	if (*compaction_retries <= max_retries)
- 		return true;
- 
-+	/*
-+	 * Make sure there are attempts at the highest priority if we exhausted
-+	 * all retries or failed at the lower priorities.
-+	 */
-+check_priority:
-+	if (*compact_priority > MIN_COMPACT_PRIORITY) {
-+		(*compact_priority)--;
-+		*compaction_retries = 0;
-+		return true;
+diff -puN /dev/null tools/testing/selftests/vm/mlock-intersect-test.c
+--- /dev/null
++++ a/tools/testing/selftests/vm/mlock-intersect-test.c
+@@ -0,0 +1,76 @@
++/*
++ * It tests the duplicate mlock result:
++ * - the ulimit of lock page is 64k
++ * - allocate address area 64k starting from p
++ * - mlock   [p -- p + 30k]
++ * - Then mlock address  [ p -- p + 40k ]
++ *
++ * It should succeed since totally we locked
++ * 40k < 64k limitation.
++ *
++ * It should not be run with CAP_IPC_LOCK.
++ */
++#include <stdlib.h>
++#include <stdio.h>
++#include <unistd.h>
++#include <sys/resource.h>
++#include <sys/capability.h>
++#include <sys/mman.h>
++#include "mlock2.h"
++
++int main(int argc, char **argv)
++{
++	struct rlimit new;
++	char *p = NULL;
++	cap_t cap = cap_init();
++	int i;
++
++	/* drop capabilities including CAP_IPC_LOCK */
++	if (cap_set_proc(cap))
++		return -1;
++
++	/* set mlock limits to 64k */
++	new.rlim_cur = 65536;
++	new.rlim_max = 65536;
++	setrlimit(RLIMIT_MEMLOCK, &new);
++
++	/* test VM_LOCK */
++	p = malloc(1024 * 64);
++	if (mlock(p, 1024 * 30)) {
++		printf("mlock() 30k return failure.\n");
++		return -1;
 +	}
- 	return false;
- }
- #else
-@@ -3218,7 +3226,7 @@ static inline bool
- should_compact_retry(struct alloc_context *ac, unsigned int order, int alloc_flags,
- 		     enum compact_result compact_result,
- 		     enum compact_priority *compact_priority,
--		     int compaction_retries)
-+		     int *compaction_retries)
- {
- 	struct zone *zone;
- 	struct zoneref *z;
-@@ -3620,9 +3628,6 @@ retry:
- 	if (page)
- 		goto got_pg;
- 
--	if (order && compaction_made_progress(compact_result))
--		compaction_retries++;
++	for (i = 0; i < 10; i++) {
++		if (mlock(p, 1024 * 40)) {
++			printf("mlock() #%d 40k returns failure.\n", i);
++			return -1;
++		}
++	}
++	for (i = 0; i < 10; i++) {
++		if (mlock2_(p, 1024 * 40, MLOCK_ONFAULT)) {
++			printf("mlock2_() #%d 40k returns failure.\n", i);
++			return -1;
++		}
++	}
++	free(p);
++
++	/* Test VM_LOCKONFAULT */
++	p = malloc(1024 * 64);
++	if (mlock2_(p, 1024 * 30, MLOCK_ONFAULT)) {
++		printf("mlock2_() 30k return failure.\n");
++		return -1;
++	}
++	for (i = 0; i < 10; i++) {
++		if (mlock2_(p, 1024 * 40, MLOCK_ONFAULT)) {
++			printf("mlock2_() #%d 40k returns failure.\n", i);
++			return -1;
++		}
++	}
++	for (i = 0; i < 10; i++) {
++		if (mlock(p, 1024 * 40)) {
++			printf("mlock() #%d 40k returns failure.\n", i);
++			return -1;
++		}
++	}
++	return 0;
++}
+_
