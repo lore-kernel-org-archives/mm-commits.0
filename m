@@ -1,30 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [patch 022/127] mm, compaction: create compact_gap wrapper
-Date: Fri, 07 Oct 2016 16:57:53 -0700
-Message-ID: <57f83681.TmWg7YUJkDnppxxB%akpm@linux-foundation.org>
+Subject: [patch 024/127] mm, compaction: require only min watermarks for
+ non-costly orders
+Date: Fri, 07 Oct 2016 16:58:00 -0700
+Message-ID: <57f83688.g1RgbLaTnrrvIZ7h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38903 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38925 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751068AbcJGX5z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:57:55 -0400
+        with ESMTP id S1751068AbcJGX6B (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:58:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: create compact_gap wrapper
+Subject: mm, compaction: require only min watermarks for non-costly orders
 
-Compaction uses a watermark gap of (2UL << order) pages at various places
-and it's not immediately obvious why.  Abstract it through a compact_gap()
-wrapper to create a single place with a thorough explanation.
+The __compaction_suitable() function checks the low watermark plus a
+compact_gap() gap to decide if there's enough free memory to perform
+compaction.  Then __isolate_free_page uses low watermark check to decide
+if particular free page can be isolated.  In the latter case, using low
+watermark is needlessly pessimistic, as the free page isolations are only
+temporary.  For __compaction_suitable() the higher watermark makes sense
+for high-order allocations where more freepages increase the chance of
+success, and we can typically fail with some order-0 fallback when the
+system is struggling to reach that watermark.  But for low-order
+allocation, forming the page should not be that hard.  So using low
+watermark here might just prevent compaction from even trying, and
+eventually lead to OOM killer even if we are above min watermarks.
 
-[vbabka@suse.cz: clarify the comment of compact_gap()]
- Link: http://lkml.kernel.org/r/7b6aed1f-fdf8-2063-9ff4-bbe4de712d37@suse.cz
-Link: http://lkml.kernel.org/r/20160810091226.6709-9-vbabka@suse.cz
+So after this patch, we use min watermark for non-costly orders in
+__compaction_suitable(), and for all orders in __isolate_free_page().
+
+[vbabka@suse.cz: clarify __isolate_free_page() comment]
+ Link: http://lkml.kernel.org/r/7ae4baec-4eca-e70b-2a69-94bea4fb19fa@suse.cz
+Link: http://lkml.kernel.org/r/20160810091226.6709-11-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
@@ -33,93 +46,50 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |   23 +++++++++++++++++++++++
- mm/compaction.c            |    7 +++----
- mm/vmscan.c                |    6 +++---
- 3 files changed, 29 insertions(+), 7 deletions(-)
+ mm/compaction.c |    6 +++++-
+ mm/page_alloc.c |    9 +++++++--
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-create-compact_gap-wrapper include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-create-compact_gap-wrapper
-+++ a/include/linux/compaction.h
-@@ -58,6 +58,29 @@ enum compact_result {
- 
- struct alloc_context; /* in mm/internal.h */
- 
-+/*
-+ * Number of free order-0 pages that should be available above given watermark
-+ * to make sure compaction has reasonable chance of not running out of free
-+ * pages that it needs to isolate as migration target during its work.
-+ */
-+static inline unsigned long compact_gap(unsigned int order)
-+{
-+	/*
-+	 * Although all the isolations for migration are temporary, compaction
-+	 * free scanner may have up to 1 << order pages on its list and then
-+	 * try to split an (order - 1) free page. At that point, a gap of
-+	 * 1 << order might not be enough, so it's safer to require twice that
-+	 * amount. Note that the number of pages on the list is also
-+	 * effectively limited by COMPACT_CLUSTER_MAX, as that's the maximum
-+	 * that the migrate scanner can have isolated on migrate list, and free
-+	 * scanner is only invoked when the number of isolated free pages is
-+	 * lower than that. But it's not worth to complicate the formula here
-+	 * as a bigger gap for higher orders than strictly necessary can also
-+	 * improve chances of compaction success.
-+	 */
-+	return 2UL << order;
-+}
-+
- #ifdef CONFIG_COMPACTION
- extern int sysctl_compact_memory;
- extern int sysctl_compaction_handler(struct ctl_table *table, int write,
-diff -puN mm/compaction.c~mm-compaction-create-compact_gap-wrapper mm/compaction.c
---- a/mm/compaction.c~mm-compaction-create-compact_gap-wrapper
+diff -puN mm/compaction.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders
 +++ a/mm/compaction.c
-@@ -1391,11 +1391,10 @@ static enum compact_result __compaction_
- 		return COMPACT_SUCCESS;
- 
- 	/*
--	 * Watermarks for order-0 must be met for compaction. Note the 2UL.
--	 * This is because during migration, copies of pages need to be
--	 * allocated and for a short time, the footprint is higher
-+	 * Watermarks for order-0 must be met for compaction to be able to
-+	 * isolate free pages for migration targets.
+@@ -1399,10 +1399,14 @@ static enum compact_result __compaction_
+ 	 * isolation. We however do use the direct compactor's classzone_idx to
+ 	 * skip over zones where lowmem reserves would prevent allocation even
+ 	 * if compaction succeeds.
++	 * For costly orders, we require low watermark instead of min for
++	 * compaction to proceed to increase its chances.
+ 	 * ALLOC_CMA is used, as pages in CMA pageblocks are considered
+ 	 * suitable migration targets
  	 */
--	watermark = low_wmark_pages(zone) + (2UL << order);
-+	watermark = low_wmark_pages(zone) + compact_gap(order);
+-	watermark = low_wmark_pages(zone) + compact_gap(order);
++	watermark = (order > PAGE_ALLOC_COSTLY_ORDER) ?
++				low_wmark_pages(zone) : min_wmark_pages(zone);
++	watermark += compact_gap(order);
  	if (!__zone_watermark_ok(zone, 0, watermark, classzone_idx,
- 				 alloc_flags, wmark_target))
+ 						ALLOC_CMA, wmark_target))
  		return COMPACT_SKIPPED;
-diff -puN mm/vmscan.c~mm-compaction-create-compact_gap-wrapper mm/vmscan.c
---- a/mm/vmscan.c~mm-compaction-create-compact_gap-wrapper
-+++ a/mm/vmscan.c
-@@ -2480,7 +2480,7 @@ static inline bool should_continue_recla
- 	 * If we have not reclaimed enough pages for compaction and the
- 	 * inactive lists are large enough, continue reclaiming
- 	 */
--	pages_for_compaction = (2UL << sc->order);
-+	pages_for_compaction = compact_gap(sc->order);
- 	inactive_lru_pages = node_page_state(pgdat, NR_INACTIVE_FILE);
- 	if (get_nr_swap_pages() > 0)
- 		inactive_lru_pages += node_page_state(pgdat, NR_INACTIVE_ANON);
-@@ -2612,7 +2612,7 @@ static inline bool compaction_ready(stru
- 	 * there is a buffer of free pages available to give compaction
- 	 * a reasonable chance of completing and allocating the page
- 	 */
--	watermark = high_wmark_pages(zone) + (2UL << sc->order);
-+	watermark = high_wmark_pages(zone) + compact_gap(sc->order);
- 	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, sc->reclaim_idx);
+diff -puN mm/page_alloc.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders
++++ a/mm/page_alloc.c
+@@ -2489,8 +2489,13 @@ int __isolate_free_page(struct page *pag
+ 	mt = get_pageblock_migratetype(page);
  
- 	/*
-@@ -3169,7 +3169,7 @@ static bool kswapd_shrink_node(pg_data_t
- 	 * excessive reclaim. Assume that a process requested a high-order
- 	 * can direct reclaim/compact.
- 	 */
--	if (sc->order && sc->nr_reclaimed >= 2UL << sc->order)
-+	if (sc->order && sc->nr_reclaimed >= compact_gap(sc->order))
- 		sc->order = 0;
+ 	if (!is_migrate_isolate(mt)) {
+-		/* Obey watermarks as if the page was being allocated */
+-		watermark = low_wmark_pages(zone) + (1 << order);
++		/*
++		 * Obey watermarks as if the page was being allocated. We can
++		 * emulate a high-order watermark check with a raised order-0
++		 * watermark, because we already know our high-order page
++		 * exists.
++		 */
++		watermark = min_wmark_pages(zone) + (1UL << order);
+ 		if (!zone_watermark_ok(zone, 0, watermark, 0, ALLOC_CMA))
+ 			return 0;
  
- 	return sc->nr_scanned >= sc->nr_to_reclaim;
 _
