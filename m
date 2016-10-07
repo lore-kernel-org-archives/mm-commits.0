@@ -1,61 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: [patch 029/127] mm/debug_pagealloc.c: clean-up guard page
- handling code
-Date: Fri, 07 Oct 2016 16:58:15 -0700
-Message-ID: <57f83697.Xe/iJ4jH7Jk0QWtU%akpm@linux-foundation.org>
+Subject: [patch 032/127] mm/page_ext: rename offset to index
+Date: Fri, 07 Oct 2016 16:58:24 -0700
+Message-ID: <57f836a0.IIxih0ktETTIDE79%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38963 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38980 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932870AbcJGX6R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:58:17 -0400
+        with ESMTP id S932775AbcJGX60 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:58:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz
 
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/debug_pagealloc.c: clean-up guard page handling code
+Subject: mm/page_ext: rename offset to index
 
-Patch series "Reduce memory waste by page extension user".
+Here, 'offset' means entry index in page_ext array.  Following patch will
+use 'offset' for field offset in each entry so rename current 'offset' to
+prevent confusion.
 
-
-This patchset tries to reduce memory waste by page extension user.
-
-First case is architecture supported debug_pagealloc.  It doesn't requires
-additional memory if guard page isn't used.  8 bytes per page will be
-saved in this case.
-
-Second case is related to page owner feature.  Until now, if page_ext
-users want to use it's own fields on page_ext, fields should be defined in
-struct page_ext by hard-coding.  It has a following problem.
-
-struct page_ext {
- #ifdef CONFIG_A
-	int a;
- #endif
- #ifdef CONFIG_B
-	int b;
- #endif
-};
-
-Assume that kernel is built with both CONFIG_A and CONFIG_B.  Even if we
-enable feature A and doesn't enable feature B at runtime, each entry of
-struct page_ext takes two int rather than one int.  It's undesirable waste
-so this patch tries to reduce it.  By this patchset, we can save 20 bytes
-per page dedicated for page owner feature in some configurations.  
-
-
-
-This patch (of 6):
-
-We can make code clean by moving decision condition for set_page_guard()
-into set_page_guard() itself.  It will help code readability.  There is no
-functional change.
-
-Link: http://lkml.kernel.org/r/1471315879-32294-2-git-send-email-iamjoonsoo.kim@lge.com
+Link: http://lkml.kernel.org/r/1471315879-32294-5-git-send-email-iamjoonsoo.kim@lge.com
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -64,81 +31,31 @@ Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   34 ++++++++++++++++++----------------
- 1 file changed, 18 insertions(+), 16 deletions(-)
+ mm/page_ext.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-debug_pagealloc-clean-up-guard-page-handling-code mm/page_alloc.c
---- a/mm/page_alloc.c~mm-debug_pagealloc-clean-up-guard-page-handling-code
-+++ a/mm/page_alloc.c
-@@ -637,17 +637,20 @@ static int __init debug_guardpage_minord
- }
- __setup("debug_guardpage_minorder=", debug_guardpage_minorder_setup);
- 
--static inline void set_page_guard(struct zone *zone, struct page *page,
-+static inline bool set_page_guard(struct zone *zone, struct page *page,
- 				unsigned int order, int migratetype)
+diff -puN mm/page_ext.c~mm-page_ext-rename-offset-to-index mm/page_ext.c
+--- a/mm/page_ext.c~mm-page_ext-rename-offset-to-index
++++ a/mm/page_ext.c
+@@ -102,7 +102,7 @@ void __meminit pgdat_page_ext_init(struc
+ struct page_ext *lookup_page_ext(struct page *page)
  {
- 	struct page_ext *page_ext;
+ 	unsigned long pfn = page_to_pfn(page);
+-	unsigned long offset;
++	unsigned long index;
+ 	struct page_ext *base;
  
- 	if (!debug_guardpage_enabled())
--		return;
-+		return false;
-+
-+	if (order >= debug_guardpage_minorder())
-+		return false;
- 
- 	page_ext = lookup_page_ext(page);
- 	if (unlikely(!page_ext))
--		return;
-+		return false;
- 
- 	__set_bit(PAGE_EXT_DEBUG_GUARD, &page_ext->flags);
- 
-@@ -655,6 +658,8 @@ static inline void set_page_guard(struct
- 	set_page_private(page, order);
- 	/* Guard pages are not available for any usage */
- 	__mod_zone_freepage_state(zone, -(1 << order), migratetype);
-+
-+	return true;
- }
- 
- static inline void clear_page_guard(struct zone *zone, struct page *page,
-@@ -677,8 +682,8 @@ static inline void clear_page_guard(stru
- }
- #else
- struct page_ext_operations debug_guardpage_ops = { NULL, };
--static inline void set_page_guard(struct zone *zone, struct page *page,
--				unsigned int order, int migratetype) {}
-+static inline bool set_page_guard(struct zone *zone, struct page *page,
-+			unsigned int order, int migratetype) { return false; }
- static inline void clear_page_guard(struct zone *zone, struct page *page,
- 				unsigned int order, int migratetype) {}
+ 	base = NODE_DATA(page_to_nid(page))->node_page_ext;
+@@ -119,9 +119,9 @@ struct page_ext *lookup_page_ext(struct
+ 	if (unlikely(!base))
+ 		return NULL;
  #endif
-@@ -1622,18 +1627,15 @@ static inline void expand(struct zone *z
- 		size >>= 1;
- 		VM_BUG_ON_PAGE(bad_range(zone, &page[size]), &page[size]);
+-	offset = pfn - round_down(node_start_pfn(page_to_nid(page)),
++	index = pfn - round_down(node_start_pfn(page_to_nid(page)),
+ 					MAX_ORDER_NR_PAGES);
+-	return base + offset;
++	return base + index;
+ }
  
--		if (IS_ENABLED(CONFIG_DEBUG_PAGEALLOC) &&
--			debug_guardpage_enabled() &&
--			high < debug_guardpage_minorder()) {
--			/*
--			 * Mark as guard pages (or page), that will allow to
--			 * merge back to allocator when buddy will be freed.
--			 * Corresponding page table entries will not be touched,
--			 * pages will stay not present in virtual address space
--			 */
--			set_page_guard(zone, &page[size], high, migratetype);
-+		/*
-+		 * Mark as guard pages (or page), that will allow to
-+		 * merge back to allocator when buddy will be freed.
-+		 * Corresponding page table entries will not be touched,
-+		 * pages will stay not present in virtual address space
-+		 */
-+		if (set_page_guard(zone, &page[size], high, migratetype))
- 			continue;
--		}
-+
- 		list_add(&page[size].lru, &area->free_list[migratetype]);
- 		area->nr_free++;
- 		set_page_order(&page[size], high);
+ static int __init alloc_node_page_ext(int nid)
 _
