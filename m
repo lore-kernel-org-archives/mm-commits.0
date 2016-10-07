@@ -1,97 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch added to
- -mm tree
-Date: Thu, 06 Oct 2016 15:34:16 -0700
-Message-ID: <57f6d168.V0C85KTHXxyvCdK4%akpm__34567.6507837654$1475793271$gmane$org@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-percpuc-correct-max_distance-calculation-for-pcpu_embed_first_chunk.patch removed from -mm tree
+Date: Fri, 07 Oct 2016 15:35:38 -0700
+Message-ID: <57f8233a.KGqxHNNqe+bhuDSF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37131 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752434AbcJFWeR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 6 Oct 2016 18:34:17 -0400
+        with ESMTP id S1751647AbcJGWfj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 18:35:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, cl@linux.com, dsmythies@telus.net, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: zijun_hu@htc.com, cl@linux.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: fix kmemcg cache creation delayed issue
-has been added to the -mm tree.  Its filename is
-     mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch
+     Subject: mm/percpu.c: correct max_distance calculation for pcpu_embed_first_chunk()
+has been removed from the -mm tree.  Its filename was
+     mm-percpuc-correct-max_distance-calculation-for-pcpu_embed_first_chunk.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: fix kmemcg cache creation delayed issue
+From: zijun_hu <zijun_hu@htc.com>
+Subject: mm/percpu.c: correct max_distance calculation for pcpu_embed_first_chunk()
 
-There is a bug report that SLAB makes extreme load average due to over
-2000 kworker thread.
+It is am error to represent the max range max_distance spanned by all the
+group areas as the offset of the highest group area plus unit size in
+pcpu_embed_first_chunk().  It should be equal to the offset plus the size
+of the highest group area.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=172981
+In order to fix this issue, let us find the highest group area which has
+the biggest base address, then max_distance is formed by adding its offset
+and size values.
 
-This issue is caused by kmemcg feature that try to create new set of
-kmem_caches for each memcg.  Recently, kmem_cache creation is slowed by
-synchronize_sched() and futher kmem_cache creation is also delayed since
-kmem_cache creation is synchronized by a global slab_mutex lock.  So, the
-number of kworker that try to create kmem_cache increases quitely. 
-synchronize_sched() is for lockless access to node's shared array but it's
-not needed when a new kmem_cache is created.  So, this patch rules out
-that case.
+The type of variable max_distance is changed from size_t to unsigned long
+to prevent potential overflows.
 
-Fixes: 801faf0db894 ("mm/slab: lockless decision to grow cache")
-Link: http://lkml.kernel.org/r/1475734855-4837-1-git-send-email-iamjoonsoo.kim@lge.com
-Reported-by: Doug Smythies <dsmythies@telus.net>
-Tested-by: Doug Smythies <dsmythies@telus.net>
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: http://lkml.kernel.org/r/0310bf92-c8da-459f-58e3-40b8bfbb7223@zoho.com
+Signed-off-by: zijun_hu <zijun_hu@htc.com>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/percpu.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-fix-kmemcg-cache-creation-delayed-issue mm/slab.c
---- a/mm/slab.c~mm-slab-fix-kmemcg-cache-creation-delayed-issue
-+++ a/mm/slab.c
-@@ -966,7 +966,7 @@ static int setup_kmem_cache_node(struct
- 	 * guaranteed to be valid until irq is re-enabled, because it will be
- 	 * freed after synchronize_sched().
- 	 */
--	if (force_change)
-+	if (old_shared && force_change)
- 		synchronize_sched();
+diff -puN mm/percpu.c~mm-percpuc-correct-max_distance-calculation-for-pcpu_embed_first_chunk mm/percpu.c
+--- a/mm/percpu.c~mm-percpuc-correct-max_distance-calculation-for-pcpu_embed_first_chunk
++++ a/mm/percpu.c
+@@ -1961,7 +1961,8 @@ int __init pcpu_embed_first_chunk(size_t
+ 	void *base = (void *)ULONG_MAX;
+ 	void **areas = NULL;
+ 	struct pcpu_alloc_info *ai;
+-	size_t size_sum, areas_size, max_distance;
++	size_t size_sum, areas_size;
++	unsigned long max_distance;
+ 	int group, i, rc;
  
- fail:
+ 	ai = pcpu_build_alloc_info(reserved_size, dyn_size, atom_size,
+@@ -2023,17 +2024,18 @@ int __init pcpu_embed_first_chunk(size_t
+ 	}
+ 
+ 	/* base address is now known, determine group base offsets */
+-	max_distance = 0;
++	i = 0;
+ 	for (group = 0; group < ai->nr_groups; group++) {
+ 		ai->groups[group].base_offset = areas[group] - base;
+-		max_distance = max_t(size_t, max_distance,
+-				     ai->groups[group].base_offset);
++		if (areas[group] > areas[i])
++			i = group;
+ 	}
+-	max_distance += ai->unit_size;
++	max_distance = ai->groups[i].base_offset +
++		(unsigned long)ai->unit_size * ai->groups[i].nr_units;
+ 
+ 	/* warn if maximum distance is further than 75% of vmalloc space */
+ 	if (max_distance > VMALLOC_TOTAL * 3 / 4) {
+-		pr_warn("max_distance=0x%zx too large for vmalloc space 0x%lx\n",
++		pr_warn("max_distance=0x%lx too large for vmalloc space 0x%lx\n",
+ 			max_distance, VMALLOC_TOTAL);
+ #ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
+ 		/* and fail if we have fallback */
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from zijun_hu@htc.com are
 
-mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch
-mm-debug_pagealloc-clean-up-guard-page-handling-code.patch
-mm-debug_pagealloc-dont-allocate-page_ext-if-we-dont-use-guard-page.patch
-mm-page_owner-move-page_owner-specific-function-to-page_ownerc.patch
-mm-page_ext-rename-offset-to-index.patch
-mm-page_ext-support-extra-space-allocation-by-page_ext-user.patch
-mm-page_owner-dont-define-fields-on-struct-page_ext-by-hard-coding.patch
+mm-vmalloc-fix-align-value-calculation-error.patch
+mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix-fix.patch
+mm-nobootmemc-remove-duplicate-macro-arch_low_address_limit-statements.patch
+mm-bootmemc-replace-kzalloc-by-kzalloc_node.patch
+linux-mmh-canonicalize-macro-page_aligned-definition.patch
 
