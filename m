@@ -1,126 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [patch 072/127] Revert "mm, oom: prevent premature OOM killer
- invocation for high order request"
-Date: Fri, 07 Oct 2016 17:00:28 -0700
-Message-ID: <57f8371c.MWaSnisR3Cz5jq8O%akpm@linux-foundation.org>
+Subject: [patch 062/127] thp, dax: add thp_get_unmapped_area for pmd
+ mappings
+Date: Fri, 07 Oct 2016 16:59:56 -0700
+Message-ID: <57f836fc.lLF94glzBR+TGiDH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39306 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39225 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932714AbcJHAA3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:29 -0400
+        with ESMTP id S1756751AbcJHAAP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, penguin-kernel@i-love.sakura.ne.jp, riel@redhat.com, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, toshi.kani@hpe.com, adilger.kernel@dilger.ca, dan.j.williams@intel.com, david@fromorbit.com, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, kirill@shutemov.name, mawilcox@microsoft.com, mike.kravetz@oracle.com, ross.zwisler@linux.intel.com, tytso@mit.edu
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: Revert "mm, oom: prevent premature OOM killer invocation for high order request"
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: thp, dax: add thp_get_unmapped_area for pmd mappings
 
-Patch series "reintroduce compaction feedback for OOM decisions".
+When CONFIG_FS_DAX_PMD is set, DAX supports mmap() using pmd page size. 
+This feature relies on both mmap virtual address and FS block (i.e. 
+physical address) to be aligned by the pmd page size.  Users can use mkfs
+options to specify FS to align block allocations.  However, aligning mmap
+address requires code changes to existing applications for providing a
+pmd-aligned address to mmap().
 
-After several people reported OOM's for order-2 allocations in 4.7 due to
-Michal Hocko's OOM rework, he reverted the part that considered compaction
-feedback [1] in the decisions to retry reclaim/compaction.  This was to
-provide a fix quickly for 4.8 rc and 4.7 stable series, while mmotm had an
-almost complete solution that instead improved compaction reliability.
+For instance, fio with "ioengine=mmap" performs I/Os with mmap() [1].  It
+calls mmap() with a NULL address, which needs to be changed to provide a
+pmd-aligned address for testing with DAX pmd mappings.  Changing all
+applications that call mmap() with NULL is undesirable.
 
-This series completes the mmotm solution and reintroduces the compaction
-feedback into OOM decisions.  The first two patches restore the state of
-mmotm before the temporary solution was merged, the last patch should be
-the missing piece for reliability.  The third patch restricts the hardened
-compaction to non-costly orders, since costly orders don't result in OOMs
-in the first place.
+Add thp_get_unmapped_area(), which can be called by filesystem's
+get_unmapped_area to align an mmap address by the pmd size for a DAX file.
+It calls the default handler, mm->get_unmapped_area(), to find a range
+and then aligns it for a DAX file.
 
-[1] http://marc.info/?i=20160822093249.GA14916%40dhcp22.suse.cz%3E
+The patch is based on Matthew Wilcox's change that allows adding support
+of the pud page size easily.
 
-
-This patch (of 4):
-
-Commit 6b4e3181d7bd ("mm, oom: prevent premature OOM killer invocation for
-high order request") was intended as a quick fix of OOM regressions for
-4.8 and stable 4.7.x kernels.  For a better long-term solution, we still
-want to consider compaction feedback, which should be possible after some
-more improvements in the following patches.
-
-This reverts commit 6b4e3181d7bd5ca5ab6f45929e4a5ffa7ab4ab7f.
-
-Link: http://lkml.kernel.org/r/20160906135258.18335-2-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+[1]: https://github.com/axboe/fio/blob/master/engines/mmap.c
+Link: http://lkml.kernel.org/r/1472497881-9323-2-git-send-email-toshi.kani@hpe.com
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   51 ++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 49 insertions(+), 2 deletions(-)
+ include/linux/huge_mm.h |    7 ++++++
+ mm/huge_memory.c        |   43 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 50 insertions(+)
 
-diff -puN mm/page_alloc.c~revert-mm-oom-prevent-premature-oom-killer-invocation-for-high-order-request mm/page_alloc.c
---- a/mm/page_alloc.c~revert-mm-oom-prevent-premature-oom-killer-invocation-for-high-order-request
-+++ a/mm/page_alloc.c
-@@ -3156,6 +3156,54 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	return NULL;
+diff -puN include/linux/huge_mm.h~thp-dax-add-thp_get_unmapped_area-for-pmd-mappings include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~thp-dax-add-thp_get_unmapped_area-for-pmd-mappings
++++ a/include/linux/huge_mm.h
+@@ -87,6 +87,10 @@ extern bool is_vma_temporary_stack(struc
+ 
+ extern unsigned long transparent_hugepage_flags;
+ 
++extern unsigned long thp_get_unmapped_area(struct file *filp,
++		unsigned long addr, unsigned long len, unsigned long pgoff,
++		unsigned long flags);
++
+ extern void prep_transhuge_page(struct page *page);
+ extern void free_transhuge_page(struct page *page);
+ 
+@@ -169,6 +173,9 @@ void put_huge_zero_page(void);
+ static inline void prep_transhuge_page(struct page *page) {}
+ 
+ #define transparent_hugepage_flags 0UL
++
++#define thp_get_unmapped_area	NULL
++
+ static inline int
+ split_huge_page_to_list(struct page *page, struct list_head *list)
+ {
+diff -puN mm/huge_memory.c~thp-dax-add-thp_get_unmapped_area-for-pmd-mappings mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-dax-add-thp_get_unmapped_area-for-pmd-mappings
++++ a/mm/huge_memory.c
+@@ -469,6 +469,49 @@ void prep_transhuge_page(struct page *pa
+ 	set_compound_page_dtor(page, TRANSHUGE_PAGE_DTOR);
  }
  
-+static inline bool
-+should_compact_retry(struct alloc_context *ac, int order, int alloc_flags,
-+		     enum compact_result compact_result,
-+		     enum compact_priority *compact_priority,
-+		     int compaction_retries)
++unsigned long __thp_get_unmapped_area(struct file *filp, unsigned long len,
++		loff_t off, unsigned long flags, unsigned long size)
 +{
-+	int max_retries = MAX_COMPACT_RETRIES;
++	unsigned long addr;
++	loff_t off_end = off + len;
++	loff_t off_align = round_up(off, size);
++	unsigned long len_pad;
 +
-+	if (!order)
-+		return false;
++	if (off_end <= off_align || (off_end - off_align) < size)
++		return 0;
 +
-+	/*
-+	 * compaction considers all the zone as desperately out of memory
-+	 * so it doesn't really make much sense to retry except when the
-+	 * failure could be caused by insufficient priority
-+	 */
-+	if (compaction_failed(compact_result)) {
-+		if (*compact_priority > MIN_COMPACT_PRIORITY) {
-+			(*compact_priority)--;
-+			return true;
-+		}
-+		return false;
-+	}
++	len_pad = len + size;
++	if (len_pad < len || (off + len_pad) < off)
++		return 0;
 +
-+	/*
-+	 * make sure the compaction wasn't deferred or didn't bail out early
-+	 * due to locks contention before we declare that we should give up.
-+	 * But do not retry if the given zonelist is not suitable for
-+	 * compaction.
-+	 */
-+	if (compaction_withdrawn(compact_result))
-+		return compaction_zonelist_suitable(ac, order, alloc_flags);
++	addr = current->mm->get_unmapped_area(filp, 0, len_pad,
++					      off >> PAGE_SHIFT, flags);
++	if (IS_ERR_VALUE(addr))
++		return 0;
 +
-+	/*
-+	 * !costly requests are much more important than __GFP_REPEAT
-+	 * costly ones because they are de facto nofail and invoke OOM
-+	 * killer to move on while costly can fail and users are ready
-+	 * to cope with that. 1/4 retries is rather arbitrary but we
-+	 * would need much more detailed feedback from compaction to
-+	 * make a better decision.
-+	 */
-+	if (order > PAGE_ALLOC_COSTLY_ORDER)
-+		max_retries /= 4;
-+	if (compaction_retries <= max_retries)
-+		return true;
-+
-+	return false;
++	addr += (off - addr) & (size - 1);
++	return addr;
 +}
- #else
- static inline struct page *
- __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
-@@ -3166,8 +3214,6 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	return NULL;
- }
- 
--#endif /* CONFIG_COMPACTION */
++
++unsigned long thp_get_unmapped_area(struct file *filp, unsigned long addr,
++		unsigned long len, unsigned long pgoff, unsigned long flags)
++{
++	loff_t off = (loff_t)pgoff << PAGE_SHIFT;
++
++	if (addr)
++		goto out;
++	if (!IS_DAX(filp->f_mapping->host) || !IS_ENABLED(CONFIG_FS_DAX_PMD))
++		goto out;
++
++	addr = __thp_get_unmapped_area(filp, len, off, flags, PMD_SIZE);
++	if (addr)
++		return addr;
++
++ out:
++	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
++}
++EXPORT_SYMBOL_GPL(thp_get_unmapped_area);
++
+ static int __do_huge_pmd_anonymous_page(struct fault_env *fe, struct page *page,
+ 		gfp_t gfp)
+ {
+_
