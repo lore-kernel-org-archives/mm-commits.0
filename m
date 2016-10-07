@@ -1,90 +1,91 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
- removed from -mm tree
-Date: Fri, 07 Oct 2016 16:34:24 -0700
-Message-ID: <57f83100.oxkZ6v+Axe/jrrxN%akpm@linux-foundation.org>
+ mm-swap-add-swap_cluster_list-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 07 Oct 2016 16:37:07 -0700
+Message-ID: <57f831a3.KgMVDZ1Of1Qhj+1c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38287 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38365 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754345AbcJGXeZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:34:25 -0400
+        with ESMTP id S1753920AbcJGXhI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:37:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@kernel.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix
+     Subject: mm-swap-add-swap_cluster_list-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
+     mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
+This patch was dropped because it was folded into mm-swap-add-swap_cluster_list.patch
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix
- orders-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-swap-add-swap_cluster_list-checkpatch-fixes
 
-Clarify why __isolate_free_page() does a order-0 watermark check with
-apparent (1UL << order) gap, per Joonsoo.
+WARNING: Missing a blank line after declarations
+#91: FILE: mm/swapfile.c:285:
++		unsigned int tail = cluster_next(&list->tail);
++		cluster_set_next(&ci[tail], idx);
 
-Link: http://lkml.kernel.org/r/7ae4baec-4eca-e70b-2a69-94bea4fb19fa@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+WARNING: line over 80 characters
+#261: FILE: mm/swapfile.c:2347:
++			cluster_list_add_tail(&p->free_clusters, cluster_info, idx);
+
+total: 0 errors, 2 warnings, 222 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-swap-add-swap_cluster_list.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Huang Ying <ying.huang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/swapfile.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix
-+++ a/mm/page_alloc.c
-@@ -2489,7 +2489,12 @@ int __isolate_free_page(struct page *pag
- 	mt = get_pageblock_migratetype(page);
- 
- 	if (!is_migrate_isolate(mt)) {
--		/* Obey watermarks as if the page was being allocated */
-+		/*
-+		 * Obey watermarks as if the page was being allocated. We can
-+		 * emulate a high-order watermark check with a raised order-0
-+		 * watermark, because we already know our high-order page
-+		 * exists.
-+		 */
- 		watermark = min_wmark_pages(zone) + (1UL << order);
- 		if (!zone_watermark_ok(zone, 0, watermark, 0, ALLOC_CMA))
- 			return 0;
+diff -puN mm/swapfile.c~mm-swap-add-swap_cluster_list-checkpatch-fixes mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-add-swap_cluster_list-checkpatch-fixes
++++ a/mm/swapfile.c
+@@ -282,6 +282,7 @@ static void cluster_list_add_tail(struct
+ 		cluster_set_next_flag(&list->tail, idx, 0);
+ 	} else {
+ 		unsigned int tail = cluster_next(&list->tail);
++
+ 		cluster_set_next(&ci[tail], idx);
+ 		cluster_set_next_flag(&list->tail, idx, 0);
+ 	}
+@@ -2344,7 +2345,8 @@ static int setup_swap_map_and_extents(st
+ 	for (i = 0; i < nr_clusters; i++) {
+ 		if (!cluster_count(&cluster_info[idx])) {
+ 			cluster_set_flag(&cluster_info[idx], CLUSTER_FLAG_FREE);
+-			cluster_list_add_tail(&p->free_clusters, cluster_info, idx);
++			cluster_list_add_tail(&p->free_clusters, cluster_info,
++					      idx);
+ 		}
+ 		idx++;
+ 		if (idx == nr_clusters)
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
-mm-compaction-cleanup-unused-functions.patch
-mm-compaction-rename-compact_partial-to-compact_success.patch
-mm-compaction-dont-recheck-watermarks-after-compact_success.patch
-mm-compaction-add-the-ultimate-direct-compaction-priority.patch
-mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
-mm-compaction-create-compact_gap-wrapper.patch
-mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
-mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
-mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
-revert-mm-oom-prevent-premature-oom-killer-invocation-for-high-order-request.patch
-mm-compaction-more-reliably-increase-direct-compaction-priority.patch
-mm-compaction-more-reliably-increase-direct-compaction-priority-fix.patch
-mm-compaction-restrict-full-priority-to-non-costly-orders.patch
-mm-compaction-make-full-priority-ignore-pageblock-suitability.patch
-mm-page_alloc-pull-no_progress_loops-update-to-should_reclaim_retry.patch
-mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable.patch
-mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable-fix.patch
-mm-compaction-restrict-fragindex-to-costly-orders.patch
+mm-swap-add-swap_cluster_list.patch
+mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
+mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
+mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes.patch
+mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node-v2-fix.patch
+seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
+a.patch
 
