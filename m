@@ -1,90 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [patch 037/127] mm: unrig VMA cache hit ratio
-Date: Fri, 07 Oct 2016 16:58:39 -0700
-Message-ID: <57f836af.FOarN5jFQQAB03oG%akpm@linux-foundation.org>
+Subject: [patch 046/127] mm: make sure that kthreads will not refault oom
+ reaped memory
+Date: Fri, 07 Oct 2016 16:59:06 -0700
+Message-ID: <57f836ca.Lr5KG2F7Ple5E+EO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39007 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39168 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932726AbcJGX6k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:58:40 -0400
+        with ESMTP id S1753735AbcJHAAO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, adobriyan@gmail.com, dave@stgolabs.net
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, mst@redhat.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@parallels.com
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: mm: unrig VMA cache hit ratio
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: make sure that kthreads will not refault oom reaped memory
 
-Current code doesn't count first FIND operation after VMA cache flush
-(which happen surprisingly often) artificially increasing cache hit ratio.
+There are only few use_mm() users in the kernel right now.  Most of them
+write to the target memory but vhost driver relies on
+copy_from_user/get_user from a kernel thread context.  This makes it
+impossible to reap the memory of an oom victim which shares the mm with
+the vhost kernel thread because it could see a zero page unexpectedly and
+theoretically make an incorrect decision visible outside of the killed
+task context.
 
-On my regular setup the difference is:
+To quote Michael S. Tsirkin:
+: Getting an error from __get_user and friends is handled gracefully.
+: Getting zero instead of a real value will cause userspace
+: memory corruption.
 
-		Before				After
-	==========================================================
+The vhost kernel thread is bound to an open fd of the vhost device which
+is not tight to the mm owner life cycle in general.  The device fd can be
+inherited or passed over to another process which means that we really
+have to be careful about unexpected memory corruption because unlike for
+normal oom victims the result will be visible outside of the oom victim
+context.
 
-	* boot, login into KDE
+Make sure that no kthread context (users of use_mm) can ever see corrupted
+data because of the oom reaper and hook into the page fault path by
+checking MMF_UNSTABLE mm flag.  __oom_reap_task_mm will set the flag
+before it starts unmapping the address space while the flag is checked
+after the page fault has been handled.  If the flag is set then SIGBUS is
+triggered so any g-u-p user will get a error code.
 
-	vmacache_find_calls 446216	vmacache_find_calls 492741
-	vmacache_find_hits 277596	vmacache_find_hits 276096
+Regular tasks do not need this protection because all which share the mm
+are killed when the mm is reaped and so the corruption will not outlive
+them.
 
-		~62.2%				~56.0%
+This patch shouldn't have any visible effect at this moment because the
+OOM killer doesn't invoke oom reaper for tasks with mm shared with
+kthreads yet.
 
-	* rebuild kernel (no changes to code, usual config)
-
-	vmacache_find_calls 1943007	vmacache_find_calls 2083718
-	vmacache_find_hits 1246123	vmacache_find_hits 1244146
-
-		~64.1%				~59.7%
-
-	* rebuild kernel (full rebuild, usual config)
-
-	vmacache_find_calls 32163155	vmacache_find_calls 33677183
-	vmacache_find_hits 27889956	vmacache_find_hits 27877591
-
-		~88.2%				~84.3%
-
-Total: ~4% cache hit ratio.
-
-If someone is counting _relative_ cache _miss_ ratio, misreporting is much
-higher.
-
-Link: http://lkml.kernel.org/r/20160822225009.GA3934@p183.telecom.by
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+Link: http://lkml.kernel.org/r/1472119394-11342-9-git-send-email-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmacache.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/sched.h |    1 +
+ mm/memory.c           |   13 +++++++++++++
+ mm/oom_kill.c         |    8 ++++++++
+ 3 files changed, 22 insertions(+)
 
-diff -puN mm/vmacache.c~mm-unrig-vma-cache-hit-ratio mm/vmacache.c
---- a/mm/vmacache.c~mm-unrig-vma-cache-hit-ratio
-+++ a/mm/vmacache.c
-@@ -87,11 +87,11 @@ struct vm_area_struct *vmacache_find(str
- {
- 	int i;
+diff -puN include/linux/sched.h~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory include/linux/sched.h
+--- a/include/linux/sched.h~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory
++++ a/include/linux/sched.h
+@@ -525,6 +525,7 @@ static inline int get_dumpable(struct mm
+ #define MMF_HAS_UPROBES		19	/* has uprobes */
+ #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
+ #define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
++#define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
  
-+	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
+ 
+diff -puN mm/memory.c~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory mm/memory.c
+--- a/mm/memory.c~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory
++++ a/mm/memory.c
+@@ -3658,6 +3658,19 @@ int handle_mm_fault(struct vm_area_struc
+                         mem_cgroup_oom_synchronize(false);
+ 	}
+ 
++	/*
++	 * This mm has been already reaped by the oom reaper and so the
++	 * refault cannot be trusted in general. Anonymous refaults would
++	 * lose data and give a zero page instead e.g. This is especially
++	 * problem for use_mm() because regular tasks will just die and
++	 * the corrupted data will not be visible anywhere while kthread
++	 * will outlive the oom victim and potentially propagate the date
++	 * further.
++	 */
++	if (unlikely((current->flags & PF_KTHREAD) && !(ret & VM_FAULT_ERROR)
++				&& test_bit(MMF_UNSTABLE, &vma->vm_mm->flags)))
++		ret = VM_FAULT_SIGBUS;
 +
- 	if (!vmacache_valid(mm))
- 		return NULL;
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(handle_mm_fault);
+diff -puN mm/oom_kill.c~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory
++++ a/mm/oom_kill.c
+@@ -495,6 +495,14 @@ static bool __oom_reap_task_mm(struct ta
+ 		goto unlock_oom;
+ 	}
  
--	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
--
- 	for (i = 0; i < VMACACHE_SIZE; i++) {
- 		struct vm_area_struct *vma = current->vmacache[i];
- 
-@@ -115,11 +115,11 @@ struct vm_area_struct *vmacache_find_exa
- {
- 	int i;
- 
-+	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
++	/*
++	 * Tell all users of get_user/copy_from_user etc... that the content
++	 * is no longer stable. No barriers really needed because unmapping
++	 * should imply barriers already and the reader would hit a page fault
++	 * if it stumbled over a reaped memory.
++	 */
++	set_bit(MMF_UNSTABLE, &mm->flags);
 +
- 	if (!vmacache_valid(mm))
- 		return NULL;
- 
--	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
+ 	tlb_gather_mmu(&tlb, mm, 0, -1);
+ 	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
+ 		if (is_vm_hugetlb_page(vma))
+_
