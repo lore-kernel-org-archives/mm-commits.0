@@ -1,64 +1,94 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 07 Oct 2016 16:32:25 -0700
-Message-ID: <57f83089.OYZ4gfW96lvnWCHU%akpm@linux-foundation.org>
+ mm-compaction-add-the-ultimate-direct-compaction-priority-fix.patch removed from -mm tree
+Date: Fri, 07 Oct 2016 16:32:55 -0700
+Message-ID: <57f830a7.yOG2K76Y6sbyS98B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38268 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38273 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751968AbcJGXc0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:32:26 -0400
+        with ESMTP id S1751968AbcJGXc4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:32:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, lstoakes@gmail.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes
+     Subject: mm-compaction-add-the-ultimate-direct-compaction-priority-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+     mm-compaction-add-the-ultimate-direct-compaction-priority-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
+This patch was dropped because it was folded into mm-compaction-add-the-ultimate-direct-compaction-priority.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-compaction-add-the-ultimate-direct-compaction-priority-fix
 
-fix typo in comment
+Use the MIN_COMPACT_PRIORITY alias instead of COMPACT_PRIO_SYNC_FULL to
+disable heuristics "because this would be easier to follow and it would be
+easier for future changes", per Michal.
 
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/d443b884-87e7-1c93-8684-3a3a35759fb1@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes mm/compaction.c
---- a/mm/compaction.c~mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes
+diff -puN mm/compaction.c~mm-compaction-add-the-ultimate-direct-compaction-priority-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-add-the-ultimate-direct-compaction-priority-fix
 +++ a/mm/compaction.c
-@@ -1492,7 +1492,7 @@ static enum compact_result compact_zone(
+@@ -1644,8 +1644,8 @@ static enum compact_result compact_zone_
+ 		.alloc_flags = alloc_flags,
+ 		.classzone_idx = classzone_idx,
+ 		.direct_compaction = true,
+-		.whole_zone = (prio == COMPACT_PRIO_SYNC_FULL),
+-		.ignore_skip_hint = (prio == COMPACT_PRIO_SYNC_FULL)
++		.whole_zone = (prio == MIN_COMPACT_PRIORITY),
++		.ignore_skip_hint = (prio == MIN_COMPACT_PRIORITY)
+ 	};
+ 	INIT_LIST_HEAD(&cc.freepages);
+ 	INIT_LIST_HEAD(&cc.migratepages);
+@@ -1691,7 +1691,7 @@ enum compact_result try_to_compact_pages
+ 								ac->nodemask) {
+ 		enum compact_result status;
  
- 	/*
- 	 * Setup to move all movable pages to the end of the zone. Used cached
--	 * information on where the scanners should start (unless we explictly
-+	 * information on where the scanners should start (unless we explicitly
- 	 * want to compact the whole zone), but check that it is initialised
- 	 * by ensuring the values are within zone boundaries.
- 	 */
+-		if (prio > COMPACT_PRIO_SYNC_FULL
++		if (prio > MIN_COMPACT_PRIORITY
+ 					&& compaction_deferred(zone, order)) {
+ 			rc = max_t(enum compact_result, COMPACT_DEFERRED, rc);
+ 			continue;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
-mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
-mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
-mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
-mm-memcontrol-consolidate-cgroup-socket-tracking-checkpatch-fixes.patch
-mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node-v2-fix.patch
-seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char-fix.patch
-a.patch
+mm-compaction-cleanup-unused-functions.patch
+mm-compaction-rename-compact_partial-to-compact_success.patch
+mm-compaction-dont-recheck-watermarks-after-compact_success.patch
+mm-compaction-add-the-ultimate-direct-compaction-priority.patch
+mm-compaction-use-correct-watermark-when-checking-compaction-success.patch
+mm-compaction-create-compact_gap-wrapper.patch
+mm-compaction-create-compact_gap-wrapper-fix.patch
+mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
+mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
+mm-compaction-require-only-min-watermarks-for-non-costly-orders-fix.patch
+mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
+revert-mm-oom-prevent-premature-oom-killer-invocation-for-high-order-request.patch
+mm-compaction-more-reliably-increase-direct-compaction-priority.patch
+mm-compaction-more-reliably-increase-direct-compaction-priority-fix.patch
+mm-compaction-restrict-full-priority-to-non-costly-orders.patch
+mm-compaction-make-full-priority-ignore-pageblock-suitability.patch
+mm-page_alloc-pull-no_progress_loops-update-to-should_reclaim_retry.patch
+mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable.patch
+mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable-fix.patch
+mm-compaction-restrict-fragindex-to-costly-orders.patch
 
