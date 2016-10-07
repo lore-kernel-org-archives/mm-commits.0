@@ -1,99 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [patch 051/127] powerpc: implement arch_reserved_kernel_pages
-Date: Fri, 07 Oct 2016 16:59:21 -0700
-Message-ID: <57f836d9.cLQ6yMwTlc4ds68E%akpm@linux-foundation.org>
+Subject: [patch 048/127] mm: use zonelist name instead of using hardcoded
+ index
+Date: Fri, 07 Oct 2016 16:59:12 -0700
+Message-ID: <57f836d0.zJ6f3w+ehl+etsK+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39210 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39182 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755330AbcJHAAO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:14 -0400
+        with ESMTP id S1754858AbcJHAAN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, srikar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dave.hansen@intel.com, hbathini@linux.vnet.ibm.com, mahesh@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@kernel.org, mpe@ellerman.id.au, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com
 
-From: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Subject: powerpc: implement arch_reserved_kernel_pages
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm: use zonelist name instead of using hardcoded index
 
-Currently significant amount of memory is reserved only in kernel booted
-to capture kernel dump using the fa_dump method.
+Use the existing enums instead of hardcoded index when looking at the
+zonelist.  This makes it more readable.  No functionality change by this
+patch.
 
-Kernels compiled with CONFIG_DEFERRED_STRUCT_PAGE_INIT will initialize
-only certain size memory per node.  The certain size takes into account
-the dentry and inode cache sizes.  Currently the cache sizes are
-calculated based on the total system memory including the reserved memory.
-However such a kernel when booting the same kernel as fadump kernel will
-not be able to allocate the required amount of memory to suffice for the
-dentry and inode caches.  This results in crashes like
-
-Hence only implement arch_reserved_kernel_pages() for CONFIG_FA_DUMP
-configurations.  The amount reserved will be reduced while calculating the
-large caches and will avoid crashes like the below on large systems such
-as 32 TB systems.
-
-Dentry cache hash table entries: 536870912 (order: 16, 4294967296 bytes)
-vmalloc: allocation failure, allocated 4097114112 of 17179934720 bytes
-swapper/0: page allocation failure: order:0, mode:0x2080020(GFP_ATOMIC)
-CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.6-master+ #3
-Call Trace:
-[c00000000108fb10] [c0000000007fac88] dump_stack+0xb0/0xf0 (unreliable)
-[c00000000108fb50] [c000000000235264] warn_alloc_failed+0x114/0x160
-[c00000000108fbf0] [c000000000281484] __vmalloc_node_range+0x304/0x340
-[c00000000108fca0] [c00000000028152c] __vmalloc+0x6c/0x90
-[c00000000108fd40] [c000000000aecfb0]
-alloc_large_system_hash+0x1b8/0x2c0
-[c00000000108fe00] [c000000000af7240] inode_init+0x94/0xe4
-[c00000000108fe80] [c000000000af6fec] vfs_caches_init+0x8c/0x13c
-[c00000000108ff00] [c000000000ac4014] start_kernel+0x50c/0x578
-[c00000000108ff90] [c000000000008c6c] start_here_common+0x20/0xa8
-
-Link: http://lkml.kernel.org/r/1472476010-4709-4-git-send-email-srikar@linux.vnet.ibm.com
-Signed-off-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Suggested-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
-Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Link: http://lkml.kernel.org/r/1472227078-24852-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/mmzone.h |    3 +++
- arch/powerpc/kernel/fadump.c      |    5 +++++
- 2 files changed, 8 insertions(+)
+ mm/mempolicy.c  |    2 +-
+ mm/page_alloc.c |    8 ++++----
+ mm/vmscan.c     |    2 +-
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/powerpc/include/asm/mmzone.h~powerpc-implement-arch_reserved_kernel_pages arch/powerpc/include/asm/mmzone.h
---- a/arch/powerpc/include/asm/mmzone.h~powerpc-implement-arch_reserved_kernel_pages
-+++ a/arch/powerpc/include/asm/mmzone.h
-@@ -41,6 +41,9 @@ u64 memory_hotplug_max(void);
- #else
- #define memory_hotplug_max() memblock_end_of_DRAM()
- #endif /* CONFIG_NEED_MULTIPLE_NODES */
-+#ifdef CONFIG_FA_DUMP
-+#define __HAVE_ARCH_RESERVED_KERNEL_PAGES
-+#endif
+diff -puN mm/mempolicy.c~mm-use-zonelist-name-instead-of-using-hardcoded-index mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-use-zonelist-name-instead-of-using-hardcoded-index
++++ a/mm/mempolicy.c
+@@ -1749,7 +1749,7 @@ unsigned int mempolicy_slab_node(void)
+ 		 */
+ 		struct zonelist *zonelist;
+ 		enum zone_type highest_zoneidx = gfp_zone(GFP_KERNEL);
+-		zonelist = &NODE_DATA(node)->node_zonelists[0];
++		zonelist = &NODE_DATA(node)->node_zonelists[ZONELIST_FALLBACK];
+ 		z = first_zones_zonelist(zonelist, highest_zoneidx,
+ 							&policy->v.nodes);
+ 		return z->zone ? z->zone->node : node;
+diff -puN mm/page_alloc.c~mm-use-zonelist-name-instead-of-using-hardcoded-index mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-use-zonelist-name-instead-of-using-hardcoded-index
++++ a/mm/page_alloc.c
+@@ -4574,7 +4574,7 @@ static void build_zonelists_in_node_orde
+ 	int j;
+ 	struct zonelist *zonelist;
  
- #endif /* __KERNEL__ */
- #endif /* _ASM_MMZONE_H_ */
-diff -puN arch/powerpc/kernel/fadump.c~powerpc-implement-arch_reserved_kernel_pages arch/powerpc/kernel/fadump.c
---- a/arch/powerpc/kernel/fadump.c~powerpc-implement-arch_reserved_kernel_pages
-+++ a/arch/powerpc/kernel/fadump.c
-@@ -333,6 +333,11 @@ int __init fadump_reserve_mem(void)
- 	return 1;
- }
+-	zonelist = &pgdat->node_zonelists[0];
++	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
+ 	for (j = 0; zonelist->_zonerefs[j].zone != NULL; j++)
+ 		;
+ 	j = build_zonelists_node(NODE_DATA(node), zonelist, j);
+@@ -4590,7 +4590,7 @@ static void build_thisnode_zonelists(pg_
+ 	int j;
+ 	struct zonelist *zonelist;
  
-+unsigned long __init arch_reserved_kernel_pages(void)
-+{
-+	return memblock_reserved_size() / PAGE_SIZE;
-+}
-+
- /* Look for fadump= cmdline option. */
- static int __init early_fadump_param(char *p)
- {
+-	zonelist = &pgdat->node_zonelists[1];
++	zonelist = &pgdat->node_zonelists[ZONELIST_NOFALLBACK];
+ 	j = build_zonelists_node(pgdat, zonelist, 0);
+ 	zonelist->_zonerefs[j].zone = NULL;
+ 	zonelist->_zonerefs[j].zone_idx = 0;
+@@ -4611,7 +4611,7 @@ static void build_zonelists_in_zone_orde
+ 	struct zone *z;
+ 	struct zonelist *zonelist;
+ 
+-	zonelist = &pgdat->node_zonelists[0];
++	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
+ 	pos = 0;
+ 	for (zone_type = MAX_NR_ZONES - 1; zone_type >= 0; zone_type--) {
+ 		for (j = 0; j < nr_nodes; j++) {
+@@ -4746,7 +4746,7 @@ static void build_zonelists(pg_data_t *p
+ 
+ 	local_node = pgdat->node_id;
+ 
+-	zonelist = &pgdat->node_zonelists[0];
++	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
+ 	j = build_zonelists_node(pgdat, zonelist, 0);
+ 
+ 	/*
+diff -puN mm/vmscan.c~mm-use-zonelist-name-instead-of-using-hardcoded-index mm/vmscan.c
+--- a/mm/vmscan.c~mm-use-zonelist-name-instead-of-using-hardcoded-index
++++ a/mm/vmscan.c
+@@ -3036,7 +3036,7 @@ unsigned long try_to_free_mem_cgroup_pag
+ 	 */
+ 	nid = mem_cgroup_select_victim_node(memcg);
+ 
+-	zonelist = NODE_DATA(nid)->node_zonelists;
++	zonelist = &NODE_DATA(nid)->node_zonelists[ZONELIST_FALLBACK];
+ 
+ 	trace_mm_vmscan_memcg_reclaim_begin(0,
+ 					    sc.may_writepage,
 _
