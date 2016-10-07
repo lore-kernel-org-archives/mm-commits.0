@@ -1,118 +1,59 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch removed from
- -mm tree
-Date: Fri, 07 Oct 2016 16:27:10 -0700
-Message-ID: <57f82f4e.35+tqdnhYxezkI87%akpm@linux-foundation.org>
+ mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 07 Oct 2016 16:32:25 -0700
+Message-ID: <57f83089.OYZ4gfW96lvnWCHU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38254 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38268 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753920AbcJGX1L (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:27:11 -0400
+        with ESMTP id S1751968AbcJGXc0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:32:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, zijun_hu@htc.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix
+     Subject: mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix.patch
+     mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-vmalloc-fix-align-value-calculation-error.patch
+This patch was dropped because it was folded into mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix
+Subject: mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes
 
-move get_count_order[_long] definitions to pick up fls_long()
+fix typo in comment
 
-Cc: zijun_hu <zijun_hu@htc.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |   52 +++++++++++++++++++--------------------
- 1 file changed, 26 insertions(+), 26 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix include/linux/bitops.h
---- a/include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error-v2-fix-fix
-+++ a/include/linux/bitops.h
-@@ -65,32 +65,6 @@ static inline int get_bitmask_order(unsi
- 	return order;	/* We could be slightly more clever with -1 here... */
- }
+diff -puN mm/compaction.c~mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes
++++ a/mm/compaction.c
+@@ -1492,7 +1492,7 @@ static enum compact_result compact_zone(
  
--static inline int get_count_order(unsigned int count)
--{
--	int order;
--
--	order = fls(count) - 1;
--	if (count & (count - 1))
--		order++;
--	return order;
--}
--
--/**
-- * get_count_order_long - get order after rounding @l up to power of 2
-- * @l: parameter
-- *
-- * it is same as get_count_order() but with long type parameter
-- */
--static inline int get_count_order_long(unsigned long l)
--{
--	if (l == 0UL)
--		return -1;
--	else if (l & (l - 1UL))
--		return (int)fls_long(l);
--	else
--		return (int)fls_long(l) - 1;
--}
--
- static __always_inline unsigned long hweight_long(unsigned long w)
- {
- 	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
-@@ -259,6 +233,32 @@ static inline unsigned long __ffs64(u64
- })
- #endif
- 
-+static inline int get_count_order(unsigned int count)
-+{
-+	int order;
-+
-+	order = fls(count) - 1;
-+	if (count & (count - 1))
-+		order++;
-+	return order;
-+}
-+
-+/**
-+ * get_count_order_long - get order after rounding @l up to power of 2
-+ * @l: parameter
-+ *
-+ * it is same as get_count_order() but with long type parameter
-+ */
-+static inline int get_count_order_long(unsigned long l)
-+{
-+	if (l == 0UL)
-+		return -1;
-+	else if (l & (l - 1UL))
-+		return (int)fls_long(l);
-+	else
-+		return (int)fls_long(l) - 1;
-+}
-+
- #ifndef find_last_bit
- /**
-  * find_last_bit - find the last set bit in a memory region
+ 	/*
+ 	 * Setup to move all movable pages to the end of the zone. Used cached
+-	 * information on where the scanners should start (unless we explictly
++	 * information on where the scanners should start (unless we explicitly
+ 	 * want to compact the whole zone), but check that it is initialised
+ 	 * by ensuring the values are within zone boundaries.
+ 	 */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmalloc-fix-align-value-calculation-error.patch
-mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions-checkpatch-fixes.patch
+mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions.patch
 mm-swap-add-swap_cluster_list-checkpatch-fixes.patch
 mm-mlock-check-against-vma-for-actual-mlock-size-fix.patch
 mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
