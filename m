@@ -1,37 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [patch 018/127] mm, compaction: rename COMPACT_PARTIAL to
- COMPACT_SUCCESS
-Date: Fri, 07 Oct 2016 16:57:41 -0700
-Message-ID: <57f83675.9AjtY/AEiCVHlxKW%akpm@linux-foundation.org>
+Subject: [patch 021/127] mm, compaction: use correct watermark when
+ checking compaction success
+Date: Fri, 07 Oct 2016 16:57:50 -0700
+Message-ID: <57f8367e.rpVjPia+k/c07YsM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38871 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38896 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751068AbcJGX5m (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:57:42 -0400
+        with ESMTP id S1751068AbcJGX5w (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:57:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: rename COMPACT_PARTIAL to COMPACT_SUCCESS
+Subject: mm, compaction: use correct watermark when checking compaction success
 
-COMPACT_PARTIAL has historically meant that compaction returned after
-doing some work without fully compacting a zone.  It however didn't
-distinguish if compaction terminated because it succeeded in creating the
-requested high-order page.  This has changed recently and now we only
-return COMPACT_PARTIAL when compaction thinks it succeeded, or the
-high-order watermark check in compaction_suitable() passes and no
-compaction needs to be done.
+The __compact_finished() function uses low watermark in a check that has
+to pass if the direct compaction is to finish and allocation should
+succeed.  This is too pessimistic, as the allocation will typically use
+min watermark.  It may happen that during compaction, we drop below the
+low watermark (due to parallel activity), but still form the target
+high-order page.  By checking against low watermark, we might needlessly
+continue compaction.
 
-So at this point we can make the return value clearer by renaming it to
-COMPACT_SUCCESS.  The next patch will remove some redundant tests for
-success where compaction just returned COMPACT_SUCCESS.
+Similarly, __compaction_suitable() uses low watermark in a check whether
+allocation can succeed without compaction.  Again, this is unnecessarily
+pessimistic.
 
-Link: http://lkml.kernel.org/r/20160810091226.6709-4-vbabka@suse.cz
+After this patch, these check will use direct compactor's alloc_flags to
+determine the watermark, which is effectively the min watermark.
+
+Link: http://lkml.kernel.org/r/20160810091226.6709-8-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
@@ -42,115 +45,37 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h        |    8 ++++----
- include/trace/events/compaction.h |    2 +-
- mm/compaction.c                   |   12 ++++++------
- mm/vmscan.c                       |    2 +-
- 4 files changed, 12 insertions(+), 12 deletions(-)
+ mm/compaction.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-rename-compact_partial-to-compact_success include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-rename-compact_partial-to-compact_success
-+++ a/include/linux/compaction.h
-@@ -49,10 +49,10 @@ enum compact_result {
- 	COMPACT_CONTENDED,
- 
- 	/*
--	 * direct compaction partially compacted a zone and there might be
--	 * suitable pages
-+	 * direct compaction terminated after concluding that the allocation
-+	 * should now succeed
- 	 */
--	COMPACT_PARTIAL,
-+	COMPACT_SUCCESS,
- };
- 
- struct alloc_context; /* in mm/internal.h */
-@@ -88,7 +88,7 @@ static inline bool compaction_made_progr
- 	 * that the compaction successfully isolated and migrated some
- 	 * pageblocks.
- 	 */
--	if (result == COMPACT_PARTIAL)
-+	if (result == COMPACT_SUCCESS)
- 		return true;
- 
- 	return false;
-diff -puN include/trace/events/compaction.h~mm-compaction-rename-compact_partial-to-compact_success include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-compaction-rename-compact_partial-to-compact_success
-+++ a/include/trace/events/compaction.h
-@@ -13,7 +13,7 @@
- 	EM( COMPACT_SKIPPED,		"skipped")		\
- 	EM( COMPACT_DEFERRED,		"deferred")		\
- 	EM( COMPACT_CONTINUE,		"continue")		\
--	EM( COMPACT_PARTIAL,		"partial")		\
-+	EM( COMPACT_SUCCESS,		"success")		\
- 	EM( COMPACT_PARTIAL_SKIPPED,	"partial_skipped")	\
- 	EM( COMPACT_COMPLETE,		"complete")		\
- 	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
-diff -puN mm/compaction.c~mm-compaction-rename-compact_partial-to-compact_success mm/compaction.c
---- a/mm/compaction.c~mm-compaction-rename-compact_partial-to-compact_success
+diff -puN mm/compaction.c~mm-compaction-use-correct-watermark-when-checking-compaction-success mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-use-correct-watermark-when-checking-compaction-success
 +++ a/mm/compaction.c
-@@ -1329,13 +1329,13 @@ static enum compact_result __compact_fin
+@@ -1316,7 +1316,7 @@ static enum compact_result __compact_fin
+ 		return COMPACT_CONTINUE;
  
- 		/* Job done if page is free of the right migratetype */
- 		if (!list_empty(&area->free_list[migratetype]))
--			return COMPACT_PARTIAL;
-+			return COMPACT_SUCCESS;
+ 	/* Compaction run is not finished if the watermark is not met */
+-	watermark = low_wmark_pages(zone);
++	watermark = zone->watermark[cc->alloc_flags & ALLOC_WMARK_MASK];
  
- #ifdef CONFIG_CMA
- 		/* MIGRATE_MOVABLE can fallback on MIGRATE_CMA */
- 		if (migratetype == MIGRATE_MOVABLE &&
- 			!list_empty(&area->free_list[MIGRATE_CMA]))
--			return COMPACT_PARTIAL;
-+			return COMPACT_SUCCESS;
- #endif
- 		/*
- 		 * Job done if allocation would steal freepages from
-@@ -1343,7 +1343,7 @@ static enum compact_result __compact_fin
- 		 */
- 		if (find_suitable_fallback(area, order, migratetype,
- 						true, &can_steal) != -1)
--			return COMPACT_PARTIAL;
-+			return COMPACT_SUCCESS;
- 	}
+ 	if (!zone_watermark_ok(zone, cc->order, watermark, cc->classzone_idx,
+ 							cc->alloc_flags))
+@@ -1381,7 +1381,7 @@ static enum compact_result __compaction_
+ 	if (is_via_compact_memory(order))
+ 		return COMPACT_CONTINUE;
  
- 	return COMPACT_NO_SUITABLE_PAGE;
-@@ -1367,7 +1367,7 @@ static enum compact_result compact_finis
-  * compaction_suitable: Is this suitable to run compaction on this zone now?
-  * Returns
-  *   COMPACT_SKIPPED  - If there are too few free pages for compaction
-- *   COMPACT_PARTIAL  - If the allocation would succeed without compaction
-+ *   COMPACT_SUCCESS  - If the allocation would succeed without compaction
-  *   COMPACT_CONTINUE - If compaction should run now
-  */
- static enum compact_result __compaction_suitable(struct zone *zone, int order,
-@@ -1388,7 +1388,7 @@ static enum compact_result __compaction_
- 	 */
- 	if (zone_watermark_ok(zone, order, watermark, classzone_idx,
- 								alloc_flags))
--		return COMPACT_PARTIAL;
-+		return COMPACT_SUCCESS;
- 
+-	watermark = low_wmark_pages(zone);
++	watermark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
  	/*
- 	 * Watermarks for order-0 must be met for compaction. Note the 2UL.
-@@ -1477,7 +1477,7 @@ static enum compact_result compact_zone(
- 	ret = compaction_suitable(zone, cc->order, cc->alloc_flags,
- 							cc->classzone_idx);
- 	/* Compaction is likely to fail */
--	if (ret == COMPACT_PARTIAL || ret == COMPACT_SKIPPED)
-+	if (ret == COMPACT_SUCCESS || ret == COMPACT_SKIPPED)
- 		return ret;
- 
- 	/* huh, compaction_suitable is returning something unexpected */
-diff -puN mm/vmscan.c~mm-compaction-rename-compact_partial-to-compact_success mm/vmscan.c
---- a/mm/vmscan.c~mm-compaction-rename-compact_partial-to-compact_success
-+++ a/mm/vmscan.c
-@@ -2495,7 +2495,7 @@ static inline bool should_continue_recla
- 			continue;
- 
- 		switch (compaction_suitable(zone, sc->order, 0, sc->reclaim_idx)) {
--		case COMPACT_PARTIAL:
-+		case COMPACT_SUCCESS:
- 		case COMPACT_CONTINUE:
- 			return false;
- 		default:
+ 	 * If watermarks for high-order allocation are already met, there
+ 	 * should be no need for compaction at all.
+@@ -1395,7 +1395,7 @@ static enum compact_result __compaction_
+ 	 * This is because during migration, copies of pages need to be
+ 	 * allocated and for a short time, the footprint is higher
+ 	 */
+-	watermark += (2UL << order);
++	watermark = low_wmark_pages(zone) + (2UL << order);
+ 	if (!__zone_watermark_ok(zone, 0, watermark, classzone_idx,
+ 				 alloc_flags, wmark_target))
+ 		return COMPACT_SKIPPED;
 _
