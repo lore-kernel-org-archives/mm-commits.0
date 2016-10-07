@@ -1,167 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [patch 016/127] mm, compaction: make whole_zone flag ignore
- cached scanner positions
-Date: Fri, 07 Oct 2016 16:57:35 -0700
-Message-ID: <57f8366f.vuaOwmyLSAjuXtty%akpm@linux-foundation.org>
+Subject: [patch 013/127] mm/vmalloc.c: fix align value calculation error
+Date: Fri, 07 Oct 2016 16:57:26 -0700
+Message-ID: <57f83666.a6XxS2NTs3fwQKVc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38851 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38831 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751068AbcJGX5g (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:57:36 -0400
+        with ESMTP id S1751068AbcJGX51 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:57:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, zijun_hu@htc.com, hannes@cmpxchg.org, minchan@kernel.org, rientjes@google.com, tj@kernel.org
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: make whole_zone flag ignore cached scanner positions
+From: zijun_hu <zijun_hu@htc.com>
+Subject: mm/vmalloc.c: fix align value calculation error
 
-Patch series "make direct compaction more deterministic")
+It causes double align requirement for __get_vm_area_node() if parameter
+size is power of 2 and VM_IOREMAP is set in parameter flags, for example
+size=0x10000 -> fls_long(0x10000)=17 -> align=0x20000
 
-This is mostly a followup to Michal's oom detection rework, which
-highlighted the need for direct compaction to provide better feedback in
-reclaim/compaction loop, so that it can reliably recognize when compaction
-cannot make further progress, and allocation should invoke OOM killer or
-fail.  We've discussed this at LSF/MM [1] where I proposed expanding the
-async/sync migration mode used in compaction to more general "priorities".
-This patchset adds one new priority that just overrides all the
-heuristics and makes compaction fully scan all zones.  I don't currently
-think that we need more fine-grained priorities, but we'll see.  Other
-than that there's some smaller fixes and cleanups, mainly related to the
-THP-specific hacks.
+get_count_order_long() is implemented and used instead of fls_long() for
+fixing the bug, for example
+size=0x10000 -> get_count_order_long(0x10000)=16 -> align=0x10000
 
-I've tested this with stress-highalloc in GFP_KERNEL order-4 and THP-like
-order-9 scenarios.  There's some improvement for compaction stats for the
-order-4, which is likely due to the better watermarks handling.  In the
-previous version I reported mostly noise wrt compaction stats, and
-decreased direct reclaim - now the reclaim is without difference.  I
-believe this is due to the less aggressive compaction priority increase in
-patch 6.
-
-"before" is a mmotm tree prior to 4.7 release plus the first part of the
-series that was sent and merged separately
-
-                                    before        after
-order-4:
-
-Compaction stalls                    27216       30759
-Compaction success                   19598       25475
-Compaction failures                   7617        5283
-Page migrate success                370510      464919
-Page migrate failure                 25712       27987
-Compaction pages isolated           849601     1041581
-Compaction migrate scanned       143146541   101084990
-Compaction free scanned          208355124   144863510
-Compaction cost                       1403        1210
-
-order-9:
-
-Compaction stalls                     7311        7401
-Compaction success                    1634        1683
-Compaction failures                   5677        5718
-Page migrate success                194657      183988
-Page migrate failure                  4753        4170
-Compaction pages isolated           498790      456130
-Compaction migrate scanned          565371      524174
-Compaction free scanned            4230296     4250744
-Compaction cost                        215         203
-
-[1] https://lwn.net/Articles/684611/
-
-
-
-This patch (of 11):
-
-A recent patch has added whole_zone flag that compaction sets when
-scanning starts from the zone boundary, in order to report that zone has
-been fully scanned in one attempt.  For allocations that want to try
-really hard or cannot fail, we will want to introduce a mode where
-scanning whole zone is guaranteed regardless of the cached positions.
-
-This patch reuses the whole_zone flag in a way that if it's already passed
-true to compaction, the cached scanner positions are ignored.  Employing
-this flag during reclaim/compaction loop will be done in the next patch. 
-This patch however converts compaction invoked from userspace via procfs
-to use this flag.  Before this patch, the cached positions were first
-reset to zone boundaries and then read back from struct zone, so there was
-a window where a parallel compaction could replace the reset values,
-making the manual compaction less effective.  Using the flag instead of
-performing reset is more robust.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Link: http://lkml.kernel.org/r/20160810091226.6709-2-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+[akpm@linux-foundation.org: s/get_order_long()/get_count_order_long()/]
+[zijun_hu@zoho.com: fixes]
+ Link: http://lkml.kernel.org/r/57AABC8B.1040409@zoho.com
+[akpm@linux-foundation.org: locate get_count_order_long() next to get_count_order()]
+[akpm@linux-foundation.org: move get_count_order[_long] definitions to pick up fls_long()]
+[zijun_hu@htc.com: move out get_count_order[_long]() from __KERNEL__ scope]
+ Link: http://lkml.kernel.org/r/57B2C4CE.80303@zoho.com
+Link: http://lkml.kernel.org/r/fc045ecf-20fa-0722-b3ac-9a6140488fad@zoho.com
+Signed-off-by: zijun_hu <zijun_hu@htc.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: zijun_hu <zijun_hu@htc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   43 +++++++++++++++++++++----------------------
- mm/internal.h   |    2 +-
- 2 files changed, 22 insertions(+), 23 deletions(-)
+ include/linux/bitops.h |   36 ++++++++++++++++++++++++++----------
+ mm/vmalloc.c           |    8 ++++----
+ 2 files changed, 30 insertions(+), 14 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions mm/compaction.c
---- a/mm/compaction.c~mm-compaction-make-whole_zone-flag-ignore-cached-scanner-positions
-+++ a/mm/compaction.c
-@@ -1492,23 +1492,29 @@ static enum compact_result compact_zone(
+diff -puN include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error include/linux/bitops.h
+--- a/include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error
++++ a/include/linux/bitops.h
+@@ -65,16 +65,6 @@ static inline int get_bitmask_order(unsi
+ 	return order;	/* We could be slightly more clever with -1 here... */
+ }
  
- 	/*
- 	 * Setup to move all movable pages to the end of the zone. Used cached
--	 * information on where the scanners should start but check that it
--	 * is initialised by ensuring the values are within zone boundaries.
-+	 * information on where the scanners should start (unless we explicitly
-+	 * want to compact the whole zone), but check that it is initialised
-+	 * by ensuring the values are within zone boundaries.
- 	 */
--	cc->migrate_pfn = zone->compact_cached_migrate_pfn[sync];
--	cc->free_pfn = zone->compact_cached_free_pfn;
--	if (cc->free_pfn < start_pfn || cc->free_pfn >= end_pfn) {
--		cc->free_pfn = pageblock_start_pfn(end_pfn - 1);
--		zone->compact_cached_free_pfn = cc->free_pfn;
--	}
--	if (cc->migrate_pfn < start_pfn || cc->migrate_pfn >= end_pfn) {
-+	if (cc->whole_zone) {
- 		cc->migrate_pfn = start_pfn;
--		zone->compact_cached_migrate_pfn[0] = cc->migrate_pfn;
--		zone->compact_cached_migrate_pfn[1] = cc->migrate_pfn;
--	}
-+		cc->free_pfn = pageblock_start_pfn(end_pfn - 1);
-+	} else {
-+		cc->migrate_pfn = zone->compact_cached_migrate_pfn[sync];
-+		cc->free_pfn = zone->compact_cached_free_pfn;
-+		if (cc->free_pfn < start_pfn || cc->free_pfn >= end_pfn) {
-+			cc->free_pfn = pageblock_start_pfn(end_pfn - 1);
-+			zone->compact_cached_free_pfn = cc->free_pfn;
-+		}
-+		if (cc->migrate_pfn < start_pfn || cc->migrate_pfn >= end_pfn) {
-+			cc->migrate_pfn = start_pfn;
-+			zone->compact_cached_migrate_pfn[0] = cc->migrate_pfn;
-+			zone->compact_cached_migrate_pfn[1] = cc->migrate_pfn;
-+		}
+-static inline int get_count_order(unsigned int count)
+-{
+-	int order;
+-
+-	order = fls(count) - 1;
+-	if (count & (count - 1))
+-		order++;
+-	return order;
+-}
+-
+ static __always_inline unsigned long hweight_long(unsigned long w)
+ {
+ 	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
+@@ -191,6 +181,32 @@ static inline unsigned fls_long(unsigned
+ 	return fls64(l);
+ }
  
--	if (cc->migrate_pfn == start_pfn)
--		cc->whole_zone = true;
-+		if (cc->migrate_pfn == start_pfn)
-+			cc->whole_zone = true;
-+	}
++static inline int get_count_order(unsigned int count)
++{
++	int order;
++
++	order = fls(count) - 1;
++	if (count & (count - 1))
++		order++;
++	return order;
++}
++
++/**
++ * get_count_order_long - get order after rounding @l up to power of 2
++ * @l: parameter
++ *
++ * it is same as get_count_order() but with long type parameter
++ */
++static inline int get_count_order_long(unsigned long l)
++{
++	if (l == 0UL)
++		return -1;
++	else if (l & (l - 1UL))
++		return (int)fls_long(l);
++	else
++		return (int)fls_long(l) - 1;
++}
++
+ /**
+  * __ffs64 - find first set bit in a 64 bit word
+  * @word: The 64 bit word
+diff -puN mm/vmalloc.c~mm-vmalloc-fix-align-value-calculation-error mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-fix-align-value-calculation-error
++++ a/mm/vmalloc.c
+@@ -1359,14 +1359,14 @@ static struct vm_struct *__get_vm_area_n
+ 	struct vm_struct *area;
  
- 	cc->last_migrated_pfn = 0;
- 
-@@ -1747,14 +1753,6 @@ static void __compact_pgdat(pg_data_t *p
- 		INIT_LIST_HEAD(&cc->freepages);
- 		INIT_LIST_HEAD(&cc->migratepages);
- 
--		/*
--		 * When called via /proc/sys/vm/compact_memory
--		 * this makes sure we compact the whole zone regardless of
--		 * cached scanner positions.
--		 */
--		if (is_via_compact_memory(cc->order))
--			__reset_isolation_suitable(zone);
+ 	BUG_ON(in_interrupt());
+-	if (flags & VM_IOREMAP)
+-		align = 1ul << clamp_t(int, fls_long(size),
+-				       PAGE_SHIFT, IOREMAP_MAX_ORDER);
