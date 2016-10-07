@@ -1,49 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [patch 023/127] mm, compaction: use proper alloc_flags in
- __compaction_suitable()
-Date: Fri, 07 Oct 2016 16:57:57 -0700
-Message-ID: <57f83685.lvfHTdEJuAkDJvBH%akpm@linux-foundation.org>
+Subject: [patch 025/127] mm, vmscan: make compaction_ready() more accurate and readable
+Date: Fri, 07 Oct 2016 16:58:03 -0700
+Message-ID: <57f8368b.wLXdUkFfxuTci6MF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38916 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38933 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751068AbcJGX56 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:57:58 -0400
+        with ESMTP id S1751068AbcJGX6E (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 19:58:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@kernel.org, riel@redhat.com, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: use proper alloc_flags in __compaction_suitable()
+Subject: mm, vmscan: make compaction_ready() more accurate and readable
 
-The __compaction_suitable() function checks the low watermark plus a
-compact_gap() gap to decide if there's enough free memory to perform
-compaction.  This check uses direct compactor's alloc_flags, but that's
-wrong, since these flags are not applicable for freepage isolation.
+The compaction_ready() is used during direct reclaim for costly order
+allocations to skip reclaim for zones where compaction should be attempted
+instead.  It's combining the standard compaction_suitable() check with its
+own watermark check based on high watermark with extra gap, and the result
+is confusing at best.
 
-For example, alloc_flags may indicate access to memory reserves, making
-compaction proceed, and then fail watermark check during the isolation.
+This patch attempts to better structure and document the checks involved. 
+First, compaction_suitable() can determine that the allocation should
+either succeed already, or that compaction doesn't have enough free pages
+to proceed.  The third possibility is that compaction has enough free
+pages, but we still decide to reclaim first - unless we are already above
+the high watermark with gap.  This does not mean that the reclaim will
+actually reach this watermark during single attempt, this is rather an
+over-reclaim protection.  So document the code as such.  The check for
+compaction_deferred() is removed completely, as it in fact had no proper
+role here.
 
-A similar problem exists for ALLOC_CMA, which may be part of alloc_flags,
-but not during freepage isolation.  In this case however it makes sense to
-use ALLOC_CMA both in __compaction_suitable() and __isolate_free_page(),
-since there's actually nothing preventing the freepage scanner to isolate
-from CMA pageblocks, with the assumption that a page that could be
-migrated once by compaction can be migrated also later by CMA allocation. 
-Thus we should count pages in CMA pageblocks when considering compaction
-suitability and when isolating freepages.
+The result after this patch is mainly a less confusing code.  We also skip
+some over-reclaim in cases where the allocation should already succed.
 
-To sum up, this patch should remove some false positives from
-__compaction_suitable(), and allow compaction to proceed when free pages
-required for compaction reside in the CMA pageblocks.
-
-Link: http://lkml.kernel.org/r/20160810091226.6709-10-vbabka@suse.cz
+Link: http://lkml.kernel.org/r/20160810091226.6709-12-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -51,45 +49,69 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   12 ++++++++++--
- mm/page_alloc.c |    2 +-
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ mm/vmscan.c |   43 ++++++++++++++++++++-----------------------
+ 1 file changed, 20 insertions(+), 23 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-use-proper-alloc_flags-in-__compaction_suitable mm/compaction.c
---- a/mm/compaction.c~mm-compaction-use-proper-alloc_flags-in-__compaction_suitable
-+++ a/mm/compaction.c
-@@ -1392,11 +1392,19 @@ static enum compact_result __compaction_
+diff -puN mm/vmscan.c~mm-vmscan-make-compaction_ready-more-accurate-and-readable mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-make-compaction_ready-more-accurate-and-readable
++++ a/mm/vmscan.c
+@@ -2598,38 +2598,35 @@ static bool shrink_node(pg_data_t *pgdat
+ }
+ 
+ /*
+- * Returns true if compaction should go ahead for a high-order request, or
+- * the high-order allocation would succeed without compaction.
++ * Returns true if compaction should go ahead for a costly-order request, or
++ * the allocation would already succeed without compaction. Return false if we
++ * should reclaim first.
+  */
+ static inline bool compaction_ready(struct zone *zone, struct scan_control *sc)
+ {
+ 	unsigned long watermark;
+-	bool watermark_ok;
++	enum compact_result suitable;
+ 
+-	/*
+-	 * Compaction takes time to run and there are potentially other
+-	 * callers using the pages just freed. Continue reclaiming until
+-	 * there is a buffer of free pages available to give compaction
+-	 * a reasonable chance of completing and allocating the page
+-	 */
+-	watermark = high_wmark_pages(zone) + compact_gap(sc->order);
+-	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, sc->reclaim_idx);
+-
+-	/*
+-	 * If compaction is deferred, reclaim up to a point where
+-	 * compaction will have a chance of success when re-enabled
+-	 */
+-	if (compaction_deferred(zone, sc->order))
+-		return watermark_ok;
++	suitable = compaction_suitable(zone, sc->order, 0, sc->reclaim_idx);
++	if (suitable == COMPACT_SUCCESS)
++		/* Allocation should succeed already. Don't reclaim. */
++		return true;
++	if (suitable == COMPACT_SKIPPED)
++		/* Compaction cannot yet proceed. Do reclaim. */
++		return false;
  
  	/*
- 	 * Watermarks for order-0 must be met for compaction to be able to
--	 * isolate free pages for migration targets.
-+	 * isolate free pages for migration targets. This means that the
-+	 * watermark and alloc_flags have to match, or be more pessimistic than
-+	 * the check in __isolate_free_page(). We don't use the direct
-+	 * compactor's alloc_flags, as they are not relevant for freepage
-+	 * isolation. We however do use the direct compactor's classzone_idx to
-+	 * skip over zones where lowmem reserves would prevent allocation even
-+	 * if compaction succeeds.
-+	 * ALLOC_CMA is used, as pages in CMA pageblocks are considered
-+	 * suitable migration targets
+-	 * If compaction is not ready to start and allocation is not likely
+-	 * to succeed without it, then keep reclaiming.
++	 * Compaction is already possible, but it takes time to run and there
++	 * are potentially other callers using the pages just freed. So proceed
++	 * with reclaim to make a buffer of free pages available to give
++	 * compaction a reasonable chance of completing and allocating the page.
++	 * Note that we won't actually reclaim the whole buffer in one attempt
++	 * as the target watermark in should_continue_reclaim() is lower. But if
++	 * we are already above the high+gap watermark, don't reclaim at all.
  	 */
- 	watermark = low_wmark_pages(zone) + compact_gap(order);
- 	if (!__zone_watermark_ok(zone, 0, watermark, classzone_idx,
--				 alloc_flags, wmark_target))
-+						ALLOC_CMA, wmark_target))
- 		return COMPACT_SKIPPED;
+-	if (compaction_suitable(zone, sc->order, 0, sc->reclaim_idx) == COMPACT_SKIPPED)
+-		return false;
++	watermark = high_wmark_pages(zone) + compact_gap(sc->order);
  
- 	/*
-diff -puN mm/page_alloc.c~mm-compaction-use-proper-alloc_flags-in-__compaction_suitable mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-use-proper-alloc_flags-in-__compaction_suitable
-+++ a/mm/page_alloc.c
-@@ -2491,7 +2491,7 @@ int __isolate_free_page(struct page *pag
- 	if (!is_migrate_isolate(mt)) {
- 		/* Obey watermarks as if the page was being allocated */
- 		watermark = low_wmark_pages(zone) + (1 << order);
--		if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
-+		if (!zone_watermark_ok(zone, 0, watermark, 0, ALLOC_CMA))
- 			return 0;
+-	return watermark_ok;
++	return zone_watermark_ok_safe(zone, 0, watermark, sc->reclaim_idx);
+ }
  
- 		__mod_zone_freepage_state(zone, -(1UL << order), mt);
+ /*
 _
