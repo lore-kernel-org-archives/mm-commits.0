@@ -1,100 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [patch 048/127] mm: use zonelist name instead of using hardcoded
- index
-Date: Fri, 07 Oct 2016 16:59:12 -0700
-Message-ID: <57f836d0.zJ6f3w+ehl+etsK+%akpm@linux-foundation.org>
+Subject: [patch 045/127] mm, oom: enforce exit_oom_victim on current task
+Date: Fri, 07 Oct 2016 16:59:03 -0700
+Message-ID: <57f836c7.uyXaxnyaLXE0lOVJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39182 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39169 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754858AbcJHAAN (ORCPT
+        with ESMTP id S1754756AbcJHAAN (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, penguin-kernel@I-love.SAKURA.ne.jp, mhocko@suse.com, oleg@redhat.com, rientjes@google.com, vdavydov@parallels.com
 
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm: use zonelist name instead of using hardcoded index
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm, oom: enforce exit_oom_victim on current task
 
-Use the existing enums instead of hardcoded index when looking at the
-zonelist.  This makes it more readable.  No functionality change by this
-patch.
+There are no users of exit_oom_victim on !current task anymore so enforce
+the API to always work on the current.
 
-Link: http://lkml.kernel.org/r/1472227078-24852-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/1472119394-11342-8-git-send-email-mhocko@kernel.org
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c  |    2 +-
- mm/page_alloc.c |    8 ++++----
- mm/vmscan.c     |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/oom.h |    2 +-
+ kernel/exit.c       |    2 +-
+ mm/oom_kill.c       |    5 ++---
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-use-zonelist-name-instead-of-using-hardcoded-index mm/mempolicy.c
---- a/mm/mempolicy.c~mm-use-zonelist-name-instead-of-using-hardcoded-index
-+++ a/mm/mempolicy.c
-@@ -1749,7 +1749,7 @@ unsigned int mempolicy_slab_node(void)
- 		 */
- 		struct zonelist *zonelist;
- 		enum zone_type highest_zoneidx = gfp_zone(GFP_KERNEL);
--		zonelist = &NODE_DATA(node)->node_zonelists[0];
-+		zonelist = &NODE_DATA(node)->node_zonelists[ZONELIST_FALLBACK];
- 		z = first_zones_zonelist(zonelist, highest_zoneidx,
- 							&policy->v.nodes);
- 		return z->zone ? z->zone->node : node;
-diff -puN mm/page_alloc.c~mm-use-zonelist-name-instead-of-using-hardcoded-index mm/page_alloc.c
---- a/mm/page_alloc.c~mm-use-zonelist-name-instead-of-using-hardcoded-index
-+++ a/mm/page_alloc.c
-@@ -4574,7 +4574,7 @@ static void build_zonelists_in_node_orde
- 	int j;
- 	struct zonelist *zonelist;
+diff -puN include/linux/oom.h~mm-oom-enforce-exit_oom_victim-on-current-task include/linux/oom.h
+--- a/include/linux/oom.h~mm-oom-enforce-exit_oom_victim-on-current-task
++++ a/include/linux/oom.h
+@@ -69,7 +69,7 @@ extern unsigned long oom_badness(struct
  
--	zonelist = &pgdat->node_zonelists[0];
-+	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
- 	for (j = 0; zonelist->_zonerefs[j].zone != NULL; j++)
- 		;
- 	j = build_zonelists_node(NODE_DATA(node), zonelist, j);
-@@ -4590,7 +4590,7 @@ static void build_thisnode_zonelists(pg_
- 	int j;
- 	struct zonelist *zonelist;
+ extern bool out_of_memory(struct oom_control *oc);
  
--	zonelist = &pgdat->node_zonelists[1];
-+	zonelist = &pgdat->node_zonelists[ZONELIST_NOFALLBACK];
- 	j = build_zonelists_node(pgdat, zonelist, 0);
- 	zonelist->_zonerefs[j].zone = NULL;
- 	zonelist->_zonerefs[j].zone_idx = 0;
-@@ -4611,7 +4611,7 @@ static void build_zonelists_in_zone_orde
- 	struct zone *z;
- 	struct zonelist *zonelist;
+-extern void exit_oom_victim(struct task_struct *tsk);
++extern void exit_oom_victim(void);
  
--	zonelist = &pgdat->node_zonelists[0];
-+	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
- 	pos = 0;
- 	for (zone_type = MAX_NR_ZONES - 1; zone_type >= 0; zone_type--) {
- 		for (j = 0; j < nr_nodes; j++) {
-@@ -4746,7 +4746,7 @@ static void build_zonelists(pg_data_t *p
+ extern int register_oom_notifier(struct notifier_block *nb);
+ extern int unregister_oom_notifier(struct notifier_block *nb);
+diff -puN kernel/exit.c~mm-oom-enforce-exit_oom_victim-on-current-task kernel/exit.c
+--- a/kernel/exit.c~mm-oom-enforce-exit_oom_victim-on-current-task
++++ a/kernel/exit.c
+@@ -511,7 +511,7 @@ static void exit_mm(struct task_struct *
+ 	mm_update_next_owner(mm);
+ 	mmput(mm);
+ 	if (test_thread_flag(TIF_MEMDIE))
+-		exit_oom_victim(tsk);
++		exit_oom_victim();
+ }
  
- 	local_node = pgdat->node_id;
+ static struct task_struct *find_alive_thread(struct task_struct *p)
+diff -puN mm/oom_kill.c~mm-oom-enforce-exit_oom_victim-on-current-task mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-enforce-exit_oom_victim-on-current-task
++++ a/mm/oom_kill.c
+@@ -662,10 +662,9 @@ static void mark_oom_victim(struct task_
+ /**
+  * exit_oom_victim - note the exit of an OOM victim
+  */
+-void exit_oom_victim(struct task_struct *tsk)
++void exit_oom_victim(void)
+ {
+-	if (!test_and_clear_tsk_thread_flag(tsk, TIF_MEMDIE))
+-		return;
++	clear_thread_flag(TIF_MEMDIE);
  
--	zonelist = &pgdat->node_zonelists[0];
-+	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
- 	j = build_zonelists_node(pgdat, zonelist, 0);
- 
- 	/*
-diff -puN mm/vmscan.c~mm-use-zonelist-name-instead-of-using-hardcoded-index mm/vmscan.c
---- a/mm/vmscan.c~mm-use-zonelist-name-instead-of-using-hardcoded-index
-+++ a/mm/vmscan.c
-@@ -3036,7 +3036,7 @@ unsigned long try_to_free_mem_cgroup_pag
- 	 */
- 	nid = mem_cgroup_select_victim_node(memcg);
- 
--	zonelist = NODE_DATA(nid)->node_zonelists;
-+	zonelist = &NODE_DATA(nid)->node_zonelists[ZONELIST_FALLBACK];
- 
- 	trace_mm_vmscan_memcg_reclaim_begin(0,
- 					    sc.may_writepage,
+ 	if (!atomic_dec_return(&oom_victims))
+ 		wake_up_all(&oom_victims_wait);
 _
