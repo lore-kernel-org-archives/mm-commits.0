@@ -1,499 +1,236 @@
 From: akpm@linux-foundation.org
-Subject: [patch 109/127] seq/proc: modify seq_put_decimal_[u]ll to take a
- const char *, not char
-Date: Fri, 07 Oct 2016 17:02:20 -0700
-Message-ID: <57f8378c.n9wJEoV/D2Jhtufh%akpm@linux-foundation.org>
+Subject: [patch 106/127] atomic64: no need for
+ CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+Date: Fri, 07 Oct 2016 17:02:10 -0700
+Message-ID: <57f83782.zJLGukjfPKPhGaWy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39589 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39559 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753618AbcJHACW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:02:22 -0400
+        with ESMTP id S1753618AbcJHACM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:02:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com, andi@firstfloor.org, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, Vineet.Gupta1@synopsys.com, ak@linux.intel.com, arnd@arndb.de, aryabinin@virtuozzo.com, benh@kernel.crashing.org, boqun.feng@gmail.com, bp@suse.de, catalin.marinas@arm.com, cmetcalf@mellanox.com, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, glider@google.com, heiko.carstens@de.ibm.com, herbert@gondor.apana.org.au, hpa@zytor.com, ink@jurassic.park.msu.ru, jejb@parisc-linux.org, linus.walleij@linaro.org, linux@armlinux.org.uk, mattst88@gmail.com, ming.l@ssi.samsung.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, tglx@linutronix.de, vgupta@synopsys.com, will.deacon@arm.com, zhaoxiu.ze
 
-From: Joe Perches <joe@perches.com>
-Subject: seq/proc: modify seq_put_decimal_[u]ll to take a const char *, not char
+From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
+Subject: atomic64: no need for CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
 
-Allow some seq_puts removals by taking a string instead of a single char.
+This came to light when implementing native 64-bit atomics for ARCv2.
 
-[akpm@linux-foundation.org: update vmstat_show(), per Joe]
-Link: http://lkml.kernel.org/r/667e1cf3d436de91a5698170a1e98d882905e956.1470704995.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+The atomic64 self-test code uses CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+to check whether atomic64_dec_if_positive() is available.
+It seems it was needed when not every arch defined it.
+However as of current code the Kconfig option seems needless
+
+- for CONFIG_GENERIC_ATOMIC64 it is auto-enabled in lib/Kconfig and a
+  generic definition of API is present lib/atomic64.c
+- arches with native 64-bit atomics select it in arch/*/Kconfig and
+  define the API in their headers
+
+So I see no point in keeping the Kconfig option
+
+Compile tested for:
+ - blackfin (CONFIG_GENERIC_ATOMIC64)
+ - x86 (!CONFIG_GENERIC_ATOMIC64)
+ - ia64
+
+Link: http://lkml.kernel.org/r/1473703083-8625-3-git-send-email-vgupta@synopsys.com
+Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Ming Lin <ming.l@ssi.samsung.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c          |  178 +++++++++++++++++--------------------
- fs/proc/stat.c           |   49 ++++------
- fs/seq_file.c            |   57 +++++++++--
- include/linux/seq_file.h |    4 
- mm/vmstat.c              |    2 
- 5 files changed, 154 insertions(+), 136 deletions(-)
+ arch/alpha/Kconfig   |    1 -
+ arch/arm/Kconfig     |    1 -
+ arch/arm64/Kconfig   |    1 -
+ arch/mips/Kconfig    |    1 -
+ arch/parisc/Kconfig  |    1 -
+ arch/powerpc/Kconfig |    1 -
+ arch/s390/Kconfig    |    1 -
+ arch/sparc/Kconfig   |    1 -
+ arch/tile/Kconfig    |    1 -
+ arch/x86/Kconfig     |    1 -
+ lib/Kconfig          |    3 ---
+ lib/atomic64_test.c  |    4 ----
+ 12 files changed, 17 deletions(-)
 
-diff -puN fs/proc/array.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char fs/proc/array.c
---- a/fs/proc/array.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char
-+++ a/fs/proc/array.c
-@@ -188,33 +188,26 @@ static inline void task_state(struct seq
+diff -puN arch/alpha/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/alpha/Kconfig
+--- a/arch/alpha/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
++++ a/arch/alpha/Kconfig
+@@ -15,7 +15,6 @@ config ALPHA
+ 	select GENERIC_IRQ_SHOW
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+-	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select AUDIT_ARCH
+ 	select GENERIC_CLOCKEVENTS
+ 	select GENERIC_SMP_IDLE_THREAD
+diff -puN arch/arm/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/arm/Kconfig
+--- a/arch/arm/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
++++ a/arch/arm/Kconfig
+@@ -2,7 +2,6 @@ config ARM
+ 	bool
+ 	default y
+ 	select ARCH_CLOCKSOURCE_DATA
+-	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+diff -puN arch/arm64/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/arm64/Kconfig
+--- a/arch/arm64/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
++++ a/arch/arm64/Kconfig
+@@ -8,7 +8,6 @@ config ARM64
+ 	select ARCH_CLOCKSOURCE_DATA
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
+-	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_HAS_GIGANTIC_PAGE
+diff -puN arch/mips/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/mips/Kconfig
+--- a/arch/mips/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
++++ a/arch/mips/Kconfig
+@@ -30,7 +30,6 @@ config MIPS
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE if CPU_SUPPORTS_HUGEPAGES && 64BIT
+ 	select RTC_LIB if !MACH_LOONGSON64
+ 	select GENERIC_ATOMIC64 if !64BIT
+-	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select HAVE_DMA_CONTIGUOUS
+ 	select HAVE_DMA_API_DEBUG
+ 	select GENERIC_IRQ_PROBE
+diff -puN arch/parisc/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
++++ a/arch/parisc/Kconfig
+@@ -14,7 +14,6 @@ config PARISC
+ 	select BUILDTIME_EXTABLE_SORT
+ 	select HAVE_PERF_EVENTS
+ 	select GENERIC_ATOMIC64 if !64BIT
+-	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select BROKEN_RODATA
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_PCI_IOMAP
+diff -puN arch/powerpc/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
++++ a/arch/powerpc/Kconfig
+@@ -113,7 +113,6 @@ config PPC
+ 	select HAVE_DEBUG_KMEMLEAK
+ 	select ARCH_HAS_SG_CHAIN
+ 	select GENERIC_ATOMIC64 if PPC32
+-	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select HAVE_PERF_EVENTS
+ 	select HAVE_PERF_REGS
+ 	select HAVE_PERF_USER_STACK_DUMP
+diff -puN arch/s390/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/s390/Kconfig
+--- a/arch/s390/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
++++ a/arch/s390/Kconfig
+@@ -67,7 +67,6 @@ config DEBUG_RODATA
  
- 	seq_printf(m, "State:\t%s", get_task_state(p));
+ config S390
+ 	def_bool y
+-	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+diff -puN arch/sparc/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
++++ a/arch/sparc/Kconfig
+@@ -22,7 +22,6 @@ config SPARC
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_EXIT_THREAD
+ 	select SYSCTL_EXCEPTION_TRACE
+-	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select RTC_CLASS
+ 	select RTC_DRV_M48T59
+ 	select RTC_SYSTOHC
+diff -puN arch/tile/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/tile/Kconfig
+--- a/arch/tile/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
++++ a/arch/tile/Kconfig
+@@ -3,7 +3,6 @@
  
--	seq_puts(m, "\nTgid:\t");
--	seq_put_decimal_ull(m, 0, tgid);
--	seq_puts(m, "\nNgid:\t");
--	seq_put_decimal_ull(m, 0, ngid);
--	seq_puts(m, "\nPid:\t");
--	seq_put_decimal_ull(m, 0, pid_nr_ns(pid, ns));
--	seq_puts(m, "\nPPid:\t");
--	seq_put_decimal_ull(m, 0, ppid);
--	seq_puts(m, "\nTracerPid:\t");
--	seq_put_decimal_ull(m, 0, tpid);
--	seq_puts(m, "\nUid:");
--	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->uid));
--	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->euid));
--	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->suid));
--	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->fsuid));
--	seq_puts(m, "\nGid:");
--	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->gid));
--	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->egid));
--	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->sgid));
--	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->fsgid));
--	seq_puts(m, "\nFDSize:\t");
--	seq_put_decimal_ull(m, 0, max_fds);
-+	seq_put_decimal_ull(m, "\nTgid:\t", tgid);
-+	seq_put_decimal_ull(m, "\nNgid:\t", ngid);
-+	seq_put_decimal_ull(m, "\nPid:\t", pid_nr_ns(pid, ns));
-+	seq_put_decimal_ull(m, "\nPPid:\t", ppid);
-+	seq_put_decimal_ull(m, "\nTracerPid:\t", tpid);
-+	seq_put_decimal_ull(m, "\nUid:\t", from_kuid_munged(user_ns, cred->uid));
-+	seq_put_decimal_ull(m, "\t", from_kuid_munged(user_ns, cred->euid));
-+	seq_put_decimal_ull(m, "\t", from_kuid_munged(user_ns, cred->suid));
-+	seq_put_decimal_ull(m, "\t", from_kuid_munged(user_ns, cred->fsuid));
-+	seq_put_decimal_ull(m, "\nGid:\t", from_kgid_munged(user_ns, cred->gid));
-+	seq_put_decimal_ull(m, "\t", from_kgid_munged(user_ns, cred->egid));
-+	seq_put_decimal_ull(m, "\t", from_kgid_munged(user_ns, cred->sgid));
-+	seq_put_decimal_ull(m, "\t", from_kgid_munged(user_ns, cred->fsgid));
-+	seq_put_decimal_ull(m, "\nFDSize:\t", max_fds);
+ config TILE
+ 	def_bool y
+-	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_WANT_FRAME_POINTERS
+diff -puN arch/x86/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/x86/Kconfig
+--- a/arch/x86/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
++++ a/arch/x86/Kconfig
+@@ -23,7 +23,6 @@ config X86
+ 	select ARCH_CLOCKSOURCE_DATA
+ 	select ARCH_DISCARD_MEMBLOCK
+ 	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
+-	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_FAST_MULTIPLIER
+diff -puN lib/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive lib/Kconfig
+--- a/lib/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
++++ a/lib/Kconfig
+@@ -457,9 +457,6 @@ config NLATTR
+ config GENERIC_ATOMIC64
+        bool
  
- 	seq_puts(m, "\nGroups:\t");
- 	group_info = cred->group_info;
- 	for (g = 0; g < group_info->ngroups; g++)
--		seq_put_decimal_ull(m, g ? ' ' : 0, from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
-+		seq_put_decimal_ull(m, g ? " " : "",
-+				    from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
- 	put_cred(cred);
- 	/* Trailing space shouldn't have been added in the first place. */
- 	seq_putc(m, ' ');
-@@ -222,16 +215,16 @@ static inline void task_state(struct seq
- #ifdef CONFIG_PID_NS
- 	seq_puts(m, "\nNStgid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_put_decimal_ull(m, '\t', task_tgid_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, "\t", task_tgid_nr_ns(p, pid->numbers[g].ns));
- 	seq_puts(m, "\nNSpid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_put_decimal_ull(m, '\t', task_pid_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, "\t", task_pid_nr_ns(p, pid->numbers[g].ns));
- 	seq_puts(m, "\nNSpgid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_put_decimal_ull(m, '\t', task_pgrp_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, "\t", task_pgrp_nr_ns(p, pid->numbers[g].ns));
- 	seq_puts(m, "\nNSsid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_put_decimal_ull(m, '\t', task_session_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, "\t", task_session_nr_ns(p, pid->numbers[g].ns));
- #endif
- 	seq_putc(m, '\n');
- }
-@@ -300,11 +293,9 @@ static inline void task_sig(struct seq_f
- 		unlock_task_sighand(p, &flags);
- 	}
+-config ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+-	def_bool y if GENERIC_ATOMIC64
+-
+ config LRU_CACHE
+ 	tristate
  
--	seq_puts(m, "Threads:\t");
--	seq_put_decimal_ull(m, 0, num_threads);
--	seq_puts(m, "\nSigQ:\t");
--	seq_put_decimal_ull(m, 0, qsize);
--	seq_put_decimal_ull(m, '/', qlim);
-+	seq_put_decimal_ull(m, "Threads:\t", num_threads);
-+	seq_put_decimal_ull(m, "\nSigQ:\t", qsize);
-+	seq_put_decimal_ull(m, "/", qlim);
+diff -puN lib/atomic64_test.c~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive lib/atomic64_test.c
+--- a/lib/atomic64_test.c~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
++++ a/lib/atomic64_test.c
+@@ -213,7 +213,6 @@ static __init void test_atomic64(void)
+ 	r += one;
+ 	BUG_ON(v.counter != r);
  
- 	/* render them all */
- 	render_sigset_t(m, "\nSigPnd:\t", &pending);
-@@ -352,8 +343,7 @@ static inline void task_cap(struct seq_f
- static inline void task_seccomp(struct seq_file *m, struct task_struct *p)
- {
- #ifdef CONFIG_SECCOMP
--	seq_puts(m, "Seccomp:\t");
--	seq_put_decimal_ull(m, 0, p->seccomp.mode);
-+	seq_put_decimal_ull(m, "Seccomp:\t", p->seccomp.mode);
- 	seq_putc(m, '\n');
- #endif
- }
-@@ -361,10 +351,8 @@ static inline void task_seccomp(struct s
- static inline void task_context_switch_counts(struct seq_file *m,
- 						struct task_struct *p)
- {
--	seq_puts(m, "voluntary_ctxt_switches:\t");
--	seq_put_decimal_ull(m, 0, p->nvcsw);
--	seq_puts(m, "\nnonvoluntary_ctxt_switches:\t");
--	seq_put_decimal_ull(m, 0, p->nivcsw);
-+	seq_put_decimal_ull(m, "voluntary_ctxt_switches:\t", p->nvcsw);
-+	seq_put_decimal_ull(m, "\nnonvoluntary_ctxt_switches:\t", p->nivcsw);
- 	seq_putc(m, '\n');
- }
+-#ifdef CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	INIT(onestwos);
+ 	BUG_ON(atomic64_dec_if_positive(&v) != (onestwos - 1));
+ 	r -= one;
+@@ -226,9 +225,6 @@ static __init void test_atomic64(void)
+ 	INIT(-one);
+ 	BUG_ON(atomic64_dec_if_positive(&v) != (-one - one));
+ 	BUG_ON(v.counter != r);
+-#else
+-#warning Please implement atomic64_dec_if_positive for your architecture and select the above Kconfig symbol
+-#endif
  
-@@ -497,41 +485,41 @@ static int do_task_stat(struct seq_file
- 	start_time = nsec_to_clock_t(task->real_start_time);
- 
- 	seq_printf(m, "%d (%s) %c", pid_nr_ns(pid, ns), tcomm, state);
--	seq_put_decimal_ll(m, ' ', ppid);
--	seq_put_decimal_ll(m, ' ', pgid);
--	seq_put_decimal_ll(m, ' ', sid);
--	seq_put_decimal_ll(m, ' ', tty_nr);
--	seq_put_decimal_ll(m, ' ', tty_pgrp);
--	seq_put_decimal_ull(m, ' ', task->flags);
--	seq_put_decimal_ull(m, ' ', min_flt);
--	seq_put_decimal_ull(m, ' ', cmin_flt);
--	seq_put_decimal_ull(m, ' ', maj_flt);
--	seq_put_decimal_ull(m, ' ', cmaj_flt);
--	seq_put_decimal_ull(m, ' ', cputime_to_clock_t(utime));
--	seq_put_decimal_ull(m, ' ', cputime_to_clock_t(stime));
--	seq_put_decimal_ll(m, ' ', cputime_to_clock_t(cutime));
--	seq_put_decimal_ll(m, ' ', cputime_to_clock_t(cstime));
--	seq_put_decimal_ll(m, ' ', priority);
--	seq_put_decimal_ll(m, ' ', nice);
--	seq_put_decimal_ll(m, ' ', num_threads);
--	seq_put_decimal_ull(m, ' ', 0);
--	seq_put_decimal_ull(m, ' ', start_time);
--	seq_put_decimal_ull(m, ' ', vsize);
--	seq_put_decimal_ull(m, ' ', mm ? get_mm_rss(mm) : 0);
--	seq_put_decimal_ull(m, ' ', rsslim);
--	seq_put_decimal_ull(m, ' ', mm ? (permitted ? mm->start_code : 1) : 0);
--	seq_put_decimal_ull(m, ' ', mm ? (permitted ? mm->end_code : 1) : 0);
--	seq_put_decimal_ull(m, ' ', (permitted && mm) ? mm->start_stack : 0);
--	seq_put_decimal_ull(m, ' ', esp);
--	seq_put_decimal_ull(m, ' ', eip);
-+	seq_put_decimal_ll(m, " ", ppid);
-+	seq_put_decimal_ll(m, " ", pgid);
-+	seq_put_decimal_ll(m, " ", sid);
-+	seq_put_decimal_ll(m, " ", tty_nr);
-+	seq_put_decimal_ll(m, " ", tty_pgrp);
-+	seq_put_decimal_ull(m, " ", task->flags);
-+	seq_put_decimal_ull(m, " ", min_flt);
-+	seq_put_decimal_ull(m, " ", cmin_flt);
-+	seq_put_decimal_ull(m, " ", maj_flt);
-+	seq_put_decimal_ull(m, " ", cmaj_flt);
-+	seq_put_decimal_ull(m, " ", cputime_to_clock_t(utime));
-+	seq_put_decimal_ull(m, " ", cputime_to_clock_t(stime));
-+	seq_put_decimal_ll(m, " ", cputime_to_clock_t(cutime));
-+	seq_put_decimal_ll(m, " ", cputime_to_clock_t(cstime));
-+	seq_put_decimal_ll(m, " ", priority);
-+	seq_put_decimal_ll(m, " ", nice);
-+	seq_put_decimal_ll(m, " ", num_threads);
-+	seq_put_decimal_ull(m, " ", 0);
-+	seq_put_decimal_ull(m, " ", start_time);
-+	seq_put_decimal_ull(m, " ", vsize);
-+	seq_put_decimal_ull(m, " ", mm ? get_mm_rss(mm) : 0);
-+	seq_put_decimal_ull(m, " ", rsslim);
-+	seq_put_decimal_ull(m, " ", mm ? (permitted ? mm->start_code : 1) : 0);
-+	seq_put_decimal_ull(m, " ", mm ? (permitted ? mm->end_code : 1) : 0);
-+	seq_put_decimal_ull(m, " ", (permitted && mm) ? mm->start_stack : 0);
-+	seq_put_decimal_ull(m, " ", esp);
-+	seq_put_decimal_ull(m, " ", eip);
- 	/* The signal information here is obsolete.
- 	 * It must be decimal for Linux 2.0 compatibility.
- 	 * Use /proc/#/status for real-time signals.
- 	 */
--	seq_put_decimal_ull(m, ' ', task->pending.signal.sig[0] & 0x7fffffffUL);
--	seq_put_decimal_ull(m, ' ', task->blocked.sig[0] & 0x7fffffffUL);
--	seq_put_decimal_ull(m, ' ', sigign.sig[0] & 0x7fffffffUL);
--	seq_put_decimal_ull(m, ' ', sigcatch.sig[0] & 0x7fffffffUL);
-+	seq_put_decimal_ull(m, " ", task->pending.signal.sig[0] & 0x7fffffffUL);
-+	seq_put_decimal_ull(m, " ", task->blocked.sig[0] & 0x7fffffffUL);
-+	seq_put_decimal_ull(m, " ", sigign.sig[0] & 0x7fffffffUL);
-+	seq_put_decimal_ull(m, " ", sigcatch.sig[0] & 0x7fffffffUL);
- 
- 	/*
- 	 * We used to output the absolute kernel address, but that's an
-@@ -545,31 +533,31 @@ static int do_task_stat(struct seq_file
- 	else
- 		seq_puts(m, " 0");
- 
--	seq_put_decimal_ull(m, ' ', 0);
--	seq_put_decimal_ull(m, ' ', 0);
--	seq_put_decimal_ll(m, ' ', task->exit_signal);
--	seq_put_decimal_ll(m, ' ', task_cpu(task));
--	seq_put_decimal_ull(m, ' ', task->rt_priority);
--	seq_put_decimal_ull(m, ' ', task->policy);
--	seq_put_decimal_ull(m, ' ', delayacct_blkio_ticks(task));
--	seq_put_decimal_ull(m, ' ', cputime_to_clock_t(gtime));
--	seq_put_decimal_ll(m, ' ', cputime_to_clock_t(cgtime));
-+	seq_put_decimal_ull(m, " ", 0);
-+	seq_put_decimal_ull(m, " ", 0);
-+	seq_put_decimal_ll(m, " ", task->exit_signal);
-+	seq_put_decimal_ll(m, " ", task_cpu(task));
-+	seq_put_decimal_ull(m, " ", task->rt_priority);
-+	seq_put_decimal_ull(m, " ", task->policy);
-+	seq_put_decimal_ull(m, " ", delayacct_blkio_ticks(task));
-+	seq_put_decimal_ull(m, " ", cputime_to_clock_t(gtime));
-+	seq_put_decimal_ll(m, " ", cputime_to_clock_t(cgtime));
- 
- 	if (mm && permitted) {
--		seq_put_decimal_ull(m, ' ', mm->start_data);
--		seq_put_decimal_ull(m, ' ', mm->end_data);
--		seq_put_decimal_ull(m, ' ', mm->start_brk);
--		seq_put_decimal_ull(m, ' ', mm->arg_start);
--		seq_put_decimal_ull(m, ' ', mm->arg_end);
--		seq_put_decimal_ull(m, ' ', mm->env_start);
--		seq_put_decimal_ull(m, ' ', mm->env_end);
-+		seq_put_decimal_ull(m, " ", mm->start_data);
-+		seq_put_decimal_ull(m, " ", mm->end_data);
-+		seq_put_decimal_ull(m, " ", mm->start_brk);
-+		seq_put_decimal_ull(m, " ", mm->arg_start);
-+		seq_put_decimal_ull(m, " ", mm->arg_end);
-+		seq_put_decimal_ull(m, " ", mm->env_start);
-+		seq_put_decimal_ull(m, " ", mm->env_end);
- 	} else
--		seq_printf(m, " 0 0 0 0 0 0 0");
-+		seq_puts(m, " 0 0 0 0 0 0 0");
- 
- 	if (permitted)
--		seq_put_decimal_ll(m, ' ', task->exit_code);
-+		seq_put_decimal_ll(m, " ", task->exit_code);
- 	else
--		seq_put_decimal_ll(m, ' ', 0);
-+		seq_puts(m, " 0");
- 
- 	seq_putc(m, '\n');
- 	if (mm)
-@@ -605,13 +593,13 @@ int proc_pid_statm(struct seq_file *m, s
- 	 * seq_printf(m, "%lu %lu %lu %lu 0 %lu 0\n",
- 	 *               size, resident, shared, text, data);
- 	 */
--	seq_put_decimal_ull(m, 0, size);
--	seq_put_decimal_ull(m, ' ', resident);
--	seq_put_decimal_ull(m, ' ', shared);
--	seq_put_decimal_ull(m, ' ', text);
--	seq_put_decimal_ull(m, ' ', 0);
--	seq_put_decimal_ull(m, ' ', data);
--	seq_put_decimal_ull(m, ' ', 0);
-+	seq_put_decimal_ull(m, "", size);
-+	seq_put_decimal_ull(m, " ", resident);
-+	seq_put_decimal_ull(m, " ", shared);
-+	seq_put_decimal_ull(m, " ", text);
-+	seq_put_decimal_ull(m, " ", 0);
-+	seq_put_decimal_ull(m, " ", data);
-+	seq_put_decimal_ull(m, " ", 0);
- 	seq_putc(m, '\n');
- 
- 	return 0;
-diff -puN fs/proc/stat.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char fs/proc/stat.c
---- a/fs/proc/stat.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char
-+++ a/fs/proc/stat.c
-@@ -115,17 +115,16 @@ static int show_stat(struct seq_file *p,
- 	}
- 	sum += arch_irq_stat();
- 
--	seq_puts(p, "cpu ");
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(user));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(nice));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(system));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(idle));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(iowait));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(irq));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(softirq));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(steal));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(guest));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(guest_nice));
-+	seq_put_decimal_ull(p, "cpu  ", cputime64_to_clock_t(user));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(nice));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(system));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(idle));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(iowait));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(irq));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(softirq));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(steal));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(guest));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(guest_nice));
- 	seq_putc(p, '\n');
- 
- 	for_each_online_cpu(i) {
-@@ -141,23 +140,23 @@ static int show_stat(struct seq_file *p,
- 		guest = kcpustat_cpu(i).cpustat[CPUTIME_GUEST];
- 		guest_nice = kcpustat_cpu(i).cpustat[CPUTIME_GUEST_NICE];
- 		seq_printf(p, "cpu%d", i);
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(user));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(nice));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(system));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(idle));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(iowait));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(irq));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(softirq));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(steal));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(guest));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(guest_nice));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(user));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(nice));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(system));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(idle));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(iowait));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(irq));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(softirq));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(steal));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(guest));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(guest_nice));
- 		seq_putc(p, '\n');
- 	}
--	seq_printf(p, "intr %llu", (unsigned long long)sum);
-+	seq_put_decimal_ull(p, "intr ", (unsigned long long)sum);
- 
- 	/* sum again ? it could be updated? */
- 	for_each_irq_nr(j)
--		seq_put_decimal_ull(p, ' ', kstat_irqs_usr(j));
-+		seq_put_decimal_ull(p, " ", kstat_irqs_usr(j));
- 
- 	seq_printf(p,
- 		"\nctxt %llu\n"
-@@ -171,10 +170,10 @@ static int show_stat(struct seq_file *p,
- 		nr_running(),
- 		nr_iowait());
- 
--	seq_printf(p, "softirq %llu", (unsigned long long)sum_softirq);
-+	seq_put_decimal_ull(p, "softirq ", (unsigned long long)sum_softirq);
- 
- 	for (i = 0; i < NR_SOFTIRQS; i++)
--		seq_put_decimal_ull(p, ' ', per_softirq_sums[i]);
-+		seq_put_decimal_ull(p, " ", per_softirq_sums[i]);
- 	seq_putc(p, '\n');
- 
- 	return 0;
-diff -puN fs/seq_file.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char fs/seq_file.c
---- a/fs/seq_file.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char
-+++ a/fs/seq_file.c
-@@ -679,11 +679,11 @@ EXPORT_SYMBOL(seq_puts);
- /*
-  * A helper routine for putting decimal numbers without rich format of printf().
-  * only 'unsigned long long' is supported.
-- * This routine will put one byte delimiter + number into seq_file.
-+ * This routine will put strlen(delimiter) + number into seq_file.
-  * This routine is very quick when you show lots of numbers.
-  * In usual cases, it will be better to use seq_printf(). It's easier to read.
-  */
--void seq_put_decimal_ull(struct seq_file *m, char delimiter,
-+void seq_put_decimal_ull(struct seq_file *m, const char *delimiter,
- 			 unsigned long long num)
- {
- 	int len;
-@@ -691,8 +691,15 @@ void seq_put_decimal_ull(struct seq_file
- 	if (m->count + 2 >= m->size) /* we'll write 2 bytes at least */
- 		goto overflow;
- 
--	if (delimiter)
--		m->buf[m->count++] = delimiter;
-+	len = strlen(delimiter);
-+	if (m->count + len >= m->size)
-+		goto overflow;
-+
-+	memcpy(m->buf + m->count, delimiter, len);
-+	m->count += len;
-+
-+	if (m->count + 1 >= m->size)
-+		goto overflow;
- 
- 	if (num < 10) {
- 		m->buf[m->count++] = num + '0';
-@@ -702,6 +709,7 @@ void seq_put_decimal_ull(struct seq_file
- 	len = num_to_str(m->buf + m->count, m->size - m->count, num);
- 	if (!len)
- 		goto overflow;
-+
- 	m->count += len;
- 	return;
- 
-@@ -710,19 +718,42 @@ overflow:
- }
- EXPORT_SYMBOL(seq_put_decimal_ull);
- 
--void seq_put_decimal_ll(struct seq_file *m, char delimiter, long long num)
-+void seq_put_decimal_ll(struct seq_file *m, const char *delimiter, long long num)
- {
-+	int len;
-+
-+	if (m->count + 3 >= m->size) /* we'll write 2 bytes at least */
-+		goto overflow;
-+
-+	len = strlen(delimiter);
-+	if (m->count + len >= m->size)
-+		goto overflow;
-+
-+	memcpy(m->buf + m->count, delimiter, len);
-+	m->count += len;
-+
-+	if (m->count + 2 >= m->size)
-+		goto overflow;
-+
- 	if (num < 0) {
--		if (m->count + 3 >= m->size) {
--			seq_set_overflow(m);
--			return;
--		}
--		if (delimiter)
--			m->buf[m->count++] = delimiter;
-+		m->buf[m->count++] = '-';
- 		num = -num;
--		delimiter = '-';
- 	}
--	seq_put_decimal_ull(m, delimiter, num);
-+
-+	if (num < 10) {
-+		m->buf[m->count++] = num + '0';
-+		return;
-+	}
-+
-+	len = num_to_str(m->buf + m->count, m->size - m->count, num);
-+	if (!len)
-+		goto overflow;
-+
-+	m->count += len;
-+	return;
-+
-+overflow:
-+	seq_set_overflow(m);
- }
- EXPORT_SYMBOL(seq_put_decimal_ll);
- 
-diff -puN include/linux/seq_file.h~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char include/linux/seq_file.h
---- a/include/linux/seq_file.h~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char
-+++ a/include/linux/seq_file.h
-@@ -117,9 +117,9 @@ __printf(2, 3)
- void seq_printf(struct seq_file *m, const char *fmt, ...);
- void seq_putc(struct seq_file *m, char c);
- void seq_puts(struct seq_file *m, const char *s);
--void seq_put_decimal_ull(struct seq_file *m, char delimiter,
-+void seq_put_decimal_ull(struct seq_file *m, const char *delimiter,
- 			 unsigned long long num);
--void seq_put_decimal_ll(struct seq_file *m, char delimiter, long long num);
-+void seq_put_decimal_ll(struct seq_file *m, const char *delimiter, long long num);
- void seq_escape(struct seq_file *m, const char *s, const char *esc);
- 
- void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
-diff -puN mm/vmstat.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char mm/vmstat.c
---- a/mm/vmstat.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char
-+++ a/mm/vmstat.c
-@@ -1515,7 +1515,7 @@ static int vmstat_show(struct seq_file *
- 	unsigned long off = l - (unsigned long *)m->private;
- 
- 	seq_puts(m, vmstat_text[off]);
--	seq_put_decimal_ull(m, ' ', *l);
-+	seq_put_decimal_ull(m, " ", *l);
- 	seq_putc(m, '\n');
- 	return 0;
- }
+ 	INIT(onestwos);
+ 	BUG_ON(!atomic64_inc_not_zero(&v));
 _
