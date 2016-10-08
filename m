@@ -1,80 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [patch 081/127] mm: move phys_mem_access_prot_allowed()
- declaration to pgtable.h
-Date: Fri, 07 Oct 2016 17:00:55 -0700
-Message-ID: <57f83737.c4SMNDTLA/0ug0V0%akpm@linux-foundation.org>
+Subject: [patch 083/127] mm/shmem.c: constify anon_ops
+Date: Fri, 07 Oct 2016 17:01:01 -0700
+Message-ID: <57f8373d.v27PsVoTn1L+Ivwa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39382 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39393 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932714AbcJHAA4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:56 -0400
+        with ESMTP id S932687AbcJHABC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:01:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, baoyou.xie@linaro.org, ralf@linux-mips.org, tglx@linutronix.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, linux@rasmusvillemoes.dk, hughd@google.com
 
-From: Baoyou Xie <baoyou.xie@linaro.org>
-Subject: mm: move phys_mem_access_prot_allowed() declaration to pgtable.h
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: mm/shmem.c: constify anon_ops
 
-We get 1 warning when building kernel with W=1:
-drivers/char/mem.c:220:12: warning: no previous prototype for 'phys_mem_access_prot_allowed' [-Wmissing-prototypes]
- int __weak phys_mem_access_prot_allowed(struct file *file,
+Every other dentry_operations instance is const, and this one might as
+well be.
 
-In fact, its declaration is spreading to several header files in different
-architecture, but need to be declare in common header file.
-
-So this patch moves phys_mem_access_prot_allowed() to pgtable.h.
-
-Link: http://lkml.kernel.org/r/1473751597-12139-1-git-send-email-baoyou.xie@linaro.org
-Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Link: http://lkml.kernel.org/r/1473890528-7009-1-git-send-email-linux@rasmusvillemoes.dk
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgtable.h      |    2 --
- arch/x86/include/asm/pgtable_types.h |    2 --
- include/asm-generic/pgtable.h        |    3 +++
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mips/include/asm/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh arch/mips/include/asm/pgtable.h
---- a/arch/mips/include/asm/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -673,8 +673,6 @@ static inline pmd_t pmdp_huge_get_and_cl
- struct file;
- pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
- 		unsigned long size, pgprot_t vma_prot);
--int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
--		unsigned long size, pgprot_t *vma_prot);
- #endif
+diff -puN mm/shmem.c~mm-shmemc-constify-anon_ops mm/shmem.c
+--- a/mm/shmem.c~mm-shmemc-constify-anon_ops
++++ a/mm/shmem.c
+@@ -4078,7 +4078,7 @@ EXPORT_SYMBOL_GPL(shmem_truncate_range);
  
- /*
-diff -puN arch/x86/include/asm/pgtable_types.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh arch/x86/include/asm/pgtable_types.h
---- a/arch/x86/include/asm/pgtable_types.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -439,8 +439,6 @@ extern pgprot_t pgprot_writethrough(pgpr
- struct file;
- pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
-                               unsigned long size, pgprot_t vma_prot);
--int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
--                              unsigned long size, pgprot_t *vma_prot);
+ /* common code */
  
- /* Install a pte for a particular vaddr in kernel space. */
- void set_pte_vaddr(unsigned long vaddr, pte_t pte);
-diff -puN include/asm-generic/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh
-+++ a/include/asm-generic/pgtable.h
-@@ -800,6 +800,9 @@ static inline int pmd_clear_huge(pmd_t *
- #endif
- #endif
+-static struct dentry_operations anon_ops = {
++static const struct dentry_operations anon_ops = {
+ 	.d_dname = simple_dname
+ };
  
-+struct file;
-+int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
-+			unsigned long size, pgprot_t *vma_prot);
- #endif /* !__ASSEMBLY__ */
- 
- #ifndef io_remap_pfn_range
 _
