@@ -1,45 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [patch 083/127] mm/shmem.c: constify anon_ops
-Date: Fri, 07 Oct 2016 17:01:01 -0700
-Message-ID: <57f8373d.v27PsVoTn1L+Ivwa%akpm@linux-foundation.org>
+Subject: [patch 084/127] mm: nobootmem: move the comment of
+ free_all_bootmem
+Date: Fri, 07 Oct 2016 17:01:04 -0700
+Message-ID: <57f83740.xfvdYU4aRQ3uqSlO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39393 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39397 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932687AbcJHABC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:01:02 -0400
+        with ESMTP id S932687AbcJHABF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:01:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, linux@rasmusvillemoes.dk, hughd@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, wanlong.gao@gmail.com, iamjoonsoo.kim@lge.com
 
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: mm/shmem.c: constify anon_ops
+From: Wanlong Gao <wanlong.gao@gmail.com>
+Subject: mm: nobootmem: move the comment of free_all_bootmem
 
-Every other dentry_operations instance is const, and this one might as
-well be.
+b4def3509d18c1db9 ("mm, nobootmem: clean-up of
+free_low_memory_core_early()") removed the unnecessary nodeid argument,
+after that, this comment becomes more confused.  We should move it to the
+right place.
 
-Link: http://lkml.kernel.org/r/1473890528-7009-1-git-send-email-linux@rasmusvillemoes.dk
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Hugh Dickins <hughd@google.com>
+Fixes: b4def3509d18c1db9 ("mm, nobootmem: clean-up of free_low_memory_core_early()")
+Link: http://lkml.kernel.org/r/1473996082-14603-1-git-send-email-wanlong.gao@gmail.com
+Signed-off-by: Wanlong Gao <wanlong.gao@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/nobootmem.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/shmem.c~mm-shmemc-constify-anon_ops mm/shmem.c
---- a/mm/shmem.c~mm-shmemc-constify-anon_ops
-+++ a/mm/shmem.c
-@@ -4078,7 +4078,7 @@ EXPORT_SYMBOL_GPL(shmem_truncate_range);
+diff -puN mm/nobootmem.c~mm-nobootmem-move-the-comment-of-free_all_bootmem mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-nobootmem-move-the-comment-of-free_all_bootmem
++++ a/mm/nobootmem.c
+@@ -137,6 +137,11 @@ static unsigned long __init free_low_mem
+ 	for_each_reserved_mem_region(i, &start, &end)
+ 		reserve_bootmem_region(start, end);
  
- /* common code */
++	/*
++	 * We need to use NUMA_NO_NODE instead of NODE_DATA(0)->node_id
++	 *  because in some case like Node0 doesn't have RAM installed
++	 *  low ram will be on Node1
++	 */
+ 	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE, &start, &end,
+ 				NULL)
+ 		count += __free_memory_core(start, end);
+@@ -194,11 +199,6 @@ unsigned long __init free_all_bootmem(vo
  
--static struct dentry_operations anon_ops = {
-+static const struct dentry_operations anon_ops = {
- 	.d_dname = simple_dname
- };
+ 	reset_all_zones_managed_pages();
+ 
+-	/*
+-	 * We need to use NUMA_NO_NODE instead of NODE_DATA(0)->node_id
+-	 *  because in some case like Node0 doesn't have RAM installed
+-	 *  low ram will be on Node1
+-	 */
+ 	pages = free_low_memory_core_early();
+ 	totalram_pages += pages;
  
 _
