@@ -1,74 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [patch 047/127] oom, oom_reaper: allow to reap mm shared by the
- kthreads
-Date: Fri, 07 Oct 2016 16:59:09 -0700
-Message-ID: <57f836cd.B5QYsa4snTd9iWTK%akpm@linux-foundation.org>
+Subject: [patch 067/127] mm/memcontrol.c: make the walk_page_range() limit obvious
+Date: Fri, 07 Oct 2016 17:00:12 -0700
+Message-ID: <57f8370c.eXNyc7SW2QfAqeOd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39183 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39168 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754816AbcJHAAN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:13 -0400
+        with ESMTP id S1757070AbcJHAAQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@parallels.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, james.morse@arm.com, hannes@cmpxchg.org, mhocko@kernel.org, n-horiguchi@ah.jp.nec.com, vdavydov@virtuozzo.com
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom, oom_reaper: allow to reap mm shared by the kthreads
+From: James Morse <james.morse@arm.com>
+Subject: mm/memcontrol.c: make the walk_page_range() limit obvious
 
-oom reaper was skipped for an mm which is shared with the kernel thread
-(aka use_mm()).  The primary concern was that such a kthread might want to
-read from the userspace memory and see zero page as a result of the oom
-reaper action.  This is no longer a problem after "mm: make sure that
-kthreads will not refault oom reaped memory" because any attempt to fault
-in when the MMF_UNSTABLE is set will result in SIGBUS and so the target
-user should see an error.  This means that we can finally allow oom reaper
-also to tasks which share their mm with kthreads.
+mem_cgroup_count_precharge() and mem_cgroup_move_charge() both call
+walk_page_range() on the range 0 to ~0UL, neither provide a pte_hole
+callback, which causes the current implementation to skip non-vma
+regions.  This is all fine but follow up changes would like to make
+walk_page_range more generic so it is better to be explicit about which
+range to traverse so let's use highest_vm_end to explicitly traverse
+only user mmaped memory.
 
-Link: http://lkml.kernel.org/r/1472119394-11342-10-git-send-email-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+[mhocko@kernel.org: rewrote changelog]
+Link: http://lkml.kernel.org/r/1472655897-22532-1-git-send-email-james.morse@arm.com
+Signed-off-by: James Morse <james.morse@arm.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/memcontrol.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-oom_reaper-allow-to-reap-mm-shared-by-the-kthreads mm/oom_kill.c
---- a/mm/oom_kill.c~oom-oom_reaper-allow-to-reap-mm-shared-by-the-kthreads
-+++ a/mm/oom_kill.c
-@@ -902,13 +902,7 @@ static void oom_kill_process(struct oom_
- 			continue;
- 		if (same_thread_group(p, victim))
- 			continue;
--		if (unlikely(p->flags & PF_KTHREAD) || is_global_init(p)) {
--			/*
--			 * We cannot use oom_reaper for the mm shared by this
--			 * process because it wouldn't get killed and so the
--			 * memory might be still used. Hide the mm from the oom
--			 * killer to guarantee OOM forward progress.
--			 */
-+		if (is_global_init(p)) {
- 			can_oom_reap = false;
- 			set_bit(MMF_OOM_SKIP, &mm->flags);
- 			pr_info("oom killer %d (%s) has mm pinned by %d (%s)\n",
-@@ -916,6 +910,12 @@ static void oom_kill_process(struct oom_
- 					task_pid_nr(p), p->comm);
- 			continue;
- 		}
-+		/*
-+		 * No use_mm() user needs to read from the userspace so we are
-+		 * ok to reap it.
-+		 */
-+		if (unlikely(p->flags & PF_KTHREAD))
-+			continue;
- 		do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
- 	}
- 	rcu_read_unlock();
+diff -puN mm/memcontrol.c~mm-memcontrol-make-the-walk_page_range-limit-obvious mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-make-the-walk_page_range-limit-obvious
++++ a/mm/memcontrol.c
+@@ -4681,7 +4681,8 @@ static unsigned long mem_cgroup_count_pr
+ 		.mm = mm,
+ 	};
+ 	down_read(&mm->mmap_sem);
+-	walk_page_range(0, ~0UL, &mem_cgroup_count_precharge_walk);
++	walk_page_range(0, mm->highest_vm_end,
++			&mem_cgroup_count_precharge_walk);
+ 	up_read(&mm->mmap_sem);
+ 
+ 	precharge = mc.precharge;
+@@ -4969,7 +4970,8 @@ retry:
+ 	 * When we have consumed all precharges and failed in doing
+ 	 * additional charge, the page walk just aborts.
+ 	 */
+-	walk_page_range(0, ~0UL, &mem_cgroup_move_charge_walk);
++	walk_page_range(0, mc.mm->highest_vm_end, &mem_cgroup_move_charge_walk);
++
+ 	up_read(&mc.mm->mmap_sem);
+ 	atomic_dec(&mc.from->moving_account);
+ }
 _
