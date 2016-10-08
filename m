@@ -1,214 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [patch 108/127] proc: faster /proc/*/status
-Date: Fri, 07 Oct 2016 17:02:17 -0700
-Message-ID: <57f83789.YFXol7WouYKh4su+%akpm@linux-foundation.org>
+Subject: [patch 111/127] proc: relax /proc/<tid>/timerslack_ns capability
+ requirements
+Date: Fri, 07 Oct 2016 17:02:26 -0700
+Message-ID: <57f83792.VTCJvIqcC/aSvkTG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39583 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39599 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753618AbcJHACT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:02:19 -0400
+        with ESMTP id S1753618AbcJHAC2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:02:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, adobriyan@gmail.com, andi@firstfloor.org, joe@perches.com, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, john.stultz@linaro.org, arjan@linux.intel.com, ccross@android.com, dimitrysh@google.com, enh@google.com, kandoiruchi@google.com, keescook@chromium.org, kernel-team@android.com, nnk@google.com, orenl@cellrox.com, romlem@android.com, serge@hallyn.com, tglx@linutronix.de, tkjos@google.com
 
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: faster /proc/*/status
+From: John Stultz <john.stultz@linaro.org>
+Subject: proc: relax /proc/<tid>/timerslack_ns capability requirements
 
-top(1) opens the following files for every PID:
+When an interface to allow a task to change another tasks timerslack was
+first proposed, it was suggested that something greater then CAP_SYS_NICE
+would be needed, as a task could be delayed further then what normally
+could be done with nice adjustments.
 
-	/proc/*/stat
-	/proc/*/statm
-	/proc/*/status
+So CAP_SYS_PTRACE was adopted instead for what became the
+/proc/<tid>/timerslack_ns interface.  However, for Android (where this
+feature originates), giving the system_server CAP_SYS_PTRACE would allow
+it to observe and modify all tasks memory.  This is considered too high a
+privilege level for only needing to change the timerslack.
 
-This patch switches /proc/*/status away from seq_printf().
-The result is 13.5% speedup.
+After some discussion, it was realized that a CAP_SYS_NICE process can set
+a task as SCHED_FIFO, so they could fork some spinning processes and set
+them all SCHED_FIFO 99, in effect delaying all other tasks for an infinite
+amount of time.
 
-Benchmark is open("/proc/self/status")+read+close 1.000.000 million times.
+So as a CAP_SYS_NICE task can already cause trouble for other tasks, using
+it as a required capability for accessing and modifying
+/proc/<tid>/timerslack_ns seems sufficient.
 
-				BEFORE
-$ perf stat -r 10 taskset -c 3 ./proc-self-status
+Thus, this patch loosens the capability requirements to CAP_SYS_NICE and
+removes CAP_SYS_PTRACE, simplifying some of the code flow as well.
 
- Performance counter stats for 'taskset -c 3 ./proc-self-status' (10 runs):
+This is technically an ABI change, but as the feature just landed in 4.6,
+I suspect no one is yet using it.
 
-      10748.474301      task-clock (msec)         #    0.954 CPUs utilized            ( +-  0.91% )
-                12      context-switches          #    0.001 K/sec                    ( +-  1.09% )
-                 1      cpu-migrations            #    0.000 K/sec
-               104      page-faults               #    0.010 K/sec                    ( +-  0.45% )
-    37,424,127,876      cycles                    #    3.482 GHz                      ( +-  0.04% )
-     8,453,010,029      stalled-cycles-frontend   #   22.59% frontend cycles idle     ( +-  0.12% )
-     3,747,609,427      stalled-cycles-backend    #  10.01% backend cycles idle       ( +-  0.68% )
-    65,632,764,147      instructions              #    1.75  insn per cycle
-                                                  #    0.13  stalled cycles per insn  ( +-  0.00% )
-    13,981,324,775      branches                  # 1300.773 M/sec                    ( +-  0.00% )
-       138,967,110      branch-misses             #    0.99% of all branches          ( +-  0.18% )
-
-      11.263885428 seconds time elapsed                                          ( +-  0.04% )
-      ^^^^^^^^^^^^
-
-				AFTER
-$ perf stat -r 10 taskset -c 3 ./proc-self-status
-
- Performance counter stats for 'taskset -c 3 ./proc-self-status' (10 runs):
-
-       9010.521776      task-clock (msec)         #    0.925 CPUs utilized            ( +-  1.54% )
-                11      context-switches          #    0.001 K/sec                    ( +-  1.54% )
-                 1      cpu-migrations            #    0.000 K/sec                    ( +- 11.11% )
-               103      page-faults               #    0.011 K/sec                    ( +-  0.60% )
-    32,352,310,603      cycles                    #    3.591 GHz                      ( +-  0.07% )
-     7,849,199,578      stalled-cycles-frontend   #   24.26% frontend cycles idle     ( +-  0.27% )
-     3,269,738,842      stalled-cycles-backend    #  10.11% backend cycles idle       ( +-  0.73% )
-    56,012,163,567      instructions              #    1.73  insn per cycle
-                                                  #    0.14  stalled cycles per insn  ( +-  0.00% )
-    11,735,778,795      branches                  # 1302.453 M/sec                    ( +-  0.00% )
-        98,084,459      branch-misses             #    0.84% of all branches          ( +-  0.28% )
-
-       9.741247736 seconds time elapsed                                          ( +-  0.07% )
-       ^^^^^^^^^^^
-
-Link: http://lkml.kernel.org/r/20160806125608.GB1187@p183.telecom.by
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/1469132667-17377-1-git-send-email-john.stultz@linaro.org
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Reviewed-by: Nick Kralevich <nnk@google.com>
+Acked-by: Serge Hallyn <serge@hallyn.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Oren Laadan <orenl@cellrox.com>
+Cc: Ruchi Kandoi <kandoiruchi@google.com>
+Cc: Rom Lemarchand <romlem@android.com>
+Cc: Todd Kjos <tkjos@google.com>
+Cc: Colin Cross <ccross@android.com>
+Cc: Nick Kralevich <nnk@google.com>
+Cc: Dmitry Shmidt <dimitrysh@google.com>
+Cc: Elliott Hughes <enh@google.com>
+Cc: Android Kernel Team <kernel-team@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |   85 ++++++++++++++++++++++++----------------------
- 1 file changed, 46 insertions(+), 39 deletions(-)
+ fs/proc/base.c |   34 ++++++++++++++++++++--------------
+ 1 file changed, 20 insertions(+), 14 deletions(-)
 
-diff -puN fs/proc/array.c~proc-faster-proc-status fs/proc/array.c
---- a/fs/proc/array.c~proc-faster-proc-status
-+++ a/fs/proc/array.c
-@@ -186,51 +186,52 @@ static inline void task_state(struct seq
- 	task_unlock(p);
- 	rcu_read_unlock();
+diff -puN fs/proc/base.c~proc-relax-proc-tid-timerslack_ns-capability-requirements fs/proc/base.c
+--- a/fs/proc/base.c~proc-relax-proc-tid-timerslack_ns-capability-requirements
++++ a/fs/proc/base.c
+@@ -2280,16 +2280,19 @@ static ssize_t timerslack_ns_write(struc
+ 	if (!p)
+ 		return -ESRCH;
  
--	seq_printf(m,
--		"State:\t%s\n"
--		"Tgid:\t%d\n"
--		"Ngid:\t%d\n"
--		"Pid:\t%d\n"
--		"PPid:\t%d\n"
--		"TracerPid:\t%d\n"
--		"Uid:\t%d\t%d\t%d\t%d\n"
--		"Gid:\t%d\t%d\t%d\t%d\n"
--		"FDSize:\t%d\nGroups:\t",
--		get_task_state(p),
--		tgid, ngid, pid_nr_ns(pid, ns), ppid, tpid,
--		from_kuid_munged(user_ns, cred->uid),
--		from_kuid_munged(user_ns, cred->euid),
--		from_kuid_munged(user_ns, cred->suid),
--		from_kuid_munged(user_ns, cred->fsuid),
--		from_kgid_munged(user_ns, cred->gid),
--		from_kgid_munged(user_ns, cred->egid),
--		from_kgid_munged(user_ns, cred->sgid),
--		from_kgid_munged(user_ns, cred->fsgid),
--		max_fds);
-+	seq_printf(m, "State:\t%s", get_task_state(p));
+-	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
+-		task_lock(p);
+-		if (slack_ns == 0)
+-			p->timer_slack_ns = p->default_timer_slack_ns;
+-		else
+-			p->timer_slack_ns = slack_ns;
+-		task_unlock(p);
+-	} else
++	if (!capable(CAP_SYS_NICE)) {
+ 		count = -EPERM;
++		goto out;
++	}
  
-+	seq_puts(m, "\nTgid:\t");
-+	seq_put_decimal_ull(m, 0, tgid);
-+	seq_puts(m, "\nNgid:\t");
-+	seq_put_decimal_ull(m, 0, ngid);
-+	seq_puts(m, "\nPid:\t");
-+	seq_put_decimal_ull(m, 0, pid_nr_ns(pid, ns));
-+	seq_puts(m, "\nPPid:\t");
-+	seq_put_decimal_ull(m, 0, ppid);
-+	seq_puts(m, "\nTracerPid:\t");
-+	seq_put_decimal_ull(m, 0, tpid);
-+	seq_puts(m, "\nUid:");
-+	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->uid));
-+	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->euid));
-+	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->suid));
-+	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->fsuid));
-+	seq_puts(m, "\nGid:");
-+	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->gid));
-+	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->egid));
-+	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->sgid));
-+	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->fsgid));
-+	seq_puts(m, "\nFDSize:\t");
-+	seq_put_decimal_ull(m, 0, max_fds);
++	task_lock(p);
++	if (slack_ns == 0)
++		p->timer_slack_ns = p->default_timer_slack_ns;
++	else
++		p->timer_slack_ns = slack_ns;
++	task_unlock(p);
 +
-+	seq_puts(m, "\nGroups:\t");
- 	group_info = cred->group_info;
- 	for (g = 0; g < group_info->ngroups; g++)
--		seq_printf(m, "%d ",
--			   from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
-+		seq_put_decimal_ull(m, g ? ' ' : 0, from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
- 	put_cred(cred);
-+	/* Trailing space shouldn't have been added in the first place. */
-+	seq_putc(m, ' ');
++out:
+ 	put_task_struct(p);
  
- #ifdef CONFIG_PID_NS
- 	seq_puts(m, "\nNStgid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_printf(m, "\t%d",
--			task_tgid_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, '\t', task_tgid_nr_ns(p, pid->numbers[g].ns));
- 	seq_puts(m, "\nNSpid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_printf(m, "\t%d",
--			task_pid_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, '\t', task_pid_nr_ns(p, pid->numbers[g].ns));
- 	seq_puts(m, "\nNSpgid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_printf(m, "\t%d",
--			task_pgrp_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, '\t', task_pgrp_nr_ns(p, pid->numbers[g].ns));
- 	seq_puts(m, "\nNSsid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_printf(m, "\t%d",
--			task_session_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, '\t', task_session_nr_ns(p, pid->numbers[g].ns));
- #endif
- 	seq_putc(m, '\n');
- }
-@@ -299,11 +300,14 @@ static inline void task_sig(struct seq_f
- 		unlock_task_sighand(p, &flags);
- 	}
- 
--	seq_printf(m, "Threads:\t%d\n", num_threads);
--	seq_printf(m, "SigQ:\t%lu/%lu\n", qsize, qlim);
-+	seq_puts(m, "Threads:\t");
-+	seq_put_decimal_ull(m, 0, num_threads);
-+	seq_puts(m, "\nSigQ:\t");
-+	seq_put_decimal_ull(m, 0, qsize);
-+	seq_put_decimal_ull(m, '/', qlim);
- 
- 	/* render them all */
--	render_sigset_t(m, "SigPnd:\t", &pending);
-+	render_sigset_t(m, "\nSigPnd:\t", &pending);
- 	render_sigset_t(m, "ShdPnd:\t", &shpending);
- 	render_sigset_t(m, "SigBlk:\t", &blocked);
- 	render_sigset_t(m, "SigIgn:\t", &ignored);
-@@ -348,17 +352,20 @@ static inline void task_cap(struct seq_f
- static inline void task_seccomp(struct seq_file *m, struct task_struct *p)
+ 	return count;
+@@ -2299,19 +2302,22 @@ static int timerslack_ns_show(struct seq
  {
- #ifdef CONFIG_SECCOMP
--	seq_printf(m, "Seccomp:\t%d\n", p->seccomp.mode);
-+	seq_puts(m, "Seccomp:\t");
-+	seq_put_decimal_ull(m, 0, p->seccomp.mode);
-+	seq_putc(m, '\n');
- #endif
- }
+ 	struct inode *inode = m->private;
+ 	struct task_struct *p;
+-	int err =  0;
++	int err = 0;
  
- static inline void task_context_switch_counts(struct seq_file *m,
- 						struct task_struct *p)
- {
--	seq_printf(m,	"voluntary_ctxt_switches:\t%lu\n"
--			"nonvoluntary_ctxt_switches:\t%lu\n",
--			p->nvcsw,
--			p->nivcsw);
-+	seq_puts(m, "voluntary_ctxt_switches:\t");
-+	seq_put_decimal_ull(m, 0, p->nvcsw);
-+	seq_puts(m, "\nnonvoluntary_ctxt_switches:\t");
-+	seq_put_decimal_ull(m, 0, p->nivcsw);
-+	seq_putc(m, '\n');
- }
+ 	p = get_proc_task(inode);
+ 	if (!p)
+ 		return -ESRCH;
  
- static void task_cpus_allowed(struct seq_file *m, struct task_struct *task)
+-	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
+-		task_lock(p);
+-		seq_printf(m, "%llu\n", p->timer_slack_ns);
+-		task_unlock(p);
+-	} else
++	if (!capable(CAP_SYS_NICE)) {
+ 		err = -EPERM;
++		goto out;
++	}
++
++	task_lock(p);
++	seq_printf(m, "%llu\n", p->timer_slack_ns);
++	task_unlock(p);
+ 
++out:
+ 	put_task_struct(p);
+ 
+ 	return err;
 _
