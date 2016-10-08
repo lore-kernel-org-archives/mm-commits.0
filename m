@@ -1,47 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [patch 094/127] mm: vma_adjust: minor comment correction
-Date: Fri, 07 Oct 2016 17:01:34 -0700
-Message-ID: <57f8375e.kCHP5u1oWSMSErXu%akpm@linux-foundation.org>
+Subject: [patch 099/127] arm64 Kconfig: select gigantic page
+Date: Fri, 07 Oct 2016 17:01:49 -0700
+Message-ID: <57f8376d.9Hzis5jodI84WArI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39462 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39500 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932764AbcJHABf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:01:35 -0400
+        with ESMTP id S1751425AbcJHABu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:01:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aarcange@redhat.com, hughd@google.com, janvorli@microsoft.com, mgorman@techsingularity.net, riel@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, xieyisheng1@huawei.com, catalin.marinas@arm.com, dave.hansen@intel.com, guohanjun@huawei.com, hillf.zj@alibaba-inc.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, robh+dt@kernel.org, sudeep.holla@arm.com, will.deacon@arm.com
 
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: vma_adjust: minor comment correction
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: arm64 Kconfig: select gigantic page
 
-The cases are three not two.
+Arm64 supports gigantic page after 084bd29810a5 ("ARM64: mm: HugeTLB
+support.") however, it can only be allocated at boottime and can't be
+freed.
 
-Link: http://lkml.kernel.org/r/1474492522-2261-3-git-send-email-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Jan Vorlicek <janvorli@microsoft.com>
+This patch selects ARCH_HAS_GIGANTIC_PAGE to make gigantic pages can be
+allocated and freed at runtime for arch arm64.
+
+Link: http://lkml.kernel.org/r/1475227569-63446-3-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com> 
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/mmap.c~mm-vma_adjust-minor-comment-correction mm/mmap.c
---- a/mm/mmap.c~mm-vma_adjust-minor-comment-correction
-+++ a/mm/mmap.c
-@@ -667,7 +667,7 @@ int __vma_adjust(struct vm_area_struct *
- 			/*
- 			 * vma expands, overlapping all the next, and
- 			 * perhaps the one after too (mprotect case 6).
--			 * The only two other cases that gets here are
-+			 * The only other cases that gets here are
- 			 * case 1, case 7 and case 8.
- 			 */
- 			if (next == expand) {
+diff -puN arch/arm64/Kconfig~arm64-kconfig-select-gigantic-page arch/arm64/Kconfig
+--- a/arch/arm64/Kconfig~arm64-kconfig-select-gigantic-page
++++ a/arch/arm64/Kconfig
+@@ -11,6 +11,7 @@ config ARM64
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
++	select ARCH_HAS_GIGANTIC_PAGE
+ 	select ARCH_HAS_KCOV
+ 	select ARCH_HAS_SG_CHAIN
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
 _
