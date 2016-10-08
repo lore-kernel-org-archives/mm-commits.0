@@ -1,56 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [patch 111/127] proc: relax /proc/<tid>/timerslack_ns capability
- requirements
-Date: Fri, 07 Oct 2016 17:02:26 -0700
-Message-ID: <57f83792.VTCJvIqcC/aSvkTG%akpm@linux-foundation.org>
+Subject: [patch 113/127] proc: fix timerslack_ns CAP_SYS_NICE check when
+ adjusting self
+Date: Fri, 07 Oct 2016 17:02:33 -0700
+Message-ID: <57f83799.k1TurhooDe4d1jNU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39599 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39624 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753618AbcJHAC2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:02:28 -0400
+        with ESMTP id S1753618AbcJHACe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:02:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, john.stultz@linaro.org, arjan@linux.intel.com, ccross@android.com, dimitrysh@google.com, enh@google.com, kandoiruchi@google.com, keescook@chromium.org, kernel-team@android.com, nnk@google.com, orenl@cellrox.com, romlem@android.com, serge@hallyn.com, tglx@linutronix.de, tkjos@google.com
 
 From: John Stultz <john.stultz@linaro.org>
-Subject: proc: relax /proc/<tid>/timerslack_ns capability requirements
+Subject: proc: fix timerslack_ns CAP_SYS_NICE check when adjusting self
 
-When an interface to allow a task to change another tasks timerslack was
-first proposed, it was suggested that something greater then CAP_SYS_NICE
-would be needed, as a task could be delayed further then what normally
-could be done with nice adjustments.
+In changing from checking ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)
+to capable(CAP_SYS_NICE), I missed that ptrace_my_access succeeds when p
+== current, but the CAP_SYS_NICE doesn't.
 
-So CAP_SYS_PTRACE was adopted instead for what became the
-/proc/<tid>/timerslack_ns interface.  However, for Android (where this
-feature originates), giving the system_server CAP_SYS_PTRACE would allow
-it to observe and modify all tasks memory.  This is considered too high a
-privilege level for only needing to change the timerslack.
+Thus while the previous commit was intended to loosen the needed
+privileges to modify a processes timerslack, it needlessly restricted a
+task modifying its own timerslack via the proc/<tid>/timerslack_ns (which
+is permitted also via the PR_SET_TIMERSLACK method).
 
-After some discussion, it was realized that a CAP_SYS_NICE process can set
-a task as SCHED_FIFO, so they could fork some spinning processes and set
-them all SCHED_FIFO 99, in effect delaying all other tasks for an infinite
-amount of time.
+This patch corrects this by checking if p == current before checking
+the CAP_SYS_NICE value.
 
-So as a CAP_SYS_NICE task can already cause trouble for other tasks, using
-it as a required capability for accessing and modifying
-/proc/<tid>/timerslack_ns seems sufficient.
+This patch applies on top of my two previous patches currently in -mm
 
-Thus, this patch loosens the capability requirements to CAP_SYS_NICE and
-removes CAP_SYS_PTRACE, simplifying some of the code flow as well.
-
-This is technically an ABI change, but as the feature just landed in 4.6,
-I suspect no one is yet using it.
-
-Link: http://lkml.kernel.org/r/1469132667-17377-1-git-send-email-john.stultz@linaro.org
+Link: http://lkml.kernel.org/r/1471906870-28624-1-git-send-email-john.stultz@linaro.org
 Signed-off-by: John Stultz <john.stultz@linaro.org>
-Reviewed-by: Nick Kralevich <nnk@google.com>
-Acked-by: Serge Hallyn <serge@hallyn.com>
 Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Kees Cook <keescook@chromium.org>
 Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Arjan van de Ven <arjan@linux.intel.com>
@@ -66,67 +51,61 @@ Cc: Android Kernel Team <kernel-team@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   34 ++++++++++++++++++++--------------
- 1 file changed, 20 insertions(+), 14 deletions(-)
+ fs/proc/base.c |   36 ++++++++++++++++++++----------------
+ 1 file changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN fs/proc/base.c~proc-relax-proc-tid-timerslack_ns-capability-requirements fs/proc/base.c
---- a/fs/proc/base.c~proc-relax-proc-tid-timerslack_ns-capability-requirements
+diff -puN fs/proc/base.c~proc-fix-timerslack_ns-cap_sys_nice-check-when-adjusting-self fs/proc/base.c
+--- a/fs/proc/base.c~proc-fix-timerslack_ns-cap_sys_nice-check-when-adjusting-self
 +++ a/fs/proc/base.c
-@@ -2280,16 +2280,19 @@ static ssize_t timerslack_ns_write(struc
+@@ -2280,15 +2280,17 @@ static ssize_t timerslack_ns_write(struc
  	if (!p)
  		return -ESRCH;
  
--	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
--		task_lock(p);
--		if (slack_ns == 0)
--			p->timer_slack_ns = p->default_timer_slack_ns;
--		else
--			p->timer_slack_ns = slack_ns;
--		task_unlock(p);
--	} else
-+	if (!capable(CAP_SYS_NICE)) {
- 		count = -EPERM;
-+		goto out;
-+	}
- 
-+	task_lock(p);
-+	if (slack_ns == 0)
-+		p->timer_slack_ns = p->default_timer_slack_ns;
-+	else
-+		p->timer_slack_ns = slack_ns;
-+	task_unlock(p);
+-	if (!capable(CAP_SYS_NICE)) {
+-		count = -EPERM;
+-		goto out;
+-	}
+-
+-	err = security_task_setscheduler(p);
+-	if (err) {
+-		count = err;
+-		goto out;
++	if (p != current) {
++		if (!capable(CAP_SYS_NICE)) {
++			count = -EPERM;
++			goto out;
++		}
 +
-+out:
- 	put_task_struct(p);
++		err = security_task_setscheduler(p);
++		if (err) {
++			count = err;
++			goto out;
++		}
+ 	}
  
- 	return count;
-@@ -2299,19 +2302,22 @@ static int timerslack_ns_show(struct seq
- {
- 	struct inode *inode = m->private;
- 	struct task_struct *p;
--	int err =  0;
-+	int err = 0;
- 
- 	p = get_proc_task(inode);
+ 	task_lock(p);
+@@ -2314,14 +2316,16 @@ static int timerslack_ns_show(struct seq
  	if (!p)
  		return -ESRCH;
  
--	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
--		task_lock(p);
--		seq_printf(m, "%llu\n", p->timer_slack_ns);
--		task_unlock(p);
--	} else
-+	if (!capable(CAP_SYS_NICE)) {
- 		err = -EPERM;
-+		goto out;
+-	if (!capable(CAP_SYS_NICE)) {
+-		err = -EPERM;
+-		goto out;
+-	}
++	if (p != current) {
+ 
+-	err = security_task_getscheduler(p);
+-	if (err)
+-		goto out;
++		if (!capable(CAP_SYS_NICE)) {
++			err = -EPERM;
++			goto out;
++		}
++		err = security_task_getscheduler(p);
++		if (err)
++			goto out;
 +	}
-+
-+	task_lock(p);
-+	seq_printf(m, "%llu\n", p->timer_slack_ns);
-+	task_unlock(p);
  
-+out:
- 	put_task_struct(p);
- 
- 	return err;
+ 	task_lock(p);
+ 	seq_printf(m, "%llu\n", p->timer_slack_ns);
 _
