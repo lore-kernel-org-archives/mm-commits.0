@@ -1,56 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [patch 065/127] fs/proc/task_mmu.c: make the task_mmu
- walk_page_range() limit in clear_refs_write() obvious
-Date: Fri, 07 Oct 2016 17:00:06 -0700
-Message-ID: <57f83706.0Wkqp0mF+BBD3s3C%akpm@linux-foundation.org>
+Subject: [patch 064/127] cpu: fix node state for whether it contains CPU
+Date: Fri, 07 Oct 2016 17:00:02 -0700
+Message-ID: <57f83702.PGMU9UtEdEgJ5ShY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39211 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39257 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756775AbcJHAAQ (ORCPT
+        with ESMTP id S1753239AbcJHAAQ (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, james.morse@arm.com, n-horiguchi@ah.jp.nec.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tim.c.chen@linux.intel.com, Huang@linux.intel.com, andi@firstfloor.org, dan.j.williams@intel.com, dave.hansen@intel.com, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, rientjes@google.com, rjw@rjwysocki.net, ying.huang@intel.com
 
-From: James Morse <james.morse@arm.com>
-Subject: fs/proc/task_mmu.c: make the task_mmu walk_page_range() limit in clear_refs_write() obvious
+From: Tim Chen <tim.c.chen@linux.intel.com>
+Subject: cpu: fix node state for whether it contains CPU
 
-Trying to walk all of virtual memory requires architecture specific
-knowledge.  On x86_64, addresses must be sign extended from bit 48,
-whereas on arm64 the top VA_BITS of address space have their own set of
-page tables.
+In current kernel code, we only call node_set_state(cpu_to_node(cpu),
+N_CPU) when a cpu is hot plugged.  But we do not set the node state for
+N_CPU when the cpus are brought online during boot.
 
-clear_refs_write() calls walk_page_range() on the range 0 to ~0UL, it
-provides a test_walk() callback that only expects to be walking over VMAs.
-Currently walk_pmd_range() will skip memory regions that don't have a
-VMA, reporting them as a hole.
+So this could lead to failure when we check to see if a node contains cpu
+with node_state(node_id, N_CPU).
 
-As this call only expects to walk user address space, make it walk 0 to
-'highest_vm_end'.
+One use case is in the node_reclaime function:
 
-Link: http://lkml.kernel.org/r/1472655792-22439-1-git-send-email-james.morse@arm.com
-Signed-off-by: James Morse <james.morse@arm.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+        /*
+         * Only run node reclaim on the local node or on nodes that do
+         * not
+         * have associated processors. This will favor the local
+         * processor
+         * over remote processors and spread off node memory allocations
+         * as wide as possible.
+         */
+        if (node_state(pgdat->node_id, N_CPU) && pgdat->node_id !=
+                numa_node_id())
+                return NODE_RECLAIM_NOSCAN;
+
+I instrumented the kernel to call this function after boot and it always
+returns 0 on a x86 desktop machine until I apply the attached patch.
+
+int num_cpu_node(void)
+{
+       int i, nr_cpu_nodes = 0;
+
+       for_each_node(i) {
+               if (node_state(i, N_CPU))
+                       ++ nr_cpu_nodes;
+       }
+
+       return nr_cpu_nodes;
+}
+
+Fix this by checking each node for online CPU when we initialize
+vmstat that's responsible for maintaining node state.
+
+Link: http://lkml.kernel.org/r/20160829175922.GA21775@linux.intel.com
+Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: <Huang@linux.intel.com>
+Cc: Ying <ying.huang@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmstat.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious
-+++ a/fs/proc/task_mmu.c
-@@ -1070,7 +1070,7 @@ static ssize_t clear_refs_write(struct f
- 			}
- 			mmu_notifier_invalidate_range_start(mm, 0, -1);
- 		}
--		walk_page_range(0, ~0UL, &clear_refs_walk);
-+		walk_page_range(0, mm->highest_vm_end, &clear_refs_walk);
- 		if (type == CLEAR_REFS_SOFT_DIRTY)
- 			mmu_notifier_invalidate_range_end(mm, 0, -1);
- 		flush_tlb_mm(mm);
+diff -puN mm/vmstat.c~cpu-fix-node-state-for-whether-it-contains-cpu mm/vmstat.c
+--- a/mm/vmstat.c~cpu-fix-node-state-for-whether-it-contains-cpu
++++ a/mm/vmstat.c
+@@ -1715,6 +1715,16 @@ static void __init start_shepherd_timer(
+ 		round_jiffies_relative(sysctl_stat_interval));
+ }
+ 
++static void __init init_cpu_node_state(void)
++{
++	int cpu;
++
++	get_online_cpus();
++	for_each_online_cpu(cpu)
++		node_set_state(cpu_to_node(cpu), N_CPU);
++	put_online_cpus();
++}
++
+ static void vmstat_cpu_dead(int node)
+ {
+ 	int cpu;
+@@ -1772,6 +1782,7 @@ static int __init setup_vmstat(void)
+ #ifdef CONFIG_SMP
+ 	cpu_notifier_register_begin();
+ 	__register_cpu_notifier(&vmstat_notifier);
++	init_cpu_node_state();
+ 
+ 	start_shepherd_timer();
+ 	cpu_notifier_register_done();
 _
