@@ -1,140 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [patch 062/127] thp, dax: add thp_get_unmapped_area for pmd
- mappings
-Date: Fri, 07 Oct 2016 16:59:56 -0700
-Message-ID: <57f836fc.lLF94glzBR+TGiDH%akpm@linux-foundation.org>
+Subject: [patch 071/127] mm: remove page_file_index
+Date: Fri, 07 Oct 2016 17:00:24 -0700
+Message-ID: <57f83718./ugH2Nc44ACNo9y5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39225 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39292 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756751AbcJHAAP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:15 -0400
+        with ESMTP id S1754882AbcJHAA0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, toshi.kani@hpe.com, adilger.kernel@dilger.ca, dan.j.williams@intel.com, david@fromorbit.com, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, kirill@shutemov.name, mawilcox@microsoft.com, mike.kravetz@oracle.com, ross.zwisler@linux.intel.com, tytso@mit.edu
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ying.huang@intel.com, anna.schumaker@netapp.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, edumazet@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, ross.zwisler@linux.intel.com, trond.myklebust@primarydata.com
 
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: thp, dax: add thp_get_unmapped_area for pmd mappings
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm: remove page_file_index
 
-When CONFIG_FS_DAX_PMD is set, DAX supports mmap() using pmd page size. 
-This feature relies on both mmap virtual address and FS block (i.e. 
-physical address) to be aligned by the pmd page size.  Users can use mkfs
-options to specify FS to align block allocations.  However, aligning mmap
-address requires code changes to existing applications for providing a
-pmd-aligned address to mmap().
+After using the offset of the swap entry as the key of the swap cache, the
+page_index() becomes exactly same as page_file_index().  So the
+page_file_index() is removed and the callers are changed to use
+page_index() instead.
 
-For instance, fio with "ioengine=mmap" performs I/Os with mmap() [1].  It
-calls mmap() with a NULL address, which needs to be changed to provide a
-pmd-aligned address for testing with DAX pmd mappings.  Changing all
-applications that call mmap() with NULL is undesirable.
-
-Add thp_get_unmapped_area(), which can be called by filesystem's
-get_unmapped_area to align an mmap address by the pmd size for a DAX file.
-It calls the default handler, mm->get_unmapped_area(), to find a range
-and then aligns it for a DAX file.
-
-The patch is based on Matthew Wilcox's change that allows adding support
-of the pud page size easily.
-
-[1]: https://github.com/axboe/fio/blob/master/engines/mmap.c
-Link: http://lkml.kernel.org/r/1472497881-9323-2-git-send-email-toshi.kani@hpe.com
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Link: http://lkml.kernel.org/r/1473270649-27229-2-git-send-email-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Trond Myklebust <trond.myklebust@primarydata.com>
+Cc: Anna Schumaker <anna.schumaker@netapp.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    7 ++++++
- mm/huge_memory.c        |   43 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 50 insertions(+)
+ fs/nfs/internal.h       |    6 +++---
+ fs/nfs/pagelist.c       |    2 +-
+ fs/nfs/read.c           |    2 +-
+ fs/nfs/write.c          |    4 ++--
+ include/linux/mm.h      |   12 ------------
+ include/linux/pagemap.h |    2 +-
+ 6 files changed, 8 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/huge_mm.h~thp-dax-add-thp_get_unmapped_area-for-pmd-mappings include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~thp-dax-add-thp_get_unmapped_area-for-pmd-mappings
-+++ a/include/linux/huge_mm.h
-@@ -87,6 +87,10 @@ extern bool is_vma_temporary_stack(struc
+diff -puN fs/nfs/internal.h~mm-remove-page_file_index fs/nfs/internal.h
+--- a/fs/nfs/internal.h~mm-remove-page_file_index
++++ a/fs/nfs/internal.h
+@@ -681,11 +681,11 @@ unsigned int nfs_page_length(struct page
+ 	loff_t i_size = i_size_read(page_file_mapping(page)->host);
  
- extern unsigned long transparent_hugepage_flags;
+ 	if (i_size > 0) {
+-		pgoff_t page_index = page_file_index(page);
++		pgoff_t index = page_index(page);
+ 		pgoff_t end_index = (i_size - 1) >> PAGE_SHIFT;
+-		if (page_index < end_index)
++		if (index < end_index)
+ 			return PAGE_SIZE;
+-		if (page_index == end_index)
++		if (index == end_index)
+ 			return ((i_size - 1) & ~PAGE_MASK) + 1;
+ 	}
+ 	return 0;
+diff -puN fs/nfs/pagelist.c~mm-remove-page_file_index fs/nfs/pagelist.c
+--- a/fs/nfs/pagelist.c~mm-remove-page_file_index
++++ a/fs/nfs/pagelist.c
+@@ -342,7 +342,7 @@ nfs_create_request(struct nfs_open_conte
+ 	 * update_nfs_request below if the region is not locked. */
+ 	req->wb_page    = page;
+ 	if (page) {
+-		req->wb_index = page_file_index(page);
++		req->wb_index = page_index(page);
+ 		get_page(page);
+ 	}
+ 	req->wb_offset  = offset;
+diff -puN fs/nfs/read.c~mm-remove-page_file_index fs/nfs/read.c
+--- a/fs/nfs/read.c~mm-remove-page_file_index
++++ a/fs/nfs/read.c
+@@ -295,7 +295,7 @@ int nfs_readpage(struct file *file, stru
+ 	int		error;
  
-+extern unsigned long thp_get_unmapped_area(struct file *filp,
-+		unsigned long addr, unsigned long len, unsigned long pgoff,
-+		unsigned long flags);
-+
- extern void prep_transhuge_page(struct page *page);
- extern void free_transhuge_page(struct page *page);
+ 	dprintk("NFS: nfs_readpage (%p %ld@%lu)\n",
+-		page, PAGE_SIZE, page_file_index(page));
++		page, PAGE_SIZE, page_index(page));
+ 	nfs_inc_stats(inode, NFSIOS_VFSREADPAGE);
+ 	nfs_add_stats(inode, NFSIOS_READPAGES, 1);
  
-@@ -169,6 +173,9 @@ void put_huge_zero_page(void);
- static inline void prep_transhuge_page(struct page *page) {}
- 
- #define transparent_hugepage_flags 0UL
-+
-+#define thp_get_unmapped_area	NULL
-+
- static inline int
- split_huge_page_to_list(struct page *page, struct list_head *list)
+diff -puN fs/nfs/write.c~mm-remove-page_file_index fs/nfs/write.c
+--- a/fs/nfs/write.c~mm-remove-page_file_index
++++ a/fs/nfs/write.c
+@@ -151,7 +151,7 @@ static void nfs_grow_file(struct page *p
+ 	spin_lock(&inode->i_lock);
+ 	i_size = i_size_read(inode);
+ 	end_index = (i_size - 1) >> PAGE_SHIFT;
+-	if (i_size > 0 && page_file_index(page) < end_index)
++	if (i_size > 0 && page_index(page) < end_index)
+ 		goto out;
+ 	end = page_file_offset(page) + ((loff_t)offset+count);
+ 	if (i_size >= end)
+@@ -603,7 +603,7 @@ static int nfs_do_writepage(struct page
  {
-diff -puN mm/huge_memory.c~thp-dax-add-thp_get_unmapped_area-for-pmd-mappings mm/huge_memory.c
---- a/mm/huge_memory.c~thp-dax-add-thp_get_unmapped_area-for-pmd-mappings
-+++ a/mm/huge_memory.c
-@@ -469,6 +469,49 @@ void prep_transhuge_page(struct page *pa
- 	set_compound_page_dtor(page, TRANSHUGE_PAGE_DTOR);
+ 	int ret;
+ 
+-	nfs_pageio_cond_complete(pgio, page_file_index(page));
++	nfs_pageio_cond_complete(pgio, page_index(page));
+ 	ret = nfs_page_async_flush(pgio, page, wbc->sync_mode == WB_SYNC_NONE,
+ 				   launder);
+ 	if (ret == -EAGAIN) {
+diff -puN include/linux/mm.h~mm-remove-page_file_index include/linux/mm.h
+--- a/include/linux/mm.h~mm-remove-page_file_index
++++ a/include/linux/mm.h
+@@ -1061,18 +1061,6 @@ static inline pgoff_t page_index(struct
+ 	return page->index;
  }
  
-+unsigned long __thp_get_unmapped_area(struct file *filp, unsigned long len,
-+		loff_t off, unsigned long flags, unsigned long size)
-+{
-+	unsigned long addr;
-+	loff_t off_end = off + len;
-+	loff_t off_align = round_up(off, size);
-+	unsigned long len_pad;
-+
-+	if (off_end <= off_align || (off_end - off_align) < size)
-+		return 0;
-+
-+	len_pad = len + size;
-+	if (len_pad < len || (off + len_pad) < off)
-+		return 0;
-+
-+	addr = current->mm->get_unmapped_area(filp, 0, len_pad,
-+					      off >> PAGE_SHIFT, flags);
-+	if (IS_ERR_VALUE(addr))
-+		return 0;
-+
-+	addr += (off - addr) & (size - 1);
-+	return addr;
-+}
-+
-+unsigned long thp_get_unmapped_area(struct file *filp, unsigned long addr,
-+		unsigned long len, unsigned long pgoff, unsigned long flags)
-+{
-+	loff_t off = (loff_t)pgoff << PAGE_SHIFT;
-+
-+	if (addr)
-+		goto out;
-+	if (!IS_DAX(filp->f_mapping->host) || !IS_ENABLED(CONFIG_FS_DAX_PMD))
-+		goto out;
-+
-+	addr = __thp_get_unmapped_area(filp, len, off, flags, PMD_SIZE);
-+	if (addr)
-+		return addr;
-+
-+ out:
-+	return current->mm->get_unmapped_area(filp, addr, len, pgoff, flags);
-+}
-+EXPORT_SYMBOL_GPL(thp_get_unmapped_area);
-+
- static int __do_huge_pmd_anonymous_page(struct fault_env *fe, struct page *page,
- 		gfp_t gfp)
- {
-_
+-/*
+- * Return the file index of the page. Regular pagecache pages use ->index
+- * whereas swapcache pages use swp_offset(->private)
+- */
+-static inline pgoff_t page_file_index(struct page *page)
+-{
+-	if (unlikely(PageSwapCache(page)))
+-		return __page_file_index(page);
+-
+-	return page->index;
+-}
