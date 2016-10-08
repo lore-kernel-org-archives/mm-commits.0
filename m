@@ -1,236 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: [patch 106/127] atomic64: no need for
- CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
-Date: Fri, 07 Oct 2016 17:02:10 -0700
-Message-ID: <57f83782.zJLGukjfPKPhGaWy%akpm@linux-foundation.org>
+Subject: [patch 108/127] proc: faster /proc/*/status
+Date: Fri, 07 Oct 2016 17:02:17 -0700
+Message-ID: <57f83789.YFXol7WouYKh4su+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39559 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39583 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753618AbcJHACM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:02:12 -0400
+        with ESMTP id S1753618AbcJHACT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:02:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, Vineet.Gupta1@synopsys.com, ak@linux.intel.com, arnd@arndb.de, aryabinin@virtuozzo.com, benh@kernel.crashing.org, boqun.feng@gmail.com, bp@suse.de, catalin.marinas@arm.com, cmetcalf@mellanox.com, davem@davemloft.net, deller@gmx.de, geert@linux-m68k.org, glider@google.com, heiko.carstens@de.ibm.com, herbert@gondor.apana.org.au, hpa@zytor.com, ink@jurassic.park.msu.ru, jejb@parisc-linux.org, linus.walleij@linaro.org, linux@armlinux.org.uk, mattst88@gmail.com, ming.l@ssi.samsung.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, tglx@linutronix.de, vgupta@synopsys.com, will.deacon@arm.com, zhaoxiu.ze
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, adobriyan@gmail.com, andi@firstfloor.org, joe@perches.com, viro@zeniv.linux.org.uk
 
-From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Subject: atomic64: no need for CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: faster /proc/*/status
 
-This came to light when implementing native 64-bit atomics for ARCv2.
+top(1) opens the following files for every PID:
 
-The atomic64 self-test code uses CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
-to check whether atomic64_dec_if_positive() is available.
-It seems it was needed when not every arch defined it.
-However as of current code the Kconfig option seems needless
+	/proc/*/stat
+	/proc/*/statm
+	/proc/*/status
 
-- for CONFIG_GENERIC_ATOMIC64 it is auto-enabled in lib/Kconfig and a
-  generic definition of API is present lib/atomic64.c
-- arches with native 64-bit atomics select it in arch/*/Kconfig and
-  define the API in their headers
+This patch switches /proc/*/status away from seq_printf().
+The result is 13.5% speedup.
 
-So I see no point in keeping the Kconfig option
+Benchmark is open("/proc/self/status")+read+close 1.000.000 million times.
 
-Compile tested for:
- - blackfin (CONFIG_GENERIC_ATOMIC64)
- - x86 (!CONFIG_GENERIC_ATOMIC64)
- - ia64
+				BEFORE
+$ perf stat -r 10 taskset -c 3 ./proc-self-status
 
-Link: http://lkml.kernel.org/r/1473703083-8625-3-git-send-email-vgupta@synopsys.com
-Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Chris Metcalf <cmetcalf@mellanox.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Ming Lin <ming.l@ssi.samsung.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
+ Performance counter stats for 'taskset -c 3 ./proc-self-status' (10 runs):
+
+      10748.474301      task-clock (msec)         #    0.954 CPUs utilized            ( +-  0.91% )
+                12      context-switches          #    0.001 K/sec                    ( +-  1.09% )
+                 1      cpu-migrations            #    0.000 K/sec
+               104      page-faults               #    0.010 K/sec                    ( +-  0.45% )
+    37,424,127,876      cycles                    #    3.482 GHz                      ( +-  0.04% )
+     8,453,010,029      stalled-cycles-frontend   #   22.59% frontend cycles idle     ( +-  0.12% )
+     3,747,609,427      stalled-cycles-backend    #  10.01% backend cycles idle       ( +-  0.68% )
+    65,632,764,147      instructions              #    1.75  insn per cycle
+                                                  #    0.13  stalled cycles per insn  ( +-  0.00% )
+    13,981,324,775      branches                  # 1300.773 M/sec                    ( +-  0.00% )
+       138,967,110      branch-misses             #    0.99% of all branches          ( +-  0.18% )
+
+      11.263885428 seconds time elapsed                                          ( +-  0.04% )
+      ^^^^^^^^^^^^
+
+				AFTER
+$ perf stat -r 10 taskset -c 3 ./proc-self-status
+
+ Performance counter stats for 'taskset -c 3 ./proc-self-status' (10 runs):
+
+       9010.521776      task-clock (msec)         #    0.925 CPUs utilized            ( +-  1.54% )
+                11      context-switches          #    0.001 K/sec                    ( +-  1.54% )
+                 1      cpu-migrations            #    0.000 K/sec                    ( +- 11.11% )
+               103      page-faults               #    0.011 K/sec                    ( +-  0.60% )
+    32,352,310,603      cycles                    #    3.591 GHz                      ( +-  0.07% )
+     7,849,199,578      stalled-cycles-frontend   #   24.26% frontend cycles idle     ( +-  0.27% )
+     3,269,738,842      stalled-cycles-backend    #  10.11% backend cycles idle       ( +-  0.73% )
+    56,012,163,567      instructions              #    1.73  insn per cycle
+                                                  #    0.14  stalled cycles per insn  ( +-  0.00% )
+    11,735,778,795      branches                  # 1302.453 M/sec                    ( +-  0.00% )
+        98,084,459      branch-misses             #    0.84% of all branches          ( +-  0.28% )
+
+       9.741247736 seconds time elapsed                                          ( +-  0.07% )
+       ^^^^^^^^^^^
+
+Link: http://lkml.kernel.org/r/20160806125608.GB1187@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/Kconfig   |    1 -
- arch/arm/Kconfig     |    1 -
- arch/arm64/Kconfig   |    1 -
- arch/mips/Kconfig    |    1 -
- arch/parisc/Kconfig  |    1 -
- arch/powerpc/Kconfig |    1 -
- arch/s390/Kconfig    |    1 -
- arch/sparc/Kconfig   |    1 -
- arch/tile/Kconfig    |    1 -
- arch/x86/Kconfig     |    1 -
- lib/Kconfig          |    3 ---
- lib/atomic64_test.c  |    4 ----
- 12 files changed, 17 deletions(-)
+ fs/proc/array.c |   85 ++++++++++++++++++++++++----------------------
+ 1 file changed, 46 insertions(+), 39 deletions(-)
 
-diff -puN arch/alpha/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/alpha/Kconfig
---- a/arch/alpha/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
-+++ a/arch/alpha/Kconfig
-@@ -15,7 +15,6 @@ config ALPHA
- 	select GENERIC_IRQ_SHOW
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
--	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select AUDIT_ARCH
- 	select GENERIC_CLOCKEVENTS
- 	select GENERIC_SMP_IDLE_THREAD
-diff -puN arch/arm/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/arm/Kconfig
---- a/arch/arm/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
-+++ a/arch/arm/Kconfig
-@@ -2,7 +2,6 @@ config ARM
- 	bool
- 	default y
- 	select ARCH_CLOCKSOURCE_DATA
--	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
-diff -puN arch/arm64/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/arm64/Kconfig
---- a/arch/arm64/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
-+++ a/arch/arm64/Kconfig
-@@ -8,7 +8,6 @@ config ARM64
- 	select ARCH_CLOCKSOURCE_DATA
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
--	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_HAS_GIGANTIC_PAGE
-diff -puN arch/mips/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/mips/Kconfig
---- a/arch/mips/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
-+++ a/arch/mips/Kconfig
-@@ -30,7 +30,6 @@ config MIPS
- 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE if CPU_SUPPORTS_HUGEPAGES && 64BIT
- 	select RTC_LIB if !MACH_LOONGSON64
- 	select GENERIC_ATOMIC64 if !64BIT
--	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select HAVE_DMA_CONTIGUOUS
- 	select HAVE_DMA_API_DEBUG
- 	select GENERIC_IRQ_PROBE
-diff -puN arch/parisc/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
-+++ a/arch/parisc/Kconfig
-@@ -14,7 +14,6 @@ config PARISC
- 	select BUILDTIME_EXTABLE_SORT
- 	select HAVE_PERF_EVENTS
- 	select GENERIC_ATOMIC64 if !64BIT
--	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select BROKEN_RODATA
- 	select GENERIC_IRQ_PROBE
- 	select GENERIC_PCI_IOMAP
-diff -puN arch/powerpc/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
-+++ a/arch/powerpc/Kconfig
-@@ -113,7 +113,6 @@ config PPC
- 	select HAVE_DEBUG_KMEMLEAK
- 	select ARCH_HAS_SG_CHAIN
- 	select GENERIC_ATOMIC64 if PPC32
--	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select HAVE_PERF_EVENTS
- 	select HAVE_PERF_REGS
- 	select HAVE_PERF_USER_STACK_DUMP
-diff -puN arch/s390/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/s390/Kconfig
---- a/arch/s390/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
-+++ a/arch/s390/Kconfig
-@@ -67,7 +67,6 @@ config DEBUG_RODATA
+diff -puN fs/proc/array.c~proc-faster-proc-status fs/proc/array.c
+--- a/fs/proc/array.c~proc-faster-proc-status
++++ a/fs/proc/array.c
+@@ -186,51 +186,52 @@ static inline void task_state(struct seq
+ 	task_unlock(p);
+ 	rcu_read_unlock();
  
- config S390
- 	def_bool y
--	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_GCOV_PROFILE_ALL
-diff -puN arch/sparc/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
-+++ a/arch/sparc/Kconfig
-@@ -22,7 +22,6 @@ config SPARC
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_EXIT_THREAD
- 	select SYSCTL_EXCEPTION_TRACE
--	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select RTC_CLASS
- 	select RTC_DRV_M48T59
- 	select RTC_SYSTOHC
-diff -puN arch/tile/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/tile/Kconfig
---- a/arch/tile/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
-+++ a/arch/tile/Kconfig
-@@ -3,7 +3,6 @@
+-	seq_printf(m,
+-		"State:\t%s\n"
+-		"Tgid:\t%d\n"
+-		"Ngid:\t%d\n"
+-		"Pid:\t%d\n"
+-		"PPid:\t%d\n"
+-		"TracerPid:\t%d\n"
+-		"Uid:\t%d\t%d\t%d\t%d\n"
+-		"Gid:\t%d\t%d\t%d\t%d\n"
+-		"FDSize:\t%d\nGroups:\t",
+-		get_task_state(p),
+-		tgid, ngid, pid_nr_ns(pid, ns), ppid, tpid,
+-		from_kuid_munged(user_ns, cred->uid),
+-		from_kuid_munged(user_ns, cred->euid),
+-		from_kuid_munged(user_ns, cred->suid),
+-		from_kuid_munged(user_ns, cred->fsuid),
+-		from_kgid_munged(user_ns, cred->gid),
+-		from_kgid_munged(user_ns, cred->egid),
+-		from_kgid_munged(user_ns, cred->sgid),
+-		from_kgid_munged(user_ns, cred->fsgid),
+-		max_fds);
++	seq_printf(m, "State:\t%s", get_task_state(p));
  
- config TILE
- 	def_bool y
--	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select ARCH_WANT_FRAME_POINTERS
-diff -puN arch/x86/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive arch/x86/Kconfig
---- a/arch/x86/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
-+++ a/arch/x86/Kconfig
-@@ -23,7 +23,6 @@ config X86
- 	select ARCH_CLOCKSOURCE_DATA
- 	select ARCH_DISCARD_MEMBLOCK
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE if ACPI
--	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_FAST_MULTIPLIER
-diff -puN lib/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive lib/Kconfig
---- a/lib/Kconfig~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
-+++ a/lib/Kconfig
-@@ -457,9 +457,6 @@ config NLATTR
- config GENERIC_ATOMIC64
-        bool
++	seq_puts(m, "\nTgid:\t");
++	seq_put_decimal_ull(m, 0, tgid);
++	seq_puts(m, "\nNgid:\t");
++	seq_put_decimal_ull(m, 0, ngid);
++	seq_puts(m, "\nPid:\t");
++	seq_put_decimal_ull(m, 0, pid_nr_ns(pid, ns));
++	seq_puts(m, "\nPPid:\t");
++	seq_put_decimal_ull(m, 0, ppid);
++	seq_puts(m, "\nTracerPid:\t");
++	seq_put_decimal_ull(m, 0, tpid);
++	seq_puts(m, "\nUid:");
++	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->uid));
++	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->euid));
++	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->suid));
++	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->fsuid));
++	seq_puts(m, "\nGid:");
++	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->gid));
++	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->egid));
++	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->sgid));
++	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->fsgid));
++	seq_puts(m, "\nFDSize:\t");
++	seq_put_decimal_ull(m, 0, max_fds);
++
++	seq_puts(m, "\nGroups:\t");
+ 	group_info = cred->group_info;
+ 	for (g = 0; g < group_info->ngroups; g++)
+-		seq_printf(m, "%d ",
+-			   from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
++		seq_put_decimal_ull(m, g ? ' ' : 0, from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
+ 	put_cred(cred);
++	/* Trailing space shouldn't have been added in the first place. */
++	seq_putc(m, ' ');
  
--config ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
--	def_bool y if GENERIC_ATOMIC64
--
- config LRU_CACHE
- 	tristate
+ #ifdef CONFIG_PID_NS
+ 	seq_puts(m, "\nNStgid:");
+ 	for (g = ns->level; g <= pid->level; g++)
+-		seq_printf(m, "\t%d",
+-			task_tgid_nr_ns(p, pid->numbers[g].ns));
++		seq_put_decimal_ull(m, '\t', task_tgid_nr_ns(p, pid->numbers[g].ns));
+ 	seq_puts(m, "\nNSpid:");
+ 	for (g = ns->level; g <= pid->level; g++)
+-		seq_printf(m, "\t%d",
+-			task_pid_nr_ns(p, pid->numbers[g].ns));
++		seq_put_decimal_ull(m, '\t', task_pid_nr_ns(p, pid->numbers[g].ns));
+ 	seq_puts(m, "\nNSpgid:");
+ 	for (g = ns->level; g <= pid->level; g++)
+-		seq_printf(m, "\t%d",
+-			task_pgrp_nr_ns(p, pid->numbers[g].ns));
++		seq_put_decimal_ull(m, '\t', task_pgrp_nr_ns(p, pid->numbers[g].ns));
+ 	seq_puts(m, "\nNSsid:");
+ 	for (g = ns->level; g <= pid->level; g++)
+-		seq_printf(m, "\t%d",
+-			task_session_nr_ns(p, pid->numbers[g].ns));
++		seq_put_decimal_ull(m, '\t', task_session_nr_ns(p, pid->numbers[g].ns));
+ #endif
+ 	seq_putc(m, '\n');
+ }
+@@ -299,11 +300,14 @@ static inline void task_sig(struct seq_f
+ 		unlock_task_sighand(p, &flags);
+ 	}
  
-diff -puN lib/atomic64_test.c~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive lib/atomic64_test.c
---- a/lib/atomic64_test.c~atomic64-no-need-for-config_arch_has_atomic64_dec_if_positive
-+++ a/lib/atomic64_test.c
-@@ -213,7 +213,6 @@ static __init void test_atomic64(void)
- 	r += one;
- 	BUG_ON(v.counter != r);
+-	seq_printf(m, "Threads:\t%d\n", num_threads);
+-	seq_printf(m, "SigQ:\t%lu/%lu\n", qsize, qlim);
++	seq_puts(m, "Threads:\t");
++	seq_put_decimal_ull(m, 0, num_threads);
++	seq_puts(m, "\nSigQ:\t");
++	seq_put_decimal_ull(m, 0, qsize);
++	seq_put_decimal_ull(m, '/', qlim);
  
--#ifdef CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	INIT(onestwos);
- 	BUG_ON(atomic64_dec_if_positive(&v) != (onestwos - 1));
- 	r -= one;
-@@ -226,9 +225,6 @@ static __init void test_atomic64(void)
- 	INIT(-one);
- 	BUG_ON(atomic64_dec_if_positive(&v) != (-one - one));
- 	BUG_ON(v.counter != r);
--#else
--#warning Please implement atomic64_dec_if_positive for your architecture and select the above Kconfig symbol
--#endif
+ 	/* render them all */
+-	render_sigset_t(m, "SigPnd:\t", &pending);
++	render_sigset_t(m, "\nSigPnd:\t", &pending);
+ 	render_sigset_t(m, "ShdPnd:\t", &shpending);
+ 	render_sigset_t(m, "SigBlk:\t", &blocked);
+ 	render_sigset_t(m, "SigIgn:\t", &ignored);
+@@ -348,17 +352,20 @@ static inline void task_cap(struct seq_f
+ static inline void task_seccomp(struct seq_file *m, struct task_struct *p)
+ {
+ #ifdef CONFIG_SECCOMP
+-	seq_printf(m, "Seccomp:\t%d\n", p->seccomp.mode);
++	seq_puts(m, "Seccomp:\t");
++	seq_put_decimal_ull(m, 0, p->seccomp.mode);
++	seq_putc(m, '\n');
+ #endif
+ }
  
- 	INIT(onestwos);
- 	BUG_ON(!atomic64_inc_not_zero(&v));
+ static inline void task_context_switch_counts(struct seq_file *m,
+ 						struct task_struct *p)
+ {
+-	seq_printf(m,	"voluntary_ctxt_switches:\t%lu\n"
+-			"nonvoluntary_ctxt_switches:\t%lu\n",
+-			p->nvcsw,
+-			p->nivcsw);
++	seq_puts(m, "voluntary_ctxt_switches:\t");
++	seq_put_decimal_ull(m, 0, p->nvcsw);
++	seq_puts(m, "\nnonvoluntary_ctxt_switches:\t");
++	seq_put_decimal_ull(m, 0, p->nivcsw);
++	seq_putc(m, '\n');
+ }
+ 
+ static void task_cpus_allowed(struct seq_file *m, struct task_struct *task)
 _
