@@ -1,68 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [patch 069/127] mm: fix cache mode tracking in vm_insert_mixed()
-Date: Fri, 07 Oct 2016 17:00:18 -0700
-Message-ID: <57f83712.lmas23RVZZC2qoKi%akpm@linux-foundation.org>
+Subject: [patch 065/127] fs/proc/task_mmu.c: make the task_mmu
+ walk_page_range() limit in clear_refs_write() obvious
+Date: Fri, 07 Oct 2016 17:00:06 -0700
+Message-ID: <57f83706.0Wkqp0mF+BBD3s3C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39254 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39211 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756016AbcJHAAT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:19 -0400
+        with ESMTP id S1756775AbcJHAAQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dan.j.williams@intel.com, airlied@linux.ie, mawilcox@microsoft.com, ross.zwisler@linux.intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, james.morse@arm.com, n-horiguchi@ah.jp.nec.com
 
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: fix cache mode tracking in vm_insert_mixed()
+From: James Morse <james.morse@arm.com>
+Subject: fs/proc/task_mmu.c: make the task_mmu walk_page_range() limit in clear_refs_write() obvious
 
-vm_insert_mixed() unlike vm_insert_pfn_prot() and vmf_insert_pfn_pmd(),
-fails to check the pgprot_t it uses for the mapping against the one
-recorded in the memtype tracking tree.  Add the missing call to
-track_pfn_insert() to preclude cases where incompatible aliased mappings
-are established for a given physical address range.
+Trying to walk all of virtual memory requires architecture specific
+knowledge.  On x86_64, addresses must be sign extended from bit 48,
+whereas on arm64 the top VA_BITS of address space have their own set of
+page tables.
 
-Link: http://lkml.kernel.org/r/147328717909.35069.14256589123570653697.stgit@dwillia2-desk3.amr.corp.intel.com
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Matthew Wilcox <mawilcox@microsoft.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+clear_refs_write() calls walk_page_range() on the range 0 to ~0UL, it
+provides a test_walk() callback that only expects to be walking over VMAs.
+Currently walk_pmd_range() will skip memory regions that don't have a
+VMA, reporting them as a hole.
+
+As this call only expects to walk user address space, make it walk 0 to
+'highest_vm_end'.
+
+Link: http://lkml.kernel.org/r/1472655792-22439-1-git-send-email-james.morse@arm.com
+Signed-off-by: James Morse <james.morse@arm.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-fix-cache-mode-tracking-in-vm_insert_mixed mm/memory.c
---- a/mm/memory.c~mm-fix-cache-mode-tracking-in-vm_insert_mixed
-+++ a/mm/memory.c
-@@ -1649,10 +1649,14 @@ EXPORT_SYMBOL(vm_insert_pfn_prot);
- int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
- 			pfn_t pfn)
- {
-+	pgprot_t pgprot = vma->vm_page_prot;
-+
- 	BUG_ON(!(vma->vm_flags & VM_MIXEDMAP));
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return -EFAULT;
-+	if (track_pfn_insert(vma, &pgprot, pfn))
-+		return -EINVAL;
- 
- 	/*
- 	 * If we don't have pte special, then we have to use the pfn_valid()
-@@ -1670,9 +1674,9 @@ int vm_insert_mixed(struct vm_area_struc
- 		 * result in pfn_t_has_page() == false.
- 		 */
- 		page = pfn_to_page(pfn_t_to_pfn(pfn));
--		return insert_page(vma, addr, page, vma->vm_page_prot);
-+		return insert_page(vma, addr, page, pgprot);
- 	}
--	return insert_pfn(vma, addr, pfn, vma->vm_page_prot);
-+	return insert_pfn(vma, addr, pfn, pgprot);
- }
- EXPORT_SYMBOL(vm_insert_mixed);
- 
+diff -puN fs/proc/task_mmu.c~mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious
++++ a/fs/proc/task_mmu.c
+@@ -1070,7 +1070,7 @@ static ssize_t clear_refs_write(struct f
+ 			}
+ 			mmu_notifier_invalidate_range_start(mm, 0, -1);
+ 		}
+-		walk_page_range(0, ~0UL, &clear_refs_walk);
++		walk_page_range(0, mm->highest_vm_end, &clear_refs_walk);
+ 		if (type == CLEAR_REFS_SOFT_DIRTY)
+ 			mmu_notifier_invalidate_range_end(mm, 0, -1);
+ 		flush_tlb_mm(mm);
 _
