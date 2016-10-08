@@ -1,66 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [patch 115/127] Documentation/filesystems/proc.txt: add more
- description for maps/smaps
-Date: Fri, 07 Oct 2016 17:02:39 -0700
-Message-ID: <57f8379f.cJQkLBP3NPubITu5%akpm@linux-foundation.org>
+Subject: [patch 112/127] proc: add LSM hook checks to
+ /proc/<tid>/timerslack_ns
+Date: Fri, 07 Oct 2016 17:02:29 -0700
+Message-ID: <57f83795.72non9i1FgfBAvOU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39613 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753618AbcJHACl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:02:41 -0400
+        with ESMTP id S1753618AbcJHACb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:02:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, robert.hu@intel.com, dan.j.williams@intel.com, dave.hansen@intel.com, gleb@kernel.org, guangrong.xiao@linux.intel.com, mhocko@suse.com, mtosatti@redhat.com, oleg@redhat.com, pbonzini@redhat.com, ross.zwisler@linux.intel.com, stefanha@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, john.stultz@linaro.org, arjan@linux.intel.com, ccross@android.com, dimitrysh@google.com, enh@google.com, jmorris@namei.org, kandoiruchi@google.com, keescook@chromium.org, kernel-team@android.com, nnk@google.com, orenl@cellrox.com, romlem@android.com, serge@hallyn.com, tglx@linutronix.de, tkjos@google.com
 
-From: Robert Ho <robert.hu@intel.com>
-Subject: Documentation/filesystems/proc.txt: add more description for maps/smaps
+From: John Stultz <john.stultz@linaro.org>
+Subject: proc: add LSM hook checks to /proc/<tid>/timerslack_ns
 
-Add some more description on the limitations for smaps/maps readings, as well
-as some guaruntees we can make.
+As requested, this patch checks the existing LSM hooks
+task_getscheduler/task_setscheduler when reading or modifying the task's
+timerslack value.
 
-Link: http://lkml.kernel.org/r/1475296958-27652-2-git-send-email-robert.hu@intel.com
-Signed-off-by: Robert Ho <robert.hu@intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-Cc: Robert Hu <robert.hu@intel.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Gleb Natapov <gleb@kernel.org>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Stefan Hajnoczi <stefanha@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Previous versions added new get/settimerslack LSM hooks, but since they
+checked the same PROCESS__SET/GETSCHED values as existing hooks, it was
+suggested we just use the existing ones.
+
+Link: http://lkml.kernel.org/r/1469132667-17377-2-git-send-email-john.stultz@linaro.org
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Oren Laadan <orenl@cellrox.com>
+Cc: Ruchi Kandoi <kandoiruchi@google.com>
+Cc: Rom Lemarchand <romlem@android.com>
+Cc: Todd Kjos <tkjos@google.com>
+Cc: Colin Cross <ccross@android.com>
+Cc: Nick Kralevich <nnk@google.com>
+Cc: Dmitry Shmidt <dimitrysh@google.com>
+Cc: Elliott Hughes <enh@google.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Android Kernel Team <kernel-team@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ fs/proc/base.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN Documentation/filesystems/proc.txt~dcumentation-filesystems-proctxt-add-more-description-for-maps-smaps Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~dcumentation-filesystems-proctxt-add-more-description-for-maps-smaps
-+++ a/Documentation/filesystems/proc.txt
-@@ -515,6 +515,18 @@ be vanished or the reverse -- new added.
- This file is only present if the CONFIG_MMU kernel configuration option is
- enabled.
+diff -puN fs/proc/base.c~proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns fs/proc/base.c
+--- a/fs/proc/base.c~proc-add-lsm-hook-checks-to-proc-tid-timerslack_ns
++++ a/fs/proc/base.c
+@@ -2285,6 +2285,12 @@ static ssize_t timerslack_ns_write(struc
+ 		goto out;
+ 	}
  
-+Note: reading /proc/PID/maps or /proc/PID/smaps is inherently racy (consistent
-+output can be achieved only in the single read call).
-+This typically manifests when doing partial reads of these files while the
-+memory map is being modified.  Despite the races, we do provide the following
-+guarantees:
++	err = security_task_setscheduler(p);
++	if (err) {
++		count = err;
++		goto out;
++	}
 +
-+1) The mapped addresses never go backwards, which implies no two
-+   regions will ever overlap.
-+2) If there is something at a given vaddr during the entirety of the
-+   life of the smaps/maps walk, there will be some output for it.
+ 	task_lock(p);
+ 	if (slack_ns == 0)
+ 		p->timer_slack_ns = p->default_timer_slack_ns;
+@@ -2313,6 +2319,10 @@ static int timerslack_ns_show(struct seq
+ 		goto out;
+ 	}
+ 
++	err = security_task_getscheduler(p);
++	if (err)
++		goto out;
 +
-+
- The /proc/PID/clear_refs is used to reset the PG_Referenced and ACCESSED/YOUNG
- bits on both physical and virtual pages associated with a process, and the
- soft-dirty bit on pte (see Documentation/vm/soft-dirty.txt for details).
+ 	task_lock(p);
+ 	seq_printf(m, "%llu\n", p->timer_slack_ns);
+ 	task_unlock(p);
 _
