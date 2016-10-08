@@ -1,107 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [patch 064/127] cpu: fix node state for whether it contains CPU
-Date: Fri, 07 Oct 2016 17:00:02 -0700
-Message-ID: <57f83702.PGMU9UtEdEgJ5ShY%akpm@linux-foundation.org>
+Subject: [patch 076/127] mm, page_alloc: pull no_progress_loops update to
+ should_reclaim_retry()
+Date: Fri, 07 Oct 2016 17:00:40 -0700
+Message-ID: <57f83728.fQmIRkFztSsfU7c1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39257 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39344 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753239AbcJHAAQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:16 -0400
+        with ESMTP id S932714AbcJHAAl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, tim.c.chen@linux.intel.com, Huang@linux.intel.com, andi@firstfloor.org, dan.j.williams@intel.com, dave.hansen@intel.com, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, rientjes@google.com, rjw@rjwysocki.net, ying.huang@intel.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com
 
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: cpu: fix node state for whether it contains CPU
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: pull no_progress_loops update to should_reclaim_retry()
 
-In current kernel code, we only call node_set_state(cpu_to_node(cpu),
-N_CPU) when a cpu is hot plugged.  But we do not set the node state for
-N_CPU when the cpus are brought online during boot.
+The should_reclaim_retry() makes decisions based on no_progress_loops, so
+it makes sense to also update the counter there.  It will be also
+consistent with should_compact_retry() and compaction_retries.  No
+functional change.
 
-So this could lead to failure when we check to see if a node contains cpu
-with node_state(node_id, N_CPU).
-
-One use case is in the node_reclaime function:
-
-        /*
-         * Only run node reclaim on the local node or on nodes that do
-         * not
-         * have associated processors. This will favor the local
-         * processor
-         * over remote processors and spread off node memory allocations
-         * as wide as possible.
-         */
-        if (node_state(pgdat->node_id, N_CPU) && pgdat->node_id !=
-                numa_node_id())
-                return NODE_RECLAIM_NOSCAN;
-
-I instrumented the kernel to call this function after boot and it always
-returns 0 on a x86 desktop machine until I apply the attached patch.
-
-int num_cpu_node(void)
-{
-       int i, nr_cpu_nodes = 0;
-
-       for_each_node(i) {
-               if (node_state(i, N_CPU))
-                       ++ nr_cpu_nodes;
-       }
-
-       return nr_cpu_nodes;
-}
-
-Fix this by checking each node for online CPU when we initialize
-vmstat that's responsible for maintaining node state.
-
-Link: http://lkml.kernel.org/r/20160829175922.GA21775@linux.intel.com
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: <Huang@linux.intel.com>
-Cc: Ying <ying.huang@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+[hillf.zj@alibaba-inc.com: fix missing pointer dereferences]
+Link: http://lkml.kernel.org/r/20160926162025.21555-3-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/page_alloc.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN mm/vmstat.c~cpu-fix-node-state-for-whether-it-contains-cpu mm/vmstat.c
---- a/mm/vmstat.c~cpu-fix-node-state-for-whether-it-contains-cpu
-+++ a/mm/vmstat.c
-@@ -1715,6 +1715,16 @@ static void __init start_shepherd_timer(
- 		round_jiffies_relative(sysctl_stat_interval));
- }
- 
-+static void __init init_cpu_node_state(void)
-+{
-+	int cpu;
-+
-+	get_online_cpus();
-+	for_each_online_cpu(cpu)
-+		node_set_state(cpu_to_node(cpu), N_CPU);
-+	put_online_cpus();
-+}
-+
- static void vmstat_cpu_dead(int node)
+diff -puN mm/page_alloc.c~mm-page_alloc-pull-no_progress_loops-update-to-should_reclaim_retry mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-pull-no_progress_loops-update-to-should_reclaim_retry
++++ a/mm/page_alloc.c
+@@ -3402,16 +3402,26 @@ bool gfp_pfmemalloc_allowed(gfp_t gfp_ma
+ static inline bool
+ should_reclaim_retry(gfp_t gfp_mask, unsigned order,
+ 		     struct alloc_context *ac, int alloc_flags,
+-		     bool did_some_progress, int no_progress_loops)
++		     bool did_some_progress, int *no_progress_loops)
  {
- 	int cpu;
-@@ -1772,6 +1782,7 @@ static int __init setup_vmstat(void)
- #ifdef CONFIG_SMP
- 	cpu_notifier_register_begin();
- 	__register_cpu_notifier(&vmstat_notifier);
-+	init_cpu_node_state();
+ 	struct zone *zone;
+ 	struct zoneref *z;
  
- 	start_shepherd_timer();
- 	cpu_notifier_register_done();
-_
+ 	/*
++	 * Costly allocations might have made a progress but this doesn't mean
++	 * their order will become available due to high fragmentation so
++	 * always increment the no progress counter for them
++	 */
++	if (did_some_progress && order <= PAGE_ALLOC_COSTLY_ORDER)
++		*no_progress_loops = 0;
++	else
++		(*no_progress_loops)++;
++
++	/*
+ 	 * Make sure we converge to OOM if we cannot make any progress
+ 	 * several times in the row.
+ 	 */
+-	if (no_progress_loops > MAX_RECLAIM_RETRIES)
++	if (*no_progress_loops > MAX_RECLAIM_RETRIES)
+ 		return false;
+ 
+ 	/*
+@@ -3426,7 +3436,7 @@ should_reclaim_retry(gfp_t gfp_mask, uns
+ 		unsigned long reclaimable;
+ 
+ 		available = reclaimable = zone_reclaimable_pages(zone);
+-		available -= DIV_ROUND_UP(no_progress_loops * available,
++		available -= DIV_ROUND_UP((*no_progress_loops) * available,
+ 					  MAX_RECLAIM_RETRIES);
+ 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
+ 
+@@ -3642,18 +3652,8 @@ retry:
+ 	if (order > PAGE_ALLOC_COSTLY_ORDER && !(gfp_mask & __GFP_REPEAT))
+ 		goto nopage;
+ 
+-	/*
+-	 * Costly allocations might have made a progress but this doesn't mean
+-	 * their order will become available due to high fragmentation so
+-	 * always increment the no progress counter for them
+-	 */
+-	if (did_some_progress && order <= PAGE_ALLOC_COSTLY_ORDER)
+-		no_progress_loops = 0;
+-	else
+-		no_progress_loops++;
