@@ -1,95 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [patch 100/127] vfs,mm: fix a dead loop in
- truncate_inode_pages_range()
-Date: Fri, 07 Oct 2016 17:01:52 -0700
-Message-ID: <57f83770.jBe2ennHqcxxhoPe%akpm@linux-foundation.org>
+Subject: [patch 097/127] oom: print nodemask in the oom report
+Date: Fri, 07 Oct 2016 17:01:43 -0700
+Message-ID: <57f83767.n6S19z+hYMFEUCTV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39508 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39478 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755575AbcJHABx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:01:53 -0400
+        with ESMTP id S1753735AbcJHABo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:01:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, fangwei1@huawei.com, david@fromorbit.com, hch@infradead.org, stable@vger.kernel.org, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, abdelkader.sellami@sap.com, rientjes@google.com, vbabka@suse.cz
 
-From: Wei Fang <fangwei1@huawei.com>
-Subject: vfs,mm: fix a dead loop in truncate_inode_pages_range()
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom: print nodemask in the oom report
 
-We triggered a deadloop in truncate_inode_pages_range() on 32 bits
-architecture with the test case bellow:
+We have received a hard to explain oom report from a customer. The oom
+triggered regardless there is a lot of free memory:
 
-	...
-	fd = open();
-	write(fd, buf, 4096);
-	preadv64(fd, &iovec, 1, 0xffffffff000);
-	ftruncate(fd, 0);
-	...
+PoolThread invoked oom-killer: gfp_mask=0x280da, order=0, oom_adj=0, oom_score_adj=0
+PoolThread cpuset=/ mems_allowed=0-7
+Pid: 30055, comm: PoolThread Tainted: G           E X 3.0.101-80-default #1
+Call Trace:
+ [<ffffffff81004b95>] dump_trace+0x75/0x300
+ [<ffffffff81466ba3>] dump_stack+0x69/0x6f
+ [<ffffffff810fea8e>] dump_header+0x8e/0x110
+ [<ffffffff810fee36>] oom_kill_process+0xa6/0x350
+ [<ffffffff810ff397>] out_of_memory+0x2b7/0x310
+ [<ffffffff81104dfd>] __alloc_pages_slowpath+0x7dd/0x820
+ [<ffffffff81105029>] __alloc_pages_nodemask+0x1e9/0x200
+ [<ffffffff81141f21>] alloc_pages_vma+0xe1/0x290
+ [<ffffffff8112083e>] do_anonymous_page+0x13e/0x300
+ [<ffffffff8146d96d>] do_page_fault+0x1fd/0x4c0
+ [<ffffffff8146a445>] page_fault+0x25/0x30
+ [<00007f19a9e9194c>] 0x7f19a9e9194b
+[...]
+active_anon:1135959151 inactive_anon:1051962 isolated_anon:0
+ active_file:13093 inactive_file:222506 isolated_file:0
+ unevictable:262144 dirty:2 writeback:0 unstable:0
+ free:432672819 slab_reclaimable:7917 slab_unreclaimable:95308
+ mapped:261139 shmem:166297 pagetables:2228282 bounce:0
+[...]
+Node 0 DMA free:15896kB min:0kB low:0kB high:0kB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB isolated(anon):0kB isolated(file):0kB present:15672kB mlocked:0kB dirty:0kB writeback:0kB mapped:0kB shmem:0kB slab_reclaimable:0kB slab_unreclaimable:0kB kernel_stack:0kB pagetables:0kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? yes
+lowmem_reserve[]: 0 2892 775542 775542
+Node 0 DMA32 free:2783784kB min:28kB low:32kB high:40kB active_anon:0kB inactive_anon:0kB active_file:0kB inactive_file:0kB unevictable:0kB isolated(anon):0kB isolated(file):0kB present:2961572kB mlocked:0kB dirty:0kB writeback:0kB mapped:0kB shmem:0kB slab_reclaimable:0kB slab_unreclaimable:0kB kernel_stack:0kB pagetables:0kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? yes
+lowmem_reserve[]: 0 0 772650 772650
+Node 0 Normal free:8120kB min:8160kB low:10200kB high:12240kB active_anon:779334960kB inactive_anon:2198744kB active_file:0kB inactive_file:180kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:791193600kB mlocked:131072kB dirty:0kB writeback:0kB mapped:372940kB shmem:361480kB slab_reclaimable:4536kB slab_unreclaimable:68472kB kernel_stack:10104kB pagetables:1414820kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:2280 all_unreclaimable? yes
+lowmem_reserve[]: 0 0 0 0
+Node 1 Normal free:476718144kB min:8192kB low:10240kB high:12288kB active_anon:307623696kB inactive_anon:283620kB active_file:10392kB inactive_file:69908kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:4kB writeback:0kB mapped:257208kB shmem:189896kB slab_reclaimable:3868kB slab_unreclaimable:44756kB kernel_stack:1848kB pagetables:1369432kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0 0
+Node 2 Normal free:386002452kB min:8192kB low:10240kB high:12288kB active_anon:398563752kB inactive_anon:68184kB active_file:10292kB inactive_file:29936kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:0kB writeback:0kB mapped:32084kB shmem:776kB slab_reclaimable:6888kB slab_unreclaimable:60056kB kernel_stack:8208kB pagetables:1282880kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0 0
+Node 3 Normal free:196406760kB min:8192kB low:10240kB high:12288kB active_anon:587445640kB inactive_anon:164396kB active_file:5716kB inactive_file:709844kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:0kB writeback:0kB mapped:291776kB shmem:111416kB slab_reclaimable:5152kB slab_unreclaimable:44516kB kernel_stack:2168kB pagetables:1455956kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0 0
+Node 4 Normal free:425338880kB min:8192kB low:10240kB high:12288kB active_anon:359695204kB inactive_anon:43216kB active_file:5748kB inactive_file:14772kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:0kB writeback:0kB mapped:24708kB shmem:1120kB slab_reclaimable:1884kB slab_unreclaimable:41060kB kernel_stack:1856kB pagetables:1100208kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0 0
+Node 5 Normal free:11140kB min:8192kB low:10240kB high:12288kB active_anon:784240872kB inactive_anon:1217164kB active_file:28kB inactive_file:48kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:0kB writeback:0kB mapped:11408kB shmem:0kB slab_reclaimable:2008kB slab_unreclaimable:49220kB kernel_stack:1360kB pagetables:531600kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:1202 all_unreclaimable? yes
+lowmem_reserve[]: 0 0 0 0
+Node 6 Normal free:243395332kB min:8192kB low:10240kB high:12288kB active_anon:542015544kB inactive_anon:40208kB active_file:968kB inactive_file:8484kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:0kB writeback:0kB mapped:19992kB shmem:496kB slab_reclaimable:1672kB slab_unreclaimable:37052kB kernel_stack:2088kB pagetables:750264kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0 0
+Node 7 Normal free:10768kB min:8192kB low:10240kB high:12288kB active_anon:784916936kB inactive_anon:192316kB active_file:19228kB inactive_file:56852kB unevictable:131072kB isolated(anon):0kB isolated(file):0kB present:794296320kB mlocked:131072kB dirty:4kB writeback:0kB mapped:34440kB shmem:4kB slab_reclaimable:5660kB slab_unreclaimable:36100kB kernel_stack:1328kB pagetables:1007968kB unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+lowmem_reserve[]: 0 0 0 0
 
-Then ftruncate() will not return forever.
+So all nodes but Node 0 have a lot of free memory which should suggest
+that there is an available memory especially when mems_allowed=0-7. One
+could speculate that a massive process has managed to terminate and free
+up a lot of memory while racing with the above allocation request.
+Although this is highly unlikely it cannot be ruled out.
 
-The filesystem used in this case is ubifs, but it can be triggered on many
-other filesystems.
+A further debugging, however shown that the faulting process had
+mempolicy (not cpuset) to bind to Node 0. We cannot see that information
+from the report though. mems_allowed turned out to be more confusing
+than really helpful.
 
-When preadv64() is called with offset=0xffffffff000, a page with
-index=0xffffffff will be added to the radix tree of ->mapping.  Then this
-page can be found in ->mapping with pagevec_lookup().  After that,
-truncate_inode_pages_range(), which is called in ftruncate(), will fall
-into an infinite loop:
+Fix this by always priting the nodemask. It is either mempolicy mask
+(and non-null) or the one defined by the cpusets. The new output for
+the above oom report would be
 
-* find a page with index=0xffffffff, since index>=end, this page
-  won't be truncated
+PoolThread invoked oom-killer: gfp_mask=0x280da(GFP_HIGHUSER_MOVABLE|__GFP_ZERO), nodemask=0, order=0, oom_adj=0, oom_score_adj=0
 
-* index++, and index become 0
+This patch doesn't touch show_mem and the node filtering based on the
+cpuset node mask because mempolicy is always a subset of cpusets and
+seeing the full cpuset oom context might be helpful for tunning more
+specific mempolicies inside cpusets (e.g. when they turn out to be too
+restrictive). To prevent from ugly ifdefs the mask is printed even
+for !NUMA configurations but this should be OK (a single node will be
+printed).
 
-* the page with index=0xffffffff will be found again
-
-The data type of index is unsigned long, so index won't overflow to 0 on
-64 bits architecture in this case, and the dead loop won't happen.
-
-Since truncate_inode_pages_range() is executed with holding lock of
-inode->i_rwsem, any operation related with this lock will be blocked, and
-a hung task will happen, e.g.:
-
-INFO: task truncate_test:3364 blocked for more than 120 seconds.
-...
-[<c03c2c44>] call_rwsem_down_write_failed+0x17/0x30
-[<c00b93bc>] generic_file_write_iter+0x32/0x1c0
-[<c01b7078>] ubifs_write_iter+0xcc/0x170
-[<c00fae48>] __vfs_write+0xc4/0x120
-[<c00fb784>] vfs_write+0xb2/0x1b0
-[<c00fbbe4>] SyS_write+0x46/0xa0
-
-The page with index=0xffffffff added to ->mapping is useless.  Fix this by
-checking the read position before allocating pages.
-
-Link: http://lkml.kernel.org/r/1475151010-40166-1-git-send-email-fangwei1@huawei.com
-Signed-off-by: Wei Fang <fangwei1@huawei.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20160930214146.28600-1-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Sellami Abdelkader <abdelkader.sellami@sap.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Sellami Abdelkader <abdelkader.sellami@sap.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/oom_kill.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/filemap.c~vfsmm-fix-a-dead-loop-in-truncate_inode_pages_range mm/filemap.c
---- a/mm/filemap.c~vfsmm-fix-a-dead-loop-in-truncate_inode_pages_range
-+++ a/mm/filemap.c
-@@ -1687,6 +1687,10 @@ static ssize_t do_generic_file_read(stru
- 	unsigned int prev_offset;
- 	int error = 0;
+diff -puN mm/oom_kill.c~oom-print-nodemask-in-the-oom-report mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-print-nodemask-in-the-oom-report
++++ a/mm/oom_kill.c
+@@ -403,8 +403,11 @@ static void dump_tasks(struct mem_cgroup
  
-+	if (unlikely(*ppos >= inode->i_sb->s_maxbytes))
-+		return -EINVAL;
-+	iov_iter_truncate(iter, inode->i_sb->s_maxbytes);
+ static void dump_header(struct oom_control *oc, struct task_struct *p)
+ {
+-	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%hd\n",
+-		current->comm, oc->gfp_mask, &oc->gfp_mask, oc->order,
++	nodemask_t *nm = (oc->nodemask) ? oc->nodemask : &cpuset_current_mems_allowed;
 +
- 	index = *ppos >> PAGE_SHIFT;
- 	prev_index = ra->prev_pos >> PAGE_SHIFT;
- 	prev_offset = ra->prev_pos & (PAGE_SIZE-1);
++	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), nodemask=%*pbl, order=%d, oom_score_adj=%hd\n",
++		current->comm, oc->gfp_mask, &oc->gfp_mask,
++		nodemask_pr_args(nm), oc->order,
+ 		current->signal->oom_score_adj);
+ 	if (!IS_ENABLED(CONFIG_COMPACTION) && oc->order)
+ 		pr_warn("COMPACTION is disabled!!!\n");
 _
