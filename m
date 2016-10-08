@@ -1,168 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [patch 101/127] mm: consolidate warn_alloc_failed users
-Date: Fri, 07 Oct 2016 17:01:55 -0700
-Message-ID: <57f83773.Nl88TnuqEOtUy3Gw%akpm@linux-foundation.org>
+Subject: [patch 100/127] vfs,mm: fix a dead loop in
+ truncate_inode_pages_range()
+Date: Fri, 07 Oct 2016 17:01:52 -0700
+Message-ID: <57f83770.jBe2ennHqcxxhoPe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39508 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754756AbcJHAB4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:01:56 -0400
+        with ESMTP id S1755575AbcJHABx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:01:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com, dave.hansen@intel.com, hannes@cmpxchg.org, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, vbabka@suse.cz
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, fangwei1@huawei.com, david@fromorbit.com, hch@infradead.org, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: consolidate warn_alloc_failed users
+From: Wei Fang <fangwei1@huawei.com>
+Subject: vfs,mm: fix a dead loop in truncate_inode_pages_range()
 
-warn_alloc_failed is currently used from the page and vmalloc allocators. 
-This is a good reuse of the code except that vmalloc would appreciate a
-slightly different warning message.  This is already handled by the fmt
-parameter except that
+We triggered a deadloop in truncate_inode_pages_range() on 32 bits
+architecture with the test case bellow:
 
-"%s: page allocation failure: order:%u, mode:%#x(%pGg)"
+	...
+	fd = open();
+	write(fd, buf, 4096);
+	preadv64(fd, &iovec, 1, 0xffffffff000);
+	ftruncate(fd, 0);
+	...
 
-is printed anyway.  This might be quite misleading because it might be a
-vmalloc failure which leads to the warning while the page allocator is not
-the culprit here.  Fix this by always using the fmt string and only print
-the context that makes sense for the particular context (e.g.  order makes
-only very little sense for the vmalloc context).  Rename the function to
-not miss any user and also because a later patch will reuse it also for
-!failure cases.
+Then ftruncate() will not return forever.
 
-Link: http://lkml.kernel.org/r/20160929084407.7004-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
+The filesystem used in this case is ubifs, but it can be triggered on many
+other filesystems.
+
+When preadv64() is called with offset=0xffffffff000, a page with
+index=0xffffffff will be added to the radix tree of ->mapping.  Then this
+page can be found in ->mapping with pagevec_lookup().  After that,
+truncate_inode_pages_range(), which is called in ftruncate(), will fall
+into an infinite loop:
+
+* find a page with index=0xffffffff, since index>=end, this page
+  won't be truncated
+
+* index++, and index become 0
+
+* the page with index=0xffffffff will be found again
+
+The data type of index is unsigned long, so index won't overflow to 0 on
+64 bits architecture in this case, and the dead loop won't happen.
+
+Since truncate_inode_pages_range() is executed with holding lock of
+inode->i_rwsem, any operation related with this lock will be blocked, and
+a hung task will happen, e.g.:
+
+INFO: task truncate_test:3364 blocked for more than 120 seconds.
+...
+[<c03c2c44>] call_rwsem_down_write_failed+0x17/0x30
+[<c00b93bc>] generic_file_write_iter+0x32/0x1c0
+[<c01b7078>] ubifs_write_iter+0xcc/0x170
+[<c00fae48>] __vfs_write+0xc4/0x120
+[<c00fb784>] vfs_write+0xb2/0x1b0
+[<c00fbbe4>] SyS_write+0x46/0xa0
+
+The page with index=0xffffffff added to ->mapping is useless.  Fix this by
+checking the read position before allocating pages.
+
+Link: http://lkml.kernel.org/r/1475151010-40166-1-git-send-email-fangwei1@huawei.com
+Signed-off-by: Wei Fang <fangwei1@huawei.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    5 ++---
- mm/page_alloc.c    |   27 ++++++++++++---------------
- mm/vmalloc.c       |   14 ++++++--------
- 3 files changed, 20 insertions(+), 26 deletions(-)
+ mm/filemap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/mm.h~mm-consolidate-warn_alloc_failed-users include/linux/mm.h
---- a/include/linux/mm.h~mm-consolidate-warn_alloc_failed-users
-+++ a/include/linux/mm.h
-@@ -1916,9 +1916,8 @@ extern void si_meminfo_node(struct sysin
- extern unsigned long arch_reserved_kernel_pages(void);
- #endif
+diff -puN mm/filemap.c~vfsmm-fix-a-dead-loop-in-truncate_inode_pages_range mm/filemap.c
+--- a/mm/filemap.c~vfsmm-fix-a-dead-loop-in-truncate_inode_pages_range
++++ a/mm/filemap.c
+@@ -1687,6 +1687,10 @@ static ssize_t do_generic_file_read(stru
+ 	unsigned int prev_offset;
+ 	int error = 0;
  
--extern __printf(3, 4)
--void warn_alloc_failed(gfp_t gfp_mask, unsigned int order,
--		const char *fmt, ...);
-+extern __printf(2, 3)
-+void warn_alloc(gfp_t gfp_mask, const char *fmt, ...);
- 
- extern void setup_per_cpu_pageset(void);
- 
-diff -puN mm/page_alloc.c~mm-consolidate-warn_alloc_failed-users mm/page_alloc.c
---- a/mm/page_alloc.c~mm-consolidate-warn_alloc_failed-users
-+++ a/mm/page_alloc.c
-@@ -2979,9 +2979,11 @@ static DEFINE_RATELIMIT_STATE(nopage_rs,
- 		DEFAULT_RATELIMIT_INTERVAL,
- 		DEFAULT_RATELIMIT_BURST);
- 
--void warn_alloc_failed(gfp_t gfp_mask, unsigned int order, const char *fmt, ...)
-+void warn_alloc(gfp_t gfp_mask, const char *fmt, ...)
- {
- 	unsigned int filter = SHOW_MEM_FILTER_NODES;
-+	struct va_format vaf;
-+	va_list args;
- 
- 	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
- 	    debug_guardpage_minorder() > 0)
-@@ -2999,22 +3001,16 @@ void warn_alloc_failed(gfp_t gfp_mask, u
- 	if (in_interrupt() || !(gfp_mask & __GFP_DIRECT_RECLAIM))
- 		filter &= ~SHOW_MEM_FILTER_NODES;
- 
--	if (fmt) {
--		struct va_format vaf;
--		va_list args;
-+	pr_warn("%s: ", current->comm);
- 
--		va_start(args, fmt);
-+	va_start(args, fmt);
-+	vaf.fmt = fmt;
-+	vaf.va = &args;
-+	pr_cont("%pV", &vaf);
-+	va_end(args);
- 
--		vaf.fmt = fmt;
--		vaf.va = &args;
-+	pr_cont(", mode:%#x(%pGg)\n", gfp_mask, &gfp_mask);
- 
--		pr_warn("%pV", &vaf);
--
--		va_end(args);
--	}
--
--	pr_warn("%s: page allocation failure: order:%u, mode:%#x(%pGg)\n",
--		current->comm, order, gfp_mask, &gfp_mask);
- 	dump_stack();
- 	if (!should_suppress_show_mem())
- 		show_mem(filter);
-@@ -3680,7 +3676,8 @@ retry:
- 	}
- 
- nopage:
--	warn_alloc_failed(gfp_mask, order, NULL);
-+	warn_alloc(gfp_mask,
-+			"page allocation failure: order:%u", order);
- got_pg:
- 	return page;
- }
-diff -puN mm/vmalloc.c~mm-consolidate-warn_alloc_failed-users mm/vmalloc.c
---- a/mm/vmalloc.c~mm-consolidate-warn_alloc_failed-users
-+++ a/mm/vmalloc.c
-@@ -1601,7 +1601,6 @@ static void *__vmalloc_node(unsigned lon
- static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
- 				 pgprot_t prot, int node)
- {
--	const int order = 0;
- 	struct page **pages;
- 	unsigned int nr_pages, array_size, i;
- 	const gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
-@@ -1629,9 +1628,9 @@ static void *__vmalloc_area_node(struct
- 		struct page *page;
- 
- 		if (node == NUMA_NO_NODE)
--			page = alloc_pages(alloc_mask, order);
-+			page = alloc_page(alloc_mask);
- 		else
--			page = alloc_pages_node(node, alloc_mask, order);
-+			page = alloc_pages_node(node, alloc_mask, 0);
- 
- 		if (unlikely(!page)) {
- 			/* Successfully allocated i pages, free them in __vunmap() */
-@@ -1648,8 +1647,8 @@ static void *__vmalloc_area_node(struct
- 	return area->addr;
- 
- fail:
--	warn_alloc_failed(gfp_mask, order,
--			  "vmalloc: allocation failure, allocated %ld of %ld bytes\n",
-+	warn_alloc(gfp_mask,
-+			  "vmalloc: allocation failure, allocated %ld of %ld bytes",
- 			  (area->nr_pages*PAGE_SIZE), area->size);
- 	vfree(area->addr);
- 	return NULL;
-@@ -1710,9 +1709,8 @@ void *__vmalloc_node_range(unsigned long
- 	return addr;
- 
- fail:
--	warn_alloc_failed(gfp_mask, 0,
--			  "vmalloc: allocation failure: %lu bytes\n",
--			  real_size);
-+	warn_alloc(gfp_mask,
-+			  "vmalloc: allocation failure: %lu bytes", real_size);
- 	return NULL;
- }
- 
++	if (unlikely(*ppos >= inode->i_sb->s_maxbytes))
++		return -EINVAL;
++	iov_iter_truncate(iter, inode->i_sb->s_maxbytes);
++
+ 	index = *ppos >> PAGE_SHIFT;
+ 	prev_index = ra->prev_pos >> PAGE_SHIFT;
+ 	prev_offset = ra->prev_pos & (PAGE_SIZE-1);
 _
