@@ -1,65 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [patch 067/127] mm/memcontrol.c: make the walk_page_range() limit obvious
-Date: Fri, 07 Oct 2016 17:00:12 -0700
-Message-ID: <57f8370c.eXNyc7SW2QfAqeOd%akpm@linux-foundation.org>
+Subject: [patch 068/127] memory-hotplug: fix store_mem_state() return
+ value
+Date: Fri, 07 Oct 2016 17:00:15 -0700
+Message-ID: <57f8370f.3QLwVqgGtryHal9d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39168 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39210 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757070AbcJHAAQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:16 -0400
+        with ESMTP id S1755906AbcJHAAR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, james.morse@arm.com, hannes@cmpxchg.org, mhocko@kernel.org, n-horiguchi@ah.jp.nec.com, vdavydov@virtuozzo.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, arbab@linux.vnet.ibm.com, abanman@sgi.com, baiyaowei@cmss.chinamobile.com, dan.j.williams@intel.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, qiuxishi@huawei.com, rientjes@google.com, sjenning@redhat.com, slaoub@gmail.com, vbabka@suse.cz, vkuznets@redhat.com
 
-From: James Morse <james.morse@arm.com>
-Subject: mm/memcontrol.c: make the walk_page_range() limit obvious
+From: Reza Arbab <arbab@linux.vnet.ibm.com>
+Subject: memory-hotplug: fix store_mem_state() return value
 
-mem_cgroup_count_precharge() and mem_cgroup_move_charge() both call
-walk_page_range() on the range 0 to ~0UL, neither provide a pte_hole
-callback, which causes the current implementation to skip non-vma
-regions.  This is all fine but follow up changes would like to make
-walk_page_range more generic so it is better to be explicit about which
-range to traverse so let's use highest_vm_end to explicitly traverse
-only user mmaped memory.
+If store_mem_state() is called to online memory which is already online,
+it will return 1, the value it got from device_online().
 
-[mhocko@kernel.org: rewrote changelog]
-Link: http://lkml.kernel.org/r/1472655897-22532-1-git-send-email-james.morse@arm.com
-Signed-off-by: James Morse <james.morse@arm.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+This is wrong because store_mem_state() is a device_attribute .store
+function. Thus a non-negative return value represents input bytes read.
+
+Set the return value to -EINVAL in this case.
+
+Link: http://lkml.kernel.org/r/1472743777-24266-1-git-send-email-arbab@linux.vnet.ibm.com
+Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: Chen Yucong <slaoub@gmail.com>
+Cc: Andrew Banman <abanman@sgi.com>
+Cc: Seth Jennings <sjenning@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/base/memory.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-make-the-walk_page_range-limit-obvious mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-make-the-walk_page_range-limit-obvious
-+++ a/mm/memcontrol.c
-@@ -4681,7 +4681,8 @@ static unsigned long mem_cgroup_count_pr
- 		.mm = mm,
- 	};
- 	down_read(&mm->mmap_sem);
--	walk_page_range(0, ~0UL, &mem_cgroup_count_precharge_walk);
-+	walk_page_range(0, mm->highest_vm_end,
-+			&mem_cgroup_count_precharge_walk);
- 	up_read(&mm->mmap_sem);
+diff -puN drivers/base/memory.c~memory-hotplug-fix-store_mem_state-return-value drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-fix-store_mem_state-return-value
++++ a/drivers/base/memory.c
+@@ -361,8 +361,11 @@ store_mem_state(struct device *dev,
+ err:
+ 	unlock_device_hotplug();
  
- 	precharge = mc.precharge;
-@@ -4969,7 +4970,8 @@ retry:
- 	 * When we have consumed all precharges and failed in doing
- 	 * additional charge, the page walk just aborts.
- 	 */
--	walk_page_range(0, ~0UL, &mem_cgroup_move_charge_walk);
-+	walk_page_range(0, mc.mm->highest_vm_end, &mem_cgroup_move_charge_walk);
+-	if (ret)
++	if (ret < 0)
+ 		return ret;
++	if (ret)
++		return -EINVAL;
 +
- 	up_read(&mc.mm->mmap_sem);
- 	atomic_dec(&mc.from->moving_account);
+ 	return count;
  }
+ 
 _
