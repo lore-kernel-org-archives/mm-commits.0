@@ -1,100 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [patch 075/127] mm, compaction: make full priority ignore
- pageblock suitability
-Date: Fri, 07 Oct 2016 17:00:37 -0700
-Message-ID: <57f83725.EikqrkIsMTXCJ1Fl%akpm@linux-foundation.org>
+Subject: [patch 077/127] mm, compaction: ignore fragindex from
+ compaction_zonelist_suitable()
+Date: Fri, 07 Oct 2016 17:00:43 -0700
+Message-ID: <57f8372b.GPjD9F/CAkXbdL8o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39335 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39354 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932714AbcJHAAi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:38 -0400
+        with ESMTP id S1754882AbcJHAAo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:00:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, Ralf-Peter.Rohbeck@quantum.com, a.miskiewicz@gmail.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, mhocko@suse.com, olaf@aepfle.de, penguin-kernel@i-love.sakura.ne.jp, riel@redhat.com, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: make full priority ignore pageblock suitability
+Subject: mm, compaction: ignore fragindex from compaction_zonelist_suitable()
 
-Several people have reported premature OOMs for order-2 allocations
-(stack) due to OOM rework in 4.7.  In the scenario (parallel kernel build
-and dd writing to two drives) many pageblocks get marked as Unmovable and
-compaction free scanner struggles to isolate free pages.  Joonsoo Kim
-pointed out that the free scanner skips pageblocks that are not movable to
-prevent filling them and forcing non-movable allocations to fallback to
-other pageblocks.  Such heuristic makes sense to help prevent long-term
-fragmentation, but premature OOMs are relatively more urgent problem.  As
-a compromise, this patch disables the heuristic only for the ultimate
-compaction priority.
+The compaction_zonelist_suitable() function tries to determine if
+compaction will be able to proceed after sufficient reclaim, i.e.  whether
+there are enough reclaimable pages to provide enough order-0 freepages for
+compaction.
 
-Link: http://lkml.kernel.org/r/20160906135258.18335-5-vbabka@suse.cz
-Reported-by: Ralf-Peter Rohbeck <Ralf-Peter.Rohbeck@quantum.com>
-Reported-by: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
-Reported-by: Olaf Hering <olaf@aepfle.de>
-Suggested-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+This addition of reclaimable pages to the free pages works well for the
+order-0 watermark check, but in the fragmentation index check we only
+consider truly free pages.  Thus we can get fragindex value close to 0
+which indicates failure do to lack of memory, and wrongly decide that
+compaction won't be suitable even after reclaim.
+
+Instead of trying to somehow adjust fragindex for reclaimable pages, let's
+just skip it from compaction_zonelist_suitable().
+
+Link: http://lkml.kernel.org/r/20160926162025.21555-4-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   11 ++++++++---
- mm/internal.h   |    1 +
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ mm/compaction.c |   35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-make-full-priority-ignore-pageblock-suitability mm/compaction.c
---- a/mm/compaction.c~mm-compaction-make-full-priority-ignore-pageblock-suitability
+diff -puN mm/compaction.c~mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable
 +++ a/mm/compaction.c
-@@ -997,8 +997,12 @@ isolate_migratepages_range(struct compac
- #ifdef CONFIG_COMPACTION
- 
- /* Returns true if the page is within a block suitable for migration to */
--static bool suitable_migration_target(struct page *page)
-+static bool suitable_migration_target(struct compact_control *cc,
-+							struct page *page)
+@@ -1379,7 +1379,6 @@ static enum compact_result __compaction_
+ 					int classzone_idx,
+ 					unsigned long wmark_target)
  {
-+	if (cc->ignore_block_suitable)
-+		return true;
+-	int fragindex;
+ 	unsigned long watermark;
+ 
+ 	if (is_via_compact_memory(order))
+@@ -1415,6 +1414,18 @@ static enum compact_result __compaction_
+ 						ALLOC_CMA, wmark_target))
+ 		return COMPACT_SKIPPED;
+ 
++	return COMPACT_CONTINUE;
++}
 +
- 	/* If the page is a large free page, then disallow migration */
- 	if (PageBuddy(page)) {
- 		/*
-@@ -1083,7 +1087,7 @@ static void isolate_freepages(struct com
- 			continue;
++enum compact_result compaction_suitable(struct zone *zone, int order,
++					unsigned int alloc_flags,
++					int classzone_idx)
++{
++	enum compact_result ret;
++	int fragindex;
++
++	ret = __compaction_suitable(zone, order, alloc_flags, classzone_idx,
++				    zone_page_state(zone, NR_FREE_PAGES));
+ 	/*
+ 	 * fragmentation index determines if allocation failures are due to
+ 	 * low memory or external fragmentation
+@@ -1426,21 +1437,12 @@ static enum compact_result __compaction_
+ 	 *
+ 	 * Only compact if a failure would be due to fragmentation.
+ 	 */
+-	fragindex = fragmentation_index(zone, order);
+-	if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
+-		return COMPACT_NOT_SUITABLE_ZONE;
+-
+-	return COMPACT_CONTINUE;
+-}
+-
+-enum compact_result compaction_suitable(struct zone *zone, int order,
+-					unsigned int alloc_flags,
+-					int classzone_idx)
+-{
+-	enum compact_result ret;
++	if (ret == COMPACT_CONTINUE) {
++		fragindex = fragmentation_index(zone, order);
++		if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
++			ret = COMPACT_NOT_SUITABLE_ZONE;
++	}
  
- 		/* Check the block is suitable for migration */
--		if (!suitable_migration_target(page))
-+		if (!suitable_migration_target(cc, page))
- 			continue;
+-	ret = __compaction_suitable(zone, order, alloc_flags, classzone_idx,
+-				    zone_page_state(zone, NR_FREE_PAGES));
+ 	trace_mm_compaction_suitable(zone, order, ret);
+ 	if (ret == COMPACT_NOT_SUITABLE_ZONE)
+ 		ret = COMPACT_SKIPPED;
+@@ -1473,8 +1475,7 @@ bool compaction_zonelist_suitable(struct
+ 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
+ 		compact_result = __compaction_suitable(zone, order, alloc_flags,
+ 				ac_classzone_idx(ac), available);
+-		if (compact_result != COMPACT_SKIPPED &&
+-				compact_result != COMPACT_NOT_SUITABLE_ZONE)
++		if (compact_result != COMPACT_SKIPPED)
+ 			return true;
+ 	}
  
- 		/* If isolation recently failed, do not retry */
-@@ -1656,7 +1660,8 @@ static enum compact_result compact_zone_
- 		.classzone_idx = classzone_idx,
- 		.direct_compaction = true,
- 		.whole_zone = (prio == MIN_COMPACT_PRIORITY),
--		.ignore_skip_hint = (prio == MIN_COMPACT_PRIORITY)
-+		.ignore_skip_hint = (prio == MIN_COMPACT_PRIORITY),
-+		.ignore_block_suitable = (prio == MIN_COMPACT_PRIORITY)
- 	};
- 	INIT_LIST_HEAD(&cc.freepages);
- 	INIT_LIST_HEAD(&cc.migratepages);
-diff -puN mm/internal.h~mm-compaction-make-full-priority-ignore-pageblock-suitability mm/internal.h
---- a/mm/internal.h~mm-compaction-make-full-priority-ignore-pageblock-suitability
-+++ a/mm/internal.h
-@@ -178,6 +178,7 @@ struct compact_control {
- 	unsigned long last_migrated_pfn;/* Not yet flushed page being freed */
- 	enum migrate_mode mode;		/* Async or sync migration mode */
- 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
-+	bool ignore_block_suitable;	/* Scan blocks considered unsuitable */
- 	bool direct_compaction;		/* False from kcompactd or /proc/... */
- 	bool whole_zone;		/* Whole zone should/has been scanned */
- 	int order;			/* order a direct compactor needs */
 _
