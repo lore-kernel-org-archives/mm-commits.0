@@ -1,89 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-bootmemc-replace-kzalloc-by-kzalloc_node.patch
- removed from -mm tree
-Date: Mon, 10 Oct 2016 15:44:28 -0700
-Message-ID: <57fc19cc.dsXoRNBGtuQf5AWy%akpm@linux-foundation.org>
+Subject: [merged] selftest-split-mlock2_-funcs-into-separate-mlock2h.patch removed from -mm tree
+Date: Mon, 10 Oct 2016 15:44:42 -0700
+Message-ID: <57fc19da./VVZFRMoT/Ob2L+8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36753 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36797 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752376AbcJJWo3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:29 -0400
+        with ESMTP id S1752421AbcJJWon (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zijun_hu@htc.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: wei.guo.simon@gmail.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/bootmem.c: replace kzalloc() by kzalloc_node()
+     Subject: selftest: split mlock2_ funcs into separate mlock2.h
 has been removed from the -mm tree.  Its filename was
-     mm-bootmemc-replace-kzalloc-by-kzalloc_node.patch
+     selftest-split-mlock2_-funcs-into-separate-mlock2h.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: zijun_hu <zijun_hu@htc.com>
-Subject: mm/bootmem.c: replace kzalloc() by kzalloc_node()
+From: Simon Guo <wei.guo.simon@gmail.com>
+Subject: selftest: split mlock2_ funcs into separate mlock2.h
 
-In ___alloc_bootmem_node_nopanic(), replace kzalloc() by kzalloc_node() in
-order to allocate memory within given node preferentially when slab is
-available
+To prepare mlock2.h whose functionality will be reused.
 
-Link: http://lkml.kernel.org/r/1f487f12-6af4-5e4f-a28c-1de2361cdcd8@zoho.com
-Signed-off-by: zijun_hu <zijun_hu@htc.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Link: http://lkml.kernel.org/r/1472554781-9835-4-git-send-email-wei.guo.simon@gmail.com
+Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
+Cc: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Eric B Munson <emunson@akamai.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Simon Guo <wei.guo.simon@gmail.com>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   14 ++------------
- 1 file changed, 2 insertions(+), 12 deletions(-)
+ tools/testing/selftests/vm/mlock2-tests.c |   21 --------------------
+ tools/testing/selftests/vm/mlock2.h       |   20 +++++++++++++++++++
+ 2 files changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN mm/bootmem.c~mm-bootmemc-replace-kzalloc-by-kzalloc_node mm/bootmem.c
---- a/mm/bootmem.c~mm-bootmemc-replace-kzalloc-by-kzalloc_node
-+++ a/mm/bootmem.c
-@@ -11,15 +11,12 @@
- #include <linux/init.h>
- #include <linux/pfn.h>
- #include <linux/slab.h>
--#include <linux/bootmem.h>
- #include <linux/export.h>
- #include <linux/kmemleak.h>
- #include <linux/range.h>
--#include <linux/memblock.h>
- #include <linux/bug.h>
- #include <linux/io.h>
+diff -puN tools/testing/selftests/vm/mlock2-tests.c~selftest-split-mlock2_-funcs-into-separate-mlock2h tools/testing/selftests/vm/mlock2-tests.c
+--- a/tools/testing/selftests/vm/mlock2-tests.c~selftest-split-mlock2_-funcs-into-separate-mlock2h
++++ a/tools/testing/selftests/vm/mlock2-tests.c
+@@ -7,27 +7,8 @@
+ #include <string.h>
+ #include <sys/time.h>
+ #include <sys/resource.h>
+-#include <syscall.h>
+-#include <errno.h>
+ #include <stdbool.h>
 -
--#include <asm/processor.h>
-+#include <linux/bootmem.h>
- 
- #include "internal.h"
- 
-@@ -712,7 +709,7 @@ void * __init ___alloc_bootmem_node_nopa
- 	void *ptr;
- 
- 	if (WARN_ON_ONCE(slab_is_available()))
--		return kzalloc(size, GFP_NOWAIT);
-+		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
- again:
- 
- 	/* do not panic in alloc_bootmem_bdata() */
-@@ -738,9 +735,6 @@ again:
- void * __init __alloc_bootmem_node_nopanic(pg_data_t *pgdat, unsigned long size,
- 				   unsigned long align, unsigned long goal)
- {
--	if (WARN_ON_ONCE(slab_is_available()))
--		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
--
- 	return ___alloc_bootmem_node_nopanic(pgdat, size, align, goal, 0);
- }
- 
-@@ -812,10 +806,6 @@ void * __init __alloc_bootmem_node_high(
- 
- }
- 
--#ifndef ARCH_LOW_ADDRESS_LIMIT
--#define ARCH_LOW_ADDRESS_LIMIT	0xffffffffUL
+-#ifndef MLOCK_ONFAULT
+-#define MLOCK_ONFAULT 1
 -#endif
+-
+-#ifndef MCL_ONFAULT
+-#define MCL_ONFAULT (MCL_FUTURE << 1)
+-#endif
+-
+-static int mlock2_(void *start, size_t len, int flags)
+-{
+-#ifdef __NR_mlock2
+-	return syscall(__NR_mlock2, start, len, flags);
+-#else
+-	errno = ENOSYS;
+-	return -1;
+-#endif
+-}
++#include "mlock2.h"
+ 
+ struct vm_boundaries {
+ 	unsigned long start;
+diff -puN /dev/null tools/testing/selftests/vm/mlock2.h
+--- /dev/null
++++ a/tools/testing/selftests/vm/mlock2.h
+@@ -0,0 +1,20 @@
++#include <syscall.h>
++#include <errno.h>
++
++#ifndef MLOCK_ONFAULT
++#define MLOCK_ONFAULT 1
++#endif
++
++#ifndef MCL_ONFAULT
++#define MCL_ONFAULT (MCL_FUTURE << 1)
++#endif
++
++static int mlock2_(void *start, size_t len, int flags)
++{
++#ifdef __NR_mlock2
++	return syscall(__NR_mlock2, start, len, flags);
++#else
++	errno = ENOSYS;
++	return -1;
++#endif
++}
+_
+
+Patches currently in -mm which might be from wei.guo.simon@gmail.com are
+
+
