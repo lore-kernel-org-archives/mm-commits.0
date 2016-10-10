@@ -1,69 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-dont-emit-warning-from-pagefault_out_of_memory.patch
+Subject: [merged]
+ mm-page_alloc-pull-no_progress_loops-update-to-should_reclaim_retry.patch
  removed from -mm tree
-Date: Mon, 10 Oct 2016 15:45:41 -0700
-Message-ID: <57fc1a15.wMAC8Qatm0EncTqu%akpm@linux-foundation.org>
+Date: Mon, 10 Oct 2016 15:45:32 -0700
+Message-ID: <57fc1a0c.uwnG3JXUpbnodgwO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37163 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37143 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752418AbcJJWpm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:42 -0400
+        with ESMTP id S1752237AbcJJWpd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't emit warning from pagefault_out_of_memory()
+     Subject: mm, page_alloc: pull no_progress_loops update to should_reclaim_retry()
 has been removed from the -mm tree.  Its filename was
-     mm-dont-emit-warning-from-pagefault_out_of_memory.patch
+     mm-page_alloc-pull-no_progress_loops-update-to-should_reclaim_retry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm: don't emit warning from pagefault_out_of_memory()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_alloc: pull no_progress_loops update to should_reclaim_retry()
 
-Commit c32b3cbe0d067a9c ("oom, PM: make OOM detection in the freezer path
-raceless") inserted a WARN_ON() into pagefault_out_of_memory() in order to
-warn when we raced with disabling the OOM killer.
+The should_reclaim_retry() makes decisions based on no_progress_loops, so
+it makes sense to also update the counter there.  It will be also
+consistent with should_compact_retry() and compaction_retries.  No
+functional change.
 
-Now, patch "oom, suspend: fix oom_killer_disable vs.  pm suspend properly"
-introduced a timeout for oom_killer_disable().  Even if we raced with
-disabling the OOM killer and the system is OOM livelocked, the OOM killer
-will be enabled eventually (in 20 seconds by default) and the OOM livelock
-will be solved.  Therefore, we no longer need to warn when we raced with
-disabling the OOM killer.
-
-Link: http://lkml.kernel.org/r/1473442120-7246-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+[hillf.zj@alibaba-inc.com: fix missing pointer dereferences]
+Link: http://lkml.kernel.org/r/20160926162025.21555-3-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ mm/page_alloc.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-dont-emit-warning-from-pagefault_out_of_memory mm/oom_kill.c
---- a/mm/oom_kill.c~mm-dont-emit-warning-from-pagefault_out_of_memory
-+++ a/mm/oom_kill.c
-@@ -1069,16 +1069,6 @@ void pagefault_out_of_memory(void)
+diff -puN mm/page_alloc.c~mm-page_alloc-pull-no_progress_loops-update-to-should_reclaim_retry mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-pull-no_progress_loops-update-to-should_reclaim_retry
++++ a/mm/page_alloc.c
+@@ -3402,16 +3402,26 @@ bool gfp_pfmemalloc_allowed(gfp_t gfp_ma
+ static inline bool
+ should_reclaim_retry(gfp_t gfp_mask, unsigned order,
+ 		     struct alloc_context *ac, int alloc_flags,
+-		     bool did_some_progress, int no_progress_loops)
++		     bool did_some_progress, int *no_progress_loops)
+ {
+ 	struct zone *zone;
+ 	struct zoneref *z;
  
- 	if (!mutex_trylock(&oom_lock))
- 		return;
--
--	if (!out_of_memory(&oc)) {
--		/*
--		 * There shouldn't be any user tasks runnable while the
--		 * OOM killer is disabled, so the current task has to
--		 * be a racing OOM victim for which oom_killer_disable()
--		 * is waiting for.
--		 */
--		WARN_ON(test_thread_flag(TIF_MEMDIE));
--	}
+ 	/*
++	 * Costly allocations might have made a progress but this doesn't mean
++	 * their order will become available due to high fragmentation so
++	 * always increment the no progress counter for them
++	 */
++	if (did_some_progress && order <= PAGE_ALLOC_COSTLY_ORDER)
++		*no_progress_loops = 0;
++	else
++		(*no_progress_loops)++;
++
++	/*
+ 	 * Make sure we converge to OOM if we cannot make any progress
+ 	 * several times in the row.
+ 	 */
+-	if (no_progress_loops > MAX_RECLAIM_RETRIES)
++	if (*no_progress_loops > MAX_RECLAIM_RETRIES)
+ 		return false;
+ 
+ 	/*
+@@ -3426,7 +3436,7 @@ should_reclaim_retry(gfp_t gfp_mask, uns
+ 		unsigned long reclaimable;
+ 
+ 		available = reclaimable = zone_reclaimable_pages(zone);
+-		available -= DIV_ROUND_UP(no_progress_loops * available,
++		available -= DIV_ROUND_UP((*no_progress_loops) * available,
+ 					  MAX_RECLAIM_RETRIES);
+ 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
+ 
+@@ -3642,18 +3652,8 @@ retry:
+ 	if (order > PAGE_ALLOC_COSTLY_ORDER && !(gfp_mask & __GFP_REPEAT))
+ 		goto nopage;
+ 
+-	/*
+-	 * Costly allocations might have made a progress but this doesn't mean
+-	 * their order will become available due to high fragmentation so
+-	 * always increment the no progress counter for them
+-	 */
+-	if (did_some_progress && order <= PAGE_ALLOC_COSTLY_ORDER)
+-		no_progress_loops = 0;
+-	else
+-		no_progress_loops++;
