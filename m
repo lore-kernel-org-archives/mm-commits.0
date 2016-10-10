@@ -1,131 +1,97 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable.patch
- removed from -mm tree
-Date: Mon, 10 Oct 2016 15:45:35 -0700
-Message-ID: <57fc1a0f.zv6NHyGMp693i16v%akpm@linux-foundation.org>
+ mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch removed from -mm tree
+Date: Mon, 10 Oct 2016 15:45:43 -0700
+Message-ID: <57fc1a17.Q82/hsLLswlNAQq6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37151 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37166 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752286AbcJJWpg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:36 -0400
+        with ESMTP id S1752421AbcJJWpo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, axboe@fb.com, davem@davemloft.net, hughd@google.com, joe@perches.com, mgorman@suse.de, mhocko@suse.com, riel@redhat.com, santosh.shilimkar@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: ignore fragindex from compaction_zonelist_suitable()
+     Subject: mm/page_io.c: replace some BUG_ON()s with VM_BUG_ON_PAGE()
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable.patch
+     mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: ignore fragindex from compaction_zonelist_suitable()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/page_io.c: replace some BUG_ON()s with VM_BUG_ON_PAGE()
 
-The compaction_zonelist_suitable() function tries to determine if
-compaction will be able to proceed after sufficient reclaim, i.e.  whether
-there are enough reclaimable pages to provide enough order-0 freepages for
-compaction.
+So they are CONFIG_DEBUG_VM-only and more informative.
 
-This addition of reclaimable pages to the free pages works well for the
-order-0 watermark check, but in the fragmentation index check we only
-consider truly free pages.  Thus we can get fragindex value close to 0
-which indicates failure do to lack of memory, and wrongly decide that
-compaction won't be suitable even after reclaim.
-
-Instead of trying to somehow adjust fragindex for reclaimable pages, let's
-just skip it from compaction_zonelist_suitable().
-
-Link: http://lkml.kernel.org/r/20160926162025.21555-4-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+ mm/page_io.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable mm/compaction.c
---- a/mm/compaction.c~mm-compaction-ignore-fragindex-from-compaction_zonelist_suitable
-+++ a/mm/compaction.c
-@@ -1379,7 +1379,6 @@ static enum compact_result __compaction_
- 					int classzone_idx,
- 					unsigned long wmark_target)
- {
--	int fragindex;
- 	unsigned long watermark;
+diff -puN mm/page_io.c~mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page mm/page_io.c
+--- a/mm/page_io.c~mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page
++++ a/mm/page_io.c
+@@ -264,7 +264,7 @@ int __swap_writepage(struct page *page,
+ 	int ret;
+ 	struct swap_info_struct *sis = page_swap_info(page);
  
- 	if (is_via_compact_memory(order))
-@@ -1415,6 +1414,18 @@ static enum compact_result __compaction_
- 						ALLOC_CMA, wmark_target))
- 		return COMPACT_SKIPPED;
+-	BUG_ON(!PageSwapCache(page));
++	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
+ 	if (sis->flags & SWP_FILE) {
+ 		struct kiocb kiocb;
+ 		struct file *swap_file = sis->swap_file;
+@@ -338,7 +338,7 @@ int swap_readpage(struct page *page)
+ 	int ret = 0;
+ 	struct swap_info_struct *sis = page_swap_info(page);
  
-+	return COMPACT_CONTINUE;
-+}
+-	BUG_ON(!PageSwapCache(page));
++	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	VM_BUG_ON_PAGE(PageUptodate(page), page);
+ 	if (frontswap_load(page) == 0) {
+@@ -388,7 +388,8 @@ int swap_set_page_dirty(struct page *pag
+ 
+ 	if (sis->flags & SWP_FILE) {
+ 		struct address_space *mapping = sis->swap_file->f_mapping;
+-		BUG_ON(!PageSwapCache(page));
 +
-+enum compact_result compaction_suitable(struct zone *zone, int order,
-+					unsigned int alloc_flags,
-+					int classzone_idx)
-+{
-+	enum compact_result ret;
-+	int fragindex;
-+
-+	ret = __compaction_suitable(zone, order, alloc_flags, classzone_idx,
-+				    zone_page_state(zone, NR_FREE_PAGES));
- 	/*
- 	 * fragmentation index determines if allocation failures are due to
- 	 * low memory or external fragmentation
-@@ -1426,21 +1437,12 @@ static enum compact_result __compaction_
- 	 *
- 	 * Only compact if a failure would be due to fragmentation.
- 	 */
--	fragindex = fragmentation_index(zone, order);
--	if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
--		return COMPACT_NOT_SUITABLE_ZONE;
--
--	return COMPACT_CONTINUE;
--}
--
--enum compact_result compaction_suitable(struct zone *zone, int order,
--					unsigned int alloc_flags,
--					int classzone_idx)
--{
--	enum compact_result ret;
-+	if (ret == COMPACT_CONTINUE) {
-+		fragindex = fragmentation_index(zone, order);
-+		if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
-+			ret = COMPACT_NOT_SUITABLE_ZONE;
-+	}
- 
--	ret = __compaction_suitable(zone, order, alloc_flags, classzone_idx,
--				    zone_page_state(zone, NR_FREE_PAGES));
- 	trace_mm_compaction_suitable(zone, order, ret);
- 	if (ret == COMPACT_NOT_SUITABLE_ZONE)
- 		ret = COMPACT_SKIPPED;
-@@ -1473,8 +1475,7 @@ bool compaction_zonelist_suitable(struct
- 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
- 		compact_result = __compaction_suitable(zone, order, alloc_flags,
- 				ac_classzone_idx(ac), available);
--		if (compact_result != COMPACT_SKIPPED &&
--				compact_result != COMPACT_NOT_SUITABLE_ZONE)
-+		if (compact_result != COMPACT_SKIPPED)
- 			return true;
- 	}
- 
++		VM_BUG_ON_PAGE(!PageSwapCache(page), page);
+ 		return mapping->a_ops->set_page_dirty(page);
+ 	} else {
+ 		return __set_page_dirty_no_writeback(page);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-select-add-vmalloc-fallback-for-select2.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+lib-bitmapc-enhance-bitmap-syntax-fix.patch
+relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
+ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
+fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
