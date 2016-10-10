@@ -1,69 +1,128 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious.patch removed from -mm tree
-Date: Mon, 10 Oct 2016 15:45:03 -0700
-Message-ID: <57fc19ef.xP+/z04gHyvZA5kB%akpm@linux-foundation.org>
+ mm-compaction-more-reliably-increase-direct-compaction-priority.patch
+ removed from -mm tree
+Date: Mon, 10 Oct 2016 15:45:24 -0700
+Message-ID: <57fc1a04.ZUoqupVr+DBKYVBT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36871 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37115 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752225AbcJJWpE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:04 -0400
+        with ESMTP id S1752188AbcJJWpZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: james.morse@arm.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, penguin-kernel@i-love.sakura.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/task_mmu.c: make the task_mmu walk_page_range() limit in clear_refs_write() obvious
+     Subject: mm, compaction: more reliably increase direct compaction priority
 has been removed from the -mm tree.  Its filename was
-     mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious.patch
+     mm-compaction-more-reliably-increase-direct-compaction-priority.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: James Morse <james.morse@arm.com>
-Subject: fs/proc/task_mmu.c: make the task_mmu walk_page_range() limit in clear_refs_write() obvious
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: more reliably increase direct compaction priority
 
-Trying to walk all of virtual memory requires architecture specific
-knowledge.  On x86_64, addresses must be sign extended from bit 48,
-whereas on arm64 the top VA_BITS of address space have their own set of
-page tables.
+During reclaim/compaction loop, compaction priority can be increased by
+the should_compact_retry() function, but the current code is not optimal. 
+Priority is only increased when compaction_failed() is true, which means
+that compaction has scanned the whole zone.  This may not happen even
+after multiple attempts with a lower priority due to parallel activity, so
+we might needlessly struggle on the lower priorities and possibly run out
+of compaction retry attempts in the process.
 
-clear_refs_write() calls walk_page_range() on the range 0 to ~0UL, it
-provides a test_walk() callback that only expects to be walking over VMAs.
-Currently walk_pmd_range() will skip memory regions that don't have a
-VMA, reporting them as a hole.
+After this patch we are guaranteed at least one attempt at the highest
+compaction priority even if we exhaust all retries at the lower
+priorities.
 
-As this call only expects to walk user address space, make it walk 0 to
-'highest_vm_end'.
-
-Link: http://lkml.kernel.org/r/1472655792-22439-1-git-send-email-james.morse@arm.com
-Signed-off-by: James Morse <james.morse@arm.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/20160906135258.18335-3-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   33 +++++++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 14 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-proc-make-the-task_mmu-walk_page_range-limit-in-clear_refs_write-obvious
-+++ a/fs/proc/task_mmu.c
-@@ -1070,7 +1070,7 @@ static ssize_t clear_refs_write(struct f
- 			}
- 			mmu_notifier_invalidate_range_start(mm, 0, -1);
- 		}
--		walk_page_range(0, ~0UL, &clear_refs_walk);
-+		walk_page_range(0, mm->highest_vm_end, &clear_refs_walk);
- 		if (type == CLEAR_REFS_SOFT_DIRTY)
- 			mmu_notifier_invalidate_range_end(mm, 0, -1);
- 		flush_tlb_mm(mm);
-_
-
-Patches currently in -mm which might be from james.morse@arm.com are
-
-
+diff -puN mm/page_alloc.c~mm-compaction-more-reliably-increase-direct-compaction-priority mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-more-reliably-increase-direct-compaction-priority
++++ a/mm/page_alloc.c
+@@ -3160,25 +3160,23 @@ static inline bool
+ should_compact_retry(struct alloc_context *ac, int order, int alloc_flags,
+ 		     enum compact_result compact_result,
+ 		     enum compact_priority *compact_priority,
+-		     int compaction_retries)
++		     int *compaction_retries)
+ {
+ 	int max_retries = MAX_COMPACT_RETRIES;
+ 
+ 	if (!order)
+ 		return false;
+ 
++	if (compaction_made_progress(compact_result))
++		(*compaction_retries)++;
++
+ 	/*
+ 	 * compaction considers all the zone as desperately out of memory
+ 	 * so it doesn't really make much sense to retry except when the
+ 	 * failure could be caused by insufficient priority
+ 	 */
+-	if (compaction_failed(compact_result)) {
+-		if (*compact_priority > MIN_COMPACT_PRIORITY) {
+-			(*compact_priority)--;
+-			return true;
+-		}
+-		return false;
+-	}
++	if (compaction_failed(compact_result))
++		goto check_priority;
+ 
+ 	/*
+ 	 * make sure the compaction wasn't deferred or didn't bail out early
+@@ -3199,9 +3197,19 @@ should_compact_retry(struct alloc_contex
+ 	 */
+ 	if (order > PAGE_ALLOC_COSTLY_ORDER)
+ 		max_retries /= 4;
+-	if (compaction_retries <= max_retries)
++	if (*compaction_retries <= max_retries)
+ 		return true;
+ 
++	/*
++	 * Make sure there are attempts at the highest priority if we exhausted
++	 * all retries or failed at the lower priorities.
++	 */
++check_priority:
++	if (*compact_priority > MIN_COMPACT_PRIORITY) {
++		(*compact_priority)--;
++		*compaction_retries = 0;
++		return true;
++	}
+ 	return false;
+ }
+ #else
+@@ -3218,7 +3226,7 @@ static inline bool
+ should_compact_retry(struct alloc_context *ac, unsigned int order, int alloc_flags,
+ 		     enum compact_result compact_result,
+ 		     enum compact_priority *compact_priority,
+-		     int compaction_retries)
++		     int *compaction_retries)
+ {
+ 	struct zone *zone;
+ 	struct zoneref *z;
+@@ -3620,9 +3628,6 @@ retry:
+ 	if (page)
+ 		goto got_pg;
+ 
+-	if (order && compaction_made_progress(compact_result))
+-		compaction_retries++;
