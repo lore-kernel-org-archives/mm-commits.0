@@ -1,76 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_ext-rename-offset-to-index.patch removed from
+Subject: [merged]
+ mm-compaction-rename-compact_partial-to-compact_success.patch removed from
  -mm tree
-Date: Mon, 10 Oct 2016 15:43:37 -0700
-Message-ID: <57fc1999.POQb2UmQFZwJD0+A%akpm@linux-foundation.org>
+Date: Mon, 10 Oct 2016 15:42:59 -0700
+Message-ID: <57fc1973.NyltH2UHdb74OVFj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36581 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36582 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752492AbcJJWno (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:44 -0400
+        with ESMTP id S1752372AbcJJWnk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_ext: rename offset to index
+     Subject: mm, compaction: rename COMPACT_PARTIAL to COMPACT_SUCCESS
 has been removed from the -mm tree.  Its filename was
-     mm-page_ext-rename-offset-to-index.patch
+     mm-compaction-rename-compact_partial-to-compact_success.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_ext: rename offset to index
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: rename COMPACT_PARTIAL to COMPACT_SUCCESS
 
-Here, 'offset' means entry index in page_ext array.  Following patch will
-use 'offset' for field offset in each entry so rename current 'offset' to
-prevent confusion.
+COMPACT_PARTIAL has historically meant that compaction returned after
+doing some work without fully compacting a zone.  It however didn't
+distinguish if compaction terminated because it succeeded in creating the
+requested high-order page.  This has changed recently and now we only
+return COMPACT_PARTIAL when compaction thinks it succeeded, or the
+high-order watermark check in compaction_suitable() passes and no
+compaction needs to be done.
 
-Link: http://lkml.kernel.org/r/1471315879-32294-5-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+So at this point we can make the return value clearer by renaming it to
+COMPACT_SUCCESS.  The next patch will remove some redundant tests for
+success where compaction just returned COMPACT_SUCCESS.
+
+Link: http://lkml.kernel.org/r/20160810091226.6709-4-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_ext.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/compaction.h        |    8 ++++----
+ include/trace/events/compaction.h |    2 +-
+ mm/compaction.c                   |   12 ++++++------
+ mm/vmscan.c                       |    2 +-
+ 4 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/page_ext.c~mm-page_ext-rename-offset-to-index mm/page_ext.c
---- a/mm/page_ext.c~mm-page_ext-rename-offset-to-index
-+++ a/mm/page_ext.c
-@@ -102,7 +102,7 @@ void __meminit pgdat_page_ext_init(struc
- struct page_ext *lookup_page_ext(struct page *page)
- {
- 	unsigned long pfn = page_to_pfn(page);
--	unsigned long offset;
-+	unsigned long index;
- 	struct page_ext *base;
+diff -puN include/linux/compaction.h~mm-compaction-rename-compact_partial-to-compact_success include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-rename-compact_partial-to-compact_success
++++ a/include/linux/compaction.h
+@@ -49,10 +49,10 @@ enum compact_result {
+ 	COMPACT_CONTENDED,
  
- 	base = NODE_DATA(page_to_nid(page))->node_page_ext;
-@@ -119,9 +119,9 @@ struct page_ext *lookup_page_ext(struct
- 	if (unlikely(!base))
- 		return NULL;
+ 	/*
+-	 * direct compaction partially compacted a zone and there might be
+-	 * suitable pages
++	 * direct compaction terminated after concluding that the allocation
++	 * should now succeed
+ 	 */
+-	COMPACT_PARTIAL,
++	COMPACT_SUCCESS,
+ };
+ 
+ struct alloc_context; /* in mm/internal.h */
+@@ -88,7 +88,7 @@ static inline bool compaction_made_progr
+ 	 * that the compaction successfully isolated and migrated some
+ 	 * pageblocks.
+ 	 */
+-	if (result == COMPACT_PARTIAL)
++	if (result == COMPACT_SUCCESS)
+ 		return true;
+ 
+ 	return false;
+diff -puN include/trace/events/compaction.h~mm-compaction-rename-compact_partial-to-compact_success include/trace/events/compaction.h
+--- a/include/trace/events/compaction.h~mm-compaction-rename-compact_partial-to-compact_success
++++ a/include/trace/events/compaction.h
+@@ -13,7 +13,7 @@
+ 	EM( COMPACT_SKIPPED,		"skipped")		\
+ 	EM( COMPACT_DEFERRED,		"deferred")		\
+ 	EM( COMPACT_CONTINUE,		"continue")		\
+-	EM( COMPACT_PARTIAL,		"partial")		\
++	EM( COMPACT_SUCCESS,		"success")		\
+ 	EM( COMPACT_PARTIAL_SKIPPED,	"partial_skipped")	\
+ 	EM( COMPACT_COMPLETE,		"complete")		\
+ 	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
+diff -puN mm/compaction.c~mm-compaction-rename-compact_partial-to-compact_success mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-rename-compact_partial-to-compact_success
++++ a/mm/compaction.c
+@@ -1329,13 +1329,13 @@ static enum compact_result __compact_fin
+ 
+ 		/* Job done if page is free of the right migratetype */
+ 		if (!list_empty(&area->free_list[migratetype]))
+-			return COMPACT_PARTIAL;
++			return COMPACT_SUCCESS;
+ 
+ #ifdef CONFIG_CMA
+ 		/* MIGRATE_MOVABLE can fallback on MIGRATE_CMA */
+ 		if (migratetype == MIGRATE_MOVABLE &&
+ 			!list_empty(&area->free_list[MIGRATE_CMA]))
+-			return COMPACT_PARTIAL;
++			return COMPACT_SUCCESS;
  #endif
--	offset = pfn - round_down(node_start_pfn(page_to_nid(page)),
-+	index = pfn - round_down(node_start_pfn(page_to_nid(page)),
- 					MAX_ORDER_NR_PAGES);
--	return base + offset;
-+	return base + index;
- }
+ 		/*
+ 		 * Job done if allocation would steal freepages from
+@@ -1343,7 +1343,7 @@ static enum compact_result __compact_fin
+ 		 */
+ 		if (find_suitable_fallback(area, order, migratetype,
+ 						true, &can_steal) != -1)
+-			return COMPACT_PARTIAL;
++			return COMPACT_SUCCESS;
+ 	}
  
- static int __init alloc_node_page_ext(int nid)
+ 	return COMPACT_NO_SUITABLE_PAGE;
+@@ -1367,7 +1367,7 @@ static enum compact_result compact_finis
+  * compaction_suitable: Is this suitable to run compaction on this zone now?
+  * Returns
+  *   COMPACT_SKIPPED  - If there are too few free pages for compaction
+- *   COMPACT_PARTIAL  - If the allocation would succeed without compaction
++ *   COMPACT_SUCCESS  - If the allocation would succeed without compaction
+  *   COMPACT_CONTINUE - If compaction should run now
+  */
+ static enum compact_result __compaction_suitable(struct zone *zone, int order,
+@@ -1388,7 +1388,7 @@ static enum compact_result __compaction_
+ 	 */
+ 	if (zone_watermark_ok(zone, order, watermark, classzone_idx,
+ 								alloc_flags))
+-		return COMPACT_PARTIAL;
++		return COMPACT_SUCCESS;
+ 
+ 	/*
+ 	 * Watermarks for order-0 must be met for compaction. Note the 2UL.
+@@ -1477,7 +1477,7 @@ static enum compact_result compact_zone(
+ 	ret = compaction_suitable(zone, cc->order, cc->alloc_flags,
+ 							cc->classzone_idx);
+ 	/* Compaction is likely to fail */
+-	if (ret == COMPACT_PARTIAL || ret == COMPACT_SKIPPED)
++	if (ret == COMPACT_SUCCESS || ret == COMPACT_SKIPPED)
+ 		return ret;
+ 
+ 	/* huh, compaction_suitable is returning something unexpected */
+diff -puN mm/vmscan.c~mm-compaction-rename-compact_partial-to-compact_success mm/vmscan.c
+--- a/mm/vmscan.c~mm-compaction-rename-compact_partial-to-compact_success
++++ a/mm/vmscan.c
+@@ -2495,7 +2495,7 @@ static inline bool should_continue_recla
+ 			continue;
+ 
+ 		switch (compaction_suitable(zone, sc->order, 0, sc->reclaim_idx)) {
+-		case COMPACT_PARTIAL:
++		case COMPACT_SUCCESS:
+ 		case COMPACT_CONTINUE:
+ 			return false;
+ 		default:
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch
+fs-select-add-vmalloc-fallback-for-select2.patch
 
