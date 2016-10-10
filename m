@@ -1,76 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node.patch removed
+Subject: [merged] mm-vma_adjust-minor-comment-correction.patch removed
  from -mm tree
-Date: Mon, 10 Oct 2016 15:46:06 -0700
-Message-ID: <57fc1a2e.jKxT8HrcacF1qsrA%akpm@linux-foundation.org>
+Date: Mon, 10 Oct 2016 15:46:18 -0700
+Message-ID: <57fc1a3a.oP60wRZHYSyUU13K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37219 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37245 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752237AbcJJWqH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:46:07 -0400
+        with ESMTP id S1752286AbcJJWqT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:46:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhongjiang@huawei.com, hughd@google.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, hughd@google.com, janvorli@microsoft.com, mgorman@techsingularity.net, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,ksm: add __GFP_HIGH to the allocation in alloc_stable_node()
+     Subject: mm: vma_adjust: minor comment correction
 has been removed from the -mm tree.  Its filename was
-     mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node.patch
+     mm-vma_adjust-minor-comment-correction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: zhong jiang <zhongjiang@huawei.com>
-Subject: mm,ksm: add __GFP_HIGH to the allocation in alloc_stable_node()
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: vma_adjust: minor comment correction
 
-According to Hugh's suggestion, alloc_stable_node() with GFP_KERNEL can in
-rare cases cause a hung task warning.
+The cases are three not two.
 
-At present, if alloc_stable_node() allocation fails, two break_cows may
-want to allocate a couple of pages, and the issue will come up when free
-memory is under pressure.
-
-We fix it by adding __GFP_HIGH to GFP, to grant access to memory reserves,
-increasing the likelihood of allocation success.
-
-[akpm@linux-foundation.org: tweak comment]
-Link: http://lkml.kernel.org/r/1474354484-58233-1-git-send-email-zhongjiang@huawei.com
-Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-Suggested-by: Hugh Dickins <hughd@google.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+Link: http://lkml.kernel.org/r/1474492522-2261-3-git-send-email-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Jan Vorlicek <janvorli@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/ksm.c~mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node mm/ksm.c
---- a/mm/ksm.c~mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node
-+++ a/mm/ksm.c
-@@ -299,7 +299,12 @@ static inline void free_rmap_item(struct
- 
- static inline struct stable_node *alloc_stable_node(void)
- {
--	return kmem_cache_alloc(stable_node_cache, GFP_KERNEL);
-+	/*
-+	 * The allocation can take too long with GFP_KERNEL when memory is under
-+	 * pressure, which may lead to hung task warnings.  Adding __GFP_HIGH
-+	 * grants access to memory reserves, helping to avoid this problem.
-+	 */
-+	return kmem_cache_alloc(stable_node_cache, GFP_KERNEL | __GFP_HIGH);
- }
- 
- static inline void free_stable_node(struct stable_node *stable_node)
+diff -puN mm/mmap.c~mm-vma_adjust-minor-comment-correction mm/mmap.c
+--- a/mm/mmap.c~mm-vma_adjust-minor-comment-correction
++++ a/mm/mmap.c
+@@ -667,7 +667,7 @@ int __vma_adjust(struct vm_area_struct *
+ 			/*
+ 			 * vma expands, overlapping all the next, and
+ 			 * perhaps the one after too (mprotect case 6).
+-			 * The only two other cases that gets here are
++			 * The only other cases that gets here are
+ 			 * case 1, case 7 and case 8.
+ 			 */
+ 			if (next == expand) {
 _
 
-Patches currently in -mm which might be from zhongjiang@huawei.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-mm-page_owner-align-with-pageblock_nr-pages.patch
-mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
 
