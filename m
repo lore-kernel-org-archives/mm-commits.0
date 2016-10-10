@@ -1,173 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node.patch
- removed from -mm tree
-Date: Mon, 10 Oct 2016 15:43:20 -0700
-Message-ID: <57fc1988.poZsC3sw1E4jVIpW%akpm@linux-foundation.org>
+Subject: [merged] oom-keep-mm-of-the-killed-task-available.patch removed
+ from -mm tree
+Date: Mon, 10 Oct 2016 15:43:58 -0700
+Message-ID: <57fc19ae.N4zI6VXdaZJ8Z5m6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36639 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36676 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752443AbcJJWnm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:42 -0400
+        with ESMTP id S1752510AbcJJWn7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mem-hotplug: fix node spanned pages when we have a movable node
+     Subject: oom: keep mm of the killed task available
 has been removed from the -mm tree.  Its filename was
-     mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node.patch
+     oom-keep-mm-of-the-killed-task-available.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mem-hotplug: fix node spanned pages when we have a movable node
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom: keep mm of the killed task available
 
-342332e6a925e9e ("mm/page_alloc.c: introduce kernelcore=mirror option")
-rewrote the calculation of node spanned pages.  But when we have a movable
-node, the size of node spanned pages is double added.  That's because we
-have an empty normal zone, the present pages is zero, but its spanned
-pages is not zero.
+oom_reap_task has to call exit_oom_victim in order to make sure that the
+oom vicim will not block the oom killer for ever.  This is, however,
+opening new problems (e.g oom_killer_disable exclusion - see 74070542099c
+("oom, suspend: fix oom_reaper vs.  oom_killer_disable race")). 
+exit_oom_victim should be only called from the victim's context ideally.
 
-e.g.
-[    0.000000] Zone ranges:
-[    0.000000]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
-[    0.000000]   DMA32    [mem 0x0000000001000000-0x00000000ffffffff]
-[    0.000000]   Normal   [mem 0x0000000100000000-0x0000007c7fffffff]
-[    0.000000] Movable zone start for each node
-[    0.000000]   Node 1: 0x0000001080000000
-[    0.000000]   Node 2: 0x0000002080000000
-[    0.000000]   Node 3: 0x0000003080000000
-[    0.000000]   Node 4: 0x0000003c80000000
-[    0.000000]   Node 5: 0x0000004c80000000
-[    0.000000]   Node 6: 0x0000005c80000000
-[    0.000000] Early memory node ranges
-[    0.000000]   node   0: [mem 0x0000000000001000-0x000000000009ffff]
-[    0.000000]   node   0: [mem 0x0000000000100000-0x000000007552afff]
-[    0.000000]   node   0: [mem 0x000000007bd46000-0x000000007bd46fff]
-[    0.000000]   node   0: [mem 0x000000007bdcd000-0x000000007bffffff]
-[    0.000000]   node   0: [mem 0x0000000100000000-0x000000107fffffff]
-[    0.000000]   node   1: [mem 0x0000001080000000-0x000000207fffffff]
-[    0.000000]   node   2: [mem 0x0000002080000000-0x000000307fffffff]
-[    0.000000]   node   3: [mem 0x0000003080000000-0x0000003c7fffffff]
-[    0.000000]   node   4: [mem 0x0000003c80000000-0x0000004c7fffffff]
-[    0.000000]   node   5: [mem 0x0000004c80000000-0x0000005c7fffffff]
-[    0.000000]   node   6: [mem 0x0000005c80000000-0x0000006c7fffffff]
-[    0.000000]   node   7: [mem 0x0000006c80000000-0x0000007c7fffffff]
+One way to achieve this would be to rely on per mm_struct flags. We
+already have MMF_OOM_REAPED to hide a task from the oom killer since
+"mm, oom: hide mm which is shared with kthread or global init". The
+problem is that the exit path:
+do_exit
+  exit_mm
+    tsk->mm = NULL;
+    mmput
+      __mmput
+    exit_oom_victim
 
-node1:
-[  760.227767] Normal, start=0x1080000, present=0x0, spanned=0x1000000
-[  760.234024] Movable, start=0x1080000, present=0x1000000, spanned=0x1000000
-[  760.240883] pgdat, start=0x1080000, present=0x1000000, spanned=0x2000000
+doesn't guarantee that exit_oom_victim will get called in a bounded amount
+of time.  At least exit_aio depends on IO which might get blocked due to
+lack of memory and who knows what else is lurking there.
 
-After apply this patch, the problem is fixed.
-node1:
-[  289.770922] Normal, start=0x0, present=0x0, spanned=0x0
-[  289.776153] Movable, start=0x1080000, present=0x1000000, spanned=0x1000000
-[  289.783019] pgdat, start=0x1080000, present=0x1000000, spanned=0x1000000
+This patch takes a different approach.  We remember tsk->mm into the
+signal_struct and bind it to the signal struct life time for all oom
+victims.  __oom_reap_task_mm as well as oom_scan_process_thread do not
+have to rely on find_lock_task_mm anymore and they will have a reliable
+reference to the mm struct.  As a result all the oom specific
+communication inside the OOM killer can be done via tsk->signal->oom_mm.
 
-Link: http://lkml.kernel.org/r/57A325E8.6070100@huawei.com
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Michal Hocko <mhocko@suse.com>
+Increasing the signal_struct for something as unlikely as the oom killer
+is far from ideal but this approach will make the code much more
+reasonable and long term we even might want to move task->mm into the
+signal_struct anyway.  In the next step we might want to make the oom
+killer exclusion and access to memory reserves completely independent
+which would be also nice.
+
+Link: http://lkml.kernel.org/r/1472119394-11342-4-git-send-email-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   54 +++++++++++++++++++---------------------------
- 1 file changed, 23 insertions(+), 31 deletions(-)
+ include/linux/sched.h |    2 +
+ kernel/fork.c         |    2 +
+ mm/oom_kill.c         |   51 ++++++++++++++--------------------------
+ 3 files changed, 23 insertions(+), 32 deletions(-)
 
-diff -puN mm/page_alloc.c~mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node mm/page_alloc.c
---- a/mm/page_alloc.c~mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node
-+++ a/mm/page_alloc.c
-@@ -5005,15 +5005,6 @@ void __meminit memmap_init_zone(unsigned
+diff -puN include/linux/sched.h~oom-keep-mm-of-the-killed-task-available include/linux/sched.h
+--- a/include/linux/sched.h~oom-keep-mm-of-the-killed-task-available
++++ a/include/linux/sched.h
+@@ -805,6 +805,8 @@ struct signal_struct {
+ 	short oom_score_adj;		/* OOM kill score adjustment */
+ 	short oom_score_adj_min;	/* OOM kill score adjustment min value.
+ 					 * Only settable by CAP_SYS_RESOURCE. */
++	struct mm_struct *oom_mm;	/* recorded mm when the thread group got
++					 * killed by the oom killer */
  
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 		/*
--		 * If not mirrored_kernelcore and ZONE_MOVABLE exists, range
--		 * from zone_movable_pfn[nid] to end of each node should be
--		 * ZONE_MOVABLE not ZONE_NORMAL. skip it.
--		 */
--		if (!mirrored_kernelcore && zone_movable_pfn[nid])
--			if (zone == ZONE_NORMAL && pfn >= zone_movable_pfn[nid])
--				continue;
--
--		/*
- 		 * Check given memblock attribute by firmware which can affect
- 		 * kernel memory layout.  If zone==ZONE_MOVABLE but memory is
- 		 * mirrored, it's an overlapped memmap init. skip it.
-@@ -5456,6 +5447,12 @@ static void __meminit adjust_zone_range_
- 			*zone_end_pfn = min(node_end_pfn,
- 				arch_zone_highest_possible_pfn[movable_zone]);
+ 	struct mutex cred_guard_mutex;	/* guard against foreign influences on
+ 					 * credential calculations
+diff -puN kernel/fork.c~oom-keep-mm-of-the-killed-task-available kernel/fork.c
+--- a/kernel/fork.c~oom-keep-mm-of-the-killed-task-available
++++ a/kernel/fork.c
+@@ -359,6 +359,8 @@ static inline void free_signal_struct(st
+ {
+ 	taskstats_tgid_free(sig);
+ 	sched_autogroup_exit(sig);
++	if (sig->oom_mm)
++		mmdrop(sig->oom_mm);
+ 	kmem_cache_free(signal_cachep, sig);
+ }
  
-+		/* Adjust for ZONE_MOVABLE starting within this range */
-+		} else if (!mirrored_kernelcore &&
-+			*zone_start_pfn < zone_movable_pfn[nid] &&
-+			*zone_end_pfn > zone_movable_pfn[nid]) {
-+			*zone_end_pfn = zone_movable_pfn[nid];
-+
- 		/* Check if this whole range is within ZONE_MOVABLE */
- 		} else if (*zone_start_pfn >= zone_movable_pfn[nid])
- 			*zone_start_pfn = *zone_end_pfn;
-@@ -5559,28 +5556,23 @@ static unsigned long __meminit zone_abse
- 	 * Treat pages to be ZONE_MOVABLE in ZONE_NORMAL as absent pages
- 	 * and vice versa.
+diff -puN mm/oom_kill.c~oom-keep-mm-of-the-killed-task-available mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-keep-mm-of-the-killed-task-available
++++ a/mm/oom_kill.c
+@@ -300,14 +300,7 @@ static int oom_evaluate_task(struct task
+ 	 * any memory is quite low.
  	 */
--	if (zone_movable_pfn[nid]) {
--		if (mirrored_kernelcore) {
--			unsigned long start_pfn, end_pfn;
--			struct memblock_region *r;
+ 	if (!is_sysrq_oom(oc) && atomic_read(&task->signal->oom_victims)) {
+-		struct task_struct *p = find_lock_task_mm(task);
+-		bool reaped = false;
 -
--			for_each_memblock(memory, r) {
--				start_pfn = clamp(memblock_region_memory_base_pfn(r),
--						  zone_start_pfn, zone_end_pfn);
--				end_pfn = clamp(memblock_region_memory_end_pfn(r),
--						zone_start_pfn, zone_end_pfn);
--
--				if (zone_type == ZONE_MOVABLE &&
--				    memblock_is_mirror(r))
--					nr_absent += end_pfn - start_pfn;
--
--				if (zone_type == ZONE_NORMAL &&
--				    !memblock_is_mirror(r))
--					nr_absent += end_pfn - start_pfn;
--			}
--		} else {
--			if (zone_type == ZONE_NORMAL)
--				nr_absent += node_end_pfn - zone_movable_pfn[nid];
-+	if (mirrored_kernelcore && zone_movable_pfn[nid]) {
-+		unsigned long start_pfn, end_pfn;
-+		struct memblock_region *r;
-+
-+		for_each_memblock(memory, r) {
-+			start_pfn = clamp(memblock_region_memory_base_pfn(r),
-+					  zone_start_pfn, zone_end_pfn);
-+			end_pfn = clamp(memblock_region_memory_end_pfn(r),
-+					zone_start_pfn, zone_end_pfn);
-+
-+			if (zone_type == ZONE_MOVABLE &&
-+			    memblock_is_mirror(r))
-+				nr_absent += end_pfn - start_pfn;
-+
-+			if (zone_type == ZONE_NORMAL &&
-+			    !memblock_is_mirror(r))
-+				nr_absent += end_pfn - start_pfn;
- 		}
+-		if (p) {
+-			reaped = test_bit(MMF_OOM_REAPED, &p->mm->flags);
+-			task_unlock(p);
+-		}
+-		if (reaped)
++		if (test_bit(MMF_OOM_REAPED, &task->signal->oom_mm->flags))
+ 			goto next;
+ 		goto abort;
  	}
+@@ -537,11 +530,6 @@ static bool __oom_reap_task_mm(struct ta
+ 	up_read(&mm->mmap_sem);
  
+ 	/*
+-	 * This task can be safely ignored because we cannot do much more
+-	 * to release its memory.
+-	 */
+-	set_bit(MMF_OOM_REAPED, &mm->flags);
+-	/*
+ 	 * Drop our reference but make sure the mmput slow path is called from a
+ 	 * different context because we shouldn't risk we get stuck there and
+ 	 * put the oom_reaper out of the way.
+@@ -556,20 +544,7 @@ unlock_oom:
+ static void oom_reap_task(struct task_struct *tsk)
+ {
+ 	int attempts = 0;
+-	struct mm_struct *mm = NULL;
+-	struct task_struct *p = find_lock_task_mm(tsk);
+-
+-	/*
+-	 * Make sure we find the associated mm_struct even when the particular
+-	 * thread has already terminated and cleared its mm.
+-	 * We might have race with exit path so consider our work done if there
+-	 * is no mm.
+-	 */
+-	if (!p)
+-		goto done;
+-	mm = p->mm;
+-	atomic_inc(&mm->mm_count);
+-	task_unlock(p);
++	struct mm_struct *mm = tsk->signal->oom_mm;
+ 
+ 	/* Retry the down_read_trylock(mmap_sem) a few times */
+ 	while (attempts++ < MAX_OOM_REAP_RETRIES && !__oom_reap_task_mm(tsk, mm))
+@@ -578,8 +553,6 @@ static void oom_reap_task(struct task_st
+ 	if (attempts <= MAX_OOM_REAP_RETRIES)
+ 		goto done;
+ 
+-	/* Ignore this mm because somebody can't call up_write(mmap_sem). */
+-	set_bit(MMF_OOM_REAPED, &mm->flags);
+ 
+ 	pr_info("oom_reaper: unable to reap pid:%d (%s)\n",
+ 		task_pid_nr(tsk), tsk->comm);
+@@ -595,11 +568,14 @@ done:
+ 	tsk->oom_reaper_list = NULL;
+ 	exit_oom_victim(tsk);
+ 
++	/*
++	 * Hide this mm from OOM killer because it has been either reaped or
++	 * somebody can't call up_write(mmap_sem).
++	 */
++	set_bit(MMF_OOM_REAPED, &mm->flags);
++
+ 	/* Drop a reference taken by wake_oom_reaper */
+ 	put_task_struct(tsk);
+-	/* Drop a reference taken above. */
+-	if (mm)
+-		mmdrop(mm);
+ }
+ 
+ static int oom_reaper(void *unused)
+@@ -665,14 +641,25 @@ static inline void wake_oom_reaper(struc
+  *
+  * Has to be called with oom_lock held and never after
+  * oom has been disabled already.
++ *
++ * tsk->mm has to be non NULL and caller has to guarantee it is stable (either
++ * under task_lock or operate on the current).
+  */
+ static void mark_oom_victim(struct task_struct *tsk)
+ {
++	struct mm_struct *mm = tsk->mm;
++
+ 	WARN_ON(oom_killer_disabled);
+ 	/* OOM killer might race with memcg OOM */
+ 	if (test_and_set_tsk_thread_flag(tsk, TIF_MEMDIE))
+ 		return;
++
+ 	atomic_inc(&tsk->signal->oom_victims);
++
++	/* oom_mm is bound to the signal struct life time. */
++	if (!cmpxchg(&tsk->signal->oom_mm, NULL, mm))
++		atomic_inc(&tsk->signal->oom_mm->mm_count);
++
+ 	/*
+ 	 * Make sure that the task is woken up from uninterruptible sleep
+ 	 * if it is frozen because OOM killer wouldn't be able to free
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+fs-use-mapping_set_error-instead-of-opencoded-set_bit.patch
+mm-split-gfp_mask-and-mapping-flags-into-separate-fields.patch
 
