@@ -1,62 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-clarify-why-we-avoid-page_mapcount-for-slab-pages-in-dump_page.patch
- removed from -mm tree
-Date: Mon, 10 Oct 2016 15:46:23 -0700
-Message-ID: <57fc1a3f.vqN6B1b9M7bdItnq%akpm@linux-foundation.org>
+Subject: [merged] arm64-kconfig-select-gigantic-page.patch removed from
+ -mm tree
+Date: Mon, 10 Oct 2016 15:46:31 -0700
+Message-ID: <57fc1a47.hX+xEFskeF/Z+odJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37255 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37275 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752183AbcJJWqY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:46:24 -0400
+        with ESMTP id S1752340AbcJJWqc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:46:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: xieyisheng1@huawei.com, catalin.marinas@arm.com, dave.hansen@intel.com, guohanjun@huawei.com, hillf.zj@alibaba-inc.com, mark.rutland@arm.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, robh+dt@kernel.org, sudeep.holla@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: clarify why we avoid page_mapcount() for slab pages in dump_page()
+     Subject: arm64 Kconfig: select gigantic page
 has been removed from the -mm tree.  Its filename was
-     mm-clarify-why-we-avoid-page_mapcount-for-slab-pages-in-dump_page.patch
+     arm64-kconfig-select-gigantic-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: clarify why we avoid page_mapcount() for slab pages in dump_page()
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: arm64 Kconfig: select gigantic page
 
-Let's add comment on why we skip page_mapcount() for sl[aou]b pages.
+Arm64 supports gigantic page after 084bd29810a5 ("ARM64: mm: HugeTLB
+support.") however, it can only be allocated at boottime and can't be
+freed.
 
-Link: http://lkml.kernel.org/r/20160922105532.GB24593@node
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+This patch selects ARCH_HAS_GIGANTIC_PAGE to make gigantic pages can be
+allocated and freed at runtime for arch arm64.
+
+Link: http://lkml.kernel.org/r/1475227569-63446-3-git-send-email-xieyisheng1@huawei.com
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com> 
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm64/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/debug.c~mm-clarify-why-we-avoid-page_mapcount-for-slab-pages-in-dump_page mm/debug.c
---- a/mm/debug.c~mm-clarify-why-we-avoid-page_mapcount-for-slab-pages-in-dump_page
-+++ a/mm/debug.c
-@@ -42,6 +42,11 @@ const struct trace_print_flags vmaflag_n
- 
- void __dump_page(struct page *page, const char *reason)
- {
-+	/*
-+	 * Avoid VM_BUG_ON() in page_mapcount().
-+	 * page->_mapcount space in struct page is used by sl[aou]b pages to
-+	 * encode own info.
-+	 */
- 	int mapcount = PageSlab(page) ? 0 : page_mapcount(page);
- 
- 	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx",
+diff -puN arch/arm64/Kconfig~arm64-kconfig-select-gigantic-page arch/arm64/Kconfig
+--- a/arch/arm64/Kconfig~arm64-kconfig-select-gigantic-page
++++ a/arch/arm64/Kconfig
+@@ -11,6 +11,7 @@ config ARM64
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
++	select ARCH_HAS_GIGANTIC_PAGE
+ 	select ARCH_HAS_KCOV
+ 	select ARCH_HAS_SG_CHAIN
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from xieyisheng1@huawei.com are
 
 
