@@ -1,72 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-ocfs2-dlmfs-remove-deprecated-create_singlethread_workqueue.patch
- removed from -mm tree
-Date: Mon, 10 Oct 2016 15:42:29 -0700
-Message-ID: <57fc1955.AN9/NsWLh07nfUlM%akpm@linux-foundation.org>
+Subject: [merged] mm-compaction-cleanup-unused-functions.patch removed
+ from -mm tree
+Date: Mon, 10 Oct 2016 15:42:57 -0700
+Message-ID: <57fc1971.LuQYxqK3saSzKGx5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36583 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36581 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752237AbcJJWnj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:39 -0400
+        with ESMTP id S1752340AbcJJWnk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhaktipriya96@gmail.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@versity.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ocfs2/dlmfs: remove deprecated create_singlethread_workqueue()
+     Subject: mm, compaction: cleanup unused functions
 has been removed from the -mm tree.  Its filename was
-     fs-ocfs2-dlmfs-remove-deprecated-create_singlethread_workqueue.patch
+     mm-compaction-cleanup-unused-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Subject: fs/ocfs2/dlmfs: remove deprecated create_singlethread_workqueue()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: cleanup unused functions
 
-The workqueue "user_dlm_worker" queues a single work item &lockres->l_work
-per user_lock_res instance and hence it doesn't require execution
-ordering.  Hence, alloc_workqueue has been used to replace the deprecated
-create_singlethread_workqueue instance.
+Since kswapd compaction moved to kcompactd, compact_pgdat() is not called
+anymore, so we remove it.  The only caller of __compact_pgdat() is
+compact_node(), so we merge them and remove code that was only reachable
+from kswapd.
 
-The WQ_MEM_RECLAIM flag has been set to ensure forward progress under
-memory pressure.
-
-Since there are fixed number of work items, explicit concurrency
-limit is unnecessary here.
-
-Link: http://lkml.kernel.org/r/9748136d3a3b18138ad1d6ba708367aa1fe9f98c.1472590094.git.bhaktipriya96@gmail.com
-Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Link: http://lkml.kernel.org/r/20160810091226.6709-3-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmfs/dlmfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compaction.h |    5 --
+ mm/compaction.c            |   60 +++++++++--------------------------
+ 2 files changed, 17 insertions(+), 48 deletions(-)
 
-diff -puN fs/ocfs2/dlmfs/dlmfs.c~fs-ocfs2-dlmfs-remove-deprecated-create_singlethread_workqueue fs/ocfs2/dlmfs/dlmfs.c
---- a/fs/ocfs2/dlmfs/dlmfs.c~fs-ocfs2-dlmfs-remove-deprecated-create_singlethread_workqueue
-+++ a/fs/ocfs2/dlmfs/dlmfs.c
-@@ -646,7 +646,7 @@ static int __init init_dlmfs_fs(void)
- 	}
- 	cleanup_inode = 1;
+diff -puN include/linux/compaction.h~mm-compaction-cleanup-unused-functions include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-cleanup-unused-functions
++++ a/include/linux/compaction.h
+@@ -70,7 +70,6 @@ extern int fragmentation_index(struct zo
+ extern enum compact_result try_to_compact_pages(gfp_t gfp_mask,
+ 		unsigned int order, unsigned int alloc_flags,
+ 		const struct alloc_context *ac, enum compact_priority prio);
+-extern void compact_pgdat(pg_data_t *pgdat, int order);
+ extern void reset_isolation_suitable(pg_data_t *pgdat);
+ extern enum compact_result compaction_suitable(struct zone *zone, int order,
+ 		unsigned int alloc_flags, int classzone_idx);
+@@ -154,10 +153,6 @@ extern void kcompactd_stop(int nid);
+ extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx);
  
--	user_dlm_worker = create_singlethread_workqueue("user_dlm");
-+	user_dlm_worker = alloc_workqueue("user_dlm", WQ_MEM_RECLAIM, 0);
- 	if (!user_dlm_worker) {
- 		status = -ENOMEM;
- 		goto bail;
-_
-
-Patches currently in -mm which might be from bhaktipriya96@gmail.com are
-
-
+ #else
+-static inline void compact_pgdat(pg_data_t *pgdat, int order)
+-{
+-}
+-
+ static inline void reset_isolation_suitable(pg_data_t *pgdat)
+ {
+ }
+diff -puN mm/compaction.c~mm-compaction-cleanup-unused-functions mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-cleanup-unused-functions
++++ a/mm/compaction.c
+@@ -1736,10 +1736,18 @@ enum compact_result try_to_compact_pages
+ 
+ 
+ /* Compact all zones within a node */
+-static void __compact_pgdat(pg_data_t *pgdat, struct compact_control *cc)
++static void compact_node(int nid)
+ {
++	pg_data_t *pgdat = NODE_DATA(nid);
+ 	int zoneid;
+ 	struct zone *zone;
++	struct compact_control cc = {
++		.order = -1,
++		.mode = MIGRATE_SYNC,
++		.ignore_skip_hint = true,
++		.whole_zone = true,
++	};
++
+ 
+ 	for (zoneid = 0; zoneid < MAX_NR_ZONES; zoneid++) {
+ 
+@@ -1747,53 +1755,19 @@ static void __compact_pgdat(pg_data_t *p
+ 		if (!populated_zone(zone))
+ 			continue;
+ 
+-		cc->nr_freepages = 0;
+-		cc->nr_migratepages = 0;
+-		cc->zone = zone;
+-		INIT_LIST_HEAD(&cc->freepages);
+-		INIT_LIST_HEAD(&cc->migratepages);
+-
+-		if (is_via_compact_memory(cc->order) ||
+-				!compaction_deferred(zone, cc->order))
+-			compact_zone(zone, cc);
+-
+-		VM_BUG_ON(!list_empty(&cc->freepages));
+-		VM_BUG_ON(!list_empty(&cc->migratepages));
++		cc.nr_freepages = 0;
++		cc.nr_migratepages = 0;
++		cc.zone = zone;
++		INIT_LIST_HEAD(&cc.freepages);
++		INIT_LIST_HEAD(&cc.migratepages);
+ 
+-		if (is_via_compact_memory(cc->order))
+-			continue;
++		compact_zone(zone, &cc);
+ 
+-		if (zone_watermark_ok(zone, cc->order,
+-				low_wmark_pages(zone), 0, 0))
+-			compaction_defer_reset(zone, cc->order, false);
++		VM_BUG_ON(!list_empty(&cc.freepages));
++		VM_BUG_ON(!list_empty(&cc.migratepages));
+ 	}
+ }
+ 
+-void compact_pgdat(pg_data_t *pgdat, int order)
+-{
+-	struct compact_control cc = {
+-		.order = order,
+-		.mode = MIGRATE_ASYNC,
+-	};
+-
+-	if (!order)
+-		return;
+-
+-	__compact_pgdat(pgdat, &cc);
+-}
+-
+-static void compact_node(int nid)
+-{
+-	struct compact_control cc = {
+-		.order = -1,
+-		.mode = MIGRATE_SYNC,
+-		.ignore_skip_hint = true,
+-		.whole_zone = true,
+-	};
+-
+-	__compact_pgdat(NODE_DATA(nid), &cc);
+-}
