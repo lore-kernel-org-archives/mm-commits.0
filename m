@@ -1,122 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmalloc-fix-align-value-calculation-error.patch
- removed from -mm tree
-Date: Mon, 10 Oct 2016 15:42:47 -0700
-Message-ID: <57fc1967.A3iTj+V28T2+/FdT%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch removed from -mm tree
+Date: Mon, 10 Oct 2016 15:44:30 -0700
+Message-ID: <57fc19ce.Z6CjkOuMJuvgwSJU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36757 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752338AbcJJWnk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:40 -0400
+        with ESMTP id S1752100AbcJJWob (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zijun_hu@htc.com, hannes@cmpxchg.org, minchan@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, dave.hansen@intel.com, fengguang.wu@intel.com, hughd@google.com, mgorman@techsingularity.net, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: fix align value calculation error
+     Subject: mm: don't use radix tree writeback tags for pages in swap cache
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-fix-align-value-calculation-error.patch
+     mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: zijun_hu <zijun_hu@htc.com>
-Subject: mm/vmalloc.c: fix align value calculation error
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm: don't use radix tree writeback tags for pages in swap cache
 
-It causes double align requirement for __get_vm_area_node() if parameter
-size is power of 2 and VM_IOREMAP is set in parameter flags, for example
-size=0x10000 -> fls_long(0x10000)=17 -> align=0x20000
+File pages use a set of radix tree tags (DIRTY, TOWRITE, WRITEBACK, etc.)
+to accelerate finding the pages with a specific tag in the radix tree
+during inode writeback.  But for anonymous pages in the swap cache, there
+is no inode writeback.  So there is no need to find the pages with some
+writeback tags in the radix tree.  It is not necessary to touch radix tree
+writeback tags for pages in the swap cache.
 
-get_count_order_long() is implemented and used instead of fls_long() for
-fixing the bug, for example
-size=0x10000 -> get_count_order_long(0x10000)=16 -> align=0x10000
+Per Rik van Riel's suggestion, a new flag AS_NO_WRITEBACK_TAGS is
+introduced for address spaces which don't need to update the writeback
+tags.  The flag is set for swap caches.  It may be used for DAX file
+systems, etc.
 
-[akpm@linux-foundation.org: s/get_order_long()/get_count_order_long()/]
-[zijun_hu@zoho.com: fixes]
- Link: http://lkml.kernel.org/r/57AABC8B.1040409@zoho.com
-[akpm@linux-foundation.org: locate get_count_order_long() next to get_count_order()]
-[akpm@linux-foundation.org: move get_count_order[_long] definitions to pick up fls_long()]
-[zijun_hu@htc.com: move out get_count_order[_long]() from __KERNEL__ scope]
- Link: http://lkml.kernel.org/r/57B2C4CE.80303@zoho.com
-Link: http://lkml.kernel.org/r/fc045ecf-20fa-0722-b3ac-9a6140488fad@zoho.com
-Signed-off-by: zijun_hu <zijun_hu@htc.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+With this patch, the swap out bandwidth improved 22.3% (from ~1.2GB/s to ~
+1.48GBps) in the vm-scalability swap-w-seq test case with 8 processes. 
+The test is done on a Xeon E5 v3 system.  The swap device used is a RAM
+simulated PMEM (persistent memory) device.  The improvement comes from the
+reduced contention on the swap cache radix tree lock.  To test sequential
+swapping out, the test case uses 8 processes, which sequentially allocate
+and write to the anonymous pages until RAM and part of the swap device is
+used up.
+
+Details of comparison is as follow,
+
+base             base+patch
+---------------- --------------------------
+         %stddev     %change         %stddev
+             \          |                \
+   2506952 ±  2%     +28.1%    3212076 ±  7%  vm-scalability.throughput
+   1207402 ±  7%     +22.3%    1476578 ±  6%  vmstat.swap.so
+     10.86 ± 12%     -23.4%       8.31 ± 16%  perf-profile.cycles-pp._raw_spin_lock_irq.__add_to_swap_cache.add_to_swap_cache.add_to_swap.shrink_page_list
+     10.82 ± 13%     -33.1%       7.24 ± 14%  perf-profile.cycles-pp._raw_spin_lock_irqsave.__remove_mapping.shrink_page_list.shrink_inactive_list.shrink_zone_memcg
+     10.36 ± 11%    -100.0%       0.00 ± -1%  perf-profile.cycles-pp._raw_spin_lock_irqsave.__test_set_page_writeback.bdev_write_page.__swap_writepage.swap_writepage
+     10.52 ± 12%    -100.0%       0.00 ± -1%  perf-profile.cycles-pp._raw_spin_lock_irqsave.test_clear_page_writeback.end_page_writeback.page_endio.pmem_rw_page
+
+Link: http://lkml.kernel.org/r/1472578089-5560-1-git-send-email-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shaohua Li <shli@kernel.org>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Signed-off-by: zijun_hu <zijun_hu@htc.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |   36 ++++++++++++++++++++++++++----------
- mm/vmalloc.c           |    8 ++++----
- 2 files changed, 30 insertions(+), 14 deletions(-)
+ include/linux/pagemap.h |   12 ++++++++++++
+ mm/page-writeback.c     |    4 ++--
+ mm/swap_state.c         |    2 ++
+ 3 files changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error include/linux/bitops.h
---- a/include/linux/bitops.h~mm-vmalloc-fix-align-value-calculation-error
-+++ a/include/linux/bitops.h
-@@ -65,16 +65,6 @@ static inline int get_bitmask_order(unsi
- 	return order;	/* We could be slightly more clever with -1 here... */
+diff -puN include/linux/pagemap.h~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache
++++ a/include/linux/pagemap.h
+@@ -25,6 +25,8 @@ enum mapping_flags {
+ 	AS_MM_ALL_LOCKS	= __GFP_BITS_SHIFT + 2,	/* under mm_take_all_locks() */
+ 	AS_UNEVICTABLE	= __GFP_BITS_SHIFT + 3,	/* e.g., ramdisk, SHM_LOCK */
+ 	AS_EXITING	= __GFP_BITS_SHIFT + 4, /* final truncate in progress */
++	/* writeback related tags are not used */
++	AS_NO_WRITEBACK_TAGS = __GFP_BITS_SHIFT + 5,
+ };
+ 
+ static inline void mapping_set_error(struct address_space *mapping, int error)
+@@ -64,6 +66,16 @@ static inline int mapping_exiting(struct
+ 	return test_bit(AS_EXITING, &mapping->flags);
  }
  
--static inline int get_count_order(unsigned int count)
--{
--	int order;
--
--	order = fls(count) - 1;
--	if (count & (count - 1))
--		order++;
--	return order;
--}
--
- static __always_inline unsigned long hweight_long(unsigned long w)
++static inline void mapping_set_no_writeback_tags(struct address_space *mapping)
++{
++	set_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
++}
++
++static inline int mapping_use_writeback_tags(struct address_space *mapping)
++{
++	return !test_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
++}
++
+ static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
  {
- 	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
-@@ -191,6 +181,32 @@ static inline unsigned fls_long(unsigned
- 	return fls64(l);
- }
+ 	return (__force gfp_t)mapping->flags & __GFP_BITS_MASK;
+diff -puN mm/page-writeback.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache
++++ a/mm/page-writeback.c
+@@ -2716,7 +2716,7 @@ int test_clear_page_writeback(struct pag
+ 	int ret;
  
-+static inline int get_count_order(unsigned int count)
-+{
-+	int order;
-+
-+	order = fls(count) - 1;
-+	if (count & (count - 1))
-+		order++;
-+	return order;
-+}
-+
-+/**
-+ * get_count_order_long - get order after rounding @l up to power of 2
-+ * @l: parameter
-+ *
-+ * it is same as get_count_order() but with long type parameter
-+ */
-+static inline int get_count_order_long(unsigned long l)
-+{
-+	if (l == 0UL)
-+		return -1;
-+	else if (l & (l - 1UL))
-+		return (int)fls_long(l);
-+	else
-+		return (int)fls_long(l) - 1;
-+}
-+
- /**
-  * __ffs64 - find first set bit in a 64 bit word
-  * @word: The 64 bit word
-diff -puN mm/vmalloc.c~mm-vmalloc-fix-align-value-calculation-error mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-fix-align-value-calculation-error
-+++ a/mm/vmalloc.c
-@@ -1359,14 +1359,14 @@ static struct vm_struct *__get_vm_area_n
- 	struct vm_struct *area;
+ 	lock_page_memcg(page);
+-	if (mapping) {
++	if (mapping && mapping_use_writeback_tags(mapping)) {
+ 		struct inode *inode = mapping->host;
+ 		struct backing_dev_info *bdi = inode_to_bdi(inode);
+ 		unsigned long flags;
+@@ -2759,7 +2759,7 @@ int __test_set_page_writeback(struct pag
+ 	int ret;
  
- 	BUG_ON(in_interrupt());
--	if (flags & VM_IOREMAP)
--		align = 1ul << clamp_t(int, fls_long(size),
--				       PAGE_SHIFT, IOREMAP_MAX_ORDER);
+ 	lock_page_memcg(page);
+-	if (mapping) {
++	if (mapping && mapping_use_writeback_tags(mapping)) {
+ 		struct inode *inode = mapping->host;
+ 		struct backing_dev_info *bdi = inode_to_bdi(inode);
+ 		unsigned long flags;
+diff -puN mm/swap_state.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache mm/swap_state.c
+--- a/mm/swap_state.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache
++++ a/mm/swap_state.c
+@@ -37,6 +37,8 @@ struct address_space swapper_spaces[MAX_
+ 		.page_tree	= RADIX_TREE_INIT(GFP_ATOMIC|__GFP_NOWARN),
+ 		.i_mmap_writable = ATOMIC_INIT(0),
+ 		.a_ops		= &swap_aops,
++		/* swap cache doesn't use writeback related tags */
++		.flags		= 1 << AS_NO_WRITEBACK_TAGS,
+ 	}
+ };
+ 
+_
+
+Patches currently in -mm which might be from ying.huang@intel.com are
+
+
