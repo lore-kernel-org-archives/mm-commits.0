@@ -1,130 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-much-faster-proc-vmstat.patch removed from -mm tree
-Date: Mon, 10 Oct 2016 15:57:21 -0700
-Message-ID: <57fc1cd1.JCUpviFsBNg8/rJO%akpm@linux-foundation.org>
+Subject: [merged] ia64-implement-atomic64_dec_if_positive.patch removed
+ from -mm tree
+Date: Mon, 10 Oct 2016 15:57:14 -0700
+Message-ID: <57fc1cca.NP6Ltip/lQzmaphn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37996 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37959 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752340AbcJJW5W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:57:22 -0400
+        with ESMTP id S1752289AbcJJW5P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:57:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, andi@firstfloor.org, joe@perches.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: Vineet.Gupta1@synopsys.com, fengguang.wu@intel.com, fenghua.yu@intel.com, mingo@kernel.org, peterz@infradead.org, tony.luck@intel.com, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: much faster /proc/vmstat
+     Subject: ia64: implement atomic64_dec_if_positive
 has been removed from the -mm tree.  Its filename was
-     proc-much-faster-proc-vmstat.patch
+     ia64-implement-atomic64_dec_if_positive.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: much faster /proc/vmstat
+From:   Vineet Gupta <Vineet.Gupta1@synopsys.com>
+Subject: ia64: implement atomic64_dec_if_positive
 
-Every current KDE system has process named ksysguardd polling files below
-once in several seconds:
+This is based on s390 version and needed to get rid of
+CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
 
-	$ strace -e trace=open -p $(pidof ksysguardd)
-	Process 1812 attached
-	open("/etc/mtab", O_RDONLY|O_CLOEXEC)   = 8
-	open("/etc/mtab", O_RDONLY|O_CLOEXEC)   = 8
-	open("/proc/net/dev", O_RDONLY)         = 8
-	open("/proc/net/wireless", O_RDONLY)    = -1 ENOENT (No such file or directory)
-	open("/proc/stat", O_RDONLY)            = 8
-	open("/proc/vmstat", O_RDONLY)          = 8
-
-Hell knows what it is doing but speed up reading /proc/vmstat by 33%!
-
-Benchmark is open+read+close 1.000.000 times.
-
-			BEFORE
-$ perf stat -r 10 taskset -c 3 ./proc-vmstat
-
- Performance counter stats for 'taskset -c 3 ./proc-vmstat' (10 runs):
-
-      13146.768464      task-clock (msec)         #    0.960 CPUs utilized            ( +-  0.60% )
-                15      context-switches          #    0.001 K/sec                    ( +-  1.41% )
-                 1      cpu-migrations            #    0.000 K/sec                    ( +- 11.11% )
-               104      page-faults               #    0.008 K/sec                    ( +-  0.57% )
-    45,489,799,349      cycles                    #    3.460 GHz                      ( +-  0.03% )
-     9,970,175,743      stalled-cycles-frontend   #   21.92% frontend cycles idle     ( +-  0.10% )
-     2,800,298,015      stalled-cycles-backend    #   6.16% backend cycles idle       ( +-  0.32% )
-    79,241,190,850      instructions              #    1.74  insn per cycle
-                                                  #    0.13  stalled cycles per insn  ( +-  0.00% )
-    17,616,096,146      branches                  # 1339.956 M/sec                    ( +-  0.00% )
-       176,106,232      branch-misses             #    1.00% of all branches          ( +-  0.18% )
-
-      13.691078109 seconds time elapsed                                          ( +-  0.03% )
-      ^^^^^^^^^^^^
-
-			AFTER
-$ perf stat -r 10 taskset -c 3 ./proc-vmstat
-
- Performance counter stats for 'taskset -c 3 ./proc-vmstat' (10 runs):
-
-       8688.353749      task-clock (msec)         #    0.950 CPUs utilized            ( +-  1.25% )
-                10      context-switches          #    0.001 K/sec                    ( +-  2.13% )
-                 1      cpu-migrations            #    0.000 K/sec
-               104      page-faults               #    0.012 K/sec                    ( +-  0.56% )
-    30,384,010,730      cycles                    #    3.497 GHz                      ( +-  0.07% )
-    12,296,259,407      stalled-cycles-frontend   #   40.47% frontend cycles idle     ( +-  0.13% )
-     3,370,668,651      stalled-cycles-backend    #  11.09% backend cycles idle       ( +-  0.69% )
-    28,969,052,879      instructions              #    0.95  insn per cycle
-                                                  #    0.42  stalled cycles per insn  ( +-  0.01% )
-     6,308,245,891      branches                  #  726.058 M/sec                    ( +-  0.00% )
-       214,685,502      branch-misses             #    3.40% of all branches          ( +-  0.26% )
-
-       9.146081052 seconds time elapsed                                          ( +-  0.07% )
-       ^^^^^^^^^^^
-
-vsnprintf() is slow because:
-
-1.  format_decode() is busy looking for format specifier: 2 branches
-   per character (not in this case, but in others)
-
-2. approximately million branches while parsing format mini language
-   and everywhere
-
-3.  just look at what string() does /proc/vmstat is good case because
-   most of its content are strings
-
-Link: http://lkml.kernel.org/r/20160806125455.GA1187@p183.telecom.by
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/1473703083-8625-2-git-send-email-vgupta@synopsys.com
+Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/ia64/include/asm/atomic.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN mm/vmstat.c~proc-much-faster-proc-vmstat mm/vmstat.c
---- a/mm/vmstat.c~proc-much-faster-proc-vmstat
-+++ a/mm/vmstat.c
-@@ -1513,7 +1513,10 @@ static int vmstat_show(struct seq_file *
- {
- 	unsigned long *l = arg;
- 	unsigned long off = l - (unsigned long *)m->private;
--	seq_printf(m, "%s %lu\n", vmstat_text[off], *l);
-+
-+	seq_puts(m, vmstat_text[off]);
-+	seq_put_decimal_ull(m, ' ', *l);
-+	seq_putc(m, '\n');
- 	return 0;
- }
+diff -puN arch/ia64/include/asm/atomic.h~ia64-implement-atomic64_dec_if_positive arch/ia64/include/asm/atomic.h
+--- a/arch/ia64/include/asm/atomic.h~ia64-implement-atomic64_dec_if_positive
++++ a/arch/ia64/include/asm/atomic.h
+@@ -269,6 +269,22 @@ static __inline__ long atomic64_add_unle
  
+ #define atomic64_inc_not_zero(v) atomic64_add_unless((v), 1, 0)
+ 
++static __inline__ long atomic64_dec_if_positive(atomic64_t *v)
++{
++	long c, old, dec;
++	c = atomic64_read(v);
++	for (;;) {
++		dec = c - 1;
++		if (unlikely(dec < 0))
++			break;
++		old = atomic64_cmpxchg((v), c, dec);
++		if (likely(old == c))
++			break;
++		c = old;
++	}
++	return dec;
++}
++
+ /*
+  * Atomically add I to V and return TRUE if the resulting value is
+  * negative.
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from Vineet.Gupta1@synopsys.com are
 
-kbuild-simpler-generation-of-assembly-constants.patch
-make-isdigit-table-lookupless.patch
-kstrtox-smaller-_parse_integer.patch
 
