@@ -1,94 +1,90 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh.patch removed
- from -mm tree
-Date: Mon, 10 Oct 2016 15:45:46 -0700
-Message-ID: <57fc1a1a.RkLNhnwX7w6OAJWh%akpm@linux-foundation.org>
+ mm-hugetlb-improve-locking-in-dissolve_free_huge_pages.patch removed from
+ -mm tree
+Date: Mon, 10 Oct 2016 15:46:01 -0700
+Message-ID: <57fc1a29.NDrnGz0e66q7k1EP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37177 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37213 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752421AbcJJWpr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:47 -0400
+        with ESMTP id S1752340AbcJJWqC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:46:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: baoyou.xie@linaro.org, ralf@linux-mips.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: gerald.schaefer@de.ibm.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@linux.intel.com, heiko.carstens@de.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, rui.teng@linux.vnet.ibm.com, schwidefsky@de.ibm.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move phys_mem_access_prot_allowed() declaration to pgtable.h
+     Subject: mm/hugetlb: improve locking in dissolve_free_huge_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh.patch
+     mm-hugetlb-improve-locking-in-dissolve_free_huge_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Baoyou Xie <baoyou.xie@linaro.org>
-Subject: mm: move phys_mem_access_prot_allowed() declaration to pgtable.h
+From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Subject: mm/hugetlb: improve locking in dissolve_free_huge_pages()
 
-We get 1 warning when building kernel with W=1:
-drivers/char/mem.c:220:12: warning: no previous prototype for 'phys_mem_access_prot_allowed' [-Wmissing-prototypes]
- int __weak phys_mem_access_prot_allowed(struct file *file,
+For every pfn aligned to minimum_order, dissolve_free_huge_pages() will
+call dissolve_free_huge_page() which takes the hugetlb spinlock, even if
+the page is not huge at all or a hugepage that is in-use.
 
-In fact, its declaration is spreading to several header files in different
-architecture, but need to be declare in common header file.
+Improve this by doing the PageHuge() and page_count() checks already in
+dissolve_free_huge_pages() before calling dissolve_free_huge_page().  In
+dissolve_free_huge_page(), when holding the spinlock, those checks need to
+be revalidated.
 
-So this patch moves phys_mem_access_prot_allowed() to pgtable.h.
-
-Link: http://lkml.kernel.org/r/1473751597-12139-1-git-send-email-baoyou.xie@linaro.org
-Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Link: http://lkml.kernel.org/r/20160926172811.94033-4-gerald.schaefer@de.ibm.com
+Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Rui Teng <rui.teng@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgtable.h      |    2 --
- arch/x86/include/asm/pgtable_types.h |    2 --
- include/asm-generic/pgtable.h        |    3 +++
- 3 files changed, 3 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN arch/mips/include/asm/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh arch/mips/include/asm/pgtable.h
---- a/arch/mips/include/asm/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -673,8 +673,6 @@ static inline pmd_t pmdp_huge_get_and_cl
- struct file;
- pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
- 		unsigned long size, pgprot_t vma_prot);
--int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
--		unsigned long size, pgprot_t *vma_prot);
- #endif
+diff -puN mm/hugetlb.c~mm-hugetlb-improve-locking-in-dissolve_free_huge_pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-improve-locking-in-dissolve_free_huge_pages
++++ a/mm/hugetlb.c
+@@ -1476,14 +1476,20 @@ out:
+ int dissolve_free_huge_pages(unsigned long start_pfn, unsigned long end_pfn)
+ {
+ 	unsigned long pfn;
++	struct page *page;
+ 	int rc = 0;
  
- /*
-diff -puN arch/x86/include/asm/pgtable_types.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh arch/x86/include/asm/pgtable_types.h
---- a/arch/x86/include/asm/pgtable_types.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -439,8 +439,6 @@ extern pgprot_t pgprot_writethrough(pgpr
- struct file;
- pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
-                               unsigned long size, pgprot_t vma_prot);
--int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
--                              unsigned long size, pgprot_t *vma_prot);
+ 	if (!hugepages_supported())
+ 		return rc;
  
- /* Install a pte for a particular vaddr in kernel space. */
- void set_pte_vaddr(unsigned long vaddr, pte_t pte);
-diff -puN include/asm-generic/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-move-phys_mem_access_prot_allowed-declaration-to-pgtableh
-+++ a/include/asm-generic/pgtable.h
-@@ -800,6 +800,9 @@ static inline int pmd_clear_huge(pmd_t *
- #endif
- #endif
+-	for (pfn = start_pfn; pfn < end_pfn; pfn += 1 << minimum_order)
+-		if (rc = dissolve_free_huge_page(pfn_to_page(pfn)))
+-			break;
++	for (pfn = start_pfn; pfn < end_pfn; pfn += 1 << minimum_order) {
++		page = pfn_to_page(pfn);
++		if (PageHuge(page) && !page_count(page)) {
++			rc = dissolve_free_huge_page(page);
++			if (rc)
++				break;
++		}
++	}
  
-+struct file;
-+int phys_mem_access_prot_allowed(struct file *file, unsigned long pfn,
-+			unsigned long size, pgprot_t *vma_prot);
- #endif /* !__ASSEMBLY__ */
- 
- #ifndef io_remap_pfn_range
+ 	return rc;
+ }
 _
 
-Patches currently in -mm which might be from baoyou.xie@linaro.org are
+Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
 
