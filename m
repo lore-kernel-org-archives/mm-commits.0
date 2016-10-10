@@ -1,511 +1,306 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
- removed from -mm tree
-Date: Mon, 10 Oct 2016 15:57:28 -0700
-Message-ID: <57fc1cd8.7bhEkh0hF/E8SoyT%akpm@linux-foundation.org>
+ meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch removed from
+ -mm tree
+Date: Mon, 10 Oct 2016 15:57:30 -0700
+Message-ID: <57fc1cda.5Fvw5XWNVW6WuOfM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38007 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38010 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752356AbcJJW53 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:57:29 -0400
+        with ESMTP id S1752372AbcJJW5b (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:57:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, andi@firstfloor.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: joe@perches.com, adobriyan@gmail.com, andi@firstfloor.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: seq/proc: modify seq_put_decimal_[u]ll to take a const char *, not char
+     Subject: meminfo: break apart a very long seq_printf with #ifdefs
 has been removed from the -mm tree.  Its filename was
-     seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char.patch
+     meminfo-break-apart-a-very-long-seq_printf-with-ifdefs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: seq/proc: modify seq_put_decimal_[u]ll to take a const char *, not char
+Subject: meminfo: break apart a very long seq_printf with #ifdefs
 
-Allow some seq_puts removals by taking a string instead of a single char.
+Use a specific routine to emit most lines so that the code is
+easier to read and maintain.
 
-[akpm@linux-foundation.org: update vmstat_show(), per Joe]
-Link: http://lkml.kernel.org/r/667e1cf3d436de91a5698170a1e98d882905e956.1470704995.git.joe@perches.com
+akpm:
+   text    data     bss     dec     hex filename
+   2976       8       0    2984     ba8 fs/proc/meminfo.o before
+   2669       8       0    2677     a75 fs/proc/meminfo.o after
+
+Link: http://lkml.kernel.org/r/8fce7fdef2ba081a4ef531594e97da8a9feebb58.1470810406.git.joe@perches.com
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Joe Perches <joe@perches.com>
 Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c          |  178 +++++++++++++++++--------------------
- fs/proc/stat.c           |   49 ++++------
- fs/seq_file.c            |   57 +++++++++--
- include/linux/seq_file.h |    4 
- mm/vmstat.c              |    2 
- 5 files changed, 154 insertions(+), 136 deletions(-)
+ fs/proc/meminfo.c |  211 +++++++++++++++++++-------------------------
+ 1 file changed, 95 insertions(+), 116 deletions(-)
 
-diff -puN fs/proc/array.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char fs/proc/array.c
---- a/fs/proc/array.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char
-+++ a/fs/proc/array.c
-@@ -188,33 +188,26 @@ static inline void task_state(struct seq
- 
- 	seq_printf(m, "State:\t%s", get_task_state(p));
- 
--	seq_puts(m, "\nTgid:\t");
--	seq_put_decimal_ull(m, 0, tgid);
--	seq_puts(m, "\nNgid:\t");
--	seq_put_decimal_ull(m, 0, ngid);
--	seq_puts(m, "\nPid:\t");
--	seq_put_decimal_ull(m, 0, pid_nr_ns(pid, ns));
--	seq_puts(m, "\nPPid:\t");
--	seq_put_decimal_ull(m, 0, ppid);
--	seq_puts(m, "\nTracerPid:\t");
--	seq_put_decimal_ull(m, 0, tpid);
--	seq_puts(m, "\nUid:");
--	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->uid));
--	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->euid));
--	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->suid));
--	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->fsuid));
--	seq_puts(m, "\nGid:");
--	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->gid));
--	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->egid));
--	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->sgid));
--	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->fsgid));
--	seq_puts(m, "\nFDSize:\t");
--	seq_put_decimal_ull(m, 0, max_fds);
-+	seq_put_decimal_ull(m, "\nTgid:\t", tgid);
-+	seq_put_decimal_ull(m, "\nNgid:\t", ngid);
-+	seq_put_decimal_ull(m, "\nPid:\t", pid_nr_ns(pid, ns));
-+	seq_put_decimal_ull(m, "\nPPid:\t", ppid);
-+	seq_put_decimal_ull(m, "\nTracerPid:\t", tpid);
-+	seq_put_decimal_ull(m, "\nUid:\t", from_kuid_munged(user_ns, cred->uid));
-+	seq_put_decimal_ull(m, "\t", from_kuid_munged(user_ns, cred->euid));
-+	seq_put_decimal_ull(m, "\t", from_kuid_munged(user_ns, cred->suid));
-+	seq_put_decimal_ull(m, "\t", from_kuid_munged(user_ns, cred->fsuid));
-+	seq_put_decimal_ull(m, "\nGid:\t", from_kgid_munged(user_ns, cred->gid));
-+	seq_put_decimal_ull(m, "\t", from_kgid_munged(user_ns, cred->egid));
-+	seq_put_decimal_ull(m, "\t", from_kgid_munged(user_ns, cred->sgid));
-+	seq_put_decimal_ull(m, "\t", from_kgid_munged(user_ns, cred->fsgid));
-+	seq_put_decimal_ull(m, "\nFDSize:\t", max_fds);
- 
- 	seq_puts(m, "\nGroups:\t");
- 	group_info = cred->group_info;
- 	for (g = 0; g < group_info->ngroups; g++)
--		seq_put_decimal_ull(m, g ? ' ' : 0, from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
-+		seq_put_decimal_ull(m, g ? " " : "",
-+				    from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
- 	put_cred(cred);
- 	/* Trailing space shouldn't have been added in the first place. */
- 	seq_putc(m, ' ');
-@@ -222,16 +215,16 @@ static inline void task_state(struct seq
- #ifdef CONFIG_PID_NS
- 	seq_puts(m, "\nNStgid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_put_decimal_ull(m, '\t', task_tgid_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, "\t", task_tgid_nr_ns(p, pid->numbers[g].ns));
- 	seq_puts(m, "\nNSpid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_put_decimal_ull(m, '\t', task_pid_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, "\t", task_pid_nr_ns(p, pid->numbers[g].ns));
- 	seq_puts(m, "\nNSpgid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_put_decimal_ull(m, '\t', task_pgrp_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, "\t", task_pgrp_nr_ns(p, pid->numbers[g].ns));
- 	seq_puts(m, "\nNSsid:");
- 	for (g = ns->level; g <= pid->level; g++)
--		seq_put_decimal_ull(m, '\t', task_session_nr_ns(p, pid->numbers[g].ns));
-+		seq_put_decimal_ull(m, "\t", task_session_nr_ns(p, pid->numbers[g].ns));
- #endif
- 	seq_putc(m, '\n');
- }
-@@ -300,11 +293,9 @@ static inline void task_sig(struct seq_f
- 		unlock_task_sighand(p, &flags);
- 	}
- 
--	seq_puts(m, "Threads:\t");
--	seq_put_decimal_ull(m, 0, num_threads);
--	seq_puts(m, "\nSigQ:\t");
--	seq_put_decimal_ull(m, 0, qsize);
--	seq_put_decimal_ull(m, '/', qlim);
-+	seq_put_decimal_ull(m, "Threads:\t", num_threads);
-+	seq_put_decimal_ull(m, "\nSigQ:\t", qsize);
-+	seq_put_decimal_ull(m, "/", qlim);
- 
- 	/* render them all */
- 	render_sigset_t(m, "\nSigPnd:\t", &pending);
-@@ -352,8 +343,7 @@ static inline void task_cap(struct seq_f
- static inline void task_seccomp(struct seq_file *m, struct task_struct *p)
+diff -puN fs/proc/meminfo.c~meminfo-break-apart-a-very-long-seq_printf-with-ifdefs fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~meminfo-break-apart-a-very-long-seq_printf-with-ifdefs
++++ a/fs/proc/meminfo.c
+@@ -23,6 +23,25 @@ void __attribute__((weak)) arch_report_m
  {
- #ifdef CONFIG_SECCOMP
--	seq_puts(m, "Seccomp:\t");
--	seq_put_decimal_ull(m, 0, p->seccomp.mode);
-+	seq_put_decimal_ull(m, "Seccomp:\t", p->seccomp.mode);
- 	seq_putc(m, '\n');
- #endif
- }
-@@ -361,10 +351,8 @@ static inline void task_seccomp(struct s
- static inline void task_context_switch_counts(struct seq_file *m,
- 						struct task_struct *p)
- {
--	seq_puts(m, "voluntary_ctxt_switches:\t");
--	seq_put_decimal_ull(m, 0, p->nvcsw);
--	seq_puts(m, "\nnonvoluntary_ctxt_switches:\t");
--	seq_put_decimal_ull(m, 0, p->nivcsw);
-+	seq_put_decimal_ull(m, "voluntary_ctxt_switches:\t", p->nvcsw);
-+	seq_put_decimal_ull(m, "\nnonvoluntary_ctxt_switches:\t", p->nivcsw);
- 	seq_putc(m, '\n');
  }
  
-@@ -497,41 +485,41 @@ static int do_task_stat(struct seq_file
- 	start_time = nsec_to_clock_t(task->real_start_time);
- 
- 	seq_printf(m, "%d (%s) %c", pid_nr_ns(pid, ns), tcomm, state);
--	seq_put_decimal_ll(m, ' ', ppid);
--	seq_put_decimal_ll(m, ' ', pgid);
--	seq_put_decimal_ll(m, ' ', sid);
--	seq_put_decimal_ll(m, ' ', tty_nr);
--	seq_put_decimal_ll(m, ' ', tty_pgrp);
--	seq_put_decimal_ull(m, ' ', task->flags);
--	seq_put_decimal_ull(m, ' ', min_flt);
--	seq_put_decimal_ull(m, ' ', cmin_flt);
--	seq_put_decimal_ull(m, ' ', maj_flt);
--	seq_put_decimal_ull(m, ' ', cmaj_flt);
--	seq_put_decimal_ull(m, ' ', cputime_to_clock_t(utime));
--	seq_put_decimal_ull(m, ' ', cputime_to_clock_t(stime));
--	seq_put_decimal_ll(m, ' ', cputime_to_clock_t(cutime));
--	seq_put_decimal_ll(m, ' ', cputime_to_clock_t(cstime));
--	seq_put_decimal_ll(m, ' ', priority);
--	seq_put_decimal_ll(m, ' ', nice);
--	seq_put_decimal_ll(m, ' ', num_threads);
--	seq_put_decimal_ull(m, ' ', 0);
--	seq_put_decimal_ull(m, ' ', start_time);
--	seq_put_decimal_ull(m, ' ', vsize);
--	seq_put_decimal_ull(m, ' ', mm ? get_mm_rss(mm) : 0);
--	seq_put_decimal_ull(m, ' ', rsslim);
--	seq_put_decimal_ull(m, ' ', mm ? (permitted ? mm->start_code : 1) : 0);
--	seq_put_decimal_ull(m, ' ', mm ? (permitted ? mm->end_code : 1) : 0);
--	seq_put_decimal_ull(m, ' ', (permitted && mm) ? mm->start_stack : 0);
--	seq_put_decimal_ull(m, ' ', esp);
--	seq_put_decimal_ull(m, ' ', eip);
-+	seq_put_decimal_ll(m, " ", ppid);
-+	seq_put_decimal_ll(m, " ", pgid);
-+	seq_put_decimal_ll(m, " ", sid);
-+	seq_put_decimal_ll(m, " ", tty_nr);
-+	seq_put_decimal_ll(m, " ", tty_pgrp);
-+	seq_put_decimal_ull(m, " ", task->flags);
-+	seq_put_decimal_ull(m, " ", min_flt);
-+	seq_put_decimal_ull(m, " ", cmin_flt);
-+	seq_put_decimal_ull(m, " ", maj_flt);
-+	seq_put_decimal_ull(m, " ", cmaj_flt);
-+	seq_put_decimal_ull(m, " ", cputime_to_clock_t(utime));
-+	seq_put_decimal_ull(m, " ", cputime_to_clock_t(stime));
-+	seq_put_decimal_ll(m, " ", cputime_to_clock_t(cutime));
-+	seq_put_decimal_ll(m, " ", cputime_to_clock_t(cstime));
-+	seq_put_decimal_ll(m, " ", priority);
-+	seq_put_decimal_ll(m, " ", nice);
-+	seq_put_decimal_ll(m, " ", num_threads);
-+	seq_put_decimal_ull(m, " ", 0);
-+	seq_put_decimal_ull(m, " ", start_time);
-+	seq_put_decimal_ull(m, " ", vsize);
-+	seq_put_decimal_ull(m, " ", mm ? get_mm_rss(mm) : 0);
-+	seq_put_decimal_ull(m, " ", rsslim);
-+	seq_put_decimal_ull(m, " ", mm ? (permitted ? mm->start_code : 1) : 0);
-+	seq_put_decimal_ull(m, " ", mm ? (permitted ? mm->end_code : 1) : 0);
-+	seq_put_decimal_ull(m, " ", (permitted && mm) ? mm->start_stack : 0);
-+	seq_put_decimal_ull(m, " ", esp);
-+	seq_put_decimal_ull(m, " ", eip);
- 	/* The signal information here is obsolete.
- 	 * It must be decimal for Linux 2.0 compatibility.
- 	 * Use /proc/#/status for real-time signals.
- 	 */
--	seq_put_decimal_ull(m, ' ', task->pending.signal.sig[0] & 0x7fffffffUL);
--	seq_put_decimal_ull(m, ' ', task->blocked.sig[0] & 0x7fffffffUL);
--	seq_put_decimal_ull(m, ' ', sigign.sig[0] & 0x7fffffffUL);
--	seq_put_decimal_ull(m, ' ', sigcatch.sig[0] & 0x7fffffffUL);
-+	seq_put_decimal_ull(m, " ", task->pending.signal.sig[0] & 0x7fffffffUL);
-+	seq_put_decimal_ull(m, " ", task->blocked.sig[0] & 0x7fffffffUL);
-+	seq_put_decimal_ull(m, " ", sigign.sig[0] & 0x7fffffffUL);
-+	seq_put_decimal_ull(m, " ", sigcatch.sig[0] & 0x7fffffffUL);
- 
- 	/*
- 	 * We used to output the absolute kernel address, but that's an
-@@ -545,31 +533,31 @@ static int do_task_stat(struct seq_file
- 	else
- 		seq_puts(m, " 0");
- 
--	seq_put_decimal_ull(m, ' ', 0);
--	seq_put_decimal_ull(m, ' ', 0);
--	seq_put_decimal_ll(m, ' ', task->exit_signal);
--	seq_put_decimal_ll(m, ' ', task_cpu(task));
--	seq_put_decimal_ull(m, ' ', task->rt_priority);
--	seq_put_decimal_ull(m, ' ', task->policy);
--	seq_put_decimal_ull(m, ' ', delayacct_blkio_ticks(task));
--	seq_put_decimal_ull(m, ' ', cputime_to_clock_t(gtime));
--	seq_put_decimal_ll(m, ' ', cputime_to_clock_t(cgtime));
-+	seq_put_decimal_ull(m, " ", 0);
-+	seq_put_decimal_ull(m, " ", 0);
-+	seq_put_decimal_ll(m, " ", task->exit_signal);
-+	seq_put_decimal_ll(m, " ", task_cpu(task));
-+	seq_put_decimal_ull(m, " ", task->rt_priority);
-+	seq_put_decimal_ull(m, " ", task->policy);
-+	seq_put_decimal_ull(m, " ", delayacct_blkio_ticks(task));
-+	seq_put_decimal_ull(m, " ", cputime_to_clock_t(gtime));
-+	seq_put_decimal_ll(m, " ", cputime_to_clock_t(cgtime));
- 
- 	if (mm && permitted) {
--		seq_put_decimal_ull(m, ' ', mm->start_data);
--		seq_put_decimal_ull(m, ' ', mm->end_data);
--		seq_put_decimal_ull(m, ' ', mm->start_brk);
--		seq_put_decimal_ull(m, ' ', mm->arg_start);
--		seq_put_decimal_ull(m, ' ', mm->arg_end);
--		seq_put_decimal_ull(m, ' ', mm->env_start);
--		seq_put_decimal_ull(m, ' ', mm->env_end);
-+		seq_put_decimal_ull(m, " ", mm->start_data);
-+		seq_put_decimal_ull(m, " ", mm->end_data);
-+		seq_put_decimal_ull(m, " ", mm->start_brk);
-+		seq_put_decimal_ull(m, " ", mm->arg_start);
-+		seq_put_decimal_ull(m, " ", mm->arg_end);
-+		seq_put_decimal_ull(m, " ", mm->env_start);
-+		seq_put_decimal_ull(m, " ", mm->env_end);
- 	} else
--		seq_printf(m, " 0 0 0 0 0 0 0");
-+		seq_puts(m, " 0 0 0 0 0 0 0");
- 
- 	if (permitted)
--		seq_put_decimal_ll(m, ' ', task->exit_code);
-+		seq_put_decimal_ll(m, " ", task->exit_code);
- 	else
--		seq_put_decimal_ll(m, ' ', 0);
-+		seq_puts(m, " 0");
- 
- 	seq_putc(m, '\n');
- 	if (mm)
-@@ -605,13 +593,13 @@ int proc_pid_statm(struct seq_file *m, s
- 	 * seq_printf(m, "%lu %lu %lu %lu 0 %lu 0\n",
- 	 *               size, resident, shared, text, data);
- 	 */
--	seq_put_decimal_ull(m, 0, size);
--	seq_put_decimal_ull(m, ' ', resident);
--	seq_put_decimal_ull(m, ' ', shared);
--	seq_put_decimal_ull(m, ' ', text);
--	seq_put_decimal_ull(m, ' ', 0);
--	seq_put_decimal_ull(m, ' ', data);
--	seq_put_decimal_ull(m, ' ', 0);
-+	seq_put_decimal_ull(m, "", size);
-+	seq_put_decimal_ull(m, " ", resident);
-+	seq_put_decimal_ull(m, " ", shared);
-+	seq_put_decimal_ull(m, " ", text);
-+	seq_put_decimal_ull(m, " ", 0);
-+	seq_put_decimal_ull(m, " ", data);
-+	seq_put_decimal_ull(m, " ", 0);
- 	seq_putc(m, '\n');
- 
- 	return 0;
-diff -puN fs/proc/stat.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char fs/proc/stat.c
---- a/fs/proc/stat.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char
-+++ a/fs/proc/stat.c
-@@ -115,17 +115,16 @@ static int show_stat(struct seq_file *p,
- 	}
- 	sum += arch_irq_stat();
- 
--	seq_puts(p, "cpu ");
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(user));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(nice));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(system));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(idle));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(iowait));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(irq));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(softirq));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(steal));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(guest));
--	seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(guest_nice));
-+	seq_put_decimal_ull(p, "cpu  ", cputime64_to_clock_t(user));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(nice));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(system));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(idle));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(iowait));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(irq));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(softirq));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(steal));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(guest));
-+	seq_put_decimal_ull(p, " ", cputime64_to_clock_t(guest_nice));
- 	seq_putc(p, '\n');
- 
- 	for_each_online_cpu(i) {
-@@ -141,23 +140,23 @@ static int show_stat(struct seq_file *p,
- 		guest = kcpustat_cpu(i).cpustat[CPUTIME_GUEST];
- 		guest_nice = kcpustat_cpu(i).cpustat[CPUTIME_GUEST_NICE];
- 		seq_printf(p, "cpu%d", i);
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(user));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(nice));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(system));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(idle));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(iowait));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(irq));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(softirq));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(steal));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(guest));
--		seq_put_decimal_ull(p, ' ', cputime64_to_clock_t(guest_nice));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(user));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(nice));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(system));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(idle));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(iowait));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(irq));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(softirq));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(steal));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(guest));
-+		seq_put_decimal_ull(p, " ", cputime64_to_clock_t(guest_nice));
- 		seq_putc(p, '\n');
- 	}
--	seq_printf(p, "intr %llu", (unsigned long long)sum);
-+	seq_put_decimal_ull(p, "intr ", (unsigned long long)sum);
- 
- 	/* sum again ? it could be updated? */
- 	for_each_irq_nr(j)
--		seq_put_decimal_ull(p, ' ', kstat_irqs_usr(j));
-+		seq_put_decimal_ull(p, " ", kstat_irqs_usr(j));
- 
- 	seq_printf(p,
- 		"\nctxt %llu\n"
-@@ -171,10 +170,10 @@ static int show_stat(struct seq_file *p,
- 		nr_running(),
- 		nr_iowait());
- 
--	seq_printf(p, "softirq %llu", (unsigned long long)sum_softirq);
-+	seq_put_decimal_ull(p, "softirq ", (unsigned long long)sum_softirq);
- 
- 	for (i = 0; i < NR_SOFTIRQS; i++)
--		seq_put_decimal_ull(p, ' ', per_softirq_sums[i]);
-+		seq_put_decimal_ull(p, " ", per_softirq_sums[i]);
- 	seq_putc(p, '\n');
- 
- 	return 0;
-diff -puN fs/seq_file.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char fs/seq_file.c
---- a/fs/seq_file.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char
-+++ a/fs/seq_file.c
-@@ -679,11 +679,11 @@ EXPORT_SYMBOL(seq_puts);
- /*
-  * A helper routine for putting decimal numbers without rich format of printf().
-  * only 'unsigned long long' is supported.
-- * This routine will put one byte delimiter + number into seq_file.
-+ * This routine will put strlen(delimiter) + number into seq_file.
-  * This routine is very quick when you show lots of numbers.
-  * In usual cases, it will be better to use seq_printf(). It's easier to read.
-  */
--void seq_put_decimal_ull(struct seq_file *m, char delimiter,
-+void seq_put_decimal_ull(struct seq_file *m, const char *delimiter,
- 			 unsigned long long num)
- {
- 	int len;
-@@ -691,8 +691,15 @@ void seq_put_decimal_ull(struct seq_file
- 	if (m->count + 2 >= m->size) /* we'll write 2 bytes at least */
- 		goto overflow;
- 
--	if (delimiter)
--		m->buf[m->count++] = delimiter;
-+	len = strlen(delimiter);
-+	if (m->count + len >= m->size)
-+		goto overflow;
-+
-+	memcpy(m->buf + m->count, delimiter, len);
-+	m->count += len;
-+
-+	if (m->count + 1 >= m->size)
-+		goto overflow;
- 
- 	if (num < 10) {
- 		m->buf[m->count++] = num + '0';
-@@ -702,6 +709,7 @@ void seq_put_decimal_ull(struct seq_file
- 	len = num_to_str(m->buf + m->count, m->size - m->count, num);
- 	if (!len)
- 		goto overflow;
-+
- 	m->count += len;
- 	return;
- 
-@@ -710,19 +718,42 @@ overflow:
- }
- EXPORT_SYMBOL(seq_put_decimal_ull);
- 
--void seq_put_decimal_ll(struct seq_file *m, char delimiter, long long num)
-+void seq_put_decimal_ll(struct seq_file *m, const char *delimiter, long long num)
- {
++static void show_val_kb(struct seq_file *m, const char *s, unsigned long num)
++{
++	char v[32];
++	static const char blanks[7] = {' ', ' ', ' ', ' ',' ', ' ', ' '};
 +	int len;
 +
-+	if (m->count + 3 >= m->size) /* we'll write 2 bytes at least */
-+		goto overflow;
++	len = num_to_str(v, sizeof(v), num << (PAGE_SHIFT - 10));
 +
-+	len = strlen(delimiter);
-+	if (m->count + len >= m->size)
-+		goto overflow;
++	seq_write(m, s, 16);
 +
-+	memcpy(m->buf + m->count, delimiter, len);
-+	m->count += len;
++	if (len > 0) {
++		if (len < 8)
++			seq_write(m, blanks, 8 - len);
 +
-+	if (m->count + 2 >= m->size)
-+		goto overflow;
-+
- 	if (num < 0) {
--		if (m->count + 3 >= m->size) {
--			seq_set_overflow(m);
--			return;
--		}
--		if (delimiter)
--			m->buf[m->count++] = delimiter;
-+		m->buf[m->count++] = '-';
- 		num = -num;
--		delimiter = '-';
- 	}
--	seq_put_decimal_ull(m, delimiter, num);
-+
-+	if (num < 10) {
-+		m->buf[m->count++] = num + '0';
-+		return;
++		seq_write(m, v, len);
 +	}
++	seq_write(m, " kB\n", 4);
++}
 +
-+	len = num_to_str(m->buf + m->count, m->size - m->count, num);
-+	if (!len)
-+		goto overflow;
+ static int meminfo_proc_show(struct seq_file *m, void *v)
+ {
+ 	struct sysinfo i;
+@@ -32,10 +51,6 @@ static int meminfo_proc_show(struct seq_
+ 	unsigned long pages[NR_LRU_LISTS];
+ 	int lru;
+ 
+-/*
+- * display in kilobytes.
+- */
+-#define K(x) ((x) << (PAGE_SHIFT - 10))
+ 	si_meminfo(&i);
+ 	si_swapinfo(&i);
+ 	committed = percpu_counter_read_positive(&vm_committed_as);
+@@ -50,136 +65,100 @@ static int meminfo_proc_show(struct seq_
+ 
+ 	available = si_mem_available();
+ 
+-	/*
+-	 * Tagged format, for easy grepping and expansion.
+-	 */
+-	seq_printf(m,
+-		"MemTotal:       %8lu kB\n"
+-		"MemFree:        %8lu kB\n"
+-		"MemAvailable:   %8lu kB\n"
+-		"Buffers:        %8lu kB\n"
+-		"Cached:         %8lu kB\n"
+-		"SwapCached:     %8lu kB\n"
+-		"Active:         %8lu kB\n"
+-		"Inactive:       %8lu kB\n"
+-		"Active(anon):   %8lu kB\n"
+-		"Inactive(anon): %8lu kB\n"
+-		"Active(file):   %8lu kB\n"
+-		"Inactive(file): %8lu kB\n"
+-		"Unevictable:    %8lu kB\n"
+-		"Mlocked:        %8lu kB\n"
+-#ifdef CONFIG_HIGHMEM
+-		"HighTotal:      %8lu kB\n"
+-		"HighFree:       %8lu kB\n"
+-		"LowTotal:       %8lu kB\n"
+-		"LowFree:        %8lu kB\n"
+-#endif
+-#ifndef CONFIG_MMU
+-		"MmapCopy:       %8lu kB\n"
+-#endif
+-		"SwapTotal:      %8lu kB\n"
+-		"SwapFree:       %8lu kB\n"
+-		"Dirty:          %8lu kB\n"
+-		"Writeback:      %8lu kB\n"
+-		"AnonPages:      %8lu kB\n"
+-		"Mapped:         %8lu kB\n"
+-		"Shmem:          %8lu kB\n"
+-		"Slab:           %8lu kB\n"
+-		"SReclaimable:   %8lu kB\n"
+-		"SUnreclaim:     %8lu kB\n"
+-		"KernelStack:    %8lu kB\n"
+-		"PageTables:     %8lu kB\n"
+-#ifdef CONFIG_QUICKLIST
+-		"Quicklists:     %8lu kB\n"
+-#endif
+-		"NFS_Unstable:   %8lu kB\n"
+-		"Bounce:         %8lu kB\n"
+-		"WritebackTmp:   %8lu kB\n"
+-		"CommitLimit:    %8lu kB\n"
+-		"Committed_AS:   %8lu kB\n"
+-		"VmallocTotal:   %8lu kB\n"
+-		"VmallocUsed:    %8lu kB\n"
+-		"VmallocChunk:   %8lu kB\n"
+-#ifdef CONFIG_MEMORY_FAILURE
+-		"HardwareCorrupted: %5lu kB\n"
+-#endif
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		"AnonHugePages:  %8lu kB\n"
+-		"ShmemHugePages: %8lu kB\n"
+-		"ShmemPmdMapped: %8lu kB\n"
+-#endif
+-#ifdef CONFIG_CMA
+-		"CmaTotal:       %8lu kB\n"
+-		"CmaFree:        %8lu kB\n"
+-#endif
+-		,
+-		K(i.totalram),
+-		K(i.freeram),
+-		K(available),
+-		K(i.bufferram),
+-		K(cached),
+-		K(total_swapcache_pages()),
+-		K(pages[LRU_ACTIVE_ANON]   + pages[LRU_ACTIVE_FILE]),
+-		K(pages[LRU_INACTIVE_ANON] + pages[LRU_INACTIVE_FILE]),
+-		K(pages[LRU_ACTIVE_ANON]),
+-		K(pages[LRU_INACTIVE_ANON]),
+-		K(pages[LRU_ACTIVE_FILE]),
+-		K(pages[LRU_INACTIVE_FILE]),
+-		K(pages[LRU_UNEVICTABLE]),
+-		K(global_page_state(NR_MLOCK)),
++	show_val_kb(m, "MemTotal:       ", i.totalram);
++	show_val_kb(m, "MemFree:        ", i.freeram);
++	show_val_kb(m, "MemAvailable:   ", available);
++	show_val_kb(m, "Buffers:        ", i.bufferram);
++	show_val_kb(m, "Cached:         ", cached);
++	show_val_kb(m, "SwapCached:     ", total_swapcache_pages());
++	show_val_kb(m, "Active:         ", pages[LRU_ACTIVE_ANON] +
++					   pages[LRU_ACTIVE_FILE]);
++	show_val_kb(m, "Inactive:       ", pages[LRU_INACTIVE_ANON] +
++					   pages[LRU_INACTIVE_FILE]);
++	show_val_kb(m, "Active(anon):   ", pages[LRU_ACTIVE_ANON]);
++	show_val_kb(m, "Inactive(anon): ", pages[LRU_INACTIVE_ANON]);
++	show_val_kb(m, "Active(file):   ", pages[LRU_ACTIVE_FILE]);
++	show_val_kb(m, "Inactive(file): ", pages[LRU_INACTIVE_FILE]);
++	show_val_kb(m, "Unevictable:    ", pages[LRU_UNEVICTABLE]);
++	show_val_kb(m, "Mlocked:        ", global_page_state(NR_MLOCK));
 +
-+	m->count += len;
-+	return;
+ #ifdef CONFIG_HIGHMEM
+-		K(i.totalhigh),
+-		K(i.freehigh),
+-		K(i.totalram-i.totalhigh),
+-		K(i.freeram-i.freehigh),
++	show_val_kb(m, "HighTotal:      ", i.totalhigh);
++	show_val_kb(m, "HighFree:       ", i.freehigh);
++	show_val_kb(m, "LowTotal:       ", i.totalram - i.totalhigh);
++	show_val_kb(m, "LowFree:        ", i.freeram - i.freehigh);
+ #endif
 +
-+overflow:
-+	seq_set_overflow(m);
- }
- EXPORT_SYMBOL(seq_put_decimal_ll);
+ #ifndef CONFIG_MMU
+-		K((unsigned long) atomic_long_read(&mmap_pages_allocated)),
++	show_val_kb(m, "MmapCopy:       ",
++		    (unsigned long)atomic_long_read(&mmap_pages_allocated));
+ #endif
+-		K(i.totalswap),
+-		K(i.freeswap),
+-		K(global_node_page_state(NR_FILE_DIRTY)),
+-		K(global_node_page_state(NR_WRITEBACK)),
+-		K(global_node_page_state(NR_ANON_MAPPED)),
+-		K(global_node_page_state(NR_FILE_MAPPED)),
+-		K(i.sharedram),
+-		K(global_page_state(NR_SLAB_RECLAIMABLE) +
+-				global_page_state(NR_SLAB_UNRECLAIMABLE)),
+-		K(global_page_state(NR_SLAB_RECLAIMABLE)),
+-		K(global_page_state(NR_SLAB_UNRECLAIMABLE)),
+-		global_page_state(NR_KERNEL_STACK_KB),
+-		K(global_page_state(NR_PAGETABLE)),
++
++	show_val_kb(m, "SwapTotal:      ", i.totalswap);
++	show_val_kb(m, "SwapFree:       ", i.freeswap);
++	show_val_kb(m, "Dirty:          ",
++		    global_node_page_state(NR_FILE_DIRTY));
++	show_val_kb(m, "Writeback:      ",
++		    global_node_page_state(NR_WRITEBACK));
++	show_val_kb(m, "AnonPages:      ",
++		    global_node_page_state(NR_ANON_MAPPED));
++	show_val_kb(m, "Mapped:         ",
++		    global_node_page_state(NR_FILE_MAPPED));
++	show_val_kb(m, "Shmem:          ", i.sharedram);
++	show_val_kb(m, "Slab:           ",
++		    global_page_state(NR_SLAB_RECLAIMABLE) +
++		    global_page_state(NR_SLAB_UNRECLAIMABLE));
++
++	show_val_kb(m, "SReclaimable:   ",
++		    global_page_state(NR_SLAB_RECLAIMABLE));
++	show_val_kb(m, "SUnreclaim:     ",
++		    global_page_state(NR_SLAB_UNRECLAIMABLE));
++	seq_printf(m, "KernelStack:    %8lu kB\n",
++		   global_page_state(NR_KERNEL_STACK_KB));
++	show_val_kb(m, "PageTables:     ",
++		    global_page_state(NR_PAGETABLE));
+ #ifdef CONFIG_QUICKLIST
+-		K(quicklist_total_size()),
++	show_val_kb(m, "Quicklists:     ", quicklist_total_size());
+ #endif
+-		K(global_node_page_state(NR_UNSTABLE_NFS)),
+-		K(global_page_state(NR_BOUNCE)),
+-		K(global_node_page_state(NR_WRITEBACK_TEMP)),
+-		K(vm_commit_limit()),
+-		K(committed),
+-		(unsigned long)VMALLOC_TOTAL >> 10,
+-		0ul, // used to be vmalloc 'used'
+-		0ul  // used to be vmalloc 'largest_chunk'
++
++	show_val_kb(m, "NFS_Unstable:   ",
++		    global_node_page_state(NR_UNSTABLE_NFS));
++	show_val_kb(m, "Bounce:         ",
++		    global_page_state(NR_BOUNCE));
++	show_val_kb(m, "WritebackTmp:   ",
++		    global_node_page_state(NR_WRITEBACK_TEMP));
++	show_val_kb(m, "CommitLimit:    ", vm_commit_limit());
++	show_val_kb(m, "Committed_AS:   ", committed);
++	seq_printf(m, "VmallocTotal:   %8lu kB\n",
++		   (unsigned long)VMALLOC_TOTAL >> 10);
++	show_val_kb(m, "VmallocUsed:    ", 0ul);
++	show_val_kb(m, "VmallocChunk:   ", 0ul);
++
+ #ifdef CONFIG_MEMORY_FAILURE
+-		, atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10)
++	seq_printf(m, "HardwareCorrupted: %5lu kB\n",
++		   atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10));
+ #endif
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		, K(global_node_page_state(NR_ANON_THPS) * HPAGE_PMD_NR)
+-		, K(global_node_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR)
+-		, K(global_node_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR)
++	show_val_kb(m, "AnonHugePages:  ",
++		    global_node_page_state(NR_ANON_THPS) * HPAGE_PMD_NR);
++	show_val_kb(m, "ShmemHugePages: ",
++		    global_node_page_state(NR_SHMEM_THPS) * HPAGE_PMD_NR);
++	show_val_kb(m, "ShmemPmdMapped: ",
++		    global_node_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR);
+ #endif
++
+ #ifdef CONFIG_CMA
+-		, K(totalcma_pages)
+-		, K(global_page_state(NR_FREE_CMA_PAGES))
++	show_val_kb(m, "CmaTotal:       ", totalcma_pages);
++	show_val_kb(m, "CmaFree:        ",
++		    global_page_state(NR_FREE_CMA_PAGES));
+ #endif
+-		);
  
-diff -puN include/linux/seq_file.h~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char include/linux/seq_file.h
---- a/include/linux/seq_file.h~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char
-+++ a/include/linux/seq_file.h
-@@ -117,9 +117,9 @@ __printf(2, 3)
- void seq_printf(struct seq_file *m, const char *fmt, ...);
- void seq_putc(struct seq_file *m, char c);
- void seq_puts(struct seq_file *m, const char *s);
--void seq_put_decimal_ull(struct seq_file *m, char delimiter,
-+void seq_put_decimal_ull(struct seq_file *m, const char *delimiter,
- 			 unsigned long long num);
--void seq_put_decimal_ll(struct seq_file *m, char delimiter, long long num);
-+void seq_put_decimal_ll(struct seq_file *m, const char *delimiter, long long num);
- void seq_escape(struct seq_file *m, const char *s, const char *esc);
+ 	hugetlb_report_meminfo(m);
  
- void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
-diff -puN mm/vmstat.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char mm/vmstat.c
---- a/mm/vmstat.c~seq-proc-modify-seq_put_decimal_ll-to-take-a-const-char-not-char
-+++ a/mm/vmstat.c
-@@ -1515,7 +1515,7 @@ static int vmstat_show(struct seq_file *
- 	unsigned long off = l - (unsigned long *)m->private;
+ 	arch_report_meminfo(m);
  
- 	seq_puts(m, vmstat_text[off]);
--	seq_put_decimal_ull(m, ' ', *l);
-+	seq_put_decimal_ull(m, " ", *l);
- 	seq_putc(m, '\n');
  	return 0;
+-#undef K
  }
+ 
+ static int meminfo_proc_open(struct inode *inode, struct file *file)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
