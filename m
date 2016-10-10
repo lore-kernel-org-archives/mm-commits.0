@@ -1,65 +1,238 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-pagewalk-fix-the-comment-for-test_walk.patch removed
- from -mm tree
-Date: Mon, 10 Oct 2016 15:43:48 -0700
-Message-ID: <57fc19a4.BB+a9icNwGUFjOFj%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_owner-move-page_owner-specific-function-to-page_ownerc.patch
+ removed from -mm tree
+Date: Mon, 10 Oct 2016 15:43:35 -0700
+Message-ID: <57fc1997.aiyEYYOFKwpTvEeS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36639 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36580 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752546AbcJJWns (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:48 -0400
+        with ESMTP id S1752286AbcJJWnn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: james.morse@arm.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: pagewalk: fix the comment for test_walk
+     Subject: mm/page_owner: move page_owner specific function to page_owner.c
 has been removed from the -mm tree.  Its filename was
-     mm-pagewalk-fix-the-comment-for-test_walk.patch
+     mm-page_owner-move-page_owner-specific-function-to-page_ownerc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: James Morse <james.morse@arm.com>
-Subject: mm: pagewalk: fix the comment for test_walk
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/page_owner: move page_owner specific function to page_owner.c
 
-Modify the comment describing struct mm_walk->test_walk()s behaviour to
-match the comment on walk_page_test() and the behaviour of
-walk_page_vma().
+There is no reason that page_owner specific function resides on vmstat.c.
 
-Fixes: fafaa4264eba4 ("pagewalk: improve vma handling")
-Link: http://lkml.kernel.org/r/1471622518-21980-1-git-send-email-james.morse@arm.com
-Signed-off-by: James Morse <james.morse@arm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: http://lkml.kernel.org/r/1471315879-32294-4-git-send-email-iamjoonsoo.kim@lge.com
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/page_owner.h |    2 
+ mm/page_owner.c            |   77 ++++++++++++++++++++++++++++++++++
+ mm/vmstat.c                |   79 -----------------------------------
+ 3 files changed, 79 insertions(+), 79 deletions(-)
 
-diff -puN include/linux/mm.h~mm-pagewalk-fix-the-comment-for-test_walk include/linux/mm.h
---- a/include/linux/mm.h~mm-pagewalk-fix-the-comment-for-test_walk
-+++ a/include/linux/mm.h
-@@ -1197,10 +1197,10 @@ void unmap_vmas(struct mmu_gather *tlb,
-  * @pte_hole: if set, called for each hole at all levels
-  * @hugetlb_entry: if set, called for each hugetlb entry
-  * @test_walk: caller specific callback function to determine whether
-- *             we walk over the current vma or not. A positive returned
-+ *             we walk over the current vma or not. Returning 0
-  *             value means "do page table walk over the current vma,"
-  *             and a negative one means "abort current page table walk
-- *             right now." 0 means "skip the current vma."
-+ *             right now." 1 means "skip the current vma."
-  * @mm:        mm_struct representing the target process of page table walk
-  * @vma:       vma currently walked (NULL if walking outside vmas)
-  * @private:   private data for callbacks' usage
-_
-
-Patches currently in -mm which might be from james.morse@arm.com are
-
-
+diff -puN include/linux/page_owner.h~mm-page_owner-move-page_owner-specific-function-to-page_ownerc include/linux/page_owner.h
+--- a/include/linux/page_owner.h~mm-page_owner-move-page_owner-specific-function-to-page_ownerc
++++ a/include/linux/page_owner.h
+@@ -14,6 +14,8 @@ extern void __split_page_owner(struct pa
+ extern void __copy_page_owner(struct page *oldpage, struct page *newpage);
+ extern void __set_page_owner_migrate_reason(struct page *page, int reason);
+ extern void __dump_page_owner(struct page *page);
++extern void pagetypeinfo_showmixedcount_print(struct seq_file *m,
++					pg_data_t *pgdat, struct zone *zone);
+ 
+ static inline void reset_page_owner(struct page *page, unsigned int order)
+ {
+diff -puN mm/page_owner.c~mm-page_owner-move-page_owner-specific-function-to-page_ownerc mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-move-page_owner-specific-function-to-page_ownerc
++++ a/mm/page_owner.c
+@@ -8,6 +8,7 @@
+ #include <linux/jump_label.h>
+ #include <linux/migrate.h>
+ #include <linux/stackdepot.h>
++#include <linux/seq_file.h>
+ 
+ #include "internal.h"
+ 
+@@ -214,6 +215,82 @@ void __copy_page_owner(struct page *oldp
+ 	__set_bit(PAGE_EXT_OWNER, &new_ext->flags);
+ }
+ 
++void pagetypeinfo_showmixedcount_print(struct seq_file *m,
++				       pg_data_t *pgdat, struct zone *zone)
++{
++	struct page *page;
++	struct page_ext *page_ext;
++	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
++	unsigned long end_pfn = pfn + zone->spanned_pages;
++	unsigned long count[MIGRATE_TYPES] = { 0, };
++	int pageblock_mt, page_mt;
++	int i;
++
++	/* Scan block by block. First and last block may be incomplete */
++	pfn = zone->zone_start_pfn;
++
++	/*
++	 * Walk the zone in pageblock_nr_pages steps. If a page block spans
++	 * a zone boundary, it will be double counted between zones. This does
++	 * not matter as the mixed block count will still be correct
++	 */
++	for (; pfn < end_pfn; ) {
++		if (!pfn_valid(pfn)) {
++			pfn = ALIGN(pfn + 1, MAX_ORDER_NR_PAGES);
++			continue;
++		}
++
++		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
++		block_end_pfn = min(block_end_pfn, end_pfn);
++
++		page = pfn_to_page(pfn);
++		pageblock_mt = get_pageblock_migratetype(page);
++
++		for (; pfn < block_end_pfn; pfn++) {
++			if (!pfn_valid_within(pfn))
++				continue;
++
++			page = pfn_to_page(pfn);
++
++			if (page_zone(page) != zone)
++				continue;
++
++			if (PageBuddy(page)) {
++				pfn += (1UL << page_order(page)) - 1;
++				continue;
++			}
++
++			if (PageReserved(page))
++				continue;
++
++			page_ext = lookup_page_ext(page);
++			if (unlikely(!page_ext))
++				continue;
++
++			if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags))
++				continue;
++
++			page_mt = gfpflags_to_migratetype(page_ext->gfp_mask);
++			if (pageblock_mt != page_mt) {
++				if (is_migrate_cma(pageblock_mt))
++					count[MIGRATE_MOVABLE]++;
++				else
++					count[pageblock_mt]++;
++
++				pfn = block_end_pfn;
++				break;
++			}
++			pfn += (1UL << page_ext->order) - 1;
++		}
++	}
++
++	/* Print counts */
++	seq_printf(m, "Node %d, zone %8s ", pgdat->node_id, zone->name);
++	for (i = 0; i < MIGRATE_TYPES; i++)
++		seq_printf(m, "%12lu ", count[i]);
++	seq_putc(m, '\n');
++}
++
+ static ssize_t
+ print_page_owner(char __user *buf, size_t count, unsigned long pfn,
+ 		struct page *page, struct page_ext *page_ext,
+diff -puN mm/vmstat.c~mm-page_owner-move-page_owner-specific-function-to-page_ownerc mm/vmstat.c
+--- a/mm/vmstat.c~mm-page_owner-move-page_owner-specific-function-to-page_ownerc
++++ a/mm/vmstat.c
+@@ -1254,85 +1254,6 @@ static int pagetypeinfo_showblockcount(s
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_PAGE_OWNER
+-static void pagetypeinfo_showmixedcount_print(struct seq_file *m,
+-							pg_data_t *pgdat,
+-							struct zone *zone)
+-{
+-	struct page *page;
+-	struct page_ext *page_ext;
+-	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
+-	unsigned long end_pfn = pfn + zone->spanned_pages;
+-	unsigned long count[MIGRATE_TYPES] = { 0, };
+-	int pageblock_mt, page_mt;
+-	int i;
+-
+-	/* Scan block by block. First and last block may be incomplete */
+-	pfn = zone->zone_start_pfn;
+-
+-	/*
+-	 * Walk the zone in pageblock_nr_pages steps. If a page block spans
+-	 * a zone boundary, it will be double counted between zones. This does
+-	 * not matter as the mixed block count will still be correct
+-	 */
+-	for (; pfn < end_pfn; ) {
+-		if (!pfn_valid(pfn)) {
+-			pfn = ALIGN(pfn + 1, MAX_ORDER_NR_PAGES);
+-			continue;
+-		}
+-
+-		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
+-		block_end_pfn = min(block_end_pfn, end_pfn);
+-
+-		page = pfn_to_page(pfn);
+-		pageblock_mt = get_pageblock_migratetype(page);
+-
+-		for (; pfn < block_end_pfn; pfn++) {
+-			if (!pfn_valid_within(pfn))
+-				continue;
+-
+-			page = pfn_to_page(pfn);
+-
+-			if (page_zone(page) != zone)
+-				continue;
+-
+-			if (PageBuddy(page)) {
+-				pfn += (1UL << page_order(page)) - 1;
+-				continue;
+-			}
+-
+-			if (PageReserved(page))
+-				continue;
+-
+-			page_ext = lookup_page_ext(page);
+-			if (unlikely(!page_ext))
+-				continue;
+-
+-			if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags))
+-				continue;
+-
+-			page_mt = gfpflags_to_migratetype(page_ext->gfp_mask);
+-			if (pageblock_mt != page_mt) {
+-				if (is_migrate_cma(pageblock_mt))
+-					count[MIGRATE_MOVABLE]++;
+-				else
+-					count[pageblock_mt]++;
+-
+-				pfn = block_end_pfn;
+-				break;
+-			}
+-			pfn += (1UL << page_ext->order) - 1;
+-		}
+-	}
+-
+-	/* Print counts */
+-	seq_printf(m, "Node %d, zone %8s ", pgdat->node_id, zone->name);
+-	for (i = 0; i < MIGRATE_TYPES; i++)
+-		seq_printf(m, "%12lu ", count[i]);
+-	seq_putc(m, '\n');
+-}
+-#endif /* CONFIG_PAGE_OWNER */
