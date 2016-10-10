@@ -1,69 +1,110 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-ocfs2-super-remove-deprecated-create_singlethread_workqueue.patch
+ mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
  removed from -mm tree
-Date: Mon, 10 Oct 2016 15:42:35 -0700
-Message-ID: <57fc195b.jeczGB9xGDufhQ9+%akpm@linux-foundation.org>
+Date: Mon, 10 Oct 2016 15:43:14 -0700
+Message-ID: <57fc1982.USXwIsDuCjUiktGz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36591 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36638 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752257AbcJJWnj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:39 -0400
+        with ESMTP id S1752183AbcJJWnl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhaktipriya96@gmail.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@versity.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ocfs2/super: remove deprecated create_singlethread_workqueue()
+     Subject: mm, compaction: require only min watermarks for non-costly orders
 has been removed from the -mm tree.  Its filename was
-     fs-ocfs2-super-remove-deprecated-create_singlethread_workqueue.patch
+     mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Subject: fs/ocfs2/super: remove deprecated create_singlethread_workqueue()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: require only min watermarks for non-costly orders
 
-The workqueue "ocfs2_wq" queues multiple work items viz
-&osb->la_enable_wq, &journal->j_recovery_work, &os->os_orphan_scan_work,
-&osb->osb_truncate_log_wq which require strict execution ordering.  Hence,
-an ordered dedicated workqueue has been used.
+The __compaction_suitable() function checks the low watermark plus a
+compact_gap() gap to decide if there's enough free memory to perform
+compaction.  Then __isolate_free_page uses low watermark check to decide
+if particular free page can be isolated.  In the latter case, using low
+watermark is needlessly pessimistic, as the free page isolations are only
+temporary.  For __compaction_suitable() the higher watermark makes sense
+for high-order allocations where more freepages increase the chance of
+success, and we can typically fail with some order-0 fallback when the
+system is struggling to reach that watermark.  But for low-order
+allocation, forming the page should not be that hard.  So using low
+watermark here might just prevent compaction from even trying, and
+eventually lead to OOM killer even if we are above min watermarks.
 
-WQ_MEM_RECLAIM has been set to ensure forward progress under memory
-pressure because the workqueue is being used on a memory reclaim path.
+So after this patch, we use min watermark for non-costly orders in
+__compaction_suitable(), and for all orders in __isolate_free_page().
 
-Link: http://lkml.kernel.org/r/66279de510a7f4cfc6e386d99b7e04b3f65fb11b.1472590094.git.bhaktipriya96@gmail.com
-Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+[vbabka@suse.cz: clarify __isolate_free_page() comment]
+ Link: http://lkml.kernel.org/r/7ae4baec-4eca-e70b-2a69-94bea4fb19fa@suse.cz
+Link: http://lkml.kernel.org/r/20160810091226.6709-11-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |    6 +++++-
+ mm/page_alloc.c |    9 +++++++--
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/super.c~fs-ocfs2-super-remove-deprecated-create_singlethread_workqueue fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~fs-ocfs2-super-remove-deprecated-create_singlethread_workqueue
-+++ a/fs/ocfs2/super.c
-@@ -2329,7 +2329,7 @@ static int ocfs2_initialize_super(struct
- 	}
- 	cleancache_init_shared_fs(sb);
+diff -puN mm/compaction.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders
++++ a/mm/compaction.c
+@@ -1399,10 +1399,14 @@ static enum compact_result __compaction_
+ 	 * isolation. We however do use the direct compactor's classzone_idx to
+ 	 * skip over zones where lowmem reserves would prevent allocation even
+ 	 * if compaction succeeds.
++	 * For costly orders, we require low watermark instead of min for
++	 * compaction to proceed to increase its chances.
+ 	 * ALLOC_CMA is used, as pages in CMA pageblocks are considered
+ 	 * suitable migration targets
+ 	 */
+-	watermark = low_wmark_pages(zone) + compact_gap(order);
++	watermark = (order > PAGE_ALLOC_COSTLY_ORDER) ?
++				low_wmark_pages(zone) : min_wmark_pages(zone);
++	watermark += compact_gap(order);
+ 	if (!__zone_watermark_ok(zone, 0, watermark, classzone_idx,
+ 						ALLOC_CMA, wmark_target))
+ 		return COMPACT_SKIPPED;
+diff -puN mm/page_alloc.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders
++++ a/mm/page_alloc.c
+@@ -2489,8 +2489,13 @@ int __isolate_free_page(struct page *pag
+ 	mt = get_pageblock_migratetype(page);
  
--	osb->ocfs2_wq = create_singlethread_workqueue("ocfs2_wq");
-+	osb->ocfs2_wq = alloc_ordered_workqueue("ocfs2_wq", WQ_MEM_RECLAIM);
- 	if (!osb->ocfs2_wq) {
- 		status = -ENOMEM;
- 		mlog_errno(status);
+ 	if (!is_migrate_isolate(mt)) {
+-		/* Obey watermarks as if the page was being allocated */
+-		watermark = low_wmark_pages(zone) + (1 << order);
++		/*
++		 * Obey watermarks as if the page was being allocated. We can
++		 * emulate a high-order watermark check with a raised order-0
++		 * watermark, because we already know our high-order page
++		 * exists.
++		 */
++		watermark = min_wmark_pages(zone) + (1UL << order);
+ 		if (!zone_watermark_ok(zone, 0, watermark, 0, ALLOC_CMA))
+ 			return 0;
+ 
 _
 
-Patches currently in -mm which might be from bhaktipriya96@gmail.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
+fs-select-add-vmalloc-fallback-for-select2.patch
 
