@@ -1,70 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [patch 040/127] mm,oom_reaper: do not attempt to reap a task
- twice
-Date: Fri, 07 Oct 2016 16:58:48 -0700
-Message-ID: <57f836b8.Q/m4nkQRANJUQwTc%akpm@linux-foundation.org>
+Subject: [merged]
+ jiffies-add-time-comparison-functions-for-64-bit-jiffies.patch removed from -mm tree
+Date: Mon, 10 Oct 2016 15:42:27 -0700
+Message-ID: <57fc1953.c/N2T5tTBja4Y/0M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39855 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36581 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754756AbcJHAFu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Oct 2016 20:05:50 -0400
+        with ESMTP id S1752183AbcJJWnj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, penguin-kernel@I-love.SAKURA.ne.jp, mhocko@suse.com, oleg@redhat.com, rientjes@google.com, vdavydov@parallels.com
+To: Jason@zx2c4.com, john.stultz@linaro.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm,oom_reaper: do not attempt to reap a task twice
 
-"mm, oom_reaper: do not attempt to reap a task twice" tried to give the
-OOM reaper one more chance to retry using MMF_OOM_NOT_REAPABLE flag.  But
-the usefulness of the flag is rather limited and actually never shown in
-practice.  If the flag is set, it means that the holder of mm->mmap_sem
-cannot call up_write() due to presumably being blocked at unkillable wait
-waiting for other thread's memory allocation.  But since one of threads
-sharing that mm will queue that mm immediately via task_will_free_mem()
-shortcut (otherwise, oom_badness() will select the same mm again due to
-oom_score_adj value unchanged), retrying MMF_OOM_NOT_REAPABLE mm is
-unlikely helpful.
+The patch titled
+     Subject: jiffies: add time comparison functions for 64 bit jiffies
+has been removed from the -mm tree.  Its filename was
+     jiffies-add-time-comparison-functions-for-64-bit-jiffies.patch
 
-Let's always set MMF_OOM_REAPED.
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-Link: http://lkml.kernel.org/r/1472119394-11342-3-git-send-email-mhocko@kernel.org
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+------------------------------------------------------
+From: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Subject: jiffies: add time comparison functions for 64 bit jiffies
+
+Though the time_before and time_after family of functions were nicely
+extended to support jiffies64, so that the interface would be consistent,
+it was forgotten to also extend the before/after jiffies functions to
+support jiffies64.  This commit brings the interface to parity between
+jiffies and jiffies64, which is quite convenient.
+
+Link: http://lkml.kernel.org/r/20160929033319.12188-1-Jason@zx2c4.com
+Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: John Stultz <john.stultz@linaro.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 -
- mm/oom_kill.c         |   15 +++------------
- 2 files changed, 3 insertions(+), 13 deletions(-)
+ include/linux/jiffies.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/sched.h~mmoom_reaper-do-not-attempt-to-reap-a-task-twice include/linux/sched.h
---- a/include/linux/sched.h~mmoom_reaper-do-not-attempt-to-reap-a-task-twice
-+++ a/include/linux/sched.h
-@@ -525,7 +525,6 @@ static inline int get_dumpable(struct mm
- #define MMF_HAS_UPROBES		19	/* has uprobes */
- #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
- #define MMF_OOM_REAPED		21	/* mm has been already reaped */
--#define MMF_OOM_NOT_REAPABLE	22	/* mm couldn't be reaped */
+diff -puN include/linux/jiffies.h~jiffies-add-time-comparison-functions-for-64-bit-jiffies include/linux/jiffies.h
+--- a/include/linux/jiffies.h~jiffies-add-time-comparison-functions-for-64-bit-jiffies
++++ a/include/linux/jiffies.h
+@@ -150,15 +150,19 @@ static inline u64 get_jiffies_64(void)
  
- #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
+ /* time_is_before_jiffies(a) return true if a is before jiffies */
+ #define time_is_before_jiffies(a) time_after(jiffies, a)
++#define time_is_before_jiffies64(a) time_after64(get_jiffies_64(), a)
  
-diff -puN mm/oom_kill.c~mmoom_reaper-do-not-attempt-to-reap-a-task-twice mm/oom_kill.c
---- a/mm/oom_kill.c~mmoom_reaper-do-not-attempt-to-reap-a-task-twice
-+++ a/mm/oom_kill.c
-@@ -578,20 +578,11 @@ static void oom_reap_task(struct task_st
- 	if (attempts <= MAX_OOM_REAP_RETRIES)
- 		goto done;
+ /* time_is_after_jiffies(a) return true if a is after jiffies */
+ #define time_is_after_jiffies(a) time_before(jiffies, a)
++#define time_is_after_jiffies64(a) time_before64(get_jiffies_64(), a)
  
-+	/* Ignore this mm because somebody can't call up_write(mmap_sem). */
-+	set_bit(MMF_OOM_REAPED, &mm->flags);
-+
- 	pr_info("oom_reaper: unable to reap pid:%d (%s)\n",
- 		task_pid_nr(tsk), tsk->comm);
+ /* time_is_before_eq_jiffies(a) return true if a is before or equal to jiffies*/
+ #define time_is_before_eq_jiffies(a) time_after_eq(jiffies, a)
++#define time_is_before_eq_jiffies64(a) time_after_eq64(get_jiffies_64(), a)
+ 
+ /* time_is_after_eq_jiffies(a) return true if a is after or equal to jiffies*/
+ #define time_is_after_eq_jiffies(a) time_before_eq(jiffies, a)
++#define time_is_after_eq_jiffies64(a) time_before_eq64(get_jiffies_64(), a)
+ 
+ /*
+  * Have the 32 bit jiffies value wrap 5 minutes after boot
+_
+
+Patches currently in -mm which might be from Jason@zx2c4.com are
+
+
