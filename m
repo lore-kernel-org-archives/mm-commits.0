@@ -1,128 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-more-reliably-increase-direct-compaction-priority.patch
+Subject: [merged] memory-hotplug-fix-store_mem_state-return-value.patch
  removed from -mm tree
-Date: Mon, 10 Oct 2016 15:45:24 -0700
-Message-ID: <57fc1a04.ZUoqupVr+DBKYVBT%akpm@linux-foundation.org>
+Date: Mon, 10 Oct 2016 15:45:10 -0700
+Message-ID: <57fc19f6.6bCAqT7dSaSuWr4v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37115 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36939 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752188AbcJJWpZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:25 -0400
+        with ESMTP id S1752339AbcJJWpM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, penguin-kernel@i-love.sakura.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: arbab@linux.vnet.ibm.com, abanman@sgi.com, baiyaowei@cmss.chinamobile.com, dan.j.williams@intel.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com, qiuxishi@huawei.com, rientjes@google.com, sjenning@redhat.com, slaoub@gmail.com, vbabka@suse.cz, vkuznets@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: more reliably increase direct compaction priority
+     Subject: memory-hotplug: fix store_mem_state() return value
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-more-reliably-increase-direct-compaction-priority.patch
+     memory-hotplug-fix-store_mem_state-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: more reliably increase direct compaction priority
+From: Reza Arbab <arbab@linux.vnet.ibm.com>
+Subject: memory-hotplug: fix store_mem_state() return value
 
-During reclaim/compaction loop, compaction priority can be increased by
-the should_compact_retry() function, but the current code is not optimal. 
-Priority is only increased when compaction_failed() is true, which means
-that compaction has scanned the whole zone.  This may not happen even
-after multiple attempts with a lower priority due to parallel activity, so
-we might needlessly struggle on the lower priorities and possibly run out
-of compaction retry attempts in the process.
+If store_mem_state() is called to online memory which is already online,
+it will return 1, the value it got from device_online().
 
-After this patch we are guaranteed at least one attempt at the highest
-compaction priority even if we exhaust all retries at the lower
-priorities.
+This is wrong because store_mem_state() is a device_attribute .store
+function. Thus a non-negative return value represents input bytes read.
 
-Link: http://lkml.kernel.org/r/20160906135258.18335-3-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Set the return value to -EINVAL in this case.
+
+Link: http://lkml.kernel.org/r/1472743777-24266-1-git-send-email-arbab@linux.vnet.ibm.com
+Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: Chen Yucong <slaoub@gmail.com>
+Cc: Andrew Banman <abanman@sgi.com>
+Cc: Seth Jennings <sjenning@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   33 +++++++++++++++++++--------------
- 1 file changed, 19 insertions(+), 14 deletions(-)
+ drivers/base/memory.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-compaction-more-reliably-increase-direct-compaction-priority mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-more-reliably-increase-direct-compaction-priority
-+++ a/mm/page_alloc.c
-@@ -3160,25 +3160,23 @@ static inline bool
- should_compact_retry(struct alloc_context *ac, int order, int alloc_flags,
- 		     enum compact_result compact_result,
- 		     enum compact_priority *compact_priority,
--		     int compaction_retries)
-+		     int *compaction_retries)
- {
- 	int max_retries = MAX_COMPACT_RETRIES;
+diff -puN drivers/base/memory.c~memory-hotplug-fix-store_mem_state-return-value drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-fix-store_mem_state-return-value
++++ a/drivers/base/memory.c
+@@ -361,8 +361,11 @@ store_mem_state(struct device *dev,
+ err:
+ 	unlock_device_hotplug();
  
- 	if (!order)
- 		return false;
- 
-+	if (compaction_made_progress(compact_result))
-+		(*compaction_retries)++;
+-	if (ret)
++	if (ret < 0)
+ 		return ret;
++	if (ret)
++		return -EINVAL;
 +
- 	/*
- 	 * compaction considers all the zone as desperately out of memory
- 	 * so it doesn't really make much sense to retry except when the
- 	 * failure could be caused by insufficient priority
- 	 */
--	if (compaction_failed(compact_result)) {
--		if (*compact_priority > MIN_COMPACT_PRIORITY) {
--			(*compact_priority)--;
--			return true;
--		}
--		return false;
--	}
-+	if (compaction_failed(compact_result))
-+		goto check_priority;
- 
- 	/*
- 	 * make sure the compaction wasn't deferred or didn't bail out early
-@@ -3199,9 +3197,19 @@ should_compact_retry(struct alloc_contex
- 	 */
- 	if (order > PAGE_ALLOC_COSTLY_ORDER)
- 		max_retries /= 4;
--	if (compaction_retries <= max_retries)
-+	if (*compaction_retries <= max_retries)
- 		return true;
- 
-+	/*
-+	 * Make sure there are attempts at the highest priority if we exhausted
-+	 * all retries or failed at the lower priorities.
-+	 */
-+check_priority:
-+	if (*compact_priority > MIN_COMPACT_PRIORITY) {
-+		(*compact_priority)--;
-+		*compaction_retries = 0;
-+		return true;
-+	}
- 	return false;
+ 	return count;
  }
- #else
-@@ -3218,7 +3226,7 @@ static inline bool
- should_compact_retry(struct alloc_context *ac, unsigned int order, int alloc_flags,
- 		     enum compact_result compact_result,
- 		     enum compact_priority *compact_priority,
--		     int compaction_retries)
-+		     int *compaction_retries)
- {
- 	struct zone *zone;
- 	struct zoneref *z;
-@@ -3620,9 +3628,6 @@ retry:
- 	if (page)
- 		goto got_pg;
  
--	if (order && compaction_made_progress(compact_result))
--		compaction_retries++;
+_
+
+Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
+
+
