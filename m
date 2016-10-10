@@ -1,133 +1,173 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch removed
- from -mm tree
-Date: Mon, 10 Oct 2016 15:43:17 -0700
-Message-ID: <57fc1985.DeZtxoBTxW6ds+fE%akpm@linux-foundation.org>
+ mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node.patch
+ removed from -mm tree
+Date: Mon, 10 Oct 2016 15:43:20 -0700
+Message-ID: <57fc1988.poZsC3sw1E4jVIpW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36600 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36639 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752252AbcJJWnm (ORCPT
+        with ESMTP id S1752443AbcJJWnm (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: qiuxishi@huawei.com, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: make compaction_ready() more accurate and readable
+     Subject: mem-hotplug: fix node spanned pages when we have a movable node
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-make-compaction_ready-more-accurate-and-readable.patch
+     mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, vmscan: make compaction_ready() more accurate and readable
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mem-hotplug: fix node spanned pages when we have a movable node
 
-The compaction_ready() is used during direct reclaim for costly order
-allocations to skip reclaim for zones where compaction should be attempted
-instead.  It's combining the standard compaction_suitable() check with its
-own watermark check based on high watermark with extra gap, and the result
-is confusing at best.
+342332e6a925e9e ("mm/page_alloc.c: introduce kernelcore=mirror option")
+rewrote the calculation of node spanned pages.  But when we have a movable
+node, the size of node spanned pages is double added.  That's because we
+have an empty normal zone, the present pages is zero, but its spanned
+pages is not zero.
 
-This patch attempts to better structure and document the checks involved. 
-First, compaction_suitable() can determine that the allocation should
-either succeed already, or that compaction doesn't have enough free pages
-to proceed.  The third possibility is that compaction has enough free
-pages, but we still decide to reclaim first - unless we are already above
-the high watermark with gap.  This does not mean that the reclaim will
-actually reach this watermark during single attempt, this is rather an
-over-reclaim protection.  So document the code as such.  The check for
-compaction_deferred() is removed completely, as it in fact had no proper
-role here.
+e.g.
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000000001000-0x0000000000ffffff]
+[    0.000000]   DMA32    [mem 0x0000000001000000-0x00000000ffffffff]
+[    0.000000]   Normal   [mem 0x0000000100000000-0x0000007c7fffffff]
+[    0.000000] Movable zone start for each node
+[    0.000000]   Node 1: 0x0000001080000000
+[    0.000000]   Node 2: 0x0000002080000000
+[    0.000000]   Node 3: 0x0000003080000000
+[    0.000000]   Node 4: 0x0000003c80000000
+[    0.000000]   Node 5: 0x0000004c80000000
+[    0.000000]   Node 6: 0x0000005c80000000
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000001000-0x000000000009ffff]
+[    0.000000]   node   0: [mem 0x0000000000100000-0x000000007552afff]
+[    0.000000]   node   0: [mem 0x000000007bd46000-0x000000007bd46fff]
+[    0.000000]   node   0: [mem 0x000000007bdcd000-0x000000007bffffff]
+[    0.000000]   node   0: [mem 0x0000000100000000-0x000000107fffffff]
+[    0.000000]   node   1: [mem 0x0000001080000000-0x000000207fffffff]
+[    0.000000]   node   2: [mem 0x0000002080000000-0x000000307fffffff]
+[    0.000000]   node   3: [mem 0x0000003080000000-0x0000003c7fffffff]
+[    0.000000]   node   4: [mem 0x0000003c80000000-0x0000004c7fffffff]
+[    0.000000]   node   5: [mem 0x0000004c80000000-0x0000005c7fffffff]
+[    0.000000]   node   6: [mem 0x0000005c80000000-0x0000006c7fffffff]
+[    0.000000]   node   7: [mem 0x0000006c80000000-0x0000007c7fffffff]
 
-The result after this patch is mainly a less confusing code.  We also skip
-some over-reclaim in cases where the allocation should already succed.
+node1:
+[  760.227767] Normal, start=0x1080000, present=0x0, spanned=0x1000000
+[  760.234024] Movable, start=0x1080000, present=0x1000000, spanned=0x1000000
+[  760.240883] pgdat, start=0x1080000, present=0x1000000, spanned=0x2000000
 
-Link: http://lkml.kernel.org/r/20160810091226.6709-12-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+After apply this patch, the problem is fixed.
+node1:
+[  289.770922] Normal, start=0x0, present=0x0, spanned=0x0
+[  289.776153] Movable, start=0x1080000, present=0x1000000, spanned=0x1000000
+[  289.783019] pgdat, start=0x1080000, present=0x1000000, spanned=0x1000000
+
+Link: http://lkml.kernel.org/r/57A325E8.6070100@huawei.com
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   43 ++++++++++++++++++++-----------------------
- 1 file changed, 20 insertions(+), 23 deletions(-)
+ mm/page_alloc.c |   54 +++++++++++++++++++---------------------------
+ 1 file changed, 23 insertions(+), 31 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-make-compaction_ready-more-accurate-and-readable mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-make-compaction_ready-more-accurate-and-readable
-+++ a/mm/vmscan.c
-@@ -2598,38 +2598,35 @@ static bool shrink_node(pg_data_t *pgdat
- }
+diff -puN mm/page_alloc.c~mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node mm/page_alloc.c
+--- a/mm/page_alloc.c~mem-hotplug-fix-node-spanned-pages-when-we-have-a-movable-node
++++ a/mm/page_alloc.c
+@@ -5005,15 +5005,6 @@ void __meminit memmap_init_zone(unsigned
  
- /*
-- * Returns true if compaction should go ahead for a high-order request, or
-- * the high-order allocation would succeed without compaction.
-+ * Returns true if compaction should go ahead for a costly-order request, or
-+ * the allocation would already succeed without compaction. Return false if we
-+ * should reclaim first.
-  */
- static inline bool compaction_ready(struct zone *zone, struct scan_control *sc)
- {
- 	unsigned long watermark;
--	bool watermark_ok;
-+	enum compact_result suitable;
- 
--	/*
--	 * Compaction takes time to run and there are potentially other
--	 * callers using the pages just freed. Continue reclaiming until
--	 * there is a buffer of free pages available to give compaction
--	 * a reasonable chance of completing and allocating the page
--	 */
--	watermark = high_wmark_pages(zone) + compact_gap(sc->order);
--	watermark_ok = zone_watermark_ok_safe(zone, 0, watermark, sc->reclaim_idx);
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 		/*
+-		 * If not mirrored_kernelcore and ZONE_MOVABLE exists, range
+-		 * from zone_movable_pfn[nid] to end of each node should be
+-		 * ZONE_MOVABLE not ZONE_NORMAL. skip it.
+-		 */
+-		if (!mirrored_kernelcore && zone_movable_pfn[nid])
+-			if (zone == ZONE_NORMAL && pfn >= zone_movable_pfn[nid])
+-				continue;
 -
--	/*
--	 * If compaction is deferred, reclaim up to a point where
--	 * compaction will have a chance of success when re-enabled
--	 */
--	if (compaction_deferred(zone, sc->order))
--		return watermark_ok;
-+	suitable = compaction_suitable(zone, sc->order, 0, sc->reclaim_idx);
-+	if (suitable == COMPACT_SUCCESS)
-+		/* Allocation should succeed already. Don't reclaim. */
-+		return true;
-+	if (suitable == COMPACT_SKIPPED)
-+		/* Compaction cannot yet proceed. Do reclaim. */
-+		return false;
+-		/*
+ 		 * Check given memblock attribute by firmware which can affect
+ 		 * kernel memory layout.  If zone==ZONE_MOVABLE but memory is
+ 		 * mirrored, it's an overlapped memmap init. skip it.
+@@ -5456,6 +5447,12 @@ static void __meminit adjust_zone_range_
+ 			*zone_end_pfn = min(node_end_pfn,
+ 				arch_zone_highest_possible_pfn[movable_zone]);
  
- 	/*
--	 * If compaction is not ready to start and allocation is not likely
--	 * to succeed without it, then keep reclaiming.
-+	 * Compaction is already possible, but it takes time to run and there
-+	 * are potentially other callers using the pages just freed. So proceed
-+	 * with reclaim to make a buffer of free pages available to give
-+	 * compaction a reasonable chance of completing and allocating the page.
-+	 * Note that we won't actually reclaim the whole buffer in one attempt
-+	 * as the target watermark in should_continue_reclaim() is lower. But if
-+	 * we are already above the high+gap watermark, don't reclaim at all.
++		/* Adjust for ZONE_MOVABLE starting within this range */
++		} else if (!mirrored_kernelcore &&
++			*zone_start_pfn < zone_movable_pfn[nid] &&
++			*zone_end_pfn > zone_movable_pfn[nid]) {
++			*zone_end_pfn = zone_movable_pfn[nid];
++
+ 		/* Check if this whole range is within ZONE_MOVABLE */
+ 		} else if (*zone_start_pfn >= zone_movable_pfn[nid])
+ 			*zone_start_pfn = *zone_end_pfn;
+@@ -5559,28 +5556,23 @@ static unsigned long __meminit zone_abse
+ 	 * Treat pages to be ZONE_MOVABLE in ZONE_NORMAL as absent pages
+ 	 * and vice versa.
  	 */
--	if (compaction_suitable(zone, sc->order, 0, sc->reclaim_idx) == COMPACT_SKIPPED)
--		return false;
-+	watermark = high_wmark_pages(zone) + compact_gap(sc->order);
+-	if (zone_movable_pfn[nid]) {
+-		if (mirrored_kernelcore) {
+-			unsigned long start_pfn, end_pfn;
+-			struct memblock_region *r;
+-
+-			for_each_memblock(memory, r) {
+-				start_pfn = clamp(memblock_region_memory_base_pfn(r),
+-						  zone_start_pfn, zone_end_pfn);
+-				end_pfn = clamp(memblock_region_memory_end_pfn(r),
+-						zone_start_pfn, zone_end_pfn);
+-
+-				if (zone_type == ZONE_MOVABLE &&
+-				    memblock_is_mirror(r))
+-					nr_absent += end_pfn - start_pfn;
+-
+-				if (zone_type == ZONE_NORMAL &&
+-				    !memblock_is_mirror(r))
+-					nr_absent += end_pfn - start_pfn;
+-			}
+-		} else {
+-			if (zone_type == ZONE_NORMAL)
+-				nr_absent += node_end_pfn - zone_movable_pfn[nid];
++	if (mirrored_kernelcore && zone_movable_pfn[nid]) {
++		unsigned long start_pfn, end_pfn;
++		struct memblock_region *r;
++
++		for_each_memblock(memory, r) {
++			start_pfn = clamp(memblock_region_memory_base_pfn(r),
++					  zone_start_pfn, zone_end_pfn);
++			end_pfn = clamp(memblock_region_memory_end_pfn(r),
++					zone_start_pfn, zone_end_pfn);
++
++			if (zone_type == ZONE_MOVABLE &&
++			    memblock_is_mirror(r))
++				nr_absent += end_pfn - start_pfn;
++
++			if (zone_type == ZONE_NORMAL &&
++			    !memblock_is_mirror(r))
++				nr_absent += end_pfn - start_pfn;
+ 		}
+ 	}
  
--	return watermark_ok;
-+	return zone_watermark_ok_safe(zone, 0, watermark, sc->reclaim_idx);
- }
- 
- /*
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
-fs-select-add-vmalloc-fallback-for-select2.patch
 
