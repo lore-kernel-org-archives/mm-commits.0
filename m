@@ -1,57 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mlock-check-against-vma-for-actual-mlock-size.patch
- removed from -mm tree
-Date: Mon, 10 Oct 2016 15:44:36 -0700
-Message-ID: <57fc19d4.IeMHLE47gRchAa3N%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch removed from -mm tree
+Date: Mon, 10 Oct 2016 15:44:39 -0700
+Message-ID: <57fc19d7.xDmf7wOizeGdx0QS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36786 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752421AbcJJWoh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:37 -0400
+        with ESMTP id S1752421AbcJJWok (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wei.guo.simon@gmail.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mlock: check against vma for actual mlock() size
+     Subject: mm: mlock: avoid increase mm->locked_vm on mlock() when already mlock2(,MLOCK_ONFAULT)
 has been removed from the -mm tree.  Its filename was
-     mm-mlock-check-against-vma-for-actual-mlock-size.patch
+     mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Simon Guo <wei.guo.simon@gmail.com>
-Subject: mm: mlock: check against vma for actual mlock() size
+Subject: mm: mlock: avoid increase mm->locked_vm on mlock() when already mlock2(,MLOCK_ONFAULT)
 
-In do_mlock(), the check against locked memory limitation has a hole which
-will fail following cases at step 3):
+When one vma was with flag VM_LOCKED|VM_LOCKONFAULT (by invoking
+mlock2(,MLOCK_ONFAULT)), it can again be populated with mlock() with
+VM_LOCKED flag only.
 
-1) User has a memory chunk from addressA with 50k, and user
-mem lock rlimit is 64k.
-2) mlock(addressA, 30k)
-3) mlock(addressA, 40k)
+There is a hole in mlock_fixup() which increase mm->locked_vm twice even
+the two operations are on the same vma and both with VM_LOCKED flags.
 
-The 3rd step should have been allowed since the 40k request is intersected
-with the previous 30k at step 2), and the 3rd step is actually for mlock
-on the extra 10k memory.
+The issue can be reproduced by following code:
+mlock2(p, 1024 * 64, MLOCK_ONFAULT); //VM_LOCKED|VM_LOCKONFAULT
+mlock(p, 1024 * 64);  //VM_LOCKED
+Then check the increase VmLck field in /proc/pid/status(to 128k).
 
-This patch checks vma to caculate the actual "new" mlock size, if
-necessary, and ajust the logic to fix this issue.
+When vma is set with different vm_flags, and the new vm_flags is with
+VM_LOCKED, it is not necessarily be a "new locked" vma.  This patch
+corrects this bug by prevent mm->locked_vm from increment when old
+vm_flags is already VM_LOCKED.
 
-[akpm@linux-foundation.org: clean up comment layout]
-[wei.guo.simon@gmail.com: correct a typo in count_mm_mlocked_page_nr()]
- Link: http://lkml.kernel.org/r/1473325970-11393-2-git-send-email-wei.guo.simon@gmail.com
-Link: http://lkml.kernel.org/r/1472554781-9835-2-git-send-email-wei.guo.simon@gmail.com
+Link: http://lkml.kernel.org/r/1472554781-9835-3-git-send-email-wei.guo.simon@gmail.com
 Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Alexey Klimov <klimov.linux@gmail.com>
 Cc: Eric B Munson <emunson@akamai.com>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Shuah Khan <shuah@kernel.org>
@@ -62,75 +61,29 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   49 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ mm/mlock.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size mm/mlock.c
---- a/mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size
+diff -puN mm/mlock.c~mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-avoid-increase-mm-locked_vm-on-mlock-when-already-mlock2mlock_onfault
 +++ a/mm/mlock.c
-@@ -617,6 +617,45 @@ static int apply_vma_lock_flags(unsigned
- 	return error;
- }
+@@ -516,6 +516,7 @@ static int mlock_fixup(struct vm_area_st
+ 	int nr_pages;
+ 	int ret = 0;
+ 	int lock = !!(newflags & VM_LOCKED);
++	vm_flags_t old_flags = vma->vm_flags;
  
-+/*
-+ * Go through vma areas and sum size of mlocked
-+ * vma pages, as return value.
-+ * Note deferred memory locking case(mlock2(,,MLOCK_ONFAULT)
-+ * is also counted.
-+ * Return value: previously mlocked page counts
-+ */
-+static int count_mm_mlocked_page_nr(struct mm_struct *mm,
-+		unsigned long start, size_t len)
-+{
-+	struct vm_area_struct *vma;
-+	int count = 0;
-+
-+	if (mm == NULL)
-+		mm = current->mm;
-+
-+	vma = find_vma(mm, start);
-+	if (vma == NULL)
-+		vma = mm->mmap;
-+
-+	for (; vma ; vma = vma->vm_next) {
-+		if (start >= vma->vm_end)
-+			continue;
-+		if (start + len <=  vma->vm_start)
-+			break;
-+		if (vma->vm_flags & VM_LOCKED) {
-+			if (start > vma->vm_start)
-+				count -= (start - vma->vm_start);
-+			if (start + len < vma->vm_end) {
-+				count += start + len - vma->vm_start;
-+				break;
-+			}
-+			count += vma->vm_end - vma->vm_start;
-+		}
-+	}
-+
-+	return count >> PAGE_SHIFT;
-+}
-+
- static __must_check int do_mlock(unsigned long start, size_t len, vm_flags_t flags)
- {
- 	unsigned long locked;
-@@ -639,6 +678,16 @@ static __must_check int do_mlock(unsigne
- 		return -EINTR;
+ 	if (newflags == vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
+ 	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm))
+@@ -550,6 +551,8 @@ success:
+ 	nr_pages = (end - start) >> PAGE_SHIFT;
+ 	if (!lock)
+ 		nr_pages = -nr_pages;
++	else if (old_flags & VM_LOCKED)
++		nr_pages = 0;
+ 	mm->locked_vm += nr_pages;
  
- 	locked += current->mm->locked_vm;
-+	if ((locked > lock_limit) && (!capable(CAP_IPC_LOCK))) {
-+		/*
-+		 * It is possible that the regions requested intersect with
-+		 * previously mlocked areas, that part area in "mm->locked_vm"
-+		 * should not be counted to new mlock increment count. So check
-+		 * and adjust locked count if necessary.
-+		 */
-+		locked -= count_mm_mlocked_page_nr(current->mm,
-+				start, len);
-+	}
- 
- 	/* check against resource limits */
- 	if ((locked <= lock_limit) || capable(CAP_IPC_LOCK))
+ 	/*
 _
 
 Patches currently in -mm which might be from wei.guo.simon@gmail.com are
