@@ -1,114 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-use-zonelist-name-instead-of-using-hardcoded-index.patch removed from
- -mm tree
-Date: Mon, 10 Oct 2016 15:44:15 -0700
-Message-ID: <57fc19bf.UDXb6Ah7dWIFGBxG%akpm@linux-foundation.org>
+Subject: [merged] mm-unrig-vma-cache-hit-ratio.patch removed from -mm tree
+Date: Mon, 10 Oct 2016 15:43:50 -0700
+Message-ID: <57fc19a6.LMfHDxv1xr94mEiG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36716 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36644 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752352AbcJJWoQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:16 -0400
+        with ESMTP id S1752509AbcJJWnu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use zonelist name instead of using hardcoded index
+     Subject: mm: unrig VMA cache hit ratio
 has been removed from the -mm tree.  Its filename was
-     mm-use-zonelist-name-instead-of-using-hardcoded-index.patch
+     mm-unrig-vma-cache-hit-ratio.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm: use zonelist name instead of using hardcoded index
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: mm: unrig VMA cache hit ratio
 
-Use the existing enums instead of hardcoded index when looking at the
-zonelist.  This makes it more readable.  No functionality change by this
-patch.
+Current code doesn't count first FIND operation after VMA cache flush
+(which happen surprisingly often) artificially increasing cache hit ratio.
 
-Link: http://lkml.kernel.org/r/1472227078-24852-1-git-send-email-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+On my regular setup the difference is:
+
+		Before				After
+	==========================================================
+
+	* boot, login into KDE
+
+	vmacache_find_calls 446216	vmacache_find_calls 492741
+	vmacache_find_hits 277596	vmacache_find_hits 276096
+
+		~62.2%				~56.0%
+
+	* rebuild kernel (no changes to code, usual config)
+
+	vmacache_find_calls 1943007	vmacache_find_calls 2083718
+	vmacache_find_hits 1246123	vmacache_find_hits 1244146
+
+		~64.1%				~59.7%
+
+	* rebuild kernel (full rebuild, usual config)
+
+	vmacache_find_calls 32163155	vmacache_find_calls 33677183
+	vmacache_find_hits 27889956	vmacache_find_hits 27877591
+
+		~88.2%				~84.3%
+
+Total: ~4% cache hit ratio.
+
+If someone is counting _relative_ cache _miss_ ratio, misreporting is much
+higher.
+
+Link: http://lkml.kernel.org/r/20160822225009.GA3934@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c  |    2 +-
- mm/page_alloc.c |    8 ++++----
- mm/vmscan.c     |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ mm/vmacache.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-use-zonelist-name-instead-of-using-hardcoded-index mm/mempolicy.c
---- a/mm/mempolicy.c~mm-use-zonelist-name-instead-of-using-hardcoded-index
-+++ a/mm/mempolicy.c
-@@ -1749,7 +1749,7 @@ unsigned int mempolicy_slab_node(void)
- 		 */
- 		struct zonelist *zonelist;
- 		enum zone_type highest_zoneidx = gfp_zone(GFP_KERNEL);
--		zonelist = &NODE_DATA(node)->node_zonelists[0];
-+		zonelist = &NODE_DATA(node)->node_zonelists[ZONELIST_FALLBACK];
- 		z = first_zones_zonelist(zonelist, highest_zoneidx,
- 							&policy->v.nodes);
- 		return z->zone ? z->zone->node : node;
-diff -puN mm/page_alloc.c~mm-use-zonelist-name-instead-of-using-hardcoded-index mm/page_alloc.c
---- a/mm/page_alloc.c~mm-use-zonelist-name-instead-of-using-hardcoded-index
-+++ a/mm/page_alloc.c
-@@ -4574,7 +4574,7 @@ static void build_zonelists_in_node_orde
- 	int j;
- 	struct zonelist *zonelist;
+diff -puN mm/vmacache.c~mm-unrig-vma-cache-hit-ratio mm/vmacache.c
+--- a/mm/vmacache.c~mm-unrig-vma-cache-hit-ratio
++++ a/mm/vmacache.c
+@@ -87,11 +87,11 @@ struct vm_area_struct *vmacache_find(str
+ {
+ 	int i;
  
--	zonelist = &pgdat->node_zonelists[0];
-+	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
- 	for (j = 0; zonelist->_zonerefs[j].zone != NULL; j++)
- 		;
- 	j = build_zonelists_node(NODE_DATA(node), zonelist, j);
-@@ -4590,7 +4590,7 @@ static void build_thisnode_zonelists(pg_
- 	int j;
- 	struct zonelist *zonelist;
++	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
++
+ 	if (!vmacache_valid(mm))
+ 		return NULL;
  
--	zonelist = &pgdat->node_zonelists[1];
-+	zonelist = &pgdat->node_zonelists[ZONELIST_NOFALLBACK];
- 	j = build_zonelists_node(pgdat, zonelist, 0);
- 	zonelist->_zonerefs[j].zone = NULL;
- 	zonelist->_zonerefs[j].zone_idx = 0;
-@@ -4611,7 +4611,7 @@ static void build_zonelists_in_zone_orde
- 	struct zone *z;
- 	struct zonelist *zonelist;
+-	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
+-
+ 	for (i = 0; i < VMACACHE_SIZE; i++) {
+ 		struct vm_area_struct *vma = current->vmacache[i];
  
--	zonelist = &pgdat->node_zonelists[0];
-+	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
- 	pos = 0;
- 	for (zone_type = MAX_NR_ZONES - 1; zone_type >= 0; zone_type--) {
- 		for (j = 0; j < nr_nodes; j++) {
-@@ -4746,7 +4746,7 @@ static void build_zonelists(pg_data_t *p
+@@ -115,11 +115,11 @@ struct vm_area_struct *vmacache_find_exa
+ {
+ 	int i;
  
- 	local_node = pgdat->node_id;
++	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
++
+ 	if (!vmacache_valid(mm))
+ 		return NULL;
  
--	zonelist = &pgdat->node_zonelists[0];
-+	zonelist = &pgdat->node_zonelists[ZONELIST_FALLBACK];
- 	j = build_zonelists_node(pgdat, zonelist, 0);
- 
- 	/*
-diff -puN mm/vmscan.c~mm-use-zonelist-name-instead-of-using-hardcoded-index mm/vmscan.c
---- a/mm/vmscan.c~mm-use-zonelist-name-instead-of-using-hardcoded-index
-+++ a/mm/vmscan.c
-@@ -3036,7 +3036,7 @@ unsigned long try_to_free_mem_cgroup_pag
- 	 */
- 	nid = mem_cgroup_select_victim_node(memcg);
- 
--	zonelist = NODE_DATA(nid)->node_zonelists;
-+	zonelist = &NODE_DATA(nid)->node_zonelists[ZONELIST_FALLBACK];
- 
- 	trace_mm_vmscan_memcg_reclaim_begin(0,
- 					    sc.may_writepage,
-_
-
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
-
-
+-	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
