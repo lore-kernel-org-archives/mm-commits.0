@@ -1,35 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [merged] selftest-split-mlock2_-funcs-into-separate-mlock2h.patch removed from -mm tree
-Date: Mon, 10 Oct 2016 15:44:42 -0700
-Message-ID: <57fc19da./VVZFRMoT/Ob2L+8%akpm@linux-foundation.org>
+Subject: [merged] mm-mlock-check-against-vma-for-actual-mlock-size.patch
+ removed from -mm tree
+Date: Mon, 10 Oct 2016 15:44:36 -0700
+Message-ID: <57fc19d4.IeMHLE47gRchAa3N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36797 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36770 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752421AbcJJWon (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:43 -0400
+        with ESMTP id S1752421AbcJJWoh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: wei.guo.simon@gmail.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest: split mlock2_ funcs into separate mlock2.h
+     Subject: mm: mlock: check against vma for actual mlock() size
 has been removed from the -mm tree.  Its filename was
-     selftest-split-mlock2_-funcs-into-separate-mlock2h.patch
+     mm-mlock-check-against-vma-for-actual-mlock-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Simon Guo <wei.guo.simon@gmail.com>
-Subject: selftest: split mlock2_ funcs into separate mlock2.h
+Subject: mm: mlock: check against vma for actual mlock() size
 
-To prepare mlock2.h whose functionality will be reused.
+In do_mlock(), the check against locked memory limitation has a hole which
+will fail following cases at step 3):
 
-Link: http://lkml.kernel.org/r/1472554781-9835-4-git-send-email-wei.guo.simon@gmail.com
+1) User has a memory chunk from addressA with 50k, and user
+mem lock rlimit is 64k.
+2) mlock(addressA, 30k)
+3) mlock(addressA, 40k)
+
+The 3rd step should have been allowed since the 40k request is intersected
+with the previous 30k at step 2), and the 3rd step is actually for mlock
+on the extra 10k memory.
+
+This patch checks vma to caculate the actual "new" mlock size, if
+necessary, and ajust the logic to fix this issue.
+
+[akpm@linux-foundation.org: clean up comment layout]
+[wei.guo.simon@gmail.com: correct a typo in count_mm_mlocked_page_nr()]
+ Link: http://lkml.kernel.org/r/1473325970-11393-2-git-send-email-wei.guo.simon@gmail.com
+Link: http://lkml.kernel.org/r/1472554781-9835-2-git-send-email-wei.guo.simon@gmail.com
 Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
 Cc: Alexey Klimov <klimov.linux@gmail.com>
 Cc: Eric B Munson <emunson@akamai.com>
@@ -45,66 +62,75 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/mlock2-tests.c |   21 --------------------
- tools/testing/selftests/vm/mlock2.h       |   20 +++++++++++++++++++
- 2 files changed, 21 insertions(+), 20 deletions(-)
+ mm/mlock.c |   49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff -puN tools/testing/selftests/vm/mlock2-tests.c~selftest-split-mlock2_-funcs-into-separate-mlock2h tools/testing/selftests/vm/mlock2-tests.c
---- a/tools/testing/selftests/vm/mlock2-tests.c~selftest-split-mlock2_-funcs-into-separate-mlock2h
-+++ a/tools/testing/selftests/vm/mlock2-tests.c
-@@ -7,27 +7,8 @@
- #include <string.h>
- #include <sys/time.h>
- #include <sys/resource.h>
--#include <syscall.h>
--#include <errno.h>
- #include <stdbool.h>
--
--#ifndef MLOCK_ONFAULT
--#define MLOCK_ONFAULT 1
--#endif
--
--#ifndef MCL_ONFAULT
--#define MCL_ONFAULT (MCL_FUTURE << 1)
--#endif
--
--static int mlock2_(void *start, size_t len, int flags)
--{
--#ifdef __NR_mlock2
--	return syscall(__NR_mlock2, start, len, flags);
--#else
--	errno = ENOSYS;
--	return -1;
--#endif
--}
-+#include "mlock2.h"
+diff -puN mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-check-against-vma-for-actual-mlock-size
++++ a/mm/mlock.c
+@@ -617,6 +617,45 @@ static int apply_vma_lock_flags(unsigned
+ 	return error;
+ }
  
- struct vm_boundaries {
- 	unsigned long start;
-diff -puN /dev/null tools/testing/selftests/vm/mlock2.h
---- /dev/null
-+++ a/tools/testing/selftests/vm/mlock2.h
-@@ -0,0 +1,20 @@
-+#include <syscall.h>
-+#include <errno.h>
-+
-+#ifndef MLOCK_ONFAULT
-+#define MLOCK_ONFAULT 1
-+#endif
-+
-+#ifndef MCL_ONFAULT
-+#define MCL_ONFAULT (MCL_FUTURE << 1)
-+#endif
-+
-+static int mlock2_(void *start, size_t len, int flags)
++/*
++ * Go through vma areas and sum size of mlocked
++ * vma pages, as return value.
++ * Note deferred memory locking case(mlock2(,,MLOCK_ONFAULT)
++ * is also counted.
++ * Return value: previously mlocked page counts
++ */
++static int count_mm_mlocked_page_nr(struct mm_struct *mm,
++		unsigned long start, size_t len)
 +{
-+#ifdef __NR_mlock2
-+	return syscall(__NR_mlock2, start, len, flags);
-+#else
-+	errno = ENOSYS;
-+	return -1;
-+#endif
++	struct vm_area_struct *vma;
++	int count = 0;
++
++	if (mm == NULL)
++		mm = current->mm;
++
++	vma = find_vma(mm, start);
++	if (vma == NULL)
++		vma = mm->mmap;
++
++	for (; vma ; vma = vma->vm_next) {
++		if (start >= vma->vm_end)
++			continue;
++		if (start + len <=  vma->vm_start)
++			break;
++		if (vma->vm_flags & VM_LOCKED) {
++			if (start > vma->vm_start)
++				count -= (start - vma->vm_start);
++			if (start + len < vma->vm_end) {
++				count += start + len - vma->vm_start;
++				break;
++			}
++			count += vma->vm_end - vma->vm_start;
++		}
++	}
++
++	return count >> PAGE_SHIFT;
 +}
++
+ static __must_check int do_mlock(unsigned long start, size_t len, vm_flags_t flags)
+ {
+ 	unsigned long locked;
+@@ -639,6 +678,16 @@ static __must_check int do_mlock(unsigne
+ 		return -EINTR;
+ 
+ 	locked += current->mm->locked_vm;
++	if ((locked > lock_limit) && (!capable(CAP_IPC_LOCK))) {
++		/*
++		 * It is possible that the regions requested intersect with
++		 * previously mlocked areas, that part area in "mm->locked_vm"
++		 * should not be counted to new mlock increment count. So check
++		 * and adjust locked count if necessary.
++		 */
++		locked -= count_mm_mlocked_page_nr(current->mm,
++				start, len);
++	}
+ 
+ 	/* check against resource limits */
+ 	if ((locked <= lock_limit) || capable(CAP_IPC_LOCK))
 _
 
 Patches currently in -mm which might be from wei.guo.simon@gmail.com are
