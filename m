@@ -1,167 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hugetlb-check-for-reserved-hugepages-during-memory-offline.patch removed from -mm tree
-Date: Mon, 10 Oct 2016 15:45:58 -0700
-Message-ID: <57fc1a26.UNO131yt57tUupsP%akpm@linux-foundation.org>
+Subject: [merged] mm-vm_page_prot-update-with-write_once-read_once.patch
+ removed from -mm tree
+Date: Mon, 10 Oct 2016 15:46:08 -0700
+Message-ID: <57fc1a30.b21eofii1GyPaUt1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37204 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37224 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752340AbcJJWp7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:59 -0400
+        with ESMTP id S1752237AbcJJWqJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:46:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerald.schaefer@de.ibm.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@linux.intel.com, heiko.carstens@de.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, rui.teng@linux.vnet.ibm.com, schwidefsky@de.ibm.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, hughd@google.com, janvorli@microsoft.com, mgorman@techsingularity.net, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: check for reserved hugepages during memory offline
+     Subject: mm: vm_page_prot: update with WRITE_ONCE/READ_ONCE
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-check-for-reserved-hugepages-during-memory-offline.patch
+     mm-vm_page_prot-update-with-write_once-read_once.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Subject: mm/hugetlb: check for reserved hugepages during memory offline
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: vm_page_prot: update with WRITE_ONCE/READ_ONCE
 
-In dissolve_free_huge_pages(), free hugepages will be dissolved without
-making sure that there are enough of them left to satisfy hugepage
-reservations.
+vma->vm_page_prot is read lockless from the rmap_walk, it may be updated
+concurrently and this prevents the risk of reading intermediate values.
 
-Fix this by adding a return value to dissolve_free_huge_pages() and
-checking h->free_huge_pages vs.  h->resv_huge_pages.  Note that this may
-lead to the situation where dissolve_free_huge_page() returns an error and
-all free hugepages that were dissolved before that error are lost, while
-the memory block still cannot be set offline.
-
-Fixes: c8721bbb ("mm: memory-hotplug: enable memory hotplug to handle hugepage")
-Link: http://lkml.kernel.org/r/20160926172811.94033-3-gerald.schaefer@de.ibm.com
-Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Rui Teng <rui.teng@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Link: http://lkml.kernel.org/r/1474660305-19222-1-git-send-email-aarcange@redhat.com
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Jan Vorlicek <janvorli@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 +++---
- mm/hugetlb.c            |   26 +++++++++++++++++++++-----
- mm/memory_hotplug.c     |    4 +++-
- 3 files changed, 27 insertions(+), 9 deletions(-)
+ include/linux/mm.h |    2 +-
+ mm/huge_memory.c   |    2 +-
+ mm/migrate.c       |    2 +-
+ mm/mmap.c          |   16 +++++++++-------
+ mm/mprotect.c      |    2 +-
+ 5 files changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlb-check-for-reserved-hugepages-during-memory-offline include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-check-for-reserved-hugepages-during-memory-offline
-+++ a/include/linux/hugetlb.h
-@@ -450,8 +450,8 @@ static inline pgoff_t basepage_index(str
- 	return __basepage_index(page);
+diff -puN include/linux/mm.h~mm-vm_page_prot-update-with-write_once-read_once include/linux/mm.h
+--- a/include/linux/mm.h~mm-vm_page_prot-update-with-write_once-read_once
++++ a/include/linux/mm.h
+@@ -1517,7 +1517,7 @@ static inline int pte_devmap(pte_t pte)
  }
+ #endif
  
--extern void dissolve_free_huge_pages(unsigned long start_pfn,
--				     unsigned long end_pfn);
-+extern int dissolve_free_huge_pages(unsigned long start_pfn,
-+				    unsigned long end_pfn);
- static inline bool hugepage_migration_supported(struct hstate *h)
- {
- #ifdef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
-@@ -518,7 +518,7 @@ static inline pgoff_t basepage_index(str
- {
- 	return page->index;
- }
--#define dissolve_free_huge_pages(s, e)	do {} while (0)
-+#define dissolve_free_huge_pages(s, e)	0
- #define hugepage_migration_supported(h)	false
+-int vma_wants_writenotify(struct vm_area_struct *vma);
++int vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot);
  
- static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
-diff -puN mm/hugetlb.c~mm-hugetlb-check-for-reserved-hugepages-during-memory-offline mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-check-for-reserved-hugepages-during-memory-offline
-+++ a/mm/hugetlb.c
-@@ -1437,22 +1437,32 @@ static int free_pool_huge_page(struct hs
+ extern pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long addr,
+ 			       spinlock_t **ptl);
+diff -puN mm/huge_memory.c~mm-vm_page_prot-update-with-write_once-read_once mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-vm_page_prot-update-with-write_once-read_once
++++ a/mm/huge_memory.c
+@@ -1620,7 +1620,7 @@ static void __split_huge_pmd_locked(stru
+ 			if (soft_dirty)
+ 				entry = pte_swp_mksoft_dirty(entry);
+ 		} else {
+-			entry = mk_pte(page + i, vma->vm_page_prot);
++			entry = mk_pte(page + i, READ_ONCE(vma->vm_page_prot));
+ 			entry = maybe_mkwrite(entry, vma);
+ 			if (!write)
+ 				entry = pte_wrprotect(entry);
+diff -puN mm/migrate.c~mm-vm_page_prot-update-with-write_once-read_once mm/migrate.c
+--- a/mm/migrate.c~mm-vm_page_prot-update-with-write_once-read_once
++++ a/mm/migrate.c
+@@ -234,7 +234,7 @@ static int remove_migration_pte(struct p
+ 		goto unlock;
  
- /*
-  * Dissolve a given free hugepage into free buddy pages. This function does
-- * nothing for in-use (including surplus) hugepages.
-+ * nothing for in-use (including surplus) hugepages. Returns -EBUSY if the
-+ * number of free hugepages would be reduced below the number of reserved
-+ * hugepages.
-  */
--static void dissolve_free_huge_page(struct page *page)
-+static int dissolve_free_huge_page(struct page *page)
+ 	get_page(new);
+-	pte = pte_mkold(mk_pte(new, vma->vm_page_prot));
++	pte = pte_mkold(mk_pte(new, READ_ONCE(vma->vm_page_prot)));
+ 	if (pte_swp_soft_dirty(*ptep))
+ 		pte = pte_mksoft_dirty(pte);
+ 
+diff -puN mm/mmap.c~mm-vm_page_prot-update-with-write_once-read_once mm/mmap.c
+--- a/mm/mmap.c~mm-vm_page_prot-update-with-write_once-read_once
++++ a/mm/mmap.c
+@@ -116,13 +116,15 @@ static pgprot_t vm_pgprot_modify(pgprot_
+ void vma_set_page_prot(struct vm_area_struct *vma)
  {
-+	int rc = 0;
-+
- 	spin_lock(&hugetlb_lock);
- 	if (PageHuge(page) && !page_count(page)) {
- 		struct page *head = compound_head(page);
- 		struct hstate *h = page_hstate(head);
- 		int nid = page_to_nid(head);
-+		if (h->free_huge_pages - h->resv_huge_pages == 0) {
-+			rc = -EBUSY;
-+			goto out;
-+		}
- 		list_del(&head->lru);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
- 		h->max_huge_pages--;
- 		update_and_free_page(h, head);
+ 	unsigned long vm_flags = vma->vm_flags;
++	pgprot_t vm_page_prot;
+ 
+-	vma->vm_page_prot = vm_pgprot_modify(vma->vm_page_prot, vm_flags);
+-	if (vma_wants_writenotify(vma)) {
++	vm_page_prot = vm_pgprot_modify(vma->vm_page_prot, vm_flags);
++	if (vma_wants_writenotify(vma, vm_page_prot)) {
+ 		vm_flags &= ~VM_SHARED;
+-		vma->vm_page_prot = vm_pgprot_modify(vma->vm_page_prot,
+-						     vm_flags);
++		vm_page_prot = vm_pgprot_modify(vm_page_prot, vm_flags);
  	}
-+out:
- 	spin_unlock(&hugetlb_lock);
-+	return rc;
++	/* remove_protection_ptes reads vma->vm_page_prot without mmap_sem */
++	WRITE_ONCE(vma->vm_page_prot, vm_page_prot);
  }
  
  /*
-@@ -1460,16 +1470,22 @@ static void dissolve_free_huge_page(stru
-  * make specified memory blocks removable from the system.
-  * Note that this will dissolve a free gigantic hugepage completely, if any
-  * part of it lies within the given range.
-+ * Also note that if dissolve_free_huge_page() returns with an error, all
-+ * free hugepages that were dissolved before that error are lost.
+@@ -1386,7 +1388,7 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
+  * to the private version (using protection_map[] without the
+  * VM_SHARED bit).
   */
--void dissolve_free_huge_pages(unsigned long start_pfn, unsigned long end_pfn)
-+int dissolve_free_huge_pages(unsigned long start_pfn, unsigned long end_pfn)
+-int vma_wants_writenotify(struct vm_area_struct *vma)
++int vma_wants_writenotify(struct vm_area_struct *vma, pgprot_t vm_page_prot)
  {
- 	unsigned long pfn;
-+	int rc = 0;
+ 	vm_flags_t vm_flags = vma->vm_flags;
+ 	const struct vm_operations_struct *vm_ops = vma->vm_ops;
+@@ -1401,8 +1403,8 @@ int vma_wants_writenotify(struct vm_area
  
- 	if (!hugepages_supported())
--		return;
-+		return rc;
+ 	/* The open routine did something to the protections that pgprot_modify
+ 	 * won't preserve? */
+-	if (pgprot_val(vma->vm_page_prot) !=
+-	    pgprot_val(vm_pgprot_modify(vma->vm_page_prot, vm_flags)))
++	if (pgprot_val(vm_page_prot) !=
++	    pgprot_val(vm_pgprot_modify(vm_page_prot, vm_flags)))
+ 		return 0;
  
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += 1 << minimum_order)
--		dissolve_free_huge_page(pfn_to_page(pfn));
-+		if (rc = dissolve_free_huge_page(pfn_to_page(pfn)))
-+			break;
-+
-+	return rc;
- }
- 
- /*
-diff -puN mm/memory_hotplug.c~mm-hugetlb-check-for-reserved-hugepages-during-memory-offline mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-hugetlb-check-for-reserved-hugepages-during-memory-offline
-+++ a/mm/memory_hotplug.c
-@@ -1945,7 +1945,9 @@ repeat:
- 	 * dissolve free hugepages in the memory block before doing offlining
- 	 * actually in order to make hugetlbfs's object counting consistent.
+ 	/* Do we need to track softdirty? */
+diff -puN mm/mprotect.c~mm-vm_page_prot-update-with-write_once-read_once mm/mprotect.c
+--- a/mm/mprotect.c~mm-vm_page_prot-update-with-write_once-read_once
++++ a/mm/mprotect.c
+@@ -327,7 +327,7 @@ success:
+ 	 * held in write mode.
  	 */
--	dissolve_free_huge_pages(start_pfn, end_pfn);
-+	ret = dissolve_free_huge_pages(start_pfn, end_pfn);
-+	if (ret)
-+		goto failed_removal;
- 	/* check again */
- 	offlined_pages = check_pages_isolated(start_pfn, end_pfn);
- 	if (offlined_pages < 0) {
+ 	vma->vm_flags = newflags;
+-	dirty_accountable = vma_wants_writenotify(vma);
++	dirty_accountable = vma_wants_writenotify(vma, vma->vm_page_prot);
+ 	vma_set_page_prot(vma);
+ 
+ 	change_protection(vma, start, end, vma->vm_page_prot,
 _
 
-Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 
