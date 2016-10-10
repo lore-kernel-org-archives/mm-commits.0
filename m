@@ -1,77 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled.patch
+Subject: [merged] mm-bootmemc-replace-kzalloc-by-kzalloc_node.patch
  removed from -mm tree
-Date: Mon, 10 Oct 2016 15:44:33 -0700
-Message-ID: <57fc19d1.SSZ3tOW7/iGPJh7a%akpm@linux-foundation.org>
+Date: Mon, 10 Oct 2016 15:44:28 -0700
+Message-ID: <57fc19cc.dsXoRNBGtuQf5AWy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36763 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36753 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752401AbcJJWoe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:34 -0400
+        with ESMTP id S1752376AbcJJWo3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: zijun_hu@htc.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom: warn if we go OOM for higher order and compaction is disabled
+     Subject: mm/bootmem.c: replace kzalloc() by kzalloc_node()
 has been removed from the -mm tree.  Its filename was
-     oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled.patch
+     mm-bootmemc-replace-kzalloc-by-kzalloc_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom: warn if we go OOM for higher order and compaction is disabled
+From: zijun_hu <zijun_hu@htc.com>
+Subject: mm/bootmem.c: replace kzalloc() by kzalloc_node()
 
-Since the lumpy reclaim is gone there is no source of higher order pages
-if CONFIG_COMPACTION=n except for the order-0 pages reclaim which is
-unreliable for that purpose to say the least.  Hitting an OOM for !costly
-higher order requests is therefore all not that hard to imagine.  We are
-trying hard to not invoke OOM killer as much as possible but there is
-simply no reliable way to detect whether more reclaim retries make sense.
+In ___alloc_bootmem_node_nopanic(), replace kzalloc() by kzalloc_node() in
+order to allocate memory within given node preferentially when slab is
+available
 
-Disabling COMPACTION is not widespread but it seems that some users might
-have disable the feature without realizing full consequences (mostly along
-with disabling THP because compaction used to be THP mainly thing).  This
-patch just adds a note if the OOM killer was triggered by higher order
-request with compaction disabled.  This will help us identifying possible
-misconfiguration right from the oom report which is easier than to always
-keep in mind that somebody might have disabled COMPACTION without a good
-reason.
-
-Link: http://lkml.kernel.org/r/20160830111632.GD23963@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Link: http://lkml.kernel.org/r/1f487f12-6af4-5e4f-a28c-1de2361cdcd8@zoho.com
+Signed-off-by: zijun_hu <zijun_hu@htc.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/bootmem.c |   14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled mm/oom_kill.c
---- a/mm/oom_kill.c~oom-warn-if-we-go-oom-for-higher-order-and-compaction-is-disabled
-+++ a/mm/oom_kill.c
-@@ -406,6 +406,8 @@ static void dump_header(struct oom_contr
- 	pr_warn("%s invoked oom-killer: gfp_mask=%#x(%pGg), order=%d, oom_score_adj=%hd\n",
- 		current->comm, oc->gfp_mask, &oc->gfp_mask, oc->order,
- 		current->signal->oom_score_adj);
-+	if (!IS_ENABLED(CONFIG_COMPACTION) && oc->order)
-+		pr_warn("COMPACTION is disabled!!!\n");
+diff -puN mm/bootmem.c~mm-bootmemc-replace-kzalloc-by-kzalloc_node mm/bootmem.c
+--- a/mm/bootmem.c~mm-bootmemc-replace-kzalloc-by-kzalloc_node
++++ a/mm/bootmem.c
+@@ -11,15 +11,12 @@
+ #include <linux/init.h>
+ #include <linux/pfn.h>
+ #include <linux/slab.h>
+-#include <linux/bootmem.h>
+ #include <linux/export.h>
+ #include <linux/kmemleak.h>
+ #include <linux/range.h>
+-#include <linux/memblock.h>
+ #include <linux/bug.h>
+ #include <linux/io.h>
+-
+-#include <asm/processor.h>
++#include <linux/bootmem.h>
  
- 	cpuset_print_current_mems_allowed();
- 	dump_stack();
-_
-
-Patches currently in -mm which might be from mhocko@suse.com are
-
-fs-use-mapping_set_error-instead-of-opencoded-set_bit.patch
-mm-split-gfp_mask-and-mapping-flags-into-separate-fields.patch
-
+ #include "internal.h"
+ 
+@@ -712,7 +709,7 @@ void * __init ___alloc_bootmem_node_nopa
+ 	void *ptr;
+ 
+ 	if (WARN_ON_ONCE(slab_is_available()))
+-		return kzalloc(size, GFP_NOWAIT);
++		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
+ again:
+ 
+ 	/* do not panic in alloc_bootmem_bdata() */
+@@ -738,9 +735,6 @@ again:
+ void * __init __alloc_bootmem_node_nopanic(pg_data_t *pgdat, unsigned long size,
+ 				   unsigned long align, unsigned long goal)
+ {
+-	if (WARN_ON_ONCE(slab_is_available()))
+-		return kzalloc_node(size, GFP_NOWAIT, pgdat->node_id);
+-
+ 	return ___alloc_bootmem_node_nopanic(pgdat, size, align, goal, 0);
+ }
+ 
+@@ -812,10 +806,6 @@ void * __init __alloc_bootmem_node_high(
+ 
+ }
+ 
+-#ifndef ARCH_LOW_ADDRESS_LIMIT
+-#define ARCH_LOW_ADDRESS_LIMIT	0xffffffffUL
+-#endif
