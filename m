@@ -1,99 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-unrig-vma-cache-hit-ratio.patch removed from -mm tree
-Date: Mon, 10 Oct 2016 15:43:50 -0700
-Message-ID: <57fc19a6.LMfHDxv1xr94mEiG%akpm@linux-foundation.org>
+Subject: [merged] do_generic_file_read-fail-immediately-if-killed.patch
+ removed from -mm tree
+Date: Mon, 10 Oct 2016 15:43:45 -0700
+Message-ID: <57fc19a1.SQEwtyuZIIqhpelh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36635 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752509AbcJJWnu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:50 -0400
+        with ESMTP id S1752510AbcJJWnq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, dave@stgolabs.net, mm-commits@vger.kernel.org
+To: bart.vanassche@sandisk.com, hughd@google.com, jack@suse.cz, mgorman@techsingularity.net, mhocko@suse.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: unrig VMA cache hit ratio
+     Subject: do_generic_file_read(): fail immediately if killed
 has been removed from the -mm tree.  Its filename was
-     mm-unrig-vma-cache-hit-ratio.patch
+     do_generic_file_read-fail-immediately-if-killed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: mm: unrig VMA cache hit ratio
+From: Bart Van Assche <bart.vanassche@sandisk.com>
+Subject: do_generic_file_read(): fail immediately if killed
 
-Current code doesn't count first FIND operation after VMA cache flush
-(which happen surprisingly often) artificially increasing cache hit ratio.
+If a fatal signal has been received, fail immediately instead of trying to
+read more data.
 
-On my regular setup the difference is:
+If wait_on_page_locked_killable() was interrupted then this page is most
+likely is not PageUptodate() and in this case do_generic_file_read() will
+fail after lock_page_killable().
 
-		Before				After
-	==========================================================
+See also commit ebded02788b5 ("mm: filemap: avoid unnecessary calls to
+lock_page when waiting for IO to complete during a read")
 
-	* boot, login into KDE
-
-	vmacache_find_calls 446216	vmacache_find_calls 492741
-	vmacache_find_hits 277596	vmacache_find_hits 276096
-
-		~62.2%				~56.0%
-
-	* rebuild kernel (no changes to code, usual config)
-
-	vmacache_find_calls 1943007	vmacache_find_calls 2083718
-	vmacache_find_hits 1246123	vmacache_find_hits 1244146
-
-		~64.1%				~59.7%
-
-	* rebuild kernel (full rebuild, usual config)
-
-	vmacache_find_calls 32163155	vmacache_find_calls 33677183
-	vmacache_find_hits 27889956	vmacache_find_hits 27877591
-
-		~88.2%				~84.3%
-
-Total: ~4% cache hit ratio.
-
-If someone is counting _relative_ cache _miss_ ratio, misreporting is much
-higher.
-
-Link: http://lkml.kernel.org/r/20160822225009.GA3934@p183.telecom.by
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+[oleg@redhat.com: changelog addition]
+Link: http://lkml.kernel.org/r/63068e8e-8bee-b208-8441-a3c39a9d9eb6@sandisk.com
+Signed-off-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmacache.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/filemap.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmacache.c~mm-unrig-vma-cache-hit-ratio mm/vmacache.c
---- a/mm/vmacache.c~mm-unrig-vma-cache-hit-ratio
-+++ a/mm/vmacache.c
-@@ -87,11 +87,11 @@ struct vm_area_struct *vmacache_find(str
- {
- 	int i;
+diff -puN mm/filemap.c~do_generic_file_read-fail-immediately-if-killed mm/filemap.c
+--- a/mm/filemap.c~do_generic_file_read-fail-immediately-if-killed
++++ a/mm/filemap.c
+@@ -1721,7 +1721,9 @@ find_page:
+ 			 * wait_on_page_locked is used to avoid unnecessarily
+ 			 * serialisations and why it's safe.
+ 			 */
+-			wait_on_page_locked_killable(page);
++			error = wait_on_page_locked_killable(page);
++			if (unlikely(error))
++				goto readpage_error;
+ 			if (PageUptodate(page))
+ 				goto page_ok;
  
-+	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
-+
- 	if (!vmacache_valid(mm))
- 		return NULL;
- 
--	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
--
- 	for (i = 0; i < VMACACHE_SIZE; i++) {
- 		struct vm_area_struct *vma = current->vmacache[i];
- 
-@@ -115,11 +115,11 @@ struct vm_area_struct *vmacache_find_exa
- {
- 	int i;
- 
-+	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
-+
- 	if (!vmacache_valid(mm))
- 		return NULL;
- 
--	count_vm_vmacache_event(VMACACHE_FIND_CALLS);
+_
+
+Patches currently in -mm which might be from bart.vanassche@sandisk.com are
+
+
