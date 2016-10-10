@@ -1,149 +1,139 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch removed from -mm tree
-Date: Mon, 10 Oct 2016 15:44:30 -0700
-Message-ID: <57fc19ce.Z6CjkOuMJuvgwSJU%akpm@linux-foundation.org>
+ mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch removed from -mm tree
+Date: Mon, 10 Oct 2016 15:44:09 -0700
+Message-ID: <57fc19b9.QSjnkoGOe1Y8JcfE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36757 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36706 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752100AbcJJWob (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:31 -0400
+        with ESMTP id S1752237AbcJJWoK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, dave.hansen@intel.com, fengguang.wu@intel.com, hughd@google.com, mgorman@techsingularity.net, minchan@kernel.org, riel@redhat.com, shli@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: mhocko@suse.com, mst@redhat.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't use radix tree writeback tags for pages in swap cache
+     Subject: mm: make sure that kthreads will not refault oom reaped memory
 has been removed from the -mm tree.  Its filename was
-     mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache.patch
+     mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm: don't use radix tree writeback tags for pages in swap cache
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: make sure that kthreads will not refault oom reaped memory
 
-File pages use a set of radix tree tags (DIRTY, TOWRITE, WRITEBACK, etc.)
-to accelerate finding the pages with a specific tag in the radix tree
-during inode writeback.  But for anonymous pages in the swap cache, there
-is no inode writeback.  So there is no need to find the pages with some
-writeback tags in the radix tree.  It is not necessary to touch radix tree
-writeback tags for pages in the swap cache.
+There are only few use_mm() users in the kernel right now.  Most of them
+write to the target memory but vhost driver relies on
+copy_from_user/get_user from a kernel thread context.  This makes it
+impossible to reap the memory of an oom victim which shares the mm with
+the vhost kernel thread because it could see a zero page unexpectedly and
+theoretically make an incorrect decision visible outside of the killed
+task context.
 
-Per Rik van Riel's suggestion, a new flag AS_NO_WRITEBACK_TAGS is
-introduced for address spaces which don't need to update the writeback
-tags.  The flag is set for swap caches.  It may be used for DAX file
-systems, etc.
+To quote Michael S. Tsirkin:
+: Getting an error from __get_user and friends is handled gracefully.
+: Getting zero instead of a real value will cause userspace
+: memory corruption.
 
-With this patch, the swap out bandwidth improved 22.3% (from ~1.2GB/s to ~
-1.48GBps) in the vm-scalability swap-w-seq test case with 8 processes. 
-The test is done on a Xeon E5 v3 system.  The swap device used is a RAM
-simulated PMEM (persistent memory) device.  The improvement comes from the
-reduced contention on the swap cache radix tree lock.  To test sequential
-swapping out, the test case uses 8 processes, which sequentially allocate
-and write to the anonymous pages until RAM and part of the swap device is
-used up.
+The vhost kernel thread is bound to an open fd of the vhost device which
+is not tight to the mm owner life cycle in general.  The device fd can be
+inherited or passed over to another process which means that we really
+have to be careful about unexpected memory corruption because unlike for
+normal oom victims the result will be visible outside of the oom victim
+context.
 
-Details of comparison is as follow,
+Make sure that no kthread context (users of use_mm) can ever see corrupted
+data because of the oom reaper and hook into the page fault path by
+checking MMF_UNSTABLE mm flag.  __oom_reap_task_mm will set the flag
+before it starts unmapping the address space while the flag is checked
+after the page fault has been handled.  If the flag is set then SIGBUS is
+triggered so any g-u-p user will get a error code.
 
-base             base+patch
----------------- --------------------------
-         %stddev     %change         %stddev
-             \          |                \
-   2506952 ±  2%     +28.1%    3212076 ±  7%  vm-scalability.throughput
-   1207402 ±  7%     +22.3%    1476578 ±  6%  vmstat.swap.so
-     10.86 ± 12%     -23.4%       8.31 ± 16%  perf-profile.cycles-pp._raw_spin_lock_irq.__add_to_swap_cache.add_to_swap_cache.add_to_swap.shrink_page_list
-     10.82 ± 13%     -33.1%       7.24 ± 14%  perf-profile.cycles-pp._raw_spin_lock_irqsave.__remove_mapping.shrink_page_list.shrink_inactive_list.shrink_zone_memcg
-     10.36 ± 11%    -100.0%       0.00 ± -1%  perf-profile.cycles-pp._raw_spin_lock_irqsave.__test_set_page_writeback.bdev_write_page.__swap_writepage.swap_writepage
-     10.52 ± 12%    -100.0%       0.00 ± -1%  perf-profile.cycles-pp._raw_spin_lock_irqsave.test_clear_page_writeback.end_page_writeback.page_endio.pmem_rw_page
+Regular tasks do not need this protection because all which share the mm
+are killed when the mm is reaped and so the corruption will not outlive
+them.
 
-Link: http://lkml.kernel.org/r/1472578089-5560-1-git-send-email-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
+This patch shouldn't have any visible effect at this moment because the
+OOM killer doesn't invoke oom reaper for tasks with mm shared with
+kthreads yet.
+
+Link: http://lkml.kernel.org/r/1472119394-11342-9-git-send-email-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |   12 ++++++++++++
- mm/page-writeback.c     |    4 ++--
- mm/swap_state.c         |    2 ++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+ include/linux/sched.h |    1 +
+ mm/memory.c           |   13 +++++++++++++
+ mm/oom_kill.c         |    8 ++++++++
+ 3 files changed, 22 insertions(+)
 
-diff -puN include/linux/pagemap.h~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache
-+++ a/include/linux/pagemap.h
-@@ -25,6 +25,8 @@ enum mapping_flags {
- 	AS_MM_ALL_LOCKS	= __GFP_BITS_SHIFT + 2,	/* under mm_take_all_locks() */
- 	AS_UNEVICTABLE	= __GFP_BITS_SHIFT + 3,	/* e.g., ramdisk, SHM_LOCK */
- 	AS_EXITING	= __GFP_BITS_SHIFT + 4, /* final truncate in progress */
-+	/* writeback related tags are not used */
-+	AS_NO_WRITEBACK_TAGS = __GFP_BITS_SHIFT + 5,
- };
+diff -puN include/linux/sched.h~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory include/linux/sched.h
+--- a/include/linux/sched.h~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory
++++ a/include/linux/sched.h
+@@ -525,6 +525,7 @@ static inline int get_dumpable(struct mm
+ #define MMF_HAS_UPROBES		19	/* has uprobes */
+ #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
+ #define MMF_OOM_SKIP		21	/* mm is of no interest for the OOM killer */
++#define MMF_UNSTABLE		22	/* mm is unstable for copy_from_user */
  
- static inline void mapping_set_error(struct address_space *mapping, int error)
-@@ -64,6 +66,16 @@ static inline int mapping_exiting(struct
- 	return test_bit(AS_EXITING, &mapping->flags);
- }
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
  
-+static inline void mapping_set_no_writeback_tags(struct address_space *mapping)
-+{
-+	set_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
-+}
-+
-+static inline int mapping_use_writeback_tags(struct address_space *mapping)
-+{
-+	return !test_bit(AS_NO_WRITEBACK_TAGS, &mapping->flags);
-+}
-+
- static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
- {
- 	return (__force gfp_t)mapping->flags & __GFP_BITS_MASK;
-diff -puN mm/page-writeback.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache mm/page-writeback.c
---- a/mm/page-writeback.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache
-+++ a/mm/page-writeback.c
-@@ -2716,7 +2716,7 @@ int test_clear_page_writeback(struct pag
- 	int ret;
- 
- 	lock_page_memcg(page);
--	if (mapping) {
-+	if (mapping && mapping_use_writeback_tags(mapping)) {
- 		struct inode *inode = mapping->host;
- 		struct backing_dev_info *bdi = inode_to_bdi(inode);
- 		unsigned long flags;
-@@ -2759,7 +2759,7 @@ int __test_set_page_writeback(struct pag
- 	int ret;
- 
- 	lock_page_memcg(page);
--	if (mapping) {
-+	if (mapping && mapping_use_writeback_tags(mapping)) {
- 		struct inode *inode = mapping->host;
- 		struct backing_dev_info *bdi = inode_to_bdi(inode);
- 		unsigned long flags;
-diff -puN mm/swap_state.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache mm/swap_state.c
---- a/mm/swap_state.c~mm-dont-use-radix-tree-writeback-tags-for-pages-in-swap-cache
-+++ a/mm/swap_state.c
-@@ -37,6 +37,8 @@ struct address_space swapper_spaces[MAX_
- 		.page_tree	= RADIX_TREE_INIT(GFP_ATOMIC|__GFP_NOWARN),
- 		.i_mmap_writable = ATOMIC_INIT(0),
- 		.a_ops		= &swap_aops,
-+		/* swap cache doesn't use writeback related tags */
-+		.flags		= 1 << AS_NO_WRITEBACK_TAGS,
+diff -puN mm/memory.c~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory mm/memory.c
+--- a/mm/memory.c~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory
++++ a/mm/memory.c
+@@ -3658,6 +3658,19 @@ int handle_mm_fault(struct vm_area_struc
+                         mem_cgroup_oom_synchronize(false);
  	}
- };
  
++	/*
++	 * This mm has been already reaped by the oom reaper and so the
++	 * refault cannot be trusted in general. Anonymous refaults would
++	 * lose data and give a zero page instead e.g. This is especially
++	 * problem for use_mm() because regular tasks will just die and
++	 * the corrupted data will not be visible anywhere while kthread
++	 * will outlive the oom victim and potentially propagate the date
++	 * further.
++	 */
++	if (unlikely((current->flags & PF_KTHREAD) && !(ret & VM_FAULT_ERROR)
++				&& test_bit(MMF_UNSTABLE, &vma->vm_mm->flags)))
++		ret = VM_FAULT_SIGBUS;
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(handle_mm_fault);
+diff -puN mm/oom_kill.c~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-make-sure-that-kthreads-will-not-refault-oom-reaped-memory
++++ a/mm/oom_kill.c
+@@ -495,6 +495,14 @@ static bool __oom_reap_task_mm(struct ta
+ 		goto unlock_oom;
+ 	}
+ 
++	/*
++	 * Tell all users of get_user/copy_from_user etc... that the content
++	 * is no longer stable. No barriers really needed because unmapping
++	 * should imply barriers already and the reader would hit a page fault
++	 * if it stumbled over a reaped memory.
++	 */
++	set_bit(MMF_UNSTABLE, &mm->flags);
++
+ 	tlb_gather_mmu(&tlb, mm, 0, -1);
+ 	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
+ 		if (is_vm_hugetlb_page(vma))
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+fs-use-mapping_set_error-instead-of-opencoded-set_bit.patch
+mm-split-gfp_mask-and-mapping-flags-into-separate-fields.patch
 
