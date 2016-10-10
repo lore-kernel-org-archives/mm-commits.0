@@ -1,63 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- linux-mmh-canonicalize-macro-page_aligned-definition.patch removed from -mm tree
-Date: Mon, 10 Oct 2016 15:57:12 -0700
-Message-ID: <57fc1cc8.sQYHqBIL1JnT/QD+%akpm@linux-foundation.org>
+Subject: [merged] proc-faster-proc-status.patch removed from -mm tree
+Date: Mon, 10 Oct 2016 15:57:25 -0700
+Message-ID: <57fc1cd5.UdgpfZ0aBVdNWUsC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37957 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38001 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752279AbcJJW5M (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:57:12 -0400
+        with ESMTP id S1752352AbcJJW50 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:57:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zijun_hu@htc.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, andi@firstfloor.org, joe@perches.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/mm.h: canonicalize macro PAGE_ALIGNED() definition
+     Subject: proc: faster /proc/*/status
 has been removed from the -mm tree.  Its filename was
-     linux-mmh-canonicalize-macro-page_aligned-definition.patch
+     proc-faster-proc-status.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: zijun_hu <zijun_hu@htc.com>
-Subject: linux/mm.h: canonicalize macro PAGE_ALIGNED() definition
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: faster /proc/*/status
 
-macro PAGE_ALIGNED() is prone to cause error because it doesn't follow
-convention to parenthesize parameter @addr within macro body, for example
-unsigned long *ptr = kmalloc(...); PAGE_ALIGNED(ptr + 16); for the left
-parameter of macro IS_ALIGNED(), (unsigned long)(ptr + 16) is desired but
-the actual one is (unsigned long)ptr + 16.
+top(1) opens the following files for every PID:
 
-It is fixed by simply canonicalizing macro PAGE_ALIGNED() definition.
+	/proc/*/stat
+	/proc/*/statm
+	/proc/*/status
 
-Link: http://lkml.kernel.org/r/57EA6AE7.7090807@zoho.com
-Signed-off-by: zijun_hu <zijun_hu@htc.com>
+This patch switches /proc/*/status away from seq_printf().
+The result is 13.5% speedup.
+
+Benchmark is open("/proc/self/status")+read+close 1.000.000 million times.
+
+				BEFORE
+$ perf stat -r 10 taskset -c 3 ./proc-self-status
+
+ Performance counter stats for 'taskset -c 3 ./proc-self-status' (10 runs):
+
+      10748.474301      task-clock (msec)         #    0.954 CPUs utilized            ( +-  0.91% )
+                12      context-switches          #    0.001 K/sec                    ( +-  1.09% )
+                 1      cpu-migrations            #    0.000 K/sec
+               104      page-faults               #    0.010 K/sec                    ( +-  0.45% )
+    37,424,127,876      cycles                    #    3.482 GHz                      ( +-  0.04% )
+     8,453,010,029      stalled-cycles-frontend   #   22.59% frontend cycles idle     ( +-  0.12% )
+     3,747,609,427      stalled-cycles-backend    #  10.01% backend cycles idle       ( +-  0.68% )
+    65,632,764,147      instructions              #    1.75  insn per cycle
+                                                  #    0.13  stalled cycles per insn  ( +-  0.00% )
+    13,981,324,775      branches                  # 1300.773 M/sec                    ( +-  0.00% )
+       138,967,110      branch-misses             #    0.99% of all branches          ( +-  0.18% )
+
+      11.263885428 seconds time elapsed                                          ( +-  0.04% )
+      ^^^^^^^^^^^^
+
+				AFTER
+$ perf stat -r 10 taskset -c 3 ./proc-self-status
+
+ Performance counter stats for 'taskset -c 3 ./proc-self-status' (10 runs):
+
+       9010.521776      task-clock (msec)         #    0.925 CPUs utilized            ( +-  1.54% )
+                11      context-switches          #    0.001 K/sec                    ( +-  1.54% )
+                 1      cpu-migrations            #    0.000 K/sec                    ( +- 11.11% )
+               103      page-faults               #    0.011 K/sec                    ( +-  0.60% )
+    32,352,310,603      cycles                    #    3.591 GHz                      ( +-  0.07% )
+     7,849,199,578      stalled-cycles-frontend   #   24.26% frontend cycles idle     ( +-  0.27% )
+     3,269,738,842      stalled-cycles-backend    #  10.11% backend cycles idle       ( +-  0.73% )
+    56,012,163,567      instructions              #    1.73  insn per cycle
+                                                  #    0.14  stalled cycles per insn  ( +-  0.00% )
+    11,735,778,795      branches                  # 1302.453 M/sec                    ( +-  0.00% )
+        98,084,459      branch-misses             #    0.84% of all branches          ( +-  0.28% )
+
+       9.741247736 seconds time elapsed                                          ( +-  0.07% )
+       ^^^^^^^^^^^
+
+Link: http://lkml.kernel.org/r/20160806125608.GB1187@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/array.c |   85 ++++++++++++++++++++++++----------------------
+ 1 file changed, 46 insertions(+), 39 deletions(-)
 
-diff -puN include/linux/mm.h~linux-mmh-canonicalize-macro-page_aligned-definition include/linux/mm.h
---- a/include/linux/mm.h~linux-mmh-canonicalize-macro-page_aligned-definition
-+++ a/include/linux/mm.h
-@@ -126,7 +126,7 @@ extern int overcommit_kbytes_handler(str
- #define PAGE_ALIGN(addr) ALIGN(addr, PAGE_SIZE)
+diff -puN fs/proc/array.c~proc-faster-proc-status fs/proc/array.c
+--- a/fs/proc/array.c~proc-faster-proc-status
++++ a/fs/proc/array.c
+@@ -186,51 +186,52 @@ static inline void task_state(struct seq
+ 	task_unlock(p);
+ 	rcu_read_unlock();
  
- /* test whether an address (unsigned long or pointer) is aligned to PAGE_SIZE */
--#define PAGE_ALIGNED(addr)	IS_ALIGNED((unsigned long)addr, PAGE_SIZE)
-+#define PAGE_ALIGNED(addr)	IS_ALIGNED((unsigned long)(addr), PAGE_SIZE)
+-	seq_printf(m,
+-		"State:\t%s\n"
+-		"Tgid:\t%d\n"
+-		"Ngid:\t%d\n"
+-		"Pid:\t%d\n"
+-		"PPid:\t%d\n"
+-		"TracerPid:\t%d\n"
+-		"Uid:\t%d\t%d\t%d\t%d\n"
+-		"Gid:\t%d\t%d\t%d\t%d\n"
+-		"FDSize:\t%d\nGroups:\t",
+-		get_task_state(p),
+-		tgid, ngid, pid_nr_ns(pid, ns), ppid, tpid,
+-		from_kuid_munged(user_ns, cred->uid),
+-		from_kuid_munged(user_ns, cred->euid),
+-		from_kuid_munged(user_ns, cred->suid),
+-		from_kuid_munged(user_ns, cred->fsuid),
+-		from_kgid_munged(user_ns, cred->gid),
+-		from_kgid_munged(user_ns, cred->egid),
+-		from_kgid_munged(user_ns, cred->sgid),
+-		from_kgid_munged(user_ns, cred->fsgid),
+-		max_fds);
++	seq_printf(m, "State:\t%s", get_task_state(p));
  
- /*
-  * Linux kernel virtual memory manager primitives.
++	seq_puts(m, "\nTgid:\t");
++	seq_put_decimal_ull(m, 0, tgid);
++	seq_puts(m, "\nNgid:\t");
++	seq_put_decimal_ull(m, 0, ngid);
++	seq_puts(m, "\nPid:\t");
++	seq_put_decimal_ull(m, 0, pid_nr_ns(pid, ns));
++	seq_puts(m, "\nPPid:\t");
++	seq_put_decimal_ull(m, 0, ppid);
++	seq_puts(m, "\nTracerPid:\t");
++	seq_put_decimal_ull(m, 0, tpid);
++	seq_puts(m, "\nUid:");
++	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->uid));
++	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->euid));
++	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->suid));
++	seq_put_decimal_ull(m, '\t', from_kuid_munged(user_ns, cred->fsuid));
++	seq_puts(m, "\nGid:");
++	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->gid));
++	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->egid));
++	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->sgid));
++	seq_put_decimal_ull(m, '\t', from_kgid_munged(user_ns, cred->fsgid));
++	seq_puts(m, "\nFDSize:\t");
++	seq_put_decimal_ull(m, 0, max_fds);
++
++	seq_puts(m, "\nGroups:\t");
+ 	group_info = cred->group_info;
+ 	for (g = 0; g < group_info->ngroups; g++)
+-		seq_printf(m, "%d ",
+-			   from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
++		seq_put_decimal_ull(m, g ? ' ' : 0, from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
+ 	put_cred(cred);
++	/* Trailing space shouldn't have been added in the first place. */
++	seq_putc(m, ' ');
+ 
+ #ifdef CONFIG_PID_NS
+ 	seq_puts(m, "\nNStgid:");
+ 	for (g = ns->level; g <= pid->level; g++)
+-		seq_printf(m, "\t%d",
+-			task_tgid_nr_ns(p, pid->numbers[g].ns));
++		seq_put_decimal_ull(m, '\t', task_tgid_nr_ns(p, pid->numbers[g].ns));
+ 	seq_puts(m, "\nNSpid:");
+ 	for (g = ns->level; g <= pid->level; g++)
+-		seq_printf(m, "\t%d",
+-			task_pid_nr_ns(p, pid->numbers[g].ns));
++		seq_put_decimal_ull(m, '\t', task_pid_nr_ns(p, pid->numbers[g].ns));
+ 	seq_puts(m, "\nNSpgid:");
+ 	for (g = ns->level; g <= pid->level; g++)
+-		seq_printf(m, "\t%d",
+-			task_pgrp_nr_ns(p, pid->numbers[g].ns));
++		seq_put_decimal_ull(m, '\t', task_pgrp_nr_ns(p, pid->numbers[g].ns));
+ 	seq_puts(m, "\nNSsid:");
+ 	for (g = ns->level; g <= pid->level; g++)
+-		seq_printf(m, "\t%d",
+-			task_session_nr_ns(p, pid->numbers[g].ns));
++		seq_put_decimal_ull(m, '\t', task_session_nr_ns(p, pid->numbers[g].ns));
+ #endif
+ 	seq_putc(m, '\n');
+ }
+@@ -299,11 +300,14 @@ static inline void task_sig(struct seq_f
+ 		unlock_task_sighand(p, &flags);
+ 	}
+ 
+-	seq_printf(m, "Threads:\t%d\n", num_threads);
+-	seq_printf(m, "SigQ:\t%lu/%lu\n", qsize, qlim);
++	seq_puts(m, "Threads:\t");
++	seq_put_decimal_ull(m, 0, num_threads);
++	seq_puts(m, "\nSigQ:\t");
++	seq_put_decimal_ull(m, 0, qsize);
++	seq_put_decimal_ull(m, '/', qlim);
+ 
+ 	/* render them all */
+-	render_sigset_t(m, "SigPnd:\t", &pending);
++	render_sigset_t(m, "\nSigPnd:\t", &pending);
+ 	render_sigset_t(m, "ShdPnd:\t", &shpending);
+ 	render_sigset_t(m, "SigBlk:\t", &blocked);
+ 	render_sigset_t(m, "SigIgn:\t", &ignored);
+@@ -348,17 +352,20 @@ static inline void task_cap(struct seq_f
+ static inline void task_seccomp(struct seq_file *m, struct task_struct *p)
+ {
+ #ifdef CONFIG_SECCOMP
+-	seq_printf(m, "Seccomp:\t%d\n", p->seccomp.mode);
++	seq_puts(m, "Seccomp:\t");
++	seq_put_decimal_ull(m, 0, p->seccomp.mode);
++	seq_putc(m, '\n');
+ #endif
+ }
+ 
+ static inline void task_context_switch_counts(struct seq_file *m,
+ 						struct task_struct *p)
+ {
+-	seq_printf(m,	"voluntary_ctxt_switches:\t%lu\n"
+-			"nonvoluntary_ctxt_switches:\t%lu\n",
+-			p->nvcsw,
+-			p->nivcsw);
++	seq_puts(m, "voluntary_ctxt_switches:\t");
++	seq_put_decimal_ull(m, 0, p->nvcsw);
++	seq_puts(m, "\nnonvoluntary_ctxt_switches:\t");
++	seq_put_decimal_ull(m, 0, p->nivcsw);
++	seq_putc(m, '\n');
+ }
+ 
+ static void task_cpus_allowed(struct seq_file *m, struct task_struct *task)
 _
 
-Patches currently in -mm which might be from zijun_hu@htc.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+kbuild-simpler-generation-of-assembly-constants.patch
+make-isdigit-table-lookupless.patch
+kstrtox-smaller-_parse_integer.patch
 
