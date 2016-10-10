@@ -1,97 +1,114 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch removed from -mm tree
-Date: Mon, 10 Oct 2016 15:45:43 -0700
-Message-ID: <57fc1a17.Q82/hsLLswlNAQq6%akpm@linux-foundation.org>
+ mm-compaction-make-full-priority-ignore-pageblock-suitability.patch removed from -mm tree
+Date: Mon, 10 Oct 2016 15:45:29 -0700
+Message-ID: <57fc1a09.kyGa2aASa8QDBQ2g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37166 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37133 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752421AbcJJWpo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:44 -0400
+        with ESMTP id S1752252AbcJJWpa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, axboe@fb.com, davem@davemloft.net, hughd@google.com, joe@perches.com, mgorman@suse.de, mhocko@suse.com, riel@redhat.com, santosh.shilimkar@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, Ralf-Peter.Rohbeck@quantum.com, a.miskiewicz@gmail.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@kernel.org, mhocko@suse.com, olaf@aepfle.de, penguin-kernel@i-love.sakura.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_io.c: replace some BUG_ON()s with VM_BUG_ON_PAGE()
+     Subject: mm, compaction: make full priority ignore pageblock suitability
 has been removed from the -mm tree.  Its filename was
-     mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page.patch
+     mm-compaction-make-full-priority-ignore-pageblock-suitability.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/page_io.c: replace some BUG_ON()s with VM_BUG_ON_PAGE()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: make full priority ignore pageblock suitability
 
-So they are CONFIG_DEBUG_VM-only and more informative.
+Several people have reported premature OOMs for order-2 allocations
+(stack) due to OOM rework in 4.7.  In the scenario (parallel kernel build
+and dd writing to two drives) many pageblocks get marked as Unmovable and
+compaction free scanner struggles to isolate free pages.  Joonsoo Kim
+pointed out that the free scanner skips pageblocks that are not movable to
+prevent filling them and forcing non-movable allocations to fallback to
+other pageblocks.  Such heuristic makes sense to help prevent long-term
+fragmentation, but premature OOMs are relatively more urgent problem.  As
+a compromise, this patch disables the heuristic only for the ultimate
+compaction priority.
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Link: http://lkml.kernel.org/r/20160906135258.18335-5-vbabka@suse.cz
+Reported-by: Ralf-Peter Rohbeck <Ralf-Peter.Rohbeck@quantum.com>
+Reported-by: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
+Reported-by: Olaf Hering <olaf@aepfle.de>
+Suggested-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/compaction.c |   11 ++++++++---
+ mm/internal.h   |    1 +
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_io.c~mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page mm/page_io.c
---- a/mm/page_io.c~mm-page_ioc-replace-some-bug_ons-with-vm_bug_on_page
-+++ a/mm/page_io.c
-@@ -264,7 +264,7 @@ int __swap_writepage(struct page *page,
- 	int ret;
- 	struct swap_info_struct *sis = page_swap_info(page);
+diff -puN mm/compaction.c~mm-compaction-make-full-priority-ignore-pageblock-suitability mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-make-full-priority-ignore-pageblock-suitability
++++ a/mm/compaction.c
+@@ -997,8 +997,12 @@ isolate_migratepages_range(struct compac
+ #ifdef CONFIG_COMPACTION
  
--	BUG_ON(!PageSwapCache(page));
-+	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
- 	if (sis->flags & SWP_FILE) {
- 		struct kiocb kiocb;
- 		struct file *swap_file = sis->swap_file;
-@@ -338,7 +338,7 @@ int swap_readpage(struct page *page)
- 	int ret = 0;
- 	struct swap_info_struct *sis = page_swap_info(page);
- 
--	BUG_ON(!PageSwapCache(page));
-+	VM_BUG_ON_PAGE(!PageSwapCache(page), page);
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(PageUptodate(page), page);
- 	if (frontswap_load(page) == 0) {
-@@ -388,7 +388,8 @@ int swap_set_page_dirty(struct page *pag
- 
- 	if (sis->flags & SWP_FILE) {
- 		struct address_space *mapping = sis->swap_file->f_mapping;
--		BUG_ON(!PageSwapCache(page));
+ /* Returns true if the page is within a block suitable for migration to */
+-static bool suitable_migration_target(struct page *page)
++static bool suitable_migration_target(struct compact_control *cc,
++							struct page *page)
+ {
++	if (cc->ignore_block_suitable)
++		return true;
 +
-+		VM_BUG_ON_PAGE(!PageSwapCache(page), page);
- 		return mapping->a_ops->set_page_dirty(page);
- 	} else {
- 		return __set_page_dirty_no_writeback(page);
+ 	/* If the page is a large free page, then disallow migration */
+ 	if (PageBuddy(page)) {
+ 		/*
+@@ -1083,7 +1087,7 @@ static void isolate_freepages(struct com
+ 			continue;
+ 
+ 		/* Check the block is suitable for migration */
+-		if (!suitable_migration_target(page))
++		if (!suitable_migration_target(cc, page))
+ 			continue;
+ 
+ 		/* If isolation recently failed, do not retry */
+@@ -1656,7 +1660,8 @@ static enum compact_result compact_zone_
+ 		.classzone_idx = classzone_idx,
+ 		.direct_compaction = true,
+ 		.whole_zone = (prio == MIN_COMPACT_PRIORITY),
+-		.ignore_skip_hint = (prio == MIN_COMPACT_PRIORITY)
++		.ignore_skip_hint = (prio == MIN_COMPACT_PRIORITY),
++		.ignore_block_suitable = (prio == MIN_COMPACT_PRIORITY)
+ 	};
+ 	INIT_LIST_HEAD(&cc.freepages);
+ 	INIT_LIST_HEAD(&cc.migratepages);
+diff -puN mm/internal.h~mm-compaction-make-full-priority-ignore-pageblock-suitability mm/internal.h
+--- a/mm/internal.h~mm-compaction-make-full-priority-ignore-pageblock-suitability
++++ a/mm/internal.h
+@@ -178,6 +178,7 @@ struct compact_control {
+ 	unsigned long last_migrated_pfn;/* Not yet flushed page being freed */
+ 	enum migrate_mode mode;		/* Async or sync migration mode */
+ 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
++	bool ignore_block_suitable;	/* Scan blocks considered unsuitable */
+ 	bool direct_compaction;		/* False from kcompactd or /proc/... */
+ 	bool whole_zone;		/* Whole zone should/has been scanned */
+ 	int order;			/* order a direct compactor needs */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-lib-bitmapc-enhance-bitmap-syntax-fix.patch
-relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-checkpatch-fixes.patch
-ipc-msg-avoid-waking-sender-upon-full-queue-checkpatch-fixes.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-mlx5-deviceh-kill-build_bug_ons.patch
-hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0-fix.patch
-fs-use-mapping_set_error-instead-of-opencoded-set_bit-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+fs-select-add-vmalloc-fallback-for-select2.patch
 
