@@ -1,97 +1,76 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vma_adjust-remove-superfluous-confusing-update-in-remove_next-==-1-case.patch removed from -mm tree
-Date: Mon, 10 Oct 2016 15:46:10 -0700
-Message-ID: <57fc1a32.sotxAr3eO9Ghntnh%akpm@linux-foundation.org>
+ mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node.patch removed
+ from -mm tree
+Date: Mon, 10 Oct 2016 15:46:06 -0700
+Message-ID: <57fc1a2e.jKxT8HrcacF1qsrA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37219 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752221AbcJJWqL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:46:11 -0400
+        with ESMTP id S1752237AbcJJWqH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:46:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hughd@google.com, janvorli@microsoft.com, mgorman@techsingularity.net, riel@redhat.com, mm-commits@vger.kernel.org
+To: zhongjiang@huawei.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vma_adjust: remove superfluous confusing update in remove_next == 1 case
+     Subject: mm,ksm: add __GFP_HIGH to the allocation in alloc_stable_node()
 has been removed from the -mm tree.  Its filename was
-     mm-vma_adjust-remove-superfluous-confusing-update-in-remove_next-==-1-case.patch
+     mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: vma_adjust: remove superfluous confusing update in remove_next == 1 case
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: mm,ksm: add __GFP_HIGH to the allocation in alloc_stable_node()
 
-mm->highest_vm_end doesn't need any update.
+According to Hugh's suggestion, alloc_stable_node() with GFP_KERNEL can in
+rare cases cause a hung task warning.
 
-After finally removing the oddness from vma_merge case 8 that was causing:
+At present, if alloc_stable_node() allocation fails, two break_cows may
+want to allocate a couple of pages, and the issue will come up when free
+memory is under pressure.
 
-1) constant risk of trouble whenever anybody would check vma fields
-   from rmap_walks, like it happened when page migration was
-   introduced and it read the vma->vm_page_prot from a rmap_walk
+We fix it by adding __GFP_HIGH to GFP, to grant access to memory reserves,
+increasing the likelihood of allocation success.
 
-2) the callers of vma_merge to re-initialize any value different from
-   the current vma, instead of vma_merge() more reliably returning a
-   vma that already matches all fields passed as parameter
-
-... it is also worth to take the opportunity of cleaning up
-superfluous code in vma_adjust(), that if not removed adds up to the
-hard readability of the function.
-
-Link: http://lkml.kernel.org/r/1474492522-2261-5-git-send-email-aarcange@redhat.com
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Jan Vorlicek <janvorli@microsoft.com>
+[akpm@linux-foundation.org: tweak comment]
+Link: http://lkml.kernel.org/r/1474354484-58233-1-git-send-email-zhongjiang@huawei.com
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Suggested-by: Hugh Dickins <hughd@google.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ mm/ksm.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-vma_adjust-remove-superfluous-confusing-update-in-remove_next-==-1-case mm/mmap.c
---- a/mm/mmap.c~mm-vma_adjust-remove-superfluous-confusing-update-in-remove_next-==-1-case
-+++ a/mm/mmap.c
-@@ -817,8 +817,28 @@ again:
- 		}
- 		else if (next)
- 			vma_gap_update(next);
--		else
--			mm->highest_vm_end = end;
-+		else {
-+			/*
-+			 * If remove_next == 2 we obviously can't
-+			 * reach this path.
-+			 *
-+			 * If remove_next == 3 we can't reach this
-+			 * path because pre-swap() next is always not
-+			 * NULL. pre-swap() "next" is not being
-+			 * removed and its next->vm_end is not altered
-+			 * (and furthermore "end" already matches
-+			 * next->vm_end in remove_next == 3).
-+			 *
-+			 * We reach this only in the remove_next == 1
-+			 * case if the "next" vma that was removed was
-+			 * the highest vma of the mm. However in such
-+			 * case next->vm_end == "end" and the extended
-+			 * "vma" has vma->vm_end == next->vm_end so
-+			 * mm->highest_vm_end doesn't need any update
-+			 * in remove_next == 1 case.
-+			 */
-+			VM_WARN_ON(mm->highest_vm_end != end);
-+		}
- 	}
- 	if (insert && file)
- 		uprobe_mmap(insert);
+diff -puN mm/ksm.c~mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node mm/ksm.c
+--- a/mm/ksm.c~mmksm-add-__gfp_high-to-the-allocation-in-alloc_stable_node
++++ a/mm/ksm.c
+@@ -299,7 +299,12 @@ static inline void free_rmap_item(struct
+ 
+ static inline struct stable_node *alloc_stable_node(void)
+ {
+-	return kmem_cache_alloc(stable_node_cache, GFP_KERNEL);
++	/*
++	 * The allocation can take too long with GFP_KERNEL when memory is under
++	 * pressure, which may lead to hung task warnings.  Adding __GFP_HIGH
++	 * grants access to memory reserves, helping to avoid this problem.
++	 */
++	return kmem_cache_alloc(stable_node_cache, GFP_KERNEL | __GFP_HIGH);
+ }
+ 
+ static inline void free_stable_node(struct stable_node *stable_node)
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from zhongjiang@huawei.com are
 
+mm-page_owner-align-with-pageblock_nr-pages.patch
+mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
 
