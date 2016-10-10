@@ -1,59 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-oom_killc-fix-task_will_free_mem-comment.patch
+Subject: [merged]
+ fs-ocfs2-cluster-remove-deprecated-create_singlethread_workqueue.patch
  removed from -mm tree
-Date: Mon, 10 Oct 2016 15:42:51 -0700
-Message-ID: <57fc196b.VNJz2mfOx04g4I7i%akpm@linux-foundation.org>
+Date: Mon, 10 Oct 2016 15:42:32 -0700
+Message-ID: <57fc1958.F3CBkn3X/iDdmh6M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36582 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752221AbcJJWnk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:40 -0400
+        with ESMTP id S1752252AbcJJWnj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
+To: bhaktipriya96@gmail.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@versity.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/oom_kill.c: fix task_will_free_mem() comment
+     Subject: fs/ocfs2/cluster: remove deprecated create_singlethread_workqueue()
 has been removed from the -mm tree.  Its filename was
-     mm-oom_killc-fix-task_will_free_mem-comment.patch
+     fs-ocfs2-cluster-remove-deprecated-create_singlethread_workqueue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@kernel.org>
-Subject: mm/oom_kill.c: fix task_will_free_mem() comment
+From: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Subject: fs/ocfs2/cluster: remove deprecated create_singlethread_workqueue()
 
-Attempt to demystify the task_will_free_mem() loop.
+The workqueue "o2net_wq" queues multiple work items viz
+&old_sc->sc_shutdown_work, &sc->sc_rx_work, &sc->sc_connect_work which
+require strict execution ordering. Hence, an ordered dedicated workqueue
+has been used.
 
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+WQ_MEM_RECLAIM has been set to ensure forward progress under memory
+pressure.
+
+Link: http://lkml.kernel.org/r/ddc12e5766c79ba26f8a00d98049107f8a1d4866.1472590094.git.bhaktipriya96@gmail.com
+Signed-off-by: Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ocfs2/cluster/tcp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mm-oom_killc-fix-task_will_free_mem-comment mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_killc-fix-task_will_free_mem-comment
-+++ a/mm/oom_kill.c
-@@ -803,8 +803,9 @@ static bool task_will_free_mem(struct ta
- 		return true;
+diff -puN fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-remove-deprecated-create_singlethread_workqueue fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~fs-ocfs2-cluster-remove-deprecated-create_singlethread_workqueue
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -2104,7 +2104,7 @@ int o2net_start_listening(struct o2nm_no
+ 	BUG_ON(o2net_listen_sock != NULL);
  
- 	/*
--	 * This is really pessimistic but we do not have any reliable way
--	 * to check that external processes share with our mm
-+	 * Make sure that all tasks which share the mm with the given tasks
-+	 * are dying as well to make sure that a) nobody pins its mm and
-+	 * b) the task is also reapable by the oom reaper.
- 	 */
- 	rcu_read_lock();
- 	for_each_process(p) {
+ 	mlog(ML_KTHREAD, "starting o2net thread...\n");
+-	o2net_wq = create_singlethread_workqueue("o2net");
++	o2net_wq = alloc_ordered_workqueue("o2net", WQ_MEM_RECLAIM);
+ 	if (o2net_wq == NULL) {
+ 		mlog(ML_ERROR, "unable to launch o2net thread\n");
+ 		return -ENOMEM; /* ? */
 _
 
-Patches currently in -mm which might be from mhocko@kernel.org are
+Patches currently in -mm which might be from bhaktipriya96@gmail.com are
 
 
