@@ -1,77 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-nobootmem-move-the-comment-of-free_all_bootmem.patch
+Subject: [merged]
+ mm-hugetlb-fix-memory-offline-with-hugepage-size-memory-block-size.patch
  removed from -mm tree
-Date: Mon, 10 Oct 2016 15:45:53 -0700
-Message-ID: <57fc1a21.PrKMyWZNQ6w+b4/5%akpm@linux-foundation.org>
+Date: Mon, 10 Oct 2016 15:45:55 -0700
+Message-ID: <57fc1a23.RqUmwzrfGTSoHK8p%akpm__7223.0176222094$1476139582$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37190 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37197 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752437AbcJJWpy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:54 -0400
+        with ESMTP id S1752100AbcJJWp4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wanlong.gao@gmail.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: gerald.schaefer@de.ibm.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@linux.intel.com, heiko.carstens@de.ibm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, rui.teng@linux.vnet.ibm.com, schwidefsky@de.ibm.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: nobootmem: move the comment of free_all_bootmem
+     Subject: mm/hugetlb: fix memory offline with hugepage size > memory block size
 has been removed from the -mm tree.  Its filename was
-     mm-nobootmem-move-the-comment-of-free_all_bootmem.patch
+     mm-hugetlb-fix-memory-offline-with-hugepage-size-memory-block-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wanlong Gao <wanlong.gao@gmail.com>
-Subject: mm: nobootmem: move the comment of free_all_bootmem
+From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Subject: mm/hugetlb: fix memory offline with hugepage size > memory block size
 
-b4def3509d18c1db9 ("mm, nobootmem: clean-up of
-free_low_memory_core_early()") removed the unnecessary nodeid argument,
-after that, this comment becomes more confused.  We should move it to the
-right place.
+Patch series "mm/hugetlb: memory offline issues with hugepages", v4.
 
-Fixes: b4def3509d18c1db9 ("mm, nobootmem: clean-up of free_low_memory_core_early()")
-Link: http://lkml.kernel.org/r/1473996082-14603-1-git-send-email-wanlong.gao@gmail.com
-Signed-off-by: Wanlong Gao <wanlong.gao@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+This addresses several issues with hugepages and memory offline. While
+the first patch fixes a panic, and is therefore rather important, the
+last patch is just a performance optimization.
+
+The second patch fixes a theoretical issue with reserved hugepages,
+while still leaving some ugly usability issue, see description.
+
+
+This patch (of 3):
+
+dissolve_free_huge_pages() will either run into the VM_BUG_ON() or a list
+corruption and addressing exception when trying to set a memory block
+offline that is part (but not the first part) of a "gigantic" hugetlb page
+with a size > memory block size.
+
+When no other smaller hugetlb page sizes are present, the VM_BUG_ON() will
+trigger directly.  In the other case we will run into an addressing
+exception later, because dissolve_free_huge_page() will not work on the
+head page of the compound hugetlb page which will result in a NULL hstate
+from page_hstate().
+
+To fix this, first remove the VM_BUG_ON() because it is wrong, and then
+use the compound head page in dissolve_free_huge_page().  This means that
+an unused pre-allocated gigantic page that has any part of itself inside
+the memory block that is going offline will be dissolved completely. 
+Losing an unused gigantic hugepage is preferable to failing the memory
+offline, for example in the situation where a (possibly faulty) memory
+DIMM needs to go offline.
+
+Fixes: c8721bbb ("mm: memory-hotplug: enable memory hotplug to handle hugepage")
+Link: http://lkml.kernel.org/r/20160926172811.94033-2-gerald.schaefer@de.ibm.com
+Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Rui Teng <rui.teng@linux.vnet.ibm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nobootmem.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/hugetlb.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN mm/nobootmem.c~mm-nobootmem-move-the-comment-of-free_all_bootmem mm/nobootmem.c
---- a/mm/nobootmem.c~mm-nobootmem-move-the-comment-of-free_all_bootmem
-+++ a/mm/nobootmem.c
-@@ -137,6 +137,11 @@ static unsigned long __init free_low_mem
- 	for_each_reserved_mem_region(i, &start, &end)
- 		reserve_bootmem_region(start, end);
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-memory-offline-with-hugepage-size-memory-block-size mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-memory-offline-with-hugepage-size-memory-block-size
++++ a/mm/hugetlb.c
+@@ -1443,13 +1443,14 @@ static void dissolve_free_huge_page(stru
+ {
+ 	spin_lock(&hugetlb_lock);
+ 	if (PageHuge(page) && !page_count(page)) {
+-		struct hstate *h = page_hstate(page);
+-		int nid = page_to_nid(page);
+-		list_del(&page->lru);
++		struct page *head = compound_head(page);
++		struct hstate *h = page_hstate(head);
++		int nid = page_to_nid(head);
++		list_del(&head->lru);
+ 		h->free_huge_pages--;
+ 		h->free_huge_pages_node[nid]--;
+ 		h->max_huge_pages--;
+-		update_and_free_page(h, page);
++		update_and_free_page(h, head);
+ 	}
+ 	spin_unlock(&hugetlb_lock);
+ }
+@@ -1457,7 +1458,8 @@ static void dissolve_free_huge_page(stru
+ /*
+  * Dissolve free hugepages in a given pfn range. Used by memory hotplug to
+  * make specified memory blocks removable from the system.
+- * Note that start_pfn should aligned with (minimum) hugepage size.
++ * Note that this will dissolve a free gigantic hugepage completely, if any
++ * part of it lies within the given range.
+  */
+ void dissolve_free_huge_pages(unsigned long start_pfn, unsigned long end_pfn)
+ {
+@@ -1466,7 +1468,6 @@ void dissolve_free_huge_pages(unsigned l
+ 	if (!hugepages_supported())
+ 		return;
  
-+	/*
-+	 * We need to use NUMA_NO_NODE instead of NODE_DATA(0)->node_id
-+	 *  because in some case like Node0 doesn't have RAM installed
-+	 *  low ram will be on Node1
-+	 */
- 	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE, &start, &end,
- 				NULL)
- 		count += __free_memory_core(start, end);
-@@ -194,11 +199,6 @@ unsigned long __init free_all_bootmem(vo
- 
- 	reset_all_zones_managed_pages();
- 
--	/*
--	 * We need to use NUMA_NO_NODE instead of NODE_DATA(0)->node_id
--	 *  because in some case like Node0 doesn't have RAM installed
--	 *  low ram will be on Node1
--	 */
- 	pages = free_low_memory_core_early();
- 	totalram_pages += pages;
- 
+-	VM_BUG_ON(!IS_ALIGNED(start_pfn, 1 << minimum_order));
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += 1 << minimum_order)
+ 		dissolve_free_huge_page(pfn_to_page(pfn));
+ }
 _
 
-Patches currently in -mm which might be from wanlong.gao@gmail.com are
+Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
 
