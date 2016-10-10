@@ -1,113 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-implement-arch_reserved_kernel_pages.patch
- removed from -mm tree
-Date: Mon, 10 Oct 2016 15:44:23 -0700
-Message-ID: <57fc19c7.YV6USjs5H0+TQLrF%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init.patch removed from -mm tree
+Date: Mon, 10 Oct 2016 15:43:23 -0700
+Message-ID: <57fc198b.k4wSvk4HfnbsI4OZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36745 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36628 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752263AbcJJWoY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:24 -0400
+        with ESMTP id S1752257AbcJJWnn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srikar@linux.vnet.ibm.com, benh@kernel.crashing.org, bsingharora@gmail.com, dave.hansen@intel.com, hbathini@linux.vnet.ibm.com, mahesh@linux.vnet.ibm.com, mgorman@techsingularity.net, mhocko@kernel.org, mpe@ellerman.id.au, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: qiuxishi@huawei.com, iamjoonsoo.kim@lge.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: implement arch_reserved_kernel_pages
+     Subject: mm: fix set pageblock migratetype in deferred struct page init
 has been removed from the -mm tree.  Its filename was
-     powerpc-implement-arch_reserved_kernel_pages.patch
+     mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Subject: powerpc: implement arch_reserved_kernel_pages
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: mm: fix set pageblock migratetype in deferred struct page init
 
-Currently significant amount of memory is reserved only in kernel booted
-to capture kernel dump using the fa_dump method.
+On x86_64 MAX_ORDER_NR_PAGES is usually 4M, and a pageblock is usually 2M,
+so we only set one pageblock's migratetype in deferred_free_range() if pfn
+is aligned to MAX_ORDER_NR_PAGES.  That means it causes uninitialized
+migratetype blocks, you can see from "cat /proc/pagetypeinfo", almost half
+blocks are Unmovable.
 
-Kernels compiled with CONFIG_DEFERRED_STRUCT_PAGE_INIT will initialize
-only certain size memory per node.  The certain size takes into account
-the dentry and inode cache sizes.  Currently the cache sizes are
-calculated based on the total system memory including the reserved memory.
-However such a kernel when booting the same kernel as fadump kernel will
-not be able to allocate the required amount of memory to suffice for the
-dentry and inode caches.  This results in crashes like
+Also we missed freeing the last block in deferred_init_memmap(), it causes
+memory leak.
 
-Hence only implement arch_reserved_kernel_pages() for CONFIG_FA_DUMP
-configurations.  The amount reserved will be reduced while calculating the
-large caches and will avoid crashes like the below on large systems such
-as 32 TB systems.
-
-Dentry cache hash table entries: 536870912 (order: 16, 4294967296 bytes)
-vmalloc: allocation failure, allocated 4097114112 of 17179934720 bytes
-swapper/0: page allocation failure: order:0, mode:0x2080020(GFP_ATOMIC)
-CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.6-master+ #3
-Call Trace:
-[c00000000108fb10] [c0000000007fac88] dump_stack+0xb0/0xf0 (unreliable)
-[c00000000108fb50] [c000000000235264] warn_alloc_failed+0x114/0x160
-[c00000000108fbf0] [c000000000281484] __vmalloc_node_range+0x304/0x340
-[c00000000108fca0] [c00000000028152c] __vmalloc+0x6c/0x90
-[c00000000108fd40] [c000000000aecfb0]
-alloc_large_system_hash+0x1b8/0x2c0
-[c00000000108fe00] [c000000000af7240] inode_init+0x94/0xe4
-[c00000000108fe80] [c000000000af6fec] vfs_caches_init+0x8c/0x13c
-[c00000000108ff00] [c000000000ac4014] start_kernel+0x50c/0x578
-[c00000000108ff90] [c000000000008c6c] start_here_common+0x20/0xa8
-
-Link: http://lkml.kernel.org/r/1472476010-4709-4-git-send-email-srikar@linux.vnet.ibm.com
-Signed-off-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Suggested-by: Mel Gorman <mgorman@techsingularity.net>
+Fixes: ac5d2539b238 ("mm: meminit: reduce number of times pageblocks are set during struct page init")
+Link: http://lkml.kernel.org/r/57A3260F.4050709@huawei.com
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mahesh Salgaonkar <mahesh@linux.vnet.ibm.com>
-Cc: Hari Bathini <hbathini@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/mmzone.h |    3 +++
- arch/powerpc/kernel/fadump.c      |    5 +++++
- 2 files changed, 8 insertions(+)
+ mm/page_alloc.c |   20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff -puN arch/powerpc/include/asm/mmzone.h~powerpc-implement-arch_reserved_kernel_pages arch/powerpc/include/asm/mmzone.h
---- a/arch/powerpc/include/asm/mmzone.h~powerpc-implement-arch_reserved_kernel_pages
-+++ a/arch/powerpc/include/asm/mmzone.h
-@@ -41,6 +41,9 @@ u64 memory_hotplug_max(void);
- #else
- #define memory_hotplug_max() memblock_end_of_DRAM()
- #endif /* CONFIG_NEED_MULTIPLE_NODES */
-+#ifdef CONFIG_FA_DUMP
-+#define __HAVE_ARCH_RESERVED_KERNEL_PAGES
-+#endif
+diff -puN mm/page_alloc.c~mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-set-pageblock-migratetype-in-deferred-struct-page-init
++++ a/mm/page_alloc.c
+@@ -1393,15 +1393,18 @@ static void __init deferred_free_range(s
+ 		return;
  
- #endif /* __KERNEL__ */
- #endif /* _ASM_MMZONE_H_ */
-diff -puN arch/powerpc/kernel/fadump.c~powerpc-implement-arch_reserved_kernel_pages arch/powerpc/kernel/fadump.c
---- a/arch/powerpc/kernel/fadump.c~powerpc-implement-arch_reserved_kernel_pages
-+++ a/arch/powerpc/kernel/fadump.c
-@@ -333,6 +333,11 @@ int __init fadump_reserve_mem(void)
- 	return 1;
+ 	/* Free a large naturally-aligned chunk if possible */
+-	if (nr_pages == MAX_ORDER_NR_PAGES &&
+-	    (pfn & (MAX_ORDER_NR_PAGES-1)) == 0) {
++	if (nr_pages == pageblock_nr_pages &&
++	    (pfn & (pageblock_nr_pages - 1)) == 0) {
+ 		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-		__free_pages_boot_core(page, MAX_ORDER-1);
++		__free_pages_boot_core(page, pageblock_order);
+ 		return;
+ 	}
+ 
+-	for (i = 0; i < nr_pages; i++, page++)
++	for (i = 0; i < nr_pages; i++, page++, pfn++) {
++		if ((pfn & (pageblock_nr_pages - 1)) == 0)
++			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+ 		__free_pages_boot_core(page, 0);
++	}
  }
  
-+unsigned long __init arch_reserved_kernel_pages(void)
-+{
-+	return memblock_reserved_size() / PAGE_SIZE;
-+}
-+
- /* Look for fadump= cmdline option. */
- static int __init early_fadump_param(char *p)
- {
+ /* Completion tracking for deferred_init_memmap() threads */
+@@ -1469,9 +1472,9 @@ static int __init deferred_init_memmap(v
+ 
+ 			/*
+ 			 * Ensure pfn_valid is checked every
+-			 * MAX_ORDER_NR_PAGES for memory holes
++			 * pageblock_nr_pages for memory holes
+ 			 */
+-			if ((pfn & (MAX_ORDER_NR_PAGES - 1)) == 0) {
++			if ((pfn & (pageblock_nr_pages - 1)) == 0) {
+ 				if (!pfn_valid(pfn)) {
+ 					page = NULL;
+ 					goto free_range;
+@@ -1484,7 +1487,7 @@ static int __init deferred_init_memmap(v
+ 			}
+ 
+ 			/* Minimise pfn page lookups and scheduler checks */
+-			if (page && (pfn & (MAX_ORDER_NR_PAGES - 1)) != 0) {
++			if (page && (pfn & (pageblock_nr_pages - 1)) != 0) {
+ 				page++;
+ 			} else {
+ 				nr_pages += nr_to_free;
+@@ -1520,6 +1523,9 @@ free_range:
+ 			free_base_page = NULL;
+ 			free_base_pfn = nr_to_free = 0;
+ 		}
++		/* Free the last block of pages to allocator */
++		nr_pages += nr_to_free;
++		deferred_free_range(free_base_page, free_base_pfn, nr_to_free);
+ 
+ 		first_init_pfn = max(end_pfn, first_init_pfn);
+ 	}
 _
 
-Patches currently in -mm which might be from srikar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
 
