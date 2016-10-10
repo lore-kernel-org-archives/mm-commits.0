@@ -1,110 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
- removed from -mm tree
-Date: Mon, 10 Oct 2016 15:43:14 -0700
-Message-ID: <57fc1982.USXwIsDuCjUiktGz%akpm@linux-foundation.org>
+ mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch removed
+ from -mm tree
+Date: Mon, 10 Oct 2016 15:42:50 -0700
+Message-ID: <57fc196a.qPSjHkgZ9ymlzuH1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36634 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752183AbcJJWnl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:41 -0400
+        with ESMTP id S1752263AbcJJWnk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: require only min watermarks for non-costly orders
+     Subject: mm: memcontrol: add sanity checks for memcg->id.ref on get/put
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-require-only-min-watermarks-for-non-costly-orders.patch
+     mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: require only min watermarks for non-costly orders
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: mm: memcontrol: add sanity checks for memcg->id.ref on get/put
 
-The __compaction_suitable() function checks the low watermark plus a
-compact_gap() gap to decide if there's enough free memory to perform
-compaction.  Then __isolate_free_page uses low watermark check to decide
-if particular free page can be isolated.  In the latter case, using low
-watermark is needlessly pessimistic, as the free page isolations are only
-temporary.  For __compaction_suitable() the higher watermark makes sense
-for high-order allocations where more freepages increase the chance of
-success, and we can typically fail with some order-0 fallback when the
-system is struggling to reach that watermark.  But for low-order
-allocation, forming the page should not be that hard.  So using low
-watermark here might just prevent compaction from even trying, and
-eventually lead to OOM killer even if we are above min watermarks.
-
-So after this patch, we use min watermark for non-costly orders in
-__compaction_suitable(), and for all orders in __isolate_free_page().
-
-[vbabka@suse.cz: clarify __isolate_free_page() comment]
- Link: http://lkml.kernel.org/r/7ae4baec-4eca-e70b-2a69-94bea4fb19fa@suse.cz
-Link: http://lkml.kernel.org/r/20160810091226.6709-11-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Link: http://lkml.kernel.org/r/1c5ddb1c171dbdfc3262252769d6138a29b35b70.1470219853.git.vdavydov@virtuozzo.com
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    6 +++++-
- mm/page_alloc.c |    9 +++++++--
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders mm/compaction.c
---- a/mm/compaction.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders
-+++ a/mm/compaction.c
-@@ -1399,10 +1399,14 @@ static enum compact_result __compaction_
- 	 * isolation. We however do use the direct compactor's classzone_idx to
- 	 * skip over zones where lowmem reserves would prevent allocation even
- 	 * if compaction succeeds.
-+	 * For costly orders, we require low watermark instead of min for
-+	 * compaction to proceed to increase its chances.
- 	 * ALLOC_CMA is used, as pages in CMA pageblocks are considered
- 	 * suitable migration targets
- 	 */
--	watermark = low_wmark_pages(zone) + compact_gap(order);
-+	watermark = (order > PAGE_ALLOC_COSTLY_ORDER) ?
-+				low_wmark_pages(zone) : min_wmark_pages(zone);
-+	watermark += compact_gap(order);
- 	if (!__zone_watermark_ok(zone, 0, watermark, classzone_idx,
- 						ALLOC_CMA, wmark_target))
- 		return COMPACT_SKIPPED;
-diff -puN mm/page_alloc.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-require-only-min-watermarks-for-non-costly-orders
-+++ a/mm/page_alloc.c
-@@ -2489,8 +2489,13 @@ int __isolate_free_page(struct page *pag
- 	mt = get_pageblock_migratetype(page);
+diff -puN mm/memcontrol.c~mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-add-sanity-checks-for-memcg-idref-on-get-put
++++ a/mm/memcontrol.c
+@@ -4062,11 +4062,13 @@ static DEFINE_IDR(mem_cgroup_idr);
  
- 	if (!is_migrate_isolate(mt)) {
--		/* Obey watermarks as if the page was being allocated */
--		watermark = low_wmark_pages(zone) + (1 << order);
-+		/*
-+		 * Obey watermarks as if the page was being allocated. We can
-+		 * emulate a high-order watermark check with a raised order-0
-+		 * watermark, because we already know our high-order page
-+		 * exists.
-+		 */
-+		watermark = min_wmark_pages(zone) + (1UL << order);
- 		if (!zone_watermark_ok(zone, 0, watermark, 0, ALLOC_CMA))
- 			return 0;
+ static void mem_cgroup_id_get_many(struct mem_cgroup *memcg, unsigned int n)
+ {
++	VM_BUG_ON(atomic_read(&memcg->id.ref) <= 0);
+ 	atomic_add(n, &memcg->id.ref);
+ }
  
+ static void mem_cgroup_id_put_many(struct mem_cgroup *memcg, unsigned int n)
+ {
++	VM_BUG_ON(atomic_read(&memcg->id.ref) < n);
+ 	if (atomic_sub_and_test(n, &memcg->id.ref)) {
+ 		idr_remove(&mem_cgroup_idr, memcg->id.id);
+ 		memcg->id.id = 0;
+@@ -4255,8 +4257,10 @@ fail:
+ 
+ static int mem_cgroup_css_online(struct cgroup_subsys_state *css)
+ {
++	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++
+ 	/* Online state pins memcg ID, memcg ID pins CSS */
+-	mem_cgroup_id_get(mem_cgroup_from_css(css));
++	atomic_set(&memcg->id.ref, 1);
+ 	css_get(css);
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
-fs-select-add-vmalloc-fallback-for-select2.patch
 
