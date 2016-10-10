@@ -1,138 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-page_file_index.patch removed from -mm tree
-Date: Mon, 10 Oct 2016 15:45:18 -0700
-Message-ID: <57fc19fe.zLouMcf/9RbnI3tL%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-swap-use-offset-of-swap-entry-as-key-of-swap-cache.patch removed from
+ -mm tree
+Date: Mon, 10 Oct 2016 15:45:15 -0700
+Message-ID: <57fc19fb.WooBkjadMlVMDx0t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37099 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37079 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752372AbcJJWpT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:19 -0400
+        with ESMTP id S1752354AbcJJWpS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ying.huang@intel.com, anna.schumaker@netapp.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, edumazet@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, ross.zwisler@linux.intel.com, trond.myklebust@primarydata.com, mm-commits@vger.kernel.org
+To: ying.huang@intel.com, aaron.lu@intel.com, dan.j.williams@intel.com, dave.hansen@linux.intel.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@kernel.org, minchan@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove page_file_index
+     Subject: mm, swap: use offset of swap entry as key of swap cache
 has been removed from the -mm tree.  Its filename was
-     mm-remove-page_file_index.patch
+     mm-swap-use-offset-of-swap-entry-as-key-of-swap-cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Huang Ying <ying.huang@intel.com>
-Subject: mm: remove page_file_index
+Subject: mm, swap: use offset of swap entry as key of swap cache
 
-After using the offset of the swap entry as the key of the swap cache, the
-page_index() becomes exactly same as page_file_index().  So the
-page_file_index() is removed and the callers are changed to use
-page_index() instead.
+This patch is to improve the performance of swap cache operations when the
+type of the swap device is not 0.  Originally, the whole swap entry value
+is used as the key of the swap cache, even though there is one radix tree
+for each swap device.  If the type of the swap device is not 0, the height
+of the radix tree of the swap cache will be increased unnecessary,
+especially on 64bit architecture.  For example, for a 1GB swap device on
+the x86_64 architecture, the height of the radix tree of the swap cache is
+11.  But if the offset of the swap entry is used as the key of the swap
+cache, the height of the radix tree of the swap cache is 4.  The increased
+height causes unnecessary radix tree descending and increased cache
+footprint.
 
-Link: http://lkml.kernel.org/r/1473270649-27229-2-git-send-email-ying.huang@intel.com
+This patch reduces the height of the radix tree of the swap cache via
+using the offset of the swap entry instead of the whole swap entry value
+as the key of the swap cache.  In 32 processes sequential swap out test
+case on a Xeon E5 v3 system with RAM disk as swap, the lock contention for
+the spinlock of the swap cache is reduced from 20.15% to 12.19%, when the
+type of the swap device is 1.
+
+Use the whole swap entry as key,
+
+perf-profile.calltrace.cycles-pp._raw_spin_lock_irq.__add_to_swap_cache.add_to_swap_cache.add_to_swap.shrink_page_list: 10.37,
+perf-profile.calltrace.cycles-pp._raw_spin_lock_irqsave.__remove_mapping.shrink_page_list.shrink_inactive_list.shrink_node_memcg: 9.78,
+
+Use the swap offset as key,
+
+perf-profile.calltrace.cycles-pp._raw_spin_lock_irq.__add_to_swap_cache.add_to_swap_cache.add_to_swap.shrink_page_list: 6.25,
+perf-profile.calltrace.cycles-pp._raw_spin_lock_irqsave.__remove_mapping.shrink_page_list.shrink_inactive_list.shrink_node_memcg: 5.94,
+
+Link: http://lkml.kernel.org/r/1473270649-27229-1-git-send-email-ying.huang@intel.com
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Trond Myklebust <trond.myklebust@primarydata.com>
-Cc: Anna Schumaker <anna.schumaker@netapp.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Eric Dumazet <edumazet@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Aaron Lu <aaron.lu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/internal.h       |    6 +++---
- fs/nfs/pagelist.c       |    2 +-
- fs/nfs/read.c           |    2 +-
- fs/nfs/write.c          |    4 ++--
- include/linux/mm.h      |   12 ------------
- include/linux/pagemap.h |    2 +-
- 6 files changed, 8 insertions(+), 20 deletions(-)
+ include/linux/mm.h |    8 ++++----
+ mm/memcontrol.c    |    5 +++--
+ mm/mincore.c       |    5 +++--
+ mm/swap_state.c    |    8 ++++----
+ mm/swapfile.c      |    4 ++--
+ 5 files changed, 16 insertions(+), 14 deletions(-)
 
-diff -puN fs/nfs/internal.h~mm-remove-page_file_index fs/nfs/internal.h
---- a/fs/nfs/internal.h~mm-remove-page_file_index
-+++ a/fs/nfs/internal.h
-@@ -681,11 +681,11 @@ unsigned int nfs_page_length(struct page
- 	loff_t i_size = i_size_read(page_file_mapping(page)->host);
- 
- 	if (i_size > 0) {
--		pgoff_t page_index = page_file_index(page);
-+		pgoff_t index = page_index(page);
- 		pgoff_t end_index = (i_size - 1) >> PAGE_SHIFT;
--		if (page_index < end_index)
-+		if (index < end_index)
- 			return PAGE_SIZE;
--		if (page_index == end_index)
-+		if (index == end_index)
- 			return ((i_size - 1) & ~PAGE_MASK) + 1;
- 	}
- 	return 0;
-diff -puN fs/nfs/pagelist.c~mm-remove-page_file_index fs/nfs/pagelist.c
---- a/fs/nfs/pagelist.c~mm-remove-page_file_index
-+++ a/fs/nfs/pagelist.c
-@@ -342,7 +342,7 @@ nfs_create_request(struct nfs_open_conte
- 	 * update_nfs_request below if the region is not locked. */
- 	req->wb_page    = page;
- 	if (page) {
--		req->wb_index = page_file_index(page);
-+		req->wb_index = page_index(page);
- 		get_page(page);
- 	}
- 	req->wb_offset  = offset;
-diff -puN fs/nfs/read.c~mm-remove-page_file_index fs/nfs/read.c
---- a/fs/nfs/read.c~mm-remove-page_file_index
-+++ a/fs/nfs/read.c
-@@ -295,7 +295,7 @@ int nfs_readpage(struct file *file, stru
- 	int		error;
- 
- 	dprintk("NFS: nfs_readpage (%p %ld@%lu)\n",
--		page, PAGE_SIZE, page_file_index(page));
-+		page, PAGE_SIZE, page_index(page));
- 	nfs_inc_stats(inode, NFSIOS_VFSREADPAGE);
- 	nfs_add_stats(inode, NFSIOS_READPAGES, 1);
- 
-diff -puN fs/nfs/write.c~mm-remove-page_file_index fs/nfs/write.c
---- a/fs/nfs/write.c~mm-remove-page_file_index
-+++ a/fs/nfs/write.c
-@@ -151,7 +151,7 @@ static void nfs_grow_file(struct page *p
- 	spin_lock(&inode->i_lock);
- 	i_size = i_size_read(inode);
- 	end_index = (i_size - 1) >> PAGE_SHIFT;
--	if (i_size > 0 && page_file_index(page) < end_index)
-+	if (i_size > 0 && page_index(page) < end_index)
- 		goto out;
- 	end = page_file_offset(page) + ((loff_t)offset+count);
- 	if (i_size >= end)
-@@ -603,7 +603,7 @@ static int nfs_do_writepage(struct page
- {
- 	int ret;
- 
--	nfs_pageio_cond_complete(pgio, page_file_index(page));
-+	nfs_pageio_cond_complete(pgio, page_index(page));
- 	ret = nfs_page_async_flush(pgio, page, wbc->sync_mode == WB_SYNC_NONE,
- 				   launder);
- 	if (ret == -EAGAIN) {
-diff -puN include/linux/mm.h~mm-remove-page_file_index include/linux/mm.h
---- a/include/linux/mm.h~mm-remove-page_file_index
+diff -puN include/linux/mm.h~mm-swap-use-offset-of-swap-entry-as-key-of-swap-cache include/linux/mm.h
+--- a/include/linux/mm.h~mm-swap-use-offset-of-swap-entry-as-key-of-swap-cache
 +++ a/include/linux/mm.h
-@@ -1061,18 +1061,6 @@ static inline pgoff_t page_index(struct
+@@ -1048,19 +1048,19 @@ struct address_space *page_file_mapping(
+ 	return page->mapping;
+ }
+ 
++extern pgoff_t __page_file_index(struct page *page);
++
+ /*
+  * Return the pagecache index of the passed page.  Regular pagecache pages
+- * use ->index whereas swapcache pages use ->private
++ * use ->index whereas swapcache pages use swp_offset(->private)
+  */
+ static inline pgoff_t page_index(struct page *page)
+ {
+ 	if (unlikely(PageSwapCache(page)))
+-		return page_private(page);
++		return __page_file_index(page);
  	return page->index;
  }
  
--/*
-- * Return the file index of the page. Regular pagecache pages use ->index
-- * whereas swapcache pages use swp_offset(->private)
-- */
--static inline pgoff_t page_file_index(struct page *page)
--{
--	if (unlikely(PageSwapCache(page)))
--		return __page_file_index(page);
+-extern pgoff_t __page_file_index(struct page *page);
 -
--	return page->index;
--}
+ /*
+  * Return the file index of the page. Regular pagecache pages use ->index
+  * whereas swapcache pages use swp_offset(->private)
+diff -puN mm/memcontrol.c~mm-swap-use-offset-of-swap-entry-as-key-of-swap-cache mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-swap-use-offset-of-swap-entry-as-key-of-swap-cache
++++ a/mm/memcontrol.c
+@@ -4408,7 +4408,7 @@ static struct page *mc_handle_swap_pte(s
+ 	 * Because lookup_swap_cache() updates some statistics counter,
+ 	 * we call find_get_page() with swapper_space directly.
+ 	 */
+-	page = find_get_page(swap_address_space(ent), ent.val);
++	page = find_get_page(swap_address_space(ent), swp_offset(ent));
+ 	if (do_memsw_account())
+ 		entry->val = ent.val;
+ 
+@@ -4446,7 +4446,8 @@ static struct page *mc_handle_file_pte(s
+ 			swp_entry_t swp = radix_to_swp_entry(page);
+ 			if (do_memsw_account())
+ 				*entry = swp;
+-			page = find_get_page(swap_address_space(swp), swp.val);
++			page = find_get_page(swap_address_space(swp),
++					     swp_offset(swp));
+ 		}
+ 	} else
+ 		page = find_get_page(mapping, pgoff);
+diff -puN mm/mincore.c~mm-swap-use-offset-of-swap-entry-as-key-of-swap-cache mm/mincore.c
+--- a/mm/mincore.c~mm-swap-use-offset-of-swap-entry-as-key-of-swap-cache
++++ a/mm/mincore.c
+@@ -66,7 +66,8 @@ static unsigned char mincore_page(struct
+ 		 */
+ 		if (radix_tree_exceptional_entry(page)) {
+ 			swp_entry_t swp = radix_to_swp_entry(page);
+-			page = find_get_page(swap_address_space(swp), swp.val);
++			page = find_get_page(swap_address_space(swp),
++					     swp_offset(swp));
+ 		}
+ 	} else
+ 		page = find_get_page(mapping, pgoff);
+@@ -150,7 +151,7 @@ static int mincore_pte_range(pmd_t *pmd,
+ 			} else {
+ #ifdef CONFIG_SWAP
+ 				*vec = mincore_page(swap_address_space(entry),
+-					entry.val);
++						    swp_offset(entry));
+ #else
+ 				WARN_ON(1);
+ 				*vec = 1;
+diff -puN mm/swap_state.c~mm-swap-use-offset-of-swap-entry-as-key-of-swap-cache mm/swap_state.c
+--- a/mm/swap_state.c~mm-swap-use-offset-of-swap-entry-as-key-of-swap-cache
++++ a/mm/swap_state.c
+@@ -94,7 +94,7 @@ int __add_to_swap_cache(struct page *pag
+ 	address_space = swap_address_space(entry);
+ 	spin_lock_irq(&address_space->tree_lock);
+ 	error = radix_tree_insert(&address_space->page_tree,
+-					entry.val, page);
++				  swp_offset(entry), page);
+ 	if (likely(!error)) {
+ 		address_space->nrpages++;
+ 		__inc_node_page_state(page, NR_FILE_PAGES);
+@@ -145,7 +145,7 @@ void __delete_from_swap_cache(struct pag
+ 
+ 	entry.val = page_private(page);
+ 	address_space = swap_address_space(entry);
+-	radix_tree_delete(&address_space->page_tree, page_private(page));
++	radix_tree_delete(&address_space->page_tree, swp_offset(entry));
+ 	set_page_private(page, 0);
+ 	ClearPageSwapCache(page);
+ 	address_space->nrpages--;
+@@ -283,7 +283,7 @@ struct page * lookup_swap_cache(swp_entr
+ {
+ 	struct page *page;
+ 
+-	page = find_get_page(swap_address_space(entry), entry.val);
++	page = find_get_page(swap_address_space(entry), swp_offset(entry));
+ 
+ 	if (page) {
+ 		INC_CACHE_INFO(find_success);
+@@ -310,7 +310,7 @@ struct page *__read_swap_cache_async(swp
+ 		 * called after lookup_swap_cache() failed, re-calling
+ 		 * that would confuse statistics.
+ 		 */
+-		found_page = find_get_page(swapper_space, entry.val);
++		found_page = find_get_page(swapper_space, swp_offset(entry));
+ 		if (found_page)
+ 			break;
+ 
+diff -puN mm/swapfile.c~mm-swap-use-offset-of-swap-entry-as-key-of-swap-cache mm/swapfile.c
+--- a/mm/swapfile.c~mm-swap-use-offset-of-swap-entry-as-key-of-swap-cache
++++ a/mm/swapfile.c
+@@ -105,7 +105,7 @@ __try_to_reclaim_swap(struct swap_info_s
+ 	struct page *page;
+ 	int ret = 0;
+ 
+-	page = find_get_page(swap_address_space(entry), entry.val);
++	page = find_get_page(swap_address_space(entry), swp_offset(entry));
+ 	if (!page)
+ 		return 0;
+ 	/*
+@@ -1005,7 +1005,7 @@ int free_swap_and_cache(swp_entry_t entr
+ 	if (p) {
+ 		if (swap_entry_free(p, entry, 1) == SWAP_HAS_CACHE) {
+ 			page = find_get_page(swap_address_space(entry),
+-						entry.val);
++					     swp_offset(entry));
+ 			if (page && !trylock_page(page)) {
+ 				put_page(page);
+ 				page = NULL;
+_
+
+Patches currently in -mm which might be from ying.huang@intel.com are
+
+
