@@ -1,90 +1,109 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-debug_pagealloc-dont-allocate-page_ext-if-we-dont-use-guard-page.patch
- removed from -mm tree
-Date: Mon, 10 Oct 2016 15:43:32 -0700
-Message-ID: <57fc1994.OHuhw3g4BaMvmnlR%akpm@linux-foundation.org>
+ mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch removed from -mm tree
+Date: Mon, 10 Oct 2016 15:43:11 -0700
+Message-ID: <57fc197f.6JHI49pIRNNwWCv+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36645 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36601 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752232AbcJJWno (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:44 -0400
+        with ESMTP id S1752418AbcJJWnl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:43:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mhocko@kernel.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, lstoakes@gmail.com, mgorman@techsingularity.net, mhocko@kernel.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_pagealloc.c: don't allocate page_ext if we don't use guard page
+     Subject: mm, compaction: use proper alloc_flags in __compaction_suitable()
 has been removed from the -mm tree.  Its filename was
-     mm-debug_pagealloc-dont-allocate-page_ext-if-we-dont-use-guard-page.patch
+     mm-compaction-use-proper-alloc_flags-in-__compaction_suitable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/debug_pagealloc.c: don't allocate page_ext if we don't use guard page
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: use proper alloc_flags in __compaction_suitable()
 
-What debug_pagealloc does is just mapping/unmapping page table. 
-Basically, it doesn't need additional memory space to memorize something. 
-But, with guard page feature, it requires additional memory to distinguish
-if the page is for guard or not.  Guard page is only used when
-debug_guardpage_minorder is non-zero so this patch removes additional
-memory allocation (page_ext) if debug_guardpage_minorder is zero.
+The __compaction_suitable() function checks the low watermark plus a
+compact_gap() gap to decide if there's enough free memory to perform
+compaction.  This check uses direct compactor's alloc_flags, but that's
+wrong, since these flags are not applicable for freepage isolation.
 
-It saves memory if we just use debug_pagealloc and not guard page.
+For example, alloc_flags may indicate access to memory reserves, making
+compaction proceed, and then fail watermark check during the isolation.
 
-Link: http://lkml.kernel.org/r/1471315879-32294-3-git-send-email-iamjoonsoo.kim@lge.com
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
+A similar problem exists for ALLOC_CMA, which may be part of alloc_flags,
+but not during freepage isolation.  In this case however it makes sense to
+use ALLOC_CMA both in __compaction_suitable() and __isolate_free_page(),
+since there's actually nothing preventing the freepage scanner to isolate
+from CMA pageblocks, with the assumption that a page that could be
+migrated once by compaction can be migrated also later by CMA allocation. 
+Thus we should count pages in CMA pageblocks when considering compaction
+suitability and when isolating freepages.
+
+To sum up, this patch should remove some false positives from
+__compaction_suitable(), and allow compaction to proceed when free pages
+required for compaction reside in the CMA pageblocks.
+
+Link: http://lkml.kernel.org/r/20160810091226.6709-10-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Lorenzo Stoakes <lstoakes@gmail.com>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/compaction.c |   12 ++++++++++--
+ mm/page_alloc.c |    2 +-
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-debug_pagealloc-dont-allocate-page_ext-if-we-dont-use-guard-page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-debug_pagealloc-dont-allocate-page_ext-if-we-dont-use-guard-page
+diff -puN mm/compaction.c~mm-compaction-use-proper-alloc_flags-in-__compaction_suitable mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-use-proper-alloc_flags-in-__compaction_suitable
++++ a/mm/compaction.c
+@@ -1392,11 +1392,19 @@ static enum compact_result __compaction_
+ 
+ 	/*
+ 	 * Watermarks for order-0 must be met for compaction to be able to
+-	 * isolate free pages for migration targets.
++	 * isolate free pages for migration targets. This means that the
++	 * watermark and alloc_flags have to match, or be more pessimistic than
++	 * the check in __isolate_free_page(). We don't use the direct
++	 * compactor's alloc_flags, as they are not relevant for freepage
++	 * isolation. We however do use the direct compactor's classzone_idx to
++	 * skip over zones where lowmem reserves would prevent allocation even
++	 * if compaction succeeds.
++	 * ALLOC_CMA is used, as pages in CMA pageblocks are considered
++	 * suitable migration targets
+ 	 */
+ 	watermark = low_wmark_pages(zone) + compact_gap(order);
+ 	if (!__zone_watermark_ok(zone, 0, watermark, classzone_idx,
+-				 alloc_flags, wmark_target))
++						ALLOC_CMA, wmark_target))
+ 		return COMPACT_SKIPPED;
+ 
+ 	/*
+diff -puN mm/page_alloc.c~mm-compaction-use-proper-alloc_flags-in-__compaction_suitable mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-use-proper-alloc_flags-in-__compaction_suitable
 +++ a/mm/page_alloc.c
-@@ -607,6 +607,9 @@ static bool need_debug_guardpage(void)
- 	if (!debug_pagealloc_enabled())
- 		return false;
+@@ -2491,7 +2491,7 @@ int __isolate_free_page(struct page *pag
+ 	if (!is_migrate_isolate(mt)) {
+ 		/* Obey watermarks as if the page was being allocated */
+ 		watermark = low_wmark_pages(zone) + (1 << order);
+-		if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
++		if (!zone_watermark_ok(zone, 0, watermark, 0, ALLOC_CMA))
+ 			return 0;
  
-+	if (!debug_guardpage_minorder())
-+		return false;
-+
- 	return true;
- }
- 
-@@ -615,6 +618,9 @@ static void init_debug_guardpage(void)
- 	if (!debug_pagealloc_enabled())
- 		return;
- 
-+	if (!debug_guardpage_minorder())
-+		return;
-+
- 	_debug_guardpage_enabled = true;
- }
- 
-@@ -635,7 +641,7 @@ static int __init debug_guardpage_minord
- 	pr_info("Setting debug_guardpage_minorder to %lu\n", res);
- 	return 0;
- }
--__setup("debug_guardpage_minorder=", debug_guardpage_minorder_setup);
-+early_param("debug_guardpage_minorder", debug_guardpage_minorder_setup);
- 
- static inline bool set_page_guard(struct zone *zone, struct page *page,
- 				unsigned int order, int migratetype)
+ 		__mod_zone_freepage_state(zone, -(1UL << order), mt);
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch
+fs-select-add-vmalloc-fallback-for-select2.patch
 
