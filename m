@@ -1,121 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpu-fix-node-state-for-whether-it-contains-cpu.patch
- removed from -mm tree
-Date: Mon, 10 Oct 2016 15:45:00 -0700
-Message-ID: <57fc19ec.w+DfJ+y+wpcHo0fu%akpm@linux-foundation.org>
+Subject: [merged]
+ selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc.patch removed from
+ -mm tree
+Date: Mon, 10 Oct 2016 15:44:48 -0700
+Message-ID: <57fc19e0.+3dNnG4Bg0UyPEiD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36861 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36819 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752225AbcJJWpB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:45:01 -0400
+        with ESMTP id S1752221AbcJJWot (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 18:44:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tim.c.chen@linux.intel.com, Huang@linux.intel.com, andi@firstfloor.org, dan.j.williams@intel.com, dave.hansen@intel.com, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, rientjes@google.com, rjw@rjwysocki.net, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: wei.guo.simon@gmail.com, aarcange@redhat.com, emunson@akamai.com, geert@linux-m68k.org, kirill.shutemov@linux.intel.com, klimov.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, mike.kravetz@oracle.com, shuah@kernel.org, treding@nvidia.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpu: fix node state for whether it contains CPU
+     Subject: selftest: move seek_to_smaps_entry() out of mlock2-tests.c
 has been removed from the -mm tree.  Its filename was
-     cpu-fix-node-state-for-whether-it-contains-cpu.patch
+     selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tim Chen <tim.c.chen@linux.intel.com>
-Subject: cpu: fix node state for whether it contains CPU
+From: Simon Guo <wei.guo.simon@gmail.com>
+Subject: selftest: move seek_to_smaps_entry() out of mlock2-tests.c
 
-In current kernel code, we only call node_set_state(cpu_to_node(cpu),
-N_CPU) when a cpu is hot plugged.  But we do not set the node state for
-N_CPU when the cpus are brought online during boot.
+Function seek_to_smaps_entry() can be useful for other selftest
+functionalities, so move it out to header file.
 
-So this could lead to failure when we check to see if a node contains cpu
-with node_state(node_id, N_CPU).
-
-One use case is in the node_reclaime function:
-
-        /*
-         * Only run node reclaim on the local node or on nodes that do
-         * not
-         * have associated processors. This will favor the local
-         * processor
-         * over remote processors and spread off node memory allocations
-         * as wide as possible.
-         */
-        if (node_state(pgdat->node_id, N_CPU) && pgdat->node_id !=
-                numa_node_id())
-                return NODE_RECLAIM_NOSCAN;
-
-I instrumented the kernel to call this function after boot and it always
-returns 0 on a x86 desktop machine until I apply the attached patch.
-
-int num_cpu_node(void)
-{
-       int i, nr_cpu_nodes = 0;
-
-       for_each_node(i) {
-               if (node_state(i, N_CPU))
-                       ++ nr_cpu_nodes;
-       }
-
-       return nr_cpu_nodes;
-}
-
-Fix this by checking each node for online CPU when we initialize
-vmstat that's responsible for maintaining node state.
-
-Link: http://lkml.kernel.org/r/20160829175922.GA21775@linux.intel.com
-Signed-off-by: Tim Chen <tim.c.chen@linux.intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: <Huang@linux.intel.com>
-Cc: Ying <ying.huang@intel.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Link: http://lkml.kernel.org/r/1473325970-11393-3-git-send-email-wei.guo.simon@gmail.com
+Signed-off-by: Simon Guo <wei.guo.simon@gmail.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Eric B Munson <emunson@akamai.com>
+Cc: Simon Guo <wei.guo.simon@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ tools/testing/selftests/vm/mlock2-tests.c |   42 -------------------
+ tools/testing/selftests/vm/mlock2.h       |   43 ++++++++++++++++++++
+ 2 files changed, 43 insertions(+), 42 deletions(-)
 
-diff -puN mm/vmstat.c~cpu-fix-node-state-for-whether-it-contains-cpu mm/vmstat.c
---- a/mm/vmstat.c~cpu-fix-node-state-for-whether-it-contains-cpu
-+++ a/mm/vmstat.c
-@@ -1715,6 +1715,16 @@ static void __init start_shepherd_timer(
- 		round_jiffies_relative(sysctl_stat_interval));
+diff -puN tools/testing/selftests/vm/mlock2-tests.c~selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc tools/testing/selftests/vm/mlock2-tests.c
+--- a/tools/testing/selftests/vm/mlock2-tests.c~selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc
++++ a/tools/testing/selftests/vm/mlock2-tests.c
+@@ -1,8 +1,6 @@
+ #define _GNU_SOURCE
+ #include <sys/mman.h>
+ #include <stdint.h>
+-#include <stdio.h>
+-#include <stdlib.h>
+ #include <unistd.h>
+ #include <string.h>
+ #include <sys/time.h>
+@@ -119,46 +117,6 @@ static uint64_t get_kpageflags(unsigned
+ 	return flags;
  }
  
-+static void __init init_cpu_node_state(void)
-+{
-+	int cpu;
+-static FILE *seek_to_smaps_entry(unsigned long addr)
+-{
+-	FILE *file;
+-	char *line = NULL;
+-	size_t size = 0;
+-	unsigned long start, end;
+-	char perms[5];
+-	unsigned long offset;
+-	char dev[32];
+-	unsigned long inode;
+-	char path[BUFSIZ];
+-
+-	file = fopen("/proc/self/smaps", "r");
+-	if (!file) {
+-		perror("fopen smaps");
+-		_exit(1);
+-	}
+-
+-	while (getline(&line, &size, file) > 0) {
+-		if (sscanf(line, "%lx-%lx %s %lx %s %lu %s\n",
+-			   &start, &end, perms, &offset, dev, &inode, path) < 6)
+-			goto next;
+-
+-		if (start <= addr && addr < end)
+-			goto out;
+-
+-next:
+-		free(line);
+-		line = NULL;
+-		size = 0;
+-	}
+-
+-	fclose(file);
+-	file = NULL;
+-
+-out:
+-	free(line);
+-	return file;
+-}
+-
+ #define VMFLAGS "VmFlags:"
+ 
+ static bool is_vmflag_set(unsigned long addr, const char *vmflag)
+diff -puN tools/testing/selftests/vm/mlock2.h~selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc tools/testing/selftests/vm/mlock2.h
+--- a/tools/testing/selftests/vm/mlock2.h~selftest-move-seek_to_smaps_entry-out-of-mlock2-testsc
++++ a/tools/testing/selftests/vm/mlock2.h
+@@ -1,5 +1,7 @@
+ #include <syscall.h>
+ #include <errno.h>
++#include <stdio.h>
++#include <stdlib.h>
+ 
+ #ifndef MLOCK_ONFAULT
+ #define MLOCK_ONFAULT 1
+@@ -18,3 +20,44 @@ static int mlock2_(void *start, size_t l
+ 	return -1;
+ #endif
+ }
 +
-+	get_online_cpus();
-+	for_each_online_cpu(cpu)
-+		node_set_state(cpu_to_node(cpu), N_CPU);
-+	put_online_cpus();
++static FILE *seek_to_smaps_entry(unsigned long addr)
++{
++	FILE *file;
++	char *line = NULL;
++	size_t size = 0;
++	unsigned long start, end;
++	char perms[5];
++	unsigned long offset;
++	char dev[32];
++	unsigned long inode;
++	char path[BUFSIZ];
++
++	file = fopen("/proc/self/smaps", "r");
++	if (!file) {
++		perror("fopen smaps");
++		_exit(1);
++	}
++
++	while (getline(&line, &size, file) > 0) {
++		if (sscanf(line, "%lx-%lx %s %lx %s %lu %s\n",
++			   &start, &end, perms, &offset, dev, &inode, path) < 6)
++			goto next;
++
++		if (start <= addr && addr < end)
++			goto out;
++
++next:
++		free(line);
++		line = NULL;
++		size = 0;
++	}
++
++	fclose(file);
++	file = NULL;
++
++out:
++	free(line);
++	return file;
 +}
 +
- static void vmstat_cpu_dead(int node)
- {
- 	int cpu;
-@@ -1772,6 +1782,7 @@ static int __init setup_vmstat(void)
- #ifdef CONFIG_SMP
- 	cpu_notifier_register_begin();
- 	__register_cpu_notifier(&vmstat_notifier);
-+	init_cpu_node_state();
- 
- 	start_shepherd_timer();
- 	cpu_notifier_register_done();
 _
 
-Patches currently in -mm which might be from tim.c.chen@linux.intel.com are
+Patches currently in -mm which might be from wei.guo.simon@gmail.com are
 
 
