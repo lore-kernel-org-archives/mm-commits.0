@@ -1,98 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [patch 053/102] pipe: simplify logic in alloc_pipe_info()
-Date: Tue, 11 Oct 2016 13:53:34 -0700
-Message-ID: <57fd514e.POLfdiUo/XzoPHEK%akpm@linux-foundation.org>
+Subject: [patch 044/102] autofs: fix print format for ioctl warning
+ message
+Date: Tue, 11 Oct 2016 13:53:08 -0700
+Message-ID: <57fd5134.4F8IfmKG3OZ/3Tv8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38023 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37873 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752787AbcJKUxg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:36 -0400
+        with ESMTP id S1752995AbcJKUxJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mtk.manpages@gmail.com, axboe@fb.com, penguin-kernel@I-love.SAKURA.ne.jp, socketpair@gmail.com, vegard.nossum@oracle.com, viro@zeniv.linux.org.uk, w@1wt.eu
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kusumi.tomohiro@gmail.com, ikent@redhat.com
 
-From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Subject: pipe: simplify logic in alloc_pipe_info()
+From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Subject: autofs: fix print format for ioctl warning message
 
-Replace an 'if' block that covers most of the code in this function
-with a 'goto'. This makes the code a little simpler to read, and also
-simplifies the next patch (fix limit checking in alloc_pipe_info())
+All other warnings use "cmd(0x%08x)" and this is the only one with
+"cmd(%d)".  (below comes from my userspace debug program, but not
+automount daemon)
 
-Link: http://lkml.kernel.org/r/aef030c1-0257-98a9-4988-186efa48530c@gmail.com
-Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Reviewed-by: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Willy Tarreau <w@1wt.eu>
-Cc: <socketpair@gmail.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+[ 1139.905676] autofs4:pid:1640:check_dev_ioctl_version: ioctl control interface version mismatch: kernel(1.0), user(0.0), cmd(-1072131215)
+
+Link: http://lkml.kernel.org/r/20160812024851.12352.75458.stgit@pluto.themaw.net
+Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Signed-off-by: Ian Kent <ikent@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   43 ++++++++++++++++++++++---------------------
- 1 file changed, 22 insertions(+), 21 deletions(-)
+ fs/autofs4/dev-ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/pipe.c~pipe-simplify-logic-in-alloc_pipe_info fs/pipe.c
---- a/fs/pipe.c~pipe-simplify-logic-in-alloc_pipe_info
-+++ a/fs/pipe.c
-@@ -622,33 +622,34 @@ static bool too_many_pipe_buffers_hard(s
- struct pipe_inode_info *alloc_pipe_info(void)
- {
- 	struct pipe_inode_info *pipe;
-+	unsigned long pipe_bufs = PIPE_DEF_BUFFERS;
-+	struct user_struct *user = get_current_user();
- 
- 	pipe = kzalloc(sizeof(struct pipe_inode_info), GFP_KERNEL_ACCOUNT);
--	if (pipe) {
--		unsigned long pipe_bufs = PIPE_DEF_BUFFERS;
--		struct user_struct *user = get_current_user();
-+	if (pipe == NULL)
-+		goto out_free_uid;
- 
--		if (!too_many_pipe_buffers_hard(user)) {
--			if (too_many_pipe_buffers_soft(user))
--				pipe_bufs = 1;
--			pipe->bufs = kcalloc(pipe_bufs,
--					     sizeof(struct pipe_buffer),
--					     GFP_KERNEL_ACCOUNT);
--		}
-+	if (!too_many_pipe_buffers_hard(user)) {
-+		if (too_many_pipe_buffers_soft(user))
-+			pipe_bufs = 1;
-+		pipe->bufs = kcalloc(pipe_bufs,
-+				     sizeof(struct pipe_buffer),
-+				     GFP_KERNEL_ACCOUNT);
-+	}
- 
--		if (pipe->bufs) {
--			init_waitqueue_head(&pipe->wait);
--			pipe->r_counter = pipe->w_counter = 1;
--			pipe->buffers = pipe_bufs;
--			pipe->user = user;
--			account_pipe_buffers(user, 0, pipe_bufs);
--			mutex_init(&pipe->mutex);
--			return pipe;
--		}
--		free_uid(user);
--		kfree(pipe);
-+	if (pipe->bufs) {
-+		init_waitqueue_head(&pipe->wait);
-+		pipe->r_counter = pipe->w_counter = 1;
-+		pipe->buffers = pipe_bufs;
-+		pipe->user = user;
-+		account_pipe_buffers(user, 0, pipe_bufs);
-+		mutex_init(&pipe->mutex);
-+		return pipe;
- 	}
- 
-+	kfree(pipe);
-+out_free_uid:
-+	free_uid(user);
- 	return NULL;
- }
- 
+diff -puN fs/autofs4/dev-ioctl.c~autofs-fix-print-format-for-ioctl-warning-message fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-fix-print-format-for-ioctl-warning-message
++++ a/fs/autofs4/dev-ioctl.c
+@@ -75,7 +75,7 @@ static int check_dev_ioctl_version(int c
+ 	if ((param->ver_major != AUTOFS_DEV_IOCTL_VERSION_MAJOR) ||
+ 	    (param->ver_minor > AUTOFS_DEV_IOCTL_VERSION_MINOR)) {
+ 		pr_warn("ioctl control interface version mismatch: "
+-			"kernel(%u.%u), user(%u.%u), cmd(%d)\n",
++			"kernel(%u.%u), user(%u.%u), cmd(0x%08x)\n",
+ 			AUTOFS_DEV_IOCTL_VERSION_MAJOR,
+ 			AUTOFS_DEV_IOCTL_VERSION_MINOR,
+ 			param->ver_major, param->ver_minor, cmd);
 _
