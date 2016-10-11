@@ -1,238 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [patch 069/102] x86/panic: replace smp_send_stop() with kdump
- friendly version in panic path
-Date: Tue, 11 Oct 2016 13:54:23 -0700
-Message-ID: <57fd517f.nD8is4NuhyJsLVra%akpm@linux-foundation.org>
+Subject: [patch 073/102] config/android: Remove CONFIG_IPV6_PRIVACY
+Date: Tue, 11 Oct 2016 13:54:36 -0700
+Message-ID: <57fd518c.zxQL27w3BrUXAn2d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38157 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38196 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751554AbcJKUyZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:54:25 -0400
+        with ESMTP id S1752449AbcJKUyh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:54:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hidehiro.kawai.ez@hitachi.com, aaro.koskinen@iki.fi, bhe@redhat.com, bp@suse.de, cminyard@mvista.com, david.daney@cavium.com, david.vrabel@citrix.com, dwalker@fifo99.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mhiramat@kernel.org, mingo@redhat.com, ralf@linux-mips.org, steven.hill@cavium.com, tglx@linutronix.de, toshi.kani@hpe.com, vgoyal@redhat.com, xpang@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, bp@suse.de, robh@kernel.org
 
-From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Subject: x86/panic: replace smp_send_stop() with kdump friendly version in panic path
+From: Borislav Petkov <bp@suse.de>
+Subject: config/android: Remove CONFIG_IPV6_PRIVACY
 
-Daniel Walker reported problems which happens when
-crash_kexec_post_notifiers kernel option is enabled
-(https://lkml.org/lkml/2015/6/24/44).
+Option is long gone, see
 
-In that case, smp_send_stop() is called before entering kdump routines
-which assume other CPUs are still online.  As the result, for x86, kdump
-routines fail to save other CPUs' registers and disable virtualization
-extensions.
+  5d9efa7ee99e ("ipv6: Remove privacy config option.")
 
-To fix this problem, call a new kdump friendly function,
-crash_smp_send_stop(), instead of the smp_send_stop() when
-crash_kexec_post_notifiers is enabled.  crash_smp_send_stop() is a weak
-function, and it just call smp_send_stop().  Architecture codes should
-override it so that kdump can work appropriately.  This patch only
-provides x86-specific version.
-
-For Xen's PV kernel, just keep the current behavior.
-
-NOTES:
-
-- Right solution would be to place crash_smp_send_stop() before
-  __crash_kexec() invocation in all cases and remove smp_send_stop(), but
-  we can't do that until all architectures implement own
-  crash_smp_send_stop()
-
-- crash_smp_send_stop()-like work is still needed by
-  machine_crash_shutdown() because crash_kexec() can be called without
-  entering panic()
-
-Fixes: f06e5153f4ae (kernel/panic.c: add "crash_kexec_post_notifiers" option)
-Link: http://lkml.kernel.org/r/20160810080948.11028.15344.stgit@sysi4-13.yrl.intra.hitachi.co.jp
-Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Reported-by: Daniel Walker <dwalker@fifo99.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Daniel Walker <dwalker@fifo99.com>
-Cc: Xunlei Pang <xpang@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: David Vrabel <david.vrabel@citrix.com>
-Cc: Toshi Kani <toshi.kani@hpe.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: David Daney <david.daney@cavium.com>
-Cc: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: "Steven J. Hill" <steven.hill@cavium.com>
-Cc: Corey Minyard <cminyard@mvista.com>
+Link: http://lkml.kernel.org/r/20160811170340.9859-1-bp@alien8.de
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Cc: Rob Herring <robh@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/kexec.h |    1 
- arch/x86/include/asm/smp.h   |    1 
- arch/x86/kernel/crash.c      |   22 +++++++++++++--
- arch/x86/kernel/smp.c        |    5 +++
- kernel/panic.c               |   47 ++++++++++++++++++++++++++++-----
- 5 files changed, 66 insertions(+), 10 deletions(-)
+ kernel/configs/android-base.config |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/include/asm/kexec.h~x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path arch/x86/include/asm/kexec.h
---- a/arch/x86/include/asm/kexec.h~x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path
-+++ a/arch/x86/include/asm/kexec.h
-@@ -210,6 +210,7 @@ struct kexec_entry64_regs {
- 
- typedef void crash_vmclear_fn(void);
- extern crash_vmclear_fn __rcu *crash_vmclear_loaded_vmcss;
-+extern void kdump_nmi_shootdown_cpus(void);
- 
- #endif /* __ASSEMBLY__ */
- 
-diff -puN arch/x86/include/asm/smp.h~x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path arch/x86/include/asm/smp.h
---- a/arch/x86/include/asm/smp.h~x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path
-+++ a/arch/x86/include/asm/smp.h
-@@ -47,6 +47,7 @@ struct smp_ops {
- 	void (*smp_cpus_done)(unsigned max_cpus);
- 
- 	void (*stop_other_cpus)(int wait);
-+	void (*crash_stop_other_cpus)(void);
- 	void (*smp_send_reschedule)(int cpu);
- 
- 	int (*cpu_up)(unsigned cpu, struct task_struct *tidle);
-diff -puN arch/x86/kernel/crash.c~x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path arch/x86/kernel/crash.c
---- a/arch/x86/kernel/crash.c~x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path
-+++ a/arch/x86/kernel/crash.c
-@@ -133,15 +133,31 @@ static void kdump_nmi_callback(int cpu,
- 	disable_local_APIC();
- }
- 
--static void kdump_nmi_shootdown_cpus(void)
-+void kdump_nmi_shootdown_cpus(void)
- {
- 	nmi_shootdown_cpus(kdump_nmi_callback);
- 
- 	disable_local_APIC();
- }
- 
-+/* Override the weak function in kernel/panic.c */
-+void crash_smp_send_stop(void)
-+{
-+	static int cpus_stopped;
-+
-+	if (cpus_stopped)
-+		return;
-+
-+	if (smp_ops.crash_stop_other_cpus)
-+		smp_ops.crash_stop_other_cpus();
-+	else
-+		smp_send_stop();
-+
-+	cpus_stopped = 1;
-+}
-+
- #else
--static void kdump_nmi_shootdown_cpus(void)
-+void crash_smp_send_stop(void)
- {
- 	/* There are no cpus to shootdown */
- }
-@@ -160,7 +176,7 @@ void native_machine_crash_shutdown(struc
- 	/* The kernel is broken so disable interrupts */
- 	local_irq_disable();
- 
--	kdump_nmi_shootdown_cpus();
-+	crash_smp_send_stop();
- 
- 	/*
- 	 * VMCLEAR VMCSs loaded on this cpu if needed.
-diff -puN arch/x86/kernel/smp.c~x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path arch/x86/kernel/smp.c
---- a/arch/x86/kernel/smp.c~x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path
-+++ a/arch/x86/kernel/smp.c
-@@ -32,6 +32,8 @@
- #include <asm/nmi.h>
- #include <asm/mce.h>
- #include <asm/trace/irq_vectors.h>
-+#include <asm/kexec.h>
-+
- /*
-  *	Some notes on x86 processor bugs affecting SMP operation:
-  *
-@@ -342,6 +344,9 @@ struct smp_ops smp_ops = {
- 	.smp_cpus_done		= native_smp_cpus_done,
- 
- 	.stop_other_cpus	= native_stop_other_cpus,
-+#if defined(CONFIG_KEXEC_CORE)
-+	.crash_stop_other_cpus	= kdump_nmi_shootdown_cpus,
-+#endif
- 	.smp_send_reschedule	= native_smp_send_reschedule,
- 
- 	.cpu_up			= native_cpu_up,
-diff -puN kernel/panic.c~x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path kernel/panic.c
---- a/kernel/panic.c~x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path
-+++ a/kernel/panic.c
-@@ -71,6 +71,32 @@ void __weak nmi_panic_self_stop(struct p
- 	panic_smp_self_stop();
- }
- 
-+/*
-+ * Stop other CPUs in panic.  Architecture dependent code may override this
-+ * with more suitable version.  For example, if the architecture supports
-+ * crash dump, it should save registers of each stopped CPU and disable
-+ * per-CPU features such as virtualization extensions.
-+ */
-+void __weak crash_smp_send_stop(void)
-+{
-+	static int cpus_stopped;
-+
-+	/*
-+	 * This function can be called twice in panic path, but obviously
-+	 * we execute this only once.
-+	 */
-+	if (cpus_stopped)
-+		return;
-+
-+	/*
-+	 * Note smp_send_stop is the usual smp shutdown function, which
-+	 * unfortunately means it may not be hardened to work in a panic
-+	 * situation.
-+	 */
-+	smp_send_stop();
-+	cpus_stopped = 1;
-+}
-+
- atomic_t panic_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
- 
- /*
-@@ -164,14 +190,21 @@ void panic(const char *fmt, ...)
- 	if (!_crash_kexec_post_notifiers) {
- 		printk_nmi_flush_on_panic();
- 		__crash_kexec(NULL);
--	}
- 
--	/*
--	 * Note smp_send_stop is the usual smp shutdown function, which
--	 * unfortunately means it may not be hardened to work in a panic
--	 * situation.
--	 */
--	smp_send_stop();
-+		/*
-+		 * Note smp_send_stop is the usual smp shutdown function, which
-+		 * unfortunately means it may not be hardened to work in a
-+		 * panic situation.
-+		 */
-+		smp_send_stop();
-+	} else {
-+		/*
-+		 * If we want to do crash dump after notifier calls and
-+		 * kmsg_dump, we will need architecture dependent extra
-+		 * works in addition to stopping other CPUs.
-+		 */
-+		crash_smp_send_stop();
-+	}
- 
- 	/*
- 	 * Run any panic handlers, including those that might need to
+diff -puN kernel/configs/android-base.config~config-android-remove-config_ipv6_privacy kernel/configs/android-base.config
+--- a/kernel/configs/android-base.config~config-android-remove-config_ipv6_privacy
++++ a/kernel/configs/android-base.config
+@@ -41,7 +41,6 @@ CONFIG_IPV6=y
+ CONFIG_IPV6_MIP6=y
+ CONFIG_IPV6_MULTIPLE_TABLES=y
+ CONFIG_IPV6_OPTIMISTIC_DAD=y
+-CONFIG_IPV6_PRIVACY=y
+ CONFIG_IPV6_ROUTER_PREF=y
+ CONFIG_IPV6_ROUTE_INFO=y
+ CONFIG_IP_ADVANCED_ROUTER=y
 _
