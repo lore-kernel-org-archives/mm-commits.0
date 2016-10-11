@@ -1,48 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [patch 034/102] autofs: remove ino free in autofs4_dir_symlink()
-Date: Tue, 11 Oct 2016 13:52:39 -0700
-Message-ID: <57fd5117.V38uZgl0tTdI1wLv%akpm@linux-foundation.org>
+Subject: [patch 033/102] autofs: add WARN_ON(1) for non dir/link inode
+ case
+Date: Tue, 11 Oct 2016 13:52:36 -0700
+Message-ID: <57fd5114.OFcDYJms4743Otrt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37955 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37879 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752344AbcJKUxG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:06 -0400
+        with ESMTP id S1753123AbcJKUxF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, raven@themaw.net, kusumi.tomohiro@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kusumi.tomohiro@gmail.com, raven@themaw.net
 
-From: Ian Kent <raven@themaw.net>
-Subject: autofs: remove ino free in autofs4_dir_symlink()
+From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Subject: autofs: add WARN_ON(1) for non dir/link inode case
 
-The inode allocation failure case in autofs4_dir_symlink() frees the
-autofs dentry info of the dentry without setting ->d_fsdata to NULL.
+It's invalid if the given mode is neither dir nor link, so warn on else
+case.
 
-That could lead to a double free so just get rid of the free and leave it
-to ->d_release().
-
-Link: http://lkml.kernel.org/r/20160812024759.12352.10653.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/20160812024754.12352.8536.stgit@pluto.themaw.net
+Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/autofs4/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/autofs4/root.c~autofs-remove-ino-free-in-autofs4_dir_symlink fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs-remove-ino-free-in-autofs4_dir_symlink
-+++ a/fs/autofs4/root.c
-@@ -577,8 +577,6 @@ static int autofs4_dir_symlink(struct in
- 	inode = autofs4_get_inode(dir->i_sb, S_IFLNK | 0555);
- 	if (!inode) {
- 		kfree(cp);
--		if (!dentry->d_fsdata)
--			kfree(ino);
- 		return -ENOMEM;
- 	}
- 	inode->i_private = cp;
+diff -puN fs/autofs4/inode.c~autofs-add-warn_on1-for-non-dir-link-inode-case fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~autofs-add-warn_on1-for-non-dir-link-inode-case
++++ a/fs/autofs4/inode.c
+@@ -368,7 +368,8 @@ struct inode *autofs4_get_inode(struct s
+ 		inode->i_fop = &autofs4_dir_operations;
+ 	} else if (S_ISLNK(mode)) {
+ 		inode->i_op = &autofs4_symlink_inode_operations;
+-	}
++	} else
++		WARN_ON(1);
+ 
+ 	return inode;
+ }
 _
