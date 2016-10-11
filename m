@@ -1,47 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [patch 028/102] kprobes: include <asm/sections.h> instead of
- <asm-generic/sections.h>
-Date: Tue, 11 Oct 2016 13:52:22 -0700
-Message-ID: <57fd5106.TLtDr/KqgdRKoBzC%akpm@linux-foundation.org>
+Subject: [patch 061/102] ARM: use simpler API for random address requests
+Date: Tue, 11 Oct 2016 13:53:59 -0700
+Message-ID: <57fd5167.wHbFlm+eeQuvnuwc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37922 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38096 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753032AbcJKUxE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:04 -0400
+        with ESMTP id S1752344AbcJKUyA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:54:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hch@lst.de, mhiramat@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jason@lakedaemon.net, catalin.marinas@arm.com, keescook@chromium.org, linux@arm.linux.org.uk, tytso@mit.edu, will.deacon@arm.com
 
-From: Christoph Hellwig <hch@lst.de>
-Subject: kprobes: include <asm/sections.h> instead of <asm-generic/sections.h>
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: ARM: use simpler API for random address requests
 
-asm-generic headers are generic implementations for architecture specific
-code and should not be included by common code.  Thus use the asm/ version
-of sections.h to get at the linker sections.
+Currently, all callers to randomize_range() set the length to 0 and
+calculate end by adding a constant to the start address.  We can simplify
+the API to remove a bunch of needless checks and variables.
 
-Link: http://lkml.kernel.org/r/1473602302-6208-1-git-send-email-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
+Use the new randomize_addr(start, range) call to set the requested
+address.
+
+Link: http://lkml.kernel.org/r/20160803233913.32511-4-jason@lakedaemon.net
+Signed-off-by: Jason Cooper <jason@lakedaemon.net>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/kernel/process.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-include-asm-sectionsh-instead-of-asm-generic-sectionsh kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-include-asm-sectionsh-instead-of-asm-generic-sectionsh
-+++ a/kernel/kprobes.c
-@@ -49,7 +49,7 @@
- #include <linux/cpu.h>
- #include <linux/jump_label.h>
+diff -puN arch/arm/kernel/process.c~arm-use-simpler-api-for-random-address-requests arch/arm/kernel/process.c
+--- a/arch/arm/kernel/process.c~arm-use-simpler-api-for-random-address-requests
++++ a/arch/arm/kernel/process.c
+@@ -318,8 +318,7 @@ unsigned long get_wchan(struct task_stru
  
--#include <asm-generic/sections.h>
-+#include <asm/sections.h>
- #include <asm/cacheflush.h>
- #include <asm/errno.h>
- #include <asm/uaccess.h>
+ unsigned long arch_randomize_brk(struct mm_struct *mm)
+ {
+-	unsigned long range_end = mm->brk + 0x02000000;
+-	return randomize_range(mm->brk, range_end, 0) ? : mm->brk;
++	return randomize_page(mm->brk, 0x02000000);
+ }
+ 
+ #ifdef CONFIG_MMU
 _
