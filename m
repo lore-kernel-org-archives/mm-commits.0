@@ -1,96 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [patch 048/102] autofs: refactor ioctl fn vector in
- iookup_dev_ioctl()
-Date: Tue, 11 Oct 2016 13:53:19 -0700
-Message-ID: <57fd513f.dUhssxiF4oOkp1HL%akpm@linux-foundation.org>
+Subject: [patch 042/102] autofs: fix dev ioctl number range check
+Date: Tue, 11 Oct 2016 13:53:02 -0700
+Message-ID: <57fd512e.MtWwlhg9zGTxEotW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37983 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37921 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752520AbcJKUxU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:20 -0400
+        with ESMTP id S1752431AbcJKUxG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kusumi.tomohiro@gmail.com, raven@themaw.net
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, raven@themaw.net, kusumi.tomohiro@gmail.com
 
-From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: refactor ioctl fn vector in iookup_dev_ioctl()
+From: Ian Kent <raven@themaw.net>
+Subject: autofs: fix dev ioctl number range check
 
-cmd part of this struct is the same as an index of itself within
-_ioctls[]. In fact this cmd is unused, so we can drop this part.
+The count of miscellaneous device ioctls in fs/autofs4/autofs_i.h is wrong.
 
-Link: http://lkml.kernel.org/r/20160831033414.9910.66697.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+The number of ioctls is the difference between AUTOFS_DEV_IOCTL_VERSION_CMD
+and AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD (14) not the difference between
+AUTOFS_IOC_COUNT and 11 (21).
+
+[kusumi.tomohiro@gmail.com: fix typo that made the count macro negative]
+ Link: http://lkml.kernel.org/r/20160831033420.9910.16809.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/20160812024841.12352.11975.stgit@pluto.themaw.net
 Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |   49 ++++++++++++---------------------------
- 1 file changed, 16 insertions(+), 33 deletions(-)
+ fs/autofs4/autofs_i.h  |    3 ++-
+ fs/autofs4/dev-ioctl.c |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl
+diff -puN fs/autofs4/autofs_i.h~autofs-fix-dev-ioctl-number-range-check fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs-fix-dev-ioctl-number-range-check
++++ a/fs/autofs4/autofs_i.h
+@@ -20,7 +20,8 @@
+ #define AUTOFS_IOC_COUNT     32
+ 
+ #define AUTOFS_DEV_IOCTL_IOC_FIRST	(AUTOFS_DEV_IOCTL_VERSION)
+-#define AUTOFS_DEV_IOCTL_IOC_COUNT	(AUTOFS_IOC_COUNT - 11)
++#define AUTOFS_DEV_IOCTL_IOC_COUNT \
++	(AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD - AUTOFS_DEV_IOCTL_VERSION_CMD)
+ 
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+diff -puN fs/autofs4/dev-ioctl.c~autofs-fix-dev-ioctl-number-range-check fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-fix-dev-ioctl-number-range-check
 +++ a/fs/autofs4/dev-ioctl.c
-@@ -597,42 +597,25 @@ out:
+@@ -642,7 +642,7 @@ static int _autofs_dev_ioctl(unsigned in
+ 	cmd = _IOC_NR(command);
  
- static ioctl_fn lookup_dev_ioctl(unsigned int cmd)
- {
--	static struct {
--		int cmd;
--		ioctl_fn fn;
--	} _ioctls[] = {
--		{cmd_idx(AUTOFS_DEV_IOCTL_VERSION_CMD),
--			 autofs_dev_ioctl_version},
--		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOVER_CMD),
--			 autofs_dev_ioctl_protover},
--		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD),
--			 autofs_dev_ioctl_protosubver},
--		{cmd_idx(AUTOFS_DEV_IOCTL_OPENMOUNT_CMD),
--			 autofs_dev_ioctl_openmount},
--		{cmd_idx(AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD),
--			 autofs_dev_ioctl_closemount},
--		{cmd_idx(AUTOFS_DEV_IOCTL_READY_CMD),
--			 autofs_dev_ioctl_ready},
--		{cmd_idx(AUTOFS_DEV_IOCTL_FAIL_CMD),
--			 autofs_dev_ioctl_fail},
--		{cmd_idx(AUTOFS_DEV_IOCTL_SETPIPEFD_CMD),
--			 autofs_dev_ioctl_setpipefd},
--		{cmd_idx(AUTOFS_DEV_IOCTL_CATATONIC_CMD),
--			 autofs_dev_ioctl_catatonic},
--		{cmd_idx(AUTOFS_DEV_IOCTL_TIMEOUT_CMD),
--			 autofs_dev_ioctl_timeout},
--		{cmd_idx(AUTOFS_DEV_IOCTL_REQUESTER_CMD),
--			 autofs_dev_ioctl_requester},
--		{cmd_idx(AUTOFS_DEV_IOCTL_EXPIRE_CMD),
--			 autofs_dev_ioctl_expire},
--		{cmd_idx(AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD),
--			 autofs_dev_ioctl_askumount},
--		{cmd_idx(AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD),
--			 autofs_dev_ioctl_ismountpoint}
-+	static ioctl_fn _ioctls[] = {
-+		autofs_dev_ioctl_version,
-+		autofs_dev_ioctl_protover,
-+		autofs_dev_ioctl_protosubver,
-+		autofs_dev_ioctl_openmount,
-+		autofs_dev_ioctl_closemount,
-+		autofs_dev_ioctl_ready,
-+		autofs_dev_ioctl_fail,
-+		autofs_dev_ioctl_setpipefd,
-+		autofs_dev_ioctl_catatonic,
-+		autofs_dev_ioctl_timeout,
-+		autofs_dev_ioctl_requester,
-+		autofs_dev_ioctl_expire,
-+		autofs_dev_ioctl_askumount,
-+		autofs_dev_ioctl_ismountpoint,
- 	};
- 	unsigned int idx = cmd_idx(cmd);
+ 	if (_IOC_TYPE(command) != _IOC_TYPE(AUTOFS_DEV_IOCTL_IOC_FIRST) ||
+-	    cmd - cmd_first >= AUTOFS_DEV_IOCTL_IOC_COUNT) {
++	    cmd - cmd_first > AUTOFS_DEV_IOCTL_IOC_COUNT) {
+ 		return -ENOTTY;
+ 	}
  
--	return (idx >= ARRAY_SIZE(_ioctls)) ? NULL : _ioctls[idx].fn;
-+	return (idx >= ARRAY_SIZE(_ioctls)) ? NULL : _ioctls[idx];
- }
- 
- /* ioctl dispatcher */
 _
