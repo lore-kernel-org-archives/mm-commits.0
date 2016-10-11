@@ -1,73 +1,260 @@
 From: akpm@linux-foundation.org
-Subject: [patch 084/102] kdump, vmcoreinfo: report memory sections virtual addresses
-Date: Tue, 11 Oct 2016 13:55:08 -0700
-Message-ID: <57fd51ac.D8abWi9Pph0Trd1M%akpm@linux-foundation.org>
+Subject: [patch 095/102] kthread: allow to cancel kthread work
+Date: Tue, 11 Oct 2016 13:55:43 -0700
+Message-ID: <57fd51cf.edFpHicjEyr9QzYy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38428 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38492 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751554AbcJKU5W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:57:22 -0400
+        with ESMTP id S1752601AbcJKU5X (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, thgarnie@google.com, bhe@redhat.com, d.hatayama@jp.fujitsu.com, ebiederm@xmission.com, hpa@zytor.com, keescook@chromium.org, mingo@redhat.com, surovegin@google.com, tglx@linutronix.de, xlpang@redhat.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, pmladek@suse.com, bp@suse.de, jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz
 
-From: Thomas Garnier <thgarnie@google.com>
-Subject: kdump, vmcoreinfo: report memory sections virtual addresses
+From: Petr Mladek <pmladek@suse.com>
+Subject: kthread: allow to cancel kthread work
 
-KASLR memory randomization can randomize the base of the physical memory
-mapping (PAGE_OFFSET), vmalloc (VMALLOC_START) and vmemmap
-(VMEMMAP_START).  Adding these variables on VMCOREINFO so tools can easily
-identify the base of each memory section.
+We are going to use kthread workers more widely and sometimes we will need
+to make sure that the work is neither pending nor running.
 
-Link: http://lkml.kernel.org/r/1471531632-23003-1-git-send-email-thgarnie@google.com
-Signed-off-by: Thomas Garnier <thgarnie@google.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+This patch implements cancel_*_sync() operations as inspired by
+workqueues.  Well, we are synchronized against the other operations via
+the worker lock, we use del_timer_sync() and a counter to count parallel
+cancel operations.  Therefore the implementation might be easier.
+
+First, we check if a worker is assigned.  If not, the work has newer been
+queued after it was initialized.
+
+Second, we take the worker lock.  It must be the right one.  The work must
+not be assigned to another worker unless it is initialized in between.
+
+Third, we try to cancel the timer when it exists.  The timer is deleted
+synchronously to make sure that the timer call back is not running.  We
+need to temporary release the worker->lock to avoid a possible deadlock
+with the callback.  In the meantime, we set work->canceling counter to
+avoid any queuing.
+
+Fourth, we try to remove the work from a worker list. It might be
+the list of either normal or delayed works.
+
+Fifth, if the work is running, we call kthread_flush_work().  It might
+take an arbitrary time.  We need to release the worker-lock again.  In the
+meantime, we again block any queuing by the canceling counter.
+
+As already mentioned, the check for a pending kthread work is done under a
+lock.  In compare with workqueues, we do not need to fight for a single
+PENDING bit to block other operations.  Therefore we do not suffer from
+the thundering storm problem and all parallel canceling jobs might use
+kthread_flush_work().  Any queuing is blocked until the counter gets zero.
+
+Link: http://lkml.kernel.org/r/1470754545-17632-10-git-send-email-pmladek@suse.com
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H . Peter Anvin" <hpa@zytor.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Xunlei Pang <xlpang@redhat.com>
-Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Eugene Surovegin <surovegin@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |    3 +++
- include/linux/kexec.h              |    6 ++++++
- 2 files changed, 9 insertions(+)
+ include/linux/kthread.h |    5 +
+ kernel/kthread.c        |  132 +++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 135 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/machine_kexec_64.c~kdump-vmcoreinfo-report-memory-sections-virtual-addresses arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~kdump-vmcoreinfo-report-memory-sections-virtual-addresses
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -337,6 +337,9 @@ void arch_crash_save_vmcoreinfo(void)
- #endif
- 	vmcoreinfo_append_str("KERNELOFFSET=%lx\n",
- 			      kaslr_offset());
-+	VMCOREINFO_PAGE_OFFSET(PAGE_OFFSET);
-+	VMCOREINFO_VMALLOC_START(VMALLOC_START);
-+	VMCOREINFO_VMEMMAP_START(VMEMMAP_START);
+diff -puN include/linux/kthread.h~kthread-allow-to-cancel-kthread-work include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-allow-to-cancel-kthread-work
++++ a/include/linux/kthread.h
+@@ -77,6 +77,8 @@ struct kthread_work {
+ 	struct list_head	node;
+ 	kthread_work_func_t	func;
+ 	struct kthread_worker	*worker;
++	/* Number of canceling calls that are running at the moment. */
++	int			canceling;
+ };
+ 
+ struct kthread_delayed_work {
+@@ -169,6 +171,9 @@ bool kthread_queue_delayed_work(struct k
+ void kthread_flush_work(struct kthread_work *work);
+ void kthread_flush_worker(struct kthread_worker *worker);
+ 
++bool kthread_cancel_work_sync(struct kthread_work *work);
++bool kthread_cancel_delayed_work_sync(struct kthread_delayed_work *work);
++
+ void kthread_destroy_worker(struct kthread_worker *worker);
+ 
+ #endif /* _LINUX_KTHREAD_H */
+diff -puN kernel/kthread.c~kthread-allow-to-cancel-kthread-work kernel/kthread.c
+--- a/kernel/kthread.c~kthread-allow-to-cancel-kthread-work
++++ a/kernel/kthread.c
+@@ -718,6 +718,19 @@ kthread_create_worker_on_cpu(int cpu, co
  }
+ EXPORT_SYMBOL(kthread_create_worker_on_cpu);
  
- /* arch-dependent functionality related to kexec file-based syscall */
-diff -puN include/linux/kexec.h~kdump-vmcoreinfo-report-memory-sections-virtual-addresses include/linux/kexec.h
---- a/include/linux/kexec.h~kdump-vmcoreinfo-report-memory-sections-virtual-addresses
-+++ a/include/linux/kexec.h
-@@ -259,6 +259,12 @@ phys_addr_t paddr_vmcoreinfo_note(void);
- 	vmcoreinfo_append_str("NUMBER(%s)=%ld\n", #name, (long)name)
- #define VMCOREINFO_CONFIG(name) \
- 	vmcoreinfo_append_str("CONFIG_%s=y\n", #name)
-+#define VMCOREINFO_PAGE_OFFSET(value) \
-+	vmcoreinfo_append_str("PAGE_OFFSET=%lx\n", (unsigned long)value)
-+#define VMCOREINFO_VMALLOC_START(value) \
-+	vmcoreinfo_append_str("VMALLOC_START=%lx\n", (unsigned long)value)
-+#define VMCOREINFO_VMEMMAP_START(value) \
-+	vmcoreinfo_append_str("VMEMMAP_START=%lx\n", (unsigned long)value)
++/*
++ * Returns true when the work could not be queued at the moment.
++ * It happens when it is already pending in a worker list
++ * or when it is being cancelled.
++ */
++static inline bool queuing_blocked(struct kthread_worker *worker,
++				   struct kthread_work *work)
++{
++	lockdep_assert_held(&worker->lock);
++
++	return !list_empty(&work->node) || work->canceling;
++}
++
+ static void kthread_insert_work_sanity_check(struct kthread_worker *worker,
+ 					     struct kthread_work *work)
+ {
+@@ -759,7 +772,7 @@ bool kthread_queue_work(struct kthread_w
+ 	unsigned long flags;
  
- extern struct kimage *kexec_image;
- extern struct kimage *kexec_crash_image;
+ 	spin_lock_irqsave(&worker->lock, flags);
+-	if (list_empty(&work->node)) {
++	if (!queuing_blocked(worker, work)) {
+ 		kthread_insert_work(worker, work, &worker->work_list);
+ 		ret = true;
+ 	}
+@@ -859,7 +872,7 @@ bool kthread_queue_delayed_work(struct k
+ 
+ 	spin_lock_irqsave(&worker->lock, flags);
+ 
+-	if (list_empty(&work->node)) {
++	if (!queuing_blocked(worker, work)) {
+ 		__kthread_queue_delayed_work(worker, dwork, delay);
+ 		ret = true;
+ 	}
+@@ -919,6 +932,121 @@ void kthread_flush_work(struct kthread_w
+ }
+ EXPORT_SYMBOL_GPL(kthread_flush_work);
+ 
++/*
++ * This function removes the work from the worker queue. Also it makes sure
++ * that it won't get queued later via the delayed work's timer.
++ *
++ * The work might still be in use when this function finishes. See the
++ * current_work proceed by the worker.
++ *
++ * Return: %true if @work was pending and successfully canceled,
++ *	%false if @work was not pending
++ */
++static bool __kthread_cancel_work(struct kthread_work *work, bool is_dwork,
++				  unsigned long *flags)
++{
++	/* Try to cancel the timer if exists. */
++	if (is_dwork) {
++		struct kthread_delayed_work *dwork =
++			container_of(work, struct kthread_delayed_work, work);
++		struct kthread_worker *worker = work->worker;
++
++		/*
++		 * del_timer_sync() must be called to make sure that the timer
++		 * callback is not running. The lock must be temporary released
++		 * to avoid a deadlock with the callback. In the meantime,
++		 * any queuing is blocked by setting the canceling counter.
++		 */
++		work->canceling++;
++		spin_unlock_irqrestore(&worker->lock, *flags);
++		del_timer_sync(&dwork->timer);
++		spin_lock_irqsave(&worker->lock, *flags);
++		work->canceling--;
++	}
++
++	/*
++	 * Try to remove the work from a worker list. It might either
++	 * be from worker->work_list or from worker->delayed_work_list.
++	 */
++	if (!list_empty(&work->node)) {
++		list_del_init(&work->node);
++		return true;
++	}
++
++	return false;
++}
++
++static bool __kthread_cancel_work_sync(struct kthread_work *work, bool is_dwork)
++{
++	struct kthread_worker *worker = work->worker;
++	unsigned long flags;
++	int ret = false;
++
++	if (!worker)
++		goto out;
++
++	spin_lock_irqsave(&worker->lock, flags);
++	/* Work must not be used with >1 worker, see kthread_queue_work(). */
++	WARN_ON_ONCE(work->worker != worker);
++
++	ret = __kthread_cancel_work(work, is_dwork, &flags);
++
++	if (worker->current_work != work)
++		goto out_fast;
++
++	/*
++	 * The work is in progress and we need to wait with the lock released.
++	 * In the meantime, block any queuing by setting the canceling counter.
++	 */
++	work->canceling++;
++	spin_unlock_irqrestore(&worker->lock, flags);
++	kthread_flush_work(work);
++	spin_lock_irqsave(&worker->lock, flags);
++	work->canceling--;
++
++out_fast:
++	spin_unlock_irqrestore(&worker->lock, flags);
++out:
++	return ret;
++}
++
++/**
++ * kthread_cancel_work_sync - cancel a kthread work and wait for it to finish
++ * @work: the kthread work to cancel
++ *
++ * Cancel @work and wait for its execution to finish.  This function
++ * can be used even if the work re-queues itself. On return from this
++ * function, @work is guaranteed to be not pending or executing on any CPU.
++ *
++ * kthread_cancel_work_sync(&delayed_work->work) must not be used for
++ * delayed_work's. Use kthread_cancel_delayed_work_sync() instead.
++ *
++ * The caller must ensure that the worker on which @work was last
++ * queued can't be destroyed before this function returns.
++ *
++ * Return: %true if @work was pending, %false otherwise.
++ */
++bool kthread_cancel_work_sync(struct kthread_work *work)
++{
++	return __kthread_cancel_work_sync(work, false);
++}
++EXPORT_SYMBOL_GPL(kthread_cancel_work_sync);
++
++/**
++ * kthread_cancel_delayed_work_sync - cancel a kthread delayed work and
++ *	wait for it to finish.
++ * @dwork: the kthread delayed work to cancel
++ *
++ * This is kthread_cancel_work_sync() for delayed works.
++ *
++ * Return: %true if @dwork was pending, %false otherwise.
++ */
++bool kthread_cancel_delayed_work_sync(struct kthread_delayed_work *dwork)
++{
++	return __kthread_cancel_work_sync(&dwork->work, true);
++}
++EXPORT_SYMBOL_GPL(kthread_cancel_delayed_work_sync);
++
+ /**
+  * kthread_flush_worker - flush all current works on a kthread_worker
+  * @worker: worker to flush
 _
