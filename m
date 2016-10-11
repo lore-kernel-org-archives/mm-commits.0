@@ -1,242 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [patch 012/102] lib/bitmap.c: enhance bitmap syntax
-Date: Tue, 11 Oct 2016 13:51:35 -0700
-Message-ID: <57fd50d7.qzkWtuZKCHIoMpM+%akpm@linux-foundation.org>
+Subject: [patch 006/102] radix-tree: 'slot' can be NULL in
+ radix_tree_next_slot()
+Date: Tue, 11 Oct 2016 13:51:18 -0700
+Message-ID: <57fd50c6.6EhUOw5Urq5BV15s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37893 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37863 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752449AbcJKUwf (ORCPT
+        with ESMTP id S1751554AbcJKUwf (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:52:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, noamca@mellanox.com, ben@decadent.org.uk, davem@davemloft.net, decot@googlers.com, xinhui@linux.vnet.ibm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, ross.zwisler@linux.intel.com, aryabinin@virtuozzo.com, dvyukov@google.com, koct9i@gmail.com, shuahkh@osg.samsung.com
 
-From: Noam Camus <noamca@mellanox.com>
-Subject: lib/bitmap.c: enhance bitmap syntax
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: radix-tree: 'slot' can be NULL in radix_tree_next_slot()
 
-Today there are platforms with many CPUs (up to 4K).  Trying to boot only
-part of the CPUs may result in too long string.
+There are four cases I can see where we could end up with a NULL 'slot' in
+radix_tree_next_slot().  Yet radix_tree_next_slot() never actually checks
+whether 'slot' is NULL.  It just happens that for the cases where 'slot'
+is NULL, some other combination of factors prevents us from dereferencing
+it.
 
-For example lets take NPS platform that is part of arch/arc.  This
-platform have SMP system with 256 cores each with 16 HW threads (SMT
-machine) where HW thread appears as CPU to the kernel.  In this example
-there is total of 4K CPUs.  When one tries to boot only part of the HW
-threads from each core the string representing the map may be long...  For
-example if for sake of performance we decided to boot only first half of
-HW threads of each core the map will look like:
-0-7,16-23,32-39,...,4080-4087
+It would be very easy for someone to unwittingly change one of these
+factors without realizing that we are implicitly depending on it to save
+us from a NULL pointer dereference.
 
-This patch introduce new syntax to accommodate with such use case.  I
-added an optional postfix to a range of CPUs which will choose according
-to given modulo the desired range of reminders i.e.:
+Add a comment documenting the things that allow 'slot' to be safely passed
+as NULL to radix_tree_next_slot().
 
-    <cpus range>:sed_size/group_size
+Here are details on the four cases:
 
-For example, above map can be described in new syntax like this:
-0-4095:8/16
+1) radix_tree_iter_retry() via a non-tagged iteration like
+radix_tree_for_each_slot().  In this case we currently aren't seeing a bug
+because radix_tree_iter_retry() sets
 
-Note that this patch is backward compatible with current syntax.
+	iter->next_index = iter->index;
 
-[akpm@linux-foundation.org: rework documentation]
-Link: http://lkml.kernel.org/r/1473579629-4283-1-git-send-email-noamca@mellanox.com
-Signed-off-by: Noam Camus <noamca@mellanox.com>
-Cc: David Decotigny <decot@googlers.com>
-Cc: Ben Hutchings <ben@decadent.org.uk>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Pan Xinhui <xinhui@linux.vnet.ibm.com>
+which means that in in the else case in radix_tree_next_slot(), 'count' is
+zero, so we skip over the while() loop and effectively just return NULL
+without ever dereferencing 'slot'.
+
+2) radix_tree_iter_retry() via tagged iteration like
+radix_tree_for_each_tagged().  This case was giving us NULL pointer
+dereferences in testing, and was fixed with this commit:
+
+commit 3cb9185c6730 ("radix-tree: fix radix_tree_iter_retry() for tagged
+iterators.")
+
+This fix doesn't explicitly check for 'slot' being NULL, though, it works
+around the NULL pointer dereference by instead zeroing iter->tags in
+radix_tree_iter_retry(), which makes us bail out of the if() case in
+radix_tree_next_slot() before we dereference 'slot'.
+
+3) radix_tree_iter_next() via via a non-tagged iteration like
+radix_tree_for_each_slot().  This currently happens in shmem_tag_pins()
+and shmem_partial_swap_usage().
+
+As with non-tagged iteration, 'count' in the else case of
+radix_tree_next_slot() is zero, so we skip over the while() loop and
+effectively just return NULL without ever dereferencing 'slot'.
+
+4) radix_tree_iter_next() via tagged iteration like
+radix_tree_for_each_tagged().  This happens in shmem_wait_for_pins().
+
+radix_tree_iter_next() zeros out iter->tags, so we end up exiting
+radix_tree_next_slot() here:
+
+	if (flags & RADIX_TREE_ITER_TAGGED) {
+		void *canon = slot;
+
+		iter->tags >>= 1;
+		if (unlikely(!iter->tags))
+			return NULL;
+
+Link: http://lkml.kernel.org/r/20160815194237.25967-2-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   50 ++++++++++++++++++--------
- lib/bitmap.c                        |   50 +++++++++++++++++++++++---
- 2 files changed, 82 insertions(+), 18 deletions(-)
+ include/linux/radix-tree.h |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~lib-bitmapc-enhance-bitmap-syntax Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~lib-bitmapc-enhance-bitmap-syntax
-+++ a/Documentation/kernel-parameters.txt
-@@ -33,6 +33,37 @@ can also be entered as
- Double-quotes can be used to protect spaces in values, e.g.:
- 	param="spaces in here"
- 
-+cpu lists:
-+----------
-+
-+Some kernel parameters take a list of CPUs as a value, e.g.  isolcpus,
-+nohz_full, irqaffinity, rcu_nocbs.  The format of this list is:
-+
-+	<cpu number>,...,<cpu number>
-+
-+or
-+
-+	<cpu number>-<cpu number>
-+	(must be a positive range in ascending order)
-+
-+or a mixture
-+
-+<cpu number>,...,<cpu number>-<cpu number>
-+
-+Note that for the special case of a range one can split the range into equal
-+sized groups and for each group use some amount from the beginning of that
-+group:
-+
-+	<cpu number>-cpu number>:<used size>/<group size>
-+
-+For example one can add to the command line following parameter:
-+
-+	isolcpus=1,2,10-20,100-2000:2/25
-+
-+where the final item represents CPUs 100,101,125,126,150,151,...
-+
-+
-+
- This document may not be entirely up to date and comprehensive. The command
- "modinfo -p ${modulename}" shows a current list of all parameters of a loadable
- module. Loadable modules, after being loaded into the running kernel, also
-@@ -1789,13 +1820,7 @@ bytes respectively. Such letter suffixes
- 			See Documentation/filesystems/nfs/nfsroot.txt.
- 
- 	irqaffinity=	[SMP] Set the default irq affinity mask
--			Format:
--			<cpu number>,...,<cpu number>
--			or
--			<cpu number>-<cpu number>
--			(must be a positive range in ascending order)
--			or a mixture
--			<cpu number>,...,<cpu number>-<cpu number>
-+			The argument is a cpu list, as described above.
- 
- 	irqfixup	[HW]
- 			When an interrupt is not handled search all handlers
-@@ -1812,13 +1837,7 @@ bytes respectively. Such letter suffixes
- 			Format: <RDP>,<reset>,<pci_scan>,<verbosity>
- 
- 	isolcpus=	[KNL,SMP] Isolate CPUs from the general scheduler.
--			Format:
--			<cpu number>,...,<cpu number>
--			or
--			<cpu number>-<cpu number>
--			(must be a positive range in ascending order)
--			or a mixture
--			<cpu number>,...,<cpu number>-<cpu number>
-+			The argument is a cpu list, as described above.
- 
- 			This option can be used to specify one or more CPUs
- 			to isolate from the general SMP balancing and scheduling
-@@ -2680,6 +2699,7 @@ bytes respectively. Such letter suffixes
- 			Default: on
- 
- 	nohz_full=	[KNL,BOOT]
-+			The argument is a cpu list, as described above.
- 			In kernels built with CONFIG_NO_HZ_FULL=y, set
- 			the specified list of CPUs whose tick will be stopped
- 			whenever possible. The boot CPU will be forced outside
-@@ -3285,6 +3305,8 @@ bytes respectively. Such letter suffixes
- 			See Documentation/blockdev/ramdisk.txt.
- 
- 	rcu_nocbs=	[KNL]
-+			The argument is a cpu list, as described above.
-+
- 			In kernels built with CONFIG_RCU_NOCB_CPU=y, set
- 			the specified list of CPUs to be no-callback CPUs.
- 			Invocation of these CPUs' RCU callbacks will
-diff -puN lib/bitmap.c~lib-bitmapc-enhance-bitmap-syntax lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmapc-enhance-bitmap-syntax
-+++ a/lib/bitmap.c
-@@ -496,6 +496,11 @@ EXPORT_SYMBOL(bitmap_print_to_pagebuf);
-  * ranges.  Consecutively set bits are shown as two hyphen-separated
-  * decimal numbers, the smallest and largest bit numbers set in
-  * the range.
-+ * Optionally each range can be postfixed to denote that only parts of it
-+ * should be set. The range will divided to groups of specific size.
-+ * From each group will be used only defined amount of bits.
-+ * Syntax: range:used_size/group_size
-+ * Example: 0-1023:2/256 ==> 0,1,256,257,512,513,768,769
+diff -puN include/linux/radix-tree.h~radix-tree-slot-can-be-null-in-radix_tree_next_slot include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-slot-can-be-null-in-radix_tree_next_slot
++++ a/include/linux/radix-tree.h
+@@ -461,6 +461,14 @@ static inline struct radix_tree_node *en
   *
-  * Returns 0 on success, -errno on invalid input strings.
-  * Error values:
-@@ -507,16 +512,20 @@ static int __bitmap_parselist(const char
- 		int is_user, unsigned long *maskp,
- 		int nmaskbits)
- {
--	unsigned a, b;
-+	unsigned int a, b, old_a, old_b;
-+	unsigned int group_size, used_size;
- 	int c, old_c, totaldigits, ndigits;
- 	const char __user __force *ubuf = (const char __user __force *)buf;
--	int at_start, in_range;
-+	int at_start, in_range, in_partial_range;
- 
- 	totaldigits = c = 0;
-+	old_a = old_b = 0;
-+	group_size = used_size = 0;
- 	bitmap_zero(maskp, nmaskbits);
- 	do {
- 		at_start = 1;
- 		in_range = 0;
-+		in_partial_range = 0;
- 		a = b = 0;
- 		ndigits = totaldigits;
- 
-@@ -547,6 +556,24 @@ static int __bitmap_parselist(const char
- 			if ((totaldigits != ndigits) && isspace(old_c))
- 				return -EINVAL;
- 
-+			if (c == '/') {
-+				used_size = a;
-+				at_start = 1;
-+				in_range = 0;
-+				a = b = 0;
-+				continue;
-+			}
-+
-+			if (c == ':') {
-+				old_a = a;
-+				old_b = b;
-+				at_start = 1;
-+				in_range = 0;
-+				in_partial_range = 1;
-+				a = b = 0;
-+				continue;
-+			}
-+
- 			if (c == '-') {
- 				if (at_start || in_range)
- 					return -EINVAL;
-@@ -567,15 +594,30 @@ static int __bitmap_parselist(const char
- 		}
- 		if (ndigits == totaldigits)
- 			continue;
-+		if (in_partial_range) {
-+			group_size = a;
-+			a = old_a;
-+			b = old_b;
-+			old_a = old_b = 0;
-+		}
- 		/* if no digit is after '-', it's wrong*/
- 		if (at_start && in_range)
- 			return -EINVAL;
--		if (!(a <= b))
-+		if (!(a <= b) || !(used_size <= group_size))
- 			return -EINVAL;
- 		if (b >= nmaskbits)
- 			return -ERANGE;
- 		while (a <= b) {
--			set_bit(a, maskp);
-+			if (in_partial_range) {
-+				static int pos_in_group = 1;
-+
-+				if (pos_in_group <= used_size)
-+					set_bit(a, maskp);
-+
-+				if (a == b || ++pos_in_group > group_size)
-+					pos_in_group = 1;
-+			} else
-+				set_bit(a, maskp);
- 			a++;
- 		}
- 	} while (buflen && c == ',');
+  * This function updates @iter->index in the case of a successful lookup.
+  * For tagged lookup it also eats @iter->tags.
++ *
++ * There are several cases where 'slot' can be passed in as NULL to this
++ * function.  These cases result from the use of radix_tree_iter_next() or
++ * radix_tree_iter_retry().  In these cases we don't end up dereferencing
++ * 'slot' because either:
++ * a) we are doing tagged iteration and iter->tags has been set to 0, or
++ * b) we are doing non-tagged iteration, and iter->index and iter->next_index
++ *    have been set up so that radix_tree_chunk_size() returns 1 or 0.
+  */
+ static __always_inline void **
+ radix_tree_next_slot(void **slot, struct radix_tree_iter *iter, unsigned flags)
 _
