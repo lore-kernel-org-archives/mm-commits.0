@@ -1,78 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [patch 056/102] pipe: cap initial pipe capacity according to
- pipe-max-size limit
-Date: Tue, 11 Oct 2016 13:53:43 -0700
-Message-ID: <57fd5157.NNfV98peX73zr0Ks%akpm@linux-foundation.org>
+Subject: [patch 064/102] unicore32: use simpler API for random address
+ requests
+Date: Tue, 11 Oct 2016 13:54:08 -0700
+Message-ID: <57fd5170.tnxLk48KX9zMS45s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38041 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38114 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752710AbcJKUxp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:45 -0400
+        with ESMTP id S1752221AbcJKUyJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:54:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mtk.manpages@gmail.com, axboe@fb.com, penguin-kernel@I-love.SAKURA.ne.jp, socketpair@gmail.com, vegard.nossum@oracle.com, viro@zeniv.linux.org.uk, w@1wt.eu
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jason@lakedaemon.net, gxt@mprc.pku.edu.cn, keescook@chromium.org, tytso@mit.edu
 
-From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Subject: pipe: cap initial pipe capacity according to pipe-max-size limit
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: unicore32: use simpler API for random address requests
 
-This is a patch that provides behavior that is more consistent, and
-probably less surprising to users. I consider the change optional, and
-welcome opinions about whether it should be applied.
+Currently, all callers to randomize_range() set the length to 0 and
+calculate end by adding a constant to the start address.  We can simplify
+the API to remove a bunch of needless checks and variables.
 
-By default, pipes are created with a capacity of 64 kiB.  However,
-/proc/sys/fs/pipe-max-size may be set smaller than this value.  In this
-scenario, an unprivileged user could thus create a pipe whose initial
-capacity exceeds the limit. Therefore, it seems logical to cap the
-initial pipe capacity according to the value of pipe-max-size.
+Use the new randomize_addr(start, range) call to set the requested
+address.
 
-The test program shown earlier in this patch series can be used to
-demonstrate the effect of the change brought about with this patch:
-
-    # cat /proc/sys/fs/pipe-max-size
-    1048576
-    # sudo -u mtk ./test_F_SETPIPE_SZ 1
-    Initial pipe capacity: 65536
-    # echo 10000 > /proc/sys/fs/pipe-max-size
-    # cat /proc/sys/fs/pipe-max-size
-    16384
-    # sudo -u mtk ./test_F_SETPIPE_SZ 1
-    Initial pipe capacity: 16384
-    # ./test_F_SETPIPE_SZ 1
-    Initial pipe capacity: 65536
-
-The last two executions of 'test_F_SETPIPE_SZ' show that pipe-max-size
-caps the initial allocation for a new pipe for unprivileged users, but
-not for privileged users.
-
-Link: http://lkml.kernel.org/r/31dc7064-2a17-9c5b-1df1-4e3012ee992c@gmail.com
-Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Reviewed-by: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Willy Tarreau <w@1wt.eu>
-Cc: <socketpair@gmail.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/20160803233913.32511-7-jason@lakedaemon.net
+Signed-off-by: Jason Cooper <jason@lakedaemon.net>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/unicore32/kernel/process.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/pipe.c~pipe-cap-initial-pipe-capacity-according-to-pipe-max-size-limit fs/pipe.c
---- a/fs/pipe.c~pipe-cap-initial-pipe-capacity-according-to-pipe-max-size-limit
-+++ a/fs/pipe.c
-@@ -628,6 +628,9 @@ struct pipe_inode_info *alloc_pipe_info(
- 	if (pipe == NULL)
- 		goto out_free_uid;
+diff -puN arch/unicore32/kernel/process.c~unicore32-use-simpler-api-for-random-address-requests arch/unicore32/kernel/process.c
+--- a/arch/unicore32/kernel/process.c~unicore32-use-simpler-api-for-random-address-requests
++++ a/arch/unicore32/kernel/process.c
+@@ -295,8 +295,7 @@ unsigned long get_wchan(struct task_stru
  
-+	if (pipe_bufs * PAGE_SIZE > pipe_max_size && !capable(CAP_SYS_RESOURCE))
-+		pipe_bufs = pipe_max_size >> PAGE_SHIFT;
-+
- 	user_bufs = account_pipe_buffers(user, 0, pipe_bufs);
+ unsigned long arch_randomize_brk(struct mm_struct *mm)
+ {
+-	unsigned long range_end = mm->brk + 0x02000000;
+-	return randomize_range(mm->brk, range_end, 0) ? : mm->brk;
++	return randomize_page(mm->brk, 0x02000000);
+ }
  
- 	if (too_many_pipe_buffers_soft(user_bufs)) {
+ /*
 _
