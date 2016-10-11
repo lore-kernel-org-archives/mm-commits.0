@@ -1,87 +1,267 @@
 From: akpm@linux-foundation.org
-Subject: [patch 099/102] hung_task: allow hung_task_panic when
- hung_task_warnings is 0
-Date: Tue, 11 Oct 2016 13:55:56 -0700
-Message-ID: <57fd51dc.CQ+XTWFSTqtc5opP%akpm@linux-foundation.org>
+Subject: [patch 094/102] kthread: initial support for delayed kthread work
+Date: Tue, 11 Oct 2016 13:55:40 -0700
+Message-ID: <57fd51cc.8vCqM+W7p8Opa7uk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38429 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38491 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752842AbcJKU5X (ORCPT
+        with ESMTP id S1752605AbcJKU5X (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jsiddle@redhat.com, penguin-kernel@i-love.sakura.ne.jp
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, pmladek@suse.com, bp@suse.de, jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz
 
-From: John Siddle <jsiddle@redhat.com>
-Subject: hung_task: allow hung_task_panic when hung_task_warnings is 0
+From: Petr Mladek <pmladek@suse.com>
+Subject: kthread: initial support for delayed kthread work
 
-Previously hung_task_panic would not be respected if enabled after
-hung_task_warnings had already been decremented to 0.
+We are going to use kthread_worker more widely and delayed works
+will be pretty useful.
 
-Permit the kernel to panic if hung_task_panic is enabled after
-hung_task_warnings has already been decremented to 0 and another task
-hangs for hung_task_timeout_secs seconds.
+The implementation is inspired by workqueues.  It uses a timer to queue
+the work after the requested delay.  If the delay is zero, the work is
+queued immediately.
 
-Check if hung_task_panic is enabled so we don't return prematurely, and
-check if hung_task_warnings is non-zero so we don't print the warning
-unnecessarily.
+In compare with workqueues, each work is associated with a single worker
+(kthread).  Therefore the implementation could be much easier.  In
+particular, we use the worker->lock to synchronize all the operations with
+the work.  We do not need any atomic operation with a flags variable.
 
-[akpm@linux-foundation.org: fix off-by-one]
-Link: http://lkml.kernel.org/r/1473450214-4049-1-git-send-email-jsiddle@redhat.com
-Signed-off-by: John Siddle <jsiddle@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+In fact, we do not need any state variable at all.  Instead, we add a list
+of delayed works into the worker.  Then the pending work is listed either
+in the list of queued or delayed works.  And the existing check of pending
+works is the same even for the delayed ones.
+
+A work must not be assigned to another worker unless reinitialized. 
+Therefore the timer handler might expect that dwork->work->worker is valid
+and it could simply take the lock.  We just add some sanity checks to help
+with debugging a potential misuse.
+
+Link: http://lkml.kernel.org/r/1470754545-17632-9-git-send-email-pmladek@suse.com
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ include/linux/kthread.h |   33 ++++++++++++
+ kernel/kthread.c        |  102 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 135 insertions(+)
 
-diff -puN kernel/hung_task.c~hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0 kernel/hung_task.c
---- a/kernel/hung_task.c~hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0
-+++ a/kernel/hung_task.c
-@@ -98,26 +98,26 @@ static void check_hung_task(struct task_
+diff -puN include/linux/kthread.h~kthread-initial-support-for-delayed-kthread-work include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-initial-support-for-delayed-kthread-work
++++ a/include/linux/kthread.h
+@@ -63,10 +63,12 @@ extern int tsk_fork_get_node(struct task
+  */
+ struct kthread_work;
+ typedef void (*kthread_work_func_t)(struct kthread_work *work);
++void kthread_delayed_work_timer_fn(unsigned long __data);
  
- 	trace_sched_process_hang(t);
+ struct kthread_worker {
+ 	spinlock_t		lock;
+ 	struct list_head	work_list;
++	struct list_head	delayed_work_list;
+ 	struct task_struct	*task;
+ 	struct kthread_work	*current_work;
+ };
+@@ -77,9 +79,15 @@ struct kthread_work {
+ 	struct kthread_worker	*worker;
+ };
  
--	if (!sysctl_hung_task_warnings)
-+	if (!sysctl_hung_task_warnings && !sysctl_hung_task_panic)
- 		return;
++struct kthread_delayed_work {
++	struct kthread_work work;
++	struct timer_list timer;
++};
++
+ #define KTHREAD_WORKER_INIT(worker)	{				\
+ 	.lock = __SPIN_LOCK_UNLOCKED((worker).lock),			\
+ 	.work_list = LIST_HEAD_INIT((worker).work_list),		\
++	.delayed_work_list = LIST_HEAD_INIT((worker).delayed_work_list),\
+ 	}
  
--	if (sysctl_hung_task_warnings > 0)
--		sysctl_hung_task_warnings--;
--
- 	/*
- 	 * Ok, the task did not get scheduled for more than 2 minutes,
- 	 * complain:
- 	 */
--	pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
--		t->comm, t->pid, timeout);
--	pr_err("      %s %s %.*s\n",
--		print_tainted(), init_utsname()->release,
--		(int)strcspn(init_utsname()->version, " "),
--		init_utsname()->version);
--	pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
--		" disables this message.\n");
--	sched_show_task(t);
--	debug_show_all_locks();
-+	if (sysctl_hung_task_warnings) {
-+		sysctl_hung_task_warnings--;
-+		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
-+			t->comm, t->pid, timeout);
-+		pr_err("      %s %s %.*s\n",
-+			print_tainted(), init_utsname()->release,
-+			(int)strcspn(init_utsname()->version, " "),
-+			init_utsname()->version);
-+		pr_err("\"echo 0 > /proc/sys/kernel/hung_task_timeout_secs\""
-+			" disables this message.\n");
-+		sched_show_task(t);
-+		debug_show_all_locks();
+ #define KTHREAD_WORK_INIT(work, fn)	{				\
+@@ -87,12 +95,23 @@ struct kthread_work {
+ 	.func = (fn),							\
+ 	}
+ 
++#define KTHREAD_DELAYED_WORK_INIT(dwork, fn) {				\
++	.work = KTHREAD_WORK_INIT((dwork).work, (fn)),			\
++	.timer = __TIMER_INITIALIZER(kthread_delayed_work_timer_fn,	\
++				     0, (unsigned long)&(dwork),	\
++				     TIMER_IRQSAFE),			\
 +	}
++
+ #define DEFINE_KTHREAD_WORKER(worker)					\
+ 	struct kthread_worker worker = KTHREAD_WORKER_INIT(worker)
  
- 	touch_nmi_watchdog();
+ #define DEFINE_KTHREAD_WORK(work, fn)					\
+ 	struct kthread_work work = KTHREAD_WORK_INIT(work, fn)
  
++#define DEFINE_KTHREAD_DELAYED_WORK(dwork, fn)				\
++	struct kthread_delayed_work dwork =				\
++		KTHREAD_DELAYED_WORK_INIT(dwork, fn)
++
+ /*
+  * kthread_worker.lock needs its own lockdep class key when defined on
+  * stack with lockdep enabled.  Use the following macros in such cases.
+@@ -122,6 +141,15 @@ extern void __kthread_init_worker(struct
+ 		(work)->func = (fn);					\
+ 	} while (0)
+ 
++#define kthread_init_delayed_work(dwork, fn)				\
++	do {								\
++		kthread_init_work(&(dwork)->work, (fn));		\
++		__setup_timer(&(dwork)->timer,				\
++			      kthread_delayed_work_timer_fn,		\
++			      (unsigned long)(dwork),			\
++			      TIMER_IRQSAFE);				\
++	} while (0)
++
+ int kthread_worker_fn(void *worker_ptr);
+ 
+ __printf(1, 2)
+@@ -133,6 +161,11 @@ kthread_create_worker_on_cpu(int cpu, co
+ 
+ bool kthread_queue_work(struct kthread_worker *worker,
+ 			struct kthread_work *work);
++
++bool kthread_queue_delayed_work(struct kthread_worker *worker,
++				struct kthread_delayed_work *dwork,
++				unsigned long delay);
++
+ void kthread_flush_work(struct kthread_work *work);
+ void kthread_flush_worker(struct kthread_worker *worker);
+ 
+diff -puN kernel/kthread.c~kthread-initial-support-for-delayed-kthread-work kernel/kthread.c
+--- a/kernel/kthread.c~kthread-initial-support-for-delayed-kthread-work
++++ a/kernel/kthread.c
+@@ -563,6 +563,7 @@ void __kthread_init_worker(struct kthrea
+ 	spin_lock_init(&worker->lock);
+ 	lockdep_set_class_and_name(&worker->lock, key, name);
+ 	INIT_LIST_HEAD(&worker->work_list);
++	INIT_LIST_HEAD(&worker->delayed_work_list);
+ 	worker->task = NULL;
+ }
+ EXPORT_SYMBOL_GPL(__kthread_init_worker);
+@@ -767,6 +768,107 @@ bool kthread_queue_work(struct kthread_w
+ }
+ EXPORT_SYMBOL_GPL(kthread_queue_work);
+ 
++/**
++ * kthread_delayed_work_timer_fn - callback that queues the associated kthread
++ *	delayed work when the timer expires.
++ * @__data: pointer to the data associated with the timer
++ *
++ * The format of the function is defined by struct timer_list.
++ * It should have been called from irqsafe timer with irq already off.
++ */
++void kthread_delayed_work_timer_fn(unsigned long __data)
++{
++	struct kthread_delayed_work *dwork =
++		(struct kthread_delayed_work *)__data;
++	struct kthread_work *work = &dwork->work;
++	struct kthread_worker *worker = work->worker;
++
++	/*
++	 * This might happen when a pending work is reinitialized.
++	 * It means that it is used a wrong way.
++	 */
++	if (WARN_ON_ONCE(!worker))
++		return;
++
++	spin_lock(&worker->lock);
++	/* Work must not be used with >1 worker, see kthread_queue_work(). */
++	WARN_ON_ONCE(work->worker != worker);
++
++	/* Move the work from worker->delayed_work_list. */
++	WARN_ON_ONCE(list_empty(&work->node));
++	list_del_init(&work->node);
++	kthread_insert_work(worker, work, &worker->work_list);
++
++	spin_unlock(&worker->lock);
++}
++EXPORT_SYMBOL(kthread_delayed_work_timer_fn);
++
++void __kthread_queue_delayed_work(struct kthread_worker *worker,
++				  struct kthread_delayed_work *dwork,
++				  unsigned long delay)
++{
++	struct timer_list *timer = &dwork->timer;
++	struct kthread_work *work = &dwork->work;
++
++	WARN_ON_ONCE(timer->function != kthread_delayed_work_timer_fn ||
++		     timer->data != (unsigned long)dwork);
++
++	/*
++	 * If @delay is 0, queue @dwork->work immediately.  This is for
++	 * both optimization and correctness.  The earliest @timer can
++	 * expire is on the closest next tick and delayed_work users depend
++	 * on that there's no such delay when @delay is 0.
++	 */
++	if (!delay) {
++		kthread_insert_work(worker, work, &worker->work_list);
++		return;
++	}
++
++	/* Be paranoid and try to detect possible races already now. */
++	kthread_insert_work_sanity_check(worker, work);
++
++	list_add(&work->node, &worker->delayed_work_list);
++	work->worker = worker;
++	timer_stats_timer_set_start_info(&dwork->timer);
++	timer->expires = jiffies + delay;
++	add_timer(timer);
++}
++
++/**
++ * kthread_queue_delayed_work - queue the associated kthread work
++ *	after a delay.
++ * @worker: target kthread_worker
++ * @dwork: kthread_delayed_work to queue
++ * @delay: number of jiffies to wait before queuing
++ *
++ * If the work has not been pending it starts a timer that will queue
++ * the work after the given @delay. If @delay is zero, it queues the
++ * work immediately.
++ *
++ * Return: %false if the @work has already been pending. It means that
++ * either the timer was running or the work was queued. It returns %true
++ * otherwise.
++ */
++bool kthread_queue_delayed_work(struct kthread_worker *worker,
++				struct kthread_delayed_work *dwork,
++				unsigned long delay)
++{
++	struct kthread_work *work = &dwork->work;
++	unsigned long flags;
++	bool ret = false;
++
++	spin_lock_irqsave(&worker->lock, flags);
++
++	if (list_empty(&work->node)) {
++		__kthread_queue_delayed_work(worker, dwork, delay);
++		ret = true;
++	}
++
++	spin_unlock_irqrestore(&worker->lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(kthread_queue_delayed_work);
++
+ struct kthread_flush_work {
+ 	struct kthread_work	work;
+ 	struct completion	done;
 _
