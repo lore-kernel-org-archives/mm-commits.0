@@ -1,33 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [patch 090/102] kthread: allow to call __kthread_create_on_node() with va_list args
-Date: Tue, 11 Oct 2016 13:55:27 -0700
-Message-ID: <57fd51bf.dWfnV3UdO8FJDQ29%akpm@linux-foundation.org>
+Subject: [patch 097/102] kthread: better support freezable kthread workers
+Date: Tue, 11 Oct 2016 13:55:50 -0700
+Message-ID: <57fd51d6.a2EU2Xlpvuwjrat2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38441 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38428 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752266AbcJKU5W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:57:22 -0400
+        with ESMTP id S1752771AbcJKU5X (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, pmladek@suse.com, bp@suse.de, jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz
 
 From: Petr Mladek <pmladek@suse.com>
-Subject: kthread: allow to call __kthread_create_on_node() with va_list args
+Subject: kthread: better support freezable kthread workers
 
-kthread_create_on_node() implements a bunch of logic to create the
-kthread.  It is already called by kthread_create_on_cpu().
+This patch allows to make kthread worker freezable via a new @flags
+parameter. It will allow to avoid an init work in some kthreads.
 
-We are going to extend the kthread worker API and will need to call
-kthread_create_on_node() with va_list args there.
+It currently does not affect the function of kthread_worker_fn()
+but it might help to do some optimization or fixes eventually.
 
-This patch does only a refactoring and does not modify the existing
-behavior.
+I currently do not know about any other use for the @flags
+parameter but I believe that we will want more flags
+in the future.
 
-Link: http://lkml.kernel.org/r/1470754545-17632-5-git-send-email-pmladek@suse.com
+Finally, I hope that it will not cause confusion with @flags member
+in struct kthread. Well, I guess that we will want to rework the
+basic kthreads implementation once all kthreads are converted into
+kthread workers or workqueues. It is possible that we will merge
+the two structures.
+
+Link: http://lkml.kernel.org/r/1470754545-17632-12-git-send-email-pmladek@suse.com
 Signed-off-by: Petr Mladek <pmladek@suse.com>
 Acked-by: Tejun Heo <tj@kernel.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
@@ -44,105 +51,135 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |   72 ++++++++++++++++++++++++++-------------------
- 1 file changed, 42 insertions(+), 30 deletions(-)
+ include/linux/kthread.h |   12 +++++++++---
+ kernel/kthread.c        |   21 +++++++++++++++------
+ 2 files changed, 24 insertions(+), 9 deletions(-)
 
-diff -puN kernel/kthread.c~kthread-allow-to-call-__kthread_create_on_node-with-va_list-args kernel/kthread.c
---- a/kernel/kthread.c~kthread-allow-to-call-__kthread_create_on_node-with-va_list-args
+diff -puN include/linux/kthread.h~kthread-better-support-freezable-kthread-workers include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-better-support-freezable-kthread-workers
++++ a/include/linux/kthread.h
+@@ -65,7 +65,12 @@ struct kthread_work;
+ typedef void (*kthread_work_func_t)(struct kthread_work *work);
+ void kthread_delayed_work_timer_fn(unsigned long __data);
+ 
++enum {
++	KTW_FREEZABLE		= 1 << 0,	/* freeze during suspend */
++};
++
+ struct kthread_worker {
++	unsigned int		flags;
+ 	spinlock_t		lock;
+ 	struct list_head	work_list;
+ 	struct list_head	delayed_work_list;
+@@ -154,12 +159,13 @@ extern void __kthread_init_worker(struct
+ 
+ int kthread_worker_fn(void *worker_ptr);
+ 
+-__printf(1, 2)
++__printf(2, 3)
+ struct kthread_worker *
+-kthread_create_worker(const char namefmt[], ...);
++kthread_create_worker(unsigned int flags, const char namefmt[], ...);
+ 
+ struct kthread_worker *
+-kthread_create_worker_on_cpu(int cpu, const char namefmt[], ...);
++kthread_create_worker_on_cpu(int cpu, unsigned int flags,
++			     const char namefmt[], ...);
+ 
+ bool kthread_queue_work(struct kthread_worker *worker,
+ 			struct kthread_work *work);
+diff -puN kernel/kthread.c~kthread-better-support-freezable-kthread-workers kernel/kthread.c
+--- a/kernel/kthread.c~kthread-better-support-freezable-kthread-workers
 +++ a/kernel/kthread.c
-@@ -244,33 +244,10 @@ static void create_kthread(struct kthrea
- 	}
- }
- 
--/**
-- * kthread_create_on_node - create a kthread.
-- * @threadfn: the function to run until signal_pending(current).
-- * @data: data ptr for @threadfn.
-- * @node: task and thread structures for the thread are allocated on this node
-- * @namefmt: printf-style name for the thread.
-- *
-- * Description: This helper function creates and names a kernel
-- * thread.  The thread will be stopped: use wake_up_process() to start
-- * it.  See also kthread_run().  The new thread has SCHED_NORMAL policy and
-- * is affine to all CPUs.
-- *
-- * If thread is going to be bound on a particular cpu, give its node
-- * in @node, to get NUMA affinity for kthread stack, or else give NUMA_NO_NODE.
-- * When woken, the thread will run @threadfn() with @data as its
-- * argument. @threadfn() can either call do_exit() directly if it is a
-- * standalone thread for which no one will call kthread_stop(), or
-- * return when 'kthread_should_stop()' is true (which means
-- * kthread_stop() has been called).  The return value should be zero
-- * or a negative error number; it will be passed to kthread_stop().
-- *
-- * Returns a task_struct or ERR_PTR(-ENOMEM) or ERR_PTR(-EINTR).
-- */
--struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
--					   void *data, int node,
--					   const char namefmt[],
--					   ...)
-+static struct task_struct *__kthread_create_on_node(int (*threadfn)(void *data),
-+						    void *data, int node,
-+						    const char namefmt[],
-+						    va_list args)
+@@ -560,11 +560,11 @@ void __kthread_init_worker(struct kthrea
+ 				const char *name,
+ 				struct lock_class_key *key)
  {
- 	DECLARE_COMPLETION_ONSTACK(done);
- 	struct task_struct *task;
-@@ -311,11 +288,8 @@ struct task_struct *kthread_create_on_no
- 	task = create->result;
- 	if (!IS_ERR(task)) {
- 		static const struct sched_param param = { .sched_priority = 0 };
--		va_list args;
- 
--		va_start(args, namefmt);
- 		vsnprintf(task->comm, sizeof(task->comm), namefmt, args);
--		va_end(args);
- 		/*
- 		 * root may have changed our (kthreadd's) priority or CPU mask.
- 		 * The kernel thread should not inherit these properties.
-@@ -326,6 +300,44 @@ struct task_struct *kthread_create_on_no
- 	kfree(create);
- 	return task;
++	memset(worker, 0, sizeof(struct kthread_worker));
+ 	spin_lock_init(&worker->lock);
+ 	lockdep_set_class_and_name(&worker->lock, key, name);
+ 	INIT_LIST_HEAD(&worker->work_list);
+ 	INIT_LIST_HEAD(&worker->delayed_work_list);
+-	worker->task = NULL;
  }
-+
-+/**
-+ * kthread_create_on_node - create a kthread.
-+ * @threadfn: the function to run until signal_pending(current).
-+ * @data: data ptr for @threadfn.
-+ * @node: task and thread structures for the thread are allocated on this node
-+ * @namefmt: printf-style name for the thread.
-+ *
-+ * Description: This helper function creates and names a kernel
-+ * thread.  The thread will be stopped: use wake_up_process() to start
-+ * it.  See also kthread_run().  The new thread has SCHED_NORMAL policy and
-+ * is affine to all CPUs.
-+ *
-+ * If thread is going to be bound on a particular cpu, give its node
-+ * in @node, to get NUMA affinity for kthread stack, or else give NUMA_NO_NODE.
-+ * When woken, the thread will run @threadfn() with @data as its
-+ * argument. @threadfn() can either call do_exit() directly if it is a
-+ * standalone thread for which no one will call kthread_stop(), or
-+ * return when 'kthread_should_stop()' is true (which means
-+ * kthread_stop() has been called).  The return value should be zero
-+ * or a negative error number; it will be passed to kthread_stop().
-+ *
-+ * Returns a task_struct or ERR_PTR(-ENOMEM) or ERR_PTR(-EINTR).
-+ */
-+struct task_struct *kthread_create_on_node(int (*threadfn)(void *data),
-+					   void *data, int node,
-+					   const char namefmt[],
-+					   ...)
-+{
-+	struct task_struct *task;
-+	va_list args;
-+
-+	va_start(args, namefmt);
-+	task = __kthread_create_on_node(threadfn, data, node, namefmt, args);
-+	va_end(args);
-+
-+	return task;
-+}
- EXPORT_SYMBOL(kthread_create_on_node);
+ EXPORT_SYMBOL_GPL(__kthread_init_worker);
  
- static void __kthread_bind_mask(struct task_struct *p, const struct cpumask *mask, long state)
+@@ -594,6 +594,10 @@ int kthread_worker_fn(void *worker_ptr)
+ 	 */
+ 	WARN_ON(worker->task && worker->task != current);
+ 	worker->task = current;
++
++	if (worker->flags & KTW_FREEZABLE)
++		set_freezable();
++
+ repeat:
+ 	set_current_state(TASK_INTERRUPTIBLE);	/* mb paired w/ kthread_stop */
+ 
+@@ -627,7 +631,8 @@ repeat:
+ EXPORT_SYMBOL_GPL(kthread_worker_fn);
+ 
+ static struct kthread_worker *
+-__kthread_create_worker(int cpu, const char namefmt[], va_list args)
++__kthread_create_worker(int cpu, unsigned int flags,
++			const char namefmt[], va_list args)
+ {
+ 	struct kthread_worker *worker;
+ 	struct task_struct *task;
+@@ -657,6 +662,7 @@ __kthread_create_worker(int cpu, const c
+ 	if (IS_ERR(task))
+ 		goto fail_task;
+ 
++	worker->flags = flags;
+ 	worker->task = task;
+ 	wake_up_process(task);
+ 	return worker;
+@@ -668,6 +674,7 @@ fail_task:
+ 
+ /**
+  * kthread_create_worker - create a kthread worker
++ * @flags: flags modifying the default behavior of the worker
+  * @namefmt: printf-style name for the kthread worker (task).
+  *
+  * Returns a pointer to the allocated worker on success, ERR_PTR(-ENOMEM)
+@@ -675,13 +682,13 @@ fail_task:
+  * when the worker was SIGKILLed.
+  */
+ struct kthread_worker *
+-kthread_create_worker(const char namefmt[], ...)
++kthread_create_worker(unsigned int flags, const char namefmt[], ...)
+ {
+ 	struct kthread_worker *worker;
+ 	va_list args;
+ 
+ 	va_start(args, namefmt);
+-	worker = __kthread_create_worker(-1, namefmt, args);
++	worker = __kthread_create_worker(-1, flags, namefmt, args);
+ 	va_end(args);
+ 
+ 	return worker;
+@@ -692,6 +699,7 @@ EXPORT_SYMBOL(kthread_create_worker);
+  * kthread_create_worker_on_cpu - create a kthread worker and bind it
+  *	it to a given CPU and the associated NUMA node.
+  * @cpu: CPU number
++ * @flags: flags modifying the default behavior of the worker
+  * @namefmt: printf-style name for the kthread worker (task).
+  *
+  * Use a valid CPU number if you want to bind the kthread worker
+@@ -705,13 +713,14 @@ EXPORT_SYMBOL(kthread_create_worker);
+  * when the worker was SIGKILLed.
+  */
+ struct kthread_worker *
+-kthread_create_worker_on_cpu(int cpu, const char namefmt[], ...)
++kthread_create_worker_on_cpu(int cpu, unsigned int flags,
++			     const char namefmt[], ...)
+ {
+ 	struct kthread_worker *worker;
+ 	va_list args;
+ 
+ 	va_start(args, namefmt);
+-	worker = __kthread_create_worker(cpu, namefmt, args);
++	worker = __kthread_create_worker(cpu, flags, namefmt, args);
+ 	va_end(args);
+ 
+ 	return worker;
 _
