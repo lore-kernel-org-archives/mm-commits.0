@@ -1,54 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [patch 061/102] ARM: use simpler API for random address requests
-Date: Tue, 11 Oct 2016 13:53:59 -0700
-Message-ID: <57fd5167.wHbFlm+eeQuvnuwc%akpm@linux-foundation.org>
+Subject: [patch 057/102] ptrace: clear TIF_SYSCALL_TRACE on ptrace detach
+Date: Tue, 11 Oct 2016 13:53:46 -0700
+Message-ID: <57fd515a.dj6Tsr8ig4CWzXFS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38096 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38049 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752344AbcJKUyA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:54:00 -0400
+        with ESMTP id S1752710AbcJKUxs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jason@lakedaemon.net, catalin.marinas@arm.com, keescook@chromium.org, linux@arm.linux.org.uk, tytso@mit.edu, will.deacon@arm.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, alnovak@suse.cz, jkosina@suse.cz, oleg@redhat.com
 
-From: Jason Cooper <jason@lakedaemon.net>
-Subject: ARM: use simpler API for random address requests
+From: Ales Novak <alnovak@suse.cz>
+Subject: ptrace: clear TIF_SYSCALL_TRACE on ptrace detach
 
-Currently, all callers to randomize_range() set the length to 0 and
-calculate end by adding a constant to the start address.  We can simplify
-the API to remove a bunch of needless checks and variables.
+On __ptrace_detach(), called from do_exit()->exit_notify()->
+forget_original_parent()->exit_ptrace(), the TIF_SYSCALL_TRACE in
+thread->flags of the tracee is not cleared up.  This results in the
+tracehook_report_syscall_* being called (though there's no longer a tracer
+listening to that) upon its further syscalls.
 
-Use the new randomize_addr(start, range) call to set the requested
-address.
+Example scenario - attach "strace" to a running process and kill it (the
+strace) with SIGKILL.  You'll see that the syscall trace hooks are still
+being called.
 
-Link: http://lkml.kernel.org/r/20160803233913.32511-4-jason@lakedaemon.net
-Signed-off-by: Jason Cooper <jason@lakedaemon.net>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
+The clearing of this flag should be moved from ptrace_detach() to
+__ptrace_detach().
+
+Link: http://lkml.kernel.org/r/1472759493-20554-1-git-send-email-alnovak@suse.cz
+Signed-off-by: Ales Novak <alnovak@suse.cz>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/process.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/ptrace.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/kernel/process.c~arm-use-simpler-api-for-random-address-requests arch/arm/kernel/process.c
---- a/arch/arm/kernel/process.c~arm-use-simpler-api-for-random-address-requests
-+++ a/arch/arm/kernel/process.c
-@@ -318,8 +318,7 @@ unsigned long get_wchan(struct task_stru
- 
- unsigned long arch_randomize_brk(struct mm_struct *mm)
+diff -puN kernel/ptrace.c~ptrace-clear-tif_syscall_trace-on-ptrace-detach kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-clear-tif_syscall_trace-on-ptrace-detach
++++ a/kernel/ptrace.c
+@@ -73,6 +73,8 @@ void __ptrace_unlink(struct task_struct
  {
--	unsigned long range_end = mm->brk + 0x02000000;
--	return randomize_range(mm->brk, range_end, 0) ? : mm->brk;
-+	return randomize_page(mm->brk, 0x02000000);
- }
+ 	BUG_ON(!child->ptrace);
  
- #ifdef CONFIG_MMU
++	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
++
+ 	child->parent = child->real_parent;
+ 	list_del_init(&child->ptrace_entry);
+ 
+@@ -489,7 +491,6 @@ static int ptrace_detach(struct task_str
+ 
+ 	/* Architecture-specific hardware disable .. */
+ 	ptrace_disable(child);
+-	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+ 
+ 	write_lock_irq(&tasklist_lock);
+ 	/*
 _
