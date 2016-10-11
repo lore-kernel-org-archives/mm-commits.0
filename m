@@ -1,477 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [patch 046/102] autofs4: move linux/auto_dev-ioctl.h to
- uapi/linux
-Date: Tue, 11 Oct 2016 13:53:13 -0700
-Message-ID: <57fd5139.qSIQThkuR1Vd6V9I%akpm@linux-foundation.org>
+Subject: [patch 027/102] checkpatch: improve the octal permissions tests
+Date: Tue, 11 Oct 2016 13:52:19 -0700
+Message-ID: <57fd5103.BIWloakf0T0XIiav%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37978 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37863 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753038AbcJKUxP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:15 -0400
+        with ESMTP id S1752916AbcJKUxE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, raven@themaw.net, kusumi.tomohiro@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com, roliveir@synopsys.com
 
-From: Ian Kent <raven@themaw.net>
-Subject: autofs4: move linux/auto_dev-ioctl.h to uapi/linux
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve the octal permissions tests
 
-Since linux/auto_dev-ioctl.h wasn't included in include/linux/Kbuild
-it wasn't moved to uapi/linux as part of the uapi series.
+The function calls with octal permissions commonly span multiple lines. 
+The current test is line oriented and fails to find some matches.
 
-Link: http://lkml.kernel.org/r/20160812024901.12352.10984.stgit@pluto.themaw.net
-Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Make the test use the $stat variable instead of the $line variable to span
+multiple lines.
+
+Also add a few functions to the known functions with permissions list.
+
+Move the SYMBOLIC_PERMS test to a separate section to find all the S_<FOO>
+permissions in any form not just those that have specific function names.
+
+This can now find and fix permissions uses like:
+     .mode = S_<FOO> | S_<BAR>;
+
+Link: http://lkml.kernel.org/r/b51bab60530912aae4ac420119d465c5b206f19f.1475030406.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Tested-by: Ramiro Oliveira <roliveir@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/auto_dev-ioctl.h      |  209 ------------------------
- include/uapi/linux/auto_dev-ioctl.h |  221 ++++++++++++++++++++++++++
- 2 files changed, 222 insertions(+), 208 deletions(-)
+ scripts/checkpatch.pl |   60 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 44 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/auto_dev-ioctl.h~autofs4-move-linux-auto_dev-ioctlh-to-uapi-linux include/linux/auto_dev-ioctl.h
---- a/include/linux/auto_dev-ioctl.h~autofs4-move-linux-auto_dev-ioctlh-to-uapi-linux
-+++ a/include/linux/auto_dev-ioctl.h
-@@ -10,212 +10,5 @@
- #ifndef _LINUX_AUTO_DEV_IOCTL_H
- #define _LINUX_AUTO_DEV_IOCTL_H
+diff -puN scripts/checkpatch.pl~checkpatch-improve-the-octal-permissions-tests scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-the-octal-permissions-tests
++++ a/scripts/checkpatch.pl
+@@ -524,7 +524,11 @@ our @mode_permission_funcs = (
+ 	["module_param_array_named", 5],
+ 	["debugfs_create_(?:file|u8|u16|u32|u64|x8|x16|x32|x64|size_t|atomic_t|bool|blob|regset32|u32_array)", 2],
+ 	["proc_create(?:_data|)", 2],
+-	["(?:CLASS|DEVICE|SENSOR)_ATTR", 2],
++	["(?:CLASS|DEVICE|SENSOR|SENSOR_DEVICE|IIO_DEVICE)_ATTR", 2],
++	["IIO_DEV_ATTR_[A-Z_]+", 1],
++	["SENSOR_(?:DEVICE_|)ATTR_2", 2],
++	["SENSOR_TEMPLATE(?:_2|)", 3],
++	["__ATTR", 2],
+ );
  
--#include <linux/auto_fs.h>
--#include <linux/string.h>
--
--#define AUTOFS_DEVICE_NAME		"autofs"
--
--#define AUTOFS_DEV_IOCTL_VERSION_MAJOR	1
--#define AUTOFS_DEV_IOCTL_VERSION_MINOR	0
--
--#define AUTOFS_DEV_IOCTL_SIZE		sizeof(struct autofs_dev_ioctl)
--
--/*
-- * An ioctl interface for autofs mount point control.
-- */
--
--struct args_protover {
--	__u32	version;
--};
--
--struct args_protosubver {
--	__u32	sub_version;
--};
--
--struct args_openmount {
--	__u32	devid;
--};
--
--struct args_ready {
--	__u32	token;
--};
--
--struct args_fail {
--	__u32	token;
--	__s32	status;
--};
--
--struct args_setpipefd {
--	__s32	pipefd;
--};
--
--struct args_timeout {
--	__u64	timeout;
--};
--
--struct args_requester {
--	__u32	uid;
--	__u32	gid;
--};
--
--struct args_expire {
--	__u32	how;
--};
--
--struct args_askumount {
--	__u32	may_umount;
--};
--
--struct args_ismountpoint {
--	union {
--		struct args_in {
--			__u32	type;
--		} in;
--		struct args_out {
--			__u32	devid;
--			__u32	magic;
--		} out;
--	};
--};
--
--/*
-- * All the ioctls use this structure.
-- * When sending a path size must account for the total length
-- * of the chunk of memory otherwise is is the size of the
-- * structure.
-- */
--
--struct autofs_dev_ioctl {
--	__u32 ver_major;
--	__u32 ver_minor;
--	__u32 size;		/* total size of data passed in
--				 * including this struct */
--	__s32 ioctlfd;		/* automount command fd */
--
--	/* Command parameters */
--
--	union {
--		struct args_protover		protover;
--		struct args_protosubver		protosubver;
--		struct args_openmount		openmount;
--		struct args_ready		ready;
--		struct args_fail		fail;
--		struct args_setpipefd		setpipefd;
--		struct args_timeout		timeout;
--		struct args_requester		requester;
--		struct args_expire		expire;
--		struct args_askumount		askumount;
--		struct args_ismountpoint	ismountpoint;
--	};
--
--	char path[0];
--};
--
--static inline void init_autofs_dev_ioctl(struct autofs_dev_ioctl *in)
--{
--	memset(in, 0, sizeof(struct autofs_dev_ioctl));
--	in->ver_major = AUTOFS_DEV_IOCTL_VERSION_MAJOR;
--	in->ver_minor = AUTOFS_DEV_IOCTL_VERSION_MINOR;
--	in->size = sizeof(struct autofs_dev_ioctl);
--	in->ioctlfd = -1;
--}
--
--/*
-- * If you change this make sure you make the corresponding change
-- * to autofs-dev-ioctl.c:lookup_ioctl()
-- */
--enum {
--	/* Get various version info */
--	AUTOFS_DEV_IOCTL_VERSION_CMD = 0x71,
--	AUTOFS_DEV_IOCTL_PROTOVER_CMD,
--	AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD,
--
--	/* Open mount ioctl fd */
--	AUTOFS_DEV_IOCTL_OPENMOUNT_CMD,
--
--	/* Close mount ioctl fd */
--	AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD,
--
--	/* Mount/expire status returns */
--	AUTOFS_DEV_IOCTL_READY_CMD,
--	AUTOFS_DEV_IOCTL_FAIL_CMD,
--
--	/* Activate/deactivate autofs mount */
--	AUTOFS_DEV_IOCTL_SETPIPEFD_CMD,
--	AUTOFS_DEV_IOCTL_CATATONIC_CMD,
--
--	/* Expiry timeout */
--	AUTOFS_DEV_IOCTL_TIMEOUT_CMD,
--
--	/* Get mount last requesting uid and gid */
--	AUTOFS_DEV_IOCTL_REQUESTER_CMD,
--
--	/* Check for eligible expire candidates */
--	AUTOFS_DEV_IOCTL_EXPIRE_CMD,
--
--	/* Request busy status */
--	AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD,
--
--	/* Check if path is a mountpoint */
--	AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD,
--};
--
--#define AUTOFS_IOCTL 0x93
--
--#define AUTOFS_DEV_IOCTL_VERSION \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_VERSION_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_PROTOVER \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_PROTOVER_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_PROTOSUBVER \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_OPENMOUNT \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_OPENMOUNT_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_CLOSEMOUNT \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_READY \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_READY_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_FAIL \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_FAIL_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_SETPIPEFD \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_SETPIPEFD_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_CATATONIC \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_CATATONIC_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_TIMEOUT \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_TIMEOUT_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_REQUESTER \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_REQUESTER_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_EXPIRE \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_EXPIRE_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_ASKUMOUNT \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD, struct autofs_dev_ioctl)
--
--#define AUTOFS_DEV_IOCTL_ISMOUNTPOINT \
--	_IOWR(AUTOFS_IOCTL, \
--	      AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD, struct autofs_dev_ioctl)
--
-+#include <uapi/linux/auto_dev-ioctl.h>
- #endif	/* _LINUX_AUTO_DEV_IOCTL_H */
-diff -puN /dev/null include/uapi/linux/auto_dev-ioctl.h
---- /dev/null
-+++ a/include/uapi/linux/auto_dev-ioctl.h
-@@ -0,0 +1,221 @@
-+/*
-+ * Copyright 2008 Red Hat, Inc. All rights reserved.
-+ * Copyright 2008 Ian Kent <raven@themaw.net>
-+ *
-+ * This file is part of the Linux kernel and is made available under
-+ * the terms of the GNU General Public License, version 2, or at your
-+ * option, any later version, incorporated herein by reference.
-+ */
+ #Create a search pattern for all these functions to speed up a loop below
+@@ -6092,45 +6096,69 @@ sub process {
+ # Mode permission misuses where it seems decimal should be octal
+ # This uses a shortcut match to avoid unnecessary uses of a slow foreach loop
+ 		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
+ 		    $line =~ /$mode_perms_search/) {
+ 			foreach my $entry (@mode_permission_funcs) {
+ 				my $func = $entry->[0];
+ 				my $arg_pos = $entry->[1];
+ 
++				my $lc = $stat =~ tr@\n@@;
++				$lc = $lc + $linenr;
++				my $stat_real = raw_line($linenr, 0);
++				for (my $count = $linenr + 1; $count <= $lc; $count++) {
++					$stat_real = $stat_real . "\n" . raw_line($count, 0);
++				}
 +
-+#ifndef _UAPI_LINUX_AUTO_DEV_IOCTL_H
-+#define _UAPI_LINUX_AUTO_DEV_IOCTL_H
+ 				my $skip_args = "";
+ 				if ($arg_pos > 1) {
+ 					$arg_pos--;
+ 					$skip_args = "(?:\\s*$FuncArg\\s*,\\s*){$arg_pos,$arg_pos}";
+ 				}
+ 				my $test = "\\b$func\\s*\\(${skip_args}($FuncArg(?:\\|\\s*$FuncArg)*)\\s*[,\\)]";
+-				if ($line =~ /$test/) {
++				if ($stat =~ /$test/) {
+ 					my $val = $1;
+ 					$val = $6 if ($skip_args ne "");
+ 					if (($val =~ /^$Int$/ && $val !~ /^$Octal$/) ||
+ 					    ($val =~ /^$Octal$/ && length($val) ne 4)) {
+ 						ERROR("NON_OCTAL_PERMISSIONS",
+-						      "Use 4 digit octal (0777) not decimal permissions\n" . $herecurr);
++						      "Use 4 digit octal (0777) not decimal permissions\n" . "$here\n" . $stat_real);
+ 					}
+ 					if ($val =~ /^$Octal$/ && (oct($val) & 02)) {
+ 						ERROR("EXPORTED_WORLD_WRITABLE",
+-						      "Exporting writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
+-					}
+-					if ($val =~ /\b$mode_perms_string_search\b/) {
+-						my $to = 0;
+-						while ($val =~ /\b($mode_perms_string_search)\b(?:\s*\|\s*)?\s*/g) {
+-							$to |=  $mode_permission_string_types{$1};
+-						}
+-						my $new = sprintf("%04o", $to);
+-						if (WARN("SYMBOLIC_PERMS",
+-							 "Symbolic permissions are not preferred. Consider using octal permissions $new.\n" . $herecurr) &&
+-						    $fix) {
+-							$fixed[$fixlinenr] =~ s/\Q$val\E/$new/;
+-						}
++						      "Exporting writable files is usually an error. Consider more restrictive permissions.\n" . "$here\n" . $stat_real);
+ 					}
+ 				}
+ 			}
+ 		}
+ 
++# check for uses of S_<PERMS> that could be octal for readability
++		if ($line =~ /\b$mode_perms_string_search\b/) {
++			my $val = "";
++			my $oval = "";
++			my $to = 0;
++			my $curpos = 0;
++			my $lastpos = 0;
++			while ($line =~ /\b(($mode_perms_string_search)\b(?:\s*\|\s*)?\s*)/g) {
++				$curpos = pos($line);
++				my $match = $2;
++				my $omatch = $1;
++				last if ($lastpos > 0 && ($curpos - length($omatch) != $lastpos));
++				$lastpos = $curpos;
++				$to |= $mode_permission_string_types{$match};
++				$val .= '\s*\|\s*' if ($val ne "");
++				$val .= $match;
++				$oval .= $omatch;
++			}
++			$oval =~ s/^\s*\|\s*//;
++			$oval =~ s/\s*\|\s*$//;
++			my $octal = sprintf("%04o", $to);
++			if (WARN("SYMBOLIC_PERMS",
++				 "Symbolic permissions '$oval' are not preferred. Consider using octal permissions '$octal'.\n" . $herecurr) &&
++			    $fix) {
++				$fixed[$fixlinenr] =~ s/$val/$octal/;
++			}
++		}
 +
-+#include <linux/auto_fs.h>
-+#include <linux/string.h>
-+
-+#define AUTOFS_DEVICE_NAME		"autofs"
-+
-+#define AUTOFS_DEV_IOCTL_VERSION_MAJOR	1
-+#define AUTOFS_DEV_IOCTL_VERSION_MINOR	0
-+
-+#define AUTOFS_DEV_IOCTL_SIZE		sizeof(struct autofs_dev_ioctl)
-+
-+/*
-+ * An ioctl interface for autofs mount point control.
-+ */
-+
-+struct args_protover {
-+	__u32	version;
-+};
-+
-+struct args_protosubver {
-+	__u32	sub_version;
-+};
-+
-+struct args_openmount {
-+	__u32	devid;
-+};
-+
-+struct args_ready {
-+	__u32	token;
-+};
-+
-+struct args_fail {
-+	__u32	token;
-+	__s32	status;
-+};
-+
-+struct args_setpipefd {
-+	__s32	pipefd;
-+};
-+
-+struct args_timeout {
-+	__u64	timeout;
-+};
-+
-+struct args_requester {
-+	__u32	uid;
-+	__u32	gid;
-+};
-+
-+struct args_expire {
-+	__u32	how;
-+};
-+
-+struct args_askumount {
-+	__u32	may_umount;
-+};
-+
-+struct args_ismountpoint {
-+	union {
-+		struct args_in {
-+			__u32	type;
-+		} in;
-+		struct args_out {
-+			__u32	devid;
-+			__u32	magic;
-+		} out;
-+	};
-+};
-+
-+/*
-+ * All the ioctls use this structure.
-+ * When sending a path size must account for the total length
-+ * of the chunk of memory otherwise is is the size of the
-+ * structure.
-+ */
-+
-+struct autofs_dev_ioctl {
-+	__u32 ver_major;
-+	__u32 ver_minor;
-+	__u32 size;		/* total size of data passed in
-+				 * including this struct */
-+	__s32 ioctlfd;		/* automount command fd */
-+
-+	/* Command parameters */
-+
-+	union {
-+		struct args_protover		protover;
-+		struct args_protosubver		protosubver;
-+		struct args_openmount		openmount;
-+		struct args_ready		ready;
-+		struct args_fail		fail;
-+		struct args_setpipefd		setpipefd;
-+		struct args_timeout		timeout;
-+		struct args_requester		requester;
-+		struct args_expire		expire;
-+		struct args_askumount		askumount;
-+		struct args_ismountpoint	ismountpoint;
-+	};
-+
-+	char path[0];
-+};
-+
-+static inline void init_autofs_dev_ioctl(struct autofs_dev_ioctl *in)
-+{
-+	memset(in, 0, sizeof(struct autofs_dev_ioctl));
-+	in->ver_major = AUTOFS_DEV_IOCTL_VERSION_MAJOR;
-+	in->ver_minor = AUTOFS_DEV_IOCTL_VERSION_MINOR;
-+	in->size = sizeof(struct autofs_dev_ioctl);
-+	in->ioctlfd = -1;
-+}
-+
-+/*
-+ * If you change this make sure you make the corresponding change
-+ * to autofs-dev-ioctl.c:lookup_ioctl()
-+ */
-+enum {
-+	/* Get various version info */
-+	AUTOFS_DEV_IOCTL_VERSION_CMD = 0x71,
-+	AUTOFS_DEV_IOCTL_PROTOVER_CMD,
-+	AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD,
-+
-+	/* Open mount ioctl fd */
-+	AUTOFS_DEV_IOCTL_OPENMOUNT_CMD,
-+
-+	/* Close mount ioctl fd */
-+	AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD,
-+
-+	/* Mount/expire status returns */
-+	AUTOFS_DEV_IOCTL_READY_CMD,
-+	AUTOFS_DEV_IOCTL_FAIL_CMD,
-+
-+	/* Activate/deactivate autofs mount */
-+	AUTOFS_DEV_IOCTL_SETPIPEFD_CMD,
-+	AUTOFS_DEV_IOCTL_CATATONIC_CMD,
-+
-+	/* Expiry timeout */
-+	AUTOFS_DEV_IOCTL_TIMEOUT_CMD,
-+
-+	/* Get mount last requesting uid and gid */
-+	AUTOFS_DEV_IOCTL_REQUESTER_CMD,
-+
-+	/* Check for eligible expire candidates */
-+	AUTOFS_DEV_IOCTL_EXPIRE_CMD,
-+
-+	/* Request busy status */
-+	AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD,
-+
-+	/* Check if path is a mountpoint */
-+	AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD,
-+};
-+
-+#define AUTOFS_IOCTL 0x93
-+
-+#define AUTOFS_DEV_IOCTL_VERSION \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_VERSION_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_PROTOVER \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_PROTOVER_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_PROTOSUBVER \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_OPENMOUNT \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_OPENMOUNT_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_CLOSEMOUNT \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_READY \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_READY_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_FAIL \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_FAIL_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_SETPIPEFD \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_SETPIPEFD_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_CATATONIC \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_CATATONIC_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_TIMEOUT \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_TIMEOUT_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_REQUESTER \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_REQUESTER_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_EXPIRE \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_EXPIRE_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_ASKUMOUNT \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD, struct autofs_dev_ioctl)
-+
-+#define AUTOFS_DEV_IOCTL_ISMOUNTPOINT \
-+	_IOWR(AUTOFS_IOCTL, \
-+	      AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD, struct autofs_dev_ioctl)
-+
-+#endif	/* _UAPI_LINUX_AUTO_DEV_IOCTL_H */
+ # validate content of MODULE_LICENSE against list from include/linux/module.h
+ 		if ($line =~ /\bMODULE_LICENSE\s*\(\s*($String)\s*\)/) {
+ 			my $extracted_string = get_quoted_string($line, $rawline);
 _
