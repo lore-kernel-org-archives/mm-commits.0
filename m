@@ -1,78 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] autofs-fix-dev-ioctl-number-range-check-fix.patch removed from -mm tree
-Date: Tue, 11 Oct 2016 13:36:41 -0700
-Message-ID: <57fd4d59.3zA3rhKKyNz1momA%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-fix.patch
+ removed from -mm tree
+Date: Tue, 11 Oct 2016 13:37:51 -0700
+Message-ID: <57fd4d9f.R6WNGhTdS2c22x9B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37609 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754563AbcJKUgm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:36:42 -0400
+        with ESMTP id S1754886AbcJKUhw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:37:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kusumi.tomohiro@gmail.com, raven@themaw.net, mm-commits@vger.kernel.org
+To: arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: fix "fix dev ioctl number range check"
+     Subject: relay: select CONFIG_IRQ_WORK
 has been removed from the -mm tree.  Its filename was
-     autofs-fix-dev-ioctl-number-range-check-fix.patch
+     relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-fix.patch
 
-This patch was dropped because it was folded into autofs-fix-dev-ioctl-number-range-check.patch
+This patch was dropped because it was folded into relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup.patch
 
 ------------------------------------------------------
-From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: fix "fix dev ioctl number range check"
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: relay: select CONFIG_IRQ_WORK
 
-102a340f had a typo that made the count macro negative (-13).
-The acutal check used by ioctl is ((cmd - cmd_first) > COUNT),
-so it needs to be positive (13).
+The relay code was changed to use irq_work, and it now fails to build
+if that is disabled:
 
-* 102a340f is a commit in linux-next which hasn't been merged
-to mainline upstream.
+kernel/relay.o: In function `__relay_reset':
+relay.c:(.text.__relay_reset+0xb0): undefined reference to `irq_work_sync'
+kernel/relay.o: In function `relay_close_buf':
+relay.c:(.text.relay_close_buf+0x14): undefined reference to `irq_work_sync'
+kernel/relay.o: In function `relay_switch_subbuf':
 
-Link: http://lkml.kernel.org/r/20160831033420.9910.16809.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+This adds the necessary Kconfig select statement.
+
+Link: http://lkml.kernel.org/r/20160912154035.3222156-1-arnd@arndb.de
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: c37d49250a7b ("relay: Use irq_work instead of plain timer for deferred wakeup")
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/autofs4/autofs_i.h~autofs-fix-dev-ioctl-number-range-check-fix fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs-fix-dev-ioctl-number-range-check-fix
-+++ a/fs/autofs4/autofs_i.h
-@@ -21,7 +21,7 @@
+diff -puN init/Kconfig~relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-fix init/Kconfig
+--- a/init/Kconfig~relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup-fix
++++ a/init/Kconfig
+@@ -1288,6 +1288,7 @@ config SYSFS_DEPRECATED_V2
  
- #define AUTOFS_DEV_IOCTL_IOC_FIRST	(AUTOFS_DEV_IOCTL_VERSION)
- #define AUTOFS_DEV_IOCTL_IOC_COUNT \
--	(AUTOFS_DEV_IOCTL_VERSION_CMD - AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD)
-+	(AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD - AUTOFS_DEV_IOCTL_VERSION_CMD)
- 
- #include <linux/kernel.h>
- #include <linux/slab.h>
+ config RELAY
+ 	bool "Kernel->user space relay support (formerly relayfs)"
++	select IRQ_WORK
+ 	help
+ 	  This option enables support for relay interface support in
+ 	  certain file systems (such as debugfs).
 _
 
-Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
-autofs-drop-unnecessary-extern-in-autofs_ih.patch
-autofs-test-autofs-versions-first-on-sb-initialization.patch
-autofs-add-warn_on1-for-non-dir-link-inode-case.patch
-autofs-use-autofs4_free_ino-to-kfree-dentry-data.patch
-autofs-remove-obsolete-sb-fields.patch
-autofs-dont-fail-to-free_dev_ioctlparam.patch
-autofs-remove-autofs_devid_len.patch
-autofs-fix-documentation-regarding-devid-on-ioctl.patch
-autofs-update-struct-autofs_dev_ioctl-in-documentation.patch
-autofs-fix-pr_debug-message.patch
-autofs-fix-dev-ioctl-number-range-check.patch
-autofs-fix-print-format-for-ioctl-warning-message.patch
-autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
-autofs-remove-possibly-misleading-define-debug.patch
-autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl.patch
+relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup.patch
+kthread-kthread-worker-api-cleanup-fix.patch
 
