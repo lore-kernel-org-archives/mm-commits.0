@@ -1,129 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [patch 102/102] mm: split gfp_mask and mapping flags into
- separate fields
-Date: Tue, 11 Oct 2016 13:56:04 -0700
-Message-ID: <57fd51e4.8sgDmsNcmOrKJF3x%akpm@linux-foundation.org>
+Subject: [patch 096/102] kthread: allow to modify delayed kthread work
+Date: Tue, 11 Oct 2016 13:55:46 -0700
+Message-ID: <57fd51d2.KPiQUgVDL/vHB/x/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38486 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38493 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751554AbcJKU5Y (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:57:24 -0400
+        with ESMTP id S1752795AbcJKU5X (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:57:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mhocko@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, pmladek@suse.com, bp@suse.de, jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz
 
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: split gfp_mask and mapping flags into separate fields
+From: Petr Mladek <pmladek@suse.com>
+Subject: kthread: allow to modify delayed kthread work
 
-mapping->flags currently encodes two different things into a single flag. 
-It contains sticky gfp_mask for page cache allocations and AS_ codes used
-to report errors/enospace and other states which are mapping specific. 
-Condensing the two semantically unrelated things saves few bytes but it
-also complicates other things.  For one thing the gfp flags space is
-reduced and in fact we are already running out of available bits.  It can
-be assumed that more gfp flags will be necessary later on.
+There are situations when we need to modify the delay of a delayed kthread
+work. For example, when the work depends on an event and the initial delay
+means a timeout. Then we want to queue the work immediately when the event
+happens.
 
-To not introduce the address_space grow (at least on x86_64) we can stick
-it right after private_lock because we have a hole there.
+This patch implements kthread_mod_delayed_work() as inspired workqueues.
+It cancels the timer, removes the work from any worker list and queues it
+again with the given timeout.
 
-struct address_space {
-        struct inode *             host;                 /*     0     8 */
-        struct radix_tree_root     page_tree;            /*     8    16 */
-        spinlock_t                 tree_lock;            /*    24     4 */
-        atomic_t                   i_mmap_writable;      /*    28     4 */
-        struct rb_root             i_mmap;               /*    32     8 */
-        struct rw_semaphore        i_mmap_rwsem;         /*    40    40 */
-        /* --- cacheline 1 boundary (64 bytes) was 16 bytes ago --- */
-        long unsigned int          nrpages;              /*    80     8 */
-        long unsigned int          nrexceptional;        /*    88     8 */
-        long unsigned int          writeback_index;      /*    96     8 */
-        const struct address_space_operations  * a_ops;  /*   104     8 */
-        long unsigned int          flags;                /*   112     8 */
-        spinlock_t                 private_lock;         /*   120     4 */
+A very special case is when the work is being canceled at the same time.
+It might happen because of the regular kthread_cancel_delayed_work_sync()
+or by another kthread_mod_delayed_work(). In this case, we do nothing and
+let the other operation win. This should not normally happen as the caller
+is supposed to synchronize these operations a reasonable way.
 
-        /* XXX 4 bytes hole, try to pack */
-
-        /* --- cacheline 2 boundary (128 bytes) --- */
-        struct list_head           private_list;         /*   128    16 */
-        void *                     private_data;         /*   144     8 */
-
-        /* size: 152, cachelines: 3, members: 14 */
-        /* sum members: 148, holes: 1, sum holes: 4 */
-        /* last cacheline: 24 bytes */
-};
-
-Link: http://lkml.kernel.org/r/20160912114852.GI14524@dhcp22.suse.cz
-Signed-off-by: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1470754545-17632-11-git-send-email-pmladek@suse.com
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h      |    3 ++-
- include/linux/pagemap.h |   20 +++++++++-----------
- 2 files changed, 11 insertions(+), 12 deletions(-)
+ include/linux/kthread.h |    4 ++
+ kernel/kthread.c        |   53 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 57 insertions(+)
 
-diff -puN include/linux/fs.h~mm-split-gfp_mask-and-mapping-flags-into-separate-fields include/linux/fs.h
---- a/include/linux/fs.h~mm-split-gfp_mask-and-mapping-flags-into-separate-fields
-+++ a/include/linux/fs.h
-@@ -440,8 +440,9 @@ struct address_space {
- 	unsigned long		nrexceptional;
- 	pgoff_t			writeback_index;/* writeback starts here */
- 	const struct address_space_operations *a_ops;	/* methods */
--	unsigned long		flags;		/* error bits/gfp mask */
-+	unsigned long		flags;		/* error bits */
- 	spinlock_t		private_lock;	/* for use by the address_space */
-+	gfp_t			gfp_mask;	/* implicit gfp mask for allocations */
- 	struct list_head	private_list;	/* ditto */
- 	void			*private_data;	/* ditto */
- } __attribute__((aligned(sizeof(long))));
-diff -puN include/linux/pagemap.h~mm-split-gfp_mask-and-mapping-flags-into-separate-fields include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-split-gfp_mask-and-mapping-flags-into-separate-fields
-+++ a/include/linux/pagemap.h
-@@ -16,17 +16,16 @@
- #include <linux/hugetlb_inline.h>
+diff -puN include/linux/kthread.h~kthread-allow-to-modify-delayed-kthread-work include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-allow-to-modify-delayed-kthread-work
++++ a/include/linux/kthread.h
+@@ -168,6 +168,10 @@ bool kthread_queue_delayed_work(struct k
+ 				struct kthread_delayed_work *dwork,
+ 				unsigned long delay);
  
- /*
-- * Bits in mapping->flags.  The lower __GFP_BITS_SHIFT bits are the page
-- * allocation mode flags.
-+ * Bits in mapping->flags.
-  */
- enum mapping_flags {
--	AS_EIO		= __GFP_BITS_SHIFT + 0,	/* IO error on async write */
--	AS_ENOSPC	= __GFP_BITS_SHIFT + 1,	/* ENOSPC on async write */
--	AS_MM_ALL_LOCKS	= __GFP_BITS_SHIFT + 2,	/* under mm_take_all_locks() */
--	AS_UNEVICTABLE	= __GFP_BITS_SHIFT + 3,	/* e.g., ramdisk, SHM_LOCK */
--	AS_EXITING	= __GFP_BITS_SHIFT + 4, /* final truncate in progress */
-+	AS_EIO		= 0,	/* IO error on async write */
-+	AS_ENOSPC	= 1,	/* ENOSPC on async write */
-+	AS_MM_ALL_LOCKS	= 2,	/* under mm_take_all_locks() */
-+	AS_UNEVICTABLE	= 3,	/* e.g., ramdisk, SHM_LOCK */
-+	AS_EXITING	= 4, 	/* final truncate in progress */
- 	/* writeback related tags are not used */
--	AS_NO_WRITEBACK_TAGS = __GFP_BITS_SHIFT + 5,
-+	AS_NO_WRITEBACK_TAGS = 5,
- };
++bool kthread_mod_delayed_work(struct kthread_worker *worker,
++			      struct kthread_delayed_work *dwork,
++			      unsigned long delay);
++
+ void kthread_flush_work(struct kthread_work *work);
+ void kthread_flush_worker(struct kthread_worker *worker);
  
- static inline void mapping_set_error(struct address_space *mapping, int error)
-@@ -78,7 +77,7 @@ static inline int mapping_use_writeback_
- 
- static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
- {
--	return (__force gfp_t)mapping->flags & __GFP_BITS_MASK;
-+	return mapping->gfp_mask;
+diff -puN kernel/kthread.c~kthread-allow-to-modify-delayed-kthread-work kernel/kthread.c
+--- a/kernel/kthread.c~kthread-allow-to-modify-delayed-kthread-work
++++ a/kernel/kthread.c
+@@ -976,6 +976,59 @@ static bool __kthread_cancel_work(struct
+ 	return false;
  }
  
- /* Restricts the given gfp_mask to what the mapping allows. */
-@@ -94,8 +93,7 @@ static inline gfp_t mapping_gfp_constrai
-  */
- static inline void mapping_set_gfp_mask(struct address_space *m, gfp_t mask)
++/**
++ * kthread_mod_delayed_work - modify delay of or queue a kthread delayed work
++ * @worker: kthread worker to use
++ * @dwork: kthread delayed work to queue
++ * @delay: number of jiffies to wait before queuing
++ *
++ * If @dwork is idle, equivalent to kthread_queue_delayed_work(). Otherwise,
++ * modify @dwork's timer so that it expires after @delay. If @delay is zero,
++ * @work is guaranteed to be queued immediately.
++ *
++ * Return: %true if @dwork was pending and its timer was modified,
++ * %false otherwise.
++ *
++ * A special case is when the work is being canceled in parallel.
++ * It might be caused either by the real kthread_cancel_delayed_work_sync()
++ * or yet another kthread_mod_delayed_work() call. We let the other command
++ * win and return %false here. The caller is supposed to synchronize these
++ * operations a reasonable way.
++ *
++ * This function is safe to call from any context including IRQ handler.
++ * See __kthread_cancel_work() and kthread_delayed_work_timer_fn()
++ * for details.
++ */
++bool kthread_mod_delayed_work(struct kthread_worker *worker,
++			      struct kthread_delayed_work *dwork,
++			      unsigned long delay)
++{
++	struct kthread_work *work = &dwork->work;
++	unsigned long flags;
++	int ret = false;
++
++	spin_lock_irqsave(&worker->lock, flags);
++
++	/* Do not bother with canceling when never queued. */
++	if (!work->worker)
++		goto fast_queue;
++
++	/* Work must not be used with >1 worker, see kthread_queue_work() */
++	WARN_ON_ONCE(work->worker != worker);
++
++	/* Do not fight with another command that is canceling this work. */
++	if (work->canceling)
++		goto out;
++
++	ret = __kthread_cancel_work(work, true, &flags);
++fast_queue:
++	__kthread_queue_delayed_work(worker, dwork, delay);
++out:
++	spin_unlock_irqrestore(&worker->lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(kthread_mod_delayed_work);
++
+ static bool __kthread_cancel_work_sync(struct kthread_work *work, bool is_dwork)
  {
--	m->flags = (m->flags & ~(__force unsigned long)__GFP_BITS_MASK) |
--				(__force unsigned long)mask;
-+	m->gfp_mask = mask;
- }
- 
- void release_pages(struct page **pages, int nr, bool cold);
+ 	struct kthread_worker *worker = work->worker;
 _
