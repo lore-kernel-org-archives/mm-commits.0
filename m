@@ -1,333 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [patch 078/102] ipc/sem.c: fix complex_count vs. simple op race
-Date: Tue, 11 Oct 2016 13:54:50 -0700
-Message-ID: <57fd519a.1fpvfJJbz4RG/47v%akpm__39831.2916317538$1476219960$gmane$org@linux-foundation.org>
+Subject: [patch 083/102] ipc/sem.c: add cond_resched in exit_sme
+Date: Tue, 11 Oct 2016 13:55:05 -0700
+Message-ID: <57fd51a9.5DoOythg7rAlhXVs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39298 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753122AbcJKVFu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 17:05:50 -0400
+        with ESMTP id S1753135AbcJKVFv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 17:05:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, manfred@colorfullife.com, 1vier1@web.de, dave@stgolabs.net, felixh@informatik.uni-bremen.de, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, stable@vger.kernel.org, tglx@linutronix.de
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, kernel@kyup.com, dave@stgolabs.net, fabf@skynet.be, herton@redhat.com, manfred@colorfullife.com
 
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: fix complex_count vs. simple op race
+From: Nikolay Borisov <kernel@kyup.com>
+Subject: ipc/sem.c: add cond_resched in exit_sme
 
-Commit 6d07b68ce16a ("ipc/sem.c: optimize sem_lock()") introduced a
-race:
+In CONFIG_PREEMPT=n kernel a softlockup was observed while the for loop in
+exit_sem.  Apparently it's possible for the loop to take quite a long time
+and it doesn't have a scheduling point in it.  Since the codes is
+executing under an rcu read section this may also cause rcu stalls, which
+in turn block synchronize_rcu operations, which more or less de-stabilises
+the whole system.
 
-sem_lock has a fast path that allows parallel simple operations.
-There are two reasons why a simple operation cannot run in parallel:
-- a non-simple operations is ongoing (sma->sem_perm.lock held)
-- a complex operation is sleeping (sma->complex_count != 0)
+Fix this by introducing a cond_resched() at the beginning of the loop.
 
-As both facts are stored independently, a thread can bypass the current
-checks by sleeping in the right positions. See below for more details
-(or kernel bugzilla 105651).
+So this patch fixes the following:
 
-The patch fixes that by creating one variable (complex_mode)
-that tracks both reasons why parallel operations are not possible.
+NMI watchdog: BUG: soft lockup - CPU#10 stuck for 23s! [httpd:18119]
+CPU: 10 PID: 18119 Comm: httpd Tainted: G           O    4.4.20-clouder2 #6
+Hardware name: Supermicro X10DRi/X10DRi, BIOS 1.1 04/14/2015
+task: ffff88348d695280 ti: ffff881c95550000 task.ti: ffff881c95550000
+RIP: 0010:[<ffffffff81614bc7>]  [<ffffffff81614bc7>] _raw_spin_lock+0x17/0x30
+RSP: 0018:ffff881c95553e40  EFLAGS: 00000246
+RAX: 0000000000000000 RBX: ffff883161b1eea8 RCX: 000000000000000d
+RDX: 0000000000000001 RSI: 000000000000000e RDI: ffff883161b1eea4
+RBP: ffff881c95553ea0 R08: ffff881c95553e68 R09: ffff883fef376f88
+R10: ffff881fffb58c20 R11: ffffea0072556600 R12: ffff883161b1eea0
+R13: ffff88348d695280 R14: ffff883dec427000 R15: ffff8831621672a0
+FS:  0000000000000000(0000) GS:ffff881fffb40000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f3b3723e020 CR3: 0000000001c0a000 CR4: 00000000001406e0
+Stack:
+ ffffffff8129717c ffff88348d695280 ffff883161b1eea4 ffffea000f2359c0
+ 000480094089b340 ffff881c95553e68 ffff881c95553e68 ffff88348d695280
+ 0000000000000000 00007ffe01ca0170 ffff883217c74280 ffff883217c742e8
+Call Trace:
+ [<ffffffff8129717c>] ? exit_sem+0x7c/0x280
+ [<ffffffff81055548>] do_exit+0x338/0xb40
+ [<ffffffff81055dd3>] do_group_exit+0x43/0xd0
+ [<ffffffff81055e74>] SyS_exit_group+0x14/0x20
+ [<ffffffff81614f5b>] entry_SYSCALL_64_fastpath+0x16/0x6e
 
-The patch also updates stale documentation regarding the locking.
-
-With regards to stable kernels:
-The patch is required for all kernels that include the
-commit 6d07b68ce16a ("ipc/sem.c: optimize sem_lock()") (3.10?)
-
-The alternative is to revert the patch that introduced the race.
-
-The patch is safe for backporting, i.e. it makes no assumptions
-about memory barriers in spin_unlock_wait().
-
-Background:
-Here is the race of the current implementation:
-
-Thread A: (simple op)
-- does the first "sma->complex_count == 0" test
-
-Thread B: (complex op)
-- does sem_lock(): This includes an array scan. But the scan can't
-  find Thread A, because Thread A does not own sem->lock yet.
-- the thread does the operation, increases complex_count,
-  drops sem_lock, sleeps
-
-Thread A:
-- spin_lock(&sem->lock), spin_is_locked(sma->sem_perm.lock)
-- sleeps before the complex_count test
-
-Thread C: (complex op)
-- does sem_lock (no array scan, complex_count==1)
-- wakes up Thread B.
-- decrements complex_count
-
-Thread A:
-- does the complex_count test
-
-Bug:
-Now both thread A and thread C operate on the same array, without
-any synchronization.
-
-Fixes: 6d07b68ce16a ("ipc/sem.c: optimize sem_lock()")
-Link: http://lkml.kernel.org/r/1469123695-5661-1-git-send-email-manfred@colorfullife.com
-Reported-by: <felixh@informatik.uni-bremen.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: http://lkml.kernel.org/r/1475154992-6363-1-git-send-email-kernel@kyup.com
+Signed-off-by: Nikolay Borisov <kernel@kyup.com>
+Cc: Herton R. Krzesinski <herton@redhat.com>
+Cc: Fabian Frederick <fabf@skynet.be>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: <1vier1@web.de>
-Cc: <stable@vger.kernel.org>	[3.10+]
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sem.h |    1 
- ipc/sem.c           |  138 +++++++++++++++++++++++++-----------------
- 2 files changed, 84 insertions(+), 55 deletions(-)
+ ipc/sem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/sem.h~ipc-semc-fix-complex_count-vs-simple-op-race include/linux/sem.h
---- a/include/linux/sem.h~ipc-semc-fix-complex_count-vs-simple-op-race
-+++ a/include/linux/sem.h
-@@ -21,6 +21,7 @@ struct sem_array {
- 	struct list_head	list_id;	/* undo requests on this array */
- 	int			sem_nsems;	/* no. of semaphores in array */
- 	int			complex_count;	/* pending complex operations */
-+	bool			complex_mode;	/* no parallel simple ops */
- };
- 
- #ifdef CONFIG_SYSVIPC
-diff -puN ipc/sem.c~ipc-semc-fix-complex_count-vs-simple-op-race ipc/sem.c
---- a/ipc/sem.c~ipc-semc-fix-complex_count-vs-simple-op-race
+diff -puN ipc/sem.c~ipc-semc-add-cond_resched-in-exit_sme ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-add-cond_resched-in-exit_sme
 +++ a/ipc/sem.c
-@@ -162,14 +162,21 @@ static int sysvipc_sem_proc_show(struct
+@@ -2105,6 +2105,8 @@ void exit_sem(struct task_struct *tsk)
+ 		struct list_head tasks;
+ 		int semid, i;
  
- /*
-  * Locking:
-+ * a) global sem_lock() for read/write
-  *	sem_undo.id_next,
-  *	sem_array.complex_count,
-- *	sem_array.pending{_alter,_cont},
-- *	sem_array.sem_undo: global sem_lock() for read/write
-- *	sem_undo.proc_next: only "current" is allowed to read/write that field.
-+ *	sem_array.complex_mode
-+ *	sem_array.pending{_alter,_const},
-+ *	sem_array.sem_undo
-  *
-+ * b) global or semaphore sem_lock() for read/write:
-  *	sem_array.sem_base[i].pending_{const,alter}:
-- *		global or semaphore sem_lock() for read/write
-+ *	sem_array.complex_mode (for read)
-+ *
-+ * c) special:
-+ *	sem_undo_list.list_proc:
-+ *	* undo_list->lock for write
-+ *	* rcu for read
-  */
- 
- #define sc_semmsl	sem_ctls[0]
-@@ -260,30 +267,61 @@ static void sem_rcu_free(struct rcu_head
- }
- 
- /*
-- * Wait until all currently ongoing simple ops have completed.
-+ * Enter the mode suitable for non-simple operations:
-  * Caller must own sem_perm.lock.
-- * New simple ops cannot start, because simple ops first check
-- * that sem_perm.lock is free.
-- * that a) sem_perm.lock is free and b) complex_count is 0.
-  */
--static void sem_wait_array(struct sem_array *sma)
-+static void complexmode_enter(struct sem_array *sma)
- {
- 	int i;
- 	struct sem *sem;
- 
--	if (sma->complex_count)  {
--		/* The thread that increased sma->complex_count waited on
--		 * all sem->lock locks. Thus we don't need to wait again.
--		 */
-+	if (sma->complex_mode)  {
-+		/* We are already in complex_mode. Nothing to do */
- 		return;
- 	}
- 
-+	/* We need a full barrier after seting complex_mode:
-+	 * The write to complex_mode must be visible
-+	 * before we read the first sem->lock spinlock state.
-+	 */
-+	smp_store_mb(sma->complex_mode, true);
++		cond_resched();
 +
- 	for (i = 0; i < sma->sem_nsems; i++) {
- 		sem = sma->sem_base + i;
- 		spin_unlock_wait(&sem->lock);
- 	}
-+	/*
-+	 * spin_unlock_wait() is not a memory barriers, it is only a
-+	 * control barrier. The code must pair with spin_unlock(&sem->lock),
-+	 * thus just the control barrier is insufficient.
-+	 *
-+	 * smp_rmb() is sufficient, as writes cannot pass the control barrier.
-+	 */
-+	smp_rmb();
-+}
-+
-+/*
-+ * Try to leave the mode that disallows simple operations:
-+ * Caller must own sem_perm.lock.
-+ */
-+static void complexmode_tryleave(struct sem_array *sma)
-+{
-+	if (sma->complex_count)  {
-+		/* Complex ops are sleeping.
-+		 * We must stay in complex mode
-+		 */
-+		return;
-+	}
-+	/*
-+	 * Immediately after setting complex_mode to false,
-+	 * a simple op can start. Thus: all memory writes
-+	 * performed by the current operation must be visible
-+	 * before we set complex_mode to false.
-+	 */
-+	smp_store_release(&sma->complex_mode, false);
- }
- 
-+#define SEM_GLOBAL_LOCK	(-1)
- /*
-  * If the request contains only one semaphore operation, and there are
-  * no complex transactions pending, lock only the semaphore involved.
-@@ -300,56 +338,42 @@ static inline int sem_lock(struct sem_ar
- 		/* Complex operation - acquire a full lock */
- 		ipc_lock_object(&sma->sem_perm);
- 
--		/* And wait until all simple ops that are processed
--		 * right now have dropped their locks.
--		 */
--		sem_wait_array(sma);
--		return -1;
-+		/* Prevent parallel simple ops */
-+		complexmode_enter(sma);
-+		return SEM_GLOBAL_LOCK;
- 	}
- 
- 	/*
- 	 * Only one semaphore affected - try to optimize locking.
--	 * The rules are:
--	 * - optimized locking is possible if no complex operation
--	 *   is either enqueued or processed right now.
--	 * - The test for enqueued complex ops is simple:
--	 *      sma->complex_count != 0
--	 * - Testing for complex ops that are processed right now is
--	 *   a bit more difficult. Complex ops acquire the full lock
--	 *   and first wait that the running simple ops have completed.
--	 *   (see above)
--	 *   Thus: If we own a simple lock and the global lock is free
--	 *	and complex_count is now 0, then it will stay 0 and
--	 *	thus just locking sem->lock is sufficient.
-+	 * Optimized locking is possible if no complex operation
-+	 * is either enqueued or processed right now.
-+	 *
-+	 * Both facts are tracked by complex_mode.
- 	 */
- 	sem = sma->sem_base + sops->sem_num;
- 
--	if (sma->complex_count == 0) {
-+	/*
-+	 * Initial check for complex_mode. Just an optimization,
-+	 * no locking, no memory barrier.
-+	 */
-+	if (!sma->complex_mode) {
- 		/*
- 		 * It appears that no complex operation is around.
- 		 * Acquire the per-semaphore lock.
- 		 */
- 		spin_lock(&sem->lock);
- 
--		/* Then check that the global lock is free */
--		if (!spin_is_locked(&sma->sem_perm.lock)) {
--			/*
--			 * We need a memory barrier with acquire semantics,
--			 * otherwise we can race with another thread that does:
--			 *	complex_count++;
--			 *	spin_unlock(sem_perm.lock);
--			 */
--			smp_acquire__after_ctrl_dep();
-+		/*
-+		 * See 51d7d5205d33
-+		 * ("powerpc: Add smp_mb() to arch_spin_is_locked()"):
-+		 * A full barrier is required: the write of sem->lock
-+		 * must be visible before the read is executed
-+		 */
-+		smp_mb();
- 
--			/*
--			 * Now repeat the test of complex_count:
--			 * It can't change anymore until we drop sem->lock.
--			 * Thus: if is now 0, then it will stay 0.
--			 */
--			if (sma->complex_count == 0) {
--				/* fast path successful! */
--				return sops->sem_num;
--			}
-+		if (!smp_load_acquire(&sma->complex_mode)) {
-+			/* fast path successful! */
-+			return sops->sem_num;
- 		}
- 		spin_unlock(&sem->lock);
- 	}
-@@ -369,15 +393,16 @@ static inline int sem_lock(struct sem_ar
- 		/* Not a false alarm, thus complete the sequence for a
- 		 * full lock.
- 		 */
--		sem_wait_array(sma);
--		return -1;
-+		complexmode_enter(sma);
-+		return SEM_GLOBAL_LOCK;
- 	}
- }
- 
- static inline void sem_unlock(struct sem_array *sma, int locknum)
- {
--	if (locknum == -1) {
-+	if (locknum == SEM_GLOBAL_LOCK) {
- 		unmerge_queues(sma);
-+		complexmode_tryleave(sma);
- 		ipc_unlock_object(&sma->sem_perm);
- 	} else {
- 		struct sem *sem = sma->sem_base + locknum;
-@@ -529,6 +554,7 @@ static int newary(struct ipc_namespace *
- 	}
- 
- 	sma->complex_count = 0;
-+	sma->complex_mode = true; /* dropped by sem_unlock below */
- 	INIT_LIST_HEAD(&sma->pending_alter);
- 	INIT_LIST_HEAD(&sma->pending_const);
- 	INIT_LIST_HEAD(&sma->list_id);
-@@ -2184,10 +2210,10 @@ static int sysvipc_sem_proc_show(struct
- 	/*
- 	 * The proc interface isn't aware of sem_lock(), it calls
- 	 * ipc_lock_object() directly (in sysvipc_find_ipc).
--	 * In order to stay compatible with sem_lock(), we must wait until
--	 * all simple semop() calls have left their critical regions.
-+	 * In order to stay compatible with sem_lock(), we must
-+	 * enter / leave complex_mode.
- 	 */
--	sem_wait_array(sma);
-+	complexmode_enter(sma);
- 
- 	sem_otime = get_semotime(sma);
- 
-@@ -2204,6 +2230,8 @@ static int sysvipc_sem_proc_show(struct
- 		   sem_otime,
- 		   sma->sem_ctime);
- 
-+	complexmode_tryleave(sma);
-+
- 	return 0;
- }
- #endif
+ 		rcu_read_lock();
+ 		un = list_entry_rcu(ulp->list_proc.next,
+ 				    struct sem_undo, list_proc);
 _
