@@ -1,73 +1,477 @@
 From: akpm@linux-foundation.org
-Subject: [patch 025/102] checkpatch: improve MACRO_ARG_PRECEDENCE test
-Date: Tue, 11 Oct 2016 13:52:14 -0700
-Message-ID: <57fd50fe.n2/AlCCEEYRfH2Cp%akpm@linux-foundation.org>
+Subject: [patch 046/102] autofs4: move linux/auto_dev-ioctl.h to
+ uapi/linux
+Date: Tue, 11 Oct 2016 13:53:13 -0700
+Message-ID: <57fd5139.qSIQThkuR1Vd6V9I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37874 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37978 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752911AbcJKUxE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:04 -0400
+        with ESMTP id S1753038AbcJKUxP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, raven@themaw.net, kusumi.tomohiro@gmail.com
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve MACRO_ARG_PRECEDENCE test
+From: Ian Kent <raven@themaw.net>
+Subject: autofs4: move linux/auto_dev-ioctl.h to uapi/linux
 
-It is possible for a multiple line macro definition to have a false positive
-report when an argument is used on a line after a continuation \.
+Since linux/auto_dev-ioctl.h wasn't included in include/linux/Kbuild
+it wasn't moved to uapi/linux as part of the uapi series.
 
-This line might have a leading '+' as the initial character that could be
-confused by checkpatch as an operator.
-
-Avoid the leading character on multiple line macro definitions.
-
-Link: http://lkml.kernel.org/r/60229d13399f9b6509db5a32e30d4c16951a60cd.1473836073.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/20160812024901.12352.10984.stgit@pluto.themaw.net
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ include/linux/auto_dev-ioctl.h      |  209 ------------------------
+ include/uapi/linux/auto_dev-ioctl.h |  221 ++++++++++++++++++++++++++
+ 2 files changed, 222 insertions(+), 208 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-macro_arg_precedence-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-macro_arg_precedence-test
-+++ a/scripts/checkpatch.pl
-@@ -4833,13 +4833,31 @@ sub process {
- 				}
+diff -puN include/linux/auto_dev-ioctl.h~autofs4-move-linux-auto_dev-ioctlh-to-uapi-linux include/linux/auto_dev-ioctl.h
+--- a/include/linux/auto_dev-ioctl.h~autofs4-move-linux-auto_dev-ioctlh-to-uapi-linux
++++ a/include/linux/auto_dev-ioctl.h
+@@ -10,212 +10,5 @@
+ #ifndef _LINUX_AUTO_DEV_IOCTL_H
+ #define _LINUX_AUTO_DEV_IOCTL_H
  
- 			}
+-#include <linux/auto_fs.h>
+-#include <linux/string.h>
+-
+-#define AUTOFS_DEVICE_NAME		"autofs"
+-
+-#define AUTOFS_DEV_IOCTL_VERSION_MAJOR	1
+-#define AUTOFS_DEV_IOCTL_VERSION_MINOR	0
+-
+-#define AUTOFS_DEV_IOCTL_SIZE		sizeof(struct autofs_dev_ioctl)
+-
+-/*
+- * An ioctl interface for autofs mount point control.
+- */
+-
+-struct args_protover {
+-	__u32	version;
+-};
+-
+-struct args_protosubver {
+-	__u32	sub_version;
+-};
+-
+-struct args_openmount {
+-	__u32	devid;
+-};
+-
+-struct args_ready {
+-	__u32	token;
+-};
+-
+-struct args_fail {
+-	__u32	token;
+-	__s32	status;
+-};
+-
+-struct args_setpipefd {
+-	__s32	pipefd;
+-};
+-
+-struct args_timeout {
+-	__u64	timeout;
+-};
+-
+-struct args_requester {
+-	__u32	uid;
+-	__u32	gid;
+-};
+-
+-struct args_expire {
+-	__u32	how;
+-};
+-
+-struct args_askumount {
+-	__u32	may_umount;
+-};
+-
+-struct args_ismountpoint {
+-	union {
+-		struct args_in {
+-			__u32	type;
+-		} in;
+-		struct args_out {
+-			__u32	devid;
+-			__u32	magic;
+-		} out;
+-	};
+-};
+-
+-/*
+- * All the ioctls use this structure.
+- * When sending a path size must account for the total length
+- * of the chunk of memory otherwise is is the size of the
+- * structure.
+- */
+-
+-struct autofs_dev_ioctl {
+-	__u32 ver_major;
+-	__u32 ver_minor;
+-	__u32 size;		/* total size of data passed in
+-				 * including this struct */
+-	__s32 ioctlfd;		/* automount command fd */
+-
+-	/* Command parameters */
+-
+-	union {
+-		struct args_protover		protover;
+-		struct args_protosubver		protosubver;
+-		struct args_openmount		openmount;
+-		struct args_ready		ready;
+-		struct args_fail		fail;
+-		struct args_setpipefd		setpipefd;
+-		struct args_timeout		timeout;
+-		struct args_requester		requester;
+-		struct args_expire		expire;
+-		struct args_askumount		askumount;
+-		struct args_ismountpoint	ismountpoint;
+-	};
+-
+-	char path[0];
+-};
+-
+-static inline void init_autofs_dev_ioctl(struct autofs_dev_ioctl *in)
+-{
+-	memset(in, 0, sizeof(struct autofs_dev_ioctl));
+-	in->ver_major = AUTOFS_DEV_IOCTL_VERSION_MAJOR;
+-	in->ver_minor = AUTOFS_DEV_IOCTL_VERSION_MINOR;
+-	in->size = sizeof(struct autofs_dev_ioctl);
+-	in->ioctlfd = -1;
+-}
+-
+-/*
+- * If you change this make sure you make the corresponding change
+- * to autofs-dev-ioctl.c:lookup_ioctl()
+- */
+-enum {
+-	/* Get various version info */
+-	AUTOFS_DEV_IOCTL_VERSION_CMD = 0x71,
+-	AUTOFS_DEV_IOCTL_PROTOVER_CMD,
+-	AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD,
+-
+-	/* Open mount ioctl fd */
+-	AUTOFS_DEV_IOCTL_OPENMOUNT_CMD,
+-
+-	/* Close mount ioctl fd */
+-	AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD,
+-
+-	/* Mount/expire status returns */
+-	AUTOFS_DEV_IOCTL_READY_CMD,
+-	AUTOFS_DEV_IOCTL_FAIL_CMD,
+-
+-	/* Activate/deactivate autofs mount */
+-	AUTOFS_DEV_IOCTL_SETPIPEFD_CMD,
+-	AUTOFS_DEV_IOCTL_CATATONIC_CMD,
+-
+-	/* Expiry timeout */
+-	AUTOFS_DEV_IOCTL_TIMEOUT_CMD,
+-
+-	/* Get mount last requesting uid and gid */
+-	AUTOFS_DEV_IOCTL_REQUESTER_CMD,
+-
+-	/* Check for eligible expire candidates */
+-	AUTOFS_DEV_IOCTL_EXPIRE_CMD,
+-
+-	/* Request busy status */
+-	AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD,
+-
+-	/* Check if path is a mountpoint */
+-	AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD,
+-};
+-
+-#define AUTOFS_IOCTL 0x93
+-
+-#define AUTOFS_DEV_IOCTL_VERSION \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_VERSION_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_PROTOVER \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_PROTOVER_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_PROTOSUBVER \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_OPENMOUNT \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_OPENMOUNT_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_CLOSEMOUNT \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_READY \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_READY_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_FAIL \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_FAIL_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_SETPIPEFD \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_SETPIPEFD_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_CATATONIC \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_CATATONIC_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_TIMEOUT \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_TIMEOUT_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_REQUESTER \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_REQUESTER_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_EXPIRE \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_EXPIRE_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_ASKUMOUNT \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD, struct autofs_dev_ioctl)
+-
+-#define AUTOFS_DEV_IOCTL_ISMOUNTPOINT \
+-	_IOWR(AUTOFS_IOCTL, \
+-	      AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD, struct autofs_dev_ioctl)
+-
++#include <uapi/linux/auto_dev-ioctl.h>
+ #endif	/* _LINUX_AUTO_DEV_IOCTL_H */
+diff -puN /dev/null include/uapi/linux/auto_dev-ioctl.h
+--- /dev/null
++++ a/include/uapi/linux/auto_dev-ioctl.h
+@@ -0,0 +1,221 @@
++/*
++ * Copyright 2008 Red Hat, Inc. All rights reserved.
++ * Copyright 2008 Ian Kent <raven@themaw.net>
++ *
++ * This file is part of the Linux kernel and is made available under
++ * the terms of the GNU General Public License, version 2, or at your
++ * option, any later version, incorporated herein by reference.
++ */
 +
-+			# Make $define_stmt single line, comment-free, etc
-+			my @stmt_array = split('\n', $define_stmt);
-+			my $first = 1;
-+			$define_stmt = "";
-+			foreach my $l (@stmt_array) {
-+				$l =~ s/\\$//;
-+				if ($first) {
-+					$define_stmt = $l;
-+					$first = 0;
-+				} elsif ($l =~ /^[\+ ]/) {
-+					$define_stmt .= substr($l, 1);
-+				}
-+			}
-+			$define_stmt =~ s/$;//g;
-+			$define_stmt =~ s/\s+/ /g;
-+			$define_stmt = trim($define_stmt);
++#ifndef _UAPI_LINUX_AUTO_DEV_IOCTL_H
++#define _UAPI_LINUX_AUTO_DEV_IOCTL_H
 +
- # check if any macro arguments are reused (ignore '...' and 'type')
- 			foreach my $arg (@def_args) {
- 			        next if ($arg =~ /\.\.\./);
- 			        next if ($arg =~ /^type$/i);
- 				my $tmp = $define_stmt;
- 				$tmp =~ s/\b(typeof|__typeof__|__builtin\w+|typecheck\s*\(\s*$Type\s*,|\#+)\s*\(*\s*$arg\s*\)*\b//g;
--				$tmp =~ s/\#\s*$arg\b//g;
-+				$tmp =~ s/\#+\s*$arg\b//g;
- 				$tmp =~ s/\b$arg\s*\#\#//g;
- 				my $use_cnt = $tmp =~ s/\b$arg\b//g;
- 				if ($use_cnt > 1) {
++#include <linux/auto_fs.h>
++#include <linux/string.h>
++
++#define AUTOFS_DEVICE_NAME		"autofs"
++
++#define AUTOFS_DEV_IOCTL_VERSION_MAJOR	1
++#define AUTOFS_DEV_IOCTL_VERSION_MINOR	0
++
++#define AUTOFS_DEV_IOCTL_SIZE		sizeof(struct autofs_dev_ioctl)
++
++/*
++ * An ioctl interface for autofs mount point control.
++ */
++
++struct args_protover {
++	__u32	version;
++};
++
++struct args_protosubver {
++	__u32	sub_version;
++};
++
++struct args_openmount {
++	__u32	devid;
++};
++
++struct args_ready {
++	__u32	token;
++};
++
++struct args_fail {
++	__u32	token;
++	__s32	status;
++};
++
++struct args_setpipefd {
++	__s32	pipefd;
++};
++
++struct args_timeout {
++	__u64	timeout;
++};
++
++struct args_requester {
++	__u32	uid;
++	__u32	gid;
++};
++
++struct args_expire {
++	__u32	how;
++};
++
++struct args_askumount {
++	__u32	may_umount;
++};
++
++struct args_ismountpoint {
++	union {
++		struct args_in {
++			__u32	type;
++		} in;
++		struct args_out {
++			__u32	devid;
++			__u32	magic;
++		} out;
++	};
++};
++
++/*
++ * All the ioctls use this structure.
++ * When sending a path size must account for the total length
++ * of the chunk of memory otherwise is is the size of the
++ * structure.
++ */
++
++struct autofs_dev_ioctl {
++	__u32 ver_major;
++	__u32 ver_minor;
++	__u32 size;		/* total size of data passed in
++				 * including this struct */
++	__s32 ioctlfd;		/* automount command fd */
++
++	/* Command parameters */
++
++	union {
++		struct args_protover		protover;
++		struct args_protosubver		protosubver;
++		struct args_openmount		openmount;
++		struct args_ready		ready;
++		struct args_fail		fail;
++		struct args_setpipefd		setpipefd;
++		struct args_timeout		timeout;
++		struct args_requester		requester;
++		struct args_expire		expire;
++		struct args_askumount		askumount;
++		struct args_ismountpoint	ismountpoint;
++	};
++
++	char path[0];
++};
++
++static inline void init_autofs_dev_ioctl(struct autofs_dev_ioctl *in)
++{
++	memset(in, 0, sizeof(struct autofs_dev_ioctl));
++	in->ver_major = AUTOFS_DEV_IOCTL_VERSION_MAJOR;
++	in->ver_minor = AUTOFS_DEV_IOCTL_VERSION_MINOR;
++	in->size = sizeof(struct autofs_dev_ioctl);
++	in->ioctlfd = -1;
++}
++
++/*
++ * If you change this make sure you make the corresponding change
++ * to autofs-dev-ioctl.c:lookup_ioctl()
++ */
++enum {
++	/* Get various version info */
++	AUTOFS_DEV_IOCTL_VERSION_CMD = 0x71,
++	AUTOFS_DEV_IOCTL_PROTOVER_CMD,
++	AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD,
++
++	/* Open mount ioctl fd */
++	AUTOFS_DEV_IOCTL_OPENMOUNT_CMD,
++
++	/* Close mount ioctl fd */
++	AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD,
++
++	/* Mount/expire status returns */
++	AUTOFS_DEV_IOCTL_READY_CMD,
++	AUTOFS_DEV_IOCTL_FAIL_CMD,
++
++	/* Activate/deactivate autofs mount */
++	AUTOFS_DEV_IOCTL_SETPIPEFD_CMD,
++	AUTOFS_DEV_IOCTL_CATATONIC_CMD,
++
++	/* Expiry timeout */
++	AUTOFS_DEV_IOCTL_TIMEOUT_CMD,
++
++	/* Get mount last requesting uid and gid */
++	AUTOFS_DEV_IOCTL_REQUESTER_CMD,
++
++	/* Check for eligible expire candidates */
++	AUTOFS_DEV_IOCTL_EXPIRE_CMD,
++
++	/* Request busy status */
++	AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD,
++
++	/* Check if path is a mountpoint */
++	AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD,
++};
++
++#define AUTOFS_IOCTL 0x93
++
++#define AUTOFS_DEV_IOCTL_VERSION \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_VERSION_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_PROTOVER \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_PROTOVER_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_PROTOSUBVER \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_OPENMOUNT \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_OPENMOUNT_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_CLOSEMOUNT \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_READY \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_READY_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_FAIL \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_FAIL_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_SETPIPEFD \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_SETPIPEFD_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_CATATONIC \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_CATATONIC_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_TIMEOUT \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_TIMEOUT_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_REQUESTER \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_REQUESTER_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_EXPIRE \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_EXPIRE_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_ASKUMOUNT \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD, struct autofs_dev_ioctl)
++
++#define AUTOFS_DEV_IOCTL_ISMOUNTPOINT \
++	_IOWR(AUTOFS_IOCTL, \
++	      AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD, struct autofs_dev_ioctl)
++
++#endif	/* _UAPI_LINUX_AUTO_DEV_IOCTL_H */
 _
