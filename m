@@ -1,124 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [patch 018/102] checkpatch: don't test for prefer
- ether_addr_<foo>
-Date: Tue, 11 Oct 2016 13:51:53 -0700
-Message-ID: <57fd50e9.KBOS3lALYAWibN+Q%akpm@linux-foundation.org>
+Subject: [patch 043/102] autofs: add autofs_dev_ioctl_version() for
+ AUTOFS_DEV_IOCTL_VERSION_CMD
+Date: Tue, 11 Oct 2016 13:53:05 -0700
+Message-ID: <57fd5131.yt5+X2U+zpfhMMu5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37917 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37893 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752605AbcJKUxE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:04 -0400
+        with ESMTP id S1753468AbcJKUxG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com, dan.carpenter@oracle.com, gvrose8192@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, raven@themaw.net, ikent@redhat.com, kusumi.tomohiro@gmail.com
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: don't test for prefer ether_addr_<foo>
+From: Ian Kent <raven@themaw.net>
+Subject: autofs: add autofs_dev_ioctl_version() for AUTOFS_DEV_IOCTL_VERSION_CMD
 
-< sigh > Comment these tests out.
+No functional changes, based on the following justification.
 
-These are just too enticing to people that don't verify that
-both source and dest addresses really must be __aligned(2).
+1. Make the code more consistent using the ioctl vector _ioctls[],
+   rather than assigning NULL only for this ioctl command.
+2. Remove goto done; for better maintainability in the long run.
+3. The existing code is based on the fact that validate_dev_ioctl()
+   sets ioctl version for any command, but AUTOFS_DEV_IOCTL_VERSION_CMD
+   should explicitly set it regardless of the default behavior.
 
-It helps make Dan Carpenter happy too.
-
-Link: http://lkml.kernel.org/r/dc32ec66d24647f4cdf824c8dfbbc59aa7ce7b7d.1472665676.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Greg <gvrose8192@gmail.com>
+Link: http://lkml.kernel.org/r/20160812024846.12352.9885.stgit@pluto.themaw.net
+Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Signed-off-by: Ian Kent <ikent@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   70 ++++++++++++++++++++--------------------
- 1 file changed, 35 insertions(+), 35 deletions(-)
+ fs/autofs4/dev-ioctl.c |   25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-dont-test-for-prefer-ether_addr_foo scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-dont-test-for-prefer-ether_addr_foo
-+++ a/scripts/checkpatch.pl
-@@ -5554,46 +5554,46 @@ sub process {
- 		}
+diff -puN fs/autofs4/dev-ioctl.c~autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd
++++ a/fs/autofs4/dev-ioctl.c
+@@ -172,6 +172,17 @@ static struct autofs_sb_info *autofs_dev
+ 	return sbi;
+ }
  
- # Check for memcpy(foo, bar, ETH_ALEN) that could be ether_addr_copy(foo, bar)
--		if ($^V && $^V ge 5.10.0 &&
--		    defined $stat &&
--		    $stat =~ /^\+(?:.*?)\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
--			if (WARN("PREFER_ETHER_ADDR_COPY",
--				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . "$here\n$stat\n") &&
--			    $fix) {
--				$fixed[$fixlinenr] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
--			}
--		}
-+#		if ($^V && $^V ge 5.10.0 &&
-+#		    defined $stat &&
-+#		    $stat =~ /^\+(?:.*?)\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
-+#			if (WARN("PREFER_ETHER_ADDR_COPY",
-+#				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . "$here\n$stat\n") &&
-+#			    $fix) {
-+#				$fixed[$fixlinenr] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
-+#			}
-+#		}
++/* Return autofs dev ioctl version */
++static int autofs_dev_ioctl_version(struct file *fp,
++				    struct autofs_sb_info *sbi,
++				    struct autofs_dev_ioctl *param)
++{
++	/* This should have already been set. */
++	param->ver_major = AUTOFS_DEV_IOCTL_VERSION_MAJOR;
++	param->ver_minor = AUTOFS_DEV_IOCTL_VERSION_MINOR;
++	return 0;
++}
++
+ /* Return autofs module protocol version */
+ static int autofs_dev_ioctl_protover(struct file *fp,
+ 				     struct autofs_sb_info *sbi,
+@@ -590,7 +601,8 @@ static ioctl_fn lookup_dev_ioctl(unsigne
+ 		int cmd;
+ 		ioctl_fn fn;
+ 	} _ioctls[] = {
+-		{cmd_idx(AUTOFS_DEV_IOCTL_VERSION_CMD), NULL},
++		{cmd_idx(AUTOFS_DEV_IOCTL_VERSION_CMD),
++			 autofs_dev_ioctl_version},
+ 		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOVER_CMD),
+ 			 autofs_dev_ioctl_protover},
+ 		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD),
+@@ -655,10 +667,6 @@ static int _autofs_dev_ioctl(unsigned in
+ 	if (err)
+ 		goto out;
  
- # Check for memcmp(foo, bar, ETH_ALEN) that could be ether_addr_equal*(foo, bar)
--		if ($^V && $^V ge 5.10.0 &&
--		    defined $stat &&
--		    $stat =~ /^\+(?:.*?)\bmemcmp\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
--			WARN("PREFER_ETHER_ADDR_EQUAL",
--			     "Prefer ether_addr_equal() or ether_addr_equal_unaligned() over memcmp()\n" . "$here\n$stat\n")
--		}
-+#		if ($^V && $^V ge 5.10.0 &&
-+#		    defined $stat &&
-+#		    $stat =~ /^\+(?:.*?)\bmemcmp\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
-+#			WARN("PREFER_ETHER_ADDR_EQUAL",
-+#			     "Prefer ether_addr_equal() or ether_addr_equal_unaligned() over memcmp()\n" . "$here\n$stat\n")
-+#		}
- 
- # check for memset(foo, 0x0, ETH_ALEN) that could be eth_zero_addr
- # check for memset(foo, 0xFF, ETH_ALEN) that could be eth_broadcast_addr
--		if ($^V && $^V ge 5.10.0 &&
--		    defined $stat &&
--		    $stat =~ /^\+(?:.*?)\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
+-	/* The validate routine above always sets the version */
+-	if (cmd == AUTOFS_DEV_IOCTL_VERSION_CMD)
+-		goto done;
 -
--			my $ms_val = $7;
--
--			if ($ms_val =~ /^(?:0x|)0+$/i) {
--				if (WARN("PREFER_ETH_ZERO_ADDR",
--					 "Prefer eth_zero_addr over memset()\n" . "$here\n$stat\n") &&
--				    $fix) {
--					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_zero_addr($2)/;
--				}
--			} elsif ($ms_val =~ /^(?:0xff|255)$/i) {
--				if (WARN("PREFER_ETH_BROADCAST_ADDR",
--					 "Prefer eth_broadcast_addr() over memset()\n" . "$here\n$stat\n") &&
--				    $fix) {
--					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_broadcast_addr($2)/;
--				}
--			}
--		}
-+#		if ($^V && $^V ge 5.10.0 &&
-+#		    defined $stat &&
-+#		    $stat =~ /^\+(?:.*?)\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
-+#
-+#			my $ms_val = $7;
-+#
-+#			if ($ms_val =~ /^(?:0x|)0+$/i) {
-+#				if (WARN("PREFER_ETH_ZERO_ADDR",
-+#					 "Prefer eth_zero_addr over memset()\n" . "$here\n$stat\n") &&
-+#				    $fix) {
-+#					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_zero_addr($2)/;
-+#				}
-+#			} elsif ($ms_val =~ /^(?:0xff|255)$/i) {
-+#				if (WARN("PREFER_ETH_BROADCAST_ADDR",
-+#					 "Prefer eth_broadcast_addr() over memset()\n" . "$here\n$stat\n") &&
-+#				    $fix) {
-+#					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_broadcast_addr($2)/;
-+#				}
-+#			}
-+#		}
+ 	fn = lookup_dev_ioctl(cmd);
+ 	if (!fn) {
+ 		pr_warn("unknown command 0x%08x\n", command);
+@@ -672,9 +680,11 @@ static int _autofs_dev_ioctl(unsigned in
+ 	/*
+ 	 * For obvious reasons the openmount can't have a file
+ 	 * descriptor yet. We don't take a reference to the
+-	 * file during close to allow for immediate release.
++	 * file during close to allow for immediate release,
++	 * and the same for retrieving ioctl version.
+ 	 */
+-	if (cmd != AUTOFS_DEV_IOCTL_OPENMOUNT_CMD &&
++	if (cmd != AUTOFS_DEV_IOCTL_VERSION_CMD &&
++	    cmd != AUTOFS_DEV_IOCTL_OPENMOUNT_CMD &&
+ 	    cmd != AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD) {
+ 		fp = fget(param->ioctlfd);
+ 		if (!fp) {
+@@ -707,7 +717,6 @@ cont:
  
- # typecasts on min/max could be min_t/max_t
- 		if ($^V && $^V ge 5.10.0 &&
+ 	if (fp)
+ 		fput(fp);
+-done:
+ 	if (err >= 0 && copy_to_user(user, param, AUTOFS_DEV_IOCTL_SIZE))
+ 		err = -EFAULT;
+ out:
 _
