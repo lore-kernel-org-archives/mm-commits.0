@@ -1,65 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [patch 015/102] checkpatch: see if modified files are marked
- obsolete in MAINTAINERS
-Date: Tue, 11 Oct 2016 13:51:44 -0700
-Message-ID: <57fd50e0.lkj/kxhLJEE8MPE6%akpm@linux-foundation.org>
+Subject: [patch 014/102] llist: introduce llist_entry_safe()
+Date: Tue, 11 Oct 2016 13:51:41 -0700
+Message-ID: <57fd50dd./gNBvRBYvu+kYV+l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37916 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37864 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752266AbcJKUxE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:04 -0400
+        with ESMTP id S1752605AbcJKUwg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:52:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, joe@perches.com, elfring@users.sourceforge.net
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, glider@google.com, dvyukov@google.com, edumazet@google.com, kcc@google.com, mingo@elte.hu
 
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: see if modified files are marked obsolete in MAINTAINERS
+From: Alexander Potapenko <glider@google.com>
+Subject: llist: introduce llist_entry_safe()
 
-Use get_maintainer to check the status of individual files.  If
-"obsolete", suggest leaving the files alone.
+Currently llist_for_each_entry() and llist_for_each_entry_safe() iterate
+until &pos->member != NULL.  But when building the kernel with Clang, the
+compiler assumes &pos->member cannot be NULL if the member's offset is
+greater than 0.  Therefore the loop condition is always true, and the
+loops become infinite.
 
-Link: http://lkml.kernel.org/r/7ceaa510dc9d2df05ec4b456baed7bb1415550b3.1471889575.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: SF Markus Elfring <elfring@users.sourceforge.net>
+To work around this, introduce llist_entry_safe(), which returns NULL for
+NULL pointers, and additionally check that pos is not NULL in the list
+iterators before dereferencing it.
+
+Link: http://lkml.kernel.org/r/1474636978-41435-3-git-send-email-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Kostya Serebryany <kcc@google.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ include/linux/llist.h |   26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers
-+++ a/scripts/checkpatch.pl
-@@ -704,6 +704,16 @@ sub seed_camelcase_file {
- 	}
- }
+diff -puN include/linux/llist.h~llist-introduce-llist_entry_safe include/linux/llist.h
+--- a/include/linux/llist.h~llist-introduce-llist_entry_safe
++++ a/include/linux/llist.h
+@@ -88,6 +88,16 @@ static inline void init_llist_head(struc
+ 	container_of(ptr, type, member)
  
-+sub is_maintained_obsolete {
-+	my ($filename) = @_;
+ /**
++ * llist_entry_safe - get the struct of this entry without overflowing
++ * @ptr:	the &struct llist_node pointer.
++ * @type:	the type of the struct this is embedded in.
++ * @member:	the name of the llist_node within the struct.
++ */
++#define llist_entry_safe(ptr, type, member)		\
++	container_of_safe(ptr, type, member)
 +
-+	return 0 if (!(-e "$root/scripts/get_maintainer.pl"));
 +
-+	my $status = `perl $root/scripts/get_maintainer.pl --status --nom --nol --nogit --nogit-fallback $filename 2>&1`;
-+
-+	return $status =~ /obsolete/i;
-+}
-+
- my $camelcase_seeded = 0;
- sub seed_camelcase_includes {
- 	return if ($camelcase_seeded);
-@@ -2289,6 +2299,10 @@ sub process {
- 		}
++/**
+  * llist_for_each - iterate over some deleted entries of a lock-less list
+  * @pos:	the &struct llist_node to use as a loop cursor
+  * @node:	the first entry of deleted list entries
+@@ -120,9 +130,10 @@ static inline void init_llist_head(struc
+  * reverse the order by yourself before traversing.
+  */
+ #define llist_for_each_entry(pos, node, member)				\
+-	for ((pos) = llist_entry((node), typeof(*(pos)), member);	\
+-	     &(pos)->member != NULL;					\
+-	     (pos) = llist_entry((pos)->member.next, typeof(*(pos)), member))
++	for ((pos) = llist_entry_safe((node), typeof(*(pos)), member);	\
++	     pos != NULL && &(pos)->member != NULL;			\
++	     (pos) = llist_entry_safe((pos)->member.next, \
++					typeof(*(pos)), member))
  
- 		if ($found_file) {
-+			if (is_maintained_obsolete($realfile)) {
-+				WARN("OBSOLETE",
-+				     "$realfile is marked as 'obsolete' in the MAINTAINERS hierarchy.  No unnecessary modifications please.\n");
-+			}
- 			if ($realfile =~ m@^(?:drivers/net/|net/|drivers/staging/)@) {
- 				$check = 1;
- 			} else {
+ /**
+  * llist_for_each_entry_safe - iterate over some deleted entries of lock-less list of given type
+@@ -141,10 +152,11 @@ static inline void init_llist_head(struc
+  * you want to traverse from the oldest to the newest, you must
+  * reverse the order by yourself before traversing.
+  */
+-#define llist_for_each_entry_safe(pos, n, node, member)			       \
+-	for (pos = llist_entry((node), typeof(*pos), member);		       \
+-	     &pos->member != NULL &&					       \
+-	        (n = llist_entry(pos->member.next, typeof(*n), member), true); \
++#define llist_for_each_entry_safe(pos, n, node, member)			     \
++	for (pos = llist_entry_safe((node), typeof(*pos), member);	     \
++	     pos != NULL && &pos->member != NULL &&			     \
++		(n = llist_entry_safe(pos->member.next, typeof(*n), member), \
++		 true); \
+ 	     pos = n)
+ 
+ /**
 _
