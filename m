@@ -1,56 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [patch 054/102] pipe: fix limit checking in alloc_pipe_info()
-Date: Tue, 11 Oct 2016 13:53:37 -0700
-Message-ID: <57fd5151.TFjuRmc/iKGm0bsQ%akpm@linux-foundation.org>
+Subject: [patch 050/102] pipe: move limit checking logic into
+ pipe_set_size()
+Date: Tue, 11 Oct 2016 13:53:25 -0700
+Message-ID: <57fd5145.XOnd2QctCmYQkix6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38029 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37999 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752266AbcJKUxj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:39 -0400
+        with ESMTP id S1753198AbcJKUx0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:53:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mtk.manpages@gmail.com, axboe@fb.com, penguin-kernel@I-love.SAKURA.ne.jp, socketpair@gmail.com, vegard.nossum@oracle.com, viro@zeniv.linux.org.uk, w@1wt.eu
 
 From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Subject: pipe: fix limit checking in alloc_pipe_info()
+Subject: pipe: move limit checking logic into pipe_set_size()
 
-The limit checking in alloc_pipe_info() (used by pipe(2) and when
-opening a FIFO) has the following problems:
+This is a preparatory patch for following work. Move the F_SETPIPE_SZ
+limit-checking logic from pipe_fcntl() into pipe_set_size().  This
+simplifies the code a little, and allows for reworking required in
+a later patch that fixes the limit checking in pipe_set_size()
 
-(1) When checking capacity required for the new pipe, the checks against
-    the limit in /proc/sys/fs/pipe-user-pages-{soft,hard} are made
-    against existing consumption, and exclude the memory required for
-    the new pipe capacity. As a consequence: (1) the memory allocation
-    throttling provided by the soft limit does not kick in quite as
-    early as it should, and (2) the user can overrun the hard limit.
-
-(2) As currently implemented, accounting and checking against the limits
-    is done as follows:
-
-    (a) Test whether the user has exceeded the limit.
-    (b) Make new pipe buffer allocation.
-    (c) Account new allocation against the limits.
-
-    This is racey. Multiple processes may pass point (a) simultaneously,
-    and then allocate pipe buffers that are accounted for only in step
-    (c).  The race means that the user's pipe buffer allocation could be
-    pushed over the limit (by an arbitrary amount, depending on how
-    unlucky we were in the race). [Thanks to Vegard Nossum for spotting
-    this point, which I had missed.]
-
-This patch addresses the above problems as follows:
-
-* Alter the checks against limits to include the memory required for the
-  new pipe.
-* Re-order the accounting step so that it precedes the buffer allocation.
-  If the accounting step determines that a limit has been reached, revert
-  the accounting and cause the operation to fail.
-
-Link: http://lkml.kernel.org/r/8ff3e9f9-23f6-510c-644f-8e70cd1c0bd9@gmail.com
+Link: http://lkml.kernel.org/r/3701b2c5-2c52-2c3e-226d-29b9deb29b50@gmail.com
 Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
 Reviewed-by: Vegard Nossum <vegard.nossum@oracle.com>
 Cc: Willy Tarreau <w@1wt.eu>
@@ -61,48 +35,75 @@ Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
+ fs/pipe.c |   41 ++++++++++++++++++-----------------------
+ 1 file changed, 18 insertions(+), 23 deletions(-)
 
-diff -puN fs/pipe.c~pipe-fix-limit-checking-in-alloc_pipe_info fs/pipe.c
---- a/fs/pipe.c~pipe-fix-limit-checking-in-alloc_pipe_info
+diff -puN fs/pipe.c~pipe-move-limit-checking-logic-into-pipe_set_size fs/pipe.c
+--- a/fs/pipe.c~pipe-move-limit-checking-logic-into-pipe_set_size
 +++ a/fs/pipe.c
-@@ -629,24 +629,30 @@ struct pipe_inode_info *alloc_pipe_info(
- 	if (pipe == NULL)
- 		goto out_free_uid;
- 
--	if (!too_many_pipe_buffers_hard(user)) {
--		if (too_many_pipe_buffers_soft(user))
--			pipe_bufs = 1;
--		pipe->bufs = kcalloc(pipe_bufs,
--				     sizeof(struct pipe_buffer),
--				     GFP_KERNEL_ACCOUNT);
-+	account_pipe_buffers(user, 0, pipe_bufs);
+@@ -1023,9 +1023,24 @@ static inline unsigned int round_pipe_si
+  * Allocate a new array of pipe buffers and copy the info over. Returns the
+  * pipe size if successful, or return -ERROR on error.
+  */
+-static long pipe_set_size(struct pipe_inode_info *pipe, unsigned long nr_pages)
++static long pipe_set_size(struct pipe_inode_info *pipe, unsigned long arg)
+ {
+ 	struct pipe_buffer *bufs;
++	unsigned int size, nr_pages;
 +
-+	if (too_many_pipe_buffers_soft(user)) {
-+		account_pipe_buffers(user, pipe_bufs, 1);
-+		pipe_bufs = 1;
++	size = round_pipe_size(arg);
++	nr_pages = size >> PAGE_SHIFT;
++
++	if (!nr_pages)
++		return -EINVAL;
++
++	if (!capable(CAP_SYS_RESOURCE) && size > pipe_max_size)
++		return -EPERM;
++
++	if ((too_many_pipe_buffers_hard(pipe->user) ||
++			too_many_pipe_buffers_soft(pipe->user)) &&
++			!capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN))
++		return -EPERM;
+ 
+ 	/*
+ 	 * We can shrink the pipe, if arg >= pipe->nrbufs. Since we don't
+@@ -1109,28 +1124,9 @@ long pipe_fcntl(struct file *file, unsig
+ 	__pipe_lock(pipe);
+ 
+ 	switch (cmd) {
+-	case F_SETPIPE_SZ: {
+-		unsigned int size, nr_pages;
+-
+-		size = round_pipe_size(arg);
+-		nr_pages = size >> PAGE_SHIFT;
+-
+-		ret = -EINVAL;
+-		if (!nr_pages)
+-			goto out;
+-
+-		if (!capable(CAP_SYS_RESOURCE) && size > pipe_max_size) {
+-			ret = -EPERM;
+-			goto out;
+-		} else if ((too_many_pipe_buffers_hard(pipe->user) ||
+-			    too_many_pipe_buffers_soft(pipe->user)) &&
+-		           !capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN)) {
+-			ret = -EPERM;
+-			goto out;
+-		}
+-		ret = pipe_set_size(pipe, nr_pages);
++	case F_SETPIPE_SZ:
++		ret = pipe_set_size(pipe, arg);
+ 		break;
+-		}
+ 	case F_GETPIPE_SZ:
+ 		ret = pipe->buffers * PAGE_SIZE;
+ 		break;
+@@ -1139,7 +1135,6 @@ long pipe_fcntl(struct file *file, unsig
+ 		break;
  	}
  
-+	if (too_many_pipe_buffers_hard(user))
-+		goto out_revert_acct;
-+
-+	pipe->bufs = kcalloc(pipe_bufs, sizeof(struct pipe_buffer),
-+			     GFP_KERNEL_ACCOUNT);
-+
- 	if (pipe->bufs) {
- 		init_waitqueue_head(&pipe->wait);
- 		pipe->r_counter = pipe->w_counter = 1;
- 		pipe->buffers = pipe_bufs;
- 		pipe->user = user;
--		account_pipe_buffers(user, 0, pipe_bufs);
- 		mutex_init(&pipe->mutex);
- 		return pipe;
- 	}
- 
-+out_revert_acct:
-+	account_pipe_buffers(user, pipe_bufs, 0);
- 	kfree(pipe);
- out_free_uid:
- 	free_uid(user);
+-out:
+ 	__pipe_unlock(pipe);
+ 	return ret;
+ }
 _
