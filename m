@@ -1,90 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + kcov-properly-check-if-we-are-in-an-interrupt.patch added to
- -mm tree
-Date: Mon, 10 Oct 2016 16:43:51 -0700
-Message-ID: <57fc27b7.G7Ene0gUziPYd1v0%akpm@linux-foundation.org>
+Subject: [folded-merged] autofs-fix-dev-ioctl-number-range-check-fix.patch removed from -mm tree
+Date: Tue, 11 Oct 2016 13:36:41 -0700
+Message-ID: <57fd4d59.3zA3rhKKyNz1momA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39529 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37546 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752508AbcJJXnx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 10 Oct 2016 19:43:53 -0400
+        with ESMTP id S1754563AbcJKUgm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 16:36:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, james.morse@arm.com, keescook@chromium.org, nicstange@gmail.com, quentin.casasnovas@oracle.com, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
+To: kusumi.tomohiro@gmail.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: properly check if we are in an interrupt
-has been added to the -mm tree.  Its filename is
-     kcov-properly-check-if-we-are-in-an-interrupt.patch
+     Subject: autofs: fix "fix dev ioctl number range check"
+has been removed from the -mm tree.  Its filename was
+     autofs-fix-dev-ioctl-number-range-check-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kcov-properly-check-if-we-are-in-an-interrupt.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kcov-properly-check-if-we-are-in-an-interrupt.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into autofs-fix-dev-ioctl-number-range-check.patch
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kcov: properly check if we are in an interrupt
+From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Subject: autofs: fix "fix dev ioctl number range check"
 
-in_interrupt() returns a nonzero value when we are either in an interrupt
-or have bh disabled via local_bh_disable().  Since we are interested in
-only ignoring coverage from actual interrupts, do a proper check instead
-of just calling in_interrupt().
+102a340f had a typo that made the count macro negative (-13).
+The acutal check used by ioctl is ((cmd - cmd_first) > COUNT),
+so it needs to be positive (13).
 
-Link: http://lkml.kernel.org/r/1476115803-20712-1-git-send-email-andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Acked-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Nicolai Stange <nicstange@gmail.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: James Morse <james.morse@arm.com>
-Cc: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Quentin Casasnovas <quentin.casasnovas@oracle.com>
+* 102a340f is a commit in linux-next which hasn't been merged
+to mainline upstream.
+
+Link: http://lkml.kernel.org/r/20160831033420.9910.16809.stgit@pluto.themaw.net
+Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ fs/autofs4/autofs_i.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/kcov.c~kcov-properly-check-if-we-are-in-an-interrupt kernel/kcov.c
---- a/kernel/kcov.c~kcov-properly-check-if-we-are-in-an-interrupt
-+++ a/kernel/kcov.c
-@@ -53,8 +53,15 @@ void notrace __sanitizer_cov_trace_pc(vo
- 	/*
- 	 * We are interested in code coverage as a function of a syscall inputs,
- 	 * so we ignore code executed in interrupts.
-+	 * The checks for whether we are in an interrupt are open-coded, because
-+	 * 1. We can't use in_interrupt() here, since it also returns true
-+	 *    when we are inside local_bh_disable() section.
-+	 * 2. We don't want to use (in_irq() | in_serving_softirq() | in_nmi()),
-+	 *    since that leads to slower generated code (three separate tests,
-+	 *    one for each of the flags).
- 	 */
--	if (!t || in_interrupt())
-+	if (!t || (preempt_count() & (HARDIRQ_MASK | SOFTIRQ_OFFSET
-+							| NMI_MASK)))
- 		return;
- 	mode = READ_ONCE(t->kcov_mode);
- 	if (mode == KCOV_MODE_TRACE) {
+diff -puN fs/autofs4/autofs_i.h~autofs-fix-dev-ioctl-number-range-check-fix fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs-fix-dev-ioctl-number-range-check-fix
++++ a/fs/autofs4/autofs_i.h
+@@ -21,7 +21,7 @@
+ 
+ #define AUTOFS_DEV_IOCTL_IOC_FIRST	(AUTOFS_DEV_IOCTL_VERSION)
+ #define AUTOFS_DEV_IOCTL_IOC_COUNT \
+-	(AUTOFS_DEV_IOCTL_VERSION_CMD - AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD)
++	(AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD - AUTOFS_DEV_IOCTL_VERSION_CMD)
+ 
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
 
-kcov-properly-check-if-we-are-in-an-interrupt.patch
+autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
+autofs-drop-unnecessary-extern-in-autofs_ih.patch
+autofs-test-autofs-versions-first-on-sb-initialization.patch
+autofs-add-warn_on1-for-non-dir-link-inode-case.patch
+autofs-use-autofs4_free_ino-to-kfree-dentry-data.patch
+autofs-remove-obsolete-sb-fields.patch
+autofs-dont-fail-to-free_dev_ioctlparam.patch
+autofs-remove-autofs_devid_len.patch
+autofs-fix-documentation-regarding-devid-on-ioctl.patch
+autofs-update-struct-autofs_dev_ioctl-in-documentation.patch
+autofs-fix-pr_debug-message.patch
+autofs-fix-dev-ioctl-number-range-check.patch
+autofs-fix-print-format-for-ioctl-warning-message.patch
+autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+autofs-remove-possibly-misleading-define-debug.patch
+autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl.patch
 
