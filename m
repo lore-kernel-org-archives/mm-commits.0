@@ -1,306 +1,246 @@
 From: akpm@linux-foundation.org
-Subject: [patch 079/102] ipc/msg: implement lockless pipelined wakeups
-Date: Tue, 11 Oct 2016 13:54:53 -0700
-Message-ID: <57fd519d.Cd6Tv8hqEQnm4v4r%akpm@linux-foundation.org>
+Subject: mmotm 2016-10-11-15-46 uploaded
+Date: Tue, 11 Oct 2016 15:47:31 -0700
+Message-ID: <57fd6c03.MqL5gLzjGe1u5CBc%akpm__7244.30861087075$1476226593$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39295 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42215 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753150AbcJKVGA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 17:06:00 -0400
+        with ESMTP id S1754520AbcJKWzu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 18:55:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, bigeasy@linutronix.de, dbueso@suse.de, manfred@colorfullife.com, peterz@infradead.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
 
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: ipc/msg: implement lockless pipelined wakeups
+The mm-of-the-moment snapshot 2016-10-11-15-46 has been uploaded to
 
-This patch moves the wakeup_process() invocation so it is not done under
-the ipc global lock by making use of a lockless wake_q.  With this change,
-the waiter is woken up once the message has been assigned and it does not
-need to loop on SMP if the message points to NULL.  In the signal case we
-still need to check the pointer under the lock to verify the state.
+   http://www.ozlabs.org/~akpm/mmotm/
 
-This change should also avoid the introduction of preempt_disable() in -RT
-which avoids a busy-loop which pools for the NULL -> !NULL change if the
-waiter has a higher priority compared to the waker.
+mmotm-readme.txt says
 
-By making use of wake_qs, the logic of sysv msg queues is greatly
-simplified (and very well suited as we can batch lockless wakeups),
-particularly around the lockless receive algorithm.
+README for mm-of-the-moment:
 
-This has been tested with Manred's pmsg-shared tool on a "AMD A10-7800
-Radeon R7, 12 Compute Cores 4C+8G":
+http://www.ozlabs.org/~akpm/mmotm/
 
-test             |   before   |   after    | diff
------------------|------------|------------|----------
-pmsg-shared 8 60 | 19,347,422 | 30,442,191 | + ~57.34 %
-pmsg-shared 4 60 | 21,367,197 | 35,743,458 | + ~67.28 %
-pmsg-shared 2 60 | 22,884,224 | 24,278,200 | +  ~6.09 %
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
 
-Link: http://lkml.kernel.org/r/1469748819-19484-2-git-send-email-dave@stgolabs.net
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
 
- ipc/msg.c |  133 +++++++++++++++-------------------------------------
- 1 file changed, 40 insertions(+), 93 deletions(-)
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
 
-diff -puN ipc/msg.c~ipc-msg-implement-lockless-pipelined-wakeups ipc/msg.c
---- a/ipc/msg.c~ipc-msg-implement-lockless-pipelined-wakeups
-+++ a/ipc/msg.c
-@@ -51,13 +51,7 @@ struct msg_receiver {
- 	long			r_msgtype;
- 	long			r_maxsize;
- 
--	/*
--	 * Mark r_msg volatile so that the compiler
--	 * does not try to get smart and optimize
--	 * it. We rely on this for the lockless
--	 * receive algorithm.
--	 */
--	struct msg_msg		*volatile r_msg;
-+	struct msg_msg		*r_msg;
- };
- 
- /* one msg_sender for each sleeping sender */
-@@ -183,21 +177,14 @@ static void ss_wakeup(struct list_head *
- 	}
- }
- 
--static void expunge_all(struct msg_queue *msq, int res)
-+static void expunge_all(struct msg_queue *msq, int res,
-+			struct wake_q_head *wake_q)
- {
- 	struct msg_receiver *msr, *t;
- 
- 	list_for_each_entry_safe(msr, t, &msq->q_receivers, r_list) {
--		msr->r_msg = NULL; /* initialize expunge ordering */
--		wake_up_process(msr->r_tsk);
--		/*
--		 * Ensure that the wakeup is visible before setting r_msg as
--		 * the receiving end depends on it: either spinning on a nil,
--		 * or dealing with -EAGAIN cases. See lockless receive part 1
--		 * and 2 in do_msgrcv().
--		 */
--		smp_wmb(); /* barrier (B) */
--		msr->r_msg = ERR_PTR(res);
-+		wake_q_add(wake_q, msr->r_tsk);
-+		WRITE_ONCE(msr->r_msg, ERR_PTR(res));
- 	}
- }
- 
-@@ -213,11 +200,13 @@ static void freeque(struct ipc_namespace
- {
- 	struct msg_msg *msg, *t;
- 	struct msg_queue *msq = container_of(ipcp, struct msg_queue, q_perm);
-+	WAKE_Q(wake_q);
- 
--	expunge_all(msq, -EIDRM);
-+	expunge_all(msq, -EIDRM, &wake_q);
- 	ss_wakeup(&msq->q_senders, 1);
- 	msg_rmid(ns, msq);
- 	ipc_unlock_object(&msq->q_perm);
-+	wake_up_q(&wake_q);
- 	rcu_read_unlock();
- 
- 	list_for_each_entry_safe(msg, t, &msq->q_messages, m_list) {
-@@ -342,6 +331,7 @@ static int msgctl_down(struct ipc_namesp
- 	struct kern_ipc_perm *ipcp;
- 	struct msqid64_ds uninitialized_var(msqid64);
- 	struct msg_queue *msq;
-+	WAKE_Q(wake_q);
- 	int err;
- 
- 	if (cmd == IPC_SET) {
-@@ -389,7 +379,7 @@ static int msgctl_down(struct ipc_namesp
- 		/* sleeping receivers might be excluded by
- 		 * stricter permissions.
- 		 */
--		expunge_all(msq, -EAGAIN);
-+		expunge_all(msq, -EAGAIN, &wake_q);
- 		/* sleeping senders might be able to send
- 		 * due to a larger queue size.
- 		 */
-@@ -402,6 +392,7 @@ static int msgctl_down(struct ipc_namesp
- 
- out_unlock0:
- 	ipc_unlock_object(&msq->q_perm);
-+	wake_up_q(&wake_q);
- out_unlock1:
- 	rcu_read_unlock();
- out_up:
-@@ -566,7 +557,8 @@ static int testmsg(struct msg_msg *msg,
- 	return 0;
- }
- 
--static inline int pipelined_send(struct msg_queue *msq, struct msg_msg *msg)
-+static inline int pipelined_send(struct msg_queue *msq, struct msg_msg *msg,
-+				 struct wake_q_head *wake_q)
- {
- 	struct msg_receiver *msr, *t;
- 
-@@ -577,27 +569,14 @@ static inline int pipelined_send(struct
- 
- 			list_del(&msr->r_list);
- 			if (msr->r_maxsize < msg->m_ts) {
--				/* initialize pipelined send ordering */
--				msr->r_msg = NULL;
--				wake_up_process(msr->r_tsk);
--				/* barrier (B) see barrier comment below */
--				smp_wmb();
--				msr->r_msg = ERR_PTR(-E2BIG);
-+				wake_q_add(wake_q, msr->r_tsk);
-+				WRITE_ONCE(msr->r_msg, ERR_PTR(-E2BIG));
- 			} else {
--				msr->r_msg = NULL;
- 				msq->q_lrpid = task_pid_vnr(msr->r_tsk);
- 				msq->q_rtime = get_seconds();
--				wake_up_process(msr->r_tsk);
--				/*
--				 * Ensure that the wakeup is visible before
--				 * setting r_msg, as the receiving can otherwise
--				 * exit - once r_msg is set, the receiver can
--				 * continue. See lockless receive part 1 and 2
--				 * in do_msgrcv(). Barrier (B).
--				 */
--				smp_wmb();
--				msr->r_msg = msg;
- 
-+				wake_q_add(wake_q, msr->r_tsk);
-+				WRITE_ONCE(msr->r_msg, msg);
- 				return 1;
- 			}
- 		}
-@@ -613,6 +592,7 @@ long do_msgsnd(int msqid, long mtype, vo
- 	struct msg_msg *msg;
- 	int err;
- 	struct ipc_namespace *ns;
-+	WAKE_Q(wake_q);
- 
- 	ns = current->nsproxy->ipc_ns;
- 
-@@ -686,7 +666,6 @@ long do_msgsnd(int msqid, long mtype, vo
- 			err = -EIDRM;
- 			goto out_unlock0;
- 		}
--
- 		ss_del(&s);
- 
- 		if (signal_pending(current)) {
-@@ -698,7 +677,7 @@ long do_msgsnd(int msqid, long mtype, vo
- 	msq->q_lspid = task_tgid_vnr(current);
- 	msq->q_stime = get_seconds();
- 
--	if (!pipelined_send(msq, msg)) {
-+	if (!pipelined_send(msq, msg, &wake_q)) {
- 		/* no one is waiting for this message, enqueue it */
- 		list_add_tail(&msg->m_list, &msq->q_messages);
- 		msq->q_cbytes += msgsz;
-@@ -712,6 +691,7 @@ long do_msgsnd(int msqid, long mtype, vo
- 
- out_unlock0:
- 	ipc_unlock_object(&msq->q_perm);
-+	wake_up_q(&wake_q);
- out_unlock1:
- 	rcu_read_unlock();
- 	if (msg != NULL)
-@@ -919,71 +899,38 @@ long do_msgrcv(int msqid, void __user *b
- 		rcu_read_unlock();
- 		schedule();
- 
--		/* Lockless receive, part 1:
--		 * Disable preemption.  We don't hold a reference to the queue
--		 * and getting a reference would defeat the idea of a lockless
--		 * operation, thus the code relies on rcu to guarantee the
--		 * existence of msq:
-+		/*
-+		 * Lockless receive, part 1:
-+		 * We don't hold a reference to the queue and getting a
-+		 * reference would defeat the idea of a lockless operation,
-+		 * thus the code relies on rcu to guarantee the existence of
-+		 * msq:
- 		 * Prior to destruction, expunge_all(-EIRDM) changes r_msg.
- 		 * Thus if r_msg is -EAGAIN, then the queue not yet destroyed.
--		 * rcu_read_lock() prevents preemption between reading r_msg
--		 * and acquiring the q_perm.lock in ipc_lock_object().
- 		 */
- 		rcu_read_lock();
- 
--		/* Lockless receive, part 2:
--		 * Wait until pipelined_send or expunge_all are outside of
--		 * wake_up_process(). There is a race with exit(), see
--		 * ipc/mqueue.c for the details. The correct serialization
--		 * ensures that a receiver cannot continue without the wakeup
--		 * being visibible _before_ setting r_msg:
--		 *
--		 * CPU 0                             CPU 1
--		 * <loop receiver>
--		 *   smp_rmb(); (A) <-- pair -.      <waker thread>
--		 *   <load ->r_msg>           |        msr->r_msg = NULL;
--		 *                            |        wake_up_process();
--		 * <continue>                 `------> smp_wmb(); (B)
--		 *                                     msr->r_msg = msg;
-+		/*
-+		 * Lockless receive, part 2:
-+		 * The work in pipelined_send() and expunge_all():
-+		 * - Set pointer to message
-+		 * - Queue the receiver task for later wakeup
-+		 * - Wake up the process after the lock is dropped.
- 		 *
--		 * Where (A) orders the message value read and where (B) orders
--		 * the write to the r_msg -- done in both pipelined_send and
--		 * expunge_all.
--		 */
--		for (;;) {
--			/*
--			 * Pairs with writer barrier in pipelined_send
--			 * or expunge_all.
--			 */
--			smp_rmb(); /* barrier (A) */
--			msg = (struct msg_msg *)msr_d.r_msg;
--			if (msg)
--				break;
--
--			/*
--			 * The cpu_relax() call is a compiler barrier
--			 * which forces everything in this loop to be
--			 * re-loaded.
--			 */
--			cpu_relax();
--		}
--
--		/* Lockless receive, part 3:
--		 * If there is a message or an error then accept it without
--		 * locking.
-+		 * Should the process wake up before this wakeup (due to a
-+		 * signal) it will either see the message and continue ...
- 		 */
-+		msg = READ_ONCE(msr_d.r_msg);
- 		if (msg != ERR_PTR(-EAGAIN))
- 			goto out_unlock1;
- 
--		/* Lockless receive, part 3:
--		 * Acquire the queue spinlock.
--		 */
-+		 /*
-+		  * ... or see -EAGAIN, acquire the lock to check the message
-+		  * again.
-+		  */
- 		ipc_lock_object(&msq->q_perm);
- 
--		/* Lockless receive, part 4:
--		 * Repeat test after acquiring the spinlock.
--		 */
--		msg = (struct msg_msg *)msr_d.r_msg;
-+		msg = msr_d.r_msg;
- 		if (msg != ERR_PTR(-EAGAIN))
- 			goto out_unlock0;
- 
-_
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
+
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
+
+
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
+
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+
+To develop on top of mmotm git:
+
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
+
+To rebase a branch with older patches to a new mmotm release:
+
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
+
+
+
+
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
+
+A git copy of this tree is available at
+
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+
+
+This mmotm tree contains the following patches against 4.8:
+(patches marked "*" will be included in linux-next)
+
+  origin.patch
+* ocfs2-free-the-mle-while-the-res-had-one-to-avoid-mle-memory-leak.patch
+* block-invalidate-the-page-cache-when-issuing-blkzeroout.patch
+* block-require-write_same-and-discard-requests-align-to-logical-block-size.patch
+* block-implement-some-of-fallocate-for-block-devices.patch
+* fs-select-add-vmalloc-fallback-for-select2.patch
+* radix-tree-slot-can-be-null-in-radix_tree_next_slot.patch
+* radix-tree-tests-add-iteration-test.patch
+* radix-tree-tests-properly-initialize-mutex.patch
+* lib-harden-strncpy_from_user.patch
+* make-isdigit-table-lookupless.patch
+* kstrtox-smaller-_parse_integer.patch
+* lib-bitmapc-enhance-bitmap-syntax.patch
+* include-linux-provide-a-safe-version-of-container_of.patch
+* llist-introduce-llist_entry_safe.patch
+* checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+* checkpatch-look-for-symbolic-permissions-and-suggest-octal-instead.patch
+* checkpatch-test-multiple-line-block-comment-alignment.patch
+* checkpatch-dont-test-for-prefer-ether_addr_foo.patch
+* checkpatch-externalize-the-structs-that-should-be-const.patch
+* const_structscheckpatch-add-frequently-used-from-julia-lawalls-list.patch
+* checkpatch-speed-up-checking-for-filenames-in-sections-marked-obsolete.patch
+* checkpatch-improve-the-block-comment-alignment-test.patch
+* checkpatch-add-strict-test-for-macro-argument-reuse.patch
+* checkpatch-add-strict-test-for-precedence-challenged-macro-arguments.patch
+* checkpatch-improve-macro_arg_precedence-test.patch
+* checkpatch-add-warning-for-unnamed-function-definition-arguments.patch
+* checkpatch-improve-the-octal-permissions-tests.patch
+* kprobes-include-asm-sectionsh-instead-of-asm-generic-sectionsh.patch
+* autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
+* autofs-drop-unnecessary-extern-in-autofs_ih.patch
+* autofs-test-autofs-versions-first-on-sb-initialization.patch
+* autofs-fix-autofs4_fill_super-error-exit-handling.patch
+* autofs-add-warn_on1-for-non-dir-link-inode-case.patch
+* autofs-remove-ino-free-in-autofs4_dir_symlink.patch
+* autofs-use-autofs4_free_ino-to-kfree-dentry-data.patch
+* autofs-remove-obsolete-sb-fields.patch
+* autofs-dont-fail-to-free_dev_ioctlparam.patch
+* autofs-remove-autofs_devid_len.patch
+* autofs-fix-documentation-regarding-devid-on-ioctl.patch
+* autofs-update-struct-autofs_dev_ioctl-in-documentation.patch
+* autofs-fix-pr_debug-message.patch
+* autofs-fix-dev-ioctl-number-range-check.patch
+* autofs-add-autofs_dev_ioctl_version-for-autofs_dev_ioctl_version_cmd.patch
+* autofs-fix-print-format-for-ioctl-warning-message.patch
+* autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+* autofs4-move-linux-auto_dev-ioctlh-to-uapi-linux.patch
+* autofs-remove-possibly-misleading-define-debug.patch
+* autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl.patch
+* pipe-relocate-round_pipe_size-above-pipe_set_size.patch
+* pipe-move-limit-checking-logic-into-pipe_set_size.patch
+* pipe-refactor-argument-for-account_pipe_buffers.patch
+* pipe-fix-limit-checking-in-pipe_set_size.patch
+* pipe-simplify-logic-in-alloc_pipe_info.patch
+* pipe-fix-limit-checking-in-alloc_pipe_info.patch
+* pipe-make-account_pipe_buffers-return-a-value-and-use-it.patch
+* pipe-cap-initial-pipe-capacity-according-to-pipe-max-size-limit.patch
+* ptrace-clear-tif_syscall_trace-on-ptrace-detach.patch
+* rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code.patch
+* random-simplify-api-for-random-address-requests.patch
+* x86-use-simpler-api-for-random-address-requests.patch
+* arm-use-simpler-api-for-random-address-requests.patch
+* arm64-use-simpler-api-for-random-address-requests.patch
+* tile-use-simpler-api-for-random-address-requests.patch
+* unicore32-use-simpler-api-for-random-address-requests.patch
+* random-remove-unused-randomize_range.patch
+* dma-mapping-introduce-the-dma_attr_no_warn-attribute.patch
+* powerpc-implement-the-dma_attr_no_warn-attribute.patch
+* nvme-use-the-dma_attr_no_warn-attribute.patch
+* x86-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path.patch
+* mips-panic-replace-smp_send_stop-with-kdump-friendly-version-in-panic-path.patch
+* pps-kc-fix-non-tickless-system-config-dependency.patch
+* relay-use-irq_work-instead-of-plain-timer-for-deferred-wakeup.patch
+* config-android-remove-config_ipv6_privacy.patch
+* config-android-move-device-mapper-options-to-recommended.patch
+* config-android-set-selinux-as-default-security-mode.patch
+* config-android-enable-config_seccomp.patch
+* kcov-do-not-instrument-lib-stackdepotc.patch
+* ipc-semc-fix-complex_count-vs-simple-op-race.patch
+* ipc-msg-implement-lockless-pipelined-wakeups.patch
+* ipc-msg-batch-queue-sender-wakeups.patch
+* ipc-msg-make-ss_wakeup-kill-arg-boolean.patch
+* ipc-msg-avoid-waking-sender-upon-full-queue.patch
+* ipc-semc-add-cond_resched-in-exit_sme.patch
+* kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
+* mm-kmemleak-avoid-using-__va-on-addresses-that-dont-have-a-lowmem-mapping.patch
+* enable-code-completion-in-vim.patch
+* kthread-rename-probe_kthread_data-to-kthread_probe_data.patch
+* kthread-kthread-worker-api-cleanup.patch
+* kthread-smpboot-do-not-park-in-kthread_create_on_cpu.patch
+* kthread-allow-to-call-__kthread_create_on_node-with-va_list-args.patch
+* kthread-add-kthread_create_worker.patch
+* kthread-add-kthread_destroy_worker.patch
+* kthread-detect-when-a-kthread-work-is-used-by-more-workers.patch
+* kthread-initial-support-for-delayed-kthread-work.patch
+* kthread-allow-to-cancel-kthread-work.patch
+* kthread-allow-to-modify-delayed-kthread-work.patch
+* kthread-better-support-freezable-kthread-workers.patch
+* kthread-add-kerneldoc-for-kthread_create.patch
+* hung_task-allow-hung_task_panic-when-hung_task_warnings-is-0.patch
+* treewide-remove-redundant-include-linux-kconfigh.patch
+* fs-use-mapping_set_error-instead-of-opencoded-set_bit.patch
+* mm-split-gfp_mask-and-mapping-flags-into-separate-fields.patch
+  i-need-old-gcc.patch
+* mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch
+* kcov-properly-check-if-we-are-in-an-interrupt.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* kbuild-simpler-generation-of-assembly-constants.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+* kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
+  mm.patch
+* mm-zsmalloc-add-trace-events-for-zs_compact.patch
+* mm-zsmalloc-add-per-class-compact-trace-event.patch
+* mm-page_owner-align-with-pageblock_nr-pages.patch
+* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+* lib-add-crc64-ecma-module.patch
+* kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+* kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
+* kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
+* powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
+* powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c.patch
+* powerpc-generalize-elf64_apply_relocate_add.patch
+* powerpc-adapt-elf64_apply_relocate_add-for-kexec_file_load.patch
+* powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
+* powerpc-implement-kexec_file_load.patch
+* powerpc-add-code-to-work-with-device-trees-in-kexec_file_load.patch
+* powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
+* powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load-fix.patch
+* powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+* powerpc-add-purgatory-for-kexec_file_load-implementation-fix.patch
+* powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
+* powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
+* ima-on-soft-reboot-restore-the-measurement-list.patch
+* ima-permit-duplicate-measurement-list-entries.patch
+* ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+* powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+* ima-on-soft-reboot-save-the-measurement-list.patch
+* ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+* ima-support-restoring-multiple-template-formats.patch
+* ima-define-a-canonical-binary_runtime_measurements-list-format.patch
+* ima-platform-independent-hash-value.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+  linux-next.patch
+  linux-next-rejects.patch
+  linux-next-git-rejects.patch
+* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+* include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  make-frame_pointer-default=y.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  add-debugging-aid-for-memory-initialisation-problems.patch
+  workaround-for-a-pci-restoring-bug.patch
+  b.patch
