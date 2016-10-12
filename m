@@ -1,75 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs-fix-autofs4_fill_super-error-exit-handling.patch
+Subject: [merged] autofs-fix-documentation-regarding-devid-on-ioctl.patch
  removed from -mm tree
-Date: Wed, 12 Oct 2016 12:23:41 -0700
-Message-ID: <57fe8dbd.W4/MIBb3CyTv5oy6%akpm@linux-foundation.org>
+Date: Wed, 12 Oct 2016 12:23:55 -0700
+Message-ID: <57fe8dcb.7frUy2FneKMntZwj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33281 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33272 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755899AbcJLTYe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:34 -0400
+        with ESMTP id S1756021AbcJLTYg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raven@themaw.net, kusumi.tomohiro@gmail.com, mm-commits@vger.kernel.org
+To: kusumi.tomohiro@gmail.com, ikent@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: fix autofs4_fill_super() error exit handling
+     Subject: autofs: fix Documentation regarding devid on ioctl
 has been removed from the -mm tree.  Its filename was
-     autofs-fix-autofs4_fill_super-error-exit-handling.patch
+     autofs-fix-documentation-regarding-devid-on-ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ian Kent <raven@themaw.net>
-Subject: autofs: fix autofs4_fill_super() error exit handling
+From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Subject: autofs: fix Documentation regarding devid on ioctl
 
-Somewhere along the line the error handling gotos have become incorrect.
+The explanation on how ioctl handles devid seems incorrect.  Userspace who
+calls this ioctl has no input regarding devid, and ioctl implementation
+retrieves devid via superblock.
 
-Link: http://lkml.kernel.org/r/20160812024749.12352.15100.stgit@pluto.themaw.net
-Signed-off-by: Ian Kent <raven@themaw.net>
-Cc: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Link: http://lkml.kernel.org/r/20160812024825.12352.13486.stgit@pluto.themaw.net
+Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Signed-off-by: Ian Kent <ikent@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/inode.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/filesystems/autofs4-mount-control.txt |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/autofs4/inode.c~autofs-fix-autofs4_fill_super-error-exit-handling fs/autofs4/inode.c
---- a/fs/autofs4/inode.c~autofs-fix-autofs4_fill_super-error-exit-handling
-+++ a/fs/autofs4/inode.c
-@@ -313,7 +313,7 @@ int autofs4_fill_super(struct super_bloc
+diff -puN Documentation/filesystems/autofs4-mount-control.txt~autofs-fix-documentation-regarding-devid-on-ioctl Documentation/filesystems/autofs4-mount-control.txt
+--- a/Documentation/filesystems/autofs4-mount-control.txt~autofs-fix-documentation-regarding-devid-on-ioctl
++++ a/Documentation/filesystems/autofs4-mount-control.txt
+@@ -323,9 +323,8 @@ mount on the given path dentry.
  
- 	if (!pipe) {
- 		pr_err("could not open pipe file descriptor\n");
--		goto fail_dput;
-+		goto fail_put_pid;
- 	}
- 	ret = autofs_prepare_pipe(pipe);
- 	if (ret < 0)
-@@ -334,14 +334,14 @@ int autofs4_fill_super(struct super_bloc
- fail_fput:
- 	pr_err("pipe file descriptor does not contain proper ops\n");
- 	fput(pipe);
--	/* fall through */
-+fail_put_pid:
-+	put_pid(sbi->oz_pgrp);
- fail_dput:
- 	dput(root);
- 	goto fail_free;
- fail_ino:
- 	kfree(ino);
- fail_free:
--	put_pid(sbi->oz_pgrp);
- 	kfree(sbi);
- 	s->s_fs_info = NULL;
- 	return ret;
+ The call requires an initialized struct autofs_dev_ioctl with the path
+ field set to the mount point in question and the size field adjusted
+-appropriately as well as the arg1 field set to the device number of the
+-containing autofs mount. Upon return the struct field arg1 contains the
+-uid and arg2 the gid.
++appropriately. Upon return the struct field arg1 contains the uid and
++arg2 the gid.
+ 
+ When reconstructing an autofs mount tree with active mounts we need to
+ re-connect to mounts that may have used the original process uid and
 _
 
-Patches currently in -mm which might be from raven@themaw.net are
+Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
 
 
