@@ -1,101 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: + kprobes-avoid-false-kasan-reports-during-stack-copy.patch added to -mm tree
-Date: Wed, 12 Oct 2016 15:10:47 -0700
-Message-ID: <57feb4e7.rWd9OiQJ8L/Q2JJu%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-zsmalloc-add-trace-events-for-zs_compact.patch removed from -mm tree
+Date: Wed, 12 Oct 2016 16:00:24 -0700
+Message-ID: <57fec088.3SnymDDyIqWdEWOp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39482 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40674 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932694AbcJLWfu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 18:35:50 -0400
+        with ESMTP id S933169AbcJLXZu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 19:25:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, caiqian@redhat.com, davem@davemloft.net, glider@google.com, hpa@zytor.com, mhiramat@kernel.org, mingo@redhat.com, ryabinin.a.a@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: opensource.ganesh@gmail.com, minchan@kernel.org, mingo@elte.hu, rostedt@goodmis.org, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kprobes: avoid false KASAN reports during stack copy
-has been added to the -mm tree.  Its filename is
-     kprobes-avoid-false-kasan-reports-during-stack-copy.patch
+     Subject: mm/zsmalloc: add trace events for zs_compact
+has been removed from the -mm tree.  Its filename was
+     mm-zsmalloc-add-trace-events-for-zs_compact.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kprobes-avoid-false-kasan-reports-during-stack-copy.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kprobes-avoid-false-kasan-reports-during-stack-copy.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kprobes: avoid false KASAN reports during stack copy
+From: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Subject: mm/zsmalloc: add trace events for zs_compact
 
-Kprobes saves and restores raw stack chunks with memcpy().  With KASAN
-these chunks can contain poisoned stack redzones, as the result memcpy()
-interceptor produces false stack out-of-bounds reports.
+Currently zsmalloc is widely used in android device.  Sometimes, we want
+to see how frequently zs_compact is triggered or how may pages freed by
+zs_compact(), or which zsmalloc pool is compacted.
 
-Use __memcpy() instead of memcpy() for stack copying.  __memcpy() is not
-instrumented by KASAN and does not lead to the false reports.
+We have backported the zs_compact() to our product(kernel 3.18).  It is
+usefull for a longtime running device.  But there is not a convenient
+way to get the detailed information of zs_comapct() which is usefull
+for performance optimization.  Information about how much time
+zs_compact used, which pool is compacted, how many page freed, etc. 
+With these information, we will know what is going on in zs_comapct. 
+And draw the relation between free mem and zs_comapct.
 
-Link: http://lkml.kernel.org/r/1476188018-36101-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Reported-by: CAI Qian <caiqian@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Most of the time, user can get the brief information from
+trace_mm_shrink_slab_[start | end], but in some senario, they do not use
+zsmalloc shrinker, but trigger compaction manually.  So add some trace
+events in zs_compact is convenient.  Also we can add some zsmalloc
+specific information(pool name, total compact pages, etc) in zsmalloc
+trace.
+
+This patch add two trace events for zs_compact(), below the trace log:
+-----------------------------
+root@land:/ # cat /d/tracing/trace
+         kswapd0-125   [007] ...1   174.176979: zsmalloc_compact_start: pool zram0
+         kswapd0-125   [007] ...1   174.181967: zsmalloc_compact_end: pool zram0: 608 pages compacted(total 1794)
+         kswapd0-125   [000] ...1   184.134475: zsmalloc_compact_start: pool zram0
+         kswapd0-125   [000] ...1   184.135010: zsmalloc_compact_end: pool zram0: 62 pages compacted(total 1856)
+         kswapd0-125   [003] ...1   226.927221: zsmalloc_compact_start: pool zram0
+         kswapd0-125   [003] ...1   226.928575: zsmalloc_compact_end: pool zram0: 250 pages compacted(total 2106)
+-----------------------------
+
+Link: http://lkml.kernel.org/r/1465289804-4913-1-git-send-email-opensource.ganesh@gmail.com
+Signed-off-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kprobes/core.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/trace/events/zsmalloc.h |   56 ++++++++++++++++++++++++++++++
+ mm/zsmalloc.c                   |   10 +++++
+ 2 files changed, 66 insertions(+)
 
-diff -puN arch/x86/kernel/kprobes/core.c~kprobes-avoid-false-kasan-reports-during-stack-copy arch/x86/kernel/kprobes/core.c
---- a/arch/x86/kernel/kprobes/core.c~kprobes-avoid-false-kasan-reports-during-stack-copy
-+++ a/arch/x86/kernel/kprobes/core.c
-@@ -1057,9 +1057,11 @@ int setjmp_pre_handler(struct kprobe *p,
- 	 * tailcall optimization. So, to be absolutely safe
- 	 * we also save and restore enough stack bytes to cover
- 	 * the argument area.
-+	 * Use __memcpy to avoid KASAN stack out-of-bounds reports as we copy
-+	 * raw stack chunk with redzones.
- 	 */
--	memcpy(kcb->jprobes_stack, (kprobe_opcode_t *)addr,
--	       MIN_STACK_SIZE(addr));
-+	__memcpy(kcb->jprobes_stack, (kprobe_opcode_t *)addr,
-+		 MIN_STACK_SIZE(addr));
- 	regs->flags &= ~X86_EFLAGS_IF;
- 	trace_hardirqs_off();
- 	regs->ip = (unsigned long)(jp->entry);
-@@ -1118,7 +1120,8 @@ int longjmp_break_handler(struct kprobe
- 		/* It's OK to start function graph tracing again */
- 		unpause_graph_tracing();
- 		*regs = kcb->jprobe_saved_regs;
--		memcpy(saved_sp, kcb->jprobes_stack, MIN_STACK_SIZE(saved_sp));
-+		__memcpy(saved_sp, kcb->jprobes_stack,
-+			 MIN_STACK_SIZE(saved_sp));
- 		preempt_enable_no_resched();
- 		return 1;
+diff -puN /dev/null include/trace/events/zsmalloc.h
+--- /dev/null
++++ a/include/trace/events/zsmalloc.h
+@@ -0,0 +1,56 @@
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM zsmalloc
++
++#if !defined(_TRACE_ZSMALLOC_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_ZSMALLOC_H
++
++#include <linux/types.h>
++#include <linux/tracepoint.h>
++
++TRACE_EVENT(zsmalloc_compact_start,
++
++	TP_PROTO(const char *pool_name),
++
++	TP_ARGS(pool_name),
++
++	TP_STRUCT__entry(
++		__field(const char *, pool_name)
++	),
++
++	TP_fast_assign(
++		__entry->pool_name = pool_name;
++	),
++
++	TP_printk("pool %s",
++		  __entry->pool_name)
++);
++
++TRACE_EVENT(zsmalloc_compact_end,
++
++	TP_PROTO(const char *pool_name, unsigned long pages_compacted,
++			unsigned long pages_total_compacted),
++
++	TP_ARGS(pool_name, pages_compacted, pages_total_compacted),
++
++	TP_STRUCT__entry(
++		__field(const char *, pool_name)
++		__field(unsigned long, pages_compacted)
++		__field(unsigned long, pages_total_compacted)
++	),
++
++	TP_fast_assign(
++		__entry->pool_name = pool_name;
++		__entry->pages_compacted = pages_compacted;
++		__entry->pages_total_compacted = pages_total_compacted;
++	),
++
++	TP_printk("pool %s: %ld pages compacted(total %ld)",
++		  __entry->pool_name,
++		  __entry->pages_compacted,
++		  __entry->pages_total_compacted)
++);
++
++#endif /* _TRACE_ZSMALLOC_H */
++
++/* This part must be outside protection */
++#include <trace/define_trace.h>
+diff -puN mm/zsmalloc.c~mm-zsmalloc-add-trace-events-for-zs_compact mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-add-trace-events-for-zs_compact
++++ a/mm/zsmalloc.c
+@@ -31,6 +31,8 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
++#define CREATE_TRACE_POINTS
++
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
+@@ -53,6 +55,7 @@
+ #include <linux/mount.h>
+ #include <linux/migrate.h>
+ #include <linux/pagemap.h>
++#include <trace/events/zsmalloc.h>
+ 
+ #define ZSPAGE_MAGIC	0x58
+ 
+@@ -2309,6 +2312,9 @@ unsigned long zs_compact(struct zs_pool
+ {
+ 	int i;
+ 	struct size_class *class;
++	unsigned long pages_compacted_before = pool->stats.pages_compacted;
++
++	trace_zsmalloc_compact_start(pool->name);
+ 
+ 	for (i = zs_size_classes - 1; i >= 0; i--) {
+ 		class = pool->size_class[i];
+@@ -2319,6 +2325,10 @@ unsigned long zs_compact(struct zs_pool
+ 		__zs_compact(pool, class);
  	}
+ 
++	trace_zsmalloc_compact_end(pool->name,
++		pool->stats.pages_compacted - pages_compacted_before,
++		pool->stats.pages_compacted);
++
+ 	return pool->stats.pages_compacted;
+ }
+ EXPORT_SYMBOL_GPL(zs_compact);
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from opensource.ganesh@gmail.com are
 
-kprobes-avoid-false-kasan-reports-during-stack-copy.patch
+mm-zsmalloc-add-per-class-compact-trace-event.patch
 
