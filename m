@@ -1,71 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-add-warning-for-unnamed-function-definition-arguments.patch
+Subject: [merged] autofs-remove-possibly-misleading-define-debug.patch
  removed from -mm tree
-Date: Wed, 12 Oct 2016 12:23:29 -0700
-Message-ID: <57fe8db1.uVsp+0P71JQsDQIC%akpm@linux-foundation.org>
+Date: Wed, 12 Oct 2016 12:24:12 -0700
+Message-ID: <57fe8ddc./K81VEKiRq1q+q6f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33181 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33275 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755998AbcJLTYb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:31 -0400
+        with ESMTP id S1755991AbcJLTYi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: kusumi.tomohiro@gmail.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add warning for unnamed function definition arguments
+     Subject: autofs: remove possibly misleading /* #define DEBUG */
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-warning-for-unnamed-function-definition-arguments.patch
+     autofs-remove-possibly-misleading-define-debug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add warning for unnamed function definition arguments
+From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Subject: autofs: remove possibly misleading /* #define DEBUG */
 
-Function definitions without identifiers like
-	 int foo(int)
-are not preferred.  Emit a warning when they occur.
+Having this in autofs_i.h gives illusion that uncommenting this enables
+pr_debug(), but it doesn't enable all the pr_debug() in autofs because
+inclusion order matters.
 
-Link: http://lkml.kernel.org/r/94fe6378504745991b650f48fc92bb4648f25706.1474925354.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+XFS has the same DEBUG macro in its core header fs/xfs/xfs.h, however XFS
+seems to have a rule to include this prior to other XFS headers as well as
+kernel headers.  This is not the case with autofs, and DEBUG could be
+enabled via Makefile, so autofs should just get rid of this comment to
+make the code less confusing.  It's a comment, so there is literally no
+functional difference.
+
+Link: http://lkml.kernel.org/r/20160831033409.9910.77067.stgit@pluto.themaw.net
+Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ fs/autofs4/autofs_i.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-warning-for-unnamed-function-definition-arguments scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-warning-for-unnamed-function-definition-arguments
-+++ a/scripts/checkpatch.pl
-@@ -5794,6 +5794,19 @@ sub process {
- 			     "externs should be avoided in .c files\n" .  $herecurr);
- 		}
+diff -puN fs/autofs4/autofs_i.h~autofs-remove-possibly-misleading-define-debug fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs-remove-possibly-misleading-define-debug
++++ a/fs/autofs4/autofs_i.h
+@@ -34,8 +34,6 @@
+ #include <asm/current.h>
+ #include <linux/uaccess.h>
  
-+		if ($realfile =~ /\.[ch]$/ && defined $stat &&
-+		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*$Ident\s*\(\s*([^{]+)\s*\)\s*;/s &&
-+		    $1 ne "void") {
-+			my $args = trim($1);
-+			while ($args =~ m/\s*($Type\s*(?:$Ident|\(\s*\*\s*$Ident?\s*\)\s*$balanced_parens)?)/g) {
-+				my $arg = trim($1);
-+				if ($arg =~ /^$Type$/ && $arg !~ /enum\s+$Ident$/) {
-+					WARN("FUNCTION_ARGUMENTS",
-+					     "function definition argument '$arg' should also have an identifier name\n" . $herecurr);
-+				}
-+			}
-+		}
-+
- # checks for new __setup's
- 		if ($rawline =~ /\b__setup\("([^"]*)"/) {
- 			my $name = $1;
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-
+-/* #define DEBUG */
