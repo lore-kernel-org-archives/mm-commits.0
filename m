@@ -1,87 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-improve-macro_arg_precedence-test.patch
+Subject: [merged] autofs-remove-ino-free-in-autofs4_dir_symlink.patch
  removed from -mm tree
-Date: Wed, 12 Oct 2016 12:23:27 -0700
-Message-ID: <57fe8daf.JNmInXId9ySgIqjG%akpm@linux-foundation.org>
+Date: Wed, 12 Oct 2016 12:23:45 -0700
+Message-ID: <57fe8dc1.FbJCpcsWe17CSWKS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33274 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33282 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755995AbcJLTYb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:31 -0400
+        with ESMTP id S1755972AbcJLTYe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: raven@themaw.net, kusumi.tomohiro@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve MACRO_ARG_PRECEDENCE test
+     Subject: autofs: remove ino free in autofs4_dir_symlink()
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-macro_arg_precedence-test.patch
+     autofs-remove-ino-free-in-autofs4_dir_symlink.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve MACRO_ARG_PRECEDENCE test
+From: Ian Kent <raven@themaw.net>
+Subject: autofs: remove ino free in autofs4_dir_symlink()
 
-It is possible for a multiple line macro definition to have a false positive
-report when an argument is used on a line after a continuation \.
+The inode allocation failure case in autofs4_dir_symlink() frees the
+autofs dentry info of the dentry without setting ->d_fsdata to NULL.
 
-This line might have a leading '+' as the initial character that could be
-confused by checkpatch as an operator.
+That could lead to a double free so just get rid of the free and leave it
+to ->d_release().
 
-Avoid the leading character on multiple line macro definitions.
-
-Link: http://lkml.kernel.org/r/60229d13399f9b6509db5a32e30d4c16951a60cd.1473836073.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
+Link: http://lkml.kernel.org/r/20160812024759.12352.10653.stgit@pluto.themaw.net
+Signed-off-by: Ian Kent <raven@themaw.net>
+Cc: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ fs/autofs4/root.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-macro_arg_precedence-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-macro_arg_precedence-test
-+++ a/scripts/checkpatch.pl
-@@ -4833,13 +4833,31 @@ sub process {
- 				}
- 
- 			}
-+
-+			# Make $define_stmt single line, comment-free, etc
-+			my @stmt_array = split('\n', $define_stmt);
-+			my $first = 1;
-+			$define_stmt = "";
-+			foreach my $l (@stmt_array) {
-+				$l =~ s/\\$//;
-+				if ($first) {
-+					$define_stmt = $l;
-+					$first = 0;
-+				} elsif ($l =~ /^[\+ ]/) {
-+					$define_stmt .= substr($l, 1);
-+				}
-+			}
-+			$define_stmt =~ s/$;//g;
-+			$define_stmt =~ s/\s+/ /g;
-+			$define_stmt = trim($define_stmt);
-+
- # check if any macro arguments are reused (ignore '...' and 'type')
- 			foreach my $arg (@def_args) {
- 			        next if ($arg =~ /\.\.\./);
- 			        next if ($arg =~ /^type$/i);
- 				my $tmp = $define_stmt;
- 				$tmp =~ s/\b(typeof|__typeof__|__builtin\w+|typecheck\s*\(\s*$Type\s*,|\#+)\s*\(*\s*$arg\s*\)*\b//g;
--				$tmp =~ s/\#\s*$arg\b//g;
-+				$tmp =~ s/\#+\s*$arg\b//g;
- 				$tmp =~ s/\b$arg\s*\#\#//g;
- 				my $use_cnt = $tmp =~ s/\b$arg\b//g;
- 				if ($use_cnt > 1) {
+diff -puN fs/autofs4/root.c~autofs-remove-ino-free-in-autofs4_dir_symlink fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs-remove-ino-free-in-autofs4_dir_symlink
++++ a/fs/autofs4/root.c
+@@ -577,8 +577,6 @@ static int autofs4_dir_symlink(struct in
+ 	inode = autofs4_get_inode(dir->i_sb, S_IFLNK | 0555);
+ 	if (!inode) {
+ 		kfree(cp);
+-		if (!dentry->d_fsdata)
+-			kfree(ino);
+ 		return -ENOMEM;
+ 	}
+ 	inode->i_private = cp;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from raven@themaw.net are
 
 
