@@ -1,56 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs-drop-unnecessary-extern-in-autofs_ih.patch
+Subject: [merged]
+ kprobes-include-asm-sectionsh-instead-of-asm-generic-sectionsh.patch
  removed from -mm tree
-Date: Wed, 12 Oct 2016 12:23:37 -0700
-Message-ID: <57fe8db9.9AqUaWOG8xi05TBJ%akpm@linux-foundation.org>
+Date: Wed, 12 Oct 2016 12:23:33 -0700
+Message-ID: <57fe8db5.Ypz8vm1Br3zQce4D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33193 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33182 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755880AbcJLTYd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:33 -0400
+        with ESMTP id S1756006AbcJLTYc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kusumi.tomohiro@gmail.com, raven@themaw.net, mm-commits@vger.kernel.org
+To: hch@lst.de, mhiramat@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: drop unnecessary extern in autofs_i.h
+     Subject: kprobes: include <asm/sections.h> instead of <asm-generic/sections.h>
 has been removed from the -mm tree.  Its filename was
-     autofs-drop-unnecessary-extern-in-autofs_ih.patch
+     kprobes-include-asm-sectionsh-instead-of-asm-generic-sectionsh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: drop unnecessary extern in autofs_i.h
+From: Christoph Hellwig <hch@lst.de>
+Subject: kprobes: include <asm/sections.h> instead of <asm-generic/sections.h>
 
-autofs4_kill_sb() doesn't need to be declared as extern, and no other
-functions in .h are explicitly declared as extern.
+asm-generic headers are generic implementations for architecture specific
+code and should not be included by common code.  Thus use the asm/ version
+of sections.h to get at the linker sections.
 
-Link: http://lkml.kernel.org/r/20160812024739.12352.99354.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+Link: http://lkml.kernel.org/r/1473602302-6208-1-git-send-email-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/autofs_i.h |    2 +-
+ kernel/kprobes.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/autofs_i.h~autofs-drop-unnecessary-extern-in-autofs_ih fs/autofs4/autofs_i.h
---- a/fs/autofs4/autofs_i.h~autofs-drop-unnecessary-extern-in-autofs_ih
-+++ a/fs/autofs4/autofs_i.h
-@@ -271,4 +271,4 @@ static inline void autofs4_del_expiring(
- 	}
- }
+diff -puN kernel/kprobes.c~kprobes-include-asm-sectionsh-instead-of-asm-generic-sectionsh kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-include-asm-sectionsh-instead-of-asm-generic-sectionsh
++++ a/kernel/kprobes.c
+@@ -49,7 +49,7 @@
+ #include <linux/cpu.h>
+ #include <linux/jump_label.h>
  
--extern void autofs4_kill_sb(struct super_block *);
-+void autofs4_kill_sb(struct super_block *);
+-#include <asm-generic/sections.h>
++#include <asm/sections.h>
+ #include <asm/cacheflush.h>
+ #include <asm/errno.h>
+ #include <asm/uaccess.h>
 _
 
-Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
+Patches currently in -mm which might be from hch@lst.de are
 
 
