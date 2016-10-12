@@ -1,1219 +1,274 @@
 From: akpm@linux-foundation.org
-Subject: [merged] treewide-remove-redundant-include-linux-kconfigh.patch
- removed from -mm tree
-Date: Wed, 12 Oct 2016 12:26:37 -0700
-Message-ID: <57fe8e6d.wBXqEfkUVjL8wmQq%akpm@linux-foundation.org>
+Subject: [merged] kthread-allow-to-cancel-kthread-work.patch removed from
+ -mm tree
+Date: Wed, 12 Oct 2016 12:26:24 -0700
+Message-ID: <57fe8e60.rflnKmXr9MthX84P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33829 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33847 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754850AbcJLT1k (ORCPT
+        with ESMTP id S1755137AbcJLT1k (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:27:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.masahiro@socionext.com, mm-commits@vger.kernel.org
+To: pmladek@suse.com, bp@suse.de, jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: treewide: remove redundant #include <linux/kconfig.h>
+     Subject: kthread: allow to cancel kthread work
 has been removed from the -mm tree.  Its filename was
-     treewide-remove-redundant-include-linux-kconfigh.patch
+     kthread-allow-to-cancel-kthread-work.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: treewide: remove redundant #include <linux/kconfig.h>
+From: Petr Mladek <pmladek@suse.com>
+Subject: kthread: allow to cancel kthread work
 
-Kernel source files need not include <linux/kconfig.h> explicitly
-because the top Makefile forces to include it with:
+We are going to use kthread workers more widely and sometimes we will need
+to make sure that the work is neither pending nor running.
 
-  -include $(srctree)/include/linux/kconfig.h
+This patch implements cancel_*_sync() operations as inspired by
+workqueues.  Well, we are synchronized against the other operations via
+the worker lock, we use del_timer_sync() and a counter to count parallel
+cancel operations.  Therefore the implementation might be easier.
 
-This commit removes explicit includes except the following:
+First, we check if a worker is assigned.  If not, the work has newer been
+queued after it was initialized.
 
-  * arch/s390/include/asm/facilities_src.h
-  * tools/testing/radix-tree/linux/kernel.h
+Second, we take the worker lock.  It must be the right one.  The work must
+not be assigned to another worker unless it is initialized in between.
 
-These two are used for host programs.
+Third, we try to cancel the timer when it exists.  The timer is deleted
+synchronously to make sure that the timer call back is not running.  We
+need to temporary release the worker->lock to avoid a possible deadlock
+with the callback.  In the meantime, we set work->canceling counter to
+avoid any queuing.
 
-Link: http://lkml.kernel.org/r/1473656164-11929-1-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Fourth, we try to remove the work from a worker list. It might be
+the list of either normal or delayed works.
+
+Fifth, if the work is running, we call kthread_flush_work().  It might
+take an arbitrary time.  We need to release the worker-lock again.  In the
+meantime, we again block any queuing by the canceling counter.
+
+As already mentioned, the check for a pending kthread work is done under a
+lock.  In compare with workqueues, we do not need to fight for a single
+PENDING bit to block other operations.  Therefore we do not suffer from
+the thundering storm problem and all parallel canceling jobs might use
+kthread_flush_work().  Any queuing is blocked until the counter gets zero.
+
+Link: http://lkml.kernel.org/r/1470754545-17632-10-git-send-email-pmladek@suse.com
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/trusted_foundations.h       |    1 -
- arch/arm64/include/asm/alternative.h             |    1 -
- arch/mips/include/asm/mach-loongson64/loongson.h |    1 -
- arch/mips/math-emu/cp1emu.c                      |    1 -
- arch/mips/net/bpf_jit.c                          |    1 -
- drivers/char/virtio_console.c                    |    1 -
- drivers/input/rmi4/rmi_bus.c                     |    1 -
- drivers/input/rmi4/rmi_driver.c                  |    1 -
- drivers/input/rmi4/rmi_f01.c                     |    1 -
- drivers/input/rmi4/rmi_f11.c                     |    1 -
- drivers/irqchip/irq-bcm6345-l1.c                 |    1 -
- drivers/irqchip/irq-bcm7038-l1.c                 |    1 -
- drivers/irqchip/irq-bcm7120-l2.c                 |    1 -
- drivers/irqchip/irq-brcmstb-l2.c                 |    1 -
- drivers/media/dvb-frontends/af9013.h             |    1 -
- drivers/media/dvb-frontends/af9033.h             |    2 --
- drivers/media/dvb-frontends/ascot2e.h            |    1 -
- drivers/media/dvb-frontends/atbm8830.h           |    1 -
- drivers/media/dvb-frontends/au8522.h             |    1 -
- drivers/media/dvb-frontends/cx22702.h            |    1 -
- drivers/media/dvb-frontends/cx24113.h            |    2 --
- drivers/media/dvb-frontends/cx24116.h            |    1 -
- drivers/media/dvb-frontends/cx24117.h            |    1 -
- drivers/media/dvb-frontends/cx24120.h            |    1 -
- drivers/media/dvb-frontends/cx24123.h            |    1 -
- drivers/media/dvb-frontends/cxd2820r.h           |    1 -
- drivers/media/dvb-frontends/cxd2841er.h          |    1 -
- drivers/media/dvb-frontends/dib3000mc.h          |    2 --
- drivers/media/dvb-frontends/dib7000m.h           |    2 --
- drivers/media/dvb-frontends/dib7000p.h           |    2 --
- drivers/media/dvb-frontends/drxd.h               |    1 -
- drivers/media/dvb-frontends/drxk.h               |    1 -
- drivers/media/dvb-frontends/ds3000.h             |    1 -
- drivers/media/dvb-frontends/dvb_dummy_fe.h       |    1 -
- drivers/media/dvb-frontends/ec100.h              |    1 -
- drivers/media/dvb-frontends/hd29l2.h             |    1 -
- drivers/media/dvb-frontends/helene.h             |    1 -
- drivers/media/dvb-frontends/horus3a.h            |    1 -
- drivers/media/dvb-frontends/ix2505v.h            |    1 -
- drivers/media/dvb-frontends/lg2160.h             |    1 -
- drivers/media/dvb-frontends/lgdt3305.h           |    1 -
- drivers/media/dvb-frontends/lgs8gl5.h            |    1 -
- drivers/media/dvb-frontends/lgs8gxx.h            |    1 -
- drivers/media/dvb-frontends/lnbh24.h             |    2 --
- drivers/media/dvb-frontends/lnbh25.h             |    1 -
- drivers/media/dvb-frontends/lnbp21.h             |    2 --
- drivers/media/dvb-frontends/lnbp22.h             |    2 --
- drivers/media/dvb-frontends/m88rs2000.h          |    1 -
- drivers/media/dvb-frontends/mb86a20s.h           |    1 -
- drivers/media/dvb-frontends/s5h1409.h            |    1 -
- drivers/media/dvb-frontends/s5h1411.h            |    1 -
- drivers/media/dvb-frontends/s5h1432.h            |    1 -
- drivers/media/dvb-frontends/s921.h               |    1 -
- drivers/media/dvb-frontends/si21xx.h             |    1 -
- drivers/media/dvb-frontends/sp2.h                |    1 -
- drivers/media/dvb-frontends/stb6000.h            |    1 -
- drivers/media/dvb-frontends/stv0288.h            |    1 -
- drivers/media/dvb-frontends/stv0367.h            |    1 -
- drivers/media/dvb-frontends/stv0900.h            |    1 -
- drivers/media/dvb-frontends/stv6110.h            |    1 -
- drivers/media/dvb-frontends/tda10048.h           |    1 -
- drivers/media/dvb-frontends/tda18271c2dd.h       |    2 --
- drivers/media/dvb-frontends/ts2020.h             |    1 -
- drivers/media/dvb-frontends/zl10036.h            |    1 -
- drivers/media/dvb-frontends/zl10039.h            |    2 --
- drivers/media/pci/cx23885/altera-ci.h            |    2 --
- drivers/media/tuners/fc0011.h                    |    1 -
- drivers/media/tuners/fc0012.h                    |    1 -
- drivers/media/tuners/fc0013.h                    |    1 -
- drivers/media/tuners/max2165.h                   |    2 --
- drivers/media/tuners/mc44s803.h                  |    2 --
- drivers/media/tuners/mxl5005s.h                  |    2 --
- drivers/media/tuners/r820t.h                     |    1 -
- drivers/media/tuners/si2157.h                    |    1 -
- drivers/media/tuners/tda18212.h                  |    1 -
- drivers/media/tuners/tda18218.h                  |    1 -
- drivers/media/tuners/xc5000.h                    |    1 -
- drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h    |    1 -
- drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h    |    1 -
- drivers/media/usb/dvb-usb/dibusb-common.c        |    1 -
- drivers/media/usb/hdpvr/hdpvr-video.c            |    1 -
- drivers/mtd/mtdcore.c                            |    1 -
- drivers/mtd/mtdpart.c                            |    1 -
- drivers/net/dsa/b53/b53_mmap.c                   |    1 -
- drivers/net/ethernet/sun/ldmvsw.c                |    1 -
- drivers/net/ethernet/wiznet/w5100.c              |    1 -
- drivers/net/ethernet/wiznet/w5300.c              |    1 -
- drivers/usb/early/ehci-dbgp.c                    |    1 -
- drivers/usb/gadget/udc/bcm63xx_udc.c             |    1 -
- drivers/usb/host/pci-quirks.c                    |    1 -
- fs/lockd/procfs.h                                |    2 --
- include/linux/export.h                           |    1 -
- include/linux/gpio/driver.h                      |    1 -
- net/batman-adv/debugfs.h                         |    2 --
- sound/soc/intel/common/sst-acpi.h                |    1 -
- tools/testing/nvdimm/config_check.c              |    1 -
- 96 files changed, 112 deletions(-)
+ include/linux/kthread.h |    5 +
+ kernel/kthread.c        |  132 +++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 135 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/include/asm/trusted_foundations.h~treewide-remove-redundant-include-linux-kconfigh arch/arm/include/asm/trusted_foundations.h
---- a/arch/arm/include/asm/trusted_foundations.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/arch/arm/include/asm/trusted_foundations.h
-@@ -26,7 +26,6 @@
- #ifndef __ASM_ARM_TRUSTED_FOUNDATIONS_H
- #define __ASM_ARM_TRUSTED_FOUNDATIONS_H
- 
--#include <linux/kconfig.h>
- #include <linux/printk.h>
- #include <linux/bug.h>
- #include <linux/of.h>
-diff -puN arch/arm64/include/asm/alternative.h~treewide-remove-redundant-include-linux-kconfigh arch/arm64/include/asm/alternative.h
---- a/arch/arm64/include/asm/alternative.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/arch/arm64/include/asm/alternative.h
-@@ -7,7 +7,6 @@
- #ifndef __ASSEMBLY__
- 
- #include <linux/init.h>
--#include <linux/kconfig.h>
- #include <linux/types.h>
- #include <linux/stddef.h>
- #include <linux/stringify.h>
-diff -puN arch/mips/include/asm/mach-loongson64/loongson.h~treewide-remove-redundant-include-linux-kconfigh arch/mips/include/asm/mach-loongson64/loongson.h
---- a/arch/mips/include/asm/mach-loongson64/loongson.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/arch/mips/include/asm/mach-loongson64/loongson.h
-@@ -14,7 +14,6 @@
- #include <linux/io.h>
- #include <linux/init.h>
- #include <linux/irq.h>
--#include <linux/kconfig.h>
- #include <boot_param.h>
- 
- /* loongson internal northbridge initialization */
-diff -puN arch/mips/math-emu/cp1emu.c~treewide-remove-redundant-include-linux-kconfigh arch/mips/math-emu/cp1emu.c
---- a/arch/mips/math-emu/cp1emu.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/arch/mips/math-emu/cp1emu.c
-@@ -35,7 +35,6 @@
-  */
- #include <linux/sched.h>
- #include <linux/debugfs.h>
--#include <linux/kconfig.h>
- #include <linux/percpu-defs.h>
- #include <linux/perf_event.h>
- 
-diff -puN arch/mips/net/bpf_jit.c~treewide-remove-redundant-include-linux-kconfigh arch/mips/net/bpf_jit.c
---- a/arch/mips/net/bpf_jit.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/arch/mips/net/bpf_jit.c
-@@ -14,7 +14,6 @@
- #include <linux/errno.h>
- #include <linux/filter.h>
- #include <linux/if_vlan.h>
--#include <linux/kconfig.h>
- #include <linux/moduleloader.h>
- #include <linux/netdevice.h>
- #include <linux/string.h>
-diff -puN drivers/char/virtio_console.c~treewide-remove-redundant-include-linux-kconfigh drivers/char/virtio_console.c
---- a/drivers/char/virtio_console.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/char/virtio_console.c
-@@ -38,7 +38,6 @@
- #include <linux/workqueue.h>
- #include <linux/module.h>
- #include <linux/dma-mapping.h>
--#include <linux/kconfig.h>
- #include "../tty/hvc/hvc_console.h"
- 
- #define is_rproc_enabled IS_ENABLED(CONFIG_REMOTEPROC)
-diff -puN drivers/input/rmi4/rmi_bus.c~treewide-remove-redundant-include-linux-kconfigh drivers/input/rmi4/rmi_bus.c
---- a/drivers/input/rmi4/rmi_bus.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/input/rmi4/rmi_bus.c
-@@ -9,7 +9,6 @@
- 
- #include <linux/kernel.h>
- #include <linux/device.h>
--#include <linux/kconfig.h>
- #include <linux/list.h>
- #include <linux/pm.h>
- #include <linux/rmi.h>
-diff -puN drivers/input/rmi4/rmi_driver.c~treewide-remove-redundant-include-linux-kconfigh drivers/input/rmi4/rmi_driver.c
---- a/drivers/input/rmi4/rmi_driver.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/input/rmi4/rmi_driver.c
-@@ -17,7 +17,6 @@
- #include <linux/bitmap.h>
- #include <linux/delay.h>
- #include <linux/fs.h>
--#include <linux/kconfig.h>
- #include <linux/pm.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-diff -puN drivers/input/rmi4/rmi_f01.c~treewide-remove-redundant-include-linux-kconfigh drivers/input/rmi4/rmi_f01.c
---- a/drivers/input/rmi4/rmi_f01.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/input/rmi4/rmi_f01.c
-@@ -8,7 +8,6 @@
-  */
- 
- #include <linux/kernel.h>
--#include <linux/kconfig.h>
- #include <linux/rmi.h>
- #include <linux/slab.h>
- #include <linux/uaccess.h>
-diff -puN drivers/input/rmi4/rmi_f11.c~treewide-remove-redundant-include-linux-kconfigh drivers/input/rmi4/rmi_f11.c
---- a/drivers/input/rmi4/rmi_f11.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/input/rmi4/rmi_f11.c
-@@ -12,7 +12,6 @@
- #include <linux/device.h>
- #include <linux/input.h>
- #include <linux/input/mt.h>
--#include <linux/kconfig.h>
- #include <linux/rmi.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-diff -puN drivers/irqchip/irq-bcm6345-l1.c~treewide-remove-redundant-include-linux-kconfigh drivers/irqchip/irq-bcm6345-l1.c
---- a/drivers/irqchip/irq-bcm6345-l1.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/irqchip/irq-bcm6345-l1.c
-@@ -52,7 +52,6 @@
- 
- #include <linux/bitops.h>
- #include <linux/cpumask.h>
--#include <linux/kconfig.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
-diff -puN drivers/irqchip/irq-bcm7038-l1.c~treewide-remove-redundant-include-linux-kconfigh drivers/irqchip/irq-bcm7038-l1.c
---- a/drivers/irqchip/irq-bcm7038-l1.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/irqchip/irq-bcm7038-l1.c
-@@ -12,7 +12,6 @@
- #define pr_fmt(fmt)	KBUILD_MODNAME	": " fmt
- 
- #include <linux/bitops.h>
--#include <linux/kconfig.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/interrupt.h>
-diff -puN drivers/irqchip/irq-bcm7120-l2.c~treewide-remove-redundant-include-linux-kconfigh drivers/irqchip/irq-bcm7120-l2.c
---- a/drivers/irqchip/irq-bcm7120-l2.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/irqchip/irq-bcm7120-l2.c
-@@ -13,7 +13,6 @@
- #include <linux/init.h>
- #include <linux/slab.h>
- #include <linux/module.h>
--#include <linux/kconfig.h>
- #include <linux/kernel.h>
- #include <linux/platform_device.h>
- #include <linux/of.h>
-diff -puN drivers/irqchip/irq-brcmstb-l2.c~treewide-remove-redundant-include-linux-kconfigh drivers/irqchip/irq-brcmstb-l2.c
---- a/drivers/irqchip/irq-brcmstb-l2.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/irqchip/irq-brcmstb-l2.c
-@@ -18,7 +18,6 @@
- #include <linux/init.h>
- #include <linux/slab.h>
- #include <linux/module.h>
--#include <linux/kconfig.h>
- #include <linux/platform_device.h>
- #include <linux/spinlock.h>
- #include <linux/of.h>
-diff -puN drivers/media/dvb-frontends/af9013.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/af9013.h
---- a/drivers/media/dvb-frontends/af9013.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/af9013.h
-@@ -25,7 +25,6 @@
- #ifndef AF9013_H
- #define AF9013_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- /* AF9013/5 GPIOs (mostly guessed)
-diff -puN drivers/media/dvb-frontends/af9033.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/af9033.h
---- a/drivers/media/dvb-frontends/af9033.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/af9033.h
-@@ -22,8 +22,6 @@
- #ifndef AF9033_H
- #define AF9033_H
- 
--#include <linux/kconfig.h>
--
- /*
-  * I2C address (TODO: are these in 8-bit format?)
-  * 0x38, 0x3a, 0x3c, 0x3e
-diff -puN drivers/media/dvb-frontends/ascot2e.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/ascot2e.h
---- a/drivers/media/dvb-frontends/ascot2e.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/ascot2e.h
-@@ -22,7 +22,6 @@
- #ifndef __DVB_ASCOT2E_H__
- #define __DVB_ASCOT2E_H__
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include <linux/i2c.h>
- 
-diff -puN drivers/media/dvb-frontends/atbm8830.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/atbm8830.h
---- a/drivers/media/dvb-frontends/atbm8830.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/atbm8830.h
-@@ -22,7 +22,6 @@
- #ifndef __ATBM8830_H__
- #define __ATBM8830_H__
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include <linux/i2c.h>
- 
-diff -puN drivers/media/dvb-frontends/au8522.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/au8522.h
---- a/drivers/media/dvb-frontends/au8522.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/au8522.h
-@@ -22,7 +22,6 @@
- #ifndef __AU8522_H__
- #define __AU8522_H__
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- enum au8522_if_freq {
-diff -puN drivers/media/dvb-frontends/cx22702.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/cx22702.h
---- a/drivers/media/dvb-frontends/cx22702.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/cx22702.h
-@@ -28,7 +28,6 @@
- #ifndef CX22702_H
- #define CX22702_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- struct cx22702_config {
-diff -puN drivers/media/dvb-frontends/cx24113.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/cx24113.h
---- a/drivers/media/dvb-frontends/cx24113.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/cx24113.h
-@@ -22,8 +22,6 @@
- #ifndef CX24113_H
- #define CX24113_H
- 
--#include <linux/kconfig.h>
--
- struct dvb_frontend;
- 
- struct cx24113_config {
-diff -puN drivers/media/dvb-frontends/cx24116.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/cx24116.h
---- a/drivers/media/dvb-frontends/cx24116.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/cx24116.h
-@@ -21,7 +21,6 @@
- #ifndef CX24116_H
- #define CX24116_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- struct cx24116_config {
-diff -puN drivers/media/dvb-frontends/cx24117.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/cx24117.h
---- a/drivers/media/dvb-frontends/cx24117.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/cx24117.h
-@@ -22,7 +22,6 @@
- #ifndef CX24117_H
- #define CX24117_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- struct cx24117_config {
-diff -puN drivers/media/dvb-frontends/cx24120.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/cx24120.h
---- a/drivers/media/dvb-frontends/cx24120.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/cx24120.h
-@@ -20,7 +20,6 @@
- #ifndef CX24120_H
- #define CX24120_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include <linux/firmware.h>
- 
-diff -puN drivers/media/dvb-frontends/cx24123.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/cx24123.h
---- a/drivers/media/dvb-frontends/cx24123.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/cx24123.h
-@@ -21,7 +21,6 @@
- #ifndef CX24123_H
- #define CX24123_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- struct cx24123_config {
-diff -puN drivers/media/dvb-frontends/cxd2820r.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/cxd2820r.h
---- a/drivers/media/dvb-frontends/cxd2820r.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/cxd2820r.h
-@@ -22,7 +22,6 @@
- #ifndef CXD2820R_H
- #define CXD2820R_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- #define CXD2820R_GPIO_D (0 << 0) /* disable */
-diff -puN drivers/media/dvb-frontends/cxd2841er.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/cxd2841er.h
---- a/drivers/media/dvb-frontends/cxd2841er.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/cxd2841er.h
-@@ -22,7 +22,6 @@
- #ifndef CXD2841ER_H
- #define CXD2841ER_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- enum cxd2841er_xtal {
-diff -puN drivers/media/dvb-frontends/dib3000mc.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/dib3000mc.h
---- a/drivers/media/dvb-frontends/dib3000mc.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/dib3000mc.h
-@@ -13,8 +13,6 @@
- #ifndef DIB3000MC_H
- #define DIB3000MC_H
- 
--#include <linux/kconfig.h>
--
- #include "dibx000_common.h"
- 
- struct dib3000mc_config {
-diff -puN drivers/media/dvb-frontends/dib7000m.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/dib7000m.h
---- a/drivers/media/dvb-frontends/dib7000m.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/dib7000m.h
-@@ -1,8 +1,6 @@
- #ifndef DIB7000M_H
- #define DIB7000M_H
- 
--#include <linux/kconfig.h>
--
- #include "dibx000_common.h"
- 
- struct dib7000m_config {
-diff -puN drivers/media/dvb-frontends/dib7000p.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/dib7000p.h
---- a/drivers/media/dvb-frontends/dib7000p.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/dib7000p.h
-@@ -1,8 +1,6 @@
- #ifndef DIB7000P_H
- #define DIB7000P_H
- 
--#include <linux/kconfig.h>
--
- #include "dibx000_common.h"
- 
- struct dib7000p_config {
-diff -puN drivers/media/dvb-frontends/drxd.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/drxd.h
---- a/drivers/media/dvb-frontends/drxd.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/drxd.h
-@@ -24,7 +24,6 @@
- #ifndef _DRXD_H_
- #define _DRXD_H_
- 
--#include <linux/kconfig.h>
- #include <linux/types.h>
- #include <linux/i2c.h>
- 
-diff -puN drivers/media/dvb-frontends/drxk.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/drxk.h
---- a/drivers/media/dvb-frontends/drxk.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/drxk.h
-@@ -1,7 +1,6 @@
- #ifndef _DRXK_H_
- #define _DRXK_H_
- 
--#include <linux/kconfig.h>
- #include <linux/types.h>
- #include <linux/i2c.h>
- 
-diff -puN drivers/media/dvb-frontends/ds3000.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/ds3000.h
---- a/drivers/media/dvb-frontends/ds3000.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/ds3000.h
-@@ -22,7 +22,6 @@
- #ifndef DS3000_H
- #define DS3000_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- struct ds3000_config {
-diff -puN drivers/media/dvb-frontends/dvb_dummy_fe.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/dvb_dummy_fe.h
---- a/drivers/media/dvb-frontends/dvb_dummy_fe.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/dvb_dummy_fe.h
-@@ -22,7 +22,6 @@
- #ifndef DVB_DUMMY_FE_H
- #define DVB_DUMMY_FE_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/dvb-frontends/ec100.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/ec100.h
---- a/drivers/media/dvb-frontends/ec100.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/ec100.h
-@@ -22,7 +22,6 @@
- #ifndef EC100_H
- #define EC100_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- struct ec100_config {
-diff -puN drivers/media/dvb-frontends/hd29l2.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/hd29l2.h
---- a/drivers/media/dvb-frontends/hd29l2.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/hd29l2.h
-@@ -23,7 +23,6 @@
- #ifndef HD29L2_H
- #define HD29L2_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- struct hd29l2_config {
-diff -puN drivers/media/dvb-frontends/helene.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/helene.h
---- a/drivers/media/dvb-frontends/helene.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/helene.h
-@@ -21,7 +21,6 @@
- #ifndef __DVB_HELENE_H__
- #define __DVB_HELENE_H__
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include <linux/i2c.h>
- 
-diff -puN drivers/media/dvb-frontends/horus3a.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/horus3a.h
---- a/drivers/media/dvb-frontends/horus3a.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/horus3a.h
-@@ -22,7 +22,6 @@
- #ifndef __DVB_HORUS3A_H__
- #define __DVB_HORUS3A_H__
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include <linux/i2c.h>
- 
-diff -puN drivers/media/dvb-frontends/ix2505v.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/ix2505v.h
---- a/drivers/media/dvb-frontends/ix2505v.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/ix2505v.h
-@@ -20,7 +20,6 @@
- #ifndef DVB_IX2505V_H
- #define DVB_IX2505V_H
- 
--#include <linux/kconfig.h>
- #include <linux/i2c.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/dvb-frontends/lg2160.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/lg2160.h
---- a/drivers/media/dvb-frontends/lg2160.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/lg2160.h
-@@ -22,7 +22,6 @@
- #ifndef _LG2160_H_
- #define _LG2160_H_
- 
--#include <linux/kconfig.h>
- #include <linux/i2c.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/dvb-frontends/lgdt3305.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/lgdt3305.h
---- a/drivers/media/dvb-frontends/lgdt3305.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/lgdt3305.h
-@@ -22,7 +22,6 @@
- #ifndef _LGDT3305_H_
- #define _LGDT3305_H_
- 
--#include <linux/kconfig.h>
- #include <linux/i2c.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/dvb-frontends/lgs8gl5.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/lgs8gl5.h
---- a/drivers/media/dvb-frontends/lgs8gl5.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/lgs8gl5.h
-@@ -23,7 +23,6 @@
- #ifndef LGS8GL5_H
- #define LGS8GL5_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- struct lgs8gl5_config {
-diff -puN drivers/media/dvb-frontends/lgs8gxx.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/lgs8gxx.h
---- a/drivers/media/dvb-frontends/lgs8gxx.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/lgs8gxx.h
-@@ -26,7 +26,6 @@
- #ifndef __LGS8GXX_H__
- #define __LGS8GXX_H__
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include <linux/i2c.h>
- 
-diff -puN drivers/media/dvb-frontends/lnbh24.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/lnbh24.h
---- a/drivers/media/dvb-frontends/lnbh24.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/lnbh24.h
-@@ -23,8 +23,6 @@
- #ifndef _LNBH24_H
- #define _LNBH24_H
- 
--#include <linux/kconfig.h>
--
- /* system register bits */
- #define LNBH24_OLF	0x01
- #define LNBH24_OTF	0x02
-diff -puN drivers/media/dvb-frontends/lnbh25.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/lnbh25.h
---- a/drivers/media/dvb-frontends/lnbh25.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/lnbh25.h
-@@ -22,7 +22,6 @@
- #define LNBH25_H
- 
- #include <linux/i2c.h>
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- /* 22 kHz tone enabled. Tone output controlled by DSQIN pin */
-diff -puN drivers/media/dvb-frontends/lnbp21.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/lnbp21.h
---- a/drivers/media/dvb-frontends/lnbp21.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/lnbp21.h
-@@ -27,8 +27,6 @@
- #ifndef _LNBP21_H
- #define _LNBP21_H
- 
--#include <linux/kconfig.h>
--
- /* system register bits */
- /* [RO] 0=OK; 1=over current limit flag */
- #define LNBP21_OLF	0x01
-diff -puN drivers/media/dvb-frontends/lnbp22.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/lnbp22.h
---- a/drivers/media/dvb-frontends/lnbp22.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/lnbp22.h
-@@ -28,8 +28,6 @@
- #ifndef _LNBP22_H
- #define _LNBP22_H
- 
--#include <linux/kconfig.h>
--
- /* Enable */
- #define LNBP22_EN	  0x10
- /* Voltage selection */
-diff -puN drivers/media/dvb-frontends/m88rs2000.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/m88rs2000.h
---- a/drivers/media/dvb-frontends/m88rs2000.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/m88rs2000.h
-@@ -20,7 +20,6 @@
- #ifndef M88RS2000_H
- #define M88RS2000_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/dvb-frontends/mb86a20s.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/mb86a20s.h
---- a/drivers/media/dvb-frontends/mb86a20s.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/mb86a20s.h
-@@ -16,7 +16,6 @@
- #ifndef MB86A20S_H
- #define MB86A20S_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
+diff -puN include/linux/kthread.h~kthread-allow-to-cancel-kthread-work include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-allow-to-cancel-kthread-work
++++ a/include/linux/kthread.h
+@@ -77,6 +77,8 @@ struct kthread_work {
+ 	struct list_head	node;
+ 	kthread_work_func_t	func;
+ 	struct kthread_worker	*worker;
++	/* Number of canceling calls that are running at the moment. */
++	int			canceling;
+ };
+ 
+ struct kthread_delayed_work {
+@@ -169,6 +171,9 @@ bool kthread_queue_delayed_work(struct k
+ void kthread_flush_work(struct kthread_work *work);
+ void kthread_flush_worker(struct kthread_worker *worker);
+ 
++bool kthread_cancel_work_sync(struct kthread_work *work);
++bool kthread_cancel_delayed_work_sync(struct kthread_delayed_work *work);
++
+ void kthread_destroy_worker(struct kthread_worker *worker);
+ 
+ #endif /* _LINUX_KTHREAD_H */
+diff -puN kernel/kthread.c~kthread-allow-to-cancel-kthread-work kernel/kthread.c
+--- a/kernel/kthread.c~kthread-allow-to-cancel-kthread-work
++++ a/kernel/kthread.c
+@@ -718,6 +718,19 @@ kthread_create_worker_on_cpu(int cpu, co
+ }
+ EXPORT_SYMBOL(kthread_create_worker_on_cpu);
+ 
++/*
++ * Returns true when the work could not be queued at the moment.
++ * It happens when it is already pending in a worker list
++ * or when it is being cancelled.
++ */
++static inline bool queuing_blocked(struct kthread_worker *worker,
++				   struct kthread_work *work)
++{
++	lockdep_assert_held(&worker->lock);
++
++	return !list_empty(&work->node) || work->canceling;
++}
++
+ static void kthread_insert_work_sanity_check(struct kthread_worker *worker,
+ 					     struct kthread_work *work)
+ {
+@@ -759,7 +772,7 @@ bool kthread_queue_work(struct kthread_w
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&worker->lock, flags);
+-	if (list_empty(&work->node)) {
++	if (!queuing_blocked(worker, work)) {
+ 		kthread_insert_work(worker, work, &worker->work_list);
+ 		ret = true;
+ 	}
+@@ -859,7 +872,7 @@ bool kthread_queue_delayed_work(struct k
+ 
+ 	spin_lock_irqsave(&worker->lock, flags);
+ 
+-	if (list_empty(&work->node)) {
++	if (!queuing_blocked(worker, work)) {
+ 		__kthread_queue_delayed_work(worker, dwork, delay);
+ 		ret = true;
+ 	}
+@@ -919,6 +932,121 @@ void kthread_flush_work(struct kthread_w
+ }
+ EXPORT_SYMBOL_GPL(kthread_flush_work);
+ 
++/*
++ * This function removes the work from the worker queue. Also it makes sure
++ * that it won't get queued later via the delayed work's timer.
++ *
++ * The work might still be in use when this function finishes. See the
++ * current_work proceed by the worker.
++ *
++ * Return: %true if @work was pending and successfully canceled,
++ *	%false if @work was not pending
++ */
++static bool __kthread_cancel_work(struct kthread_work *work, bool is_dwork,
++				  unsigned long *flags)
++{
++	/* Try to cancel the timer if exists. */
++	if (is_dwork) {
++		struct kthread_delayed_work *dwork =
++			container_of(work, struct kthread_delayed_work, work);
++		struct kthread_worker *worker = work->worker;
++
++		/*
++		 * del_timer_sync() must be called to make sure that the timer
++		 * callback is not running. The lock must be temporary released
++		 * to avoid a deadlock with the callback. In the meantime,
++		 * any queuing is blocked by setting the canceling counter.
++		 */
++		work->canceling++;
++		spin_unlock_irqrestore(&worker->lock, *flags);
++		del_timer_sync(&dwork->timer);
++		spin_lock_irqsave(&worker->lock, *flags);
++		work->canceling--;
++	}
++
++	/*
++	 * Try to remove the work from a worker list. It might either
++	 * be from worker->work_list or from worker->delayed_work_list.
++	 */
++	if (!list_empty(&work->node)) {
++		list_del_init(&work->node);
++		return true;
++	}
++
++	return false;
++}
++
++static bool __kthread_cancel_work_sync(struct kthread_work *work, bool is_dwork)
++{
++	struct kthread_worker *worker = work->worker;
++	unsigned long flags;
++	int ret = false;
++
++	if (!worker)
++		goto out;
++
++	spin_lock_irqsave(&worker->lock, flags);
++	/* Work must not be used with >1 worker, see kthread_queue_work(). */
++	WARN_ON_ONCE(work->worker != worker);
++
++	ret = __kthread_cancel_work(work, is_dwork, &flags);
++
++	if (worker->current_work != work)
++		goto out_fast;
++
++	/*
++	 * The work is in progress and we need to wait with the lock released.
++	 * In the meantime, block any queuing by setting the canceling counter.
++	 */
++	work->canceling++;
++	spin_unlock_irqrestore(&worker->lock, flags);
++	kthread_flush_work(work);
++	spin_lock_irqsave(&worker->lock, flags);
++	work->canceling--;
++
++out_fast:
++	spin_unlock_irqrestore(&worker->lock, flags);
++out:
++	return ret;
++}
++
++/**
++ * kthread_cancel_work_sync - cancel a kthread work and wait for it to finish
++ * @work: the kthread work to cancel
++ *
++ * Cancel @work and wait for its execution to finish.  This function
++ * can be used even if the work re-queues itself. On return from this
++ * function, @work is guaranteed to be not pending or executing on any CPU.
++ *
++ * kthread_cancel_work_sync(&delayed_work->work) must not be used for
++ * delayed_work's. Use kthread_cancel_delayed_work_sync() instead.
++ *
++ * The caller must ensure that the worker on which @work was last
++ * queued can't be destroyed before this function returns.
++ *
++ * Return: %true if @work was pending, %false otherwise.
++ */
++bool kthread_cancel_work_sync(struct kthread_work *work)
++{
++	return __kthread_cancel_work_sync(work, false);
++}
++EXPORT_SYMBOL_GPL(kthread_cancel_work_sync);
++
++/**
++ * kthread_cancel_delayed_work_sync - cancel a kthread delayed work and
++ *	wait for it to finish.
++ * @dwork: the kthread delayed work to cancel
++ *
++ * This is kthread_cancel_work_sync() for delayed works.
++ *
++ * Return: %true if @dwork was pending, %false otherwise.
++ */
++bool kthread_cancel_delayed_work_sync(struct kthread_delayed_work *dwork)
++{
++	return __kthread_cancel_work_sync(&dwork->work, true);
++}
++EXPORT_SYMBOL_GPL(kthread_cancel_delayed_work_sync);
++
  /**
-diff -puN drivers/media/dvb-frontends/s5h1409.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/s5h1409.h
---- a/drivers/media/dvb-frontends/s5h1409.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/s5h1409.h
-@@ -22,7 +22,6 @@
- #ifndef __S5H1409_H__
- #define __S5H1409_H__
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- struct s5h1409_config {
-diff -puN drivers/media/dvb-frontends/s5h1411.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/s5h1411.h
---- a/drivers/media/dvb-frontends/s5h1411.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/s5h1411.h
-@@ -22,7 +22,6 @@
- #ifndef __S5H1411_H__
- #define __S5H1411_H__
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- #define S5H1411_I2C_TOP_ADDR (0x32 >> 1)
-diff -puN drivers/media/dvb-frontends/s5h1432.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/s5h1432.h
---- a/drivers/media/dvb-frontends/s5h1432.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/s5h1432.h
-@@ -22,7 +22,6 @@
- #ifndef __S5H1432_H__
- #define __S5H1432_H__
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- #define S5H1432_I2C_TOP_ADDR (0x02 >> 1)
-diff -puN drivers/media/dvb-frontends/s921.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/s921.h
---- a/drivers/media/dvb-frontends/s921.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/s921.h
-@@ -17,7 +17,6 @@
- #ifndef S921_H
- #define S921_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- struct s921_config {
-diff -puN drivers/media/dvb-frontends/si21xx.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/si21xx.h
---- a/drivers/media/dvb-frontends/si21xx.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/si21xx.h
-@@ -1,7 +1,6 @@
- #ifndef SI21XX_H
- #define SI21XX_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/dvb-frontends/sp2.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/sp2.h
---- a/drivers/media/dvb-frontends/sp2.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/sp2.h
-@@ -17,7 +17,6 @@
- #ifndef SP2_H
- #define SP2_H
- 
--#include <linux/kconfig.h>
- #include "dvb_ca_en50221.h"
- 
- /*
-diff -puN drivers/media/dvb-frontends/stb6000.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/stb6000.h
---- a/drivers/media/dvb-frontends/stb6000.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/stb6000.h
-@@ -23,7 +23,6 @@
- #ifndef __DVB_STB6000_H__
- #define __DVB_STB6000_H__
- 
--#include <linux/kconfig.h>
- #include <linux/i2c.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/dvb-frontends/stv0288.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/stv0288.h
---- a/drivers/media/dvb-frontends/stv0288.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/stv0288.h
-@@ -27,7 +27,6 @@
- #ifndef STV0288_H
- #define STV0288_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/dvb-frontends/stv0367.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/stv0367.h
---- a/drivers/media/dvb-frontends/stv0367.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/stv0367.h
-@@ -26,7 +26,6 @@
- #ifndef STV0367_H
- #define STV0367_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/dvb-frontends/stv0900.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/stv0900.h
---- a/drivers/media/dvb-frontends/stv0900.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/stv0900.h
-@@ -26,7 +26,6 @@
- #ifndef STV0900_H
- #define STV0900_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/dvb-frontends/stv6110.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/stv6110.h
---- a/drivers/media/dvb-frontends/stv6110.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/stv6110.h
-@@ -25,7 +25,6 @@
- #ifndef __DVB_STV6110_H__
- #define __DVB_STV6110_H__
- 
--#include <linux/kconfig.h>
- #include <linux/i2c.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/dvb-frontends/tda10048.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/tda10048.h
---- a/drivers/media/dvb-frontends/tda10048.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/tda10048.h
-@@ -22,7 +22,6 @@
- #ifndef TDA10048_H
- #define TDA10048_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- #include <linux/firmware.h>
- 
-diff -puN drivers/media/dvb-frontends/tda18271c2dd.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/tda18271c2dd.h
---- a/drivers/media/dvb-frontends/tda18271c2dd.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/tda18271c2dd.h
-@@ -1,8 +1,6 @@
- #ifndef _TDA18271C2DD_H_
- #define _TDA18271C2DD_H_
- 
--#include <linux/kconfig.h>
--
- #if IS_REACHABLE(CONFIG_DVB_TDA18271C2DD)
- struct dvb_frontend *tda18271c2dd_attach(struct dvb_frontend *fe,
- 					 struct i2c_adapter *i2c, u8 adr);
-diff -puN drivers/media/dvb-frontends/ts2020.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/ts2020.h
---- a/drivers/media/dvb-frontends/ts2020.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/ts2020.h
-@@ -22,7 +22,6 @@
- #ifndef TS2020_H
- #define TS2020_H
- 
--#include <linux/kconfig.h>
- #include <linux/dvb/frontend.h>
- 
- struct ts2020_config {
-diff -puN drivers/media/dvb-frontends/zl10036.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/zl10036.h
---- a/drivers/media/dvb-frontends/zl10036.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/zl10036.h
-@@ -21,7 +21,6 @@
- #ifndef DVB_ZL10036_H
- #define DVB_ZL10036_H
- 
--#include <linux/kconfig.h>
- #include <linux/i2c.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/dvb-frontends/zl10039.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/dvb-frontends/zl10039.h
---- a/drivers/media/dvb-frontends/zl10039.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/dvb-frontends/zl10039.h
-@@ -22,8 +22,6 @@
- #ifndef ZL10039_H
- #define ZL10039_H
- 
--#include <linux/kconfig.h>
--
- #if IS_REACHABLE(CONFIG_DVB_ZL10039)
- struct dvb_frontend *zl10039_attach(struct dvb_frontend *fe,
- 					u8 i2c_addr,
-diff -puN drivers/media/pci/cx23885/altera-ci.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/pci/cx23885/altera-ci.h
---- a/drivers/media/pci/cx23885/altera-ci.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/pci/cx23885/altera-ci.h
-@@ -20,8 +20,6 @@
- #ifndef __ALTERA_CI_H
- #define __ALTERA_CI_H
- 
--#include <linux/kconfig.h>
--
- #define ALT_DATA	0x000000ff
- #define ALT_TDI		0x00008000
- #define ALT_TDO		0x00004000
-diff -puN drivers/media/tuners/fc0011.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/tuners/fc0011.h
---- a/drivers/media/tuners/fc0011.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/tuners/fc0011.h
-@@ -1,7 +1,6 @@
- #ifndef LINUX_FC0011_H_
- #define LINUX_FC0011_H_
- 
--#include <linux/kconfig.h>
- #include "dvb_frontend.h"
- 
- 
-diff -puN drivers/media/tuners/fc0012.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/tuners/fc0012.h
---- a/drivers/media/tuners/fc0012.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/tuners/fc0012.h
-@@ -21,7 +21,6 @@
- #ifndef _FC0012_H_
- #define _FC0012_H_
- 
--#include <linux/kconfig.h>
- #include "dvb_frontend.h"
- #include "fc001x-common.h"
- 
-diff -puN drivers/media/tuners/fc0013.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/tuners/fc0013.h
---- a/drivers/media/tuners/fc0013.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/tuners/fc0013.h
-@@ -22,7 +22,6 @@
- #ifndef _FC0013_H_
- #define _FC0013_H_
- 
--#include <linux/kconfig.h>
- #include "dvb_frontend.h"
- #include "fc001x-common.h"
- 
-diff -puN drivers/media/tuners/max2165.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/tuners/max2165.h
---- a/drivers/media/tuners/max2165.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/tuners/max2165.h
-@@ -22,8 +22,6 @@
- #ifndef __MAX2165_H__
- #define __MAX2165_H__
- 
--#include <linux/kconfig.h>
--
- struct dvb_frontend;
- struct i2c_adapter;
- 
-diff -puN drivers/media/tuners/mc44s803.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/tuners/mc44s803.h
---- a/drivers/media/tuners/mc44s803.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/tuners/mc44s803.h
-@@ -22,8 +22,6 @@
- #ifndef MC44S803_H
- #define MC44S803_H
- 
--#include <linux/kconfig.h>
--
- struct dvb_frontend;
- struct i2c_adapter;
- 
-diff -puN drivers/media/tuners/mxl5005s.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/tuners/mxl5005s.h
---- a/drivers/media/tuners/mxl5005s.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/tuners/mxl5005s.h
-@@ -23,8 +23,6 @@
- #ifndef __MXL5005S_H
- #define __MXL5005S_H
- 
--#include <linux/kconfig.h>
--
- #include <linux/i2c.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/tuners/r820t.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/tuners/r820t.h
---- a/drivers/media/tuners/r820t.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/tuners/r820t.h
-@@ -21,7 +21,6 @@
- #ifndef R820T_H
- #define R820T_H
- 
--#include <linux/kconfig.h>
- #include "dvb_frontend.h"
- 
- enum r820t_chip {
-diff -puN drivers/media/tuners/si2157.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/tuners/si2157.h
---- a/drivers/media/tuners/si2157.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/tuners/si2157.h
-@@ -17,7 +17,6 @@
- #ifndef SI2157_H
- #define SI2157_H
- 
--#include <linux/kconfig.h>
- #include <media/media-device.h>
- #include "dvb_frontend.h"
- 
-diff -puN drivers/media/tuners/tda18212.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/tuners/tda18212.h
---- a/drivers/media/tuners/tda18212.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/tuners/tda18212.h
-@@ -21,7 +21,6 @@
- #ifndef TDA18212_H
- #define TDA18212_H
- 
--#include <linux/kconfig.h>
- #include "dvb_frontend.h"
- 
- struct tda18212_config {
-diff -puN drivers/media/tuners/tda18218.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/tuners/tda18218.h
---- a/drivers/media/tuners/tda18218.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/tuners/tda18218.h
-@@ -21,7 +21,6 @@
- #ifndef TDA18218_H
- #define TDA18218_H
- 
--#include <linux/kconfig.h>
- #include "dvb_frontend.h"
- 
- struct tda18218_config {
-diff -puN drivers/media/tuners/xc5000.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/tuners/xc5000.h
---- a/drivers/media/tuners/xc5000.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/tuners/xc5000.h
-@@ -22,7 +22,6 @@
- #ifndef __XC5000_H__
- #define __XC5000_H__
- 
--#include <linux/kconfig.h>
- #include <linux/firmware.h>
- 
- struct dvb_frontend;
-diff -puN drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
-@@ -21,7 +21,6 @@
- #ifndef __MXL111SF_DEMOD_H__
- #define __MXL111SF_DEMOD_H__
- 
--#include <linux/kconfig.h>
- #include "dvb_frontend.h"
- #include "mxl111sf.h"
- 
-diff -puN drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h~treewide-remove-redundant-include-linux-kconfigh drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
-@@ -21,7 +21,6 @@
- #ifndef __MXL111SF_TUNER_H__
- #define __MXL111SF_TUNER_H__
- 
--#include <linux/kconfig.h>
- #include "dvb_frontend.h"
- #include "mxl111sf.h"
- 
-diff -puN drivers/media/usb/dvb-usb/dibusb-common.c~treewide-remove-redundant-include-linux-kconfigh drivers/media/usb/dvb-usb/dibusb-common.c
---- a/drivers/media/usb/dvb-usb/dibusb-common.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/usb/dvb-usb/dibusb-common.c
-@@ -9,7 +9,6 @@
-  * see Documentation/dvb/README.dvb-usb for more information
-  */
- 
--#include <linux/kconfig.h>
- #include "dibusb.h"
- 
- /* Max transfer size done by I2C transfer functions */
-diff -puN drivers/media/usb/hdpvr/hdpvr-video.c~treewide-remove-redundant-include-linux-kconfigh drivers/media/usb/hdpvr/hdpvr-video.c
---- a/drivers/media/usb/hdpvr/hdpvr-video.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/media/usb/hdpvr/hdpvr-video.c
-@@ -10,7 +10,6 @@
-  */
- 
- #include <linux/kernel.h>
--#include <linux/kconfig.h>
- #include <linux/errno.h>
- #include <linux/init.h>
- #include <linux/slab.h>
-diff -puN drivers/mtd/mtdcore.c~treewide-remove-redundant-include-linux-kconfigh drivers/mtd/mtdcore.c
---- a/drivers/mtd/mtdcore.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/mtd/mtdcore.c
-@@ -39,7 +39,6 @@
- #include <linux/gfp.h>
- #include <linux/slab.h>
- #include <linux/reboot.h>
--#include <linux/kconfig.h>
- #include <linux/leds.h>
- 
- #include <linux/mtd/mtd.h>
-diff -puN drivers/mtd/mtdpart.c~treewide-remove-redundant-include-linux-kconfigh drivers/mtd/mtdpart.c
---- a/drivers/mtd/mtdpart.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/mtd/mtdpart.c
-@@ -30,7 +30,6 @@
- #include <linux/mtd/mtd.h>
- #include <linux/mtd/partitions.h>
- #include <linux/err.h>
--#include <linux/kconfig.h>
- 
- #include "mtdcore.h"
- 
-diff -puN drivers/net/dsa/b53/b53_mmap.c~treewide-remove-redundant-include-linux-kconfigh drivers/net/dsa/b53/b53_mmap.c
---- a/drivers/net/dsa/b53/b53_mmap.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/net/dsa/b53/b53_mmap.c
-@@ -17,7 +17,6 @@
-  */
- 
- #include <linux/kernel.h>
--#include <linux/kconfig.h>
- #include <linux/module.h>
- #include <linux/io.h>
- #include <linux/platform_device.h>
-diff -puN drivers/net/ethernet/sun/ldmvsw.c~treewide-remove-redundant-include-linux-kconfigh drivers/net/ethernet/sun/ldmvsw.c
---- a/drivers/net/ethernet/sun/ldmvsw.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/net/ethernet/sun/ldmvsw.c
-@@ -11,7 +11,6 @@
- #include <linux/highmem.h>
- #include <linux/if_vlan.h>
- #include <linux/init.h>
--#include <linux/kconfig.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/mutex.h>
-diff -puN drivers/net/ethernet/wiznet/w5100.c~treewide-remove-redundant-include-linux-kconfigh drivers/net/ethernet/wiznet/w5100.c
---- a/drivers/net/ethernet/wiznet/w5100.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/net/ethernet/wiznet/w5100.c
-@@ -9,7 +9,6 @@
- 
- #include <linux/kernel.h>
- #include <linux/module.h>
--#include <linux/kconfig.h>
- #include <linux/netdevice.h>
- #include <linux/etherdevice.h>
- #include <linux/platform_device.h>
-diff -puN drivers/net/ethernet/wiznet/w5300.c~treewide-remove-redundant-include-linux-kconfigh drivers/net/ethernet/wiznet/w5300.c
---- a/drivers/net/ethernet/wiznet/w5300.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/net/ethernet/wiznet/w5300.c
-@@ -10,7 +10,6 @@
- 
- #include <linux/kernel.h>
- #include <linux/module.h>
--#include <linux/kconfig.h>
- #include <linux/netdevice.h>
- #include <linux/etherdevice.h>
- #include <linux/platform_device.h>
-diff -puN drivers/usb/early/ehci-dbgp.c~treewide-remove-redundant-include-linux-kconfigh drivers/usb/early/ehci-dbgp.c
---- a/drivers/usb/early/ehci-dbgp.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/usb/early/ehci-dbgp.c
-@@ -20,7 +20,6 @@
- #include <linux/usb/ehci_def.h>
- #include <linux/delay.h>
- #include <linux/serial_core.h>
--#include <linux/kconfig.h>
- #include <linux/kgdb.h>
- #include <linux/kthread.h>
- #include <asm/io.h>
-diff -puN drivers/usb/gadget/udc/bcm63xx_udc.c~treewide-remove-redundant-include-linux-kconfigh drivers/usb/gadget/udc/bcm63xx_udc.c
---- a/drivers/usb/gadget/udc/bcm63xx_udc.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/usb/gadget/udc/bcm63xx_udc.c
-@@ -21,7 +21,6 @@
- #include <linux/errno.h>
- #include <linux/interrupt.h>
- #include <linux/ioport.h>
--#include <linux/kconfig.h>
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/module.h>
-diff -puN drivers/usb/host/pci-quirks.c~treewide-remove-redundant-include-linux-kconfigh drivers/usb/host/pci-quirks.c
---- a/drivers/usb/host/pci-quirks.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/drivers/usb/host/pci-quirks.c
-@@ -9,7 +9,6 @@
-  */
- 
- #include <linux/types.h>
--#include <linux/kconfig.h>
- #include <linux/kernel.h>
- #include <linux/pci.h>
- #include <linux/delay.h>
-diff -puN fs/lockd/procfs.h~treewide-remove-redundant-include-linux-kconfigh fs/lockd/procfs.h
---- a/fs/lockd/procfs.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/fs/lockd/procfs.h
-@@ -6,8 +6,6 @@
- #ifndef _LOCKD_PROCFS_H
- #define _LOCKD_PROCFS_H
- 
--#include <linux/kconfig.h>
--
- #if IS_ENABLED(CONFIG_PROC_FS)
- int lockd_create_procfs(void);
- void lockd_remove_procfs(void);
-diff -puN include/linux/export.h~treewide-remove-redundant-include-linux-kconfigh include/linux/export.h
---- a/include/linux/export.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/include/linux/export.h
-@@ -78,7 +78,6 @@ extern struct module __this_module;
- 
- #elif defined(CONFIG_TRIM_UNUSED_KSYMS)
- 
--#include <linux/kconfig.h>
- #include <generated/autoksyms.h>
- 
- #define __EXPORT_SYMBOL(sym, sec)				\
-diff -puN include/linux/gpio/driver.h~treewide-remove-redundant-include-linux-kconfigh include/linux/gpio/driver.h
---- a/include/linux/gpio/driver.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/include/linux/gpio/driver.h
-@@ -8,7 +8,6 @@
- #include <linux/irqdomain.h>
- #include <linux/lockdep.h>
- #include <linux/pinctrl/pinctrl.h>
--#include <linux/kconfig.h>
- 
- struct gpio_desc;
- struct of_phandle_args;
-diff -puN net/batman-adv/debugfs.h~treewide-remove-redundant-include-linux-kconfigh net/batman-adv/debugfs.h
---- a/net/batman-adv/debugfs.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/net/batman-adv/debugfs.h
-@@ -20,8 +20,6 @@
- 
- #include "main.h"
- 
--#include <linux/kconfig.h>
--
- struct net_device;
- 
- #define BATADV_DEBUGFS_SUBDIR "batman_adv"
-diff -puN sound/soc/intel/common/sst-acpi.h~treewide-remove-redundant-include-linux-kconfigh sound/soc/intel/common/sst-acpi.h
---- a/sound/soc/intel/common/sst-acpi.h~treewide-remove-redundant-include-linux-kconfigh
-+++ a/sound/soc/intel/common/sst-acpi.h
-@@ -12,7 +12,6 @@
-  *
-  */
- 
--#include <linux/kconfig.h>
- #include <linux/stddef.h>
- #include <linux/acpi.h>
- 
-diff -puN tools/testing/nvdimm/config_check.c~treewide-remove-redundant-include-linux-kconfigh tools/testing/nvdimm/config_check.c
---- a/tools/testing/nvdimm/config_check.c~treewide-remove-redundant-include-linux-kconfigh
-+++ a/tools/testing/nvdimm/config_check.c
-@@ -1,4 +1,3 @@
--#include <linux/kconfig.h>
- #include <linux/bug.h>
- 
- void check(void)
+  * kthread_flush_worker - flush all current works on a kthread_worker
+  * @worker: worker to flush
 _
 
-Patches currently in -mm which might be from yamada.masahiro@socionext.com are
+Patches currently in -mm which might be from pmladek@suse.com are
 
 
