@@ -1,115 +1,281 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-select-add-vmalloc-fallback-for-select2.patch removed from -mm tree
-Date: Wed, 12 Oct 2016 12:22:39 -0700
-Message-ID: <57fe8d7f.Vq8fj35PlzIbhsxZ%akpm@linux-foundation.org>
+Subject: [merged] kthread-initial-support-for-delayed-kthread-work.patch
+ removed from -mm tree
+Date: Wed, 12 Oct 2016 12:26:21 -0700
+Message-ID: <57fe8e5d.M4pQaSjf/7/FN4NJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34055 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34095 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755915AbcJLTbH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:31:07 -0400
+        with ESMTP id S1755295AbcJLTv1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:51:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, David.Laight@ACULAB.COM, eric.dumazet@gmail.com, hillf.zj@alibaba-inc.com, jbaron@akamai.com, mhocko@suse.com, npiggin@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: pmladek@suse.com, bp@suse.de, jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/select: add vmalloc fallback for select(2)
+     Subject: kthread: initial support for delayed kthread work
 has been removed from the -mm tree.  Its filename was
-     fs-select-add-vmalloc-fallback-for-select2.patch
+     kthread-initial-support-for-delayed-kthread-work.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: fs/select: add vmalloc fallback for select(2)
+From: Petr Mladek <pmladek@suse.com>
+Subject: kthread: initial support for delayed kthread work
 
-The select(2) syscall performs a kmalloc(size, GFP_KERNEL) where size grows
-with the number of fds passed. We had a customer report page allocation
-failures of order-4 for this allocation. This is a costly order, so it might
-easily fail, as the VM expects such allocation to have a lower-order fallback.
+We are going to use kthread_worker more widely and delayed works
+will be pretty useful.
 
-Such trivial fallback is vmalloc(), as the memory doesn't have to be physically
-contiguous and the allocation is temporary for the duration of the syscall
-only. There were some concerns, whether this would have negative impact on the
-system by exposing vmalloc() to userspace. Although an excessive use of vmalloc
-can cause some system wide performance issues - TLB flushes etc. - a large
-order allocation is not for free either and an excessive reclaim/compaction can
-have a similar effect. Also note that the size is effectively limited by
-RLIMIT_NOFILE which defaults to 1024 on the systems I checked. That means the
-bitmaps will fit well within single page and thus the vmalloc() fallback could
-be only excercised for processes where root allows a higher limit.
+The implementation is inspired by workqueues.  It uses a timer to queue
+the work after the requested delay.  If the delay is zero, the work is
+queued immediately.
 
-Note that the poll(2) syscall seems to use a linked list of order-0 pages, so
-it doesn't need this kind of fallback.
+In compare with workqueues, each work is associated with a single worker
+(kthread).  Therefore the implementation could be much easier.  In
+particular, we use the worker->lock to synchronize all the operations with
+the work.  We do not need any atomic operation with a flags variable.
 
-[eric.dumazet@gmail.com: fix failure path logic]
-[akpm@linux-foundation.org: use proper type for size]
-Link: http://lkml.kernel.org/r/20160927084536.5923-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Jason Baron <jbaron@akamai.com>
+In fact, we do not need any state variable at all.  Instead, we add a list
+of delayed works into the worker.  Then the pending work is listed either
+in the list of queued or delayed works.  And the existing check of pending
+works is the same even for the delayed ones.
+
+A work must not be assigned to another worker unless reinitialized. 
+Therefore the timer handler might expect that dwork->work->worker is valid
+and it could simply take the lock.  We just add some sanity checks to help
+with debugging a potential misuse.
+
+Link: http://lkml.kernel.org/r/1470754545-17632-9-git-send-email-pmladek@suse.com
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/select.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ include/linux/kthread.h |   33 ++++++++++++
+ kernel/kthread.c        |  102 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 135 insertions(+)
 
-diff -puN fs/select.c~fs-select-add-vmalloc-fallback-for-select2 fs/select.c
---- a/fs/select.c~fs-select-add-vmalloc-fallback-for-select2
-+++ a/fs/select.c
-@@ -29,6 +29,7 @@
- #include <linux/sched/rt.h>
- #include <linux/freezer.h>
- #include <net/busy_poll.h>
-+#include <linux/vmalloc.h>
+diff -puN include/linux/kthread.h~kthread-initial-support-for-delayed-kthread-work include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-initial-support-for-delayed-kthread-work
++++ a/include/linux/kthread.h
+@@ -63,10 +63,12 @@ extern int tsk_fork_get_node(struct task
+  */
+ struct kthread_work;
+ typedef void (*kthread_work_func_t)(struct kthread_work *work);
++void kthread_delayed_work_timer_fn(unsigned long __data);
  
- #include <asm/uaccess.h>
+ struct kthread_worker {
+ 	spinlock_t		lock;
+ 	struct list_head	work_list;
++	struct list_head	delayed_work_list;
+ 	struct task_struct	*task;
+ 	struct kthread_work	*current_work;
+ };
+@@ -77,9 +79,15 @@ struct kthread_work {
+ 	struct kthread_worker	*worker;
+ };
  
-@@ -554,7 +555,7 @@ int core_sys_select(int n, fd_set __user
- 	fd_set_bits fds;
- 	void *bits;
- 	int ret, max_fds;
--	unsigned int size;
-+	size_t size, alloc_size;
- 	struct fdtable *fdt;
- 	/* Allocate small arguments on the stack to save memory and be faster */
- 	long stack_fds[SELECT_STACK_ALLOC/sizeof(long)];
-@@ -581,7 +582,14 @@ int core_sys_select(int n, fd_set __user
- 	if (size > sizeof(stack_fds) / 6) {
- 		/* Not enough space in on-stack array; must use kmalloc */
- 		ret = -ENOMEM;
--		bits = kmalloc(6 * size, GFP_KERNEL);
-+		if (size > (SIZE_MAX / 6))
-+			goto out_nofds;
++struct kthread_delayed_work {
++	struct kthread_work work;
++	struct timer_list timer;
++};
 +
-+		alloc_size = 6 * size;
-+		bits = kmalloc(alloc_size, GFP_KERNEL|__GFP_NOWARN);
-+		if (!bits && alloc_size > PAGE_SIZE)
-+			bits = vmalloc(alloc_size);
-+
- 		if (!bits)
- 			goto out_nofds;
+ #define KTHREAD_WORKER_INIT(worker)	{				\
+ 	.lock = __SPIN_LOCK_UNLOCKED((worker).lock),			\
+ 	.work_list = LIST_HEAD_INIT((worker).work_list),		\
++	.delayed_work_list = LIST_HEAD_INIT((worker).delayed_work_list),\
  	}
-@@ -618,7 +626,7 @@ int core_sys_select(int n, fd_set __user
  
- out:
- 	if (bits != stack_fds)
--		kfree(bits);
-+		kvfree(bits);
- out_nofds:
- 	return ret;
+ #define KTHREAD_WORK_INIT(work, fn)	{				\
+@@ -87,12 +95,23 @@ struct kthread_work {
+ 	.func = (fn),							\
+ 	}
+ 
++#define KTHREAD_DELAYED_WORK_INIT(dwork, fn) {				\
++	.work = KTHREAD_WORK_INIT((dwork).work, (fn)),			\
++	.timer = __TIMER_INITIALIZER(kthread_delayed_work_timer_fn,	\
++				     0, (unsigned long)&(dwork),	\
++				     TIMER_IRQSAFE),			\
++	}
++
+ #define DEFINE_KTHREAD_WORKER(worker)					\
+ 	struct kthread_worker worker = KTHREAD_WORKER_INIT(worker)
+ 
+ #define DEFINE_KTHREAD_WORK(work, fn)					\
+ 	struct kthread_work work = KTHREAD_WORK_INIT(work, fn)
+ 
++#define DEFINE_KTHREAD_DELAYED_WORK(dwork, fn)				\
++	struct kthread_delayed_work dwork =				\
++		KTHREAD_DELAYED_WORK_INIT(dwork, fn)
++
+ /*
+  * kthread_worker.lock needs its own lockdep class key when defined on
+  * stack with lockdep enabled.  Use the following macros in such cases.
+@@ -122,6 +141,15 @@ extern void __kthread_init_worker(struct
+ 		(work)->func = (fn);					\
+ 	} while (0)
+ 
++#define kthread_init_delayed_work(dwork, fn)				\
++	do {								\
++		kthread_init_work(&(dwork)->work, (fn));		\
++		__setup_timer(&(dwork)->timer,				\
++			      kthread_delayed_work_timer_fn,		\
++			      (unsigned long)(dwork),			\
++			      TIMER_IRQSAFE);				\
++	} while (0)
++
+ int kthread_worker_fn(void *worker_ptr);
+ 
+ __printf(1, 2)
+@@ -133,6 +161,11 @@ kthread_create_worker_on_cpu(int cpu, co
+ 
+ bool kthread_queue_work(struct kthread_worker *worker,
+ 			struct kthread_work *work);
++
++bool kthread_queue_delayed_work(struct kthread_worker *worker,
++				struct kthread_delayed_work *dwork,
++				unsigned long delay);
++
+ void kthread_flush_work(struct kthread_work *work);
+ void kthread_flush_worker(struct kthread_worker *worker);
+ 
+diff -puN kernel/kthread.c~kthread-initial-support-for-delayed-kthread-work kernel/kthread.c
+--- a/kernel/kthread.c~kthread-initial-support-for-delayed-kthread-work
++++ a/kernel/kthread.c
+@@ -563,6 +563,7 @@ void __kthread_init_worker(struct kthrea
+ 	spin_lock_init(&worker->lock);
+ 	lockdep_set_class_and_name(&worker->lock, key, name);
+ 	INIT_LIST_HEAD(&worker->work_list);
++	INIT_LIST_HEAD(&worker->delayed_work_list);
+ 	worker->task = NULL;
  }
+ EXPORT_SYMBOL_GPL(__kthread_init_worker);
+@@ -767,6 +768,107 @@ bool kthread_queue_work(struct kthread_w
+ }
+ EXPORT_SYMBOL_GPL(kthread_queue_work);
+ 
++/**
++ * kthread_delayed_work_timer_fn - callback that queues the associated kthread
++ *	delayed work when the timer expires.
++ * @__data: pointer to the data associated with the timer
++ *
++ * The format of the function is defined by struct timer_list.
++ * It should have been called from irqsafe timer with irq already off.
++ */
++void kthread_delayed_work_timer_fn(unsigned long __data)
++{
++	struct kthread_delayed_work *dwork =
++		(struct kthread_delayed_work *)__data;
++	struct kthread_work *work = &dwork->work;
++	struct kthread_worker *worker = work->worker;
++
++	/*
++	 * This might happen when a pending work is reinitialized.
++	 * It means that it is used a wrong way.
++	 */
++	if (WARN_ON_ONCE(!worker))
++		return;
++
++	spin_lock(&worker->lock);
++	/* Work must not be used with >1 worker, see kthread_queue_work(). */
++	WARN_ON_ONCE(work->worker != worker);
++
++	/* Move the work from worker->delayed_work_list. */
++	WARN_ON_ONCE(list_empty(&work->node));
++	list_del_init(&work->node);
++	kthread_insert_work(worker, work, &worker->work_list);
++
++	spin_unlock(&worker->lock);
++}
++EXPORT_SYMBOL(kthread_delayed_work_timer_fn);
++
++void __kthread_queue_delayed_work(struct kthread_worker *worker,
++				  struct kthread_delayed_work *dwork,
++				  unsigned long delay)
++{
++	struct timer_list *timer = &dwork->timer;
++	struct kthread_work *work = &dwork->work;
++
++	WARN_ON_ONCE(timer->function != kthread_delayed_work_timer_fn ||
++		     timer->data != (unsigned long)dwork);
++
++	/*
++	 * If @delay is 0, queue @dwork->work immediately.  This is for
++	 * both optimization and correctness.  The earliest @timer can
++	 * expire is on the closest next tick and delayed_work users depend
++	 * on that there's no such delay when @delay is 0.
++	 */
++	if (!delay) {
++		kthread_insert_work(worker, work, &worker->work_list);
++		return;
++	}
++
++	/* Be paranoid and try to detect possible races already now. */
++	kthread_insert_work_sanity_check(worker, work);
++
++	list_add(&work->node, &worker->delayed_work_list);
++	work->worker = worker;
++	timer_stats_timer_set_start_info(&dwork->timer);
++	timer->expires = jiffies + delay;
++	add_timer(timer);
++}
++
++/**
++ * kthread_queue_delayed_work - queue the associated kthread work
++ *	after a delay.
++ * @worker: target kthread_worker
++ * @dwork: kthread_delayed_work to queue
++ * @delay: number of jiffies to wait before queuing
++ *
++ * If the work has not been pending it starts a timer that will queue
++ * the work after the given @delay. If @delay is zero, it queues the
++ * work immediately.
++ *
++ * Return: %false if the @work has already been pending. It means that
++ * either the timer was running or the work was queued. It returns %true
++ * otherwise.
++ */
++bool kthread_queue_delayed_work(struct kthread_worker *worker,
++				struct kthread_delayed_work *dwork,
++				unsigned long delay)
++{
++	struct kthread_work *work = &dwork->work;
++	unsigned long flags;
++	bool ret = false;
++
++	spin_lock_irqsave(&worker->lock, flags);
++
++	if (list_empty(&work->node)) {
++		__kthread_queue_delayed_work(worker, dwork, delay);
++		ret = true;
++	}
++
++	spin_unlock_irqrestore(&worker->lock, flags);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(kthread_queue_delayed_work);
++
+ struct kthread_flush_work {
+ 	struct kthread_work	work;
+ 	struct completion	done;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from pmladek@suse.com are
 
 
