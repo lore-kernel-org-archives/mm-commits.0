@@ -1,137 +1,319 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-dont-test-for-prefer-ether_addr_foo.patch
- removed from -mm tree
-Date: Wed, 12 Oct 2016 12:23:07 -0700
-Message-ID: <57fe8d9b.oce4ybtdoLFJbTe5%akpm@linux-foundation.org>
+Subject: [merged] radix-tree-tests-add-iteration-test.patch removed from
+ -mm tree
+Date: Wed, 12 Oct 2016 12:22:45 -0700
+Message-ID: <57fe8d85.O1bH3zBePMUHW163%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33271 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33182 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755985AbcJLTYa (ORCPT
+        with ESMTP id S1755899AbcJLTYa (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dan.carpenter@oracle.com, gvrose8192@gmail.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, aryabinin@virtuozzo.com, dvyukov@google.com, koct9i@gmail.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: don't test for prefer ether_addr_<foo>
+     Subject: radix-tree tests: add iteration test
 has been removed from the -mm tree.  Its filename was
-     checkpatch-dont-test-for-prefer-ether_addr_foo.patch
+     radix-tree-tests-add-iteration-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: don't test for prefer ether_addr_<foo>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: radix-tree tests: add iteration test
 
-< sigh > Comment these tests out.
+There are four cases I can see where we could end up with a NULL 'slot' in
+radix_tree_next_slot().  This unit test exercises all four of them, making
+sure that if in the future we have an unsafe path through
+radix_tree_next_slot(), we'll catch it.
 
-These are just too enticing to people that don't verify that
-both source and dest addresses really must be __aligned(2).
+Here are details on the four cases:
 
-It helps make Dan Carpenter happy too.
+1) radix_tree_iter_retry() via a non-tagged iteration like
+radix_tree_for_each_slot().  In this case we currently aren't seeing a bug
+because radix_tree_iter_retry() sets
 
-Link: http://lkml.kernel.org/r/dc32ec66d24647f4cdf824c8dfbbc59aa7ce7b7d.1472665676.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Greg <gvrose8192@gmail.com>
+    iter->next_index = iter->index;
+
+which means that in in the else case in radix_tree_next_slot(), 'count' is
+zero, so we skip over the while() loop and effectively just return NULL
+without ever dereferencing 'slot'.
+
+2) radix_tree_iter_retry() via tagged iteration like
+radix_tree_for_each_tagged().  This case was giving us NULL pointer
+dereferences in testing, and was fixed with this commit:
+
+commit 3cb9185c6730 ("radix-tree: fix radix_tree_iter_retry() for tagged
+iterators.")
+
+This fix doesn't explicitly check for 'slot' being NULL, though, it works
+around the NULL pointer dereference by instead zeroing iter->tags in
+radix_tree_iter_retry(), which makes us bail out of the if() case in
+radix_tree_next_slot() before we dereference 'slot'.
+
+3) radix_tree_iter_next() via via a non-tagged iteration like
+radix_tree_for_each_slot().  This currently happens in shmem_tag_pins()
+and shmem_partial_swap_usage().
+
+As with non-tagged iteration, 'count' in the else case of
+radix_tree_next_slot() is zero, so we skip over the while() loop and
+effectively just return NULL without ever dereferencing 'slot'.
+
+4) radix_tree_iter_next() via tagged iteration like
+radix_tree_for_each_tagged().  This happens in shmem_wait_for_pins().
+
+radix_tree_iter_next() zeros out iter->tags, so we end up exiting
+radix_tree_next_slot() here:
+
+    if (flags & RADIX_TREE_ITER_TAGGED) {
+	    void *canon = slot;
+
+	    iter->tags >>= 1;
+	    if (unlikely(!iter->tags))
+		    return NULL;
+
+Link: http://lkml.kernel.org/r/20160815194237.25967-3-ross.zwisler@linux.intel.com
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   70 ++++++++++++++++++++--------------------
- 1 file changed, 35 insertions(+), 35 deletions(-)
+ tools/testing/radix-tree/Makefile          |    3 
+ tools/testing/radix-tree/iteration_check.c |  180 +++++++++++++++++++
+ tools/testing/radix-tree/main.c            |    1 
+ tools/testing/radix-tree/test.h            |    1 
+ 4 files changed, 184 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-dont-test-for-prefer-ether_addr_foo scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-dont-test-for-prefer-ether_addr_foo
-+++ a/scripts/checkpatch.pl
-@@ -5554,46 +5554,46 @@ sub process {
- 		}
+diff -puN tools/testing/radix-tree/Makefile~radix-tree-tests-add-iteration-test tools/testing/radix-tree/Makefile
+--- a/tools/testing/radix-tree/Makefile~radix-tree-tests-add-iteration-test
++++ a/tools/testing/radix-tree/Makefile
+@@ -3,7 +3,8 @@ CFLAGS += -I. -g -O2 -Wall -D_LGPL_SOURC
+ LDFLAGS += -lpthread -lurcu
+ TARGETS = main
+ OFILES = main.o radix-tree.o linux.o test.o tag_check.o find_next_bit.o \
+-	 regression1.o regression2.o regression3.o multiorder.o
++	 regression1.o regression2.o regression3.o multiorder.o \
++	 iteration_check.o
  
- # Check for memcpy(foo, bar, ETH_ALEN) that could be ether_addr_copy(foo, bar)
--		if ($^V && $^V ge 5.10.0 &&
--		    defined $stat &&
--		    $stat =~ /^\+(?:.*?)\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
--			if (WARN("PREFER_ETHER_ADDR_COPY",
--				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . "$here\n$stat\n") &&
--			    $fix) {
--				$fixed[$fixlinenr] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
--			}
--		}
-+#		if ($^V && $^V ge 5.10.0 &&
-+#		    defined $stat &&
-+#		    $stat =~ /^\+(?:.*?)\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
-+#			if (WARN("PREFER_ETHER_ADDR_COPY",
-+#				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . "$here\n$stat\n") &&
-+#			    $fix) {
-+#				$fixed[$fixlinenr] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
-+#			}
-+#		}
+ targets: $(TARGETS)
  
- # Check for memcmp(foo, bar, ETH_ALEN) that could be ether_addr_equal*(foo, bar)
--		if ($^V && $^V ge 5.10.0 &&
--		    defined $stat &&
--		    $stat =~ /^\+(?:.*?)\bmemcmp\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
--			WARN("PREFER_ETHER_ADDR_EQUAL",
--			     "Prefer ether_addr_equal() or ether_addr_equal_unaligned() over memcmp()\n" . "$here\n$stat\n")
--		}
-+#		if ($^V && $^V ge 5.10.0 &&
-+#		    defined $stat &&
-+#		    $stat =~ /^\+(?:.*?)\bmemcmp\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
-+#			WARN("PREFER_ETHER_ADDR_EQUAL",
-+#			     "Prefer ether_addr_equal() or ether_addr_equal_unaligned() over memcmp()\n" . "$here\n$stat\n")
-+#		}
+diff -puN /dev/null tools/testing/radix-tree/iteration_check.c
+--- /dev/null
++++ a/tools/testing/radix-tree/iteration_check.c
+@@ -0,0 +1,180 @@
++/*
++ * iteration_check.c: test races having to do with radix tree iteration
++ * Copyright (c) 2016 Intel Corporation
++ * Author: Ross Zwisler <ross.zwisler@linux.intel.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++#include <linux/radix-tree.h>
++#include <pthread.h>
++#include "test.h"
++
++#define NUM_THREADS 4
++#define TAG 0
++static pthread_mutex_t tree_lock = PTHREAD_MUTEX_INITIALIZER;
++static pthread_t threads[NUM_THREADS];
++RADIX_TREE(tree, GFP_KERNEL);
++bool test_complete;
++
++/* relentlessly fill the tree with tagged entries */
++static void *add_entries_fn(void *arg)
++{
++	int pgoff;
++
++	while (!test_complete) {
++		for (pgoff = 0; pgoff < 100; pgoff++) {
++			pthread_mutex_lock(&tree_lock);
++			if (item_insert(&tree, pgoff) == 0)
++				item_tag_set(&tree, pgoff, TAG);
++			pthread_mutex_unlock(&tree_lock);
++		}
++	}
++
++	return NULL;
++}
++
++/*
++ * Iterate over the tagged entries, doing a radix_tree_iter_retry() as we find
++ * things that have been removed and randomly resetting our iteration to the
++ * next chunk with radix_tree_iter_next().  Both radix_tree_iter_retry() and
++ * radix_tree_iter_next() cause radix_tree_next_slot() to be called with a
++ * NULL 'slot' variable.
++ */
++static void *tagged_iteration_fn(void *arg)
++{
++	struct radix_tree_iter iter;
++	void **slot;
++
++	while (!test_complete) {
++		rcu_read_lock();
++		radix_tree_for_each_tagged(slot, &tree, &iter, 0, TAG) {
++			void *entry;
++			int i;
++
++			/* busy wait to let removals happen */
++			for (i = 0; i < 1000000; i++)
++				;
++
++			entry = radix_tree_deref_slot(slot);
++			if (unlikely(!entry))
++				continue;
++
++			if (radix_tree_deref_retry(entry)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
++
++			if (rand() % 50 == 0)
++				slot = radix_tree_iter_next(&iter);
++		}
++		rcu_read_unlock();
++	}
++
++	return NULL;
++}
++
++/*
++ * Iterate over the entries, doing a radix_tree_iter_retry() as we find things
++ * that have been removed and randomly resetting our iteration to the next
++ * chunk with radix_tree_iter_next().  Both radix_tree_iter_retry() and
++ * radix_tree_iter_next() cause radix_tree_next_slot() to be called with a
++ * NULL 'slot' variable.
++ */
++static void *untagged_iteration_fn(void *arg)
++{
++	struct radix_tree_iter iter;
++	void **slot;
++
++	while (!test_complete) {
++		rcu_read_lock();
++		radix_tree_for_each_slot(slot, &tree, &iter, 0) {
++			void *entry;
++			int i;
++
++			/* busy wait to let removals happen */
++			for (i = 0; i < 1000000; i++)
++				;
++
++			entry = radix_tree_deref_slot(slot);
++			if (unlikely(!entry))
++				continue;
++
++			if (radix_tree_deref_retry(entry)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
++
++			if (rand() % 50 == 0)
++				slot = radix_tree_iter_next(&iter);
++		}
++		rcu_read_unlock();
++	}
++
++	return NULL;
++}
++
++/*
++ * Randomly remove entries to help induce radix_tree_iter_retry() calls in the
++ * two iteration functions.
++ */
++static void *remove_entries_fn(void *arg)
++{
++	while (!test_complete) {
++		int pgoff;
++
++		pgoff = rand() % 100;
++
++		pthread_mutex_lock(&tree_lock);
++		item_delete(&tree, pgoff);
++		pthread_mutex_unlock(&tree_lock);
++	}
++
++	return NULL;
++}
++
++/* This is a unit test for a bug found by the syzkaller tester */
++void iteration_test(void)
++{
++	int i;
++
++	printf("Running iteration tests for 10 seconds\n");
++
++	srand(time(0));
++	test_complete = false;
++
++	if (pthread_create(&threads[0], NULL, tagged_iteration_fn, NULL)) {
++		perror("pthread_create");
++		exit(1);
++	}
++	if (pthread_create(&threads[1], NULL, untagged_iteration_fn, NULL)) {
++		perror("pthread_create");
++		exit(1);
++	}
++	if (pthread_create(&threads[2], NULL, add_entries_fn, NULL)) {
++		perror("pthread_create");
++		exit(1);
++	}
++	if (pthread_create(&threads[3], NULL, remove_entries_fn, NULL)) {
++		perror("pthread_create");
++		exit(1);
++	}
++
++	sleep(10);
++	test_complete = true;
++
++	for (i = 0; i < NUM_THREADS; i++) {
++		if (pthread_join(threads[i], NULL)) {
++			perror("pthread_join");
++			exit(1);
++		}
++	}
++
++	item_kill_tree(&tree);
++}
+diff -puN tools/testing/radix-tree/main.c~radix-tree-tests-add-iteration-test tools/testing/radix-tree/main.c
+--- a/tools/testing/radix-tree/main.c~radix-tree-tests-add-iteration-test
++++ a/tools/testing/radix-tree/main.c
+@@ -332,6 +332,7 @@ int main(int argc, char **argv)
+ 	regression1_test();
+ 	regression2_test();
+ 	regression3_test();
++	iteration_test();
+ 	single_thread_tests(long_run);
  
- # check for memset(foo, 0x0, ETH_ALEN) that could be eth_zero_addr
- # check for memset(foo, 0xFF, ETH_ALEN) that could be eth_broadcast_addr
--		if ($^V && $^V ge 5.10.0 &&
--		    defined $stat &&
--		    $stat =~ /^\+(?:.*?)\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
--
--			my $ms_val = $7;
--
--			if ($ms_val =~ /^(?:0x|)0+$/i) {
--				if (WARN("PREFER_ETH_ZERO_ADDR",
--					 "Prefer eth_zero_addr over memset()\n" . "$here\n$stat\n") &&
--				    $fix) {
--					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_zero_addr($2)/;
--				}
--			} elsif ($ms_val =~ /^(?:0xff|255)$/i) {
--				if (WARN("PREFER_ETH_BROADCAST_ADDR",
--					 "Prefer eth_broadcast_addr() over memset()\n" . "$here\n$stat\n") &&
--				    $fix) {
--					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_broadcast_addr($2)/;
--				}
--			}
--		}
-+#		if ($^V && $^V ge 5.10.0 &&
-+#		    defined $stat &&
-+#		    $stat =~ /^\+(?:.*?)\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
-+#
-+#			my $ms_val = $7;
-+#
-+#			if ($ms_val =~ /^(?:0x|)0+$/i) {
-+#				if (WARN("PREFER_ETH_ZERO_ADDR",
-+#					 "Prefer eth_zero_addr over memset()\n" . "$here\n$stat\n") &&
-+#				    $fix) {
-+#					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_zero_addr($2)/;
-+#				}
-+#			} elsif ($ms_val =~ /^(?:0xff|255)$/i) {
-+#				if (WARN("PREFER_ETH_BROADCAST_ADDR",
-+#					 "Prefer eth_broadcast_addr() over memset()\n" . "$here\n$stat\n") &&
-+#				    $fix) {
-+#					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_broadcast_addr($2)/;
-+#				}
-+#			}
-+#		}
+ 	sleep(1);
+diff -puN tools/testing/radix-tree/test.h~radix-tree-tests-add-iteration-test tools/testing/radix-tree/test.h
+--- a/tools/testing/radix-tree/test.h~radix-tree-tests-add-iteration-test
++++ a/tools/testing/radix-tree/test.h
+@@ -27,6 +27,7 @@ void item_kill_tree(struct radix_tree_ro
  
- # typecasts on min/max could be min_t/max_t
- 		if ($^V && $^V ge 5.10.0 &&
+ void tag_check(void);
+ void multiorder_checks(void);
++void iteration_test(void);
+ 
+ struct item *
+ item_tag_set(struct radix_tree_root *root, unsigned long index, int tag);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
 
