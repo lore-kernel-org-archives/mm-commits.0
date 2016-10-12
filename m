@@ -1,199 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kthread-better-support-freezable-kthread-workers.patch
- removed from -mm tree
-Date: Wed, 12 Oct 2016 12:26:30 -0700
-Message-ID: <57fe8e66.A9r9t7HTYYrrIN36%akpm@linux-foundation.org>
+Subject: [merged]
+ block-require-write_same-and-discard-requests-align-to-logical-block-size.patch removed from -mm tree
+Date: Wed, 12 Oct 2016 12:22:33 -0700
+Message-ID: <57fe8d79.uMEAAGCHWKTGvbEC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33872 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34052 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755880AbcJLT1k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:27:40 -0400
+        with ESMTP id S1755565AbcJLTbH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:31:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pmladek@suse.com, bp@suse.de, jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: darrick.wong@oracle.com, axboe@kernel.dk, bart.vanassche@sandisk.com, bfoster@redhat.com, hare@suse.com, hch@lst.de, martin.petersen@oracle.com, snitzer@redhat.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread: better support freezable kthread workers
+     Subject: block: require write_same and discard requests align to logical block size
 has been removed from the -mm tree.  Its filename was
-     kthread-better-support-freezable-kthread-workers.patch
+     block-require-write_same-and-discard-requests-align-to-logical-block-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: kthread: better support freezable kthread workers
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+Subject: block: require write_same and discard requests align to logical block size
 
-This patch allows to make kthread worker freezable via a new @flags
-parameter. It will allow to avoid an init work in some kthreads.
+Make sure that the offset and length arguments that we're using to
+construct WRITE SAME and DISCARD requests are actually aligned to the
+logical block size.  Failure to do this causes other errors in other parts
+of the block layer or the SCSI layer because disks don't support partial
+logical block writes.
 
-It currently does not affect the function of kthread_worker_fn()
-but it might help to do some optimization or fixes eventually.
-
-I currently do not know about any other use for the @flags
-parameter but I believe that we will want more flags
-in the future.
-
-Finally, I hope that it will not cause confusion with @flags member
-in struct kthread. Well, I guess that we will want to rework the
-basic kthreads implementation once all kthreads are converted into
-kthread workers or workqueues. It is possible that we will merge
-the two structures.
-
-Link: http://lkml.kernel.org/r/1470754545-17632-12-git-send-email-pmladek@suse.com
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/147518379026.22791.4437508871355153928.stgit@birch.djwong.org
+Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Bart Van Assche <bart.vanassche@sandisk.com>
+Reviewed-by: Martin K. Petersen <martin.petersen@oracle.com>
+Reviewed-by: Hannes Reinecke <hare@suse.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Mike Snitzer <snitzer@redhat.com> # tweaked header
+Cc: Brian Foster <bfoster@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kthread.h |   12 +++++++++---
- kernel/kthread.c        |   21 +++++++++++++++------
- 2 files changed, 24 insertions(+), 9 deletions(-)
+ block/blk-lib.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN include/linux/kthread.h~kthread-better-support-freezable-kthread-workers include/linux/kthread.h
---- a/include/linux/kthread.h~kthread-better-support-freezable-kthread-workers
-+++ a/include/linux/kthread.h
-@@ -65,7 +65,12 @@ struct kthread_work;
- typedef void (*kthread_work_func_t)(struct kthread_work *work);
- void kthread_delayed_work_timer_fn(unsigned long __data);
+diff -puN block/blk-lib.c~block-require-write_same-and-discard-requests-align-to-logical-block-size block/blk-lib.c
+--- a/block/blk-lib.c~block-require-write_same-and-discard-requests-align-to-logical-block-size
++++ a/block/blk-lib.c
+@@ -31,6 +31,7 @@ int __blkdev_issue_discard(struct block_
+ 	unsigned int granularity;
+ 	enum req_op op;
+ 	int alignment;
++	sector_t bs_mask;
  
-+enum {
-+	KTW_FREEZABLE		= 1 << 0,	/* freeze during suspend */
-+};
+ 	if (!q)
+ 		return -ENXIO;
+@@ -50,6 +51,10 @@ int __blkdev_issue_discard(struct block_
+ 		op = REQ_OP_DISCARD;
+ 	}
+ 
++	bs_mask = (bdev_logical_block_size(bdev) >> 9) - 1;
++	if ((sector | nr_sects) & bs_mask)
++		return -EINVAL;
 +
- struct kthread_worker {
-+	unsigned int		flags;
- 	spinlock_t		lock;
- 	struct list_head	work_list;
- 	struct list_head	delayed_work_list;
-@@ -154,12 +159,13 @@ extern void __kthread_init_worker(struct
+ 	/* Zero-sector (unknown) and one-sector granularities are the same.  */
+ 	granularity = max(q->limits.discard_granularity >> 9, 1U);
+ 	alignment = (bdev_discard_alignment(bdev) >> 9) % granularity;
+@@ -150,10 +155,15 @@ int blkdev_issue_write_same(struct block
+ 	unsigned int max_write_same_sectors;
+ 	struct bio *bio = NULL;
+ 	int ret = 0;
++	sector_t bs_mask;
  
- int kthread_worker_fn(void *worker_ptr);
+ 	if (!q)
+ 		return -ENXIO;
  
--__printf(1, 2)
-+__printf(2, 3)
- struct kthread_worker *
--kthread_create_worker(const char namefmt[], ...);
-+kthread_create_worker(unsigned int flags, const char namefmt[], ...);
- 
- struct kthread_worker *
--kthread_create_worker_on_cpu(int cpu, const char namefmt[], ...);
-+kthread_create_worker_on_cpu(int cpu, unsigned int flags,
-+			     const char namefmt[], ...);
- 
- bool kthread_queue_work(struct kthread_worker *worker,
- 			struct kthread_work *work);
-diff -puN kernel/kthread.c~kthread-better-support-freezable-kthread-workers kernel/kthread.c
---- a/kernel/kthread.c~kthread-better-support-freezable-kthread-workers
-+++ a/kernel/kthread.c
-@@ -560,11 +560,11 @@ void __kthread_init_worker(struct kthrea
- 				const char *name,
- 				struct lock_class_key *key)
- {
-+	memset(worker, 0, sizeof(struct kthread_worker));
- 	spin_lock_init(&worker->lock);
- 	lockdep_set_class_and_name(&worker->lock, key, name);
- 	INIT_LIST_HEAD(&worker->work_list);
- 	INIT_LIST_HEAD(&worker->delayed_work_list);
--	worker->task = NULL;
- }
- EXPORT_SYMBOL_GPL(__kthread_init_worker);
- 
-@@ -594,6 +594,10 @@ int kthread_worker_fn(void *worker_ptr)
- 	 */
- 	WARN_ON(worker->task && worker->task != current);
- 	worker->task = current;
++	bs_mask = (bdev_logical_block_size(bdev) >> 9) - 1;
++	if ((sector | nr_sects) & bs_mask)
++		return -EINVAL;
 +
-+	if (worker->flags & KTW_FREEZABLE)
-+		set_freezable();
+ 	/* Ensure that max_write_same_sectors doesn't overflow bi_size */
+ 	max_write_same_sectors = UINT_MAX >> 9;
+ 
+@@ -202,6 +212,11 @@ static int __blkdev_issue_zeroout(struct
+ 	int ret;
+ 	struct bio *bio = NULL;
+ 	unsigned int sz;
++	sector_t bs_mask;
 +
- repeat:
- 	set_current_state(TASK_INTERRUPTIBLE);	/* mb paired w/ kthread_stop */
++	bs_mask = (bdev_logical_block_size(bdev) >> 9) - 1;
++	if ((sector | nr_sects) & bs_mask)
++		return -EINVAL;
  
-@@ -627,7 +631,8 @@ repeat:
- EXPORT_SYMBOL_GPL(kthread_worker_fn);
- 
- static struct kthread_worker *
--__kthread_create_worker(int cpu, const char namefmt[], va_list args)
-+__kthread_create_worker(int cpu, unsigned int flags,
-+			const char namefmt[], va_list args)
- {
- 	struct kthread_worker *worker;
- 	struct task_struct *task;
-@@ -657,6 +662,7 @@ __kthread_create_worker(int cpu, const c
- 	if (IS_ERR(task))
- 		goto fail_task;
- 
-+	worker->flags = flags;
- 	worker->task = task;
- 	wake_up_process(task);
- 	return worker;
-@@ -668,6 +674,7 @@ fail_task:
- 
- /**
-  * kthread_create_worker - create a kthread worker
-+ * @flags: flags modifying the default behavior of the worker
-  * @namefmt: printf-style name for the kthread worker (task).
-  *
-  * Returns a pointer to the allocated worker on success, ERR_PTR(-ENOMEM)
-@@ -675,13 +682,13 @@ fail_task:
-  * when the worker was SIGKILLed.
-  */
- struct kthread_worker *
--kthread_create_worker(const char namefmt[], ...)
-+kthread_create_worker(unsigned int flags, const char namefmt[], ...)
- {
- 	struct kthread_worker *worker;
- 	va_list args;
- 
- 	va_start(args, namefmt);
--	worker = __kthread_create_worker(-1, namefmt, args);
-+	worker = __kthread_create_worker(-1, flags, namefmt, args);
- 	va_end(args);
- 
- 	return worker;
-@@ -692,6 +699,7 @@ EXPORT_SYMBOL(kthread_create_worker);
-  * kthread_create_worker_on_cpu - create a kthread worker and bind it
-  *	it to a given CPU and the associated NUMA node.
-  * @cpu: CPU number
-+ * @flags: flags modifying the default behavior of the worker
-  * @namefmt: printf-style name for the kthread worker (task).
-  *
-  * Use a valid CPU number if you want to bind the kthread worker
-@@ -705,13 +713,14 @@ EXPORT_SYMBOL(kthread_create_worker);
-  * when the worker was SIGKILLed.
-  */
- struct kthread_worker *
--kthread_create_worker_on_cpu(int cpu, const char namefmt[], ...)
-+kthread_create_worker_on_cpu(int cpu, unsigned int flags,
-+			     const char namefmt[], ...)
- {
- 	struct kthread_worker *worker;
- 	va_list args;
- 
- 	va_start(args, namefmt);
--	worker = __kthread_create_worker(cpu, namefmt, args);
-+	worker = __kthread_create_worker(cpu, flags, namefmt, args);
- 	va_end(args);
- 
- 	return worker;
+ 	while (nr_sects != 0) {
+ 		bio = next_bio(bio, min(nr_sects, (sector_t)BIO_MAX_PAGES),
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from darrick.wong@oracle.com are
 
 
