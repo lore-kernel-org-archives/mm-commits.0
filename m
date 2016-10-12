@@ -1,180 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- block-implement-some-of-fallocate-for-block-devices.patch removed from -mm
- tree
-Date: Wed, 12 Oct 2016 12:22:36 -0700
-Message-ID: <57fe8d7c.c6StbtpsKAHUD1Rs%akpm@linux-foundation.org>
+Subject: [merged] fs-select-add-vmalloc-fallback-for-select2.patch removed from -mm tree
+Date: Wed, 12 Oct 2016 12:22:39 -0700
+Message-ID: <57fe8d7f.Vq8fj35PlzIbhsxZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34053 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34055 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755880AbcJLTbH (ORCPT
+        with ESMTP id S1755915AbcJLTbH (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:31:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: darrick.wong@oracle.com, axboe@kernel.dk, bart.vanassche@sandisk.com, bfoster@redhat.com, hare@suse.com, hare@suse.de, hch@infradead.org, martin.petersen@oracle.com, snitzer@redhat.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, David.Laight@ACULAB.COM, eric.dumazet@gmail.com, hillf.zj@alibaba-inc.com, jbaron@akamai.com, mhocko@suse.com, npiggin@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: implement (some of) fallocate for block devices
+     Subject: fs/select: add vmalloc fallback for select(2)
 has been removed from the -mm tree.  Its filename was
-     block-implement-some-of-fallocate-for-block-devices.patch
+     fs-select-add-vmalloc-fallback-for-select2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: block: implement (some of) fallocate for block devices
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: fs/select: add vmalloc fallback for select(2)
 
-After much discussion, it seems that the fallocate feature flag
-FALLOC_FL_ZERO_RANGE maps nicely to SCSI WRITE SAME; and the feature
-FALLOC_FL_PUNCH_HOLE maps nicely to the devices that have been whitelisted
-for zeroing SCSI UNMAP.  Punch still requires that FALLOC_FL_KEEP_SIZE is
-set.  A length that goes past the end of the device will be clamped to the
-device size if KEEP_SIZE is set; or will return -EINVAL if not.  Both
-start and length must be aligned to the device's logical block size.
+The select(2) syscall performs a kmalloc(size, GFP_KERNEL) where size grows
+with the number of fds passed. We had a customer report page allocation
+failures of order-4 for this allocation. This is a costly order, so it might
+easily fail, as the VM expects such allocation to have a lower-order fallback.
 
-Since the semantics of fallocate are fairly well established already, wire
-up the two pieces.  The other fallocate variants (collapse range, insert
-range, and allocate blocks) are not supported.
+Such trivial fallback is vmalloc(), as the memory doesn't have to be physically
+contiguous and the allocation is temporary for the duration of the syscall
+only. There were some concerns, whether this would have negative impact on the
+system by exposing vmalloc() to userspace. Although an excessive use of vmalloc
+can cause some system wide performance issues - TLB flushes etc. - a large
+order allocation is not for free either and an excessive reclaim/compaction can
+have a similar effect. Also note that the size is effectively limited by
+RLIMIT_NOFILE which defaults to 1024 on the systems I checked. That means the
+bitmaps will fit well within single page and thus the vmalloc() fallback could
+be only excercised for processes where root allows a higher limit.
 
-Link: http://lkml.kernel.org/r/147518379992.22791.8849838163218235007.stgit@birch.djwong.org
-Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Reviewed-by: Hannes Reinecke <hare@suse.com>
-Reviewed-by: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Martin K. Petersen <martin.petersen@oracle.com>
-Cc: Mike Snitzer <snitzer@redhat.com> # tweaked header
-Cc: Brian Foster <bfoster@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Hannes Reinecke <hare@suse.de>
-Cc: Jens Axboe <axboe@kernel.dk>
+Note that the poll(2) syscall seems to use a linked list of order-0 pages, so
+it doesn't need this kind of fallback.
+
+[eric.dumazet@gmail.com: fix failure path logic]
+[akpm@linux-foundation.org: use proper type for size]
+Link: http://lkml.kernel.org/r/20160927084536.5923-1-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: David Laight <David.Laight@ACULAB.COM>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Jason Baron <jbaron@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |   77 +++++++++++++++++++++++++++++++++++++++++++++++
- fs/open.c      |    3 +
- 2 files changed, 79 insertions(+), 1 deletion(-)
+ fs/select.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN fs/block_dev.c~block-implement-some-of-fallocate-for-block-devices fs/block_dev.c
---- a/fs/block_dev.c~block-implement-some-of-fallocate-for-block-devices
-+++ a/fs/block_dev.c
-@@ -30,6 +30,7 @@
- #include <linux/cleancache.h>
- #include <linux/dax.h>
- #include <linux/badblocks.h>
-+#include <linux/falloc.h>
+diff -puN fs/select.c~fs-select-add-vmalloc-fallback-for-select2 fs/select.c
+--- a/fs/select.c~fs-select-add-vmalloc-fallback-for-select2
++++ a/fs/select.c
+@@ -29,6 +29,7 @@
+ #include <linux/sched/rt.h>
+ #include <linux/freezer.h>
+ #include <net/busy_poll.h>
++#include <linux/vmalloc.h>
+ 
  #include <asm/uaccess.h>
- #include "internal.h"
  
-@@ -1775,6 +1776,81 @@ static const struct address_space_operat
- 	.is_dirty_writeback = buffer_check_dirty_writeback,
- };
+@@ -554,7 +555,7 @@ int core_sys_select(int n, fd_set __user
+ 	fd_set_bits fds;
+ 	void *bits;
+ 	int ret, max_fds;
+-	unsigned int size;
++	size_t size, alloc_size;
+ 	struct fdtable *fdt;
+ 	/* Allocate small arguments on the stack to save memory and be faster */
+ 	long stack_fds[SELECT_STACK_ALLOC/sizeof(long)];
+@@ -581,7 +582,14 @@ int core_sys_select(int n, fd_set __user
+ 	if (size > sizeof(stack_fds) / 6) {
+ 		/* Not enough space in on-stack array; must use kmalloc */
+ 		ret = -ENOMEM;
+-		bits = kmalloc(6 * size, GFP_KERNEL);
++		if (size > (SIZE_MAX / 6))
++			goto out_nofds;
++
++		alloc_size = 6 * size;
++		bits = kmalloc(alloc_size, GFP_KERNEL|__GFP_NOWARN);
++		if (!bits && alloc_size > PAGE_SIZE)
++			bits = vmalloc(alloc_size);
++
+ 		if (!bits)
+ 			goto out_nofds;
+ 	}
+@@ -618,7 +626,7 @@ int core_sys_select(int n, fd_set __user
  
-+#define	BLKDEV_FALLOC_FL_SUPPORTED					\
-+		(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE |		\
-+		 FALLOC_FL_ZERO_RANGE | FALLOC_FL_NO_HIDE_STALE)
-+
-+static long blkdev_fallocate(struct file *file, int mode, loff_t start,
-+			     loff_t len)
-+{
-+	struct block_device *bdev = I_BDEV(bdev_file_inode(file));
-+	struct request_queue *q = bdev_get_queue(bdev);
-+	struct address_space *mapping;
-+	loff_t end = start + len - 1;
-+	loff_t isize;
-+	int error;
-+
-+	/* Fail if we don't recognize the flags. */
-+	if (mode & ~BLKDEV_FALLOC_FL_SUPPORTED)
-+		return -EOPNOTSUPP;
-+
-+	/* Don't go off the end of the device. */
-+	isize = i_size_read(bdev->bd_inode);
-+	if (start >= isize)
-+		return -EINVAL;
-+	if (end >= isize) {
-+		if (mode & FALLOC_FL_KEEP_SIZE) {
-+			len = isize - start;
-+			end = start + len - 1;
-+		} else
-+			return -EINVAL;
-+	}
-+
-+	/*
-+	 * Don't allow IO that isn't aligned to logical block size.
-+	 */
-+	if ((start | len) & (bdev_logical_block_size(bdev) - 1))
-+		return -EINVAL;
-+
-+	/* Invalidate the page cache, including dirty pages. */
-+	mapping = bdev->bd_inode->i_mapping;
-+	truncate_inode_pages_range(mapping, start, end);
-+
-+	switch (mode) {
-+	case FALLOC_FL_ZERO_RANGE:
-+	case FALLOC_FL_ZERO_RANGE | FALLOC_FL_KEEP_SIZE:
-+		error = blkdev_issue_zeroout(bdev, start >> 9, len >> 9,
-+					    GFP_KERNEL, false);
-+		break;
-+	case FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE:
-+		/* Only punch if the device can do zeroing discard. */
-+		if (!blk_queue_discard(q) || !q->limits.discard_zeroes_data)
-+			return -EOPNOTSUPP;
-+		error = blkdev_issue_discard(bdev, start >> 9, len >> 9,
-+					     GFP_KERNEL, 0);
-+		break;
-+	case FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE | FALLOC_FL_NO_HIDE_STALE:
-+		if (!blk_queue_discard(q))
-+			return -EOPNOTSUPP;
-+		error = blkdev_issue_discard(bdev, start >> 9, len >> 9,
-+					     GFP_KERNEL, 0);
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+	if (error)
-+		return error;
-+
-+	/*
-+	 * Invalidate again; if someone wandered in and dirtied a page,
-+	 * the caller will be given -EBUSY.  The third argument is
-+	 * inclusive, so the rounding here is safe.
-+	 */
-+	return invalidate_inode_pages2_range(mapping,
-+					     start >> PAGE_SHIFT,
-+					     end >> PAGE_SHIFT);
-+}
-+
- const struct file_operations def_blk_fops = {
- 	.open		= blkdev_open,
- 	.release	= blkdev_close,
-@@ -1789,6 +1865,7 @@ const struct file_operations def_blk_fop
- #endif
- 	.splice_read	= generic_file_splice_read,
- 	.splice_write	= iter_file_splice_write,
-+	.fallocate	= blkdev_fallocate,
- };
- 
- int ioctl_by_bdev(struct block_device *bdev, unsigned cmd, unsigned long arg)
-diff -puN fs/open.c~block-implement-some-of-fallocate-for-block-devices fs/open.c
---- a/fs/open.c~block-implement-some-of-fallocate-for-block-devices
-+++ a/fs/open.c
-@@ -300,7 +300,8 @@ int vfs_fallocate(struct file *file, int
- 	 * Let individual file system decide if it supports preallocation
- 	 * for directories or not.
- 	 */
--	if (!S_ISREG(inode->i_mode) && !S_ISDIR(inode->i_mode))
-+	if (!S_ISREG(inode->i_mode) && !S_ISDIR(inode->i_mode) &&
-+	    !S_ISBLK(inode->i_mode))
- 		return -ENODEV;
- 
- 	/* Check for wrap through zero too */
+ out:
+ 	if (bits != stack_fds)
+-		kfree(bits);
++		kvfree(bits);
+ out_nofds:
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from darrick.wong@oracle.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
