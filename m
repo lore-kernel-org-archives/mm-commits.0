@@ -1,83 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+Subject: [merged]
+ checkpatch-add-warning-for-unnamed-function-definition-arguments.patch
  removed from -mm tree
-Date: Wed, 12 Oct 2016 12:24:08 -0700
-Message-ID: <57fe8dd8.paURDdhfVb1e43HR%akpm@linux-foundation.org>
+Date: Wed, 12 Oct 2016 12:23:29 -0700
+Message-ID: <57fe8db1.uVsp+0P71JQsDQIC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33274 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33181 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755989AbcJLTYh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:37 -0400
+        with ESMTP id S1755998AbcJLTYb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kusumi.tomohiro@gmail.com, ikent@redhat.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: move inclusion of linux/limits.h to uapi
+     Subject: checkpatch: add warning for unnamed function definition arguments
 has been removed from the -mm tree.  Its filename was
-     autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+     checkpatch-add-warning-for-unnamed-function-definition-arguments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: move inclusion of linux/limits.h to uapi
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add warning for unnamed function definition arguments
 
-linux/limits.h should be included by uapi instead of linux/auto_fs.h
-so as not to cause compile error in userspace.
+Function definitions without identifiers like
+	 int foo(int)
+are not preferred.  Emit a warning when they occur.
 
- # cat << EOF > ./test1.c
- > #include <stdio.h>
- > #include <linux/auto_fs.h>
- > int main(void) {
- >     return 0;
- > }
- > EOF
- # gcc -Wall -g ./test1.c
- In file included from ./test1.c:2:0:
- /usr/include/linux/auto_fs.h:54:12: error: 'NAME_MAX' undeclared here (not in a function)
-   char name[NAME_MAX+1];
-             ^
-
-Link: http://lkml.kernel.org/r/20160812024856.12352.24092.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Signed-off-by: Ian Kent <ikent@redhat.com>
+Link: http://lkml.kernel.org/r/94fe6378504745991b650f48fc92bb4648f25706.1474925354.git.joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/auto_fs.h      |    1 -
- include/uapi/linux/auto_fs.h |    1 +
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN include/linux/auto_fs.h~autofs-move-inclusion-of-linux-limitsh-to-uapi include/linux/auto_fs.h
---- a/include/linux/auto_fs.h~autofs-move-inclusion-of-linux-limitsh-to-uapi
-+++ a/include/linux/auto_fs.h
-@@ -10,7 +10,6 @@
- #define _LINUX_AUTO_FS_H
+diff -puN scripts/checkpatch.pl~checkpatch-add-warning-for-unnamed-function-definition-arguments scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-warning-for-unnamed-function-definition-arguments
++++ a/scripts/checkpatch.pl
+@@ -5794,6 +5794,19 @@ sub process {
+ 			     "externs should be avoided in .c files\n" .  $herecurr);
+ 		}
  
- #include <linux/fs.h>
--#include <linux/limits.h>
- #include <linux/ioctl.h>
- #include <uapi/linux/auto_fs.h>
- #endif /* _LINUX_AUTO_FS_H */
-diff -puN include/uapi/linux/auto_fs.h~autofs-move-inclusion-of-linux-limitsh-to-uapi include/uapi/linux/auto_fs.h
---- a/include/uapi/linux/auto_fs.h~autofs-move-inclusion-of-linux-limitsh-to-uapi
-+++ a/include/uapi/linux/auto_fs.h
-@@ -12,6 +12,7 @@
- #define _UAPI_LINUX_AUTO_FS_H
- 
- #include <linux/types.h>
-+#include <linux/limits.h>
- #ifndef __KERNEL__
- #include <sys/ioctl.h>
- #endif /* __KERNEL__ */
++		if ($realfile =~ /\.[ch]$/ && defined $stat &&
++		    $stat =~ /^.\s*(?:extern\s+)?$Type\s*$Ident\s*\(\s*([^{]+)\s*\)\s*;/s &&
++		    $1 ne "void") {
++			my $args = trim($1);
++			while ($args =~ m/\s*($Type\s*(?:$Ident|\(\s*\*\s*$Ident?\s*\)\s*$balanced_parens)?)/g) {
++				my $arg = trim($1);
++				if ($arg =~ /^$Type$/ && $arg !~ /enum\s+$Ident$/) {
++					WARN("FUNCTION_ARGUMENTS",
++					     "function definition argument '$arg' should also have an identifier name\n" . $herecurr);
++				}
++			}
++		}
++
+ # checks for new __setup's
+ 		if ($rawline =~ /\b__setup\("([^"]*)"/) {
+ 			my $name = $1;
 _
 
-Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 
