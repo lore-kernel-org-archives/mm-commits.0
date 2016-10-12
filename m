@@ -1,62 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] autofs-use-autofs4_free_ino-to-kfree-dentry-data.patch
+Subject: [merged] x86-use-simpler-api-for-random-address-requests.patch
  removed from -mm tree
-Date: Wed, 12 Oct 2016 12:23:47 -0700
-Message-ID: <57fe8dc3.Q4FfpVPBnNyqQJwQ%akpm@linux-foundation.org>
+Date: Wed, 12 Oct 2016 12:24:50 -0700
+Message-ID: <57fe8e02.h7+aHsLr3RVcQoHI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33283 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33274 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755915AbcJLTYg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:36 -0400
+        with ESMTP id S933938AbcJLTYv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kusumi.tomohiro@gmail.com, raven@themaw.net, mm-commits@vger.kernel.org
+To: jason@lakedaemon.net, hpa@zytor.com, keescook@chromium.org, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: use autofs4_free_ino() to kfree dentry data
+     Subject: x86: use simpler API for random address requests
 has been removed from the -mm tree.  Its filename was
-     autofs-use-autofs4_free_ino-to-kfree-dentry-data.patch
+     x86-use-simpler-api-for-random-address-requests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: use autofs4_free_ino() to kfree dentry data
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: x86: use simpler API for random address requests
 
-kfree dentry data allocated by autofs4_new_ino() with autofs4_free_ino()
-instead of raw kfree.  (since we have the interface to free autofs_info*)
+Currently, all callers to randomize_range() set the length to 0 and
+calculate end by adding a constant to the start address.  We can simplify
+the API to remove a bunch of needless checks and variables.
 
-This patch was modified to remove the need to set the dentry info field to
-NULL dew to a change in the previous patch.
+Use the new randomize_addr(start, range) call to set the requested
+address.
 
-Link: http://lkml.kernel.org/r/20160812024805.12352.43650.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+Link: http://lkml.kernel.org/r/20160803233913.32511-3-jason@lakedaemon.net
+Signed-off-by: Jason Cooper <jason@lakedaemon.net>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H . Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/process.c    |    3 +--
+ arch/x86/kernel/sys_x86_64.c |    5 +----
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN fs/autofs4/inode.c~autofs-use-autofs4_free_ino-to-kfree-dentry-data fs/autofs4/inode.c
---- a/fs/autofs4/inode.c~autofs-use-autofs4_free_ino-to-kfree-dentry-data
-+++ a/fs/autofs4/inode.c
-@@ -340,7 +340,7 @@ fail_dput:
- 	dput(root);
- 	goto fail_free;
- fail_ino:
--	kfree(ino);
-+	autofs4_free_ino(ino);
- fail_free:
- 	kfree(sbi);
- 	s->s_fs_info = NULL;
+diff -puN arch/x86/kernel/process.c~x86-use-simpler-api-for-random-address-requests arch/x86/kernel/process.c
+--- a/arch/x86/kernel/process.c~x86-use-simpler-api-for-random-address-requests
++++ a/arch/x86/kernel/process.c
+@@ -509,8 +509,7 @@ unsigned long arch_align_stack(unsigned
+ 
+ unsigned long arch_randomize_brk(struct mm_struct *mm)
+ {
+-	unsigned long range_end = mm->brk + 0x02000000;
+-	return randomize_range(mm->brk, range_end, 0) ? : mm->brk;
++	return randomize_page(mm->brk, 0x02000000);
+ }
+ 
+ /*
+diff -puN arch/x86/kernel/sys_x86_64.c~x86-use-simpler-api-for-random-address-requests arch/x86/kernel/sys_x86_64.c
+--- a/arch/x86/kernel/sys_x86_64.c~x86-use-simpler-api-for-random-address-requests
++++ a/arch/x86/kernel/sys_x86_64.c
+@@ -101,7 +101,6 @@ static void find_start_end(unsigned long
+ 			   unsigned long *end)
+ {
+ 	if (!test_thread_flag(TIF_ADDR32) && (flags & MAP_32BIT)) {
+-		unsigned long new_begin;
+ 		/* This is usually used needed to map code in small
+ 		   model, so it needs to be in the first 31bit. Limit
+ 		   it to that.  This means we need to move the
+@@ -112,9 +111,7 @@ static void find_start_end(unsigned long
+ 		*begin = 0x40000000;
+ 		*end = 0x80000000;
+ 		if (current->flags & PF_RANDOMIZE) {
+-			new_begin = randomize_range(*begin, *begin + 0x02000000, 0);
+-			if (new_begin)
+-				*begin = new_begin;
++			*begin = randomize_page(*begin, 0x02000000);
+ 		}
+ 	} else {
+ 		*begin = current->mm->mmap_legacy_base;
 _
 
-Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
+Patches currently in -mm which might be from jason@lakedaemon.net are
 
 
