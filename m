@@ -1,274 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kthread-allow-to-cancel-kthread-work.patch removed from
- -mm tree
-Date: Wed, 12 Oct 2016 12:26:24 -0700
-Message-ID: <57fe8e60.rflnKmXr9MthX84P%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-split-gfp_mask-and-mapping-flags-into-separate-fields.patch removed from -mm tree
+Date: Wed, 12 Oct 2016 12:26:41 -0700
+Message-ID: <57fe8e71.aqtrgBTzsoLARvQU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33847 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33974 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755137AbcJLT1k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:27:40 -0400
+        with ESMTP id S1755948AbcJLT1l (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:27:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pmladek@suse.com, bp@suse.de, jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread: allow to cancel kthread work
+     Subject: mm: split gfp_mask and mapping flags into separate fields
 has been removed from the -mm tree.  Its filename was
-     kthread-allow-to-cancel-kthread-work.patch
+     mm-split-gfp_mask-and-mapping-flags-into-separate-fields.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: kthread: allow to cancel kthread work
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: split gfp_mask and mapping flags into separate fields
 
-We are going to use kthread workers more widely and sometimes we will need
-to make sure that the work is neither pending nor running.
+mapping->flags currently encodes two different things into a single flag. 
+It contains sticky gfp_mask for page cache allocations and AS_ codes used
+to report errors/enospace and other states which are mapping specific. 
+Condensing the two semantically unrelated things saves few bytes but it
+also complicates other things.  For one thing the gfp flags space is
+reduced and in fact we are already running out of available bits.  It can
+be assumed that more gfp flags will be necessary later on.
 
-This patch implements cancel_*_sync() operations as inspired by
-workqueues.  Well, we are synchronized against the other operations via
-the worker lock, we use del_timer_sync() and a counter to count parallel
-cancel operations.  Therefore the implementation might be easier.
+To not introduce the address_space grow (at least on x86_64) we can stick
+it right after private_lock because we have a hole there.
 
-First, we check if a worker is assigned.  If not, the work has newer been
-queued after it was initialized.
+struct address_space {
+        struct inode *             host;                 /*     0     8 */
+        struct radix_tree_root     page_tree;            /*     8    16 */
+        spinlock_t                 tree_lock;            /*    24     4 */
+        atomic_t                   i_mmap_writable;      /*    28     4 */
+        struct rb_root             i_mmap;               /*    32     8 */
+        struct rw_semaphore        i_mmap_rwsem;         /*    40    40 */
+        /* --- cacheline 1 boundary (64 bytes) was 16 bytes ago --- */
+        long unsigned int          nrpages;              /*    80     8 */
+        long unsigned int          nrexceptional;        /*    88     8 */
+        long unsigned int          writeback_index;      /*    96     8 */
+        const struct address_space_operations  * a_ops;  /*   104     8 */
+        long unsigned int          flags;                /*   112     8 */
+        spinlock_t                 private_lock;         /*   120     4 */
 
-Second, we take the worker lock.  It must be the right one.  The work must
-not be assigned to another worker unless it is initialized in between.
+        /* XXX 4 bytes hole, try to pack */
 
-Third, we try to cancel the timer when it exists.  The timer is deleted
-synchronously to make sure that the timer call back is not running.  We
-need to temporary release the worker->lock to avoid a possible deadlock
-with the callback.  In the meantime, we set work->canceling counter to
-avoid any queuing.
+        /* --- cacheline 2 boundary (128 bytes) --- */
+        struct list_head           private_list;         /*   128    16 */
+        void *                     private_data;         /*   144     8 */
 
-Fourth, we try to remove the work from a worker list. It might be
-the list of either normal or delayed works.
+        /* size: 152, cachelines: 3, members: 14 */
+        /* sum members: 148, holes: 1, sum holes: 4 */
+        /* last cacheline: 24 bytes */
+};
 
-Fifth, if the work is running, we call kthread_flush_work().  It might
-take an arbitrary time.  We need to release the worker-lock again.  In the
-meantime, we again block any queuing by the canceling counter.
-
-As already mentioned, the check for a pending kthread work is done under a
-lock.  In compare with workqueues, we do not need to fight for a single
-PENDING bit to block other operations.  Therefore we do not suffer from
-the thundering storm problem and all parallel canceling jobs might use
-kthread_flush_work().  Any queuing is blocked until the counter gets zero.
-
-Link: http://lkml.kernel.org/r/1470754545-17632-10-git-send-email-pmladek@suse.com
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/20160912114852.GI14524@dhcp22.suse.cz
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kthread.h |    5 +
- kernel/kthread.c        |  132 +++++++++++++++++++++++++++++++++++++-
- 2 files changed, 135 insertions(+), 2 deletions(-)
+ include/linux/fs.h      |    3 ++-
+ include/linux/pagemap.h |   20 +++++++++-----------
+ 2 files changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/kthread.h~kthread-allow-to-cancel-kthread-work include/linux/kthread.h
---- a/include/linux/kthread.h~kthread-allow-to-cancel-kthread-work
-+++ a/include/linux/kthread.h
-@@ -77,6 +77,8 @@ struct kthread_work {
- 	struct list_head	node;
- 	kthread_work_func_t	func;
- 	struct kthread_worker	*worker;
-+	/* Number of canceling calls that are running at the moment. */
-+	int			canceling;
+diff -puN include/linux/fs.h~mm-split-gfp_mask-and-mapping-flags-into-separate-fields include/linux/fs.h
+--- a/include/linux/fs.h~mm-split-gfp_mask-and-mapping-flags-into-separate-fields
++++ a/include/linux/fs.h
+@@ -440,8 +440,9 @@ struct address_space {
+ 	unsigned long		nrexceptional;
+ 	pgoff_t			writeback_index;/* writeback starts here */
+ 	const struct address_space_operations *a_ops;	/* methods */
+-	unsigned long		flags;		/* error bits/gfp mask */
++	unsigned long		flags;		/* error bits */
+ 	spinlock_t		private_lock;	/* for use by the address_space */
++	gfp_t			gfp_mask;	/* implicit gfp mask for allocations */
+ 	struct list_head	private_list;	/* ditto */
+ 	void			*private_data;	/* ditto */
+ } __attribute__((aligned(sizeof(long))));
+diff -puN include/linux/pagemap.h~mm-split-gfp_mask-and-mapping-flags-into-separate-fields include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-split-gfp_mask-and-mapping-flags-into-separate-fields
++++ a/include/linux/pagemap.h
+@@ -16,17 +16,16 @@
+ #include <linux/hugetlb_inline.h>
+ 
+ /*
+- * Bits in mapping->flags.  The lower __GFP_BITS_SHIFT bits are the page
+- * allocation mode flags.
++ * Bits in mapping->flags.
+  */
+ enum mapping_flags {
+-	AS_EIO		= __GFP_BITS_SHIFT + 0,	/* IO error on async write */
+-	AS_ENOSPC	= __GFP_BITS_SHIFT + 1,	/* ENOSPC on async write */
+-	AS_MM_ALL_LOCKS	= __GFP_BITS_SHIFT + 2,	/* under mm_take_all_locks() */
+-	AS_UNEVICTABLE	= __GFP_BITS_SHIFT + 3,	/* e.g., ramdisk, SHM_LOCK */
+-	AS_EXITING	= __GFP_BITS_SHIFT + 4, /* final truncate in progress */
++	AS_EIO		= 0,	/* IO error on async write */
++	AS_ENOSPC	= 1,	/* ENOSPC on async write */
++	AS_MM_ALL_LOCKS	= 2,	/* under mm_take_all_locks() */
++	AS_UNEVICTABLE	= 3,	/* e.g., ramdisk, SHM_LOCK */
++	AS_EXITING	= 4, 	/* final truncate in progress */
+ 	/* writeback related tags are not used */
+-	AS_NO_WRITEBACK_TAGS = __GFP_BITS_SHIFT + 5,
++	AS_NO_WRITEBACK_TAGS = 5,
  };
  
- struct kthread_delayed_work {
-@@ -169,6 +171,9 @@ bool kthread_queue_delayed_work(struct k
- void kthread_flush_work(struct kthread_work *work);
- void kthread_flush_worker(struct kthread_worker *worker);
+ static inline void mapping_set_error(struct address_space *mapping, int error)
+@@ -78,7 +77,7 @@ static inline int mapping_use_writeback_
  
-+bool kthread_cancel_work_sync(struct kthread_work *work);
-+bool kthread_cancel_delayed_work_sync(struct kthread_delayed_work *work);
-+
- void kthread_destroy_worker(struct kthread_worker *worker);
- 
- #endif /* _LINUX_KTHREAD_H */
-diff -puN kernel/kthread.c~kthread-allow-to-cancel-kthread-work kernel/kthread.c
---- a/kernel/kthread.c~kthread-allow-to-cancel-kthread-work
-+++ a/kernel/kthread.c
-@@ -718,6 +718,19 @@ kthread_create_worker_on_cpu(int cpu, co
- }
- EXPORT_SYMBOL(kthread_create_worker_on_cpu);
- 
-+/*
-+ * Returns true when the work could not be queued at the moment.
-+ * It happens when it is already pending in a worker list
-+ * or when it is being cancelled.
-+ */
-+static inline bool queuing_blocked(struct kthread_worker *worker,
-+				   struct kthread_work *work)
-+{
-+	lockdep_assert_held(&worker->lock);
-+
-+	return !list_empty(&work->node) || work->canceling;
-+}
-+
- static void kthread_insert_work_sanity_check(struct kthread_worker *worker,
- 					     struct kthread_work *work)
+ static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
  {
-@@ -759,7 +772,7 @@ bool kthread_queue_work(struct kthread_w
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&worker->lock, flags);
--	if (list_empty(&work->node)) {
-+	if (!queuing_blocked(worker, work)) {
- 		kthread_insert_work(worker, work, &worker->work_list);
- 		ret = true;
- 	}
-@@ -859,7 +872,7 @@ bool kthread_queue_delayed_work(struct k
- 
- 	spin_lock_irqsave(&worker->lock, flags);
- 
--	if (list_empty(&work->node)) {
-+	if (!queuing_blocked(worker, work)) {
- 		__kthread_queue_delayed_work(worker, dwork, delay);
- 		ret = true;
- 	}
-@@ -919,6 +932,121 @@ void kthread_flush_work(struct kthread_w
+-	return (__force gfp_t)mapping->flags & __GFP_BITS_MASK;
++	return mapping->gfp_mask;
  }
- EXPORT_SYMBOL_GPL(kthread_flush_work);
  
-+/*
-+ * This function removes the work from the worker queue. Also it makes sure
-+ * that it won't get queued later via the delayed work's timer.
-+ *
-+ * The work might still be in use when this function finishes. See the
-+ * current_work proceed by the worker.
-+ *
-+ * Return: %true if @work was pending and successfully canceled,
-+ *	%false if @work was not pending
-+ */
-+static bool __kthread_cancel_work(struct kthread_work *work, bool is_dwork,
-+				  unsigned long *flags)
-+{
-+	/* Try to cancel the timer if exists. */
-+	if (is_dwork) {
-+		struct kthread_delayed_work *dwork =
-+			container_of(work, struct kthread_delayed_work, work);
-+		struct kthread_worker *worker = work->worker;
-+
-+		/*
-+		 * del_timer_sync() must be called to make sure that the timer
-+		 * callback is not running. The lock must be temporary released
-+		 * to avoid a deadlock with the callback. In the meantime,
-+		 * any queuing is blocked by setting the canceling counter.
-+		 */
-+		work->canceling++;
-+		spin_unlock_irqrestore(&worker->lock, *flags);
-+		del_timer_sync(&dwork->timer);
-+		spin_lock_irqsave(&worker->lock, *flags);
-+		work->canceling--;
-+	}
-+
-+	/*
-+	 * Try to remove the work from a worker list. It might either
-+	 * be from worker->work_list or from worker->delayed_work_list.
-+	 */
-+	if (!list_empty(&work->node)) {
-+		list_del_init(&work->node);
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
-+static bool __kthread_cancel_work_sync(struct kthread_work *work, bool is_dwork)
-+{
-+	struct kthread_worker *worker = work->worker;
-+	unsigned long flags;
-+	int ret = false;
-+
-+	if (!worker)
-+		goto out;
-+
-+	spin_lock_irqsave(&worker->lock, flags);
-+	/* Work must not be used with >1 worker, see kthread_queue_work(). */
-+	WARN_ON_ONCE(work->worker != worker);
-+
-+	ret = __kthread_cancel_work(work, is_dwork, &flags);
-+
-+	if (worker->current_work != work)
-+		goto out_fast;
-+
-+	/*
-+	 * The work is in progress and we need to wait with the lock released.
-+	 * In the meantime, block any queuing by setting the canceling counter.
-+	 */
-+	work->canceling++;
-+	spin_unlock_irqrestore(&worker->lock, flags);
-+	kthread_flush_work(work);
-+	spin_lock_irqsave(&worker->lock, flags);
-+	work->canceling--;
-+
-+out_fast:
-+	spin_unlock_irqrestore(&worker->lock, flags);
-+out:
-+	return ret;
-+}
-+
-+/**
-+ * kthread_cancel_work_sync - cancel a kthread work and wait for it to finish
-+ * @work: the kthread work to cancel
-+ *
-+ * Cancel @work and wait for its execution to finish.  This function
-+ * can be used even if the work re-queues itself. On return from this
-+ * function, @work is guaranteed to be not pending or executing on any CPU.
-+ *
-+ * kthread_cancel_work_sync(&delayed_work->work) must not be used for
-+ * delayed_work's. Use kthread_cancel_delayed_work_sync() instead.
-+ *
-+ * The caller must ensure that the worker on which @work was last
-+ * queued can't be destroyed before this function returns.
-+ *
-+ * Return: %true if @work was pending, %false otherwise.
-+ */
-+bool kthread_cancel_work_sync(struct kthread_work *work)
-+{
-+	return __kthread_cancel_work_sync(work, false);
-+}
-+EXPORT_SYMBOL_GPL(kthread_cancel_work_sync);
-+
-+/**
-+ * kthread_cancel_delayed_work_sync - cancel a kthread delayed work and
-+ *	wait for it to finish.
-+ * @dwork: the kthread delayed work to cancel
-+ *
-+ * This is kthread_cancel_work_sync() for delayed works.
-+ *
-+ * Return: %true if @dwork was pending, %false otherwise.
-+ */
-+bool kthread_cancel_delayed_work_sync(struct kthread_delayed_work *dwork)
-+{
-+	return __kthread_cancel_work_sync(&dwork->work, true);
-+}
-+EXPORT_SYMBOL_GPL(kthread_cancel_delayed_work_sync);
-+
- /**
-  * kthread_flush_worker - flush all current works on a kthread_worker
-  * @worker: worker to flush
+ /* Restricts the given gfp_mask to what the mapping allows. */
+@@ -94,8 +93,7 @@ static inline gfp_t mapping_gfp_constrai
+  */
+ static inline void mapping_set_gfp_mask(struct address_space *m, gfp_t mask)
+ {
+-	m->flags = (m->flags & ~(__force unsigned long)__GFP_BITS_MASK) |
+-				(__force unsigned long)mask;
++	m->gfp_mask = mask;
+ }
+ 
+ void release_pages(struct page **pages, int nr, bool cold);
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
 
