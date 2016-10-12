@@ -1,93 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- autofs-test-autofs-versions-first-on-sb-initialization.patch removed from
- -mm tree
-Date: Wed, 12 Oct 2016 12:23:39 -0700
-Message-ID: <57fe8dbb.bNP6DfMWSUkYCdps%akpm@linux-foundation.org>
+Subject: [merged] autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
+ removed from -mm tree
+Date: Wed, 12 Oct 2016 12:24:08 -0700
+Message-ID: <57fe8dd8.paURDdhfVb1e43HR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33196 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33274 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755990AbcJLTYe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:34 -0400
+        with ESMTP id S1755989AbcJLTYh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kusumi.tomohiro@gmail.com, raven@themaw.net, mm-commits@vger.kernel.org
+To: kusumi.tomohiro@gmail.com, ikent@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: test autofs versions first on sb initialization
+     Subject: autofs: move inclusion of linux/limits.h to uapi
 has been removed from the -mm tree.  Its filename was
-     autofs-test-autofs-versions-first-on-sb-initialization.patch
+     autofs-move-inclusion-of-linux-limitsh-to-uapi.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: test autofs versions first on sb initialization
+Subject: autofs: move inclusion of linux/limits.h to uapi
 
-This patch does what the below comment says.  It could be and it's
-considered better to do this first before various functions get called
-during initialization.
+linux/limits.h should be included by uapi instead of linux/auto_fs.h
+so as not to cause compile error in userspace.
 
-/* Couldn't this be tested earlier? */
+ # cat << EOF > ./test1.c
+ > #include <stdio.h>
+ > #include <linux/auto_fs.h>
+ > int main(void) {
+ >     return 0;
+ > }
+ > EOF
+ # gcc -Wall -g ./test1.c
+ In file included from ./test1.c:2:0:
+ /usr/include/linux/auto_fs.h:54:12: error: 'NAME_MAX' undeclared here (not in a function)
+   char name[NAME_MAX+1];
+             ^
 
-Link: http://lkml.kernel.org/r/20160812024744.12352.43075.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/20160812024856.12352.24092.stgit@pluto.themaw.net
 Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+Signed-off-by: Ian Kent <ikent@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/inode.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ include/linux/auto_fs.h      |    1 -
+ include/uapi/linux/auto_fs.h |    1 +
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/autofs4/inode.c~autofs-test-autofs-versions-first-on-sb-initialization fs/autofs4/inode.c
---- a/fs/autofs4/inode.c~autofs-test-autofs-versions-first-on-sb-initialization
-+++ a/fs/autofs4/inode.c
-@@ -274,6 +274,23 @@ int autofs4_fill_super(struct super_bloc
- 		goto fail_dput;
- 	}
+diff -puN include/linux/auto_fs.h~autofs-move-inclusion-of-linux-limitsh-to-uapi include/linux/auto_fs.h
+--- a/include/linux/auto_fs.h~autofs-move-inclusion-of-linux-limitsh-to-uapi
++++ a/include/linux/auto_fs.h
+@@ -10,7 +10,6 @@
+ #define _LINUX_AUTO_FS_H
  
-+	/* Test versions first */
-+	if (sbi->max_proto < AUTOFS_MIN_PROTO_VERSION ||
-+	    sbi->min_proto > AUTOFS_MAX_PROTO_VERSION) {
-+		pr_err("kernel does not match daemon version "
-+		       "daemon (%d, %d) kernel (%d, %d)\n",
-+		       sbi->min_proto, sbi->max_proto,
-+		       AUTOFS_MIN_PROTO_VERSION, AUTOFS_MAX_PROTO_VERSION);
-+		goto fail_dput;
-+	}
-+
-+	/* Establish highest kernel protocol version */
-+	if (sbi->max_proto > AUTOFS_MAX_PROTO_VERSION)
-+		sbi->version = AUTOFS_MAX_PROTO_VERSION;
-+	else
-+		sbi->version = sbi->max_proto;
-+	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
-+
- 	if (pgrp_set) {
- 		sbi->oz_pgrp = find_get_pid(pgrp);
- 		if (!sbi->oz_pgrp) {
-@@ -291,23 +308,6 @@ int autofs4_fill_super(struct super_bloc
- 	root_inode->i_fop = &autofs4_root_operations;
- 	root_inode->i_op = &autofs4_dir_inode_operations;
+ #include <linux/fs.h>
+-#include <linux/limits.h>
+ #include <linux/ioctl.h>
+ #include <uapi/linux/auto_fs.h>
+ #endif /* _LINUX_AUTO_FS_H */
+diff -puN include/uapi/linux/auto_fs.h~autofs-move-inclusion-of-linux-limitsh-to-uapi include/uapi/linux/auto_fs.h
+--- a/include/uapi/linux/auto_fs.h~autofs-move-inclusion-of-linux-limitsh-to-uapi
++++ a/include/uapi/linux/auto_fs.h
+@@ -12,6 +12,7 @@
+ #define _UAPI_LINUX_AUTO_FS_H
  
--	/* Couldn't this be tested earlier? */
--	if (sbi->max_proto < AUTOFS_MIN_PROTO_VERSION ||
--	    sbi->min_proto > AUTOFS_MAX_PROTO_VERSION) {
--		pr_err("kernel does not match daemon version "
--		       "daemon (%d, %d) kernel (%d, %d)\n",
--		       sbi->min_proto, sbi->max_proto,
--		       AUTOFS_MIN_PROTO_VERSION, AUTOFS_MAX_PROTO_VERSION);
--		goto fail_dput;
--	}
--
--	/* Establish highest kernel protocol version */
--	if (sbi->max_proto > AUTOFS_MAX_PROTO_VERSION)
--		sbi->version = AUTOFS_MAX_PROTO_VERSION;
--	else
--		sbi->version = sbi->max_proto;
--	sbi->sub_version = AUTOFS_PROTO_SUBVERSION;
+ #include <linux/types.h>
++#include <linux/limits.h>
+ #ifndef __KERNEL__
+ #include <sys/ioctl.h>
+ #endif /* __KERNEL__ */
+_
+
+Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
+
+
