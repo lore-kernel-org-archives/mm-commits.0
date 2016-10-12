@@ -1,96 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- include-linux-provide-a-safe-version-of-container_of.patch removed from -mm tree
-Date: Tue, 11 Oct 2016 15:56:22 -0700
-Message-ID: <57fd6e16.gdrqJLM9g4gVl5+I%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 12 Oct 2016 12:07:37 -0700
+Message-ID: <57fe89f9.DQeHwbjh/wsMFTKE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42220 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33051 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754684AbcJKW4X (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 11 Oct 2016 18:56:23 -0400
+        with ESMTP id S1755382AbcJLTHw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:07:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glider@google.com, dvyukov@google.com, edumazet@google.com, kcc@google.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux: provide a safe version of container_of()
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     include-linux-provide-a-safe-version-of-container_of.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: include/linux: provide a safe version of container_of()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Patch series "Clang: avoid undefined behavior in llist iterators":
-
-This patchset fixes problems with pointer arithmetics overflow in llist
-iterators, llist_for_each_entry() and llist_for_each_entry_safe().  Clang
-turns those macros into infinite loops, because they're operating with
-"negative" pointers.
-
-As a follow-up it may make sense to convert other uses of llist_entry() to
-llist_entry_safe(), or even replace uses of container_of() with
-container_of_safe().
-
-
-This patch (of 2):
-
-Some code relies on "negative" (i.e.  too big) pointer values being
-returned by container_of() when its first argument is NULL.  But doing so
-breaks the compiler's assumptions that pointer arithmetic never overflows.
-
-container_of_safe() checks its arguments and returns NULL in the case the
-member offset within the container is greater than the pointer to the
-member, otherwise it returns the result of container_of().
-
-Link: http://lkml.kernel.org/r/1474636978-41435-2-git-send-email-glider@google.com
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Kostya Serebryany <kcc@google.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ fs/overlayfs/super.c |    7 -------
+ fs/ubifs/dir.c       |    4 ----
+ 2 files changed, 11 deletions(-)
 
-diff -puN include/linux/kernel.h~include-linux-provide-a-safe-version-of-container_of include/linux/kernel.h
---- a/include/linux/kernel.h~include-linux-provide-a-safe-version-of-container_of
-+++ a/include/linux/kernel.h
-@@ -836,6 +836,21 @@ static inline void ftrace_dump(enum ftra
- 	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
- 	(type *)( (char *)__mptr - offsetof(type,member) );})
+diff -puN fs/overlayfs/super.c~linux-next-git-rejects fs/overlayfs/super.c
+--- a/fs/overlayfs/super.c~linux-next-git-rejects
++++ a/fs/overlayfs/super.c
+@@ -274,17 +274,10 @@ static bool ovl_is_opaquedir(struct dent
+ 	int res;
+ 	char val;
  
-+/**
-+ * container_of_safe - safe version of container_of
-+ * @ptr:	the pointer to the member.
-+ * @type:	the type of the container struct this is embedded in.
-+ * @member:	the name of the member within the struct.
-+ *
-+ * In the case the value of @ptr is smaller than the offset of @member within
-+ * @type, return 0.
-+ */
-+#define container_of_safe(ptr, type, member) ({			\
-+	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
-+        (size_t)__mptr >= offsetof(type,member) ?		\
-+	(type *)( (char *)__mptr - offsetof(type,member) ) : (type *)0 ;})
-+
-+
- /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
- # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
+-<<<<<<< HEAD
+-	if (!S_ISDIR(inode->i_mode) || !(inode->i_opflags & IOP_XATTR))
+-		return false;
+-
+-	res = __vfs_getxattr(dentry, inode, OVL_XATTR_OPAQUE, &val, 1);
+-=======
+ 	if (!d_is_dir(dentry))
+ 		return false;
+ 
+ 	res = vfs_getxattr(dentry, OVL_XATTR_OPAQUE, &val, 1);
+->>>>>>> linux-next/akpm-base
+ 	if (res == 1 && val == 'y')
+ 		return true;
+ 
+diff -puN fs/ubifs/dir.c~linux-next-git-rejects fs/ubifs/dir.c
+--- a/fs/ubifs/dir.c~linux-next-git-rejects
++++ a/fs/ubifs/dir.c
+@@ -1387,11 +1387,7 @@ const struct inode_operations ubifs_dir_
+ 	.mkdir       = ubifs_mkdir,
+ 	.rmdir       = ubifs_rmdir,
+ 	.mknod       = ubifs_mknod,
+-<<<<<<< HEAD
+-	.rename     = ubifs_rename,
+-=======
+ 	.rename     = ubifs_rename2,
+->>>>>>> linux-next/akpm-base
+ 	.setattr     = ubifs_setattr,
+ 	.getattr     = ubifs_getattr,
+ 	.listxattr   = ubifs_listxattr,
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-llist-introduce-llist_entry_safe.patch
-kcov-do-not-instrument-lib-stackdepotc.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+b.patch
 
