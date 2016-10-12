@@ -1,64 +1,110 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code.patch removed
- from -mm tree
-Date: Wed, 12 Oct 2016 12:24:44 -0700
-Message-ID: <57fe8dfc.LlX8rr9q0MOkpNmz%akpm@linux-foundation.org>
+ autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl.patch removed from -mm
+ tree
+Date: Wed, 12 Oct 2016 12:24:15 -0700
+Message-ID: <57fe8ddf.C1SKnEHzuER4Npde%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33272 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33182 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932141AbcJLTYp (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:45 -0400
+        with ESMTP id S1756031AbcJLTYi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, fengguang.wu@intel.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: kusumi.tomohiro@gmail.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/rio_cm: use memdup_user() instead of duplicating code
+     Subject: autofs: refactor ioctl fn vector in iookup_dev_ioctl()
 has been removed from the -mm tree.  Its filename was
-     rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code.patch
+     autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/rio_cm: use memdup_user() instead of duplicating code
+From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Subject: autofs: refactor ioctl fn vector in iookup_dev_ioctl()
 
-Fix coccinelle warning about duplicating existing memdup_user function.
+cmd part of this struct is the same as an index of itself within
+_ioctls[]. In fact this cmd is unused, so we can drop this part.
 
-Link: http://lkml.kernel.org/r/20160811151737.20140-1-alexandre.bounine@idt.com
-Link: https://lkml.org/lkml/2016/8/11/29
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
-Cc: Barry Wood <barry.wood@idt.com>
+Link: http://lkml.kernel.org/r/20160831033414.9910.66697.stgit@pluto.themaw.net
+Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio_cm.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ fs/autofs4/dev-ioctl.c |   49 ++++++++++++---------------------------
+ 1 file changed, 16 insertions(+), 33 deletions(-)
 
-diff -puN drivers/rapidio/rio_cm.c~rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code drivers/rapidio/rio_cm.c
---- a/drivers/rapidio/rio_cm.c~rapidio-rio_cm-use-memdup_user-instead-of-duplicating-code
-+++ a/drivers/rapidio/rio_cm.c
-@@ -1841,24 +1841,19 @@ static int cm_chan_msg_send(void __user
+diff -puN fs/autofs4/dev-ioctl.c~autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl
++++ a/fs/autofs4/dev-ioctl.c
+@@ -597,42 +597,25 @@ out:
+ 
+ static ioctl_fn lookup_dev_ioctl(unsigned int cmd)
  {
- 	struct rio_cm_msg msg;
- 	void *buf;
--	int ret = 0;
-+	int ret;
+-	static struct {
+-		int cmd;
+-		ioctl_fn fn;
+-	} _ioctls[] = {
+-		{cmd_idx(AUTOFS_DEV_IOCTL_VERSION_CMD),
+-			 autofs_dev_ioctl_version},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOVER_CMD),
+-			 autofs_dev_ioctl_protover},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD),
+-			 autofs_dev_ioctl_protosubver},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_OPENMOUNT_CMD),
+-			 autofs_dev_ioctl_openmount},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD),
+-			 autofs_dev_ioctl_closemount},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_READY_CMD),
+-			 autofs_dev_ioctl_ready},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_FAIL_CMD),
+-			 autofs_dev_ioctl_fail},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_SETPIPEFD_CMD),
+-			 autofs_dev_ioctl_setpipefd},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_CATATONIC_CMD),
+-			 autofs_dev_ioctl_catatonic},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_TIMEOUT_CMD),
+-			 autofs_dev_ioctl_timeout},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_REQUESTER_CMD),
+-			 autofs_dev_ioctl_requester},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_EXPIRE_CMD),
+-			 autofs_dev_ioctl_expire},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD),
+-			 autofs_dev_ioctl_askumount},
+-		{cmd_idx(AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD),
+-			 autofs_dev_ioctl_ismountpoint}
++	static ioctl_fn _ioctls[] = {
++		autofs_dev_ioctl_version,
++		autofs_dev_ioctl_protover,
++		autofs_dev_ioctl_protosubver,
++		autofs_dev_ioctl_openmount,
++		autofs_dev_ioctl_closemount,
++		autofs_dev_ioctl_ready,
++		autofs_dev_ioctl_fail,
++		autofs_dev_ioctl_setpipefd,
++		autofs_dev_ioctl_catatonic,
++		autofs_dev_ioctl_timeout,
++		autofs_dev_ioctl_requester,
++		autofs_dev_ioctl_expire,
++		autofs_dev_ioctl_askumount,
++		autofs_dev_ioctl_ismountpoint,
+ 	};
+ 	unsigned int idx = cmd_idx(cmd);
  
- 	if (copy_from_user(&msg, arg, sizeof(msg)))
- 		return -EFAULT;
- 	if (msg.size > RIO_MAX_MSG_SIZE)
- 		return -EINVAL;
+-	return (idx >= ARRAY_SIZE(_ioctls)) ? NULL : _ioctls[idx].fn;
++	return (idx >= ARRAY_SIZE(_ioctls)) ? NULL : _ioctls[idx];
+ }
  
--	buf = kmalloc(msg.size, GFP_KERNEL);
--	if (!buf)
--		return -ENOMEM;
+ /* ioctl dispatcher */
+_
+
+Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
+
+
