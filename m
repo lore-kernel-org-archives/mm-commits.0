@@ -1,84 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-test-multiple-line-block-comment-alignment.patch removed from
- -mm tree
-Date: Wed, 12 Oct 2016 12:23:05 -0700
-Message-ID: <57fe8d99.tC2cx7H4e2YTP2rL%akpm@linux-foundation.org>
+Subject: [merged] make-isdigit-table-lookupless.patch removed from -mm
+ tree
+Date: Wed, 12 Oct 2016 12:22:53 -0700
+Message-ID: <57fe8d8d.qIJTbD6sj+PuxZp+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33185 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33191 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755983AbcJLTYa (ORCPT
+        with ESMTP id S1755921AbcJLTYa (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, sudipm.mukherjee@gmail.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: test multiple line block comment alignment
+     Subject: include/linux/ctype.h: make isdigit() table lookupless
 has been removed from the -mm tree.  Its filename was
-     checkpatch-test-multiple-line-block-comment-alignment.patch
+     make-isdigit-table-lookupless.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: test multiple line block comment alignment
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: include/linux/ctype.h: make isdigit() table lookupless
 
-Warn when block comments are not aligned on the *
+Make isdigit into a simple range checking inline function:
 
-/*
- * block comment, no warning
- */
+	return '0' <= c && c <= '9';
 
-/*
-  * block comment, emit warning
-  */
+This code is 1 branch, not 2 because any reasonable compiler can
+optimize this code into SUB+CMP, so the code
 
-Link: http://lkml.kernel.org/r/edb57bd330adfe024b95ec2a807d4aa7f0c8b112.1472261299.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+	while (isdigit((c = *s++)))
+		...
+
+remains 1 branch per iteration HOWEVER it suddenly doesn't do table
+lookup priming cacheline nobody cares about.
+
+Link: http://lkml.kernel.org/r/20160826190047.GA12536@p183.telecom.by
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ include/linux/ctype.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-test-multiple-line-block-comment-alignment scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-test-multiple-line-block-comment-alignment
-+++ a/scripts/checkpatch.pl
-@@ -2979,6 +2979,25 @@ sub process {
- 			     "Block comments use a trailing */ on a separate line\n" . $herecurr);
- 		}
- 
-+# Block comment * alignment
-+		if ($prevline =~ /$;[ \t]*$/ &&			#ends in comment
-+		    (($prevrawline =~ /^\+.*?\/\*/ &&		#starting /*
-+		      $prevrawline !~ /\*\/[ \t]*$/) ||		#no trailing */
-+		     $prevrawline =~ /^\+[ \t]*\*/) &&		#starting *
-+		    $rawline =~ /^\+[ \t]*\*/) {		#rawline *
-+			$prevrawline =~ m@^\+([ \t]*/?)\*@;
-+			my $oldindent = expand_tabs($1);
-+			$rawline =~ m@^\+([ \t]*)\*@;
-+			my $newindent = $1;
-+			my $test_comment = '^\\+' . "$;" x (length($newindent) + 1);
-+			$newindent = expand_tabs($newindent);
-+			if ($line =~ /$test_comment/ &&
-+			    length($oldindent) ne length($newindent)) {
-+				WARN("BLOCK_COMMENT_STYLE",
-+				     "Block comments should align the * on each line\n" . $hereprev);
-+			}
-+		}
-+
- # check for missing blank lines after struct/union declarations
- # with exceptions for various attributes and macros
- 		if ($prevline =~ /^[\+ ]};?\s*$/ &&
+diff -puN include/linux/ctype.h~make-isdigit-table-lookupless include/linux/ctype.h
+--- a/include/linux/ctype.h~make-isdigit-table-lookupless
++++ a/include/linux/ctype.h
+@@ -22,7 +22,10 @@ extern const unsigned char _ctype[];
+ #define isalnum(c)	((__ismask(c)&(_U|_L|_D)) != 0)
+ #define isalpha(c)	((__ismask(c)&(_U|_L)) != 0)
+ #define iscntrl(c)	((__ismask(c)&(_C)) != 0)
+-#define isdigit(c)	((__ismask(c)&(_D)) != 0)
++static inline int isdigit(int c)
++{
++	return '0' <= c && c <= '9';
++}
+ #define isgraph(c)	((__ismask(c)&(_P|_U|_L|_D)) != 0)
+ #define islower(c)	((__ismask(c)&(_L)) != 0)
+ #define isprint(c)	((__ismask(c)&(_P|_U|_L|_D|_SP)) != 0)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+kbuild-simpler-generation-of-assembly-constants.patch
 
