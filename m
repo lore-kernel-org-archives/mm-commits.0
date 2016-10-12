@@ -1,110 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl.patch removed from -mm
- tree
-Date: Wed, 12 Oct 2016 12:24:15 -0700
-Message-ID: <57fe8ddf.C1SKnEHzuER4Npde%akpm@linux-foundation.org>
+ unicore32-use-simpler-api-for-random-address-requests.patch removed from
+ -mm tree
+Date: Wed, 12 Oct 2016 12:25:02 -0700
+Message-ID: <57fe8e0e.wjvHsQul7abqRUWa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33182 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33353 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756031AbcJLTYi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:38 -0400
+        with ESMTP id S1755880AbcJLTZD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:25:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kusumi.tomohiro@gmail.com, raven@themaw.net, mm-commits@vger.kernel.org
+To: jason@lakedaemon.net, gxt@mprc.pku.edu.cn, keescook@chromium.org, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: refactor ioctl fn vector in iookup_dev_ioctl()
+     Subject: unicore32: use simpler API for random address requests
 has been removed from the -mm tree.  Its filename was
-     autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl.patch
+     unicore32-use-simpler-api-for-random-address-requests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Subject: autofs: refactor ioctl fn vector in iookup_dev_ioctl()
+From: Jason Cooper <jason@lakedaemon.net>
+Subject: unicore32: use simpler API for random address requests
 
-cmd part of this struct is the same as an index of itself within
-_ioctls[]. In fact this cmd is unused, so we can drop this part.
+Currently, all callers to randomize_range() set the length to 0 and
+calculate end by adding a constant to the start address.  We can simplify
+the API to remove a bunch of needless checks and variables.
 
-Link: http://lkml.kernel.org/r/20160831033414.9910.66697.stgit@pluto.themaw.net
-Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
-Signed-off-by: Ian Kent <raven@themaw.net>
+Use the new randomize_addr(start, range) call to set the requested
+address.
+
+Link: http://lkml.kernel.org/r/20160803233913.32511-7-jason@lakedaemon.net
+Signed-off-by: Jason Cooper <jason@lakedaemon.net>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |   49 ++++++++++++---------------------------
- 1 file changed, 16 insertions(+), 33 deletions(-)
+ arch/unicore32/kernel/process.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs-refactor-ioctl-fn-vector-in-iookup_dev_ioctl
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -597,42 +597,25 @@ out:
+diff -puN arch/unicore32/kernel/process.c~unicore32-use-simpler-api-for-random-address-requests arch/unicore32/kernel/process.c
+--- a/arch/unicore32/kernel/process.c~unicore32-use-simpler-api-for-random-address-requests
++++ a/arch/unicore32/kernel/process.c
+@@ -295,8 +295,7 @@ unsigned long get_wchan(struct task_stru
  
- static ioctl_fn lookup_dev_ioctl(unsigned int cmd)
+ unsigned long arch_randomize_brk(struct mm_struct *mm)
  {
--	static struct {
--		int cmd;
--		ioctl_fn fn;
--	} _ioctls[] = {
--		{cmd_idx(AUTOFS_DEV_IOCTL_VERSION_CMD),
--			 autofs_dev_ioctl_version},
--		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOVER_CMD),
--			 autofs_dev_ioctl_protover},
--		{cmd_idx(AUTOFS_DEV_IOCTL_PROTOSUBVER_CMD),
--			 autofs_dev_ioctl_protosubver},
--		{cmd_idx(AUTOFS_DEV_IOCTL_OPENMOUNT_CMD),
--			 autofs_dev_ioctl_openmount},
--		{cmd_idx(AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD),
--			 autofs_dev_ioctl_closemount},
--		{cmd_idx(AUTOFS_DEV_IOCTL_READY_CMD),
--			 autofs_dev_ioctl_ready},
--		{cmd_idx(AUTOFS_DEV_IOCTL_FAIL_CMD),
--			 autofs_dev_ioctl_fail},
--		{cmd_idx(AUTOFS_DEV_IOCTL_SETPIPEFD_CMD),
--			 autofs_dev_ioctl_setpipefd},
--		{cmd_idx(AUTOFS_DEV_IOCTL_CATATONIC_CMD),
--			 autofs_dev_ioctl_catatonic},
--		{cmd_idx(AUTOFS_DEV_IOCTL_TIMEOUT_CMD),
--			 autofs_dev_ioctl_timeout},
--		{cmd_idx(AUTOFS_DEV_IOCTL_REQUESTER_CMD),
--			 autofs_dev_ioctl_requester},
--		{cmd_idx(AUTOFS_DEV_IOCTL_EXPIRE_CMD),
--			 autofs_dev_ioctl_expire},
--		{cmd_idx(AUTOFS_DEV_IOCTL_ASKUMOUNT_CMD),
--			 autofs_dev_ioctl_askumount},
--		{cmd_idx(AUTOFS_DEV_IOCTL_ISMOUNTPOINT_CMD),
--			 autofs_dev_ioctl_ismountpoint}
-+	static ioctl_fn _ioctls[] = {
-+		autofs_dev_ioctl_version,
-+		autofs_dev_ioctl_protover,
-+		autofs_dev_ioctl_protosubver,
-+		autofs_dev_ioctl_openmount,
-+		autofs_dev_ioctl_closemount,
-+		autofs_dev_ioctl_ready,
-+		autofs_dev_ioctl_fail,
-+		autofs_dev_ioctl_setpipefd,
-+		autofs_dev_ioctl_catatonic,
-+		autofs_dev_ioctl_timeout,
-+		autofs_dev_ioctl_requester,
-+		autofs_dev_ioctl_expire,
-+		autofs_dev_ioctl_askumount,
-+		autofs_dev_ioctl_ismountpoint,
- 	};
- 	unsigned int idx = cmd_idx(cmd);
- 
--	return (idx >= ARRAY_SIZE(_ioctls)) ? NULL : _ioctls[idx].fn;
-+	return (idx >= ARRAY_SIZE(_ioctls)) ? NULL : _ioctls[idx];
+-	unsigned long range_end = mm->brk + 0x02000000;
+-	return randomize_range(mm->brk, range_end, 0) ? : mm->brk;
++	return randomize_page(mm->brk, 0x02000000);
  }
  
- /* ioctl dispatcher */
+ /*
 _
 
-Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
+Patches currently in -mm which might be from jason@lakedaemon.net are
 
 
