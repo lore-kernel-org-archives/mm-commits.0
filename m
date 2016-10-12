@@ -1,8 +1,8 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pipe-relocate-round_pipe_size-above-pipe_set_size.patch
- removed from -mm tree
-Date: Wed, 12 Oct 2016 12:24:17 -0700
-Message-ID: <57fe8de1.dys7FPEdP4cAD90H%akpm@linux-foundation.org>
+Subject: [merged]
+ autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch removed from -mm tree
+Date: Wed, 12 Oct 2016 12:23:35 -0700
+Message-ID: <57fe8db7.hpu21ENT+AHm1V2U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -10,117 +10,70 @@ Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:33276 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756034AbcJLTYm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:42 -0400
+        with ESMTP id S1756007AbcJLTYc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mtk.manpages@gmail.com, axboe@fb.com, penguin-kernel@I-love.SAKURA.ne.jp, socketpair@gmail.com, vegard.nossum@oracle.com, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
+To: kusumi.tomohiro@gmail.com, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pipe: relocate round_pipe_size() above pipe_set_size()
+     Subject: autofs: fix typos in Documentation/filesystems/autofs4.txt
 has been removed from the -mm tree.  Its filename was
-     pipe-relocate-round_pipe_size-above-pipe_set_size.patch
+     autofs-fix-typos-in-documentation-filesystems-autofs4txt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Subject: pipe: relocate round_pipe_size() above pipe_set_size()
+From: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Subject: autofs: fix typos in Documentation/filesystems/autofs4.txt
 
-Patch series "pipe: fix limit handling", v2.
+plus minor whitespace fixes.
 
-
-When changing a pipe's capacity with fcntl(F_SETPIPE_SZ), various limits
-defined by /proc/sys/fs/pipe-* files are checked to see if unprivileged
-users are exceeding limits on memory consumption.
-
-While documenting and testing the operation of these limits I noticed
-that, as currently implemented, these checks have a number of problems:
-
-(1) When increasing the pipe capacity, the checks against the limits
-    in /proc/sys/fs/pipe-user-pages-{soft,hard} are made against
-    existing consumption, and exclude the memory required for the
-    increased pipe capacity. The new increase in pipe capacity can then
-    push the total memory used by the user for pipes (possibly far) over
-    a limit. This can also trigger the problem described next.
-
-(2) The limit checks are performed even when the new pipe capacity
-    is less than the existing pipe capacity. This can lead to problems
-    if a user sets a large pipe capacity, and then the limits are
-    lowered, with the result that the user will no longer be able to
-    decrease the pipe capacity.
-
-(3) As currently implemented, accounting and checking against the
-    limits is done as follows:
-
-    (a) Test whether the user has exceeded the limit.
-    (b) Make new pipe buffer allocation.
-    (c) Account new allocation against the limits.
-
-    This is racey. Multiple processes may pass point (a) simultaneously,
-    and then allocate pipe buffers that are accounted for only in step
-    (c).  The race means that the user's pipe buffer allocation could be
-    pushed over the limit (by an arbitrary amount, depending on how
-    unlucky we were in the race). [Thanks to Vegard Nossum for spotting
-    this point, which I had missed.]
-
-This patch series addresses these three problems.
-
-
-This patch (of 8):
-
-This is a minor preparatory patch.  After subsequent patches,
-round_pipe_size() will be called from pipe_set_size(), so place
-round_pipe_size() above pipe_set_size().
-
-Link: http://lkml.kernel.org/r/91a91fdb-a959-ba7f-b551-b62477cc98a1@gmail.com
-Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Reviewed-by: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Willy Tarreau <w@1wt.eu>
-Cc: <socketpair@gmail.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: http://lkml.kernel.org/r/20160812024734.12352.17122.stgit@pluto.themaw.net
+Signed-off-by: Tomohiro Kusumi <kusumi.tomohiro@gmail.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ Documentation/filesystems/autofs4.txt |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/pipe.c~pipe-relocate-round_pipe_size-above-pipe_set_size fs/pipe.c
---- a/fs/pipe.c~pipe-relocate-round_pipe_size-above-pipe_set_size
-+++ a/fs/pipe.c
-@@ -1008,6 +1008,18 @@ const struct file_operations pipefifo_fo
- };
+diff -puN Documentation/filesystems/autofs4.txt~autofs-fix-typos-in-documentation-filesystems-autofs4txt Documentation/filesystems/autofs4.txt
+--- a/Documentation/filesystems/autofs4.txt~autofs-fix-typos-in-documentation-filesystems-autofs4txt
++++ a/Documentation/filesystems/autofs4.txt
+@@ -203,9 +203,9 @@ initiated or is being considered, otherw
+ Mountpoint expiry
+ -----------------
  
- /*
-+ * Currently we rely on the pipe array holding a power-of-2 number
-+ * of pages.
-+ */
-+static inline unsigned int round_pipe_size(unsigned int size)
-+{
-+	unsigned long nr_pages;
-+
-+	nr_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	return roundup_pow_of_two(nr_pages) << PAGE_SHIFT;
-+}
-+
-+/*
-  * Allocate a new array of pipe buffers and copy the info over. Returns the
-  * pipe size if successful, or return -ERROR on error.
-  */
-@@ -1059,18 +1071,6 @@ static long pipe_set_size(struct pipe_in
- }
+-The VFS has a mechansim for automatically expiring unused mounts,
++The VFS has a mechanism for automatically expiring unused mounts,
+ much as it can expire any unused dentry information from the dcache.
+-This is guided by the MNT_SHRINKABLE flag.  This  only applies to
++This is guided by the MNT_SHRINKABLE flag.  This only applies to
+ mounts that were created by `d_automount()` returning a filesystem to be
+ mounted.  As autofs doesn't return such a filesystem but leaves the
+ mounting to the automount daemon, it must involve the automount daemon
+@@ -298,7 +298,7 @@ remove directories and symlinks using no
+ autofs knows whether a process requesting some operation is the daemon
+ or not based on its process-group id number (see getpgid(1)).
  
- /*
-- * Currently we rely on the pipe array holding a power-of-2 number
-- * of pages.
-- */
--static inline unsigned int round_pipe_size(unsigned int size)
--{
--	unsigned long nr_pages;
--
--	nr_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	return roundup_pow_of_two(nr_pages) << PAGE_SHIFT;
--}
+-When an autofs filesystem it mounted the pgid of the mounting
++When an autofs filesystem is mounted the pgid of the mounting
+ processes is recorded unless the "pgrp=" option is given, in which
+ case that number is recorded instead.  Any request arriving from a
+ process in that process group is considered to come from the daemon.
+@@ -450,7 +450,7 @@ Commands are:
+     numbers for existing filesystems can be found in
+     `/proc/self/mountinfo`.
+ - **AUTOFS_DEV_IOCTL_CLOSEMOUNT_CMD**: same as `close(ioctlfd)`.
+-- **AUTOFS_DEV_IOCTL_SETPIPEFD_CMD**: if the  filesystem is in
++- **AUTOFS_DEV_IOCTL_SETPIPEFD_CMD**: if the filesystem is in
+     catatonic mode, this can provide the write end of a new pipe
+     in `arg1` to re-establish communication with a daemon.  The
+     process group of the calling process is used to identify the
+_
+
+Patches currently in -mm which might be from kusumi.tomohiro@gmail.com are
+
+
