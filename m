@@ -1,79 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+Subject: [merged] pipe-relocate-round_pipe_size-above-pipe_set_size.patch
  removed from -mm tree
-Date: Wed, 12 Oct 2016 12:23:00 -0700
-Message-ID: <57fe8d94.60WstnlWFiUsAeQx%akpm@linux-foundation.org>
+Date: Wed, 12 Oct 2016 12:24:17 -0700
+Message-ID: <57fe8de1.dys7FPEdP4cAD90H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33197 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33276 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755973AbcJLTYa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:30 -0400
+        with ESMTP id S1756034AbcJLTYm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:24:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, elfring@users.sourceforge.net, mm-commits@vger.kernel.org
+To: mtk.manpages@gmail.com, axboe@fb.com, penguin-kernel@I-love.SAKURA.ne.jp, socketpair@gmail.com, vegard.nossum@oracle.com, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: see if modified files are marked obsolete in MAINTAINERS
+     Subject: pipe: relocate round_pipe_size() above pipe_set_size()
 has been removed from the -mm tree.  Its filename was
-     checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers.patch
+     pipe-relocate-round_pipe_size-above-pipe_set_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: see if modified files are marked obsolete in MAINTAINERS
+From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
+Subject: pipe: relocate round_pipe_size() above pipe_set_size()
 
-Use get_maintainer to check the status of individual files.  If
-"obsolete", suggest leaving the files alone.
+Patch series "pipe: fix limit handling", v2.
 
-Link: http://lkml.kernel.org/r/7ceaa510dc9d2df05ec4b456baed7bb1415550b3.1471889575.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: SF Markus Elfring <elfring@users.sourceforge.net>
+
+When changing a pipe's capacity with fcntl(F_SETPIPE_SZ), various limits
+defined by /proc/sys/fs/pipe-* files are checked to see if unprivileged
+users are exceeding limits on memory consumption.
+
+While documenting and testing the operation of these limits I noticed
+that, as currently implemented, these checks have a number of problems:
+
+(1) When increasing the pipe capacity, the checks against the limits
+    in /proc/sys/fs/pipe-user-pages-{soft,hard} are made against
+    existing consumption, and exclude the memory required for the
+    increased pipe capacity. The new increase in pipe capacity can then
+    push the total memory used by the user for pipes (possibly far) over
+    a limit. This can also trigger the problem described next.
+
+(2) The limit checks are performed even when the new pipe capacity
+    is less than the existing pipe capacity. This can lead to problems
+    if a user sets a large pipe capacity, and then the limits are
+    lowered, with the result that the user will no longer be able to
+    decrease the pipe capacity.
+
+(3) As currently implemented, accounting and checking against the
+    limits is done as follows:
+
+    (a) Test whether the user has exceeded the limit.
+    (b) Make new pipe buffer allocation.
+    (c) Account new allocation against the limits.
+
+    This is racey. Multiple processes may pass point (a) simultaneously,
+    and then allocate pipe buffers that are accounted for only in step
+    (c).  The race means that the user's pipe buffer allocation could be
+    pushed over the limit (by an arbitrary amount, depending on how
+    unlucky we were in the race). [Thanks to Vegard Nossum for spotting
+    this point, which I had missed.]
+
+This patch series addresses these three problems.
+
+
+This patch (of 8):
+
+This is a minor preparatory patch.  After subsequent patches,
+round_pipe_size() will be called from pipe_set_size(), so place
+round_pipe_size() above pipe_set_size().
+
+Link: http://lkml.kernel.org/r/91a91fdb-a959-ba7f-b551-b62477cc98a1@gmail.com
+Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Reviewed-by: Vegard Nossum <vegard.nossum@oracle.com>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: <socketpair@gmail.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ fs/pipe.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-see-if-modified-files-are-marked-obsolete-in-maintainers
-+++ a/scripts/checkpatch.pl
-@@ -704,6 +704,16 @@ sub seed_camelcase_file {
- 	}
- }
+diff -puN fs/pipe.c~pipe-relocate-round_pipe_size-above-pipe_set_size fs/pipe.c
+--- a/fs/pipe.c~pipe-relocate-round_pipe_size-above-pipe_set_size
++++ a/fs/pipe.c
+@@ -1008,6 +1008,18 @@ const struct file_operations pipefifo_fo
+ };
  
-+sub is_maintained_obsolete {
-+	my ($filename) = @_;
+ /*
++ * Currently we rely on the pipe array holding a power-of-2 number
++ * of pages.
++ */
++static inline unsigned int round_pipe_size(unsigned int size)
++{
++	unsigned long nr_pages;
 +
-+	return 0 if (!(-e "$root/scripts/get_maintainer.pl"));
-+
-+	my $status = `perl $root/scripts/get_maintainer.pl --status --nom --nol --nogit --nogit-fallback $filename 2>&1`;
-+
-+	return $status =~ /obsolete/i;
++	nr_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	return roundup_pow_of_two(nr_pages) << PAGE_SHIFT;
 +}
 +
- my $camelcase_seeded = 0;
- sub seed_camelcase_includes {
- 	return if ($camelcase_seeded);
-@@ -2289,6 +2299,10 @@ sub process {
- 		}
++/*
+  * Allocate a new array of pipe buffers and copy the info over. Returns the
+  * pipe size if successful, or return -ERROR on error.
+  */
+@@ -1059,18 +1071,6 @@ static long pipe_set_size(struct pipe_in
+ }
  
- 		if ($found_file) {
-+			if (is_maintained_obsolete($realfile)) {
-+				WARN("OBSOLETE",
-+				     "$realfile is marked as 'obsolete' in the MAINTAINERS hierarchy.  No unnecessary modifications please.\n");
-+			}
- 			if ($realfile =~ m@^(?:drivers/net/|net/|drivers/staging/)@) {
- 				$check = 1;
- 			} else {
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-
+ /*
+- * Currently we rely on the pipe array holding a power-of-2 number
+- * of pages.
+- */
+-static inline unsigned int round_pipe_size(unsigned int size)
+-{
+-	unsigned long nr_pages;
+-
+-	nr_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+-	return roundup_pow_of_two(nr_pages) << PAGE_SHIFT;
+-}
