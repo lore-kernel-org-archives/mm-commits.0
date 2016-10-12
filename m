@@ -1,161 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-use-mapping_set_error-instead-of-opencoded-set_bit.patch removed from
- -mm tree
-Date: Wed, 12 Oct 2016 12:26:39 -0700
-Message-ID: <57fe8e6f.r7v+erek88a1qxnE%akpm@linux-foundation.org>
+Subject: [merged] kthread-better-support-freezable-kthread-workers.patch
+ removed from -mm tree
+Date: Wed, 12 Oct 2016 12:26:30 -0700
+Message-ID: <57fe8e66.A9r9t7HTYYrrIN36%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33973 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33872 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755921AbcJLT1k (ORCPT
+        with ESMTP id S1755880AbcJLT1k (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 15:27:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mm-commits@vger.kernel.org
+To: pmladek@suse.com, bp@suse.de, jkosina@suse.cz, josh@joshtriplett.org, mhocko@suse.cz, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: use mapping_set_error instead of opencoded set_bit
+     Subject: kthread: better support freezable kthread workers
 has been removed from the -mm tree.  Its filename was
-     fs-use-mapping_set_error-instead-of-opencoded-set_bit.patch
+     kthread-better-support-freezable-kthread-workers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: fs: use mapping_set_error instead of opencoded set_bit
+From: Petr Mladek <pmladek@suse.com>
+Subject: kthread: better support freezable kthread workers
 
-The mapping_set_error() helper sets the correct AS_ flag for the mapping
-so there is no reason to open code it.  Use the helper directly.
+This patch allows to make kthread worker freezable via a new @flags
+parameter. It will allow to avoid an init work in some kthreads.
 
-[akpm@linux-foundation.org: be honest about conversion from -ENXIO to -EIO]
-Link: http://lkml.kernel.org/r/20160912111608.2588-2-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
+It currently does not affect the function of kthread_worker_fn()
+but it might help to do some optimization or fixes eventually.
+
+I currently do not know about any other use for the @flags
+parameter but I believe that we will want more flags
+in the future.
+
+Finally, I hope that it will not cause confusion with @flags member
+in struct kthread. Well, I guess that we will want to rework the
+basic kthreads implementation once all kthreads are converted into
+kthread workers or workqueues. It is possible that we will merge
+the two structures.
+
+Link: http://lkml.kernel.org/r/1470754545-17632-12-git-send-email-pmladek@suse.com
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/lustre/lustre/llite/vvp_page.c |    5 +----
- fs/afs/write.c                                 |    5 ++---
- fs/buffer.c                                    |    4 ++--
- fs/exofs/inode.c                               |    2 +-
- fs/ext4/page-io.c                              |    2 +-
- fs/f2fs/data.c                                 |    2 +-
- fs/jbd2/commit.c                               |    3 +--
- 7 files changed, 9 insertions(+), 14 deletions(-)
+ include/linux/kthread.h |   12 +++++++++---
+ kernel/kthread.c        |   21 +++++++++++++++------
+ 2 files changed, 24 insertions(+), 9 deletions(-)
 
-diff -puN drivers/staging/lustre/lustre/llite/vvp_page.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit drivers/staging/lustre/lustre/llite/vvp_page.c
---- a/drivers/staging/lustre/lustre/llite/vvp_page.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit
-+++ a/drivers/staging/lustre/lustre/llite/vvp_page.c
-@@ -241,10 +241,7 @@ static void vvp_vmpage_error(struct inod
- 		obj->vob_discard_page_warned = 0;
- 	} else {
- 		SetPageError(vmpage);
--		if (ioret == -ENOSPC)
--			set_bit(AS_ENOSPC, &inode->i_mapping->flags);
--		else
--			set_bit(AS_EIO, &inode->i_mapping->flags);
-+		mapping_set_error(inode->i_mapping, ioret);
+diff -puN include/linux/kthread.h~kthread-better-support-freezable-kthread-workers include/linux/kthread.h
+--- a/include/linux/kthread.h~kthread-better-support-freezable-kthread-workers
++++ a/include/linux/kthread.h
+@@ -65,7 +65,12 @@ struct kthread_work;
+ typedef void (*kthread_work_func_t)(struct kthread_work *work);
+ void kthread_delayed_work_timer_fn(unsigned long __data);
  
- 		if ((ioret == -ESHUTDOWN || ioret == -EINTR) &&
- 		    obj->vob_discard_page_warned == 0) {
-diff -puN fs/afs/write.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit fs/afs/write.c
---- a/fs/afs/write.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit
-+++ a/fs/afs/write.c
-@@ -398,8 +398,7 @@ no_more:
- 		switch (ret) {
- 		case -EDQUOT:
- 		case -ENOSPC:
--			set_bit(AS_ENOSPC,
--				&wb->vnode->vfs_inode.i_mapping->flags);
-+			mapping_set_error(wb->vnode->vfs_inode.i_mapping, -ENOSPC);
- 			break;
- 		case -EROFS:
- 		case -EIO:
-@@ -409,7 +408,7 @@ no_more:
- 		case -ENOMEDIUM:
- 		case -ENXIO:
- 			afs_kill_pages(wb->vnode, true, first, last);
--			set_bit(AS_EIO, &wb->vnode->vfs_inode.i_mapping->flags);
-+			mapping_set_error(wb->vnode->vfs_inode.i_mapping, -EIO);
- 			break;
- 		case -EACCES:
- 		case -EPERM:
-diff -puN fs/buffer.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit fs/buffer.c
---- a/fs/buffer.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit
-+++ a/fs/buffer.c
-@@ -351,7 +351,7 @@ void end_buffer_async_write(struct buffe
- 		set_buffer_uptodate(bh);
- 	} else {
- 		buffer_io_error(bh, ", lost async page write");
--		set_bit(AS_EIO, &page->mapping->flags);
-+		mapping_set_error(page->mapping, -EIO);
- 		set_buffer_write_io_error(bh);
- 		clear_buffer_uptodate(bh);
- 		SetPageError(page);
-@@ -3249,7 +3249,7 @@ drop_buffers(struct page *page, struct b
- 	bh = head;
- 	do {
- 		if (buffer_write_io_error(bh) && page->mapping)
--			set_bit(AS_EIO, &page->mapping->flags);
-+			mapping_set_error(page->mapping, -EIO);
- 		if (buffer_busy(bh))
- 			goto failed;
- 		bh = bh->b_this_page;
-diff -puN fs/exofs/inode.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit fs/exofs/inode.c
---- a/fs/exofs/inode.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit
-+++ a/fs/exofs/inode.c
-@@ -778,7 +778,7 @@ try_again:
- fail:
- 	EXOFS_DBGMSG("Error: writepage_strip(0x%lx, 0x%lx)=>%d\n",
- 		     inode->i_ino, page->index, ret);
--	set_bit(AS_EIO, &page->mapping->flags);
-+	mapping_set_error(page->mapping, -EIO);
- 	unlock_page(page);
- 	return ret;
++enum {
++	KTW_FREEZABLE		= 1 << 0,	/* freeze during suspend */
++};
++
+ struct kthread_worker {
++	unsigned int		flags;
+ 	spinlock_t		lock;
+ 	struct list_head	work_list;
+ 	struct list_head	delayed_work_list;
+@@ -154,12 +159,13 @@ extern void __kthread_init_worker(struct
+ 
+ int kthread_worker_fn(void *worker_ptr);
+ 
+-__printf(1, 2)
++__printf(2, 3)
+ struct kthread_worker *
+-kthread_create_worker(const char namefmt[], ...);
++kthread_create_worker(unsigned int flags, const char namefmt[], ...);
+ 
+ struct kthread_worker *
+-kthread_create_worker_on_cpu(int cpu, const char namefmt[], ...);
++kthread_create_worker_on_cpu(int cpu, unsigned int flags,
++			     const char namefmt[], ...);
+ 
+ bool kthread_queue_work(struct kthread_worker *worker,
+ 			struct kthread_work *work);
+diff -puN kernel/kthread.c~kthread-better-support-freezable-kthread-workers kernel/kthread.c
+--- a/kernel/kthread.c~kthread-better-support-freezable-kthread-workers
++++ a/kernel/kthread.c
+@@ -560,11 +560,11 @@ void __kthread_init_worker(struct kthrea
+ 				const char *name,
+ 				struct lock_class_key *key)
+ {
++	memset(worker, 0, sizeof(struct kthread_worker));
+ 	spin_lock_init(&worker->lock);
+ 	lockdep_set_class_and_name(&worker->lock, key, name);
+ 	INIT_LIST_HEAD(&worker->work_list);
+ 	INIT_LIST_HEAD(&worker->delayed_work_list);
+-	worker->task = NULL;
  }
-diff -puN fs/ext4/page-io.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit fs/ext4/page-io.c
---- a/fs/ext4/page-io.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit
-+++ a/fs/ext4/page-io.c
-@@ -88,7 +88,7 @@ static void ext4_finish_bio(struct bio *
+ EXPORT_SYMBOL_GPL(__kthread_init_worker);
  
- 		if (bio->bi_error) {
- 			SetPageError(page);
--			set_bit(AS_EIO, &page->mapping->flags);
-+			mapping_set_error(page->mapping, -EIO);
- 		}
- 		bh = head = page_buffers(page);
- 		/*
-diff -puN fs/f2fs/data.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit fs/f2fs/data.c
---- a/fs/f2fs/data.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit
-+++ a/fs/f2fs/data.c
-@@ -75,7 +75,7 @@ static void f2fs_write_end_io(struct bio
- 		fscrypt_pullback_bio_page(&page, true);
+@@ -594,6 +594,10 @@ int kthread_worker_fn(void *worker_ptr)
+ 	 */
+ 	WARN_ON(worker->task && worker->task != current);
+ 	worker->task = current;
++
++	if (worker->flags & KTW_FREEZABLE)
++		set_freezable();
++
+ repeat:
+ 	set_current_state(TASK_INTERRUPTIBLE);	/* mb paired w/ kthread_stop */
  
- 		if (unlikely(bio->bi_error)) {
--			set_bit(AS_EIO, &page->mapping->flags);
-+			mapping_set_error(page->mapping, -EIO);
- 			f2fs_stop_checkpoint(sbi, true);
- 		}
- 		end_page_writeback(page);
-diff -puN fs/jbd2/commit.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit fs/jbd2/commit.c
---- a/fs/jbd2/commit.c~fs-use-mapping_set_error-instead-of-opencoded-set_bit
-+++ a/fs/jbd2/commit.c
-@@ -269,8 +269,7 @@ static int journal_finish_inode_data_buf
- 			 * filemap_fdatawait_range(), set it again so
- 			 * that user process can get -EIO from fsync().
- 			 */
--			set_bit(AS_EIO,
--				&jinode->i_vfs_inode->i_mapping->flags);
-+			mapping_set_error(jinode->i_vfs_inode->i_mapping, -EIO);
+@@ -627,7 +631,8 @@ repeat:
+ EXPORT_SYMBOL_GPL(kthread_worker_fn);
  
- 			if (!ret)
- 				ret = err;
+ static struct kthread_worker *
+-__kthread_create_worker(int cpu, const char namefmt[], va_list args)
++__kthread_create_worker(int cpu, unsigned int flags,
++			const char namefmt[], va_list args)
+ {
+ 	struct kthread_worker *worker;
+ 	struct task_struct *task;
+@@ -657,6 +662,7 @@ __kthread_create_worker(int cpu, const c
+ 	if (IS_ERR(task))
+ 		goto fail_task;
+ 
++	worker->flags = flags;
+ 	worker->task = task;
+ 	wake_up_process(task);
+ 	return worker;
+@@ -668,6 +674,7 @@ fail_task:
+ 
+ /**
+  * kthread_create_worker - create a kthread worker
++ * @flags: flags modifying the default behavior of the worker
+  * @namefmt: printf-style name for the kthread worker (task).
+  *
+  * Returns a pointer to the allocated worker on success, ERR_PTR(-ENOMEM)
+@@ -675,13 +682,13 @@ fail_task:
+  * when the worker was SIGKILLed.
+  */
+ struct kthread_worker *
+-kthread_create_worker(const char namefmt[], ...)
++kthread_create_worker(unsigned int flags, const char namefmt[], ...)
+ {
+ 	struct kthread_worker *worker;
+ 	va_list args;
+ 
+ 	va_start(args, namefmt);
+-	worker = __kthread_create_worker(-1, namefmt, args);
++	worker = __kthread_create_worker(-1, flags, namefmt, args);
+ 	va_end(args);
+ 
+ 	return worker;
+@@ -692,6 +699,7 @@ EXPORT_SYMBOL(kthread_create_worker);
+  * kthread_create_worker_on_cpu - create a kthread worker and bind it
+  *	it to a given CPU and the associated NUMA node.
+  * @cpu: CPU number
++ * @flags: flags modifying the default behavior of the worker
+  * @namefmt: printf-style name for the kthread worker (task).
+  *
+  * Use a valid CPU number if you want to bind the kthread worker
+@@ -705,13 +713,14 @@ EXPORT_SYMBOL(kthread_create_worker);
+  * when the worker was SIGKILLed.
+  */
+ struct kthread_worker *
+-kthread_create_worker_on_cpu(int cpu, const char namefmt[], ...)
++kthread_create_worker_on_cpu(int cpu, unsigned int flags,
++			     const char namefmt[], ...)
+ {
+ 	struct kthread_worker *worker;
+ 	va_list args;
+ 
+ 	va_start(args, namefmt);
+-	worker = __kthread_create_worker(cpu, namefmt, args);
++	worker = __kthread_create_worker(cpu, flags, namefmt, args);
+ 	va_end(args);
+ 
+ 	return worker;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from pmladek@suse.com are
 
 
