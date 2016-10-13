@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive.patch
- added to -mm tree
-Date: Wed, 12 Oct 2016 17:11:27 -0700
-Message-ID: <57fed12f.D9iyWkq5lNuH23BT%akpm@linux-foundation.org>
+ hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive-fix.patch added to -mm tree
+Date: Wed, 12 Oct 2016 17:11:29 -0700
+Message-ID: <57fed131.79+bAri7HipPDWPp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41413 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41414 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932966AbcJMAMp (ORCPT
+        with ESMTP id S933211AbcJMAMp (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Oct 2016 20:12:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, jsiddle@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jsiddle@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hung_task: decrement sysctl_hung_task_warnings only if it is positive
+     Subject: hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive-fix
 has been added to the -mm tree.  Its filename is
-     hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive.patch
+     hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +39,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: hung_task: decrement sysctl_hung_task_warnings only if it is positive
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive-fix
 
-Since sysctl_hung_task_warnings == -1 is allowed (infinite warnings),
-48a6d64edadbd40f ("hung_task: allow hung_task_panic when
-hung_task_warnings is 0") should decrement it only when it is not -1.
+handle -2, -3, ... as per the documentation
 
-This prevents the kernel from ceasing warnings after the first 4294967295 ;)
-
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: John Siddle <jsiddle@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/hung_task.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/hung_task.c~hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive kernel/hung_task.c
---- a/kernel/hung_task.c~hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive
+diff -puN kernel/hung_task.c~hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive-fix kernel/hung_task.c
+--- a/kernel/hung_task.c~hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive-fix
 +++ a/kernel/hung_task.c
-@@ -106,7 +106,8 @@ static void check_hung_task(struct task_
+@@ -106,7 +106,7 @@ static void check_hung_task(struct task_
  	 * complain:
  	 */
  	if (sysctl_hung_task_warnings) {
--		sysctl_hung_task_warnings--;
-+		if (sysctl_hung_task_warnings > 0)
-+			sysctl_hung_task_warnings--;
+-		if (sysctl_hung_task_warnings > 0)
++		if (sysctl_hung_task_warnings != -1)
+ 			sysctl_hung_task_warnings--;
  		pr_err("INFO: task %s:%d blocked for more than %ld seconds.\n",
  			t->comm, t->pid, timeout);
- 		pr_err("      %s %s %.*s\n",
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-remove-extra-newline-from-allocation-stall-warning.patch
-hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+dont-touch-single-threaded-ptes-which-are-on-the-right-node-fix.patch
+hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive-fix.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-mlx5-deviceh-kill-build_bug_ons.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
