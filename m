@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + generic-syscalls-kill-cruft-from-removed-pkey-syscalls.patch
- added to -mm tree
-Date: Mon, 17 Oct 2016 16:11:28 -0700
-Message-ID: <58055aa0.ELUm0Sh45OqPJnfm%akpm@linux-foundation.org>
+Subject: + h8300-fix-syscall-restarting.patch added to -mm tree
+Date: Mon, 17 Oct 2016 16:40:47 -0700
+Message-ID: <5805617f.tA8SkN1G5pM0jBdm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58326 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58471 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932614AbcJQXL3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2016 19:11:29 -0400
+        with ESMTP id S1753548AbcJQXks (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2016 19:40:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@intel.com, dave.hansen@linux.intel.com, mm-commits@vger.kernel.org
+To: mark.rutland@arm.com, luto@amacapital.net, stable@vger.kernel.org, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: generic syscalls: kill cruft from removed pkey syscalls
+     Subject: h8300: fix syscall restarting
 has been added to the -mm tree.  Its filename is
-     generic-syscalls-kill-cruft-from-removed-pkey-syscalls.patch
+     h8300-fix-syscall-restarting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/generic-syscalls-kill-cruft-from-removed-pkey-syscalls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/h8300-fix-syscall-restarting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/generic-syscalls-kill-cruft-from-removed-pkey-syscalls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/h8300-fix-syscall-restarting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +38,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@intel.com>
-Subject: generic syscalls: kill cruft from removed pkey syscalls
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: h8300: fix syscall restarting
 
-pkey_set() and pkey_get() were syscalls present in older versions of the
-protection keys patches.  They were fully excised from the x86 code, but
-some cruft was left in the generic syscall code.  The C++ comments were
-intended to help to make it more glaring to me to fix them before actually
-submitting them.  That technique worked, but later than I would have
-liked.
+Back in f56141e3e2d9aabf ("all arches, signal: move restart_block to
+struct task_struct"), all architectures and core code were changed to use
+task_struct::restart_block.  However, when h8300 support was subsequently
+restored in v4.2, it was not updated to account for this, and maintains
+thread_info::restart_block, which is not kept in sync.
 
-I test-compiled this for arm64.
+This patch drops the redundant restart_block from thread_info, and moves
+h8300 to the common one in task_struct, ensuring that syscall restarting
+always works as expected.
 
-Fixes: a60f7b69d92c0 ("generic syscalls: Wire up memory protection keys syscalls")
-Link: http://lkml.kernel.org/r/20161017151814.1CE8B6C3@viggo.jf.intel.com
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Fixes: f56141e3e2d9aabf ("all arches, signal: move restart_block to struct task_struct")
+Link: http://lkml.kernel.org/r/1476714934-11635-1-git-send-email-mark.rutland@arm.com
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: uclinux-h8-devel@lists.sourceforge.jp
+Cc: <stable@vger.kernel.org>	[4.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/syscalls.h          |    3 ---
- include/uapi/asm-generic/unistd.h |    4 ----
- 2 files changed, 7 deletions(-)
+ arch/h8300/include/asm/thread_info.h |    4 ----
+ arch/h8300/kernel/signal.c           |    2 +-
+ 2 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN include/linux/syscalls.h~generic-syscalls-kill-cruft-from-removed-pkey-syscalls include/linux/syscalls.h
---- a/include/linux/syscalls.h~generic-syscalls-kill-cruft-from-removed-pkey-syscalls
-+++ a/include/linux/syscalls.h
-@@ -902,8 +902,5 @@ asmlinkage long sys_pkey_mprotect(unsign
- 				  unsigned long prot, int pkey);
- asmlinkage long sys_pkey_alloc(unsigned long flags, unsigned long init_val);
- asmlinkage long sys_pkey_free(int pkey);
--//asmlinkage long sys_pkey_get(int pkey, unsigned long flags);
--//asmlinkage long sys_pkey_set(int pkey, unsigned long access_rights,
--//			     unsigned long flags);
+diff -puN arch/h8300/include/asm/thread_info.h~h8300-fix-syscall-restarting arch/h8300/include/asm/thread_info.h
+--- a/arch/h8300/include/asm/thread_info.h~h8300-fix-syscall-restarting
++++ a/arch/h8300/include/asm/thread_info.h
+@@ -31,7 +31,6 @@ struct thread_info {
+ 	int		   cpu;			/* cpu we're on */
+ 	int		   preempt_count;	/* 0 => preemptable, <0 => BUG */
+ 	mm_segment_t		addr_limit;
+-	struct restart_block restart_block;
+ };
  
- #endif
-diff -puN include/uapi/asm-generic/unistd.h~generic-syscalls-kill-cruft-from-removed-pkey-syscalls include/uapi/asm-generic/unistd.h
---- a/include/uapi/asm-generic/unistd.h~generic-syscalls-kill-cruft-from-removed-pkey-syscalls
-+++ a/include/uapi/asm-generic/unistd.h
-@@ -730,10 +730,6 @@ __SYSCALL(__NR_pkey_mprotect, sys_pkey_m
- __SYSCALL(__NR_pkey_alloc,    sys_pkey_alloc)
- #define __NR_pkey_free 290
- __SYSCALL(__NR_pkey_free,     sys_pkey_free)
--#define __NR_pkey_get 291
--//__SYSCALL(__NR_pkey_get,      sys_pkey_get)
--#define __NR_pkey_set 292
--//__SYSCALL(__NR_pkey_set,      sys_pkey_set)
+ /*
+@@ -44,9 +43,6 @@ struct thread_info {
+ 	.cpu =		0,			\
+ 	.preempt_count = INIT_PREEMPT_COUNT,	\
+ 	.addr_limit	= KERNEL_DS,		\
+-	.restart_block	= {			\
+-		.fn = do_no_restart_syscall,	\
+-	},					\
+ }
  
- #undef __NR_syscalls
- #define __NR_syscalls 291
+ #define init_thread_info	(init_thread_union.thread_info)
+diff -puN arch/h8300/kernel/signal.c~h8300-fix-syscall-restarting arch/h8300/kernel/signal.c
+--- a/arch/h8300/kernel/signal.c~h8300-fix-syscall-restarting
++++ a/arch/h8300/kernel/signal.c
+@@ -79,7 +79,7 @@ restore_sigcontext(struct sigcontext *us
+ 	unsigned int er0;
+ 
+ 	/* Always make any pending restarted system calls return -EINTR */
+-	current_thread_info()->restart_block.fn = do_no_restart_syscall;
++	current->restart_block.fn = do_no_restart_syscall;
+ 
+ 	/* restore passed registers */
+ #define COPY(r)  do { err |= get_user(regs->r, &usc->sc_##r); } while (0)
 _
 
-Patches currently in -mm which might be from dave.hansen@intel.com are
+Patches currently in -mm which might be from mark.rutland@arm.com are
 
-generic-syscalls-kill-cruft-from-removed-pkey-syscalls.patch
+h8300-fix-syscall-restarting.patch
 
