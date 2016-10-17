@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-fix-syscall-restarting.patch added to -mm tree
-Date: Mon, 17 Oct 2016 16:40:47 -0700
-Message-ID: <5805617f.tA8SkN1G5pM0jBdm%akpm@linux-foundation.org>
+Subject: + mm-list_lruc-avoid-error-path-null-pointer-deref.patch added to -mm tree
+Date: Mon, 17 Oct 2016 16:57:12 -0700
+Message-ID: <58056558.xBVOX3rEjQaLwzJR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58471 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58850 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753548AbcJQXks (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2016 19:40:48 -0400
+        with ESMTP id S934292AbcJQX5N (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2016 19:57:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mark.rutland@arm.com, luto@amacapital.net, stable@vger.kernel.org, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: apolyakov@beget.ru, stable@vger.kernel.org, vdavydov@parallels.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: h8300: fix syscall restarting
+     Subject: mm/list_lru.c: avoid error-path NULL pointer deref
 has been added to the -mm tree.  Its filename is
-     h8300-fix-syscall-restarting.patch
+     mm-list_lruc-avoid-error-path-null-pointer-deref.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/h8300-fix-syscall-restarting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-list_lruc-avoid-error-path-null-pointer-deref.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/h8300-fix-syscall-restarting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-list_lruc-avoid-error-path-null-pointer-deref.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,69 +38,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: h8300: fix syscall restarting
+From: Alexander Polakov <apolyakov@beget.ru>
+Subject: mm/list_lru.c: avoid error-path NULL pointer deref
 
-Back in f56141e3e2d9aabf ("all arches, signal: move restart_block to
-struct task_struct"), all architectures and core code were changed to use
-task_struct::restart_block.  However, when h8300 support was subsequently
-restored in v4.2, it was not updated to account for this, and maintains
-thread_info::restart_block, which is not kept in sync.
+As described in https://bugzilla.kernel.org/show_bug.cgi?id=177821:
 
-This patch drops the redundant restart_block from thread_info, and moves
-h8300 to the common one in task_struct, ensuring that syscall restarting
-always works as expected.
+After some analysis it seems to be that the problem is in alloc_super(). 
+In case list_lru_init_memcg() fails it goes into destroy_super(), which
+calls list_lru_destroy().
 
-Fixes: f56141e3e2d9aabf ("all arches, signal: move restart_block to struct task_struct")
-Link: http://lkml.kernel.org/r/1476714934-11635-1-git-send-email-mark.rutland@arm.com
-Signed-off-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: uclinux-h8-devel@lists.sourceforge.jp
-Cc: <stable@vger.kernel.org>	[4.2+]
+And in list_lru_init() we see that in case memcg_init_list_lru() fails,
+lru->node is freed, but not set NULL, which then leads list_lru_destroy()
+to believe it is initialized and call memcg_destroy_list_lru(). 
+memcg_destroy_list_lru() in turn can access lru->node[i].memcg_lrus, which
+is NULL.
+
+[akpm@linux-foundation.org: add comment]
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/include/asm/thread_info.h |    4 ----
- arch/h8300/kernel/signal.c           |    2 +-
- 2 files changed, 1 insertion(+), 5 deletions(-)
+ mm/list_lru.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/h8300/include/asm/thread_info.h~h8300-fix-syscall-restarting arch/h8300/include/asm/thread_info.h
---- a/arch/h8300/include/asm/thread_info.h~h8300-fix-syscall-restarting
-+++ a/arch/h8300/include/asm/thread_info.h
-@@ -31,7 +31,6 @@ struct thread_info {
- 	int		   cpu;			/* cpu we're on */
- 	int		   preempt_count;	/* 0 => preemptable, <0 => BUG */
- 	mm_segment_t		addr_limit;
--	struct restart_block restart_block;
- };
+diff -puN mm/list_lru.c~mm-list_lruc-avoid-error-path-null-pointer-deref mm/list_lru.c
+--- a/mm/list_lru.c~mm-list_lruc-avoid-error-path-null-pointer-deref
++++ a/mm/list_lru.c
+@@ -554,6 +554,8 @@ int __list_lru_init(struct list_lru *lru
+ 	err = memcg_init_list_lru(lru, memcg_aware);
+ 	if (err) {
+ 		kfree(lru->node);
++		/* Do this so a list_lru_destroy() doesn't crash: */
++		lru->node = NULL;
+ 		goto out;
+ 	}
  
- /*
-@@ -44,9 +43,6 @@ struct thread_info {
- 	.cpu =		0,			\
- 	.preempt_count = INIT_PREEMPT_COUNT,	\
- 	.addr_limit	= KERNEL_DS,		\
--	.restart_block	= {			\
--		.fn = do_no_restart_syscall,	\
--	},					\
- }
- 
- #define init_thread_info	(init_thread_union.thread_info)
-diff -puN arch/h8300/kernel/signal.c~h8300-fix-syscall-restarting arch/h8300/kernel/signal.c
---- a/arch/h8300/kernel/signal.c~h8300-fix-syscall-restarting
-+++ a/arch/h8300/kernel/signal.c
-@@ -79,7 +79,7 @@ restore_sigcontext(struct sigcontext *us
- 	unsigned int er0;
- 
- 	/* Always make any pending restarted system calls return -EINTR */
--	current_thread_info()->restart_block.fn = do_no_restart_syscall;
-+	current->restart_block.fn = do_no_restart_syscall;
- 
- 	/* restore passed registers */
- #define COPY(r)  do { err |= get_user(regs->r, &usc->sc_##r); } while (0)
 _
 
-Patches currently in -mm which might be from mark.rutland@arm.com are
+Patches currently in -mm which might be from apolyakov@beget.ru are
 
-h8300-fix-syscall-restarting.patch
+mm-list_lruc-avoid-error-path-null-pointer-deref.patch
 
