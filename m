@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow.patch added to
+Subject: + mm-page_alloc-use-kern_cont-where-appropriate.patch added to
  -mm tree
-Date: Tue, 18 Oct 2016 11:36:18 -0700
-Message-ID: <58066ba2.6Po1x+tTywKmVql7%akpm@linux-foundation.org>
+Date: Tue, 18 Oct 2016 12:58:45 -0700
+Message-ID: <58067ef5.xD1pMu/TRrjdEFfV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54368 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55678 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1034332AbcJRSgT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2016 14:36:19 -0400
+        with ESMTP id S1751691AbcJRT6q (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2016 15:58:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, jstancek@redhat.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, mpe@ellerman.id.au, scottwood@freescale.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mark.rutland@arm.com, mhocko@suse.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb.c: use the right pte val for compare in hugetlb_cow
+     Subject: mm: page_alloc: use KERN_CONT where appropriate
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow.patch
+     mm-page_alloc-use-kern_cont-where-appropriate.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-use-kern_cont-where-appropriate.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-use-kern_cont-where-appropriate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,84 +39,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/hugetlb.c: use the right pte val for compare in hugetlb_cow
+From: Joe Perches <joe@perches.com>
+Subject: mm: page_alloc: use KERN_CONT where appropriate
 
-We cannot use the pte value used in set_pte_at for pte_same comparison,
-because archs like ppc64, filter/add new pte flag in set_pte_at. Instead
-fetch the pte value inside hugetlb_cow. We are comparing pte value to
-make sure the pte didn't change since we dropped the page table lock.
-hugetlb_cow get called with page table lock held, and we can take a copy
-of the pte value before we drop the page table lock.
+Recent changes to printk require KERN_CONT uses to continue logging
+messages.  So add KERN_CONT where necessary.
 
-With hugetlbfs, we optimize the MAP_PRIVATE write fault path with no
-previous mapping (huge_pte_none entries), by forcing a cow in the fault
-path. This avoid take an addition fault to covert a read-only mapping
-to read/write. Here we were comparing a recently instantiated pte (via
-set_pte_at) to the pte values from linux page table. As explained above
-on ppc64 such pte_same check returned wrong result, resulting in us
-taking an additional fault on ppc64.
-
-Fixes: 6a119eae942c ("powerpc/mm: Add a _PAGE_PTE bit")
-Link: http://lkml.kernel.org/r/20161018154245.18023-1-aneesh.kumar@linux.vnet.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reported-by: Jan Stancek <jstancek@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Scott Wood <scottwood@freescale.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Fixes: 4bcc595ccd80 ("printk: reinstate KERN_CONT for printing continuation lines")
+Link: http://lkml.kernel.org/r/c7df37c8665134654a17aaeb8b9f6ace1d6db58b.1476239034.git.joe@perches.com
+Reported-by: Mark Rutland <mark.rutland@arm.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow
-+++ a/mm/hugetlb.c
-@@ -3386,15 +3386,17 @@ static void unmap_ref_private(struct mm_
-  * Keep the pte_same checks anyway to make transition from the mutex easier.
-  */
- static int hugetlb_cow(struct mm_struct *mm, struct vm_area_struct *vma,
--			unsigned long address, pte_t *ptep, pte_t pte,
--			struct page *pagecache_page, spinlock_t *ptl)
-+		       unsigned long address, pte_t *ptep,
-+		       struct page *pagecache_page, spinlock_t *ptl)
- {
-+	pte_t pte;
- 	struct hstate *h = hstate_vma(vma);
- 	struct page *old_page, *new_page;
- 	int ret = 0, outside_reserve = 0;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
- 	unsigned long mmun_end;		/* For mmu_notifiers */
- 
-+	pte = huge_ptep_get(ptep);
- 	old_page = pte_page(pte);
- 
- retry_avoidcopy:
-@@ -3668,7 +3670,7 @@ retry:
- 	hugetlb_count_add(pages_per_huge_page(h), mm);
- 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
- 		/* Optimization, do the COW without a second fault */
--		ret = hugetlb_cow(mm, vma, address, ptep, new_pte, page, ptl);
-+		ret = hugetlb_cow(mm, vma, address, ptep, page, ptl);
+diff -puN mm/page_alloc.c~mm-page_alloc-use-kern_cont-where-appropriate mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-use-kern_cont-where-appropriate
++++ a/mm/page_alloc.c
+@@ -4224,7 +4224,7 @@ static void show_migration_types(unsigne
  	}
  
- 	spin_unlock(ptl);
-@@ -3822,8 +3824,8 @@ int hugetlb_fault(struct mm_struct *mm,
+ 	*p = '\0';
+-	printk("(%s) ", tmp);
++	printk(KERN_CONT "(%s) ", tmp);
+ }
  
- 	if (flags & FAULT_FLAG_WRITE) {
- 		if (!huge_pte_write(entry)) {
--			ret = hugetlb_cow(mm, vma, address, ptep, entry,
--					pagecache_page, ptl);
-+			ret = hugetlb_cow(mm, vma, address, ptep,
-+					  pagecache_page, ptl);
- 			goto out_put_page;
+ /*
+@@ -4335,7 +4335,8 @@ void show_free_areas(unsigned int filter
+ 			free_pcp += per_cpu_ptr(zone->pageset, cpu)->pcp.count;
+ 
+ 		show_node(zone);
+-		printk("%s"
++		printk(KERN_CONT
++		        "%s"
+ 			" free:%lukB"
+ 			" min:%lukB"
+ 			" low:%lukB"
+@@ -4382,8 +4383,8 @@ void show_free_areas(unsigned int filter
+ 			K(zone_page_state(zone, NR_FREE_CMA_PAGES)));
+ 		printk("lowmem_reserve[]:");
+ 		for (i = 0; i < MAX_NR_ZONES; i++)
+-			printk(" %ld", zone->lowmem_reserve[i]);
+-		printk("\n");
++			printk(KERN_CONT " %ld", zone->lowmem_reserve[i]);
++		printk(KERN_CONT "\n");
+ 	}
+ 
+ 	for_each_populated_zone(zone) {
+@@ -4394,7 +4395,7 @@ void show_free_areas(unsigned int filter
+ 		if (skip_free_areas_node(filter, zone_to_nid(zone)))
+ 			continue;
+ 		show_node(zone);
+-		printk("%s: ", zone->name);
++		printk(KERN_CONT "%s: ", zone->name);
+ 
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 		for (order = 0; order < MAX_ORDER; order++) {
+@@ -4412,11 +4413,12 @@ void show_free_areas(unsigned int filter
  		}
- 		entry = huge_pte_mkdirty(entry);
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+ 		for (order = 0; order < MAX_ORDER; order++) {
+-			printk("%lu*%lukB ", nr[order], K(1UL) << order);
++			printk(KERN_CONT "%lu*%lukB ",
++			       nr[order], K(1UL) << order);
+ 			if (nr[order])
+ 				show_migration_types(types[order]);
+ 		}
+-		printk("= %lukB\n", K(total));
++		printk(KERN_CONT "= %lukB\n", K(total));
+ 	}
+ 
+ 	hugetlb_show_meminfo();
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow.patch
+mm-page_alloc-use-kern_cont-where-appropriate.patch
 
