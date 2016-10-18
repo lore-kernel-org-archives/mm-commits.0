@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kmemleak-fix-reference-to-documentation.patch added to -mm tree
-Date: Tue, 18 Oct 2016 13:57:21 -0700
-Message-ID: <58068cb1.MQFdrBSPmSiggLmr%akpm@linux-foundation.org>
+Subject: + kasan-support-panic_on_warn.patch added to -mm tree
+Date: Tue, 18 Oct 2016 14:00:46 -0700
+Message-ID: <58068d7e.0Jd2n//uNhVZuvk/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56517 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56536 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752017AbcJRU5W (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2016 16:57:22 -0400
+        with ESMTP id S1754205AbcJRVAr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2016 17:00:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.platschek@opentech.at, catalin.marinas@arm.com, mm-commits@vger.kernel.org
+To: dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmemleak: fix reference to Documentation
+     Subject: kasan: support panic_on_warn
 has been added to the -mm tree.  Its filename is
-     kmemleak-fix-reference-to-documentation.patch
+     kasan-support-panic_on_warn.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmemleak-fix-reference-to-documentation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-support-panic_on_warn.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmemleak-fix-reference-to-documentation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-support-panic_on_warn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,38 +38,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andreas Platschek <andreas.platschek@opentech.at>
-Subject: kmemleak: fix reference to Documentation
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kasan: support panic_on_warn
 
-Documentation/kmemleak.txt was moved to Documentation/dev-tools/kmemleak.rst,
-this fixes the reference to the new location.
+If user sets panic_on_warn, he wants kernel to panic if there is anything
+barely wrong with the kernel.  KASAN-detected errors are definitely not
+less benign than an arbitrary kernel WARNING.
 
-Link: http://lkml.kernel.org/r/1476544946-18804-1-git-send-email-andreas.platschek@opentech.at
-Signed-off-by: Andreas Platschek <andreas.platschek@opentech.at>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Panic after KASAN errors if panic_on_warn is set.
+
+We use this for continuous fuzzing where we want kernel to stop and reboot
+on any error.
+
+Link: http://lkml.kernel.org/r/1476694764-31986-1-git-send-email-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/report.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/kmemleak.c~kmemleak-fix-reference-to-documentation mm/kmemleak.c
---- a/mm/kmemleak.c~kmemleak-fix-reference-to-documentation
-+++ a/mm/kmemleak.c
-@@ -19,7 +19,7 @@
-  *
-  *
-  * For more information on the algorithm and kmemleak usage, please see
-- * Documentation/kmemleak.txt.
-+ * Documentation/dev-tools/kmemleak.rst.
-  *
-  * Notes on locking
-  * ----------------
+diff -puN mm/kasan/report.c~kasan-support-panic_on_warn mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-support-panic_on_warn
++++ a/mm/kasan/report.c
+@@ -133,6 +133,8 @@ static void kasan_end_report(unsigned lo
+ 	pr_err("==================================================================\n");
+ 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+ 	spin_unlock_irqrestore(&report_lock, *flags);
++	if (panic_on_warn)
++		panic("panic_on_warn set ...\n");
+ 	kasan_enable_current();
+ }
+ 
 _
 
-Patches currently in -mm which might be from andreas.platschek@opentech.at are
+Patches currently in -mm which might be from dvyukov@google.com are
 
-kmemleak-fix-reference-to-documentation.patch
-kconfig-lib-kconfigdebug-fix-references-to-documenation.patch
-kconfig-lib-kconfigubsan-fix-reference-to-ubsan-documentation.patch
+kasan-support-panic_on_warn.patch
 
