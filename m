@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-try-to-exhaust-highatomic-reserve-before-the-oom.patch added to -mm tree
-Date: Tue, 18 Oct 2016 15:16:34 -0700
-Message-ID: <58069f42.4ksH2aF8tHi0tX5W%akpm@linux-foundation.org>
+Subject: + mm-dont-steal-highatomic-pageblock.patch added to -mm tree
+Date: Tue, 18 Oct 2016 15:16:30 -0700
+Message-ID: <58069f3e.vsnT+F/d3VmzBhIu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57909 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57898 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933385AbcJRWQf (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2016 18:16:35 -0400
+        with ESMTP id S933385AbcJRWQb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2016 18:16:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan@kernel.org, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, sangseok.lee@lge.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: try to exhaust highatomic reserve before the OOM
+     Subject: mm: don't steal highatomic pageblock
 has been added to the -mm tree.  Its filename is
-     mm-try-to-exhaust-highatomic-reserve-before-the-oom.patch
+     mm-dont-steal-highatomic-pageblock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-try-to-exhaust-highatomic-reserve-before-the-oom.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-steal-highatomic-pageblock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-try-to-exhaust-highatomic-reserve-before-the-oom.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-steal-highatomic-pageblock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: try to exhaust highatomic reserve before the OOM
+Subject: mm: don't steal highatomic pageblock
+
+Patch series "use up highorder free pages before OOM", v3.
 
 I got OOM report from production team with v4.4 kernel.  It had enough
 free memory but failed to allocate GFP_KERNEL order-0 page and finally
@@ -171,76 +173,64 @@ Total swap = 255996kB
 0 pages cma reserved
 0 pages hwpoisoned
 
-It's weird to show that zone has enough free memory above min
-watermark but OOMed with 4K GFP_KERNEL allocation due to
-reserved highatomic pages. As last resort, try to unreserve
-highatomic pages again and if it has moved pages to
-non-highatmoc free list, retry reclaim once more.
+During the investigation, I found some problems with highatomic so this
+patch aims to solve the problems and the final goal is to unreserve every
+highatomic free pages before the OOM kill.
 
-Link: http://lkml.kernel.org/r/1476259429-18279-4-git-send-email-minchan@kernel.org
+
+
+
+This patch (of 4):
+
+In page freeing path, migratetype is racy so that a highorderatomic page
+could free into non-highorderatomic free list.  If that page is allocated,
+VM can change the pageblock from higorderatomic to something.  In that
+case, highatomic pageblock accounting is broken so it doesn't work(e.g.,
+VM cannot reserve highorderatomic pageblocks any more although it doesn't
+reach 1% limit).
+
+So, this patch prohibits the changing from highatomic to other type.  It's
+no problem because MIGRATE_HIGHATOMIC is not listed in fallback array so
+stealing will only happen due to unexpected races which is really rare. 
+Also, such prohibiting keeps highatomic pageblock more longer so it would
+be better for highorderatomic page allocation.
+
+Link: http://lkml.kernel.org/r/1476259429-18279-2-git-send-email-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Sangseok Lee <sangseok.lee@lge.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-try-to-exhaust-highatomic-reserve-before-the-oom mm/page_alloc.c
---- a/mm/page_alloc.c~mm-try-to-exhaust-highatomic-reserve-before-the-oom
+diff -puN mm/page_alloc.c~mm-dont-steal-highatomic-pageblock mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-dont-steal-highatomic-pageblock
 +++ a/mm/page_alloc.c
-@@ -2059,7 +2059,7 @@ out_unlock:
-  * intense memory pressure but failed atomic allocations should be easier
-  * to recover from than an OOM.
-  */
--static void unreserve_highatomic_pageblock(const struct alloc_context *ac)
-+static bool unreserve_highatomic_pageblock(const struct alloc_context *ac)
- {
- 	struct zonelist *zonelist = ac->zonelist;
- 	unsigned long flags;
-@@ -2067,6 +2067,7 @@ static void unreserve_highatomic_pageblo
- 	struct zone *zone;
- 	struct page *page;
- 	int order;
-+	bool ret;
+@@ -2133,7 +2133,8 @@ __rmqueue_fallback(struct zone *zone, un
  
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist, ac->high_zoneidx,
- 								ac->nodemask) {
-@@ -2115,12 +2116,14 @@ static void unreserve_highatomic_pageblo
- 			 * may increase.
- 			 */
- 			set_pageblock_migratetype(page, ac->migratetype);
--			move_freepages_block(zone, page, ac->migratetype);
-+			ret = move_freepages_block(zone, page, ac->migratetype);
- 			spin_unlock_irqrestore(&zone->lock, flags);
--			return;
-+			return ret;
+ 		page = list_first_entry(&area->free_list[fallback_mt],
+ 						struct page, lru);
+-		if (can_steal)
++		if (can_steal &&
++			get_pageblock_migratetype(page) != MIGRATE_HIGHATOMIC)
+ 			steal_suitable_fallback(zone, page, start_migratetype);
+ 
+ 		/* Remove the page from the freelists */
+@@ -2534,7 +2535,8 @@ int __isolate_free_page(struct page *pag
+ 		struct page *endpage = page + (1 << order) - 1;
+ 		for (; page < endpage; page += pageblock_nr_pages) {
+ 			int mt = get_pageblock_migratetype(page);
+-			if (!is_migrate_isolate(mt) && !is_migrate_cma(mt))
++			if (!is_migrate_isolate(mt) && !is_migrate_cma(mt)
++				&& mt != MIGRATE_HIGHATOMIC)
+ 				set_pageblock_migratetype(page,
+ 							  MIGRATE_MOVABLE);
  		}
- 		spin_unlock_irqrestore(&zone->lock, flags);
- 	}
-+
-+	return false;
- }
- 
- /* Remove an element from the buddy allocator from the fallback list */
-@@ -3436,8 +3439,10 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 	 * Make sure we converge to OOM if we cannot make any progress
- 	 * several times in the row.
- 	 */
--	if (*no_progress_loops > MAX_RECLAIM_RETRIES)
--		return false;
-+	if (*no_progress_loops > MAX_RECLAIM_RETRIES) {
-+		/* Before OOM, exhaust highatomic_reserve */
-+		return unreserve_highatomic_pageblock(ac);
-+	}
- 
- 	/*
- 	 * Keep reclaiming pages while there is a chance this will lead
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
