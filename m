@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-replace-opencoded-4-level-page-walkers.patch added
- to -mm tree
-Date: Tue, 18 Oct 2016 14:58:58 -0700
-Message-ID: <58069b22.e+qGTrFKFULppQuA%akpm@linux-foundation.org>
+Subject: + lib-bump-stackdepot-capacity-from-16mb-to-128mb.patch added to
+ -mm tree
+Date: Tue, 18 Oct 2016 15:05:35 -0700
+Message-ID: <58069caf.VVRxkSRG5yq5x1iR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57786 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754039AbcJRV7A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2016 17:59:00 -0400
+        with ESMTP id S1753302AbcJRWFg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2016 18:05:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chris-wilson.co.uk, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, jmarchan@redhat.com, mgorman@techsingularity.net, rientjes@google.com, vdavydov.dev@gmail.com, wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
+To: dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, iamjoonsoo.kim@lge.com, sploving1@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: replace opencoded 4-level page walkers
+     Subject: lib/stackdepot.c: bump stackdepot capacity from 16MB to 128MB
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-replace-opencoded-4-level-page-walkers.patch
+     lib-bump-stackdepot-capacity-from-16mb-to-128mb.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-replace-opencoded-4-level-page-walkers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bump-stackdepot-capacity-from-16mb-to-128mb.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-replace-opencoded-4-level-page-walkers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bump-stackdepot-capacity-from-16mb-to-128mb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,169 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: mm/vmalloc: replace opencoded 4-level page walkers
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: lib/stackdepot.c: bump stackdepot capacity from 16MB to 128MB
 
-Rather than open-code the intricacies of walking the 4-level page tables,
-use the generic page table walker apply_to_page_range() instead.
+KASAN uses stackdepot to memorize stacks for all kmalloc/kfree calls. 
+Current stackdepot capacity is 16MB (1024 top level entries x 4 pages on
+second level).  Size of each stack is (num_frames + 3) * sizeof(long). 
+Which gives us ~84K stacks.  This capacity was chosen empirically and it
+is enough to run kernel normally.
 
-The important change is that it now cleans up after an unsuccessful
-insertion and propagates the correct error.  The current failure may lead
-to a WARN if we encounter ENOMEM in one vmap_pte_range() and later retry
-with the same page range.
+However, when lots of configs are enabled and a fuzzer tries to maximize
+code coverage, it easily hits the limit within tens of minutes.  I've
+tested for long a time with number of top level entries bumped 4x (4096). 
+And I think I've seen overflow only once.  But I don't have all configs
+enabled and code coverage has not reached maximum yet.  So bump it 8x to
+8192.  Since we have two-level table, memory cost of this is very moderate
+-- currently the top-level table is 8KB, with this patch it is 64KB, which
+is negligible under KASAN.
 
-WARNING: CPU: 0 PID: 605 at mm/vmalloc.c:136 vmap_page_range_noflush+0x2c1/0x340
-i.e. WARN_ON(!pte_none(*pte))
+Here is some approx math.
 
-v2: Don't convert the vunmap code over to apply_to_page_range() as it
-may try to allocate during atomic sections, such as exiting a task:
+128MB allows us to memorize ~670K stacks (assuming stack is ~200b).  I've
+grepped kernel for kmalloc|kfree|kmem_cache_alloc|kmem_cache_free|
+kzalloc|kstrdup|kstrndup|kmemdup and it gives ~60K matches.  Most of
+alloc/free call sites are reachable with only one stack.  But some utility
+functions can have large fanout.  Assuming average fanout is 5x, total
+number of alloc/free stacks is ~300K.
 
-[    9.837563]  [<ffffffff810519b0>] pte_alloc_one_kernel+0x10/0x20
-[    9.837568]  [<ffffffff811a7486>] __pte_alloc_kernel+0x16/0xa0
-[    9.837572]  [<ffffffff811aaa76>] apply_to_page_range+0x3f6/0x460
-[    9.837576]  [<ffffffff811b8888>] free_unmap_vmap_area_noflush+0x28/0x40
-[    9.837579]  [<ffffffff811b9dcd>] remove_vm_area+0x4d/0x60
-[    9.837582]  [<ffffffff811b9e09>] __vunmap+0x29/0x130
-[    9.837585]  [<ffffffff811b9f7d>] vfree+0x3d/0x90
-[    9.837589]  [<ffffffff8107ace6>] put_task_stack+0x76/0x130
-
-References: https://bugs.freedesktop.org/show_bug.cgi?id=98269
-Link: http://lkml.kernel.org/r/20161018161117.31198-1-chris@chris-wilson.co.uk
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
-Cc: Jerome Marchand <jmarchan@redhat.com>
+Link: http://lkml.kernel.org/r/1476458416-122131-1-git-send-email-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Baozeng Ding <sploving1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   95 ++++++++++++++-----------------------------------
- 1 file changed, 28 insertions(+), 67 deletions(-)
+ lib/stackdepot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-replace-opencoded-4-level-page-walkers mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-replace-opencoded-4-level-page-walkers
-+++ a/mm/vmalloc.c
-@@ -117,63 +117,27 @@ static void vunmap_page_range(unsigned l
- 	} while (pgd++, addr = next, addr != end);
- }
- 
--static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
--		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
--{
--	pte_t *pte;
--
--	/*
--	 * nr is a running index into the array which helps higher level
--	 * callers keep track of where we're up to.
--	 */
--
--	pte = pte_alloc_kernel(pmd, addr);
--	if (!pte)
--		return -ENOMEM;
--	do {
--		struct page *page = pages[*nr];
-+struct vmap_page {
-+	pgprot_t prot;
-+	struct page **pages;
-+	unsigned long count;
-+};
- 
--		if (WARN_ON(!pte_none(*pte)))
--			return -EBUSY;
--		if (WARN_ON(!page))
--			return -ENOMEM;
--		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
--		(*nr)++;
--	} while (pte++, addr += PAGE_SIZE, addr != end);
--	return 0;
--}
--
--static int vmap_pmd_range(pud_t *pud, unsigned long addr,
--		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
-+static int vmap_page(pte_t *pte, pgtable_t token,
-+		     unsigned long addr, void *data)
- {
--	pmd_t *pmd;
--	unsigned long next;
--
--	pmd = pmd_alloc(&init_mm, pud, addr);
--	if (!pmd)
--		return -ENOMEM;
--	do {
--		next = pmd_addr_end(addr, end);
--		if (vmap_pte_range(pmd, addr, next, prot, pages, nr))
--			return -ENOMEM;
--	} while (pmd++, addr = next, addr != end);
--	return 0;
--}
-+	struct vmap_page *v = data;
-+	struct page *page;
- 
--static int vmap_pud_range(pgd_t *pgd, unsigned long addr,
--		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
--{
--	pud_t *pud;
--	unsigned long next;
-+	if (WARN_ON(!pte_none(*pte)))
-+		return -EBUSY;
- 
--	pud = pud_alloc(&init_mm, pgd, addr);
--	if (!pud)
-+	page = v->pages[v->count];
-+	if (WARN_ON(!page))
- 		return -ENOMEM;
--	do {
--		next = pud_addr_end(addr, end);
--		if (vmap_pmd_range(pud, addr, next, prot, pages, nr))
--			return -ENOMEM;
--	} while (pud++, addr = next, addr != end);
-+
-+	set_pte_at(&init_mm, addr, pte, mk_pte(page, v->prot));
-+	v->count++;
- 	return 0;
- }
- 
-@@ -186,22 +150,19 @@ static int vmap_pud_range(pgd_t *pgd, un
- static int vmap_page_range_noflush(unsigned long start, unsigned long end,
- 				   pgprot_t prot, struct page **pages)
- {
--	pgd_t *pgd;
--	unsigned long next;
--	unsigned long addr = start;
--	int err = 0;
--	int nr = 0;
--
--	BUG_ON(addr >= end);
--	pgd = pgd_offset_k(addr);
--	do {
--		next = pgd_addr_end(addr, end);
--		err = vmap_pud_range(pgd, addr, next, prot, pages, &nr);
--		if (err)
--			return err;
--	} while (pgd++, addr = next, addr != end);
-+	struct vmap_page v = { prot, pages };
-+	int err;
-+
-+	if ((end - start) >> PAGE_SHIFT > INT_MAX)
-+		return -EINVAL;
-+
-+	err = apply_to_page_range(&init_mm, start, end - start, vmap_page, &v);
-+	if (unlikely(err)) {
-+		vunmap_page_range(start, start + (v.count << PAGE_SHIFT));
-+		return err;
-+	}
- 
--	return nr;
-+	return v.count;
- }
- 
- static int vmap_page_range(unsigned long start, unsigned long end,
+diff -puN lib/stackdepot.c~lib-bump-stackdepot-capacity-from-16mb-to-128mb lib/stackdepot.c
+--- a/lib/stackdepot.c~lib-bump-stackdepot-capacity-from-16mb-to-128mb
++++ a/lib/stackdepot.c
+@@ -50,7 +50,7 @@
+ 					STACK_ALLOC_ALIGN)
+ #define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - \
+ 		STACK_ALLOC_NULL_PROTECTION_BITS - STACK_ALLOC_OFFSET_BITS)
+-#define STACK_ALLOC_SLABS_CAP 1024
++#define STACK_ALLOC_SLABS_CAP 8192
+ #define STACK_ALLOC_MAX_SLABS \
+ 	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
+ 	 (1LL << (STACK_ALLOC_INDEX_BITS)) : STACK_ALLOC_SLABS_CAP)
 _
 
-Patches currently in -mm which might be from chris@chris-wilson.co.uk are
+Patches currently in -mm which might be from dvyukov@google.com are
 
-mm-vmalloc-replace-opencoded-4-level-page-walkers.patch
+kasan-support-panic_on_warn.patch
+lib-bump-stackdepot-capacity-from-16mb-to-128mb.patch
 
