@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-account-for-kmem-usage-on-mqueue-and-msg.patch added to -mm tree
-Date: Tue, 18 Oct 2016 13:34:34 -0700
-Message-ID: <5806875a.mIgdNZS9JZobVTWq%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock.patch added to
+ -mm tree
+Date: Tue, 18 Oct 2016 13:48:36 -0700
+Message-ID: <58068aa4.EINI/D/NsT5lzfHw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56020 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56482 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751670AbcJRUeg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2016 16:34:36 -0400
+        with ESMTP id S965377AbcJRUsh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 18 Oct 2016 16:48:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arozansk@redhat.com, adobriyan@gmail.com, dave@stgolabs.net, hannes@cmpxchg.org, mhocko@kernel.org, sttts@redhat.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: account for kmem usage on mqueue and msg
+     Subject: mm/hugetlb.c: use huge_pte_lock instead of opencoding the lock
 has been added to the -mm tree.  Its filename is
-     ipc-account-for-kmem-usage-on-mqueue-and-msg.patch
+     mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-account-for-kmem-usage-on-mqueue-and-msg.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-account-for-kmem-usage-on-mqueue-and-msg.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,51 +40,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Aristeu Rozanski <arozansk@redhat.com>
-Subject: ipc: account for kmem usage on mqueue and msg
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/hugetlb.c: use huge_pte_lock instead of opencoding the lock
 
-When kmem accounting switched from account by default to only account if
-flagged by __GFP_ACCOUNT, IPC mqueue and messages was left out.
+No functional change by this patch.
 
-Link: http://lkml.kernel.org/r/1476806075-1210-1-git-send-email-arozansk@redhat.com
-Signed-off-by: Aristeu Rozanski <arozansk@redhat.com>
-Reported-by: Stefan Schimanski <sttts@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Stefan Schimanski <sttts@redhat.com>
+Link: http://lkml.kernel.org/r/20161018090234.22574-1-aneesh.kumar@linux.vnet.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msgutil.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN ipc/msgutil.c~ipc-account-for-kmem-usage-on-mqueue-and-msg ipc/msgutil.c
---- a/ipc/msgutil.c~ipc-account-for-kmem-usage-on-mqueue-and-msg
-+++ a/ipc/msgutil.c
-@@ -53,7 +53,7 @@ static struct msg_msg *alloc_msg(size_t
- 	size_t alen;
+diff -puN mm/hugetlb.c~mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock
++++ a/mm/hugetlb.c
+@@ -3648,8 +3648,7 @@ retry:
+ 		vma_end_reservation(h, vma, address);
+ 	}
  
- 	alen = min(len, DATALEN_MSG);
--	msg = kmalloc(sizeof(*msg) + alen, GFP_KERNEL);
-+	msg = kmalloc(sizeof(*msg) + alen, GFP_KERNEL_ACCOUNT);
- 	if (msg == NULL)
- 		return NULL;
+-	ptl = huge_pte_lockptr(h, mm, ptep);
+-	spin_lock(ptl);
++	ptl = huge_pte_lock(h, mm, ptep);
+ 	size = i_size_read(mapping->host) >> huge_page_shift(h);
+ 	if (idx >= size)
+ 		goto backout;
+@@ -4266,8 +4265,7 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 	if (!spte)
+ 		goto out;
  
-@@ -65,7 +65,7 @@ static struct msg_msg *alloc_msg(size_t
- 	while (len > 0) {
- 		struct msg_msgseg *seg;
- 		alen = min(len, DATALEN_SEG);
--		seg = kmalloc(sizeof(*seg) + alen, GFP_KERNEL);
-+		seg = kmalloc(sizeof(*seg) + alen, GFP_KERNEL_ACCOUNT);
- 		if (seg == NULL)
- 			goto out_err;
- 		*pseg = seg;
+-	ptl = huge_pte_lockptr(hstate_vma(vma), mm, spte);
+-	spin_lock(ptl);
++	ptl = huge_pte_lock(hstate_vma(vma), mm, spte);
+ 	if (pud_none(*pud)) {
+ 		pud_populate(mm, pud,
+ 				(pmd_t *)((unsigned long)spte & PAGE_MASK));
 _
 
-Patches currently in -mm which might be from arozansk@redhat.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-ipc-account-for-kmem-usage-on-mqueue-and-msg.patch
+mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow.patch
+mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock.patch
 
