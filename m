@@ -1,74 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: + mm-gup-make-unnecessarily-global-vma_permits_fault-static.patch added to -mm tree
-Date: Mon, 17 Oct 2016 17:12:38 -0700
-Message-ID: <580568f6.ZFGBtHGUC/fWbsss%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ kprobes-avoid-false-kasan-reports-during-stack-copy.patch removed from -mm
+ tree
+Date: Mon, 17 Oct 2016 17:17:42 -0700
+Message-ID: <58056a26.QQXb1zU+GScuxWZs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58920 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58933 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754236AbcJRAMj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2016 20:12:39 -0400
+        with ESMTP id S1755012AbcJRARn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 17 Oct 2016 20:17:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tklauser@distanz.ch, mm-commits@vger.kernel.org
+To: dvyukov@google.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, caiqian@redhat.com, davem@davemloft.net, glider@google.com, hpa@zytor.com, mhiramat@kernel.org, mingo@redhat.com, ryabinin.a.a@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup.c: make unnecessarily global vma_permits_fault() static
-has been added to the -mm tree.  Its filename is
-     mm-gup-make-unnecessarily-global-vma_permits_fault-static.patch
+     Subject: kprobes: avoid false KASAN reports during stack copy
+has been removed from the -mm tree.  Its filename was
+     kprobes-avoid-false-kasan-reports-during-stack-copy.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-make-unnecessarily-global-vma_permits_fault-static.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-make-unnecessarily-global-vma_permits_fault-static.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: mm/gup.c: make unnecessarily global vma_permits_fault() static
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: kprobes: avoid false KASAN reports during stack copy
 
-Make vma_permits_fault() static as it is only used in mm/gup.c
+Kprobes saves and restores raw stack chunks with memcpy().  With KASAN
+these chunks can contain poisoned stack redzones, as the result memcpy()
+interceptor produces false stack out-of-bounds reports.
 
-This fixes a sparse warning.
+Use __memcpy() instead of memcpy() for stack copying.  __memcpy() is not
+instrumented by KASAN and does not lead to the false reports.
 
-Link: http://lkml.kernel.org/r/20161017122353.31598-1-tklauser@distanz.ch
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Link: http://lkml.kernel.org/r/1476188018-36101-1-git-send-email-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Reported-by: CAI Qian <caiqian@redhat.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/kernel/kprobes/core.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN mm/gup.c~mm-gup-make-unnecessarily-global-vma_permits_fault-static mm/gup.c
---- a/mm/gup.c~mm-gup-make-unnecessarily-global-vma_permits_fault-static
-+++ a/mm/gup.c
-@@ -623,7 +623,8 @@ next_page:
- }
- EXPORT_SYMBOL(__get_user_pages);
- 
--bool vma_permits_fault(struct vm_area_struct *vma, unsigned int fault_flags)
-+static bool vma_permits_fault(struct vm_area_struct *vma,
-+			      unsigned int fault_flags)
- {
- 	bool write   = !!(fault_flags & FAULT_FLAG_WRITE);
- 	bool foreign = !!(fault_flags & FAULT_FLAG_REMOTE);
+diff -puN arch/x86/kernel/kprobes/core.c~kprobes-avoid-false-kasan-reports-during-stack-copy arch/x86/kernel/kprobes/core.c
+--- a/arch/x86/kernel/kprobes/core.c~kprobes-avoid-false-kasan-reports-during-stack-copy
++++ a/arch/x86/kernel/kprobes/core.c
+@@ -1057,9 +1057,11 @@ int setjmp_pre_handler(struct kprobe *p,
+ 	 * tailcall optimization. So, to be absolutely safe
+ 	 * we also save and restore enough stack bytes to cover
+ 	 * the argument area.
++	 * Use __memcpy to avoid KASAN stack out-of-bounds reports as we copy
++	 * raw stack chunk with redzones.
+ 	 */
+-	memcpy(kcb->jprobes_stack, (kprobe_opcode_t *)addr,
+-	       MIN_STACK_SIZE(addr));
++	__memcpy(kcb->jprobes_stack, (kprobe_opcode_t *)addr,
++		 MIN_STACK_SIZE(addr));
+ 	regs->flags &= ~X86_EFLAGS_IF;
+ 	trace_hardirqs_off();
+ 	regs->ip = (unsigned long)(jp->entry);
+@@ -1118,7 +1120,8 @@ int longjmp_break_handler(struct kprobe
+ 		/* It's OK to start function graph tracing again */
+ 		unpause_graph_tracing();
+ 		*regs = kcb->jprobe_saved_regs;
+-		memcpy(saved_sp, kcb->jprobes_stack, MIN_STACK_SIZE(saved_sp));
++		__memcpy(saved_sp, kcb->jprobes_stack,
++			 MIN_STACK_SIZE(saved_sp));
+ 		preempt_enable_no_resched();
+ 		return 1;
+ 	}
 _
 
-Patches currently in -mm which might be from tklauser@distanz.ch are
+Patches currently in -mm which might be from dvyukov@google.com are
 
-mm-gup-make-unnecessarily-global-vma_permits_fault-static.patch
 
