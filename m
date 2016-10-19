@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks.patch
+ autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
  added to -mm tree
-Date: Wed, 19 Oct 2016 12:40:54 -0700
-Message-ID: <5807cc46./zERjR9Adp3b80QR%akpm@linux-foundation.org>
+Date: Wed, 19 Oct 2016 12:40:52 -0700
+Message-ID: <5807cc44.xusiRixb2w9i9em/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60725 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60723 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941037AbcJSTkz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2016 15:40:55 -0400
+        with ESMTP id S942983AbcJSTkx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2016 15:40:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ikent@redhat.com, ebiederm@xmission.com, osandov@osandov.com, raven@themaw.net, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: use path_has_submounts() to fix unreliable have_submount() checks
+     Subject: autofs: use path_is_mountpoint() to fix unreliable d_mountpoint() checks
 has been added to the -mm tree.  Its filename is
-     autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks.patch
+     autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,18 +41,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ian Kent <ikent@redhat.com>
-Subject: autofs: use path_has_submounts() to fix unreliable have_submount() checks
+Subject: autofs: use path_is_mountpoint() to fix unreliable d_mountpoint() checks
 
 If an automount mount is clone(2)ed into a file system that is propagation
 private, when it later expires in the originating namespace, subsequent
 calls to autofs ->d_automount() for that dentry in the original namespace
 will return ELOOP until the mount is umounted in the cloned namespace.
 
-Now that a struct path is available where needed use path_has_submounts()
-instead of have_submounts() so we don't get false positives when checking
-if a dentry is a mount point or contains mounts in the current namespace.
+Now that a struct path is available where needed use path_is_mountpoint()
+instead of d_mountpoint() so we don't get false positives when checking if
+a dentry is a mount point in the current namespace.
 
-Link: http://lkml.kernel.org/r/20161011053423.27645.91233.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/20161011053418.27645.15241.stgit@pluto.themaw.net
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
@@ -60,92 +60,90 @@ Cc: Omar Sandoval <osandov@osandov.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/dev-ioctl.c |    2 +-
- fs/autofs4/root.c      |   14 +++++++-------
- fs/autofs4/waitq.c     |   10 +++++++---
- 3 files changed, 15 insertions(+), 11 deletions(-)
+ fs/autofs4/root.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN fs/autofs4/dev-ioctl.c~autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks fs/autofs4/dev-ioctl.c
---- a/fs/autofs4/dev-ioctl.c~autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks
-+++ a/fs/autofs4/dev-ioctl.c
-@@ -575,7 +575,7 @@ static int autofs_dev_ioctl_ismountpoint
- 
- 		devid = new_encode_dev(dev);
- 
--		err = have_submounts(path.dentry);
-+		err = path_has_submounts(&path);
- 
- 		if (follow_down_one(&path))
- 			magic = path.dentry->d_sb->s_magic;
-diff -puN fs/autofs4/root.c~autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks
+diff -puN fs/autofs4/root.c~autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks
 +++ a/fs/autofs4/root.c
-@@ -387,16 +387,16 @@ static struct vfsmount *autofs4_d_automo
+@@ -107,12 +107,15 @@ static int autofs4_dir_open(struct inode
+ {
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
++	struct path path;
+ 
+ 	pr_debug("file=%p dentry=%p %pd\n", file, dentry, dentry);
+ 
+ 	if (autofs4_oz_mode(sbi))
+ 		goto out;
+ 
++	path = file->f_path;
++
+ 	/*
+ 	 * An empty directory in an autofs file system is always a
+ 	 * mount point. The daemon must have failed to mount this
+@@ -123,7 +126,7 @@ static int autofs4_dir_open(struct inode
+ 	 * it.
+ 	 */
+ 	spin_lock(&sbi->lookup_lock);
+-	if (!d_mountpoint(dentry) && simple_empty(dentry)) {
++	if (!path_is_mountpoint(&path) && simple_empty(dentry)) {
+ 		spin_unlock(&sbi->lookup_lock);
+ 		return -ENOENT;
+ 	}
+@@ -372,15 +375,15 @@ static struct vfsmount *autofs4_d_automo
+ 
+ 	/*
+ 	 * If the dentry is a symlink it's equivalent to a directory
+-	 * having d_mountpoint() true, so there's no need to call back
+-	 * to the daemon.
++	 * having path_is_mountpoint() true, so there's no need to call
++	 * back to the daemon.
+ 	 */
+ 	if (d_really_is_positive(dentry) && d_is_symlink(dentry)) {
+ 		spin_unlock(&sbi->fs_lock);
+ 		goto done;
+ 	}
+ 
+-	if (!d_mountpoint(dentry)) {
++	if (!path_is_mountpoint(path)) {
  		/*
  		 * It's possible that user space hasn't removed directories
  		 * after umounting a rootless multi-mount, although it
--		 * should. For v5 have_submounts() is sufficient to handle
--		 * this because the leaves of the directory tree under the
--		 * mount never trigger mounts themselves (they have an autofs
--		 * trigger mount mounted on them). But v4 pseudo direct mounts
--		 * do need the leaves to trigger mounts. In this case we
--		 * have no choice but to use the list_empty() check and
-+		 * should. For v5 path_has_submounts() is sufficient to
-+		 * handle this because the leaves of the directory tree under
-+		 * the mount never trigger mounts themselves (they have an
-+		 * autofs trigger mount mounted on them). But v4 pseudo direct
-+		 * mounts do need the leaves to trigger mounts. In this case
-+		 * we have no choice but to use the list_empty() check and
- 		 * require user space behave.
- 		 */
- 		if (sbi->version > 4) {
--			if (have_submounts(dentry)) {
-+			if (path_has_submounts(path)) {
- 				spin_unlock(&sbi->fs_lock);
- 				goto done;
- 			}
-diff -puN fs/autofs4/waitq.c~autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks fs/autofs4/waitq.c
---- a/fs/autofs4/waitq.c~autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks
-+++ a/fs/autofs4/waitq.c
-@@ -250,8 +250,9 @@ autofs4_find_wait(struct autofs_sb_info
- static int validate_request(struct autofs_wait_queue **wait,
- 			    struct autofs_sb_info *sbi,
- 			    const struct qstr *qstr,
--			    struct dentry *dentry, enum autofs_notify notify)
-+			    struct path *path, enum autofs_notify notify)
- {
-+	struct dentry *dentry = path->dentry;
- 	struct autofs_wait_queue *wq;
- 	struct autofs_info *ino;
+@@ -434,8 +437,13 @@ static int autofs4_d_manage(struct path
  
-@@ -314,6 +315,7 @@ static int validate_request(struct autof
- 	 */
- 	if (notify == NFY_MOUNT) {
- 		struct dentry *new = NULL;
-+		struct path this;
- 		int valid = 1;
- 
- 		/*
-@@ -333,7 +335,9 @@ static int validate_request(struct autof
- 					dentry = new;
- 			}
- 		}
--		if (have_submounts(dentry))
-+		this.mnt = path->mnt;
-+		this.dentry = dentry;
-+		if (path_has_submounts(&this))
- 			valid = 0;
- 
- 		if (new)
-@@ -406,7 +410,7 @@ int autofs4_wait(struct autofs_sb_info *
- 		return -EINTR;
+ 	/* The daemon never waits. */
+ 	if (autofs4_oz_mode(sbi)) {
+-		if (!d_mountpoint(dentry))
+-			return -EISDIR;
++		if (rcu_walk) {
++			if (!path_is_mountpoint_rcu(path))
++				return -EISDIR;
++		} else {
++			if (!path_is_mountpoint(path))
++				return -EISDIR;
++		}
+ 		return 0;
  	}
  
--	ret = validate_request(&wq, sbi, &qstr, dentry, notify);
-+	ret = validate_request(&wq, sbi, &qstr, path, notify);
- 	if (ret <= 0) {
- 		if (ret != -EINTR)
- 			mutex_unlock(&sbi->wq_mutex);
+@@ -463,7 +471,7 @@ static int autofs4_d_manage(struct path
+ 
+ 		if (ino->flags & AUTOFS_INF_WANT_EXPIRE)
+ 			return 0;
+-		if (d_mountpoint(dentry))
++		if (path_is_mountpoint_rcu(path))
+ 			return 0;
+ 		inode = d_inode_rcu(dentry);
+ 		if (inode && S_ISLNK(inode->i_mode))
+@@ -490,7 +498,7 @@ static int autofs4_d_manage(struct path
+ 		 * we can avoid needless calls ->d_automount() and avoid
+ 		 * an incorrect ELOOP error return.
+ 		 */
+-		if ((!d_mountpoint(dentry) && !simple_empty(dentry)) ||
++		if ((!path_is_mountpoint(path) && !simple_empty(dentry)) ||
+ 		    (d_really_is_positive(dentry) && d_is_symlink(dentry)))
+ 			status = -EISDIR;
+ 	}
 _
 
 Patches currently in -mm which might be from ikent@redhat.com are
