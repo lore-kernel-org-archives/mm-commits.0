@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
- added to -mm tree
-Date: Wed, 19 Oct 2016 12:40:52 -0700
-Message-ID: <5807cc44.xusiRixb2w9i9em/%akpm@linux-foundation.org>
+Subject: + vfs-change-d_manage-to-take-a-struct-path.patch added to -mm
+ tree
+Date: Wed, 19 Oct 2016 12:40:41 -0700
+Message-ID: <5807cc39.JzUeqjh2L8img1r3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60723 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60693 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S942983AbcJSTkx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2016 15:40:53 -0400
+        with ESMTP id S943755AbcJSTkm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2016 15:40:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ikent@redhat.com, ebiederm@xmission.com, osandov@osandov.com, raven@themaw.net, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: autofs: use path_is_mountpoint() to fix unreliable d_mountpoint() checks
+     Subject: vfs: change d_manage() to take a struct path
 has been added to the -mm tree.  Its filename is
-     autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
+     vfs-change-d_manage-to-take-a-struct-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vfs-change-d_manage-to-take-a-struct-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vfs-change-d_manage-to-take-a-struct-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,18 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ian Kent <ikent@redhat.com>
-Subject: autofs: use path_is_mountpoint() to fix unreliable d_mountpoint() checks
+Subject: vfs: change d_manage() to take a struct path
 
-If an automount mount is clone(2)ed into a file system that is propagation
-private, when it later expires in the originating namespace, subsequent
-calls to autofs ->d_automount() for that dentry in the original namespace
-will return ELOOP until the mount is umounted in the cloned namespace.
+For the autofs module to be able to reliably check if a dentry is a
+mountpoint in a multiple namespace environment the ->d_manage() dentry
+operation will need to take a path argument instead of a dentry.
 
-Now that a struct path is available where needed use path_is_mountpoint()
-instead of d_mountpoint() so we don't get false positives when checking if
-a dentry is a mount point in the current namespace.
-
-Link: http://lkml.kernel.org/r/20161011053418.27645.15241.stgit@pluto.themaw.net
+Link: http://lkml.kernel.org/r/20161011053352.27645.83962.stgit@pluto.themaw.net
 Signed-off-by: Ian Kent <raven@themaw.net>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
@@ -60,90 +54,117 @@ Cc: Omar Sandoval <osandov@osandov.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |   24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ Documentation/filesystems/Locking |    2 +-
+ Documentation/filesystems/vfs.txt |    2 +-
+ fs/autofs4/root.c                 |    5 +++--
+ fs/namei.c                        |   13 ++++++-------
+ include/linux/dcache.h            |    2 +-
+ 5 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN fs/autofs4/root.c~autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks
+diff -puN Documentation/filesystems/Locking~vfs-change-d_manage-to-take-a-struct-path Documentation/filesystems/Locking
+--- a/Documentation/filesystems/Locking~vfs-change-d_manage-to-take-a-struct-path
++++ a/Documentation/filesystems/Locking
+@@ -20,7 +20,7 @@ prototypes:
+ 	void (*d_iput)(struct dentry *, struct inode *);
+ 	char *(*d_dname)((struct dentry *dentry, char *buffer, int buflen);
+ 	struct vfsmount *(*d_automount)(struct path *path);
+-	int (*d_manage)(struct dentry *, bool);
++	int (*d_manage)(struct path *, bool);
+ 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
+ 				 unsigned int);
+ 
+diff -puN Documentation/filesystems/vfs.txt~vfs-change-d_manage-to-take-a-struct-path Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~vfs-change-d_manage-to-take-a-struct-path
++++ a/Documentation/filesystems/vfs.txt
+@@ -949,7 +949,7 @@ struct dentry_operations {
+ 	void (*d_iput)(struct dentry *, struct inode *);
+ 	char *(*d_dname)(struct dentry *, char *, int);
+ 	struct vfsmount *(*d_automount)(struct path *);
+-	int (*d_manage)(struct dentry *, bool);
++	int (*d_manage)(struct path *, bool);
+ 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
+ 				 unsigned int);
+ };
+diff -puN fs/autofs4/root.c~vfs-change-d_manage-to-take-a-struct-path fs/autofs4/root.c
+--- a/fs/autofs4/root.c~vfs-change-d_manage-to-take-a-struct-path
 +++ a/fs/autofs4/root.c
-@@ -107,12 +107,15 @@ static int autofs4_dir_open(struct inode
+@@ -32,7 +32,7 @@ static int autofs4_dir_open(struct inode
+ static struct dentry *autofs4_lookup(struct inode *,
+ 				     struct dentry *, unsigned int);
+ static struct vfsmount *autofs4_d_automount(struct path *);
+-static int autofs4_d_manage(struct dentry *, bool);
++static int autofs4_d_manage(struct path *, bool);
+ static void autofs4_dentry_release(struct dentry *);
+ 
+ const struct file_operations autofs4_root_operations = {
+@@ -421,8 +421,9 @@ done:
+ 	return NULL;
+ }
+ 
+-static int autofs4_d_manage(struct dentry *dentry, bool rcu_walk)
++static int autofs4_d_manage(struct path *path, bool rcu_walk)
  {
- 	struct dentry *dentry = file->f_path.dentry;
++	struct dentry *dentry = path->dentry;
  	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
-+	struct path path;
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
+ 	int status;
+diff -puN fs/namei.c~vfs-change-d_manage-to-take-a-struct-path fs/namei.c
+--- a/fs/namei.c~vfs-change-d_manage-to-take-a-struct-path
++++ a/fs/namei.c
+@@ -1200,7 +1200,7 @@ static int follow_managed(struct path *p
+ 		if (managed & DCACHE_MANAGE_TRANSIT) {
+ 			BUG_ON(!path->dentry->d_op);
+ 			BUG_ON(!path->dentry->d_op->d_manage);
+-			ret = path->dentry->d_op->d_manage(path->dentry, false);
++			ret = path->dentry->d_op->d_manage(path, false);
+ 			if (ret < 0)
+ 				break;
+ 		}
+@@ -1263,10 +1263,10 @@ int follow_down_one(struct path *path)
+ }
+ EXPORT_SYMBOL(follow_down_one);
  
- 	pr_debug("file=%p dentry=%p %pd\n", file, dentry, dentry);
+-static inline int managed_dentry_rcu(struct dentry *dentry)
++static inline int managed_dentry_rcu(struct path *path)
+ {
+-	return (dentry->d_flags & DCACHE_MANAGE_TRANSIT) ?
+-		dentry->d_op->d_manage(dentry, true) : 0;
++	return (path->dentry->d_flags & DCACHE_MANAGE_TRANSIT) ?
++		path->dentry->d_op->d_manage(path, true) : 0;
+ }
  
- 	if (autofs4_oz_mode(sbi))
- 		goto out;
- 
-+	path = file->f_path;
-+
- 	/*
- 	 * An empty directory in an autofs file system is always a
- 	 * mount point. The daemon must have failed to mount this
-@@ -123,7 +126,7 @@ static int autofs4_dir_open(struct inode
- 	 * it.
- 	 */
- 	spin_lock(&sbi->lookup_lock);
--	if (!d_mountpoint(dentry) && simple_empty(dentry)) {
-+	if (!path_is_mountpoint(&path) && simple_empty(dentry)) {
- 		spin_unlock(&sbi->lookup_lock);
- 		return -ENOENT;
- 	}
-@@ -372,15 +375,15 @@ static struct vfsmount *autofs4_d_automo
- 
- 	/*
- 	 * If the dentry is a symlink it's equivalent to a directory
--	 * having d_mountpoint() true, so there's no need to call back
--	 * to the daemon.
-+	 * having path_is_mountpoint() true, so there's no need to call
-+	 * back to the daemon.
- 	 */
- 	if (d_really_is_positive(dentry) && d_is_symlink(dentry)) {
- 		spin_unlock(&sbi->fs_lock);
- 		goto done;
- 	}
- 
--	if (!d_mountpoint(dentry)) {
-+	if (!path_is_mountpoint(path)) {
- 		/*
- 		 * It's possible that user space hasn't removed directories
- 		 * after umounting a rootless multi-mount, although it
-@@ -434,8 +437,13 @@ static int autofs4_d_manage(struct path
- 
- 	/* The daemon never waits. */
- 	if (autofs4_oz_mode(sbi)) {
--		if (!d_mountpoint(dentry))
--			return -EISDIR;
-+		if (rcu_walk) {
-+			if (!path_is_mountpoint_rcu(path))
-+				return -EISDIR;
-+		} else {
-+			if (!path_is_mountpoint(path))
-+				return -EISDIR;
-+		}
- 		return 0;
- 	}
- 
-@@ -463,7 +471,7 @@ static int autofs4_d_manage(struct path
- 
- 		if (ino->flags & AUTOFS_INF_WANT_EXPIRE)
- 			return 0;
--		if (d_mountpoint(dentry))
-+		if (path_is_mountpoint_rcu(path))
- 			return 0;
- 		inode = d_inode_rcu(dentry);
- 		if (inode && S_ISLNK(inode->i_mode))
-@@ -490,7 +498,7 @@ static int autofs4_d_manage(struct path
- 		 * we can avoid needless calls ->d_automount() and avoid
- 		 * an incorrect ELOOP error return.
+ /*
+@@ -1282,7 +1282,7 @@ static bool __follow_mount_rcu(struct na
+ 		 * Don't forget we might have a non-mountpoint managed dentry
+ 		 * that wants to block transit.
  		 */
--		if ((!d_mountpoint(dentry) && !simple_empty(dentry)) ||
-+		if ((!path_is_mountpoint(path) && !simple_empty(dentry)) ||
- 		    (d_really_is_positive(dentry) && d_is_symlink(dentry)))
- 			status = -EISDIR;
- 	}
+-		switch (managed_dentry_rcu(path->dentry)) {
++		switch (managed_dentry_rcu(path)) {
+ 		case -ECHILD:
+ 		default:
+ 			return false;
+@@ -1392,8 +1392,7 @@ int follow_down(struct path *path)
+ 		if (managed & DCACHE_MANAGE_TRANSIT) {
+ 			BUG_ON(!path->dentry->d_op);
+ 			BUG_ON(!path->dentry->d_op->d_manage);
+-			ret = path->dentry->d_op->d_manage(
+-				path->dentry, false);
++			ret = path->dentry->d_op->d_manage(path, false);
+ 			if (ret < 0)
+ 				return ret == -EISDIR ? 0 : ret;
+ 		}
+diff -puN include/linux/dcache.h~vfs-change-d_manage-to-take-a-struct-path include/linux/dcache.h
+--- a/include/linux/dcache.h~vfs-change-d_manage-to-take-a-struct-path
++++ a/include/linux/dcache.h
+@@ -139,7 +139,7 @@ struct dentry_operations {
+ 	void (*d_iput)(struct dentry *, struct inode *);
+ 	char *(*d_dname)(struct dentry *, char *, int);
+ 	struct vfsmount *(*d_automount)(struct path *);
+-	int (*d_manage)(struct dentry *, bool);
++	int (*d_manage)(struct path *, bool);
+ 	struct dentry *(*d_real)(struct dentry *, const struct inode *,
+ 				 unsigned int);
+ } ____cacheline_aligned;
 _
 
 Patches currently in -mm which might be from ikent@redhat.com are
