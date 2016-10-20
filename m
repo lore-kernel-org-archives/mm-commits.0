@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 19 Oct 2016 16:40:56 -0700
-Message-ID: <58080488.xmezLk1VcSQYnH5P%akpm@linux-foundation.org>
+Subject: + ipc-semc-avoid-using-spin_unlock_wait.patch added to -mm tree
+Date: Wed, 19 Oct 2016 17:23:10 -0700
+Message-ID: <58080e6e.RdwMQymyOhi0wmDd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38524 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753009AbcJSXk5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2016 19:40:57 -0400
+        with ESMTP id S1753895AbcJTAXM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Oct 2016 20:23:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, 1vier1@web.de, dave@stgolabs.net, felixh@informatik.uni-bremen.de, hpa@zytor.com, mingo@elte.hu, peterz@infradead.org, tglx@linutronix.de, xiaolong.ye@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes
+     Subject: ipc/sem.c: avoid using spin_unlock_wait()
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
+     ipc-semc-avoid-using-spin_unlock_wait.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-avoid-using-spin_unlock_wait.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-avoid-using-spin_unlock_wait.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +38,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: avoid using spin_unlock_wait()
 
-WARNING: line over 80 characters
-#59: FILE: mm/mempolicy.c:1686:
-+		 * __GFP_THISNODE shouldn't even be used with the bind policy because
+a) The ACQUIRE in spin_lock() applies to the read, not to the store, at
+   least for powerpc.  This forces to add a smp_mb() into the fast path.
 
-WARNING: line over 80 characters
-#60: FILE: mm/mempolicy.c:1687:
-+		 * we might easily break the expectation to stay on the requested node
+b) The memory barrier provided by spin_unlock_wait() is right now arch
+   dependent.
 
-WARNING: line over 80 characters
-#69: FILE: mm/mempolicy.c:1690:
-+		WARN_ON_ONCE(policy->mode == MPOL_BIND && (gfp & __GFP_THISNODE));
+Therefore: Use spin_lock()/spin_unlock() instead of spin_unlock_wait().
 
-total: 0 errors, 3 warnings, 33 lines checked
+Advantage: faster single op semop calls(), observed +8.9% on
+x86. (the other solution would be arch dependencies in ipc/sem).
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
+Disadvantage: slower complex op semop calls, if (and only if)
+there are no sleeping operations.
 
-./patches/mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch has style problems, please review.
+The next patch adds hysteresis, this further reduces the
+probability that the slow path is used.
 
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michal Hocko <mhocko@suse.com>
+Link: http://lkml.kernel.org/r/1476851896-3590-2-git-send-email-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: <1vier1@web.de>
+Cc: kernel test robot <xiaolong.ye@intel.com>
+Cc: <felixh@informatik.uni-bremen.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ ipc/sem.c |   25 +++----------------------
+ 1 file changed, 3 insertions(+), 22 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes
-+++ a/mm/mempolicy.c
-@@ -1683,9 +1683,9 @@ static struct zonelist *policy_zonelist(
- 		nd = policy->v.preferred_node;
- 	else {
- 		/*
--		 * __GFP_THISNODE shouldn't even be used with the bind policy because
--		 * we might easily break the expectation to stay on the requested node
--		 * and not break the policy.
-+		 * __GFP_THISNODE shouldn't even be used with the bind policy
-+		 * because we might easily break the expectation to stay on the
-+		 * requested node and not break the policy.
- 		 */
- 		WARN_ON_ONCE(policy->mode == MPOL_BIND && (gfp & __GFP_THISNODE));
+diff -puN ipc/sem.c~ipc-semc-avoid-using-spin_unlock_wait ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-avoid-using-spin_unlock_wait
++++ a/ipc/sem.c
+@@ -280,24 +280,13 @@ static void complexmode_enter(struct sem
+ 		return;
  	}
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-mm-page_alloc-use-kern_cont-where-appropriate-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c-fix.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
+ 
+-	/* We need a full barrier after seting complex_mode:
+-	 * The write to complex_mode must be visible
+-	 * before we read the first sem->lock spinlock state.
+-	 */
+-	smp_store_mb(sma->complex_mode, true);
++	sma->complex_mode = true;
+ 
+ 	for (i = 0; i < sma->sem_nsems; i++) {
+ 		sem = sma->sem_base + i;
+-		spin_unlock_wait(&sem->lock);
++		spin_lock(&sem->lock);
++		spin_unlock(&sem->lock);
+ 	}
+-	/*
+-	 * spin_unlock_wait() is not a memory barriers, it is only a
+-	 * control barrier. The code must pair with spin_unlock(&sem->lock),
+-	 * thus just the control barrier is insufficient.
+-	 *
+-	 * smp_rmb() is sufficient, as writes cannot pass the control barrier.
+-	 */
+-	smp_rmb();
+ }
+ 
+ /*
+@@ -363,14 +352,6 @@ static inline int sem_lock(struct sem_ar
+ 		 */
+ 		spin_lock(&sem->lock);
+ 
+-		/*
+-		 * See 51d7d5205d33
+-		 * ("powerpc: Add smp_mb() to arch_spin_is_locked()"):
+-		 * A full barrier is required: the write of sem->lock
+-		 * must be visible before the read is executed
+-		 */
+-		smp_mb();
