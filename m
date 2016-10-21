@@ -1,273 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] shmem-avoid-huge-pages-for-small-files.patch removed
- from -mm tree
-Date: Thu, 20 Oct 2016 16:14:31 -0700
-Message-ID: <58094fd7.BW8/MxN4igfuV51l%akpm@linux-foundation.org>
+Subject: + proc-fix-null-dereference-when-reading-proc-pid-auxv.patch
+ added to -mm tree
+Date: Thu, 20 Oct 2016 20:13:54 -0700
+Message-ID: <580987f2.JsdBOQG1KdULbbHg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36747 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39586 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753012AbcJTXOc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2016 19:14:32 -0400
+        with ESMTP id S1752561AbcJUDNz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Oct 2016 23:13:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, david@fromorbit.com, hughd@google.com, mm-commits@vger.kernel.org
+To: chianglungyu@gmail.com, jdanis@google.com, john.stultz@linaro.org, keescook@chromium.org, mguzik@redhat.com, mhocko@suse.com, oleg@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: avoid huge pages for small files
-has been removed from the -mm tree.  Its filename was
-     shmem-avoid-huge-pages-for-small-files.patch
+     Subject: proc: fix NULL dereference when reading /proc/<pid>/auxv
+has been added to the -mm tree.  Its filename is
+     proc-fix-null-dereference-when-reading-proc-pid-auxv.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-fix-null-dereference-when-reading-proc-pid-auxv.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-fix-null-dereference-when-reading-proc-pid-auxv.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: shmem: avoid huge pages for small files
+From: Leon Yu <chianglungyu@gmail.com>
+Subject: proc: fix NULL dereference when reading /proc/<pid>/auxv
 
-Huge pages are detrimental for small file: they causes noticible overhead
-on both allocation performance and memory footprint.
+Reading auxv of any kernel thread results in NULL pointer dereferencing in
+auxv_read() where mm can be NULL.  Fix that by checking for NULL mm and
+bailing out early.  This is also the original behavior changed by recent
+commit c5317167854e ("proc: switch auxv to use of __mem_open()").
 
-This patch aimed to address this issue by avoiding huge pages until file
-grown to specified size.  This would cover most of the cases where huge
-pages causes regressions in performance.
+/ # cat /proc/2/auxv
+[    8.964445] Unable to handle kernel NULL pointer dereference at virtual address 000000a8
+[    8.972555] pgd = e99e0000
+[    8.975282] [000000a8] *pgd=399e6835, *pte=00000000, *ppte=00000000
+[    8.981572] Internal error: Oops: 17 [#1] PREEMPT SMP ARM
+[    8.986967] Modules linked in:
+[    8.990029] CPU: 3 PID: 113 Comm: cat Not tainted 4.9.0-rc1-ARCH+ #1
+[    8.996379] Hardware name: BCM2709
+[    8.999778] task: ea3b0b00 task.stack: e99b2000
+[    9.004314] PC is at auxv_read+0x24/0x4c
+[    9.008241] LR is at do_readv_writev+0x2fc/0x37c
+[    9.012860] pc : [<b0135f80>]    lr : [<b00e5900>]    psr: 80070013
+[    9.012860] sp : e99b3d08  ip : 00000000  fp : 00000000
+[    9.024337] r10: 00000000  r9 : b0135f5c  r8 : e99b3d24
+[    9.029561] r7 : 00001000  r6 : 00000000  r5 : 00000000  r4 : 00000000
+[    9.036087] r3 : 00000008  r2 : e99b3de0  r1 : 00001000  r0 : e98ea000
+[    9.042615] Flags: Nzcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+[    9.049750] Control: 10c5387d  Table: 399e006a  DAC: 00000055
+[    9.055495] Process cat (pid: 113, stack limit = 0xe99b2210)
+[    9.061152] Stack: (0xe99b3d08 to 0xe99b4000)
+[    9.065513] 3d00:                   00000000 00000000 ea0d46c0 b00e5900 e99b3d20 e99b3d24
+[    9.073696] 3d20: e9960b80 00000002 00000000 00010000 e9960b80 00000010 00000000 024200ca
+[    9.081878] 3d40: ea8855f0 00000000 e9cac8f0 00000000 ffffffff e9960c00 0000000f 00001000
+[    9.090060] 3d60: b0407b68 024200c0 b05494c0 00010000 e9960c00 b020863c 01000000 e99b3ddc
+[    9.098243] 3d80: e99b3dd8 e99651c0 e9960c00 00000000 00010000 b020aca0 e9c041e8 00000010
+[    9.106424] 3da0: e99b3e00 ffffe000 00000000 e99b3ec0 e99b3e00 b00e59c0 e99b3de0 00000000
+[    9.114606] 3dc0: e9960c00 b010eed4 00000000 00020000 ea0d46c0 af000000 e99651c0 00000000
+[    9.122788] 3de0: 00000000 00000000 e99b2000 00000008 00000000 01000000 e9960c00 00000000
+[    9.130970] 3e00: e98ea000 00001000 e9970000 00001000 e9975000 00001000 e9971000 00001000
+[    9.139152] 3e20: e99e5000 00001000 e98e8000 00001000 e9976000 00001000 e9977000 00001000
+[    9.147334] 3e40: e9978000 00001000 e9979000 00001000 e997a000 00001000 e997b000 00001000
+[    9.155516] 3e60: e9a03000 00001000 e99d6000 00001000 e99d7000 00001000 e9a14000 00001000
+[    9.163698] 3e80: 01000000 e9960c00 e99b3ef0 01000000 00000000 ea0d46c0 00000000 00000000
+[    9.171880] 3ea0: 00000000 b010eb4c 00000000 e98f2700 00000817 00000000 b010e268 00000000
+[    9.180061] 3ec0: 00000000 00000000 00000000 e9964480 01000000 e99b3f50 e99b3f48 ea0d46c0
+[    9.188244] 3ee0: 00000000 e99b3f50 01000000 b010ed6c 01000000 01000000 00000000 e9964480
+[    9.196425] 3f00: 00000000 00000000 e99b3f50 00000000 00000000 00000000 00000400 ea0d46c0
+[    9.204607] 3f20: ea0d46c0 7fffffff 00000000 e9964480 e9964480 b00e5e38 01000000 00000000
+[    9.212788] 3f40: 00000000 ea0f21b8 00000000 00000000 00000000 00000000 ea0d46c8 00000000
+[    9.220970] 3f60: 00000000 01000000 000000ef b000f4a4 e99b2000 00000000 00000000 b00e67d4
+[    9.229152] 3f80: 7fffffff 00000000 e99b2000 00000000 01000000 00000000 01000000 000000ef
+[    9.237334] 3fa0: b000f4a4 b000f300 01000000 00000000 00000001 00000003 00000000 01000000
+[    9.245515] 3fc0: 01000000 00000000 01000000 000000ef 00000001 00000000 00000001 00000000
+[    9.253698] 3fe0: a6ee73c0 aeeaecf4 00014bbc a6ee73cc 60070010 00000001 55555555 55555555
+[    9.261895] [<b0135f80>] (auxv_read) from [<b00e5900>] (do_readv_writev+0x2fc/0x37c)
+[    9.269651] [<b00e5900>] (do_readv_writev) from [<b00e59c0>] (vfs_readv+0x40/0x58)
+[    9.277234] [<b00e59c0>] (vfs_readv) from [<b010eed4>] (default_file_splice_read+0x140/0x240)
+[    9.285769] [<b010eed4>] (default_file_splice_read) from [<b010eb4c>] (splice_direct_to_actor+0xa0/0x230)
+[    9.295345] [<b010eb4c>] (splice_direct_to_actor) from [<b010ed6c>] (do_splice_direct+0x90/0xb8)
+[    9.304140] [<b010ed6c>] (do_splice_direct) from [<b00e5e38>] (do_sendfile+0x1a0/0x308)
+[    9.312155] [<b00e5e38>] (do_sendfile) from [<b00e67d4>] (SyS_sendfile64+0xd4/0xe8)
+[    9.319823] [<b00e67d4>] (SyS_sendfile64) from [<b000f300>] (ret_fast_syscall+0x0/0x34)
+[    9.327829] Code: e1a01002 e1a02003 e1a03004 e2833008 (e593e0a0)
+[    9.333973] ---[ end trace d3f50081f24b99ce ]---
 
-By default the minimal file size to allocate huge pages is equal to size
-of huge page.
-
-Depending on how well CPU microarchitecture deals with huge pages, you
-might need to set it higher in order to balance out overhead with benefit
-of huge pages.
-
-In other case, if it's known in advance that specific mount would be
-populated with large files, you might want to set it to zero to get huge
-pages allocated from the beginning.
-
-We add two handle to specify minimal file size for huge pages:
-
-  - mount option 'huge_min_size';
-
-  - sysfs file /sys/kernel/mm/transparent_hugepage/shmem_min_size for
-    in-kernel tmpfs mount;
-
-Few notes:
-
-  - if shmem_enabled is set to 'force', the limit is ignored. We still
-    want to generate as many pages as possible for functional testing.
-
-  - the limit doesn't affect khugepaged behaviour: it still can collapse
-    pages based on its settings;
-
-  - remount of the filesystem doesn't affect previously allocated pages,
-    but the limit is applied for new allocations;
-
-Link: http://lkml.kernel.org/r/20161018090236.183045-1-kirill.shutemov@linux.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
+Fixes: c5317167854e ("proc: switch auxv to use of __mem_open()")
+Link: http://lkml.kernel.org/r/1476966200-14457-1-git-send-email-chianglungyu@gmail.com
+Signed-off-by: Leon Yu <chianglungyu@gmail.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Mateusz Guzik <mguzik@redhat.com>
+Cc: Janis Danisevskis <jdanis@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |    6 +++
- include/linux/huge_mm.h        |    1 
- include/linux/shmem_fs.h       |    1 
- mm/huge_memory.c               |    1 
- mm/shmem.c                     |   56 ++++++++++++++++++++++++++++---
- 5 files changed, 60 insertions(+), 5 deletions(-)
+ fs/proc/base.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN Documentation/vm/transhuge.txt~shmem-avoid-huge-pages-for-small-files Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~shmem-avoid-huge-pages-for-small-files
-+++ a/Documentation/vm/transhuge.txt
-@@ -238,6 +238,12 @@ values:
-   - "force":
-     Force the huge option on for all - very useful for testing;
- 
-+There's limit on minimal file size before kernel starts allocate huge
-+pages for it. By default it's size of huge page.
-+
-+You can adjust the limit using "huge_min_size=" mount option or
-+/sys/kernel/mm/transparent_hugepage/shmem_min_size for in-kernel mount.
-+
- == Need of application restart ==
- 
- The transparent_hugepage/enabled values and tmpfs mount option only affect
-diff -puN include/linux/huge_mm.h~shmem-avoid-huge-pages-for-small-files include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~shmem-avoid-huge-pages-for-small-files
-+++ a/include/linux/huge_mm.h
-@@ -52,6 +52,7 @@ extern ssize_t single_hugepage_flag_show
- 				struct kobj_attribute *attr, char *buf,
- 				enum transparent_hugepage_flag flag);
- extern struct kobj_attribute shmem_enabled_attr;
-+extern struct kobj_attribute shmem_min_size_attr;
- 
- #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
- #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
-diff -puN include/linux/shmem_fs.h~shmem-avoid-huge-pages-for-small-files include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~shmem-avoid-huge-pages-for-small-files
-+++ a/include/linux/shmem_fs.h
-@@ -31,6 +31,7 @@ struct shmem_sb_info {
- 	spinlock_t stat_lock;	    /* Serialize shmem_sb_info changes */
- 	umode_t mode;		    /* Mount mode for root directory */
- 	unsigned char huge;	    /* Whether to try for hugepages */
-+	loff_t huge_min_size;       /* No hugepages if i_size less than this */
- 	kuid_t uid;		    /* Mount uid for root directory */
- 	kgid_t gid;		    /* Mount gid for root directory */
- 	struct mempolicy *mpol;     /* default memory policy for mappings */
-diff -puN mm/huge_memory.c~shmem-avoid-huge-pages-for-small-files mm/huge_memory.c
---- a/mm/huge_memory.c~shmem-avoid-huge-pages-for-small-files
-+++ a/mm/huge_memory.c
-@@ -309,6 +309,7 @@ static struct attribute *hugepage_attr[]
- 	&use_zero_page_attr.attr,
- #if defined(CONFIG_SHMEM) && defined(CONFIG_TRANSPARENT_HUGE_PAGECACHE)
- 	&shmem_enabled_attr.attr,
-+	&shmem_min_size_attr.attr,
- #endif
- #ifdef CONFIG_DEBUG_VM
- 	&debug_cow_attr.attr,
-diff -puN mm/shmem.c~shmem-avoid-huge-pages-for-small-files mm/shmem.c
---- a/mm/shmem.c~shmem-avoid-huge-pages-for-small-files
-+++ a/mm/shmem.c
-@@ -369,6 +369,7 @@ static bool shmem_confirm_swap(struct ad
- /* ifdef here to avoid bloating shmem.o when not necessary */
- 
- int shmem_huge __read_mostly;
-+unsigned long long shmem_huge_min_size __read_mostly = HPAGE_PMD_SIZE;
- 
- static int shmem_parse_huge(const char *str)
+diff -puN fs/proc/base.c~proc-fix-null-dereference-when-reading-proc-pid-auxv fs/proc/base.c
+--- a/fs/proc/base.c~proc-fix-null-dereference-when-reading-proc-pid-auxv
++++ a/fs/proc/base.c
+@@ -1014,6 +1014,9 @@ static ssize_t auxv_read(struct file *fi
  {
-@@ -1668,6 +1669,8 @@ repeat:
- 		swap_free(swap);
- 
- 	} else {
-+		loff_t i_size;
+ 	struct mm_struct *mm = file->private_data;
+ 	unsigned int nwords = 0;
 +
- 		/* shmem_symlink() */
- 		if (mapping->a_ops != &shmem_aops)
- 			goto alloc_nohuge;
-@@ -1675,14 +1678,17 @@ repeat:
- 			goto alloc_nohuge;
- 		if (shmem_huge == SHMEM_HUGE_FORCE)
- 			goto alloc_huge;
-+		i_size = i_size_read(inode);
-+		if (i_size < sbinfo->huge_min_size &&
-+				index < (sbinfo->huge_min_size >> PAGE_SHIFT))
-+			goto alloc_nohuge;
- 		switch (sbinfo->huge) {
--			loff_t i_size;
- 			pgoff_t off;
- 		case SHMEM_HUGE_NEVER:
- 			goto alloc_nohuge;
- 		case SHMEM_HUGE_WITHIN_SIZE:
- 			off = round_up(index, HPAGE_PMD_NR);
--			i_size = round_up(i_size_read(inode), PAGE_SIZE);
-+			i_size = round_up(i_size, PAGE_SIZE);
- 			if (i_size >= HPAGE_PMD_SIZE &&
- 					i_size >> PAGE_SHIFT >= off)
- 				goto alloc_huge;
-@@ -3349,6 +3355,10 @@ static int shmem_parse_options(char *opt
- 					huge != SHMEM_HUGE_NEVER)
- 				goto bad_val;
- 			sbinfo->huge = huge;
-+		} else if (!strcmp(this_char, "huge_min_size")) {
-+			sbinfo->huge_min_size = memparse(value, &rest);
-+			if (*rest)
-+				goto bad_val;
- #endif
- #ifdef CONFIG_NUMA
- 		} else if (!strcmp(this_char,"mpol")) {
-@@ -3382,6 +3392,8 @@ static int shmem_remount_fs(struct super
- 	int error = -EINVAL;
- 
- 	config.mpol = NULL;
-+	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE))
-+		config.huge_min_size = HPAGE_PMD_SIZE;
- 	if (shmem_parse_options(data, &config, true))
- 		return error;
- 
-@@ -3403,6 +3415,7 @@ static int shmem_remount_fs(struct super
- 
- 	error = 0;
- 	sbinfo->huge = config.huge;
-+	sbinfo->huge_min_size = config.huge_min_size;
- 	sbinfo->max_blocks  = config.max_blocks;
- 	sbinfo->max_inodes  = config.max_inodes;
- 	sbinfo->free_inodes = config.max_inodes - inodes;
-@@ -3438,8 +3451,10 @@ static int shmem_show_options(struct seq
- 				from_kgid_munged(&init_user_ns, sbinfo->gid));
- #ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
- 	/* Rightly or wrongly, show huge mount option unmasked by shmem_huge */
--	if (sbinfo->huge)
-+	if (sbinfo->huge) {
- 		seq_printf(seq, ",huge=%s", shmem_format_huge(sbinfo->huge));
-+		seq_printf(seq, ",huge_min_size=%llu", sbinfo->huge_min_size);
-+	}
- #endif
- 	shmem_show_mpol(seq, sbinfo->mpol);
- 	return 0;
-@@ -3542,6 +3557,8 @@ int shmem_fill_super(struct super_block
- 	sbinfo->mode = S_IRWXUGO | S_ISVTX;
- 	sbinfo->uid = current_fsuid();
- 	sbinfo->gid = current_fsgid();
-+	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGE_PAGECACHE))
-+		sbinfo->huge_min_size = HPAGE_PMD_SIZE;
- 	sb->s_fs_info = sbinfo;
- 
- #ifdef CONFIG_TMPFS
-@@ -3780,9 +3797,10 @@ int __init shmem_init(void)
- 	}
- 
- #ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
--	if (has_transparent_hugepage() && shmem_huge < SHMEM_HUGE_DENY)
-+	if (has_transparent_hugepage() && shmem_huge < SHMEM_HUGE_DENY) {
- 		SHMEM_SB(shm_mnt->mnt_sb)->huge = shmem_huge;
--	else
-+		SHMEM_SB(shm_mnt->mnt_sb)->huge_min_size = shmem_huge_min_size;
-+	} else
- 		shmem_huge = 0; /* just in case it was patched */
- #endif
- 	return 0;
-@@ -3848,6 +3866,34 @@ static ssize_t shmem_enabled_store(struc
- 
- struct kobj_attribute shmem_enabled_attr =
- 	__ATTR(shmem_enabled, 0644, shmem_enabled_show, shmem_enabled_store);
-+
-+static ssize_t shmem_min_size_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%llu\n", shmem_huge_min_size);
-+}
-+
-+
-+static ssize_t shmem_min_size_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	unsigned long long size;
-+	char *end;
-+
-+	size = memparse(buf, &end);
-+	if (end == buf)
-+		return  -EINVAL;
-+	if (*end == '\n')
-+		end++;
-+	if (*end != '\0')
-+		return -EINVAL;
-+	shmem_huge_min_size = size;
-+	SHMEM_SB(shm_mnt->mnt_sb)->huge_min_size = size;
-+	return end - buf;
-+}
-+
-+struct kobj_attribute shmem_min_size_attr =
-+	__ATTR(shmem_min_size, 0644, shmem_min_size_show, shmem_min_size_store);
- #endif /* CONFIG_TRANSPARENT_HUGE_PAGECACHE && CONFIG_SYSFS */
- 
- #ifdef CONFIG_TRANSPARENT_HUGE_PAGECACHE
++	if (!mm)
++		return 0;
+ 	do {
+ 		nwords += 2;
+ 	} while (mm->saved_auxv[nwords - 2] != 0); /* AT_NULL */
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from chianglungyu@gmail.com are
 
+proc-fix-null-dereference-when-reading-proc-pid-auxv.patch
 
