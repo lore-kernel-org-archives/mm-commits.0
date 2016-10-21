@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-checkpatchpl-fix-spelling.patch added to -mm tree
-Date: Fri, 21 Oct 2016 14:28:20 -0700
-Message-ID: <580a8874.heGBLsPq8Ei0B/4C%akpm@linux-foundation.org>
+Subject: + fs-proc-arrayc-slightly-improve-render_sigset_t.patch added to
+ -mm tree
+Date: Fri, 21 Oct 2016 14:30:35 -0700
+Message-ID: <580a88fb.+NZMtICDTMvsp3aT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35320 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933451AbcJUV2V (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2016 17:28:21 -0400
+        with ESMTP id S934257AbcJUVag (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Oct 2016 17:30:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/checkpatch.pl: fix spelling
+     Subject: fs/proc/array.c: slightly improve render_sigset_t
 has been added to the -mm tree.  Its filename is
-     scripts-checkpatchpl-fix-spelling.patch
+     fs-proc-arrayc-slightly-improve-render_sigset_t.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-checkpatchpl-fix-spelling.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-arrayc-slightly-improve-render_sigset_t.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-checkpatchpl-fix-spelling.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-arrayc-slightly-improve-render_sigset_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,45 +39,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: scripts/checkpatch.pl: fix spelling
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: fs/proc/array.c: slightly improve render_sigset_t
 
-s/preceeded/preceded/
+format_decode and vsnprintf occasionally show up in perf top, so I went
+looking for places that might not need the full printf power.  With the
+help of kprobes, I gathered some statistics on which format strings we
+mostly pass to vsnprintf.  On a trivial desktop workload, I hit "%x" 25%
+of the time, so something apparently reads /proc/pid/status (which does
+5*16 printf("%x") calls) a lot.
 
-Cc: Joe Perches <joe@perches.com>
+With this patch, reading /proc/pid/status is 30% faster according to
+this microbenchmark:
+
+	char buf[4096];
+	int i, fd;
+	for (i = 0; i < 10000; ++i) {
+		fd = open("/proc/self/status", O_RDONLY);
+		read(fd, buf, sizeof(buf));
+		close(fd);
+	}
+
+Link: http://lkml.kernel.org/r/1474410485-1305-1-git-send-email-linux@rasmusvillemoes.dk
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
+ fs/proc/array.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~scripts-checkpatchpl-fix-spelling scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~scripts-checkpatchpl-fix-spelling
-+++ a/scripts/checkpatch.pl
-@@ -5925,7 +5925,7 @@ sub process {
- 			}
- 			if (!$has_break && $has_statement) {
- 				WARN("MISSING_BREAK",
--				     "Possible switch case/default not preceeded by break or fallthrough comment\n" . $herecurr);
-+				     "Possible switch case/default not preceded by break or fallthrough comment\n" . $herecurr);
- 			}
- 		}
+diff -puN fs/proc/array.c~fs-proc-arrayc-slightly-improve-render_sigset_t fs/proc/array.c
+--- a/fs/proc/array.c~fs-proc-arrayc-slightly-improve-render_sigset_t
++++ a/fs/proc/array.c
+@@ -245,7 +245,7 @@ void render_sigset_t(struct seq_file *m,
+ 		if (sigismember(set, i+2)) x |= 2;
+ 		if (sigismember(set, i+3)) x |= 4;
+ 		if (sigismember(set, i+4)) x |= 8;
+-		seq_printf(m, "%x", x);
++		seq_putc(m, hex_asc[x]);
+ 	} while (i >= 4);
  
+ 	seq_putc(m, '\n');
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-i-need-old-gcc.patch
-mm-page_alloc-use-kern_cont-where-appropriate-checkpatch-fixes.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-scripts-checkpatchpl-fix-spelling.patch
-powerpc-factor-out-relocation-code-from-module_64c-to-elf_util_64c-fix.patch
-linux-next-git-rejects.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+fs-proc-arrayc-slightly-improve-render_sigset_t.patch
 
