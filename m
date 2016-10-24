@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-avoid-huge-pages-for-small-files.patch added to -mm tree
-Date: Mon, 24 Oct 2016 12:58:34 -0700
-Message-ID: <580e67ea.wfCYCs3R+avfUSj3%akpm@linux-foundation.org>
+Subject: + debug-more-properly-delay-for-secondary-cpus.patch added to -mm tree
+Date: Mon, 24 Oct 2016 13:02:41 -0700
+Message-ID: <580e68e1.+tlf4HqAfEioxyNJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56933 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S939767AbcJXT7O (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 15:59:14 -0400
+        with ESMTP id S933409AbcJXUCm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 16:02:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, david@fromorbit.com, hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: dianders@chromium.org, briannorris@chromium.org, daniel.thompson@linaro.org, jason.wessel@windriver.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: avoid huge pages for small files
+     Subject: kernel/debug/debug_core.c: more properly delay for secondary CPUs
 has been added to the -mm tree.  Its filename is
-     shmem-avoid-huge-pages-for-small-files.patch
+     debug-more-properly-delay-for-secondary-cpus.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/shmem-avoid-huge-pages-for-small-files.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/debug-more-properly-delay-for-secondary-cpus.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-avoid-huge-pages-for-small-files.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/debug-more-properly-delay-for-secondary-cpus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,69 +38,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: shmem: avoid huge pages for small files
+From: Douglas Anderson <dianders@chromium.org>
+Subject: kernel/debug/debug_core.c: more properly delay for secondary CPUs
 
-Huge pages are detrimental for small file: they causes noticible overhead
-on both allocation performance and memory footprint.
+We've got a delay loop waiting for secondary CPUs.  That loop uses
+loops_per_jiffy.  However, loops_per_jiffy doesn't actually mean how many
+tight loops make up a jiffy on all architectures.  It is quite common to
+see things like this in the boot log:
 
-This patch aimed to address this issue by avoiding huge pages until file
-grown to size of huge page.  This would cover most of the cases where huge
-pages causes regressions in performance.
+  Calibrating delay loop (skipped), value calculated using timer
+  frequency.. 48.00 BogoMIPS (lpj=24000)
 
-Couple notes:
+In my case I was seeing lots of cases where other CPUs timed out entering
+the debugger only to print their stack crawls shortly after the kdb>
+prompt was written.
 
-  - if shmem_enabled is set to 'force', the limit is ignored. We still
-    want to generate as many pages as possible for functional testing.
+Elsewhere in kgdb we already use udelay(), so that should be safe enough
+to use to implement our timeout.  We'll delay 1 ms for 1000 times, which
+should give us a full second of delay (just like the old code wanted) but
+allow us to notice that we're done every 1 ms.
 
-  - the limit doesn't affect khugepaged behaviour: it still can collapse
-    pages based on its settings;
-
-Link: http://lkml.kernel.org/r/20161021224629.tnwuvruhblkg22qj@black.fi.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
+Link: http://lkml.kernel.org/r/1477091361-2039-1-git-send-email-dianders@chromium.org
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Reviewed-by: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Brian Norris <briannorris@chromium.org>
+Cc: <stable@vger.kernel.org>	[4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |    3 +++
- mm/shmem.c                     |    5 +++++
- 2 files changed, 8 insertions(+)
+ kernel/debug/debug_core.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/vm/transhuge.txt~shmem-avoid-huge-pages-for-small-files Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~shmem-avoid-huge-pages-for-small-files
-+++ a/Documentation/vm/transhuge.txt
-@@ -238,6 +238,9 @@ values:
-   - "force":
-     Force the huge option on for all - very useful for testing;
+diff -puN kernel/debug/debug_core.c~debug-more-properly-delay-for-secondary-cpus kernel/debug/debug_core.c
+--- a/kernel/debug/debug_core.c~debug-more-properly-delay-for-secondary-cpus
++++ a/kernel/debug/debug_core.c
+@@ -61,6 +61,8 @@
  
-+To avoid overhead for small files, we don't allocate huge pages for a file
-+until it grows to size of huge pages.
+ #include "debug_core.h"
+ 
++#define WAIT_CPUS_STOP_MS	1000
 +
- == Need of application restart ==
+ static int kgdb_break_asap;
  
- The transparent_hugepage/enabled values and tmpfs mount option only affect
-diff -puN mm/shmem.c~shmem-avoid-huge-pages-for-small-files mm/shmem.c
---- a/mm/shmem.c~shmem-avoid-huge-pages-for-small-files
-+++ a/mm/shmem.c
-@@ -1692,6 +1692,11 @@ repeat:
- 				goto alloc_huge;
- 			/* TODO: implement fadvise() hints */
- 			goto alloc_nohuge;
-+		case SHMEM_HUGE_ALWAYS:
-+			i_size = i_size_read(inode);
-+			if (index < HPAGE_PMD_NR && i_size < HPAGE_PMD_SIZE)
-+				goto alloc_nohuge;
-+			break;
- 		}
+ struct debuggerinfo_struct kgdb_info[NR_CPUS];
+@@ -598,11 +600,11 @@ return_normal:
+ 	/*
+ 	 * Wait for the other CPUs to be notified and be waiting for us:
+ 	 */
+-	time_left = loops_per_jiffy * HZ;
++	time_left = WAIT_CPUS_STOP_MS;
+ 	while (kgdb_do_roundup && --time_left &&
+ 	       (atomic_read(&masters_in_kgdb) + atomic_read(&slaves_in_kgdb)) !=
+ 		   online_cpus)
+-		cpu_relax();
++		udelay(1000);
+ 	if (!time_left)
+ 		pr_crit("Timed out waiting for secondary CPUs.\n");
  
- alloc_huge:
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from dianders@chromium.org are
 
-shmem-avoid-huge-pages-for-small-files.patch
+debug-more-properly-delay-for-secondary-cpus.patch
 
