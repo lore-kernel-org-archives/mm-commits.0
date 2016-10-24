@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
+ powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
  added to -mm tree
-Date: Mon, 24 Oct 2016 12:42:37 -0700
-Message-ID: <580e642d.Pde9d+3EqY93NkR1%akpm@linux-foundation.org>
+Date: Mon, 24 Oct 2016 12:42:42 -0700
+Message-ID: <580e6432.npu/VO8RaKXCxdyp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56668 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56705 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938840AbcJXTmj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 15:42:39 -0400
+        with ESMTP id S941038AbcJXTmn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 15:42:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, sklar@linux.vnet.ibm.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec_file: change kexec_add_buffer to take kexec_buf as argument
+     Subject: powerpc: add support for loading ELF kernels with kexec_file_load
 has been added to the -mm tree.  Its filename is
-     kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
+     powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,424 +41,719 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: kexec_file: change kexec_add_buffer to take kexec_buf as argument
+Subject: powerpc: add support for loading ELF kernels with kexec_file_load
 
-This is done to simplify the kexec_add_buffer argument list.  Adapt all
-callers to set up a kexec_buf to pass to kexec_add_buffer.
+This uses all the infrastructure built up by the previous patches in the
+series to load an ELF vmlinux file and an initrd.  It uses the flattened
+device tree at initial_boot_params as a base and adjusts memory
+reservations and its /chosen node for the next kernel.
 
-In addition, change the type of kexec_buf.buffer from char * to void *. 
-There is no particular reason for it to be a char *, and the change allows
-us to get rid of 3 existing casts to char * in the code.
-
-Link: http://lkml.kernel.org/r/1477017617-8540-3-git-send-email-bauerman@linux.vnet.ibm.com
+[akpm@linux-foundation.org: coding-style fixes]
+Link: http://lkml.kernel.org/r/1477017617-8540-9-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Acked-by: Dave Young <dyoung@redhat.com>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Andreas Steffen <andreas.steffen@strongswan.org>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Dave Young <dyoung@redhat.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/crash.c           |   37 ++++++-----
- arch/x86/kernel/kexec-bzimage64.c |   48 ++++++++-------
- include/linux/kexec.h             |    8 --
- kernel/kexec_file.c               |   88 ++++++++++++----------------
- 4 files changed, 87 insertions(+), 94 deletions(-)
+ arch/powerpc/include/asm/kexec.h            |   12 
+ arch/powerpc/kernel/Makefile                |    3 
+ arch/powerpc/kernel/kexec_elf_64.c          |  280 ++++++++++++++
+ arch/powerpc/kernel/machine_kexec_file_64.c |  338 +++++++++++++++++-
+ 4 files changed, 630 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/crash.c~kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument arch/x86/kernel/crash.c
---- a/arch/x86/kernel/crash.c~kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument
-+++ a/arch/x86/kernel/crash.c
-@@ -631,9 +631,9 @@ static int determine_backup_region(u64 s
- 
- int crash_load_segments(struct kimage *image)
- {
--	unsigned long src_start, src_sz, elf_sz;
--	void *elf_addr;
- 	int ret;
-+	struct kexec_buf kbuf = { .image = image, .buf_min = 0,
-+				  .buf_max = ULONG_MAX, .top_down = false };
- 
- 	/*
- 	 * Determine and load a segment for backup area. First 640K RAM
-@@ -647,43 +647,44 @@ int crash_load_segments(struct kimage *i
- 	if (ret < 0)
- 		return ret;
- 
--	src_start = image->arch.backup_src_start;
--	src_sz = image->arch.backup_src_sz;
--
- 	/* Add backup segment. */
--	if (src_sz) {
-+	if (image->arch.backup_src_sz) {
-+		kbuf.buffer = &crash_zero_bytes;
-+		kbuf.bufsz = sizeof(crash_zero_bytes);
-+		kbuf.memsz = image->arch.backup_src_sz;
-+		kbuf.buf_align = PAGE_SIZE;
- 		/*
- 		 * Ideally there is no source for backup segment. This is
- 		 * copied in purgatory after crash. Just add a zero filled
- 		 * segment for now to make sure checksum logic works fine.
- 		 */
--		ret = kexec_add_buffer(image, (char *)&crash_zero_bytes,
--				       sizeof(crash_zero_bytes), src_sz,
--				       PAGE_SIZE, 0, -1, 0,
--				       &image->arch.backup_load_addr);
-+		ret = kexec_add_buffer(&kbuf);
- 		if (ret)
- 			return ret;
-+		image->arch.backup_load_addr = kbuf.mem;
- 		pr_debug("Loaded backup region at 0x%lx backup_start=0x%lx memsz=0x%lx\n",
--			 image->arch.backup_load_addr, src_start, src_sz);
-+			 image->arch.backup_load_addr,
-+			 image->arch.backup_src_start, kbuf.memsz);
- 	}
- 
- 	/* Prepare elf headers and add a segment */
--	ret = prepare_elf_headers(image, &elf_addr, &elf_sz);
-+	ret = prepare_elf_headers(image, &kbuf.buffer, &kbuf.bufsz);
- 	if (ret)
- 		return ret;
- 
--	image->arch.elf_headers = elf_addr;
--	image->arch.elf_headers_sz = elf_sz;
-+	image->arch.elf_headers = kbuf.buffer;
-+	image->arch.elf_headers_sz = kbuf.bufsz;
- 
--	ret = kexec_add_buffer(image, (char *)elf_addr, elf_sz, elf_sz,
--			ELF_CORE_HEADER_ALIGN, 0, -1, 0,
--			&image->arch.elf_load_addr);
-+	kbuf.memsz = kbuf.bufsz;
-+	kbuf.buf_align = ELF_CORE_HEADER_ALIGN;
-+	ret = kexec_add_buffer(&kbuf);
- 	if (ret) {
- 		vfree((void *)image->arch.elf_headers);
- 		return ret;
- 	}
-+	image->arch.elf_load_addr = kbuf.mem;
- 	pr_debug("Loaded ELF headers at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
--		 image->arch.elf_load_addr, elf_sz, elf_sz);
-+		 image->arch.elf_load_addr, kbuf.bufsz, kbuf.bufsz);
- 
- 	return ret;
+diff -puN arch/powerpc/include/asm/kexec.h~powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load arch/powerpc/include/asm/kexec.h
+--- a/arch/powerpc/include/asm/kexec.h~powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load
++++ a/arch/powerpc/include/asm/kexec.h
+@@ -91,6 +91,18 @@ static inline bool kdump_in_progress(voi
+ 	return crashing_cpu >= 0;
  }
-diff -puN arch/x86/kernel/kexec-bzimage64.c~kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument arch/x86/kernel/kexec-bzimage64.c
---- a/arch/x86/kernel/kexec-bzimage64.c~kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument
-+++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -331,17 +331,17 @@ static void *bzImage64_load(struct kimag
  
- 	struct setup_header *header;
- 	int setup_sects, kern16_size, ret = 0;
--	unsigned long setup_header_size, params_cmdline_sz, params_misc_sz;
-+	unsigned long setup_header_size, params_cmdline_sz;
- 	struct boot_params *params;
- 	unsigned long bootparam_load_addr, kernel_load_addr, initrd_load_addr;
- 	unsigned long purgatory_load_addr;
--	unsigned long kernel_bufsz, kernel_memsz, kernel_align;
--	char *kernel_buf;
- 	struct bzimage64_data *ldata;
- 	struct kexec_entry64_regs regs64;
- 	void *stack;
- 	unsigned int setup_hdr_offset = offsetof(struct boot_params, hdr);
- 	unsigned int efi_map_offset, efi_map_sz, efi_setup_data_offset;
-+	struct kexec_buf kbuf = { .image = image, .buf_max = ULONG_MAX,
-+				  .top_down = true };
++#ifdef CONFIG_KEXEC_FILE
++extern struct kexec_file_ops kexec_elf64_ops;
++
++int setup_purgatory(struct kimage *image, const void *slave_code,
++		    const void *fdt, unsigned long kernel_load_addr,
++		    unsigned long fdt_load_addr, unsigned long stack_top,
++		    int debug);
++int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
++		  unsigned long initrd_len, const char *cmdline);
++bool find_debug_console(const void *fdt);
++#endif /* CONFIG_KEXEC_FILE */
++
+ #else /* !CONFIG_KEXEC_CORE */
+ static inline void crash_kexec_secondary(struct pt_regs *regs) { }
  
- 	header = (struct setup_header *)(kernel + setup_hdr_offset);
- 	setup_sects = header->setup_sects;
-@@ -402,11 +402,11 @@ static void *bzImage64_load(struct kimag
- 	params_cmdline_sz = sizeof(struct boot_params) + cmdline_len +
- 				MAX_ELFCOREHDR_STR_LEN;
- 	params_cmdline_sz = ALIGN(params_cmdline_sz, 16);
--	params_misc_sz = params_cmdline_sz + efi_map_sz +
-+	kbuf.bufsz = params_cmdline_sz + efi_map_sz +
- 				sizeof(struct setup_data) +
- 				sizeof(struct efi_setup_data);
+diff -puN arch/powerpc/kernel/Makefile~powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load arch/powerpc/kernel/Makefile
+--- a/arch/powerpc/kernel/Makefile~powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load
++++ a/arch/powerpc/kernel/Makefile
+@@ -109,7 +109,8 @@ obj-$(CONFIG_PCI)		+= pci_$(BITS).o $(pc
+ obj-$(CONFIG_PCI_MSI)		+= msi.o
+ obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o crash.o \
+ 				   machine_kexec_$(BITS).o
+-obj-$(CONFIG_KEXEC_FILE)	+= machine_kexec_file_$(BITS).o elf_util.o
++obj-$(CONFIG_KEXEC_FILE)	+= machine_kexec_file_$(BITS).o elf_util.o \
++				   kexec_elf_$(BITS).o
+ obj-$(CONFIG_AUDIT)		+= audit.o
+ obj64-$(CONFIG_AUDIT)		+= compat_audit.o
  
--	params = kzalloc(params_misc_sz, GFP_KERNEL);
-+	params = kzalloc(kbuf.bufsz, GFP_KERNEL);
- 	if (!params)
- 		return ERR_PTR(-ENOMEM);
- 	efi_map_offset = params_cmdline_sz;
-@@ -418,37 +418,41 @@ static void *bzImage64_load(struct kimag
- 	/* Is there a limit on setup header size? */
- 	memcpy(&params->hdr, (kernel + setup_hdr_offset), setup_header_size);
- 
--	ret = kexec_add_buffer(image, (char *)params, params_misc_sz,
--			       params_misc_sz, 16, MIN_BOOTPARAM_ADDR,
--			       ULONG_MAX, 1, &bootparam_load_addr);
-+	kbuf.buffer = params;
-+	kbuf.memsz = kbuf.bufsz;
-+	kbuf.buf_align = 16;
-+	kbuf.buf_min = MIN_BOOTPARAM_ADDR;
-+	ret = kexec_add_buffer(&kbuf);
- 	if (ret)
- 		goto out_free_params;
-+	bootparam_load_addr = kbuf.mem;
- 	pr_debug("Loaded boot_param, command line and misc at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
--		 bootparam_load_addr, params_misc_sz, params_misc_sz);
-+		 bootparam_load_addr, kbuf.bufsz, kbuf.bufsz);
- 
- 	/* Load kernel */
--	kernel_buf = kernel + kern16_size;
--	kernel_bufsz =  kernel_len - kern16_size;
--	kernel_memsz = PAGE_ALIGN(header->init_size);
--	kernel_align = header->kernel_alignment;
--
--	ret = kexec_add_buffer(image, kernel_buf,
--			       kernel_bufsz, kernel_memsz, kernel_align,
--			       MIN_KERNEL_LOAD_ADDR, ULONG_MAX, 1,
--			       &kernel_load_addr);
-+	kbuf.buffer = kernel + kern16_size;
-+	kbuf.bufsz =  kernel_len - kern16_size;
-+	kbuf.memsz = PAGE_ALIGN(header->init_size);
-+	kbuf.buf_align = header->kernel_alignment;
-+	kbuf.buf_min = MIN_KERNEL_LOAD_ADDR;
-+	ret = kexec_add_buffer(&kbuf);
- 	if (ret)
- 		goto out_free_params;
-+	kernel_load_addr = kbuf.mem;
- 
- 	pr_debug("Loaded 64bit kernel at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
--		 kernel_load_addr, kernel_memsz, kernel_memsz);
-+		 kernel_load_addr, kbuf.bufsz, kbuf.memsz);
- 
- 	/* Load initrd high */
- 	if (initrd) {
--		ret = kexec_add_buffer(image, initrd, initrd_len, initrd_len,
--				       PAGE_SIZE, MIN_INITRD_LOAD_ADDR,
--				       ULONG_MAX, 1, &initrd_load_addr);
+diff -puN /dev/null arch/powerpc/kernel/kexec_elf_64.c
+--- /dev/null
++++ a/arch/powerpc/kernel/kexec_elf_64.c
+@@ -0,0 +1,280 @@
++/*
++ * Load ELF vmlinux file for the kexec_file_load syscall.
++ *
++ * Copyright (C) 2004  Adam Litke (agl@us.ibm.com)
++ * Copyright (C) 2004  IBM Corp.
++ * Copyright (C) 2005  R Sharada (sharada@in.ibm.com)
++ * Copyright (C) 2006  Mohan Kumar M (mohan@in.ibm.com)
++ * Copyright (C) 2016  IBM Corporation
++ *
++ * Based on kexec-tools' kexec-elf-exec.c and kexec-elf-ppc64.c.
++ * Heavily modified for the kernel by
++ * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation (version 2 of the License).
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#define pr_fmt(fmt)	"kexec_elf: " fmt
++
++#include <linux/types.h>
++#include <linux/slab.h>
++#include <linux/elf.h>
++#include <linux/kexec.h>
++#include <linux/of_fdt.h>
++#include <linux/libfdt.h>
++#include <asm/elf_util.h>
++
++#define PURGATORY_STACK_SIZE	(16 * 1024)
++
++/**
++ * build_elf_exec_info - read ELF executable and check that we can use it
++ */
++static int build_elf_exec_info(const char *buf, size_t len, struct elfhdr *ehdr,
++			       struct elf_info *elf_info)
++{
++	int i;
++	int ret;
++
++	ret = elf_read_from_buffer(buf, len, ehdr, elf_info);
++	if (ret)
++		return ret;
++
++	/* Big endian vmlinux has type ET_DYN. */
++	if (ehdr->e_type != ET_EXEC && ehdr->e_type != ET_DYN) {
++		pr_err("Not an ELF executable.\n");
++		goto error;
++	} else if (!elf_info->proghdrs) {
++		pr_err("No ELF program header.\n");
++		goto error;
++	}
++
++	for (i = 0; i < ehdr->e_phnum; i++) {
++		/*
++		 * Kexec does not support loading interpreters.
++		 * In addition this check keeps us from attempting
++		 * to kexec ordinay executables.
++		 */
++		if (elf_info->proghdrs[i].p_type == PT_INTERP) {
++			pr_err("Requires an ELF interpreter.\n");
++			goto error;
++		}
++	}
++
++	return 0;
++error:
++	elf_free_info(elf_info);
++	return -ENOEXEC;
++}
++
++static int elf64_probe(const char *buf, unsigned long len)
++{
++	struct elfhdr ehdr;
++	struct elf_info elf_info;
++	int ret;
++
++	ret = build_elf_exec_info(buf, len, &ehdr, &elf_info);
++	if (ret)
++		return ret;
++
++	elf_free_info(&elf_info);
++
++	return elf_check_arch(&ehdr) ? 0 : -ENOEXEC;
++}
++
++/**
++ * elf_exec_load - load ELF executable image
++ * @lowest_load_addr:	On return, will be the address where the first PT_LOAD
++ *			section will be loaded in memory.
++ *
++ * Return:
++ * 0 on success, negative value on failure.
++ */
++static int elf_exec_load(struct kimage *image, struct elfhdr *ehdr,
++			 struct elf_info *elf_info,
++			 unsigned long *lowest_load_addr)
++{
++	unsigned long base = 0, lowest_addr = UINT_MAX;
++	int ret;
++	size_t i;
++	struct kexec_buf kbuf = { .image = image, .buf_max = ppc64_rma_size,
++				  .top_down = false };
++
++	/* Read in the PT_LOAD segments. */
++	for (i = 0; i < ehdr->e_phnum; i++) {
++		unsigned long load_addr;
++		size_t size;
++		const struct elf_phdr *phdr;
++
++		phdr = &elf_info->proghdrs[i];
++		if (phdr->p_type != PT_LOAD)
++			continue;
++
++		size = phdr->p_filesz;
++		if (size > phdr->p_memsz)
++			size = phdr->p_memsz;
++
++		kbuf.buffer = (void *) elf_info->buffer + phdr->p_offset;
++		kbuf.bufsz = size;
++		kbuf.memsz = phdr->p_memsz;
++		kbuf.buf_align = phdr->p_align;
++		kbuf.buf_min = phdr->p_paddr + base;
++		ret = kexec_add_buffer(&kbuf);
++		if (ret)
++			goto out;
++		load_addr = kbuf.mem;
++
++		if (load_addr < lowest_addr)
++			lowest_addr = load_addr;
++	}
++
++	/* Update entry point to reflect new load address. */
++	ehdr->e_entry += base;
++
++	*lowest_load_addr = lowest_addr;
++	ret = 0;
++ out:
++	return ret;
++}
++
++static void *elf64_load(struct kimage *image, char *kernel_buf,
++			unsigned long kernel_len, char *initrd,
++			unsigned long initrd_len, char *cmdline,
++			unsigned long cmdline_len)
++{
++	int i, ret;
++	unsigned int fdt_size;
++	unsigned long kernel_load_addr, purgatory_load_addr;
++	unsigned long initrd_load_addr = 0, fdt_load_addr, stack_top;
++	void *fdt;
++	const void *slave_code;
++	struct elfhdr ehdr;
++	struct elf_info elf_info;
++	struct fdt_reserve_entry *rsvmap;
++	struct kexec_buf kbuf = { .image = image, .buf_min = 0,
++				  .buf_max = ppc64_rma_size };
++
++	ret = build_elf_exec_info(kernel_buf, kernel_len, &ehdr, &elf_info);
++	if (ret)
++		goto out;
++
++	ret = elf_exec_load(image, &ehdr, &elf_info, &kernel_load_addr);
++	if (ret)
++		goto out;
++
++	pr_debug("Loaded the kernel at 0x%lx\n", kernel_load_addr);
++
++	ret = kexec_load_purgatory(image, 0, ppc64_rma_size, true,
++				   &purgatory_load_addr);
++	if (ret) {
++		pr_err("Loading purgatory failed.\n");
++		goto out;
++	}
++
++	pr_debug("Loaded purgatory at 0x%lx\n", purgatory_load_addr);
++
++	if (initrd != NULL) {
 +		kbuf.buffer = initrd;
 +		kbuf.bufsz = kbuf.memsz = initrd_len;
 +		kbuf.buf_align = PAGE_SIZE;
-+		kbuf.buf_min = MIN_INITRD_LOAD_ADDR;
++		kbuf.top_down = false;
 +		ret = kexec_add_buffer(&kbuf);
- 		if (ret)
- 			goto out_free_params;
++		if (ret)
++			goto out;
 +		initrd_load_addr = kbuf.mem;
++
++		pr_debug("Loaded initrd at 0x%lx\n", initrd_load_addr);
++	}
++
++	fdt_size = fdt_totalsize(initial_boot_params) * 2;
++	fdt = kmalloc(fdt_size, GFP_KERNEL);
++	if (!fdt) {
++		pr_err("Not enough memory for the device tree.\n");
++		ret = -ENOMEM;
++		goto out;
++	}
++	ret = fdt_open_into(initial_boot_params, fdt, fdt_size);
++	if (ret < 0) {
++		pr_err("Error setting up the new device tree.\n");
++		ret = -EINVAL;
++		goto out;
++	}
++
++	ret = setup_new_fdt(fdt, initrd_load_addr, initrd_len, cmdline);
++	if (ret)
++		goto out;
++
++	/*
++	 * Documentation/devicetree/booting-without-of.txt says we need to
++	 * add a reservation entry for the device tree block, but
++	 * early_init_fdt_reserve_self reserves the memory even if there's no
++	 * such entry. We'll add a reservation entry anyway, to be safe and
++	 * compliant.
++	 *
++	 * Use dummy values, we will correct them in a moment.
++	 */
++	ret = fdt_add_mem_rsv(fdt, 1, 1);
++	if (ret) {
++		pr_err("Error reserving device tree memory: %s\n",
++		       fdt_strerror(ret));
++		ret = -EINVAL;
++		goto out;
++	}
++	fdt_pack(fdt);
++
++	kbuf.buffer = fdt;
++	kbuf.bufsz = kbuf.memsz = fdt_size;
++	kbuf.buf_align = PAGE_SIZE;
++	kbuf.top_down = true;
++	ret = kexec_add_buffer(&kbuf);
++	if (ret)
++		goto out;
++	fdt_load_addr = kbuf.mem;
++
++	/*
++	 * Fix fdt reservation, now that we now where it will be loaded
++	 * and how big it is.
++	 */
++	rsvmap = fdt + fdt_off_mem_rsvmap(fdt);
++	i = fdt_num_mem_rsv(fdt) - 1;
++	rsvmap[i].address = cpu_to_fdt64(fdt_load_addr);
++	rsvmap[i].size = cpu_to_fdt64(fdt_totalsize(fdt));
++
++	pr_debug("Loaded device tree at 0x%lx\n", fdt_load_addr);
++
++	kbuf.memsz = PURGATORY_STACK_SIZE;
++	kbuf.buf_align = PAGE_SIZE;
++	kbuf.top_down = true;
++	ret = kexec_locate_mem_hole(&kbuf);
++	if (ret) {
++		pr_err("Couldn't find free memory for the purgatory stack.\n");
++		ret = -ENOMEM;
++		goto out;
++	}
++	stack_top = kbuf.mem + PURGATORY_STACK_SIZE - 1;
++	pr_debug("Purgatory stack is at 0x%lx\n", stack_top);
++
++	slave_code = elf_info.buffer + elf_info.proghdrs[0].p_offset;
++	ret = setup_purgatory(image, slave_code, fdt, kernel_load_addr,
++			      fdt_load_addr, stack_top,
++			      find_debug_console(fdt));
++	if (ret)
++		pr_err("Error setting up the purgatory.\n");
++
++out:
++	elf_free_info(&elf_info);
++
++	/* Make kimage_file_post_load_cleanup free the fdt buffer for us. */
++	return ret ? ERR_PTR(ret) : fdt;
++}
++
++struct kexec_file_ops kexec_elf64_ops = {
++	.probe = elf64_probe,
++	.load = elf64_load,
++};
+diff -puN arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load arch/powerpc/kernel/machine_kexec_file_64.c
+--- a/arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load
++++ a/arch/powerpc/kernel/machine_kexec_file_64.c
+@@ -3,11 +3,12 @@
+  *
+  * Copyright (C) 2004  Adam Litke (agl@us.ibm.com)
+  * Copyright (C) 2004  IBM Corp.
++ * Copyright (C) 2004,2005  Milton D Miller II, IBM Corporation
+  * Copyright (C) 2005  R Sharada (sharada@in.ibm.com)
+  * Copyright (C) 2006  Mohan Kumar M (mohan@in.ibm.com)
+  * Copyright (C) 2016  IBM Corporation
+  *
+- * Based on kexec-tools' kexec-elf-ppc64.c.
++ * Based on kexec-tools' kexec-elf-ppc64.c, fs2dt.c.
+  * Heavily modified for the kernel by
+  * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>.
+  *
+@@ -24,12 +25,15 @@
+ #include <linux/slab.h>
+ #include <linux/kexec.h>
+ #include <linux/memblock.h>
++#include <linux/of_fdt.h>
+ #include <linux/libfdt.h>
+ #include <asm/elf_util.h>
  
- 		pr_debug("Loaded initrd at 0x%lx bufsz=0x%lx memsz=0x%lx\n",
- 				initrd_load_addr, initrd_len, initrd_len);
-diff -puN include/linux/kexec.h~kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument include/linux/kexec.h
---- a/include/linux/kexec.h~kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument
-+++ a/include/linux/kexec.h
-@@ -163,7 +163,7 @@ struct kexec_file_ops {
-  */
- struct kexec_buf {
- 	struct kimage *image;
--	char *buffer;
-+	void *buffer;
- 	unsigned long bufsz;
- 	unsigned long mem;
- 	unsigned long memsz;
-@@ -175,6 +175,7 @@ struct kexec_buf {
+ #define SLAVE_CODE_SIZE		256
  
- int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
- 			       int (*func)(u64, u64, void *));
-+extern int kexec_add_buffer(struct kexec_buf *kbuf);
- #endif /* CONFIG_KEXEC_FILE */
+-static struct kexec_file_ops *kexec_file_loaders[] = { };
++static struct kexec_file_ops *kexec_file_loaders[] = {
++	&kexec_elf64_ops,
++};
  
- struct kimage {
-@@ -239,11 +240,6 @@ extern asmlinkage long sys_kexec_load(un
- 					struct kexec_segment __user *segments,
- 					unsigned long flags);
- extern int kernel_kexec(void);
--extern int kexec_add_buffer(struct kimage *image, char *buffer,
--			    unsigned long bufsz, unsigned long memsz,
--			    unsigned long buf_align, unsigned long buf_min,
--			    unsigned long buf_max, bool top_down,
--			    unsigned long *load_addr);
- extern struct page *kimage_alloc_control_pages(struct kimage *image,
- 						unsigned int order);
- extern int kexec_load_purgatory(struct kimage *image, unsigned long min,
-diff -puN kernel/kexec_file.c~kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument kernel/kexec_file.c
---- a/kernel/kexec_file.c~kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument
-+++ a/kernel/kexec_file.c
-@@ -449,25 +449,27 @@ int __weak arch_kexec_walk_mem(struct ke
- 		return walk_system_ram_res(0, ULONG_MAX, kbuf, func);
- }
+ int arch_kexec_kernel_image_probe(struct kimage *image, void *buf,
+ 				  unsigned long buf_len)
+@@ -243,3 +247,333 @@ int arch_kexec_apply_relocations_add(con
  
--/*
-- * Helper function for placing a buffer in a kexec segment. This assumes
-- * that kexec_mutex is held.
-+/**
-+ * kexec_add_buffer - place a buffer in a kexec segment
-+ * @kbuf:	Buffer contents and memory parameters.
-+ *
-+ * This function assumes that kexec_mutex is held.
-+ * On successful return, @kbuf->mem will have the physical address of
-+ * the buffer in memory.
-+ *
-+ * Return: 0 on success, negative errno on error.
-  */
--int kexec_add_buffer(struct kimage *image, char *buffer, unsigned long bufsz,
--		     unsigned long memsz, unsigned long buf_align,
--		     unsigned long buf_min, unsigned long buf_max,
--		     bool top_down, unsigned long *load_addr)
-+int kexec_add_buffer(struct kexec_buf *kbuf)
- {
- 
- 	struct kexec_segment *ksegment;
--	struct kexec_buf buf, *kbuf;
- 	int ret;
- 
- 	/* Currently adding segment this way is allowed only in file mode */
--	if (!image->file_mode)
-+	if (!kbuf->image->file_mode)
- 		return -EINVAL;
- 
--	if (image->nr_segments >= KEXEC_SEGMENT_MAX)
-+	if (kbuf->image->nr_segments >= KEXEC_SEGMENT_MAX)
- 		return -EINVAL;
- 
- 	/*
-@@ -477,22 +479,14 @@ int kexec_add_buffer(struct kimage *imag
- 	 * logic goes through list of segments to make sure there are
- 	 * no destination overlaps.
- 	 */
--	if (!list_empty(&image->control_pages)) {
-+	if (!list_empty(&kbuf->image->control_pages)) {
- 		WARN_ON(1);
- 		return -EINVAL;
- 	}
- 
--	memset(&buf, 0, sizeof(struct kexec_buf));
--	kbuf = &buf;
--	kbuf->image = image;
--	kbuf->buffer = buffer;
--	kbuf->bufsz = bufsz;
--
--	kbuf->memsz = ALIGN(memsz, PAGE_SIZE);
--	kbuf->buf_align = max(buf_align, PAGE_SIZE);
--	kbuf->buf_min = buf_min;
--	kbuf->buf_max = buf_max;
--	kbuf->top_down = top_down;
-+	/* Ensure minimum alignment needed for segments. */
-+	kbuf->memsz = ALIGN(kbuf->memsz, PAGE_SIZE);
-+	kbuf->buf_align = max(kbuf->buf_align, PAGE_SIZE);
- 
- 	/* Walk the RAM ranges and allocate a suitable range for the buffer */
- 	ret = arch_kexec_walk_mem(kbuf, locate_mem_hole_callback);
-@@ -502,13 +496,12 @@ int kexec_add_buffer(struct kimage *imag
- 	}
- 
- 	/* Found a suitable memory range */
--	ksegment = &image->segment[image->nr_segments];
-+	ksegment = &kbuf->image->segment[kbuf->image->nr_segments];
- 	ksegment->kbuf = kbuf->buffer;
- 	ksegment->bufsz = kbuf->bufsz;
- 	ksegment->mem = kbuf->mem;
- 	ksegment->memsz = kbuf->memsz;
--	image->nr_segments++;
--	*load_addr = ksegment->mem;
-+	kbuf->image->nr_segments++;
  	return 0;
  }
- 
-@@ -630,13 +623,15 @@ static int __kexec_load_purgatory(struct
- 				  unsigned long max, int top_down)
- {
- 	struct purgatory_info *pi = &image->purgatory_info;
--	unsigned long align, buf_align, bss_align, buf_sz, bss_sz, bss_pad;
--	unsigned long memsz, entry, load_addr, curr_load_addr, bss_addr, offset;
-+	unsigned long align, bss_align, bss_sz, bss_pad;
-+	unsigned long entry, load_addr, curr_load_addr, bss_addr, offset;
- 	unsigned char *buf_addr, *src;
- 	int i, ret = 0, entry_sidx = -1;
- 	const Elf_Shdr *sechdrs_c;
- 	Elf_Shdr *sechdrs = NULL;
--	void *purgatory_buf = NULL;
-+	struct kexec_buf kbuf = { .image = image, .bufsz = 0, .buf_align = 1,
-+				  .buf_min = min, .buf_max = max,
-+				  .top_down = top_down };
- 
- 	/*
- 	 * sechdrs_c points to section headers in purgatory and are read
-@@ -702,9 +697,7 @@ static int __kexec_load_purgatory(struct
- 	}
- 
- 	/* Determine how much memory is needed to load relocatable object. */
--	buf_align = 1;
- 	bss_align = 1;
--	buf_sz = 0;
- 	bss_sz = 0;
- 
- 	for (i = 0; i < pi->ehdr->e_shnum; i++) {
-@@ -713,10 +706,10 @@ static int __kexec_load_purgatory(struct
- 
- 		align = sechdrs[i].sh_addralign;
- 		if (sechdrs[i].sh_type != SHT_NOBITS) {
--			if (buf_align < align)
--				buf_align = align;
--			buf_sz = ALIGN(buf_sz, align);
--			buf_sz += sechdrs[i].sh_size;
-+			if (kbuf.buf_align < align)
-+				kbuf.buf_align = align;
-+			kbuf.bufsz = ALIGN(kbuf.bufsz, align);
-+			kbuf.bufsz += sechdrs[i].sh_size;
- 		} else {
- 			/* bss section */
- 			if (bss_align < align)
-@@ -728,32 +721,31 @@ static int __kexec_load_purgatory(struct
- 
- 	/* Determine the bss padding required to align bss properly */
- 	bss_pad = 0;
--	if (buf_sz & (bss_align - 1))
--		bss_pad = bss_align - (buf_sz & (bss_align - 1));
-+	if (kbuf.bufsz & (bss_align - 1))
-+		bss_pad = bss_align - (kbuf.bufsz & (bss_align - 1));
- 
--	memsz = buf_sz + bss_pad + bss_sz;
-+	kbuf.memsz = kbuf.bufsz + bss_pad + bss_sz;
- 
- 	/* Allocate buffer for purgatory */
--	purgatory_buf = vzalloc(buf_sz);
--	if (!purgatory_buf) {
-+	kbuf.buffer = vzalloc(kbuf.bufsz);
-+	if (!kbuf.buffer) {
- 		ret = -ENOMEM;
- 		goto out;
- 	}
- 
--	if (buf_align < bss_align)
--		buf_align = bss_align;
-+	if (kbuf.buf_align < bss_align)
-+		kbuf.buf_align = bss_align;
- 
- 	/* Add buffer to segment list */
--	ret = kexec_add_buffer(image, purgatory_buf, buf_sz, memsz,
--				buf_align, min, max, top_down,
--				&pi->purgatory_load_addr);
-+	ret = kexec_add_buffer(&kbuf);
- 	if (ret)
- 		goto out;
-+	pi->purgatory_load_addr = kbuf.mem;
- 
- 	/* Load SHF_ALLOC sections */
--	buf_addr = purgatory_buf;
-+	buf_addr = kbuf.buffer;
- 	load_addr = curr_load_addr = pi->purgatory_load_addr;
--	bss_addr = load_addr + buf_sz + bss_pad;
-+	bss_addr = load_addr + kbuf.bufsz + bss_pad;
- 
- 	for (i = 0; i < pi->ehdr->e_shnum; i++) {
- 		if (!(sechdrs[i].sh_flags & SHF_ALLOC))
-@@ -799,11 +791,11 @@ static int __kexec_load_purgatory(struct
- 	 * Used later to identify which section is purgatory and skip it
- 	 * from checksumming.
- 	 */
--	pi->purgatory_buf = purgatory_buf;
-+	pi->purgatory_buf = kbuf.buffer;
- 	return ret;
- out:
- 	vfree(sechdrs);
--	vfree(purgatory_buf);
-+	vfree(kbuf.buffer);
- 	return ret;
- }
- 
++
++/**
++ * setup_purgatory - initialize the purgatory's global variables
++ * @image:		kexec image.
++ * @slave_code:		Slave code for the purgatory.
++ * @fdt:		Flattened device tree for the next kernel.
++ * @kernel_load_addr:	Address where the kernel is loaded.
++ * @fdt_load_addr:	Address where the flattened device tree is loaded.
++ * @stack_top:		Address where the purgatory can place its stack.
++ * @debug:		Can the purgatory print messages to the console?
++ *
++ * Return: 0 on success, or negative errno on error.
++ */
++int setup_purgatory(struct kimage *image, const void *slave_code,
++		    const void *fdt, unsigned long kernel_load_addr,
++		    unsigned long fdt_load_addr, unsigned long stack_top,
++		    int debug)
++{
++	int ret, tree_node;
++	const void *prop;
++	unsigned long opal_base, opal_entry;
++	uint64_t toc;
++	unsigned int *slave_code_buf, master_entry;
++	unsigned int toc_section;
++
++	slave_code_buf = kmalloc(SLAVE_CODE_SIZE, GFP_KERNEL);
++	if (!slave_code_buf)
++		return -ENOMEM;
++
++	/* Get the slave code from the new kernel and put it in purgatory. */
++	ret = kexec_purgatory_get_set_symbol(image, "purgatory_start",
++					     slave_code_buf, SLAVE_CODE_SIZE,
++					     true);
++	if (ret) {
++		kfree(slave_code_buf);
++		return ret;
++	}
++
++	master_entry = slave_code_buf[0];
++	memcpy(slave_code_buf, slave_code, SLAVE_CODE_SIZE);
++	slave_code_buf[0] = master_entry;
++	ret = kexec_purgatory_get_set_symbol(image, "purgatory_start",
++					     slave_code_buf, SLAVE_CODE_SIZE,
++					     false);
++	kfree(slave_code_buf);
++
++	ret = kexec_purgatory_get_set_symbol(image, "kernel", &kernel_load_addr,
++					     sizeof(kernel_load_addr), false);
++	if (ret)
++		return ret;
++	ret = kexec_purgatory_get_set_symbol(image, "dt_offset", &fdt_load_addr,
++					     sizeof(fdt_load_addr), false);
++	if (ret)
++		return ret;
++
++	tree_node = fdt_path_offset(fdt, "/ibm,opal");
++	if (tree_node >= 0) {
++		prop = fdt_getprop(fdt, tree_node, "opal-base-address", NULL);
++		if (!prop) {
++			pr_err("OPAL address not found in the device tree.\n");
++			return -EINVAL;
++		}
++		opal_base = fdt64_to_cpu((const fdt64_t *) prop);
++
++		prop = fdt_getprop(fdt, tree_node, "opal-entry-address", NULL);
++		if (!prop) {
++			pr_err("OPAL address not found in the device tree.\n");
++			return -EINVAL;
++		}
++		opal_entry = fdt64_to_cpu((const fdt64_t *) prop);
++
++		ret = kexec_purgatory_get_set_symbol(image, "opal_base",
++						     &opal_base,
++						     sizeof(opal_base), false);
++		if (ret)
++			return ret;
++		ret = kexec_purgatory_get_set_symbol(image, "opal_entry",
++						     &opal_entry,
++						     sizeof(opal_entry), false);
++		if (ret)
++			return ret;
++	}
++
++	ret = kexec_purgatory_get_set_symbol(image, "stack", &stack_top,
++					     sizeof(stack_top), false);
++	if (ret)
++		return ret;
++
++	toc_section = elf_toc_section(image->purgatory_info.ehdr,
++				      image->purgatory_info.sechdrs);
++	if (!toc_section)
++		return -ENOEXEC;
++
++	toc = elf_my_r2(image->purgatory_info.sechdrs, toc_section);
++	ret = kexec_purgatory_get_set_symbol(image, "my_toc", &toc, sizeof(toc),
++					     false);
++	if (ret)
++		return ret;
++
++	pr_debug("Purgatory TOC is at 0x%llx\n", toc);
++
++	ret = kexec_purgatory_get_set_symbol(image, "debug", &debug,
++					     sizeof(debug), false);
++	if (ret)
++		return ret;
++	if (!debug)
++		pr_debug("Disabling purgatory output.\n");
++
++	return 0;
++}
++
++/**
++ * delete_fdt_mem_rsv - delete memory reservation with given address and size
++ *
++ * Return: 0 on success, or negative errno on error.
++ */
++static int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size)
++{
++	int i, ret, num_rsvs = fdt_num_mem_rsv(fdt);
++
++	for (i = 0; i < num_rsvs; i++) {
++		uint64_t rsv_start, rsv_size;
++
++		ret = fdt_get_mem_rsv(fdt, i, &rsv_start, &rsv_size);
++		if (ret) {
++			pr_err("Malformed device tree.\n");
++			return -EINVAL;
++		}
++
++		if (rsv_start == start && rsv_size == size) {
++			ret = fdt_del_mem_rsv(fdt, i);
++			if (ret) {
++				pr_err("Error deleting device tree reservation.\n");
++				return -EINVAL;
++			}
++
++			return 0;
++		}
++	}
++
++	return -ENOENT;
++}
++
++/*
++ * setup_new_fdt - modify /chosen and memory reservation for the next kernel
++ * @fdt:		Flattened device tree for the next kernel.
++ * @initrd_load_addr:	Address where the next initrd will be loaded.
++ * @initrd_len:		Size of the next initrd, or 0 if there will be none.
++ * @cmdline:		Command line for the next kernel, or NULL if there will
++ *			be none.
++ *
++ * Return: 0 on success, or negative errno on error.
++ */
++int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
++		  unsigned long initrd_len, const char *cmdline)
++{
++	int ret, chosen_node;
++	const void *prop;
++
++	/* Remove memory reservation for the current device tree. */
++	ret = delete_fdt_mem_rsv(fdt, __pa(initial_boot_params),
++				 fdt_totalsize(initial_boot_params));
++	if (ret == 0)
++		pr_debug("Removed old device tree reservation.\n");
++	else if (ret != -ENOENT)
++		return ret;
++
++	chosen_node = fdt_path_offset(fdt, "/chosen");
++	if (chosen_node == -FDT_ERR_NOTFOUND) {
++		chosen_node = fdt_add_subnode(fdt, fdt_path_offset(fdt, "/"),
++					      "chosen");
++		if (chosen_node < 0) {
++			pr_err("Error creating /chosen.\n");
++			return -EINVAL;
++		}
++	} else if (chosen_node < 0) {
++		pr_err("Malformed device tree: error reading /chosen.\n");
++		return -EINVAL;
++	}
++
++	/* Did we boot using an initrd? */
++	prop = fdt_getprop(fdt, chosen_node, "linux,initrd-start", NULL);
++	if (prop) {
++		uint64_t tmp_start, tmp_end, tmp_size;
++
++		tmp_start = fdt64_to_cpu(*((const fdt64_t *) prop));
++
++		prop = fdt_getprop(fdt, chosen_node, "linux,initrd-end", NULL);
++		if (!prop) {
++			pr_err("Malformed device tree.\n");
++			return -EINVAL;
++		}
++		tmp_end = fdt64_to_cpu(*((const fdt64_t *) prop));
++
++		/*
++		 * kexec reserves exact initrd size, while firmware may
++		 * reserve a multiple of PAGE_SIZE, so check for both.
++		 */
++		tmp_size = tmp_end - tmp_start;
++		ret = delete_fdt_mem_rsv(fdt, tmp_start, tmp_size);
++		if (ret == -ENOENT)
++			ret = delete_fdt_mem_rsv(fdt, tmp_start,
++						 round_up(tmp_size, PAGE_SIZE));
++		if (ret == 0)
++			pr_debug("Removed old initrd reservation.\n");
++		else if (ret != -ENOENT)
++			return ret;
++
++		/* If there's no new initrd, delete the old initrd's info. */
++		if (initrd_len == 0) {
++			ret = fdt_delprop(fdt, chosen_node,
++					  "linux,initrd-start");
++			if (ret) {
++				pr_err("Error deleting linux,initrd-start.\n");
++				return -EINVAL;
++			}
++
++			ret = fdt_delprop(fdt, chosen_node, "linux,initrd-end");
++			if (ret) {
++				pr_err("Error deleting linux,initrd-end.\n");
++				return -EINVAL;
++			}
++		}
++	}
++
++	if (initrd_len) {
++		ret = fdt_setprop_u64(fdt, chosen_node,
++				      "linux,initrd-start",
++				      initrd_load_addr);
++		if (ret < 0) {
++			pr_err("Error setting up the new device tree.\n");
++			return -EINVAL;
++		}
++
++		/* initrd-end is the first address after the initrd image. */
++		ret = fdt_setprop_u64(fdt, chosen_node, "linux,initrd-end",
++				      initrd_load_addr + initrd_len);
++		if (ret < 0) {
++			pr_err("Error setting up the new device tree.\n");
++			return -EINVAL;
++		}
++
++		ret = fdt_add_mem_rsv(fdt, initrd_load_addr, initrd_len);
++		if (ret) {
++			pr_err("Error reserving initrd memory: %s\n",
++			       fdt_strerror(ret));
++			return -EINVAL;
++		}
++	}
++
++	if (cmdline != NULL) {
++		ret = fdt_setprop_string(fdt, chosen_node, "bootargs", cmdline);
++		if (ret < 0) {
++			pr_err("Error setting up the new device tree.\n");
++			return -EINVAL;
++		}
++	} else {
++		ret = fdt_delprop(fdt, chosen_node, "bootargs");
++		if (ret && ret != -FDT_ERR_NOTFOUND) {
++			pr_err("Error deleting bootargs.\n");
++			return -EINVAL;
++		}
++	}
++
++	ret = fdt_setprop(fdt, chosen_node, "linux,booted-from-kexec", NULL, 0);
++	if (ret) {
++		pr_err("Error setting up the new device tree.\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++/**
++ * find_debug_console - find out whether there is a console for the purgatory
++ * @fdt:		Flattened device tree to search.
++ */
++bool find_debug_console(const void *fdt)
++{
++	int len;
++	int console_node, chosen_node;
++	const void *prop, *colon;
++
++	chosen_node = fdt_path_offset(fdt, "/chosen");
++	if (chosen_node < 0) {
++		pr_err("Malformed device tree: /chosen not found.\n");
++		return false;
++	}
++
++	prop = fdt_getprop(fdt, chosen_node, "stdout-path", &len);
++	if (prop == NULL) {
++		if (len == -FDT_ERR_NOTFOUND) {
++			prop = fdt_getprop(fdt, chosen_node,
++					   "linux,stdout-path", &len);
++			if (prop == NULL) {
++				pr_debug("Unable to find [linux,]stdout-path.\n");
++				return false;
++			}
++		} else {
++			pr_debug("Error finding console: %s\n",
++				 fdt_strerror(len));
++			return false;
++		}
++	}
++
++	/*
++	 * stdout-path can have a ':' separating the path from device-specific
++	 * information, so we should only consider what's before it.
++	 */
++	colon = strchr(prop, ':');
++	if (colon != NULL)
++		len = colon - prop;
++	else
++		len -= 1;	/* Ignore the terminating NUL. */
++
++	console_node = fdt_path_offset_namelen(fdt, prop, len);
++	if (console_node < 0) {
++		pr_debug("Error finding console: %s\n",
++			 fdt_strerror(console_node));
++		return false;
++	}
++
++	if (fdt_node_check_compatible(fdt, console_node, "hvterm1") == 0)
++		return true;
++	else if (fdt_node_check_compatible(fdt, console_node,
++					   "hvterm-protocol") == 0)
++		return true;
++
++	return false;
++}
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
