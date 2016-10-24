@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-factor-out-relocation-code-in-module_64c.patch added to -mm tree
-Date: Mon, 24 Oct 2016 12:42:39 -0700
-Message-ID: <580e642f.8q8g9pnjb9Ys416g%akpm@linux-foundation.org>
+Subject: + ima-on-soft-reboot-restore-the-measurement-list.patch added to
+ -mm tree
+Date: Mon, 24 Oct 2016 12:42:46 -0700
+Message-ID: <580e6436.8LxoED3vniM0RU6t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56675 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56694 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941059AbcJXTmk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 15:42:40 -0400
+        with ESMTP id S941080AbcJXTmr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 15:42:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bauerman@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, sklar@linux.vnet.ibm.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: zohar@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, sklar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: factor out relocation code in module_64.c
+     Subject: ima: on soft reboot, restore the measurement list
 has been added to the -mm tree.  Its filename is
-     powerpc-factor-out-relocation-code-in-module_64c.patch
+     ima-on-soft-reboot-restore-the-measurement-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-factor-out-relocation-code-in-module_64c.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ima-on-soft-reboot-restore-the-measurement-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-factor-out-relocation-code-in-module_64c.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ima-on-soft-reboot-restore-the-measurement-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,424 +39,357 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: factor out relocation code in module_64.c
+From: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Subject: ima: on soft reboot, restore the measurement list
 
-The kexec_file_load system call needs to relocate the purgatory, so factor
-out the module relocation code so that it can be shared.
+The TPM PCRs are only reset on a hard reboot.  In order to validate a
+TPM's quote after a soft reboot (eg.  kexec -e), the IMA measurement list
+of the running kernel must be saved and restored on boot.  This patch
+restores the measurement list.
 
-This patch's purpose is to move the ELF relocation logic from
-apply_relocate_add to the new function elf64_apply_relocate_add_item with
-as few changes as possible.  The following changes were needed:
-
-elf64_apply_relocate_add_item takes a my_r2 argument because the kexec
-code can't use the my_r2 function since it doesn't have a struct module to
-pass to it.  For the same reason, it also takes an obj_name argument to
-use in error messages.  It still takes a pointer to struct module
-argument, but kexec code can just pass NULL because except for the TOC
-symbol, the purgatory doesn't have undefined symbols so the module pointer
-isn't used.
-
-Apart from what is described in the paragraph above, the code has no
-functional changes.
-
-Link: http://lkml.kernel.org/r/1477017617-8540-6-git-send-email-bauerman@linux.vnet.ibm.com
-Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Suggested-by: Michael Ellerman <mpe@ellerman.id.au>
+Link: http://lkml.kernel.org/r/1477017898-10375-3-git-send-email-bauerman@linux.vnet.ibm.com
+Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Andreas Steffen <andreas.steffen@strongswan.org>
 Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/module_64.c |  344 +++++++++++++++---------------
- 1 file changed, 182 insertions(+), 162 deletions(-)
+ security/integrity/ima/Makefile       |    1 
+ security/integrity/ima/ima.h          |   21 ++
+ security/integrity/ima/ima_init.c     |    2 
+ security/integrity/ima/ima_kexec.c    |   44 ++++++
+ security/integrity/ima/ima_queue.c    |   10 +
+ security/integrity/ima/ima_template.c |  170 ++++++++++++++++++++++++
+ 6 files changed, 248 insertions(+)
 
-diff -puN arch/powerpc/kernel/module_64.c~powerpc-factor-out-relocation-code-in-module_64c arch/powerpc/kernel/module_64.c
---- a/arch/powerpc/kernel/module_64.c~powerpc-factor-out-relocation-code-in-module_64c
-+++ a/arch/powerpc/kernel/module_64.c
-@@ -507,6 +507,181 @@ static int restore_r2(u32 *instruction,
- 	return 1;
- }
+diff -puN security/integrity/ima/Makefile~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/Makefile
+--- a/security/integrity/ima/Makefile~ima-on-soft-reboot-restore-the-measurement-list
++++ a/security/integrity/ima/Makefile
+@@ -8,4 +8,5 @@ obj-$(CONFIG_IMA) += ima.o
+ ima-y := ima_fs.o ima_queue.o ima_init.o ima_main.o ima_crypto.o ima_api.o \
+ 	 ima_policy.o ima_template.o ima_template_lib.o
+ ima-$(CONFIG_IMA_APPRAISE) += ima_appraise.o
++ima-$(CONFIG_HAVE_IMA_KEXEC) += ima_kexec.o
+ obj-$(CONFIG_IMA_BLACKLIST_KEYRING) += ima_mok.o
+diff -puN security/integrity/ima/ima.h~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima.h
+--- a/security/integrity/ima/ima.h~ima-on-soft-reboot-restore-the-measurement-list
++++ a/security/integrity/ima/ima.h
+@@ -28,6 +28,10 @@
  
-+static int elf64_apply_relocate_add_item(const Elf64_Shdr *sechdrs,
-+					 const char *strtab,
-+					 const Elf64_Rela *rela,
-+					 const Elf64_Sym *sym,
-+					 unsigned long *location,
-+					 unsigned long value,
-+					 unsigned long my_r2,
-+					 const char *obj_name,
-+					 struct module *me)
+ #include "../integrity.h"
+ 
++#ifdef CONFIG_HAVE_IMA_KEXEC
++#include <asm/ima.h>
++#endif
++
+ enum ima_show_type { IMA_SHOW_BINARY, IMA_SHOW_BINARY_NO_FIELD_LEN,
+ 		     IMA_SHOW_BINARY_OLD_STRING_FMT, IMA_SHOW_ASCII };
+ enum tpm_pcrs { TPM_PCR0 = 0, TPM_PCR8 = 8 };
+@@ -102,6 +106,21 @@ struct ima_queue_entry {
+ };
+ extern struct list_head ima_measurements;	/* list of all measurements */
+ 
++/* Some details preceding the binary serialized measurement list */
++struct ima_kexec_hdr {
++	u16 version;
++	u16 _reserved0;
++	u32 _reserved1;
++	u64 buffer_size;
++	u64 count;
++};
++
++#ifdef CONFIG_HAVE_IMA_KEXEC
++void ima_load_kexec_buffer(void);
++#else
++static inline void ima_load_kexec_buffer(void) {}
++#endif /* CONFIG_HAVE_IMA_KEXEC */
++
+ /* Internal IMA function definitions */
+ int ima_init(void);
+ int ima_fs_init(void);
+@@ -122,6 +141,8 @@ int ima_init_crypto(void);
+ void ima_putc(struct seq_file *m, void *data, int datalen);
+ void ima_print_digest(struct seq_file *m, u8 *digest, u32 size);
+ struct ima_template_desc *ima_template_desc_current(void);
++int ima_restore_measurement_entry(struct ima_template_entry *entry);
++int ima_restore_measurement_list(loff_t bufsize, void *buf);
+ int ima_init_template(void);
+ 
+ /*
+diff -puN security/integrity/ima/ima_init.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_init.c
+--- a/security/integrity/ima/ima_init.c~ima-on-soft-reboot-restore-the-measurement-list
++++ a/security/integrity/ima/ima_init.c
+@@ -128,6 +128,8 @@ int __init ima_init(void)
+ 	if (rc != 0)
+ 		return rc;
+ 
++	ima_load_kexec_buffer();
++
+ 	rc = ima_add_boot_aggregate();	/* boot aggregate must be first entry */
+ 	if (rc != 0)
+ 		return rc;
+diff -puN /dev/null security/integrity/ima/ima_kexec.c
+--- /dev/null
++++ a/security/integrity/ima/ima_kexec.c
+@@ -0,0 +1,44 @@
++/*
++ * Copyright (C) 2016 IBM Corporation
++ *
++ * Authors:
++ * Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
++ * Mimi Zohar <zohar@linux.vnet.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#include "ima.h"
++
++/*
++ * Restore the measurement list from the previous kernel.
++ */
++void ima_load_kexec_buffer(void)
 +{
-+	switch (ELF64_R_TYPE(rela->r_info)) {
-+	case R_PPC64_ADDR32:
-+		/* Simply set it */
-+		*(u32 *)location = value;
++	void *kexec_buffer = NULL;
++	size_t kexec_buffer_size = 0;
++	int rc;
++
++	rc = ima_get_kexec_buffer(&kexec_buffer, &kexec_buffer_size);
++	switch (rc) {
++	case 0:
++		rc = ima_restore_measurement_list(kexec_buffer_size,
++						  kexec_buffer);
++		if (rc != 0)
++			pr_err("Failed to restore the measurement list: %d\n",
++				rc);
++
++		ima_free_kexec_buffer();
 +		break;
-+
-+	case R_PPC64_ADDR64:
-+		/* Simply set it */
-+		*(unsigned long *)location = value;
++	case -ENOTSUPP:
++		pr_debug("Restoring the measurement list not supported\n");
 +		break;
-+
-+	case R_PPC64_TOC:
-+		*(unsigned long *)location = my_r2;
++	case -ENOENT:
++		pr_debug("No measurement list to restore\n");
 +		break;
-+
-+	case R_PPC64_TOC16:
-+		/* Subtract TOC pointer */
-+		value -= my_r2;
-+		if (value + 0x8000 > 0xffff) {
-+			pr_err("%s: bad TOC16 relocation (0x%lx)\n",
-+			       obj_name, value);
-+			return -ENOEXEC;
-+		}
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xffff)
-+			| (value & 0xffff);
-+		break;
-+
-+	case R_PPC64_TOC16_LO:
-+		/* Subtract TOC pointer */
-+		value -= my_r2;
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xffff)
-+			| (value & 0xffff);
-+		break;
-+
-+	case R_PPC64_TOC16_DS:
-+		/* Subtract TOC pointer */
-+		value -= my_r2;
-+		if ((value & 3) != 0 || value + 0x8000 > 0xffff) {
-+			pr_err("%s: bad TOC16_DS relocation (0x%lx)\n",
-+			       obj_name, value);
-+			return -ENOEXEC;
-+		}
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xfffc)
-+			| (value & 0xfffc);
-+		break;
-+
-+	case R_PPC64_TOC16_LO_DS:
-+		/* Subtract TOC pointer */
-+		value -= my_r2;
-+		if ((value & 3) != 0) {
-+			pr_err("%s: bad TOC16_LO_DS relocation (0x%lx)\n",
-+			       obj_name, value);
-+			return -ENOEXEC;
-+		}
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xfffc)
-+			| (value & 0xfffc);
-+		break;
-+
-+	case R_PPC64_TOC16_HA:
-+		/* Subtract TOC pointer */
-+		value -= my_r2;
-+		value = ((value + 0x8000) >> 16);
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xffff)
-+			| (value & 0xffff);
-+		break;
-+
-+	case R_PPC_REL24:
-+		/* FIXME: Handle weak symbols here --RR */
-+		if (sym->st_shndx == SHN_UNDEF) {
-+			/* External: go via stub */
-+			value = stub_for_addr(sechdrs, value, me);
-+			if (!value)
-+				return -ENOENT;
-+			if (!restore_r2((u32 *)location + 1, me))
-+				return -ENOEXEC;
-+
-+			squash_toc_save_inst(strtab + sym->st_name, value);
-+		} else
-+			value += local_entry_offset(sym);
-+
-+		/* Convert value to relative */
-+		value -= (unsigned long)location;
-+		if (value + 0x2000000 > 0x3ffffff || (value & 3) != 0) {
-+			pr_err("%s: REL24 %li out of range!\n",
-+			       obj_name, (long int)value);
-+			return -ENOEXEC;
-+		}
-+
-+		/* Only replace bits 2 through 26 */
-+		*(uint32_t *)location
-+			= (*(uint32_t *)location & ~0x03fffffc)
-+			| (value & 0x03fffffc);
-+		break;
-+
-+	case R_PPC64_REL64:
-+		/* 64 bits relative (used by features fixups) */
-+		*location = value - (unsigned long)location;
-+		break;
-+
-+	case R_PPC64_TOCSAVE:
-+		/*
-+		 * Marker reloc indicates we don't have to save r2.
-+		 * That would only save us one instruction, so ignore
-+		 * it.
-+		 */
-+		break;
-+
-+	case R_PPC64_ENTRY:
-+		/*
-+		 * Optimize ELFv2 large code model entry point if
-+		 * the TOC is within 2GB range of current location.
-+		 */
-+		value = my_r2 - (unsigned long)location;
-+		if (value + 0x80008000 > 0xffffffff)
-+			break;
-+		/*
-+		 * Check for the large code model prolog sequence:
-+		 *	ld r2, ...(r12)
-+		 *	add r2, r2, r12
-+		 */
-+		if ((((uint32_t *)location)[0] & ~0xfffc)
-+		    != 0xe84c0000)
-+			break;
-+		if (((uint32_t *)location)[1] != 0x7c426214)
-+			break;
-+		/*
-+		 * If found, replace it with:
-+		 *	addis r2, r12, (.TOC.-func)@ha
-+		 *	addi r2, r12, (.TOC.-func)@l
-+		 */
-+		((uint32_t *)location)[0] = 0x3c4c0000 + PPC_HA(value);
-+		((uint32_t *)location)[1] = 0x38420000 + PPC_LO(value);
-+		break;
-+
-+	case R_PPC64_REL16_HA:
-+		/* Subtract location pointer */
-+		value -= (unsigned long)location;
-+		value = ((value + 0x8000) >> 16);
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xffff)
-+			| (value & 0xffff);
-+		break;
-+
-+	case R_PPC64_REL16_LO:
-+		/* Subtract location pointer */
-+		value -= (unsigned long)location;
-+		*((uint16_t *) location)
-+			= (*((uint16_t *) location) & ~0xffff)
-+			| (value & 0xffff);
-+		break;
-+
 +	default:
-+		pr_err("%s: Unknown ADD relocation: %lu\n", obj_name,
-+		       (unsigned long)ELF64_R_TYPE(rela->r_info));
-+		return -ENOEXEC;
++		pr_debug("Error restoring the measurement list: %d\n", rc);
++	}
++}
+diff -puN security/integrity/ima/ima_queue.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_queue.c
+--- a/security/integrity/ima/ima_queue.c~ima-on-soft-reboot-restore-the-measurement-list
++++ a/security/integrity/ima/ima_queue.c
+@@ -149,3 +149,13 @@ out:
+ 			    op, audit_cause, result, audit_info);
+ 	return result;
+ }
++
++int ima_restore_measurement_entry(struct ima_template_entry *entry)
++{
++	int result = 0;
++
++	mutex_lock(&ima_extend_list_mutex);
++	result = ima_add_digest_entry(entry);
++	mutex_unlock(&ima_extend_list_mutex);
++	return result;
++}
+diff -puN security/integrity/ima/ima_template.c~ima-on-soft-reboot-restore-the-measurement-list security/integrity/ima/ima_template.c
+--- a/security/integrity/ima/ima_template.c~ima-on-soft-reboot-restore-the-measurement-list
++++ a/security/integrity/ima/ima_template.c
+@@ -37,6 +37,7 @@ static struct ima_template_field support
+ 	{.field_id = "sig", .field_init = ima_eventsig_init,
+ 	 .field_show = ima_show_template_sig},
+ };
++#define MAX_TEMPLATE_NAME_LEN 15
+ 
+ static struct ima_template_desc *ima_template;
+ static struct ima_template_desc *lookup_template_desc(const char *name);
+@@ -205,3 +206,172 @@ int __init ima_init_template(void)
+ 
+ 	return result;
+ }
++
++static int ima_restore_template_data(struct ima_template_desc *template_desc,
++				     void *template_data,
++				     int template_data_size,
++				     struct ima_template_entry **entry)
++{
++	struct binary_field_data {
++		u32 len;
++		u8 data[0];
++	} __packed;
++
++	struct binary_field_data *field_data;
++	int offset = 0;
++	int ret = 0;
++	int i;
++
++	*entry = kzalloc(sizeof(**entry) +
++		    template_desc->num_fields * sizeof(struct ima_field_data),
++		    GFP_NOFS);
++	if (!*entry)
++		return -ENOMEM;
++
++	(*entry)->template_desc = template_desc;
++	for (i = 0; i < template_desc->num_fields; i++) {
++		field_data = template_data + offset;
++
++		/* Each field of the template data is prefixed with a length. */
++		if (offset > (template_data_size - sizeof(field_data->len))) {
++			pr_err("Restoring the template field failed\n");
++			ret = -EINVAL;
++			break;
++		}
++		offset += sizeof(field_data->len);
++
++		if (offset > (template_data_size - field_data->len)) {
++			pr_err("Restoring the template field data failed\n");
++			ret = -EINVAL;
++			break;
++		}
++		offset += field_data->len;
++
++		(*entry)->template_data[i].len = field_data->len;
++		(*entry)->template_data_len += sizeof(field_data->len);
++
++		(*entry)->template_data[i].data =
++			kzalloc(field_data->len + 1, GFP_KERNEL);
++		if (!(*entry)->template_data[i].data) {
++			ret = -ENOMEM;
++			break;
++		}
++		memcpy((*entry)->template_data[i].data, field_data->data,
++			field_data->len);
++		(*entry)->template_data_len += field_data->len;
 +	}
 +
-+	return 0;
++	if (ret < 0) {
++		ima_free_template_entry(*entry);
++		*entry = NULL;
++	}
++
++	return ret;
 +}
 +
- int apply_relocate_add(Elf64_Shdr *sechdrs,
- 		       const char *strtab,
- 		       unsigned int symindex,
-@@ -514,6 +689,7 @@ int apply_relocate_add(Elf64_Shdr *sechd
- 		       struct module *me)
- {
- 	unsigned int i;
-+	int ret;
- 	Elf64_Rela *rela = (void *)sechdrs[relsec].sh_addr;
- 	Elf64_Sym *sym;
- 	unsigned long *location;
-@@ -548,168 +724,12 @@ int apply_relocate_add(Elf64_Shdr *sechd
- 		/* `Everything is relative'. */
- 		value = sym->st_value + rela[i].r_addend;
- 
--		switch (ELF64_R_TYPE(rela[i].r_info)) {
--		case R_PPC64_ADDR32:
--			/* Simply set it */
--			*(u32 *)location = value;
--			break;
--
--		case R_PPC64_ADDR64:
--			/* Simply set it */
--			*(unsigned long *)location = value;
--			break;
--
--		case R_PPC64_TOC:
--			*(unsigned long *)location = my_r2(sechdrs, me);
--			break;
--
--		case R_PPC64_TOC16:
--			/* Subtract TOC pointer */
--			value -= my_r2(sechdrs, me);
--			if (value + 0x8000 > 0xffff) {
--				pr_err("%s: bad TOC16 relocation (0x%lx)\n",
--				       me->name, value);
--				return -ENOEXEC;
--			}
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xffff)
--				| (value & 0xffff);
--			break;
--
--		case R_PPC64_TOC16_LO:
--			/* Subtract TOC pointer */
--			value -= my_r2(sechdrs, me);
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xffff)
--				| (value & 0xffff);
--			break;
--
--		case R_PPC64_TOC16_DS:
--			/* Subtract TOC pointer */
--			value -= my_r2(sechdrs, me);
--			if ((value & 3) != 0 || value + 0x8000 > 0xffff) {
--				pr_err("%s: bad TOC16_DS relocation (0x%lx)\n",
--				       me->name, value);
--				return -ENOEXEC;
--			}
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xfffc)
--				| (value & 0xfffc);
--			break;
--
--		case R_PPC64_TOC16_LO_DS:
--			/* Subtract TOC pointer */
--			value -= my_r2(sechdrs, me);
--			if ((value & 3) != 0) {
--				pr_err("%s: bad TOC16_LO_DS relocation (0x%lx)\n",
--				       me->name, value);
--				return -ENOEXEC;
--			}
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xfffc)
--				| (value & 0xfffc);
--			break;
--
--		case R_PPC64_TOC16_HA:
--			/* Subtract TOC pointer */
--			value -= my_r2(sechdrs, me);
--			value = ((value + 0x8000) >> 16);
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xffff)
--				| (value & 0xffff);
--			break;
--
--		case R_PPC_REL24:
--			/* FIXME: Handle weak symbols here --RR */
--			if (sym->st_shndx == SHN_UNDEF) {
--				/* External: go via stub */
--				value = stub_for_addr(sechdrs, value, me);
--				if (!value)
--					return -ENOENT;
--				if (!restore_r2((u32 *)location + 1, me))
--					return -ENOEXEC;
--
--				squash_toc_save_inst(strtab + sym->st_name, value);
--			} else
--				value += local_entry_offset(sym);
--
--			/* Convert value to relative */
--			value -= (unsigned long)location;
--			if (value + 0x2000000 > 0x3ffffff || (value & 3) != 0){
--				pr_err("%s: REL24 %li out of range!\n",
--				       me->name, (long int)value);
--				return -ENOEXEC;
--			}
--
--			/* Only replace bits 2 through 26 */
--			*(uint32_t *)location
--				= (*(uint32_t *)location & ~0x03fffffc)
--				| (value & 0x03fffffc);
--			break;
--
--		case R_PPC64_REL64:
--			/* 64 bits relative (used by features fixups) */
--			*location = value - (unsigned long)location;
--			break;
--
--		case R_PPC64_TOCSAVE:
--			/*
--			 * Marker reloc indicates we don't have to save r2.
--			 * That would only save us one instruction, so ignore
--			 * it.
--			 */
--			break;
--
--		case R_PPC64_ENTRY:
--			/*
--			 * Optimize ELFv2 large code model entry point if
--			 * the TOC is within 2GB range of current location.
--			 */
--			value = my_r2(sechdrs, me) - (unsigned long)location;
--			if (value + 0x80008000 > 0xffffffff)
--				break;
--			/*
--			 * Check for the large code model prolog sequence:
--		         *	ld r2, ...(r12)
--			 *	add r2, r2, r12
--			 */
--			if ((((uint32_t *)location)[0] & ~0xfffc)
--			    != 0xe84c0000)
--				break;
--			if (((uint32_t *)location)[1] != 0x7c426214)
--				break;
--			/*
--			 * If found, replace it with:
--			 *	addis r2, r12, (.TOC.-func)@ha
--			 *	addi r2, r12, (.TOC.-func)@l
--			 */
--			((uint32_t *)location)[0] = 0x3c4c0000 + PPC_HA(value);
--			((uint32_t *)location)[1] = 0x38420000 + PPC_LO(value);
--			break;
--
--		case R_PPC64_REL16_HA:
--			/* Subtract location pointer */
--			value -= (unsigned long)location;
--			value = ((value + 0x8000) >> 16);
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xffff)
--				| (value & 0xffff);
--			break;
--
--		case R_PPC64_REL16_LO:
--			/* Subtract location pointer */
--			value -= (unsigned long)location;
--			*((uint16_t *) location)
--				= (*((uint16_t *) location) & ~0xffff)
--				| (value & 0xffff);
--			break;
--
--		default:
--			pr_err("%s: Unknown ADD relocation: %lu\n",
--			       me->name,
--			       (unsigned long)ELF64_R_TYPE(rela[i].r_info));
--			return -ENOEXEC;
--		}
-+		ret = elf64_apply_relocate_add_item(sechdrs, strtab, &rela[i],
-+						    sym, location, value,
-+						    my_r2(sechdrs, me),
-+						    me->name, me);
-+		if (ret)
-+			return ret;
- 	}
- 
- 	return 0;
++/* Restore the serialized binary measurement list without extending PCRs. */
++int ima_restore_measurement_list(loff_t size, void *buf)
++{
++	struct binary_hdr_v1 {
++		u32 pcr;
++		u8 digest[TPM_DIGEST_SIZE];
++		u32 template_name_len;
++		char template_name[0];
++	} __packed;
++	char template_name[MAX_TEMPLATE_NAME_LEN];
++
++	struct binary_data_v1 {
++		u32 template_data_size;
++		char template_data[0];
++	} __packed;
++
++	struct ima_kexec_hdr *khdr = buf;
++	struct binary_hdr_v1 *hdr_v1;
++	struct binary_data_v1 *data_v1;
++
++	void *bufp = buf + sizeof(*khdr);
++	void *bufendp = buf + khdr->buffer_size;
++	struct ima_template_entry *entry;
++	struct ima_template_desc *template_desc;
++	unsigned long count = 0;
++	int ret = 0;
++
++	if (!buf || size < sizeof(*khdr))
++		return 0;
++
++	if (khdr->version != 1) {
++		pr_err("attempting to restore a incompatible measurement list");
++		return 0;
++	}
++
++	/*
++	 * ima kexec buffer prefix: version, buffer size, count
++	 * v1 format: pcr, digest, template-name-len, template-name,
++	 *	      template-data-size, template-data
++	 */
++	while ((bufp < bufendp) && (count++ < khdr->count)) {
++		if (count > ULONG_MAX - 1) {
++			pr_err("attempting to restore too many measurements");
++			ret = -EINVAL;
++		}
++
++		hdr_v1 = bufp;
++		if ((hdr_v1->template_name_len >= MAX_TEMPLATE_NAME_LEN) ||
++		    ((bufp + hdr_v1->template_name_len) > bufendp)) {
++			pr_err("attempting to restore a template name \
++				that is too long\n");
++			ret = -EINVAL;
++			break;
++		}
++		bufp += sizeof(*hdr_v1);
++
++		/* template name is not null terminated */
++		memcpy(template_name, bufp, hdr_v1->template_name_len);
++		template_name[hdr_v1->template_name_len] = 0;
++
++		if (strcmp(template_name, "ima") == 0) {
++			pr_err("attempting to restore an unsupported \
++				template \"%s\" failed\n", template_name);
++			ret = -EINVAL;
++			break;
++		}
++		data_v1 = bufp += (u_int8_t)hdr_v1->template_name_len;
++
++		/* get template format */
++		template_desc = lookup_template_desc(template_name);
++		if (!template_desc) {
++			pr_err("template \"%s\" not found\n", template_name);
++			ret = -EINVAL;
++			break;
++		}
++
++		if (bufp > (bufendp - sizeof(data_v1->template_data_size))) {
++			pr_err("restoring the template data size failed\n");
++			ret = -EINVAL;
++			break;
++		}
++		bufp += (u_int8_t) sizeof(data_v1->template_data_size);
++
++		if (bufp > (bufendp - data_v1->template_data_size)) {
++			pr_err("restoring the template data failed\n");
++			ret = -EINVAL;
++			break;
++		}
++
++		ret = ima_restore_template_data(template_desc,
++						data_v1->template_data,
++						data_v1->template_data_size,
++						&entry);
++		if (ret < 0)
++			break;
++
++		memcpy(entry->digest, hdr_v1->digest, TPM_DIGEST_SIZE);
++		entry->pcr = hdr_v1->pcr;
++		ret = ima_restore_measurement_entry(entry);
++		if (ret < 0)
++			break;
++
++		bufp += data_v1->template_data_size;
++	}
++	return ret;
++}
 _
 
-Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
+Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
 
-kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
-kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
-kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
-powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
-powerpc-factor-out-relocation-code-in-module_64c.patch
-powerpc-implement-kexec_file_load.patch
-powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
-powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
-powerpc-add-purgatory-for-kexec_file_load-implementation.patch
-powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
-powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
-powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+ima-on-soft-reboot-restore-the-measurement-list.patch
+ima-permit-duplicate-measurement-list-entries.patch
+ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+ima-on-soft-reboot-save-the-measurement-list.patch
+ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+ima-support-restoring-multiple-template-formats.patch
+ima-define-a-canonical-binary_runtime_measurements-list-format.patch
 
