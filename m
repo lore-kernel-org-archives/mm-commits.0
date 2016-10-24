@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-dont-check-pl-files-improve-absolute-path-commit-log-test.patch
- added to -mm tree
-Date: Mon, 24 Oct 2016 13:20:38 -0700
-Message-ID: <580e6d16.Huvjn3OKHNhXrOqk%akpm@linux-foundation.org>
+Subject: + ipc-msg-make-msgrcv-work-with-long_min.patch added to -mm tree
+Date: Mon, 24 Oct 2016 13:23:40 -0700
+Message-ID: <580e6dcc.uoDdEDUigFc3Zy8F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57217 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57235 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932580AbcJXUUj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 16:20:39 -0400
+        with ESMTP id S965254AbcJXUXl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 16:23:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
+To: jslaby@suse.cz, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: don't check .pl files, improve absolute path commit log test
+     Subject: ipc: msg, make msgrcv work with LONG_MIN
 has been added to the -mm tree.  Its filename is
-     checkpatch-dont-check-pl-files-improve-absolute-path-commit-log-test.patch
+     ipc-msg-make-msgrcv-work-with-long_min.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-dont-check-pl-files-improve-absolute-path-commit-log-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-msg-make-msgrcv-work-with-long_min.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-dont-check-pl-files-improve-absolute-path-commit-log-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-msg-make-msgrcv-work-with-long_min.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,82 +38,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: don't check .pl files, improve absolute path commit log test
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: ipc: msg, make msgrcv work with LONG_MIN
 
-perl files (*.pl) are mostly inappropriate to check coding styles so
-exempt them from long line checks and various .[ch] file type tests.
+When LONG_MIN is passed to msgrcv, one would expect to recieve any
+message.  But convert_mode does *msgtyp = -*msgtyp and -LONG_MIN is
+undefined.  In particular, with my gcc -LONG_MIN produces -LONG_MIN again.
 
-And as well, only scan absolute paths in the commit log, not in the patch.
+So handle this case properly by assigning LONG_MAX to *msgtyp if LONG_MIN
+was specified as msgtyp to msgrcv.
 
-Link: http://lkml.kernel.org/r/85b101d50acafe6c0261d9f7df283c827da52c4a.1477340110.git.joe@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+This code:
+  long msg[] = { 100, 200 };
+  int m = msgget(IPC_PRIVATE, IPC_CREAT | 0644);
+  msgsnd(m, &msg, sizeof(msg), 0);
+  msgrcv(m, &msg, sizeof(msg), LONG_MIN, 0);
+produces currently nothing:
+  msgget(IPC_PRIVATE, IPC_CREAT|0644)     = 65538
+  msgsnd(65538, {100, "\310\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16, 0) = 0
+  msgrcv(65538, ...
+
+Except a UBSAN warning:
+UBSAN: Undefined behaviour in ipc/msg.c:745:13
+negation of -9223372036854775808 cannot be represented in type 'long int':
+
+With the patch, I see what I expect:
+  msgget(IPC_PRIVATE, IPC_CREAT|0644)     = 0
+  msgsnd(0, {100, "\310\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16, 0) = 0
+  msgrcv(0, {100, "\310\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"}, 16, -9223372036854775808, 0) = 16
+
+Link: http://lkml.kernel.org/r/20161024082633.10148-1-jslaby@suse.cz
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+ ipc/msg.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-dont-check-pl-files-improve-absolute-path-commit-log-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-dont-check-pl-files-improve-absolute-path-commit-log-test
-+++ a/scripts/checkpatch.pl
-@@ -2601,20 +2601,6 @@ sub process {
- 				$herecurr) if (!$emitted_corrupt++);
- 		}
- 
--# Check for absolute kernel paths.
--		if ($tree) {
--			while ($line =~ m{(?:^|\s)(/\S*)}g) {
--				my $file = $1;
--
--				if ($file =~ m{^(.*?)(?::\d+)+:?$} &&
--				    check_absolute_file($1, $herecurr)) {
--					#
--				} else {
--					check_absolute_file($file, $herecurr);
--				}
--			}
--		}
--
- # UTF-8 regex found at http://www.w3.org/International/questions/qa-forms-utf-8.en.php
- 		if (($realfile =~ /^$/ || $line =~ /^\+/) &&
- 		    $rawline !~ m/^$UTF8*$/) {
-@@ -2652,6 +2638,20 @@ sub process {
- 			    "8-bit UTF-8 used in possible commit log\n" . $herecurr);
- 		}
- 
-+# Check for absolute kernel paths in commit message
-+		if ($tree && $in_commit_log) {
-+			while ($line =~ m{(?:^|\s)(/\S*)}g) {
-+				my $file = $1;
-+
-+				if ($file =~ m{^(.*?)(?::\d+)+:?$} &&
-+				    check_absolute_file($1, $herecurr)) {
-+					#
-+				} else {
-+					check_absolute_file($file, $herecurr);
-+				}
-+			}
-+		}
-+
- # Check for various typo / spelling mistakes
- 		if (defined($misspellings) &&
- 		    ($in_commit_log || $line =~ /^(?:\+|Subject:)/i)) {
-@@ -2805,7 +2805,7 @@ sub process {
- 		}
- 
- # check we are in a valid source file if not then ignore this hunk
--		next if ($realfile !~ /\.(h|c|s|S|pl|sh|dtsi|dts)$/);
-+		next if ($realfile !~ /\.(h|c|s|S|sh|dtsi|dts)$/);
- 
- # line length limit (with some exclusions)
- #
+diff -puN ipc/msg.c~ipc-msg-make-msgrcv-work-with-long_min ipc/msg.c
+--- a/ipc/msg.c~ipc-msg-make-msgrcv-work-with-long_min
++++ a/ipc/msg.c
+@@ -763,7 +763,10 @@ static inline int convert_mode(long *msg
+ 	if (*msgtyp == 0)
+ 		return SEARCH_ANY;
+ 	if (*msgtyp < 0) {
+-		*msgtyp = -*msgtyp;
++		if (*msgtyp == LONG_MIN) /* -LONG_MIN is undefined */
++			*msgtyp = LONG_MAX;
++		else
++			*msgtyp = -*msgtyp;
+ 		return SEARCH_LESSEQUAL;
+ 	}
+ 	if (msgflg & MSG_EXCEPT)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
-mm-page_alloc-use-kern_cont-where-appropriate.patch
-checkpatch-dont-check-pl-files-improve-absolute-path-commit-log-test.patch
+ipc-msg-make-msgrcv-work-with-long_min.patch
 
