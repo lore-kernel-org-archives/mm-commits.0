@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
- added to -mm tree
-Date: Mon, 24 Oct 2016 12:42:49 -0700
-Message-ID: <580e6439.SlMMZyTV8YsCPhnN%akpm@linux-foundation.org>
+Subject: + powerpc-factor-out-relocation-code-in-module_64c.patch added to -mm tree
+Date: Mon, 24 Oct 2016 12:42:39 -0700
+Message-ID: <580e642f.8q8g9pnjb9Ys416g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56741 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56675 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941104AbcJXTmu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 15:42:50 -0400
+        with ESMTP id S941059AbcJXTmk (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 15:42:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, sklar@linux.vnet.ibm.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: ima: send the kexec buffer to the next kernel
+     Subject: powerpc: factor out relocation code in module_64.c
 has been added to the -mm tree.  Its filename is
-     powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+     powerpc-factor-out-relocation-code-in-module_64c.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-factor-out-relocation-code-in-module_64c.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-factor-out-relocation-code-in-module_64c.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,238 +39,409 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: ima: send the kexec buffer to the next kernel
+Subject: powerpc: factor out relocation code in module_64.c
 
-The IMA kexec buffer allows the currently running kernel to pass the
-measurement list via a kexec segment to the kernel that will be kexec'd.
+The kexec_file_load system call needs to relocate the purgatory, so factor
+out the module relocation code so that it can be shared.
 
-This is the architecture-specific part of setting up the IMA kexec buffer
-for the next kernel.  It will be used in the next patch.
+This patch's purpose is to move the ELF relocation logic from
+apply_relocate_add to the new function elf64_apply_relocate_add_item with
+as few changes as possible.  The following changes were needed:
 
-Link: http://lkml.kernel.org/r/1477017898-10375-6-git-send-email-bauerman@linux.vnet.ibm.com
+elf64_apply_relocate_add_item takes a my_r2 argument because the kexec
+code can't use the my_r2 function since it doesn't have a struct module to
+pass to it.  For the same reason, it also takes an obj_name argument to
+use in error messages.  It still takes a pointer to struct module
+argument, but kexec code can just pass NULL because except for the TOC
+symbol, the purgatory doesn't have undefined symbols so the module pointer
+isn't used.
+
+Apart from what is described in the paragraph above, the code has no
+functional changes.
+
+Link: http://lkml.kernel.org/r/1477017617-8540-6-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Suggested-by: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Andreas Steffen <andreas.steffen@strongswan.org>
 Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/ima.h              |   16 +++
- arch/powerpc/include/asm/kexec.h            |   14 ++
- arch/powerpc/kernel/ima_kexec.c             |   91 ++++++++++++++++++
- arch/powerpc/kernel/kexec_elf_64.c          |    2 
- arch/powerpc/kernel/machine_kexec_file_64.c |   12 +-
- 5 files changed, 129 insertions(+), 6 deletions(-)
+ arch/powerpc/kernel/module_64.c |  344 +++++++++++++++---------------
+ 1 file changed, 182 insertions(+), 162 deletions(-)
 
-diff -puN arch/powerpc/include/asm/ima.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/include/asm/ima.h
---- a/arch/powerpc/include/asm/ima.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
-+++ a/arch/powerpc/include/asm/ima.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_POWERPC_IMA_H
- #define _ASM_POWERPC_IMA_H
- 
-+struct kimage;
-+
- int ima_get_kexec_buffer(void **addr, size_t *size);
- int ima_free_kexec_buffer(void);
- 
-@@ -10,4 +12,18 @@ void remove_ima_buffer(void *fdt, int ch
- static inline void remove_ima_buffer(void *fdt, int chosen_node) {}
- #endif
- 
-+#ifdef CONFIG_IMA_KEXEC
-+int arch_ima_add_kexec_buffer(struct kimage *image, unsigned long load_addr,
-+			      size_t size);
-+
-+int setup_ima_buffer(const struct kimage *image, void *fdt, int chosen_node);
-+#else
-+static inline int setup_ima_buffer(const struct kimage *image, void *fdt,
-+				   int chosen_node)
-+{
-+	remove_ima_buffer(fdt, chosen_node);
-+	return 0;
-+}
-+#endif /* CONFIG_IMA_KEXEC */
-+
- #endif /* _ASM_POWERPC_IMA_H */
-diff -puN arch/powerpc/include/asm/kexec.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/include/asm/kexec.h
---- a/arch/powerpc/include/asm/kexec.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
-+++ a/arch/powerpc/include/asm/kexec.h
-@@ -94,12 +94,22 @@ static inline bool kdump_in_progress(voi
- #ifdef CONFIG_KEXEC_FILE
- extern struct kexec_file_ops kexec_elf64_ops;
- 
-+#ifdef CONFIG_IMA_KEXEC
-+#define ARCH_HAS_KIMAGE_ARCH
-+
-+struct kimage_arch {
-+	phys_addr_t ima_buffer_addr;
-+	size_t ima_buffer_size;
-+};
-+#endif
-+
- int setup_purgatory(struct kimage *image, const void *slave_code,
- 		    const void *fdt, unsigned long kernel_load_addr,
- 		    unsigned long fdt_load_addr, unsigned long stack_top,
- 		    int debug);
--int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
--		  unsigned long initrd_len, const char *cmdline);
-+int setup_new_fdt(const struct kimage *image, void *fdt,
-+		  unsigned long initrd_load_addr, unsigned long initrd_len,
-+		  const char *cmdline);
- bool find_debug_console(const void *fdt);
- int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size);
- #endif /* CONFIG_KEXEC_FILE */
-diff -puN arch/powerpc/kernel/ima_kexec.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/ima_kexec.c
---- a/arch/powerpc/kernel/ima_kexec.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
-+++ a/arch/powerpc/kernel/ima_kexec.c
-@@ -130,3 +130,94 @@ void remove_ima_buffer(void *fdt, int ch
- 	if (!ret)
- 		pr_debug("Removed old IMA buffer reservation.\n");
+diff -puN arch/powerpc/kernel/module_64.c~powerpc-factor-out-relocation-code-in-module_64c arch/powerpc/kernel/module_64.c
+--- a/arch/powerpc/kernel/module_64.c~powerpc-factor-out-relocation-code-in-module_64c
++++ a/arch/powerpc/kernel/module_64.c
+@@ -507,6 +507,181 @@ static int restore_r2(u32 *instruction,
+ 	return 1;
  }
-+
-+#ifdef CONFIG_IMA_KEXEC
-+/**
-+ * arch_ima_add_kexec_buffer - do arch-specific steps to add the IMA buffer
-+ *
-+ * Architectures should use this function to pass on the IMA buffer
-+ * information to the next kernel.
-+ *
-+ * Return: 0 on success, negative errno on error.
-+ */
-+int arch_ima_add_kexec_buffer(struct kimage *image, unsigned long load_addr,
-+			      size_t size)
+ 
++static int elf64_apply_relocate_add_item(const Elf64_Shdr *sechdrs,
++					 const char *strtab,
++					 const Elf64_Rela *rela,
++					 const Elf64_Sym *sym,
++					 unsigned long *location,
++					 unsigned long value,
++					 unsigned long my_r2,
++					 const char *obj_name,
++					 struct module *me)
 +{
-+	image->arch.ima_buffer_addr = load_addr;
-+	image->arch.ima_buffer_size = size;
++	switch (ELF64_R_TYPE(rela->r_info)) {
++	case R_PPC64_ADDR32:
++		/* Simply set it */
++		*(u32 *)location = value;
++		break;
 +
-+	return 0;
-+}
++	case R_PPC64_ADDR64:
++		/* Simply set it */
++		*(unsigned long *)location = value;
++		break;
 +
-+static int write_number(void *p, u64 value, int cells)
-+{
-+	if (cells == 1) {
-+		u32 tmp;
++	case R_PPC64_TOC:
++		*(unsigned long *)location = my_r2;
++		break;
 +
-+		if (value > U32_MAX)
-+			return -EINVAL;
++	case R_PPC64_TOC16:
++		/* Subtract TOC pointer */
++		value -= my_r2;
++		if (value + 0x8000 > 0xffff) {
++			pr_err("%s: bad TOC16 relocation (0x%lx)\n",
++			       obj_name, value);
++			return -ENOEXEC;
++		}
++		*((uint16_t *) location)
++			= (*((uint16_t *) location) & ~0xffff)
++			| (value & 0xffff);
++		break;
 +
-+		tmp = cpu_to_be32(value);
-+		memcpy(p, &tmp, sizeof(tmp));
-+	} else if (cells == 2) {
-+		u64 tmp;
++	case R_PPC64_TOC16_LO:
++		/* Subtract TOC pointer */
++		value -= my_r2;
++		*((uint16_t *) location)
++			= (*((uint16_t *) location) & ~0xffff)
++			| (value & 0xffff);
++		break;
 +
-+		tmp = cpu_to_be64(value);
-+		memcpy(p, &tmp, sizeof(tmp));
-+	} else
-+		return -EINVAL;
++	case R_PPC64_TOC16_DS:
++		/* Subtract TOC pointer */
++		value -= my_r2;
++		if ((value & 3) != 0 || value + 0x8000 > 0xffff) {
++			pr_err("%s: bad TOC16_DS relocation (0x%lx)\n",
++			       obj_name, value);
++			return -ENOEXEC;
++		}
++		*((uint16_t *) location)
++			= (*((uint16_t *) location) & ~0xfffc)
++			| (value & 0xfffc);
++		break;
 +
-+	return 0;
-+}
++	case R_PPC64_TOC16_LO_DS:
++		/* Subtract TOC pointer */
++		value -= my_r2;
++		if ((value & 3) != 0) {
++			pr_err("%s: bad TOC16_LO_DS relocation (0x%lx)\n",
++			       obj_name, value);
++			return -ENOEXEC;
++		}
++		*((uint16_t *) location)
++			= (*((uint16_t *) location) & ~0xfffc)
++			| (value & 0xfffc);
++		break;
 +
-+/**
-+ * setup_ima_buffer - add IMA buffer information to the fdt
-+ * @image:		kexec image being loaded.
-+ * @fdt:		Flattened device tree for the next kernel.
-+ * @chosen_node:	Offset to the chosen node.
-+ *
-+ * Return: 0 on success, or negative errno on error.
-+ */
-+int setup_ima_buffer(const struct kimage *image, void *fdt, int chosen_node)
-+{
-+	int ret, addr_cells, size_cells, entry_size;
-+	u8 value[16];
++	case R_PPC64_TOC16_HA:
++		/* Subtract TOC pointer */
++		value -= my_r2;
++		value = ((value + 0x8000) >> 16);
++		*((uint16_t *) location)
++			= (*((uint16_t *) location) & ~0xffff)
++			| (value & 0xffff);
++		break;
 +
-+	remove_ima_buffer(fdt, chosen_node);
-+	if (!image->arch.ima_buffer_size)
-+		return 0;
++	case R_PPC_REL24:
++		/* FIXME: Handle weak symbols here --RR */
++		if (sym->st_shndx == SHN_UNDEF) {
++			/* External: go via stub */
++			value = stub_for_addr(sechdrs, value, me);
++			if (!value)
++				return -ENOENT;
++			if (!restore_r2((u32 *)location + 1, me))
++				return -ENOEXEC;
 +
-+	ret = get_addr_size_cells(&addr_cells, &size_cells);
-+	if (ret)
-+		return ret;
++			squash_toc_save_inst(strtab + sym->st_name, value);
++		} else
++			value += local_entry_offset(sym);
 +
-+	entry_size = 4 * (addr_cells + size_cells);
++		/* Convert value to relative */
++		value -= (unsigned long)location;
++		if (value + 0x2000000 > 0x3ffffff || (value & 3) != 0) {
++			pr_err("%s: REL24 %li out of range!\n",
++			       obj_name, (long int)value);
++			return -ENOEXEC;
++		}
 +
-+	if (entry_size > sizeof(value))
-+		return -EINVAL;
++		/* Only replace bits 2 through 26 */
++		*(uint32_t *)location
++			= (*(uint32_t *)location & ~0x03fffffc)
++			| (value & 0x03fffffc);
++		break;
 +
-+	ret = write_number(value, image->arch.ima_buffer_addr, addr_cells);
-+	if (ret)
-+		return ret;
++	case R_PPC64_REL64:
++		/* 64 bits relative (used by features fixups) */
++		*location = value - (unsigned long)location;
++		break;
 +
-+	ret = write_number(value + 4 * addr_cells, image->arch.ima_buffer_size,
-+			   size_cells);
-+	if (ret)
-+		return ret;
++	case R_PPC64_TOCSAVE:
++		/*
++		 * Marker reloc indicates we don't have to save r2.
++		 * That would only save us one instruction, so ignore
++		 * it.
++		 */
++		break;
 +
-+	ret = fdt_setprop(fdt, chosen_node, "linux,ima-kexec-buffer", value,
-+			  entry_size);
-+	if (ret < 0)
-+		return -EINVAL;
++	case R_PPC64_ENTRY:
++		/*
++		 * Optimize ELFv2 large code model entry point if
++		 * the TOC is within 2GB range of current location.
++		 */
++		value = my_r2 - (unsigned long)location;
++		if (value + 0x80008000 > 0xffffffff)
++			break;
++		/*
++		 * Check for the large code model prolog sequence:
++		 *	ld r2, ...(r12)
++		 *	add r2, r2, r12
++		 */
++		if ((((uint32_t *)location)[0] & ~0xfffc)
++		    != 0xe84c0000)
++			break;
++		if (((uint32_t *)location)[1] != 0x7c426214)
++			break;
++		/*
++		 * If found, replace it with:
++		 *	addis r2, r12, (.TOC.-func)@ha
++		 *	addi r2, r12, (.TOC.-func)@l
++		 */
++		((uint32_t *)location)[0] = 0x3c4c0000 + PPC_HA(value);
++		((uint32_t *)location)[1] = 0x38420000 + PPC_LO(value);
++		break;
 +
-+	ret = fdt_add_mem_rsv(fdt, image->arch.ima_buffer_addr,
-+			      image->arch.ima_buffer_size);
-+	if (ret)
-+		return -EINVAL;
++	case R_PPC64_REL16_HA:
++		/* Subtract location pointer */
++		value -= (unsigned long)location;
++		value = ((value + 0x8000) >> 16);
++		*((uint16_t *) location)
++			= (*((uint16_t *) location) & ~0xffff)
++			| (value & 0xffff);
++		break;
 +
-+	pr_debug("IMA buffer at 0x%llx, size = 0x%zx\n",
-+		 image->arch.ima_buffer_addr, image->arch.ima_buffer_size);
++	case R_PPC64_REL16_LO:
++		/* Subtract location pointer */
++		value -= (unsigned long)location;
++		*((uint16_t *) location)
++			= (*((uint16_t *) location) & ~0xffff)
++			| (value & 0xffff);
++		break;
 +
-+	return 0;
-+}
-+#endif /* CONFIG_IMA_KEXEC */
-diff -puN arch/powerpc/kernel/kexec_elf_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/kexec_elf_64.c
---- a/arch/powerpc/kernel/kexec_elf_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
-+++ a/arch/powerpc/kernel/kexec_elf_64.c
-@@ -206,7 +206,7 @@ static void *elf64_load(struct kimage *i
- 		goto out;
- 	}
- 
--	ret = setup_new_fdt(fdt, initrd_load_addr, initrd_len, cmdline);
-+	ret = setup_new_fdt(image, fdt, initrd_load_addr, initrd_len, cmdline);
- 	if (ret)
- 		goto out;
- 
-diff -puN arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/machine_kexec_file_64.c
---- a/arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
-+++ a/arch/powerpc/kernel/machine_kexec_file_64.c
-@@ -393,6 +393,7 @@ int delete_fdt_mem_rsv(void *fdt, unsign
- 
- /*
-  * setup_new_fdt - modify /chosen and memory reservation for the next kernel
-+ * @image:		kexec image being loaded.
-  * @fdt:		Flattened device tree for the next kernel.
-  * @initrd_load_addr:	Address where the next initrd will be loaded.
-  * @initrd_len:		Size of the next initrd, or 0 if there will be none.
-@@ -401,8 +402,9 @@ int delete_fdt_mem_rsv(void *fdt, unsign
-  *
-  * Return: 0 on success, or negative errno on error.
-  */
--int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
--		  unsigned long initrd_len, const char *cmdline)
-+int setup_new_fdt(const struct kimage *image, void *fdt,
-+		  unsigned long initrd_load_addr, unsigned long initrd_len,
-+		  const char *cmdline)
- {
- 	int ret, chosen_node;
- 	const void *prop;
-@@ -512,7 +514,11 @@ int setup_new_fdt(void *fdt, unsigned lo
- 		}
- 	}
- 
--	remove_ima_buffer(fdt, chosen_node);
-+	ret = setup_ima_buffer(image, fdt, chosen_node);
-+	if (ret) {
-+		pr_err("Error setting up the new device tree.\n");
-+		return ret;
++	default:
++		pr_err("%s: Unknown ADD relocation: %lu\n", obj_name,
++		       (unsigned long)ELF64_R_TYPE(rela->r_info));
++		return -ENOEXEC;
 +	}
++
++	return 0;
++}
++
+ int apply_relocate_add(Elf64_Shdr *sechdrs,
+ 		       const char *strtab,
+ 		       unsigned int symindex,
+@@ -514,6 +689,7 @@ int apply_relocate_add(Elf64_Shdr *sechd
+ 		       struct module *me)
+ {
+ 	unsigned int i;
++	int ret;
+ 	Elf64_Rela *rela = (void *)sechdrs[relsec].sh_addr;
+ 	Elf64_Sym *sym;
+ 	unsigned long *location;
+@@ -548,168 +724,12 @@ int apply_relocate_add(Elf64_Shdr *sechd
+ 		/* `Everything is relative'. */
+ 		value = sym->st_value + rela[i].r_addend;
  
- 	ret = fdt_setprop(fdt, chosen_node, "linux,booted-from-kexec", NULL, 0);
- 	if (ret) {
+-		switch (ELF64_R_TYPE(rela[i].r_info)) {
+-		case R_PPC64_ADDR32:
+-			/* Simply set it */
+-			*(u32 *)location = value;
+-			break;
+-
+-		case R_PPC64_ADDR64:
+-			/* Simply set it */
+-			*(unsigned long *)location = value;
+-			break;
+-
+-		case R_PPC64_TOC:
+-			*(unsigned long *)location = my_r2(sechdrs, me);
+-			break;
+-
+-		case R_PPC64_TOC16:
+-			/* Subtract TOC pointer */
+-			value -= my_r2(sechdrs, me);
+-			if (value + 0x8000 > 0xffff) {
+-				pr_err("%s: bad TOC16 relocation (0x%lx)\n",
+-				       me->name, value);
+-				return -ENOEXEC;
+-			}
+-			*((uint16_t *) location)
+-				= (*((uint16_t *) location) & ~0xffff)
+-				| (value & 0xffff);
+-			break;
+-
+-		case R_PPC64_TOC16_LO:
+-			/* Subtract TOC pointer */
+-			value -= my_r2(sechdrs, me);
+-			*((uint16_t *) location)
+-				= (*((uint16_t *) location) & ~0xffff)
+-				| (value & 0xffff);
+-			break;
+-
+-		case R_PPC64_TOC16_DS:
+-			/* Subtract TOC pointer */
+-			value -= my_r2(sechdrs, me);
+-			if ((value & 3) != 0 || value + 0x8000 > 0xffff) {
+-				pr_err("%s: bad TOC16_DS relocation (0x%lx)\n",
+-				       me->name, value);
+-				return -ENOEXEC;
+-			}
+-			*((uint16_t *) location)
+-				= (*((uint16_t *) location) & ~0xfffc)
+-				| (value & 0xfffc);
+-			break;
+-
+-		case R_PPC64_TOC16_LO_DS:
+-			/* Subtract TOC pointer */
+-			value -= my_r2(sechdrs, me);
+-			if ((value & 3) != 0) {
+-				pr_err("%s: bad TOC16_LO_DS relocation (0x%lx)\n",
+-				       me->name, value);
+-				return -ENOEXEC;
+-			}
+-			*((uint16_t *) location)
+-				= (*((uint16_t *) location) & ~0xfffc)
+-				| (value & 0xfffc);
+-			break;
+-
+-		case R_PPC64_TOC16_HA:
+-			/* Subtract TOC pointer */
+-			value -= my_r2(sechdrs, me);
+-			value = ((value + 0x8000) >> 16);
+-			*((uint16_t *) location)
+-				= (*((uint16_t *) location) & ~0xffff)
+-				| (value & 0xffff);
+-			break;
+-
+-		case R_PPC_REL24:
+-			/* FIXME: Handle weak symbols here --RR */
+-			if (sym->st_shndx == SHN_UNDEF) {
+-				/* External: go via stub */
+-				value = stub_for_addr(sechdrs, value, me);
+-				if (!value)
+-					return -ENOENT;
+-				if (!restore_r2((u32 *)location + 1, me))
+-					return -ENOEXEC;
+-
+-				squash_toc_save_inst(strtab + sym->st_name, value);
+-			} else
+-				value += local_entry_offset(sym);
+-
+-			/* Convert value to relative */
+-			value -= (unsigned long)location;
+-			if (value + 0x2000000 > 0x3ffffff || (value & 3) != 0){
+-				pr_err("%s: REL24 %li out of range!\n",
+-				       me->name, (long int)value);
+-				return -ENOEXEC;
+-			}
+-
+-			/* Only replace bits 2 through 26 */
+-			*(uint32_t *)location
+-				= (*(uint32_t *)location & ~0x03fffffc)
+-				| (value & 0x03fffffc);
+-			break;
+-
+-		case R_PPC64_REL64:
+-			/* 64 bits relative (used by features fixups) */
+-			*location = value - (unsigned long)location;
+-			break;
+-
+-		case R_PPC64_TOCSAVE:
+-			/*
+-			 * Marker reloc indicates we don't have to save r2.
+-			 * That would only save us one instruction, so ignore
+-			 * it.
+-			 */
+-			break;
+-
+-		case R_PPC64_ENTRY:
+-			/*
+-			 * Optimize ELFv2 large code model entry point if
+-			 * the TOC is within 2GB range of current location.
+-			 */
+-			value = my_r2(sechdrs, me) - (unsigned long)location;
+-			if (value + 0x80008000 > 0xffffffff)
+-				break;
+-			/*
+-			 * Check for the large code model prolog sequence:
+-		         *	ld r2, ...(r12)
+-			 *	add r2, r2, r12
+-			 */
+-			if ((((uint32_t *)location)[0] & ~0xfffc)
+-			    != 0xe84c0000)
+-				break;
+-			if (((uint32_t *)location)[1] != 0x7c426214)
+-				break;
+-			/*
+-			 * If found, replace it with:
+-			 *	addis r2, r12, (.TOC.-func)@ha
+-			 *	addi r2, r12, (.TOC.-func)@l
+-			 */
+-			((uint32_t *)location)[0] = 0x3c4c0000 + PPC_HA(value);
+-			((uint32_t *)location)[1] = 0x38420000 + PPC_LO(value);
+-			break;
+-
+-		case R_PPC64_REL16_HA:
+-			/* Subtract location pointer */
+-			value -= (unsigned long)location;
+-			value = ((value + 0x8000) >> 16);
+-			*((uint16_t *) location)
+-				= (*((uint16_t *) location) & ~0xffff)
+-				| (value & 0xffff);
+-			break;
+-
+-		case R_PPC64_REL16_LO:
+-			/* Subtract location pointer */
+-			value -= (unsigned long)location;
+-			*((uint16_t *) location)
+-				= (*((uint16_t *) location) & ~0xffff)
+-				| (value & 0xffff);
+-			break;
+-
+-		default:
+-			pr_err("%s: Unknown ADD relocation: %lu\n",
+-			       me->name,
+-			       (unsigned long)ELF64_R_TYPE(rela[i].r_info));
+-			return -ENOEXEC;
+-		}
++		ret = elf64_apply_relocate_add_item(sechdrs, strtab, &rela[i],
++						    sym, location, value,
++						    my_r2(sechdrs, me),
++						    me->name, me);
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
