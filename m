@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+Subject: + powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
  added to -mm tree
-Date: Mon, 24 Oct 2016 12:42:36 -0700
-Message-ID: <580e642c.iu//KETIX4Tww/75%akpm@linux-foundation.org>
+Date: Mon, 24 Oct 2016 12:42:49 -0700
+Message-ID: <580e6439.SlMMZyTV8YsCPhnN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56660 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56741 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935267AbcJXTmi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 15:42:38 -0400
+        with ESMTP id S941104AbcJXTmu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 15:42:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, sklar@linux.vnet.ibm.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec_file: allow arch-specific memory walking for kexec_add_buffer
+     Subject: powerpc: ima: send the kexec buffer to the next kernel
 has been added to the -mm tree.  Its filename is
-     kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+     powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,186 +40,252 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: kexec_file: allow arch-specific memory walking for kexec_add_buffer
+Subject: powerpc: ima: send the kexec buffer to the next kernel
 
-Patch series "kexec_file_load implementation for PowerPC", v9.
+The IMA kexec buffer allows the currently running kernel to pass the
+measurement list via a kexec segment to the kernel that will be kexec'd.
 
+This is the architecture-specific part of setting up the IMA kexec buffer
+for the next kernel.  It will be used in the next patch.
 
-This patch series implements the kexec_file_load system call on PowerPC.
-
-This system call moves the reading of the kernel, initrd and the device tree
-from the userspace kexec tool to the kernel. This is needed if you want to
-do one or both of the following:
-
-1. only allow loading of signed kernels.
-2. "measure" (i.e., record the hashes of) the kernel, initrd, kernel
-   command line and other boot inputs for the Integrity Measurement
-   Architecture subsystem.
-
-The above are the functions kexec already has built into kexec_file_load.
-Yesterday I posted a set of patches which allows a third feature:
-
-3. have IMA pass-on its event log (where integrity measurements are
-   registered) accross kexec to the second kernel, so that the event
-   history is preserved.
-
-Because OpenPower uses an intermediary Linux instance as a boot loader
-(skiroot), feature 1 is needed to implement secure boot for the platform,
-while features 2 and 3 are needed to implement trusted boot.
-
-This patch series starts by removing an x86 assumption from kexec_file:
-kexec_add_buffer uses iomem to find reserved memory ranges, but PowerPC
-uses the memblock subsystem.  A hook is added so that each arch can
-specify how memory ranges can be found.
-
-Also, the memory-walking logic in kexec_add_buffer is useful in this
-implementation to find a free area for the purgatory's stack, so the
-next patch moves that logic to kexec_locate_mem_hole.
-
-The kexec_file_load system call needs to apply relocations to the
-purgatory but adding code for that would duplicate functionality with
-the module loading mechanism, which also needs to apply relocations to
-the kernel modules.  Therefore, this patch series factors out the module
-relocation code so that it can be shared.
-
-One thing that is still missing is crashkernel support, which I intend
-to submit shortly. For now, arch_kexec_kernel_image_probe rejects crash
-kernels.
-
-This code is based on kexec-tools, but with many modifications to adapt
-it to the kernel environment and facilities. Except the purgatory,
-which only has minimal changes.
-
-
-
-This patch (of 10):
-
-Allow architectures to specify a different memory walking function for
-kexec_add_buffer.  x86 uses iomem to track reserved memory ranges, but
-PowerPC uses the memblock subsystem.
-
-Link: http://lkml.kernel.org/r/1477017617-8540-2-git-send-email-bauerman@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1477017898-10375-6-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Acked-by: Dave Young <dyoung@redhat.com>
-Acked-by: Balbir Singh <bsingharora@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Andreas Steffen <andreas.steffen@strongswan.org>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Dave Young <dyoung@redhat.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h   |   29 ++++++++++++++++++++++++++++-
- kernel/kexec_file.c     |   30 ++++++++++++++++++++++--------
- kernel/kexec_internal.h |   16 ----------------
- 3 files changed, 50 insertions(+), 25 deletions(-)
+ arch/powerpc/include/asm/ima.h              |   16 +++
+ arch/powerpc/include/asm/kexec.h            |   14 ++
+ arch/powerpc/kernel/ima_kexec.c             |   91 ++++++++++++++++++
+ arch/powerpc/kernel/kexec_elf_64.c          |    2 
+ arch/powerpc/kernel/machine_kexec_file_64.c |   12 +-
+ 5 files changed, 129 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/kexec.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer include/linux/kexec.h
---- a/include/linux/kexec.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer
-+++ a/include/linux/kexec.h
-@@ -148,7 +148,34 @@ struct kexec_file_ops {
- 	kexec_verify_sig_t *verify_sig;
+diff -puN arch/powerpc/include/asm/ima.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/include/asm/ima.h
+--- a/arch/powerpc/include/asm/ima.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
++++ a/arch/powerpc/include/asm/ima.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_POWERPC_IMA_H
+ #define _ASM_POWERPC_IMA_H
+ 
++struct kimage;
++
+ int ima_get_kexec_buffer(void **addr, size_t *size);
+ int ima_free_kexec_buffer(void);
+ 
+@@ -10,4 +12,18 @@ void remove_ima_buffer(void *fdt, int ch
+ static inline void remove_ima_buffer(void *fdt, int chosen_node) {}
  #endif
- };
--#endif
-+
-+/**
-+ * struct kexec_buf - parameters for finding a place for a buffer in memory
-+ * @image:	kexec image in which memory to search.
-+ * @buffer:	Contents which will be copied to the allocated memory.
-+ * @bufsz:	Size of @buffer.
-+ * @mem:	On return will have address of the buffer in memory.
-+ * @memsz:	Size for the buffer in memory.
-+ * @buf_align:	Minimum alignment needed.
-+ * @buf_min:	The buffer can't be placed below this address.
-+ * @buf_max:	The buffer can't be placed above this address.
-+ * @top_down:	Allocate from top of memory.
-+ */
-+struct kexec_buf {
-+	struct kimage *image;
-+	char *buffer;
-+	unsigned long bufsz;
-+	unsigned long mem;
-+	unsigned long memsz;
-+	unsigned long buf_align;
-+	unsigned long buf_min;
-+	unsigned long buf_max;
-+	bool top_down;
-+};
-+
-+int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
-+			       int (*func)(u64, u64, void *));
-+#endif /* CONFIG_KEXEC_FILE */
  
- struct kimage {
- 	kimage_entry_t head;
-diff -puN kernel/kexec_file.c~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer kernel/kexec_file.c
---- a/kernel/kexec_file.c~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer
-+++ a/kernel/kexec_file.c
-@@ -428,6 +428,27 @@ static int locate_mem_hole_callback(u64
- 	return locate_mem_hole_bottom_up(start, end, kbuf);
- }
- 
-+/**
-+ * arch_kexec_walk_mem - call func(data) on free memory regions
-+ * @kbuf:	Context info for the search. Also passed to @func.
-+ * @func:	Function to call for each memory region.
-+ *
-+ * Return: The memory walk will stop when func returns a non-zero value
-+ * and that value will be returned. If all free regions are visited without
-+ * func returning non-zero, then zero will be returned.
-+ */
-+int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
-+			       int (*func)(u64, u64, void *))
++#ifdef CONFIG_IMA_KEXEC
++int arch_ima_add_kexec_buffer(struct kimage *image, unsigned long load_addr,
++			      size_t size);
++
++int setup_ima_buffer(const struct kimage *image, void *fdt, int chosen_node);
++#else
++static inline int setup_ima_buffer(const struct kimage *image, void *fdt,
++				   int chosen_node)
 +{
-+	if (kbuf->image->type == KEXEC_TYPE_CRASH)
-+		return walk_iomem_res_desc(crashk_res.desc,
-+					   IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
-+					   crashk_res.start, crashk_res.end,
-+					   kbuf, func);
-+	else
-+		return walk_system_ram_res(0, ULONG_MAX, kbuf, func);
++	remove_ima_buffer(fdt, chosen_node);
++	return 0;
++}
++#endif /* CONFIG_IMA_KEXEC */
++
+ #endif /* _ASM_POWERPC_IMA_H */
+diff -puN arch/powerpc/include/asm/kexec.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/include/asm/kexec.h
+--- a/arch/powerpc/include/asm/kexec.h~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
++++ a/arch/powerpc/include/asm/kexec.h
+@@ -94,12 +94,22 @@ static inline bool kdump_in_progress(voi
+ #ifdef CONFIG_KEXEC_FILE
+ extern struct kexec_file_ops kexec_elf64_ops;
+ 
++#ifdef CONFIG_IMA_KEXEC
++#define ARCH_HAS_KIMAGE_ARCH
++
++struct kimage_arch {
++	phys_addr_t ima_buffer_addr;
++	size_t ima_buffer_size;
++};
++#endif
++
+ int setup_purgatory(struct kimage *image, const void *slave_code,
+ 		    const void *fdt, unsigned long kernel_load_addr,
+ 		    unsigned long fdt_load_addr, unsigned long stack_top,
+ 		    int debug);
+-int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
+-		  unsigned long initrd_len, const char *cmdline);
++int setup_new_fdt(const struct kimage *image, void *fdt,
++		  unsigned long initrd_load_addr, unsigned long initrd_len,
++		  const char *cmdline);
+ bool find_debug_console(const void *fdt);
+ int delete_fdt_mem_rsv(void *fdt, unsigned long start, unsigned long size);
+ #endif /* CONFIG_KEXEC_FILE */
+diff -puN arch/powerpc/kernel/ima_kexec.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/ima_kexec.c
+--- a/arch/powerpc/kernel/ima_kexec.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
++++ a/arch/powerpc/kernel/ima_kexec.c
+@@ -130,3 +130,94 @@ void remove_ima_buffer(void *fdt, int ch
+ 	if (!ret)
+ 		pr_debug("Removed old IMA buffer reservation.\n");
+ }
++
++#ifdef CONFIG_IMA_KEXEC
++/**
++ * arch_ima_add_kexec_buffer - do arch-specific steps to add the IMA buffer
++ *
++ * Architectures should use this function to pass on the IMA buffer
++ * information to the next kernel.
++ *
++ * Return: 0 on success, negative errno on error.
++ */
++int arch_ima_add_kexec_buffer(struct kimage *image, unsigned long load_addr,
++			      size_t size)
++{
++	image->arch.ima_buffer_addr = load_addr;
++	image->arch.ima_buffer_size = size;
++
++	return 0;
 +}
 +
++static int write_number(void *p, u64 value, int cells)
++{
++	if (cells == 1) {
++		u32 tmp;
++
++		if (value > U32_MAX)
++			return -EINVAL;
++
++		tmp = cpu_to_be32(value);
++		memcpy(p, &tmp, sizeof(tmp));
++	} else if (cells == 2) {
++		u64 tmp;
++
++		tmp = cpu_to_be64(value);
++		memcpy(p, &tmp, sizeof(tmp));
++	} else
++		return -EINVAL;
++
++	return 0;
++}
++
++/**
++ * setup_ima_buffer - add IMA buffer information to the fdt
++ * @image:		kexec image being loaded.
++ * @fdt:		Flattened device tree for the next kernel.
++ * @chosen_node:	Offset to the chosen node.
++ *
++ * Return: 0 on success, or negative errno on error.
++ */
++int setup_ima_buffer(const struct kimage *image, void *fdt, int chosen_node)
++{
++	int ret, addr_cells, size_cells, entry_size;
++	u8 value[16];
++
++	remove_ima_buffer(fdt, chosen_node);
++	if (!image->arch.ima_buffer_size)
++		return 0;
++
++	ret = get_addr_size_cells(&addr_cells, &size_cells);
++	if (ret)
++		return ret;
++
++	entry_size = 4 * (addr_cells + size_cells);
++
++	if (entry_size > sizeof(value))
++		return -EINVAL;
++
++	ret = write_number(value, image->arch.ima_buffer_addr, addr_cells);
++	if (ret)
++		return ret;
++
++	ret = write_number(value + 4 * addr_cells, image->arch.ima_buffer_size,
++			   size_cells);
++	if (ret)
++		return ret;
++
++	ret = fdt_setprop(fdt, chosen_node, "linux,ima-kexec-buffer", value,
++			  entry_size);
++	if (ret < 0)
++		return -EINVAL;
++
++	ret = fdt_add_mem_rsv(fdt, image->arch.ima_buffer_addr,
++			      image->arch.ima_buffer_size);
++	if (ret)
++		return -EINVAL;
++
++	pr_debug("IMA buffer at 0x%llx, size = 0x%zx\n",
++		 image->arch.ima_buffer_addr, image->arch.ima_buffer_size);
++
++	return 0;
++}
++#endif /* CONFIG_IMA_KEXEC */
+diff -puN arch/powerpc/kernel/kexec_elf_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/kexec_elf_64.c
+--- a/arch/powerpc/kernel/kexec_elf_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
++++ a/arch/powerpc/kernel/kexec_elf_64.c
+@@ -206,7 +206,7 @@ static void *elf64_load(struct kimage *i
+ 		goto out;
+ 	}
+ 
+-	ret = setup_new_fdt(fdt, initrd_load_addr, initrd_len, cmdline);
++	ret = setup_new_fdt(image, fdt, initrd_load_addr, initrd_len, cmdline);
+ 	if (ret)
+ 		goto out;
+ 
+diff -puN arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel arch/powerpc/kernel/machine_kexec_file_64.c
+--- a/arch/powerpc/kernel/machine_kexec_file_64.c~powerpc-ima-send-the-kexec-buffer-to-the-next-kernel
++++ a/arch/powerpc/kernel/machine_kexec_file_64.c
+@@ -393,6 +393,7 @@ int delete_fdt_mem_rsv(void *fdt, unsign
+ 
  /*
-  * Helper function for placing a buffer in a kexec segment. This assumes
-  * that kexec_mutex is held.
-@@ -474,14 +495,7 @@ int kexec_add_buffer(struct kimage *imag
- 	kbuf->top_down = top_down;
+  * setup_new_fdt - modify /chosen and memory reservation for the next kernel
++ * @image:		kexec image being loaded.
+  * @fdt:		Flattened device tree for the next kernel.
+  * @initrd_load_addr:	Address where the next initrd will be loaded.
+  * @initrd_len:		Size of the next initrd, or 0 if there will be none.
+@@ -401,8 +402,9 @@ int delete_fdt_mem_rsv(void *fdt, unsign
+  *
+  * Return: 0 on success, or negative errno on error.
+  */
+-int setup_new_fdt(void *fdt, unsigned long initrd_load_addr,
+-		  unsigned long initrd_len, const char *cmdline)
++int setup_new_fdt(const struct kimage *image, void *fdt,
++		  unsigned long initrd_load_addr, unsigned long initrd_len,
++		  const char *cmdline)
+ {
+ 	int ret, chosen_node;
+ 	const void *prop;
+@@ -512,7 +514,11 @@ int setup_new_fdt(void *fdt, unsigned lo
+ 		}
+ 	}
  
- 	/* Walk the RAM ranges and allocate a suitable range for the buffer */
--	if (image->type == KEXEC_TYPE_CRASH)
--		ret = walk_iomem_res_desc(crashk_res.desc,
--				IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
--				crashk_res.start, crashk_res.end, kbuf,
--				locate_mem_hole_callback);
--	else
--		ret = walk_system_ram_res(0, -1, kbuf,
--					  locate_mem_hole_callback);
-+	ret = arch_kexec_walk_mem(kbuf, locate_mem_hole_callback);
- 	if (ret != 1) {
- 		/* A suitable memory range could not be found for buffer */
- 		return -EADDRNOTAVAIL;
-diff -puN kernel/kexec_internal.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer kernel/kexec_internal.h
---- a/kernel/kexec_internal.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer
-+++ a/kernel/kexec_internal.h
-@@ -20,22 +20,6 @@ struct kexec_sha_region {
- 	unsigned long len;
- };
+-	remove_ima_buffer(fdt, chosen_node);
++	ret = setup_ima_buffer(image, fdt, chosen_node);
++	if (ret) {
++		pr_err("Error setting up the new device tree.\n");
++		return ret;
++	}
  
--/*
-- * Keeps track of buffer parameters as provided by caller for requesting
-- * memory placement of buffer.
-- */
--struct kexec_buf {
--	struct kimage *image;
--	char *buffer;
--	unsigned long bufsz;
--	unsigned long mem;
--	unsigned long memsz;
--	unsigned long buf_align;
--	unsigned long buf_min;
--	unsigned long buf_max;
--	bool top_down;		/* allocate from top of memory hole */
--};
+ 	ret = fdt_setprop(fdt, chosen_node, "linux,booted-from-kexec", NULL, 0);
+ 	if (ret) {
+_
+
+Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
+
+kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
+kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
+powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
+powerpc-factor-out-relocation-code-in-module_64c.patch
+powerpc-implement-kexec_file_load.patch
+powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
+powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
+powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
+powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
+powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+
