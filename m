@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ima-permit-duplicate-measurement-list-entries.patch added to
- -mm tree
-Date: Mon, 24 Oct 2016 12:42:47 -0700
-Message-ID: <580e6437.7szsooKPEerniA6r%akpm@linux-foundation.org>
+Subject: + ima-on-soft-reboot-save-the-measurement-list.patch added to -mm tree
+Date: Mon, 24 Oct 2016 12:42:50 -0700
+Message-ID: <580e643a.mJ798pDVTYb+RTWh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56705 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56749 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941038AbcJXTms (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 15:42:48 -0400
+        with ESMTP id S1754740AbcJXTmv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Oct 2016 15:42:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zohar@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, sklar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: zohar@linux.vnet.ibm.com, andreas.steffen@strongswan.org, bauerman@linux.vnet.ibm.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, sklar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: permit duplicate measurement list entries
+     Subject: ima: on soft reboot, save the measurement list
 has been added to the -mm tree.  Its filename is
-     ima-permit-duplicate-measurement-list-entries.patch
+     ima-on-soft-reboot-save-the-measurement-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ima-permit-duplicate-measurement-list-entries.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ima-on-soft-reboot-save-the-measurement-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ima-permit-duplicate-measurement-list-entries.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ima-on-soft-reboot-save-the-measurement-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,19 +39,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Subject: ima: permit duplicate measurement list entries
+Subject: ima: on soft reboot, save the measurement list
 
-Measurements carried across kexec need to be added to the IMA measurement
-list, but should not prevent measurements of the newly booted kernel from
-being added to the measurement list.  This patch adds support for allowing
-duplicate measurements.
+The TPM PCRs are only reset on a hard reboot.  In order to validate a
+TPM's quote after a soft reboot (eg.  kexec -e), the IMA measurement list
+of the running kernel must be saved and restored on boot.
 
-The "boot_aggregate" measurement entry is the delimiter between soft
-boots.
+This patch uses the kexec buffer passing mechanism to pass the
+serialized IMA binary_runtime_measurements to the next kernel.
 
-Link: http://lkml.kernel.org/r/1477017898-10375-4-git-send-email-bauerman@linux.vnet.ibm.com
+Link: http://lkml.kernel.org/r/1477017898-10375-7-git-send-email-bauerman@linux.vnet.ibm.com
+Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Andreas Steffen <andreas.steffen@strongswan.org>
 Cc: Balbir Singh <bsingharora@gmail.com>
 Cc: Dave Young <dyoung@redhat.com>
@@ -61,58 +60,222 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/ima_queue.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/ima.h                |   12 ++
+ kernel/kexec_file.c                |    4 
+ security/integrity/ima/ima.h       |    1 
+ security/integrity/ima/ima_fs.c    |    2 
+ security/integrity/ima/ima_kexec.c |  117 +++++++++++++++++++++++++++
+ 5 files changed, 135 insertions(+), 1 deletion(-)
 
-diff -puN security/integrity/ima/ima_queue.c~ima-permit-duplicate-measurement-list-entries security/integrity/ima/ima_queue.c
---- a/security/integrity/ima/ima_queue.c~ima-permit-duplicate-measurement-list-entries
-+++ a/security/integrity/ima/ima_queue.c
-@@ -65,11 +65,12 @@ static struct ima_queue_entry *ima_looku
- }
+diff -puN include/linux/ima.h~ima-on-soft-reboot-save-the-measurement-list include/linux/ima.h
+--- a/include/linux/ima.h~ima-on-soft-reboot-save-the-measurement-list
++++ a/include/linux/ima.h
+@@ -11,6 +11,7 @@
+ #define _LINUX_IMA_H
  
- /* ima_add_template_entry helper function:
-- * - Add template entry to measurement list and hash table.
-+ * - Add template entry to the measurement list and hash table, for
-+ *   all entries except those carried across kexec.
-  *
-  * (Called with ima_extend_list_mutex held.)
-  */
--static int ima_add_digest_entry(struct ima_template_entry *entry)
-+static int ima_add_digest_entry(struct ima_template_entry *entry, int flags)
+ #include <linux/fs.h>
++#include <linux/kexec.h>
+ struct linux_binprm;
+ 
+ #ifdef CONFIG_IMA
+@@ -23,6 +24,10 @@ extern int ima_post_read_file(struct fil
+ 			      enum kernel_read_file_id id);
+ extern void ima_post_path_mknod(struct dentry *dentry);
+ 
++#ifdef CONFIG_IMA_KEXEC
++extern void ima_add_kexec_buffer(struct kimage *image);
++#endif
++
+ #else
+ static inline int ima_bprm_check(struct linux_binprm *bprm)
  {
- 	struct ima_queue_entry *qe;
- 	unsigned int key;
-@@ -85,8 +86,10 @@ static int ima_add_digest_entry(struct i
- 	list_add_tail_rcu(&qe->later, &ima_measurements);
+@@ -62,6 +67,13 @@ static inline void ima_post_path_mknod(s
  
- 	atomic_long_inc(&ima_htable.len);
--	key = ima_hash_key(entry->digest);
--	hlist_add_head_rcu(&qe->hnext, &ima_htable.queue[key]);
-+	if (flags) {
-+		key = ima_hash_key(entry->digest);
-+		hlist_add_head_rcu(&qe->hnext, &ima_htable.queue[key]);
+ #endif /* CONFIG_IMA */
+ 
++#ifndef CONFIG_IMA_KEXEC
++struct kimage;
++
++static inline void ima_add_kexec_buffer(struct kimage *image)
++{}
++#endif
++
+ #ifdef CONFIG_IMA_APPRAISE
+ extern void ima_inode_post_setattr(struct dentry *dentry);
+ extern int ima_inode_setxattr(struct dentry *dentry, const char *xattr_name,
+diff -puN kernel/kexec_file.c~ima-on-soft-reboot-save-the-measurement-list kernel/kexec_file.c
+--- a/kernel/kexec_file.c~ima-on-soft-reboot-save-the-measurement-list
++++ a/kernel/kexec_file.c
+@@ -19,6 +19,7 @@
+ #include <linux/mutex.h>
+ #include <linux/list.h>
+ #include <linux/fs.h>
++#include <linux/ima.h>
+ #include <crypto/hash.h>
+ #include <crypto/sha.h>
+ #include <linux/syscalls.h>
+@@ -132,6 +133,9 @@ kimage_file_prepare_segments(struct kima
+ 		return ret;
+ 	image->kernel_buf_len = size;
+ 
++	/* IMA needs to pass the measurement list to the next kernel. */
++	ima_add_kexec_buffer(image);
++
+ 	/* Call arch image probe handlers */
+ 	ret = arch_kexec_kernel_image_probe(image, image->kernel_buf,
+ 					    image->kernel_buf_len);
+diff -puN security/integrity/ima/ima.h~ima-on-soft-reboot-save-the-measurement-list security/integrity/ima/ima.h
+--- a/security/integrity/ima/ima.h~ima-on-soft-reboot-save-the-measurement-list
++++ a/security/integrity/ima/ima.h
+@@ -143,6 +143,7 @@ void ima_print_digest(struct seq_file *m
+ struct ima_template_desc *ima_template_desc_current(void);
+ int ima_restore_measurement_entry(struct ima_template_entry *entry);
+ int ima_restore_measurement_list(loff_t bufsize, void *buf);
++int ima_measurements_show(struct seq_file *m, void *v);
+ unsigned long ima_get_binary_runtime_size(void);
+ int ima_init_template(void);
+ 
+diff -puN security/integrity/ima/ima_fs.c~ima-on-soft-reboot-save-the-measurement-list security/integrity/ima/ima_fs.c
+--- a/security/integrity/ima/ima_fs.c~ima-on-soft-reboot-save-the-measurement-list
++++ a/security/integrity/ima/ima_fs.c
+@@ -116,7 +116,7 @@ void ima_putc(struct seq_file *m, void *
+  *       [eventdata length]
+  *       eventdata[n]=template specific data
+  */
+-static int ima_measurements_show(struct seq_file *m, void *v)
++int ima_measurements_show(struct seq_file *m, void *v)
+ {
+ 	/* the list never shrinks, so we don't need a lock here */
+ 	struct ima_queue_entry *qe = v;
+diff -puN security/integrity/ima/ima_kexec.c~ima-on-soft-reboot-save-the-measurement-list security/integrity/ima/ima_kexec.c
+--- a/security/integrity/ima/ima_kexec.c~ima-on-soft-reboot-save-the-measurement-list
++++ a/security/integrity/ima/ima_kexec.c
+@@ -10,8 +10,125 @@
+  * the Free Software Foundation; either version 2 of the License, or
+  * (at your option) any later version.
+  */
++#include <linux/seq_file.h>
++#include <linux/vmalloc.h>
++#include <linux/kexec.h>
+ #include "ima.h"
+ 
++#ifdef CONFIG_IMA_KEXEC
++static int ima_dump_measurement_list(unsigned long *buffer_size, void **buffer,
++				     unsigned long segment_size)
++{
++	struct ima_queue_entry *qe;
++	struct seq_file file;
++	struct ima_kexec_hdr khdr = {
++		.version = 1, .buffer_size = 0, .count = 0};
++	int ret = 0;
++
++	/* segment size can't change between kexec load and execute */
++	file.buf = vmalloc(segment_size);
++	if (!file.buf) {
++		ret = -ENOMEM;
++		goto out;
 +	}
- 	return 0;
- }
- 
-@@ -126,7 +129,7 @@ int ima_add_template_entry(struct ima_te
- 		}
- 	}
- 
--	result = ima_add_digest_entry(entry);
-+	result = ima_add_digest_entry(entry, 1);
- 	if (result < 0) {
- 		audit_cause = "ENOMEM";
- 		audit_info = 0;
-@@ -155,7 +158,7 @@ int ima_restore_measurement_entry(struct
- 	int result = 0;
- 
- 	mutex_lock(&ima_extend_list_mutex);
--	result = ima_add_digest_entry(entry);
-+	result = ima_add_digest_entry(entry, 0);
- 	mutex_unlock(&ima_extend_list_mutex);
- 	return result;
- }
++
++	file.size = segment_size;
++	file.read_pos = 0;
++	file.count = sizeof(khdr);	/* reserved space */
++
++	list_for_each_entry_rcu(qe, &ima_measurements, later) {
++		if (file.count < file.size) {
++			khdr.count++;
++			ima_measurements_show(&file, qe);
++		} else {
++			ret = -EINVAL;
++			break;
++		}
++	}
++
++	if (ret < 0)
++		goto out;
++
++	/*
++	 * fill in reserved space with some buffer details
++	 * (eg. version, buffer size, number of measurements)
++	 */
++	khdr.buffer_size = file.count;
++	memcpy(file.buf, &khdr, sizeof(khdr));
++	print_hex_dump(KERN_DEBUG, "ima dump: ", DUMP_PREFIX_NONE,
++			16, 1, file.buf,
++			file.count < 100 ? file.count : 100, true);
++
++	*buffer_size = file.count;
++	*buffer = file.buf;
++out:
++	if (ret == -EINVAL)
++		vfree(file.buf);
++	return ret;
++}
++
++/*
++ * Called during kexec_file_load so that IMA can add a segment to the kexec
++ * image for the measurement list for the next kernel.
++ *
++ * This function assumes that kexec_mutex is held.
++ */
++void ima_add_kexec_buffer(struct kimage *image)
++{
++	struct kexec_buf kbuf = { .image = image, .buf_align = PAGE_SIZE,
++				  .buf_min = 0, .buf_max = ULONG_MAX,
++				  .top_down = true };
++	unsigned long binary_runtime_size;
++
++	/* use more understandable variable names than defined in kbuf */
++	void *kexec_buffer = NULL;
++	size_t kexec_buffer_size;
++	size_t kexec_segment_size;
++	int ret;
++
++	/*
++	 * Reserve an extra half page of memory for additional measurements
++	 * added during the kexec load.
++	 */
++	binary_runtime_size = ima_get_binary_runtime_size();
++	if (binary_runtime_size >= ULONG_MAX - PAGE_SIZE)
++		kexec_segment_size = ULONG_MAX;
++	else
++		kexec_segment_size = ALIGN(ima_get_binary_runtime_size() +
++					   PAGE_SIZE / 2, PAGE_SIZE);
++	if ((kexec_segment_size == ULONG_MAX) ||
++	    ((kexec_segment_size >> PAGE_SHIFT) > totalram_pages / 2)) {
++		pr_err("Binary measurement list too large.\n");
++		return;
++	}
++
++	ima_dump_measurement_list(&kexec_buffer_size, &kexec_buffer,
++				  kexec_segment_size);
++	if (!kexec_buffer) {
++		pr_err("Not enough memory for the kexec measurement buffer.\n");
++		return;
++	}
++
++	kbuf.buffer = kexec_buffer;
++	kbuf.bufsz = kexec_buffer_size;
++	kbuf.memsz = kexec_segment_size;
++	ret = kexec_add_buffer(&kbuf);
++	if (ret) {
++		pr_err("Error passing over kexec measurement buffer.\n");
++		return;
++	}
++
++	ret = arch_ima_add_kexec_buffer(image, kbuf.mem, kexec_segment_size);
++	if (ret) {
++		pr_err("Error passing over kexec measurement buffer.\n");
++		return;
++	}
++
++	pr_debug("kexec measurement buffer for the loaded kernel at 0x%lx.\n",
++		 kbuf.mem);
++}
++#endif /* IMA_KEXEC */
++
+ /*
+  * Restore the measurement list from the previous kernel.
+  */
 _
 
 Patches currently in -mm which might be from zohar@linux.vnet.ibm.com are
