@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-genallocc-start-search-from-start-of-chunk.patch added to
- -mm tree
-Date: Tue, 25 Oct 2016 15:25:59 -0700
-Message-ID: <580fdbf7.mG/1Wv+6VKzhldiN%akpm@linux-foundation.org>
+Subject: + ipc-sem-do-not-call-wake_sem_queue_do-prematurely.patch added
+ to -mm tree
+Date: Tue, 25 Oct 2016 15:55:08 -0700
+Message-ID: <580fe2cc.SAiRq3KYsCBkWybH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39900 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40259 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751576AbcJYW0A (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2016 18:26:00 -0400
+        with ESMTP id S1752987AbcJYWzJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2016 18:55:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: danielmentz@google.com, mathieu.desnoyers@efficios.com, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/genalloc.c: start search from start of chunk
+     Subject: ipc/sem: do not call wake_sem_queue_do() prematurely
 has been added to the -mm tree.  Its filename is
-     lib-genallocc-start-search-from-start-of-chunk.patch
+     ipc-sem-do-not-call-wake_sem_queue_do-prematurely.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-genallocc-start-search-from-start-of-chunk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-sem-do-not-call-wake_sem_queue_do-prematurely.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-genallocc-start-search-from-start-of-chunk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-sem-do-not-call-wake_sem_queue_do-prematurely.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +39,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Mentz <danielmentz@google.com>
-Subject: lib/genalloc.c: start search from start of chunk
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: ipc/sem: do not call wake_sem_queue_do() prematurely
 
-gen_pool_alloc_algo() iterates over the chunks of a pool trying to find a
-contiguous block of memory that satisfies the allocation request.
+... as this call should obviously be paired with its _prepare()
+counterpart. At least whenever possible, as there is no harm in
+calling it bogusly as we do now in a few places. Immediate error
+semop(2) paths that are far from ever having the task block can
+be simplified and avoid a few unnecessary loads on their way out
+of the call as it is not deeply nested.
 
-The shortcut
-
-	if (size > atomic_read(&chunk->avail))
-		continue;
-
-makes the loop skip over chunks that do not have enough bytes left to
-fulfill the request.  There are two situations, though, where an
-allocation might still fail:
-
-(1) The available memory is not contiguous, i.e.  the request cannot
-    be fulfilled due to external fragmentation.
-
-(2) A race condition.  Another thread runs the same code concurrently
-    and is quicker to grab the available memory.
-
-In those situations, the loop calls pool->algo() to search the entire
-chunk, and pool->algo() returns some value that is >= end_bit to indicate
-that the search failed.  This return value is then assigned to start_bit. 
-The variables start_bit and end_bit describe the range that should be
-searched, and this range should be reset for every chunk that is searched.
-Today, the code fails to reset start_bit to 0.  As a result, prefixes of
-subsequent chunks are ignored.  Memory allocations might fail even though
-there is plenty of room left in these prefixes of those other chunks.
-
-Fixes: 7f184275aa30 ("lib, Make gen_pool memory allocator lockless")
-Link: http://lkml.kernel.org/r/1477420604-28918-1-git-send-email-danielmentz@google.com
-Signed-off-by: Daniel Mentz <danielmentz@google.com>
-Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Link: http://lkml.kernel.org/r/1474225896-10066-2-git-send-email-dave@stgolabs.net
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/genalloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ ipc/sem.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN lib/genalloc.c~lib-genallocc-start-search-from-start-of-chunk lib/genalloc.c
---- a/lib/genalloc.c~lib-genallocc-start-search-from-start-of-chunk
-+++ a/lib/genalloc.c
-@@ -292,7 +292,7 @@ unsigned long gen_pool_alloc_algo(struct
- 	struct gen_pool_chunk *chunk;
- 	unsigned long addr = 0;
- 	int order = pool->min_alloc_order;
--	int nbits, start_bit = 0, end_bit, remain;
-+	int nbits, start_bit, end_bit, remain;
+diff -puN ipc/sem.c~ipc-sem-do-not-call-wake_sem_queue_do-prematurely ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-do-not-call-wake_sem_queue_do-prematurely
++++ a/ipc/sem.c
+@@ -1904,16 +1904,22 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 	}
  
- #ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	BUG_ON(in_nmi());
-@@ -307,6 +307,7 @@ unsigned long gen_pool_alloc_algo(struct
- 		if (size > atomic_read(&chunk->avail))
- 			continue;
+ 	error = -EFBIG;
+-	if (max >= sma->sem_nsems)
+-		goto out_rcu_wakeup;
++	if (max >= sma->sem_nsems) {
++		rcu_read_unlock();
++		goto out_free;
++	}
  
-+		start_bit = 0;
- 		end_bit = chunk_size(chunk) >> order;
- retry:
- 		start_bit = algo(chunk->bits, end_bit, start_bit,
+ 	error = -EACCES;
+-	if (ipcperms(ns, &sma->sem_perm, alter ? S_IWUGO : S_IRUGO))
+-		goto out_rcu_wakeup;
++	if (ipcperms(ns, &sma->sem_perm, alter ? S_IWUGO : S_IRUGO)) {
++		rcu_read_unlock();
++		goto out_free;
++	}
+ 
+ 	error = security_sem_semop(sma, sops, nsops, alter);
+-	if (error)
+-		goto out_rcu_wakeup;
++	if (error) {
++		rcu_read_unlock();
++		goto out_free;
++	}
+ 
+ 	error = -EIDRM;
+ 	locknum = sem_lock(sma, sops, nsops);
+@@ -2056,7 +2062,6 @@ sleep_again:
+ 
+ out_unlock_free:
+ 	sem_unlock(sma, locknum);
+-out_rcu_wakeup:
+ 	rcu_read_unlock();
+ 	wake_up_sem_queue_do(&tasks);
+ out_free:
 _
 
-Patches currently in -mm which might be from danielmentz@google.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-lib-genallocc-start-search-from-start-of-chunk.patch
+ipc-sem-do-not-call-wake_sem_queue_do-prematurely.patch
+ipc-sem-rework-task-wakeups.patch
+ipc-sem-optimize-perform_atomic_semop.patch
+ipc-sem-explicitly-inline-check_restart.patch
+ipc-sem-use-proper-list-api-for-pending_list-wakeups.patch
 
