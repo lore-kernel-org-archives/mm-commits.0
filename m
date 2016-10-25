@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- get_maintainer-look-for-arbitrary-letter-prefixes-in-sections.patch added
- to -mm tree
-Date: Tue, 25 Oct 2016 12:45:33 -0700
-Message-ID: <580fb65d.JFtYflwyE1dOBXVT%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-do-not-recurse-in-direct-reclaim.patch added to
+ -mm tree
+Date: Tue, 25 Oct 2016 13:20:18 -0700
+Message-ID: <580fbe82.ySZ+x9rUB9H17hcg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36511 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37379 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751404AbcJYTpe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2016 15:45:34 -0400
+        with ESMTP id S933101AbcJYUUT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2016 16:20:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, airlied@gmail.com, daniel@ffwll.ch, jani.nikula@intel.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, tj@kernel.org, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: get_maintainer: look for arbitrary letter prefixes in sections
+     Subject: mm: memcontrol: do not recurse in direct reclaim
 has been added to the -mm tree.  Its filename is
-     get_maintainer-look-for-arbitrary-letter-prefixes-in-sections.patch
+     mm-memcontrol-do-not-recurse-in-direct-reclaim.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/get_maintainer-look-for-arbitrary-letter-prefixes-in-sections.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-do-not-recurse-in-direct-reclaim.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/get_maintainer-look-for-arbitrary-letter-prefixes-in-sections.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-do-not-recurse-in-direct-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,82 +39,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: get_maintainer: look for arbitrary letter prefixes in sections
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: do not recurse in direct reclaim
 
-Jani Nikula proposes patches to add a few new letter prefixes for "B:" bug
-reporting and "C:" maintainer chatting to the various sections of
-MAINTAINERS.
+On 4.0, we saw a stack corruption from a page fault entering direct memory
+cgroup reclaim, calling into btrfs_releasepage(), which then tried to
+allocate an extent and recursed back into a kmem charge ad nauseam:
 
-Add a generic mechanism to get_maintainer.pl to find sections that have
-any combination of "[A-Z]" letter prefix types in a section.
+[...]
+[<ffffffff8136590c>] btrfs_releasepage+0x2c/0x30
+[<ffffffff811559a2>] try_to_release_page+0x32/0x50
+[<ffffffff81168cea>] shrink_page_list+0x6da/0x7a0
+[<ffffffff811693b5>] shrink_inactive_list+0x1e5/0x510
+[<ffffffff8116a0a5>] shrink_lruvec+0x605/0x7f0
+[<ffffffff8116a37e>] shrink_zone+0xee/0x320
+[<ffffffff8116a934>] do_try_to_free_pages+0x174/0x440
+[<ffffffff8116adf7>] try_to_free_mem_cgroup_pages+0xa7/0x130
+[<ffffffff811b738b>] try_charge+0x17b/0x830
+[<ffffffff811bb5b0>] memcg_charge_kmem+0x40/0x80
+[<ffffffff811a96a9>] new_slab+0x2d9/0x5a0
+[<ffffffff817b2547>] __slab_alloc+0x2fd/0x44f
+[<ffffffff811a9b03>] kmem_cache_alloc+0x193/0x1e0
+[<ffffffff813801e1>] alloc_extent_state+0x21/0xc0
+[<ffffffff813820c5>] __clear_extent_bit+0x2b5/0x400
+[<ffffffff81386d03>] try_release_extent_mapping+0x1a3/0x220
+[<ffffffff813658a1>] __btrfs_releasepage+0x31/0x70
+[<ffffffff8136590c>] btrfs_releasepage+0x2c/0x30
+[<ffffffff811559a2>] try_to_release_page+0x32/0x50
+[<ffffffff81168cea>] shrink_page_list+0x6da/0x7a0
+[<ffffffff811693b5>] shrink_inactive_list+0x1e5/0x510
+[<ffffffff8116a0a5>] shrink_lruvec+0x605/0x7f0
+[<ffffffff8116a37e>] shrink_zone+0xee/0x320
+[<ffffffff8116a934>] do_try_to_free_pages+0x174/0x440
+[<ffffffff8116adf7>] try_to_free_mem_cgroup_pages+0xa7/0x130
+[<ffffffff811b738b>] try_charge+0x17b/0x830
+[<ffffffff811bbfd5>] mem_cgroup_try_charge+0x65/0x1c0
+[<ffffffff8118338f>] handle_mm_fault+0x117f/0x1510
+[<ffffffff81041cf7>] __do_page_fault+0x177/0x420
+[<ffffffff81041fac>] do_page_fault+0xc/0x10
+[<ffffffff817c0182>] page_fault+0x22/0x30
 
-Link: http://lkml.kernel.org/r/1477332323.1984.8.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jani Nikula <jani.nikula@intel.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: Dave Airlie <airlied@gmail.com>
+On later kernels, kmem charging is opt-in rather than opt-out, and that
+particular kmem allocation in btrfs_releasepage() is no longer being
+charged and won't recurse and overrun the stack anymore.  But it's not
+impossible for an accounted allocation to happen from the memcg direct
+reclaim context, and we needed to reproduce this crash many times before
+we even got a useful stack trace out of it.
+
+Like other direct reclaimers, mark tasks in memcg reclaim PF_MEMALLOC to
+avoid recursing into any other form of direct reclaim.  Then let recursive
+charges from PF_MEMALLOC contexts bypass the cgroup limit.
+
+Link: http://lkml.kernel.org/r/20161025141050.GA13019@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    9 +++++++++
+ mm/vmscan.c     |    2 ++
+ 2 files changed, 11 insertions(+)
 
-diff -puN scripts/get_maintainer.pl~get_maintainer-look-for-arbitrary-letter-prefixes-in-sections scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainer-look-for-arbitrary-letter-prefixes-in-sections
-+++ a/scripts/get_maintainer.pl
-@@ -49,6 +49,7 @@ my $scm = 0;
- my $web = 0;
- my $subsystem = 0;
- my $status = 0;
-+my $letters = "";
- my $keywords = 1;
- my $sections = 0;
- my $file_emails = 0;
-@@ -241,6 +242,7 @@ if (!GetOptions(
- 		'status!' => \$status,
- 		'scm!' => \$scm,
- 		'web!' => \$web,
-+		'letters=s' => \$letters,
- 		'pattern-depth=i' => \$pattern_depth,
- 		'k|keywords!' => \$keywords,
- 		'sections!' => \$sections,
-@@ -271,7 +273,8 @@ $output_multiline = 0 if ($output_separa
- $output_rolestats = 1 if ($interactive);
- $output_roles = 1 if ($output_rolestats);
+diff -puN mm/memcontrol.c~mm-memcontrol-do-not-recurse-in-direct-reclaim mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-do-not-recurse-in-direct-reclaim
++++ a/mm/memcontrol.c
+@@ -1917,6 +1917,15 @@ retry:
+ 		     current->flags & PF_EXITING))
+ 		goto force;
  
--if ($sections) {
-+if ($sections || $letters ne "") {
-+    $sections = 1;
-     $email = 0;
-     $email_list = 0;
-     $scm = 0;
-@@ -682,8 +685,10 @@ sub get_maintainers {
- 			$line =~ s/\\\./\./g;       	##Convert \. to .
- 			$line =~ s/\.\*/\*/g;       	##Convert .* to *
- 		    }
--		    $line =~ s/^([A-Z]):/$1:\t/g;
--		    print("$line\n");
-+		    my $count = $line =~ s/^([A-Z]):/$1:\t/g;
-+		    if ($letters eq "" || (!$count || $letters =~ /$1/i)) {
-+			print("$line\n");
-+		    }
- 		}
- 		print("\n");
- 	    }
-@@ -814,6 +819,7 @@ Other options:
-   --pattern-depth => Number of pattern directory traversals (default: 0 (all))
-   --keywords => scan patch for keywords (default: $keywords)
-   --sections => print all of the subsystem sections with pattern matches
-+  --letters => print all matching 'letter' types from all matching sections
-   --mailmap => use .mailmap file (default: $email_use_mailmap)
-   --version => show version
-   --help => show this help information
++	/*
++	 * Prevent unbounded recursion when reclaim operations need to
++	 * allocate memory. This might exceed the limits temporarily,
++	 * but we prefer facilitating memory reclaim and getting back
++	 * under the limit over triggering OOM kills in these cases.
++	 */
++	if (unlikely(current->flags & PF_MEMALLOC))
++		goto force;
++
+ 	if (unlikely(task_in_memcg_oom(current)))
+ 		goto nomem;
+ 
+diff -puN mm/vmscan.c~mm-memcontrol-do-not-recurse-in-direct-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~mm-memcontrol-do-not-recurse-in-direct-reclaim
++++ a/mm/vmscan.c
+@@ -3043,7 +3043,9 @@ unsigned long try_to_free_mem_cgroup_pag
+ 					    sc.gfp_mask,
+ 					    sc.reclaim_idx);
+ 
++	current->flags |= PF_MEMALLOC;
+ 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
++	current->flags &= ~PF_MEMALLOC;
+ 
+ 	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-page_alloc-use-kern_cont-where-appropriate.patch
-get_maintainer-look-for-arbitrary-letter-prefixes-in-sections.patch
-checkpatch-dont-check-pl-files-improve-absolute-path-commit-log-test.patch
+mm-memcontrol-do-not-recurse-in-direct-reclaim.patch
 
