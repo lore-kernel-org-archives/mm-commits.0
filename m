@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-sem-use-proper-list-api-for-pending_list-wakeups.patch
+Subject: + ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
  added to -mm tree
-Date: Tue, 25 Oct 2016 15:58:20 -0700
-Message-ID: <580fe38c.TPV0LxCVyKH+CtXF%akpm@linux-foundation.org>
+Date: Tue, 25 Oct 2016 16:02:49 -0700
+Message-ID: <580fe499.xf3EvPU/T8ok0zxi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40298 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40316 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753342AbcJYW6V (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2016 18:58:21 -0400
+        with ESMTP id S1754167AbcJYXCu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2016 19:02:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/sem: use proper list api for pending_list wakeups
+     Subject: ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     ipc-sem-use-proper-list-api-for-pending_list-wakeups.patch
+     ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-sem-use-proper-list-api-for-pending_list-wakeups.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-sem-use-proper-list-api-for-pending_list-wakeups.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,89 +39,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: ipc/sem: use proper list api for pending_list wakeups
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes
 
-... saves some LoC and looks cleaner than re-implementing the
-calls.
+WARNING: Missing a blank line after declarations
+#132: FILE: ipc/sem.c:747:
++			int undo = un->semadj[sop->sem_num] - sem_op;
++			un->semadj[sop->sem_num] = undo;
 
-Link: http://lkml.kernel.org/r/1474225896-10066-6-git-send-email-dave@stgolabs.net
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Manfred Spraul <manfred@colorfullife.com>
+ERROR: spaces required around that '?' (ctx:VxW)
+#142: FILE: ipc/sem.c:757:
++	return sop->sem_flg & IPC_NOWAIT? -EAGAIN : 1;
+ 	                                ^
+
+total: 1 errors, 1 warnings, 171 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/ipc-sem-optimize-perform_atomic_semop.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   40 ++++++++++++++--------------------------
- 1 file changed, 14 insertions(+), 26 deletions(-)
+ ipc/sem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN ipc/sem.c~ipc-sem-use-proper-list-api-for-pending_list-wakeups ipc/sem.c
---- a/ipc/sem.c~ipc-sem-use-proper-list-api-for-pending_list-wakeups
+diff -puN ipc/sem.c~ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes
 +++ a/ipc/sem.c
-@@ -829,8 +829,7 @@ static inline int check_restart(struct s
- static int wake_const_ops(struct sem_array *sma, int semnum,
- 			  struct wake_q_head *wake_q)
- {
--	struct sem_queue *q;
--	struct list_head *walk;
-+	struct sem_queue *q, *tmp;
- 	struct list_head *pending_list;
- 	int semop_completed = 0;
+@@ -744,6 +744,7 @@ static int perform_atomic_semop(struct s
  
-@@ -839,25 +838,19 @@ static int wake_const_ops(struct sem_arr
- 	else
- 		pending_list = &sma->sem_base[semnum].pending_const;
- 
--	walk = pending_list->next;
--	while (walk != pending_list) {
--		int error;
-+	list_for_each_entry_safe(q, tmp, pending_list, list) {
-+		int error = perform_atomic_semop(sma, q);
- 
--		q = container_of(walk, struct sem_queue, list);
--		walk = walk->next;
--
--		error = perform_atomic_semop(sma, q);
--
--		if (error <= 0) {
--			/* operation completed, remove from queue & wakeup */
--
--			unlink_queue(sma, q);
--
--			wake_up_sem_queue_prepare(q, error, wake_q);
--			if (error == 0)
--				semop_completed = 1;
--		}
-+		if (error > 0)
-+			continue;
-+		/* operation completed, remove from queue & wakeup */
-+		unlink_queue(sma, q);
+ 		if (sop->sem_flg & SEM_UNDO) {
+ 			int undo = un->semadj[sop->sem_num] - sem_op;
 +
-+		wake_up_sem_queue_prepare(q, error, wake_q);
-+		if (error == 0)
-+			semop_completed = 1;
- 	}
-+
- 	return semop_completed;
+ 			un->semadj[sop->sem_num] = undo;
+ 		}
+ 		curr->semval += sem_op;
+@@ -754,7 +755,7 @@ static int perform_atomic_semop(struct s
+ 
+ would_block:
+ 	q->blocking = sop;
+-	return sop->sem_flg & IPC_NOWAIT? -EAGAIN : 1;
++	return sop->sem_flg & IPC_NOWAIT ? -EAGAIN : 1;
  }
  
-@@ -930,8 +923,7 @@ static int do_smart_wakeup_zero(struct s
-  */
- static int update_queue(struct sem_array *sma, int semnum, struct wake_q_head *wake_q)
- {
--	struct sem_queue *q;
--	struct list_head *walk;
-+	struct sem_queue *q, *tmp;
- 	struct list_head *pending_list;
- 	int semop_completed = 0;
- 
-@@ -941,13 +933,9 @@ static int update_queue(struct sem_array
- 		pending_list = &sma->sem_base[semnum].pending_alter;
- 
- again:
--	walk = pending_list->next;
--	while (walk != pending_list) {
-+	list_for_each_entry_safe(q, tmp, pending_list, list) {
- 		int error, restart;
- 
--		q = container_of(walk, struct sem_queue, list);
--		walk = walk->next;
+ static inline void wake_up_sem_queue_prepare(struct sem_queue *q, int error,
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+mm-page_alloc-use-kern_cont-where-appropriate-checkpatch-fixes.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
+mm.patch
+mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
+mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
+scripts-checkpatchpl-fix-spelling.patch
+debug-more-properly-delay-for-secondary-cpus-fix.patch
+ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
+ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
