@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-avoid-maybe-uninitialized-warning.patch added to -mm tree
-Date: Tue, 25 Oct 2016 13:21:41 -0700
-Message-ID: <580fbed5.YEAeepAL5lLPF+RA%akpm@linux-foundation.org>
+Subject: + lib-genallocc-start-search-from-start-of-chunk.patch added to
+ -mm tree
+Date: Tue, 25 Oct 2016 15:25:59 -0700
+Message-ID: <580fdbf7.mG/1Wv+6VKzhldiN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37513 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39900 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932301AbcJYUVm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2016 16:21:42 -0400
+        with ESMTP id S1751576AbcJYW0A (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Oct 2016 18:26:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, agruenba@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: danielmentz@google.com, mathieu.desnoyers@efficios.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: avoid maybe-uninitialized warning
+     Subject: lib/genalloc.c: start search from start of chunk
 has been added to the -mm tree.  Its filename is
-     shmem-avoid-maybe-uninitialized-warning.patch
+     lib-genallocc-start-search-from-start-of-chunk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/shmem-avoid-maybe-uninitialized-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-genallocc-start-search-from-start-of-chunk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-avoid-maybe-uninitialized-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-genallocc-start-search-from-start-of-chunk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,70 +39,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: shmem: avoid maybe-uninitialized warning
+From: Daniel Mentz <danielmentz@google.com>
+Subject: lib/genalloc.c: start search from start of chunk
 
-After enabling -Wmaybe-uninitialized warnings, we get a false-postive
-warning for shmem:
+gen_pool_alloc_algo() iterates over the chunks of a pool trying to find a
+contiguous block of memory that satisfies the allocation request.
 
-mm/shmem.c: In function `shmem_getpage_gfp':
-include/linux/spinlock.h:332:21: error: `info' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+The shortcut
 
-This can be easily avoided, since the correct 'info' pointer is known at
-the time we first enter the function, so we can simply move the
-initialization up.  Moving it before the first label avoids the warning
-and lets us remove two later initializations.
+	if (size > atomic_read(&chunk->avail))
+		continue;
 
-Note that the function is so hard to read that it not only confuses the
-compiler, but also most readers and without this patch it could\ easily
-break if one of the 'goto's changed.
+makes the loop skip over chunks that do not have enough bytes left to
+fulfill the request.  There are two situations, though, where an
+allocation might still fail:
 
-Link: https://www.spinics.net/lists/kernel/msg2368133.html
-Link: http://lkml.kernel.org/r/20161024205725.786455-1-arnd@arndb.de
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
+(1) The available memory is not contiguous, i.e.  the request cannot
+    be fulfilled due to external fragmentation.
+
+(2) A race condition.  Another thread runs the same code concurrently
+    and is quicker to grab the available memory.
+
+In those situations, the loop calls pool->algo() to search the entire
+chunk, and pool->algo() returns some value that is >= end_bit to indicate
+that the search failed.  This return value is then assigned to start_bit. 
+The variables start_bit and end_bit describe the range that should be
+searched, and this range should be reset for every chunk that is searched.
+Today, the code fails to reset start_bit to 0.  As a result, prefixes of
+subsequent chunks are ignored.  Memory allocations might fail even though
+there is plenty of room left in these prefixes of those other chunks.
+
+Fixes: 7f184275aa30 ("lib, Make gen_pool memory allocator lockless")
+Link: http://lkml.kernel.org/r/1477420604-28918-1-git-send-email-danielmentz@google.com
+Signed-off-by: Daniel Mentz <danielmentz@google.com>
+Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ lib/genalloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~shmem-avoid-maybe-uninitialized-warning mm/shmem.c
---- a/mm/shmem.c~shmem-avoid-maybe-uninitialized-warning
-+++ a/mm/shmem.c
-@@ -1537,7 +1537,7 @@ static int shmem_getpage_gfp(struct inod
- 	struct mm_struct *fault_mm, int *fault_type)
- {
- 	struct address_space *mapping = inode->i_mapping;
--	struct shmem_inode_info *info;
-+	struct shmem_inode_info *info = SHMEM_I(inode);
- 	struct shmem_sb_info *sbinfo;
- 	struct mm_struct *charge_mm;
- 	struct mem_cgroup *memcg;
-@@ -1587,7 +1587,6 @@ repeat:
- 	 * Fast cache lookup did not find it:
- 	 * bring it back from swap or allocate.
- 	 */
--	info = SHMEM_I(inode);
- 	sbinfo = SHMEM_SB(inode->i_sb);
- 	charge_mm = fault_mm ? : current->mm;
+diff -puN lib/genalloc.c~lib-genallocc-start-search-from-start-of-chunk lib/genalloc.c
+--- a/lib/genalloc.c~lib-genallocc-start-search-from-start-of-chunk
++++ a/lib/genalloc.c
+@@ -292,7 +292,7 @@ unsigned long gen_pool_alloc_algo(struct
+ 	struct gen_pool_chunk *chunk;
+ 	unsigned long addr = 0;
+ 	int order = pool->min_alloc_order;
+-	int nbits, start_bit = 0, end_bit, remain;
++	int nbits, start_bit, end_bit, remain;
  
-@@ -1840,7 +1839,6 @@ unlock:
- 		put_page(page);
- 	}
- 	if (error == -ENOSPC && !once++) {
--		info = SHMEM_I(inode);
- 		spin_lock_irq(&info->lock);
- 		shmem_recalc_inode(inode);
- 		spin_unlock_irq(&info->lock);
+ #ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	BUG_ON(in_nmi());
+@@ -307,6 +307,7 @@ unsigned long gen_pool_alloc_algo(struct
+ 		if (size > atomic_read(&chunk->avail))
+ 			continue;
+ 
++		start_bit = 0;
+ 		end_bit = chunk_size(chunk) >> order;
+ retry:
+ 		start_bit = algo(chunk->bits, end_bit, start_bit,
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from danielmentz@google.com are
 
-slub-avoid-false-postive-warning.patch
-shmem-avoid-maybe-uninitialized-warning.patch
+lib-genallocc-start-search-from-start-of-chunk.patch
 
