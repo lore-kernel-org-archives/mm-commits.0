@@ -1,78 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kcov-properly-check-if-we-are-in-an-interrupt.patch
+Subject: [merged] mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch
  removed from -mm tree
-Date: Fri, 28 Oct 2016 11:30:13 -0700
-Message-ID: <58139935.y4qwoLpJCLyyrtao%akpm@linux-foundation.org>
+Date: Fri, 28 Oct 2016 11:30:10 -0700
+Message-ID: <58139932.webQq0HQSjXHvgYh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45636 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45622 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965013AbcJ1SaO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:30:14 -0400
+        with ESMTP id S965345AbcJ1SaL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:30:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, james.morse@arm.com, keescook@chromium.org, nicstange@gmail.com, quentin.casasnovas@oracle.com, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, cl@linux.com, dsmythies@telus.net, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: properly check if we are in an interrupt
+     Subject: mm/slab: fix kmemcg cache creation delayed issue
 has been removed from the -mm tree.  Its filename was
-     kcov-properly-check-if-we-are-in-an-interrupt.patch
+     mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kcov: properly check if we are in an interrupt
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/slab: fix kmemcg cache creation delayed issue
 
-in_interrupt() returns a nonzero value when we are either in an
-interrupt or have bh disabled via local_bh_disable().  Since we are
-interested in only ignoring coverage from actual interrupts, do a
-proper check instead of just calling in_interrupt().
+There is a bug report that SLAB makes extreme load average due to over
+2000 kworker thread.
 
-As a result of this change, kcov will start to collect coverage from
-within local_bh_disable()/local_bh_enable() sections.
+https://bugzilla.kernel.org/show_bug.cgi?id=172981
 
-Link: http://lkml.kernel.org/r/1476115803-20712-1-git-send-email-andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Acked-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Nicolai Stange <nicstange@gmail.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: James Morse <james.morse@arm.com>
-Cc: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Quentin Casasnovas <quentin.casasnovas@oracle.com>
+This issue is caused by kmemcg feature that try to create new set of
+kmem_caches for each memcg.  Recently, kmem_cache creation is slowed by
+synchronize_sched() and futher kmem_cache creation is also delayed since
+kmem_cache creation is synchronized by a global slab_mutex lock.  So, the
+number of kworker that try to create kmem_cache increases quitely. 
+synchronize_sched() is for lockless access to node's shared array but it's
+not needed when a new kmem_cache is created.  So, this patch rules out
+that case.
+
+Fixes: 801faf0db894 ("mm/slab: lockless decision to grow cache")
+Link: http://lkml.kernel.org/r/1475734855-4837-1-git-send-email-iamjoonsoo.kim@lge.com
+Reported-by: Doug Smythies <dsmythies@telus.net>
+Tested-by: Doug Smythies <dsmythies@telus.net>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/kcov.c~kcov-properly-check-if-we-are-in-an-interrupt kernel/kcov.c
---- a/kernel/kcov.c~kcov-properly-check-if-we-are-in-an-interrupt
-+++ a/kernel/kcov.c
-@@ -53,8 +53,15 @@ void notrace __sanitizer_cov_trace_pc(vo
- 	/*
- 	 * We are interested in code coverage as a function of a syscall inputs,
- 	 * so we ignore code executed in interrupts.
-+	 * The checks for whether we are in an interrupt are open-coded, because
-+	 * 1. We can't use in_interrupt() here, since it also returns true
-+	 *    when we are inside local_bh_disable() section.
-+	 * 2. We don't want to use (in_irq() | in_serving_softirq() | in_nmi()),
-+	 *    since that leads to slower generated code (three separate tests,
-+	 *    one for each of the flags).
+diff -puN mm/slab.c~mm-slab-fix-kmemcg-cache-creation-delayed-issue mm/slab.c
+--- a/mm/slab.c~mm-slab-fix-kmemcg-cache-creation-delayed-issue
++++ a/mm/slab.c
+@@ -966,7 +966,7 @@ static int setup_kmem_cache_node(struct
+ 	 * guaranteed to be valid until irq is re-enabled, because it will be
+ 	 * freed after synchronize_sched().
  	 */
--	if (!t || in_interrupt())
-+	if (!t || (preempt_count() & (HARDIRQ_MASK | SOFTIRQ_OFFSET
-+							| NMI_MASK)))
- 		return;
- 	mode = READ_ONCE(t->kcov_mode);
- 	if (mode == KCOV_MODE_TRACE) {
+-	if (force_change)
++	if (old_shared && force_change)
+ 		synchronize_sched();
+ 
+ fail:
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 
