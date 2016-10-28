@@ -1,59 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-misc-sgi-gru-grumainc-remove-bogus-0x-prefix-from-printk.patch
- removed from -mm tree
-Date: Fri, 28 Oct 2016 11:31:05 -0700
-Message-ID: <58139969.Nc+Ep19btWhEz+QB%akpm@linux-foundation.org>
+Subject: [merged] kconfigh-remove-config_enabled-macro.patch removed from
+ -mm tree
+Date: Fri, 28 Oct 2016 11:30:30 -0700
+Message-ID: <58139946.dFiIGcxV8gQ/dIKq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45712 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030455AbcJ1SbG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:31:06 -0400
+        with ESMTP id S966071AbcJ1Sac (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:30:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sivanich@sgi.com, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
+To: yamada.masahiro@socionext.com, arnd@arndb.de, hpa@zytor.com, keescook@chromium.org, mingo@kernel.org, mmarek@suse.com, nicolas.pitre@linaro.org, oberpar@linux.vnet.ibm.com, pebolle@tiscali.nl, tglx@linutronix.de, thgarnie@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/misc/sgi-gru/grumain.c: remove bogus 0x prefix from printk
+     Subject: kconfig.h: remove config_enabled() macro
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-sgi-gru-grumainc-remove-bogus-0x-prefix-from-printk.patch
+     kconfigh-remove-config_enabled-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dimitri Sivanich <sivanich@sgi.com>
-Subject: drivers/misc/sgi-gru/grumain.c: remove bogus 0x prefix from printk
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Subject: kconfig.h: remove config_enabled() macro
 
-Would like to have this be a decimal number.
+The use of config_enabled() is ambiguous.  For config options,
+IS_ENABLED(), IS_REACHABLE(), etc. will make intention clearer.
+Sometimes config_enabled() has been used for non-config options
+because it is useful to check whether the given symbol is defined
+or not.
 
-Link: http://lkml.kernel.org/r/20161026134746.GA30169@sgi.com
-Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
-Reported-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+I have been tackling on deprecating config_enabled(), and now is the
+time to finish this work.
+
+Some new users have appeared for v4.9-rc1, but it is trivial to
+replace them:
+
+ - arch/x86/mm/kaslr.c
+  replace config_enabled() with IS_ENABLED() because
+  CONFIG_X86_ESPFIX64 and CONFIG_EFI are boolean.
+
+ - include/asm-generic/export.h
+  replace config_enabled() with __is_defined().
+
+Then, config_enabled() can be removed now.
+
+Going forward, please use IS_ENABLED(), IS_REACHABLE(), etc. for
+config options, and __is_defined() for non-config symbols.
+
+Link: http://lkml.kernel.org/r/1476616078-32252-1-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Michal Marek <mmarek@suse.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Garnier <thgarnie@google.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-gru/grumain.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/kaslr.c          |    6 +++---
+ include/asm-generic/export.h |    2 +-
+ include/linux/kconfig.h      |    5 ++---
+ 3 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN drivers/misc/sgi-gru/grumain.c~drivers-misc-sgi-gru-grumainc-remove-bogus-0x-prefix-from-printk drivers/misc/sgi-gru/grumain.c
---- a/drivers/misc/sgi-gru/grumain.c~drivers-misc-sgi-gru-grumainc-remove-bogus-0x-prefix-from-printk
-+++ a/drivers/misc/sgi-gru/grumain.c
-@@ -283,7 +283,7 @@ static void gru_unload_mm_tracker(struct
- 	spin_lock(&gru->gs_asid_lock);
- 	BUG_ON((asids->mt_ctxbitmap & ctxbitmap) != ctxbitmap);
- 	asids->mt_ctxbitmap ^= ctxbitmap;
--	gru_dbg(grudev, "gid %d, gts %p, gms %p, ctxnum 0x%d, asidmap 0x%lx\n",
-+	gru_dbg(grudev, "gid %d, gts %p, gms %p, ctxnum %d, asidmap 0x%lx\n",
- 		gru->gs_gid, gts, gms, gts->ts_ctxnum, gms->ms_asidmap[0]);
- 	spin_unlock(&gru->gs_asid_lock);
- 	spin_unlock(&gms->ms_asid_lock);
+diff -puN arch/x86/mm/kaslr.c~kconfigh-remove-config_enabled-macro arch/x86/mm/kaslr.c
+--- a/arch/x86/mm/kaslr.c~kconfigh-remove-config_enabled-macro
++++ a/arch/x86/mm/kaslr.c
+@@ -104,10 +104,10 @@ void __init kernel_randomize_memory(void
+ 	 * consistent with the vaddr_start/vaddr_end variables.
+ 	 */
+ 	BUILD_BUG_ON(vaddr_start >= vaddr_end);
+-	BUILD_BUG_ON(config_enabled(CONFIG_X86_ESPFIX64) &&
++	BUILD_BUG_ON(IS_ENABLED(CONFIG_X86_ESPFIX64) &&
+ 		     vaddr_end >= EFI_VA_START);
+-	BUILD_BUG_ON((config_enabled(CONFIG_X86_ESPFIX64) ||
+-		      config_enabled(CONFIG_EFI)) &&
++	BUILD_BUG_ON((IS_ENABLED(CONFIG_X86_ESPFIX64) ||
++		      IS_ENABLED(CONFIG_EFI)) &&
+ 		     vaddr_end >= __START_KERNEL_map);
+ 	BUILD_BUG_ON(vaddr_end > __START_KERNEL_map);
+ 
+diff -puN include/asm-generic/export.h~kconfigh-remove-config_enabled-macro include/asm-generic/export.h
+--- a/include/asm-generic/export.h~kconfigh-remove-config_enabled-macro
++++ a/include/asm-generic/export.h
+@@ -70,7 +70,7 @@ KSYM(__kcrctab_\name):
+ #include <generated/autoksyms.h>
+ 
+ #define __EXPORT_SYMBOL(sym, val, sec)				\
+-	__cond_export_sym(sym, val, sec, config_enabled(__KSYM_##sym))
++	__cond_export_sym(sym, val, sec, __is_defined(__KSYM_##sym))
+ #define __cond_export_sym(sym, val, sec, conf)			\
+ 	___cond_export_sym(sym, val, sec, conf)
+ #define ___cond_export_sym(sym, val, sec, enabled)		\
+diff -puN include/linux/kconfig.h~kconfigh-remove-config_enabled-macro include/linux/kconfig.h
+--- a/include/linux/kconfig.h~kconfigh-remove-config_enabled-macro
++++ a/include/linux/kconfig.h
+@@ -31,7 +31,6 @@
+  * When CONFIG_BOOGER is not defined, we generate a (... 1, 0) pair, and when
+  * the last step cherry picks the 2nd arg, we get a zero.
+  */
+-#define config_enabled(cfg)		___is_defined(cfg)
+ #define __is_defined(x)			___is_defined(x)
+ #define ___is_defined(val)		____is_defined(__ARG_PLACEHOLDER_##val)
+ #define ____is_defined(arg1_or_junk)	__take_second_arg(arg1_or_junk 1, 0)
+@@ -41,13 +40,13 @@
+  * otherwise. For boolean options, this is equivalent to
+  * IS_ENABLED(CONFIG_FOO).
+  */
+-#define IS_BUILTIN(option) config_enabled(option)
++#define IS_BUILTIN(option) __is_defined(option)
+ 
+ /*
+  * IS_MODULE(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'm', 0
+  * otherwise.
+  */
+-#define IS_MODULE(option) config_enabled(option##_MODULE)
++#define IS_MODULE(option) __is_defined(option##_MODULE)
+ 
+ /*
+  * IS_REACHABLE(CONFIG_FOO) evaluates to 1 if the currently compiled
 _
 
-Patches currently in -mm which might be from sivanich@sgi.com are
+Patches currently in -mm which might be from yamada.masahiro@socionext.com are
 
 
