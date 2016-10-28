@@ -1,56 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [patch 04/20] mm/list_lru.c: avoid error-path NULL pointer deref
-Date: Thu, 27 Oct 2016 17:46:27 -0700
-Message-ID: <58129fe3.1NVVsF/zaoFouLUo%akpm@linux-foundation.org>
+Subject: [patch 10/20] lib/stackdepot.c: bump stackdepot capacity from
+ 16MB to 128MB
+Date: Thu, 27 Oct 2016 17:46:44 -0700
+Message-ID: <58129ff4.HwBZOwQ4dqUqTLvW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57792 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57894 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936219AbcJ1Aq2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 20:46:28 -0400
+        with ESMTP id S936219AbcJ1Aqq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 20:46:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, apolyakov@beget.ru, stable@vger.kernel.org, vdavydov.dev@gmail.com, viro@zeniv.linux.org.uk
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, iamjoonsoo.kim@lge.com, sploving1@gmail.com
 
-From: Alexander Polakov <apolyakov@beget.ru>
-Subject: mm/list_lru.c: avoid error-path NULL pointer deref
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: lib/stackdepot.c: bump stackdepot capacity from 16MB to 128MB
 
-As described in https://bugzilla.kernel.org/show_bug.cgi?id=177821:
+KASAN uses stackdepot to memorize stacks for all kmalloc/kfree calls. 
+Current stackdepot capacity is 16MB (1024 top level entries x 4 pages on
+second level).  Size of each stack is (num_frames + 3) * sizeof(long). 
+Which gives us ~84K stacks.  This capacity was chosen empirically and it
+is enough to run kernel normally.
 
-After some analysis it seems to be that the problem is in alloc_super(). 
-In case list_lru_init_memcg() fails it goes into destroy_super(), which
-calls list_lru_destroy().
+However, when lots of configs are enabled and a fuzzer tries to maximize
+code coverage, it easily hits the limit within tens of minutes.  I've
+tested for long a time with number of top level entries bumped 4x (4096). 
+And I think I've seen overflow only once.  But I don't have all configs
+enabled and code coverage has not reached maximum yet.  So bump it 8x to
+8192.  Since we have two-level table, memory cost of this is very moderate
+-- currently the top-level table is 8KB, with this patch it is 64KB, which
+is negligible under KASAN.
 
-And in list_lru_init() we see that in case memcg_init_list_lru() fails,
-lru->node is freed, but not set NULL, which then leads list_lru_destroy()
-to believe it is initialized and call memcg_destroy_list_lru(). 
-memcg_destroy_list_lru() in turn can access lru->node[i].memcg_lrus, which
-is NULL.
+Here is some approx math.
 
-[akpm@linux-foundation.org: add comment]
-Signed-off-by: Alexander Polakov <apolyakov@beget.ru>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+128MB allows us to memorize ~670K stacks (assuming stack is ~200b).  I've
+grepped kernel for kmalloc|kfree|kmem_cache_alloc|kmem_cache_free|
+kzalloc|kstrdup|kstrndup|kmemdup and it gives ~60K matches.  Most of
+alloc/free call sites are reachable with only one stack.  But some utility
+functions can have large fanout.  Assuming average fanout is 5x, total
+number of alloc/free stacks is ~300K.
+
+Link: http://lkml.kernel.org/r/1476458416-122131-1-git-send-email-dvyukov@google.com
+Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Baozeng Ding <sploving1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/stackdepot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/list_lru.c~mm-list_lruc-avoid-error-path-null-pointer-deref mm/list_lru.c
---- a/mm/list_lru.c~mm-list_lruc-avoid-error-path-null-pointer-deref
-+++ a/mm/list_lru.c
-@@ -554,6 +554,8 @@ int __list_lru_init(struct list_lru *lru
- 	err = memcg_init_list_lru(lru, memcg_aware);
- 	if (err) {
- 		kfree(lru->node);
-+		/* Do this so a list_lru_destroy() doesn't crash: */
-+		lru->node = NULL;
- 		goto out;
- 	}
- 
+diff -puN lib/stackdepot.c~lib-bump-stackdepot-capacity-from-16mb-to-128mb lib/stackdepot.c
+--- a/lib/stackdepot.c~lib-bump-stackdepot-capacity-from-16mb-to-128mb
++++ a/lib/stackdepot.c
+@@ -50,7 +50,7 @@
+ 					STACK_ALLOC_ALIGN)
+ #define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - \
+ 		STACK_ALLOC_NULL_PROTECTION_BITS - STACK_ALLOC_OFFSET_BITS)
+-#define STACK_ALLOC_SLABS_CAP 1024
++#define STACK_ALLOC_SLABS_CAP 8192
+ #define STACK_ALLOC_MAX_SLABS \
+ 	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
+ 	 (1LL << (STACK_ALLOC_INDEX_BITS)) : STACK_ALLOC_SLABS_CAP)
 _
