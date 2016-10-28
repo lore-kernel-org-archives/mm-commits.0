@@ -1,121 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [patch 08/20] kconfig.h: remove config_enabled() macro
-Date: Thu, 27 Oct 2016 17:46:38 -0700
-Message-ID: <58129fee.92mwdyq8CU/5uNgG%akpm@linux-foundation.org>
+Subject: [patch 11/20] mm: kmemleak: ensure that the task stack is not
+ freed during scanning
+Date: Thu, 27 Oct 2016 17:46:47 -0700
+Message-ID: <58129ff7.rMeJqsiSvizSy5n6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57906 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936219AbcJ1Aqk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 20:46:40 -0400
+        with ESMTP id S936219AbcJ1Aqs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 20:46:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, yamada.masahiro@socionext.com, arnd@arndb.de, hpa@zytor.com, keescook@chromium.org, mingo@kernel.org, mmarek@suse.com, nicolas.pitre@linaro.org, oberpar@linux.vnet.ibm.com, pebolle@tiscali.nl, tglx@linutronix.de, thgarnie@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, catalin.marinas@arm.com, caiqian@redhat.com, hillf.zj@alibaba-inc.com, luto@kernel.org, mhocko@suse.com, oleg@redhat.com
 
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: kconfig.h: remove config_enabled() macro
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: kmemleak: ensure that the task stack is not freed during scanning
 
-The use of config_enabled() is ambiguous.  For config options,
-IS_ENABLED(), IS_REACHABLE(), etc. will make intention clearer.
-Sometimes config_enabled() has been used for non-config options
-because it is useful to check whether the given symbol is defined
-or not.
+Commit 68f24b08ee89 ("sched/core: Free the stack early if
+CONFIG_THREAD_INFO_IN_TASK") may cause the task->stack to be freed
+during kmemleak_scan() execution, leading to either a NULL pointer
+fault (if task->stack is NULL) or kmemleak accessing already freed
+memory. This patch uses the new try_get_task_stack() API to ensure that
+the task stack is not freed during kmemleak stack scanning.
 
-I have been tackling on deprecating config_enabled(), and now is the
-time to finish this work.
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=173901.
 
-Some new users have appeared for v4.9-rc1, but it is trivial to
-replace them:
-
- - arch/x86/mm/kaslr.c
-  replace config_enabled() with IS_ENABLED() because
-  CONFIG_X86_ESPFIX64 and CONFIG_EFI are boolean.
-
- - include/asm-generic/export.h
-  replace config_enabled() with __is_defined().
-
-Then, config_enabled() can be removed now.
-
-Going forward, please use IS_ENABLED(), IS_REACHABLE(), etc. for
-config options, and __is_defined() for non-config symbols.
-
-Link: http://lkml.kernel.org/r/1476616078-32252-1-git-send-email-yamada.masahiro@socionext.com
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Thomas Garnier <thgarnie@google.com>
-Cc: Paul Bolle <pebolle@tiscali.nl>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>
+Fixes: 68f24b08ee89 ("sched/core: Free the stack early if CONFIG_THREAD_INFO_IN_TASK")
+Link: http://lkml.kernel.org/r/1476266223-14325-1-git-send-email-catalin.marinas@arm.com
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Reported-by: CAI Qian <caiqian@redhat.com>
+Tested-by: CAI Qian <caiqian@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: CAI Qian <caiqian@redhat.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/kaslr.c          |    6 +++---
- include/asm-generic/export.h |    2 +-
- include/linux/kconfig.h      |    5 ++---
- 3 files changed, 6 insertions(+), 7 deletions(-)
+ mm/kmemleak.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/kaslr.c~kconfigh-remove-config_enabled-macro arch/x86/mm/kaslr.c
---- a/arch/x86/mm/kaslr.c~kconfigh-remove-config_enabled-macro
-+++ a/arch/x86/mm/kaslr.c
-@@ -104,10 +104,10 @@ void __init kernel_randomize_memory(void
- 	 * consistent with the vaddr_start/vaddr_end variables.
- 	 */
- 	BUILD_BUG_ON(vaddr_start >= vaddr_end);
--	BUILD_BUG_ON(config_enabled(CONFIG_X86_ESPFIX64) &&
-+	BUILD_BUG_ON(IS_ENABLED(CONFIG_X86_ESPFIX64) &&
- 		     vaddr_end >= EFI_VA_START);
--	BUILD_BUG_ON((config_enabled(CONFIG_X86_ESPFIX64) ||
--		      config_enabled(CONFIG_EFI)) &&
-+	BUILD_BUG_ON((IS_ENABLED(CONFIG_X86_ESPFIX64) ||
-+		      IS_ENABLED(CONFIG_EFI)) &&
- 		     vaddr_end >= __START_KERNEL_map);
- 	BUILD_BUG_ON(vaddr_end > __START_KERNEL_map);
+diff -puN mm/kmemleak.c~mm-kmemleak-ensure-that-the-task-stack-is-not-freed-during-scanning mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-ensure-that-the-task-stack-is-not-freed-during-scanning
++++ a/mm/kmemleak.c
+@@ -1453,8 +1453,11 @@ static void kmemleak_scan(void)
  
-diff -puN include/asm-generic/export.h~kconfigh-remove-config_enabled-macro include/asm-generic/export.h
---- a/include/asm-generic/export.h~kconfigh-remove-config_enabled-macro
-+++ a/include/asm-generic/export.h
-@@ -70,7 +70,7 @@ KSYM(__kcrctab_\name):
- #include <generated/autoksyms.h>
- 
- #define __EXPORT_SYMBOL(sym, val, sec)				\
--	__cond_export_sym(sym, val, sec, config_enabled(__KSYM_##sym))
-+	__cond_export_sym(sym, val, sec, __is_defined(__KSYM_##sym))
- #define __cond_export_sym(sym, val, sec, conf)			\
- 	___cond_export_sym(sym, val, sec, conf)
- #define ___cond_export_sym(sym, val, sec, enabled)		\
-diff -puN include/linux/kconfig.h~kconfigh-remove-config_enabled-macro include/linux/kconfig.h
---- a/include/linux/kconfig.h~kconfigh-remove-config_enabled-macro
-+++ a/include/linux/kconfig.h
-@@ -31,7 +31,6 @@
-  * When CONFIG_BOOGER is not defined, we generate a (... 1, 0) pair, and when
-  * the last step cherry picks the 2nd arg, we get a zero.
-  */
--#define config_enabled(cfg)		___is_defined(cfg)
- #define __is_defined(x)			___is_defined(x)
- #define ___is_defined(val)		____is_defined(__ARG_PLACEHOLDER_##val)
- #define ____is_defined(arg1_or_junk)	__take_second_arg(arg1_or_junk 1, 0)
-@@ -41,13 +40,13 @@
-  * otherwise. For boolean options, this is equivalent to
-  * IS_ENABLED(CONFIG_FOO).
-  */
--#define IS_BUILTIN(option) config_enabled(option)
-+#define IS_BUILTIN(option) __is_defined(option)
- 
- /*
-  * IS_MODULE(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'm', 0
-  * otherwise.
-  */
--#define IS_MODULE(option) config_enabled(option##_MODULE)
-+#define IS_MODULE(option) __is_defined(option##_MODULE)
- 
- /*
-  * IS_REACHABLE(CONFIG_FOO) evaluates to 1 if the currently compiled
+ 		read_lock(&tasklist_lock);
+ 		do_each_thread(g, p) {
+-			scan_block(task_stack_page(p), task_stack_page(p) +
+-				   THREAD_SIZE, NULL);
++			void *stack = try_get_task_stack(p);
++			if (stack) {
++				scan_block(stack, stack + THREAD_SIZE, NULL);
++				put_task_stack(p);
++			}
+ 		} while_each_thread(g, p);
+ 		read_unlock(&tasklist_lock);
+ 	}
 _
