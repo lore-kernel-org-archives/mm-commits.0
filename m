@@ -1,189 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [patch 06/20] mm/slab: improve performance of gathering slabinfo
- stats
-Date: Thu, 27 Oct 2016 17:46:32 -0700
-Message-ID: <58129fe8.ggKjymzil9e9OyQJ%akpm@linux-foundation.org>
+Subject: [patch 14/20] mm: memcontrol: do not recurse in direct reclaim
+Date: Thu, 27 Oct 2016 17:46:56 -0700
+Message-ID: <5812a000.IfBGBq84W8yEms4S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57816 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57942 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936219AbcJ1Aqe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 20:46:34 -0400
+        with ESMTP id S943135AbcJ1Aq5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 20:46:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aruna.ramakrishna@oracle.com, cl@linux.com, iamjoonsoo.kim@lge.com, mike.kravetz@oracle.com, penberg@kernel.org, rientjes@google.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, tj@kernel.org, vdavydov.dev@gmail.com
 
-From: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
-Subject: mm/slab: improve performance of gathering slabinfo stats
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: do not recurse in direct reclaim
 
-On large systems, when some slab caches grow to millions of objects (and
-many gigabytes), running 'cat /proc/slabinfo' can take up to 1-2 seconds. 
-During this time, interrupts are disabled while walking the slab lists
-(slabs_full, slabs_partial, and slabs_free) for each node, and this
-sometimes causes timeouts in other drivers (for instance, Infiniband).
+On 4.0, we saw a stack corruption from a page fault entering direct memory
+cgroup reclaim, calling into btrfs_releasepage(), which then tried to
+allocate an extent and recursed back into a kmem charge ad nauseam:
 
-This patch optimizes 'cat /proc/slabinfo' by maintaining a counter for
-total number of allocated slabs per node, per cache.  This counter is
-updated when a slab is created or destroyed.  This enables us to skip
-traversing the slabs_full list while gathering slabinfo statistics, and
-since slabs_full tends to be the biggest list when the cache is large, it
-results in a dramatic performance improvement.  Getting slabinfo
-statistics now only requires walking the slabs_free and slabs_partial
-lists, and those lists are usually much smaller than slabs_full.  We
-tested this after growing the dentry cache to 70GB, and the performance
-improved from 2s to 5ms.
+[...]
+[<ffffffff8136590c>] btrfs_releasepage+0x2c/0x30
+[<ffffffff811559a2>] try_to_release_page+0x32/0x50
+[<ffffffff81168cea>] shrink_page_list+0x6da/0x7a0
+[<ffffffff811693b5>] shrink_inactive_list+0x1e5/0x510
+[<ffffffff8116a0a5>] shrink_lruvec+0x605/0x7f0
+[<ffffffff8116a37e>] shrink_zone+0xee/0x320
+[<ffffffff8116a934>] do_try_to_free_pages+0x174/0x440
+[<ffffffff8116adf7>] try_to_free_mem_cgroup_pages+0xa7/0x130
+[<ffffffff811b738b>] try_charge+0x17b/0x830
+[<ffffffff811bb5b0>] memcg_charge_kmem+0x40/0x80
+[<ffffffff811a96a9>] new_slab+0x2d9/0x5a0
+[<ffffffff817b2547>] __slab_alloc+0x2fd/0x44f
+[<ffffffff811a9b03>] kmem_cache_alloc+0x193/0x1e0
+[<ffffffff813801e1>] alloc_extent_state+0x21/0xc0
+[<ffffffff813820c5>] __clear_extent_bit+0x2b5/0x400
+[<ffffffff81386d03>] try_release_extent_mapping+0x1a3/0x220
+[<ffffffff813658a1>] __btrfs_releasepage+0x31/0x70
+[<ffffffff8136590c>] btrfs_releasepage+0x2c/0x30
+[<ffffffff811559a2>] try_to_release_page+0x32/0x50
+[<ffffffff81168cea>] shrink_page_list+0x6da/0x7a0
+[<ffffffff811693b5>] shrink_inactive_list+0x1e5/0x510
+[<ffffffff8116a0a5>] shrink_lruvec+0x605/0x7f0
+[<ffffffff8116a37e>] shrink_zone+0xee/0x320
+[<ffffffff8116a934>] do_try_to_free_pages+0x174/0x440
+[<ffffffff8116adf7>] try_to_free_mem_cgroup_pages+0xa7/0x130
+[<ffffffff811b738b>] try_charge+0x17b/0x830
+[<ffffffff811bbfd5>] mem_cgroup_try_charge+0x65/0x1c0
+[<ffffffff8118338f>] handle_mm_fault+0x117f/0x1510
+[<ffffffff81041cf7>] __do_page_fault+0x177/0x420
+[<ffffffff81041fac>] do_page_fault+0xc/0x10
+[<ffffffff817c0182>] page_fault+0x22/0x30
 
-Link: http://lkml.kernel.org/r/1472517876-26814-1-git-send-email-aruna.ramakrishna@oracle.com
-Signed-off-by: Aruna Ramakrishna <aruna.ramakrishna@oracle.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+On later kernels, kmem charging is opt-in rather than opt-out, and that
+particular kmem allocation in btrfs_releasepage() is no longer being
+charged and won't recurse and overrun the stack anymore.  But it's not
+impossible for an accounted allocation to happen from the memcg direct
+reclaim context, and we needed to reproduce this crash many times before
+we even got a useful stack trace out of it.
+
+Like other direct reclaimers, mark tasks in memcg reclaim PF_MEMALLOC to
+avoid recursing into any other form of direct reclaim.  Then let recursive
+charges from PF_MEMALLOC contexts bypass the cgroup limit.
+
+Link: http://lkml.kernel.org/r/20161025141050.GA13019@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   43 +++++++++++++++++++++++++++----------------
- mm/slab.h |    1 +
- 2 files changed, 28 insertions(+), 16 deletions(-)
+ mm/memcontrol.c |    9 +++++++++
+ mm/vmscan.c     |    2 ++
+ 2 files changed, 11 insertions(+)
 
-diff -puN mm/slab.c~mm-slab-improve-performance-of-gathering-slabinfo-stats mm/slab.c
---- a/mm/slab.c~mm-slab-improve-performance-of-gathering-slabinfo-stats
-+++ a/mm/slab.c
-@@ -233,6 +233,7 @@ static void kmem_cache_node_init(struct
- 	spin_lock_init(&parent->list_lock);
- 	parent->free_objects = 0;
- 	parent->free_touched = 0;
-+	parent->num_slabs = 0;
- }
+diff -puN mm/memcontrol.c~mm-memcontrol-do-not-recurse-in-direct-reclaim mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-do-not-recurse-in-direct-reclaim
++++ a/mm/memcontrol.c
+@@ -1917,6 +1917,15 @@ retry:
+ 		     current->flags & PF_EXITING))
+ 		goto force;
  
- #define MAKE_LIST(cachep, listp, slab, nodeid)				\
-@@ -1382,24 +1383,27 @@ slab_out_of_memory(struct kmem_cache *ca
- 	for_each_kmem_cache_node(cachep, node, n) {
- 		unsigned long active_objs = 0, num_objs = 0, free_objects = 0;
- 		unsigned long active_slabs = 0, num_slabs = 0;
-+		unsigned long num_slabs_partial = 0, num_slabs_free = 0;
-+		unsigned long num_slabs_full;
- 
- 		spin_lock_irqsave(&n->list_lock, flags);
--		list_for_each_entry(page, &n->slabs_full, lru) {
--			active_objs += cachep->num;
--			active_slabs++;
--		}
-+		num_slabs = n->num_slabs;
- 		list_for_each_entry(page, &n->slabs_partial, lru) {
- 			active_objs += page->active;
--			active_slabs++;
-+			num_slabs_partial++;
- 		}
- 		list_for_each_entry(page, &n->slabs_free, lru)
--			num_slabs++;
-+			num_slabs_free++;
- 
- 		free_objects += n->free_objects;
- 		spin_unlock_irqrestore(&n->list_lock, flags);
- 
--		num_slabs += active_slabs;
- 		num_objs = num_slabs * cachep->num;
-+		active_slabs = num_slabs - num_slabs_free;
-+		num_slabs_full = num_slabs -
-+			(num_slabs_partial + num_slabs_free);
-+		active_objs += (num_slabs_full * cachep->num);
++	/*
++	 * Prevent unbounded recursion when reclaim operations need to
++	 * allocate memory. This might exceed the limits temporarily,
++	 * but we prefer facilitating memory reclaim and getting back
++	 * under the limit over triggering OOM kills in these cases.
++	 */
++	if (unlikely(current->flags & PF_MEMALLOC))
++		goto force;
 +
- 		pr_warn("  node %d: slabs: %ld/%ld, objs: %ld/%ld, free: %ld\n",
- 			node, active_slabs, num_slabs, active_objs, num_objs,
- 			free_objects);
-@@ -2314,6 +2318,7 @@ static int drain_freelist(struct kmem_ca
+ 	if (unlikely(task_in_memcg_oom(current)))
+ 		goto nomem;
  
- 		page = list_entry(p, struct page, lru);
- 		list_del(&page->lru);
-+		n->num_slabs--;
- 		/*
- 		 * Safe to drop the lock. The slab is no longer linked
- 		 * to the cache.
-@@ -2752,6 +2757,8 @@ static void cache_grow_end(struct kmem_c
- 		list_add_tail(&page->lru, &(n->slabs_free));
- 	else
- 		fixup_slab_list(cachep, n, page, &list);
-+
-+	n->num_slabs++;
- 	STATS_INC_GROWN(cachep);
- 	n->free_objects += cachep->num - page->active;
- 	spin_unlock(&n->list_lock);
-@@ -3443,6 +3450,7 @@ static void free_block(struct kmem_cache
+diff -puN mm/vmscan.c~mm-memcontrol-do-not-recurse-in-direct-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~mm-memcontrol-do-not-recurse-in-direct-reclaim
++++ a/mm/vmscan.c
+@@ -3043,7 +3043,9 @@ unsigned long try_to_free_mem_cgroup_pag
+ 					    sc.gfp_mask,
+ 					    sc.reclaim_idx);
  
- 		page = list_last_entry(&n->slabs_free, struct page, lru);
- 		list_move(&page->lru, list);
-+		n->num_slabs--;
- 	}
- }
++	current->flags |= PF_MEMALLOC;
+ 	nr_reclaimed = do_try_to_free_pages(zonelist, &sc);
++	current->flags &= ~PF_MEMALLOC;
  
-@@ -4099,6 +4107,8 @@ void get_slabinfo(struct kmem_cache *cac
- 	unsigned long num_objs;
- 	unsigned long active_slabs = 0;
- 	unsigned long num_slabs, free_objects = 0, shared_avail = 0;
-+	unsigned long num_slabs_partial = 0, num_slabs_free = 0;
-+	unsigned long num_slabs_full = 0;
- 	const char *name;
- 	char *error = NULL;
- 	int node;
-@@ -4111,33 +4121,34 @@ void get_slabinfo(struct kmem_cache *cac
- 		check_irq_on();
- 		spin_lock_irq(&n->list_lock);
+ 	trace_mm_vmscan_memcg_reclaim_end(nr_reclaimed);
  
--		list_for_each_entry(page, &n->slabs_full, lru) {
--			if (page->active != cachep->num && !error)
--				error = "slabs_full accounting error";
--			active_objs += cachep->num;
--			active_slabs++;
--		}
-+		num_slabs += n->num_slabs;
-+
- 		list_for_each_entry(page, &n->slabs_partial, lru) {
- 			if (page->active == cachep->num && !error)
- 				error = "slabs_partial accounting error";
- 			if (!page->active && !error)
- 				error = "slabs_partial accounting error";
- 			active_objs += page->active;
--			active_slabs++;
-+			num_slabs_partial++;
- 		}
-+
- 		list_for_each_entry(page, &n->slabs_free, lru) {
- 			if (page->active && !error)
- 				error = "slabs_free accounting error";
--			num_slabs++;
-+			num_slabs_free++;
- 		}
-+
- 		free_objects += n->free_objects;
- 		if (n->shared)
- 			shared_avail += n->shared->avail;
- 
- 		spin_unlock_irq(&n->list_lock);
- 	}
--	num_slabs += active_slabs;
- 	num_objs = num_slabs * cachep->num;
-+	active_slabs = num_slabs - num_slabs_free;
-+	num_slabs_full = num_slabs - (num_slabs_partial + num_slabs_free);
-+	active_objs += (num_slabs_full * cachep->num);
-+
- 	if (num_objs - active_objs != free_objects && !error)
- 		error = "free_objects accounting error";
- 
-diff -puN mm/slab.h~mm-slab-improve-performance-of-gathering-slabinfo-stats mm/slab.h
---- a/mm/slab.h~mm-slab-improve-performance-of-gathering-slabinfo-stats
-+++ a/mm/slab.h
-@@ -432,6 +432,7 @@ struct kmem_cache_node {
- 	struct list_head slabs_partial;	/* partial list first, better asm code */
- 	struct list_head slabs_full;
- 	struct list_head slabs_free;
-+	unsigned long num_slabs;
- 	unsigned long free_objects;
- 	unsigned int free_limit;
- 	unsigned int colour_next;	/* Per-node cache coloring */
 _
