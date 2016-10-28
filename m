@@ -1,85 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 28 Oct 2016 11:33:10 -0700
-Message-ID: <581399e6.bPmajlrFjJ/eBQhh%akpm@linux-foundation.org>
+Subject: [failures]
+ mm-vmalloc-replace-opencoded-4-level-page-walkers.patch removed from -mm
+ tree
+Date: Fri, 28 Oct 2016 14:26:26 -0700
+Message-ID: <5813c282.7Uz8l7F+WOJ7h9jG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46074 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51850 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030936AbcJ1SdL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:33:11 -0400
+        with ESMTP id S933956AbcJ1V01 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 17:26:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: chris@chris-wilson.co.uk, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, jmarchan@redhat.com, mgorman@techsingularity.net, rientjes@google.com, sfr@canb.auug.org.au, vdavydov.dev@gmail.com, wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: mm/vmalloc: replace opencoded 4-level page walkers
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-replace-opencoded-4-level-page-walkers.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: mm/vmalloc: replace opencoded 4-level page walkers
 
+Rather than open-code the intricacies of walking the 4-level page tables,
+use the generic page table walker apply_to_page_range() instead.
+
+The important change is that it now cleans up after an unsuccessful
+insertion and propagates the correct error.  The current failure may lead
+to a WARN if we encounter ENOMEM in one vmap_pte_range() and later retry
+with the same page range.
+
+WARNING: CPU: 0 PID: 605 at mm/vmalloc.c:136 vmap_page_range_noflush+0x2c1/0x340
+i.e. WARN_ON(!pte_none(*pte))
+
+v2: Don't convert the vunmap code over to apply_to_page_range() as it
+may try to allocate during atomic sections, such as exiting a task:
+
+[    9.837563]  [<ffffffff810519b0>] pte_alloc_one_kernel+0x10/0x20
+[    9.837568]  [<ffffffff811a7486>] __pte_alloc_kernel+0x16/0xa0
+[    9.837572]  [<ffffffff811aaa76>] apply_to_page_range+0x3f6/0x460
+[    9.837576]  [<ffffffff811b8888>] free_unmap_vmap_area_noflush+0x28/0x40
+[    9.837579]  [<ffffffff811b9dcd>] remove_vm_area+0x4d/0x60
+[    9.837582]  [<ffffffff811b9e09>] __vunmap+0x29/0x130
+[    9.837585]  [<ffffffff811b9f7d>] vfree+0x3d/0x90
+[    9.837589]  [<ffffffff8107ace6>] put_task_stack+0x76/0x130
+
+References: https://bugs.freedesktop.org/show_bug.cgi?id=98269
+Link: http://lkml.kernel.org/r/20161018161117.31198-1-chris@chris-wilson.co.uk
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/index.rst |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/vmalloc.c |   95 ++++++++++++++-----------------------------------
+ 1 file changed, 28 insertions(+), 67 deletions(-)
 
-diff -puN Documentation/admin-guide/index.rst~linux-next-git-rejects Documentation/admin-guide/index.rst
---- a/Documentation/admin-guide/index.rst~linux-next-git-rejects
-+++ a/Documentation/admin-guide/index.rst
-@@ -58,7 +58,6 @@ configure specific aspects of kernel beh
-    binfmt-misc
-    mono
-    java
--<<<<<<< HEAD
-    bad-memory
-    basic-profiling
+diff -puN mm/vmalloc.c~mm-vmalloc-replace-opencoded-4-level-page-walkers mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-replace-opencoded-4-level-page-walkers
++++ a/mm/vmalloc.c
+@@ -117,63 +117,27 @@ static void vunmap_page_range(unsigned l
+ 	} while (pgd++, addr = next, addr != end);
+ }
  
-@@ -69,5 +68,3 @@ configure specific aspects of kernel beh
+-static int vmap_pte_range(pmd_t *pmd, unsigned long addr,
+-		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
+-{
+-	pte_t *pte;
+-
+-	/*
+-	 * nr is a running index into the array which helps higher level
+-	 * callers keep track of where we're up to.
+-	 */
+-
+-	pte = pte_alloc_kernel(pmd, addr);
+-	if (!pte)
+-		return -ENOMEM;
+-	do {
+-		struct page *page = pages[*nr];
++struct vmap_page {
++	pgprot_t prot;
++	struct page **pages;
++	unsigned long count;
++};
  
-    * :ref:`genindex`
+-		if (WARN_ON(!pte_none(*pte)))
+-			return -EBUSY;
+-		if (WARN_ON(!page))
+-			return -ENOMEM;
+-		set_pte_at(&init_mm, addr, pte, mk_pte(page, prot));
+-		(*nr)++;
+-	} while (pte++, addr += PAGE_SIZE, addr != end);
+-	return 0;
+-}
+-
+-static int vmap_pmd_range(pud_t *pud, unsigned long addr,
+-		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
++static int vmap_page(pte_t *pte, pgtable_t token,
++		     unsigned long addr, void *data)
+ {
+-	pmd_t *pmd;
+-	unsigned long next;
+-
+-	pmd = pmd_alloc(&init_mm, pud, addr);
+-	if (!pmd)
+-		return -ENOMEM;
+-	do {
+-		next = pmd_addr_end(addr, end);
+-		if (vmap_pte_range(pmd, addr, next, prot, pages, nr))
+-			return -ENOMEM;
+-	} while (pmd++, addr = next, addr != end);
+-	return 0;
+-}
++	struct vmap_page *v = data;
++	struct page *page;
  
--=======
-->>>>>>> doc-tweaks
+-static int vmap_pud_range(pgd_t *pgd, unsigned long addr,
+-		unsigned long end, pgprot_t prot, struct page **pages, int *nr)
+-{
+-	pud_t *pud;
+-	unsigned long next;
++	if (WARN_ON(!pte_none(*pte)))
++		return -EBUSY;
+ 
+-	pud = pud_alloc(&init_mm, pgd, addr);
+-	if (!pud)
++	page = v->pages[v->count];
++	if (WARN_ON(!page))
+ 		return -ENOMEM;
+-	do {
+-		next = pud_addr_end(addr, end);
+-		if (vmap_pmd_range(pud, addr, next, prot, pages, nr))
+-			return -ENOMEM;
+-	} while (pud++, addr = next, addr != end);
++
++	set_pte_at(&init_mm, addr, pte, mk_pte(page, v->prot));
++	v->count++;
+ 	return 0;
+ }
+ 
+@@ -186,22 +150,19 @@ static int vmap_pud_range(pgd_t *pgd, un
+ static int vmap_page_range_noflush(unsigned long start, unsigned long end,
+ 				   pgprot_t prot, struct page **pages)
+ {
+-	pgd_t *pgd;
+-	unsigned long next;
+-	unsigned long addr = start;
+-	int err = 0;
+-	int nr = 0;
+-
+-	BUG_ON(addr >= end);
+-	pgd = pgd_offset_k(addr);
+-	do {
+-		next = pgd_addr_end(addr, end);
+-		err = vmap_pud_range(pgd, addr, next, prot, pages, &nr);
+-		if (err)
+-			return err;
+-	} while (pgd++, addr = next, addr != end);
++	struct vmap_page v = { prot, pages };
++	int err;
++
++	if ((end - start) >> PAGE_SHIFT > INT_MAX)
++		return -EINVAL;
++
++	err = apply_to_page_range(&init_mm, start, end - start, vmap_page, &v);
++	if (unlikely(err)) {
++		vunmap_page_range(start, start + (v.count << PAGE_SHIFT));
++		return err;
++	}
+ 
+-	return nr;
++	return v.count;
+ }
+ 
+ static int vmap_page_range(unsigned long start, unsigned long end,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from chris@chris-wilson.co.uk are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
-mm.patch
-mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-scripts-checkpatchpl-fix-spelling.patch
-debug-more-properly-delay-for-secondary-cpus-fix.patch
-ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
-ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
