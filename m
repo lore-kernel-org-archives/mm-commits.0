@@ -1,91 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] h8300-fix-syscall-restarting.patch removed from -mm tree
-Date: Fri, 28 Oct 2016 11:30:16 -0700
-Message-ID: <58139938.jxWJKuXw0JVNqq52%akpm__17462.1055521586$1477679522$gmane$org@linux-foundation.org>
+Subject: [merged]
+ kernel-smp-make-the-smp-boot-message-common-on-all-arches.patch removed
+ from -mm tree
+Date: Fri, 28 Oct 2016 11:31:10 -0700
+Message-ID: <5813996e.+M7yIpq/M0TtQQLF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45894 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965658AbcJ1SaR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:30:17 -0400
+        with ESMTP id S1034034AbcJ1SbM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:31:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mark.rutland@arm.com, luto@amacapital.net, stable@vger.kernel.org, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: mpe@ellerman.id.au, ak@linux.intel.com, boris.ostrovsky@oracle.com, bp@suse.de, hpa@zytor.com, jgross@suse.com, jolsa@redhat.com, len.brown@intel.com, mgorman@techsingularity.net, mingo@redhat.com, peterz@infradead.org, richard@nod.at, tglx@linutronix.de, tim.c.chen@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: h8300: fix syscall restarting
+     Subject: kernel/smp.c: make the SMP boot message common on all arches
 has been removed from the -mm tree.  Its filename was
-     h8300-fix-syscall-restarting.patch
+     kernel-smp-make-the-smp-boot-message-common-on-all-arches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: h8300: fix syscall restarting
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: kernel/smp.c: make the SMP boot message common on all arches
 
-Back in f56141e3e2d9aabf ("all arches, signal: move restart_block to
-struct task_struct"), all architectures and core code were changed to use
-task_struct::restart_block.  However, when h8300 support was subsequently
-restored in v4.2, it was not updated to account for this, and maintains
-thread_info::restart_block, which is not kept in sync.
+Currently after bringing up secondary CPUs all arches print "Brought up %d
+CPUs".  On x86 they also print the number of nodes that were brought
+online.
 
-This patch drops the redundant restart_block from thread_info, and moves
-h8300 to the common one in task_struct, ensuring that syscall restarting
-always works as expected.
+It would be nice to also print the number of nodes on other arches. 
+Although we could override smp_announce() on the other ~10 NUMA aware
+arches, it seems simpler to just always print the number of nodes.  On
+non-NUMA arches there is just always 1 node.
 
-Fixes: f56141e3e2d9aabf ("all arches, signal: move restart_block to struct task_struct")
-Link: http://lkml.kernel.org/r/1476714934-11635-1-git-send-email-mark.rutland@arm.com
-Signed-off-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: uclinux-h8-devel@lists.sourceforge.jp
-Cc: <stable@vger.kernel.org>	[4.2+]
+Having done that, smp_announce() is no longer weak, and seems small enough
+to just pull directly into smp_init().
+
+Also update the printing of "%d CPUs" to be smart when an SMP kernel is
+booted on a single CPU system, or when only one CPU is available, eg:
+
+   smp: Brought up 2 nodes, 1 CPU
+
+Link: http://lkml.kernel.org/r/1477460275-8266-2-git-send-email-mpe@ellerman.id.au
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Reviewed-by: Borislav Petkov <bp@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Jiri Olsa <jolsa@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/include/asm/thread_info.h |    4 ----
- arch/h8300/kernel/signal.c           |    2 +-
- 2 files changed, 1 insertion(+), 5 deletions(-)
+ arch/x86/kernel/smpboot.c |    8 --------
+ kernel/smp.c              |   13 +++++++------
+ 2 files changed, 7 insertions(+), 14 deletions(-)
 
-diff -puN arch/h8300/include/asm/thread_info.h~h8300-fix-syscall-restarting arch/h8300/include/asm/thread_info.h
---- a/arch/h8300/include/asm/thread_info.h~h8300-fix-syscall-restarting
-+++ a/arch/h8300/include/asm/thread_info.h
-@@ -31,7 +31,6 @@ struct thread_info {
- 	int		   cpu;			/* cpu we're on */
- 	int		   preempt_count;	/* 0 => preemptable, <0 => BUG */
- 	mm_segment_t		addr_limit;
--	struct restart_block restart_block;
- };
- 
- /*
-@@ -44,9 +43,6 @@ struct thread_info {
- 	.cpu =		0,			\
- 	.preempt_count = INIT_PREEMPT_COUNT,	\
- 	.addr_limit	= KERNEL_DS,		\
--	.restart_block	= {			\
--		.fn = do_no_restart_syscall,	\
--	},					\
+diff -puN arch/x86/kernel/smpboot.c~kernel-smp-make-the-smp-boot-message-common-on-all-arches arch/x86/kernel/smpboot.c
+--- a/arch/x86/kernel/smpboot.c~kernel-smp-make-the-smp-boot-message-common-on-all-arches
++++ a/arch/x86/kernel/smpboot.c
+@@ -821,14 +821,6 @@ wakeup_secondary_cpu_via_init(int phys_a
+ 	return (send_status | accept_status);
  }
  
- #define init_thread_info	(init_thread_union.thread_info)
-diff -puN arch/h8300/kernel/signal.c~h8300-fix-syscall-restarting arch/h8300/kernel/signal.c
---- a/arch/h8300/kernel/signal.c~h8300-fix-syscall-restarting
-+++ a/arch/h8300/kernel/signal.c
-@@ -79,7 +79,7 @@ restore_sigcontext(struct sigcontext *us
- 	unsigned int er0;
+-void smp_announce(void)
+-{
+-	int num_nodes = num_online_nodes();
+-
+-	printk(KERN_INFO "x86: Booted up %d node%s, %d CPUs\n",
+-	       num_nodes, (num_nodes > 1 ? "s" : ""), num_online_cpus());
+-}
+-
+ /* reduce the number of lines printed when booting a large cpu count system */
+ static void announce_cpu(int cpu, int apicid)
+ {
+diff -puN kernel/smp.c~kernel-smp-make-the-smp-boot-message-common-on-all-arches kernel/smp.c
+--- a/kernel/smp.c~kernel-smp-make-the-smp-boot-message-common-on-all-arches
++++ a/kernel/smp.c
+@@ -546,14 +546,10 @@ void __init setup_nr_cpu_ids(void)
+ 	nr_cpu_ids = find_last_bit(cpumask_bits(cpu_possible_mask),NR_CPUS) + 1;
+ }
  
- 	/* Always make any pending restarted system calls return -EINTR */
--	current_thread_info()->restart_block.fn = do_no_restart_syscall;
-+	current->restart_block.fn = do_no_restart_syscall;
+-void __weak smp_announce(void)
+-{
+-	printk(KERN_INFO "Brought up %d CPUs\n", num_online_cpus());
+-}
+-
+ /* Called by boot processor to activate the rest. */
+ void __init smp_init(void)
+ {
++	int num_nodes, num_cpus;
+ 	unsigned int cpu;
  
- 	/* restore passed registers */
- #define COPY(r)  do { err |= get_user(regs->r, &usc->sc_##r); } while (0)
+ 	idle_threads_init();
+@@ -567,8 +563,13 @@ void __init smp_init(void)
+ 			cpu_up(cpu);
+ 	}
+ 
++	num_nodes = num_online_nodes();
++	num_cpus  = num_online_cpus();
++	pr_info("Brought up %d node%s, %d CPU%s\n",
++		num_nodes, (num_nodes > 1 ? "s" : ""),
++		num_cpus,  (num_cpus  > 1 ? "s" : ""));
++
+ 	/* Any cleanup work */
+-	smp_announce();
+ 	smp_cpus_done(setup_max_cpus);
+ }
+ 
 _
 
-Patches currently in -mm which might be from mark.rutland@arm.com are
+Patches currently in -mm which might be from mpe@ellerman.id.au are
 
 
