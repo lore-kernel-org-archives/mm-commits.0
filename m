@@ -1,76 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch
- removed from -mm tree
-Date: Fri, 28 Oct 2016 11:30:10 -0700
-Message-ID: <58139932.webQq0HQSjXHvgYh%akpm@linux-foundation.org>
+Subject: [merged]
+ cris-arch-v32-cryptocop-print-a-hex-number-after-a-0x-prefix.patch removed
+ from -mm tree
+Date: Fri, 28 Oct 2016 11:31:02 -0700
+Message-ID: <58139966.hm/DDCNwNYKUsMtU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45828 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965345AbcJ1SaL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:30:11 -0400
+        with ESMTP id S1031177AbcJ1SbD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:31:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, cl@linux.com, dsmythies@telus.net, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: u.kleine-koenig@pengutronix.de, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: fix kmemcg cache creation delayed issue
+     Subject: cris/arch-v32: cryptocop: print a hex number after a 0x prefix
 has been removed from the -mm tree.  Its filename was
-     mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch
+     cris-arch-v32-cryptocop-print-a-hex-number-after-a-0x-prefix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: fix kmemcg cache creation delayed issue
+From: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Subject: cris/arch-v32: cryptocop: print a hex number after a 0x prefix
 
-There is a bug report that SLAB makes extreme load average due to over
-2000 kworker thread.
+It makes the result hard to interpret correctly if a base 10 number is
+prefixed by 0x. So change to a hex number.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=172981
-
-This issue is caused by kmemcg feature that try to create new set of
-kmem_caches for each memcg.  Recently, kmem_cache creation is slowed by
-synchronize_sched() and futher kmem_cache creation is also delayed since
-kmem_cache creation is synchronized by a global slab_mutex lock.  So, the
-number of kworker that try to create kmem_cache increases quitely. 
-synchronize_sched() is for lockless access to node's shared array but it's
-not needed when a new kmem_cache is created.  So, this patch rules out
-that case.
-
-Fixes: 801faf0db894 ("mm/slab: lockless decision to grow cache")
-Link: http://lkml.kernel.org/r/1475734855-4837-1-git-send-email-iamjoonsoo.kim@lge.com
-Reported-by: Doug Smythies <dsmythies@telus.net>
-Tested-by: Doug Smythies <dsmythies@telus.net>
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20161026125658.25728-6-u.kleine-koenig@pengutronix.de
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
+ arch/cris/arch-v32/drivers/cryptocop.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~mm-slab-fix-kmemcg-cache-creation-delayed-issue mm/slab.c
---- a/mm/slab.c~mm-slab-fix-kmemcg-cache-creation-delayed-issue
-+++ a/mm/slab.c
-@@ -966,7 +966,7 @@ static int setup_kmem_cache_node(struct
- 	 * guaranteed to be valid until irq is re-enabled, because it will be
- 	 * freed after synchronize_sched().
- 	 */
--	if (force_change)
-+	if (old_shared && force_change)
- 		synchronize_sched();
+diff -puN arch/cris/arch-v32/drivers/cryptocop.c~cris-arch-v32-cryptocop-print-a-hex-number-after-a-0x-prefix arch/cris/arch-v32/drivers/cryptocop.c
+--- a/arch/cris/arch-v32/drivers/cryptocop.c~cris-arch-v32-cryptocop-print-a-hex-number-after-a-0x-prefix
++++ a/arch/cris/arch-v32/drivers/cryptocop.c
+@@ -3149,7 +3149,7 @@ static void print_dma_descriptors(struct
+ 	printk("print_dma_descriptors start\n");
  
- fail:
+ 	printk("iop:\n");
+-	printk("\tsid: 0x%lld\n", iop->sid);
++	printk("\tsid: 0x%llx\n", iop->sid);
+ 
+ 	printk("\tcdesc_out: 0x%p\n", iop->cdesc_out);
+ 	printk("\tcdesc_in: 0x%p\n", iop->cdesc_in);
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from u.kleine-koenig@pengutronix.de are
 
 
