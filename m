@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-bloat-o-meter-fix-sigpipe.patch added to -mm tree
-Date: Fri, 28 Oct 2016 15:02:48 -0700
-Message-ID: <5813cb08.q2H3DyUXHCYasZct%akpm@linux-foundation.org>
+Subject: + ipc-sem-optimize-perform_atomic_semop-fix.patch added to -mm
+ tree
+Date: Fri, 28 Oct 2016 15:05:35 -0700
+Message-ID: <5813cbaf.467EnrOVDTnhAWKi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56180 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756780AbcJ1WCt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 18:02:49 -0400
+        with ESMTP id S943059AbcJ1WFl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 18:05:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mpm@selenic.com, mm-commits@vger.kernel.org
+To: colin.king@canonical.com, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/bloat-o-meter: fix SIGPIPE
+     Subject: ipc/sem: ensure we left shift a ULL rather than a 32 bit integer
 has been added to the -mm tree.  Its filename is
-     scripts-bloat-o-meter-fix-sigpipe.patch
+     ipc-sem-optimize-perform_atomic_semop-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-bloat-o-meter-fix-sigpipe.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-sem-optimize-perform_atomic_semop-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-bloat-o-meter-fix-sigpipe.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-sem-optimize-perform_atomic_semop-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,43 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: scripts/bloat-o-meter: fix SIGPIPE
+From: Colin Ian King <colin.king@canonical.com>
+Subject: ipc/sem: ensure we left shift a ULL rather than a 32 bit integer
 
-Fix piping output to a program which quickly exits (read: head -n1)
+The left shift amount is sop->sem_num % 64, which is up to 63, so
+ensure we are shifting a ULL rather than a 32 bit value.
 
-	$ ./scripts/bloat-o-meter ../vmlinux-000 ../obj/vmlinux | head -n1
-	add/remove: 0/0 grow/shrink: 9/60 up/down: 124/-305 (-181)
-	close failed in file object destructor:
-	sys.excepthook is missing
-	lost sys.stderr
+CoverityScan CID#1372862 "Bad bit shift operation"
 
-Link: http://lkml.kernel.org/r/20161028204618.GA29923@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Matt Mackall <mpm@selenic.com>
+Fixes: 7c24530cb4e3c0ae ("ipc/sem: optimize perform_atomic_semop()")
+Link: http://lkml.kernel.org/r/20161028181129.7311-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    3 +++
- 1 file changed, 3 insertions(+)
+ ipc/sem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-fix-sigpipe scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-fix-sigpipe
-+++ a/scripts/bloat-o-meter
-@@ -8,6 +8,9 @@
- # of the GNU General Public License, incorporated herein by reference.
+diff -puN ipc/sem.c~ipc-sem-optimize-perform_atomic_semop-fix ipc/sem.c
+--- a/ipc/sem.c~ipc-sem-optimize-perform_atomic_semop-fix
++++ a/ipc/sem.c
+@@ -1850,7 +1850,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
  
- import sys, os, re
-+from signal import signal, SIGPIPE, SIG_DFL
-+
-+signal(SIGPIPE, SIG_DFL)
+ 	max = 0;
+ 	for (sop = sops; sop < sops + nsops; sop++) {
+-		unsigned long mask = 1 << ((sop->sem_num) % BITS_PER_LONG);
++		unsigned long mask = 1ULL << ((sop->sem_num) % BITS_PER_LONG);
  
- if len(sys.argv) != 3:
-     sys.stderr.write("usage: %s file1 file2\n" % sys.argv[0])
+ 		if (sop->sem_num >= max)
+ 			max = sop->sem_num;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-scripts-bloat-o-meter-fix-sigpipe.patch
-kbuild-simpler-generation-of-assembly-constants.patch
+ipc-sem-optimize-perform_atomic_semop-fix.patch
 
