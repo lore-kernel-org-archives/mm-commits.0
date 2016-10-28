@@ -1,64 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [patch 02/20] kcov: properly check if we are in an interrupt
-Date: Thu, 27 Oct 2016 17:46:21 -0700
-Message-ID: <58129fdd.v4q2NgcpRi13b7TL%akpm@linux-foundation.org>
+Subject: [patch 03/20] h8300: fix syscall restarting
+Date: Thu, 27 Oct 2016 17:46:24 -0700
+Message-ID: <58129fe0.8VRp9QZcJf2kjJJD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57774 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57782 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936219AbcJ1AqW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 20:46:22 -0400
+        with ESMTP id S936219AbcJ1AqZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 20:46:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, andreyknvl@google.com, aryabinin@virtuozzo.com, dvyukov@google.com, james.morse@arm.com, keescook@chromium.org, nicstange@gmail.com, quentin.casasnovas@oracle.com, vegard.nossum@oracle.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, mark.rutland@arm.com, luto@amacapital.net, stable@vger.kernel.org, ysato@users.sourceforge.jp
 
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kcov: properly check if we are in an interrupt
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: h8300: fix syscall restarting
 
-in_interrupt() returns a nonzero value when we are either in an
-interrupt or have bh disabled via local_bh_disable().  Since we are
-interested in only ignoring coverage from actual interrupts, do a
-proper check instead of just calling in_interrupt().
+Back in f56141e3e2d9aabf ("all arches, signal: move restart_block to
+struct task_struct"), all architectures and core code were changed to use
+task_struct::restart_block.  However, when h8300 support was subsequently
+restored in v4.2, it was not updated to account for this, and maintains
+thread_info::restart_block, which is not kept in sync.
 
-As a result of this change, kcov will start to collect coverage from
-within local_bh_disable()/local_bh_enable() sections.
+This patch drops the redundant restart_block from thread_info, and moves
+h8300 to the common one in task_struct, ensuring that syscall restarting
+always works as expected.
 
-Link: http://lkml.kernel.org/r/1476115803-20712-1-git-send-email-andreyknvl@google.com
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Acked-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Nicolai Stange <nicstange@gmail.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: James Morse <james.morse@arm.com>
-Cc: Vegard Nossum <vegard.nossum@oracle.com>
-Cc: Quentin Casasnovas <quentin.casasnovas@oracle.com>
+Fixes: f56141e3e2d9aabf ("all arches, signal: move restart_block to struct task_struct")
+Link: http://lkml.kernel.org/r/1476714934-11635-1-git-send-email-mark.rutland@arm.com
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: uclinux-h8-devel@lists.sourceforge.jp
+Cc: <stable@vger.kernel.org>	[4.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/h8300/include/asm/thread_info.h |    4 ----
+ arch/h8300/kernel/signal.c           |    2 +-
+ 2 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN kernel/kcov.c~kcov-properly-check-if-we-are-in-an-interrupt kernel/kcov.c
---- a/kernel/kcov.c~kcov-properly-check-if-we-are-in-an-interrupt
-+++ a/kernel/kcov.c
-@@ -53,8 +53,15 @@ void notrace __sanitizer_cov_trace_pc(vo
- 	/*
- 	 * We are interested in code coverage as a function of a syscall inputs,
- 	 * so we ignore code executed in interrupts.
-+	 * The checks for whether we are in an interrupt are open-coded, because
-+	 * 1. We can't use in_interrupt() here, since it also returns true
-+	 *    when we are inside local_bh_disable() section.
-+	 * 2. We don't want to use (in_irq() | in_serving_softirq() | in_nmi()),
-+	 *    since that leads to slower generated code (three separate tests,
-+	 *    one for each of the flags).
- 	 */
--	if (!t || in_interrupt())
-+	if (!t || (preempt_count() & (HARDIRQ_MASK | SOFTIRQ_OFFSET
-+							| NMI_MASK)))
- 		return;
- 	mode = READ_ONCE(t->kcov_mode);
- 	if (mode == KCOV_MODE_TRACE) {
+diff -puN arch/h8300/include/asm/thread_info.h~h8300-fix-syscall-restarting arch/h8300/include/asm/thread_info.h
+--- a/arch/h8300/include/asm/thread_info.h~h8300-fix-syscall-restarting
++++ a/arch/h8300/include/asm/thread_info.h
+@@ -31,7 +31,6 @@ struct thread_info {
+ 	int		   cpu;			/* cpu we're on */
+ 	int		   preempt_count;	/* 0 => preemptable, <0 => BUG */
+ 	mm_segment_t		addr_limit;
+-	struct restart_block restart_block;
+ };
+ 
+ /*
+@@ -44,9 +43,6 @@ struct thread_info {
+ 	.cpu =		0,			\
+ 	.preempt_count = INIT_PREEMPT_COUNT,	\
+ 	.addr_limit	= KERNEL_DS,		\
+-	.restart_block	= {			\
+-		.fn = do_no_restart_syscall,	\
+-	},					\
+ }
+ 
+ #define init_thread_info	(init_thread_union.thread_info)
+diff -puN arch/h8300/kernel/signal.c~h8300-fix-syscall-restarting arch/h8300/kernel/signal.c
+--- a/arch/h8300/kernel/signal.c~h8300-fix-syscall-restarting
++++ a/arch/h8300/kernel/signal.c
+@@ -79,7 +79,7 @@ restore_sigcontext(struct sigcontext *us
+ 	unsigned int er0;
+ 
+ 	/* Always make any pending restarted system calls return -EINTR */
+-	current_thread_info()->restart_block.fn = do_no_restart_syscall;
++	current->restart_block.fn = do_no_restart_syscall;
+ 
+ 	/* restore passed registers */
+ #define COPY(r)  do { err |= get_user(regs->r, &usc->sc_##r); } while (0)
 _
