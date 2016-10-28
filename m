@@ -1,95 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
- added to -mm tree
-Date: Thu, 27 Oct 2016 14:01:00 -0700
-Message-ID: <58126b0c.Lf67I/60AhfTtQV4%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-page_alloc-use-kern_cont-where-appropriate-checkpatch-fixes.patch
+ removed from -mm tree
+Date: Thu, 27 Oct 2016 17:29:05 -0700
+Message-ID: <58129bd1.CAa7axRBhNXPwxCE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57486 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935601AbcJ0VBB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 17:01:01 -0400
+        with ESMTP id S942538AbcJ1A3H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 20:29:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kwapulinski.piotr@gmail.com, dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com, liangchen.linux@gmail.com, mgorman@techsingularity.net, mhocko@suse.com, nzimmer@sgi.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy.c: forbid static or relative flags for local NUMA mode
-has been added to the -mm tree.  Its filename is
-     mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
+     Subject: mm-page_alloc-use-kern_cont-where-appropriate-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-use-kern_cont-where-appropriate-checkpatch-fixes.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-page_alloc-use-kern_cont-where-appropriate.patch
 
 ------------------------------------------------------
-From: Piotr Kwapulinski <kwapulinski.piotr@gmail.com>
-Subject: mm/mempolicy.c: forbid static or relative flags for local NUMA mode
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-use-kern_cont-where-appropriate-checkpatch-fixes
 
-The MPOL_F_STATIC_NODES and MPOL_F_RELATIVE_NODES flags are irrelevant
-when setting them for MPOL_LOCAL NUMA memory policy via set_mempolicy or
-mbind.
+WARNING: Prefer [subsystem eg: netdev]_cont([subsystem]dev, ... then dev_cont(dev, ... then pr_cont(...  to printk(KERN_CONT ...
+#27: FILE: mm/page_alloc.c:4227:
++	printk(KERN_CONT "(%s) ", tmp);
 
-Return the "invalid argument" from set_mempolicy and mbind whenever any of
-these flags is passed along with MPOL_LOCAL.
+WARNING: Prefer [subsystem eg: netdev]_cont([subsystem]dev, ... then dev_cont(dev, ... then pr_cont(...  to printk(KERN_CONT ...
+#36: FILE: mm/page_alloc.c:4338:
++		printk(KERN_CONT
 
-It is consistent with MPOL_PREFERRED passed with empty nodemask.
+ERROR: code indent should use tabs where possible
+#37: FILE: mm/page_alloc.c:4339:
++^I^I        "%s"$
 
-It slightly shortens the execution time in paths where these flags are
-used e.g.  when trying to rebind the NUMA nodes for changes in cgroups
-cpuset mems (mpol_rebind_preferred()) or when just printing the mempolicy
-structure (/proc/PID/numa_maps).  Isolated tests done.
+WARNING: Prefer [subsystem eg: netdev]_cont([subsystem]dev, ... then dev_cont(dev, ... then pr_cont(...  to printk(KERN_CONT ...
+#47: FILE: mm/page_alloc.c:4386:
++			printk(KERN_CONT " %ld", zone->lowmem_reserve[i]);
 
-Link: http://lkml.kernel.org/r/20161027163037.4089-1-kwapulinski.piotr@gmail.com
-Signed-off-by: Piotr Kwapulinski <kwapulinski.piotr@gmail.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Liang Chen <liangchen.linux@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
+WARNING: Prefer [subsystem eg: netdev]_cont([subsystem]dev, ... then dev_cont(dev, ... then pr_cont(...  to printk(KERN_CONT ...
+#48: FILE: mm/page_alloc.c:4387:
++		printk(KERN_CONT "\n");
+
+WARNING: Prefer [subsystem eg: netdev]_cont([subsystem]dev, ... then dev_cont(dev, ... then pr_cont(...  to printk(KERN_CONT ...
+#57: FILE: mm/page_alloc.c:4398:
++		printk(KERN_CONT "%s: ", zone->name);
+
+WARNING: Prefer [subsystem eg: netdev]_cont([subsystem]dev, ... then dev_cont(dev, ... then pr_cont(...  to printk(KERN_CONT ...
+#66: FILE: mm/page_alloc.c:4416:
++			printk(KERN_CONT "%lu*%lukB ",
+
+WARNING: Prefer [subsystem eg: netdev]_cont([subsystem]dev, ... then dev_cont(dev, ... then pr_cont(...  to printk(KERN_CONT ...
+#72: FILE: mm/page_alloc.c:4421:
++		printk(KERN_CONT "= %lukB\n", K(total));
+
+total: 1 errors, 7 warnings, 49 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+NOTE: Whitespace errors detected.
+      You may wish to use scripts/cleanpatch or scripts/cleanfile
+
+./patches/mm-page_alloc-use-kern_cont-where-appropriate.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mempolicy.c~mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode
-+++ a/mm/mempolicy.c
-@@ -276,7 +276,9 @@ static struct mempolicy *mpol_new(unsign
- 				return ERR_PTR(-EINVAL);
- 		}
- 	} else if (mode == MPOL_LOCAL) {
--		if (!nodes_empty(*nodes))
-+		if (!nodes_empty(*nodes) ||
-+		    (flags & MPOL_F_STATIC_NODES) ||
-+		    (flags & MPOL_F_RELATIVE_NODES))
- 			return ERR_PTR(-EINVAL);
- 		mode = MPOL_PREFERRED;
- 	} else if (nodes_empty(*nodes))
+diff -puN mm/page_alloc.c~mm-page_alloc-use-kern_cont-where-appropriate-checkpatch-fixes mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-use-kern_cont-where-appropriate-checkpatch-fixes
++++ a/mm/page_alloc.c
+@@ -4336,7 +4336,7 @@ void show_free_areas(unsigned int filter
+ 
+ 		show_node(zone);
+ 		printk(KERN_CONT
+-		        "%s"
++			"%s"
+ 			" free:%lukB"
+ 			" min:%lukB"
+ 			" low:%lukB"
 _
 
-Patches currently in -mm which might be from kwapulinski.piotr@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
+mm-page_alloc-use-kern_cont-where-appropriate.patch
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
+mm.patch
+mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
+mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
+scripts-checkpatchpl-fix-spelling.patch
+debug-more-properly-delay-for-secondary-cpus-fix.patch
+ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
+ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
