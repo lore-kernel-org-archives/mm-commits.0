@@ -1,61 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- cris-arch-v32-cryptocop-print-a-hex-number-after-a-0x-prefix.patch removed
- from -mm tree
-Date: Fri, 28 Oct 2016 11:31:02 -0700
-Message-ID: <58139966.hm/DDCNwNYKUsMtU%akpm@linux-foundation.org>
+Subject: [merged] kernel-smp-define-pr_fmt-for-smpc.patch removed from -mm tree
+Date: Fri, 28 Oct 2016 11:31:07 -0700
+Message-ID: <5813996b.hOwc8SvZkmKdbVIv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45828 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45854 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031177AbcJ1SbD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:31:03 -0400
+        with ESMTP id S1032943AbcJ1SbI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:31:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: u.kleine-koenig@pengutronix.de, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: mpe@ellerman.id.au, ak@linux.intel.com, boris.ostrovsky@oracle.com, bp@suse.de, hpa@zytor.com, jgross@suse.com, jolsa@redhat.com, len.brown@intel.com, mgorman@techsingularity.net, mingo@redhat.com, peterz@infradead.org, richard@nod.at, tglx@linutronix.de, tim.c.chen@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cris/arch-v32: cryptocop: print a hex number after a 0x prefix
+     Subject: kernel/smp.c: define pr_fmt() for smp.c
 has been removed from the -mm tree.  Its filename was
-     cris-arch-v32-cryptocop-print-a-hex-number-after-a-0x-prefix.patch
+     kernel-smp-define-pr_fmt-for-smpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Subject: cris/arch-v32: cryptocop: print a hex number after a 0x prefix
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: kernel/smp.c: define pr_fmt() for smp.c
 
-It makes the result hard to interpret correctly if a base 10 number is
-prefixed by 0x. So change to a hex number.
+This makes all our pr_xxx()'s start with "smp: ", which helps pin down
+where they come from and generally looks nice.  There is actually only one
+pr_xxx() use in smp.c at the moment, but we will add some more in the next
+commit.
 
-Link: http://lkml.kernel.org/r/20161026125658.25728-6-u.kleine-koenig@pengutronix.de
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Link: http://lkml.kernel.org/r/1477460275-8266-1-git-send-email-mpe@ellerman.id.au
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Suggested-by: Borislav Petkov <bp@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Tim Chen <tim.c.chen@linux.intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Jiri Olsa <jolsa@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v32/drivers/cryptocop.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/smp.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/cris/arch-v32/drivers/cryptocop.c~cris-arch-v32-cryptocop-print-a-hex-number-after-a-0x-prefix arch/cris/arch-v32/drivers/cryptocop.c
---- a/arch/cris/arch-v32/drivers/cryptocop.c~cris-arch-v32-cryptocop-print-a-hex-number-after-a-0x-prefix
-+++ a/arch/cris/arch-v32/drivers/cryptocop.c
-@@ -3149,7 +3149,7 @@ static void print_dma_descriptors(struct
- 	printk("print_dma_descriptors start\n");
- 
- 	printk("iop:\n");
--	printk("\tsid: 0x%lld\n", iop->sid);
-+	printk("\tsid: 0x%llx\n", iop->sid);
- 
- 	printk("\tcdesc_out: 0x%p\n", iop->cdesc_out);
- 	printk("\tcdesc_in: 0x%p\n", iop->cdesc_in);
+diff -puN kernel/smp.c~kernel-smp-define-pr_fmt-for-smpc kernel/smp.c
+--- a/kernel/smp.c~kernel-smp-define-pr_fmt-for-smpc
++++ a/kernel/smp.c
+@@ -3,6 +3,9 @@
+  *
+  * (C) Jens Axboe <jens.axboe@oracle.com> 2008
+  */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/irq_work.h>
+ #include <linux/rcupdate.h>
+ #include <linux/rculist.h>
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutronix.de are
+Patches currently in -mm which might be from mpe@ellerman.id.au are
 
 
