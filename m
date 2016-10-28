@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
+Subject: + lib-ida-document-locking-requirements-a-bit-better-v2.patch
  added to -mm tree
-Date: Fri, 28 Oct 2016 15:55:31 -0700
-Message-ID: <5813d763.MTAIGX+Z3xhaPyQC%akpm@linux-foundation.org>
+Date: Fri, 28 Oct 2016 16:19:09 -0700
+Message-ID: <5813dced.qLxG04lKzgDXjZqG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57612 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58710 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752824AbcJ1Wzc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 18:55:32 -0400
+        with ESMTP id S964858AbcJ1XUK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 19:20:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lstoakes@gmail.com, mm-commits@vger.kernel.org
+To: daniel.vetter@ffwll.ch, daniel.vetter@intel.com, mgorman@techsingularity.net, mhocko@suse.com, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-unexport-__get_user_pages_unlocked-checkpatch-fixes
+     Subject: lib/ida: document locking requirements a bit better
 has been added to the -mm tree.  Its filename is
-     mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
+     lib-ida-document-locking-requirements-a-bit-better-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-ida-document-locking-requirements-a-bit-better-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-ida-document-locking-requirements-a-bit-better-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,85 +39,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-unexport-__get_user_pages_unlocked-checkpatch-fixes
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: lib/ida: document locking requirements a bit better
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#16: 
-flag.  However, this flag was originally silently dropped by 1e9877902dc7e
+I wanted to wrap a bunch of ida_simple_get calls into their own locking,
+until I dug around and read the original commit message.  Stuff like this
+should imo be added to the kernel doc, let's do that.
 
-WARNING: line over 80 characters
-#89: FILE: mm/nommu.c:179:
-+static long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
-
-WARNING: line over 80 characters
-#90: FILE: mm/nommu.c:180:
-+				      unsigned long start, unsigned long nr_pages,
-
-WARNING: line over 80 characters
-#91: FILE: mm/nommu.c:181:
-+			              struct page **pages, unsigned int gup_flags)
-
-ERROR: code indent should use tabs where possible
-#91: FILE: mm/nommu.c:181:
-+^I^I^I              struct page **pages, unsigned int gup_flags)$
-
-total: 2 errors, 3 warnings, 116 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/mm-unexport-__get_user_pages_unlocked.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Link: http://lkml.kernel.org/r/20161027072216.20411-1-daniel.vetter@ffwll.ch
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ lib/idr.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/nommu.c~mm-unexport-__get_user_pages_unlocked-checkpatch-fixes mm/nommu.c
---- a/mm/nommu.c~mm-unexport-__get_user_pages_unlocked-checkpatch-fixes
-+++ a/mm/nommu.c
-@@ -176,9 +176,10 @@ long get_user_pages_locked(unsigned long
- }
- EXPORT_SYMBOL(get_user_pages_locked);
- 
--static long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
--				      unsigned long start, unsigned long nr_pages,
--			              struct page **pages, unsigned int gup_flags)
-+static long __get_user_pages_unlocked(struct task_struct *tsk,
-+			struct mm_struct *mm, unsigned long start,
-+			unsigned long nr_pages, struct page **pages,
-+			unsigned int gup_flags)
+diff -puN lib/idr.c~lib-ida-document-locking-requirements-a-bit-better-v2 lib/idr.c
+--- a/lib/idr.c~lib-ida-document-locking-requirements-a-bit-better-v2
++++ a/lib/idr.c
+@@ -927,6 +927,9 @@ EXPORT_SYMBOL(ida_pre_get);
+  * and go back to the ida_pre_get() call.  If the ida is full, it will
+  * return %-ENOSPC.
+  *
++ * Note that callers must ensure that concurrent access to @ida is not possible.
++ * See ida_simple_get() for a varaint which takes care of locking.
++ *
+  * @p_id returns a value in the range @starting_id ... %0x7fffffff.
+  */
+ int ida_get_new_above(struct ida *ida, int starting_id, int *p_id)
+@@ -1073,6 +1076,9 @@ EXPORT_SYMBOL(ida_destroy);
+  * Allocates an id in the range start <= id < end, or returns -ENOSPC.
+  * On memory allocation failure, returns -ENOMEM.
+  *
++ * Compared to ida_get_new_above() this function does its own locking, and
++ * should be used unless there are special requirements.
++ *
+  * Use ida_simple_remove() to get rid of an id.
+  */
+ int ida_simple_get(struct ida *ida, unsigned int start, unsigned int end,
+@@ -1119,6 +1125,11 @@ EXPORT_SYMBOL(ida_simple_get);
+  * ida_simple_remove - remove an allocated id.
+  * @ida: the (initialized) ida.
+  * @id: the id returned by ida_simple_get.
++ *
++ * Use to release an id allocated with ida_simple_get().
++ *
++ * Compared to ida_remove() this function does its own locking, and should be
++ * used unless there are special requirements.
+  */
+ void ida_simple_remove(struct ida *ida, unsigned int id)
  {
- 	long ret;
- 	down_read(&mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from daniel.vetter@ffwll.ch are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
-mm.patch
-mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
-scripts-checkpatchpl-fix-spelling.patch
-debug-more-properly-delay-for-secondary-cpus-fix.patch
-ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
-ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+lib-ida-document-locking-requirements-a-bit-better-v2.patch
 
