@@ -1,57 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [patch 09/20] latent_entropy: raise CONFIG_FRAME_WARN by default
-Date: Thu, 27 Oct 2016 17:46:41 -0700
-Message-ID: <58129ff1.Ika1KgkTqg/nhuW7%akpm@linux-foundation.org>
+Subject: [patch 04/20] mm/list_lru.c: avoid error-path NULL pointer deref
+Date: Thu, 27 Oct 2016 17:46:27 -0700
+Message-ID: <58129fe3.1NVVsF/zaoFouLUo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57882 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57792 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936219AbcJ1Aqn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 20:46:43 -0400
+        with ESMTP id S936219AbcJ1Aq2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 20:46:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, keescook@chromium.org, aryabinin@virtuozzo.com, dan.j.williams@intel.com, dvyukov@google.com, fengguang.wu@intel.com, jpoimboe@redhat.com, mingo@kernel.org, mmarek@suse.com, nikolay@cumulusnetworks.com, paulmck@linux.vnet.ibm.com, re.emese@gmail.com, shuah@kernel.org, tj@kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, apolyakov@beget.ru, stable@vger.kernel.org, vdavydov.dev@gmail.com, viro@zeniv.linux.org.uk
 
-From: Kees Cook <keescook@chromium.org>
-Subject: latent_entropy: raise CONFIG_FRAME_WARN by default
+From: Alexander Polakov <apolyakov@beget.ru>
+Subject: mm/list_lru.c: avoid error-path NULL pointer deref
 
-When building with the latent_entropy plugin, set the default
-CONFIG_FRAME_WARN to 2048, since some __init functions have many basic
-blocks that, when instrumented by the latent_entropy plugin, grow beyond
-1024 byte stack size on 32-bit builds.
+As described in https://bugzilla.kernel.org/show_bug.cgi?id=177821:
 
-Link: http://lkml.kernel.org/r/20161018211216.GA39687@beast
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Cc: Emese Revfy <re.emese@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+After some analysis it seems to be that the problem is in alloc_super(). 
+In case list_lru_init_memcg() fails it goes into destroy_super(), which
+calls list_lru_destroy().
+
+And in list_lru_init() we see that in case memcg_init_list_lru() fails,
+lru->node is freed, but not set NULL, which then leads list_lru_destroy()
+to believe it is initialized and call memcg_destroy_list_lru(). 
+memcg_destroy_list_lru() in turn can access lru->node[i].memcg_lrus, which
+is NULL.
+
+[akpm@linux-foundation.org: add comment]
+Signed-off-by: Alexander Polakov <apolyakov@beget.ru>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 +
- 1 file changed, 1 insertion(+)
+ mm/list_lru.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN lib/Kconfig.debug~latent_entropy-raise-config_frame_warn-by-default lib/Kconfig.debug
---- a/lib/Kconfig.debug~latent_entropy-raise-config_frame_warn-by-default
-+++ a/lib/Kconfig.debug
-@@ -198,6 +198,7 @@ config FRAME_WARN
- 	int "Warn for stack frames larger than (needs gcc 4.4)"
- 	range 0 8192
- 	default 0 if KASAN
-+	default 2048 if GCC_PLUGIN_LATENT_ENTROPY
- 	default 1024 if !64BIT
- 	default 2048 if 64BIT
- 	help
+diff -puN mm/list_lru.c~mm-list_lruc-avoid-error-path-null-pointer-deref mm/list_lru.c
+--- a/mm/list_lru.c~mm-list_lruc-avoid-error-path-null-pointer-deref
++++ a/mm/list_lru.c
+@@ -554,6 +554,8 @@ int __list_lru_init(struct list_lru *lru
+ 	err = memcg_init_list_lru(lru, memcg_aware);
+ 	if (err) {
+ 		kfree(lru->node);
++		/* Do this so a list_lru_destroy() doesn't crash: */
++		lru->node = NULL;
+ 		goto out;
+ 	}
+ 
 _
