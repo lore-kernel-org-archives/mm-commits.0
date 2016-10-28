@@ -1,79 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: [patch 15/20] lib/genalloc.c: start search from start of chunk
-Date: Thu, 27 Oct 2016 17:46:59 -0700
-Message-ID: <5812a003.8z3GSFerTw5x9J4g%akpm@linux-foundation.org>
+Subject: mmotm 2016-10-27-18-27 uploaded
+Date: Thu, 27 Oct 2016 18:28:22 -0700
+Message-ID: <5812a9b6.OlAMBhewokz9/Mou%akpm__10895.5277050429$1477618144$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57954 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59420 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S943135AbcJ1ArA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 20:47:00 -0400
+        with ESMTP id S933403AbcJ1B2Y (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Oct 2016 21:28:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, danielmentz@google.com, mathieu.desnoyers@efficios.com, will.deacon@arm.com
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
 
-From: Daniel Mentz <danielmentz@google.com>
-Subject: lib/genalloc.c: start search from start of chunk
+The mm-of-the-moment snapshot 2016-10-27-18-27 has been uploaded to
 
-gen_pool_alloc_algo() iterates over the chunks of a pool trying to find a
-contiguous block of memory that satisfies the allocation request.
+   http://www.ozlabs.org/~akpm/mmotm/
 
-The shortcut
+mmotm-readme.txt says
 
-	if (size > atomic_read(&chunk->avail))
-		continue;
+README for mm-of-the-moment:
 
-makes the loop skip over chunks that do not have enough bytes left to
-fulfill the request.  There are two situations, though, where an
-allocation might still fail:
+http://www.ozlabs.org/~akpm/mmotm/
 
-(1) The available memory is not contiguous, i.e.  the request cannot
-    be fulfilled due to external fragmentation.
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
 
-(2) A race condition.  Another thread runs the same code concurrently
-    and is quicker to grab the available memory.
+You will need quilt to apply these patches to the latest Linus release (4.x
+or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
 
-In those situations, the loop calls pool->algo() to search the entire
-chunk, and pool->algo() returns some value that is >= end_bit to indicate
-that the search failed.  This return value is then assigned to start_bit. 
-The variables start_bit and end_bit describe the range that should be
-searched, and this range should be reset for every chunk that is searched.
-Today, the code fails to reset start_bit to 0.  As a result, prefixes of
-subsequent chunks are ignored.  Memory allocations might fail even though
-there is plenty of room left in these prefixes of those other chunks.
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
 
-Fixes: 7f184275aa30 ("lib, Make gen_pool memory allocator lockless")
-Link: http://lkml.kernel.org/r/1477420604-28918-1-git-send-email-danielmentz@google.com
-Signed-off-by: Daniel Mentz <danielmentz@google.com>
-Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Acked-by: Will Deacon <will.deacon@arm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
 
- lib/genalloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
 
-diff -puN lib/genalloc.c~lib-genallocc-start-search-from-start-of-chunk lib/genalloc.c
---- a/lib/genalloc.c~lib-genallocc-start-search-from-start-of-chunk
-+++ a/lib/genalloc.c
-@@ -292,7 +292,7 @@ unsigned long gen_pool_alloc_algo(struct
- 	struct gen_pool_chunk *chunk;
- 	unsigned long addr = 0;
- 	int order = pool->min_alloc_order;
--	int nbits, start_bit = 0, end_bit, remain;
-+	int nbits, start_bit, end_bit, remain;
- 
- #ifndef CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	BUG_ON(in_nmi());
-@@ -307,6 +307,7 @@ unsigned long gen_pool_alloc_algo(struct
- 		if (size > atomic_read(&chunk->avail))
- 			continue;
- 
-+		start_bit = 0;
- 		end_bit = chunk_size(chunk) >> order;
- retry:
- 		start_bit = algo(chunk->bits, end_bit, start_bit,
-_
+
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
+
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+
+To develop on top of mmotm git:
+
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
+
+To rebase a branch with older patches to a new mmotm release:
+
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
+
+
+
+
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
+
+A git copy of this tree is available at
+
+	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+
+and use of this tree is similar to
+http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
+
+
+This mmotm tree contains the following patches against 4.9-rc2:
+(patches marked "*" will be included in linux-next)
+
+  origin.patch
+* mm-slab-fix-kmemcg-cache-creation-delayed-issue.patch
+* kcov-properly-check-if-we-are-in-an-interrupt.patch
+* h8300-fix-syscall-restarting.patch
+* mm-list_lruc-avoid-error-path-null-pointer-deref.patch
+* mm-page_alloc-use-kern_cont-where-appropriate.patch
+* mm-slab-improve-performance-of-gathering-slabinfo-stats.patch
+* ipc-account-for-kmem-usage-on-mqueue-and-msg.patch
+* kconfigh-remove-config_enabled-macro.patch
+* latent_entropy-raise-config_frame_warn-by-default.patch
+* lib-bump-stackdepot-capacity-from-16mb-to-128mb.patch
+* mm-kmemleak-ensure-that-the-task-stack-is-not-freed-during-scanning.patch
+* proc-fix-null-dereference-when-reading-proc-pid-auxv.patch
+* credits-update-credit-information-for-martin-kepplinger.patch
+* mm-memcontrol-do-not-recurse-in-direct-reclaim.patch
+* lib-genallocc-start-search-from-start-of-chunk.patch
+* fs-exofs-print-a-hex-number-after-a-0x-prefix.patch
+* block-dac960-print-a-hex-number-after-a-0x-prefix.patch
+* ipack-print-a-hex-number-after-a-0x-prefix.patch
+* cris-arch-v32-cryptocop-print-a-hex-number-after-a-0x-prefix.patch
+* drivers-misc-sgi-gru-grumainc-remove-bogus-0x-prefix-from-printk.patch
+  i-need-old-gcc.patch
+* mm-remove-extra-newline-from-allocation-stall-warning.patch
+* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+* prctl-remove-one-shot-limitation-for-changing-exe-link.patch
+* prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
+* kbuild-simpler-generation-of-assembly-constants.patch
+* ocfs2-dlm-clean-up-useless-bug_on-default-case-in-dlm_finalize_reco_handler.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+* kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
+  mm.patch
+* mm-memcontrol-use-special-workqueue-for-creating-per-memcg-caches.patch
+* slub-move-synchronize_sched-out-of-slab_mutex-on-shrink.patch
+* slub-avoid-false-postive-warning.patch
+* dont-touch-single-threaded-ptes-which-are-on-the-right-node.patch
+* dont-touch-single-threaded-ptes-which-are-on-the-right-node-v3.patch
+* vmscan-set-correct-defer-count-for-shrinker.patch
+* mm-compaction-allow-compaction-for-gfp_nofs-requests.patch
+* mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
+* mm-gup-make-unnecessarily-global-vma_permits_fault-static.patch
+* mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow.patch
+* mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock.patch
+* z3fold-limit-first_num-to-the-actual-range-of-possible-buddy-indexes.patch
+* kmemleak-fix-reference-to-documentation.patch
+* mm-vmalloc-replace-opencoded-4-level-page-walkers.patch
+* mm-dont-steal-highatomic-pageblock.patch
+* mm-prevent-double-decrease-of-nr_reserved_highatomic.patch
+* mm-try-to-exhaust-highatomic-reserve-before-the-oom.patch
+* mm-make-unreserve-highatomic-functions-reliable.patch
+* mm-vmallocc-simplify-proc-vmallocinfo-implementation.patch
+* mm-thp-avoid-unlikely-branches-for-split_huge_pmd.patch
+* mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch
+* mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
+* mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration.patch
+* shmem-avoid-huge-pages-for-small-files.patch
+* shmem-avoid-maybe-uninitialized-warning.patch
+* mm-use-the-correct-page-size-when-removing-the-page.patch
+* mm-update-mmu_gather-range-correctly.patch
+* mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages.patch
+* mm-add-tlb_remove_check_page_size_change-to-track-page-size-change.patch
+* mm-remove-the-page-size-change-check-in-tlb_remove_page.patch
+* mm-fixup-get_user_pages-comments.patch
+* mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
+* mm-page_owner-align-with-pageblock_nr-pages.patch
+* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
+* kasan-support-panic_on_warn.patch
+* mm-percpuc-fix-panic-triggered-by-bug_on-falsely.patch
+* fs-proc-arrayc-slightly-improve-render_sigset_t.patch
+* hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive.patch
+* kernel-smp-define-pr_fmt-for-smpc.patch
+* kernel-smp-make-the-smp-boot-message-common-on-all-arches.patch
+* kernel-smp-tell-the-user-were-bringing-up-secondary-cpus.patch
+* get_maintainer-look-for-arbitrary-letter-prefixes-in-sections.patch
+* maintainers-add-b-for-uri-where-to-file-bugs.patch
+* maintainers-add-drm-and-drm-i915-bug-filing-info.patch
+* maintainers-add-c-for-uri-for-chat-where-developers-hang-out.patch
+* maintainers-add-drm-and-drm-i915-irc-channels.patch
+* let-config_strict_devmem-depends-on-config_devmem.patch
+* lib-rbtreec-fix-typo-in-comment-of-____rb_erase_color.patch
+* lib-add-crc64-ecma-module.patch
+* checkpatch-dont-try-to-get-maintained-status-when-no-tree-is-given.patch
+* scripts-checkpatchpl-fix-spelling.patch
+* checkpatch-dont-check-pl-files-improve-absolute-path-commit-log-test.patch
+* vfs-change-d_manage-to-take-a-struct-path.patch
+* vfs-add-path_is_mountpoint-helper.patch
+* vfs-add-path_has_submounts.patch
+* autofs-change-autofs4_expire_wait-to-take-struct-path.patch
+* autofs-change-autofs4_wait-to-take-struct-path.patch
+* autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
+* autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks.patch
+* vfs-remove-unused-have_submounts-function.patch
+* signals-avoid-unnecessary-taking-of-sighand-siglock.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* relay-check-array-offset-before-using-it.patch
+* kconfig-lib-kconfigdebug-fix-references-to-documenation.patch
+* kconfig-lib-kconfigubsan-fix-reference-to-ubsan-documentation.patch
+* debug-more-properly-delay-for-secondary-cpus.patch
+* debug-more-properly-delay-for-secondary-cpus-fix.patch
+* initramfs-select-builtin-initram-compression-algorithm-on-kconfig-instead-of-makefile.patch
+* initramfs-allow-again-choice-of-the-embedded-initram-compression-algorithm.patch
+* ipc-semc-avoid-using-spin_unlock_wait.patch
+* ipc-sem-add-hysteresis.patch
+* ipc-msg-make-msgrcv-work-with-long_min.patch
+* ipc-sem-do-not-call-wake_sem_queue_do-prematurely.patch
+* ipc-sem-rework-task-wakeups.patch
+* ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
+* ipc-sem-optimize-perform_atomic_semop.patch
+* ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
+* ipc-sem-explicitly-inline-check_restart.patch
+* ipc-sem-use-proper-list-api-for-pending_list-wakeups.patch
+  linux-next.patch
+* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+* kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+* kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
+* kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
+* powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
+* powerpc-factor-out-relocation-code-in-module_64c.patch
+* powerpc-implement-kexec_file_load.patch
+* powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
+* powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
+* powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+* powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
+* powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
+* ima-on-soft-reboot-restore-the-measurement-list.patch
+* ima-permit-duplicate-measurement-list-entries.patch
+* ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
+* powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
+* ima-on-soft-reboot-save-the-measurement-list.patch
+* ima-store-the-builtin-custom-template-definitions-in-a-list.patch
+* ima-support-restoring-multiple-template-formats.patch
+* ima-define-a-canonical-binary_runtime_measurements-list-format.patch
+* ima-platform-independent-hash-value.patch
+  mm-add-strictlimit-knob-v2.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  make-frame_pointer-default=y.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  add-debugging-aid-for-memory-initialisation-problems.patch
+  workaround-for-a-pci-restoring-bug.patch
