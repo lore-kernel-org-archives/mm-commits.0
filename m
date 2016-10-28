@@ -1,73 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-smp-define-pr_fmt-for-smpc.patch removed from -mm tree
-Date: Fri, 28 Oct 2016 11:31:07 -0700
-Message-ID: <5813996b.hOwc8SvZkmKdbVIv%akpm@linux-foundation.org>
+Subject: [merged] mm-list_lruc-avoid-error-path-null-pointer-deref.patch
+ removed from -mm tree
+Date: Fri, 28 Oct 2016 11:30:19 -0700
+Message-ID: <5813993b.3nkQOxm7sgAkvqIa%akpm__21639.055645983$1477679522$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45854 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45652 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1032943AbcJ1SbI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:31:08 -0400
+        with ESMTP id S966097AbcJ1SaU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:30:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpe@ellerman.id.au, ak@linux.intel.com, boris.ostrovsky@oracle.com, bp@suse.de, hpa@zytor.com, jgross@suse.com, jolsa@redhat.com, len.brown@intel.com, mgorman@techsingularity.net, mingo@redhat.com, peterz@infradead.org, richard@nod.at, tglx@linutronix.de, tim.c.chen@linux.intel.com, mm-commits@vger.kernel.org
+To: apolyakov@beget.ru, stable@vger.kernel.org, vdavydov.dev@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/smp.c: define pr_fmt() for smp.c
+     Subject: mm/list_lru.c: avoid error-path NULL pointer deref
 has been removed from the -mm tree.  Its filename was
-     kernel-smp-define-pr_fmt-for-smpc.patch
+     mm-list_lruc-avoid-error-path-null-pointer-deref.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michael Ellerman <mpe@ellerman.id.au>
-Subject: kernel/smp.c: define pr_fmt() for smp.c
+From: Alexander Polakov <apolyakov@beget.ru>
+Subject: mm/list_lru.c: avoid error-path NULL pointer deref
 
-This makes all our pr_xxx()'s start with "smp: ", which helps pin down
-where they come from and generally looks nice.  There is actually only one
-pr_xxx() use in smp.c at the moment, but we will add some more in the next
-commit.
+As described in https://bugzilla.kernel.org/show_bug.cgi?id=177821:
 
-Link: http://lkml.kernel.org/r/1477460275-8266-1-git-send-email-mpe@ellerman.id.au
-Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
-Suggested-by: Borislav Petkov <bp@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Tim Chen <tim.c.chen@linux.intel.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Jiri Olsa <jolsa@redhat.com>
+After some analysis it seems to be that the problem is in alloc_super(). 
+In case list_lru_init_memcg() fails it goes into destroy_super(), which
+calls list_lru_destroy().
+
+And in list_lru_init() we see that in case memcg_init_list_lru() fails,
+lru->node is freed, but not set NULL, which then leads list_lru_destroy()
+to believe it is initialized and call memcg_destroy_list_lru(). 
+memcg_destroy_list_lru() in turn can access lru->node[i].memcg_lrus, which
+is NULL.
+
+[akpm@linux-foundation.org: add comment]
+Signed-off-by: Alexander Polakov <apolyakov@beget.ru>
+Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/list_lru.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/smp.c~kernel-smp-define-pr_fmt-for-smpc kernel/smp.c
---- a/kernel/smp.c~kernel-smp-define-pr_fmt-for-smpc
-+++ a/kernel/smp.c
-@@ -3,6 +3,9 @@
-  *
-  * (C) Jens Axboe <jens.axboe@oracle.com> 2008
-  */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/irq_work.h>
- #include <linux/rcupdate.h>
- #include <linux/rculist.h>
+diff -puN mm/list_lru.c~mm-list_lruc-avoid-error-path-null-pointer-deref mm/list_lru.c
+--- a/mm/list_lru.c~mm-list_lruc-avoid-error-path-null-pointer-deref
++++ a/mm/list_lru.c
+@@ -554,6 +554,8 @@ int __list_lru_init(struct list_lru *lru
+ 	err = memcg_init_list_lru(lru, memcg_aware);
+ 	if (err) {
+ 		kfree(lru->node);
++		/* Do this so a list_lru_destroy() doesn't crash: */
++		lru->node = NULL;
+ 		goto out;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from mpe@ellerman.id.au are
+Patches currently in -mm which might be from apolyakov@beget.ru are
 
 
