@@ -1,70 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-list_lruc-avoid-error-path-null-pointer-deref.patch
- removed from -mm tree
-Date: Fri, 28 Oct 2016 11:30:19 -0700
-Message-ID: <5813993b.3nkQOxm7sgAkvqIa%akpm__21639.055645983$1477679522$gmane$org@linux-foundation.org>
+Subject: [merged] h8300-fix-syscall-restarting.patch removed from -mm tree
+Date: Fri, 28 Oct 2016 11:30:16 -0700
+Message-ID: <58139938.jxWJKuXw0JVNqq52%akpm__17462.1055521586$1477679522$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45652 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45644 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966097AbcJ1SaU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:30:20 -0400
+        with ESMTP id S965658AbcJ1SaR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:30:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: apolyakov@beget.ru, stable@vger.kernel.org, vdavydov.dev@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mark.rutland@arm.com, luto@amacapital.net, stable@vger.kernel.org, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/list_lru.c: avoid error-path NULL pointer deref
+     Subject: h8300: fix syscall restarting
 has been removed from the -mm tree.  Its filename was
-     mm-list_lruc-avoid-error-path-null-pointer-deref.patch
+     h8300-fix-syscall-restarting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Polakov <apolyakov@beget.ru>
-Subject: mm/list_lru.c: avoid error-path NULL pointer deref
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: h8300: fix syscall restarting
 
-As described in https://bugzilla.kernel.org/show_bug.cgi?id=177821:
+Back in f56141e3e2d9aabf ("all arches, signal: move restart_block to
+struct task_struct"), all architectures and core code were changed to use
+task_struct::restart_block.  However, when h8300 support was subsequently
+restored in v4.2, it was not updated to account for this, and maintains
+thread_info::restart_block, which is not kept in sync.
 
-After some analysis it seems to be that the problem is in alloc_super(). 
-In case list_lru_init_memcg() fails it goes into destroy_super(), which
-calls list_lru_destroy().
+This patch drops the redundant restart_block from thread_info, and moves
+h8300 to the common one in task_struct, ensuring that syscall restarting
+always works as expected.
 
-And in list_lru_init() we see that in case memcg_init_list_lru() fails,
-lru->node is freed, but not set NULL, which then leads list_lru_destroy()
-to believe it is initialized and call memcg_destroy_list_lru(). 
-memcg_destroy_list_lru() in turn can access lru->node[i].memcg_lrus, which
-is NULL.
-
-[akpm@linux-foundation.org: add comment]
-Signed-off-by: Alexander Polakov <apolyakov@beget.ru>
-Acked-by: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Fixes: f56141e3e2d9aabf ("all arches, signal: move restart_block to struct task_struct")
+Link: http://lkml.kernel.org/r/1476714934-11635-1-git-send-email-mark.rutland@arm.com
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: uclinux-h8-devel@lists.sourceforge.jp
+Cc: <stable@vger.kernel.org>	[4.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/h8300/include/asm/thread_info.h |    4 ----
+ arch/h8300/kernel/signal.c           |    2 +-
+ 2 files changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN mm/list_lru.c~mm-list_lruc-avoid-error-path-null-pointer-deref mm/list_lru.c
---- a/mm/list_lru.c~mm-list_lruc-avoid-error-path-null-pointer-deref
-+++ a/mm/list_lru.c
-@@ -554,6 +554,8 @@ int __list_lru_init(struct list_lru *lru
- 	err = memcg_init_list_lru(lru, memcg_aware);
- 	if (err) {
- 		kfree(lru->node);
-+		/* Do this so a list_lru_destroy() doesn't crash: */
-+		lru->node = NULL;
- 		goto out;
- 	}
+diff -puN arch/h8300/include/asm/thread_info.h~h8300-fix-syscall-restarting arch/h8300/include/asm/thread_info.h
+--- a/arch/h8300/include/asm/thread_info.h~h8300-fix-syscall-restarting
++++ a/arch/h8300/include/asm/thread_info.h
+@@ -31,7 +31,6 @@ struct thread_info {
+ 	int		   cpu;			/* cpu we're on */
+ 	int		   preempt_count;	/* 0 => preemptable, <0 => BUG */
+ 	mm_segment_t		addr_limit;
+-	struct restart_block restart_block;
+ };
  
+ /*
+@@ -44,9 +43,6 @@ struct thread_info {
+ 	.cpu =		0,			\
+ 	.preempt_count = INIT_PREEMPT_COUNT,	\
+ 	.addr_limit	= KERNEL_DS,		\
+-	.restart_block	= {			\
+-		.fn = do_no_restart_syscall,	\
+-	},					\
+ }
+ 
+ #define init_thread_info	(init_thread_union.thread_info)
+diff -puN arch/h8300/kernel/signal.c~h8300-fix-syscall-restarting arch/h8300/kernel/signal.c
+--- a/arch/h8300/kernel/signal.c~h8300-fix-syscall-restarting
++++ a/arch/h8300/kernel/signal.c
+@@ -79,7 +79,7 @@ restore_sigcontext(struct sigcontext *us
+ 	unsigned int er0;
+ 
+ 	/* Always make any pending restarted system calls return -EINTR */
+-	current_thread_info()->restart_block.fn = do_no_restart_syscall;
++	current->restart_block.fn = do_no_restart_syscall;
+ 
+ 	/* restore passed registers */
+ #define COPY(r)  do { err |= get_user(regs->r, &usc->sc_##r); } while (0)
 _
 
-Patches currently in -mm which might be from apolyakov@beget.ru are
+Patches currently in -mm which might be from mark.rutland@arm.com are
 
 
