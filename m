@@ -1,65 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-dac960-print-a-hex-number-after-a-0x-prefix.patch
- removed from -mm tree
-Date: Fri, 28 Oct 2016 11:30:57 -0700
-Message-ID: <58139961.bfoJRviCORYFmdlo%akpm@linux-foundation.org>
+Subject: [merged] ipack-print-a-hex-number-after-a-0x-prefix.patch removed from -mm tree
+Date: Fri, 28 Oct 2016 11:30:59 -0700
+Message-ID: <58139963.f1nrA5mVLFEqrUsD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45814 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45820 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030345AbcJ1Sa6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:30:58 -0400
+        with ESMTP id S1030345AbcJ1SbA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Oct 2016 14:31:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
+To: u.kleine-koenig@pengutronix.de, gregkh@linuxfoundation.org, jens.taprogge@taprogge.org, siglesias@igalia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: DAC960: print a hex number after a 0x prefix
+     Subject: ipack: print a hex number after a 0x prefix
 has been removed from the -mm tree.  Its filename was
-     block-dac960-print-a-hex-number-after-a-0x-prefix.patch
+     ipack-print-a-hex-number-after-a-0x-prefix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Subject: block: DAC960: print a hex number after a 0x prefix
+Subject: ipack: print a hex number after a 0x prefix
 
-It makes the message hard to interpret correctly if a base 10 number is
-prefixed by 0x.  So change to a hex number.
+It makes the result hard to interpret correctly if a base 10 number is
+prefixed by 0x. So change to a hex number.
 
-Link: http://lkml.kernel.org/r/20161026125658.25728-3-u.kleine-koenig@pengutronix.de
+Link: http://lkml.kernel.org/r/20161026125658.25728-4-u.kleine-koenig@pengutronix.de
 Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Cc: Samuel Iglesias Gonsalvez <siglesias@igalia.com>
+Cc: Jens Taprogge <jens.taprogge@taprogge.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/DAC960.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/ipack/ipack.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/DAC960.c~block-dac960-print-a-hex-number-after-a-0x-prefix drivers/block/DAC960.c
---- a/drivers/block/DAC960.c~block-dac960-print-a-hex-number-after-a-0x-prefix
-+++ a/drivers/block/DAC960.c
-@@ -2954,7 +2954,7 @@ DAC960_DetectController(struct pci_dev *
- 	case DAC960_PD_Controller:
- 	  if (!request_region(Controller->IO_Address, 0x80,
- 			      Controller->FullModelName)) {
--		DAC960_Error("IO port 0x%d busy for Controller at\n",
-+		DAC960_Error("IO port 0x%lx busy for Controller at\n",
- 			     Controller, Controller->IO_Address);
- 		goto Failure;
- 	  }
-@@ -2990,7 +2990,7 @@ DAC960_DetectController(struct pci_dev *
- 	case DAC960_P_Controller:
- 	  if (!request_region(Controller->IO_Address, 0x80,
- 			      Controller->FullModelName)){
--		DAC960_Error("IO port 0x%d busy for Controller at\n",
-+		DAC960_Error("IO port 0x%lx busy for Controller at\n",
- 		   	     Controller, Controller->IO_Address);
- 		goto Failure;
- 	  }
+diff -puN drivers/ipack/ipack.c~ipack-print-a-hex-number-after-a-0x-prefix drivers/ipack/ipack.c
+--- a/drivers/ipack/ipack.c~ipack-print-a-hex-number-after-a-0x-prefix
++++ a/drivers/ipack/ipack.c
+@@ -178,7 +178,7 @@ static ssize_t modalias_show(struct devi
+ 		       idev->id_vendor, idev->id_device);
+ }
+ 
+-ipack_device_attr(id_format, "0x%hhu\n");
++ipack_device_attr(id_format, "0x%hhx\n");
+ 
+ static DEVICE_ATTR_RO(id);
+ static DEVICE_ATTR_RO(id_device);
 _
 
 Patches currently in -mm which might be from u.kleine-koenig@pengutronix.de are
