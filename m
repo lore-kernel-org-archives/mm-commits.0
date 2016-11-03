@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + z3fold-extend-compaction-function.patch added to -mm tree
-Date: Thu, 03 Nov 2016 14:16:20 -0700
-Message-ID: <581ba924.HqoUXvfFDhrhT5bH%akpm@linux-foundation.org>
+Subject: + proc-report-no_new_privs-state.patch added to -mm tree
+Date: Thu, 03 Nov 2016 15:24:14 -0700
+Message-ID: <581bb90e.riIDyzzcwZjMknfu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55882 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59072 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759608AbcKCVQV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Nov 2016 17:16:21 -0400
+        with ESMTP id S932105AbcKCWYP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Nov 2016 18:24:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vitalywool@gmail.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
+To: keescook@chromium.org, adobriyan@gmail.com, corbet@lwn.net, hannes@cmpxchg.org, hughd@google.com, jann@thejh.net, jmarchan@redhat.com, joe@perches.com, john.stultz@linaro.org, koct9i@gmail.com, luto@kernel.org, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, rfreire@redhat.com, rjones@redhat.com, robert.hu@intel.com, ross.zwisler@linux.intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/z3fold.c: extend compaction function
+     Subject: proc: report no_new_privs state
 has been added to the -mm tree.  Its filename is
-     z3fold-extend-compaction-function.patch
+     proc-report-no_new_privs-state.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-extend-compaction-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-report-no_new_privs-state.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-extend-compaction-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-report-no_new_privs-state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,107 +38,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vitaly Wool <vitalywool@gmail.com>
-Subject: mm/z3fold.c: extend compaction function
+From: Kees Cook <keescook@chromium.org>
+Subject: proc: report no_new_privs state
 
-z3fold_compact_page() currently only handles the situation where there's a
-single middle chunk within the z3fold page.  However it may be worth it to
-move middle chunk closer to either first or last chunk, whichever is
-there, if the gap between them is big enough.
+Similar to being able to examine if a process has been correctly confined
+with seccomp, the state of no_new_privs is equally interesting, so this
+adds it to /proc/$pid/status.
 
-This patch adds the relevant code, using BIG_CHUNK_GAP define as a
-threshold for middle chunk to be worth moving.
-
-Link: http://lkml.kernel.org/r/20161103220428.984a8d09d0c9569e6bc6b8cc@gmail.com
-Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
+Link: http://lkml.kernel.org/r/20161103214041.GA58566@beast
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Jann Horn <jann@thejh.net>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Rodrigo Freire <rfreire@redhat.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Robert Ho <robert.hu@intel.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Richard W.M. Jones" <rjones@redhat.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |   60 +++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 47 insertions(+), 13 deletions(-)
+ Documentation/filesystems/proc.txt |    2 ++
+ fs/proc/array.c                    |    5 +++--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/z3fold.c~z3fold-extend-compaction-function mm/z3fold.c
---- a/mm/z3fold.c~z3fold-extend-compaction-function
-+++ a/mm/z3fold.c
-@@ -254,26 +254,60 @@ static void z3fold_destroy_pool(struct z
- 	kfree(pool);
- }
+diff -puN Documentation/filesystems/proc.txt~proc-report-no_new_privs-state Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~proc-report-no_new_privs-state
++++ a/Documentation/filesystems/proc.txt
+@@ -191,6 +191,7 @@ read the file /proc/PID/status:
+   CapPrm: 0000000000000000
+   CapEff: 0000000000000000
+   CapBnd: ffffffffffffffff
++  NoNewPrivs:     0
+   Seccomp:        0
+   voluntary_ctxt_switches:        0
+   nonvoluntary_ctxt_switches:     1
+@@ -262,6 +263,7 @@ Table 1-2: Contents of the status files
+  CapPrm                      bitmap of permitted capabilities
+  CapEff                      bitmap of effective capabilities
+  CapBnd                      bitmap of capabilities bounding set
++ NoNewPrivs                  no_new_privs, like prctl(PR_GET_NO_NEW_PRIV, ...)
+  Seccomp                     seccomp mode, like prctl(PR_GET_SECCOMP, ...)
+  Cpus_allowed                mask of CPUs on which this process may run
+  Cpus_allowed_list           Same as previous, but in "list format"
+diff -puN fs/proc/array.c~proc-report-no_new_privs-state fs/proc/array.c
+--- a/fs/proc/array.c~proc-report-no_new_privs-state
++++ a/fs/proc/array.c
+@@ -342,10 +342,11 @@ static inline void task_cap(struct seq_f
  
-+static inline void *mchunk_memmove(struct z3fold_header *zhdr,
-+				unsigned short dst_chunk)
-+{
-+	void *beg = zhdr;
-+	return memmove(beg + (dst_chunk << CHUNK_SHIFT),
-+		       beg + (zhdr->start_middle << CHUNK_SHIFT),
-+		       zhdr->middle_chunks << CHUNK_SHIFT);
-+}
-+
-+#define BIG_CHUNK_GAP	3
- /* Has to be called with lock held */
- static int z3fold_compact_page(struct z3fold_header *zhdr)
+ static inline void task_seccomp(struct seq_file *m, struct task_struct *p)
  {
- 	struct page *page = virt_to_page(zhdr);
--	void *beg = zhdr;
-+	int ret = 0;
-+
-+	if (test_bit(MIDDLE_CHUNK_MAPPED, &page->private))
-+		goto out;
- 
-+	if (zhdr->middle_chunks != 0) {
-+		if (zhdr->first_chunks == 0 && zhdr->last_chunks == 0) {
-+			mchunk_memmove(zhdr, 1); /* move to the beginning */
-+			zhdr->first_chunks = zhdr->middle_chunks;
-+			zhdr->middle_chunks = 0;
-+			zhdr->start_middle = 0;
-+			zhdr->first_num++;
-+			ret = 1;
-+			goto out;
-+		}
- 
--	if (!test_bit(MIDDLE_CHUNK_MAPPED, &page->private) &&
--	    zhdr->middle_chunks != 0 &&
--	    zhdr->first_chunks == 0 && zhdr->last_chunks == 0) {
--		memmove(beg + ZHDR_SIZE_ALIGNED,
--			beg + (zhdr->start_middle << CHUNK_SHIFT),
--			zhdr->middle_chunks << CHUNK_SHIFT);
--		zhdr->first_chunks = zhdr->middle_chunks;
--		zhdr->middle_chunks = 0;
--		zhdr->start_middle = 0;
--		zhdr->first_num++;
--		return 1;
-+		/*
-+		 * moving data is expensive, so let's only do that if
-+		 * there's substantial gain (at least BIG_CHUNK_GAP chunks)
-+		 */
-+		if (zhdr->first_chunks != 0 && zhdr->last_chunks == 0 &&
-+		    zhdr->start_middle > zhdr->first_chunks + BIG_CHUNK_GAP) {
-+			mchunk_memmove(zhdr, zhdr->first_chunks + 1);
-+			zhdr->start_middle = zhdr->first_chunks + 1;
-+			ret = 1;
-+			goto out;
-+		}
-+		if (zhdr->last_chunks != 0 && zhdr->first_chunks == 0 &&
-+		    zhdr->middle_chunks + zhdr->last_chunks <=
-+		    NCHUNKS - zhdr->start_middle - BIG_CHUNK_GAP) {
-+			unsigned short new_start = NCHUNKS - zhdr->last_chunks -
-+				zhdr->middle_chunks;
-+			mchunk_memmove(zhdr, new_start);
-+			zhdr->start_middle = new_start;
-+			ret = 1;
-+			goto out;
-+		}
- 	}
--	return 0;
-+out:
-+	return ret;
++	seq_put_decimal_ull(m, "NoNewPrivs:\t", task_no_new_privs(p));
+ #ifdef CONFIG_SECCOMP
+-	seq_put_decimal_ull(m, "Seccomp:\t", p->seccomp.mode);
+-	seq_putc(m, '\n');
++	seq_put_decimal_ull(m, "\nSeccomp:\t", p->seccomp.mode);
+ #endif
++	seq_putc(m, '\n');
  }
  
- /**
+ static inline void task_context_switch_counts(struct seq_file *m,
 _
 
-Patches currently in -mm which might be from vitalywool@gmail.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-z3fold-make-pages_nr-atomic.patch
-z3fold-extend-compaction-function.patch
+proc-report-no_new_privs-state.patch
 
