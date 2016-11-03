@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + compiler-gcch-use-proved-instead-of-proofed.patch added to -mm
- tree
-Date: Thu, 03 Nov 2016 13:55:37 -0700
-Message-ID: <581ba449.XJcFcfrATFRNV8sG%akpm@linux-foundation.org>
+Subject: + z3fold-make-pages_nr-atomic.patch added to -mm tree
+Date: Thu, 03 Nov 2016 14:16:18 -0700
+Message-ID: <581ba922.Aua2bjsD8ZzSMYS1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55876 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750764AbcKCUzi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Nov 2016 16:55:38 -0400
+        with ESMTP id S1758853AbcKCVQT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Nov 2016 17:16:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@benjamin.pe, mm-commits@vger.kernel.org
+To: vitalywool@gmail.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler-gcc.h: use "proved" instead of "proofed"
+     Subject: mm/z3fold.c: make pages_nr atomic
 has been added to the -mm tree.  Its filename is
-     compiler-gcch-use-proved-instead-of-proofed.patch
+     z3fold-make-pages_nr-atomic.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/compiler-gcch-use-proved-instead-of-proofed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-make-pages_nr-atomic.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/compiler-gcch-use-proved-instead-of-proofed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-make-pages_nr-atomic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,32 +38,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Benjamin Peterson <bp@benjamin.pe>
-Subject: compiler-gcc.h: use "proved" instead of "proofed"
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: mm/z3fold.c: make pages_nr atomic
 
-Link: http://lkml.kernel.org/r/1477894241.1103202.772260161.1B0A5995@webmail.messagingengine.com
-Signed-off-by: Benjamin Peterson <bp@benjamin.pe>
+Convert pages_nr per-pool counter to atomic64_t.
+
+Link: http://lkml.kernel.org/r/20161103220058.3017148c790b352c0ec521d4@gmail.com
+Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/z3fold.c |   20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/compiler-gcc.h~compiler-gcch-use-proved-instead-of-proofed include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compiler-gcch-use-proved-instead-of-proofed
-+++ a/include/linux/compiler-gcc.h
-@@ -21,7 +21,7 @@
-  * clobbered. The issue is as follows: while the inline asm might
-  * access any memory it wants, the compiler could have fit all of
-  * @ptr into memory registers instead, and since @ptr never escaped
-- * from that, it proofed that the inline asm wasn't touching any of
-+ * from that, it proved that the inline asm wasn't touching any of
-  * it. This version works well with both compilers, i.e. we're telling
-  * the compiler that the inline asm absolutely may see the contents
-  * of @ptr. See also: https://llvm.org/bugs/show_bug.cgi?id=15495
+diff -puN mm/z3fold.c~z3fold-make-pages_nr-atomic mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-make-pages_nr-atomic
++++ a/mm/z3fold.c
+@@ -80,7 +80,7 @@ struct z3fold_pool {
+ 	struct list_head unbuddied[NCHUNKS];
+ 	struct list_head buddied;
+ 	struct list_head lru;
+-	u64 pages_nr;
++	atomic64_t pages_nr;
+ 	const struct z3fold_ops *ops;
+ 	struct zpool *zpool;
+ 	const struct zpool_ops *zpool_ops;
+@@ -238,7 +238,7 @@ static struct z3fold_pool *z3fold_create
+ 		INIT_LIST_HEAD(&pool->unbuddied[i]);
+ 	INIT_LIST_HEAD(&pool->buddied);
+ 	INIT_LIST_HEAD(&pool->lru);
+-	pool->pages_nr = 0;
++	atomic64_set(&pool->pages_nr, 0);
+ 	pool->ops = ops;
+ 	return pool;
+ }
+@@ -350,7 +350,7 @@ static int z3fold_alloc(struct z3fold_po
+ 	if (!page)
+ 		return -ENOMEM;
+ 	spin_lock(&pool->lock);
+-	pool->pages_nr++;
++	atomic64_inc(&pool->pages_nr);
+ 	zhdr = init_z3fold_page(page);
+ 
+ 	if (bud == HEADLESS) {
+@@ -443,10 +443,9 @@ static void z3fold_free(struct z3fold_po
+ 		return;
+ 	}
+ 
+-	if (bud != HEADLESS) {
+-		/* Remove from existing buddy list */
++	/* Remove from existing buddy list */
++	if (bud != HEADLESS)
+ 		list_del(&zhdr->buddy);
+-	}
+ 
+ 	if (bud == HEADLESS ||
+ 	    (zhdr->first_chunks == 0 && zhdr->middle_chunks == 0 &&
+@@ -455,7 +454,7 @@ static void z3fold_free(struct z3fold_po
+ 		list_del(&page->lru);
+ 		clear_bit(PAGE_HEADLESS, &page->private);
+ 		free_z3fold_page(zhdr);
+-		pool->pages_nr--;
++		atomic64_dec(&pool->pages_nr);
+ 	} else {
+ 		z3fold_compact_page(zhdr);
+ 		/* Add to the unbuddied list */
+@@ -573,7 +572,7 @@ next:
+ 			 */
+ 			clear_bit(PAGE_HEADLESS, &page->private);
+ 			free_z3fold_page(zhdr);
+-			pool->pages_nr--;
++			atomic64_dec(&pool->pages_nr);
+ 			spin_unlock(&pool->lock);
+ 			return 0;
+ 		}  else if (!test_bit(PAGE_HEADLESS, &page->private)) {
+@@ -676,12 +675,11 @@ static void z3fold_unmap(struct z3fold_p
+  * z3fold_get_pool_size() - gets the z3fold pool size in pages
+  * @pool:	pool whose size is being queried
+  *
+- * Returns: size in pages of the given pool.  The pool lock need not be
+- * taken to access pages_nr.
++ * Returns: size in pages of the given pool.
+  */
+ static u64 z3fold_get_pool_size(struct z3fold_pool *pool)
+ {
+-	return pool->pages_nr;
++	return atomic64_read(&pool->pages_nr);
+ }
+ 
+ /*****************
 _
 
-Patches currently in -mm which might be from bp@benjamin.pe are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
-compiler-gcch-use-proved-instead-of-proofed.patch
+z3fold-make-pages_nr-atomic.patch
+z3fold-extend-compaction-function.patch
 
