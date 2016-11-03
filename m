@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-check-the-max-limit-for-cma-allocation.patch added to
- -mm tree
-Date: Thu, 03 Nov 2016 15:25:40 -0700
-Message-ID: <581bb964.lTcgXbE47bDWQeT8%akpm@linux-foundation.org>
+Subject: + ktestpl-fix-english.patch added to -mm tree
+Date: Thu, 03 Nov 2016 15:28:58 -0700
+Message-ID: <581bba2a./WaIM2TSDqL7eaex%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59118 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59274 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753620AbcKCWZl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Nov 2016 18:25:41 -0400
+        with ESMTP id S932105AbcKCW27 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Nov 2016 18:28:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shashim@codeaurora.org, catalin.marinas@arm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: pavel@ucw.cz, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma.c: check the max limit for cma allocation
+     Subject: ktest.pl: fix english
 has been added to the -mm tree.  Its filename is
-     mm-cma-check-the-max-limit-for-cma-allocation.patch
+     ktestpl-fix-english.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-check-the-max-limit-for-cma-allocation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ktestpl-fix-english.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-check-the-max-limit-for-cma-allocation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ktestpl-fix-english.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +38,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shiraz Hashim <shashim@codeaurora.org>
-Subject: mm/cma.c: check the max limit for cma allocation
+From: Pavel Machek <pavel@ucw.cz>
+Subject: ktest.pl: fix english
 
-CMA allocation request size is represented by size_t that gets truncated
-when same is passed as int to bitmap_find_next_zero_area_off.
+Ajdust spelling to more common "mandatory".  Variant "mandidory" is
+certainly wrong.
 
-We observe that during fuzz testing when cma allocation request is too
-high, bitmap_find_next_zero_area_off still returns success due to the
-truncation.  This leads to kernel crash, as subsequent code assumes that
-requested memory is available.
-
-Fail cma allocation in case the request breaches the corresponding cma
-region size.
-
-Link: http://lkml.kernel.org/r/1478189211-3467-1-git-send-email-shashim@codeaurora.org
-Signed-off-by: Shiraz Hashim <shashim@codeaurora.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: http://lkml.kernel.org/r/20161011073003.GA19476@amd
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    3 +++
- 1 file changed, 3 insertions(+)
+ tools/testing/ktest/ktest.pl |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/cma.c~mm-cma-check-the-max-limit-for-cma-allocation mm/cma.c
---- a/mm/cma.c~mm-cma-check-the-max-limit-for-cma-allocation
-+++ a/mm/cma.c
-@@ -385,6 +385,9 @@ struct page *cma_alloc(struct cma *cma,
- 	bitmap_maxno = cma_bitmap_maxno(cma);
- 	bitmap_count = cma_bitmap_pages_to_bits(cma, count);
+diff -puN tools/testing/ktest/ktest.pl~ktestpl-fix-english tools/testing/ktest/ktest.pl
+--- a/tools/testing/ktest/ktest.pl~ktestpl-fix-english
++++ a/tools/testing/ktest/ktest.pl
+@@ -719,14 +719,14 @@ sub set_value {
  
-+	if (bitmap_count > bitmap_maxno)
-+		return NULL;
-+
- 	for (;;) {
- 		mutex_lock(&cma->lock);
- 		bitmap_no = bitmap_find_next_zero_area_off(cma->bitmap,
+     if ($buildonly && $lvalue =~ /^TEST_TYPE(\[.*\])?$/ && $prvalue ne "build") {
+ 	# Note if a test is something other than build, then we
+-	# will need other manditory options.
++	# will need other mandatory options.
+ 	if ($prvalue ne "install") {
+ 	    # for bisect, we need to check BISECT_TYPE
+ 	    if ($prvalue ne "bisect") {
+ 		$buildonly = 0;
+ 	    }
+ 	} else {
+-	    # install still limits some manditory options.
++	    # install still limits some mandatory options.
+ 	    $buildonly = 2;
+ 	}
+     }
+@@ -735,7 +735,7 @@ sub set_value {
+ 	if ($prvalue ne "install") {
+ 	    $buildonly = 0;
+ 	} else {
+-	    # install still limits some manditory options.
++	    # install still limits some mandatory options.
+ 	    $buildonly = 2;
+ 	}
+     }
+@@ -3989,7 +3989,7 @@ sub make_min_config {
+ 		}
+ 	    }
+ 
+-	    # Save off all the current mandidory configs
++	    # Save off all the current mandatory configs
+ 	    open (OUT, ">$temp_config")
+ 		or die "Can't write to $temp_config";
+ 	    foreach my $config (keys %keep_configs) {
 _
 
-Patches currently in -mm which might be from shashim@codeaurora.org are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
-mm-cma-check-the-max-limit-for-cma-allocation.patch
+ktestpl-fix-english.patch
 
