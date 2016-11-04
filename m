@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + swapfile-fix-memory-corruption-via-malformed-swapfile.patch
+Subject: + mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch
  added to -mm tree
-Date: Fri, 04 Nov 2016 12:29:49 -0700
-Message-ID: <581ce1ad.Q85AxuUYwS3yA+uE%akpm@linux-foundation.org>
+Date: Fri, 04 Nov 2016 12:31:15 -0700
+Message-ID: <581ce203.HAXAiku6zLZvzO1d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52142 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52152 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752425AbcKDT3v (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Nov 2016 15:29:51 -0400
+        with ESMTP id S1752425AbcKDTbQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Nov 2016 15:31:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jann@thejh.net, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swapfile: fix memory corruption via malformed swapfile
+     Subject: mm: hwpoison: fix thp split handling in memory_failure()
 has been added to the -mm tree.  Its filename is
-     swapfile-fix-memory-corruption-via-malformed-swapfile.patch
+     mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/swapfile-fix-memory-corruption-via-malformed-swapfile.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/swapfile-fix-memory-corruption-via-malformed-swapfile.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,112 +39,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jann Horn <jann@thejh.net>
-Subject: swapfile: fix memory corruption via malformed swapfile
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: hwpoison: fix thp split handling in memory_failure()
 
-When root activates a swap partition whose header has the wrong endianness,
-nr_badpages elements of badpages are swabbed before nr_badpages has been
-checked, leading to a buffer overrun of up to 8GB.
+When memory_failure() runs on a thp tail page after pmd is split, we
+trigger the following VM_BUG_ON_PAGE():
 
-This normally is not a security issue because it can only be exploited by
-root (more specifically, a process with CAP_SYS_ADMIN or the ability to
-modify a swap file/partition), and such a process can already e.g. modify
-swapped-out memory of any other userspace process on the system.
+  [  619.550520] page:ffffd7cd819b0040 count:0 mapcount:0 mapping:         (null) index:0x1
+  [  619.555486] flags: 0x1fffc000400000(hwpoison)
+  [  619.556408] page dumped because: VM_BUG_ON_PAGE(!page_count(p))
+  [  619.558998] ------------[ cut here ]------------
+  [  619.561388] kernel BUG at /src/linux-dev/mm/memory-failure.c:1132!
 
-Testcase for reproducing the bug (must be run as root, should crash your
-kernel):
-=================
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/swap.h>
-#include <limits.h>
-#include <err.h>
-#include <string.h>
-#include <stdio.h>
+memory_failure() passed refcount and page lock from tail page to head
+page, which is not needed because we can pass any subpage to
+split_huge_page().
 
-#define PAGE_SIZE 4096
-#define __u32 unsigned int
-
-// from include/linux/swap.h
-union swap_header {
-  struct {
-    char reserved[PAGE_SIZE - 10];
-    char magic[10];     /* SWAP-SPACE or SWAPSPACE2 */
-  } magic;
-  struct {
-    char    bootbits[1024]; /* Space for disklabel etc. */
-    __u32   version;
-    __u32   last_page;
-    __u32   nr_badpages;
-    unsigned char sws_uuid[16];
-    unsigned char sws_volume[16];
-    __u32   padding[117];
-    __u32   badpages[1];
-  } info;
-};
-
-int main(void) {
-  char file[] = "/tmp/swapfile.XXXXXX";
-  int file_fd = mkstemp(file);
-  if (file_fd == -1)
-    err(1, "mkstemp");
-  if (ftruncate(file_fd, PAGE_SIZE))
-    err(1, "ftruncate");
-  union swap_header swap_header = {
-    .info = {
-      .version = __builtin_bswap32(1),
-      .nr_badpages = __builtin_bswap32(INT_MAX)
-    }
-  };
-  memcpy(swap_header.magic.magic, "SWAPSPACE2", 10);
-  if (write(file_fd, &swap_header, sizeof(swap_header)) !=
-      sizeof(swap_header))
-    err(1, "write");
-
-  // not because the attack needs it, just in case you forgot to
-  // sync yourself before crashing your machine
-  sync();
-
-  // now die
-  if (swapon(file, 0))
-    err(1, "swapon");
-  puts("huh, we survived");
-  if (swapoff(file))
-    err(1, "swapoff");
-  unlink(file);
-}
-=================
-
-Link: http://lkml.kernel.org/r/1477949533-2509-1-git-send-email-jann@thejh.net
-Signed-off-by: Jann Horn <jann@thejh.net>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Fixes: 61f5d698cc97 ("mm: re-enable THP")
+Link: http://lkml.kernel.org/r/1477961577-7183-1-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: <stable@vger.kernel.org>	[4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory-failure.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN mm/swapfile.c~swapfile-fix-memory-corruption-via-malformed-swapfile mm/swapfile.c
---- a/mm/swapfile.c~swapfile-fix-memory-corruption-via-malformed-swapfile
-+++ a/mm/swapfile.c
-@@ -2224,6 +2224,8 @@ static unsigned long read_swap_header(st
- 		swab32s(&swap_header->info.version);
- 		swab32s(&swap_header->info.last_page);
- 		swab32s(&swap_header->info.nr_badpages);
-+		if (swap_header->info.nr_badpages > MAX_SWAP_BADPAGES)
-+			return 0;
- 		for (i = 0; i < swap_header->info.nr_badpages; i++)
- 			swab32s(&swap_header->info.badpages[i]);
+diff -puN mm/memory-failure.c~mm-hwpoison-fix-thp-split-handling-in-memory_failure mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-fix-thp-split-handling-in-memory_failure
++++ a/mm/memory-failure.c
+@@ -1112,10 +1112,10 @@ int memory_failure(unsigned long pfn, in
+ 	}
+ 
+ 	if (!PageHuge(p) && PageTransHuge(hpage)) {
+-		lock_page(hpage);
+-		if (!PageAnon(hpage) || unlikely(split_huge_page(hpage))) {
+-			unlock_page(hpage);
+-			if (!PageAnon(hpage))
++		lock_page(p);
++		if (!PageAnon(p) || unlikely(split_huge_page(p))) {
++			unlock_page(p);
++			if (!PageAnon(p))
+ 				pr_err("Memory failure: %#lx: non anonymous thp\n",
+ 					pfn);
+ 			else
+@@ -1126,9 +1126,7 @@ int memory_failure(unsigned long pfn, in
+ 			put_hwpoison_page(p);
+ 			return -EBUSY;
+ 		}
+-		unlock_page(hpage);
+-		get_hwpoison_page(p);
+-		put_hwpoison_page(hpage);
++		unlock_page(p);
+ 		VM_BUG_ON_PAGE(!page_count(p), p);
+ 		hpage = compound_head(p);
  	}
 _
 
-Patches currently in -mm which might be from jann@thejh.net are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-swapfile-fix-memory-corruption-via-malformed-swapfile.patch
+mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch
 
