@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch
- added to -mm tree
-Date: Fri, 04 Nov 2016 12:31:15 -0700
-Message-ID: <581ce203.HAXAiku6zLZvzO1d%akpm@linux-foundation.org>
+Subject: +
+ revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch added to -mm tree
+Date: Fri, 04 Nov 2016 12:39:06 -0700
+Message-ID: <581ce3da.jYJUk+mdArYXBT88%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52152 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52838 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752425AbcKDTbQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Nov 2016 15:31:16 -0400
+        with ESMTP id S1750903AbcKDTjH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Nov 2016 15:39:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: hdegoede@redhat.com, frowand.list@gmail.com, gregkh@linuxfoundation.org, paul.burton@imgtec.com, regressions@leemhuis.info, robh+dt@kernel.org, stable@vger.kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hwpoison: fix thp split handling in memory_failure()
+     Subject: Revert "console: don't prefer first registered if DT specifies stdout-path"
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch
+     revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,64 +39,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hwpoison: fix thp split handling in memory_failure()
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Revert "console: don't prefer first registered if DT specifies stdout-path"
 
-When memory_failure() runs on a thp tail page after pmd is split, we
-trigger the following VM_BUG_ON_PAGE():
+This reverts commit 05fd007e4629 ("console: don't prefer first registered
+if DT specifies stdout-path").
 
-  [  619.550520] page:ffffd7cd819b0040 count:0 mapcount:0 mapping:         (null) index:0x1
-  [  619.555486] flags: 0x1fffc000400000(hwpoison)
-  [  619.556408] page dumped because: VM_BUG_ON_PAGE(!page_count(p))
-  [  619.558998] ------------[ cut here ]------------
-  [  619.561388] kernel BUG at /src/linux-dev/mm/memory-failure.c:1132!
+The reverted commit changes existing behavior on which many ARM boards
+rely.  Many ARM small-board-computers, like e.g.  the Raspberry Pi have
+both a video output and a serial console.  Depending on whether the user
+is using the device as a more regular computer; or as a headless device we
+need to have the console on either one or the other.
 
-memory_failure() passed refcount and page lock from tail page to head
-page, which is not needed because we can pass any subpage to
-split_huge_page().
+Many users rely on the kernel behavior of the console being present on
+both outputs, before the reverted commit the console setup with no
+console= kernel arguments on an ARM board which sets stdout-path in dt
+would look like this:
 
-Fixes: 61f5d698cc97 ("mm: re-enable THP")
-Link: http://lkml.kernel.org/r/1477961577-7183-1-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: <stable@vger.kernel.org>	[4.5+]
+[root@localhost ~]# cat /proc/consoles
+ttyS0                -W- (EC p a)    4:64
+tty0                 -WU (E  p  )    4:1
+
+Where as after the reverted commit, it looks like this:
+
+[root@localhost ~]# cat /proc/consoles
+ttyS0                -W- (EC p a)    4:64
+
+This commit reverts commit 05fd007e4629 ("console: don't prefer first
+registered if DT specifies stdout-path") restoring the original behavior.
+
+Fixes: 05fd007e4629 ("console: don't prefer first registered if DT specifies stdout-path")
+Link: http://lkml.kernel.org/r/20161104121135.4780-2-hdegoede@redhat.com
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Cc: Paul Burton <paul.burton@imgtec.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: Thorsten Leemhuis <regressions@leemhuis.info>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ drivers/of/base.c       |    2 --
+ include/linux/console.h |    6 ------
+ kernel/printk/printk.c  |   13 +------------
+ 3 files changed, 1 insertion(+), 20 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-fix-thp-split-handling-in-memory_failure mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-fix-thp-split-handling-in-memory_failure
-+++ a/mm/memory-failure.c
-@@ -1112,10 +1112,10 @@ int memory_failure(unsigned long pfn, in
+diff -puN drivers/of/base.c~revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path drivers/of/base.c
+--- a/drivers/of/base.c~revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path
++++ a/drivers/of/base.c
+@@ -2077,8 +2077,6 @@ void of_alias_scan(void * (*dt_alloc)(u6
+ 			name = of_get_property(of_aliases, "stdout", NULL);
+ 		if (name)
+ 			of_stdout = of_find_node_opts_by_path(name, &of_stdout_options);
+-		if (of_stdout)
+-			console_set_by_of();
  	}
  
- 	if (!PageHuge(p) && PageTransHuge(hpage)) {
--		lock_page(hpage);
--		if (!PageAnon(hpage) || unlikely(split_huge_page(hpage))) {
--			unlock_page(hpage);
--			if (!PageAnon(hpage))
-+		lock_page(p);
-+		if (!PageAnon(p) || unlikely(split_huge_page(p))) {
-+			unlock_page(p);
-+			if (!PageAnon(p))
- 				pr_err("Memory failure: %#lx: non anonymous thp\n",
- 					pfn);
- 			else
-@@ -1126,9 +1126,7 @@ int memory_failure(unsigned long pfn, in
- 			put_hwpoison_page(p);
- 			return -EBUSY;
- 		}
--		unlock_page(hpage);
--		get_hwpoison_page(p);
--		put_hwpoison_page(hpage);
-+		unlock_page(p);
- 		VM_BUG_ON_PAGE(!page_count(p), p);
- 		hpage = compound_head(p);
- 	}
-_
-
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
-
-mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch
-
+ 	if (!of_aliases)
+diff -puN include/linux/console.h~revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path include/linux/console.h
+--- a/include/linux/console.h~revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path
++++ a/include/linux/console.h
+@@ -173,12 +173,6 @@ static inline void console_sysfs_notify(
+ #endif
+ extern bool console_suspend_enabled;
+ 
+-#ifdef CONFIG_OF
+-extern void console_set_by_of(void);
+-#else
+-static inline void console_set_by_of(void) {}
+-#endif
+-
+ /* Suspend and resume console messages over PM events */
+ extern void suspend_console(void);
+ extern void resume_console(void);
+diff -puN kernel/printk/printk.c~revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path kernel/printk/printk.c
+--- a/kernel/printk/printk.c~revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path
++++ a/kernel/printk/printk.c
+@@ -253,17 +253,6 @@ static int preferred_console = -1;
+ int console_set_on_cmdline;
+ EXPORT_SYMBOL(console_set_on_cmdline);
+ 
+-#ifdef CONFIG_OF
+-static bool of_specified_console;
+-
+-void console_set_by_of(void)
+-{
+-	of_specified_console = true;
+-}
+-#else
+-# define of_specified_console false
+-#endif
