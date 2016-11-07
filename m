@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-fix-huge-page-reservation-leak-in-private-mapping-error-paths.patch added to -mm tree
-Date: Fri, 04 Nov 2016 12:55:19 -0700
-Message-ID: <581ce7a7.V2rr3uAc+B0RrH8C%akpm@linux-foundation.org>
+Subject: + mm-filemap-dont-allow-partially-uptodate-page-for-pipes.patch
+ added to -mm tree
+Date: Mon, 07 Nov 2016 11:16:49 -0800
+Message-ID: <5820d321.yEgwI+VIRtHDjJRX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54094 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32892 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752675AbcKDUcv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 4 Nov 2016 16:32:51 -0400
+        with ESMTP id S933244AbcKGTQ6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2016 14:16:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, jstancek@redhat.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: guaneryu@gmail.com, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix huge page reservation leak in private mapping error paths
+     Subject: mm/filemap: don't allow partially uptodate page for pipes
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-huge-page-reservation-leak-in-private-mapping-error-paths.patch
+     mm-filemap-dont-allow-partially-uptodate-page-for-pipes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-huge-page-reservation-leak-in-private-mapping-error-paths.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-dont-allow-partially-uptodate-page-for-pipes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-huge-page-reservation-leak-in-private-mapping-error-paths.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-dont-allow-partially-uptodate-page-for-pipes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,159 +39,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: fix huge page reservation leak in private mapping error paths
+From: Eryu Guan <guaneryu@gmail.com>
+Subject: mm/filemap: don't allow partially uptodate page for pipes
 
-Error paths in hugetlb_cow() and hugetlb_no_page() may free a newly
-allocated huge page.  If a reservation was associated with the huge page,
-alloc_huge_page() consumed the reservation while allocating.  When the
-newly allocated page is freed in free_huge_page(), it will increment the
-global reservation count.  However, the reservation entry in the reserve
-map will remain.  This is not an issue for shared mappings as the entry in
-the reserve map indicates a reservation exists.  But, an entry in a
-private mapping reserve map indicates the reservation was consumed and no
-longer exists.  This results in an inconsistency between the reserve map
-and the global reservation count.  This 'leaks' a reserved huge page.
+Starting from 4.9-rc1 kernel, I started noticing some test failures of
+sendfile(2) and splice(2) (sendfile0N and splice01 from LTP) when testing
+on sub-page block size filesystems (tested both XFS and ext4), these
+syscalls start to return EIO in the tests.  e.g.
 
-Create a new routine restore_reserve_on_error() to restore the reserve
-entry in these specific error paths.  This routine makes use of a new
-function vma_add_reservation() which will add a reserve entry for a
-specific address/page.
+sendfile02    1  TFAIL  :  sendfile02.c:133: sendfile(2) failed to return expected value, expected: 26, got: -1
+sendfile02    2  TFAIL  :  sendfile02.c:133: sendfile(2) failed to return expected value, expected: 24, got: -1
+sendfile02    3  TFAIL  :  sendfile02.c:133: sendfile(2) failed to return expected value, expected: 22, got: -1
+sendfile02    4  TFAIL  :  sendfile02.c:133: sendfile(2) failed to return expected value, expected: 20, got: -1
 
-In general, these error paths were rarely (if ever) taken on most
-architectures.  However, powerpc contained arch specific code that that
-resulted in an extra fault and execution of these error paths on all
-private mappings.
+This is because that in sub-page block size cases, we don't need the whole
+page to be uptodate, only the part we care about is uptodate is OK (if fs
+has ->is_partially_uptodate defined).  But page_cache_pipe_buf_confirm()
+doesn't have the ability to check the partially-uptodate case, it needs
+the whole page to be uptodate.  So it returns EIO in this case.
 
-Fixes: 67961f9db8c4 ("mm/hugetlb: fix huge page reserve accounting for private mappings)
-Link: http://lkml.kernel.org/r/1476933077-23091-2-git-send-email-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: Jan Stancek <jstancek@redhat.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Kirill A . Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+This is a regression introduced by commit 82c156f85384 ("switch
+generic_file_splice_read() to use of ->read_iter()").  Prior to the
+change, generic_file_splice_read() doesn't allow partially-uptodate page
+either, so it worked fine.
+
+Fix it by skipping the partially-uptodate check if we're working on a pipe
+in do_generic_file_read(), so we read the whole page from disk as long as
+the page is not uptodate.
+
+I think the other way to fix it is to add the ability to check & allow
+partially-uptodate page to page_cache_pipe_buf_confirm(), but that is much
+harder to do and seems gain little.
+
+Link: http://lkml.kernel.org/r/1477986187-12717-1-git-send-email-guaneryu@gmail.com
+Signed-off-by: Eryu Guan <guaneryu@gmail.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   66 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 66 insertions(+)
+ mm/filemap.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-huge-page-reservation-leak-in-private-mapping-error-paths mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-huge-page-reservation-leak-in-private-mapping-error-paths
-+++ a/mm/hugetlb.c
-@@ -1826,11 +1826,17 @@ static void return_unused_surplus_pages(
-  * is not the case is if a reserve map was changed between calls.  It
-  * is the responsibility of the caller to notice the difference and
-  * take appropriate action.
-+ *
-+ * vma_add_reservation is used in error paths where a reservation must
-+ * be restored when a newly allocated huge page must be freed.  It is
-+ * to be called after calling vma_needs_reservation to determine if a
-+ * reservation exists.
-  */
- enum vma_resv_mode {
- 	VMA_NEEDS_RESV,
- 	VMA_COMMIT_RESV,
- 	VMA_END_RESV,
-+	VMA_ADD_RESV,
- };
- static long __vma_reservation_common(struct hstate *h,
- 				struct vm_area_struct *vma, unsigned long addr,
-@@ -1856,6 +1862,14 @@ static long __vma_reservation_common(str
- 		region_abort(resv, idx, idx + 1);
- 		ret = 0;
- 		break;
-+	case VMA_ADD_RESV:
-+		if (vma->vm_flags & VM_MAYSHARE)
-+			ret = region_add(resv, idx, idx + 1);
-+		else {
-+			region_abort(resv, idx, idx + 1);
-+			ret = region_del(resv, idx, idx + 1);
-+		}
-+		break;
- 	default:
- 		BUG();
- 	}
-@@ -1903,6 +1917,56 @@ static void vma_end_reservation(struct h
- 	(void)__vma_reservation_common(h, vma, addr, VMA_END_RESV);
- }
- 
-+static long vma_add_reservation(struct hstate *h,
-+			struct vm_area_struct *vma, unsigned long addr)
-+{
-+	return __vma_reservation_common(h, vma, addr, VMA_ADD_RESV);
-+}
-+
-+/*
-+ * This routine is called to restore a reservation on error paths.  In the
-+ * specific error paths, a huge page was allocated (via alloc_huge_page)
-+ * and is about to be freed.  If a reservation for the page existed,
-+ * alloc_huge_page would have consumed the reservation and set PagePrivate
-+ * in the newly allocated page.  When the page is freed via free_huge_page,
-+ * the global reservation count will be incremented if PagePrivate is set.
-+ * However, free_huge_page can not adjust the reserve map.  Adjust the
-+ * reserve map here to be consistent with global reserve count adjustments
-+ * to be made by free_huge_page.
-+ */
-+static void restore_reserve_on_error(struct hstate *h,
-+			struct vm_area_struct *vma, unsigned long address,
-+			struct page *page)
-+{
-+	if (unlikely(PagePrivate(page))) {
-+		long rc = vma_needs_reservation(h, vma, address);
-+
-+		if (unlikely(rc < 0)) {
-+			/*
-+			 * Rare out of memory condition in reserve map
-+			 * manipulation.  Clear PagePrivate so that
-+			 * global reserve count will not be incremented
-+			 * by free_huge_page.  This will make it appear
-+			 * as though the reservation for this page was
-+			 * consumed.  This may prevent the task from
-+			 * faulting in the page at a later time.  This
-+			 * is better than inconsistent global huge page
-+			 * accounting of reserve counts.
-+			 */
-+			ClearPagePrivate(page);
-+		} else if (rc) {
-+			rc = vma_add_reservation(h, vma, address);
-+			if (unlikely(rc < 0))
-+				/*
-+				 * See above comment about rare out of
-+				 * memory condition.
-+				 */
-+				ClearPagePrivate(page);
-+		} else
-+			vma_end_reservation(h, vma, address);
-+	}
-+}
-+
- struct page *alloc_huge_page(struct vm_area_struct *vma,
- 				    unsigned long addr, int avoid_reserve)
- {
-@@ -3498,6 +3562,7 @@ retry_avoidcopy:
- 	spin_unlock(ptl);
- 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- out_release_all:
-+	restore_reserve_on_error(h, vma, address, new_page);
- 	put_page(new_page);
- out_release_old:
- 	put_page(old_page);
-@@ -3680,6 +3745,7 @@ backout:
- 	spin_unlock(ptl);
- backout_unlocked:
- 	unlock_page(page);
-+	restore_reserve_on_error(h, vma, address, page);
- 	put_page(page);
- 	goto out;
- }
+diff -puN mm/filemap.c~mm-filemap-dont-allow-partially-uptodate-page-for-pipes mm/filemap.c
+--- a/mm/filemap.c~mm-filemap-dont-allow-partially-uptodate-page-for-pipes
++++ a/mm/filemap.c
+@@ -1732,6 +1732,9 @@ find_page:
+ 			if (inode->i_blkbits == PAGE_SHIFT ||
+ 					!mapping->a_ops->is_partially_uptodate)
+ 				goto page_not_up_to_date;
++			/* pipes can't handle partially uptodate pages */
++			if (unlikely(iter->type & ITER_PIPE))
++				goto page_not_up_to_date;
+ 			if (!trylock_page(page))
+ 				goto page_not_up_to_date;
+ 			/* Did it get truncated before we got the lock? */
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from guaneryu@gmail.com are
 
-mm-hugetlb-fix-huge-page-reservation-leak-in-private-mapping-error-paths.patch
+mm-filemap-dont-allow-partially-uptodate-page-for-pipes.patch
 
