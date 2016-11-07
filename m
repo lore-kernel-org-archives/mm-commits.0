@@ -1,85 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: + shmem-fix-pageflags-after-swapping-dma32-object.patch added to
- -mm tree
-Date: Mon, 07 Nov 2016 15:18:02 -0800
-Message-ID: <58210baa.PxvWrsxE50fJ64o5%akpm__37538.680402986$1478560702$gmane$org@linux-foundation.org>
+Subject: [nacked] shmem-avoid-huge-pages-for-small-files.patch removed
+ from -mm tree
+Date: Mon, 07 Nov 2016 15:33:54 -0800
+Message-ID: <58210f62.r8sHEEwaxXVgp6fh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45948 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751081AbcKGXSD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2016 18:18:03 -0500
+        with ESMTP id S1752168AbcKGXdz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2016 18:33:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, david@fromorbit.com, hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: fix pageflags after swapping DMA32 object
-has been added to the -mm tree.  Its filename is
-     shmem-fix-pageflags-after-swapping-dma32-object.patch
+     Subject: shmem: avoid huge pages for small files
+has been removed from the -mm tree.  Its filename was
+     shmem-avoid-huge-pages-for-small-files.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/shmem-fix-pageflags-after-swapping-dma32-object.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-fix-pageflags-after-swapping-dma32-object.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: shmem: fix pageflags after swapping DMA32 object
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: shmem: avoid huge pages for small files
 
-If shmem_alloc_page() does not set PageLocked and PageSwapBacked, then
-shmem_replace_page() needs to do so for itself.  Without this, it puts
-newpage on the wrong lru, re-unlocks the unlocked newpage, and system
-descends into "Bad page" reports and freeze; or if CONFIG_DEBUG_VM=y, it
-hits an earlier VM_BUG_ON_PAGE(!PageLocked), depending on config.
+Huge pages are detrimental for small file: they causes noticible overhead
+on both allocation performance and memory footprint.
 
-But shmem_replace_page() is not a common path: it's only called when
-swapin (or swapoff) finds the page was already read into an unsuitable
-zone: usually all zones are suitable, but gem objects for a few drm
-devices (gma500, omapdrm, crestline, broadwater) require zone DMA32 if
-there's more than 4GB of ram.
+This patch aimed to address this issue by avoiding huge pages until file
+grown to size of huge page.  This would cover most of the cases where huge
+pages causes regressions in performance.
 
-Fixes: 800d8c63b2e9 ("shmem: add huge pages support")
-Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1611062003510.11253@eggly.anvils
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>	[4.8.x]
+Couple notes:
+
+  - if shmem_enabled is set to 'force', the limit is ignored. We still
+    want to generate as many pages as possible for functional testing.
+
+  - the limit doesn't affect khugepaged behaviour: it still can collapse
+    pages based on its settings;
+
+Link: http://lkml.kernel.org/r/20161021224629.tnwuvruhblkg22qj@black.fi.intel.com
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/vm/transhuge.txt |    3 +++
+ mm/shmem.c                     |    5 +++++
+ 2 files changed, 8 insertions(+)
 
-diff -puN mm/shmem.c~shmem-fix-pageflags-after-swapping-dma32-object mm/shmem.c
---- a/mm/shmem.c~shmem-fix-pageflags-after-swapping-dma32-object
-+++ a/mm/shmem.c
-@@ -1483,6 +1483,8 @@ static int shmem_replace_page(struct pag
- 	copy_highpage(newpage, oldpage);
- 	flush_dcache_page(newpage);
+diff -puN Documentation/vm/transhuge.txt~shmem-avoid-huge-pages-for-small-files Documentation/vm/transhuge.txt
+--- a/Documentation/vm/transhuge.txt~shmem-avoid-huge-pages-for-small-files
++++ a/Documentation/vm/transhuge.txt
+@@ -238,6 +238,9 @@ values:
+   - "force":
+     Force the huge option on for all - very useful for testing;
  
-+	__SetPageLocked(newpage);
-+	__SetPageSwapBacked(newpage);
- 	SetPageUptodate(newpage);
- 	set_page_private(newpage, swap_index);
- 	SetPageSwapCache(newpage);
++To avoid overhead for small files, we don't allocate huge pages for a file
++until it grows to size of huge pages.
++
+ == Need of application restart ==
+ 
+ The transparent_hugepage/enabled values and tmpfs mount option only affect
+diff -puN mm/shmem.c~shmem-avoid-huge-pages-for-small-files mm/shmem.c
+--- a/mm/shmem.c~shmem-avoid-huge-pages-for-small-files
++++ a/mm/shmem.c
+@@ -1692,6 +1692,11 @@ repeat:
+ 				goto alloc_huge;
+ 			/* TODO: implement fadvise() hints */
+ 			goto alloc_nohuge;
++		case SHMEM_HUGE_ALWAYS:
++			i_size = i_size_read(inode);
++			if (index < HPAGE_PMD_NR && i_size < HPAGE_PMD_SIZE)
++				goto alloc_nohuge;
++			break;
+ 		}
+ 
+ alloc_huge:
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-shmem-fix-pageflags-after-swapping-dma32-object.patch
 
