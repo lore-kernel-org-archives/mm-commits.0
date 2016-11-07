@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab.patch added to -mm tree
-Date: Mon, 07 Nov 2016 14:19:27 -0800
-Message-ID: <5820fdef.A5r74VYA6hNsNr5u%akpm@linux-foundation.org>
+Subject: + mm-check-kmem_create_cache-flags-are-commons.patch added to -mm tree
+Date: Mon, 07 Nov 2016 15:08:41 -0800
+Message-ID: <58210979.fsPgym7WZBfXRtNv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42330 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45108 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750927AbcKGWaZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2016 17:30:25 -0500
+        with ESMTP id S1751091AbcKGXPZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2016 18:15:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, thgarnie@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: thgarnie@google.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: prevent memcg caches to be both OFF_SLAB & OBJFREELIST_SLAB
+     Subject: mm/slab_common.c: check kmem_create_cache flags are common
 has been added to the -mm tree.  Its filename is
-     memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab.patch
+     mm-check-kmem_create_cache-flags-are-commons.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-check-kmem_create_cache-flags-are-commons.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-check-kmem_create_cache-flags-are-commons.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +38,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: memcg: prevent memcg caches to be both OFF_SLAB & OBJFREELIST_SLAB
+From: Thomas Garnier <thgarnie@google.com>
+Subject: mm/slab_common.c: check kmem_create_cache flags are common
 
-While testing OBJFREELIST_SLAB integration with pagealloc, we found a bug
-where kmem_cache(sys) would be created with both CFLGS_OFF_SLAB &
-CFLGS_OBJFREELIST_SLAB.
+Verify that kmem_create_cache flags are not allocator specific.  It is
+done before removing flags that are not available with the current
+configuration.
 
-The original kmem_cache is created early making OFF_SLAB not possible. 
-When kmem_cache(sys) is created, OFF_SLAB is possible and if pagealloc is
-enabled it will try to enable it first under certain conditions.  Given
-kmem_cache(sys) reuses the original flag, you can have both flags at the
-same time resulting in allocation failures and odd behaviors.
-
-This fix discards allocator specific flags from memcg before calling
-create_cache.
-
-Fixes: b03a017bebc4 ("mm/slab: introduce new slab management type, OBJFREELIST_SLAB")
-Link: http://lkml.kernel.org/r/1478553075-120242-1-git-send-email-thgarnie@google.com
-Signed-off-by: Greg Thelen <gthelen@google.com>
+Link: http://lkml.kernel.org/r/1478553075-120242-2-git-send-email-thgarnie@google.com
 Signed-off-by: Thomas Garnier <thgarnie@google.com>
-Tested-by: Thomas Garnier <thgarnie@google.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slab.h        |   15 +++++++++++++++
+ mm/slab_common.c |    6 ++++++
+ 2 files changed, 21 insertions(+)
 
-diff -puN mm/slab_common.c~memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab mm/slab_common.c
---- a/mm/slab_common.c~memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab
-+++ a/mm/slab_common.c
-@@ -533,8 +533,8 @@ void memcg_create_kmem_cache(struct mem_
+diff -puN mm/slab.h~mm-check-kmem_create_cache-flags-are-commons mm/slab.h
+--- a/mm/slab.h~mm-check-kmem_create_cache-flags-are-commons
++++ a/mm/slab.h
+@@ -142,8 +142,23 @@ static inline unsigned long kmem_cache_f
+ #define SLAB_CACHE_FLAGS (0)
+ #endif
  
- 	s = create_cache(cache_name, root_cache->object_size,
- 			 root_cache->size, root_cache->align,
--			 root_cache->flags, root_cache->ctor,
--			 memcg, root_cache);
-+			 root_cache->flags & CACHE_CREATE_MASK,
-+			 root_cache->ctor, memcg, root_cache);
++/* Common flags available with current configuration */
+ #define CACHE_CREATE_MASK (SLAB_CORE_FLAGS | SLAB_DEBUG_FLAGS | SLAB_CACHE_FLAGS)
+ 
++/* Common flags permitted for kmem_cache_create */
++#define SLAB_FLAGS_PERMITTED (SLAB_CORE_FLAGS | \
++			      SLAB_RED_ZONE | \
++			      SLAB_POISON | \
++			      SLAB_STORE_USER | \
++			      SLAB_TRACE | \
++			      SLAB_CONSISTENCY_CHECKS | \
++			      SLAB_MEM_SPREAD | \
++			      SLAB_NOLEAKTRACE | \
++			      SLAB_RECLAIM_ACCOUNT | \
++			      SLAB_TEMPORARY | \
++			      SLAB_NOTRACK | \
++			      SLAB_ACCOUNT)
++
+ int __kmem_cache_shutdown(struct kmem_cache *);
+ void __kmem_cache_release(struct kmem_cache *);
+ int __kmem_cache_shrink(struct kmem_cache *);
+diff -puN mm/slab_common.c~mm-check-kmem_create_cache-flags-are-commons mm/slab_common.c
+--- a/mm/slab_common.c~mm-check-kmem_create_cache-flags-are-commons
++++ a/mm/slab_common.c
+@@ -404,6 +404,12 @@ kmem_cache_create(const char *name, size
+ 		goto out_unlock;
+ 	}
+ 
++	/* Refuse requests with allocator specific flags */
++	if (flags & ~SLAB_FLAGS_PERMITTED) {
++		err = -EINVAL;
++		goto out_unlock;
++	}
++
  	/*
- 	 * If we could not create a memcg cache, do not complain, because
- 	 * that's not critical at all as we can always proceed with the root
+ 	 * Some allocators will constraint the set of valid flags to a subset
+ 	 * of all flags. We expect them to define CACHE_CREATE_MASK in this
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from thgarnie@google.com are
 
-memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab.patch
+mm-check-kmem_create_cache-flags-are-commons.patch
 
