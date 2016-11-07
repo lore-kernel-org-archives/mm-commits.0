@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-check-kmem_create_cache-flags-are-commons.patch added to -mm tree
-Date: Mon, 07 Nov 2016 15:08:41 -0800
-Message-ID: <58210979.fsPgym7WZBfXRtNv%akpm@linux-foundation.org>
+Subject: + shmem-fix-pageflags-after-swapping-dma32-object.patch added to
+ -mm tree
+Date: Mon, 07 Nov 2016 15:18:02 -0800
+Message-ID: <58210baa.PxvWrsxE50fJ64o5%akpm__37538.680402986$1478560702$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45108 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45134 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751091AbcKGXPZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2016 18:15:25 -0500
+        with ESMTP id S1751081AbcKGXSD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2016 18:18:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thgarnie@google.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: hughd@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab_common.c: check kmem_create_cache flags are common
+     Subject: shmem: fix pageflags after swapping DMA32 object
 has been added to the -mm tree.  Its filename is
-     mm-check-kmem_create_cache-flags-are-commons.patch
+     shmem-fix-pageflags-after-swapping-dma32-object.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-check-kmem_create_cache-flags-are-commons.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/shmem-fix-pageflags-after-swapping-dma32-object.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-check-kmem_create_cache-flags-are-commons.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-fix-pageflags-after-swapping-dma32-object.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,72 +39,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thomas Garnier <thgarnie@google.com>
-Subject: mm/slab_common.c: check kmem_create_cache flags are common
+From: Hugh Dickins <hughd@google.com>
+Subject: shmem: fix pageflags after swapping DMA32 object
 
-Verify that kmem_create_cache flags are not allocator specific.  It is
-done before removing flags that are not available with the current
-configuration.
+If shmem_alloc_page() does not set PageLocked and PageSwapBacked, then
+shmem_replace_page() needs to do so for itself.  Without this, it puts
+newpage on the wrong lru, re-unlocks the unlocked newpage, and system
+descends into "Bad page" reports and freeze; or if CONFIG_DEBUG_VM=y, it
+hits an earlier VM_BUG_ON_PAGE(!PageLocked), depending on config.
 
-Link: http://lkml.kernel.org/r/1478553075-120242-2-git-send-email-thgarnie@google.com
-Signed-off-by: Thomas Garnier <thgarnie@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+But shmem_replace_page() is not a common path: it's only called when
+swapin (or swapoff) finds the page was already read into an unsuitable
+zone: usually all zones are suitable, but gem objects for a few drm
+devices (gma500, omapdrm, crestline, broadwater) require zone DMA32 if
+there's more than 4GB of ram.
+
+Fixes: 800d8c63b2e9 ("shmem: add huge pages support")
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1611062003510.11253@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kernel.org>	[4.8.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h        |   15 +++++++++++++++
- mm/slab_common.c |    6 ++++++
- 2 files changed, 21 insertions(+)
+ mm/shmem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/slab.h~mm-check-kmem_create_cache-flags-are-commons mm/slab.h
---- a/mm/slab.h~mm-check-kmem_create_cache-flags-are-commons
-+++ a/mm/slab.h
-@@ -142,8 +142,23 @@ static inline unsigned long kmem_cache_f
- #define SLAB_CACHE_FLAGS (0)
- #endif
+diff -puN mm/shmem.c~shmem-fix-pageflags-after-swapping-dma32-object mm/shmem.c
+--- a/mm/shmem.c~shmem-fix-pageflags-after-swapping-dma32-object
++++ a/mm/shmem.c
+@@ -1483,6 +1483,8 @@ static int shmem_replace_page(struct pag
+ 	copy_highpage(newpage, oldpage);
+ 	flush_dcache_page(newpage);
  
-+/* Common flags available with current configuration */
- #define CACHE_CREATE_MASK (SLAB_CORE_FLAGS | SLAB_DEBUG_FLAGS | SLAB_CACHE_FLAGS)
- 
-+/* Common flags permitted for kmem_cache_create */
-+#define SLAB_FLAGS_PERMITTED (SLAB_CORE_FLAGS | \
-+			      SLAB_RED_ZONE | \
-+			      SLAB_POISON | \
-+			      SLAB_STORE_USER | \
-+			      SLAB_TRACE | \
-+			      SLAB_CONSISTENCY_CHECKS | \
-+			      SLAB_MEM_SPREAD | \
-+			      SLAB_NOLEAKTRACE | \
-+			      SLAB_RECLAIM_ACCOUNT | \
-+			      SLAB_TEMPORARY | \
-+			      SLAB_NOTRACK | \
-+			      SLAB_ACCOUNT)
-+
- int __kmem_cache_shutdown(struct kmem_cache *);
- void __kmem_cache_release(struct kmem_cache *);
- int __kmem_cache_shrink(struct kmem_cache *);
-diff -puN mm/slab_common.c~mm-check-kmem_create_cache-flags-are-commons mm/slab_common.c
---- a/mm/slab_common.c~mm-check-kmem_create_cache-flags-are-commons
-+++ a/mm/slab_common.c
-@@ -404,6 +404,12 @@ kmem_cache_create(const char *name, size
- 		goto out_unlock;
- 	}
- 
-+	/* Refuse requests with allocator specific flags */
-+	if (flags & ~SLAB_FLAGS_PERMITTED) {
-+		err = -EINVAL;
-+		goto out_unlock;
-+	}
-+
- 	/*
- 	 * Some allocators will constraint the set of valid flags to a subset
- 	 * of all flags. We expect them to define CACHE_CREATE_MASK in this
++	__SetPageLocked(newpage);
++	__SetPageSwapBacked(newpage);
+ 	SetPageUptodate(newpage);
+ 	set_page_private(newpage, swap_index);
+ 	SetPageSwapCache(newpage);
 _
 
-Patches currently in -mm which might be from thgarnie@google.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-check-kmem_create_cache-flags-are-commons.patch
+shmem-fix-pageflags-after-swapping-dma32-object.patch
 
