@@ -1,92 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] shmem-avoid-huge-pages-for-small-files.patch removed
- from -mm tree
-Date: Mon, 07 Nov 2016 15:33:54 -0800
-Message-ID: <58210f62.r8sHEEwaxXVgp6fh%akpm@linux-foundation.org>
+Subject: + mm-kmemleak-scan-dataro_after_init.patch added to -mm tree
+Date: Mon, 07 Nov 2016 16:04:10 -0800
+Message-ID: <5821167a.bX1uptxB49+enc5M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45948 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48284 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752168AbcKGXdz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2016 18:33:55 -0500
+        with ESMTP id S1750809AbcKHAEL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Nov 2016 19:04:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, david@fromorbit.com, hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: jakub.kicinski@netronome.com, arnd@arndb.de, catalin.marinas@arm.com, heiko.carstens@de.ibm.com, johannes@sipsolutions.net, schwidefsky@de.ibm.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: avoid huge pages for small files
-has been removed from the -mm tree.  Its filename was
-     shmem-avoid-huge-pages-for-small-files.patch
+     Subject: mm: kmemleak: scan .data.ro_after_init
+has been added to the -mm tree.  Its filename is
+     mm-kmemleak-scan-dataro_after_init.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-scan-dataro_after_init.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-scan-dataro_after_init.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: shmem: avoid huge pages for small files
+From: Jakub Kicinski <jakub.kicinski@netronome.com>
+Subject: mm: kmemleak: scan .data.ro_after_init
 
-Huge pages are detrimental for small file: they causes noticible overhead
-on both allocation performance and memory footprint.
+Limit the number of kmemleak false positives by including
+.data.ro_after_init in memory scanning.  To achieve this we need to add
+symbols for start and end of the section to the linker scripts.
 
-This patch aimed to address this issue by avoiding huge pages until file
-grown to size of huge page.  This would cover most of the cases where huge
-pages causes regressions in performance.
+The problem was been uncovered by commit 56989f6d8568 ("genetlink: mark
+families as __ro_after_init").
 
-Couple notes:
-
-  - if shmem_enabled is set to 'force', the limit is ignored. We still
-    want to generate as many pages as possible for functional testing.
-
-  - the limit doesn't affect khugepaged behaviour: it still can collapse
-    pages based on its settings;
-
-Link: http://lkml.kernel.org/r/20161021224629.tnwuvruhblkg22qj@black.fi.intel.com
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
+Link: http://lkml.kernel.org/r/1478274173-15218-1-git-send-email-jakub.kicinski@netronome.com
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Jakub Kicinski <jakub.kicinski@netronome.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |    3 +++
- mm/shmem.c                     |    5 +++++
- 2 files changed, 8 insertions(+)
+ arch/s390/kernel/vmlinux.lds.S    |    2 ++
+ include/asm-generic/sections.h    |    3 +++
+ include/asm-generic/vmlinux.lds.h |    5 ++++-
+ mm/kmemleak.c                     |    1 +
+ 4 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/vm/transhuge.txt~shmem-avoid-huge-pages-for-small-files Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~shmem-avoid-huge-pages-for-small-files
-+++ a/Documentation/vm/transhuge.txt
-@@ -238,6 +238,9 @@ values:
-   - "force":
-     Force the huge option on for all - very useful for testing;
+diff -puN arch/s390/kernel/vmlinux.lds.S~mm-kmemleak-scan-dataro_after_init arch/s390/kernel/vmlinux.lds.S
+--- a/arch/s390/kernel/vmlinux.lds.S~mm-kmemleak-scan-dataro_after_init
++++ a/arch/s390/kernel/vmlinux.lds.S
+@@ -62,9 +62,11 @@ SECTIONS
  
-+To avoid overhead for small files, we don't allocate huge pages for a file
-+until it grows to size of huge pages.
-+
- == Need of application restart ==
+ 	. = ALIGN(PAGE_SIZE);
+ 	__start_ro_after_init = .;
++	__start_data_ro_after_init = .;
+ 	.data..ro_after_init : {
+ 		 *(.data..ro_after_init)
+ 	}
++	__end_data_ro_after_init = .;
+ 	EXCEPTION_TABLE(16)
+ 	. = ALIGN(PAGE_SIZE);
+ 	__end_ro_after_init = .;
+diff -puN include/asm-generic/sections.h~mm-kmemleak-scan-dataro_after_init include/asm-generic/sections.h
+--- a/include/asm-generic/sections.h~mm-kmemleak-scan-dataro_after_init
++++ a/include/asm-generic/sections.h
+@@ -14,6 +14,8 @@
+  * [_sdata, _edata]: contains .data.* sections, may also contain .rodata.*
+  *                   and/or .init.* sections.
+  * [__start_rodata, __end_rodata]: contains .rodata.* sections
++ * [__start_data_ro_after_init, __end_data_ro_after_init]:
++ *		     contains data.ro_after_init section
+  * [__init_begin, __init_end]: contains .init.* sections, but .init.text.*
+  *                   may be out of this range on some architectures.
+  * [_sinittext, _einittext]: contains .init.text.* sections
+@@ -31,6 +33,7 @@ extern char _data[], _sdata[], _edata[];
+ extern char __bss_start[], __bss_stop[];
+ extern char __init_begin[], __init_end[];
+ extern char _sinittext[], _einittext[];
++extern char __start_data_ro_after_init[], __end_data_ro_after_init[];
+ extern char _end[];
+ extern char __per_cpu_load[], __per_cpu_start[], __per_cpu_end[];
+ extern char __kprobes_text_start[], __kprobes_text_end[];
+diff -puN include/asm-generic/vmlinux.lds.h~mm-kmemleak-scan-dataro_after_init include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~mm-kmemleak-scan-dataro_after_init
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -259,7 +259,10 @@
+  * own by defining an empty RO_AFTER_INIT_DATA.
+  */
+ #ifndef RO_AFTER_INIT_DATA
+-#define RO_AFTER_INIT_DATA *(.data..ro_after_init)
++#define RO_AFTER_INIT_DATA						\
++	__start_data_ro_after_init = .;					\
++	*(.data..ro_after_init)						\
++	__end_data_ro_after_init = .;
+ #endif
  
- The transparent_hugepage/enabled values and tmpfs mount option only affect
-diff -puN mm/shmem.c~shmem-avoid-huge-pages-for-small-files mm/shmem.c
---- a/mm/shmem.c~shmem-avoid-huge-pages-for-small-files
-+++ a/mm/shmem.c
-@@ -1692,6 +1692,11 @@ repeat:
- 				goto alloc_huge;
- 			/* TODO: implement fadvise() hints */
- 			goto alloc_nohuge;
-+		case SHMEM_HUGE_ALWAYS:
-+			i_size = i_size_read(inode);
-+			if (index < HPAGE_PMD_NR && i_size < HPAGE_PMD_SIZE)
-+				goto alloc_nohuge;
-+			break;
- 		}
+ /*
+diff -puN mm/kmemleak.c~mm-kmemleak-scan-dataro_after_init mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-scan-dataro_after_init
++++ a/mm/kmemleak.c
+@@ -1414,6 +1414,7 @@ static void kmemleak_scan(void)
+ 	/* data/bss scanning */
+ 	scan_large_block(_sdata, _edata);
+ 	scan_large_block(__bss_start, __bss_stop);
++	scan_large_block(__start_data_ro_after_init, __end_data_ro_after_init);
  
- alloc_huge:
+ #ifdef CONFIG_SMP
+ 	/* per-cpu sections scanning */
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from jakub.kicinski@netronome.com are
 
+mm-kmemleak-scan-dataro_after_init.patch
 
