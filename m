@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-stackdepot-export-save-fetch-stack-for-drivers.patch added
- to -mm tree
-Date: Tue, 08 Nov 2016 14:33:23 -0800
-Message-ID: <582252b3.hsda8bqKPlVi0Tiw%akpm@linux-foundation.org>
+Subject: + ipc-fixed-warnings.patch added to -mm tree
+Date: Tue, 08 Nov 2016 14:36:06 -0800
+Message-ID: <58225356.5MtOxJ6hIbid3R62%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48496 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752650AbcKHWdY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2016 17:33:24 -0500
+        with ESMTP id S932517AbcKHWgH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2016 17:36:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chris@chris-wilson.co.uk, aryabinin@virtuozzo.com, daniel.vetter@ffwll.ch, dvyukov@google.com, glider@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, mm-commits@vger.kernel.org
+To: p.shailesh@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: export save/fetch stack for drivers
+     Subject: ipc/shm.c: coding style fixes
 has been added to the -mm tree.  Its filename is
-     lib-stackdepot-export-save-fetch-stack-for-drivers.patch
+     ipc-fixed-warnings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-stackdepot-export-save-fetch-stack-for-drivers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-fixed-warnings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-stackdepot-export-save-fetch-stack-for-drivers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-fixed-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +38,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: lib/stackdepot: export save/fetch stack for drivers
+From: Shailesh Pandey <p.shailesh@samsung.com>
+Subject: ipc/shm.c: coding style fixes
 
-Some drivers would like to record stacktraces in order to aide leak
-tracing.  As stackdepot already provides a facility for only storing the
-unique traces, thereby reducing the memory required, export that
-functionality for use by drivers.
+This patch fixes below warnings
+WARNING: Missing a blank line after declarations
+WARNING: Block comments use a trailing */ on a separate line
+ERROR: spaces required around that '=' (ctx:WxV)
 
-The code was originally created for KASAN and moved under lib in commit
-cd11016e5f521 ("mm, kasan: stackdepot implementation.  Enable stackdepot
-for SLAB") so that it could be shared with mm/.  In turn, we want to share
-it now with drivers.
+Above warnings were reported by checkpatch.pl
 
-Link: http://lkml.kernel.org/r/20161108133209.22704-1-chris@chris-wilson.co.uk
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Link: http://lkml.kernel.org/r/1478604980-18062-1-git-send-email-p.shailesh@samsung.com
+Signed-off-by: Shailesh Pandey <p.shailesh@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    2 ++
- 1 file changed, 2 insertions(+)
+ ipc/shm.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN lib/stackdepot.c~lib-stackdepot-export-save-fetch-stack-for-drivers lib/stackdepot.c
---- a/lib/stackdepot.c~lib-stackdepot-export-save-fetch-stack-for-drivers
-+++ a/lib/stackdepot.c
-@@ -192,6 +192,7 @@ void depot_fetch_stack(depot_stack_handl
- 	trace->entries = stack->entries;
- 	trace->skip = 0;
- }
-+EXPORT_SYMBOL_GPL(depot_fetch_stack);
+diff -puN ipc/shm.c~ipc-fixed-warnings ipc/shm.c
+--- a/ipc/shm.c~ipc-fixed-warnings
++++ a/ipc/shm.c
+@@ -89,6 +89,7 @@ void shm_init_ns(struct ipc_namespace *n
+ static void do_shm_rmid(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp)
+ {
+ 	struct shmid_kernel *shp;
++
+ 	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
  
- /**
-  * depot_save_stack - save stack in a stack depot.
-@@ -283,3 +284,4 @@ exit:
- fast_exit:
- 	return retval;
+ 	if (shp->shm_nattch) {
+@@ -387,6 +388,7 @@ static int shm_set_policy(struct vm_area
+ 	struct file *file = vma->vm_file;
+ 	struct shm_file_data *sfd = shm_file_data(file);
+ 	int err = 0;
++
+ 	if (sfd->vm_ops->set_policy)
+ 		err = sfd->vm_ops->set_policy(vma, new);
+ 	return err;
+@@ -417,7 +419,7 @@ static int shm_mmap(struct file *file, s
+ 	 * In case of remap_file_pages() emulation, the file can represent
+ 	 * removed IPC ID: propogate shm_lock() error to caller.
+ 	 */
+-	ret =__shm_open(vma);
++	ret = __shm_open(vma);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -468,6 +470,7 @@ static unsigned long shm_get_unmapped_ar
+ 	unsigned long flags)
+ {
+ 	struct shm_file_data *sfd = shm_file_data(file);
++
+ 	return sfd->file->f_op->get_unmapped_area(sfd->file, addr, len,
+ 						pgoff, flags);
  }
-+EXPORT_SYMBOL_GPL(depot_save_stack);
+@@ -766,6 +769,7 @@ static void shm_add_rss_swap(struct shmi
+ 	} else {
+ #ifdef CONFIG_SHMEM
+ 		struct shmem_inode_info *info = SHMEM_I(inode);
++
+ 		spin_lock_irq(&info->lock);
+ 		*rss_add += inode->i_mapping->nrpages;
+ 		*swp_add += info->swapped;
+@@ -1028,6 +1032,7 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
+ 
+ 		if (!ns_capable(ns->user_ns, CAP_IPC_LOCK)) {
+ 			kuid_t euid = current_euid();
++
+ 			if (!uid_eq(euid, shp->shm_perm.uid) &&
+ 			    !uid_eq(euid, shp->shm_perm.cuid)) {
+ 				err = -EPERM;
+@@ -1045,6 +1050,7 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
+ 
+ 		if (cmd == SHM_LOCK) {
+ 			struct user_struct *user = current_user();
++
+ 			err = shmem_lock(shm_file, 1, user);
+ 			if (!err && !(shp->shm_perm.mode & SHM_LOCKED)) {
+ 				shp->shm_perm.mode |= SHM_LOCKED;
+@@ -1354,9 +1360,10 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
+ 		vma = next;
+ 	}
+ 
+-#else /* CONFIG_MMU */
++#else	/* CONFIG_MMU */
+ 	/* under NOMMU conditions, the exact address to be destroyed must be
+-	 * given */
++	 * given
++	 */
+ 	if (vma && vma->vm_start == addr && vma->vm_ops == &shm_vm_ops) {
+ 		do_munmap(mm, vma->vm_start, vma->vm_end - vma->vm_start);
+ 		retval = 0;
 _
 
-Patches currently in -mm which might be from chris@chris-wilson.co.uk are
+Patches currently in -mm which might be from p.shailesh@samsung.com are
 
-lib-stackdepot-export-save-fetch-stack-for-drivers.patch
+ipc-fixed-warnings.patch
 
