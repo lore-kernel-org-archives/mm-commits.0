@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-fixed-warnings.patch added to -mm tree
-Date: Tue, 08 Nov 2016 14:36:06 -0800
-Message-ID: <58225356.5MtOxJ6hIbid3R62%akpm@linux-foundation.org>
+Subject: + proc-fix-type-of-struct-pde_opener-closing-field.patch added to -mm tree
+Date: Tue, 08 Nov 2016 15:06:03 -0800
+Message-ID: <58225a5b.9IzRPyEnHPplKENG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48496 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50468 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932517AbcKHWgH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2016 17:36:07 -0500
+        with ESMTP id S1751062AbcKHXGE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2016 18:06:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: p.shailesh@samsung.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/shm.c: coding style fixes
+     Subject: proc: fix type of struct pde_opener::closing field
 has been added to the -mm tree.  Its filename is
-     ipc-fixed-warnings.patch
+     proc-fix-type-of-struct-pde_opener-closing-field.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-fixed-warnings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-fix-type-of-struct-pde_opener-closing-field.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-fixed-warnings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-fix-type-of-struct-pde_opener-closing-field.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,100 +38,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shailesh Pandey <p.shailesh@samsung.com>
-Subject: ipc/shm.c: coding style fixes
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: fix type of struct pde_opener::closing field
 
-This patch fixes below warnings
-WARNING: Missing a blank line after declarations
-WARNING: Block comments use a trailing */ on a separate line
-ERROR: spaces required around that '=' (ctx:WxV)
+struct pde_opener::closing is boolean.
 
-Above warnings were reported by checkpatch.pl
-
-Link: http://lkml.kernel.org/r/1478604980-18062-1-git-send-email-p.shailesh@samsung.com
-Signed-off-by: Shailesh Pandey <p.shailesh@samsung.com>
+Link: http://lkml.kernel.org/r/20161029155439.GB1246@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ fs/proc/inode.c    |    2 +-
+ fs/proc/internal.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN ipc/shm.c~ipc-fixed-warnings ipc/shm.c
---- a/ipc/shm.c~ipc-fixed-warnings
-+++ a/ipc/shm.c
-@@ -89,6 +89,7 @@ void shm_init_ns(struct ipc_namespace *n
- static void do_shm_rmid(struct ipc_namespace *ns, struct kern_ipc_perm *ipcp)
- {
- 	struct shmid_kernel *shp;
-+
- 	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
- 
- 	if (shp->shm_nattch) {
-@@ -387,6 +388,7 @@ static int shm_set_policy(struct vm_area
- 	struct file *file = vma->vm_file;
- 	struct shm_file_data *sfd = shm_file_data(file);
- 	int err = 0;
-+
- 	if (sfd->vm_ops->set_policy)
- 		err = sfd->vm_ops->set_policy(vma, new);
- 	return err;
-@@ -417,7 +419,7 @@ static int shm_mmap(struct file *file, s
- 	 * In case of remap_file_pages() emulation, the file can represent
- 	 * removed IPC ID: propogate shm_lock() error to caller.
- 	 */
--	ret =__shm_open(vma);
-+	ret = __shm_open(vma);
- 	if (ret)
- 		return ret;
- 
-@@ -468,6 +470,7 @@ static unsigned long shm_get_unmapped_ar
- 	unsigned long flags)
- {
- 	struct shm_file_data *sfd = shm_file_data(file);
-+
- 	return sfd->file->f_op->get_unmapped_area(sfd->file, addr, len,
- 						pgoff, flags);
- }
-@@ -766,6 +769,7 @@ static void shm_add_rss_swap(struct shmi
+diff -puN fs/proc/inode.c~proc-fix-type-of-struct-pde_opener-closing-field fs/proc/inode.c
+--- a/fs/proc/inode.c~proc-fix-type-of-struct-pde_opener-closing-field
++++ a/fs/proc/inode.c
+@@ -147,7 +147,7 @@ static void close_pdeo(struct proc_dir_e
+ 		spin_lock(&pde->pde_unload_lock);
  	} else {
- #ifdef CONFIG_SHMEM
- 		struct shmem_inode_info *info = SHMEM_I(inode);
-+
- 		spin_lock_irq(&info->lock);
- 		*rss_add += inode->i_mapping->nrpages;
- 		*swp_add += info->swapped;
-@@ -1028,6 +1032,7 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
- 
- 		if (!ns_capable(ns->user_ns, CAP_IPC_LOCK)) {
- 			kuid_t euid = current_euid();
-+
- 			if (!uid_eq(euid, shp->shm_perm.uid) &&
- 			    !uid_eq(euid, shp->shm_perm.cuid)) {
- 				err = -EPERM;
-@@ -1045,6 +1050,7 @@ SYSCALL_DEFINE3(shmctl, int, shmid, int,
- 
- 		if (cmd == SHM_LOCK) {
- 			struct user_struct *user = current_user();
-+
- 			err = shmem_lock(shm_file, 1, user);
- 			if (!err && !(shp->shm_perm.mode & SHM_LOCKED)) {
- 				shp->shm_perm.mode |= SHM_LOCKED;
-@@ -1354,9 +1360,10 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- 		vma = next;
- 	}
- 
--#else /* CONFIG_MMU */
-+#else	/* CONFIG_MMU */
- 	/* under NOMMU conditions, the exact address to be destroyed must be
--	 * given */
-+	 * given
-+	 */
- 	if (vma && vma->vm_start == addr && vma->vm_ops == &shm_vm_ops) {
- 		do_munmap(mm, vma->vm_start, vma->vm_end - vma->vm_start);
- 		retval = 0;
+ 		struct file *file;
+-		pdeo->closing = 1;
++		pdeo->closing = true;
+ 		spin_unlock(&pde->pde_unload_lock);
+ 		file = pdeo->file;
+ 		pde->proc_fops->release(file_inode(file), file);
+diff -puN fs/proc/internal.h~proc-fix-type-of-struct-pde_opener-closing-field fs/proc/internal.h
+--- a/fs/proc/internal.h~proc-fix-type-of-struct-pde_opener-closing-field
++++ a/fs/proc/internal.h
+@@ -203,7 +203,7 @@ struct proc_dir_entry *proc_create_mount
+ struct pde_opener {
+ 	struct file *file;
+ 	struct list_head lh;
+-	int closing;
++	bool closing;
+ 	struct completion *c;
+ };
+ extern const struct inode_operations proc_link_inode_operations;
 _
 
-Patches currently in -mm which might be from p.shailesh@samsung.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-ipc-fixed-warnings.patch
+scripts-bloat-o-meter-fix-sigpipe.patch
+kbuild-simpler-generation-of-assembly-constants.patch
+proc-make-struct-pid_entry-len-unsigned.patch
+proc-make-struct-struct-map_files_info-len-unsigned-int.patch
+proc-just-list_del-struct-pde_opener.patch
+proc-fix-type-of-struct-pde_opener-closing-field.patch
+proc-kmalloc-struct-pde_opener.patch
+proc-tweak-comments-about-2-stage-open-and-everything.patch
 
