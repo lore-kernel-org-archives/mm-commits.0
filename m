@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + proc-optimize-render_sigset_t.patch added to -mm tree
-Date: Tue, 08 Nov 2016 14:22:31 -0800
-Message-ID: <58225027.SagJIk9gcI/9Yir8%akpm@linux-foundation.org>
+Subject: + lib-stackdepot-export-save-fetch-stack-for-drivers.patch added
+ to -mm tree
+Date: Tue, 08 Nov 2016 14:33:23 -0800
+Message-ID: <582252b3.hsda8bqKPlVi0Tiw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47772 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48294 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932197AbcKHWWc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2016 17:22:32 -0500
+        with ESMTP id S1752650AbcKHWdY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2016 17:33:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avagin@openvz.org, adobriyan@gmail.com, keescook@chromium.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: chris@chris-wilson.co.uk, aryabinin@virtuozzo.com, daniel.vetter@ffwll.ch, dvyukov@google.com, glider@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/array.c: optimize render_sigset_t()
+     Subject: lib/stackdepot: export save/fetch stack for drivers
 has been added to the -mm tree.  Its filename is
-     proc-optimize-render_sigset_t.patch
+     lib-stackdepot-export-save-fetch-stack-for-drivers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-optimize-render_sigset_t.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-stackdepot-export-save-fetch-stack-for-drivers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-optimize-render_sigset_t.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-stackdepot-export-save-fetch-stack-for-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,83 +39,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrei Vagin <avagin@openvz.org>
-Subject: fs/proc/array.c: optimize render_sigset_t()
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: lib/stackdepot: export save/fetch stack for drivers
 
-render_sigset_t() requires about 30% of time to generate /proc/pid/status.
+Some drivers would like to record stacktraces in order to aide leak
+tracing.  As stackdepot already provides a facility for only storing the
+unique traces, thereby reducing the memory required, export that
+functionality for use by drivers.
 
-- 74.44% sys_read
- - 74.40% vfs_read
-    - 74.01% __vfs_read
-       - 73.36% seq_read
-          - 72.97% proc_single_show
-             - 72.26% proc_pid_status
-                + 29.79% render_sigset_t
-                + 11.47% task_mem
-                + 5.60% render_cap_t
-                + 4.95% seq_printf
-                + 4.28% cpuset_task_status_allowed
+The code was originally created for KASAN and moved under lib in commit
+cd11016e5f521 ("mm, kasan: stackdepot implementation.  Enable stackdepot
+for SLAB") so that it could be shared with mm/.  In turn, we want to share
+it now with drivers.
 
-seq_printf is called for each symbol of a signal mask.  This patch collect
-a whole mask in a buffer and prints it for one call of seq_puts().
-
-  - 65.02% proc_single_show
-     - 63.75% proc_pid_status
-        + 15.73% task_mem
-        + 7.42% render_sigset_t
-        + 7.39% render_cap_t
-        + 6.46% cpuset_task_status_allowed
-
-/proc/pid/status is generated 25% faster with this optimization.
-
-Link: http://lkml.kernel.org/r/1478641048-11406-1-git-send-email-avagin@openvz.org
-Signed-off-by: Andrei Vagin <avagin@openvz.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Kees Cook <keescook@chromium.org>
+Link: http://lkml.kernel.org/r/20161108133209.22704-1-chris@chris-wilson.co.uk
+Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ lib/stackdepot.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/proc/array.c~proc-optimize-render_sigset_t fs/proc/array.c
---- a/fs/proc/array.c~proc-optimize-render_sigset_t
-+++ a/fs/proc/array.c
-@@ -232,11 +232,13 @@ static inline void task_state(struct seq
- void render_sigset_t(struct seq_file *m, const char *header,
- 				sigset_t *set)
- {
--	int i;
-+	char buf[_NSIG / 4 + 2];
-+	int i, j;
- 
- 	seq_puts(m, header);
- 
- 	i = _NSIG;
-+	j = 0;
- 	do {
- 		int x = 0;
- 
-@@ -245,10 +247,13 @@ void render_sigset_t(struct seq_file *m,
- 		if (sigismember(set, i+2)) x |= 2;
- 		if (sigismember(set, i+3)) x |= 4;
- 		if (sigismember(set, i+4)) x |= 8;
--		seq_printf(m, "%x", x);
-+		buf[j++] = hex_asc[x];
- 	} while (i >= 4);
- 
--	seq_putc(m, '\n');
-+	buf[j++] = '\n';
-+	buf[j++] = 0;
-+
-+	seq_puts(m, buf);
+diff -puN lib/stackdepot.c~lib-stackdepot-export-save-fetch-stack-for-drivers lib/stackdepot.c
+--- a/lib/stackdepot.c~lib-stackdepot-export-save-fetch-stack-for-drivers
++++ a/lib/stackdepot.c
+@@ -192,6 +192,7 @@ void depot_fetch_stack(depot_stack_handl
+ 	trace->entries = stack->entries;
+ 	trace->skip = 0;
  }
++EXPORT_SYMBOL_GPL(depot_fetch_stack);
  
- static void collect_sigign_sigcatch(struct task_struct *p, sigset_t *ign,
+ /**
+  * depot_save_stack - save stack in a stack depot.
+@@ -283,3 +284,4 @@ exit:
+ fast_exit:
+ 	return retval;
+ }
++EXPORT_SYMBOL_GPL(depot_save_stack);
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from chris@chris-wilson.co.uk are
 
-proc-optimize-render_sigset_t.patch
+lib-stackdepot-export-save-fetch-stack-for-drivers.patch
 
