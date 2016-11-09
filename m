@@ -1,250 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2016-11-08-16-49 uploaded
-Date: Tue, 08 Nov 2016 16:50:10 -0800
-Message-ID: <582272c2.JkCxg4EZ9iVL3W5R%akpm__45984.0395291851$1478652661$gmane$org@linux-foundation.org>
+Subject: [to-be-updated] mm-hugetlb-rename-some-allocation-functions.patch removed from -mm tree
+Date: Wed, 09 Nov 2016 13:20:31 -0800
+Message-ID: <5823931f.tjcJOxxMp1jebwDf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57572 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41020 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751316AbcKIAuM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Nov 2016 19:50:12 -0500
+        with ESMTP id S1751282AbcKIVUd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Nov 2016 16:20:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
-
-The mm-of-the-moment snapshot 2016-11-08-16-49 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: shijie.huang@arm.com, aneesh.kumar@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, kaly.xin@arm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: mm/hugetlb.c: rename some allocation functions
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-rename-some-allocation-functions.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch was dropped because an updated version will be merged
 
-To develop on top of mmotm git:
+------------------------------------------------------
+From: Huang Shijie <shijie.huang@arm.com>
+Subject: mm/hugetlb.c: rename some allocation functions
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+After a future patch, the __alloc_buddy_huge_page() will not necessarily
+use the buddy allocator.
 
-To rebase a branch with older patches to a new mmotm release:
+So this patch removes the "buddy" from these functions:
+	__alloc_buddy_huge_page -> __alloc_huge_page
+	__alloc_buddy_huge_page_no_mpol -> __alloc_huge_page_no_mpol
+	__alloc_buddy_huge_page_with_mpol -> __alloc_huge_page_with_mpol
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+This patch makes preparation for the later patch.
+
+Link: http://lkml.kernel.org/r/1478229075-20262-1-git-send-email-shijie.huang@arm.com
+Signed-off-by: Huang Shijie <shijie.huang@arm.com>
+Acked-by: Steve Capper <steve.capper@arm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Steve Capper <steve.capper@arm.com>
+Cc: Kaly Xin <kaly.xin@arm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/hugetlb.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
+
+diff -puN mm/hugetlb.c~mm-hugetlb-rename-some-allocation-functions mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-rename-some-allocation-functions
++++ a/mm/hugetlb.c
+@@ -1163,6 +1163,10 @@ static inline void destroy_compound_giga
+ 						unsigned int order) { }
+ static inline int alloc_fresh_gigantic_page(struct hstate *h,
+ 					nodemask_t *nodes_allowed) { return 0; }
++static struct page *alloc_gigantic_page(int nid, unsigned int order)
++{
++	return NULL;
++}
+ #endif
+ 
+ static void update_and_free_page(struct hstate *h, struct page *page)
+@@ -1568,7 +1572,7 @@ static struct page *__hugetlb_alloc_budd
+  * For (2), we ignore 'vma' and 'addr' and use 'nid' exclusively. This
+  * implies that memory policies will not be taken in to account.
+  */
+-static struct page *__alloc_buddy_huge_page(struct hstate *h,
++static struct page *__alloc_huge_page(struct hstate *h,
+ 		struct vm_area_struct *vma, unsigned long addr, int nid)
+ {
+ 	struct page *page;
+@@ -1649,21 +1653,21 @@ static struct page *__alloc_buddy_huge_p
+  * anywhere.
+  */
+ static
+-struct page *__alloc_buddy_huge_page_no_mpol(struct hstate *h, int nid)
++struct page *__alloc_huge_page_no_mpol(struct hstate *h, int nid)
+ {
+ 	unsigned long addr = -1;
+ 
+-	return __alloc_buddy_huge_page(h, NULL, addr, nid);
++	return __alloc_huge_page(h, NULL, addr, nid);
+ }
+ 
+ /*
+  * Use the VMA's mpolicy to allocate a huge page from the buddy.
+  */
+ static
+-struct page *__alloc_buddy_huge_page_with_mpol(struct hstate *h,
++struct page *__alloc_huge_page_with_mpol(struct hstate *h,
+ 		struct vm_area_struct *vma, unsigned long addr)
+ {
+-	return __alloc_buddy_huge_page(h, vma, addr, NUMA_NO_NODE);
++	return __alloc_huge_page(h, vma, addr, NUMA_NO_NODE);
+ }
+ 
+ /*
+@@ -1681,7 +1685,7 @@ struct page *alloc_huge_page_node(struct
+ 	spin_unlock(&hugetlb_lock);
+ 
+ 	if (!page)
+-		page = __alloc_buddy_huge_page_no_mpol(h, nid);
++		page = __alloc_huge_page_no_mpol(h, nid);
+ 
+ 	return page;
+ }
+@@ -1711,7 +1715,7 @@ static int gather_surplus_pages(struct h
+ retry:
+ 	spin_unlock(&hugetlb_lock);
+ 	for (i = 0; i < needed; i++) {
+-		page = __alloc_buddy_huge_page_no_mpol(h, NUMA_NO_NODE);
++		page = __alloc_huge_page_no_mpol(h, NUMA_NO_NODE);
+ 		if (!page) {
+ 			alloc_ok = false;
+ 			break;
+@@ -2027,7 +2031,7 @@ struct page *alloc_huge_page(struct vm_a
+ 	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve, gbl_chg);
+ 	if (!page) {
+ 		spin_unlock(&hugetlb_lock);
+-		page = __alloc_buddy_huge_page_with_mpol(h, vma, addr);
++		page = __alloc_huge_page_with_mpol(h, vma, addr);
+ 		if (!page)
+ 			goto out_uncharge_cgroup;
+ 		if (!avoid_reserve && vma_has_reserves(vma, gbl_chg)) {
+@@ -2285,7 +2289,7 @@ static unsigned long set_max_huge_pages(
+ 	 * First take pages out of surplus state.  Then make up the
+ 	 * remaining difference by allocating fresh huge pages.
+ 	 *
+-	 * We might race with __alloc_buddy_huge_page() here and be unable
++	 * We might race with __alloc_huge_page() here and be unable
+ 	 * to convert a surplus huge page to a normal huge page. That is
+ 	 * not critical, though, it just means the overall size of the
+ 	 * pool might be one hugepage larger than it needs to be, but
+@@ -2331,7 +2335,7 @@ static unsigned long set_max_huge_pages(
+ 	 * By placing pages into the surplus state independent of the
+ 	 * overcommit value, we are allowing the surplus pool size to
+ 	 * exceed overcommit. There are few sane options here. Since
+-	 * __alloc_buddy_huge_page() is checking the global counter,
++	 * __alloc_huge_page() is checking the global counter,
+ 	 * though, we'll note that we're not allowed to exceed surplus
+ 	 * and won't grow the pool anywhere else. Not until one of the
+ 	 * sysctls are changed, or the surplus pages go out of use.
+_
+
+Patches currently in -mm which might be from shijie.huang@arm.com are
 
 
-
-
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
-
-A git copy of this tree is available at
-
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
-
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
-
-
-This mmotm tree contains the following patches against 4.9-rc4:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-  i-need-old-gcc.patch
-* mm-remove-extra-newline-from-allocation-stall-warning.patch
-* mm-remove-extra-newline-from-allocation-stall-warning-fix.patch
-* mm-frontswap-make-sure-allocated-frontswap-map-is-assigned.patch
-* shmem-fix-pageflags-after-swapping-dma32-object.patch
-* scripts-bloat-o-meter-fix-sigpipe.patch
-* mm-cma-check-the-max-limit-for-cma-allocation.patch
-* swapfile-fix-memory-corruption-via-malformed-swapfile.patch
-* mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch
-* revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
-* ocfs2-fix-not-enough-credit-panic.patch
-* mm-hugetlb-fix-huge-page-reservation-leak-in-private-mapping-error-paths.patch
-* mm-filemap-dont-allow-partially-uptodate-page-for-pipes.patch
-* coredump-fix-unfreezable-coredumping-task.patch
-* memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab.patch
-* mm-kmemleak-scan-dataro_after_init.patch
-* lib-stackdepot-export-save-fetch-stack-for-drivers.patch
-* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-* prctl-remove-one-shot-limitation-for-changing-exe-link.patch
-* prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
-* kbuild-simpler-generation-of-assembly-constants.patch
-* m32r-add-simple-dma.patch
-* ocfs2-dlm-clean-up-useless-bug_on-default-case-in-dlm_finalize_reco_handler.patch
-* ocfs2-delete-redundant-code-and-set-the-node-bit-into-maybe_map-directly.patch
-* ocfs2-dlm-clean-up-deadcode-in-dlm_master_request_handler.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* kernel-watchdog-use-nmi-registers-snapshot-in-hardlockup-handler.patch
-  mm.patch
-* mm-memcontrol-use-special-workqueue-for-creating-per-memcg-caches.patch
-* slub-move-synchronize_sched-out-of-slab_mutex-on-shrink.patch
-* slub-avoid-false-postive-warning.patch
-* mm-check-kmem_create_cache-flags-are-commons.patch
-* mm-slab-faster-active-and-free-stats.patch
-* dont-touch-single-threaded-ptes-which-are-on-the-right-node.patch
-* dont-touch-single-threaded-ptes-which-are-on-the-right-node-v3.patch
-* vmscan-set-correct-defer-count-for-shrinker.patch
-* mm-compaction-allow-compaction-for-gfp_nofs-requests.patch
-* mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-* mm-gup-make-unnecessarily-global-vma_permits_fault-static.patch
-* mm-hugetlb-use-the-right-pte-val-for-compare-in-hugetlb_cow.patch
-* mm-hugetlb-use-huge_pte_lock-instead-of-opencoding-the-lock.patch
-* z3fold-limit-first_num-to-the-actual-range-of-possible-buddy-indexes.patch
-* kmemleak-fix-reference-to-documentation.patch
-* mm-dont-steal-highatomic-pageblock.patch
-* mm-prevent-double-decrease-of-nr_reserved_highatomic.patch
-* mm-try-to-exhaust-highatomic-reserve-before-the-oom.patch
-* mm-make-unreserve-highatomic-functions-reliable.patch
-* mm-vmallocc-simplify-proc-vmallocinfo-implementation.patch
-* mm-thp-avoid-unlikely-branches-for-split_huge_pmd.patch
-* mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist.patch
-* mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-* mm-compaction-fix-nr_isolated_-stats-for-pfn-based-migration.patch
-* shmem-avoid-maybe-uninitialized-warning.patch
-* mm-use-the-correct-page-size-when-removing-the-page.patch
-* mm-update-mmu_gather-range-correctly.patch
-* mm-hugetlb-add-tlb_remove_hugetlb_entry-for-handling-hugetlb-pages.patch
-* mm-add-tlb_remove_check_page_size_change-to-track-page-size-change.patch
-* mm-remove-the-page-size-change-check-in-tlb_remove_page.patch
-* mm-fixup-get_user_pages-comments.patch
-* mm-mempolicyc-forbid-static-or-relative-flags-for-local-numa-mode.patch
-* mm-add-locked-parameter-to-get_user_pages_remote.patch
-* mm-unexport-__get_user_pages_unlocked.patch
-* mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
-* z3fold-make-pages_nr-atomic.patch
-* z3fold-extend-compaction-function.patch
-* mm-hugetlb-rename-some-allocation-functions.patch
-* mm-page_owner-align-with-pageblock_nr-pages.patch
-* mm-walk-the-zone-in-pageblock_nr_pages-steps.patch
-* kasan-support-panic_on_warn.patch
-* mm-percpuc-fix-panic-triggered-by-bug_on-falsely.patch
-* proc-report-no_new_privs-state.patch
-* proc-make-struct-pid_entry-len-unsigned.patch
-* proc-make-struct-struct-map_files_info-len-unsigned-int.patch
-* proc-optimize-render_sigset_t.patch
-* proc-just-list_del-struct-pde_opener.patch
-* proc-fix-type-of-struct-pde_opener-closing-field.patch
-* proc-kmalloc-struct-pde_opener.patch
-* proc-tweak-comments-about-2-stage-open-and-everything.patch
-* hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive.patch
-* compiler-gcch-use-proved-instead-of-proofed.patch
-* get_maintainer-look-for-arbitrary-letter-prefixes-in-sections.patch
-* maintainers-add-b-for-uri-where-to-file-bugs.patch
-* maintainers-add-drm-and-drm-i915-bug-filing-info.patch
-* maintainers-add-c-for-uri-for-chat-where-developers-hang-out.patch
-* maintainers-add-drm-and-drm-i915-irc-channels.patch
-* let-config_strict_devmem-depends-on-config_devmem.patch
-* lib-rbtreec-fix-typo-in-comment-of-____rb_erase_color.patch
-* lib-ida-document-locking-requirements-a-bit-better-v2.patch
-* lib-add-crc64-ecma-module.patch
-* checkpatch-dont-try-to-get-maintained-status-when-no-tree-is-given.patch
-* scripts-checkpatchpl-fix-spelling.patch
-* checkpatch-dont-check-pl-files-improve-absolute-path-commit-log-test.patch
-* checkpatch-avoid-multiple-line-dereferences.patch
-* vfs-change-d_manage-to-take-a-struct-path.patch
-* vfs-add-path_is_mountpoint-helper.patch
-* vfs-add-path_has_submounts.patch
-* autofs-change-autofs4_expire_wait-to-take-struct-path.patch
-* autofs-change-autofs4_wait-to-take-struct-path.patch
-* autofs-use-path_is_mountpoint-to-fix-unreliable-d_mountpoint-checks.patch
-* autofs-use-path_has_submounts-to-fix-unreliable-have_submount-checks.patch
-* vfs-remove-unused-have_submounts-function.patch
-* signals-avoid-unnecessary-taking-of-sighand-siglock.patch
-* coredump-clarify-unsafe-core_pattern-warning.patch
-* revert-kdump-vmcoreinfo-report-memory-sections-virtual-addresses.patch
-* kexec-change-to-export-the-value-of-phys_base-instead-of-symbol-address.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* relay-check-array-offset-before-using-it.patch
-* kconfig-lib-kconfigdebug-fix-references-to-documenation.patch
-* kconfig-lib-kconfigubsan-fix-reference-to-ubsan-documentation.patch
-* debug-more-properly-delay-for-secondary-cpus.patch
-* debug-more-properly-delay-for-secondary-cpus-fix.patch
-* initramfs-select-builtin-initram-compression-algorithm-on-kconfig-instead-of-makefile.patch
-* initramfs-allow-again-choice-of-the-embedded-initram-compression-algorithm.patch
-* ipc-semc-avoid-using-spin_unlock_wait.patch
-* ipc-sem-add-hysteresis.patch
-* ipc-msg-make-msgrcv-work-with-long_min.patch
-* ipc-sem-do-not-call-wake_sem_queue_do-prematurely.patch
-* ipc-sem-rework-task-wakeups.patch
-* ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
-* ipc-sem-optimize-perform_atomic_semop.patch
-* ipc-sem-optimize-perform_atomic_semop-fix.patch
-* ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
-* ipc-sem-explicitly-inline-check_restart.patch
-* ipc-sem-use-proper-list-api-for-pending_list-wakeups.patch
-* ipc-fixed-warnings.patch
-  linux-next.patch
-* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-* kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
-* kexec_file-change-kexec_add_buffer-to-take-kexec_buf-as-argument.patch
-* kexec_file-factor-out-kexec_locate_mem_hole-from-kexec_add_buffer.patch
-* powerpc-change-places-using-config_kexec-to-use-config_kexec_core-instead.patch
-* powerpc-factor-out-relocation-code-in-module_64c.patch
-* powerpc-implement-kexec_file_load.patch
-* powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
-* powerpc-add-support-for-loading-elf-kernels-with-kexec_file_load.patch
-* powerpc-add-purgatory-for-kexec_file_load-implementation.patch
-* powerpc-enable-config_kexec_file-in-powerpc-server-defconfigs.patch
-* powerpc-ima-get-the-kexec-buffer-passed-by-the-previous-kernel.patch
-* ima-on-soft-reboot-restore-the-measurement-list.patch
-* ima-permit-duplicate-measurement-list-entries.patch
-* ima-maintain-memory-size-needed-for-serializing-the-measurement-list.patch
-* powerpc-ima-send-the-kexec-buffer-to-the-next-kernel.patch
-* ima-on-soft-reboot-save-the-measurement-list.patch
-* ima-store-the-builtin-custom-template-definitions-in-a-list.patch
-* ima-support-restoring-multiple-template-formats.patch
-* ima-define-a-canonical-binary_runtime_measurements-list-format.patch
-* ima-platform-independent-hash-value.patch
-* ktestpl-fix-english.patch
-* watchdog-move-shared-definitions-to-nmih.patch
-* watchdog-move-hardlockup-detector-to-separate-file.patch
-* sparc-implement-watchdog_nmi_enable-and-watchdog_nmi_disable.patch
-  mm-add-strictlimit-knob-v2.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
