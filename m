@@ -1,50 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [patch 01/15] mm: remove extra newline from allocation stall
- warning
-Date: Thu, 10 Nov 2016 10:46:04 -0800
-Message-ID: <5824c06c.4LuJLG8rHIvpSBwA%akpm@linux-foundation.org>
+Subject: [patch 06/15] swapfile: fix memory corruption via malformed
+ swapfile
+Date: Thu, 10 Nov 2016 10:46:19 -0800
+Message-ID: <5824c07b.FSaKmswR01NS96UB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49232 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49310 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754491AbcKJSqG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2016 13:46:06 -0500
+        with ESMTP id S1755791AbcKJSqV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2016 13:46:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, penguin-kernel@I-love.SAKURA.ne.jp, mhocko@suse.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jann@thejh.net, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, vbabka@suse.cz
 
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm: remove extra newline from allocation stall warning
+From: Jann Horn <jann@thejh.net>
+Subject: swapfile: fix memory corruption via malformed swapfile
 
-63f53dea0c9866e9 ("mm: warn about allocations which stall for too long")
-by error embedded "\n" in the format string, resulting in strange output.
+When root activates a swap partition whose header has the wrong endianness,
+nr_badpages elements of badpages are swabbed before nr_badpages has been
+checked, leading to a buffer overrun of up to 8GB.
 
-[  722.876655] kworker/0:1: page alloction stalls for 160001ms, order:0
-[  722.876656] , mode:0x2400000(GFP_NOIO)
-[  722.876657] CPU: 0 PID: 6966 Comm: kworker/0:1 Not tainted 4.8.0+ #69
+This normally is not a security issue because it can only be exploited by
+root (more specifically, a process with CAP_SYS_ADMIN or the ability to
+modify a swap file/partition), and such a process can already e.g. modify
+swapped-out memory of any other userspace process on the system.
 
-Link: http://lkml.kernel.org/r/1476026219-7974-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Testcase for reproducing the bug (must be run as root, should crash your
+kernel):
+=================
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/swap.h>
+#include <limits.h>
+#include <err.h>
+#include <string.h>
+#include <stdio.h>
+
+#define PAGE_SIZE 4096
+#define __u32 unsigned int
+
+// from include/linux/swap.h
+union swap_header {
+  struct {
+    char reserved[PAGE_SIZE - 10];
+    char magic[10];     /* SWAP-SPACE or SWAPSPACE2 */
+  } magic;
+  struct {
+    char    bootbits[1024]; /* Space for disklabel etc. */
+    __u32   version;
+    __u32   last_page;
+    __u32   nr_badpages;
+    unsigned char sws_uuid[16];
+    unsigned char sws_volume[16];
+    __u32   padding[117];
+    __u32   badpages[1];
+  } info;
+};
+
+int main(void) {
+  char file[] = "/tmp/swapfile.XXXXXX";
+  int file_fd = mkstemp(file);
+  if (file_fd == -1)
+    err(1, "mkstemp");
+  if (ftruncate(file_fd, PAGE_SIZE))
+    err(1, "ftruncate");
+  union swap_header swap_header = {
+    .info = {
+      .version = __builtin_bswap32(1),
+      .nr_badpages = __builtin_bswap32(INT_MAX)
+    }
+  };
+  memcpy(swap_header.magic.magic, "SWAPSPACE2", 10);
+  if (write(file_fd, &swap_header, sizeof(swap_header)) !=
+      sizeof(swap_header))
+    err(1, "write");
+
+  // not because the attack needs it, just in case you forgot to
+  // sync yourself before crashing your machine
+  sync();
+
+  // now die
+  if (swapon(file, 0))
+    err(1, "swapon");
+  puts("huh, we survived");
+  if (swapoff(file))
+    err(1, "swapoff");
+  unlink(file);
+}
+=================
+
+Link: http://lkml.kernel.org/r/1477949533-2509-1-git-send-email-jann@thejh.net
+Signed-off-by: Jann Horn <jann@thejh.net>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-remove-extra-newline-from-allocation-stall-warning mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-extra-newline-from-allocation-stall-warning
-+++ a/mm/page_alloc.c
-@@ -3658,7 +3658,7 @@ retry:
- 	/* Make sure we know about allocations which stall for too long */
- 	if (time_after(jiffies, alloc_start + stall_timeout)) {
- 		warn_alloc(gfp_mask,
--			"page alloction stalls for %ums, order:%u\n",
-+			"page allocation stalls for %ums, order:%u",
- 			jiffies_to_msecs(jiffies-alloc_start), order);
- 		stall_timeout += 10 * HZ;
+diff -puN mm/swapfile.c~swapfile-fix-memory-corruption-via-malformed-swapfile mm/swapfile.c
+--- a/mm/swapfile.c~swapfile-fix-memory-corruption-via-malformed-swapfile
++++ a/mm/swapfile.c
+@@ -2224,6 +2224,8 @@ static unsigned long read_swap_header(st
+ 		swab32s(&swap_header->info.version);
+ 		swab32s(&swap_header->info.last_page);
+ 		swab32s(&swap_header->info.nr_badpages);
++		if (swap_header->info.nr_badpages > MAX_SWAP_BADPAGES)
++			return 0;
+ 		for (i = 0; i < swap_header->info.nr_badpages; i++)
+ 			swab32s(&swap_header->info.badpages[i]);
  	}
 _
