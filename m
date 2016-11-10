@@ -1,61 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [patch 15/15] lib/stackdepot: export save/fetch stack for drivers
-Date: Thu, 10 Nov 2016 10:46:47 -0800
-Message-ID: <5824c097.kM8oGFXCUev1PrsZ%akpm@linux-foundation.org>
+Subject: [patch 11/15] mm/filemap: don't allow partially uptodate page for pipes
+Date: Thu, 10 Nov 2016 10:46:35 -0800
+Message-ID: <5824c08b.tGHxTPXhKr9SA3Pa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49380 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755791AbcKJSqt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2016 13:46:49 -0500
+        with ESMTP id S1755791AbcKJSqg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2016 13:46:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, chris@chris-wilson.co.uk, aryabinin@virtuozzo.com, daniel.vetter@ffwll.ch, dvyukov@google.com, glider@google.com, iamjoonsoo.kim@lge.com, kirill@shutemov.name
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, guaneryu@gmail.com, jack@suse.cz, viro@zeniv.linux.org.uk
 
-From: Chris Wilson <chris@chris-wilson.co.uk>
-Subject: lib/stackdepot: export save/fetch stack for drivers
+From: Eryu Guan <guaneryu@gmail.com>
+Subject: mm/filemap: don't allow partially uptodate page for pipes
 
-Some drivers would like to record stacktraces in order to aide leak
-tracing.  As stackdepot already provides a facility for only storing the
-unique traces, thereby reducing the memory required, export that
-functionality for use by drivers.
+Starting from 4.9-rc1 kernel, I started noticing some test failures of
+sendfile(2) and splice(2) (sendfile0N and splice01 from LTP) when testing
+on sub-page block size filesystems (tested both XFS and ext4), these
+syscalls start to return EIO in the tests.  e.g.
 
-The code was originally created for KASAN and moved under lib in commit
-cd11016e5f521 ("mm, kasan: stackdepot implementation.  Enable stackdepot
-for SLAB") so that it could be shared with mm/.  In turn, we want to share
-it now with drivers.
+sendfile02    1  TFAIL  :  sendfile02.c:133: sendfile(2) failed to return expected value, expected: 26, got: -1
+sendfile02    2  TFAIL  :  sendfile02.c:133: sendfile(2) failed to return expected value, expected: 24, got: -1
+sendfile02    3  TFAIL  :  sendfile02.c:133: sendfile(2) failed to return expected value, expected: 22, got: -1
+sendfile02    4  TFAIL  :  sendfile02.c:133: sendfile(2) failed to return expected value, expected: 20, got: -1
 
-Link: http://lkml.kernel.org/r/20161108133209.22704-1-chris@chris-wilson.co.uk
-Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+This is because that in sub-page block size cases, we don't need the whole
+page to be uptodate, only the part we care about is uptodate is OK (if fs
+has ->is_partially_uptodate defined).  But page_cache_pipe_buf_confirm()
+doesn't have the ability to check the partially-uptodate case, it needs
+the whole page to be uptodate.  So it returns EIO in this case.
+
+This is a regression introduced by commit 82c156f85384 ("switch
+generic_file_splice_read() to use of ->read_iter()").  Prior to the
+change, generic_file_splice_read() doesn't allow partially-uptodate page
+either, so it worked fine.
+
+Fix it by skipping the partially-uptodate check if we're working on a pipe
+in do_generic_file_read(), so we read the whole page from disk as long as
+the page is not uptodate.
+
+I think the other way to fix it is to add the ability to check & allow
+partially-uptodate page to page_cache_pipe_buf_confirm(), but that is much
+harder to do and seems gain little.
+
+Link: http://lkml.kernel.org/r/1477986187-12717-1-git-send-email-guaneryu@gmail.com
+Signed-off-by: Eryu Guan <guaneryu@gmail.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/filemap.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN lib/stackdepot.c~lib-stackdepot-export-save-fetch-stack-for-drivers lib/stackdepot.c
---- a/lib/stackdepot.c~lib-stackdepot-export-save-fetch-stack-for-drivers
-+++ a/lib/stackdepot.c
-@@ -192,6 +192,7 @@ void depot_fetch_stack(depot_stack_handl
- 	trace->entries = stack->entries;
- 	trace->skip = 0;
- }
-+EXPORT_SYMBOL_GPL(depot_fetch_stack);
- 
- /**
-  * depot_save_stack - save stack in a stack depot.
-@@ -283,3 +284,4 @@ exit:
- fast_exit:
- 	return retval;
- }
-+EXPORT_SYMBOL_GPL(depot_save_stack);
+diff -puN mm/filemap.c~mm-filemap-dont-allow-partially-uptodate-page-for-pipes mm/filemap.c
+--- a/mm/filemap.c~mm-filemap-dont-allow-partially-uptodate-page-for-pipes
++++ a/mm/filemap.c
+@@ -1732,6 +1732,9 @@ find_page:
+ 			if (inode->i_blkbits == PAGE_SHIFT ||
+ 					!mapping->a_ops->is_partially_uptodate)
+ 				goto page_not_up_to_date;
++			/* pipes can't handle partially uptodate pages */
++			if (unlikely(iter->type & ITER_PIPE))
++				goto page_not_up_to_date;
+ 			if (!trylock_page(page))
+ 				goto page_not_up_to_date;
+ 			/* Did it get truncated before we got the lock? */
 _
