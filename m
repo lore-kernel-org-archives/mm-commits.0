@@ -1,74 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [patch 07/15] mm: hwpoison: fix thp split handling in
- memory_failure()
-Date: Thu, 10 Nov 2016 10:46:23 -0800
-Message-ID: <5824c07f.AnHnofczU08WfXj3%akpm__8641.28950420327$1478803624$gmane$org@linux-foundation.org>
+Subject: [patch 12/15] coredump: fix unfreezable coredumping task
+Date: Thu, 10 Nov 2016 10:46:38 -0800
+Message-ID: <5824c08e.p0TVQsoLVBIb7vsi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49324 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49390 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755791AbcKJSqY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2016 13:46:24 -0500
+        with ESMTP id S1755791AbcKJSqj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2016 13:46:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, aryabinin@virtuozzo.com, mhocko@kernel.org, oleg@redhat.com, pavel@ucw.cz, rjw@rjwysocki.net, stable@vger.kernel.org, tj@kernel.org, viro@zeniv.linux.org.uk
 
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hwpoison: fix thp split handling in memory_failure()
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: coredump: fix unfreezable coredumping task
 
-When memory_failure() runs on a thp tail page after pmd is split, we
-trigger the following VM_BUG_ON_PAGE():
+It could be not possible to freeze coredumping task when it waits for
+'core_state->startup' completion, because threads are frozen in
+get_signal() before they got a chance to complete 'core_state->startup'.
 
-  [  619.550520] page:ffffd7cd819b0040 count:0 mapcount:0 mapping:         (null) index:0x1
-  [  619.555486] flags: 0x1fffc000400000(hwpoison)
-  [  619.556408] page dumped because: VM_BUG_ON_PAGE(!page_count(p))
-  [  619.558998] ------------[ cut here ]------------
-  [  619.561388] kernel BUG at /src/linux-dev/mm/memory-failure.c:1132!
+Inability to freeze a task during suspend will cause suspend to fail. 
+Also CRIU uses cgroup freezer during dump operation.  So with an
+unfreezable task the CRIU dump will fail because it waits for a
+transition from 'FREEZING' to 'FROZEN' state which will never happen.
 
-memory_failure() passed refcount and page lock from tail page to head
-page, which is not needed because we can pass any subpage to
-split_huge_page().
+Use freezer_do_not_count() to tell freezer to ignore coredumping task
+while it waits for core_state->startup completion.
 
-Fixes: 61f5d698cc97 ("mm: re-enable THP")
-Link: http://lkml.kernel.org/r/1477961577-7183-1-git-send-email-n-horiguchi@ah.jp.nec.com
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: <stable@vger.kernel.org>	[4.5+]
+Link: http://lkml.kernel.org/r/1475225434-3753-1-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ fs/coredump.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-fix-thp-split-handling-in-memory_failure mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-fix-thp-split-handling-in-memory_failure
-+++ a/mm/memory-failure.c
-@@ -1112,10 +1112,10 @@ int memory_failure(unsigned long pfn, in
- 	}
+diff -puN fs/coredump.c~coredump-fix-unfreezable-coredumping-task fs/coredump.c
+--- a/fs/coredump.c~coredump-fix-unfreezable-coredumping-task
++++ a/fs/coredump.c
+@@ -1,6 +1,7 @@
+ #include <linux/slab.h>
+ #include <linux/file.h>
+ #include <linux/fdtable.h>
++#include <linux/freezer.h>
+ #include <linux/mm.h>
+ #include <linux/stat.h>
+ #include <linux/fcntl.h>
+@@ -423,7 +424,9 @@ static int coredump_wait(int exit_code,
+ 	if (core_waiters > 0) {
+ 		struct core_thread *ptr;
  
- 	if (!PageHuge(p) && PageTransHuge(hpage)) {
--		lock_page(hpage);
--		if (!PageAnon(hpage) || unlikely(split_huge_page(hpage))) {
--			unlock_page(hpage);
--			if (!PageAnon(hpage))
-+		lock_page(p);
-+		if (!PageAnon(p) || unlikely(split_huge_page(p))) {
-+			unlock_page(p);
-+			if (!PageAnon(p))
- 				pr_err("Memory failure: %#lx: non anonymous thp\n",
- 					pfn);
- 			else
-@@ -1126,9 +1126,7 @@ int memory_failure(unsigned long pfn, in
- 			put_hwpoison_page(p);
- 			return -EBUSY;
- 		}
--		unlock_page(hpage);
--		get_hwpoison_page(p);
--		put_hwpoison_page(hpage);
-+		unlock_page(p);
- 		VM_BUG_ON_PAGE(!page_count(p), p);
- 		hpage = compound_head(p);
- 	}
++		freezer_do_not_count();
+ 		wait_for_completion(&core_state->startup);
++		freezer_count();
+ 		/*
+ 		 * Wait for all the threads to become inactive, so that
+ 		 * all the thread context (extended register state, like
 _
