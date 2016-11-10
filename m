@@ -1,71 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [patch 13/15] memcg: prevent memcg caches to be both OFF_SLAB &
- OBJFREELIST_SLAB
-Date: Thu, 10 Nov 2016 10:46:41 -0800
-Message-ID: <5824c091.wvWaeUU9cvlSuRJT%akpm@linux-foundation.org>
+Subject: [patch 07/15] mm: hwpoison: fix thp split handling in
+ memory_failure()
+Date: Thu, 10 Nov 2016 10:46:23 -0800
+Message-ID: <5824c07f.AnHnofczU08WfXj3%akpm__8641.28950420327$1478803624$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49408 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49324 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755791AbcKJSqn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2016 13:46:43 -0500
+        with ESMTP id S1755791AbcKJSqY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2016 13:46:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, gthelen@google.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, thgarnie@google.com, vdavydov.dev@gmail.com
+To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org
 
-From: Greg Thelen <gthelen@google.com>
-Subject: memcg: prevent memcg caches to be both OFF_SLAB & OBJFREELIST_SLAB
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: hwpoison: fix thp split handling in memory_failure()
 
-While testing OBJFREELIST_SLAB integration with pagealloc, we found a bug
-where kmem_cache(sys) would be created with both CFLGS_OFF_SLAB &
-CFLGS_OBJFREELIST_SLAB.  When it happened, critical allocations needed for
-loading drivers or creating new caches will fail.
+When memory_failure() runs on a thp tail page after pmd is split, we
+trigger the following VM_BUG_ON_PAGE():
 
-The original kmem_cache is created early making OFF_SLAB not possible. 
-When kmem_cache(sys) is created, OFF_SLAB is possible and if pagealloc is
-enabled it will try to enable it first under certain conditions.  Given
-kmem_cache(sys) reuses the original flag, you can have both flags at the
-same time resulting in allocation failures and odd behaviors.
+  [  619.550520] page:ffffd7cd819b0040 count:0 mapcount:0 mapping:         (null) index:0x1
+  [  619.555486] flags: 0x1fffc000400000(hwpoison)
+  [  619.556408] page dumped because: VM_BUG_ON_PAGE(!page_count(p))
+  [  619.558998] ------------[ cut here ]------------
+  [  619.561388] kernel BUG at /src/linux-dev/mm/memory-failure.c:1132!
 
-This fix discards allocator specific flags from memcg before calling
-create_cache.
+memory_failure() passed refcount and page lock from tail page to head
+page, which is not needed because we can pass any subpage to
+split_huge_page().
 
-The bug exists since 4.6-rc1 and affects testing debug pagealloc
-configurations.
-
-Fixes: b03a017bebc4 ("mm/slab: introduce new slab management type, OBJFREELIST_SLAB")
-Link: http://lkml.kernel.org/r/1478553075-120242-1-git-send-email-thgarnie@google.com
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Signed-off-by: Thomas Garnier <thgarnie@google.com>
-Tested-by: Thomas Garnier <thgarnie@google.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Fixes: 61f5d698cc97 ("mm: re-enable THP")
+Link: http://lkml.kernel.org/r/1477961577-7183-1-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: <stable@vger.kernel.org>	[4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN mm/slab_common.c~memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab mm/slab_common.c
---- a/mm/slab_common.c~memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab
-+++ a/mm/slab_common.c
-@@ -533,8 +533,8 @@ void memcg_create_kmem_cache(struct mem_
+diff -puN mm/memory-failure.c~mm-hwpoison-fix-thp-split-handling-in-memory_failure mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-fix-thp-split-handling-in-memory_failure
++++ a/mm/memory-failure.c
+@@ -1112,10 +1112,10 @@ int memory_failure(unsigned long pfn, in
+ 	}
  
- 	s = create_cache(cache_name, root_cache->object_size,
- 			 root_cache->size, root_cache->align,
--			 root_cache->flags, root_cache->ctor,
--			 memcg, root_cache);
-+			 root_cache->flags & CACHE_CREATE_MASK,
-+			 root_cache->ctor, memcg, root_cache);
- 	/*
- 	 * If we could not create a memcg cache, do not complain, because
- 	 * that's not critical at all as we can always proceed with the root
+ 	if (!PageHuge(p) && PageTransHuge(hpage)) {
+-		lock_page(hpage);
+-		if (!PageAnon(hpage) || unlikely(split_huge_page(hpage))) {
+-			unlock_page(hpage);
+-			if (!PageAnon(hpage))
++		lock_page(p);
++		if (!PageAnon(p) || unlikely(split_huge_page(p))) {
++			unlock_page(p);
++			if (!PageAnon(p))
+ 				pr_err("Memory failure: %#lx: non anonymous thp\n",
+ 					pfn);
+ 			else
+@@ -1126,9 +1126,7 @@ int memory_failure(unsigned long pfn, in
+ 			put_hwpoison_page(p);
+ 			return -EBUSY;
+ 		}
+-		unlock_page(hpage);
+-		get_hwpoison_page(p);
+-		put_hwpoison_page(hpage);
++		unlock_page(p);
+ 		VM_BUG_ON_PAGE(!page_count(p), p);
+ 		hpage = compound_head(p);
+ 	}
 _
