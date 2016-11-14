@@ -1,136 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- swapfile-fix-memory-corruption-via-malformed-swapfile.patch removed from
- -mm tree
-Date: Mon, 14 Nov 2016 12:02:52 -0800
-Message-ID: <582a186c.vRvO+KE6yelRPvY6%akpm@linux-foundation.org>
+Subject: [merged] scripts-bloat-o-meter-fix-sigpipe.patch removed from -mm tree
+Date: Mon, 14 Nov 2016 12:02:41 -0800
+Message-ID: <582a1861.giZCWW7YoEVLb+yI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37900 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37878 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935195AbcKNUCx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:02:53 -0500
+        with ESMTP id S935195AbcKNUCm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:02:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jann@thejh.net, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mpm@selenic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swapfile: fix memory corruption via malformed swapfile
+     Subject: scripts/bloat-o-meter: fix SIGPIPE
 has been removed from the -mm tree.  Its filename was
-     swapfile-fix-memory-corruption-via-malformed-swapfile.patch
+     scripts-bloat-o-meter-fix-sigpipe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jann Horn <jann@thejh.net>
-Subject: swapfile: fix memory corruption via malformed swapfile
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: scripts/bloat-o-meter: fix SIGPIPE
 
-When root activates a swap partition whose header has the wrong endianness,
-nr_badpages elements of badpages are swabbed before nr_badpages has been
-checked, leading to a buffer overrun of up to 8GB.
+Fix piping output to a program which quickly exits (read: head -n1)
 
-This normally is not a security issue because it can only be exploited by
-root (more specifically, a process with CAP_SYS_ADMIN or the ability to
-modify a swap file/partition), and such a process can already e.g. modify
-swapped-out memory of any other userspace process on the system.
+	$ ./scripts/bloat-o-meter ../vmlinux-000 ../obj/vmlinux | head -n1
+	add/remove: 0/0 grow/shrink: 9/60 up/down: 124/-305 (-181)
+	close failed in file object destructor:
+	sys.excepthook is missing
+	lost sys.stderr
 
-Testcase for reproducing the bug (must be run as root, should crash your
-kernel):
-=================
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/swap.h>
-#include <limits.h>
-#include <err.h>
-#include <string.h>
-#include <stdio.h>
-
-#define PAGE_SIZE 4096
-#define __u32 unsigned int
-
-// from include/linux/swap.h
-union swap_header {
-  struct {
-    char reserved[PAGE_SIZE - 10];
-    char magic[10];     /* SWAP-SPACE or SWAPSPACE2 */
-  } magic;
-  struct {
-    char    bootbits[1024]; /* Space for disklabel etc. */
-    __u32   version;
-    __u32   last_page;
-    __u32   nr_badpages;
-    unsigned char sws_uuid[16];
-    unsigned char sws_volume[16];
-    __u32   padding[117];
-    __u32   badpages[1];
-  } info;
-};
-
-int main(void) {
-  char file[] = "/tmp/swapfile.XXXXXX";
-  int file_fd = mkstemp(file);
-  if (file_fd == -1)
-    err(1, "mkstemp");
-  if (ftruncate(file_fd, PAGE_SIZE))
-    err(1, "ftruncate");
-  union swap_header swap_header = {
-    .info = {
-      .version = __builtin_bswap32(1),
-      .nr_badpages = __builtin_bswap32(INT_MAX)
-    }
-  };
-  memcpy(swap_header.magic.magic, "SWAPSPACE2", 10);
-  if (write(file_fd, &swap_header, sizeof(swap_header)) !=
-      sizeof(swap_header))
-    err(1, "write");
-
-  // not because the attack needs it, just in case you forgot to
-  // sync yourself before crashing your machine
-  sync();
-
-  // now die
-  if (swapon(file, 0))
-    err(1, "swapon");
-  puts("huh, we survived");
-  if (swapoff(file))
-    err(1, "swapoff");
-  unlink(file);
-}
-=================
-
-Link: http://lkml.kernel.org/r/1477949533-2509-1-git-send-email-jann@thejh.net
-Signed-off-by: Jann Horn <jann@thejh.net>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20161028204618.GA29923@avx2
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Matt Mackall <mpm@selenic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 ++
- 1 file changed, 2 insertions(+)
+ scripts/bloat-o-meter |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/swapfile.c~swapfile-fix-memory-corruption-via-malformed-swapfile mm/swapfile.c
---- a/mm/swapfile.c~swapfile-fix-memory-corruption-via-malformed-swapfile
-+++ a/mm/swapfile.c
-@@ -2224,6 +2224,8 @@ static unsigned long read_swap_header(st
- 		swab32s(&swap_header->info.version);
- 		swab32s(&swap_header->info.last_page);
- 		swab32s(&swap_header->info.nr_badpages);
-+		if (swap_header->info.nr_badpages > MAX_SWAP_BADPAGES)
-+			return 0;
- 		for (i = 0; i < swap_header->info.nr_badpages; i++)
- 			swab32s(&swap_header->info.badpages[i]);
- 	}
+diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-fix-sigpipe scripts/bloat-o-meter
+--- a/scripts/bloat-o-meter~scripts-bloat-o-meter-fix-sigpipe
++++ a/scripts/bloat-o-meter
+@@ -8,6 +8,9 @@
+ # of the GNU General Public License, incorporated herein by reference.
+ 
+ import sys, os, re
++from signal import signal, SIGPIPE, SIG_DFL
++
++signal(SIGPIPE, SIG_DFL)
+ 
+ if len(sys.argv) != 3:
+     sys.stderr.write("usage: %s file1 file2\n" % sys.argv[0])
 _
 
-Patches currently in -mm which might be from jann@thejh.net are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
+kbuild-simpler-generation-of-assembly-constants.patch
+proc-make-struct-pid_entry-len-unsigned.patch
+proc-make-struct-struct-map_files_info-len-unsigned-int.patch
+proc-just-list_del-struct-pde_opener.patch
+proc-fix-type-of-struct-pde_opener-closing-field.patch
+proc-kmalloc-struct-pde_opener.patch
+proc-tweak-comments-about-2-stage-open-and-everything.patch
+coredump-clarify-unsafe-core_pattern-warning.patch
 
