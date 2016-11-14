@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-support-gigantic-surplus-pages.patch added to -mm
- tree
-Date: Mon, 14 Nov 2016 14:44:55 -0800
-Message-ID: <582a3e67.8vFxevXDbcL49AeJ%akpm@linux-foundation.org>
+Subject: + mm-enable-config_movable_node-on-non-x86-arches.patch added to
+ -mm tree
+Date: Mon, 14 Nov 2016 15:05:14 -0800
+Message-ID: <582a432a.ciE26GYIiU9HStgS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56904 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941108AbcKNWo4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 17:44:56 -0500
+        with ESMTP id S939765AbcKNXFQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 18:05:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shijie.huang@arm.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, gerald.schaefer@de.ibm.com, kaly.xin@arm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: arbab@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, apopple@au1.ibm.com, benh@kernel.crashing.org, bharata@linux.vnet.ibm.com, bsingharora@gmail.com, frowand.list@gmail.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, nfont@linux.vnet.ibm.com, paulus@samba.org, robh+dt@kernel.org, stewart@linux.vnet.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: support gigantic surplus pages
+     Subject: mm: enable CONFIG_MOVABLE_NODE on non-x86 arches
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-support-gigantic-surplus-pages.patch
+     mm-enable-config_movable_node-on-non-x86-arches.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-support-gigantic-surplus-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-enable-config_movable_node-on-non-x86-arches.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-support-gigantic-surplus-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-enable-config_movable_node-on-non-x86-arches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,108 +39,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Shijie <shijie.huang@arm.com>
-Subject: mm: hugetlb: support gigantic surplus pages
+From: Reza Arbab <arbab@linux.vnet.ibm.com>
+Subject: mm: enable CONFIG_MOVABLE_NODE on non-x86 arches
 
-When testing the gigantic page whose order is too large for the buddy
-allocator, the libhugetlbfs test case "counter.sh" will fail.
+To support movable memory nodes (CONFIG_MOVABLE_NODE), at least one of
+the following must be true:
 
-The failure is caused by:
- 1) kernel fails to allocate a gigantic page for the surplus case.
-    And the gather_surplus_pages() will return NULL in the end.
+1. This config has the capability to identify movable nodes at boot.
+   Right now, only x86 can do this.
 
- 2) The condition checks for "over-commit" is wrong.
+2. Our config supports memory hotplug, which means that a movable node
+   can be created by hotplugging all of its memory into ZONE_MOVABLE.
 
-This patch uses __hugetlb_alloc_gigantic_page() to allocate the
-gigantic page in the __alloc_huge_page(). After this patch,
- gather_surplus_pages() can return a gigantic page for the surplus case.
+Fix the Kconfig definition of CONFIG_MOVABLE_NODE, which currently
+recognizes (1), but not (2).
 
-This patch also changes the condition checks for:
-
-     return_unused_surplus_pages()
-     nr_overcommit_hugepages_store()
-     hugetlb_overcommit_handler()
-
-After this patch, the counter.sh test can pass for the gigantic page.
-
-Link: http://lkml.kernel.org/r/1479107259-2011-7-git-send-email-shijie.huang@arm.com
-Signed-off-by: Huang Shijie <shijie.huang@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Kirill A . Shutemov <kirill.shutemov@linux.intel.com>
+Link: http://lkml.kernel.org/r/1479160961-25840-4-git-send-email-arbab@linux.vnet.ibm.com
+Signed-off-by: Reza Arbab <arbab@linux.vnet.ibm.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Balbir Singh <bsingharora@gmail.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alistair Popple <apopple@au1.ibm.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Kaly Xin <kaly.xin@arm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Bharata B Rao <bharata@linux.vnet.ibm.com>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-support-gigantic-surplus-pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-support-gigantic-surplus-pages
-+++ a/mm/hugetlb.c
-@@ -1647,7 +1647,7 @@ static struct page *__alloc_huge_page(st
- 	struct page *page;
- 	unsigned int r_nid;
- 
--	if (hstate_is_gigantic(h))
-+	if (hstate_is_gigantic(h) && !gigantic_page_supported())
- 		return NULL;
- 
- 	/*
-@@ -1692,7 +1692,10 @@ static struct page *__alloc_huge_page(st
- 	}
- 	spin_unlock(&hugetlb_lock);
- 
--	page = __hugetlb_alloc_buddy_huge_page(h, vma, addr, nid);
-+	if (hstate_is_gigantic(h))
-+		page = __hugetlb_alloc_gigantic_page(h, vma, addr, nid);
-+	else
-+		page = __hugetlb_alloc_buddy_huge_page(h, vma, addr, nid);
- 
- 	spin_lock(&hugetlb_lock);
- 	if (page) {
-@@ -1859,8 +1862,7 @@ static void return_unused_surplus_pages(
- 	/* Uncommit the reservation */
- 	h->resv_huge_pages -= unused_resv_pages;
- 
--	/* Cannot return gigantic pages currently */
--	if (hstate_is_gigantic(h))
-+	if (hstate_is_gigantic(h) && !gigantic_page_supported())
- 		return;
- 
- 	nr_pages = min(unused_resv_pages, h->surplus_huge_pages);
-@@ -2577,7 +2579,7 @@ static ssize_t nr_overcommit_hugepages_s
- 	unsigned long input;
- 	struct hstate *h = kobj_to_hstate(kobj, NULL);
- 
--	if (hstate_is_gigantic(h))
-+	if (hstate_is_gigantic(h) && !gigantic_page_supported())
- 		return -EINVAL;
- 
- 	err = kstrtoul(buf, 10, &input);
-@@ -3018,7 +3020,7 @@ int hugetlb_overcommit_handler(struct ct
- 
- 	tmp = h->nr_overcommit_huge_pages;
- 
--	if (write && hstate_is_gigantic(h))
-+	if (write && hstate_is_gigantic(h) && !gigantic_page_supported())
- 		return -EINVAL;
- 
- 	table->data = &tmp;
+diff -puN mm/Kconfig~mm-enable-config_movable_node-on-non-x86-arches mm/Kconfig
+--- a/mm/Kconfig~mm-enable-config_movable_node-on-non-x86-arches
++++ a/mm/Kconfig
+@@ -153,7 +153,7 @@ config MOVABLE_NODE
+ 	bool "Enable to assign a node which has only movable memory"
+ 	depends on HAVE_MEMBLOCK
+ 	depends on NO_BOOTMEM
+-	depends on X86_64
++	depends on X86_64 || MEMORY_HOTPLUG
+ 	depends on NUMA
+ 	default n
+ 	help
 _
 
-Patches currently in -mm which might be from shijie.huang@arm.com are
+Patches currently in -mm which might be from arbab@linux.vnet.ibm.com are
 
-mm-hugetlb-rename-some-allocation-functions.patch
-mm-hugetlb-add-a-new-parameter-for-some-functions.patch
-mm-hugetlb-change-the-return-type-for-alloc_fresh_gigantic_page.patch
-mm-mempolicy-intruduce-a-helper-huge_nodemask.patch
-mm-hugetlb-add-a-new-function-to-allocate-a-new-gigantic-page.patch
-mm-hugetlb-support-gigantic-surplus-pages.patch
+powerpc-mm-allow-memory-hotplug-into-a-memoryless-node.patch
+mm-remove-x86-only-restriction-of-movable_node.patch
+mm-enable-config_movable_node-on-non-x86-arches.patch
+of-fdt-mark-hotpluggable-memory.patch
+dt-add-documentation-of-hotpluggable-memory-property.patch
 
