@@ -1,120 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-kmemleak-scan-dataro_after_init.patch removed from
- -mm tree
-Date: Mon, 14 Nov 2016 12:03:42 -0800
-Message-ID: <582a189e.94oloxe46S14bI7D%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-hugetlb-fix-huge-page-reservation-leak-in-private-mapping-error-paths.patch removed from -mm tree
+Date: Mon, 14 Nov 2016 12:03:18 -0800
+Message-ID: <582a1886.9ihIasBT5ZYEhf3B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38044 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37994 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933969AbcKNUDn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:03:43 -0500
+        with ESMTP id S935681AbcKNUDT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:03:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jakub.kicinski@netronome.com, arnd@arndb.de, catalin.marinas@arm.com, heiko.carstens@de.ibm.com, johannes@sipsolutions.net, schwidefsky@de.ibm.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, jstancek@redhat.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmemleak: scan .data.ro_after_init
+     Subject: mm/hugetlb: fix huge page reservation leak in private mapping error paths
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-scan-dataro_after_init.patch
+     mm-hugetlb-fix-huge-page-reservation-leak-in-private-mapping-error-paths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jakub Kicinski <jakub.kicinski@netronome.com>
-Subject: mm: kmemleak: scan .data.ro_after_init
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb: fix huge page reservation leak in private mapping error paths
 
-Limit the number of kmemleak false positives by including
-.data.ro_after_init in memory scanning.  To achieve this we need to add
-symbols for start and end of the section to the linker scripts.
+Error paths in hugetlb_cow() and hugetlb_no_page() may free a newly
+allocated huge page.  If a reservation was associated with the huge page,
+alloc_huge_page() consumed the reservation while allocating.  When the
+newly allocated page is freed in free_huge_page(), it will increment the
+global reservation count.  However, the reservation entry in the reserve
+map will remain.  This is not an issue for shared mappings as the entry in
+the reserve map indicates a reservation exists.  But, an entry in a
+private mapping reserve map indicates the reservation was consumed and no
+longer exists.  This results in an inconsistency between the reserve map
+and the global reservation count.  This 'leaks' a reserved huge page.
 
-The problem was been uncovered by commit 56989f6d8568 ("genetlink: mark
-families as __ro_after_init").
+Create a new routine restore_reserve_on_error() to restore the reserve
+entry in these specific error paths.  This routine makes use of a new
+function vma_add_reservation() which will add a reserve entry for a
+specific address/page.
 
-Link: http://lkml.kernel.org/r/1478274173-15218-1-git-send-email-jakub.kicinski@netronome.com
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+In general, these error paths were rarely (if ever) taken on most
+architectures.  However, powerpc contained arch specific code that that
+resulted in an extra fault and execution of these error paths on all
+private mappings.
+
+Fixes: 67961f9db8c4 ("mm/hugetlb: fix huge page reserve accounting for private mappings)
+Link: http://lkml.kernel.org/r/1476933077-23091-2-git-send-email-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: Jan Stancek <jstancek@redhat.com>
+Tested-by: Jan Stancek <jstancek@redhat.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Kirill A . Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/vmlinux.lds.S    |    2 ++
- include/asm-generic/sections.h    |    3 +++
- include/asm-generic/vmlinux.lds.h |    5 ++++-
- mm/kmemleak.c                     |    1 +
- 4 files changed, 10 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |   66 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
 
-diff -puN arch/s390/kernel/vmlinux.lds.S~mm-kmemleak-scan-dataro_after_init arch/s390/kernel/vmlinux.lds.S
---- a/arch/s390/kernel/vmlinux.lds.S~mm-kmemleak-scan-dataro_after_init
-+++ a/arch/s390/kernel/vmlinux.lds.S
-@@ -62,9 +62,11 @@ SECTIONS
- 
- 	. = ALIGN(PAGE_SIZE);
- 	__start_ro_after_init = .;
-+	__start_data_ro_after_init = .;
- 	.data..ro_after_init : {
- 		 *(.data..ro_after_init)
- 	}
-+	__end_data_ro_after_init = .;
- 	EXCEPTION_TABLE(16)
- 	. = ALIGN(PAGE_SIZE);
- 	__end_ro_after_init = .;
-diff -puN include/asm-generic/sections.h~mm-kmemleak-scan-dataro_after_init include/asm-generic/sections.h
---- a/include/asm-generic/sections.h~mm-kmemleak-scan-dataro_after_init
-+++ a/include/asm-generic/sections.h
-@@ -14,6 +14,8 @@
-  * [_sdata, _edata]: contains .data.* sections, may also contain .rodata.*
-  *                   and/or .init.* sections.
-  * [__start_rodata, __end_rodata]: contains .rodata.* sections
-+ * [__start_data_ro_after_init, __end_data_ro_after_init]:
-+ *		     contains data.ro_after_init section
-  * [__init_begin, __init_end]: contains .init.* sections, but .init.text.*
-  *                   may be out of this range on some architectures.
-  * [_sinittext, _einittext]: contains .init.text.* sections
-@@ -31,6 +33,7 @@ extern char _data[], _sdata[], _edata[];
- extern char __bss_start[], __bss_stop[];
- extern char __init_begin[], __init_end[];
- extern char _sinittext[], _einittext[];
-+extern char __start_data_ro_after_init[], __end_data_ro_after_init[];
- extern char _end[];
- extern char __per_cpu_load[], __per_cpu_start[], __per_cpu_end[];
- extern char __kprobes_text_start[], __kprobes_text_end[];
-diff -puN include/asm-generic/vmlinux.lds.h~mm-kmemleak-scan-dataro_after_init include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~mm-kmemleak-scan-dataro_after_init
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -259,7 +259,10 @@
-  * own by defining an empty RO_AFTER_INIT_DATA.
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-huge-page-reservation-leak-in-private-mapping-error-paths mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-huge-page-reservation-leak-in-private-mapping-error-paths
++++ a/mm/hugetlb.c
+@@ -1826,11 +1826,17 @@ static void return_unused_surplus_pages(
+  * is not the case is if a reserve map was changed between calls.  It
+  * is the responsibility of the caller to notice the difference and
+  * take appropriate action.
++ *
++ * vma_add_reservation is used in error paths where a reservation must
++ * be restored when a newly allocated huge page must be freed.  It is
++ * to be called after calling vma_needs_reservation to determine if a
++ * reservation exists.
   */
- #ifndef RO_AFTER_INIT_DATA
--#define RO_AFTER_INIT_DATA *(.data..ro_after_init)
-+#define RO_AFTER_INIT_DATA						\
-+	__start_data_ro_after_init = .;					\
-+	*(.data..ro_after_init)						\
-+	__end_data_ro_after_init = .;
- #endif
+ enum vma_resv_mode {
+ 	VMA_NEEDS_RESV,
+ 	VMA_COMMIT_RESV,
+ 	VMA_END_RESV,
++	VMA_ADD_RESV,
+ };
+ static long __vma_reservation_common(struct hstate *h,
+ 				struct vm_area_struct *vma, unsigned long addr,
+@@ -1856,6 +1862,14 @@ static long __vma_reservation_common(str
+ 		region_abort(resv, idx, idx + 1);
+ 		ret = 0;
+ 		break;
++	case VMA_ADD_RESV:
++		if (vma->vm_flags & VM_MAYSHARE)
++			ret = region_add(resv, idx, idx + 1);
++		else {
++			region_abort(resv, idx, idx + 1);
++			ret = region_del(resv, idx, idx + 1);
++		}
++		break;
+ 	default:
+ 		BUG();
+ 	}
+@@ -1903,6 +1917,56 @@ static void vma_end_reservation(struct h
+ 	(void)__vma_reservation_common(h, vma, addr, VMA_END_RESV);
+ }
  
- /*
-diff -puN mm/kmemleak.c~mm-kmemleak-scan-dataro_after_init mm/kmemleak.c
---- a/mm/kmemleak.c~mm-kmemleak-scan-dataro_after_init
-+++ a/mm/kmemleak.c
-@@ -1414,6 +1414,7 @@ static void kmemleak_scan(void)
- 	/* data/bss scanning */
- 	scan_large_block(_sdata, _edata);
- 	scan_large_block(__bss_start, __bss_stop);
-+	scan_large_block(__start_data_ro_after_init, __end_data_ro_after_init);
- 
- #ifdef CONFIG_SMP
- 	/* per-cpu sections scanning */
++static long vma_add_reservation(struct hstate *h,
++			struct vm_area_struct *vma, unsigned long addr)
++{
++	return __vma_reservation_common(h, vma, addr, VMA_ADD_RESV);
++}
++
++/*
++ * This routine is called to restore a reservation on error paths.  In the
++ * specific error paths, a huge page was allocated (via alloc_huge_page)
++ * and is about to be freed.  If a reservation for the page existed,
++ * alloc_huge_page would have consumed the reservation and set PagePrivate
++ * in the newly allocated page.  When the page is freed via free_huge_page,
++ * the global reservation count will be incremented if PagePrivate is set.
++ * However, free_huge_page can not adjust the reserve map.  Adjust the
++ * reserve map here to be consistent with global reserve count adjustments
++ * to be made by free_huge_page.
++ */
++static void restore_reserve_on_error(struct hstate *h,
++			struct vm_area_struct *vma, unsigned long address,
++			struct page *page)
++{
++	if (unlikely(PagePrivate(page))) {
++		long rc = vma_needs_reservation(h, vma, address);
++
++		if (unlikely(rc < 0)) {
++			/*
++			 * Rare out of memory condition in reserve map
++			 * manipulation.  Clear PagePrivate so that
++			 * global reserve count will not be incremented
++			 * by free_huge_page.  This will make it appear
++			 * as though the reservation for this page was
++			 * consumed.  This may prevent the task from
++			 * faulting in the page at a later time.  This
++			 * is better than inconsistent global huge page
++			 * accounting of reserve counts.
++			 */
++			ClearPagePrivate(page);
++		} else if (rc) {
++			rc = vma_add_reservation(h, vma, address);
++			if (unlikely(rc < 0))
++				/*
++				 * See above comment about rare out of
++				 * memory condition.
++				 */
++				ClearPagePrivate(page);
++		} else
++			vma_end_reservation(h, vma, address);
++	}
++}
++
+ struct page *alloc_huge_page(struct vm_area_struct *vma,
+ 				    unsigned long addr, int avoid_reserve)
+ {
+@@ -3498,6 +3562,7 @@ retry_avoidcopy:
+ 	spin_unlock(ptl);
+ 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ out_release_all:
++	restore_reserve_on_error(h, vma, address, new_page);
+ 	put_page(new_page);
+ out_release_old:
+ 	put_page(old_page);
+@@ -3680,6 +3745,7 @@ backout:
+ 	spin_unlock(ptl);
+ backout_unlocked:
+ 	unlock_page(page);
++	restore_reserve_on_error(h, vma, address, page);
+ 	put_page(page);
+ 	goto out;
+ }
 _
 
-Patches currently in -mm which might be from jakub.kicinski@netronome.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
 
