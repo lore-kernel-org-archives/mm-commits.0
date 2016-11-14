@@ -1,86 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab.patch
- removed from -mm tree
-Date: Mon, 14 Nov 2016 12:03:37 -0800
-Message-ID: <582a1899.+TsQsF1uq++Y6Ilo%akpm@linux-foundation.org>
+Subject: [merged] coredump-fix-unfreezable-coredumping-task.patch removed
+ from -mm tree
+Date: Mon, 14 Nov 2016 12:03:29 -0800
+Message-ID: <582a1891.InpF7GZmDI5X+twC%akpm__17896.1870413788$1479153854$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38018 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933969AbcKNUDi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:03:38 -0500
+        with ESMTP id S935195AbcKNUDa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:03:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, thgarnie@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, mhocko@kernel.org, oleg@redhat.com, pavel@ucw.cz, rjw@rjwysocki.net, stable@vger.kernel.org, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: prevent memcg caches to be both OFF_SLAB & OBJFREELIST_SLAB
+     Subject: coredump: fix unfreezable coredumping task
 has been removed from the -mm tree.  Its filename was
-     memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab.patch
+     coredump-fix-unfreezable-coredumping-task.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: memcg: prevent memcg caches to be both OFF_SLAB & OBJFREELIST_SLAB
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: coredump: fix unfreezable coredumping task
 
-While testing OBJFREELIST_SLAB integration with pagealloc, we found a bug
-where kmem_cache(sys) would be created with both CFLGS_OFF_SLAB &
-CFLGS_OBJFREELIST_SLAB.  When it happened, critical allocations needed for
-loading drivers or creating new caches will fail.
+It could be not possible to freeze coredumping task when it waits for
+'core_state->startup' completion, because threads are frozen in
+get_signal() before they got a chance to complete 'core_state->startup'.
 
-The original kmem_cache is created early making OFF_SLAB not possible. 
-When kmem_cache(sys) is created, OFF_SLAB is possible and if pagealloc is
-enabled it will try to enable it first under certain conditions.  Given
-kmem_cache(sys) reuses the original flag, you can have both flags at the
-same time resulting in allocation failures and odd behaviors.
+Inability to freeze a task during suspend will cause suspend to fail. 
+Also CRIU uses cgroup freezer during dump operation.  So with an
+unfreezable task the CRIU dump will fail because it waits for a
+transition from 'FREEZING' to 'FROZEN' state which will never happen.
 
-This fix discards allocator specific flags from memcg before calling
-create_cache.
+Use freezer_do_not_count() to tell freezer to ignore coredumping task
+while it waits for core_state->startup completion.
 
-The bug exists since 4.6-rc1 and affects testing debug pagealloc
-configurations.
-
-Fixes: b03a017bebc4 ("mm/slab: introduce new slab management type, OBJFREELIST_SLAB")
-Link: http://lkml.kernel.org/r/1478553075-120242-1-git-send-email-thgarnie@google.com
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Signed-off-by: Thomas Garnier <thgarnie@google.com>
-Tested-by: Thomas Garnier <thgarnie@google.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: http://lkml.kernel.org/r/1475225434-3753-1-git-send-email-aryabinin@virtuozzo.com
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/coredump.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/slab_common.c~memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab mm/slab_common.c
---- a/mm/slab_common.c~memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab
-+++ a/mm/slab_common.c
-@@ -533,8 +533,8 @@ void memcg_create_kmem_cache(struct mem_
+diff -puN fs/coredump.c~coredump-fix-unfreezable-coredumping-task fs/coredump.c
+--- a/fs/coredump.c~coredump-fix-unfreezable-coredumping-task
++++ a/fs/coredump.c
+@@ -1,6 +1,7 @@
+ #include <linux/slab.h>
+ #include <linux/file.h>
+ #include <linux/fdtable.h>
++#include <linux/freezer.h>
+ #include <linux/mm.h>
+ #include <linux/stat.h>
+ #include <linux/fcntl.h>
+@@ -423,7 +424,9 @@ static int coredump_wait(int exit_code,
+ 	if (core_waiters > 0) {
+ 		struct core_thread *ptr;
  
- 	s = create_cache(cache_name, root_cache->object_size,
- 			 root_cache->size, root_cache->align,
--			 root_cache->flags, root_cache->ctor,
--			 memcg, root_cache);
-+			 root_cache->flags & CACHE_CREATE_MASK,
-+			 root_cache->ctor, memcg, root_cache);
- 	/*
- 	 * If we could not create a memcg cache, do not complain, because
- 	 * that's not critical at all as we can always proceed with the root
++		freezer_do_not_count();
+ 		wait_for_completion(&core_state->startup);
++		freezer_count();
+ 		/*
+ 		 * Wait for all the threads to become inactive, so that
+ 		 * all the thread context (extended register state, like
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-mm-slab-faster-active-and-free-stats.patch
 
