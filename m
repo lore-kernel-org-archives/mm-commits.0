@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-add-a-new-parameter-for-some-functions.patch added
- to -mm tree
-Date: Mon, 14 Nov 2016 14:44:43 -0800
-Message-ID: <582a3e5b.jUQ+bEdHkC+N/FZO%akpm@linux-foundation.org>
+Subject: + mm-mempolicy-intruduce-a-helper-huge_nodemask.patch added to
+ -mm tree
+Date: Mon, 14 Nov 2016 14:44:49 -0800
+Message-ID: <582a3e61.hw4WPsNfr9YYjD/3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53258 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934180AbcKNWop (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 17:44:45 -0500
+        with ESMTP id S934180AbcKNWov (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 17:44:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: shijie.huang@arm.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, gerald.schaefer@de.ibm.com, kaly.xin@arm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: add a new parameter for some functions
+     Subject: mm: mempolicy: intruduce a helper huge_nodemask()
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-a-new-parameter-for-some-functions.patch
+     mm-mempolicy-intruduce-a-helper-huge_nodemask.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-add-a-new-parameter-for-some-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-intruduce-a-helper-huge_nodemask.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-add-a-new-parameter-for-some-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-intruduce-a-helper-huge_nodemask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,24 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Huang Shijie <shijie.huang@arm.com>
-Subject: mm: hugetlb: add a new parameter for some functions
+Subject: mm: mempolicy: intruduce a helper huge_nodemask()
 
-Add a new parameter, the "no_init", to these functions:
+Introduce a new helper huge_nodemask(), we can use it to get the node
+mask.
 
-   alloc_fresh_gigantic_page_node()
-   alloc_fresh_gigantic_page()
+This idea of the function is from huge_zonelist().
 
-prep_new_huge_page() does some initialization for the new page.  But
-sometimes we do not need it to do so, such as in the surplus case in a
-later patch.
-
-With this parameter, prep_new_huge_page() can be called by needed:
-   If the "no_init" is false, calls the prep_new_huge_page() in
-   the alloc_fresh_gigantic_page_node();
-
-This is in preparation for later patches.
-
-Link: http://lkml.kernel.org/r/1479107259-2011-3-git-send-email-shijie.huang@arm.com
+Link: http://lkml.kernel.org/r/1479107259-2011-5-git-send-email-shijie.huang@arm.com
 Signed-off-by: Huang Shijie <shijie.huang@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -72,65 +62,65 @@ Cc: Kaly Xin <kaly.xin@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/mempolicy.h |    8 ++++++++
+ mm/mempolicy.c            |   20 ++++++++++++++++++++
+ 2 files changed, 28 insertions(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-add-a-new-parameter-for-some-functions mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-add-a-new-parameter-for-some-functions
-+++ a/mm/hugetlb.c
-@@ -1127,27 +1127,29 @@ static struct page *alloc_gigantic_page(
- static void prep_new_huge_page(struct hstate *h, struct page *page, int nid);
- static void prep_compound_gigantic_page(struct page *page, unsigned int order);
+diff -puN include/linux/mempolicy.h~mm-mempolicy-intruduce-a-helper-huge_nodemask include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicy-intruduce-a-helper-huge_nodemask
++++ a/include/linux/mempolicy.h
+@@ -145,6 +145,8 @@ extern void mpol_rebind_task(struct task
+ 				enum mpol_rebind_step step);
+ extern void mpol_rebind_mm(struct mm_struct *mm, nodemask_t *new);
  
--static struct page *alloc_fresh_gigantic_page_node(struct hstate *h, int nid)
-+static struct page *alloc_fresh_gigantic_page_node(struct hstate *h,
-+					int nid, bool no_init)
++extern nodemask_t *huge_nodemask(struct vm_area_struct *vma,
++				unsigned long addr);
+ extern struct zonelist *huge_zonelist(struct vm_area_struct *vma,
+ 				unsigned long addr, gfp_t gfp_flags,
+ 				struct mempolicy **mpol, nodemask_t **nodemask);
+@@ -261,6 +263,12 @@ static inline void mpol_rebind_mm(struct
  {
- 	struct page *page;
- 
- 	page = alloc_gigantic_page(nid, huge_page_order(h));
- 	if (page) {
- 		prep_compound_gigantic_page(page, huge_page_order(h));
--		prep_new_huge_page(h, page, nid);
-+		if (!no_init)
-+			prep_new_huge_page(h, page, nid);
- 	}
- 
- 	return page;
  }
  
- static int alloc_fresh_gigantic_page(struct hstate *h,
--				nodemask_t *nodes_allowed)
-+				nodemask_t *nodes_allowed, bool no_init)
- {
- 	struct page *page = NULL;
- 	int nr_nodes, node;
++static inline nodemask_t *huge_nodemask(struct vm_area_struct *vma,
++				unsigned long addr)
++{
++	return NULL;
++}
++
+ static inline struct zonelist *huge_zonelist(struct vm_area_struct *vma,
+ 				unsigned long addr, gfp_t gfp_flags,
+ 				struct mempolicy **mpol, nodemask_t **nodemask)
+diff -puN mm/mempolicy.c~mm-mempolicy-intruduce-a-helper-huge_nodemask mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-intruduce-a-helper-huge_nodemask
++++ a/mm/mempolicy.c
+@@ -1800,6 +1800,26 @@ static inline unsigned interleave_nid(st
  
- 	for_each_node_mask_to_alloc(h, nr_nodes, node, nodes_allowed) {
--		page = alloc_fresh_gigantic_page_node(h, node);
-+		page = alloc_fresh_gigantic_page_node(h, node, no_init);
- 		if (page)
- 			return 1;
- 	}
-@@ -1166,7 +1168,7 @@ static inline void free_gigantic_page(st
- static inline void destroy_compound_gigantic_page(struct page *page,
- 						unsigned int order) { }
- static inline int alloc_fresh_gigantic_page(struct hstate *h,
--					nodemask_t *nodes_allowed) { return 0; }
-+		nodemask_t *nodes_allowed, bool no_init) { return 0; }
- #endif
- 
- static void update_and_free_page(struct hstate *h, struct page *page)
-@@ -2313,7 +2315,8 @@ static unsigned long set_max_huge_pages(
- 		cond_resched();
- 
- 		if (hstate_is_gigantic(h))
--			ret = alloc_fresh_gigantic_page(h, nodes_allowed);
-+			ret = alloc_fresh_gigantic_page(h, nodes_allowed,
-+							false);
- 		else
- 			ret = alloc_fresh_huge_page(h, nodes_allowed);
- 		spin_lock(&hugetlb_lock);
+ #ifdef CONFIG_HUGETLBFS
+ /*
++ * huge_nodemask(@vma, @addr)
++ * @vma: virtual memory area whose policy is sought
++ * @addr: address in @vma for shared policy lookup and interleave policy
++ *
++ * If the effective policy is BIND, returns a pointer to the mempolicy's
++ * @nodemask.
++ */
++nodemask_t *huge_nodemask(struct vm_area_struct *vma, unsigned long addr)
++{
++	nodemask_t *nodes_mask = NULL;
++	struct mempolicy *mpol = get_vma_policy(vma, addr);
++
++	if (mpol->mode == MPOL_BIND)
++		nodes_mask = &mpol->v.nodes;
++	mpol_cond_put(mpol);
++
++	return nodes_mask;
++}
++
++/*
+  * huge_zonelist(@vma, @addr, @gfp_flags, @mpol)
+  * @vma: virtual memory area whose policy is sought
+  * @addr: address in @vma for shared policy lookup and interleave policy
 _
 
 Patches currently in -mm which might be from shijie.huang@arm.com are
