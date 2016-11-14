@@ -1,65 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-remove-extra-newline-from-allocation-stall-warning.patch removed from
- -mm tree
-Date: Mon, 14 Nov 2016 12:02:22 -0800
-Message-ID: <582a184e.IIcqYVphgpQylHuc%akpm@linux-foundation.org>
+Subject: [merged] shmem-fix-pageflags-after-swapping-dma32-object.patch
+ removed from -mm tree
+Date: Mon, 14 Nov 2016 12:02:35 -0800
+Message-ID: <582a185b.tIPtzcZvbSuEBBra%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37874 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933969AbcKNUCX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:02:23 -0500
+        with ESMTP id S935195AbcKNUCg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:02:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, mhocko@suse.com, mm-commits@vger.kernel.org
+To: hughd@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove extra newline from allocation stall warning
+     Subject: shmem: fix pageflags after swapping DMA32 object
 has been removed from the -mm tree.  Its filename was
-     mm-remove-extra-newline-from-allocation-stall-warning.patch
+     shmem-fix-pageflags-after-swapping-dma32-object.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm: remove extra newline from allocation stall warning
+From: Hugh Dickins <hughd@google.com>
+Subject: shmem: fix pageflags after swapping DMA32 object
 
-63f53dea0c9866e9 ("mm: warn about allocations which stall for too long")
-by error embedded "\n" in the format string, resulting in strange output.
+If shmem_alloc_page() does not set PageLocked and PageSwapBacked, then
+shmem_replace_page() needs to do so for itself.  Without this, it puts
+newpage on the wrong lru, re-unlocks the unlocked newpage, and system
+descends into "Bad page" reports and freeze; or if CONFIG_DEBUG_VM=y, it
+hits an earlier VM_BUG_ON_PAGE(!PageLocked), depending on config.
 
-[  722.876655] kworker/0:1: page alloction stalls for 160001ms, order:0
-[  722.876656] , mode:0x2400000(GFP_NOIO)
-[  722.876657] CPU: 0 PID: 6966 Comm: kworker/0:1 Not tainted 4.8.0+ #69
+But shmem_replace_page() is not a common path: it's only called when
+swapin (or swapoff) finds the page was already read into an unsuitable
+zone: usually all zones are suitable, but gem objects for a few drm
+devices (gma500, omapdrm, crestline, broadwater) require zone DMA32 if
+there's more than 4GB of ram.
 
-Link: http://lkml.kernel.org/r/1476026219-7974-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Fixes: 800d8c63b2e9 ("shmem: add huge pages support")
+Link: http://lkml.kernel.org/r/alpine.LSU.2.11.1611062003510.11253@eggly.anvils
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kernel.org>	[4.8.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/shmem.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-remove-extra-newline-from-allocation-stall-warning mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-extra-newline-from-allocation-stall-warning
-+++ a/mm/page_alloc.c
-@@ -3658,7 +3658,7 @@ retry:
- 	/* Make sure we know about allocations which stall for too long */
- 	if (time_after(jiffies, alloc_start + stall_timeout)) {
- 		warn_alloc(gfp_mask,
--			"page alloction stalls for %ums, order:%u\n",
-+			"page allocation stalls for %ums, order:%u",
- 			jiffies_to_msecs(jiffies-alloc_start), order);
- 		stall_timeout += 10 * HZ;
- 	}
+diff -puN mm/shmem.c~shmem-fix-pageflags-after-swapping-dma32-object mm/shmem.c
+--- a/mm/shmem.c~shmem-fix-pageflags-after-swapping-dma32-object
++++ a/mm/shmem.c
+@@ -1483,6 +1483,8 @@ static int shmem_replace_page(struct pag
+ 	copy_highpage(newpage, oldpage);
+ 	flush_dcache_page(newpage);
+ 
++	__SetPageLocked(newpage);
++	__SetPageSwapBacked(newpage);
+ 	SetPageUptodate(newpage);
+ 	set_page_private(newpage, swap_index);
+ 	SetPageSwapCache(newpage);
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from hughd@google.com are
 
-hung_task-decrement-sysctl_hung_task_warnings-only-if-it-is-positive.patch
 
