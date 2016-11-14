@@ -1,72 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-bloat-o-meter-fix-sigpipe.patch removed from -mm tree
-Date: Mon, 14 Nov 2016 12:02:41 -0800
-Message-ID: <582a1861.giZCWW7YoEVLb+yI%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch removed from -mm tree
+Date: Mon, 14 Nov 2016 12:03:00 -0800
+Message-ID: <582a1874.ya0FbALeII0hFUNX%akpm__23882.4507025585$1479153803$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37960 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935195AbcKNUCm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:02:42 -0500
+        with ESMTP id S935195AbcKNUDB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:03:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mpm@selenic.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/bloat-o-meter: fix SIGPIPE
+     Subject: mm: hwpoison: fix thp split handling in memory_failure()
 has been removed from the -mm tree.  Its filename was
-     scripts-bloat-o-meter-fix-sigpipe.patch
+     mm-hwpoison-fix-thp-split-handling-in-memory_failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: scripts/bloat-o-meter: fix SIGPIPE
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: hwpoison: fix thp split handling in memory_failure()
 
-Fix piping output to a program which quickly exits (read: head -n1)
+When memory_failure() runs on a thp tail page after pmd is split, we
+trigger the following VM_BUG_ON_PAGE():
 
-	$ ./scripts/bloat-o-meter ../vmlinux-000 ../obj/vmlinux | head -n1
-	add/remove: 0/0 grow/shrink: 9/60 up/down: 124/-305 (-181)
-	close failed in file object destructor:
-	sys.excepthook is missing
-	lost sys.stderr
+  [  619.550520] page:ffffd7cd819b0040 count:0 mapcount:0 mapping:         (null) index:0x1
+  [  619.555486] flags: 0x1fffc000400000(hwpoison)
+  [  619.556408] page dumped because: VM_BUG_ON_PAGE(!page_count(p))
+  [  619.558998] ------------[ cut here ]------------
+  [  619.561388] kernel BUG at /src/linux-dev/mm/memory-failure.c:1132!
 
-Link: http://lkml.kernel.org/r/20161028204618.GA29923@avx2
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Matt Mackall <mpm@selenic.com>
+memory_failure() passed refcount and page lock from tail page to head
+page, which is not needed because we can pass any subpage to
+split_huge_page().
+
+Fixes: 61f5d698cc97 ("mm: re-enable THP")
+Link: http://lkml.kernel.org/r/1477961577-7183-1-git-send-email-n-horiguchi@ah.jp.nec.com
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: <stable@vger.kernel.org>	[4.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memory-failure.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-fix-sigpipe scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-fix-sigpipe
-+++ a/scripts/bloat-o-meter
-@@ -8,6 +8,9 @@
- # of the GNU General Public License, incorporated herein by reference.
+diff -puN mm/memory-failure.c~mm-hwpoison-fix-thp-split-handling-in-memory_failure mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-fix-thp-split-handling-in-memory_failure
++++ a/mm/memory-failure.c
+@@ -1112,10 +1112,10 @@ int memory_failure(unsigned long pfn, in
+ 	}
  
- import sys, os, re
-+from signal import signal, SIGPIPE, SIG_DFL
-+
-+signal(SIGPIPE, SIG_DFL)
- 
- if len(sys.argv) != 3:
-     sys.stderr.write("usage: %s file1 file2\n" % sys.argv[0])
+ 	if (!PageHuge(p) && PageTransHuge(hpage)) {
+-		lock_page(hpage);
+-		if (!PageAnon(hpage) || unlikely(split_huge_page(hpage))) {
+-			unlock_page(hpage);
+-			if (!PageAnon(hpage))
++		lock_page(p);
++		if (!PageAnon(p) || unlikely(split_huge_page(p))) {
++			unlock_page(p);
++			if (!PageAnon(p))
+ 				pr_err("Memory failure: %#lx: non anonymous thp\n",
+ 					pfn);
+ 			else
+@@ -1126,9 +1126,7 @@ int memory_failure(unsigned long pfn, in
+ 			put_hwpoison_page(p);
+ 			return -EBUSY;
+ 		}
+-		unlock_page(hpage);
+-		get_hwpoison_page(p);
+-		put_hwpoison_page(hpage);
++		unlock_page(p);
+ 		VM_BUG_ON_PAGE(!page_count(p), p);
+ 		hpage = compound_head(p);
+ 	}
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-kbuild-simpler-generation-of-assembly-constants.patch
-proc-make-struct-pid_entry-len-unsigned.patch
-proc-make-struct-struct-map_files_info-len-unsigned-int.patch
-proc-just-list_del-struct-pde_opener.patch
-proc-fix-type-of-struct-pde_opener-closing-field.patch
-proc-kmalloc-struct-pde_opener.patch
-proc-tweak-comments-about-2-stage-open-and-everything.patch
-coredump-clarify-unsafe-core_pattern-warning.patch
 
