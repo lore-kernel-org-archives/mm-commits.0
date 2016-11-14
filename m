@@ -1,106 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [patch 14/15] mm: kmemleak: scan .data.ro_after_init
-Date: Thu, 10 Nov 2016 10:46:44 -0800
-Message-ID: <5824c094.AO+uY4jJRfdD+g/6%akpm@linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Mon, 14 Nov 2016 12:01:06 -0800
+Message-ID: <582a1802.X9IPKGgeS456CrSG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37672 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755791AbcKJSqq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 10 Nov 2016 13:46:46 -0500
+        with ESMTP id S933969AbcKNUBH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:01:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, mm-commits@vger.kernel.org, akpm@linux-foundation.org, jakub.kicinski@netronome.com, arnd@arndb.de, catalin.marinas@arm.com, heiko.carstens@de.ibm.com, johannes@sipsolutions.net, schwidefsky@de.ibm.com, xiyou.wangcong@gmail.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
-From: Jakub Kicinski <jakub.kicinski@netronome.com>
-Subject: mm: kmemleak: scan .data.ro_after_init
 
-Limit the number of kmemleak false positives by including
-.data.ro_after_init in memory scanning.  To achieve this we need to add
-symbols for start and end of the section to the linker scripts.
+The patch titled
+     Subject: linux-next-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-rejects.patch
 
-The problem was been uncovered by commit 56989f6d8568 ("genetlink: mark
-families as __ro_after_init").
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
 
-Link: http://lkml.kernel.org/r/1478274173-15218-1-git-send-email-jakub.kicinski@netronome.com
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Jakub Kicinski <jakub.kicinski@netronome.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/vmlinux.lds.S    |    2 ++
- include/asm-generic/sections.h    |    3 +++
- include/asm-generic/vmlinux.lds.h |    5 ++++-
- mm/kmemleak.c                     |    1 +
- 4 files changed, 10 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN arch/s390/kernel/vmlinux.lds.S~mm-kmemleak-scan-dataro_after_init arch/s390/kernel/vmlinux.lds.S
---- a/arch/s390/kernel/vmlinux.lds.S~mm-kmemleak-scan-dataro_after_init
-+++ a/arch/s390/kernel/vmlinux.lds.S
-@@ -62,9 +62,11 @@ SECTIONS
- 
- 	. = ALIGN(PAGE_SIZE);
- 	__start_ro_after_init = .;
-+	__start_data_ro_after_init = .;
- 	.data..ro_after_init : {
- 		 *(.data..ro_after_init)
- 	}
-+	__end_data_ro_after_init = .;
- 	EXCEPTION_TABLE(16)
- 	. = ALIGN(PAGE_SIZE);
- 	__end_ro_after_init = .;
-diff -puN include/asm-generic/sections.h~mm-kmemleak-scan-dataro_after_init include/asm-generic/sections.h
---- a/include/asm-generic/sections.h~mm-kmemleak-scan-dataro_after_init
-+++ a/include/asm-generic/sections.h
-@@ -14,6 +14,8 @@
-  * [_sdata, _edata]: contains .data.* sections, may also contain .rodata.*
-  *                   and/or .init.* sections.
-  * [__start_rodata, __end_rodata]: contains .rodata.* sections
-+ * [__start_data_ro_after_init, __end_data_ro_after_init]:
-+ *		     contains data.ro_after_init section
-  * [__init_begin, __init_end]: contains .init.* sections, but .init.text.*
-  *                   may be out of this range on some architectures.
-  * [_sinittext, _einittext]: contains .init.text.* sections
-@@ -31,6 +33,7 @@ extern char _data[], _sdata[], _edata[];
- extern char __bss_start[], __bss_stop[];
- extern char __init_begin[], __init_end[];
- extern char _sinittext[], _einittext[];
-+extern char __start_data_ro_after_init[], __end_data_ro_after_init[];
- extern char _end[];
- extern char __per_cpu_load[], __per_cpu_start[], __per_cpu_end[];
- extern char __kprobes_text_start[], __kprobes_text_end[];
-diff -puN include/asm-generic/vmlinux.lds.h~mm-kmemleak-scan-dataro_after_init include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~mm-kmemleak-scan-dataro_after_init
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -259,7 +259,10 @@
-  * own by defining an empty RO_AFTER_INIT_DATA.
+diff -puN mm/memcontrol.c~linux-next-rejects mm/memcontrol.c
+--- a/mm/memcontrol.c~linux-next-rejects
++++ a/mm/memcontrol.c
+@@ -5767,10 +5767,10 @@ __setup("cgroup.memory=", cgroup_memory)
+ /*
+  * subsys_initcall() for memory controller.
+  *
+- * Some parts like hotcpu_notifier() have to be initialized from this context
+- * because of lock dependencies (cgroup_lock -> cpu hotplug) but basically
+- * everything that doesn't depend on a specific mem_cgroup structure should
+- * be initialized from here.
++ * Some parts like memcg_hotplug_cpu_dead() have to be initialized from this
++ * context because of lock dependencies (cgroup_lock -> cpu hotplug) but
++ * basically everything that doesn't depend on a specific mem_cgroup structure
++ * should be initialized from here.
   */
- #ifndef RO_AFTER_INIT_DATA
--#define RO_AFTER_INIT_DATA *(.data..ro_after_init)
-+#define RO_AFTER_INIT_DATA						\
-+	__start_data_ro_after_init = .;					\
-+	*(.data..ro_after_init)						\
-+	__end_data_ro_after_init = .;
+ static int __init mem_cgroup_init(void)
+ {
+@@ -5787,7 +5787,8 @@ static int __init mem_cgroup_init(void)
+ 	BUG_ON(!memcg_kmem_cache_create_wq);
  #endif
  
- /*
-diff -puN mm/kmemleak.c~mm-kmemleak-scan-dataro_after_init mm/kmemleak.c
---- a/mm/kmemleak.c~mm-kmemleak-scan-dataro_after_init
-+++ a/mm/kmemleak.c
-@@ -1414,6 +1414,7 @@ static void kmemleak_scan(void)
- 	/* data/bss scanning */
- 	scan_large_block(_sdata, _edata);
- 	scan_large_block(__bss_start, __bss_stop);
-+	scan_large_block(__start_data_ro_after_init, __end_data_ro_after_init);
+-	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
++	cpuhp_setup_state_nocalls(CPUHP_MM_MEMCQ_DEAD, "mm/memctrl:dead", NULL,
++				  memcg_hotplug_cpu_dead);
  
- #ifdef CONFIG_SMP
- 	/* per-cpu sections scanning */
+ 	for_each_possible_cpu(cpu)
+ 		INIT_WORK(&per_cpu_ptr(&memcg_stock, cpu)->work,
 _
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
+mm.patch
+mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
+mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
+mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
+scripts-checkpatchpl-fix-spelling.patch
+debug-more-properly-delay-for-secondary-cpus-fix.patch
+ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
+ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
+ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-rejects.patch
+
