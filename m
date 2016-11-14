@@ -1,119 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch removed from -mm tree
-Date: Mon, 14 Nov 2016 12:03:06 -0800
-Message-ID: <582a187a.LrsMNaGjW6xhYNKZ%akpm@linux-foundation.org>
+Subject: [merged] mm-kmemleak-scan-dataro_after_init.patch removed from
+ -mm tree
+Date: Mon, 14 Nov 2016 12:03:42 -0800
+Message-ID: <582a189e.94oloxe46S14bI7D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37964 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38044 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933969AbcKNUDH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:03:07 -0500
+        with ESMTP id S933969AbcKNUDn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:03:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hdegoede@redhat.com, frowand.list@gmail.com, gregkh@linuxfoundation.org, paul.burton@imgtec.com, regressions@leemhuis.info, robh+dt@kernel.org, stable@vger.kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: jakub.kicinski@netronome.com, arnd@arndb.de, catalin.marinas@arm.com, heiko.carstens@de.ibm.com, johannes@sipsolutions.net, schwidefsky@de.ibm.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "console: don't prefer first registered if DT specifies stdout-path"
+     Subject: mm: kmemleak: scan .data.ro_after_init
 has been removed from the -mm tree.  Its filename was
-     revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path.patch
+     mm-kmemleak-scan-dataro_after_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Revert "console: don't prefer first registered if DT specifies stdout-path"
+From: Jakub Kicinski <jakub.kicinski@netronome.com>
+Subject: mm: kmemleak: scan .data.ro_after_init
 
-This reverts commit 05fd007e4629 ("console: don't prefer first registered
-if DT specifies stdout-path").
+Limit the number of kmemleak false positives by including
+.data.ro_after_init in memory scanning.  To achieve this we need to add
+symbols for start and end of the section to the linker scripts.
 
-The reverted commit changes existing behavior on which many ARM boards
-rely.  Many ARM small-board-computers, like e.g.  the Raspberry Pi have
-both a video output and a serial console.  Depending on whether the user
-is using the device as a more regular computer; or as a headless device we
-need to have the console on either one or the other.
+The problem was been uncovered by commit 56989f6d8568 ("genetlink: mark
+families as __ro_after_init").
 
-Many users rely on the kernel behavior of the console being present on
-both outputs, before the reverted commit the console setup with no
-console= kernel arguments on an ARM board which sets stdout-path in dt
-would look like this:
-
-[root@localhost ~]# cat /proc/consoles
-ttyS0                -W- (EC p a)    4:64
-tty0                 -WU (E  p  )    4:1
-
-Where as after the reverted commit, it looks like this:
-
-[root@localhost ~]# cat /proc/consoles
-ttyS0                -W- (EC p a)    4:64
-
-This commit reverts commit 05fd007e4629 ("console: don't prefer first
-registered if DT specifies stdout-path") restoring the original behavior.
-
-Fixes: 05fd007e4629 ("console: don't prefer first registered if DT specifies stdout-path")
-Link: http://lkml.kernel.org/r/20161104121135.4780-2-hdegoede@redhat.com
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Cc: Paul Burton <paul.burton@imgtec.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Frank Rowand <frowand.list@gmail.com>
-Cc: Thorsten Leemhuis <regressions@leemhuis.info>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/1478274173-15218-1-git-send-email-jakub.kicinski@netronome.com
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Jakub Kicinski <jakub.kicinski@netronome.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: Johannes Berg <johannes@sipsolutions.net>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/of/base.c       |    2 --
- include/linux/console.h |    6 ------
- kernel/printk/printk.c  |   13 +------------
- 3 files changed, 1 insertion(+), 20 deletions(-)
+ arch/s390/kernel/vmlinux.lds.S    |    2 ++
+ include/asm-generic/sections.h    |    3 +++
+ include/asm-generic/vmlinux.lds.h |    5 ++++-
+ mm/kmemleak.c                     |    1 +
+ 4 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN drivers/of/base.c~revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path drivers/of/base.c
---- a/drivers/of/base.c~revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path
-+++ a/drivers/of/base.c
-@@ -2077,8 +2077,6 @@ void of_alias_scan(void * (*dt_alloc)(u6
- 			name = of_get_property(of_aliases, "stdout", NULL);
- 		if (name)
- 			of_stdout = of_find_node_opts_by_path(name, &of_stdout_options);
--		if (of_stdout)
--			console_set_by_of();
+diff -puN arch/s390/kernel/vmlinux.lds.S~mm-kmemleak-scan-dataro_after_init arch/s390/kernel/vmlinux.lds.S
+--- a/arch/s390/kernel/vmlinux.lds.S~mm-kmemleak-scan-dataro_after_init
++++ a/arch/s390/kernel/vmlinux.lds.S
+@@ -62,9 +62,11 @@ SECTIONS
+ 
+ 	. = ALIGN(PAGE_SIZE);
+ 	__start_ro_after_init = .;
++	__start_data_ro_after_init = .;
+ 	.data..ro_after_init : {
+ 		 *(.data..ro_after_init)
  	}
- 
- 	if (!of_aliases)
-diff -puN include/linux/console.h~revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path include/linux/console.h
---- a/include/linux/console.h~revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path
-+++ a/include/linux/console.h
-@@ -173,12 +173,6 @@ static inline void console_sysfs_notify(
++	__end_data_ro_after_init = .;
+ 	EXCEPTION_TABLE(16)
+ 	. = ALIGN(PAGE_SIZE);
+ 	__end_ro_after_init = .;
+diff -puN include/asm-generic/sections.h~mm-kmemleak-scan-dataro_after_init include/asm-generic/sections.h
+--- a/include/asm-generic/sections.h~mm-kmemleak-scan-dataro_after_init
++++ a/include/asm-generic/sections.h
+@@ -14,6 +14,8 @@
+  * [_sdata, _edata]: contains .data.* sections, may also contain .rodata.*
+  *                   and/or .init.* sections.
+  * [__start_rodata, __end_rodata]: contains .rodata.* sections
++ * [__start_data_ro_after_init, __end_data_ro_after_init]:
++ *		     contains data.ro_after_init section
+  * [__init_begin, __init_end]: contains .init.* sections, but .init.text.*
+  *                   may be out of this range on some architectures.
+  * [_sinittext, _einittext]: contains .init.text.* sections
+@@ -31,6 +33,7 @@ extern char _data[], _sdata[], _edata[];
+ extern char __bss_start[], __bss_stop[];
+ extern char __init_begin[], __init_end[];
+ extern char _sinittext[], _einittext[];
++extern char __start_data_ro_after_init[], __end_data_ro_after_init[];
+ extern char _end[];
+ extern char __per_cpu_load[], __per_cpu_start[], __per_cpu_end[];
+ extern char __kprobes_text_start[], __kprobes_text_end[];
+diff -puN include/asm-generic/vmlinux.lds.h~mm-kmemleak-scan-dataro_after_init include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~mm-kmemleak-scan-dataro_after_init
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -259,7 +259,10 @@
+  * own by defining an empty RO_AFTER_INIT_DATA.
+  */
+ #ifndef RO_AFTER_INIT_DATA
+-#define RO_AFTER_INIT_DATA *(.data..ro_after_init)
++#define RO_AFTER_INIT_DATA						\
++	__start_data_ro_after_init = .;					\
++	*(.data..ro_after_init)						\
++	__end_data_ro_after_init = .;
  #endif
- extern bool console_suspend_enabled;
  
--#ifdef CONFIG_OF
--extern void console_set_by_of(void);
--#else
--static inline void console_set_by_of(void) {}
--#endif
--
- /* Suspend and resume console messages over PM events */
- extern void suspend_console(void);
- extern void resume_console(void);
-diff -puN kernel/printk/printk.c~revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path kernel/printk/printk.c
---- a/kernel/printk/printk.c~revert-console-dont-prefer-first-registered-if-dt-specifies-stdout-path
-+++ a/kernel/printk/printk.c
-@@ -253,17 +253,6 @@ static int preferred_console = -1;
- int console_set_on_cmdline;
- EXPORT_SYMBOL(console_set_on_cmdline);
+ /*
+diff -puN mm/kmemleak.c~mm-kmemleak-scan-dataro_after_init mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-scan-dataro_after_init
++++ a/mm/kmemleak.c
+@@ -1414,6 +1414,7 @@ static void kmemleak_scan(void)
+ 	/* data/bss scanning */
+ 	scan_large_block(_sdata, _edata);
+ 	scan_large_block(__bss_start, __bss_stop);
++	scan_large_block(__start_data_ro_after_init, __end_data_ro_after_init);
  
--#ifdef CONFIG_OF
--static bool of_specified_console;
--
--void console_set_by_of(void)
--{
--	of_specified_console = true;
--}
--#else
--# define of_specified_console false
--#endif
+ #ifdef CONFIG_SMP
+ 	/* per-cpu sections scanning */
+_
+
+Patches currently in -mm which might be from jakub.kicinski@netronome.com are
+
+
