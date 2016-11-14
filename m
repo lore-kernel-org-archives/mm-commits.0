@@ -1,88 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-filemap-dont-allow-partially-uptodate-page-for-pipes.patch removed from
- -mm tree
-Date: Mon, 14 Nov 2016 12:03:26 -0800
-Message-ID: <582a188e.aNpU3qrsK1/h8XXO%akpm@linux-foundation.org>
+ memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab.patch
+ removed from -mm tree
+Date: Mon, 14 Nov 2016 12:03:37 -0800
+Message-ID: <582a1899.+TsQsF1uq++Y6Ilo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38006 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38030 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936618AbcKNUD1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:03:27 -0500
+        with ESMTP id S933969AbcKNUDi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 15:03:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guaneryu@gmail.com, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: gthelen@google.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, thgarnie@google.com, vdavydov.dev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/filemap: don't allow partially uptodate page for pipes
+     Subject: memcg: prevent memcg caches to be both OFF_SLAB & OBJFREELIST_SLAB
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-dont-allow-partially-uptodate-page-for-pipes.patch
+     memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eryu Guan <guaneryu@gmail.com>
-Subject: mm/filemap: don't allow partially uptodate page for pipes
+From: Greg Thelen <gthelen@google.com>
+Subject: memcg: prevent memcg caches to be both OFF_SLAB & OBJFREELIST_SLAB
 
-Starting from 4.9-rc1 kernel, I started noticing some test failures of
-sendfile(2) and splice(2) (sendfile0N and splice01 from LTP) when testing
-on sub-page block size filesystems (tested both XFS and ext4), these
-syscalls start to return EIO in the tests.  e.g.
+While testing OBJFREELIST_SLAB integration with pagealloc, we found a bug
+where kmem_cache(sys) would be created with both CFLGS_OFF_SLAB &
+CFLGS_OBJFREELIST_SLAB.  When it happened, critical allocations needed for
+loading drivers or creating new caches will fail.
 
-sendfile02    1  TFAIL  :  sendfile02.c:133: sendfile(2) failed to return expected value, expected: 26, got: -1
-sendfile02    2  TFAIL  :  sendfile02.c:133: sendfile(2) failed to return expected value, expected: 24, got: -1
-sendfile02    3  TFAIL  :  sendfile02.c:133: sendfile(2) failed to return expected value, expected: 22, got: -1
-sendfile02    4  TFAIL  :  sendfile02.c:133: sendfile(2) failed to return expected value, expected: 20, got: -1
+The original kmem_cache is created early making OFF_SLAB not possible. 
+When kmem_cache(sys) is created, OFF_SLAB is possible and if pagealloc is
+enabled it will try to enable it first under certain conditions.  Given
+kmem_cache(sys) reuses the original flag, you can have both flags at the
+same time resulting in allocation failures and odd behaviors.
 
-This is because that in sub-page block size cases, we don't need the whole
-page to be uptodate, only the part we care about is uptodate is OK (if fs
-has ->is_partially_uptodate defined).  But page_cache_pipe_buf_confirm()
-doesn't have the ability to check the partially-uptodate case, it needs
-the whole page to be uptodate.  So it returns EIO in this case.
+This fix discards allocator specific flags from memcg before calling
+create_cache.
 
-This is a regression introduced by commit 82c156f85384 ("switch
-generic_file_splice_read() to use of ->read_iter()").  Prior to the
-change, generic_file_splice_read() doesn't allow partially-uptodate page
-either, so it worked fine.
+The bug exists since 4.6-rc1 and affects testing debug pagealloc
+configurations.
 
-Fix it by skipping the partially-uptodate check if we're working on a pipe
-in do_generic_file_read(), so we read the whole page from disk as long as
-the page is not uptodate.
-
-I think the other way to fix it is to add the ability to check & allow
-partially-uptodate page to page_cache_pipe_buf_confirm(), but that is much
-harder to do and seems gain little.
-
-Link: http://lkml.kernel.org/r/1477986187-12717-1-git-send-email-guaneryu@gmail.com
-Signed-off-by: Eryu Guan <guaneryu@gmail.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Fixes: b03a017bebc4 ("mm/slab: introduce new slab management type, OBJFREELIST_SLAB")
+Link: http://lkml.kernel.org/r/1478553075-120242-1-git-send-email-thgarnie@google.com
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Signed-off-by: Thomas Garnier <thgarnie@google.com>
+Tested-by: Thomas Garnier <thgarnie@google.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/slab_common.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/filemap.c~mm-filemap-dont-allow-partially-uptodate-page-for-pipes mm/filemap.c
---- a/mm/filemap.c~mm-filemap-dont-allow-partially-uptodate-page-for-pipes
-+++ a/mm/filemap.c
-@@ -1732,6 +1732,9 @@ find_page:
- 			if (inode->i_blkbits == PAGE_SHIFT ||
- 					!mapping->a_ops->is_partially_uptodate)
- 				goto page_not_up_to_date;
-+			/* pipes can't handle partially uptodate pages */
-+			if (unlikely(iter->type & ITER_PIPE))
-+				goto page_not_up_to_date;
- 			if (!trylock_page(page))
- 				goto page_not_up_to_date;
- 			/* Did it get truncated before we got the lock? */
+diff -puN mm/slab_common.c~memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab mm/slab_common.c
+--- a/mm/slab_common.c~memcg-prevent-memcg-caches-to-be-both-off_slab-objfreelist_slab
++++ a/mm/slab_common.c
+@@ -533,8 +533,8 @@ void memcg_create_kmem_cache(struct mem_
+ 
+ 	s = create_cache(cache_name, root_cache->object_size,
+ 			 root_cache->size, root_cache->align,
+-			 root_cache->flags, root_cache->ctor,
+-			 memcg, root_cache);
++			 root_cache->flags & CACHE_CREATE_MASK,
++			 root_cache->ctor, memcg, root_cache);
+ 	/*
+ 	 * If we could not create a memcg cache, do not complain, because
+ 	 * that's not critical at all as we can always proceed with the root
 _
 
-Patches currently in -mm which might be from guaneryu@gmail.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
+mm-slab-faster-active-and-free-stats.patch
 
