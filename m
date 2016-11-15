@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + z3fold-discourage-use-of-pages-that-werent-compacted.patch
- added to -mm tree
-Date: Tue, 15 Nov 2016 15:42:08 -0800
-Message-ID: <582b9d50.dMstdA75eyaJL3+f%akpm@linux-foundation.org>
+Subject: + z3fold-dont-fail-kernel-build-if-z3fold_header-is-too-big.patch added to -mm tree
+Date: Tue, 15 Nov 2016 15:42:06 -0800
+Message-ID: <582b9d4e.BWe00UyYgfmJ3Zmf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43598 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43592 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752932AbcKOXmJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 18:42:09 -0500
+        with ESMTP id S1752456AbcKOXmH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 18:42:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vitalywool@gmail.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: z3fold: discourage use of pages that weren't compacted
+     Subject: z3fold: don't fail kernel build if z3fold_header is too big
 has been added to the -mm tree.  Its filename is
-     z3fold-discourage-use-of-pages-that-werent-compacted.patch
+     z3fold-dont-fail-kernel-build-if-z3fold_header-is-too-big.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-discourage-use-of-pages-that-werent-compacted.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-dont-fail-kernel-build-if-z3fold_header-is-too-big.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-discourage-use-of-pages-that-werent-compacted.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-dont-fail-kernel-build-if-z3fold_header-is-too-big.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,69 +39,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vitaly Wool <vitalywool@gmail.com>
-Subject: z3fold: discourage use of pages that weren't compacted
+Subject: z3fold: don't fail kernel build if z3fold_header is too big
 
-If a z3fold page couldn't be compacted, we don't want it to be used for
-next object allocation in the first place.  It makes more sense to add it
-to the end of the relevant unbuddied list.  If that page gets compacted
-later, it will be added to the beginning of the list then.
+Currently the whole kernel build will be stopped if the size of struct
+z3fold_header is greater than the size of one chunk, which is 64 bytes by
+default.  This may stand in the way of automated test/debug builds so
+let's remove that and just fail the z3fold initialization in such case
+instead.
 
-This simple idea gives 5-7% improvement in randrw fio tests and about 10%
-improvement in fio sequential read/write.
-
-Link: http://lkml.kernel.org/r/20161115170038.75e127739b66f850e50d7fc1@gmail.com
+Link: http://lkml.kernel.org/r/20161115170030.f0396011fa00423ff711a3b4@gmail.com
 Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/z3fold.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ mm/z3fold.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN mm/z3fold.c~z3fold-discourage-use-of-pages-that-werent-compacted mm/z3fold.c
---- a/mm/z3fold.c~z3fold-discourage-use-of-pages-that-werent-compacted
+diff -puN mm/z3fold.c~z3fold-dont-fail-kernel-build-if-z3fold_header-is-too-big mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-dont-fail-kernel-build-if-z3fold_header-is-too-big
 +++ a/mm/z3fold.c
-@@ -539,11 +539,19 @@ static void z3fold_free(struct z3fold_po
- 		free_z3fold_page(zhdr);
- 		atomic64_dec(&pool->pages_nr);
- 	} else {
--		z3fold_compact_page(zhdr);
-+		int compacted = z3fold_compact_page(zhdr);
- 		/* Add to the unbuddied list */
- 		spin_lock(&pool->lock);
- 		freechunks = num_free_chunks(zhdr);
--		list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
-+		/*
-+		 * If the page has been compacted, we want to use it
-+		 * in the first place.
-+		 */
-+		if (compacted)
-+			list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
-+		else
-+			list_add_tail(&zhdr->buddy,
-+				      &pool->unbuddied[freechunks]);
- 		spin_unlock(&pool->lock);
- 		z3fold_page_unlock(zhdr);
- 	}
-@@ -672,12 +680,16 @@ next:
- 				spin_lock(&pool->lock);
- 				list_add(&zhdr->buddy, &pool->buddied);
- 			} else {
--				z3fold_compact_page(zhdr);
-+				int compacted = z3fold_compact_page(zhdr);
- 				/* add to unbuddied list */
- 				spin_lock(&pool->lock);
- 				freechunks = num_free_chunks(zhdr);
--				list_add(&zhdr->buddy,
--					 &pool->unbuddied[freechunks]);
-+				if (compacted)
-+					list_add(&zhdr->buddy,
-+						&pool->unbuddied[freechunks]);
-+				else
-+					list_add_tail(&zhdr->buddy,
-+						&pool->unbuddied[freechunks]);
- 			}
- 		}
+@@ -870,10 +870,15 @@ MODULE_ALIAS("zpool-z3fold");
+ 
+ static int __init init_z3fold(void)
+ {
+-	/* Make sure the z3fold header will fit in one chunk */
+-	BUILD_BUG_ON(sizeof(struct z3fold_header) > ZHDR_SIZE_ALIGNED);
+-	zpool_register_driver(&z3fold_zpool_driver);
++	/* Fail the initialization if z3fold header won't fit in one chunk */
++	if (sizeof(struct z3fold_header) > ZHDR_SIZE_ALIGNED) {
++		pr_err("z3fold: z3fold_header size (%d) is bigger than "
++			"the chunk size (%d), can't proceed\n",
++			sizeof(struct z3fold_header) , ZHDR_SIZE_ALIGNED);
++		return -E2BIG;
++	}
+ 
++	zpool_register_driver(&z3fold_zpool_driver);
+ 	return 0;
+ }
  
 _
 
