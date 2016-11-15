@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-support-use-after-scope-detection.patch added to -mm tree
-Date: Tue, 15 Nov 2016 15:40:05 -0800
-Message-ID: <582b9cd5.5J2ye938d4mVWJy5%akpm@linux-foundation.org>
+Subject: + z3fold-use-per-page-spinlock.patch added to -mm tree
+Date: Tue, 15 Nov 2016 15:42:04 -0800
+Message-ID: <582b9d4c.kpfZ4LIMa4Iphn7B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43548 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43586 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752456AbcKOXkG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 18:40:06 -0500
+        with ESMTP id S1752194AbcKOXmF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 18:42:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
+To: vitalywool@gmail.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: support use-after-scope detection
+     Subject: z3fold: use per-page spinlock
 has been added to the -mm tree.  Its filename is
-     kasan-support-use-after-scope-detection.patch
+     z3fold-use-per-page-spinlock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-support-use-after-scope-detection.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/z3fold-use-per-page-spinlock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-support-use-after-scope-detection.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/z3fold-use-per-page-spinlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,127 +38,379 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan: support use-after-scope detection
+From: Vitaly Wool <vitalywool@gmail.com>
+Subject: z3fold: use per-page spinlock
 
-Gcc revision 241896 implements use-after-scope detection.
-Will be available in gcc 7. Support it in KASAN.
+Most of z3fold operations are in-page, such as modifying z3fold page
+header or moving z3fold objects within a page.  Taking per-pool spinlock
+to protect per-page objects is therefore suboptimal, and the idea of
+having a per-page spinlock (or rwlock) has been around for some time.
 
-Gcc emits 2 new callbacks to poison/unpoison large stack
-objects when they go in/out of scope.
-Implement the callbacks and add a test.
+This patch implements raw spinlock-based per-page locking mechanism which
+is lightweight enough to normally fit ok into the z3fold header.
 
-Link: http://lkml.kernel.org/r/1479226045-145148-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/20161115170014.db7859b144d44985e3805ea3@gmail.com
+Signed-off-by: Vitaly Wool <vitalywool@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c  |   24 ++++++++++++++++++++++++
- mm/kasan/kasan.c  |   19 +++++++++++++++++++
- mm/kasan/kasan.h  |    1 +
- mm/kasan/report.c |    3 +++
- 4 files changed, 47 insertions(+)
+ mm/z3fold.c |  136 +++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 97 insertions(+), 39 deletions(-)
 
-diff -puN lib/test_kasan.c~kasan-support-use-after-scope-detection lib/test_kasan.c
---- a/lib/test_kasan.c~kasan-support-use-after-scope-detection
-+++ a/lib/test_kasan.c
-@@ -411,6 +411,29 @@ static noinline void __init copy_user_te
- 	kfree(kmem);
+diff -puN mm/z3fold.c~z3fold-use-per-page-spinlock mm/z3fold.c
+--- a/mm/z3fold.c~z3fold-use-per-page-spinlock
++++ a/mm/z3fold.c
+@@ -98,6 +98,7 @@ enum buddy {
+  * struct z3fold_header - z3fold page metadata occupying the first chunk of each
+  *			z3fold page, except for HEADLESS pages
+  * @buddy:	links the z3fold page into the relevant list in the pool
++ * @page_lock:		per-page lock
+  * @first_chunks:	the size of the first buddy in chunks, 0 if free
+  * @middle_chunks:	the size of the middle buddy in chunks, 0 if free
+  * @last_chunks:	the size of the last buddy in chunks, 0 if free
+@@ -105,6 +106,7 @@ enum buddy {
+  */
+ struct z3fold_header {
+ 	struct list_head buddy;
++	raw_spinlock_t page_lock;
+ 	unsigned short first_chunks;
+ 	unsigned short middle_chunks;
+ 	unsigned short last_chunks;
+@@ -144,6 +146,7 @@ static struct z3fold_header *init_z3fold
+ 	clear_bit(PAGE_HEADLESS, &page->private);
+ 	clear_bit(MIDDLE_CHUNK_MAPPED, &page->private);
+ 
++	raw_spin_lock_init(&zhdr->page_lock);
+ 	zhdr->first_chunks = 0;
+ 	zhdr->middle_chunks = 0;
+ 	zhdr->last_chunks = 0;
+@@ -159,6 +162,19 @@ static void free_z3fold_page(struct z3fo
+ 	__free_page(virt_to_page(zhdr));
  }
  
-+static noinline void __init use_after_scope_test(void)
++/* Lock a z3fold page */
++static inline void z3fold_page_lock(struct z3fold_header *zhdr)
 +{
-+	volatile char *volatile p;
-+
-+	pr_info("use-after-scope on int\n");
-+	{
-+		int local = 0;
-+
-+		p = (char *)&local;
-+	}
-+	p[0] = 1;
-+	p[3] = 1;
-+
-+	pr_info("use-after-scope on array\n");
-+	{
-+		char local[1024] = {0};
-+
-+		p = local;
-+	}
-+	p[0] = 1;
-+	p[1023] = 1;
++	raw_spin_lock(&zhdr->page_lock);
 +}
 +
- static int __init kmalloc_tests_init(void)
- {
- 	kmalloc_oob_right();
-@@ -436,6 +459,7 @@ static int __init kmalloc_tests_init(voi
- 	kasan_global_oob();
- 	ksize_unpoisons_memory();
- 	copy_user_test();
-+	use_after_scope_test();
++/* Unlock a z3fold page */
++static inline void z3fold_page_unlock(struct z3fold_header *zhdr)
++{
++	raw_spin_unlock(&zhdr->page_lock);
++}
++
++
+ /*
+  * Encodes the handle of a particular buddy within a z3fold page
+  * Pool lock should be held as this function accesses first_num
+@@ -347,50 +363,60 @@ static int z3fold_alloc(struct z3fold_po
+ 		bud = HEADLESS;
+ 	else {
+ 		chunks = size_to_chunks(size);
+-		spin_lock(&pool->lock);
+ 
+ 		/* First, try to find an unbuddied z3fold page. */
+ 		zhdr = NULL;
+ 		for_each_unbuddied_list(i, chunks) {
+-			if (!list_empty(&pool->unbuddied[i])) {
+-				zhdr = list_first_entry(&pool->unbuddied[i],
++			spin_lock(&pool->lock);
++			zhdr = list_first_entry_or_null(&pool->unbuddied[i],
+ 						struct z3fold_header, buddy);
+-				page = virt_to_page(zhdr);
+-				if (zhdr->first_chunks == 0) {
+-					if (zhdr->middle_chunks != 0 &&
+-					    chunks >= zhdr->start_middle)
+-						bud = LAST;
+-					else
+-						bud = FIRST;
+-				} else if (zhdr->last_chunks == 0)
++			if (!zhdr) {
++				spin_unlock(&pool->lock);
++				continue;
++			}
++			list_del_init(&zhdr->buddy);
++			spin_unlock(&pool->lock);
++
++			page = virt_to_page(zhdr);
++			z3fold_page_lock(zhdr);
++			if (zhdr->first_chunks == 0) {
++				if (zhdr->middle_chunks != 0 &&
++				    chunks >= zhdr->start_middle)
+ 					bud = LAST;
+-				else if (zhdr->middle_chunks == 0)
+-					bud = MIDDLE;
+-				else {
+-					pr_err("No free chunks in unbuddied\n");
+-					WARN_ON(1);
+-					continue;
+-				}
+-				list_del(&zhdr->buddy);
+-				goto found;
++				else
++					bud = FIRST;
++			} else if (zhdr->last_chunks == 0)
++				bud = LAST;
++			else if (zhdr->middle_chunks == 0)
++				bud = MIDDLE;
++			else {
++				spin_lock(&pool->lock);
++				list_add(&zhdr->buddy, &pool->buddied);
++				spin_unlock(&pool->lock);
++				z3fold_page_unlock(zhdr);
++				pr_err("No free chunks in unbuddied\n");
++				WARN_ON(1);
++				continue;
+ 			}
++			goto found;
+ 		}
+ 		bud = FIRST;
+-		spin_unlock(&pool->lock);
+ 	}
+ 
+ 	/* Couldn't find unbuddied z3fold page, create new one */
+ 	page = alloc_page(gfp);
+ 	if (!page)
+ 		return -ENOMEM;
+-	spin_lock(&pool->lock);
++
+ 	atomic64_inc(&pool->pages_nr);
+ 	zhdr = init_z3fold_page(page);
+ 
+ 	if (bud == HEADLESS) {
+ 		set_bit(PAGE_HEADLESS, &page->private);
++		spin_lock(&pool->lock);
+ 		goto headless;
+ 	}
++	z3fold_page_lock(zhdr);
+ 
+ found:
+ 	if (bud == FIRST)
+@@ -402,6 +428,7 @@ found:
+ 		zhdr->start_middle = zhdr->first_chunks + 1;
+ 	}
+ 
++	spin_lock(&pool->lock);
+ 	if (zhdr->first_chunks == 0 || zhdr->last_chunks == 0 ||
+ 			zhdr->middle_chunks == 0) {
+ 		/* Add to unbuddied list */
+@@ -421,6 +448,8 @@ headless:
+ 
+ 	*handle = encode_handle(zhdr, bud);
+ 	spin_unlock(&pool->lock);
++	if (bud != HEADLESS)
++		z3fold_page_unlock(zhdr);
+ 
+ 	return 0;
+ }
+@@ -442,7 +471,6 @@ static void z3fold_free(struct z3fold_po
+ 	struct page *page;
+ 	enum buddy bud;
+ 
+-	spin_lock(&pool->lock);
+ 	zhdr = handle_to_z3fold_header(handle);
+ 	page = virt_to_page(zhdr);
+ 
+@@ -450,6 +478,7 @@ static void z3fold_free(struct z3fold_po
+ 		/* HEADLESS page stored */
+ 		bud = HEADLESS;
+ 	} else {
++		z3fold_page_lock(zhdr);
+ 		bud = handle_to_buddy(handle);
+ 
+ 		switch (bud) {
+@@ -466,37 +495,59 @@ static void z3fold_free(struct z3fold_po
+ 		default:
+ 			pr_err("%s: unknown bud %d\n", __func__, bud);
+ 			WARN_ON(1);
+-			spin_unlock(&pool->lock);
++			z3fold_page_unlock(zhdr);
+ 			return;
+ 		}
+ 	}
+ 
+ 	if (test_bit(UNDER_RECLAIM, &page->private)) {
+ 		/* z3fold page is under reclaim, reclaim will free */
+-		spin_unlock(&pool->lock);
++		if (bud != HEADLESS)
++			z3fold_page_unlock(zhdr);
+ 		return;
+ 	}
+ 
+ 	/* Remove from existing buddy list */
+-	if (bud != HEADLESS)
+-		list_del(&zhdr->buddy);
++	if (bud != HEADLESS) {
++		spin_lock(&pool->lock);
++		/*
++		 * this object may have been removed from its list by
++		 * z3fold_alloc(). In that case we just do nothing,
++		 * z3fold_alloc() will allocate an object and add the page
++		 * to the relevant list.
++		 */
++		if (!list_empty(&zhdr->buddy)) {
++			list_del(&zhdr->buddy);
++		} else {
++			spin_unlock(&pool->lock);
++			z3fold_page_unlock(zhdr);
++			return;
++		}
++		spin_unlock(&pool->lock);
++	}
+ 
+ 	if (bud == HEADLESS ||
+ 	    (zhdr->first_chunks == 0 && zhdr->middle_chunks == 0 &&
+ 			zhdr->last_chunks == 0)) {
+ 		/* z3fold page is empty, free */
++		spin_lock(&pool->lock);
+ 		list_del(&page->lru);
++		spin_unlock(&pool->lock);
+ 		clear_bit(PAGE_HEADLESS, &page->private);
++		if (bud != HEADLESS)
++			z3fold_page_unlock(zhdr);
+ 		free_z3fold_page(zhdr);
+ 		atomic64_dec(&pool->pages_nr);
+ 	} else {
+ 		z3fold_compact_page(zhdr);
+ 		/* Add to the unbuddied list */
++		spin_lock(&pool->lock);
+ 		freechunks = num_free_chunks(zhdr);
+ 		list_add(&zhdr->buddy, &pool->unbuddied[freechunks]);
++		spin_unlock(&pool->lock);
++		z3fold_page_unlock(zhdr);
+ 	}
+ 
+-	spin_unlock(&pool->lock);
+ }
+ 
+ /**
+@@ -557,6 +608,8 @@ static int z3fold_reclaim_page(struct z3
+ 		zhdr = page_address(page);
+ 		if (!test_bit(PAGE_HEADLESS, &page->private)) {
+ 			list_del(&zhdr->buddy);
++			spin_unlock(&pool->lock);
++			z3fold_page_lock(zhdr);
+ 			/*
+ 			 * We need encode the handles before unlocking, since
+ 			 * we can race with free that will set
+@@ -571,13 +624,13 @@ static int z3fold_reclaim_page(struct z3
+ 				middle_handle = encode_handle(zhdr, MIDDLE);
+ 			if (zhdr->last_chunks)
+ 				last_handle = encode_handle(zhdr, LAST);
++			z3fold_page_unlock(zhdr);
+ 		} else {
+ 			first_handle = encode_handle(zhdr, HEADLESS);
+ 			last_handle = middle_handle = 0;
++			spin_unlock(&pool->lock);
+ 		}
+ 
+-		spin_unlock(&pool->lock);
+-
+ 		/* Issue the eviction callback(s) */
+ 		if (middle_handle) {
+ 			ret = pool->ops->evict(pool, middle_handle);
+@@ -595,7 +648,8 @@ static int z3fold_reclaim_page(struct z3
+ 				goto next;
+ 		}
+ next:
+-		spin_lock(&pool->lock);
++		if (!test_bit(PAGE_HEADLESS, &page->private))
++			z3fold_page_lock(zhdr);
+ 		clear_bit(UNDER_RECLAIM, &page->private);
+ 		if ((test_bit(PAGE_HEADLESS, &page->private) && ret == 0) ||
+ 		    (zhdr->first_chunks == 0 && zhdr->last_chunks == 0 &&
+@@ -605,19 +659,22 @@ next:
+ 			 * return success.
+ 			 */
+ 			clear_bit(PAGE_HEADLESS, &page->private);
++			if (!test_bit(PAGE_HEADLESS, &page->private))
++				z3fold_page_unlock(zhdr);
+ 			free_z3fold_page(zhdr);
+ 			atomic64_dec(&pool->pages_nr);
+-			spin_unlock(&pool->lock);
+ 			return 0;
+ 		}  else if (!test_bit(PAGE_HEADLESS, &page->private)) {
+ 			if (zhdr->first_chunks != 0 &&
+ 			    zhdr->last_chunks != 0 &&
+ 			    zhdr->middle_chunks != 0) {
+ 				/* Full, add to buddied list */
++				spin_lock(&pool->lock);
+ 				list_add(&zhdr->buddy, &pool->buddied);
+ 			} else {
+ 				z3fold_compact_page(zhdr);
+ 				/* add to unbuddied list */
++				spin_lock(&pool->lock);
+ 				freechunks = num_free_chunks(zhdr);
+ 				list_add(&zhdr->buddy,
+ 					 &pool->unbuddied[freechunks]);
+@@ -628,6 +685,8 @@ next:
+ 		list_add(&page->lru, &pool->lru);
+ 	}
+ 	spin_unlock(&pool->lock);
++	if (!test_bit(PAGE_HEADLESS, &page->private))
++		z3fold_page_unlock(zhdr);
  	return -EAGAIN;
  }
  
-diff -puN mm/kasan/kasan.c~kasan-support-use-after-scope-detection mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-support-use-after-scope-detection
-+++ a/mm/kasan/kasan.c
-@@ -764,6 +764,25 @@ EXPORT_SYMBOL(__asan_storeN_noabort);
- void __asan_handle_no_return(void) {}
- EXPORT_SYMBOL(__asan_handle_no_return);
+@@ -648,7 +707,6 @@ static void *z3fold_map(struct z3fold_po
+ 	void *addr;
+ 	enum buddy buddy;
  
-+/* Emitted by compiler to poison large objects when they go out of scope. */
-+void __asan_poison_stack_memory(const void *addr, size_t size)
-+{
-+	/*
-+	 * Addr is KASAN_SHADOW_SCALE_SIZE-aligned and the object is surrounded
-+	 * by redzones, so we simply round up size to simplify logic.
-+	 */
-+	kasan_poison_shadow(addr, round_up(size, KASAN_SHADOW_SCALE_SIZE),
-+			    KASAN_USE_AFTER_SCOPE);
-+}
-+EXPORT_SYMBOL(__asan_poison_stack_memory);
-+
-+/* Emitted by compiler to unpoison large objects when they go into of scope. */
-+void __asan_unpoison_stack_memory(const void *addr, size_t size)
-+{
-+	kasan_unpoison_shadow(addr, size);
-+}
-+EXPORT_SYMBOL(__asan_unpoison_stack_memory);
-+
- #ifdef CONFIG_MEMORY_HOTPLUG
- static int kasan_mem_notifier(struct notifier_block *nb,
- 			unsigned long action, void *data)
-diff -puN mm/kasan/kasan.h~kasan-support-use-after-scope-detection mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-support-use-after-scope-detection
-+++ a/mm/kasan/kasan.h
-@@ -21,6 +21,7 @@
- #define KASAN_STACK_MID         0xF2
- #define KASAN_STACK_RIGHT       0xF3
- #define KASAN_STACK_PARTIAL     0xF4
-+#define KASAN_USE_AFTER_SCOPE   0xF8
+-	spin_lock(&pool->lock);
+ 	zhdr = handle_to_z3fold_header(handle);
+ 	addr = zhdr;
+ 	page = virt_to_page(zhdr);
+@@ -656,6 +714,7 @@ static void *z3fold_map(struct z3fold_po
+ 	if (test_bit(PAGE_HEADLESS, &page->private))
+ 		goto out;
  
- /* Don't break randconfig/all*config builds */
- #ifndef KASAN_ABI_VERSION
-diff -puN mm/kasan/report.c~kasan-support-use-after-scope-detection mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-support-use-after-scope-detection
-+++ a/mm/kasan/report.c
-@@ -90,6 +90,9 @@ static void print_error_description(stru
- 	case KASAN_KMALLOC_FREE:
- 		bug_type = "use-after-free";
++	z3fold_page_lock(zhdr);
+ 	buddy = handle_to_buddy(handle);
+ 	switch (buddy) {
+ 	case FIRST:
+@@ -674,8 +733,9 @@ static void *z3fold_map(struct z3fold_po
+ 		addr = NULL;
  		break;
-+	case KASAN_USE_AFTER_SCOPE:
-+		bug_type = "use-after-scope";
-+		break;
  	}
++
++	z3fold_page_unlock(zhdr);
+ out:
+-	spin_unlock(&pool->lock);
+ 	return addr;
+ }
  
- 	pr_err("BUG: KASAN: %s in %pS at addr %p\n",
+@@ -690,19 +750,17 @@ static void z3fold_unmap(struct z3fold_p
+ 	struct page *page;
+ 	enum buddy buddy;
+ 
+-	spin_lock(&pool->lock);
+ 	zhdr = handle_to_z3fold_header(handle);
+ 	page = virt_to_page(zhdr);
+ 
+-	if (test_bit(PAGE_HEADLESS, &page->private)) {
+-		spin_unlock(&pool->lock);
++	if (test_bit(PAGE_HEADLESS, &page->private))
+ 		return;
+-	}
+ 
++	z3fold_page_lock(zhdr);
+ 	buddy = handle_to_buddy(handle);
+ 	if (buddy == MIDDLE)
+ 		clear_bit(MIDDLE_CHUNK_MAPPED, &page->private);
+-	spin_unlock(&pool->lock);
++	z3fold_page_unlock(zhdr);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from vitalywool@gmail.com are
 
-kasan-support-panic_on_warn.patch
-kasan-support-use-after-scope-detection.patch
+z3fold-make-pages_nr-atomic.patch
+z3fold-extend-compaction-function.patch
+z3fold-use-per-page-spinlock.patch
+z3fold-dont-fail-kernel-build-if-z3fold_header-is-too-big.patch
+z3fold-discourage-use-of-pages-that-werent-compacted.patch
 
