@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-update-kasan_global-for-gcc-7.patch added to -mm tree
-Date: Tue, 15 Nov 2016 15:42:49 -0800
-Message-ID: <582b9d79.TIU+L+hAonTzgG9s%akpm@linux-foundation.org>
+Subject: + mm-cma-make-linux-cmah-standalone-includible.patch added to -mm tree
+Date: Tue, 15 Nov 2016 15:43:18 -0800
+Message-ID: <582b9d96.YRh2HPaM5VAL2KXY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43604 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43610 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933603AbcKOXmz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 18:42:55 -0500
+        with ESMTP id S1752456AbcKOXnT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 18:43:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
+To: treding@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: update kasan_global for gcc 7
+     Subject: mm: cma: Make linux/cma.h standalone includible
 has been added to the -mm tree.  Its filename is
-     kasan-update-kasan_global-for-gcc-7.patch
+     mm-cma-make-linux-cmah-standalone-includible.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-update-kasan_global-for-gcc-7.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-make-linux-cmah-standalone-includible.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-update-kasan_global-for-gcc-7.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-make-linux-cmah-standalone-includible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,56 +38,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kasan: update kasan_global for gcc 7
+From: Thierry Reding <treding@nvidia.com>
+Subject: mm: cma: Make linux/cma.h standalone includible
 
-kasan_global struct is part of compiler/runtime ABI.  gcc revision 241983
-has added a new field to kasan_global struct.  Update kernel definition of
-kasan_global struct to include the new field.
+The header uses types and definitions from the linux/init.h as well as
+linux/types.h headers without explicitly including them. This causes a
+failure to compile if they are not implicitly pulled in by includers.
 
-Link: http://lkml.kernel.org/r/1479219743-28682-1-git-send-email-dvyukov@google.com
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Link: http://lkml.kernel.org/r/20161115133235.13387-1-thierry.reding@gmail.com
+Signed-off-by: Thierry Reding <treding@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |    4 +++-
- mm/kasan/kasan.h             |    3 +++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ include/linux/cma.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/compiler-gcc.h~kasan-update-kasan_global-for-gcc-7 include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~kasan-update-kasan_global-for-gcc-7
-+++ a/include/linux/compiler-gcc.h
-@@ -263,7 +263,9 @@
- #endif
- #endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP && !__CHECKER__ */
+diff -puN include/linux/cma.h~mm-cma-make-linux-cmah-standalone-includible include/linux/cma.h
+--- a/include/linux/cma.h~mm-cma-make-linux-cmah-standalone-includible
++++ a/include/linux/cma.h
+@@ -1,6 +1,9 @@
+ #ifndef __CMA_H__
+ #define __CMA_H__
  
--#if GCC_VERSION >= 50000
-+#if GCC_VERSION >= 70000
-+#define KASAN_ABI_VERSION 5
-+#elif GCC_VERSION >= 50000
- #define KASAN_ABI_VERSION 4
- #elif GCC_VERSION >= 40902
- #define KASAN_ABI_VERSION 3
-diff -puN mm/kasan/kasan.h~kasan-update-kasan_global-for-gcc-7 mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~kasan-update-kasan_global-for-gcc-7
-+++ a/mm/kasan/kasan.h
-@@ -53,6 +53,9 @@ struct kasan_global {
- #if KASAN_ABI_VERSION >= 4
- 	struct kasan_source_location *location;
- #endif
-+#if KASAN_ABI_VERSION >= 5
-+	char *odr_indicator;
-+#endif
- };
- 
- /**
++#include <linux/init.h>
++#include <linux/types.h>
++
+ /*
+  * There is always at least global CMA area and a few optional
+  * areas configured in kernel .config.
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from treding@nvidia.com are
 
-kasan-support-panic_on_warn.patch
-kasan-update-kasan_global-for-gcc-7.patch
-kasan-support-use-after-scope-detection.patch
+mm-cma-make-linux-cmah-standalone-includible.patch
 
