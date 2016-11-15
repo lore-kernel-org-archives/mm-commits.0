@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + printk-btrfs-handle-more-message-headers-fix.patch added to -mm tree
-Date: Mon, 14 Nov 2016 16:47:49 -0800
-Message-ID: <582a5b35.WIbByhgFlLtQ31jT%akpm@linux-foundation.org>
+Subject: + m32r-fix-build-warning.patch added to -mm tree
+Date: Tue, 15 Nov 2016 15:36:23 -0800
+Message-ID: <582b9bf7.0/0x25fRe70+X4+Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33282 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43526 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755155AbcKOAru (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 19:47:50 -0500
+        with ESMTP id S1752308AbcKOXgY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 18:36:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pmladek@suse.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, sudip.mukherjee@codethink.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk/btrfs: Fix a check of the valid message level
+     Subject: m32r: fix build warning
 has been added to the -mm tree.  Its filename is
-     printk-btrfs-handle-more-message-headers-fix.patch
+     m32r-fix-build-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-btrfs-handle-more-message-headers-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/m32r-fix-build-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-btrfs-handle-more-message-headers-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/m32r-fix-build-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,40 +38,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: printk/btrfs: Fix a check of the valid message level
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: m32r: fix build warning
 
-Huh, this was a childish mistake.
+While building m32r defconfig we got warnings:
 
-Link: http://lkml.kernel.org/r/20161111183236.GD2145@dhcp128.suse.cz
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reported-by: Steven Rostedt <rostedt@goodmis.org>
+arch/m32r/platforms/m32700ut/setup.c:249:24: warning:
+  'm32700ut_lcdpld_irq_type' defined but not used [-Wunused-variable]
+
+m32700ut_lcdpld_irq_type is only used when CONFIG_USB is enabled.
+Modify the code to declare the related variables and functions only
+when CONFIG_USB is enabled.
+
+Link: http://lkml.kernel.org/r/1479244406-7507-1-git-send-email-sudipm.mukherjee@gmail.com
+Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m32r/platforms/m32700ut/setup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/btrfs/super.c~printk-btrfs-handle-more-message-headers-fix fs/btrfs/super.c
---- a/fs/btrfs/super.c~printk-btrfs-handle-more-message-headers-fix
-+++ a/fs/btrfs/super.c
-@@ -214,7 +214,7 @@ void btrfs_printk(const struct btrfs_fs_
- 	while ((kern_level = printk_get_level(fmt)) != 0) {
- 		size_t size = printk_skip_level(fmt) - fmt;
+diff -puN arch/m32r/platforms/m32700ut/setup.c~m32r-fix-build-warning arch/m32r/platforms/m32700ut/setup.c
+--- a/arch/m32r/platforms/m32700ut/setup.c~m32r-fix-build-warning
++++ a/arch/m32r/platforms/m32700ut/setup.c
+@@ -201,6 +201,7 @@ static struct irq_chip m32700ut_lanpld_i
+ #define lcdpldirq2port(x)	(unsigned long)((int)M32700UT_LCD_ICUCR1 + \
+ 				 (((x) - 1) * sizeof(unsigned short)))
  
--		if (kern_level >= '0' || kern_level <= '7') {
-+		if (kern_level >= '0' && kern_level <= '7') {
- 			memcpy(lvl, fmt,  size);
- 			lvl[size] = '\0';
- 			type = logtypes[kern_level - '0'];
++#ifdef CONFIG_USB
+ static pld_icu_data_t lcdpld_icu_data[M32700UT_NUM_LCD_PLD_IRQ];
+ 
+ static void disable_m32700ut_lcdpld_irq(unsigned int irq)
+@@ -253,6 +254,7 @@ static struct irq_chip m32700ut_lcdpld_i
+ 	.irq_mask	= mask_m32700ut_lcdpld,
+ 	.irq_unmask	= unmask_m32700ut_lcdpld,
+ };
++#endif
+ 
+ void __init init_IRQ(void)
+ {
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
 
-printk-nmi-handle-continuous-lines-and-missing-newline.patch
-printk-kdb-handle-more-message-headers.patch
-printk-btrfs-handle-more-message-headers.patch
-printk-btrfs-handle-more-message-headers-fix.patch
-printk-sound-handle-more-message-headers.patch
-printk-sound-handle-more-message-headers-fix.patch
+m32r-add-simple-dma.patch
+m32r-fix-build-warning.patch
 
