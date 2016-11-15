@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-disable-numa-migration-faults-for-dax-vmas-fix.patch added
- to -mm tree
-Date: Mon, 14 Nov 2016 16:25:43 -0800
-Message-ID: <582a5607.xna4zmhwmMkbNSbq%akpm@linux-foundation.org>
+Subject: + printk-sound-handle-more-message-headers-fix.patch added to -mm tree
+Date: Mon, 14 Nov 2016 16:47:06 -0800
+Message-ID: <582a5b0a.FixuI1BFG3+yUiio%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60418 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33158 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965429AbcKOAZo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 19:25:44 -0500
+        with ESMTP id S1755155AbcKOArH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Nov 2016 19:47:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: pmladek@suse.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-disable-numa-migration-faults-for-dax-vmas-fix
+     Subject: printk/sound: Fix a check of the valid message level
 has been added to the -mm tree.  Its filename is
-     mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
+     printk-sound-handle-more-message-headers-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-sound-handle-more-message-headers-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-sound-handle-more-message-headers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,56 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-disable-numa-migration-faults-for-dax-vmas-fix
+From: Petr Mladek <pmladek@suse.com>
+Subject: printk/sound: Fix a check of the valid message level
 
-add comment
+Huh, this was a childish mistake.
 
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: http://lkml.kernel.org/r/20161111183444.GE2145@dhcp128.suse.cz
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Reported-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ sound/core/misc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mempolicy.h~mm-disable-numa-migration-faults-for-dax-vmas-fix include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-disable-numa-migration-faults-for-dax-vmas-fix
-+++ a/include/linux/mempolicy.h
-@@ -180,6 +180,10 @@ static inline bool vma_migratable(struct
- 	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
- 		return false;
+diff -puN sound/core/misc.c~printk-sound-handle-more-message-headers-fix sound/core/misc.c
+--- a/sound/core/misc.c~printk-sound-handle-more-message-headers-fix
++++ a/sound/core/misc.c
+@@ -88,7 +88,7 @@ void __snd_printk(unsigned int level, co
+ 		const char *end_of_header = printk_skip_level(vaf.fmt);
  
-+	/*
-+	 * DAX device mappings require predictable access latency, so avoid
-+	 * incurring periodic faults.
-+	 */
- 	if (vma_is_dax(vma))
- 		return false;
- 
+ 		/* Ignore KERN_CONT. We print filename:line for each piece. */
+-		if (kern_level >= '0' || kern_level <= '7') {
++		if (kern_level >= '0' && kern_level <= '7') {
+ 			memcpy(verbose_fmt, vaf.fmt, end_of_header - vaf.fmt);
+ 			level_found = true;
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pmladek@suse.com are
 
-i-need-old-gcc.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-prctl-remove-one-shot-limitation-for-changing-exe-link-fix.patch
-mm.patch
-mm-compaction-allow-compaction-for-gfp_nofs-requests-fix.patch
-mm-mempolicy-clean-up-__gfp_thisnode-confusion-in-policy_zonelist-checkpatch-fixes.patch
-mm-unexport-__get_user_pages_unlocked-checkpatch-fixes.patch
-mm-disable-numa-migration-faults-for-dax-vmas-fix.patch
-scripts-checkpatchpl-fix-spelling.patch
-debug-more-properly-delay-for-secondary-cpus-fix.patch
-ipc-sem-rework-task-wakeups-checkpatch-fixes.patch
-ipc-sem-optimize-perform_atomic_semop-checkpatch-fixes.patch
-ipc-sem-simplify-wait-wake-loop-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+printk-nmi-handle-continuous-lines-and-missing-newline.patch
+printk-kdb-handle-more-message-headers.patch
+printk-btrfs-handle-more-message-headers.patch
+printk-sound-handle-more-message-headers.patch
+printk-sound-handle-more-message-headers-fix.patch
 
