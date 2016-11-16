@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-add-functions-to-read-elf-files-of-any-endianness.patch added to -mm tree
-Date: Tue, 15 Nov 2016 16:54:45 -0800
-Message-ID: <582bae55.YkgXvjts4g/j1MZx%akpm@linux-foundation.org>
+Subject: + powerpc-add-purgatory-for-kexec_file_load-implementation.patch
+ added to -mm tree
+Date: Tue, 15 Nov 2016 16:54:53 -0800
+Message-ID: <582bae5d.U+iW28oEz4t9itWi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34538 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750979AbcKPAzR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:55:17 -0500
+        with ESMTP id S1751951AbcKPAz3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:55:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: add functions to read ELF files of any endianness
+     Subject: powerpc: add purgatory for kexec_file_load implementation
 has been added to the -mm tree.  Its filename is
-     powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
+     powerpc-add-purgatory-for-kexec_file_load-implementation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-purgatory-for-kexec_file_load-implementation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-functions-to-read-elf-files-of-any-endianness.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-purgatory-for-kexec_file_load-implementation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,18 +40,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
-Subject: powerpc: add functions to read ELF files of any endianness
+Subject: powerpc: add purgatory for kexec_file_load implementation
 
-A little endian kernel might need to kexec a big endian kernel (the
-opposite is less likely but could happen as well), so we can't just cast
-the buffer with the binary to ELF structs and use them as is done
-elsewhere.
+This purgatory implementation comes from kexec-tools and was trimmed
+down a bit.
 
-This patch adds functions which do byte-swapping as necessary when
-populating the ELF structs.  These functions will be used in the next
-patch in the series.
+It uses the memset, memcpy and memcmp implementations from lib/string.c.
+It's not straightforward to #include "lib/string.c" so we simply
+copy those functions.
 
-Link: http://lkml.kernel.org/r/1478748449-3894-8-git-send-email-bauerman@linux.vnet.ibm.com
+The changes made to the purgatory code relative to the version in
+kexec-tools were:
+
+The support for printing messages to the console was removed.
+
+Also, since we don't support loading a crashdump kernel via
+kexec_file_load yet, the code related to that functionality has been
+removed for now.
+
+The sha256_regions global variable was renamed to sha_regions to match
+what kexec_file_load expects, and to use the sha256.c file from x86's
+purgatory (this avoids adding yet another SHA-256 implementation).
+
+The global variables in purgatory.c and purgatory-ppc64.c now use a
+__section attribute to put them in the .data section instead of being
+initialized to zero. It doesn't matter what their initial value is,
+because they will be set by the kernel when preparing the kexec image.
+
+Finally, some checkpatch.pl warnings were fixed.
+
+Link: http://lkml.kernel.org/r/1478748449-3894-10-git-send-email-bauerman@linux.vnet.ibm.com
 Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
 Cc: Dave Young <dyoung@redhat.com>
@@ -71,81 +90,118 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/elf_util.h |   43 ++
- arch/powerpc/kernel/Makefile        |    2 
- arch/powerpc/kernel/elf_util.c      |  437 ++++++++++++++++++++++++++
- 3 files changed, 481 insertions(+), 1 deletion(-)
+ arch/powerpc/Makefile                          |    1 
+ arch/powerpc/purgatory/.gitignore              |    2 
+ arch/powerpc/purgatory/Makefile                |   40 ++++
+ arch/powerpc/purgatory/crtsavres.S             |    5 
+ arch/powerpc/purgatory/kexec-sha256.h          |   11 +
+ arch/powerpc/purgatory/purgatory-ppc64.c       |   36 ++++
+ arch/powerpc/purgatory/purgatory.c             |   48 +++++
+ arch/powerpc/purgatory/purgatory.h             |   10 +
+ arch/powerpc/purgatory/sha256.c                |    6 
+ arch/powerpc/purgatory/sha256.h                |    1 
+ arch/powerpc/purgatory/string.c                |   60 ++++++
+ arch/powerpc/purgatory/v2wrap.S                |  132 +++++++++++++++
+ arch/powerpc/scripts/check-purgatory-relocs.sh |   47 +++++
+ 13 files changed, 399 insertions(+)
 
-diff -puN /dev/null arch/powerpc/include/asm/elf_util.h
+diff -puN arch/powerpc/Makefile~powerpc-add-purgatory-for-kexec_file_load-implementation arch/powerpc/Makefile
+--- a/arch/powerpc/Makefile~powerpc-add-purgatory-for-kexec_file_load-implementation
++++ a/arch/powerpc/Makefile
+@@ -249,6 +249,7 @@ core-y				+= arch/powerpc/kernel/ \
+ core-$(CONFIG_XMON)		+= arch/powerpc/xmon/
+ core-$(CONFIG_KVM) 		+= arch/powerpc/kvm/
+ core-$(CONFIG_PERF_EVENTS)	+= arch/powerpc/perf/
++core-$(CONFIG_KEXEC_FILE)	+= arch/powerpc/purgatory/
+ 
+ drivers-$(CONFIG_OPROFILE)	+= arch/powerpc/oprofile/
+ 
+diff -puN /dev/null arch/powerpc/purgatory/.gitignore
 --- /dev/null
-+++ a/arch/powerpc/include/asm/elf_util.h
-@@ -0,0 +1,43 @@
-+/*
-+ * Utility functions to work with ELF files.
-+ *
-+ * Copyright (C) 2016, IBM Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2, or (at your option)
-+ * any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
++++ a/arch/powerpc/purgatory/.gitignore
+@@ -0,0 +1,2 @@
++kexec-purgatory.c
++purgatory.ro
+diff -puN /dev/null arch/powerpc/purgatory/Makefile
+--- /dev/null
++++ a/arch/powerpc/purgatory/Makefile
+@@ -0,0 +1,40 @@
++OBJECT_FILES_NON_STANDARD := y
 +
-+#ifndef _ASM_POWERPC_ELF_UTIL_H
-+#define _ASM_POWERPC_ELF_UTIL_H
++purgatory-y := purgatory.o string.o v2wrap.o purgatory-ppc64.o crtsavres.o \
++		sha256.o
 +
-+#include <linux/elf.h>
++targets += $(purgatory-y)
++PURGATORY_OBJS = $(addprefix $(obj)/,$(purgatory-y))
 +
-+struct elf_info {
-+	/*
-+	 * Where the ELF binary contents are kept.
-+	 * Memory managed by the user of the struct.
-+	 */
-+	const char *buffer;
++LDFLAGS_purgatory.ro := -pie --no-dynamic-linker -e purgatory_start \
++			--no-undefined -nostartfiles -nostdlib -nodefaultlibs
++targets += purgatory.ro
 +
-+	const struct elfhdr *ehdr;
-+	const struct elf_phdr *proghdrs;
-+	struct elf_shdr *sechdrs;
++KBUILD_CFLAGS := $(filter-out $(CC_FLAGS_FTRACE), $(KBUILD_CFLAGS))
++
++KBUILD_CFLAGS += -fno-zero-initialized-in-bss -fno-builtin -ffreestanding \
++		 -fno-stack-protector -fno-exceptions -fpie
++KBUILD_AFLAGS += -fno-exceptions -msoft-float -fpie
++
++$(obj)/purgatory.ro: $(PURGATORY_OBJS) FORCE
++		$(call if_changed,ld)
++
++targets += kexec-purgatory.c
++
++quiet_cmd_relocs_check = CALL    $<
++      cmd_relocs_check = $(CONFIG_SHELL) $< "$(OBJDUMP)" "$(obj)/purgatory.ro"
++
++PHONY += relocs_check
++relocs_check: arch/powerpc/scripts/check-purgatory-relocs.sh $(obj)/purgatory.ro
++	$(call cmd,relocs_check)
++
++CMD_BIN2C = $(objtree)/scripts/basic/bin2c
++quiet_cmd_bin2c = BIN2C   $@
++      cmd_bin2c = $(CMD_BIN2C) kexec_purgatory < $< > $@
++
++$(obj)/kexec-purgatory.c: $(obj)/purgatory.ro relocs_check FORCE
++	$(call if_changed,bin2c)
++	@:
++
++
++obj-$(CONFIG_KEXEC_FILE)	+= kexec-purgatory.o
+diff -puN /dev/null arch/powerpc/purgatory/crtsavres.S
+--- /dev/null
++++ a/arch/powerpc/purgatory/crtsavres.S
+@@ -0,0 +1,5 @@
++#ifndef CONFIG_CC_OPTIMIZE_FOR_SIZE
++#define CONFIG_CC_OPTIMIZE_FOR_SIZE 1
++#endif
++
++#include "../lib/crtsavres.S"
+diff -puN /dev/null arch/powerpc/purgatory/kexec-sha256.h
+--- /dev/null
++++ a/arch/powerpc/purgatory/kexec-sha256.h
+@@ -0,0 +1,11 @@
++#ifndef KEXEC_SHA256_H
++#define KEXEC_SHA256_H
++
++struct kexec_sha_region {
++	unsigned long start;
++	unsigned long len;
 +};
 +
-+static inline bool elf_is_elf_file(const struct elfhdr *ehdr)
-+{
-+	return memcmp(ehdr->e_ident, ELFMAG, SELFMAG) == 0;
-+}
++#define SHA256_REGIONS 16
 +
-+int elf_read_from_buffer(const char *buf, size_t len, struct elfhdr *ehdr,
-+			 struct elf_info *elf_info);
-+void elf_free_info(struct elf_info *elf_info);
-+
-+#endif /* _ASM_POWERPC_ELF_UTIL_H */
-diff -puN arch/powerpc/kernel/Makefile~powerpc-add-functions-to-read-elf-files-of-any-endianness arch/powerpc/kernel/Makefile
---- a/arch/powerpc/kernel/Makefile~powerpc-add-functions-to-read-elf-files-of-any-endianness
-+++ a/arch/powerpc/kernel/Makefile
-@@ -109,7 +109,7 @@ obj-$(CONFIG_PCI)		+= pci_$(BITS).o $(pc
- obj-$(CONFIG_PCI_MSI)		+= msi.o
- obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec.o crash.o \
- 				   machine_kexec_$(BITS).o
--obj-$(CONFIG_KEXEC_FILE)	+= machine_kexec_file_$(BITS).o
-+obj-$(CONFIG_KEXEC_FILE)	+= machine_kexec_file_$(BITS).o elf_util.o
- obj-$(CONFIG_AUDIT)		+= audit.o
- obj64-$(CONFIG_AUDIT)		+= compat_audit.o
- 
-diff -puN /dev/null arch/powerpc/kernel/elf_util.c
++#endif /* KEXEC_SHA256_H */
+diff -puN /dev/null arch/powerpc/purgatory/purgatory-ppc64.c
 --- /dev/null
-+++ a/arch/powerpc/kernel/elf_util.c
-@@ -0,0 +1,437 @@
++++ a/arch/powerpc/purgatory/purgatory-ppc64.c
+@@ -0,0 +1,36 @@
 +/*
-+ * Utility functions to work with ELF files.
++ * kexec: Linux boots Linux
 + *
-+ * Copyright (C) 2016, IBM Corporation
++ * Created by: Mohan Kumar M (mohan@in.ibm.com)
 + *
-+ * Based on kexec-tools' kexec-elf.c. Heavily modified for the
-+ * kernel by Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>.
++ * Copyright (C) IBM Corporation, 2005. All rights reserved
++ *
++ * Code taken from kexec-tools.
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
@@ -157,425 +213,355 @@ diff -puN /dev/null arch/powerpc/kernel/elf_util.c
 + * GNU General Public License for more details.
 + */
 +
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++#include <linux/compiler.h>
++#include "purgatory.h"
 +
-+#include <linux/slab.h>
-+#include <asm/elf_util.h>
-+#include <asm-generic/module.h>
++unsigned long stack __section(".data");
++unsigned long dt_offset __section(".data");
++unsigned long my_toc __section(".data");
++unsigned long kernel __section(".data");
++unsigned long opal_base __section(".data");
++unsigned long opal_entry __section(".data");
 +
-+#if ELF_CLASS == ELFCLASS32
-+#define elf_addr_to_cpu	elf32_to_cpu
-+
-+#ifndef Elf_Rel
-+#define Elf_Rel		Elf32_Rel
-+#endif /* Elf_Rel */
-+#else /* ELF_CLASS == ELFCLASS32 */
-+#define elf_addr_to_cpu	elf64_to_cpu
-+
-+#ifndef Elf_Rel
-+#define Elf_Rel		Elf64_Rel
-+#endif /* Elf_Rel */
-+
-+static uint64_t elf64_to_cpu(const struct elfhdr *ehdr, uint64_t value)
++void setup_arch(void)
 +{
-+	if (ehdr->e_ident[EI_DATA] == ELFDATA2LSB)
-+		value = le64_to_cpu(value);
-+	else if (ehdr->e_ident[EI_DATA] == ELFDATA2MSB)
-+		value = be64_to_cpu(value);
-+
-+	return value;
-+}
-+#endif /* ELF_CLASS == ELFCLASS32 */
-+
-+static uint16_t elf16_to_cpu(const struct elfhdr *ehdr, uint16_t value)
-+{
-+	if (ehdr->e_ident[EI_DATA] == ELFDATA2LSB)
-+		value = le16_to_cpu(value);
-+	else if (ehdr->e_ident[EI_DATA] == ELFDATA2MSB)
-+		value = be16_to_cpu(value);
-+
-+	return value;
 +}
 +
-+static uint32_t elf32_to_cpu(const struct elfhdr *ehdr, uint32_t value)
++void post_verification_setup_arch(void)
 +{
-+	if (ehdr->e_ident[EI_DATA] == ELFDATA2LSB)
-+		value = le32_to_cpu(value);
-+	else if (ehdr->e_ident[EI_DATA] == ELFDATA2MSB)
-+		value = be32_to_cpu(value);
-+
-+	return value;
 +}
-+
-+/**
-+ * elf_is_ehdr_sane - check that it is safe to use the ELF header
-+ * @buf_len:	size of the buffer in which the ELF file is loaded.
-+ */
-+static bool elf_is_ehdr_sane(const struct elfhdr *ehdr, size_t buf_len)
-+{
-+	if (ehdr->e_phnum > 0 && ehdr->e_phentsize != sizeof(struct elf_phdr)) {
-+		pr_debug("Bad program header size.\n");
-+		return false;
-+	} else if (ehdr->e_shnum > 0 &&
-+		   ehdr->e_shentsize != sizeof(struct elf_shdr)) {
-+		pr_debug("Bad section header size.\n");
-+		return false;
-+	} else if (ehdr->e_ident[EI_VERSION] != EV_CURRENT ||
-+		   ehdr->e_version != EV_CURRENT) {
-+		pr_debug("Unknown ELF version.\n");
-+		return false;
-+	}
-+
-+	if (ehdr->e_phoff > 0 && ehdr->e_phnum > 0) {
-+		size_t phdr_size;
-+
-+		/*
-+		 * e_phnum is at most 65535 so calculating the size of the
-+		 * program header cannot overflow.
-+		 */
-+		phdr_size = sizeof(struct elf_phdr) * ehdr->e_phnum;
-+
-+		/* Sanity check the program header table location. */
-+		if (ehdr->e_phoff + phdr_size < ehdr->e_phoff) {
-+			pr_debug("Program headers at invalid location.\n");
-+			return false;
-+		} else if (ehdr->e_phoff + phdr_size > buf_len) {
-+			pr_debug("Program headers truncated.\n");
-+			return false;
-+		}
-+	}
-+
-+	if (ehdr->e_shoff > 0 && ehdr->e_shnum > 0) {
-+		size_t shdr_size;
-+
-+		/*
-+		 * e_shnum is at most 65536 so calculating
-+		 * the size of the section header cannot overflow.
-+		 */
-+		shdr_size = sizeof(struct elf_shdr) * ehdr->e_shnum;
-+
-+		/* Sanity check the section header table location. */
-+		if (ehdr->e_shoff + shdr_size < ehdr->e_shoff) {
-+			pr_debug("Section headers at invalid location.\n");
-+			return false;
-+		} else if (ehdr->e_shoff + shdr_size > buf_len) {
-+			pr_debug("Section headers truncated.\n");
-+			return false;
-+		}
-+	}
-+
-+	return true;
-+}
-+
-+static int elf_read_ehdr(const char *buf, size_t len, struct elfhdr *ehdr)
-+{
-+	struct elfhdr *buf_ehdr;
-+
-+	if (len < sizeof(*buf_ehdr)) {
-+		pr_debug("Buffer is too small to hold ELF header.\n");
-+		return -ENOEXEC;
-+	}
-+
-+	memset(ehdr, 0, sizeof(*ehdr));
-+	memcpy(ehdr->e_ident, buf, sizeof(ehdr->e_ident));
-+	if (!elf_is_elf_file(ehdr)) {
-+		pr_debug("No ELF header magic.\n");
-+		return -ENOEXEC;
-+	}
-+
-+	if (ehdr->e_ident[EI_CLASS] != ELF_CLASS) {
-+		pr_debug("Not a supported ELF class.\n");
-+		return -1;
-+	} else  if (ehdr->e_ident[EI_DATA] != ELFDATA2LSB &&
-+		ehdr->e_ident[EI_DATA] != ELFDATA2MSB) {
-+		pr_debug("Not a supported ELF data format.\n");
-+		return -ENOEXEC;
-+	}
-+
-+	buf_ehdr = (struct elfhdr *) buf;
-+	if (elf16_to_cpu(ehdr, buf_ehdr->e_ehsize) != sizeof(*buf_ehdr)) {
-+		pr_debug("Bad ELF header size.\n");
-+		return -ENOEXEC;
-+	}
-+
-+	ehdr->e_type      = elf16_to_cpu(ehdr, buf_ehdr->e_type);
-+	ehdr->e_machine   = elf16_to_cpu(ehdr, buf_ehdr->e_machine);
-+	ehdr->e_version   = elf32_to_cpu(ehdr, buf_ehdr->e_version);
-+	ehdr->e_entry     = elf_addr_to_cpu(ehdr, buf_ehdr->e_entry);
-+	ehdr->e_phoff     = elf_addr_to_cpu(ehdr, buf_ehdr->e_phoff);
-+	ehdr->e_shoff     = elf_addr_to_cpu(ehdr, buf_ehdr->e_shoff);
-+	ehdr->e_flags     = elf32_to_cpu(ehdr, buf_ehdr->e_flags);
-+	ehdr->e_phentsize = elf16_to_cpu(ehdr, buf_ehdr->e_phentsize);
-+	ehdr->e_phnum     = elf16_to_cpu(ehdr, buf_ehdr->e_phnum);
-+	ehdr->e_shentsize = elf16_to_cpu(ehdr, buf_ehdr->e_shentsize);
-+	ehdr->e_shnum     = elf16_to_cpu(ehdr, buf_ehdr->e_shnum);
-+	ehdr->e_shstrndx  = elf16_to_cpu(ehdr, buf_ehdr->e_shstrndx);
-+
-+	return elf_is_ehdr_sane(ehdr, len) ? 0 : -ENOEXEC;
-+}
-+
-+/**
-+ * elf_is_phdr_sane - check that it is safe to use the program header
-+ * @buf_len:	size of the buffer in which the ELF file is loaded.
-+ */
-+static bool elf_is_phdr_sane(const struct elf_phdr *phdr, size_t buf_len)
-+{
-+
-+	if (phdr->p_offset + phdr->p_filesz < phdr->p_offset) {
-+		pr_debug("ELF segment location wraps around.\n");
-+		return false;
-+	} else if (phdr->p_offset + phdr->p_filesz > buf_len) {
-+		pr_debug("ELF segment not in file.\n");
-+		return false;
-+	} else if (phdr->p_paddr + phdr->p_memsz < phdr->p_paddr) {
-+		pr_debug("ELF segment address wraps around.\n");
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+static int elf_read_phdr(const char *buf, size_t len, struct elf_info *elf_info,
-+			 int idx)
-+{
-+	/* Override the const in proghdrs, we are the ones doing the loading. */
-+	struct elf_phdr *phdr = (struct elf_phdr *) &elf_info->proghdrs[idx];
-+	const char *pbuf;
-+	struct elf_phdr *buf_phdr;
-+
-+	pbuf = buf + elf_info->ehdr->e_phoff + (idx * sizeof(*buf_phdr));
-+	buf_phdr = (struct elf_phdr *) pbuf;
-+
-+	phdr->p_type   = elf32_to_cpu(elf_info->ehdr, buf_phdr->p_type);
-+	phdr->p_offset = elf_addr_to_cpu(elf_info->ehdr, buf_phdr->p_offset);
-+	phdr->p_paddr  = elf_addr_to_cpu(elf_info->ehdr, buf_phdr->p_paddr);
-+	phdr->p_vaddr  = elf_addr_to_cpu(elf_info->ehdr, buf_phdr->p_vaddr);
-+	phdr->p_flags  = elf32_to_cpu(elf_info->ehdr, buf_phdr->p_flags);
-+
-+	/*
-+	 * The following fields have a type equivalent to Elf_Addr
-+	 * both in 32 bit and 64 bit ELF.
-+	 */
-+	phdr->p_filesz = elf_addr_to_cpu(elf_info->ehdr, buf_phdr->p_filesz);
-+	phdr->p_memsz  = elf_addr_to_cpu(elf_info->ehdr, buf_phdr->p_memsz);
-+	phdr->p_align  = elf_addr_to_cpu(elf_info->ehdr, buf_phdr->p_align);
-+
-+	return elf_is_phdr_sane(phdr, len) ? 0 : -ENOEXEC;
-+}
-+
-+/**
-+ * elf_read_phdrs - read the program headers from the buffer
+diff -puN /dev/null arch/powerpc/purgatory/purgatory.c
+--- /dev/null
++++ a/arch/powerpc/purgatory/purgatory.c
+@@ -0,0 +1,48 @@
++/*
++ * Code taken from kexec-tools.
 + *
-+ * This function assumes that the program header table was checked for sanity.
-+ * Use elf_is_ehdr_sane() if it wasn't.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation (version 2 of the License).
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + */
-+static int elf_read_phdrs(const char *buf, size_t len,
-+			  struct elf_info *elf_info)
++
++#include "purgatory.h"
++#include "sha256.h"
++#include "kexec-sha256.h"
++
++struct kexec_sha_region sha_regions[SHA256_REGIONS] __section(".data");
++u8 sha256_digest[SHA256_DIGEST_SIZE] __section(".data");
++
++int verify_sha256_digest(void)
 +{
-+	size_t phdr_size, i;
-+	const struct elfhdr *ehdr = elf_info->ehdr;
++	struct kexec_sha_region *ptr, *end;
++	u8 digest[SHA256_DIGEST_SIZE];
++	struct sha256_state sctx;
 +
-+	/*
-+	 * e_phnum is at most 65535 so calculating the size of the
-+	 * program header cannot overflow.
-+	 */
-+	phdr_size = sizeof(struct elf_phdr) * ehdr->e_phnum;
++	sha256_init(&sctx);
++	end = &sha_regions[sizeof(sha_regions)/sizeof(sha_regions[0])];
++	for (ptr = sha_regions; ptr < end; ptr++)
++		sha256_update(&sctx, (uint8_t *)(ptr->start), ptr->len);
++	sha256_final(&sctx, digest);
 +
-+	elf_info->proghdrs = kzalloc(phdr_size, GFP_KERNEL);
-+	if (!elf_info->proghdrs)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < ehdr->e_phnum; i++) {
-+		int ret;
-+
-+		ret = elf_read_phdr(buf, len, elf_info, i);
-+		if (ret) {
-+			kfree(elf_info->proghdrs);
-+			elf_info->proghdrs = NULL;
-+			return ret;
-+		}
-+	}
++	if (memcmp(digest, sha256_digest, sizeof(digest)))
++		return 1;
 +
 +	return 0;
 +}
 +
-+/**
-+ * elf_is_shdr_sane - check that it is safe to use the section header
-+ * @buf_len:	size of the buffer in which the ELF file is loaded.
++void purgatory(void)
++{
++	setup_arch();
++	if (verify_sha256_digest()) {
++		/* loop forever */
++		for (;;)
++			;
++	}
++	post_verification_setup_arch();
++}
+diff -puN /dev/null arch/powerpc/purgatory/purgatory.h
+--- /dev/null
++++ a/arch/powerpc/purgatory/purgatory.h
+@@ -0,0 +1,10 @@
++#ifndef PURGATORY_H
++#define PURGATORY_H
++
++#include <linux/types.h>
++
++int memcmp(const void *cs, const void *ct, size_t count);
++void setup_arch(void);
++void post_verification_setup_arch(void);
++
++#endif /* PURGATORY_H */
+diff -puN /dev/null arch/powerpc/purgatory/sha256.c
+--- /dev/null
++++ a/arch/powerpc/purgatory/sha256.c
+@@ -0,0 +1,6 @@
++#include "../boot/string.h"
++
++/* Avoid including x86's boot/string.h in sha256.c. */
++#define BOOT_STRING_H
++
++#include "../../x86/purgatory/sha256.c"
+diff -puN /dev/null arch/powerpc/purgatory/sha256.h
+--- /dev/null
++++ a/arch/powerpc/purgatory/sha256.h
+@@ -0,0 +1 @@
++#include "../../x86/purgatory/sha256.h"
+diff -puN /dev/null arch/powerpc/purgatory/string.c
+--- /dev/null
++++ a/arch/powerpc/purgatory/string.c
+@@ -0,0 +1,60 @@
++/*
++ * Copied from linux/lib/string.c.
 + */
-+static bool elf_is_shdr_sane(const struct elf_shdr *shdr, size_t buf_len)
-+{
-+	bool size_ok;
 +
-+	/* SHT_NULL headers have undefined values, so we can't check them. */
-+	if (shdr->sh_type == SHT_NULL)
-+		return true;
-+
-+	/* Now verify sh_entsize */
-+	switch (shdr->sh_type) {
-+	case SHT_SYMTAB:
-+		size_ok = shdr->sh_entsize == sizeof(Elf_Sym);
-+		break;
-+	case SHT_RELA:
-+		size_ok = shdr->sh_entsize == sizeof(Elf_Rela);
-+		break;
-+	case SHT_DYNAMIC:
-+		size_ok = shdr->sh_entsize == sizeof(Elf_Dyn);
-+		break;
-+	case SHT_REL:
-+		size_ok = shdr->sh_entsize == sizeof(Elf_Rel);
-+		break;
-+	case SHT_NOTE:
-+	case SHT_PROGBITS:
-+	case SHT_HASH:
-+	case SHT_NOBITS:
-+	default:
-+		/*
-+		 * This is a section whose entsize requirements
-+		 * I don't care about.  If I don't know about
-+		 * the section I can't care about it's entsize
-+		 * requirements.
-+		 */
-+		size_ok = true;
-+		break;
-+	}
-+
-+	if (!size_ok) {
-+		pr_debug("ELF section with wrong entry size.\n");
-+		return false;
-+	} else if (shdr->sh_addr + shdr->sh_size < shdr->sh_addr) {
-+		pr_debug("ELF section address wraps around.\n");
-+		return false;
-+	}
-+
-+	if (shdr->sh_type != SHT_NOBITS) {
-+		if (shdr->sh_offset + shdr->sh_size < shdr->sh_offset) {
-+			pr_debug("ELF section location wraps around.\n");
-+			return false;
-+		} else if (shdr->sh_offset + shdr->sh_size > buf_len) {
-+			pr_debug("ELF section not in file.\n");
-+			return false;
-+		}
-+	}
-+
-+	return true;
-+}
-+
-+static int elf_read_shdr(const char *buf, size_t len, struct elf_info *elf_info,
-+			 int idx)
-+{
-+	struct elf_shdr *shdr = &elf_info->sechdrs[idx];
-+	const struct elfhdr *ehdr = elf_info->ehdr;
-+	const char *sbuf;
-+	struct elf_shdr *buf_shdr;
-+
-+	sbuf = buf + ehdr->e_shoff + idx * sizeof(*buf_shdr);
-+	buf_shdr = (struct elf_shdr *) sbuf;
-+
-+	shdr->sh_name      = elf32_to_cpu(ehdr, buf_shdr->sh_name);
-+	shdr->sh_type      = elf32_to_cpu(ehdr, buf_shdr->sh_type);
-+	shdr->sh_addr      = elf_addr_to_cpu(ehdr, buf_shdr->sh_addr);
-+	shdr->sh_offset    = elf_addr_to_cpu(ehdr, buf_shdr->sh_offset);
-+	shdr->sh_link      = elf32_to_cpu(ehdr, buf_shdr->sh_link);
-+	shdr->sh_info      = elf32_to_cpu(ehdr, buf_shdr->sh_info);
-+
-+	/*
-+	 * The following fields have a type equivalent to Elf_Addr
-+	 * both in 32 bit and 64 bit ELF.
-+	 */
-+	shdr->sh_flags     = elf_addr_to_cpu(ehdr, buf_shdr->sh_flags);
-+	shdr->sh_size      = elf_addr_to_cpu(ehdr, buf_shdr->sh_size);
-+	shdr->sh_addralign = elf_addr_to_cpu(ehdr, buf_shdr->sh_addralign);
-+	shdr->sh_entsize   = elf_addr_to_cpu(ehdr, buf_shdr->sh_entsize);
-+
-+	return elf_is_shdr_sane(shdr, len) ? 0 : -ENOEXEC;
-+}
++#include <linux/types.h>
 +
 +/**
-+ * elf_read_shdrs - read the section headers from the buffer
++ * memset - Fill a region of memory with the given value
++ * @s: Pointer to the start of the area.
++ * @c: The byte to fill the area with
++ * @count: The size of the area.
 + *
-+ * This function assumes that the section header table was checked for sanity.
-+ * Use elf_is_ehdr_sane() if it wasn't.
++ * Do not use memset() to access IO space, use memset_io() instead.
 + */
-+static int elf_read_shdrs(const char *buf, size_t len,
-+			  struct elf_info *elf_info)
++void *memset(void *s, int c, size_t count)
 +{
-+	size_t shdr_size, i;
++	char *xs = s;
 +
-+	/*
-+	 * e_shnum is at most 65536 so calculating
-+	 * the size of the section header cannot overflow.
-+	 */
-+	shdr_size = sizeof(struct elf_shdr) * elf_info->ehdr->e_shnum;
-+
-+	elf_info->sechdrs = kzalloc(shdr_size, GFP_KERNEL);
-+	if (!elf_info->sechdrs)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < elf_info->ehdr->e_shnum; i++) {
-+		int ret;
-+
-+		ret = elf_read_shdr(buf, len, elf_info, i);
-+		if (ret) {
-+			kfree(elf_info->sechdrs);
-+			elf_info->sechdrs = NULL;
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
++	while (count--)
++		*xs++ = c;
++	return s;
 +}
 +
 +/**
-+ * elf_read_from_buffer - read ELF file and sets up ELF header and ELF info
-+ * @buf:	Buffer to read ELF file from.
-+ * @len:	Size of @buf.
-+ * @ehdr:	Pointer to existing struct which will be populated.
-+ * @elf_info:	Pointer to existing struct which will be populated.
++ * memcpy - Copy one area of memory to another
++ * @dest: Where to copy to
++ * @src: Where to copy from
++ * @count: The size of the area.
 + *
-+ * This function allows reading ELF files with different byte order than
-+ * the kernel, byte-swapping the fields as needed.
-+ *
-+ * Return:
-+ * On success returns 0, and the caller should call elf_free_info(elf_info) to
-+ * free the memory allocated for the section and program headers.
++ * You should not use this function to access IO space, use memcpy_toio()
++ * or memcpy_fromio() instead.
 + */
-+int elf_read_from_buffer(const char *buf, size_t len, struct elfhdr *ehdr,
-+			 struct elf_info *elf_info)
++void *memcpy(void *dest, const void *src, size_t count)
 +{
-+	int ret;
++	char *tmp = dest;
++	const char *s = src;
 +
-+	ret = elf_read_ehdr(buf, len, ehdr);
-+	if (ret)
-+		return ret;
-+
-+	elf_info->buffer = buf;
-+	elf_info->ehdr = ehdr;
-+	if (ehdr->e_phoff > 0 && ehdr->e_phnum > 0) {
-+		ret = elf_read_phdrs(buf, len, elf_info);
-+		if (ret)
-+			return ret;
-+	}
-+	if (ehdr->e_shoff > 0 && ehdr->e_shnum > 0) {
-+		ret = elf_read_shdrs(buf, len, elf_info);
-+		if (ret) {
-+			kfree(elf_info->proghdrs);
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
++	while (count--)
++		*tmp++ = *s++;
++	return dest;
 +}
 +
 +/**
-+ * elf_free_info - free memory allocated by elf_read_from_buffer
++ * memcmp - Compare two areas of memory
++ * @cs: One area of memory
++ * @ct: Another area of memory
++ * @count: The size of the area.
 + */
-+void elf_free_info(struct elf_info *elf_info)
++int memcmp(const void *cs, const void *ct, size_t count)
 +{
-+	kfree(elf_info->proghdrs);
-+	kfree(elf_info->sechdrs);
-+	memset(elf_info, 0, sizeof(*elf_info));
++	const unsigned char *su1, *su2;
++	int res = 0;
++
++	for (su1 = cs, su2 = ct; count > 0; ++su1, ++su2, count--) {
++		res = *su1 - *su2;
++		if (res != 0)
++			break;
++	}
++	return res;
 +}
+diff -puN /dev/null arch/powerpc/purgatory/v2wrap.S
+--- /dev/null
++++ a/arch/powerpc/purgatory/v2wrap.S
+@@ -0,0 +1,132 @@
++#
++#  kexec: Linux boots Linux
++#
++#  Copyright (C) 2004 - 2005, Milton D Miller II, IBM Corporation
++#  Copyright (C) 2006, Mohan Kumar M (mohan@in.ibm.com), IBM Corporation
++#
++# Code taken from kexec-tools.
++#
++#  This program is free software; you can redistribute it and/or modify
++#  it under the terms of the GNU General Public License as published by
++#  the Free Software Foundation (version 2 of the License).
++#
++#  This program is distributed in the hope that it will be useful,
++#  but WITHOUT ANY WARRANTY; without even the implied warranty of
++#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++#  GNU General Public License for more details.
++
++# v2wrap.S
++# a wrapper to call purgatory code to backup first
++# 32kB of first kernel into the backup region
++# reserved by kexec-tools.
++# Invokes ppc64 kernel with the expected arguments
++# of kernel(device-tree, phys-offset, 0)
++
++#
++# calling convention:
++#   r3 = physical number of this cpu (all cpus)
++#   r4 = address of this chunk (master only)
++# master enters at purgatory_start (aka first byte of this chunk)
++# slaves (additional cpus), if any, enter a copy of the
++# first 0x100 bytes of this code relocated to 0x0
++#
++# in other words,
++#   a copy of the first 0x100 bytes of this code is copied to 0
++#   and the slaves are sent to address 0x60
++#   with r3 = their physical cpu number.
++
++#define LOADADDR(rn,name) \
++	lis     rn,name##@highest;      \
++	ori     rn,rn,name##@higher;    \
++	rldicr  rn,rn,32,31;            \
++	oris    rn,rn,name##@h;         \
++	ori     rn,rn,name##@l
++
++	.machine ppc64
++	.align 8
++	.globl purgatory_start
++purgatory_start:	b	master
++	.org purgatory_start + 0x5c     # ABI: possible run_at_load flag at 0x5c
++	.globl run_at_load
++run_at_load:
++	.long 0
++	.size run_at_load, . - run_at_load
++	.org purgatory_start + 0x60     # ABI: slaves start at 60 with r3=phys
++slave:	b $
++	.org purgatory_start + 0x100    # ABI: end of copied region
++	.size purgatory_start, . - purgatory_start
++
++#
++# The above 0x100 bytes at purgatory_start are replaced with the
++# code from the kernel (or next stage) by kexec/arch/ppc64/kexec-elf-ppc64.c
++#
++
++master:
++	or	1,1,1		# low priority to let other threads catchup
++	isync
++	mr      17,3            # save cpu id to r17
++	mr      15,4            # save physical address in reg15
++
++	LOADADDR(6,my_toc)
++	ld      2,0(6)          #setup toc
++
++	LOADADDR(6,stack)
++	ld      1,0(6)          #setup stack
++
++	subi    1,1,112
++	bl      purgatory
++	nop
++
++	or	3,3,3		# ok now to high priority, lets boot
++	lis	6,0x1
++	mtctr	6		# delay a bit for slaves to catch up
++83:	bdnz	83b		# before we overwrite 0-100 again
++
++	LOADADDR(16, dt_offset)
++	ld      3,0(16)         # load device-tree address
++	mr      16,3            # save dt address in reg16
++#ifdef __BIG_ENDIAN__
++	lwz     6,20(3)         # fetch version number
++#else
++	li	4,20
++	lwbrx	6,3,4		# fetch BE version number
++#endif
++	cmpwi   0,6,2           # v2 ?
++	blt     80f
++#ifdef __BIG_ENDIAN__
++	stw     17,28(3)        # save my cpu number as boot_cpu_phys
++#else
++	li	4,28
++	stwbrx	17,3,4		# Store my cpu as BE value
++#endif
++80:
++	LOADADDR(6,opal_base)	# For OPAL early debug
++	ld      8,0(6)          # load the OPAL base address in r8
++	LOADADDR(6,opal_entry)	# For OPAL early debug
++	ld      9,0(6)          # load the OPAL entry address in r9
++	LOADADDR(6,kernel)
++	ld      4,0(6)          # load the kernel address
++	LOADADDR(6,run_at_load) # the load flag
++	lwz	7,0(6)		# possibly patched by kexec-elf-ppc64
++	stw	7,0x5c(4)	# and patch it into the kernel
++	mr      3,16            # restore dt address
++
++	mfmsr	5
++	andi.	10,5,1		# test MSR_LE
++	bne	little_endian
++
++	li	5,0		# r5 will be 0 for kernel
++	mtctr	4		# prepare branch to
++	bctr			# start kernel
++
++little_endian:			# book3s-only
++	mtsrr0	4		# prepare branch to
++
++	clrrdi	5,5,1		# clear MSR_LE
++	mtsrr1	5
++
++	li	5,0		# r5 will be 0 for kernel
++
++				# skip cache flush, do we care?
++
++	rfid			# update MSR and start kernel
+diff -puN /dev/null arch/powerpc/scripts/check-purgatory-relocs.sh
+--- /dev/null
++++ a/arch/powerpc/scripts/check-purgatory-relocs.sh
+@@ -0,0 +1,47 @@
++#!/bin/sh
++
++# Copyright © 2016 IBM Corporation
++
++# This program is free software; you can redistribute it and/or
++# modify it under the terms of the GNU General Public License
++# as published by the Free Software Foundation; either version
++# 2 of the License, or (at your option) any later version.
++
++# This script checks the relocations of a purgatory executable for
++# relocations that are not handled by the kernel.
++
++# Based on relocs_check.sh.
++# Copyright © 2015 IBM Corporation
++
++if [ $# -lt 2 ]; then
++	echo "$0 [path to objdump] [path to purgatory.ro]" 1>&2
++	exit 1
++fi
++
++# Have Kbuild supply the path to objdump so we handle cross compilation.
++objdump="$1"
++purgatory="$2"
++
++bad_relocs=$(
++"$objdump" -R "$purgatory" |
++	# Only look at relocation lines.
++	grep -E '\<R_' |
++	# These relocations are okay
++	# On PPC64:
++	#	R_PPC64_ADDR16_LO, R_PPC64_ADDR16_HI,
++	#	R_PPC64_ADDR16_HIGHER, R_PPC64_ADDR16_HIGHEST,
++	#	R_PPC64_RELATIVE
++	grep -F -w -v 'R_PPC64_ADDR16_LO
++R_PPC64_ADDR16_HI
++R_PPC64_ADDR16_HIGHER
++R_PPC64_ADDR16_HIGHEST
++R_PPC64_RELATIVE'
++)
++
++if [ -z "$bad_relocs" ]; then
++	exit 0
++fi
++
++num_bad=$(echo "$bad_relocs" | wc -l)
++echo "WARNING: $num_bad bad relocations in $2"
++echo "$bad_relocs"
 _
 
 Patches currently in -mm which might be from bauerman@linux.vnet.ibm.com are
