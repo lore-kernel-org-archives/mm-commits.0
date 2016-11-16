@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-support-anonymous-stable-page.patch added to -mm tree
-Date: Tue, 15 Nov 2016 15:59:04 -0800
-Message-ID: <582ba148.L/PnRsolYQZRe+qq%akpm@linux-foundation.org>
+Subject: + mm-add-zone_device-statistics-to-smaps.patch added to -mm tree
+Date: Tue, 15 Nov 2016 16:05:08 -0800
+Message-ID: <582ba2b4.TdwvmSLVpX3ZyH6d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44054 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752194AbcKOX7F (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 18:59:05 -0500
+        with ESMTP id S1754284AbcKPAFJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:05:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, cheol.lee@lge.com, darrick.wong@oracle.com, hughd@google.com, yjay.kim@lge.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, dave.hansen@intel.com, hch@lst.de, khandual@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: support anonymous stable page
+     Subject: mm: add ZONE_DEVICE statistics to smaps
 has been added to the -mm tree.  Its filename is
-     mm-support-anonymous-stable-page.patch
+     mm-add-zone_device-statistics-to-smaps.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-anonymous-stable-page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-zone_device-statistics-to-smaps.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-anonymous-stable-page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-zone_device-statistics-to-smaps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,86 +38,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: support anonymous stable page
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: add ZONE_DEVICE statistics to smaps
 
-For developemnt for zram-swap asynchronous writeback, I found strange
-corruption of compressed page.  With investigation, it reveals currently
-stable page doesn't support anonymous page.  IOW, reuse_swap_page can
-reuse the page without waiting writeback completion so that it can corrupt
-data during zram compression.  It can affect every swap device which
-supports asynchronous writeback and CRC checking as well as zRAM.
+ZONE_DEVICE pages are mapped into a process via the filesystem-dax and
+device-dax mechanisms.  There are also proposals to use ZONE_DEVICE pages
+for other usages outside of dax.  Add statistics to smaps so applications
+can debug that they are obtaining the mappings they expect, or otherwise
+accounting them.
 
-Unfortunately, reuse_swap_page should be atomic so that we cannot wait on
-writeback in there so the approach in this patch is simply return false if
-we found it needs stable page.  Although it increases memory footprint
-temporarily, it happens rarely and it should be reclaimed easily althoug
-it happened.  Also, It would be better than waiting of IO completion,
-which is critial path for application latency.
-
-Link: http://lkml.kernel.org/r/20161111060644.GA24342@bbox
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: yjay.kim <yjay.kim@lge.com>
-Cc: Hyeoncheol Lee <cheol.lee@lge.com>
+Link: http://lkml.kernel.org/r/147881591739.39198.1358237993213024627.stgit@dwillia2-desk3.amr.corp.intel.com
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/swapfile.c~mm-support-anonymous-stable-page mm/swapfile.c
---- a/mm/swapfile.c~mm-support-anonymous-stable-page
-+++ a/mm/swapfile.c
-@@ -943,11 +943,21 @@ bool reuse_swap_page(struct page *page,
- 	count = page_trans_huge_mapcount(page, total_mapcount);
- 	if (count <= 1 && PageSwapCache(page)) {
- 		count += page_swapcount(page);
--		if (count == 1 && !PageWriteback(page)) {
-+		if (count != 1)
-+			goto out;
-+		if (!PageWriteback(page)) {
- 			delete_from_swap_cache(page);
- 			SetPageDirty(page);
-+		} else {
-+			struct address_space *mapping;
-+
-+			mapping = page_mapping(page);
-+			if (bdi_cap_stable_pages_required(
-+					inode_to_bdi(mapping->host)))
-+				return false;
- 		}
- 	}
-+out:
- 	return count <= 1;
- }
+diff -puN fs/proc/task_mmu.c~mm-add-zone_device-statistics-to-smaps fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-add-zone_device-statistics-to-smaps
++++ a/fs/proc/task_mmu.c
+@@ -445,6 +445,8 @@ struct mem_size_stats {
+ 	unsigned long swap;
+ 	unsigned long shared_hugetlb;
+ 	unsigned long private_hugetlb;
++	unsigned long device;
++	unsigned long device_huge;
+ 	u64 pss;
+ 	u64 swap_pss;
+ 	bool check_shmem_swap;
+@@ -458,6 +460,8 @@ static void smaps_account(struct mem_siz
  
-@@ -2180,6 +2190,7 @@ static struct swap_info_struct *alloc_sw
- static int claim_swapfile(struct swap_info_struct *p, struct inode *inode)
- {
- 	int error;
-+	struct address_space *swapper_space;
+ 	if (PageAnon(page))
+ 		mss->anonymous += size;
++	else if (is_zone_device_page(page))
++		mss->device += size;
  
- 	if (S_ISBLK(inode->i_mode)) {
- 		p->bdev = bdgrab(I_BDEV(inode));
-@@ -2202,6 +2213,9 @@ static int claim_swapfile(struct swap_in
- 	} else
- 		return -EINVAL;
- 
-+	swapper_space = &swapper_spaces[p->type];
-+	swapper_space->host = inode;
-+
- 	return 0;
- }
- 
+ 	mss->resident += size;
+ 	/* Accumulate the size in pages that have been accessed. */
+@@ -575,7 +579,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
+ 	else if (PageSwapBacked(page))
+ 		mss->shmem_thp += HPAGE_PMD_SIZE;
+ 	else if (is_zone_device_page(page))
+-		/* pass */;
++		mss->device_huge += HPAGE_PMD_SIZE;
+ 	else
+ 		VM_BUG_ON_PAGE(1, page);
+ 	smaps_account(mss, page, true, pmd_young(*pmd), pmd_dirty(*pmd));
+@@ -774,6 +778,8 @@ static int show_smap(struct seq_file *m,
+ 		   "ShmemPmdMapped: %8lu kB\n"
+ 		   "Shared_Hugetlb: %8lu kB\n"
+ 		   "Private_Hugetlb: %7lu kB\n"
++		   "Device:         %8lu kB\n"
++		   "DeviceHugePages: %7lu kB\n"
+ 		   "Swap:           %8lu kB\n"
+ 		   "SwapPss:        %8lu kB\n"
+ 		   "KernelPageSize: %8lu kB\n"
+@@ -792,6 +798,8 @@ static int show_smap(struct seq_file *m,
+ 		   mss.shmem_thp >> 10,
+ 		   mss.shared_hugetlb >> 10,
+ 		   mss.private_hugetlb >> 10,
++		   mss.device >> 10,
++		   mss.device_huge >> 10,
+ 		   mss.swap >> 10,
+ 		   (unsigned long)(mss.swap_pss >> (10 + PSS_SHIFT)),
+ 		   vma_kernel_pagesize(vma) >> 10,
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-mm-dont-steal-highatomic-pageblock.patch
-mm-prevent-double-decrease-of-nr_reserved_highatomic.patch
-mm-try-to-exhaust-highatomic-reserve-before-the-oom.patch
-mm-make-unreserve-highatomic-functions-reliable.patch
-mm-support-anonymous-stable-page.patch
+mm-disable-numa-migration-faults-for-dax-vmas.patch
+mm-add-zone_device-statistics-to-smaps.patch
 
