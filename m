@@ -1,71 +1,233 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] ima-platform-independent-hash-value.patch removed from -mm tree
-Date: Tue, 15 Nov 2016 16:38:42 -0800
-Message-ID: <582baa92.fhm7c5lI4PfHgW6t%akpm@linux-foundation.org>
+Subject: +
+ kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+ added to -mm tree
+Date: Tue, 15 Nov 2016 16:54:23 -0800
+Message-ID: <582bae3f.MMQXtq4R1wt+Lpbc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47532 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33118 "EHLO
         mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751563AbcKPAjQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:39:16 -0500
+        with ESMTP id S1750979AbcKPAyZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 15 Nov 2016 19:54:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.steffen@strongswan.org, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mpe@ellerman.id.au, sklar@linux.vnet.ibm.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: bauerman@linux.vnet.ibm.com, benh@kernel.crashing.org, bhe@redhat.com, bsingharora@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, hpa@zytor.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, sklar@linux.vnet.ibm.com, stewart@linux.vnet.ibm.com, tglx@linutronix.de, vgoyal@redhat.com, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ima: platform-independent hash value
-has been removed from the -mm tree.  Its filename was
-     ima-platform-independent-hash-value.patch
+     Subject: kexec_file: allow arch-specific memory walking for kexec_add_buffer
+has been added to the -mm tree.  Its filename is
+     kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andreas Steffen <andreas.steffen@strongswan.org>
-Subject: ima: platform-independent hash value
+From: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Subject: kexec_file: allow arch-specific memory walking for kexec_add_buffer
 
-For remote attestion it is important for the ima measurement values to be
-platform-independent.  Therefore integer fields to be hashed must be
-converted to canonical format.
+Patch series "kexec_file_load implementation for PowerPC", v10.
 
-Link: http://lkml.kernel.org/r/1477017898-10375-11-git-send-email-bauerman@linux.vnet.ibm.com
-Signed-off-by: Andreas Steffen <andreas.steffen@strongswan.org>
-Signed-off-by: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Dave Young <dyoung@redhat.com>
+This patch series implements the kexec_file_load system call on PowerPC.
+
+This system call moves the reading of the kernel, initrd and the device tree
+from the userspace kexec tool to the kernel. This is needed if you want to
+do one or both of the following:
+
+1. only allow loading of signed kernels.
+2. "measure" (i.e., record the hashes of) the kernel, initrd, kernel
+   command line and other boot inputs for the Integrity Measurement
+   Architecture subsystem.
+
+The above are the functions kexec already has built into kexec_file_load.
+Yesterday I posted a set of patches which allows a third feature:
+
+3. have IMA pass-on its event log (where integrity measurements are
+   registered) accross kexec to the second kernel, so that the event
+   history is preserved.
+
+Because OpenPower uses an intermediary Linux instance as a boot loader
+(skiroot), feature 1 is needed to implement secure boot for the platform,
+while features 2 and 3 are needed to implement trusted boot.
+
+This patch series starts by removing an x86 assumption from kexec_file:
+kexec_add_buffer uses iomem to find reserved memory ranges, but PowerPC
+uses the memblock subsystem.  A hook is added so that each arch can
+specify how memory ranges can be found.
+
+Also, the memory-walking logic in kexec_add_buffer is useful in this
+implementation to find a free area for the purgatory's stack, so the
+next patch moves that logic to kexec_locate_mem_hole.
+
+The kexec_file_load system call needs to apply relocations to the
+purgatory but adding code for that would duplicate functionality with
+the module loading mechanism, which also needs to apply relocations to
+the kernel modules.  Therefore, this patch series factors out the module
+relocation code so that it can be shared.
+
+One thing that is still missing is crashkernel support, which I intend
+to submit shortly. For now, arch_kexec_kernel_image_probe rejects crash
+kernels.
+
+This code is based on kexec-tools, but with many modifications to adapt
+it to the kernel environment and facilities. Except the purgatory,
+which only has minimal changes.
+
+
+This patch (of 10):
+
+Allow architectures to specify a different memory walking function for
+kexec_add_buffer.  x86 uses iomem to track reserved memory ranges, but
+PowerPC uses the memblock subsystem.
+
+Link: http://lkml.kernel.org/r/1478748449-3894-2-git-send-email-bauerman@linux.vnet.ibm.com
+Signed-off-by: Thiago Jung Bauermann <bauerman@linux.vnet.ibm.com>
+Acked-by: Dave Young <dyoung@redhat.com>
+Acked-by: Balbir Singh <bsingharora@gmail.com>
 Cc: Josh Sklar <sklar@linux.vnet.ibm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Stewart Smith <stewart@linux.vnet.ibm.com>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/integrity/ima/ima_crypto.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/kexec.h   |   29 ++++++++++++++++++++++++++++-
+ kernel/kexec_file.c     |   30 ++++++++++++++++++++++--------
+ kernel/kexec_internal.h |   16 ----------------
+ 3 files changed, 50 insertions(+), 25 deletions(-)
 
-diff -puN security/integrity/ima/ima_crypto.c~ima-platform-independent-hash-value security/integrity/ima/ima_crypto.c
---- a/security/integrity/ima/ima_crypto.c~ima-platform-independent-hash-value
-+++ a/security/integrity/ima/ima_crypto.c
-@@ -477,11 +477,13 @@ static int ima_calc_field_array_hash_tfm
- 		u8 buffer[IMA_EVENT_NAME_LEN_MAX + 1] = { 0 };
- 		u8 *data_to_hash = field_data[i].data;
- 		u32 datalen = field_data[i].len;
-+		u32 datalen_to_hash =
-+		    !ima_canonical_fmt ? datalen : cpu_to_le32(datalen);
+diff -puN include/linux/kexec.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer
++++ a/include/linux/kexec.h
+@@ -148,7 +148,34 @@ struct kexec_file_ops {
+ 	kexec_verify_sig_t *verify_sig;
+ #endif
+ };
+-#endif
++
++/**
++ * struct kexec_buf - parameters for finding a place for a buffer in memory
++ * @image:	kexec image in which memory to search.
++ * @buffer:	Contents which will be copied to the allocated memory.
++ * @bufsz:	Size of @buffer.
++ * @mem:	On return will have address of the buffer in memory.
++ * @memsz:	Size for the buffer in memory.
++ * @buf_align:	Minimum alignment needed.
++ * @buf_min:	The buffer can't be placed below this address.
++ * @buf_max:	The buffer can't be placed above this address.
++ * @top_down:	Allocate from top of memory.
++ */
++struct kexec_buf {
++	struct kimage *image;
++	char *buffer;
++	unsigned long bufsz;
++	unsigned long mem;
++	unsigned long memsz;
++	unsigned long buf_align;
++	unsigned long buf_min;
++	unsigned long buf_max;
++	bool top_down;
++};
++
++int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
++			       int (*func)(u64, u64, void *));
++#endif /* CONFIG_KEXEC_FILE */
  
- 		if (strcmp(td->name, IMA_TEMPLATE_IMA_NAME) != 0) {
- 			rc = crypto_shash_update(shash,
--						(const u8 *) &field_data[i].len,
--						sizeof(field_data[i].len));
-+						(const u8 *) &datalen_to_hash,
-+						sizeof(datalen_to_hash));
- 			if (rc)
- 				break;
- 		} else if (strcmp(td->fields[i]->field_id, "n") == 0) {
-_
-
-Patches currently in -mm which might be from andreas.steffen@strongswan.org are
-
-
+ struct kimage {
+ 	kimage_entry_t head;
+diff -puN kernel/kexec_file.c~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer kernel/kexec_file.c
+--- a/kernel/kexec_file.c~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer
++++ a/kernel/kexec_file.c
+@@ -428,6 +428,27 @@ static int locate_mem_hole_callback(u64
+ 	return locate_mem_hole_bottom_up(start, end, kbuf);
+ }
+ 
++/**
++ * arch_kexec_walk_mem - call func(data) on free memory regions
++ * @kbuf:	Context info for the search. Also passed to @func.
++ * @func:	Function to call for each memory region.
++ *
++ * Return: The memory walk will stop when func returns a non-zero value
++ * and that value will be returned. If all free regions are visited without
++ * func returning non-zero, then zero will be returned.
++ */
++int __weak arch_kexec_walk_mem(struct kexec_buf *kbuf,
++			       int (*func)(u64, u64, void *))
++{
++	if (kbuf->image->type == KEXEC_TYPE_CRASH)
++		return walk_iomem_res_desc(crashk_res.desc,
++					   IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
++					   crashk_res.start, crashk_res.end,
++					   kbuf, func);
++	else
++		return walk_system_ram_res(0, ULONG_MAX, kbuf, func);
++}
++
+ /*
+  * Helper function for placing a buffer in a kexec segment. This assumes
+  * that kexec_mutex is held.
+@@ -474,14 +495,7 @@ int kexec_add_buffer(struct kimage *imag
+ 	kbuf->top_down = top_down;
+ 
+ 	/* Walk the RAM ranges and allocate a suitable range for the buffer */
+-	if (image->type == KEXEC_TYPE_CRASH)
+-		ret = walk_iomem_res_desc(crashk_res.desc,
+-				IORESOURCE_SYSTEM_RAM | IORESOURCE_BUSY,
+-				crashk_res.start, crashk_res.end, kbuf,
+-				locate_mem_hole_callback);
+-	else
+-		ret = walk_system_ram_res(0, -1, kbuf,
+-					  locate_mem_hole_callback);
++	ret = arch_kexec_walk_mem(kbuf, locate_mem_hole_callback);
+ 	if (ret != 1) {
+ 		/* A suitable memory range could not be found for buffer */
+ 		return -EADDRNOTAVAIL;
+diff -puN kernel/kexec_internal.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer kernel/kexec_internal.h
+--- a/kernel/kexec_internal.h~kexec_file-allow-arch-specific-memory-walking-for-kexec_add_buffer
++++ a/kernel/kexec_internal.h
+@@ -20,22 +20,6 @@ struct kexec_sha_region {
+ 	unsigned long len;
+ };
+ 
+-/*
+- * Keeps track of buffer parameters as provided by caller for requesting
+- * memory placement of buffer.
+- */
+-struct kexec_buf {
+-	struct kimage *image;
+-	char *buffer;
+-	unsigned long bufsz;
+-	unsigned long mem;
+-	unsigned long memsz;
+-	unsigned long buf_align;
+-	unsigned long buf_min;
+-	unsigned long buf_max;
+-	bool top_down;		/* allocate from top of memory hole */
+-};
